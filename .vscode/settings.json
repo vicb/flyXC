@@ -1,0 +1,43 @@
+{
+  "eslint.autoFixOnSave": true,
+  "eslint.validate": [
+    "javascript",
+    {
+      "language": "typescript",
+      "autoFix": true
+    },
+    {
+      "language": "typescriptreact",
+      "autoFix": true
+    }
+  ],
+  "editor.formatOnSave": true,
+  "[javascript]": {
+    "editor.formatOnSave": false
+  },
+  "[javascriptreact]": {
+    "editor.formatOnSave": false
+  },
+  "[typescript]": {
+    "editor.formatOnSave": false
+  },
+  "[typescriptreact]": {
+    "editor.formatOnSave": false
+  },
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#7295b1",
+    "activityBar.foreground": "#15202b",
+    "activityBar.inactiveForeground": "#15202b99",
+    "activityBarBadge.background": "#e8d6e0",
+    "activityBarBadge.foreground": "#15202b",
+    "titleBar.activeBackground": "#557c9b",
+    "titleBar.inactiveBackground": "#557c9b99",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveForeground": "#e7e7e799",
+    "statusBar.background": "#557c9b",
+    "statusBarItem.hoverBackground": "#7295b1",
+    "statusBar.foreground": "#e7e7e7"
+  },
+  "peacock.color": "#557c9b",
+  "git.ignoreLimitWarning": true
+}

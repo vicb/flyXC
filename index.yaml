@@ -1,0 +1,6 @@
+indexes:
+- kind: "Tracker"
+  properties:
+  - name: "device"
+  - name: "updated"
+    direction: desc

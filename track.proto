@@ -1,0 +1,18 @@
+syntax = "proto2";
+
+message Fix {
+  sint32 lat = 0;
+  sint32 lon = 1;
+  sint32 alt = 2;
+  sint32 gndAlt = 3;
+  uint32 ts = 4;
+}
+
+message Track {
+  string pilot = 0;
+  repeated Fix fixes = 1;
+}
+
+message Tracks {
+  repeated Track track = 0;
+}

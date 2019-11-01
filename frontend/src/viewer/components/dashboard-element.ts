@@ -1,0 +1,93 @@
+import { CSSResult, LitElement, TemplateResult, css, customElement, html, property } from 'lit-element';
+import { UNITS, formatUnit } from '../logic/units';
+
+import { Fixes } from '../logic/map';
+import { sampleAt } from '../logic/math';
+
+@customElement('dashboard-ctrl-element')
+export class DashboardElement extends LitElement {
+  @property()
+  timestamp = 0;
+
+  @property()
+  fixes: Fixes | null = null;
+
+  @property({ attribute: false })
+  units: { [type: string]: UNITS } | null = null;
+
+  static get styles(): CSSResult[] {
+    return [
+      css`
+        :host {
+          display: block;
+          border: 1px inset #555;
+          padding: 4px;
+          margin: 2px 5px;
+          background-color: #adff2f;
+          text-align: right;
+          border-radius: 4px;
+          opacity: 0.9;
+          user-select: none;
+          float: right;
+          clear: both;
+        }
+        h3 {
+          padding: 0 0 5px 0;
+          margin: 0;
+        }
+        ul {
+          list-style-type: none;
+          margin: 0;
+          padding: 0;
+        }
+      `,
+    ];
+  }
+
+  protected getElevation(): number {
+    if (!this.fixes) {
+      return 0;
+    }
+    return sampleAt(this.fixes.ts, this.fixes.alt, [this.timestamp])[0];
+  }
+
+  protected getGroundElevation(): number {
+    if (!this.fixes) {
+      return 0;
+    }
+    return sampleAt(this.fixes.ts, this.fixes.gndAlt, [this.timestamp])[0];
+  }
+
+  protected getVz(): number {
+    if (!this.fixes) {
+      return 0;
+    }
+    return sampleAt(this.fixes.ts, this.fixes.vz, [this.timestamp])[0];
+  }
+
+  protected getVx(): number {
+    if (!this.fixes) {
+      return 0;
+    }
+    return sampleAt(this.fixes.ts, this.fixes.vx, [this.timestamp])[0];
+  }
+
+  render(): TemplateResult {
+    const alt = this.getElevation();
+    const gndAlt = this.getGroundElevation();
+    return this.units
+      ? html`
+          <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
+          <h3><i class="fas fa-tachometer-alt fa-2x"></i></h3>
+          <ul>
+            <li>${formatUnit(alt, this.units.altitude)} [alt]</li>
+            <li>${formatUnit(Math.max(0, alt - gndAlt), this.units.altitude)} [gndAlt]</li>
+            <li>${formatUnit(this.getVz(), this.units.vario)} [Vz]</li>
+            <li>${formatUnit(this.getVx(), this.units.speed)} [Vx]</li>
+            <li>${new Date(this.timestamp).toLocaleTimeString()}</li>
+            <li>${new Date(this.timestamp).toLocaleDateString()}</li>
+          </ul>
+        `
+      : html``;
+  }
+}

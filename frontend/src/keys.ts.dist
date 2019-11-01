@@ -1,0 +1,26 @@
+// Copy to key.ts and add your own keys
+export const keys = {
+  gmaps: { domain1: 'key1', domain2: 'key2', '*': 'fallback' },
+  ign: { domain1: 'key1', domain2: 'key2', '*': 'fallback' },
+};
+
+// Returns the api key for the current domain:
+// - checks the referrer first (i.e. when embedded in an iframe),
+// - checks the doc location otherwise.
+export function getApiKey(apiName: string): string {
+  const allKeys = keys[apiName];
+
+  if (allKeys != null) {
+    const a = document.createElement('a');
+    a.href = document.referrer || document.location.href;
+    const hostname = a.hostname;
+    if (hostname in allKeys) {
+      return allKeys[hostname];
+    } else if ('*' in allKeys) {
+      return allKeys['*'];
+    }
+  }
+
+  return 'no-api-key';
+}
+

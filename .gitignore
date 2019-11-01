@@ -1,0 +1,12 @@
+node_modules/
+.gitallowed
+/frontend/src/keys.ts
+/app/src/keys.ts
+/app/server.js
+/run/index.js
+/ds
+srtm/
+frontend/static/js/archives.js
+frontend/static/js/flyxc.js
+frontend/static/js/status.js
+frontend/static/js/tracking.js

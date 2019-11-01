@@ -1,0 +1,20 @@
+{
+  "name": "airspaces",
+  "version": "1.0.0",
+  "description": "",
+  "main": "gen-geojson.js",
+  "scripts": {
+    "download": "./download.sh",
+    "geojson": "node togeojson",
+    "tiles": "tippecanoe -e tiles -z 13 -l asp -f -S 3 -pS -ab -pi -pt -pC -- airspaces.geojson"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^3.0.2",
+    "geojson": "^0.5.0",
+    "glob": "^7.1.4",
+    "xml-js": "^1.6.11"
+  }
+}

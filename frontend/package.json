@@ -1,0 +1,35 @@
+{
+  "name": "flyxc-viewer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts}' --quiet --fix"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@mapbox/vector-tile": "^1.3.1",
+    "@ui5/webcomponents": "^1.0.0-rc.4",
+    "cookiesjs": "^3.0.3",
+    "d3-array": "^2.3.3",
+    "d3-scale-chromatic": "^1.5.0",
+    "geolib": "^3.0.4",
+    "lit-element": "^2.2.1",
+    "lit-html": "^1.1.2",
+    "pbf": "^3.2.1",
+    "pwa-helpers": "^0.9.1",
+    "redux": "^4.0.4",
+    "redux-thunk": "^2.3.0",
+    "reselect": "^4.0.0",
+    "tslib": "^1.10.0"
+  },
+  "devDependencies": {
+    "@types/d3-array": "^2.0.0",
+    "@types/d3-scale-chromatic": "^1.3.1",
+    "@types/googlemaps": "^3.38.0",
+    "@types/pbf": "^3.0.2",
+    "rollup-plugin-json": "^4.0.0"
+  }
+}
