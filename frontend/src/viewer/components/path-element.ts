@@ -307,6 +307,10 @@ export class PathCtrlElement extends connect(store)(LitElement) {
             <ui5-label for="link">Link</ui5-label>
             <ui5-input id="link" readonly value=${document.location.href}></ui5-input>
           </div>
+          <br/>
+          <div>
+            <ui5-label><a href=${this.getXcTrackHref()}>Open with XcTrack</a></ui5-label>
+          </div>
           <img src="_qr.svg?text=${this.getQrText()}" width="256" height="256" />
         </section>
         <div slot="footer"	style="display:flex;align-items:center;padding:.5rem">
@@ -402,5 +406,15 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     }
     history.replaceState({}, '', String(url));
     return encodeURIComponent(String(url));
+  }
+
+  protected getXcTrackHref(): string {
+    const params = new URLSearchParams();
+    if (this.line) {
+      const points: string[] = [];
+      this.line.getPath().forEach((latLng: google.maps.LatLng) => points.push(latLng.lat().toFixed(6) + ',' + latLng.lng().toFixed(6)));
+      params.set('route', points.join(':'));
+    }
+    return `http://xctrack.org/xcplanner?${params}`;
   }
 }
