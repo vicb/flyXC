@@ -212,7 +212,7 @@ async function addGroundAltitude(fixes: Fix[]): Promise<unknown> {
   return;
 }
 
-function getHgtFilename(lat: number, lon: number): string {
+export function getHgtFilename(lat: number, lon: number): string {
   const ns = lat > 0 ? 'N' : 'S';
   const ew = lon > 0 ? 'E' : 'W';
   return `${ns}${String(Math.abs(lat)).padStart(2, '0')}${ew}${String(Math.abs(lon)).padStart(3, '0')}.hgt`;
