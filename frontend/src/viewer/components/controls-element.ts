@@ -77,6 +77,7 @@ export class ControlsElement extends connect(store)(LitElement) {
         :host {
           display: block;
           font: 12px 'Nobile', verdana, sans-serif;
+          height: 1px;
         }
       `,
     ];
