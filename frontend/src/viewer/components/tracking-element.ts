@@ -72,15 +72,16 @@ export class TrackingElement extends connect(store)(LitElement) {
     this.info = new google.maps.InfoWindow();
     this.info.close();
 
-    map.data.addListener('mouseover', (event: any) => {
+    map.data.addListener('click', (event: any) => {
       if (hasPointFeature(event)) {
         const f = event.feature as any;
+        const latLng: google.maps.LatLng = f.getGeometry().get();
         const date = new Date(f.getProperty('ts'));
         const content: string[] = [
           `<strong>${f.getProperty('name')}</strong>`,
           `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`,
           `${formatUnit(f.getProperty('alt'), this.units?.altitude || 'm')} ${f.getProperty('speed') != null ? formatUnit(f.getProperty('speed'), this.units?.speed || 'km/h') : ''}`,
-          `Click for directions`,
+          `<a href=${`https://www.google.com/maps/dir//${latLng.lat()},${latLng.lng()}`} target="_blank">Directions</a>`,
         ];
         if (f.getProperty('msg')) {
           content.push(f.getProperty('msg'));
@@ -94,20 +95,6 @@ export class TrackingElement extends connect(store)(LitElement) {
         this.info?.open(map);      
       }      
     });
-
-    map.data.addListener('click', (event: any) => {
-      if (hasPointFeature(event)) {
-        const f = event.feature as any;
-        const latLng: google.maps.LatLng = f.getGeometry().get();
-        window.open(`https://www.google.com/maps/dir//${latLng.lat()},${latLng.lng()}`);
-      }      
-    });    
-
-    map.data.addListener('mouseout', (event: any) => {
-      if (hasPointFeature(event)) {
-        this.info?.close();
-      }      
-    });
   }
 
   protected setMapStyle(map: google.maps.Map): void {
@@ -117,7 +104,7 @@ export class TrackingElement extends connect(store)(LitElement) {
         const ts = feature.getProperty('ts');
         const old = now - 5 * 3600 * 1000;
         const s = linearInterpolate(old, 10, now, 100, ts);
-        let color = `hsl(111, ${s}%, 53%, 1)`;
+        let color = feature.getProperty('msg') ? `hsl(59, ${s}%, 50%)` : `hsl(111, ${s}%, 53%)`;
         if (feature.getProperty('emergency')) {
           color = 'red';            
         }
