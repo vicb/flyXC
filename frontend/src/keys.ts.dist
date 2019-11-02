@@ -5,14 +5,14 @@ export const keys = {
 };
 
 // Returns the api key for the current domain:
-// - checks the referrer first (i.e. when embedded in an iframe),
-// - checks the doc location otherwise.
+// - checks the top most window first (i.e. when embedded in an iframe),
+// - checks the window location otherwise.
 export function getApiKey(apiName: string): string {
   const allKeys = keys[apiName];
 
   if (allKeys != null) {
     const a = document.createElement('a');
-    a.href = document.referrer || document.location.href;
+    a.href = window.top?.location.href || window.location.href;
     const hostname = a.hostname;
     if (hostname in allKeys) {
       return allKeys[hostname];
