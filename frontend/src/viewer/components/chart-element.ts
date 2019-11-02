@@ -52,7 +52,7 @@ export class ChartElement extends connect(store)(LitElement) {
       this.ts = map.ts;
       this.minTs = mapSel.minTs(map);
       this.maxTs = mapSel.maxTs(map);
-      this.units = state.map.units;
+      this.units = map.units;
       this.tsOffsets = mapSel.tsOffsets(map);
     }
   }
@@ -114,6 +114,8 @@ export class ChartElement extends connect(store)(LitElement) {
       css`
         :host {
           display: block;
+          width: 100%;
+          height: 100%;
           position: relative;
           font: 12px 'Nobile', verdana, sans-serif;
         }
@@ -271,7 +273,8 @@ export class ChartElement extends connect(store)(LitElement) {
 
   render(): TemplateResult {
     if (!this.width) {
-      this.updateSize();
+      // FF and Edge would report a size of 0x0 without setTimeout
+      setTimeout(() => this.updateSize(), 0);
     }
     return html`
       <svg
