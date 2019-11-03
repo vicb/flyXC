@@ -14,6 +14,9 @@ export async function getMissingSrtm(): Promise<Set<string>> {
   const missingFile = new Set<string>();
   for (let i = 0; i < tracks.length; i++) {
     const track = tracks[i][0];
+    if (!track) {
+      continue;
+    }
     const lats: number[] = [];
     const lons: number[] = [];
     let lat = 0;
