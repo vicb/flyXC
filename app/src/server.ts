@@ -20,7 +20,6 @@ import { Track, getLastTracks, parse, parseFromUrl, retrieveFromHistory } from '
 import { Keys } from './keys';
 import { Tracks } from '../../frontend/src/viewer/logic/track';
 import { encode } from './waypoints';
-import { getMissingSrtm } from './coverage';
 
 const datastore = new Datastore();
 
@@ -219,19 +218,6 @@ router.post('/_waypoints', (ctx: K.Context): void => {
 router.get('/_qr.svg', async (ctx: K.Context) => {
   ctx.set('Content-Type', 'image/svg+xml');
   ctx.body = await QRCode.toString(ctx.query.text, { type: 'svg' });
-});
-
-router.get('/_coverage.html', async (ctx: K.Context) => {
-  const files: Set<string> = await getMissingSrtm();
-  if (!ctx.headers.host.startsWith('localhost')) {
-    ctx.throw(404);
-  } else {
-    let html = `<h1>Missing Dems</h1>
-    <a target="_blank" href="http://viewfinderpanoramas.org/Coverage%20map%20viewfinderpanoramas_org3.htm">download</a>
-    <ul>`;
-    files.forEach(f => (html += `<li>${f}</li>`));
-    ctx.body = html + `</ul>`;
-  }
 });
 
 app

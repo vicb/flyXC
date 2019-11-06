@@ -1,22 +1,23 @@
+import { IncomingMessage } from 'http';
 import { Keys } from '../keys';
+import { Stream } from 'stream';
 import { parse as parseGpx } from './gpx';
 import { parse as parseIgc } from './igc';
 import { parse as parseKml } from './kml';
 import { parse as parseTrk } from './trk';
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { Storage } = require('@google-cloud/storage');
 const { Datastore } = require('@google-cloud/datastore');
 const crypto = require('crypto');
 const zlib = require('zlib');
 const request = require('request-zero');
 const polyline = require('google-polyline');
 const simplify = require('simplify-path');
+const {get} = require('https');
+const lru = require('tiny-lru');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
-const storage = new Storage();
-const bucket = storage.bucket('srtm-data');
-
 const datastore = new Datastore();
+const hgtCache = lru(300);
 
 export interface Fix {
   lat: number;
@@ -180,30 +181,27 @@ export async function parse(file: string): Promise<Track[]> {
 }
 
 async function addGroundAltitude(fixes: Fix[]): Promise<unknown> {
-  const hgtContent: Map<string, Buffer | null> = new Map();
   for (let i = 0; i < fixes.length; i++) {
     const fix = fixes[i];
     const lat = fix.lat;
     const south = Math.floor(lat);
     const lon = fix.lon;
     const west = Math.floor(lon);
+    let buffer: Buffer | null;
+    const url = getHgtUrl(south, west);
 
-    const filename = getHgtFilename(south, west);
-    let buffer: Buffer | null = null;
-    const hgt = bucket.file(filename);
-    if (!hgtContent.has(filename)) {
-      if ((await hgt.exists())[0]) {
-        buffer = (await bucket.file(filename).download())[0];
-      }
-      hgtContent.set(filename, buffer);
+    if (!hgtCache.has(url)) {
+      const message: IncomingMessage = await new Promise(resolve => get(url, resolve));
+      buffer = message.statusCode == 200 ? await bufferStream(message.pipe(zlib.createGunzip())) : null;
+      hgtCache.set(url, buffer);
     } else {
-      buffer = hgtContent.get(filename) as Buffer;
+      buffer = hgtCache.get(url) as Buffer;
     }
 
     let gndAlt = 0;
     if (buffer) {
-      // File is 1201 lines of 1201 16b words starting from the NW towards SE
-      const offset = Math.round((lon - west) * 1200) + Math.round((south + 1 - lat) * 1200) * 1201;
+      // File is 3600 lines of 3601 16b words starting from the NW towards SE
+      const offset = Math.round((lon - west) * 3600) + Math.round((south + 1 - lat) * 3600) * 3601;
       gndAlt = buffer.readInt16BE(offset * 2);
     }
 
@@ -212,10 +210,23 @@ async function addGroundAltitude(fixes: Fix[]): Promise<unknown> {
   return;
 }
 
-export function getHgtFilename(lat: number, lon: number): string {
+async function bufferStream(stream: Stream): Promise<Buffer> {
+  return new Promise(resolve => {
+    const data: any[] = [];
+    stream.on("data", d => {
+      data.push(d);
+    });
+    stream.on("end", () => {
+      resolve(Buffer.concat(data));
+    });
+  });
+}
+
+export function getHgtUrl(lat: number, lon: number): string {
   const ns = lat > 0 ? 'N' : 'S';
   const ew = lon > 0 ? 'E' : 'W';
-  return `${ns}${String(Math.abs(lat)).padStart(2, '0')}${ew}${String(Math.abs(lon)).padStart(3, '0')}.hgt`;
+  const nsLat = `${ns}${String(Math.abs(lat)).padStart(2, '0')}`
+  return `https://elevation-tiles-prod.s3.amazonaws.com/skadi/${nsLat}/${nsLat}${ew}${String(Math.abs(lon)).padStart(3, '0')}.hgt.gz`;
 }
 
 export function differentialEncodeFixes(fixes: Fix[]): Fix[] {

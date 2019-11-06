@@ -40,6 +40,7 @@
     "qrcode": "^1.4.4",
     "request-zero": "^0.2.3",
     "simplify-path": "^1.1.0",
+    "tiny-lru": "^7.0.2",
     "tslib": "^1.10.0",
     "typescript": "^3.7.2",
     "xmlbuilder": "^13.0.2",
