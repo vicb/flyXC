@@ -148,6 +148,8 @@ export class PathCtrlElement extends connect(store)(LitElement) {
           });
           this.plannerElement.addEventListener('share', () => {
             const dialog = shadowRoot.getElementById('share-dialog') as any;
+            const qr = shadowRoot.getElementById('qr-code') as HTMLImageElement;
+            qr.setAttribute('src', `_qr.svg?text=${this.getQrText()}`);
             dialog.open();
           });
           this.plannerElement.addEventListener('download', () => {
@@ -311,7 +313,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
           <div>
             <ui5-label><a href=${this.getXcTrackHref()}>Open with XcTrack</a></ui5-label>
           </div>
-          <img src="_qr.svg?text=${this.getQrText()}" width="256" height="256" />
+          <img id="qr-code" width="256" height="256" />
         </section>
         <div slot="footer"	style="display:flex;align-items:center;padding:.5rem">
           <div style="flex: 1"></div>
