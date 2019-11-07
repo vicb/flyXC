@@ -85,6 +85,15 @@ router.get(
 router.get(
   '/_status.json',
   async (ctx: K.Context): Promise<void> => {
+    const totalTrackers = (await datastore
+      .createQuery('Tracker')
+      .select('__key__')
+      .run())[0].length;
+    const unactivatedTrackers = (await datastore
+      .createQuery('Tracker')
+      .filter('device', '=', 'no')
+      .select('__key__')
+      .run())[0].length;
     ctx.set('Content-Type', 'application/json');
     ctx.body = JSON.stringify({
       'last-request': Number(await redis.get('trackers.request')),
@@ -95,10 +104,8 @@ router.get(
         .filter('active', '=', true)
         .select('__key__')
         .run())[0].length,
-      trackers: (await datastore
-        .createQuery('Tracker')
-        .select('__key__')
-        .run())[0].length,
+      trackers: totalTrackers - unactivatedTrackers,
+      unactivatedTrackers,
       tracks: (await datastore
         .createQuery('Track')
         .select('__key__')

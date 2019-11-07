@@ -54,7 +54,10 @@ export class FlyXcStatusElement extends LitElement {
           last refresh: ${this.status['num-refresh']} trackers on ${lastRefresh.toLocaleDateString()}
           ${lastRefresh.toLocaleTimeString()}
         </li>
-        <li>active trackers ${this.status['active-trackers']}/${this.status.trackers}</li>
+        <li>
+          active trackers ${this.status['active-trackers']}/${this.status.trackers} (${this.status.unactivatedTrackers}
+          not activated)
+        </li>
         <li>tracks ${this.status.tracks}</li>
       </ul>
     `;
