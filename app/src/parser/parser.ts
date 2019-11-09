@@ -180,6 +180,22 @@ export async function parse(file: string): Promise<Track[]> {
   return diffTracks;
 }
 
+function httpsGet(url: string): Promise<IncomingMessage> {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    const req = get(url, (incomingMessage: IncomingMessage) => {
+      const statusCode = incomingMessage.statusCode || -1;
+      if (statusCode < 200 || statusCode > 300) {
+        reject(`status code = ${statusCode}`);
+      } else {
+        console.log(`SRTM connection ${(Date.now() - start) / 1000}s`)
+        resolve(incomingMessage);
+      }  
+      req.on("error", (e: any) => reject(e));
+    });
+  });
+}
+
 async function addGroundAltitude(fixes: Fix[]): Promise<unknown> {
   for (let i = 0; i < fixes.length; i++) {
     const fix = fixes[i];
@@ -187,13 +203,16 @@ async function addGroundAltitude(fixes: Fix[]): Promise<unknown> {
     const south = Math.floor(lat);
     const lon = fix.lon;
     const west = Math.floor(lon);
-    let buffer: Buffer | null;
+    let buffer: Buffer | null = null;
     const url = getHgtUrl(south, west);
-
     if (!hgtCache.has(url)) {
-      const message: IncomingMessage = await new Promise(resolve => get(url, resolve));
-      buffer = message.statusCode == 200 ? await bufferStream(message.pipe(zlib.createGunzip())) : null;
-      hgtCache.set(url, buffer);
+      try {
+        const message: IncomingMessage = await httpsGet(url);
+        buffer = await bufferStream(message.pipe(zlib.createGunzip()));
+        hgtCache.set(url, buffer);
+      } catch (e) {
+        console.error(e);
+      }
     } else {
       buffer = hgtCache.get(url) as Buffer;
     }
@@ -211,12 +230,14 @@ async function addGroundAltitude(fixes: Fix[]): Promise<unknown> {
 }
 
 async function bufferStream(stream: Stream): Promise<Buffer> {
+  const start = Date.now();
   return new Promise(resolve => {
     const data: any[] = [];
     stream.on("data", d => {
       data.push(d);
     });
     stream.on("end", () => {
+      console.log(`SRTM download ${(Date.now() - start) / 1000}s`)
       resolve(Buffer.concat(data));
     });
   });
