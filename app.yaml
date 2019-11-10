@@ -1,5 +1,11 @@
 runtime: nodejs12
 
+instance_class: F1
+
+automatic_scaling:
+  max_concurrent_requests: 80
+  target_cpu_utilization: 0.9
+
 handlers:
 - url: /.*
   secure: always
