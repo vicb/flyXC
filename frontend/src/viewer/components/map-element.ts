@@ -71,7 +71,7 @@ export class MapElement extends connect(store)(LitElement) {
     super();
     window.addEventListener('google-map-ready', () => {
       const shadowRoot = this.shadowRoot as ShadowRoot;
-      const map = this.map = new google.maps.Map(shadowRoot.querySelector('#map'), {
+      const map = (this.map = new google.maps.Map(shadowRoot.querySelector('#map'), {
         center: { lat: 45, lng: 0 },
         zoom: 5,
         minZoom: 5,
@@ -92,7 +92,7 @@ export class MapElement extends connect(store)(LitElement) {
           ],
           style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
         },
-      });
+      }));
       store.dispatch(setMap(map));
 
       const ctrlsEl = document.createElement('controls-element');
@@ -118,16 +118,20 @@ export class MapElement extends connect(store)(LitElement) {
 
       document.body.ondrop = (e: DragEvent): void => this.handleDrop(e);
       document.body.ondragover = (e: DragEvent): void => e.preventDefault();
-      
+
       const qs = new URL(document.location.href).search.substr(1);
       const searchParams = new URLSearchParams(qs);
-      if (!searchParams.has('track') && !searchParams.has('h') && !searchParams.has('p') 
-        && "geolocation" in navigator) {
-          navigator.geolocation.getCurrentPosition((p: any) => {
-            map.setCenter(new google.maps.LatLng(p.coords.latitude, p.coords.longitude));
-            map.setZoom(12);
-          });
-      }      
+      if (
+        !searchParams.has('track') &&
+        !searchParams.has('h') &&
+        !searchParams.has('p') &&
+        'geolocation' in navigator
+      ) {
+        navigator.geolocation.getCurrentPosition((p: any) => {
+          map.setCenter(new google.maps.LatLng(p.coords.latitude, p.coords.longitude));
+          map.setZoom(12);
+        });
+      }
       downloadTracks(searchParams.getAll('track'));
       downloadTracksFromHistory(searchParams.getAll('h'));
     });
@@ -176,23 +180,23 @@ export class MapElement extends connect(store)(LitElement) {
       <topo-otm .map=${this.map}></topo-otm>
       <task-element .map=${this.map} .query=${document.location.search.substr(1)}></task-element>
       ${this.tracks?.map(
-          (track, i) =>
-            html`
-              <gm-marker
-                .map=${this.map}
-                .track=${track}
-                .timestamp=${this.timestamp}
-                .index=${i}
-                .active=${i == this.currentTrack}
-              ></gm-marker>
-            `,
-        )}
+        (track, i) =>
+          html`
+            <gm-marker
+              .map=${this.map}
+              .track=${track}
+              .timestamp=${this.timestamp}
+              .index=${i}
+              .active=${i == this.currentTrack}
+            ></gm-marker>
+          `,
+      )}
       ${this.tracks?.map(
-          (track, i) =>
-            html`
-              <gm-line .map=${this.map} .track=${track} .index=${i} .active=${i == this.currentTrack}></gm-line>
-            `,
-        )}
+        (track, i) =>
+          html`
+            <gm-line .map=${this.map} .track=${track} .index=${i} .active=${i == this.currentTrack}></gm-line>
+          `,
+      )}
     `;
   }
 

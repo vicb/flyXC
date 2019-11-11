@@ -27,7 +27,7 @@ export class ArchivesElement extends LitElement {
           background: #aaa;
           color: black;
           border-radius: 3px;
-          box-shadow: 0 0 5px rgba(0,0,0,0.5);
+          box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
           padding: 2px;
           text-align: center;
         }
@@ -43,12 +43,12 @@ export class ArchivesElement extends LitElement {
         .popper .popper__arrow {
           border-color: #aaa;
         }
-           .popper[x-placement^="top"],
-        .tooltip[x-placement^="top"] {
+        .popper[x-placement^='top'],
+        .tooltip[x-placement^='top'] {
           margin-bottom: 5px;
         }
-        .popper[x-placement^="top"] .popper__arrow,
-        .tooltip[x-placement^="top"] .tooltip-arrow {
+        .popper[x-placement^='top'] .popper__arrow,
+        .tooltip[x-placement^='top'] .tooltip-arrow {
           border-width: 5px 5px 0 5px;
           border-left-color: transparent;
           border-right-color: transparent;
@@ -58,12 +58,12 @@ export class ArchivesElement extends LitElement {
           margin-top: 0;
           margin-bottom: 0;
         }
-        .popper[x-placement^="bottom"],
-        .tooltip[x-placement^="bottom"] {
+        .popper[x-placement^='bottom'],
+        .tooltip[x-placement^='bottom'] {
           margin-top: 5px;
         }
-        .tooltip[x-placement^="bottom"] .tooltip-arrow,
-        .popper[x-placement^="bottom"] .popper__arrow {
+        .tooltip[x-placement^='bottom'] .tooltip-arrow,
+        .popper[x-placement^='bottom'] .popper__arrow {
           border-width: 0 5px 5px 5px;
           border-left-color: transparent;
           border-right-color: transparent;
@@ -73,12 +73,12 @@ export class ArchivesElement extends LitElement {
           margin-top: 0;
           margin-bottom: 0;
         }
-        .tooltip[x-placement^="right"],
-        .popper[x-placement^="right"] {
+        .tooltip[x-placement^='right'],
+        .popper[x-placement^='right'] {
           margin-left: 5px;
         }
-        .popper[x-placement^="right"] .popper__arrow,
-        .tooltip[x-placement^="right"] .tooltip-arrow {
+        .popper[x-placement^='right'] .popper__arrow,
+        .tooltip[x-placement^='right'] .tooltip-arrow {
           border-width: 5px 5px 5px 0;
           border-left-color: transparent;
           border-top-color: transparent;
@@ -88,12 +88,12 @@ export class ArchivesElement extends LitElement {
           margin-left: 0;
           margin-right: 0;
         }
-        .popper[x-placement^="left"],
-        .tooltip[x-placement^="left"] {
+        .popper[x-placement^='left'],
+        .tooltip[x-placement^='left'] {
           margin-right: 5px;
         }
-        .popper[x-placement^="left"] .popper__arrow,
-        .tooltip[x-placement^="left"] .tooltip-arrow {
+        .popper[x-placement^='left'] .popper__arrow,
+        .tooltip[x-placement^='left'] .tooltip-arrow {
           border-width: 5px 0 5px 5px;
           border-top-color: transparent;
           border-right-color: transparent;
@@ -102,14 +102,14 @@ export class ArchivesElement extends LitElement {
           top: calc(50% - 5px);
           margin-left: 0;
           margin-right: 0;
-        }        
+        }
       `,
     ];
   }
 
   connectedCallback(): void {
     fetch(`/_archives?tracks=${this.numtracks}`)
-      .then(r => r.ok ? r.json() : [])
+      .then(r => (r.ok ? r.json() : []))
       .then(tracks => (this.tracks = tracks));
     super.connectedCallback();
   }
@@ -121,9 +121,13 @@ export class ArchivesElement extends LitElement {
         const location = track.city && track.country ? ` - ${track.city} (${track.country})` : '';
         const date = new Date(track.created);
         return html`
-            <a href="/?h=${track.hash}" @mouseenter=${(e: MouseEvent): void => this.createPopper(e, track.path)} @mouseleave=${this.destroyPopper}>
-              Track${location} - ${date.toLocaleDateString()} ${date.toLocaleTimeString()}
-            </a><br />
+          <a
+            href="/?h=${track.hash}"
+            @mouseenter=${(e: MouseEvent): void => this.createPopper(e, track.path)}
+            @mouseleave=${this.destroyPopper}
+          >
+            Track${location} - ${date.toLocaleDateString()} ${date.toLocaleTimeString()} </a
+          ><br />
         `;
       })}
     `;
@@ -135,7 +139,9 @@ export class ArchivesElement extends LitElement {
     this.popper = new Tooltip(target, {
       placement: 'right',
       html: true,
-      title: `<img src="https://maps.googleapis.com/maps/api/staticmap?path=weight:3|color:red|enc:${path}&size=300x300&key=${getApiKey('gmaps')}">`,
+      title: `<img src="https://maps.googleapis.com/maps/api/staticmap?path=weight:3|color:red|enc:${path}&size=300x300&key=${getApiKey(
+        'gmaps',
+      )}">`,
     });
     this.popper.show();
   }
@@ -143,5 +149,5 @@ export class ArchivesElement extends LitElement {
   protected destroyPopper(): void {
     this.popper?.dispose();
     this.popper = null;
-  }  
+  }
 }

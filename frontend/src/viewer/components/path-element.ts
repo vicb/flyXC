@@ -12,17 +12,17 @@ import { connect } from 'pwa-helpers';
 import { formatUnit } from '../logic/units';
 
 const ROUTE_STROKE_COLORS = {
-  [CircuitType.OPEN_DISTANCE]: '#ff6600', 
-  [CircuitType.OUT_AND_RETURN]: '#ff9933', 
-  [CircuitType.FLAT_TRIANGLE]: '#ffcc00', 
+  [CircuitType.OPEN_DISTANCE]: '#ff6600',
+  [CircuitType.OUT_AND_RETURN]: '#ff9933',
+  [CircuitType.FLAT_TRIANGLE]: '#ffcc00',
   [CircuitType.FAI_TRIANGLE]: '#ffff00',
 };
 
-const WAYPOINT_FORMATS: {[id: string]: string} = {
-  gpx: "GPX",
-  kml: "KML (Google Earth)",
-  tsk: "XCSoar",
-  wpt: "FormatGEO (GpsDump)",
+const WAYPOINT_FORMATS: { [id: string]: string } = {
+  gpx: 'GPX',
+  kml: 'KML (Google Earth)',
+  tsk: 'XCSoar',
+  wpt: 'FormatGEO (GpsDump)',
 };
 
 @customElement('path-ctrl-element')
@@ -33,7 +33,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   expanded = false;
 
   @property({ attribute: false })
-  units: { [type: string]: string } | null = null;  
+  units: { [type: string]: string } | null = null;
 
   @property({ attribute: false })
   get map(): google.maps.Map | null {
@@ -51,10 +51,10 @@ export class PathCtrlElement extends connect(store)(LitElement) {
         }
         if (url.searchParams.has('s')) {
           store.dispatch(setSpeed(parseInt(url.searchParams.get('s') as string, 10)));
-        }  
+        }
         if (url.searchParams.has('l')) {
           store.dispatch(setLeague(url.searchParams.get('l')));
-        }   
+        }
       }
       if (map) {
         if (this.initialPath.length) {
@@ -66,7 +66,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
             bounds.extend(p);
             path.push(p);
           });
-          map.fitBounds(bounds);          
+          map.fitBounds(bounds);
           this.toggleExpanded();
         }
       }
@@ -80,7 +80,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   speed = 0;
 
-  @property({attribute: false})
+  @property({ attribute: false })
   league = 'xc';
 
   initialPath: google.maps.LatLng[] | null = null;
@@ -133,7 +133,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       `,
     ];
   }
-  
+
   protected toggleExpanded(): void {
     this.expanded = !this.expanded;
     if (this.map) {
@@ -230,10 +230,12 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   }
 
   protected getPathPoints(): Point[] {
-    return this.line ? this.line
-      .getPath()
-      .getArray()
-      .map(latLng => ({ lat: latLng.lat(), lon: latLng.lng() })) : [];
+    return this.line
+      ? this.line
+          .getPath()
+          .getArray()
+          .map(latLng => ({ lat: latLng.lat(), lon: latLng.lng() }))
+      : [];
   }
 
   protected updateDistance(): void {
@@ -244,7 +246,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     const distance = google.maps.geometry.spherical.computeLength(line.getPath());
     this.distance = Number((distance / 1000).toFixed(1));
     const points = this.getPathPoints();
-    const measure = new Measure(points);    
+    const measure = new Measure(points);
     const league = LEAGUES[this.league];
     const scores = league.score(measure);
 
@@ -259,13 +261,13 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     store.dispatch(setScore(score));
     let path = score.indexes.map(index => new google.maps.LatLng(points[index].lat, points[index].lon));
     if (score.circuit == CircuitType.FLAT_TRIANGLE || score.circuit == CircuitType.FAI_TRIANGLE) {
-      path =  [path[1], path[2], path[3], path[1]];
+      path = [path[1], path[2], path[3], path[1]];
     } else if (score.circuit == CircuitType.OUT_AND_RETURN) {
       path = [path[1], path[2]];
     }
 
     this.flight = new google.maps.Polyline({
-      map: this.map as google.maps.Map,      
+      map: this.map as google.maps.Map,
       path,
       strokeColor: ROUTE_STROKE_COLORS[score.circuit],
       strokeWeight: 4,
@@ -298,68 +300,75 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   }
 
   protected render(): TemplateResult {
-    return this.units ? html`
-      <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
-      <span .hidden=${!this.expanded}>${formatUnit(this.distance, this.units.distance)}</span>
-      <i class="fas fa-ruler fa-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
+    return this.units
+      ? html`
+          <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
+          <span .hidden=${!this.expanded}>${formatUnit(this.distance, this.units.distance)}</span>
+          <i class="fas fa-ruler fa-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
 
-      <ui5-dialog id="share-dialog" header-text="Share">
-        <section class="form-fields">
-          <div>
-            <ui5-label for="link">Link</ui5-label>
-            <ui5-input id="link" readonly value=${document.location.href}></ui5-input>
-          </div>
-          <br/>
-          <div>
-            <ui5-label><a href=${this.getXcTrackHref()}>Open with XcTrack</a></ui5-label>
-          </div>
-          <img id="qr-code" width="256" height="256" />
-        </section>
-        <div slot="footer"	style="display:flex;align-items:center;padding:.5rem">
-          <div style="flex: 1"></div>
-          <ui5-button design="Emphasized" @click=${this.closeShareDialog}>Close</ui5-button>
-        </div>
-      </ui5-dialog>
-
-      <ui5-dialog id="download-dialog" header-text="Download">
-              <section class="form-fields">
-                <div>
-                  <ui5-label for="link">Turnpoints</ui5-label>
-                  <table>
-                    ${this.getPathPoints().map(
-                      (p, i) =>
-                        html`
-                          <tr>
-                            <td>${String(i + 1).padStart(3, '0')}</td>
-                            <td>${p.lat.toFixed(6)}</td>
-                            <td>${p.lon.toFixed(6)}</td>
-                          </tr>
-                        `,
-                    )}
-                  </table>
-                </div>
-                <div>
-                  <ui5-label for="format">Format</ui5-label>
-                  <ui5-select id="format">
-                    ${Object.getOwnPropertyNames(WAYPOINT_FORMATS).map(f => html`<ui5-option value=${f}>${WAYPOINT_FORMATS[f]}</ui5-option>`)}
-                  </ui5-select>
-                </div>
-                <div>
-                  <ui5-label for="prefix">Waypoint prefix</ui5-label>
-                  <ui5-input id="prefix" readonly value="FXC"></ui5-input>
-                </div>
-              </section>
-              <div slot="footer" style="display:flex;align-items:center;padding:.5rem">
-                <div style="flex: 1"></div>
-                <ui5-button @click=${(): void => this.closeDownloadDialog(false)}>Close</ui5-button>
-                <div style="flex: .1"></div>
-                <ui5-button design="Emphasized" @click=${(): void => this.closeDownloadDialog(true)}>Download</ui5-button>
+          <ui5-dialog id="share-dialog" header-text="Share">
+            <section class="form-fields">
+              <div>
+                <ui5-label for="link">Link</ui5-label>
+                <ui5-input id="link" readonly value=${document.location.href}></ui5-input>
               </div>
-            </ui5-dialog>
-            <form id="form-wpt" style="display: none" action="_waypoints" method="POST">
-              <input id="request" name="request">
-            </form>
-    ` : html``;
+              <br />
+              <div>
+                <ui5-label><a href=${this.getXcTrackHref()}>Open with XcTrack</a></ui5-label>
+              </div>
+              <img id="qr-code" width="256" height="256" />
+            </section>
+            <div slot="footer" style="display:flex;align-items:center;padding:.5rem">
+              <div style="flex: 1"></div>
+              <ui5-button design="Emphasized" @click=${this.closeShareDialog}>Close</ui5-button>
+            </div>
+          </ui5-dialog>
+
+          <ui5-dialog id="download-dialog" header-text="Download">
+            <section class="form-fields">
+              <div>
+                <ui5-label for="link">Turnpoints</ui5-label>
+                <table>
+                  ${this.getPathPoints().map(
+                    (p, i) =>
+                      html`
+                        <tr>
+                          <td>${String(i + 1).padStart(3, '0')}</td>
+                          <td>${p.lat.toFixed(6)}</td>
+                          <td>${p.lon.toFixed(6)}</td>
+                        </tr>
+                      `,
+                  )}
+                </table>
+              </div>
+              <div>
+                <ui5-label for="format">Format</ui5-label>
+                <ui5-select id="format">
+                  ${Object.getOwnPropertyNames(WAYPOINT_FORMATS).map(
+                    f =>
+                      html`
+                        <ui5-option value=${f}>${WAYPOINT_FORMATS[f]}</ui5-option>
+                      `,
+                  )}
+                </ui5-select>
+              </div>
+              <div>
+                <ui5-label for="prefix">Waypoint prefix</ui5-label>
+                <ui5-input id="prefix" readonly value="FXC"></ui5-input>
+              </div>
+            </section>
+            <div slot="footer" style="display:flex;align-items:center;padding:.5rem">
+              <div style="flex: 1"></div>
+              <ui5-button @click=${(): void => this.closeDownloadDialog(false)}>Close</ui5-button>
+              <div style="flex: .1"></div>
+              <ui5-button design="Emphasized" @click=${(): void => this.closeDownloadDialog(true)}>Download</ui5-button>
+            </div>
+          </ui5-dialog>
+          <form id="form-wpt" style="display: none" action="_waypoints" method="POST">
+            <input id="request" name="request" />
+          </form>
+        `
+      : html``;
   }
 
   protected closeShareDialog(): void {
@@ -375,28 +384,31 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       dialog.close();
     } else {
       const elevator = new google.maps.ElevationService();
-      elevator.getElevationForLocations({
-        locations: this.getPathPoints().map(p => new google.maps.LatLng(p.lat, p.lon))
-      }, (results: google.maps.ElevationResult[], status: google.maps.ElevationStatus) => {
-        let elevations = null;
-        if (status == google.maps.ElevationStatus.OK) {
-          elevations = results.map(r => r.elevation);
-        }
-        const shadowRoot = this.shadowRoot as ShadowRoot;
-        const input = shadowRoot.getElementById('request') as HTMLInputElement;
-        input.value = JSON.stringify({
-          points: this.getPathPoints(),
-          elevations,
-          format: (shadowRoot.getElementById('format') as any).selectedOption.value,
-          prefix: (shadowRoot.getElementById('prefix') as any).value,
-        });
+      elevator.getElevationForLocations(
+        {
+          locations: this.getPathPoints().map(p => new google.maps.LatLng(p.lat, p.lon)),
+        },
+        (results: google.maps.ElevationResult[], status: google.maps.ElevationStatus) => {
+          let elevations = null;
+          if (status == google.maps.ElevationStatus.OK) {
+            elevations = results.map(r => r.elevation);
+          }
+          const shadowRoot = this.shadowRoot as ShadowRoot;
+          const input = shadowRoot.getElementById('request') as HTMLInputElement;
+          input.value = JSON.stringify({
+            points: this.getPathPoints(),
+            elevations,
+            format: (shadowRoot.getElementById('format') as any).selectedOption.value,
+            prefix: (shadowRoot.getElementById('prefix') as any).value,
+          });
 
-        const form = shadowRoot.getElementById('form-wpt') as HTMLFormElement;
-        form.submit();
-        dialog.close();
-      });
+          const form = shadowRoot.getElementById('form-wpt') as HTMLFormElement;
+          form.submit();
+          dialog.close();
+        },
+      );
     }
-  }  
+  }
 
   protected getQrText(): string {
     const url = new URL(document.location.href);
@@ -414,7 +426,9 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     const params = new URLSearchParams();
     if (this.line) {
       const points: string[] = [];
-      this.line.getPath().forEach((latLng: google.maps.LatLng) => points.push(latLng.lat().toFixed(6) + ',' + latLng.lng().toFixed(6)));
+      this.line
+        .getPath()
+        .forEach((latLng: google.maps.LatLng) => points.push(latLng.lat().toFixed(6) + ',' + latLng.lng().toFixed(6)));
       params.set('route', points.join(':'));
     }
     return `http://xctrack.org/xcplanner?${params}`;

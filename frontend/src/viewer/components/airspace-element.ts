@@ -1,8 +1,8 @@
 import { AspAt, AspMapType, AspZoomMapType } from '../logic/airspaces';
 import { CSSResult, LitElement, PropertyValues, TemplateResult, css, customElement, html, property } from 'lit-element';
-import {RootState, store} from '../store';
+import { RootState, store } from '../store';
 
-import {connect} from 'pwa-helpers';
+import { connect } from 'pwa-helpers';
 import { formatUnit } from '../logic/units';
 
 @customElement('airspace-ctrl-element')
@@ -43,7 +43,7 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
   overlays: AspMapType[] = [];
 
   info: google.maps.InfoWindow | null = null;
-  
+
   stateChanged(state: RootState): void {
     if (state.map) {
       this.units = state.map.units;

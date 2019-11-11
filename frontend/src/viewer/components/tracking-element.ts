@@ -30,7 +30,7 @@ export class TrackingElement extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     if (state.map) {
-      this.units = state.map.units; 
+      this.units = state.map.units;
     }
   }
 
@@ -56,19 +56,19 @@ export class TrackingElement extends connect(store)(LitElement) {
 
   protected fetchTrackers(): void {
     fetch('_trackers.geojson')
-      .then(r => r.ok ? r.json() : null)
+      .then(r => (r.ok ? r.json() : null))
       .then(geoJson => {
         if (geoJson != null) {
           const map = this.map as google.maps.Map;
           const features = this.features;
           this.features = map.data.addGeoJson(geoJson);
-          features.forEach(f => map.data.remove(f));  
+          features.forEach(f => map.data.remove(f));
         }
       });
   }
 
   protected setupListener(map: google.maps.Map): void {
-    const hasPointFeature = (event: any): boolean => event.feature?.getGeometry().getType() == "Point";
+    const hasPointFeature = (event: any): boolean => event.feature?.getGeometry().getType() == 'Point';
     this.info = new google.maps.InfoWindow();
     this.info.close();
 
@@ -80,7 +80,9 @@ export class TrackingElement extends connect(store)(LitElement) {
         const content: string[] = [
           `<strong>${f.getProperty('name')}</strong>`,
           `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`,
-          `${formatUnit(f.getProperty('alt'), this.units?.altitude || 'm')} ${f.getProperty('speed') != null ? formatUnit(f.getProperty('speed'), this.units?.speed || 'km/h') : ''}`,
+          `${formatUnit(f.getProperty('alt'), this.units?.altitude || 'm')} ${
+            f.getProperty('speed') != null ? formatUnit(f.getProperty('speed'), this.units?.speed || 'km/h') : ''
+          }`,
           `<a href=${`https://www.google.com/maps/dir//${latLng.lat()},${latLng.lng()}`} target="_blank">Directions</a>`,
         ];
         if (f.getProperty('msg')) {
@@ -92,8 +94,8 @@ export class TrackingElement extends connect(store)(LitElement) {
 
         this.info?.setContent(content.join('<br/>'));
         this.info?.setPosition(event.latLng);
-        this.info?.open(map);      
-      }      
+        this.info?.open(map);
+      }
     });
   }
 
@@ -106,7 +108,7 @@ export class TrackingElement extends connect(store)(LitElement) {
         const s = linearInterpolate(old, 10, now, 100, ts);
         let color = feature.getProperty('msg') ? `hsl(59, ${s}%, 50%)` : `hsl(111, ${s}%, 53%)`;
         if (feature.getProperty('emergency')) {
-          color = 'red';            
+          color = 'red';
         }
         return {
           strokeColor: '#555',
@@ -114,10 +116,10 @@ export class TrackingElement extends connect(store)(LitElement) {
           icon: {
             path: 'M 0,10 A 10,10 0 0 0 20,10 A 10,10 0 0 0 0,10',
             fillColor: color,
-            fillOpacity: .9,
+            fillOpacity: 0.9,
             strokeColor: 'black',
             strokeWeight: 2,
-            strokeOpacity: .9,
+            strokeOpacity: 0.9,
             anchor: new google.maps.Point(10, 10),
             scale: 0.6,
           },

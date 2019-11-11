@@ -7,7 +7,7 @@ declare global {
 }
 
 window.initLogin = (): void => {
-  window.dispatchEvent(new CustomEvent('login-init'));  
+  window.dispatchEvent(new CustomEvent('login-init'));
 };
 
 declare const gapi: any;
@@ -49,7 +49,7 @@ export class TrackerFrom extends LitElement {
     loader.src = `https://apis.google.com/js/platform.js?onload=initLogin`;
     const shadowRoot = this.shadowRoot as ShadowRoot;
     shadowRoot.appendChild(loader);
-  }  
+  }
 
   static get styles(): CSSResult[] {
     return [
@@ -145,7 +145,13 @@ export class TrackerFrom extends LitElement {
                 </div>
                 <div class="field">
                   <label class="label">
-                    <input type="radio" id="no" name="tracker" value="no" @change=${(): void => void (this.device = 'no')} />
+                    <input
+                      type="radio"
+                      id="no"
+                      name="tracker"
+                      value="no"
+                      @change=${(): void => void (this.device = 'no')}
+                    />
                     Do not track me
                   </label>
                 </div>
@@ -156,10 +162,13 @@ export class TrackerFrom extends LitElement {
                     </a>
                   </p>
                   <p class="control">
-                    <a class="button is-light" @click=${(): void => {
-                        this.auth.signOut(); 
+                    <a
+                      class="button is-light"
+                      @click=${(): void => {
+                        this.auth.signOut();
                         document.location.href = '/';
-                    }}>
+                      }}
+                    >
                       Cancel
                     </a>
                   </p>
@@ -186,16 +195,16 @@ export class TrackerFrom extends LitElement {
       body: data.join('&'),
     }).then(() => {
       this.auth.signOut();
-      document.location.href = "/"
+      document.location.href = '/';
     });
   }
 
   protected onSignIn(user: any): void {
     const data = [
       `token=${encodeURIComponent(user.getAuthResponse().id_token)}`,
-      `email=${encodeURIComponent(user.getBasicProfile().getEmail())}`,   
-      `name=${encodeURIComponent(user.getBasicProfile().getName())}`,   
-    ]
+      `email=${encodeURIComponent(user.getBasicProfile().getEmail())}`,
+      `name=${encodeURIComponent(user.getBasicProfile().getName())}`,
+    ];
     fetch('_tokenSignIn', {
       method: 'POST',
       headers: {
