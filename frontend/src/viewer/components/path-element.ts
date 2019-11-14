@@ -300,6 +300,8 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   }
 
   protected render(): TemplateResult {
+    // Update the URL on re-rendering
+    this.getQrText();
     return this.units
       ? html`
           <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
