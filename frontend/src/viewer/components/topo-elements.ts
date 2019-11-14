@@ -1,6 +1,6 @@
 import { WMTSMapTypeElement } from './wmts-overlay';
 import { customElement } from 'lit-element';
-import { getApiKey } from '../../keys';
+import { getApiKey } from '../../apikey';
 // Warning: those are not the same at lit-element ones.
 import { html } from 'lit-html';
 

@@ -14,7 +14,7 @@ import { PlannerElement } from './planner-element';
 import { TaskElement } from './task-element';
 import { TrackingElement } from './tracking-element';
 import { connect } from 'pwa-helpers';
-import { getApiKey } from '../../keys';
+import { getApiKey } from '../../apikey';
 import { sampleAt } from '../logic/math';
 
 // Prevent tree-shaking components by exporting them
@@ -244,10 +244,14 @@ export class MapElement extends connect(store)(LitElement) {
 
   firstUpdated(changedProps: PropertyValues): void {
     super.firstUpdated(changedProps);
+    // Track url
+    const qs = new URL(document.location.href).search.substr(1);
+    const searchParams = new URLSearchParams(qs);
     // Load google maps
     const loader = document.createElement('script');
     loader.src = `https://maps.googleapis.com/maps/api/js?key=${getApiKey(
       'gmaps',
+      searchParams.get('track'),
     )}&libraries=geometry&callback=initMap`;
     const shadowRoot = this.shadowRoot as ShadowRoot;
     shadowRoot.appendChild(loader);

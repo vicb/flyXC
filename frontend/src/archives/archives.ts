@@ -1,6 +1,6 @@
 import { CSSResult, LitElement, TemplateResult, css, customElement, html, property } from 'lit-element';
 
-import { getApiKey } from '../keys';
+import { getApiKey } from '../apikey';
 
 declare const Tooltip: any;
 
