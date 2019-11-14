@@ -6,12 +6,12 @@ export function getApiKey(apiName: string, extraUrl?: string | null): string {
   let key: string | null = null;
 
   if (allKeys != null) {
-    // - checks the top most window first (i.e. when embedded in an iframe),
-    // - checks the window location otherwise.
-    const location = window.top?.location.href || window.location.href;
-    key = findKey(allKeys, location);
-    if (key == null && extraUrl) {
+    if (extraUrl) {
       key = findKey(allKeys, extraUrl);
+    }
+    if (key == null) {
+      const location = window.top == window ? window.location.href : document.referrer;
+      key = findKey(allKeys, location);
     }
   }
 
