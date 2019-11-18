@@ -5,13 +5,14 @@ const request = require('request-zero');
 export async function refresh(datastore: any, hour: number, timeout: number): Promise<number> {
   const start = Date.now();
 
-  const query = datastore.createQuery('Tracker')
+  const query = datastore
+    .createQuery('Tracker')
     .filter('device', '=', 'spot')
     .filter('updated', '<', start - 3 * 60 * 1000)
-    .order('updated', {descending: true});  
+    .order('updated', { descending: true });
 
-  const devices = (await datastore.runQuery(query))[0]; 
-  const startDate = new Date(start - hour * 3600 * 1000).toISOString();    
+  const devices = (await datastore.runQuery(query))[0];
+  const startDate = new Date(start - hour * 3600 * 1000).toISOString();
 
   let numDevices = 0;
   let numActiveDevices = 0;
@@ -19,7 +20,7 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
     const features: any[] = [];
     const device = devices[numDevices];
     const id: string = device.spot;
-    if (/^\w+$/i.test(id)) {  
+    if (/^\w+$/i.test(id)) {
       const url = `https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed/${id}/message.json?startDate=${startDate}`;
       const response = await request(url);
       if (response.code == 200) {
@@ -34,18 +35,18 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
               alt: m.altitude,
               name: m.messengerName,
               emergency: m.messageType == 'HELP',
-            })
+            });
           });
-        }         
+        }
       }
       if (features.length) {
         const line = features.map(f => [f.lon, f.lat]);
-        features.push({ line });  
-      }           
+        features.push({ line });
+      }
     }
 
     device.features = JSON.stringify(features);
-    device.updated= Date.now();
+    device.updated = Date.now();
     device.active = features.length > 0;
 
     datastore.save({

@@ -42,7 +42,7 @@ function sendTracks(ctx: K.Context, tracks: Track[]): any {
 router.get(
   '/_download',
   async (ctx: K.Context): Promise<void> => {
-    const urls = new URLSearchParams(ctx.query).getAll('track');
+    const urls = [].concat(ctx.query.track);
     const tracks: Track[][] = await Promise.all(urls.map(parseFromUrl));
     sendTracks(ctx, ([] as Track[]).concat(...tracks));
   },
@@ -51,7 +51,7 @@ router.get(
 router.get(
   '/_history',
   async (ctx: K.Context): Promise<void> => {
-    const ids = new URLSearchParams(ctx.query).getAll('h');
+    const ids = [].concat(ctx.query.h);
     const tracks: Track[][] = await Promise.all(ids.map(retrieveFromHistory));
     sendTracks(ctx, ([] as Track[]).concat(...tracks));
   },
@@ -85,31 +85,39 @@ router.get(
 router.get(
   '/_status.json',
   async (ctx: K.Context): Promise<void> => {
-    const totalTrackers = (await datastore
-      .createQuery('Tracker')
-      .select('__key__')
-      .run())[0].length;
-    const unactivatedTrackers = (await datastore
-      .createQuery('Tracker')
-      .filter('device', '=', 'no')
-      .select('__key__')
-      .run())[0].length;
+    const totalTrackers = (
+      await datastore
+        .createQuery('Tracker')
+        .select('__key__')
+        .run()
+    )[0].length;
+    const unactivatedTrackers = (
+      await datastore
+        .createQuery('Tracker')
+        .filter('device', '=', 'no')
+        .select('__key__')
+        .run()
+    )[0].length;
     ctx.set('Content-Type', 'application/json');
     ctx.body = JSON.stringify({
       'last-request': Number(await redis.get('trackers.request')),
       'last-refresh': Number(await redis.get('trackers.refreshed')),
       'num-refresh': Number(await redis.get('trackers.numrefreshed')),
-      'active-trackers': (await datastore
-        .createQuery('Tracker')
-        .filter('active', '=', true)
-        .select('__key__')
-        .run())[0].length,
+      'active-trackers': (
+        await datastore
+          .createQuery('Tracker')
+          .filter('active', '=', true)
+          .select('__key__')
+          .run()
+      )[0].length,
       trackers: totalTrackers - unactivatedTrackers,
       unactivatedTrackers,
-      tracks: (await datastore
-        .createQuery('Track')
-        .select('__key__')
-        .run())[0].length,
+      tracks: (
+        await datastore
+          .createQuery('Track')
+          .select('__key__')
+          .run()
+      )[0].length,
     });
   },
 );

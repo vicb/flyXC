@@ -6,12 +6,10 @@ export function getApiKey(apiName: string, extraUrl?: string | null): string {
   let key: string | null = null;
 
   if (allKeys != null) {
-    if (extraUrl) {
+    const location = window.top == window ? window.location.href : document.referrer;
+    key = findKey(allKeys, location);
+    if (extraUrl && key == null) {
       key = findKey(allKeys, extraUrl);
-    }
-    if (key == null) {
-      const location = window.top == window ? window.location.href : document.referrer;
-      key = findKey(allKeys, location);
     }
   }
 
