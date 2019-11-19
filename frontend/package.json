@@ -13,7 +13,7 @@
     "@mapbox/vector-tile": "^1.3.1",
     "@ui5/webcomponents": "^1.0.0-rc.4",
     "cookiesjs": "^3.0.3",
-    "d3-array": "^2.3.3",
+    "d3-array": "^2.4.0",
     "d3-scale-chromatic": "^1.5.0",
     "geolib": "^3.1.0",
     "lit-element": "^2.2.1",
