@@ -35,6 +35,7 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
               alt: m.altitude,
               name: m.messengerName,
               emergency: m.messageType == 'HELP',
+              msg: m.messageContent,
             });
           });
         }

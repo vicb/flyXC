@@ -6,12 +6,13 @@ const request = require('request-zero');
 export async function refresh(datastore: any, hour: number, timeout: number): Promise<number> {
   const start = Date.now();
 
-  const query = datastore.createQuery('Tracker')
+  const query = datastore
+    .createQuery('Tracker')
     .filter('device', '=', 'inreach')
-    .filter('updated', '<', start - 3 * 60 * 1000)    
-    .order('updated', {descending: true});
+    .filter('updated', '<', start - 3 * 60 * 1000)
+    .order('updated', { descending: true });
 
-  const devices = (await datastore.runQuery(query))[0]; 
+  const devices = (await datastore.runQuery(query))[0];
   const startDate = new Date(start - hour * 3600 * 1000).toISOString();
 
   let numDevices = 0;
@@ -22,7 +23,7 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
     const url: string = device.inreach;
     if (/^https?:\/\/[\w.]*?inreach.garmin.com\/Feed\/Share\/[^?]+/i.test(url)) {
       const response = await request(`${url}?d1=${startDate}`);
-      
+
       if (response.code == 200) {
         const dom = new DOMParser().parseFromString(response.body);
         const placemarks = dom.getElementsByTagName('Placemark');
@@ -48,20 +49,20 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
               ts,
               name: data['Name'],
               msg,
-              speed:  Number(data['Velocity'].replace(/^([\d]+).*/, '$1')),
+              speed: Number(data['Velocity'].replace(/^([\d]+).*/, '$1')),
               emergency: data['In Emergency'] != 'False',
             });
           }
-        } 
+        }
         if (features.length) {
           const line = features.map(f => [f.lon, f.lat]);
-          features.push({ line });  
+          features.push({ line });
         }
-      }      
+      }
     }
 
     device.features = JSON.stringify(features);
-    device.updated= Date.now();
+    device.updated = Date.now();
     device.active = features.length > 0;
 
     datastore.save({
