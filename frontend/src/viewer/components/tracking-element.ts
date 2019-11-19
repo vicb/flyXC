@@ -13,9 +13,9 @@ export class TrackingElement extends connect(store)(LitElement) {
   }
   set map(map: google.maps.Map | null) {
     this.map_ = map;
-    if (map) {
+    if (map && this.fetchId == null) {
       this.fetchTrackers();
-      setInterval(() => this.fetchTrackers(), 2 * 60 * 1000);
+      this.fetchId = setInterval(() => this.fetchTrackers(), 2 * 60 * 1000);
       this.setMapStyle(map);
       this.setupListener(map);
     }
@@ -27,6 +27,8 @@ export class TrackingElement extends connect(store)(LitElement) {
   info: google.maps.InfoWindow | null = null;
 
   features: any[] = [];
+
+  private fetchId: any = null;
 
   stateChanged(state: RootState): void {
     if (state.map) {
