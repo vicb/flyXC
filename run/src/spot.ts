@@ -31,7 +31,7 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
             features.push({
               lon: m.longitude,
               lat: m.latitude,
-              ts: m.unixTime,
+              ts: m.unixTime * 1000,
               alt: m.altitude,
               name: m.messengerName,
               emergency: m.messageType == 'HELP',
