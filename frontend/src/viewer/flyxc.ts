@@ -7,7 +7,7 @@ import '@ui5/webcomponents/dist/Select';
 
 import * as mapSel from './selectors/map';
 
-import { CSSResult, LitElement, TemplateResult, css, customElement, html, property } from 'lit-element';
+import { LitElement, TemplateResult, customElement, html, property } from 'lit-element';
 import { RootState, store } from './store';
 
 import { LoaderElement } from './components/loader-element';
@@ -27,21 +27,6 @@ export class FlyXc extends connect(store)(LitElement) {
     }
   }
 
-  static get styles(): CSSResult[] {
-    return [
-      css`
-        :host {
-          display: block;
-          position: relative;
-        }
-        map-element {
-          width: 100%;
-          height: 100%;
-        }
-      `,
-    ];
-  }
-
   render(): TemplateResult {
     const classes = ['fs-enabled'];
     if (this.hasTracks) {
@@ -51,5 +36,9 @@ export class FlyXc extends connect(store)(LitElement) {
       <map-element class=${classes.join(' ')}></map-element>
       <loader-element></loader-element>
     `;
+  }
+
+  createRenderRoot(): Element {
+    return this;
   }
 }

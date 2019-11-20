@@ -1,6 +1,6 @@
 import * as mapSel from '../selectors/map';
 
-import { CSSResult, LitElement, PropertyValues, TemplateResult, css, customElement, html, property } from 'lit-element';
+import { LitElement, PropertyValues, TemplateResult, customElement, html, property } from 'lit-element';
 import { RootState, store } from '../store';
 import { TopoEu, TopoFrance, TopoOtm, TopoSpain } from './topo-elements';
 import { Track, downloadTracks, downloadTracksFromHistory, findClosestFix, uploadTracks } from '../logic/map';
@@ -70,8 +70,7 @@ export class MapElement extends connect(store)(LitElement) {
   constructor() {
     super();
     window.addEventListener('google-map-ready', () => {
-      const shadowRoot = this.shadowRoot as ShadowRoot;
-      const map = (this.map = new google.maps.Map(shadowRoot.querySelector('#map'), {
+      const map = (this.map = new google.maps.Map(this.querySelector('#map'), {
         center: { lat: 45, lng: 0 },
         zoom: 5,
         minZoom: 5,
@@ -97,12 +96,10 @@ export class MapElement extends connect(store)(LitElement) {
 
       const ctrlsEl = document.createElement('controls-element');
       ctrlsEl.addEventListener('fullscreen' as any, (e: CustomEvent): void => {
-        if (this.shadowRoot) {
-          if (e.detail) {
-            this.shadowRoot.host.requestFullscreen();
-          } else {
-            document.exitFullscreen();
-          }
+        if (e.detail) {
+          this.requestFullscreen();
+        } else {
+          document.exitFullscreen();
         }
       });
       this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(ctrlsEl);
@@ -137,33 +134,8 @@ export class MapElement extends connect(store)(LitElement) {
     });
   }
 
-  static get styles(): CSSResult[] {
-    return [
-      css`
-        :host {
-          display: block;
-        }
-        #map {
-          width: 100%;
-          height: 100%;
-        }
-        chart-element {
-          width: 100%;
-          height: 0%;
-        }
-        :host(.hasTracks) #map {
-          height: 80%;
-        }
-        :host(.hasTracks) chart-element {
-          height: 20%;
-        }
-        .attribution {
-          margin: 2px 5px;
-          color: black;
-          text-decoration: none;
-        }
-      `,
-    ];
+  createRenderRoot(): Element {
+    return this;
   }
 
   render(): TemplateResult {
@@ -253,7 +225,6 @@ export class MapElement extends connect(store)(LitElement) {
       'gmaps',
       searchParams.get('track'),
     )}&libraries=geometry&callback=initMap`;
-    const shadowRoot = this.shadowRoot as ShadowRoot;
-    shadowRoot.appendChild(loader);
+    this.appendChild(loader);
   }
 }
