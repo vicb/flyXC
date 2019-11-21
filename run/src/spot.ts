@@ -12,7 +12,7 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
     .order('updated', { descending: true });
 
   const devices = (await datastore.runQuery(query))[0];
-  const startDate = new Date(start - hour * 3600 * 1000).toISOString();
+  const startDate = new Date(start - hour * 3600 * 1000).toISOString().substring(0, 19) + '-0000';
 
   let numDevices = 0;
   let numActiveDevices = 0;
