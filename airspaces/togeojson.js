@@ -1,6 +1,6 @@
 #!/usr/bin/env node --no-warnings
 
-// Generate the geojson from the aip files
+// Generate the geojson from aip/openair files
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 const convert = require('xml-js');
@@ -12,21 +12,25 @@ const GeoJSON = require('geojson');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
 prog
-  .option('-i, --input <folder>', 'input folder where to fing *_asp.aip files', 'www.openaip.net')
+  .option('-i, --input <folder>', 'input folder', 'asp')
   .option('-o, --output <file>', 'output file', 'airspaces');
 
 prog.parse(process.argv);
 
-const files = glob.sync(prog.input + '/**/*_asp.aip');
+// AIP files
+const aipFiles = glob.sync(prog.input + '/**/*_asp.aip');
+let airspaces = aipFiles.reduce((asps, f) => [...asps, ...decodeAipFile(f)], []);
 
-const airspaces = files.reduce((asps, f) => [...asps, ...decodeFile(f)], []);
+// OpenAir files
+const openAirFiles = glob.sync(prog.input + '/**/UKRAINE (UK).txt');
+airspaces = openAirFiles.reduce((asps, f) => [...asps, ...decodeOpenAirFile(f)], airspaces);
 
 const geoJson = GeoJSON.parse(airspaces, { Polygon: 'polygon' });
 
 fs.writeFileSync(`${prog.output}.geojson.js`, 'module.exports = ' + JSON.stringify(geoJson));
 fs.writeFileSync(`${prog.output}.geojson`, JSON.stringify(geoJson));
 
-function decodeFile(file) {
+function decodeAipFile(file) {
   const xml = fs.readFileSync(file);
   if (xml.length) {
     const json = JSON.parse(convert.xml2json(xml, { compact: true }));
@@ -35,7 +39,7 @@ function decodeFile(file) {
       const total = json.OPENAIP.AIRSPACES.ASP.length;
       console.log(` - ${total} airspaces`);
       let airspaces = json.OPENAIP.AIRSPACES.ASP;
-      airspaces = airspaces.reduce((as, a) => ((a = decodeAirspace(a)) ? as.concat(a) : as), []);
+      airspaces = airspaces.reduce((as, a) => ((a = decodeAipAirspace(a)) ? as.concat(a) : as), []);
       if (airspaces.length < total) {
         console.log(` - dropped ${total - airspaces.length} airspaces`);
       }
@@ -45,7 +49,115 @@ function decodeFile(file) {
   return [];
 }
 
-function decodeAirspace(asp) {
+function decodeOpenAirFile(file) {
+  console.log(`# ${path.basename(file)}`);
+  const airspaces = [];
+  const openAirLines = fs.readFileSync(file, 'utf-8').split('\n');
+  
+  let category = "";
+  let name = "";
+  let floor = "";
+  let ceiling = "";
+  let coords = [];
+
+  for (let line of openAirLines) {
+    line = line.trim();
+    if (line.startsWith('*')) {
+      // comment        
+      continue;
+    }    
+
+    if (line.length == 0) {
+      if (coords.length) {
+        pushOpenAirAirspace(airspaces, name, category, floor, ceiling, coords);
+        coords = [];
+      } 
+      continue;
+    }
+
+    const m = line.match(/^([A-Z]{1,2}) (.*)$/);
+
+    if (m == null) {
+      throw new Error(`Unsupported input: ${line}`);
+    }
+
+    switch (m[1]) {
+      case 'AC':
+        category = m[2].trim();
+        coords = [];
+        break;
+      case 'AN':
+        name = m[2].trim();
+        break;
+      case 'AH':
+        ceiling = m[2].trim();
+        break;
+      case 'AL':
+        floor = m[2].trim();
+        break;
+      case 'DP':
+        const ma = m[2].trim().match(/([\d.]+) ([NS]) ([\d.]+) ([EW])/);
+        if (ma == null) {
+          throw new Error(`Unsupported coordinates ${line}`);          
+        }
+        const lat = parseFloat(ma[1]).toFixed(6) * (ma[2] == 'N' ? 1 : -1);
+        const lon = parseFloat(ma[3]).toFixed(6) * (ma[4] == 'E' ? 1 : -1);
+        coords.push([lon, lat]);          
+        break;
+      case 'SP':
+      case 'SB':
+        break;
+      default:
+        throw new Error(`Unsupported record ${m[1]}`);                                        
+    } 
+  }
+
+  if (coords.length) {
+    pushOpenAirAirspace(airspaces, name, category, floor, ceiling, coords);
+  }
+
+  console.log(` - ${airspaces.length} airspaces`);
+  return airspaces;
+}
+
+function pushOpenAirAirspace(airspaces, name, category, floor, ceiling, coords) {
+  const a = {
+    name,
+    category,
+    bottom: floor,
+    bottom_km: Math.floor(openAirAltMeter(floor) / 1000),
+    top: ceiling,
+    polygon: [coords],
+    color: null,
+  };
+
+  a.color = airspaceColor(a, "", Number(openAirAltMeter(ceiling)));
+
+  if (a.color !== '') {
+    airspaces.push(a);
+  }    
+}
+
+function openAirAltMeter(str) {
+  if (str == 'GND') {
+    return 0;
+  }
+  let m = str.match(/^FL(\d+)/);
+  if (m) {
+    return m[1] * 100 * 0.3048;
+  }
+  m = str.match(/(\d+)ft/);
+  if (m) {
+    return m[1] * 0.3048;
+  }
+  if (str.startsWith('UNL')) {
+    // Unlimited
+    return 10000;
+  }
+  throw new Error(`Unsupported altitude ${str}`);
+}
+
+function decodeAipAirspace(asp) {
   const category = asp._attributes.CATEGORY;
   const name = asp.NAME._text;
   if (Array.isArray(asp.GEOMETRY.POLYGON)) {
@@ -69,9 +181,9 @@ function decodeAirspace(asp) {
   const a = {
     name,
     category: category,
-    bottom: formatAltLimit(asp.ALTLIMIT_BOTTOM),
-    bottom_km: Math.floor(altMeter(asp.ALTLIMIT_BOTTOM) / 1000),
-    top: formatAltLimit(asp.ALTLIMIT_TOP),
+    bottom: formatAipAltLimit(asp.ALTLIMIT_BOTTOM),
+    bottom_km: Math.floor(aipAltMeter(asp.ALTLIMIT_BOTTOM) / 1000),
+    top: formatAipAltLimit(asp.ALTLIMIT_TOP),
     polygon: [coords],
     color: null,
   };
@@ -83,7 +195,7 @@ function decodeAirspace(asp) {
   }
 }
 
-function altMeter(limit) {
+function aipAltMeter(limit) {
   switch (limit.ALT._attributes.UNIT) {
     case 'FL':
       return Math.round(100 * 0.3048 * limit.ALT._text);
@@ -94,7 +206,7 @@ function altMeter(limit) {
   }
 }
 
-function formatAltLimit(limit) {
+function formatAipAltLimit(limit) {
   if (limit._attributes.REFERENCE === 'GND' && limit.ALT._text == 0) {
     return 'GND';
   }
@@ -118,7 +230,7 @@ function airspaceColor(airspace, country, top) {
     }
   });
 
-  if (airspace.bottom_km > 1) {
+  if (airspace.bottom_km > 6) {
     return ''; // Ignore airspaces > 6000m
   }
 
@@ -149,7 +261,8 @@ function airspaceColor(airspace, country, top) {
       return '#bf8040'; // Danger
     case 'OTH':
       return '#808080'; // Other
-    case ('FIR', 'WAVE'):
+    case 'FIR':
+    case 'WAVE':
     default:
       return ''; // Ignore
   }
