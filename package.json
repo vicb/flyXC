@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node app/server.js",
     "build": "node --max-old-space-size=8192 node_modules/rollup/dist/bin/rollup -c --environment USE_CACHE,NODE_ENV:'production'",
-    "debug": "node --max-old-space-size=8192 node_modules/rollup/dist/bin/rollup -wc --environment USE_CACHE",
+    "debug": "node --max-old-space-size=8192 node_modules/rollup/dist/bin/rollup -wc --environment NO_USE_CACHE",
     "lint": "eslint 'frontend/src/**/*.ts' --quiet --fix && eslint 'app/src/**/*.ts' && eslint 'run/src/**/*.ts' --quiet --fix",
     "proto": "npx pbf track.proto > frontend/src/viewer/logic/track.js",
     "emulator:start": "gcloud beta emulators datastore start --data-dir=ds",
@@ -17,7 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@babel/runtime": "^7.7.2",
+    "@babel/runtime": "^7.7.4",
     "@google-cloud/datastore": "^4.5.2",
     "@google-cloud/storage": "^3.4.0",
     "@koa/multer": "^2.0.1",
@@ -53,9 +53,9 @@
     "@types/koa-router": "^7.0.42",
     "@types/koa-static": "^4.0.1",
     "@types/koa__multer": "^2.0.1",
-    "@typescript-eslint/eslint-plugin": "^2.8.0",
-    "@typescript-eslint/parser": "^2.8.0",
-    "eslint": "^6.7.0",
+    "@typescript-eslint/eslint-plugin": "^2.9.0",
+    "@typescript-eslint/parser": "^2.9.0",
+    "eslint": "^6.7.1",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-prettier": "^6.7.0",
     "eslint-config-unstyled": "^1.1.0",
@@ -64,7 +64,7 @@
     "eslint-plugin-json": "^1.4.0",
     "eslint-plugin-prettier": "^3.1.1",
     "prettier": "^1.19.1",
-    "rollup": "^1.27.4",
+    "rollup": "^1.27.5",
     "rollup-plugin-babel-minify": "^9.1.1",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-json": "^4.0.0",
@@ -76,7 +76,7 @@
     "rollup-plugin-sourcemaps": "^0.4.2",
     "rollup-plugin-strip-code": "^0.2.7",
     "rollup-plugin-typescript2": "^0.24.3",
-    "rollup-plugin-url": "^3.0.0"
+    "rollup-plugin-url": "^3.0.1"
   },
   "repository": {
     "type": "git",

@@ -244,8 +244,8 @@ async function bufferStream(stream: Stream): Promise<Buffer> {
 }
 
 export function getHgtUrl(lat: number, lon: number): string {
-  const ns = lat > 0 ? 'N' : 'S';
-  const ew = lon > 0 ? 'E' : 'W';
+  const ns = lat >= 0 ? 'N' : 'S';
+  const ew = lon >= 0 ? 'E' : 'W';
   const nsLat = `${ns}${String(Math.abs(lat)).padStart(2, '0')}`
   return `https://elevation-tiles-prod.s3.amazonaws.com/skadi/${nsLat}/${nsLat}${ew}${String(Math.abs(lon)).padStart(3, '0')}.hgt.gz`;
 }
