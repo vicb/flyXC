@@ -197,6 +197,7 @@ function httpsGet(url: string): Promise<IncomingMessage> {
 }
 
 async function addGroundAltitude(fixes: Fix[]): Promise<unknown> {
+  let numErrors = 0;
   for (let i = 0; i < fixes.length; i++) {
     const fix = fixes[i];
     const lat = fix.lat;
@@ -211,6 +212,9 @@ async function addGroundAltitude(fixes: Fix[]): Promise<unknown> {
         buffer = await bufferStream(message.pipe(zlib.createGunzip()));
         hgtCache.set(url, buffer);
       } catch (e) {
+        if (numErrors++ > 5) {
+          return;
+        }
         console.error(e);
       }
     } else {
