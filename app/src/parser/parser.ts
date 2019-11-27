@@ -99,29 +99,15 @@ export async function parseFromUrl(url: string): Promise<Track[]> {
   let tracks: Track[];
   try {
     const response = await request(url);
-    tracks = response.code == 200 ? await parse(response.body) : [];
+    tracks = response.code == 200 ? await parse(response.body, url) : [];
   } catch (e) {
     tracks = [];
   }
 
-  // Save in cache
-  if (process.env.USE_CACHE) {
-    const data = {
-      created: new Date(),
-      valid: true,
-      url,
-      data: zlib.gzipSync(JSON.stringify(tracks), { level: 9 }),
-    };
-    await datastore.save({
-      key: datastore.key('Track'),
-      excludeFromIndexes: ['data'],
-      data,
-    });
-  }
   return tracks;
 }
 
-export async function parse(file: string): Promise<Track[]> {
+export async function parse(file: string, srcUrl: string | null = null): Promise<Track[]> {
   // First check the cache
   const hash = crypto
     .createHash('md5')
@@ -164,12 +150,15 @@ export async function parse(file: string): Promise<Track[]> {
 
   // Save the entity in cache
   if (process.env.USE_CACHE) {
-    const data = {
+    const data: {[key: string]: any} = {
       created: new Date(),
       valid: true,
       hash,
       data: zlib.gzipSync(JSON.stringify(diffTracks), { level: 9 }),
     };
+    if (srcUrl != null) {
+      data.url = srcUrl;
+    }
     await addTrackMetadata(data, rawTracks);
     await datastore.save({
       key: datastore.key('Track'),
@@ -183,10 +172,11 @@ export async function parse(file: string): Promise<Track[]> {
 function httpsGet(url: string): Promise<IncomingMessage> {
   return new Promise((resolve, reject) => {
     const start = Date.now();
+    console.log(`SRTM download ${url}`);
     const req = get(url, (incomingMessage: IncomingMessage) => {
       const statusCode = incomingMessage.statusCode || -1;
       if (statusCode < 200 || statusCode > 300) {
-        reject(`status code = ${statusCode}`);
+        reject(`SRTM status code = ${statusCode}`);
       } else {
         console.log(`SRTM connection ${(Date.now() - start) / 1000}s`)
         resolve(incomingMessage);

@@ -206,8 +206,8 @@ router.post(
   ]),
   async (ctx: K.Context): Promise<unknown> => {
     const request = ctx.request as any;
-    const files = request.files.track.map((v: any) => v.buffer.toString());
-    const tracks: Track[][] = await Promise.all(files.map(parse));
+    const files: string[] = request.files.track.map((v: any) => v.buffer.toString());
+    const tracks: Track[][] = await Promise.all(files.map(file => parse(file)));
     sendTracks(ctx, ([] as Track[]).concat(...tracks));
     return;
   },
