@@ -92,7 +92,10 @@ export async function parseFromUrl(url: string): Promise<Track[]> {
       .limit(1);
     const entities = (await datastore.runQuery(query))[0];
     if (entities.length == 1) {
+      console.log(`Cache hit (url = ${url})`);
       return JSON.parse(zlib.gunzipSync(entities[0].data));
+    } else {
+      console.log(`Cache miss (url = ${url})`);
     }
   }
 
@@ -113,6 +116,7 @@ export async function parse(file: string, srcUrl: string | null = null): Promise
     .createHash('md5')
     .update(file)
     .digest('hex');
+  console.log(`hash = ${hash}`);
   if (process.env.USE_CACHE) {
     // Note: Adding a select clause is not working
     const query = datastore
@@ -122,7 +126,10 @@ export async function parse(file: string, srcUrl: string | null = null): Promise
       .limit(1);
     const entities = (await datastore.runQuery(query))[0];
     if (entities.length == 1) {
+      console.log(`Cache hit (${hash})`);
       return JSON.parse(zlib.gunzipSync(entities[0].data));
+    } else {
+      console.log(`Cache miss (${hash})`);
     }
   }
 
@@ -146,6 +153,8 @@ export async function parse(file: string, srcUrl: string | null = null): Promise
       ...track,
       fixes: differentialEncodeFixes(track.fixes),
     }));
+  } else {
+    console.log(`Can not parse track`);
   }
 
   // Save the entity in cache
