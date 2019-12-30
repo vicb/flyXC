@@ -21,10 +21,11 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
     const features: any[] = [];
     const device = devices[numDevices];
     const url: string = device.inreach;
-    if (/^https?:\/\/[\w.]*?inreach.garmin.com\/Feed\/Share\/[^?]+/i.test(url)) {
+    if (/^https?:\/\/[\w.]*?garmin.com\/Feed\/Share\/[^?]+/i.test(url)) {
       const response = await request(`${url}?d1=${startDate}`);
 
       if (response.code == 200) {
+        console.log(`Refreshing inreach @ ${url}`);
         const dom = new DOMParser().parseFromString(response.body);
         const placemarks = dom.getElementsByTagName('Placemark');
         if (placemarks.length > 0) {
@@ -58,6 +59,8 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
           const line = features.map(f => [f.lon, f.lat]);
           features.push({ line });
         }
+      } else {
+        console.log(`Error refreshing inreach @ ${url}`);
       }
     }
 
@@ -76,7 +79,7 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
       break;
     }
   }
-  console.log(`Refreshed ${numDevices} inreach`);
+  console.log(`Refreshed ${numDevices} inreach in ${(Date.now() - start) / 1000}s`);
   return numActiveDevices;
 }
 

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node app/server.js",
     "build": "node --max-old-space-size=8192 node_modules/rollup/dist/bin/rollup -c --environment USE_CACHE,NODE_ENV:'production'",
-    "debug": "node --max-old-space-size=8192 node_modules/rollup/dist/bin/rollup -wc --environment NO_USE_CACHE",
+    "debug": "node --max-old-space-size=8192 node_modules/rollup/dist/bin/rollup -wc --environment USE_CACHE",
     "lint": "eslint 'frontend/src/**/*.ts' --quiet --fix && eslint 'app/src/**/*.ts' && eslint 'run/src/**/*.ts' --quiet --fix",
     "proto": "npx pbf track.proto > frontend/src/viewer/logic/track.js",
     "emulator:start": "gcloud beta emulators datastore start --data-dir=ds",

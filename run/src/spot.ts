@@ -24,8 +24,9 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
       const url = `https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed/${id}/message.json?startDate=${startDate}`;
       const response = await request(url);
       if (response.code == 200) {
+        console.log(`Refreshing spot @ ${id}`);
         const messages = JSON.parse(response.body)?.response?.feedMessageResponse?.messages?.message;
-        if (messages) {
+        if (messages && Array.isArray(messages)) {
           numActiveDevices++;
           messages.forEach((m: any) => {
             features.push({
@@ -39,6 +40,8 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
             });
           });
         }
+      } else {
+        console.log(`Error refreshing spot @ ${id}`);
       }
       if (features.length) {
         const line = features.map(f => [f.lon, f.lat]);
@@ -61,6 +64,6 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
       break;
     }
   }
-  console.log(`Refreshed ${numDevices} spot`);
+  console.log(`Refreshed ${numDevices} spot in ${(Date.now() - start) / 1000}s`);
   return numActiveDevices;
 }
