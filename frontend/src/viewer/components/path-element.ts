@@ -214,6 +214,12 @@ export class PathCtrlElement extends connect(store)(LitElement) {
         path.getLength() > 2 && path.removeAt(event.vertex);
       }
     });
+    google.maps.event.addListener(line, 'dblclick', (event: google.maps.PolyMouseEvent): void => {
+      if (event.vertex != null) {
+        const path = line.getPath();
+        path.getLength() > 2 && path.removeAt(event.vertex);
+      }
+    });
 
     return line;
   }
