@@ -70,7 +70,7 @@ export class MapElement extends connect(store)(LitElement) {
   constructor() {
     super();
     window.addEventListener('google-map-ready', () => {
-      const map = (this.map = new google.maps.Map(this.querySelector('#map'), {
+      const map = (this.map = new google.maps.Map(this.querySelector('#map') as Element, {
         center: { lat: 45, lng: 0 },
         zoom: 5,
         minZoom: 5,

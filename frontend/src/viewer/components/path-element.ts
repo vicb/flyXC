@@ -357,7 +357,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
               </div>
               <div>
                 <ui5-label for="prefix">Waypoint prefix</ui5-label>
-                <ui5-input id="prefix" readonly value="FXC"></ui5-input>
+                <ui5-input id="prefix" value="FXC"></ui5-input>
               </div>
             </section>
             <div slot="footer" style="display:flex;align-items:center;padding:.5rem">
