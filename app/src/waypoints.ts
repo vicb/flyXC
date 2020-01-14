@@ -148,14 +148,14 @@ function encodeCUP(
   elevations: number[] | null,
   prefix: string,
 ): { mime?: string; file?: string; ext?: string; error?: string } {
-  let file = 'name, code, country, lat, lon, elev, style, rwydir, rwylen, freq, desc\r\n';
+  let file = 'name,code,country,lat,lon,elev,style,rwdir,rwlen,freq,desc\r\n';
   file += points
     .map((p, i) => {
       const { d: latD, m: latM, h: latH } = dmh(p.lat, 'NS');
       const { d: lonD, m: lonM, h: lonH } = dmh(p.lon, 'EW');
       const name = prefix + String(i + 1).padStart(3, '0');
       return printf(
-        '"%s","%s",,%02d%06.3f%s,%02d%06.3f%s,%dm,0,,,,""',
+        '"%s","%s",,%02d%06.3f%s,%03d%06.3f%s,%dm,1,,,,""',
         name,
         name,
         latD,
@@ -168,9 +168,9 @@ function encodeCUP(
       );
     })
     .join('\r\n');
-  file += '\r\n-----Related Tasks-----\r\n"FlyXC Task",';
+  file += '\r\n-----Related Tasks-----\r\n"FlyXC Task","???",';
   file += points.map((p, i) => `"${prefix + String(i + 1).padStart(3, '0')}"`).join(',');
-  file += '\r\n';
+  file += ',"???"\r\n';
 
   return { mime: 'application/x-cup', file, ext: 'cup' };
 }
