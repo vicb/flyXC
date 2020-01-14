@@ -19,6 +19,8 @@ export function encode(
       return encodeTSK(points, elevations, prefix);
     case 'wpt':
       return encodeWPT(points, elevations, prefix);
+    case 'cup':
+      return encodeCUP(points, elevations, prefix);
 
     default:
       return { error: 'Unsupported format' };
@@ -140,6 +142,39 @@ function encodeWPT(
   return { mime: 'application/x-wpt', file, ext: 'wpt' };
 }
 
+// http://download.naviter.com/docs/CUP-file-format-description.pdf
+function encodeCUP(
+  points: { lat: number; lon: number }[],
+  elevations: number[] | null,
+  prefix: string,
+): { mime?: string; file?: string; ext?: string; error?: string } {
+  let file = 'name, code, country, lat, lon, elev, style, rwydir, rwylen, freq, desc\r\n';
+  file += points
+    .map((p, i) => {
+      const { d: latD, m: latM, h: latH } = dmh(p.lat, 'NS');
+      const { d: lonD, m: lonM, h: lonH } = dmh(p.lon, 'EW');
+      const name = prefix + String(i + 1).padStart(3, '0');
+      return printf(
+        '"%s","%s",,%02d%06.3f%s,%02d%06.3f%s,%dm,0,,,,""',
+        name,
+        name,
+        latD,
+        latM,
+        latH,
+        lonD,
+        lonM,
+        lonH,
+        elevations ? elevations[i] : 0,
+      );
+    })
+    .join('\r\n');
+  file += '\r\n-----Related Tasks-----\r\n"FlyXC Task",';
+  file += points.map((p, i) => `"${prefix + String(i + 1).padStart(3, '0')}"`).join(',');
+  file += '\r\n';
+
+  return { mime: 'application/x-cup', file, ext: 'cup' };
+}
+
 function dmsh(coordinates: number, hs: string): { d: number; m: number; s: number; h: string } {
   let h = hs[0];
   if (coordinates < 0) {
@@ -150,4 +185,15 @@ function dmsh(coordinates: number, hs: string): { d: number; m: number; s: numbe
   const m = Math.floor(coordinates * 60) % 60;
   const s = (3600 * coordinates) % 60;
   return { d, m, s, h };
+}
+
+function dmh(coordinates: number, hs: string): { d: number; m: number; h: string } {
+  let h = hs[0];
+  if (coordinates < 0) {
+    h = hs[1];
+    coordinates = -coordinates;
+  }
+  const d = Math.floor(coordinates);
+  const m = (coordinates * 60) % 60;
+  return { d, m, h };
 }

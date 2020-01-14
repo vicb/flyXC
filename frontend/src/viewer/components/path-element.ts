@@ -19,6 +19,7 @@ const ROUTE_STROKE_COLORS = {
 };
 
 const WAYPOINT_FORMATS: { [id: string]: string } = {
+  cup: 'See You (cup)',
   gpx: 'GPX',
   kml: 'KML (Google Earth)',
   tsk: 'XCSoar',

@@ -12,7 +12,7 @@ const zlib = require('zlib');
 const request = require('request-zero');
 const polyline = require('google-polyline');
 const simplify = require('simplify-path');
-const {get} = require('https');
+const { get } = require('https');
 const lru = require('tiny-lru');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
@@ -159,7 +159,7 @@ export async function parse(file: string, srcUrl: string | null = null): Promise
 
   // Save the entity in cache
   if (process.env.USE_CACHE) {
-    const data: {[key: string]: any} = {
+    const data: { [key: string]: any } = {
       created: new Date(),
       valid: true,
       hash,
@@ -187,10 +187,10 @@ function httpsGet(url: string): Promise<IncomingMessage> {
       if (statusCode < 200 || statusCode > 300) {
         reject(`SRTM status code = ${statusCode}`);
       } else {
-        console.log(`SRTM connection ${(Date.now() - start) / 1000}s`)
+        console.log(`SRTM connection ${(Date.now() - start) / 1000}s`);
         resolve(incomingMessage);
-      }  
-      req.on("error", (e: any) => reject(e));
+      }
+      req.on('error', (e: any) => reject(e));
     });
   });
 }
@@ -236,11 +236,11 @@ async function bufferStream(stream: Stream): Promise<Buffer> {
   const start = Date.now();
   return new Promise(resolve => {
     const data: any[] = [];
-    stream.on("data", d => {
+    stream.on('data', d => {
       data.push(d);
     });
-    stream.on("end", () => {
-      console.log(`SRTM download ${(Date.now() - start) / 1000}s`)
+    stream.on('end', () => {
+      console.log(`SRTM download ${(Date.now() - start) / 1000}s`);
       resolve(Buffer.concat(data));
     });
   });
@@ -249,8 +249,11 @@ async function bufferStream(stream: Stream): Promise<Buffer> {
 export function getHgtUrl(lat: number, lon: number): string {
   const ns = lat >= 0 ? 'N' : 'S';
   const ew = lon >= 0 ? 'E' : 'W';
-  const nsLat = `${ns}${String(Math.abs(lat)).padStart(2, '0')}`
-  return `https://elevation-tiles-prod.s3.amazonaws.com/skadi/${nsLat}/${nsLat}${ew}${String(Math.abs(lon)).padStart(3, '0')}.hgt.gz`;
+  const nsLat = `${ns}${String(Math.abs(lat)).padStart(2, '0')}`;
+  return `https://elevation-tiles-prod.s3.amazonaws.com/skadi/${nsLat}/${nsLat}${ew}${String(Math.abs(lon)).padStart(
+    3,
+    '0',
+  )}.hgt.gz`;
 }
 
 export function differentialEncodeFixes(fixes: Fix[]): Fix[] {
