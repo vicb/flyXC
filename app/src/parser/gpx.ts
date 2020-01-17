@@ -7,7 +7,11 @@ const DOMParser = require('xmldom').DOMParser;
 export function parse(content: string): Track[] {
   const geojson = toGeoJSON.gpx(
     new DOMParser({
-      errorHandler: null,
+      errorHandler: (level: string, msg: string): void => {
+        if (level === 'error') {
+          console.error(`GPX parse error (${msg})`);
+        }
+      },
     }).parseFromString(content),
   );
 

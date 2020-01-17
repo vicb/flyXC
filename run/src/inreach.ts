@@ -26,8 +26,14 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
 
       if (response.code == 200) {
         console.log(`Refreshing inreach @ ${url}`);
-        const dom = new DOMParser().parseFromString(response.body);
-        const placemarks = dom.getElementsByTagName('Placemark');
+        const dom = new DOMParser({
+          errorHandler: (level: string, msg: string): void => {
+            if (level === 'error') {
+              console.error(`InReach parse error (${msg})`);
+            }
+          },
+        }).parseFromString(response.body);
+        const placemarks = dom ? dom.getElementsByTagName('Placemark') : [];
         if (placemarks.length > 0) {
           numActiveDevices++;
         }
