@@ -1,6 +1,6 @@
 {
   "name": "flyxc",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "flyxc.app",
   "main": "server.js",
   "scripts": {
