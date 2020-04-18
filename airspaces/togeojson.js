@@ -11,9 +11,7 @@ const path = require('path');
 const GeoJSON = require('geojson');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
-prog
-  .option('-i, --input <folder>', 'input folder', 'asp')
-  .option('-o, --output <file>', 'output file', 'airspaces');
+prog.option('-i, --input <folder>', 'input folder', 'asp').option('-o, --output <file>', 'output file', 'airspaces');
 
 prog.parse(process.argv);
 
@@ -53,25 +51,25 @@ function decodeOpenAirFile(file) {
   console.log(`# ${path.basename(file)}`);
   const airspaces = [];
   const openAirLines = fs.readFileSync(file, 'utf-8').split('\n');
-  
-  let category = "";
-  let name = "";
-  let floor = "";
-  let ceiling = "";
+
+  let category = '';
+  let name = '';
+  let floor = '';
+  let ceiling = '';
   let coords = [];
 
   for (let line of openAirLines) {
     line = line.trim();
     if (line.startsWith('*')) {
-      // comment        
+      // comment
       continue;
-    }    
+    }
 
     if (line.length == 0) {
       if (coords.length) {
         pushOpenAirAirspace(airspaces, name, category, floor, ceiling, coords);
         coords = [];
-      } 
+      }
       continue;
     }
 
@@ -98,18 +96,18 @@ function decodeOpenAirFile(file) {
       case 'DP':
         const ma = m[2].trim().match(/([\d.]+) ([NS]) ([\d.]+) ([EW])/);
         if (ma == null) {
-          throw new Error(`Unsupported coordinates ${line}`);          
+          throw new Error(`Unsupported coordinates ${line}`);
         }
         const lat = parseFloat(ma[1]).toFixed(6) * (ma[2] == 'N' ? 1 : -1);
         const lon = parseFloat(ma[3]).toFixed(6) * (ma[4] == 'E' ? 1 : -1);
-        coords.push([lon, lat]);          
+        coords.push([lon, lat]);
         break;
       case 'SP':
       case 'SB':
         break;
       default:
-        throw new Error(`Unsupported record ${m[1]}`);                                        
-    } 
+        throw new Error(`Unsupported record ${m[1]}`);
+    }
   }
 
   if (coords.length) {
@@ -125,17 +123,17 @@ function pushOpenAirAirspace(airspaces, name, category, floor, ceiling, coords) 
     name,
     category,
     bottom: floor,
-    bottom_km: Math.floor(openAirAltMeter(floor) / 1000),
+    bottom_m: Math.floor(openAirAltMeter(floor)),
     top: ceiling,
     polygon: [coords],
     color: null,
   };
 
-  a.color = airspaceColor(a, "", Number(openAirAltMeter(ceiling)));
+  a.color = airspaceColor(a, '', Number(openAirAltMeter(ceiling)));
 
   if (a.color !== '') {
     airspaces.push(a);
-  }    
+  }
 }
 
 function openAirAltMeter(str) {
@@ -182,7 +180,7 @@ function decodeAipAirspace(asp) {
     name,
     category: category,
     bottom: formatAipAltLimit(asp.ALTLIMIT_BOTTOM),
-    bottom_km: Math.floor(aipAltMeter(asp.ALTLIMIT_BOTTOM) / 1000),
+    bottom_m: Math.floor(aipAltMeter(asp.ALTLIMIT_BOTTOM) / 1000),
     top: formatAipAltLimit(asp.ALTLIMIT_TOP),
     polygon: [coords],
     color: null,
