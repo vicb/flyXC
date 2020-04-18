@@ -8,7 +8,7 @@ export class FrCfd extends League {
 
   score(measure: Measure): Score[] {
     return [
-      ...scoreOpenDistance(measure, 2, this.openDistanceMultiplier),
+      ...scoreOpenDistance(measure, 3, this.openDistanceMultiplier),
       ...scoreCircuits(measure, null, this.scoreTriangleAbsolute),
       ...scoreCircuits(measure, null, this.scoreTriangleRelative),
     ];
