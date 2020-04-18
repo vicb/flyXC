@@ -11,24 +11,24 @@
   "license": "ISC",
   "dependencies": {
     "@mapbox/vector-tile": "^1.3.1",
-    "@ui5/webcomponents": "^1.0.0-rc.5",
+    "@ui5/webcomponents": "^1.0.0-rc.6",
     "cookiesjs": "^3.0.3",
     "d3-array": "^2.4.0",
     "d3-scale-chromatic": "^1.5.0",
     "geolib": "^3.2.1",
-    "lit-element": "^2.2.1",
-    "lit-html": "^1.1.2",
+    "lit-element": "^2.3.1",
+    "lit-html": "^1.2.1",
     "pbf": "^3.2.1",
     "pwa-helpers": "^0.9.1",
     "redux": "^4.0.5",
     "redux-thunk": "^2.3.0",
     "reselect": "^4.0.0",
-    "tslib": "^1.10.0"
+    "tslib": "^1.11.1"
   },
   "devDependencies": {
     "@types/d3-array": "^2.0.0",
-    "@types/d3-scale-chromatic": "^1.3.1",
-    "@types/googlemaps": "^3.39.1",
+    "@types/d3-scale-chromatic": "^1.5.0",
+    "@types/googlemaps": "^3.39.3",
     "@types/pbf": "^3.0.2",
     "rollup-plugin-json": "^4.0.0"
   }
