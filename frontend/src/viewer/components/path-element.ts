@@ -51,7 +51,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
           this.initialPath = [];
         }
         if (url.searchParams.has('s')) {
-          store.dispatch(setSpeed(parseInt(url.searchParams.get('s') as string, 10)));
+          store.dispatch(setSpeed(parseFloat(url.searchParams.get('s') as string).toFixed(1)));
         }
         if (url.searchParams.has('l')) {
           store.dispatch(setLeague(url.searchParams.get('l')));

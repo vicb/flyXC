@@ -1,11 +1,18 @@
 import { CSSResult, LitElement, TemplateResult, css, customElement, html, property } from 'lit-element';
+import { CircuitType, Score } from '../logic/score/scorer';
 import { RootState, store } from '../store';
 import { decrementSpeed, incrementSpeed, setSpeed } from '../actions/map';
 
 import { Point } from '../logic/score/measure';
-import { Score } from '../logic/score/scorer';
 import { connect } from 'pwa-helpers';
 import { formatUnit } from '../logic/units';
+
+const CIRCUIT_SHORT_NAME = {
+  [CircuitType.OPEN_DISTANCE]: 'od',
+  [CircuitType.OUT_AND_RETURN]: 'oar',
+  [CircuitType.FLAT_TRIANGLE]: 'triangle',
+  [CircuitType.FAI_TRIANGLE]: 'fai',
+};
 
 @customElement('planner-element')
 export class PlannerElement extends connect(store)(LitElement) {
@@ -36,7 +43,21 @@ export class PlannerElement extends connect(store)(LitElement) {
       this.units = state.map.units;
       this.duration = ((this.distance / this.speed) * 60) / 1000;
     }
+    const url = new URL(document.location.href);
+    if (this.score?.distance) {
+      url.searchParams.set('kms', (this.score.distance / 1000).toFixed(1));
+      let circuit = CIRCUIT_SHORT_NAME[this.score.circuit];
+      if (this.score.circuit == CircuitType.OPEN_DISTANCE) {
+        circuit += this.score.indexes.length - 2;
+      }
+      url.searchParams.set('circuit', circuit);
+    } else {
+      url.searchParams.delete('kms');
+      url.searchParams.delete('circuit');
+    }
+    history.replaceState({}, '', String(url));
   }
+
   static get styles(): CSSResult[] {
     return [
       css`
