@@ -1,9 +1,9 @@
 import { AspAt, AspMapType, AspZoomMapType } from '../logic/airspaces';
 import { CSSResult, LitElement, PropertyValues, TemplateResult, css, customElement, html, property } from 'lit-element';
 import { RootState, store } from '../store';
+import { UNITS, formatUnit } from '../logic/units';
 
 import { connect } from 'pwa-helpers';
-import { formatUnit } from '../logic/units';
 
 @customElement('airspace-ctrl-element')
 export class AirspaceCtrlElement extends connect(store)(LitElement) {
@@ -81,15 +81,29 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
   }
 
   render(): TemplateResult {
+    const steps: TemplateResult[] = [];
+    if (this.units.altitude == UNITS.feet) {
+      for (let ft = 1000; ft <= 17000; ft += 1000) {
+        const m = ft / 3.28084;
+        steps.push(
+          html`
+            <option value=${m / 1000}>${formatUnit(m, this.units.altitude)}</option>
+          `,
+        );
+      }
+    } else {
+      for (let km = 0.5; km <= 6; km += 0.5) {
+        steps.push(
+          html`
+            <option value=${km}>${formatUnit(km * 1000, this.units.altitude)}</option>
+          `,
+        );
+      }
+    }
     return html`
       <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
       <select value=${this.altitude} @change=${this.handleChange} .hidden=${!this.expanded}>
-        <option value="1">${formatUnit(1000, this.units.altitude)}</option>
-        <option value="2">${formatUnit(2000, this.units.altitude)}</option>
-        <option value="3">${formatUnit(3000, this.units.altitude)}</option>
-        <option value="4">${formatUnit(4000, this.units.altitude)}</option>
-        <option value="5">${formatUnit(5000, this.units.altitude)}</option>
-        <option value="6">${formatUnit(6000, this.units.altitude)}</option>
+        ${steps}
       </select>
       <i class="fas fa-fighter-jet fa-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
     `;
