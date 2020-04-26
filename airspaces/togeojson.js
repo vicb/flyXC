@@ -161,6 +161,12 @@ function decodeAipAirspace(asp) {
   if (Array.isArray(asp.GEOMETRY.POLYGON)) {
     throw new Error('nested polygons');
   }
+
+  if (!asp.GEOMETRY.POLYGON._text) {
+    console.error(`INVALID Airspace:`, asp);
+    return;
+  }
+
   const geometry = asp.GEOMETRY.POLYGON._text
     .replace(/,/g, '')
     .replace(/-?[\d\.]+/g, d => Math.round(d * 10000) / 10000)
