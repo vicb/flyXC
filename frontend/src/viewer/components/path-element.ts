@@ -18,6 +18,13 @@ const ROUTE_STROKE_COLORS = {
   [CircuitType.FAI_TRIANGLE]: '#ffff00',
 };
 
+const CIRCUIT_SHORT_NAME = {
+  [CircuitType.OPEN_DISTANCE]: 'od',
+  [CircuitType.OUT_AND_RETURN]: 'oar',
+  [CircuitType.FLAT_TRIANGLE]: 'triangle',
+  [CircuitType.FAI_TRIANGLE]: 'fai',
+};
+
 const WAYPOINT_FORMATS: { [id: string]: string } = {
   cup: 'See You (cup)',
   gpx: 'GPX',
@@ -304,6 +311,17 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       this.faiSectors.update(faiPoints);
       this.faiSectors.setMap(this.map);
     }
+
+    let kms = "";
+    let circuit = "";
+    if (score.distance && window.parent) {
+      kms = (score.distance / 1000).toFixed(1);
+      circuit = CIRCUIT_SHORT_NAME[score.circuit];
+      if (score.circuit == CircuitType.OPEN_DISTANCE) {
+        circuit += score.indexes.length - 2;
+      };
+      window.parent.postMessage(JSON.stringify({kms, circuit}), "*");
+    } 
   }
 
   protected render(): TemplateResult {
