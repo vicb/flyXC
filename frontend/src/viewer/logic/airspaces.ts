@@ -135,7 +135,7 @@ function getTile(
   const id = tileId(baseZoom, coord.x, coord.y);
   canvas.setAttribute('tile-id', `${id}`);
 
-  fetch(`https://airspaces-20191125.storage.googleapis.com/tiles/${baseZoom}/${coord.x}/${coord.y}.pbf`)
+  fetch(`https://airspaces.storage.googleapis.com/tiles/${baseZoom}/${coord.x}/${coord.y}.pbf`)
     .then(r => (r.ok ? r.arrayBuffer() : null))
     .then(buffer => {
       if (buffer == null) {
