@@ -11,6 +11,9 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
   altitude = 1;
 
   @property()
+  restricted = true;
+
+  @property()
   expanded = false;
 
   map_: google.maps.Map | null = null;
@@ -102,11 +105,24 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
     }
     return html`
       <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
-      <select value=${this.altitude} @change=${this.handleChange} .hidden=${!this.expanded}>
-        ${steps}
-      </select>
+      <div style="float:left;margin-right:5px" .hidden=${!this.expanded}>
+        <label
+          ><input type="checkbox" ?checked=${this.restricted} @change=${this.handleRestricted} />E, F, G,
+          RESTRICTED</label
+        >
+        <select value=${this.altitude} @change=${this.handleChange}>
+          ${steps}
+        </select>
+      </div>
       <i class="fas fa-fighter-jet fa-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
     `;
+  }
+
+  protected handleRestricted(e: Event): void {
+    if (e.target) {
+      const show = (e.target as HTMLInputElement).checked;
+      this.dispatchEvent(new CustomEvent('restricted', { detail: { show } }));
+    }
   }
 
   protected handleChange(e: Event): void {
@@ -137,8 +153,8 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
           this.removeOverlays();
         }
       }
-      if (changedProperties.has('altitude') && this.expanded) {
-        // Need to remove and re-add the overlays to change the altitude
+      if ((changedProperties.has('altitude') || changedProperties.has('restricted')) && this.expanded) {
+        // Need to remove and re-add the overlays to change the altitude / restricted visibility.
         this.removeOverlays();
         this.addOverlays();
       }
@@ -150,6 +166,7 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
     this.overlays.forEach(o => {
       if (this.map?.overlayMapTypes) {
         o.setAltitude(this.altitude);
+        o.setShowRestricted(this.restricted);
         this.map.overlayMapTypes.push(o);
       }
     });

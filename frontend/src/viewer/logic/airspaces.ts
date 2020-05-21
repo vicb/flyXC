@@ -80,6 +80,7 @@ export class AspMapType {
   minZoom = 0;
   maxZoom = 0;
   tileSize: google.maps.Size;
+  showRestricted = true;
 
   constructor(altitude: number, maxZoom: number) {
     this.altitude = altitude || 1;
@@ -90,7 +91,7 @@ export class AspMapType {
   }
 
   getTile(coord: google.maps.Point, zoom: number, doc: HTMLDocument): HTMLElement {
-    return getTile(coord, zoom, doc, this.altitude);
+    return getTile(coord, zoom, doc, this.altitude, this.showRestricted);
   }
 
   releaseTile(canvas: HTMLElement): void {
@@ -100,6 +101,10 @@ export class AspMapType {
 
   setAltitude(altitudeKm: number): void {
     this.altitude = altitudeKm;
+  }
+
+  setShowRestricted(show: boolean): void {
+    this.showRestricted = show;
   }
 }
 
@@ -117,7 +122,7 @@ export class AspZoomMapType extends AspMapType {
   }
 
   getTile(coord: google.maps.Point, zoom: number, doc: HTMLDocument): HTMLElement {
-    return getTile(coord, this.baseZoom, doc, this.altitude, this.minZoom);
+    return getTile(coord, this.baseZoom, doc, this.altitude, this.showRestricted, this.minZoom);
   }
 }
 
@@ -127,6 +132,7 @@ function getTile(
   baseZoom: number,
   doc: HTMLDocument,
   altitude: number,
+  showRestricted: boolean,
   dstZoom: number = baseZoom,
 ): HTMLElement {
   const canvas = doc.createElement('canvas');
@@ -162,7 +168,11 @@ function getTile(
         for (let i = 0; i < vTile.layers.asp.length; i++) {
           const f = vTile.layers.asp.feature(i);
           const ratio = (TILE_SIZE << overZoom) / f.extent;
-          if (f.type === 3 && f.properties['bottom_km'] < altitude) {
+          if (
+            f.type === 3 &&
+            f.properties['bottom_km'] < altitude &&
+            !(f.properties['color'] == '#bfbf40' && !showRestricted)
+          ) {
             const p = f.loadGeometry()[0];
 
             const coords = p.map(({ x, y }: { x: number; y: number }) => ({

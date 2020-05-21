@@ -3,7 +3,7 @@ import * as mapSel from '../selectors/map';
 import { AirwaysCtrlElement, AirwaysOverlay } from './airways-element';
 import { CSSResult, LitElement, TemplateResult, css, customElement, html, property } from 'lit-element';
 import { RootState, store } from '../store';
-import { closeActiveTrack, setAspAltitude } from '../actions/map';
+import { closeActiveTrack, setAspAltitude, setAspShowRestricted } from '../actions/map';
 
 import { AboutElement } from './about-element';
 import { AirspaceCtrlElement } from './airspace-element';
@@ -38,6 +38,9 @@ export class ControlsElement extends connect(store)(LitElement) {
   aspAltitude = 1;
 
   @property({ attribute: false })
+  aspShowRestricted = true;
+
+  @property({ attribute: false })
   map: google.maps.Map | null = null;
 
   @property({ attribute: false })
@@ -61,6 +64,7 @@ export class ControlsElement extends connect(store)(LitElement) {
   stateChanged(state: RootState): void {
     if (state.map) {
       this.aspAltitude = state.map.aspAltitude;
+      this.aspShowRestricted = state.map.aspShowRestricted;
       this.map = state.map.map;
       this.timestamp = state.map.ts;
       this.fixes = mapSel.activeFixes(state.map);
@@ -87,6 +91,10 @@ export class ControlsElement extends connect(store)(LitElement) {
     store.dispatch(setAspAltitude(e.detail.altitude));
   }
 
+  protected handleRestricted(e: CustomEvent): void {
+    store.dispatch(setAspShowRestricted(e.detail.show));
+  }
+
   protected handleClose(): void {
     store.dispatch(closeActiveTrack());
   }
@@ -97,7 +105,9 @@ export class ControlsElement extends connect(store)(LitElement) {
       <airspace-ctrl-element
         .map=${this.map}
         .altitude=${this.aspAltitude}
+        .restricted=${this.aspShowRestricted}
         @change=${this.handleAltitudeChange}
+        @restricted=${this.handleRestricted}
       ></airspace-ctrl-element>
       <airways-ctrl-element .map=${this.map}></airways-ctrl-element>
       <path-ctrl-element .map=${this.map}></path-ctrl-element>

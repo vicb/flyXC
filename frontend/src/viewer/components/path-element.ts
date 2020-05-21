@@ -312,16 +312,24 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       this.faiSectors.setMap(this.map);
     }
 
-    let kms = "";
-    let circuit = "";
+    let kms = '';
+    let circuit = '';
     if (score.distance && window.parent) {
       kms = (score.distance / 1000).toFixed(1);
       circuit = CIRCUIT_SHORT_NAME[score.circuit];
       if (score.circuit == CircuitType.OPEN_DISTANCE) {
         circuit += score.indexes.length - 2;
-      };
-      window.parent.postMessage(JSON.stringify({kms, circuit}), "*");
-    } 
+      }
+      window.parent.postMessage(
+        JSON.stringify({
+          kms,
+          circuit,
+          l: this.league,
+          p: google.maps.geometry.encoding.encodePath(line.getPath()),
+        }),
+        '*',
+      );
+    }
   }
 
   protected render(): TemplateResult {

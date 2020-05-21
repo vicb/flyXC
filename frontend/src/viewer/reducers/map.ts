@@ -8,6 +8,7 @@ import {
   MapAction,
   SET_ALTITUDE_UNIT,
   SET_ASP_ALTITUDE,
+  SET_ASP_SHOW_RESTRICTED,
   SET_CHART_Y,
   SET_CURRENT_TRACK,
   SET_DISTANCE,
@@ -35,6 +36,7 @@ export interface MapState {
   ts: number;
   currentTrack: number;
   aspAltitude: number;
+  aspShowRestricted: boolean;
   loading: boolean;
   chartY: string;
   score: Score | null;
@@ -55,6 +57,7 @@ const INITIAL_STATE: MapState = {
   ts: 0,
   currentTrack: 0,
   aspAltitude: 1,
+  aspShowRestricted: true,
   loading: false,
   chartY: 'alt',
   score: null,
@@ -106,6 +109,11 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
     case SET_ASP_ALTITUDE: {
       const { aspAltitude } = action.payload;
       return { ...state, aspAltitude };
+    }
+
+    case SET_ASP_SHOW_RESTRICTED: {
+      const { aspShowRestricted } = action.payload;
+      return { ...state, aspShowRestricted };
     }
 
     case CLOSE_ACTIVE_TRACK: {

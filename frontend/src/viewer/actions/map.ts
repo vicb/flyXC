@@ -9,6 +9,7 @@ export const ZOOM_TRACKS = 'ZOOM_TRACKS';
 export const SET_TS = 'SET_TS';
 export const SET_CURRENT_TRACK = 'SET_CURRENT_TRACK';
 export const SET_ASP_ALTITUDE = 'SET_ASP_ALTITUDE';
+export const SET_ASP_SHOW_RESTRICTED = 'SET_ASP_SHOW_RESTRICTED';
 export const CLOSE_ACTIVE_TRACK = 'CLOSE_ACTIVE_TRACK';
 export const SET_LOADING = 'SET_LOADING';
 export const SET_CHART_Y = 'SET_CHART_Y';
@@ -48,6 +49,10 @@ export interface SetCurrentTrack extends Action<typeof SET_CURRENT_TRACK> {
 
 export interface SetAspAltitude extends Action<typeof SET_ASP_ALTITUDE> {
   payload: { aspAltitude: number };
+}
+
+export interface SetAspShowRestricted extends Action<typeof SET_ASP_SHOW_RESTRICTED> {
+  payload: { aspShowRestricted: boolean };
 }
 
 export type CloseActiveTrack = Action<typeof CLOSE_ACTIVE_TRACK>;
@@ -103,6 +108,7 @@ export type MapAction =
   | MoveCloseTo
   | SetAltitudeUnit
   | SetAspAltitude
+  | SetAspShowRestricted
   | SetChartY
   | SetCurrentTrack
   | SetDistance
@@ -149,6 +155,11 @@ export const setCurrentTrack: ActionCreator<SetCurrentTrack> = (index: number) =
 export const setAspAltitude: ActionCreator<SetAspAltitude> = aspAltitude => ({
   type: SET_ASP_ALTITUDE,
   payload: { aspAltitude },
+});
+
+export const setAspShowRestricted: ActionCreator<SetAspShowRestricted> = aspShowRestricted => ({
+  type: SET_ASP_SHOW_RESTRICTED,
+  payload: { aspShowRestricted },
 });
 
 export const closeActiveTrack: ActionCreator<CloseActiveTrack> = () => ({ type: CLOSE_ACTIVE_TRACK });
