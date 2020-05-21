@@ -2,12 +2,18 @@ import Protobuf from 'pbf';
 import { VectorTile } from '@mapbox/vector-tile';
 
 const TILE_SIZE = 256;
+const RESTRICTED_COLOR = '#bfbf40';
 
 // id -> layer
 const layerMap = new Map();
 
 // Returns html describing airspaces at the given point.
-export function AspAt(map: google.maps.Map, latLng: google.maps.LatLng, altitudeKm: number): string | null {
+export function AspAt(
+  map: google.maps.Map,
+  latLng: google.maps.LatLng,
+  altitudeKm: number,
+  includeRestricted: boolean,
+): string | null {
   const worldCoords = (map.getProjection() as google.maps.Projection).fromLatLngToPoint(latLng);
   const zoom = Math.min(map.getZoom(), 13);
   const scale = 1 << zoom;
@@ -33,7 +39,11 @@ export function AspAt(map: google.maps.Map, latLng: google.maps.LatLng, altitude
   const info = [];
   for (let i = 0; i < layer.length; i++) {
     const f = layer.feature(i);
-    if (f.properties.bottom_km < altitudeKm && isInPolygon(pxCoords, f)) {
+    if (
+      f.properties.bottom_km < altitudeKm &&
+      !(f.properties.color == RESTRICTED_COLOR && !includeRestricted) &&
+      isInPolygon(pxCoords, f)
+    ) {
       info.push(
         `<b>[${f.properties.category}] ${f.properties.name}</b><br/>↧${f.properties.bottom} ↥${f.properties.top}`,
       );
@@ -170,8 +180,8 @@ function getTile(
           const ratio = (TILE_SIZE << overZoom) / f.extent;
           if (
             f.type === 3 &&
-            f.properties['bottom_km'] < altitude &&
-            !(f.properties['color'] == '#bfbf40' && !showRestricted)
+            f.properties.bottom_km < altitude &&
+            !(f.properties.color == RESTRICTED_COLOR && !showRestricted)
           ) {
             const p = f.loadGeometry()[0];
 
@@ -179,7 +189,7 @@ function getTile(
               x: Math.round(x * ratio),
               y: Math.round(y * ratio),
             }));
-            ctx.fillStyle = f.properties['color'] + '70';
+            ctx.fillStyle = f.properties.color + '70';
             ctx.beginPath();
             ctx.moveTo(coords[0].x, coords[0].y);
             for (let j = 1; j < coords.length; j++) {
@@ -187,7 +197,7 @@ function getTile(
               ctx.lineTo(p.x, p.y);
             }
             ctx.fill('evenodd');
-            ctx.strokeStyle = f.properties['color'] + '75';
+            ctx.strokeStyle = f.properties.color + '75';
             ctx.stroke();
           }
         }

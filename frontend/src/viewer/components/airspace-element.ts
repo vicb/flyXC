@@ -135,7 +135,7 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
   protected handleClick(latLng: google.maps.LatLng): void {
     if (this.expanded && this.map && this.info) {
       this.info.close();
-      const html = AspAt(this.map, latLng, this.altitude);
+      const html = AspAt(this.map, latLng, this.altitude, this.restricted);
       if (html) {
         this.info.setContent(html);
         this.info.setPosition(latLng);
