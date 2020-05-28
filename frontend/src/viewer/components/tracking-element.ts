@@ -109,12 +109,19 @@ export class TrackingElement extends connect(store)(LitElement) {
         const old = now - 5 * 3600 * 1000;
         const s = linearInterpolate(old, 10, now, 100, ts);
         let color = feature.getProperty('msg') ? `hsl(59, ${s}%, 50%)` : `hsl(111, ${s}%, 53%)`;
+        let zIndex = 10;
+        if (feature.getProperty('msg')) {
+          zIndex += 10;
+        }
         if (feature.getProperty('emergency')) {
           color = 'red';
+          zIndex += 10;
         }
         return {
           strokeColor: '#555',
           strokeWeight: 2,
+          zIndex,
+          cursor: 'zoom-in',
           icon: {
             path: 'M 0,10 A 10,10 0 0 0 20,10 A 10,10 0 0 0 0,10',
             fillColor: color,
