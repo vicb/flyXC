@@ -39,7 +39,9 @@ Change preferences.
 
 ## Credits
 
+- [openaip.net] for the airspaces,
+- [thermal.kk7.ch] for the airways,
 - [Tom Payne](https://github.com/twpayne) for sharing his airspace handling code and for the great [XCPlanner](https://xcplanner.appspot.com/) that was a source of inspiration,
 - bat icons made by [Freepik](https://www.flaticon.com/authors/freepik) - [www.flaticon.com](https://www.flaticon.com/),
 - loader icon by [Sam Herbert](https://github.com/SamHerbert/SVG-Loaders/blob/master/svg-loaders/three-dots.svg),
-- the many OSS libraries and projects used by FlyXc.
+- the many open source libraries, projects, and data sources used by FlyXc.
