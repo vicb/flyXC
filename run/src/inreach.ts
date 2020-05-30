@@ -32,7 +32,7 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
     if (/^https?:\/\/[\w.]*?garmin.com\/Feed\/Share\/[^?]+/i.test(url)) {
       const response = await request(`${url}?d1=${startDate}`);
 
-      if (response.code == 200) {
+      if (response.code == 200 && response.body.length > 0) {
         console.log(`Refreshing inreach @ ${url}`);
         const dom = new DOMParser({
           errorHandler: (level: string, msg: string): void => {
