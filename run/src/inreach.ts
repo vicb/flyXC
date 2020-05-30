@@ -20,7 +20,15 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
   for (; numDevices < devices.length; numDevices++) {
     const features: any[] = [];
     const device = devices[numDevices];
-    const url: string = device.inreach;
+    let url: string = device.inreach;
+    // Automatically inserts "Feed/Share" when missing in url.
+    // That's missing for a lot of users.
+    if (url.match(/Feed\/Share/i) == null) {
+      const lastSlash = url.lastIndexOf('/');
+      if (lastSlash > -1) {
+        url = url.substr(0, lastSlash) + '/Feed/Share' + url.substr(lastSlash);
+      }
+    }
     if (/^https?:\/\/[\w.]*?garmin.com\/Feed\/Share\/[^?]+/i.test(url)) {
       const response = await request(`${url}?d1=${startDate}`);
 
@@ -62,11 +70,13 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
           }
         }
         if (features.length) {
-          const line = features.map(f => [f.lon, f.lat]);
+          const line = features.map((f) => [f.lon, f.lat]);
           features.push({ line });
         }
       } else {
-        console.log(`Error refreshing inreach @ ${url}`);
+        console.log(
+          `Error refreshing inreach @ ${url}. HTTP code = ${response.code}, length = ${response.body.length}`,
+        );
       }
     }
 
