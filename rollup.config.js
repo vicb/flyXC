@@ -1,11 +1,11 @@
 import cjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
-import minify from 'rollup-plugin-babel-minify';
 import minifyHTML from 'rollup-plugin-minify-html-literals';
 import replace from 'rollup-plugin-replace';
 import resolve from 'rollup-plugin-node-resolve';
 import run from 'rollup-plugin-run';
 import stripCode from 'rollup-plugin-strip-code';
+import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
 
 const prod = !process.env.ROLLUP_WATCH;
@@ -35,11 +35,7 @@ export default [
       typescript({
         tsconfigDefaults: {},
       }),
-      prod &&
-        minify({
-          comments: !prod,
-          keepFnName: false,
-        }),
+      prod && terser(),
       !prod && run({ execArgv: ['--inspect'] }),
     ],
   },
@@ -64,11 +60,7 @@ export default [
       }),
       cjs(),
       typescript({}),
-      prod &&
-        minify({
-          comments: !prod,
-          keepFnName: false,
-        }),
+      prod && terser(),
       !prod && run({ env: { ...process.env, PORT: 8081 } }),
     ],
   },
@@ -104,11 +96,7 @@ function buildFrontEnd(input) {
       resolve(),
       cjs(),
       typescript(),
-      prod &&
-        minify({
-          comments: !prod,
-          keepFnName: false,
-        }),
+      prod && terser(),
     ],
   };
 }
