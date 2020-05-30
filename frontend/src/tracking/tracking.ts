@@ -11,6 +11,7 @@ window.initLogin = (): void => {
 };
 
 declare const gapi: any;
+declare function gtag(...args: any[]): void;
 
 @customElement('tracker-form')
 export class TrackerFrom extends LitElement {
@@ -27,18 +28,53 @@ export class TrackerFrom extends LitElement {
     super();
     window.addEventListener('login-init', () => {
       gapi.load('auth2', async () => {
-        this.auth = await gapi.auth2.init({
-          client_id: '754556983658-qscerk4tpsu8mgb1kfcq5gvf8hmqsamn.apps.googleusercontent.com',
-        });
-        gapi.signin2.render('g-signin', {
-          scope: 'profile email',
-          longtitle: true,
-          theme: 'dark',
-          onsuccess: (user: any) => this.onSignIn(user),
-          onerror: (e: any) => console.log('ERROR', e),
-        });
-        this.signedIn = this.auth.currentUser.get().isSignedIn();
-        this.auth.isSignedIn.listen((signedIn: boolean) => (this.signedIn = signedIn));
+        try {
+          this.auth = await gapi.auth2.init({
+            client_id: '754556983658-qscerk4tpsu8mgb1kfcq5gvf8hmqsamn.apps.googleusercontent.com',
+          });
+
+          gapi.signin2.render('g-signin', {
+            scope: 'profile email',
+            longtitle: true,
+            theme: 'dark',
+            ux_mode: 'redirect',
+            onsuccess: (user: any) => {
+              this.onSignIn(user);
+              gtag('event', 'success', {
+                event_category: 'login',
+                event_label: 'render',
+              });
+            },
+            onerror: (err: any) => {
+              gtag('event', 'exception', {
+                description: 'render_onerror',
+                fatal: true,
+              });
+              gtag('event', 'failure', {
+                event_category: 'login',
+                event_label: JSON.stringify(err),
+              });
+            },
+          });
+          this.signedIn = this.auth.currentUser.get().isSignedIn();
+          this.auth.isSignedIn.listen((signedIn: boolean) => {
+            this.signedIn = signedIn;
+            gtag('event', 'success', {
+              event_category: 'login',
+              event_label: 'isSignedIn',
+            });
+          });
+        } catch (err) {
+          console.log(err);
+          gtag('event', 'failure', {
+            event_category: 'login',
+            event_label: JSON.stringify(err),
+          });
+          gtag('event', 'exception', {
+            description: 'login_trycatch',
+            fatal: true,
+          });
+        }
       });
     });
   }
