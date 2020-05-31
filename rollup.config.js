@@ -35,7 +35,7 @@ export default [
       typescript({
         tsconfigDefaults: {},
       }),
-      prod && terser(),
+      prod && terser({ output: { comments: false } }),
       !prod && run({ execArgv: ['--inspect'] }),
     ],
   },
@@ -60,7 +60,7 @@ export default [
       }),
       cjs(),
       typescript({}),
-      prod && terser(),
+      prod && terser({ output: { comments: false } }),
       !prod && run({ env: { ...process.env, PORT: 8081 } }),
     ],
   },
@@ -96,7 +96,7 @@ function buildFrontEnd(input) {
       resolve(),
       cjs(),
       typescript(),
-      prod && terser(),
+      prod && terser({ output: { comments: false } }),
     ],
   };
 }
