@@ -22,8 +22,8 @@ router.post('/refresh', async (ctx: K.Context) => {
   const request = Number(await redis.get('trackers.request'));
   if (request > Date.now() - 10 * 60 * 1000) {
     // Refresh the trackers
-    numRefreshed += await refreshInreach(datastore, 12, 40);
-    numRefreshed += await refreshSpot(datastore, 12, 40);
+    numRefreshed += await refreshInreach(datastore, 24, 40);
+    numRefreshed += await refreshSpot(datastore, 24, 40);
     // Merge the tracks
     const query = datastore.createQuery('Tracker').filter('updated', '>', Date.now() - 20 * 60 * 1000);
     const trackers = (await datastore.runQuery(query))[0];
@@ -39,10 +39,7 @@ router.post('/refresh', async (ctx: K.Context) => {
 });
 
 router.get('/refresh', async (ctx: K.Context) => {
-  const query = datastore
-    .createQuery('Tracker')
-    .order('updated', { descending: true })
-    .limit(1);
+  const query = datastore.createQuery('Tracker').order('updated', { descending: true }).limit(1);
 
   const devices = (await datastore.runQuery(query))[0];
 

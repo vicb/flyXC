@@ -34,7 +34,7 @@ You can display multiples tracks on the same map.
 Add your satellite tracker.
 
 All registered pilot live tracks are automatically added to the map and fixes
-persist for 12 hours. Recent fixes are bright green while older fixes turn gray
+persist for 24 hours. Recent fixes are bright green while older fixes turn gray
 as time passes.
 
 Note: The updates are pushed to the browser as they are ready. There is no need

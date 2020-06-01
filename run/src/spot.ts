@@ -44,8 +44,8 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
         console.log(`Error refreshing spot @ ${id}`);
       }
       if (features.length) {
-        const line = features.map(f => [f.lon, f.lat]);
-        features.push({ line });
+        const line = features.map((f) => [f.lon, f.lat]);
+        features.push({ line, first_ts: features[0].ts });
       }
     }
 

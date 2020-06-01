@@ -58,13 +58,13 @@ export class TrackingElement extends connect(store)(LitElement) {
 
   protected fetchTrackers(): void {
     fetch('_trackers.geojson')
-      .then(r => (r.ok ? r.json() : null))
-      .then(geoJson => {
+      .then((r) => (r.ok ? r.json() : null))
+      .then((geoJson) => {
         if (geoJson != null) {
           const map = this.map as google.maps.Map;
           const features = this.features;
           this.features = map.data.addGeoJson(geoJson);
-          features.forEach(f => map.data.remove(f));
+          features.forEach((f) => map.data.remove(f));
         }
       });
   }
@@ -105,7 +105,9 @@ export class TrackingElement extends connect(store)(LitElement) {
     map.data.setStyle(
       (feature: google.maps.Data.Feature): google.maps.Data.StyleOptions => {
         const now = Date.now();
-        const ts = feature.getProperty('ts');
+        // Point features have a 'ts' property.
+        // Line feature has a 'first_ts' property.
+        const ts = feature.getProperty('ts') || feature.getProperty('first_ts');
         const old = now - 5 * 3600 * 1000;
         const s = linearInterpolate(old, 10, now, 100, ts);
         let color = feature.getProperty('msg') ? `hsl(59, ${s}%, 50%)` : `hsl(111, ${s}%, 53%)`;
@@ -117,18 +119,22 @@ export class TrackingElement extends connect(store)(LitElement) {
           color = 'red';
           zIndex += 10;
         }
+        const age_hours = (ts - now) / (3600 * 1000);
+        const opacity = age_hours > 12 ? 0.4 : 0.9;
         return {
           strokeColor: '#555',
           strokeWeight: 2,
+          strokeOpacity: opacity,
+          fillOpacity: opacity,
           zIndex,
           cursor: 'zoom-in',
           icon: {
             path: 'M 0,10 A 10,10 0 0 0 20,10 A 10,10 0 0 0 0,10',
             fillColor: color,
-            fillOpacity: 0.9,
+            fillOpacity: opacity,
             strokeColor: 'black',
             strokeWeight: 2,
-            strokeOpacity: 0.9,
+            strokeOpacity: opacity,
             anchor: new google.maps.Point(10, 10),
             scale: 0.6,
           },

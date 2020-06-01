@@ -71,7 +71,7 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
         }
         if (features.length) {
           const line = features.map((f) => [f.lon, f.lat]);
-          features.push({ line });
+          features.push({ line, first_ts: features[0].ts });
         }
       } else {
         console.log(
