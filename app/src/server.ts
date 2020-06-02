@@ -2,7 +2,6 @@
 const Koa = require('koa');
 const Router = require('koa-router');
 const bodyParser = require('koa-bodyparser');
-const compress = require('koa-compress');
 const multer = require('@koa/multer');
 const serve = require('koa-static');
 const Pbf = require('pbf');
@@ -85,39 +84,20 @@ router.get(
 router.get(
   '/_status.json',
   async (ctx: K.Context): Promise<void> => {
-    const totalTrackers = (
-      await datastore
-        .createQuery('Tracker')
-        .select('__key__')
-        .run()
-    )[0].length;
+    const totalTrackers = (await datastore.createQuery('Tracker').select('__key__').run())[0].length;
     const unactivatedTrackers = (
-      await datastore
-        .createQuery('Tracker')
-        .filter('device', '=', 'no')
-        .select('__key__')
-        .run()
+      await datastore.createQuery('Tracker').filter('device', '=', 'no').select('__key__').run()
     )[0].length;
     ctx.set('Content-Type', 'application/json');
     ctx.body = JSON.stringify({
       'last-request': Number(await redis.get('trackers.request')),
       'last-refresh': Number(await redis.get('trackers.refreshed')),
       'num-refresh': Number(await redis.get('trackers.numrefreshed')),
-      'active-trackers': (
-        await datastore
-          .createQuery('Tracker')
-          .filter('active', '=', true)
-          .select('__key__')
-          .run()
-      )[0].length,
+      'active-trackers': (await datastore.createQuery('Tracker').filter('active', '=', true).select('__key__').run())[0]
+        .length,
       trackers: totalTrackers - unactivatedTrackers,
       unactivatedTrackers,
-      tracks: (
-        await datastore
-          .createQuery('Track')
-          .select('__key__')
-          .run()
-      )[0].length,
+      tracks: (await datastore.createQuery('Track').select('__key__').run())[0].length,
     });
   },
 );
@@ -207,7 +187,7 @@ router.post(
   async (ctx: K.Context): Promise<unknown> => {
     const request = ctx.request as any;
     const files: string[] = request.files.track.map((v: any) => v.buffer.toString());
-    const tracks: Track[][] = await Promise.all(files.map(file => parse(file)));
+    const tracks: Track[][] = await Promise.all(files.map((file) => parse(file)));
     sendTracks(ctx, ([] as Track[]).concat(...tracks));
     return;
   },
@@ -236,15 +216,6 @@ router.get('/_qr.svg', async (ctx: K.Context) => {
 });
 
 app
-  .use(
-    compress({
-      filter: function(contentType: string): boolean {
-        return /text|javascript|x-protobuf|svg/i.test(contentType);
-      },
-      threshold: 2048,
-      flush: require('zlib').Z_SYNC_FLUSH,
-    }),
-  )
   .use(bodyParser({ formLimit: '32mb' }))
   .use(router.routes())
   .use(router.allowedMethods())
