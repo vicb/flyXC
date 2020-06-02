@@ -110,17 +110,20 @@ export class TrackingElement extends connect(store)(LitElement) {
         const ts = feature.getProperty('ts') || feature.getProperty('first_ts');
         const old = now - 5 * 3600 * 1000;
         const s = linearInterpolate(old, 10, now, 100, ts);
-        let color = feature.getProperty('msg') ? `hsl(59, ${s}%, 50%)` : `hsl(111, ${s}%, 53%)`;
+        let color = `hsl(111, ${s}%, 53%)`;
         let zIndex = 10;
+        const age_hours = (now - ts) / (3600 * 1000);
+        let opacity = age_hours > 6 ? 0.3 : 0.9;
         if (feature.getProperty('msg')) {
+          opacity = 1;
+          color = 'yellow';
           zIndex += 10;
         }
         if (feature.getProperty('emergency')) {
+          opacity = 1;
           color = 'red';
           zIndex += 10;
         }
-        const age_hours = (ts - now) / (3600 * 1000);
-        const opacity = age_hours > 12 ? 0.4 : 0.9;
         return {
           strokeColor: '#555',
           strokeWeight: 2,
@@ -133,7 +136,7 @@ export class TrackingElement extends connect(store)(LitElement) {
             fillColor: color,
             fillOpacity: opacity,
             strokeColor: 'black',
-            strokeWeight: 2,
+            strokeWeight: 1,
             strokeOpacity: opacity,
             anchor: new google.maps.Point(10, 10),
             scale: 0.6,
