@@ -24,6 +24,10 @@ export class PlannerElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   distance = 0;
 
+  @property()
+  // Don't display details by default when width is less than 640px.
+  detailed = window.matchMedia('(min-width: 640px)').matches;
+
   duration: number | null = null;
   points: Point[] | null = null;
 
@@ -66,7 +70,7 @@ export class PlannerElement extends connect(store)(LitElement) {
           padding: 1px 0px;
         }
 
-        .control > div:not(:first-child) {
+        .control > div.detail {
           border-top: 0;
           padding: 5px 5px;
         }
@@ -101,24 +105,34 @@ export class PlannerElement extends connect(store)(LitElement) {
   render(): TemplateResult {
     return this.score && this.units
       ? html`
+          <style>
+            .control > div.detail {
+              display: ${this.detailed ? 'block' : 'none'};
+            }
+          </style>
           <div class="control">
             <div>
               <div>${this.score.circuit}</div>
               <div class="large">${formatUnit(this.score.distance / 1000, this.units.distance)}</div>
             </div>
-            <div>
+            <div class="detail">
               <div>Multiplier</div>
               <div class="large">×${this.score.multiplier}</div>
             </div>
-            <div>
+            <div class="detail">
               <div>Points</div>
               <div class="large">${this.score.points.toFixed(1)}</div>
             </div>
-            <div>
+            <div class="detail">
               <div>Total distance</div>
               <div class="large">${formatUnit(this.distance / 1000, this.units.distance)}</div>
             </div>
-            <div @mousemove=${this.onMouseMove} @click=${this.changeDuration} @wheel=${this.wheelDuration}>
+            <div
+              class="detail"
+              @mousemove=${this.onMouseMove}
+              @click=${this.changeDuration}
+              @wheel=${this.wheelDuration}
+            >
               <div>
                 <span>Duration</span>
                 <div class="decrement">
@@ -140,7 +154,7 @@ export class PlannerElement extends connect(store)(LitElement) {
               </div>
               <div class="large">${this.getDuration()}</div>
             </div>
-            <div @mousemove=${this.onMouseMove} @click=${this.changeSpeed} @wheel=${this.wheelSpeed}>
+            <div class="detail" @mousemove=${this.onMouseMove} @click=${this.changeSpeed} @wheel=${this.wheelSpeed}>
               <div>
                 <span>Speed</span>
                 <div class="decrement">
@@ -162,17 +176,36 @@ export class PlannerElement extends connect(store)(LitElement) {
               </div>
               <div class="large">${formatUnit(this.speed as number, this.units.speed)}</div>
             </div>
-            <div @click=${(): boolean => this.dispatchEvent(new CustomEvent('close-flight'))}>
+            <div class="detail" @click=${(): boolean => this.dispatchEvent(new CustomEvent('close-flight'))}>
               <div>Close flight</div>
             </div>
-            <div @click=${(): boolean => this.dispatchEvent(new CustomEvent('share'))}>
+            <div class="detail" @click=${(): boolean => this.dispatchEvent(new CustomEvent('share'))}>
               <div>Share</div>
             </div>
-            <div @click=${(): boolean => this.dispatchEvent(new CustomEvent('download'))}>
+            <div class="detail" @click=${(): boolean => this.dispatchEvent(new CustomEvent('download'))}>
               <div>Download</div>
             </div>
-            <div @click=${(): boolean => this.dispatchEvent(new CustomEvent('reset'))}>
+            <div class="detail" @click=${(): boolean => this.dispatchEvent(new CustomEvent('reset'))}>
               <div>Reset</div>
+            </div>
+            <div style="border-top: 0" @click=${(): boolean => (this.detailed = !this.detailed)}>
+              <div>
+                ${this.detailed
+                  ? html`
+                      <img
+                        height="5"
+                        width="8"
+                        src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAADAQAAAABzTfhVAAAADklEQVQImWO4wdDBwAAABdYBYfESkFcAAAAASUVORK5CYII="
+                      />
+                    `
+                  : html`
+                      <img
+                        height="5"
+                        width="8"
+                        src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAADAQAAAABzTfhVAAAADklEQVQImWNgYOhguAEAAnYBYaFuVa4AAAAASUVORK5CYII="
+                      />
+                    `}
+              </div>
             </div>
           </div>
         `

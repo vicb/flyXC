@@ -88,19 +88,11 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
     if (this.units.altitude == UNITS.feet) {
       for (let ft = 1000; ft <= 17000; ft += 1000) {
         const m = ft / 3.28084;
-        steps.push(
-          html`
-            <option value=${m / 1000}>${formatUnit(m, this.units.altitude)}</option>
-          `,
-        );
+        steps.push(html` <option value=${m / 1000}>${formatUnit(m, this.units.altitude)}</option> `);
       }
     } else {
       for (let km = 0.5; km <= 6; km += 0.5) {
-        steps.push(
-          html`
-            <option value=${km}>${formatUnit(km * 1000, this.units.altitude)}</option>
-          `,
-        );
+        steps.push(html` <option value=${km}>${formatUnit(km * 1000, this.units.altitude)}</option> `);
       }
     }
     return html`
@@ -163,7 +155,7 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
   }
 
   protected addOverlays(): void {
-    this.overlays.forEach(o => {
+    this.overlays.forEach((o) => {
       if (this.map?.overlayMapTypes) {
         o.setAltitude(this.altitude);
         o.setShowRestricted(this.restricted);
