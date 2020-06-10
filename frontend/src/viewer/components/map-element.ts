@@ -14,6 +14,7 @@ import { PlannerElement } from './planner-element';
 import { TaskElement } from './task-element';
 import { TrackingElement } from './tracking-element';
 import { connect } from 'pwa-helpers';
+import cookies from 'cookiesjs';
 import { getApiKey } from '../../apikey';
 import { sampleAt } from '../logic/math';
 
@@ -124,9 +125,16 @@ export class MapElement extends connect(store)(LitElement) {
         !searchParams.has('p') &&
         'geolocation' in navigator
       ) {
+        const last_coordinates = cookies('coordinates');
+        if (last_coordinates) {
+          map.setCenter(new google.maps.LatLng(last_coordinates.latitude, last_coordinates.longitude));
+          map.setZoom(12);
+        }
         navigator.geolocation.getCurrentPosition((p: any) => {
           map.setCenter(new google.maps.LatLng(p.coords.latitude, p.coords.longitude));
           map.setZoom(12);
+          const { latitude, longitude } = p.coords;
+          cookies({ coordinates: { latitude, longitude } });
         });
       }
       downloadTracks(searchParams.getAll('track'));
@@ -142,9 +150,7 @@ export class MapElement extends connect(store)(LitElement) {
     return html`
       <div id="map"></div>
       ${this.tracks?.length
-        ? html`
-            <chart-element @move=${this.setTs} @pin=${this.centerMap} @zoom=${this.zoomMap}></chart-element>
-          `
+        ? html` <chart-element @move=${this.setTs} @pin=${this.centerMap} @zoom=${this.zoomMap}></chart-element> `
         : ''}
       <topo-eu .map=${this.map}></topo-eu>
       <topo-spain .map=${this.map}></topo-spain>
@@ -165,9 +171,7 @@ export class MapElement extends connect(store)(LitElement) {
       )}
       ${this.tracks?.map(
         (track, i) =>
-          html`
-            <gm-line .map=${this.map} .track=${track} .index=${i} .active=${i == this.currentTrack}></gm-line>
-          `,
+          html` <gm-line .map=${this.map} .track=${track} .index=${i} .active=${i == this.currentTrack}></gm-line> `,
       )}
     `;
   }
