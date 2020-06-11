@@ -68,9 +68,10 @@ export default [
   buildFrontEnd('frontend/src/archives/archives.ts'),
   buildFrontEnd('frontend/src/tracking/tracking.ts'),
   buildFrontEnd('frontend/src/status/status.ts'),
+  buildFrontEnd('frontend/src/workers/xc-score-worker.ts', true),
 ];
 
-function buildFrontEnd(input) {
+function buildFrontEnd(input, worker) {
   return {
     input,
 
@@ -95,7 +96,9 @@ function buildFrontEnd(input) {
       minifyHTML(),
       resolve(),
       cjs(),
-      typescript(),
+      typescript({
+        tsconfigOverride: worker ? { compilerOptions: { lib: ['webworker'] } } : undefined
+      }),
       prod && terser({ output: { comments: false } }),
     ],
   };

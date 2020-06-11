@@ -2,6 +2,7 @@ import { CSSResult, LitElement, PropertyValues, TemplateResult, css, customEleme
 import { Measure, Point } from '../logic/score/measure';
 import { RootState, store } from '../store';
 import { setDistance, setLeague, setScore, setSpeed } from '../actions/map';
+import { Track } from '../logic/map';
 
 import { CircuitType } from '../logic/score/scorer';
 import { ClosingSector } from '../gm/closing-sector';
@@ -10,6 +11,8 @@ import { LEAGUES } from '../logic/score/league/leagues';
 import { PlannerElement } from './planner-element';
 import { connect } from 'pwa-helpers';
 import { formatUnit } from '../logic/units';
+
+import { BRecord, RecordExtensions } from 'igc-parser';
 
 const ROUTE_STROKE_COLORS = {
   [CircuitType.OPEN_DISTANCE]: '#ff6600',
@@ -41,7 +44,10 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   expanded = false;
 
   @property({ attribute: false })
-  units: { [type: string]: string } | null = null;
+  units: { [type: string]: string; } | null = null;
+  
+  @property({ attribute: false })
+  tracks: Track[] | null = null;
 
   @property({ attribute: false })
   get map(): google.maps.Map | null {
@@ -103,6 +109,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       this.speed = state.map.speed;
       this.league = state.map.league;
       this.units = state.map.units;
+      this.tracks = state.map.tracks;
     }
   }
 
@@ -332,13 +339,66 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     }
   }
 
+  protected launchScoring(): void {
+    if (this.tracks && this.tracks[0] !== undefined) {
+      let fixes: BRecord[] = [];
+      for (let i = 0; i < this.tracks[0].fixes.lat.length; i++)
+        // Keep this to the bare minimum needed for igc-xc-score
+        fixes[i] = {
+          timestamp: this.tracks[0].fixes.ts[i],
+          latitude: this.tracks[0].fixes.lat[i], 
+          longitude: this.tracks[0].fixes.lon[i], 
+          pressureAltitude: this.tracks[0].fixes.alt[i], 
+          gpsAltitude: this.tracks[0].fixes.alt[i],
+          valid: true,
+          extensions: {} as RecordExtensions,
+          fixAccuracy: null,
+          time: '',
+          enl: null
+        }
+      const worker = new Worker('js/xc-score-worker.js');
+      worker.onmessage = this.updateScore.bind(this);
+      worker.postMessage({ msg: 'xc-score', flight: fixes, league: this.league });
+    }
+  }
+
+  protected updateScore(msg: any):void {
+    if (msg.data.msg === 'xc-score-result') {
+      console.log(msg.data.r);
+      let t: CircuitType;
+      switch (msg.data.r.opt.scoring.name) {
+        case 'Triangle plat':
+          t = CircuitType.FLAT_TRIANGLE;
+          break;
+        case 'Triangle FAI':
+          t = CircuitType.FAI_TRIANGLE;
+          break;
+        default:
+        case 'Distance 3 points':
+          t = CircuitType.OPEN_DISTANCE;
+          break;
+      }
+      const score = {
+        points: msg.data.r.score,
+        distance: msg.data.r.scoreInfo.distance * 1000,
+        circuit: t
+      }
+      store.dispatch(setScore(score));
+    }
+  }
+
   protected render(): TemplateResult {
     // Update the URL on re-rendering
     this.getQrText();
     return this.units
       ? html`
           <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
-          <span .hidden=${!this.expanded}>${formatUnit(this.distance, this.units.distance)}</span>
+          <span .hidden=${!this.expanded}>
+            <i class="fas fa-2x" style="cursor: pointer" @click=${this.launchScoring}>
+              <img width="32" height="32" style="vertical-align: middle;" src="img/measuring.svg" />
+            </i>
+            ${formatUnit(this.distance, this.units.distance)}
+          </span>
           <i class="fas fa-ruler fa-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
 
           <ui5-dialog id="share-dialog" header-text="Share">
