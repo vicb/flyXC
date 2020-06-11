@@ -368,13 +368,18 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       let t: CircuitType;
       switch (msg.data.r.opt.scoring.name) {
         case 'Triangle plat':
+        case 'Free triangle':
+        case 'Closed free triangle':
           t = CircuitType.FLAT_TRIANGLE;
           break;
         case 'Triangle FAI':
+        case 'FAI triangle':
+        case 'Closed FAI triangle':
           t = CircuitType.FAI_TRIANGLE;
           break;
         default:
         case 'Distance 3 points':
+        case 'Free flight':
           t = CircuitType.OPEN_DISTANCE;
           break;
       }
