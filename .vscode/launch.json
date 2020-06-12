@@ -5,6 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Launch Chrome",
+      "request": "launch",
+      "type": "pwa-chrome",
+      "url": "http://localhost:8080/?track=https%3A%2F%2Fparapente.ffvl.fr%2Fsites%2Fparapente.ffvl.fr%2Ffiles%2Figcfiles%2F2020-06-10-igcfile-276534-200361.igc&s=20&l=xc&p=u%7BpiGiuik%40%3FvfbB",
+      "webRoot": "${workspaceFolder}/frontend/static"
+    },
+    {
       "type": "node",
       "request": "attach",
       "name": "Attach Server",
@@ -12,6 +19,6 @@
       "outFiles": [
         "${workspaceFolder}/**/*.js"
       ],
-    }
+    },
   ]
 }
