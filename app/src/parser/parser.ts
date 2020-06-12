@@ -1,6 +1,7 @@
 import { IncomingMessage } from 'http';
 import { Keys } from '../keys';
 import { Stream } from 'stream';
+import Queue from 'async-await-queue';
 import { parse as parseGpx } from './gpx';
 import { parse as parseIgc } from './igc';
 import { parse as parseKml } from './kml';
@@ -18,6 +19,8 @@ const lru = require('tiny-lru');
 
 const datastore = new Datastore();
 const hgtCache = lru(300);
+
+const downloadQueue = new Queue(10, 10);
 
 export interface Fix {
   lat: number;
@@ -197,39 +200,54 @@ function httpsGet(url: string): Promise<IncomingMessage> {
 
 async function addGroundAltitude(fixes: Fix[]): Promise<unknown> {
   let numErrors = 0;
+  let queuePromises: Promise<void>[] = [];
   for (let i = 0; i < fixes.length; i++) {
-    const fix = fixes[i];
-    const lat = fix.lat;
-    const south = Math.floor(lat);
-    const lon = fix.lon;
-    const west = Math.floor(lon);
-    let buffer: Buffer | null = null;
-    const url = getHgtUrl(south, west);
-    if (!hgtCache.has(url)) {
-      try {
-        const message: IncomingMessage = await httpsGet(url);
-        buffer = await bufferStream(message.pipe(zlib.createGunzip()));
-        hgtCache.set(url, buffer);
-      } catch (e) {
-        if (numErrors++ > 5) {
-          return;
-        }
-        console.error(e);
+    queuePromises.push((async () => {
+      const fix = fixes[i];
+      const lat = fix.lat;
+      const south = Math.floor(lat);
+      const lon = fix.lon;
+      const west = Math.floor(lon);
+      const url = getHgtUrl(south, west);
+      let cache: Promise<Buffer> = hgtCache.has(url);
+      if (!cache) {
+        const me = Symbol();
+        hgtCache.set(url, new Promise(async (resolve, reject) => {
+          await downloadQueue.wait(me, 0);
+          let data: Buffer | null = null;
+          try {
+            const message: IncomingMessage = await httpsGet(url);
+            data = await bufferStream(message.pipe(zlib.createGunzip()));
+          } catch (e) {
+            if (numErrors++ > 5) {
+              reject(e);
+            }
+            console.error(e);
+          } finally {
+            downloadQueue.end(me);
+          }
+          resolve(data);
+        }));
       }
-    } else {
-      buffer = hgtCache.get(url) as Buffer;
-    }
+      let buffer: Buffer | null = null;
+      try {
+        buffer = await (hgtCache.get(url) as Promise<Buffer>);
+      } catch (e) {
+        console.error(e);
+        return;
+      }
 
-    let gndAlt = 0;
-    if (buffer) {
-      // File is 3600 lines of 3601 16b words starting from the NW towards SE
-      const offset = Math.round((lon - west) * 3600) + Math.round((south + 1 - lat) * 3600) * 3601;
-      gndAlt = buffer.readInt16BE(offset * 2);
-    }
+      let gndAlt = 0;
+      if (buffer) {
+        // File is 3600 lines of 3601 16b words starting from the NW towards SE
+        const offset = Math.round((lon - west) * 3600) + Math.round((south + 1 - lat) * 3600) * 3601;
+        gndAlt = buffer.readInt16BE(offset * 2);
+      }
 
-    fix.gndAlt = gndAlt;
+      fix.gndAlt = gndAlt;
+    })());
   }
-  return;
+  return Promise.all(queuePromises);
 }
 
 async function bufferStream(stream: Stream): Promise<Buffer> {

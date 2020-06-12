@@ -22,6 +22,7 @@
     "@google-cloud/storage": "^5.0.1",
     "@koa/multer": "^3.0.0",
     "@tmcw/togeojson": "^4.0.0",
+    "async-await-queue": "^1.1.1",
     "geojson": "^0.5.0",
     "google-auth-library": "^6.0.0",
     "google-polyline": "^1.0.3",
