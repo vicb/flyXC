@@ -66,7 +66,8 @@ export class TrackingElement extends connect(store)(LitElement) {
           this.features = map.data.addGeoJson(geoJson);
           features.forEach((f) => map.data.remove(f));
         }
-      });
+      })
+      .catch((e) => { console.error(e); return null; });
   }
 
   protected setupListener(map: google.maps.Map): void {

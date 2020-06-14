@@ -10,3 +10,5 @@ frontend/static/js/archives.js
 frontend/static/js/flyxc.js
 frontend/static/js/status.js
 frontend/static/js/tracking.js
+frontend/static/js/xc-score-worker.js
+
