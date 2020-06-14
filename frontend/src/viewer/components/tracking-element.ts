@@ -113,7 +113,7 @@ export class TrackingElement extends connect(store)(LitElement) {
         let color = `hsl(111, ${s}%, 53%)`;
         let zIndex = 10;
         const age_hours = (now - ts) / (3600 * 1000);
-        let opacity = age_hours > 6 ? 0.3 : 0.9;
+        let opacity = age_hours > 12 ? 0.3 : 0.9;
         if (feature.getProperty('msg')) {
           opacity = 1;
           color = 'yellow';
