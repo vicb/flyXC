@@ -3,7 +3,7 @@ import * as mapSel from '../selectors/map';
 import { AirwaysCtrlElement, AirwaysOverlay } from './airways-element';
 import { CSSResult, LitElement, TemplateResult, css, customElement, html, property } from 'lit-element';
 import { RootState, store } from '../store';
-import { closeActiveTrack, setAspAltitude, setAspShowRestricted } from '../actions/map';
+import { closeActiveTrack, setAspAltitude, setAspShowRestricted, setCurrentTrack } from '../actions/map';
 
 import { AboutElement } from './about-element';
 import { AirspaceCtrlElement } from './airspace-element';
@@ -87,16 +87,27 @@ export class ControlsElement extends connect(store)(LitElement) {
     ];
   }
 
+  // Set the ceiling altitude to display airspaces.
   protected handleAltitudeChange(e: CustomEvent): void {
     store.dispatch(setAspAltitude(e.detail.altitude));
   }
 
+  // Show/hide restricted airspaces.
   protected handleRestricted(e: CustomEvent): void {
     store.dispatch(setAspShowRestricted(e.detail.show));
   }
 
+  // Closes the current track.
   protected handleClose(): void {
     store.dispatch(closeActiveTrack());
+  }
+
+  // Activates the next track.
+  protected handleNext(): void {
+    if (this.currentTrack != null && this.tracks != null) {
+      const index = (this.currentTrack + 1) % this.tracks.length;
+      store.dispatch(setCurrentTrack(index));
+    }
   }
 
   protected render(): TemplateResult {
@@ -120,7 +131,9 @@ export class ControlsElement extends connect(store)(LitElement) {
             <name-ctrl-element
               .name=${this.name}
               .index=${this.currentTrack}
+              .nbtracks=${this.tracks?.length || 0}
               @closeActiveTrack=${this.handleClose}
+              @selectNextTrack=${this.handleNext}
             ></name-ctrl-element>
           `
         : ''}
