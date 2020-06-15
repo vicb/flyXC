@@ -204,9 +204,11 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       } else {
         const line = this.line as google.maps.Polyline;
         line.setMap(null);
-        for (let e of [this.flight, this.closingSector, this.faiSectors, this.scoring.closing, this.scoring.path])
-          if (e)
+        for (let e of [this.flight, this.closingSector, this.faiSectors, this.scoring.closing, this.scoring.path]) {
+          if (e) {
             e.setMap(null);
+          }
+        }
         store.dispatch(setScore(null));
         google.maps.event.removeListener(this.onAddPoint as google.maps.MapsEventListener);
         this.onAddPoint = null;
