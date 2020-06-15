@@ -359,7 +359,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
 
   protected launchScoring(): void {
     if (this.tracks && this.currentTrack !== null && this.tracks[this.currentTrack]) {
-      let fixes: BRecord[] = [];
+      const fixes: BRecord[] = [];
       for (let i = 0; i < this.tracks[this.currentTrack].fixes.lat.length; i++)
         // Keep this to the bare minimum needed for igc-xc-score
         fixes[i] = {
