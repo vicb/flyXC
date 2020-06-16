@@ -44,7 +44,10 @@ export class AboutElement extends LitElement {
       <ui5-dialog id="about-dialog" header-text="FlyXC.app">
         <section class="form-fields">
           <div>
-            <ui5-label>FlyXC by Victor Berchet</ui5-label>
+            <ui5-label
+              >FlyXC by <a href="https://github.com/vicb">Victor Berchet</a>,
+              <a href="https://github.com/mmomtchev">Momtchil Momtchev</a>.</ui5-label
+            >
           </div>
           <br />
           <div>
@@ -67,7 +70,7 @@ export class AboutElement extends LitElement {
           <div>
             <ui5-label
               >Report issues on
-              <a href="https://github.com/vicb/flyxc/issues">github <i class="fab fa-github-square fa-2x"></i></a
+              <a href="https://github.com/vicb/flyxc/issues">github <i class="fab fa-github-square"></i></a
             ></ui5-label>
           </div>
         </section>
