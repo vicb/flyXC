@@ -124,6 +124,7 @@ function pushOpenAirAirspace(airspaces, name, category, floor, ceiling, coords) 
     category,
     bottom: floor,
     bottom_km: (openAirAltMeter(floor) / 1000).toFixed(1),
+    top_km: (openAirAltMeter(ceiling) / 1000).toFixed(1),
     top: ceiling,
     polygon: [coords],
     color: null,
@@ -169,9 +170,9 @@ function decodeAipAirspace(asp) {
 
   const geometry = asp.GEOMETRY.POLYGON._text
     .replace(/,/g, '')
-    .replace(/-?[\d\.]+/g, d => Math.round(d * 10000) / 10000)
+    .replace(/-?[\d\.]+/g, (d) => Math.round(d * 10000) / 10000)
     .split(' ')
-    .map(s => Number(s));
+    .map((s) => Number(s));
 
   if (geometry.length < 4) {
     return;
@@ -187,6 +188,7 @@ function decodeAipAirspace(asp) {
     category: category,
     bottom: formatAipAltLimit(asp.ALTLIMIT_BOTTOM),
     bottom_km: (aipAltMeter(asp.ALTLIMIT_BOTTOM) / 1000).toFixed(1),
+    top_km: (aipAltMeter(asp.ALTLIMIT_TOP) / 1000).toFixed(1),
     top: formatAipAltLimit(asp.ALTLIMIT_TOP),
     polygon: [coords],
     color: null,
@@ -228,7 +230,7 @@ function airspaceColor(airspace, country, top) {
     /high paragliding and hang gliding activity/,
   ];
 
-  ignoreRegexp.forEach(r => {
+  ignoreRegexp.forEach((r) => {
     if (r.test(airspace.name)) {
       return '';
     }
