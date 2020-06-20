@@ -152,8 +152,8 @@ function getTile(
   canvas.setAttribute('tile-id', `${id}`);
 
   fetch(`https://airspaces.storage.googleapis.com/tiles/${baseZoom}/${coord.x}/${coord.y}.pbf`)
-    .then(r => (r.ok ? r.arrayBuffer() : null))
-    .then(buffer => {
+    .then((r) => (r.ok ? r.arrayBuffer() : null))
+    .then((buffer) => {
       if (buffer == null) {
         return;
       }
@@ -183,19 +183,20 @@ function getTile(
             f.properties.bottom_km < altitude &&
             !(f.properties.color == RESTRICTED_COLOR && !showRestricted)
           ) {
-            const p = f.loadGeometry()[0];
-
-            const coords = p.map(({ x, y }: { x: number; y: number }) => ({
-              x: Math.round(x * ratio),
-              y: Math.round(y * ratio),
-            }));
-            ctx.fillStyle = f.properties.color + '70';
             ctx.beginPath();
-            ctx.moveTo(coords[0].x, coords[0].y);
-            for (let j = 1; j < coords.length; j++) {
-              const p = coords[j];
-              ctx.lineTo(p.x, p.y);
-            }
+            f.loadGeometry().forEach((p: any) => {
+              const coords = p.map(({ x, y }: { x: number; y: number }) => ({
+                x: Math.round(x * ratio),
+                y: Math.round(y * ratio),
+              }));
+              ctx.fillStyle = f.properties.color + '70';
+              ctx.moveTo(coords[0].x, coords[0].y);
+              for (let j = 1; j < coords.length; j++) {
+                const p = coords[j];
+                ctx.lineTo(p.x, p.y);
+              }
+            });
+            ctx.closePath();
             ctx.fill('evenodd');
             ctx.strokeStyle = f.properties.color + '75';
             ctx.stroke();
