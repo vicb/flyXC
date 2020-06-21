@@ -4,6 +4,9 @@ import { VectorTile } from '@mapbox/vector-tile';
 const TILE_SIZE = 256;
 const RESTRICTED_COLOR = '#bfbf40';
 
+type Point = { x: number; y: number };
+type Polygon = Point[];
+
 // id -> layer
 const layerMap = new Map();
 
@@ -59,26 +62,22 @@ export function AspAt(
 // Returns whether the point is inside the polygon feature.
 function isInFeature(point: google.maps.Point, feature: any): boolean {
   const ratio = 256 / feature.extent;
-  // Each ring could be one or more polygons.
-  const rings = feature.loadGeometry();
-  let isIn = false;
-  // Whether the current ring includes the points.
-  const include = true;
-  for (let i = 0; i < rings.length; ++i) {
-    // Get the current ring as an array of polygons.
-    let ring = rings[i];
-    if (!Array.isArray(ring[0])) {
-      ring = [ring];
-    }
-    ring.forEach((polygon: any) => {
-      if (isInPolygon(point, polygon, ratio)) {
-        isIn = include;
+  const polygons = classifyRings(feature.loadGeometry());
+  for (const rings of polygons) {
+    // The point must be in the outer ring.
+    let isIn = isInPolygon(point, rings[0], ratio);
+    if (isIn) {
+      for (let i = 1; i < rings.length; ++i) {
+        // The point must not be in any hole.
+        isIn = isIn && !isInPolygon(point, rings[i], ratio);
       }
-    });
-    // Alternate inclusive and exclusive rings.
-    include != include;
+    }
+    if (isIn) {
+      return true;
+    }
   }
-  return isIn;
+
+  return false;
 }
 
 // Returns whether the point is in the polygon.
@@ -199,12 +198,10 @@ function getTile(
             f.properties.bottom_km < altitude &&
             !(f.properties.color == RESTRICTED_COLOR && !showRestricted)
           ) {
-            ctx.beginPath();
-            f.loadGeometry().forEach((rings: any) => {
-              if (!Array.isArray(rings[0])) {
-                rings = [rings];
-              }
-              rings.forEach((ring: { x: number; y: number }[]) => {
+            const polygons = classifyRings(f.loadGeometry());
+            polygons.forEach((polygon) => {
+              ctx.beginPath();
+              polygon.forEach((ring: Point[]) => {
                 const coords = ring.map(({ x, y }: { x: number; y: number }) => ({
                   x: Math.round(x * ratio),
                   y: Math.round(y * ratio),
@@ -216,11 +213,11 @@ function getTile(
                   ctx.lineTo(p.x, p.y);
                 }
               });
+              ctx.closePath();
+              ctx.fill('evenodd');
+              ctx.strokeStyle = f.properties.color + '75';
+              ctx.stroke();
             });
-            ctx.closePath();
-            ctx.fill('evenodd');
-            ctx.strokeStyle = f.properties.color + '75';
-            ctx.stroke();
           }
         }
       }
@@ -233,4 +230,61 @@ function getTile(
 
 function tileId(z: number, x: number, y: number): number {
   return ((1 << z) * y + x) * 32 + z;
+}
+
+// Code adapted from https://github.com/mapbox/vector-tile-js
+
+// Returns an array of polygons.
+// Each polygon is an array ring.
+// The first ring in this array is the outer ring. Following rings are holes.
+function classifyRings(rings: Point[][]): Polygon[][] {
+  const len = rings.length;
+
+  if (len <= 1) {
+    return [rings];
+  }
+
+  const polygons: Polygon[][] = [];
+  let polygon: Polygon[] | null = null;
+  let ccw: boolean | null = null;
+
+  for (let i = 0; i < len; i++) {
+    const area = signedArea(rings[i]);
+    if (area === 0) {
+      continue;
+    }
+
+    if (ccw == null) {
+      ccw = area < 0;
+    }
+
+    if (ccw === area < 0) {
+      // Create a new polygon when the winding is the same as the first polygon.
+      if (polygon) {
+        polygons.push(polygon);
+      }
+      polygon = [rings[i]];
+    } else {
+      // Pushes holes in the current polygon.
+      polygon?.push(rings[i]);
+    }
+  }
+  if (polygon) {
+    polygons.push(polygon);
+  }
+
+  return polygons;
+}
+
+// Computes the area of a polygon.
+// See https://en.wikipedia.org/wiki/Shoelace_formula.
+function signedArea(polygon: Polygon): number {
+  let sum = 0;
+  const len = polygon.length;
+  for (let i = 0, j = len - 1; i < len; j = i++) {
+    const p1 = polygon[i];
+    const p2 = polygon[j];
+    sum += (p2.x - p1.x) * (p1.y + p2.y);
+  }
+  return sum;
 }
