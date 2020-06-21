@@ -42,7 +42,7 @@ export function AspAt(
     if (
       f.properties.bottom_km < altitudeKm &&
       !(f.properties.color == RESTRICTED_COLOR && !includeRestricted) &&
-      isInPolygon(pxCoords, f)
+      isInFeature(pxCoords, f)
     ) {
       info.push(
         `<b>[${f.properties.category}] ${f.properties.name}</b><br/>↧${f.properties.bottom} ↥${f.properties.top}`,
@@ -56,32 +56,48 @@ export function AspAt(
   return info.join('<br/>');
 }
 
-// Returns wether a point is inside a polygon.
-function isInPolygon(point: google.maps.Point, feature: any): boolean {
-  const { x, y } = point;
-
-  let inside = false;
+// Returns whether the point is inside the polygon feature.
+function isInFeature(point: google.maps.Point, feature: any): boolean {
   const ratio = 256 / feature.extent;
-  const p = feature.loadGeometry()[0];
-  const coords = p.map(({ x, y }: { x: number; y: number }) => ({
-    x: Math.round(x * ratio),
-    y: Math.round(y * ratio),
-  }));
+  // Each ring could be one or more polygons.
+  const rings = feature.loadGeometry();
+  let isIn = false;
+  // Whether the current ring includes the points.
+  const include = true;
+  for (let i = 0; i < rings.length; ++i) {
+    // Get the current ring as an array of polygons.
+    let ring = rings[i];
+    if (!Array.isArray(ring[0])) {
+      ring = [ring];
+    }
+    ring.forEach((polygon: any) => {
+      if (isInPolygon(point, polygon, ratio)) {
+        isIn = include;
+      }
+    });
+    // Alternate inclusive and exclusive rings.
+    include != include;
+  }
+  return isIn;
+}
 
-  let xa = coords[0].x;
-  let ya = coords[0].y;
-  for (let j = 1; j < coords.length; j++) {
-    const xb = coords[j].x;
-    const yb = coords[j].y;
+// Returns whether the point is in the polygon.
+function isInPolygon(point: google.maps.Point, polygon: { x: number; y: number }[], ratio: number): boolean {
+  const { x, y } = { x: point.x / ratio, y: point.y / ratio };
+
+  let isIn = false;
+
+  let [xa, ya] = [polygon[0].x, polygon[0].y];
+  for (let j = 1; j < polygon.length; j++) {
+    const [xb, yb] = [polygon[j].x, polygon[j].y];
 
     if (ya > y != yb > y && x < ((xb - xa) * (y - ya)) / (yb - ya) + xa) {
-      inside = !inside;
+      isIn = !isIn;
     }
-    xa = xb;
-    ya = yb;
+    [xa, ya] = [xb, yb];
   }
 
-  return inside;
+  return isIn;
 }
 
 // Airspaces MapType.
@@ -184,17 +200,22 @@ function getTile(
             !(f.properties.color == RESTRICTED_COLOR && !showRestricted)
           ) {
             ctx.beginPath();
-            f.loadGeometry().forEach((p: any) => {
-              const coords = p.map(({ x, y }: { x: number; y: number }) => ({
-                x: Math.round(x * ratio),
-                y: Math.round(y * ratio),
-              }));
-              ctx.fillStyle = f.properties.color + '70';
-              ctx.moveTo(coords[0].x, coords[0].y);
-              for (let j = 1; j < coords.length; j++) {
-                const p = coords[j];
-                ctx.lineTo(p.x, p.y);
+            f.loadGeometry().forEach((rings: any) => {
+              if (!Array.isArray(rings[0])) {
+                rings = [rings];
               }
+              rings.forEach((ring: { x: number; y: number }[]) => {
+                const coords = ring.map(({ x, y }: { x: number; y: number }) => ({
+                  x: Math.round(x * ratio),
+                  y: Math.round(y * ratio),
+                }));
+                ctx.fillStyle = f.properties.color + '70';
+                ctx.moveTo(coords[0].x, coords[0].y);
+                for (let j = 1; j < coords.length; j++) {
+                  const p = coords[j];
+                  ctx.lineTo(p.x, p.y);
+                }
+              });
             });
             ctx.closePath();
             ctx.fill('evenodd');
