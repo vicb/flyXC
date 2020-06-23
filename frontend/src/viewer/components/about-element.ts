@@ -52,6 +52,12 @@ export class AboutElement extends LitElement {
           <br />
           <div>
             <ui5-label
+              >See the <a href="https://github.com/vicb/flyxc/blob/master/README.md">Quick Start guide</a>.</ui5-label
+            >
+          </div>
+          <br />
+          <div>
+            <ui5-label
               >Airspaces from
               <a href="http://www.openaip.net">openaip.net</a>
             </ui5-label>
