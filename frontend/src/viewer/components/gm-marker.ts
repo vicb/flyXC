@@ -59,6 +59,8 @@ export class GmMarkerElement extends connect(store)(LitElement) {
         anchor: new google.maps.Point(256, 330),
         scale: scale / 512,
       });
+      // Display higher markers on top.
+      this.marker.setZIndex(Math.floor(alt));
     }
     return false;
   }
