@@ -61,6 +61,8 @@ export class ControlsElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   currentTrack: number | null = null;
 
+  isInIframe = window.parent !== window;
+
   stateChanged(state: RootState): void {
     if (state.map) {
       this.aspAltitude = state.map.aspAltitude;
@@ -112,7 +114,7 @@ export class ControlsElement extends connect(store)(LitElement) {
 
   protected render(): TemplateResult {
     return html`
-      <expand-ctrl-element></expand-ctrl-element>
+      ${this.isInIframe ? html`<expand-ctrl-element></expand-ctrl-element>` : html``}
       <airspace-ctrl-element
         .map=${this.map}
         .altitude=${this.aspAltitude}
