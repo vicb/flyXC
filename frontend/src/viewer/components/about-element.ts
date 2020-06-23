@@ -45,27 +45,27 @@ export class AboutElement extends LitElement {
         <section class="form-fields">
           <div>
             <ui5-label
-              >FlyXC by <a href="https://github.com/vicb">Victor Berchet</a>,
-              <a href="https://github.com/mmomtchev">Momtchil Momtchev</a>.</ui5-label
+              >FlyXC by <a href="https://github.com/vicb" target="_blank">Victor Berchet</a>,
+              <a href="https://github.com/mmomtchev" target="_blank">Momtchil Momtchev</a>.</ui5-label
             >
           </div>
           <br />
           <div>
             <ui5-label
-              >See the <a href="https://github.com/vicb/flyxc/blob/master/README.md">Quick Start guide</a>.</ui5-label
+              >See the <a href="https://github.com/vicb/flyxc/blob/master/README.md" target="_blank">Quick Start guide</a>.</ui5-label
             >
           </div>
           <br />
           <div>
             <ui5-label
               >Airspaces from
-              <a href="http://www.openaip.net">openaip.net</a>
+              <a href="http://www.openaip.net" target="_blank">openaip.net</a>
             </ui5-label>
           </div>
           <div>
             <ui5-label
               >Airways from
-              <a href="https://thermal.kk7.ch">thermal.kk7.ch</a>
+              <a href="https://thermal.kk7.ch" target="_blank">thermal.kk7.ch</a>
             </ui5-label>
           </div>
           <br />
@@ -76,7 +76,7 @@ export class AboutElement extends LitElement {
           <div>
             <ui5-label
               >Report issues on
-              <a href="https://github.com/vicb/flyxc/issues">github <i class="fab fa-github-square"></i></a
+              <a href="https://github.com/vicb/flyxc/issues" target="_blank">github <i class="fab fa-github-square"></i></a
             ></ui5-label>
           </div>
         </section>
