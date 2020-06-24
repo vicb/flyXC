@@ -1,23 +1,25 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const Koa = require('koa');
-const Router = require('koa-router');
 const { Datastore } = require('@google-cloud/datastore');
-const geoJson = require('geojson');
-const Redis = require('ioredis');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
-import * as K from 'koa';
+import GeoJSON from 'geojson';
+import Redis from 'ioredis';
+import Koa from 'koa';
+import bodyParser from 'koa-bodyparser';
+
+import Router, { RouterContext } from '@koa/router';
 
 import { Keys } from '../../app/src/keys';
-import { refresh as refreshInreach } from './inreach';
-import { refresh as refreshSpot } from './spot';
+import { postProcessTrack } from './process/process';
+import { refresh as refreshInreach } from './trackers/inreach';
+import { refresh as refreshSpot } from './trackers/spot';
 
 const app = new Koa();
 const router = new Router();
 const datastore = new Datastore();
 const redis = new Redis(Keys.REDIS_URL);
 
-router.post('/refresh', async (ctx: K.Context) => {
+router.post('/refresh', async (ctx: RouterContext) => {
   let numRefreshed = 0;
   const request = Number(await redis.get('trackers.request'));
   if (request > Date.now() - 10 * 60 * 1000) {
@@ -29,7 +31,7 @@ router.post('/refresh', async (ctx: K.Context) => {
     const trackers = (await datastore.runQuery(query))[0];
     const features: any[] = [];
     trackers.forEach((tracker: any) => features.push(...JSON.parse(tracker.features || [])));
-    const tracks = geoJson.parse(features, { Point: ['lat', 'lon'], LineString: 'line' });
+    const tracks = GeoJSON.parse(features, { Point: ['lat', 'lon'], LineString: 'line' });
     await redis.set('trackers.geojson', JSON.stringify(tracks));
     await redis.set('trackers.refreshed', Date.now());
     await redis.set('trackers.numrefreshed', numRefreshed);
@@ -38,7 +40,7 @@ router.post('/refresh', async (ctx: K.Context) => {
   ctx.status = 200;
 });
 
-router.get('/refresh', async (ctx: K.Context) => {
+router.get('/refresh', async (ctx: RouterContext) => {
   const query = datastore.createQuery('Tracker').order('updated', { descending: true }).limit(1);
 
   const devices = (await datastore.runQuery(query))[0];
@@ -51,7 +53,24 @@ router.get('/refresh', async (ctx: K.Context) => {
   }
 });
 
-app.use(router.routes()).use(router.allowedMethods());
+router.post('/process', async (ctx: RouterContext) => {
+  const body = ctx.request.body;
+  if (body?.message?.data) {
+    let id = '-';
+    try {
+      id = JSON.parse(Buffer.from(body.message.data, 'base64').toString()).id;
+      console.log(`Post processing id = ${id}`);
+      await postProcessTrack(id);
+    } catch (e) {
+      console.error(`Error processing id = ${id}`, e);
+    }
+  }
+
+  ctx.status = 200;
+});
+
+app.use(bodyParser()).use(router.routes()).use(router.allowedMethods());
 
 const port = process.env.PORT || 8080;
+
 app.listen(port);

@@ -1,6 +1,5 @@
-import { Score, scoreCircuits, scoreOpenDistance, scoreTriangles } from '../scorer';
-
 import { Measure } from '../measure';
+import { Score, scoreCircuits, scoreOpenDistance, scoreTriangles } from '../scorer';
 
 export class WXC {
   name = 'World XC Online Contest';

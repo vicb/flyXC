@@ -1,7 +1,7 @@
-import { CSSResult, LitElement, PropertyValues, TemplateResult, css, customElement, html, property } from 'lit-element';
-import { RootState, store } from '../store';
-
+import { css, CSSResult, customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
+
+import { RootState, store } from '../store';
 
 @customElement('loader-element')
 export class LoaderElement extends connect(store)(LitElement) {

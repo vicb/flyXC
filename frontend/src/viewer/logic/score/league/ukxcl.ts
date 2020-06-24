@@ -1,6 +1,5 @@
-import { CircuitType, Score, scoreCircuits, scoreOpenDistance } from '../scorer';
-
 import { Measure } from '../measure';
+import { CircuitType, Score, scoreCircuits, scoreOpenDistance } from '../scorer';
 
 function scoreOutAndReturn(multiplierFn: (d: number) => number, measure: Measure): Score[] {
   let maxIndexes;

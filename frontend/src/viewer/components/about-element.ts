@@ -1,4 +1,4 @@
-import { CSSResult, LitElement, TemplateResult, css, customElement, html } from 'lit-element';
+import { css, CSSResult, customElement, html, LitElement, TemplateResult } from 'lit-element';
 
 @customElement('about-ctrl-element')
 export class AboutElement extends LitElement {

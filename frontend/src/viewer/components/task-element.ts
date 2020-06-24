@@ -1,4 +1,4 @@
-import { LitElement, PropertyValues, customElement, property } from 'lit-element';
+import { customElement, LitElement, property, PropertyValues } from 'lit-element';
 
 @customElement('task-element')
 export class TaskElement extends LitElement {

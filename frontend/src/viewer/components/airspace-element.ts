@@ -1,12 +1,12 @@
-import { AspAt, AspMapType, AspZoomMapType } from '../logic/airspaces';
-import { CSSResult, LitElement, PropertyValues, TemplateResult, css, customElement, html, property } from 'lit-element';
-import { RootState, store } from '../store';
-import { formatUnit } from '../logic/units';
-import { aspAltitudeStops, currentAspAltitudeStop } from '../selectors/map';
-
+import { css, CSSResult, customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
-import { MapState } from '../reducers/map';
+
 import { setAspAltitude, setAspShowRestricted } from '../actions/map';
+import { AspAt, AspMapType, AspZoomMapType, MAX_ASP_TILE_ZOOM } from '../logic/airspaces';
+import { formatUnit } from '../logic/units';
+import { MapState } from '../reducers/map';
+import { aspAltitudeStops, currentAspAltitudeStop } from '../selectors/map';
+import { RootState, store } from '../store';
 
 @customElement('airspace-ctrl-element')
 export class AirspaceCtrlElement extends connect(store)(LitElement) {
@@ -21,16 +21,15 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
     this.map_ = map;
     if (map) {
       if (this.overlays.length == 0) {
-        this.overlays.push(
-          new AspMapType(this.altitudeStop, 13),
-          new AspZoomMapType(this.altitudeStop, 13, 14),
-          new AspZoomMapType(this.altitudeStop, 13, 15),
-          new AspZoomMapType(this.altitudeStop, 13, 16),
-          new AspZoomMapType(this.altitudeStop, 13, 17),
-        );
+        this.overlays = [new AspMapType(this.altitudeStop, MAX_ASP_TILE_ZOOM)];
+        for (let zoom = MAX_ASP_TILE_ZOOM + 1; zoom <= 17; zoom++) {
+          this.overlays.push(new AspZoomMapType(this.altitudeStop, MAX_ASP_TILE_ZOOM, zoom));
+        }
+        this.setOverlaysZoom();
         this.info = new google.maps.InfoWindow({});
         this.info.close();
         map.addListener('click', (e: google.maps.MouseEvent): void => this.handleClick(e.latLng));
+        map.addListener('zoom_changed', () => this.setOverlaysZoom());
       }
     }
   }
@@ -137,7 +136,12 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
   protected handleClick(latLng: google.maps.LatLng): void {
     if (this.expanded && this.map && this.info && this.mapState) {
       this.info.close();
-      const html = AspAt(this.map, latLng, this.altitudeStop, this.aspShowRestricted);
+      const html = AspAt(
+        this.map.getZoom(),
+        { lat: latLng.lat(), lon: latLng.lng() },
+        this.altitudeStop,
+        this.aspShowRestricted,
+      );
       if (html) {
         this.info.setContent(html);
         this.info.setPosition(latLng);
@@ -177,6 +181,14 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
           this.map.overlayMapTypes.removeAt(i);
         }
       }
+    }
+  }
+
+  // Broadcast the current zoom level to the overlays so that they know when they are active.
+  protected setOverlaysZoom(): void {
+    if (this.map_) {
+      const zoom = this.map_.getZoom();
+      this.overlays.forEach((overlay) => overlay.setCurrentZoom(zoom));
     }
   }
 }

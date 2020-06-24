@@ -5,14 +5,13 @@ import '@ui5/webcomponents/dist/Button';
 import '@ui5/webcomponents/dist/Option';
 import '@ui5/webcomponents/dist/Select';
 
-import * as mapSel from './selectors/map';
-
-import { LitElement, TemplateResult, customElement, html, property } from 'lit-element';
-import { RootState, store } from './store';
+import { customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { connect } from 'pwa-helpers';
 
 import { LoaderElement } from './components/loader-element';
 import { MapElement } from './components/map-element';
-import { connect } from 'pwa-helpers';
+import * as mapSel from './selectors/map';
+import { RootState, store } from './store';
 
 export { MapElement, LoaderElement };
 

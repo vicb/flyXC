@@ -1,16 +1,16 @@
-import { CSSResult, LitElement, PropertyValues, TemplateResult, css, customElement, html, property } from 'lit-element';
-import { Measure, Point } from '../logic/score/measure';
-import { RootState, store } from '../store';
-import { setDistance, setLeague, setScore, setSpeed } from '../actions/map';
+import { css, CSSResult, customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
+import { connect } from 'pwa-helpers';
 
-import { CircuitType } from '../logic/score/scorer';
+import { setDistance, setLeague, setScore, setSpeed } from '../actions/map';
 import { ClosingSector } from '../gm/closing-sector';
 import { FaiSectors } from '../gm/fai-sectors';
 import { LEAGUES } from '../logic/score/league/leagues';
-import { PlannerElement } from './planner-element';
-import { connect } from 'pwa-helpers';
+import { Measure, Point } from '../logic/score/measure';
+import { CircuitType } from '../logic/score/scorer';
 import { formatUnit } from '../logic/units';
 import { Units } from '../reducers/map';
+import { RootState, store } from '../store';
+import { PlannerElement } from './planner-element';
 
 const ROUTE_STROKE_COLORS = {
   [CircuitType.OPEN_DISTANCE]: '#ff6600',

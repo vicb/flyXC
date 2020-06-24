@@ -1,30 +1,30 @@
-import * as mapSel from '../selectors/map';
-
+import { ticks } from 'd3-array';
 import {
-  CSSResult,
-  LitElement,
-  PropertyValues,
-  TemplateResult,
   css,
+  CSSResult,
   customElement,
   html,
+  LitElement,
   property,
+  PropertyValues,
   svg,
+  TemplateResult,
 } from 'lit-element';
-import { RootState, store } from '../store';
-import { Track, trackColor } from '../logic/map';
-
 import { connect } from 'pwa-helpers';
-import { formatUnit, UNITS } from '../logic/units';
-import { sampleAt } from '../logic/math';
+
+import { RuntimeTrack } from '../../../../common/track';
 import { setChartY } from '../actions/map';
-import { ticks } from 'd3-array';
+import { trackColor } from '../logic/map';
+import { sampleAt } from '../logic/math';
+import { formatUnit, UNITS } from '../logic/units';
 import { Units } from '../reducers/map';
+import * as mapSel from '../selectors/map';
+import { RootState, store } from '../store';
 
 @customElement('chart-element')
 export class ChartElement extends connect(store)(LitElement) {
   @property({ attribute: false })
-  tracks: Track[] | null = null;
+  tracks: RuntimeTrack[] | null = null;
 
   @property({ attribute: false })
   chartY: string | null = null;
@@ -82,7 +82,7 @@ export class ChartElement extends connect(store)(LitElement) {
     }
   }
 
-  protected getY(track: Track, ts: number): number {
+  protected getY(track: RuntimeTrack, ts: number): number {
     switch (this.chartY) {
       case 'speed':
         return sampleAt(track.fixes.ts, track.fixes.vx, [ts])[0];
@@ -178,12 +178,12 @@ export class ChartElement extends connect(store)(LitElement) {
         const coords: string[] = [];
         const gndCoords = [`${minX},${(this.minY * aY + bY).toFixed(1)}`];
         // Display the gnd elevation only if there is a single track & mode is altitude
-        const displayGndAlt = (this.tracks as Track[]).length == 1 && this.chartY == 'alt';
+        const displayGndAlt = (this.tracks as RuntimeTrack[]).length == 1 && this.chartY == 'alt';
         for (let x = minX; x < maxX; x++) {
           const ts = ((x - minX) / xSpan) * trackTsSpan + track.minTs;
           const y = this.getY(track, ts);
           coords.push(`${x},${(y * aY + bY).toFixed(1)}`);
-          if (displayGndAlt) {
+          if (displayGndAlt && track.fixes.gndAlt) {
             const gndAlt = sampleAt(track.fixes.ts, track.fixes.gndAlt, [ts])[0];
             gndCoords.push(`${x},${(gndAlt * aY + bY).toFixed(1)}`);
           }

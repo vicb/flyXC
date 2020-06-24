@@ -1,4 +1,4 @@
-import { CSSResult, LitElement, TemplateResult, css, customElement, html, property } from 'lit-element';
+import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 
 @customElement('flyxc-status')
 export class FlyXcStatusElement extends LitElement {

@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { buildGPX, BaseBuilder } = require('gpx-builder');
 const builder = require('xmlbuilder');
-const printf = require('printf');
 /* eslint-enable @typescript-eslint/no-var-requires */
+
+import printf from 'printf';
 
 export function encode(
   format: string,
@@ -66,10 +67,7 @@ function encodeKML(
     .ele('coordinates', {}, coordinates.join(' '))
     .up()
     .ele('tessellate', {}, 1);
-  const folder = document
-    .ele('Folder')
-    .ele('name', {}, 'Waypoints')
-    .up();
+  const folder = document.ele('Folder').ele('name', {}, 'Waypoints').up();
   coordinates.forEach((c, i) => {
     folder
       .ele('Placemark')

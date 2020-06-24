@@ -1,6 +1,5 @@
-import { Score, ScoreFunction, scoreCircuits, scoreOpenDistance, scoreTriangles } from '../scorer';
-
 import { Measure } from '../measure';
+import { Score, scoreCircuits, ScoreFunction, scoreOpenDistance, scoreTriangles } from '../scorer';
 
 export class XContest {
   name = 'XContest';

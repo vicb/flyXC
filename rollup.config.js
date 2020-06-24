@@ -1,12 +1,13 @@
-import cjs from 'rollup-plugin-commonjs';
-import json from 'rollup-plugin-json';
+import cjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
 import minifyHTML from 'rollup-plugin-minify-html-literals';
 import replace from 'rollup-plugin-replace';
-import resolve from 'rollup-plugin-node-resolve';
-import run from 'rollup-plugin-run';
+import resolve from '@rollup/plugin-node-resolve';
+import run from '@rollup/plugin-run';
 import stripCode from 'rollup-plugin-strip-code';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
+import builtins from 'builtin-modules';
 
 const prod = !process.env.ROLLUP_WATCH;
 
@@ -38,12 +39,13 @@ export default [
       prod && terser({ output: { comments: false } }),
       !prod && run({ execArgv: ['--inspect'] }),
     ],
+    external: builtins,
   },
   {
-    input: 'run/src/index.ts',
+    input: 'run/src/server.ts',
 
     output: {
-      dir: 'run/',
+      file: 'run/index.js',
       format: 'cjs',
     },
 
@@ -61,8 +63,9 @@ export default [
       cjs(),
       typescript({}),
       prod && terser({ output: { comments: false } }),
-      !prod && run({ env: { ...process.env, PORT: 8081 } }),
+      !prod && run({ env: { ...process.env, PORT: 8084 } }),
     ],
+    external: builtins,
   },
   buildFrontEnd('frontend/src/viewer/flyxc.ts'),
   buildFrontEnd('frontend/src/archives/archives.ts'),

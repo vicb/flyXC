@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const request = require('request-zero');
-/* eslint-enable @typescript-eslint/no-var-requires */
+import request from 'request-zero';
 
 export async function refresh(datastore: any, hour: number, timeout: number): Promise<number> {
   const start = Date.now();
@@ -60,7 +58,7 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
     });
 
     if (Date.now() - start > timeout * 1000) {
-      console.log(`Timeout for spot devices (${timeout}s)`);
+      console.error(`Timeout for spot devices (${timeout}s)`);
       break;
     }
   }

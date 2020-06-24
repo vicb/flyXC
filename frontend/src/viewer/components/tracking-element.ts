@@ -1,10 +1,10 @@
-import { CSSResult, LitElement, TemplateResult, css, customElement, html, property } from 'lit-element';
-import { RootState, store } from '../store';
-
+import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
-import { formatUnit } from '../logic/units';
+
 import { linearInterpolate } from '../logic/math';
+import { formatUnit } from '../logic/units';
 import { Units } from '../reducers/map';
+import { RootState, store } from '../store';
 
 @customElement('tracking-element')
 export class TrackingElement extends connect(store)(LitElement) {

@@ -1,4 +1,8 @@
-import { CSSResult, LitElement, PropertyValues, TemplateResult, css, customElement, html, property } from 'lit-element';
+// Login for tracker settings.
+//
+// See https://developers.google.com/identity/sign-in/web.
+
+import { css, CSSResult, customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 
 declare global {
   interface Window {

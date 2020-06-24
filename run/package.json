@@ -7,18 +7,19 @@
     "start": "node index.js",
     "docker:build": "docker build . --tag gcr.io/fly-xc/trackers",
     "docker:push": "docker push gcr.io/fly-xc/trackers",
-    "docker:deploy": "gcloud beta run deploy trackers --image gcr.io/fly-xc/trackers --platform managed",
+    "docker:deploy": "gcloud run deploy trackers --image gcr.io/fly-xc/trackers --platform managed",
     "deploy": "npm run docker:build && npm run docker:push && npm run docker:deploy"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/datastore": "^5.1.0",
+    "@google-cloud/datastore": "^6.1.0",
     "geojson": "^0.5.0",
     "ioredis": "^4.17.3",
-    "koa": "^2.12.0",
-    "koa-router": "^9.0.1",
+    "koa": "^2.13.0",
+    "koa-bodyparser": "^4.3.0",
+    "koa-router": "^9.1.0",
     "request-zero": "^0.2.6",
     "xmldom": "^0.3.0"
   }

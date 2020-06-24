@@ -1,11 +1,11 @@
-import { CSSResult, LitElement, TemplateResult, css, customElement, html, property } from 'lit-element';
-import { RootState, store } from '../store';
-import { setAltitudeUnit, setDistanceUnit, setLeague, setSpeedUnit, setVarioUnit } from '../actions/map';
+import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { connect } from 'pwa-helpers';
 
+import { setAltitudeUnit, setDistanceUnit, setLeague, setSpeedUnit, setVarioUnit } from '../actions/map';
 import { LEAGUES } from '../logic/score/league/leagues';
 import { UNITS } from '../logic/units';
-import { connect } from 'pwa-helpers';
 import { Units } from '../reducers/map';
+import { RootState, store } from '../store';
 
 @customElement('preferences-ctrl-element')
 export class PreferencesElement extends connect(store)(LitElement) {

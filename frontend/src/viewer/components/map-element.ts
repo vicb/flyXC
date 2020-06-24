@@ -1,22 +1,23 @@
-import * as mapSel from '../selectors/map';
+import cookies from 'cookiesjs';
+import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
+import { connect } from 'pwa-helpers';
 
-import { LitElement, PropertyValues, TemplateResult, customElement, html, property } from 'lit-element';
-import { RootState, store } from '../store';
-import { TopoEu, TopoFrance, TopoOtm, TopoSpain } from './topo-elements';
-import { Track, downloadTracks, downloadTracksFromHistory, findClosestFix, uploadTracks } from '../logic/map';
+import { findClosestFix } from '../../../../common/distance';
+import { RuntimeTrack } from '../../../../common/track';
+import { getApiKey } from '../../apikey';
 import { setCurrentTrack, setMap, setTs } from '../actions/map';
-
+import { downloadTracks, downloadTracksFromHistory, uploadTracks } from '../logic/map';
+import { sampleAt } from '../logic/math';
+import * as mapSel from '../selectors/map';
+import { RootState, store } from '../store';
 import { ChartElement } from './chart-element';
 import { ControlsElement } from './controls-element';
 import { GmLineElement } from './gm-line';
 import { GmMarkerElement } from './gm-marker';
 import { PlannerElement } from './planner-element';
 import { TaskElement } from './task-element';
+import { TopoEu, TopoFrance, TopoOtm, TopoSpain } from './topo-elements';
 import { TrackingElement } from './tracking-element';
-import { connect } from 'pwa-helpers';
-import cookies from 'cookiesjs';
-import { getApiKey } from '../../apikey';
-import { sampleAt } from '../logic/math';
 
 // Prevent tree-shaking components by exporting them
 export {
@@ -44,7 +45,7 @@ window.initMap = (): boolean => window.dispatchEvent(new CustomEvent('google-map
 @customElement('map-element')
 export class MapElement extends connect(store)(LitElement) {
   @property({ attribute: false })
-  tracks: Track[] | null = null;
+  tracks: RuntimeTrack[] | null = null;
 
   @property({ attribute: false })
   timestamp = 0;
@@ -74,7 +75,8 @@ export class MapElement extends connect(store)(LitElement) {
       const map = (this.map = new google.maps.Map(this.querySelector('#map') as Element, {
         center: { lat: 45, lng: 0 },
         zoom: 5,
-        minZoom: 5,
+        minZoom: 3,
+        // Google maps terrain is only available up to zoom level 17.
         maxZoom: 17,
         mapTypeId: google.maps.MapTypeId.TERRAIN,
         scaleControl: true,
@@ -167,11 +169,8 @@ export class MapElement extends connect(store)(LitElement) {
               .index=${i}
               .active=${i == this.currentTrack}
             ></gm-marker>
+            <gm-line .map=${this.map} .track=${track} .index=${i} .active=${i == this.currentTrack}></gm-line>
           `,
-      )}
-      ${this.tracks?.map(
-        (track, i) =>
-          html` <gm-line .map=${this.map} .track=${track} .index=${i} .active=${i == this.currentTrack}></gm-line> `,
       )}
     `;
   }

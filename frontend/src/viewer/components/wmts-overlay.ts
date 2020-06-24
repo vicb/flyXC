@@ -1,6 +1,6 @@
 import { LitElement, property } from 'lit-element';
 // Warning: those are not the same at lit-element ones.
-import { TemplateResult, html as baseHtml, render as baseRender } from 'lit-html';
+import { html as baseHtml, render as baseRender, TemplateResult } from 'lit-html';
 
 export abstract class WMTSOverlayElement extends LitElement {
   map_: google.maps.Map | null = null;

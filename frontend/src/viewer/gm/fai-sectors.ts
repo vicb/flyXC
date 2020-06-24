@@ -1,8 +1,9 @@
-import { Point } from '../logic/score/measure';
 import getDistance from 'geolib/es/getDistance';
 import getGreatCircleBearing from 'geolib/es/getGreatCircleBearing';
 import toDeg from 'geolib/es/toDeg';
 import toRad from 'geolib/es/toRad';
+
+import { Point } from '../logic/score/measure';
 
 const SECTOR_COLORS = ['#f00', '#0f0', '#00f'];
 

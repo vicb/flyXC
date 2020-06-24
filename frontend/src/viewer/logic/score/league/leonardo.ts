@@ -1,7 +1,6 @@
-import { Score, scoreCircuits, scoreOpenDistance, scoreTriangles } from '../scorer';
-
 import { League } from '../league';
 import { Measure } from '../measure';
+import { Score, scoreCircuits, scoreOpenDistance, scoreTriangles } from '../scorer';
 
 export class Leonardo extends League {
   name = 'Leonardo';

@@ -1,11 +1,15 @@
-import * as mapSel from '../selectors/map';
+import cookies from 'cookiesjs';
+import { Reducer } from 'redux';
 
+import { RuntimeTrack } from '../../../../common/track';
 import {
   ADD_TRACKS,
   CLOSE_ACTIVE_TRACK,
   DECREMENT_SPEED,
+  FETCH_METADATA,
   INCREMENT_SPEED,
   MapAction,
+  RECEIVE_METADATA,
   SET_ALTITUDE_UNIT,
   SET_ASP_ALTITUDE,
   SET_ASP_SHOW_RESTRICTED,
@@ -13,6 +17,7 @@ import {
   SET_CURRENT_TRACK,
   SET_DISTANCE,
   SET_DISTANCE_UNIT,
+  SET_FETCHING_METADATA,
   SET_LEAGUE,
   SET_LOADING,
   SET_MAP,
@@ -23,12 +28,11 @@ import {
   SET_VARIO_UNIT,
   ZOOM_TRACKS,
 } from '../actions/map';
-import { Track, createTracks, zoomTracks } from '../logic/map';
-
-import { Reducer } from 'redux';
+import { zoomTracks } from '../logic/map';
+import { DropOutOfDateEntries, patchMetadata } from '../logic/metadata';
 import { Score } from '../logic/score/scorer';
 import { UNITS } from '../logic/units';
-import cookies from 'cookiesjs';
+import * as mapSel from '../selectors/map';
 
 // Units for distance, altitude, speed and vario.
 export interface Units {
@@ -40,7 +44,7 @@ export interface Units {
 
 export interface MapState {
   map: google.maps.Map;
-  tracks: Track[];
+  tracks: RuntimeTrack[];
   ts: number;
   currentTrack: number;
   aspAltitude: number;
@@ -52,6 +56,10 @@ export interface MapState {
   speed: number;
   league: string;
   units: Units;
+  metadata: {
+    idStartedOn: { [id: number]: number };
+    isFetching: boolean;
+  };
 }
 
 const INITIAL_STATE: MapState = {
@@ -73,6 +81,10 @@ const INITIAL_STATE: MapState = {
     altitude: cookies('unit.altitude') || UNITS.meters,
     vario: cookies('unit.vario') || UNITS.meters_second,
   },
+  metadata: {
+    idStartedOn: {},
+    isFetching: false,
+  },
 };
 
 const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, action: MapAction) => {
@@ -81,11 +93,48 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
       return { ...state, map: action.payload.map };
 
     case ADD_TRACKS: {
-      const tracks = createTracks(action.payload.buffer);
+      const { tracks } = action.payload;
+      const ts = state.tracks.length > 0 ? state.ts : tracks[0].fixes.ts[0];
 
       return {
         ...state,
+        ts,
         tracks: [...state.tracks, ...tracks],
+      };
+    }
+
+    case FETCH_METADATA: {
+      const { tracks } = action.payload;
+      const idStartedOn: { [id: number]: number } = {};
+      tracks.forEach((track) => {
+        if (track.id != null && track.id != -1 && track.groupIndex != null && !track.isPostProcessed) {
+          idStartedOn[track.id] = Date.now();
+        }
+      });
+
+      return {
+        ...state,
+        metadata: { ...state.metadata, idStartedOn: { ...state.metadata.idStartedOn, ...idStartedOn } },
+      };
+    }
+
+    case RECEIVE_METADATA: {
+      const idStartedOn: { [id: number]: number } = DropOutOfDateEntries(state.metadata.idStartedOn);
+      const { metaTracks } = action.payload;
+      let { tracks } = state;
+
+      if (metaTracks != null && metaTracks.byteLength > 0) {
+        tracks = patchMetadata(tracks, metaTracks, idStartedOn);
+      }
+
+      return { ...state, tracks, metadata: { ...state.metadata, idStartedOn } };
+    }
+
+    case SET_FETCHING_METADATA: {
+      const { isFetching } = action.payload;
+      return {
+        ...state,
+        metadata: { ...state.metadata, isFetching },
       };
     }
 

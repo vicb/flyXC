@@ -1,8 +1,8 @@
 import { applyMiddleware, combineReducers, createStore } from 'redux';
-import map, { MapState } from './reducers/map';
-import thunk, { ThunkMiddleware } from 'redux-thunk';
+import thunk, { ThunkDispatch, ThunkMiddleware } from 'redux-thunk';
 
 import { MapAction } from './actions/map';
+import map, { MapState } from './reducers/map';
 
 // Overall state extends static states and partials lazy states.
 export interface RootState {
@@ -22,3 +22,6 @@ export const store = createStore(
   }),
   applyMiddleware(thunk as ThunkMiddleware<RootState, RootAction>),
 );
+
+// Override dispatch to be able to dispatch thunk actions.
+export const dispatch: ThunkDispatch<RootState, void, RootAction> = store.dispatch;

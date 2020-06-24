@@ -6,15 +6,20 @@
   "scripts": {
     "download": "./download.sh",
     "geojson": "node togeojson",
-    "tiles": "tippecanoe -e tiles -z 13 -l asp -f -S 3 -pS -ab -pi -pt -pC -- airspaces.geojson"
+    "tiles": "tippecanoe -e tiles -z 12 -l asp -f -S 3 -pS -ab -pi -pt -pC -- airspaces.geojson",
+    "docker:build": "docker build . --tag gcr.io/fly-xc/unzip",
+    "docker:push": "docker push gcr.io/fly-xc/unzip"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "commander": "^3.0.2",
+    "@google-cloud/storage": "^5.1.2",
+    "commander": "^5.1.0",
+    "fast-crc32": "^1.0.1",
     "geojson": "^0.5.0",
     "glob": "^7.1.6",
+    "unzipper": "^0.10.11",
     "xml-js": "^1.6.11"
   }
 }

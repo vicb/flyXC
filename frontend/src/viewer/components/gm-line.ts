@@ -1,5 +1,7 @@
-import { LitElement, PropertyValues, customElement, property } from 'lit-element';
-import { Track, trackColor } from '../logic/map';
+import { customElement, LitElement, property, PropertyValues } from 'lit-element';
+
+import { RuntimeTrack } from '../../../../common/track';
+import { trackColor } from '../logic/map';
 
 const INACTIVE_OPACITY = 0.7;
 
@@ -9,7 +11,7 @@ export class GmLineElement extends LitElement {
   map: google.maps.Map | null = null;
 
   @property()
-  track: Track | null = null;
+  track: RuntimeTrack | null = null;
 
   @property()
   active = false;

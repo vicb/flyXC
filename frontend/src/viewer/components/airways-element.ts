@@ -1,5 +1,5 @@
-import { CSSResult, LitElement, css, customElement, html, property } from 'lit-element';
-import { TemplateResult, html as baseHtml } from 'lit-html';
+import { css, CSSResult, customElement, html, LitElement, property } from 'lit-element';
+import { html as baseHtml, TemplateResult } from 'lit-html';
 
 import { WMTSOverlayElement } from './wmts-overlay';
 

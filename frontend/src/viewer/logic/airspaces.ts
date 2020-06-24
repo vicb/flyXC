@@ -1,57 +1,51 @@
 import Protobuf from 'pbf';
+
 import { VectorTile } from '@mapbox/vector-tile';
 
-const TILE_SIZE = 256;
-const RESTRICTED_COLOR = '#bfbf40';
+import { tileCoordinates } from '../../../../common/proj';
+import { LatLon, Point } from '../../../../common/track';
 
-type Point = { x: number; y: number };
+const TILE_SIZE = 256;
+
+export const MAX_ASP_TILE_ZOOM = 12;
+
 type Polygon = Point[];
 
 // id -> layer
-const layerMap = new Map();
+const aspTilesById = new Map();
+
+// Flags of the airspaces.
+const enum Flags {
+  AIRSPACE_PROHIBITED = 1 << 0,
+  AIRSPACE_RESTRICTED = 1 << 1,
+  AIRSPACE_DANGER = 1 << 2,
+  AIRSPACE_OTHER = 1 << 3,
+  BOTTOM_REF_GND = 1 << 4,
+  TOP_REF_GND = 1 << 5,
+}
 
 // Returns html describing airspaces at the given point.
 // altitude is expressed in meters.
-export function AspAt(
-  map: google.maps.Map,
-  latLng: google.maps.LatLng,
-  altitude: number,
-  includeRestricted: boolean,
-): string | null {
-  const worldCoords = (map.getProjection() as google.maps.Projection).fromLatLngToPoint(latLng);
-  const zoom = Math.min(map.getZoom(), 13);
-  const scale = 1 << zoom;
+export function AspAt(zoom: number, latLon: LatLon, altitude: number, includeRestricted: boolean): string | null {
+  const tileZoom = Math.min(zoom, MAX_ASP_TILE_ZOOM);
+  const { tile, px } = tileCoordinates(latLon, tileZoom);
 
-  const tileCoords = new google.maps.Point(
-    Math.floor((worldCoords.x * scale) / TILE_SIZE),
-    Math.floor((worldCoords.y * scale) / TILE_SIZE),
-  );
-
-  const id = tileId(zoom, tileCoords.x, tileCoords.y);
-
-  if (!layerMap.has(id)) {
+  // Retrieve the tile.
+  const id = tileId(zoom, tile);
+  if (!aspTilesById.has(id)) {
     return null;
   }
+  const layer = aspTilesById.get(id);
 
-  const pxCoords = new google.maps.Point(
-    Math.floor(worldCoords.x * scale) - tileCoords.x * TILE_SIZE,
-    Math.floor(worldCoords.y * scale) - tileCoords.y * TILE_SIZE,
-  );
-
-  const layer = layerMap.get(id);
-
-  const info = [];
+  const info: string[] = [];
   for (let i = 0; i < layer.length; i++) {
     const f = layer.feature(i);
     if (
-      f.properties.bottom_km < altitude / 1000 &&
-      !(f.properties.color == RESTRICTED_COLOR && !includeRestricted) &&
-      isInFeature(pxCoords, f)
+      f.properties.bottom < altitude &&
+      !(f.properties.flags & Flags.AIRSPACE_RESTRICTED && !includeRestricted) &&
+      isInFeature(px, f)
     ) {
-      info.push(
-        `<b>[${f.properties.category}] ${f.properties.name}</b><br/>↧${f.properties.bottom} ↥${f.properties.top}`,
-      );
-      if (info.length == 5) {
+      if (info.push(getAirspaceDescription(f)) == 5) {
         break;
       }
     }
@@ -60,8 +54,14 @@ export function AspAt(
   return info.join('<br/>');
 }
 
+// Returns an HTML description for the airspace.
+function getAirspaceDescription(feature: any): string {
+  const p = feature.properties;
+  return `<b>[${p.category}] ${p.name}</b><br/>↧${p.bottom_lbl} ↥${p.top_lbl}`;
+}
+
 // Returns whether the point is inside the polygon feature.
-function isInFeature(point: google.maps.Point, feature: any): boolean {
+function isInFeature(point: Point, feature: any): boolean {
   const ratio = 256 / feature.extent;
   const polygons = classifyRings(feature.loadGeometry());
   for (const rings of polygons) {
@@ -82,7 +82,7 @@ function isInFeature(point: google.maps.Point, feature: any): boolean {
 }
 
 // Returns whether the point is in the polygon.
-function isInPolygon(point: google.maps.Point, polygon: { x: number; y: number }[], ratio: number): boolean {
+function isInPolygon(point: Point, polygon: Point[], ratio: number): boolean {
   const { x, y } = { x: point.x / ratio, y: point.y / ratio };
 
   let isIn = false;
@@ -108,22 +108,24 @@ export class AspMapType {
   maxZoom = 0;
   tileSize: google.maps.Size;
   showRestricted = true;
+  active = true;
 
+  // Use this layer to display tile up to maxZoom.
   constructor(altitude: number, maxZoom: number) {
     this.altitude = altitude || 1000;
-    this.minZoom = 4;
+    this.minZoom = 2;
     this.maxZoom = maxZoom;
     this.tileSize = new google.maps.Size(TILE_SIZE, TILE_SIZE);
-    layerMap.clear();
+    aspTilesById.clear();
   }
 
   getTile(coord: google.maps.Point, zoom: number, doc: HTMLDocument): HTMLElement {
-    return getTile(coord, zoom, doc, this.altitude, this.showRestricted);
+    return getTile(coord, zoom, zoom, doc, this.altitude, this.showRestricted, this.active);
   }
 
-  releaseTile(canvas: HTMLElement): void {
-    const id = Number(canvas.getAttribute('tile-id'));
-    layerMap.delete(id);
+  releaseTile(el: HTMLElement): void {
+    const id = Number(el.getAttribute('tile-id'));
+    aspTilesById.delete(id);
   }
 
   setAltitude(altitude: number): void {
@@ -133,44 +135,57 @@ export class AspMapType {
   setShowRestricted(show: boolean): void {
     this.showRestricted = show;
   }
+
+  // minZoom and maxZoom are not taken into account by the Google Maps API for overlay map types.
+  // We need to manually activate the layers for the current zoom level.
+  setCurrentZoom(zoom: number): void {
+    this.active = zoom >= this.minZoom && zoom <= this.maxZoom;
+  }
 }
 
 // Airspaces Map Type used when tiles are not available at the current zoom level.
 // Tiles from a lower level are over zoomed.
 // altitude is expressed in meters.
 export class AspZoomMapType extends AspMapType {
-  baseZoom = 0;
+  // Zoom level of the tiles.
+  aspTileZoom = 0;
+  mapZoom = 0;
 
-  constructor(altitude: number, baseZoom: number, zoom: number) {
-    super(altitude, zoom);
-    this.minZoom = zoom;
-    this.baseZoom = baseZoom;
-    const overZoom = zoom - baseZoom;
-    this.tileSize = new google.maps.Size(TILE_SIZE << overZoom, TILE_SIZE << overZoom);
+  constructor(altitude: number, aspTileZoom: number, mapZoom: number) {
+    super(altitude, mapZoom);
+    this.mapZoom = this.minZoom = mapZoom;
+    this.aspTileZoom = aspTileZoom;
+    const tileSize = TILE_SIZE << (mapZoom - aspTileZoom);
+    this.tileSize = new google.maps.Size(tileSize, tileSize);
   }
 
   getTile(coord: google.maps.Point, zoom: number, doc: HTMLDocument): HTMLElement {
-    return getTile(coord, this.baseZoom, doc, this.altitude, this.showRestricted, this.minZoom);
+    return getTile(coord, this.mapZoom, this.aspTileZoom, doc, this.altitude, this.showRestricted, this.active);
   }
 }
 
 // Fetch a vector tile and returns a canvas.
 // altitude is expressed in meters.
 function getTile(
-  coord: google.maps.Point,
-  baseZoom: number,
+  coord: Point,
+  zoom: number,
+  aspTileZoom: number,
   doc: HTMLDocument,
   altitude: number,
   showRestricted: boolean,
-  dstZoom: number = baseZoom,
+  active: boolean,
 ): HTMLElement {
+  if (!active) {
+    return doc.createElement('div');
+  }
+
   const canvas = doc.createElement('canvas');
-  const overZoom = dstZoom - baseZoom;
+  const id = tileId(zoom, coord);
+  canvas.setAttribute('tile-id', String(id));
 
-  const id = tileId(baseZoom, coord.x, coord.y);
-  canvas.setAttribute('tile-id', `${id}`);
+  const mapTileSize = TILE_SIZE << (zoom - aspTileZoom);
 
-  fetch(`https://airspaces.storage.googleapis.com/tiles/${baseZoom}/${coord.x}/${coord.y}.pbf`)
+  fetch(`https://airspaces.storage.googleapis.com/tiles/20200714/${aspTileZoom}/${coord.x}/${coord.y}.pbf`)
     .then((r) => (r.ok ? r.arrayBuffer() : null))
     .then((buffer) => {
       if (buffer == null) {
@@ -181,7 +196,7 @@ function getTile(
 
       if (vTile.layers.asp) {
         const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-        canvas.height = canvas.width = TILE_SIZE << overZoom;
+        canvas.height = canvas.width = mapTileSize;
         canvas.style.imageRendering = 'pixelated';
 
         if (devicePixelRatio == 2) {
@@ -192,15 +207,16 @@ function getTile(
           ctx.scale(2, 2);
         }
 
-        layerMap.set(id, vTile.layers.asp);
+        aspTilesById.set(id, vTile.layers.asp);
 
         for (let i = 0; i < vTile.layers.asp.length; i++) {
           const f = vTile.layers.asp.feature(i);
-          const ratio = (TILE_SIZE << overZoom) / f.extent;
+          const props = f.properties;
+          const ratio = mapTileSize / f.extent;
           if (
             f.type === 3 &&
-            f.properties.bottom_km < altitude / 1000 &&
-            !(f.properties.color == RESTRICTED_COLOR && !showRestricted)
+            props.bottom < altitude &&
+            !(props.flags & Flags.AIRSPACE_RESTRICTED && !showRestricted)
           ) {
             const polygons = classifyRings(f.loadGeometry());
             polygons.forEach((polygon) => {
@@ -210,7 +226,7 @@ function getTile(
                   x: Math.round(x * ratio),
                   y: Math.round(y * ratio),
                 }));
-                ctx.fillStyle = f.properties.color + '70';
+                ctx.fillStyle = airspaceColor(props.flags, 70);
                 ctx.moveTo(coords[0].x, coords[0].y);
                 for (let j = 1; j < coords.length; j++) {
                   const p = coords[j];
@@ -219,7 +235,7 @@ function getTile(
               });
               ctx.closePath();
               ctx.fill('evenodd');
-              ctx.strokeStyle = f.properties.color + '75';
+              ctx.strokeStyle = airspaceColor(props.flags, 75);
               ctx.stroke();
             });
           }
@@ -230,10 +246,9 @@ function getTile(
   return canvas;
 }
 
-//
-
-function tileId(z: number, x: number, y: number): number {
-  return ((1 << z) * y + x) * 32 + z;
+// Returns a unique tile id for a given (x, y, zoom).
+function tileId(zoom: number, point: Point): number {
+  return ((1 << zoom) * point.y + point.x) * 32 + zoom;
 }
 
 // Code adapted from https://github.com/mapbox/vector-tile-js
@@ -291,4 +306,20 @@ function signedArea(polygon: Polygon): number {
     sum += (p2.x - p1.x) * (p1.y + p2.y);
   }
   return sum;
+}
+
+// Return the color of an airspace given the flags property.
+// `alpha` should be in the range 00-ff
+function airspaceColor(flags: number, alpha: number): string {
+  const alphaStr = String(alpha).padStart(2, '0');
+  if (flags & Flags.AIRSPACE_PROHIBITED) {
+    return `#bf4040${alphaStr}`;
+  }
+  if (flags & Flags.AIRSPACE_RESTRICTED) {
+    return `#bfbf40${alphaStr}`;
+  }
+  if (flags & Flags.AIRSPACE_DANGER) {
+    return `#bf8040${alphaStr}`;
+  }
+  return `#808080${alphaStr}`;
 }

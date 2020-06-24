@@ -1,10 +1,11 @@
-import { MapState, Units } from '../reducers/map';
-import { Track } from '../logic/map';
 import { createSelector } from 'reselect';
+
+import { RuntimeTrack } from '../../../../common/track';
 import { UNITS } from '../logic/units';
+import { MapState, Units } from '../reducers/map';
 
 export const league = (state: MapState): string => state.league;
-export const tracks = (state: MapState): Track[] => state.tracks;
+export const tracks = (state: MapState): RuntimeTrack[] => state.tracks;
 export const trackIndex = (state: MapState): number => state.currentTrack;
 export const aspAltitude = (state: MapState): number => state.aspAltitude;
 export const units = (state: MapState): Units => state.units;

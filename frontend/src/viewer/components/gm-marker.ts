@@ -1,10 +1,11 @@
-import { LitElement, customElement, property } from 'lit-element';
-import { RootState, store } from '../store';
-import { Track, trackColor } from '../logic/map';
-
+import { customElement, LitElement, property } from 'lit-element';
 import { connect } from 'pwa-helpers';
+
+import { RuntimeTrack } from '../../../../common/track';
+import { trackColor } from '../logic/map';
 import { sampleAt } from '../logic/math';
 import { tsOffsets } from '../selectors/map';
+import { RootState, store } from '../store';
 
 const INACTIVE_OPACITY = 0.7;
 
@@ -17,7 +18,7 @@ export class GmMarkerElement extends connect(store)(LitElement) {
   timestamp = 0;
 
   @property()
-  track: Track | null = null;
+  track: RuntimeTrack | null = null;
 
   @property()
   active = false;

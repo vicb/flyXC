@@ -1,8 +1,8 @@
-import { CSSResult, LitElement, TemplateResult, css, customElement, html, property } from 'lit-element';
-import { UNITS, formatUnit } from '../logic/units';
+import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 
-import { Fixes } from '../logic/map';
+import { RuntimeFixes } from '../../../../common/track';
 import { sampleAt } from '../logic/math';
+import { formatUnit, UNITS } from '../logic/units';
 
 @customElement('dashboard-ctrl-element')
 export class DashboardElement extends LitElement {
@@ -10,7 +10,7 @@ export class DashboardElement extends LitElement {
   timestamp = 0;
 
   @property()
-  fixes: Fixes | null = null;
+  fixes: RuntimeFixes | null = null;
 
   @property({ attribute: false })
   units: { [type: string]: UNITS } | null = null;
@@ -52,10 +52,10 @@ export class DashboardElement extends LitElement {
   }
 
   protected getGroundElevation(): number {
-    if (!this.fixes) {
-      return 0;
+    if (this?.fixes?.gndAlt) {
+      return sampleAt(this.fixes.ts, this.fixes.gndAlt, [this.timestamp])[0];
     }
-    return sampleAt(this.fixes.ts, this.fixes.gndAlt, [this.timestamp])[0];
+    return 0;
   }
 
   protected getVz(): number {

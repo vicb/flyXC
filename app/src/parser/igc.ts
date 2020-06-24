@@ -1,7 +1,8 @@
 import IGCParser from 'igc-parser';
-import { Track } from './parser';
 
-export function parse(content: string): Track[] {
+import { ProtoTrack } from '../../../common/track';
+
+export function parse(content: string): ProtoTrack[] {
   let igc: IGCParser.IGCFile;
   try {
     igc = IGCParser.parse(content, { lenient: true });
@@ -9,13 +10,18 @@ export function parse(content: string): Track[] {
     return [];
   }
 
-  const fixes = igc.fixes.map(f => ({
-    lat: f.latitude,
-    lon: f.longitude,
-    alt: f.gpsAltitude || f.pressureAltitude || 0,
-    ts: f.timestamp,
-  }));
+  const lat: number[] = [];
+  const lon: number[] = [];
+  const alt: number[] = [];
+  const ts: number[] = [];
+
+  igc.fixes.forEach((fix) => {
+    lat.push(fix.latitude);
+    lon.push(fix.longitude);
+    alt.push(fix.gpsAltitude || fix.pressureAltitude || 0);
+    ts.push(fix.timestamp);
+  });
 
   const pilot = igc.pilot || 'unknown';
-  return [{ fixes, pilot }];
+  return [{ pilot, lat, lon, alt, ts }];
 }

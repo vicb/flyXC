@@ -1,4 +1,4 @@
-import { Fix, Track } from './parser';
+import { ProtoTrack } from '../../../common/track';
 
 const months: { [key: string]: number } = {
   JAN: 0,
@@ -15,19 +15,21 @@ const months: { [key: string]: number } = {
   DEC: 11,
 };
 
-export function parse(content: string): Track[] {
-  const fixes: Fix[] = [];
-  const lines = content.split(/[\n\r]+/);
+export function parse(content: string): ProtoTrack[] {
+  const lat: number[] = [];
+  const lon: number[] = [];
+  const alt: number[] = [];
+  const ts: number[] = [];
 
-  lines.forEach(line => {
+  content.split(/[\n\r]+/).forEach((line) => {
     let m;
     // T  A 49.34586726ºN 0.72568615ºW 01-NOV-10 15:54:34.000 N 51.6 0.0 0.1 0.0 0 -1000.0 9999999562023526247000000.0 -1 60.9 -1.0
     m = line.match(
       /^T\s+A ([\d.]+).([NS]) ([\d.]+).([EW]) (\d{2})-(\w{3})-(\d{2}) (\d{2}):(\d{2}):(\d{2})\.\d+ . (\d+)/,
     );
     if (m) {
-      const lat = parseFloat(m[1]) * (m[2] == 'N' ? 1 : -1);
-      const lon = parseFloat(m[3]) * (m[4] == 'E' ? 1 : -1);
+      lat.push(parseFloat(m[1]) * (m[2] == 'N' ? 1 : -1));
+      lon.push(parseFloat(m[3]) * (m[4] == 'E' ? 1 : -1));
       const date = new Date(
         2000 + parseInt(m[7], 10),
         months[m[6]] || 1,
@@ -36,15 +38,14 @@ export function parse(content: string): Track[] {
         parseInt(m[9], 10),
         parseInt(m[10], 10),
       );
-      const ts = date.getTime();
-      const alt = parseInt(m[11], 10);
-      fixes.push({ lat, lon, ts, alt });
+      ts.push(date.getTime());
+      alt.push(parseInt(m[11], 10));
     } else {
       // T  N45.6321216 E003.1162763 19-JUL-10 14:33:59 00785
       m = line.match(/^T\s+ ([NS])([\d.]+) ([EW])([\d.]+) (\d{2})-(\w{3})-(\d{2}) (\d{2}):(\d{2}):(\d{2})\ (\d+)/);
       if (m) {
-        const lat = parseFloat(m[2]) * (m[1] == 'N' ? 1 : -1);
-        const lon = parseFloat(m[4]) * (m[3] == 'E' ? 1 : -1);
+        lat.push(parseFloat(m[2]) * (m[1] == 'N' ? 1 : -1));
+        lon.push(parseFloat(m[4]) * (m[3] == 'E' ? 1 : -1));
         const date = new Date(
           2000 + parseInt(m[7], 10),
           months[m[6]] || 1,
@@ -53,12 +54,11 @@ export function parse(content: string): Track[] {
           parseInt(m[9], 10),
           parseInt(m[10], 10),
         );
-        const ts = date.getTime();
-        const alt = parseInt(m[11], 10);
-        fixes.push({ lat, lon, ts, alt });
+        ts.push(date.getTime());
+        alt.push(parseInt(m[11], 10));
       }
     }
   });
 
-  return fixes.length > 5 ? [{ fixes, pilot: 'unknown' }] : [];
+  return lat.length > 5 ? [{ pilot: 'unknown', lat, lon, alt, ts }] : [];
 }

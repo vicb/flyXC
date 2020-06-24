@@ -1,6 +1,8 @@
 #!/usr/bin/env node --no-warnings
 
 // Generate the geojson from aip/openair files
+//
+// Open air docs: http://www.winpilot.com/UsersGuide/UserAirspace.asp
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 const convert = require('xml-js');
@@ -12,8 +14,14 @@ const GeoJSON = require('geojson');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
 prog.option('-i, --input <folder>', 'input folder', 'asp').option('-o, --output <file>', 'output file', 'airspaces');
-
 prog.parse(process.argv);
+
+const AIRSPACE_PROHIBITED = 1 << 0;
+const AIRSPACE_RESTRICTED = 1 << 1;
+const AIRSPACE_DANGER = 1 << 2;
+const AIRSPACE_OTHER = 1 << 3;
+const BOTTOM_REF_GND = 1 << 4;
+const TOP_REF_GND = 1 << 5;
 
 // AIP files
 const aipFiles = glob.sync(prog.input + '/**/*_asp.aip');
@@ -25,15 +33,15 @@ airspaces = openAirFiles.reduce((asps, f) => [...asps, ...decodeOpenAirFile(f)],
 
 const geoJson = GeoJSON.parse(airspaces, { Polygon: 'polygon' });
 
-fs.writeFileSync(`${prog.output}.geojson.js`, 'module.exports = ' + JSON.stringify(geoJson));
 fs.writeFileSync(`${prog.output}.geojson`, JSON.stringify(geoJson));
 
-function decodeAipFile(file) {
-  const xml = fs.readFileSync(file);
+// Decodes AIP format (i.e. from openaip.net).
+function decodeAipFile(filename) {
+  const xml = fs.readFileSync(filename);
   if (xml.length) {
     const json = JSON.parse(convert.xml2json(xml, { compact: true }));
     if (json.OPENAIP && json.OPENAIP.AIRSPACES && json.OPENAIP.AIRSPACES.ASP) {
-      console.log(`# ${path.basename(file)}`);
+      console.log(`# ${path.basename(filename)}`);
       const total = json.OPENAIP.AIRSPACES.ASP.length;
       console.log(` - ${total} airspaces`);
       let airspaces = json.OPENAIP.AIRSPACES.ASP;
@@ -47,10 +55,34 @@ function decodeAipFile(file) {
   return [];
 }
 
-function decodeOpenAirFile(file) {
-  console.log(`# ${path.basename(file)}`);
+// Returns the altitude in meter for an AIP limit.
+function aipAltLimitMeter(limit) {
+  switch (limit.ALT._attributes.UNIT) {
+    case 'FL':
+      return Math.round(100 * 0.3048 * limit.ALT._text);
+    case 'F':
+      return Math.round(0.3048 * limit.ALT._text);
+    default:
+      return limit.ALT._text;
+  }
+}
+
+// Returns the label for an AIP limit.
+function aipAltLimitLabel(limit) {
+  if (limit._attributes.REFERENCE === 'GND' && limit.ALT._text == 0) {
+    return 'GND';
+  }
+  if (limit.ALT._attributes.UNIT == 'FL') {
+    return `FL ${Math.round(limit.ALT._text)}`;
+  }
+  return `${Math.round(limit.ALT._text)}${limit.ALT._attributes.UNIT} ${limit._attributes.REFERENCE}`;
+}
+
+// Decodes Open Air format.
+function decodeOpenAirFile(filename) {
+  console.log(`# ${path.basename(filename)}`);
   const airspaces = [];
-  const openAirLines = fs.readFileSync(file, 'utf-8').split('\n');
+  const openAirLines = fs.readFileSync(filename, 'utf-8').split('\n');
 
   let category = '';
   let name = '';
@@ -118,44 +150,60 @@ function decodeOpenAirFile(file) {
   return airspaces;
 }
 
-function pushOpenAirAirspace(airspaces, name, category, floor, ceiling, coords) {
+// Adds an airspace from an Open Air file.
+function pushOpenAirAirspace(airspaces, name, category, bottomLabel, topLabel, coords) {
   const a = {
     name,
     category,
-    bottom: floor,
-    bottom_km: (openAirAltMeter(floor) / 1000).toFixed(1),
-    top_km: (openAirAltMeter(ceiling) / 1000).toFixed(1),
-    top: ceiling,
+    bottom_lbl: bottomLabel,
+    top_lbl: topLabel,
+    bottom: Math.round(openAirAltMeter(bottomLabel)),
+    top: Math.round(openAirAltMeter(topLabel)),
     polygon: [coords],
-    color: null,
+    flags: 0,
   };
 
-  a.color = airspaceColor(a, '', Number(openAirAltMeter(ceiling)));
+  a.flags = airspaceTypeFlags(a);
 
-  if (a.color !== '') {
+  if (a.flags != 0) {
+    a.flags |= openAirReferenceFlags(bottomLabel, topLabel);
     airspaces.push(a);
   }
 }
 
-function openAirAltMeter(str) {
-  if (str == 'GND') {
+// Decodes a label from an Open Air file and returns the altitude in meters.
+function openAirAltMeter(label) {
+  if (label == 'GND') {
     return 0;
   }
-  let m = str.match(/^FL(\d+)/);
+  let m = label.match(/^FL(\d+)/);
   if (m) {
     return m[1] * 100 * 0.3048;
   }
-  m = str.match(/(\d+)ft/);
+  m = label.match(/(\d+)ft/);
   if (m) {
     return m[1] * 0.3048;
   }
-  if (str.startsWith('UNL')) {
+  if (label.startsWith('UNL')) {
     // Unlimited
     return 10000;
   }
-  throw new Error(`Unsupported altitude ${str}`);
+  throw new Error(`Unsupported altitude ${label}`);
 }
 
+// Return the airspace flags for GND reference.
+function openAirReferenceFlags(bottomLabel, topLabel) {
+  let flags = 0;
+  if (bottomLabel.toUpperCase().indexOf('AGL') > -1 || bottomLabel.toUpperCase() === 'GND') {
+    flags |= BOTTOM_REF_GND;
+  }
+  if (topLabel.toUpperCase().indexOf('AGL') > -1) {
+    flags |= TOP_REF_GND;
+  }
+  return flags;
+}
+
+// Decodes an airspace in Open Air format.
 function decodeAipAirspace(asp) {
   const category = asp._attributes.CATEGORY;
   const name = asp.NAME._text;
@@ -164,7 +212,8 @@ function decodeAipAirspace(asp) {
   }
 
   if (!asp.GEOMETRY.POLYGON._text) {
-    console.error(`INVALID Airspace:`, asp);
+    // Some airspaces have no geometry.
+    console.error(` - INVALID Airspace: ${name} (${asp.COUNTRY._text})`);
     return;
   }
 
@@ -186,43 +235,36 @@ function decodeAipAirspace(asp) {
   const a = {
     name,
     category: category,
-    bottom: formatAipAltLimit(asp.ALTLIMIT_BOTTOM),
-    bottom_km: (aipAltMeter(asp.ALTLIMIT_BOTTOM) / 1000).toFixed(1),
-    top_km: (aipAltMeter(asp.ALTLIMIT_TOP) / 1000).toFixed(1),
-    top: formatAipAltLimit(asp.ALTLIMIT_TOP),
+    bottom_lbl: aipAltLimitLabel(asp.ALTLIMIT_BOTTOM),
+    top_lbl: aipAltLimitLabel(asp.ALTLIMIT_TOP),
+    bottom: Math.round(aipAltLimitMeter(asp.ALTLIMIT_BOTTOM)),
+    top: Math.round(aipAltLimitMeter(asp.ALTLIMIT_TOP)),
     polygon: [coords],
-    color: null,
+    flags: 0,
   };
 
-  a.color = airspaceColor(a, asp.COUNTRY._text, Number(asp.ALTLIMIT_TOP.ALT._text));
+  a.flags = airspaceTypeFlags(a, asp.COUNTRY._text);
 
-  if (a.color !== '') {
+  if (a.flags != 0) {
+    a.flags |= openAipReferenceFlags(asp);
     return a;
   }
 }
 
-function aipAltMeter(limit) {
-  switch (limit.ALT._attributes.UNIT) {
-    case 'FL':
-      return Math.round(100 * 0.3048 * limit.ALT._text);
-    case 'F':
-      return Math.round(0.3048 * limit.ALT._text);
-    default:
-      return limit.ALT._text;
+// Returns the GND reference flags for an AIP airspace.
+function openAipReferenceFlags(asp) {
+  let flags = 0;
+  if (asp.ALTLIMIT_BOTTOM._attributes.REFERENCE === 'GND') {
+    flags |= BOTTOM_REF_GND;
   }
+  if (asp.ALTLIMIT_TOP._attributes.REFERENCE === 'GND') {
+    flags |= TOP_REF_GND;
+  }
+  return flags;
 }
 
-function formatAipAltLimit(limit) {
-  if (limit._attributes.REFERENCE === 'GND' && limit.ALT._text == 0) {
-    return 'GND';
-  }
-  if (limit.ALT._attributes.UNIT == 'FL') {
-    return `FL ${Math.round(limit.ALT._text)}`;
-  }
-  return `${Math.round(limit.ALT._text)}${limit.ALT._attributes.UNIT} ${limit._attributes.REFERENCE}`;
-}
-
-function airspaceColor(airspace, country, top) {
+// Return the flags for the type of the airspace.
+function airspaceTypeFlags(airspace, country = '') {
   const ignoreRegexp = [
     /(\d+-)?(\d+)\s+(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)/,
     /(\d+)\s+(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)-(\d+)\s+(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)/,
@@ -232,19 +274,19 @@ function airspaceColor(airspace, country, top) {
 
   ignoreRegexp.forEach((r) => {
     if (r.test(airspace.name)) {
-      return '';
+      return 0;
     }
   });
 
-  if (airspace.bottom_km > 6) {
-    return ''; // Ignore airspaces > 6000m
+  if (airspace.bottom > 6000) {
+    return 0; // Ignore airspaces > 6000m
   }
 
-  if (country == 'AU' && (airspace.category == 'E' || airspace.category == 'G') && top == 0) {
-    return ''; // Ignore
+  if (country == 'AU' && (airspace.category == 'E' || airspace.category == 'G') && airspace.top == 0) {
+    return 0; // Ignore
   }
   if (country == 'CO' && airspace.category == 'D') {
-    return '#808080'; // Other
+    return AIRSPACE_OTHER;
   }
   switch (airspace.category) {
     case 'A':
@@ -256,20 +298,20 @@ function airspaceColor(airspace, country, top) {
     case 'TMA':
     case 'TMZ':
     case 'PROHIBITED':
-      return '#bf4040'; // Prohibited
+      return AIRSPACE_PROHIBITED;
     case 'E':
     case 'F':
     case 'G':
     case 'GLIDING':
     case 'RESTRICTED':
-      return '#bfbf40'; // Restricted
+      return AIRSPACE_RESTRICTED;
     case 'DANGER':
-      return '#bf8040'; // Danger
+      return AIRSPACE_DANGER;
     case 'OTH':
-      return '#808080'; // Other
+      return AIRSPACE_OTHER;
     case 'FIR':
     case 'WAVE':
     default:
-      return ''; // Ignore
+      return 0;
   }
 }

@@ -1,7 +1,12 @@
 import { Action, ActionCreator } from 'redux';
+import { ThunkAction, ThunkDispatch } from 'redux-thunk';
 
+import { RuntimeTrack } from '../../../../common/track';
+import { scheduleMetadataFetch } from '../logic/metadata';
 import { Score } from '../logic/score/scorer';
 import { UNITS } from '../logic/units';
+import { MapState } from '../reducers/map';
+import { RootState } from '../store';
 
 export const SET_MAP = 'SET_MAP';
 export const ADD_TRACKS = 'ADD_TRACKS';
@@ -24,6 +29,9 @@ export const SET_SPEED_UNIT = 'SET_SPEED_UNIT';
 export const SET_DISTANCE_UNIT = 'SET_DISTANCE_UNIT';
 export const SET_ALTITUDE_UNIT = 'SET_ALTITUDE_UNIT';
 export const SET_VARIO_UNIT = 'SET_VARIO_UNIT';
+export const FETCH_METADATA = 'FETCH_METADATA';
+export const RECEIVE_METADATA = 'RECEIVE_METADATA';
+export const SET_FETCHING_METADATA = 'SET_FETCHING_METADATA';
 
 // Actions
 
@@ -32,7 +40,7 @@ export interface SetMap extends Action<typeof SET_MAP> {
 }
 
 export interface AddTracks extends Action<typeof ADD_TRACKS> {
-  payload: { buffer: ArrayBuffer };
+  payload: { tracks: RuntimeTrack[] };
 }
 
 export interface MoveCloseTo extends Action<typeof MOVE_CLOSE_TO> {
@@ -101,12 +109,28 @@ export interface SetVarioUnit extends Action<typeof SET_VARIO_UNIT> {
   payload: { unit: UNITS };
 }
 
+export interface FetchMetadata extends Action<typeof FETCH_METADATA> {
+  payload: { tracks: RuntimeTrack[] };
+}
+
+export interface ReceiveMetadata extends Action<typeof RECEIVE_METADATA> {
+  payload: { metaTracks: ArrayBuffer };
+}
+
+export interface SetFetchingMetadata extends Action<typeof SET_FETCHING_METADATA> {
+  payload: { isFetching: boolean };
+}
+
+export type MapThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action>;
+
 export type MapAction =
   | AddTracks
   | CloseActiveTrack
   | DecrementSpeed
+  | FetchMetadata
   | IncrementSpeed
   | MoveCloseTo
+  | ReceiveMetadata
   | SetAltitudeUnit
   | SetAspAltitude
   | SetAspShowRestricted
@@ -114,6 +138,7 @@ export type MapAction =
   | SetCurrentTrack
   | SetDistance
   | SetDistanceUnit
+  | SetFetchingMetadata
   | SetLeague
   | SetLoading
   | SetMap
@@ -131,9 +156,37 @@ export const setMap: ActionCreator<SetMap> = (map: google.maps.Map) => ({
   payload: { map },
 });
 
-export const addTracks: ActionCreator<AddTracks> = (buffer: ArrayBuffer) => ({
+export const receiveTracks = (tracks: RuntimeTrack[]): MapThunk => (
+  dispatch: ThunkDispatch<MapState, void, MapAction>,
+  getState: () => RootState,
+): void => {
+  dispatch(addTracks(tracks));
+  dispatch(fetchMetadata(tracks));
+  // Schedule a fetch when some tracks need metadata and no fetch is already started.
+  if (!getState().map?.metadata.isFetching && tracks.some((track) => !track.isPostProcessed)) {
+    dispatch(setFetchingMetadata(true));
+    scheduleMetadataFetch(dispatch, getState);
+  }
+};
+
+export const addTracks: ActionCreator<AddTracks> = (tracks: RuntimeTrack[]) => ({
   type: ADD_TRACKS,
-  payload: { buffer },
+  payload: { tracks },
+});
+
+export const fetchMetadata: ActionCreator<FetchMetadata> = (tracks: RuntimeTrack[]) => ({
+  type: FETCH_METADATA,
+  payload: { tracks },
+});
+
+export const receiveMetadata: ActionCreator<ReceiveMetadata> = (metaTracks: ArrayBuffer) => ({
+  type: RECEIVE_METADATA,
+  payload: { metaTracks },
+});
+
+export const setFetchingMetadata: ActionCreator<SetFetchingMetadata> = (isFetching: boolean) => ({
+  type: SET_FETCHING_METADATA,
+  payload: { isFetching },
 });
 
 export const moveCloseTo: ActionCreator<MoveCloseTo> = (lat: number, lon: number) => ({

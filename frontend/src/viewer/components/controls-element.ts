@@ -1,23 +1,21 @@
-import * as mapSel from '../selectors/map';
+import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { connect } from 'pwa-helpers';
 
-import { AirwaysCtrlElement, AirwaysOverlay } from './airways-element';
-import { CSSResult, LitElement, TemplateResult, css, customElement, html, property } from 'lit-element';
-import { RootState, store } from '../store';
+import { RuntimeFixes, RuntimeTrack } from '../../../../common/track';
 import { closeActiveTrack, setCurrentTrack } from '../actions/map';
-
+import { Units } from '../reducers/map';
+import * as mapSel from '../selectors/map';
+import { RootState, store } from '../store';
 import { AboutElement } from './about-element';
 import { AirspaceCtrlElement } from './airspace-element';
+import { AirwaysCtrlElement, AirwaysOverlay } from './airways-element';
 import { DashboardElement } from './dashboard-element';
 import { ExpandElement } from './expand-element';
-import { Fixes } from '../logic/map';
 import { NameElement } from './name-element';
 import { PathCtrlElement } from './path-element';
 import { PreferencesElement } from './preferences-element';
-import { Track } from '../logic/map';
 import { TrackingElement } from './tracking-element';
 import { UploadElement } from './upload-element';
-import { connect } from 'pwa-helpers';
-import { Units } from '../reducers/map';
 
 export {
   AboutElement,
@@ -42,13 +40,13 @@ export class ControlsElement extends connect(store)(LitElement) {
   timestamp = 0;
 
   @property({ attribute: false })
-  fixes: Fixes | null = null;
+  fixes: RuntimeFixes | null = null;
 
   @property({ attribute: false })
   name: string | null = null;
 
   @property({ attribute: false })
-  tracks: Track[] | null = null;
+  tracks: RuntimeTrack[] | null = null;
 
   @property({ attribute: false })
   units: Units | null = null;

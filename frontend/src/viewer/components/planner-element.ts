@@ -1,12 +1,12 @@
-import { CSSResult, LitElement, TemplateResult, css, customElement, html, property } from 'lit-element';
-import { RootState, store } from '../store';
-import { decrementSpeed, incrementSpeed, setSpeed } from '../actions/map';
+import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { connect } from 'pwa-helpers';
 
+import { decrementSpeed, incrementSpeed, setSpeed } from '../actions/map';
 import { Point } from '../logic/score/measure';
 import { Score } from '../logic/score/scorer';
-import { connect } from 'pwa-helpers';
 import { formatUnit } from '../logic/units';
 import { Units } from '../reducers/map';
+import { RootState, store } from '../store';
 
 @customElement('planner-element')
 export class PlannerElement extends connect(store)(LitElement) {

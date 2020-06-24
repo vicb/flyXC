@@ -1,8 +1,7 @@
-import { UKXCLClub, UKXCLInternational, UKXCLNational } from './ukxcl';
-
-import { FrCfd } from './frcfd';
 import { League } from '../league';
+import { FrCfd } from './frcfd';
 import { Leonardo } from './leonardo';
+import { UKXCLClub, UKXCLInternational, UKXCLNational } from './ukxcl';
 import { WXC } from './wxc';
 import { XContest } from './xcontest';
 

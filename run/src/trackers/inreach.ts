@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const DOMParser = require('xmldom').DOMParser;
-const request = require('request-zero');
-/* eslint-enable @typescript-eslint/no-var-requires */
+import request from 'request-zero';
+import { DOMParser } from 'xmldom';
 
 export async function refresh(datastore: any, hour: number, timeout: number): Promise<number> {
   const start = Date.now();
@@ -49,9 +47,10 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
           const placemark = placemarks[p];
           const coords = getChildNode(placemark.childNodes, 'Point.coordinates');
           const timestamp = getChildNode(placemark.childNodes, 'TimeStamp.when');
-          const data = getData(getChildNode(placemark.childNodes, 'ExtendedData'));
+          const dataNode = getChildNode(placemark.childNodes, 'ExtendedData');
+          const data = dataNode ? getData(dataNode) : null;
           const msg = getChildNode(placemark.childNodes, 'description')?.firstChild?.nodeValue;
-          if (coords && timestamp && data) {
+          if (coords && timestamp && data && coords.firstChild?.nodeValue && timestamp.firstChild?.nodeValue) {
             const [lon, lat, alt] = coords.firstChild.nodeValue
               .trim()
               .split(',')
@@ -91,7 +90,7 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
     });
 
     if (Date.now() - start > timeout * 1000) {
-      console.log(`Timeout for inreach devices (${timeout}s)`);
+      console.error(`Timeout for inreach devices (${timeout}s)`);
       break;
     }
   }
@@ -99,26 +98,29 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
   return numActiveDevices;
 }
 
-function getData(extendedData: any): any {
+function getData(extendedData: ChildNode): { [k: string]: string } {
   const data: { [k: string]: string } = {};
   const childNodes = extendedData?.childNodes || [];
   for (let d = 0; d < childNodes.length; d++) {
-    const node = childNodes[d];
-    if (node.tagName == 'Data' && node.childNodes) {
-      const id = node.getAttribute('name');
-      const value = getChildNode(node.childNodes, 'value')?.firstChild?.nodeValue;
-      data[id] = value;
+    const el = childNodes[d] as Element;
+    if (el.tagName == 'Data' && el.childNodes) {
+      const id = el.getAttribute('name');
+      if (id != null) {
+        const value = getChildNode(el.childNodes, 'value')?.firstChild?.nodeValue;
+        data[id] = value ?? '';
+      }
     }
   }
   return data;
 }
 
-function getChildNode(nodeList: any[], tagPath: string): any {
+function getChildNode(nodeList: NodeListOf<ChildNode>, tagPath: string): ChildNode | null {
   const tagName = tagPath.split('.')[0];
   for (let i = 0; i < nodeList.length; i++) {
-    if (nodeList[i].tagName == tagName) {
+    const el = nodeList[i] as Element;
+    if (el.tagName == tagName) {
       if (tagName == tagPath) {
-        return nodeList[i];
+        return el;
       }
       return getChildNode(nodeList[i].childNodes, tagPath.substr(tagName.length + 1));
     }

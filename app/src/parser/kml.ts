@@ -1,10 +1,11 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const toGeoJSON = require('@tmcw/togeojson');
+import { DOMParser } from 'xmldom';
 
-import { Track, parseGeoJson } from './parser';
-const DOMParser = require('xmldom').DOMParser;
+import * as toGeoJSON from '@tmcw/togeojson';
 
-export function parse(content: string): Track[] {
+import { ProtoTrack } from '../../../common/track';
+import { parseGeoJson } from './geojson';
+
+export function parse(content: string): ProtoTrack[] {
   const geojson = toGeoJSON.kml(
     new DOMParser({
       errorHandler: (level: string, msg: string): void => {
