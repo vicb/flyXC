@@ -11,10 +11,11 @@ type Polygon = Point[];
 const layerMap = new Map();
 
 // Returns html describing airspaces at the given point.
+// altitude is expressed in meters.
 export function AspAt(
   map: google.maps.Map,
   latLng: google.maps.LatLng,
-  altitudeKm: number,
+  altitude: number,
   includeRestricted: boolean,
 ): string | null {
   const worldCoords = (map.getProjection() as google.maps.Projection).fromLatLngToPoint(latLng);
@@ -43,7 +44,7 @@ export function AspAt(
   for (let i = 0; i < layer.length; i++) {
     const f = layer.feature(i);
     if (
-      f.properties.bottom_km < altitudeKm &&
+      f.properties.bottom_km < altitude / 1000 &&
       !(f.properties.color == RESTRICTED_COLOR && !includeRestricted) &&
       isInFeature(pxCoords, f)
     ) {
@@ -100,15 +101,16 @@ function isInPolygon(point: google.maps.Point, polygon: { x: number; y: number }
 }
 
 // Airspaces MapType.
+// altitude is expressed in meters.
 export class AspMapType {
-  altitude = 1;
+  altitude = 1000;
   minZoom = 0;
   maxZoom = 0;
   tileSize: google.maps.Size;
   showRestricted = true;
 
   constructor(altitude: number, maxZoom: number) {
-    this.altitude = altitude || 1;
+    this.altitude = altitude || 1000;
     this.minZoom = 4;
     this.maxZoom = maxZoom;
     this.tileSize = new google.maps.Size(TILE_SIZE, TILE_SIZE);
@@ -124,8 +126,8 @@ export class AspMapType {
     layerMap.delete(id);
   }
 
-  setAltitude(altitudeKm: number): void {
-    this.altitude = altitudeKm;
+  setAltitude(altitude: number): void {
+    this.altitude = altitude;
   }
 
   setShowRestricted(show: boolean): void {
@@ -135,6 +137,7 @@ export class AspMapType {
 
 // Airspaces Map Type used when tiles are not available at the current zoom level.
 // Tiles from a lower level are over zoomed.
+// altitude is expressed in meters.
 export class AspZoomMapType extends AspMapType {
   baseZoom = 0;
 
@@ -152,6 +155,7 @@ export class AspZoomMapType extends AspMapType {
 }
 
 // Fetch a vector tile and returns a canvas.
+// altitude is expressed in meters.
 function getTile(
   coord: google.maps.Point,
   baseZoom: number,
@@ -195,7 +199,7 @@ function getTile(
           const ratio = (TILE_SIZE << overZoom) / f.extent;
           if (
             f.type === 3 &&
-            f.properties.bottom_km < altitude &&
+            f.properties.bottom_km < altitude / 1000 &&
             !(f.properties.color == RESTRICTED_COLOR && !showRestricted)
           ) {
             const polygons = classifyRings(f.loadGeometry());

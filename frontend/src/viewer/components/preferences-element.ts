@@ -5,6 +5,7 @@ import { setAltitudeUnit, setDistanceUnit, setLeague, setSpeedUnit, setVarioUnit
 import { LEAGUES } from '../logic/score/league/leagues';
 import { UNITS } from '../logic/units';
 import { connect } from 'pwa-helpers';
+import { Units } from '../reducers/map';
 
 @customElement('preferences-ctrl-element')
 export class PreferencesElement extends connect(store)(LitElement) {
@@ -12,13 +13,13 @@ export class PreferencesElement extends connect(store)(LitElement) {
   league = 'xc';
 
   @property()
-  units: { [type: string]: string } | null = null;
+  units: Units | null = null;
 
   leagues: { value: string; name: string }[] = [];
 
   constructor() {
     super();
-    Object.getOwnPropertyNames(LEAGUES).forEach(value => {
+    Object.getOwnPropertyNames(LEAGUES).forEach((value) => {
       this.leagues.push({ value, name: LEAGUES[value].name });
     });
     this.leagues.sort((a, b) => (a < b ? -1 : 1));
@@ -73,7 +74,7 @@ export class PreferencesElement extends connect(store)(LitElement) {
                 <ui5-label for="league">League</ui5-label>
                 <ui5-select id="league" @change=${(e: any) => store.dispatch(setLeague(e.target.selectedOption.value))}>
                   ${this.leagues.map(
-                    league =>
+                    (league) =>
                       html`
                         <ui5-option value=${league.value} ?selected=${this.league == league.value}
                           >${league.name}</ui5-option

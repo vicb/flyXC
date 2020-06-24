@@ -30,6 +30,14 @@ import { Score } from '../logic/score/scorer';
 import { UNITS } from '../logic/units';
 import cookies from 'cookiesjs';
 
+// Units for distance, altitude, speed and vario.
+export interface Units {
+  distance: UNITS;
+  altitude: UNITS;
+  speed: UNITS;
+  vario: UNITS;
+}
+
 export interface MapState {
   map: google.maps.Map;
   tracks: Track[];
@@ -43,12 +51,7 @@ export interface MapState {
   distance: number;
   speed: number;
   league: string;
-  units: {
-    distance: string;
-    altitude: string;
-    speed: string;
-    vario: string;
-  };
+  units: Units;
 }
 
 const INITIAL_STATE: MapState = {
@@ -56,7 +59,7 @@ const INITIAL_STATE: MapState = {
   tracks: [],
   ts: 0,
   currentTrack: 0,
-  aspAltitude: 1,
+  aspAltitude: 1000,
   aspShowRestricted: true,
   loading: false,
   chartY: 'alt',
@@ -92,8 +95,9 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
       const minLon = mapSel.minLon(state);
       const maxLat = mapSel.maxLat(state);
       const maxLon = mapSel.maxLon(state);
+      const maxAlt = mapSel.maxAlt(state);
       zoomTracks(map, minLat, minLon, maxLat, maxLon);
-      return state;
+      return { ...state, aspAltitude: maxAlt };
     }
 
     case SET_TS: {

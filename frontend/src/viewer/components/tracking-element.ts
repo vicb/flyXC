@@ -4,6 +4,7 @@ import { RootState, store } from '../store';
 import { connect } from 'pwa-helpers';
 import { formatUnit } from '../logic/units';
 import { linearInterpolate } from '../logic/math';
+import { Units } from '../reducers/map';
 
 @customElement('tracking-element')
 export class TrackingElement extends connect(store)(LitElement) {
@@ -22,7 +23,7 @@ export class TrackingElement extends connect(store)(LitElement) {
   }
   map_: google.maps.Map | null = null;
 
-  units: { [type: string]: string } | null = null;
+  units: Units | null = null;
 
   info: google.maps.InfoWindow | null = null;
 

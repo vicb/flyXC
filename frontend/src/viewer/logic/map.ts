@@ -41,13 +41,13 @@ export function uploadTracks(tracks: File[]): Promise<unknown> {
     return Promise.resolve();
   }
   const formData = new FormData();
-  tracks.forEach(track => formData.append('track', track));
+  tracks.forEach((track) => formData.append('track', track));
 
   store.dispatch(mapActions.setLoading(true));
 
   return fetch('/_upload', { method: 'POST', body: formData })
-    .then(r => (r.ok ? r.arrayBuffer() : null))
-    .then(buffer => {
+    .then((r) => (r.ok ? r.arrayBuffer() : null))
+    .then((buffer) => {
       if (buffer) {
         store.dispatch(mapActions.addTracks(buffer));
         store.dispatch(mapActions.zoomTracks());
@@ -63,13 +63,13 @@ export function downloadTracks(tracks: string[]): Promise<unknown> {
   }
 
   const params = new URLSearchParams();
-  tracks.forEach(track => params.append('track', track));
+  tracks.forEach((track) => params.append('track', track));
 
   store.dispatch(mapActions.setLoading(true));
 
   return fetch(`/_download?${params}`)
-    .then(r => (r.ok ? r.arrayBuffer() : null))
-    .then(buffer => {
+    .then((r) => (r.ok ? r.arrayBuffer() : null))
+    .then((buffer) => {
       if (buffer) {
         store.dispatch(mapActions.addTracks(buffer));
         store.dispatch(mapActions.zoomTracks());
@@ -85,13 +85,13 @@ export function downloadTracksFromHistory(ids: string[]): Promise<unknown> {
   }
 
   const params = new URLSearchParams();
-  ids.forEach(id => params.append('h', id));
+  ids.forEach((id) => params.append('h', id));
 
   store.dispatch(mapActions.setLoading(true));
 
   return fetch(`/_history?${params}`)
-    .then(r => (r.ok ? r.arrayBuffer() : null))
-    .then(buffer => {
+    .then((r) => (r.ok ? r.arrayBuffer() : null))
+    .then((buffer) => {
       if (buffer) {
         store.dispatch(mapActions.addTracks(buffer));
         store.dispatch(mapActions.zoomTracks());
@@ -131,9 +131,9 @@ function createTrack(track: any): Track {
       ts.push(ts[i - 1] + f.ts);
     }
   });
-  lat = lat.map(v => v / 1e5);
-  lon = lon.map(v => v / 1e5);
-  ts = ts.map(v => v * 1e3);
+  lat = lat.map((v) => v / 1e5);
+  lon = lon.map((v) => v / 1e5);
+  ts = ts.map((v) => v * 1e3);
 
   const len = lat.length;
   const vx = lat.map((_, i) => {

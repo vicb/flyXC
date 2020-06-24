@@ -3,7 +3,7 @@ import * as mapSel from '../selectors/map';
 import { AirwaysCtrlElement, AirwaysOverlay } from './airways-element';
 import { CSSResult, LitElement, TemplateResult, css, customElement, html, property } from 'lit-element';
 import { RootState, store } from '../store';
-import { closeActiveTrack, setAspAltitude, setAspShowRestricted, setCurrentTrack } from '../actions/map';
+import { closeActiveTrack, setCurrentTrack } from '../actions/map';
 
 import { AboutElement } from './about-element';
 import { AirspaceCtrlElement } from './airspace-element';
@@ -17,6 +17,7 @@ import { Track } from '../logic/map';
 import { TrackingElement } from './tracking-element';
 import { UploadElement } from './upload-element';
 import { connect } from 'pwa-helpers';
+import { Units } from '../reducers/map';
 
 export {
   AboutElement,
@@ -35,12 +36,6 @@ export {
 @customElement('controls-element')
 export class ControlsElement extends connect(store)(LitElement) {
   @property({ attribute: false })
-  aspAltitude = 1;
-
-  @property({ attribute: false })
-  aspShowRestricted = true;
-
-  @property({ attribute: false })
   map: google.maps.Map | null = null;
 
   @property({ attribute: false })
@@ -56,7 +51,7 @@ export class ControlsElement extends connect(store)(LitElement) {
   tracks: Track[] | null = null;
 
   @property({ attribute: false })
-  units: { [type: string]: string } | null = null;
+  units: Units | null = null;
 
   @property({ attribute: false })
   currentTrack: number | null = null;
@@ -65,8 +60,6 @@ export class ControlsElement extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     if (state.map) {
-      this.aspAltitude = state.map.aspAltitude;
-      this.aspShowRestricted = state.map.aspShowRestricted;
       this.map = state.map.map;
       this.timestamp = state.map.ts;
       this.fixes = mapSel.activeFixes(state.map);
@@ -89,16 +82,6 @@ export class ControlsElement extends connect(store)(LitElement) {
     ];
   }
 
-  // Set the ceiling altitude to display airspaces.
-  protected handleAltitudeChange(e: CustomEvent): void {
-    store.dispatch(setAspAltitude(e.detail.altitude));
-  }
-
-  // Show/hide restricted airspaces.
-  protected handleRestricted(e: CustomEvent): void {
-    store.dispatch(setAspShowRestricted(e.detail.show));
-  }
-
   // Closes the current track.
   protected handleClose(): void {
     store.dispatch(closeActiveTrack());
@@ -115,13 +98,7 @@ export class ControlsElement extends connect(store)(LitElement) {
   protected render(): TemplateResult {
     return html`
       ${this.isInIframe ? html`<expand-ctrl-element></expand-ctrl-element>` : html``}
-      <airspace-ctrl-element
-        .map=${this.map}
-        .altitude=${this.aspAltitude}
-        .restricted=${this.aspShowRestricted}
-        @change=${this.handleAltitudeChange}
-        @restricted=${this.handleRestricted}
-      ></airspace-ctrl-element>
+      <airspace-ctrl-element .map=${this.map}></airspace-ctrl-element>
       <airways-ctrl-element .map=${this.map}></airways-ctrl-element>
       <path-ctrl-element .map=${this.map}></path-ctrl-element>
       <upload-ctrl-element></upload-ctrl-element>

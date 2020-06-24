@@ -15,10 +15,11 @@ import { RootState, store } from '../store';
 import { Track, trackColor } from '../logic/map';
 
 import { connect } from 'pwa-helpers';
-import { formatUnit } from '../logic/units';
+import { formatUnit, UNITS } from '../logic/units';
 import { sampleAt } from '../logic/math';
 import { setChartY } from '../actions/map';
 import { ticks } from 'd3-array';
+import { Units } from '../reducers/map';
 
 @customElement('chart-element')
 export class ChartElement extends connect(store)(LitElement) {
@@ -38,7 +39,7 @@ export class ChartElement extends connect(store)(LitElement) {
   height = 0;
 
   @property({ attribute: false })
-  units: { [type: string]: string } | null = null;
+  units: Units | null = null;
 
   minTs = 0;
   maxTs = 1;
@@ -92,8 +93,8 @@ export class ChartElement extends connect(store)(LitElement) {
     }
   }
 
-  protected getYUnit(): string {
-    const units = this.units as { [type: string]: string };
+  protected getYUnit(): UNITS {
+    const units = this.units as Units;
     switch (this.chartY) {
       case 'speed':
         return units.speed;
@@ -205,7 +206,7 @@ export class ChartElement extends connect(store)(LitElement) {
       const tks = ticks(this.minY, this.maxY, 4);
       const ySpan = this.maxY - this.minY;
 
-      tks.forEach(tick => {
+      tks.forEach((tick) => {
         // Draw line
         const y = ((this.maxY - tick) / ySpan) * this.height;
         axis.push(svg`<line y1=${y.toFixed(1)} x2=${this.width} y2=${y}></line>`);
@@ -222,7 +223,7 @@ export class ChartElement extends connect(store)(LitElement) {
       const tks = ticks(this.minY, this.maxY, 4);
       const ySpan = this.maxY - this.minY;
 
-      tks.forEach(tick => {
+      tks.forEach((tick) => {
         const y = ((this.maxY - tick) / ySpan) * this.height;
         texts.push(
           svg`<text stroke-width=3 x=5 y=${y.toFixed(1)} dy=-2>${formatUnit(tick, this.getYUnit())}</text>

@@ -9,9 +9,7 @@ export class TopoEu extends WMTSMapTypeElement {
   static mapTypeId = 'topo.eu';
   mapName = 'Europe';
   copyright = {
-    html: html`
-      <img src="img/topo.eu.png" />
-    `,
+    html: html` <img src="img/topo.eu.png" /> `,
     url: 'http://www.4umaps.eu/',
   };
   url = 'https://tileserver.4umaps.com/{zoom}/{x}/{y}.png';
@@ -24,9 +22,7 @@ export class TopoSpain extends WMTSMapTypeElement {
   static mapTypeId = 'topo.spain';
   mapName = 'Spain';
   copyright = {
-    html: html`
-      <img src="img/topo.es.png" />
-    `,
+    html: html` <img src="img/topo.es.png" /> `,
     url: 'http://www.ign.es/',
   };
   url =
@@ -41,9 +37,7 @@ export class TopoFrance extends WMTSMapTypeElement {
   static mapTypeIdScan = 'topo.france.scan';
   mapName = 'France';
   copyright = {
-    html: html`
-      <img src="img/topo.fr.png" />
-    `,
+    html: html` <img src="img/topo.fr.png" /> `,
     url: 'http://www.ign.fr/',
   };
   get url(): string {
@@ -111,9 +105,7 @@ export class TopoOtm extends WMTSMapTypeElement {
   static mapTypeId = 'topo.otm';
   mapName = 'OpenTopoMap';
   copyright = {
-    html: html`
-      <img src="img/topo.otm.png" />
-    `,
+    html: html` <img src="img/topo.otm.png" /> `,
     url: 'https://opentopomap.org/about',
   };
   url = 'https://b.tile.opentopomap.org/{zoom}/{x}/{y}.png';

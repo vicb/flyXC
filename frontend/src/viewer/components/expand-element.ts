@@ -12,7 +12,7 @@ export class ExpandElement extends LitElement {
     const fs = document.getElementsByClassName('fs-enabled');
     if (fs && fs.length) {
       const el = (this.element = fs[0]);
-      el.addEventListener('fullscreenchange', _ => {
+      el.addEventListener('fullscreenchange', (_) => {
         this.expanded = document.fullscreenElement != null;
       });
     }

@@ -6,6 +6,7 @@ import { Point } from '../logic/score/measure';
 import { Score } from '../logic/score/scorer';
 import { connect } from 'pwa-helpers';
 import { formatUnit } from '../logic/units';
+import { Units } from '../reducers/map';
 
 @customElement('planner-element')
 export class PlannerElement extends connect(store)(LitElement) {
@@ -19,7 +20,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   league = 'xc';
 
   @property({ attribute: false })
-  units: { [type: string]: string } | null = null;
+  units: Units | null = null;
 
   @property({ attribute: false })
   distance = 0;

@@ -109,15 +109,15 @@ export class ArchivesElement extends LitElement {
 
   connectedCallback(): void {
     fetch(`/_archives?tracks=${this.numtracks}`)
-      .then(r => (r.ok ? r.json() : []))
-      .then(tracks => (this.tracks = tracks));
+      .then((r) => (r.ok ? r.json() : []))
+      .then((tracks) => (this.tracks = tracks));
     super.connectedCallback();
   }
 
   render(): TemplateResult {
     return html`
       <h1>Track list</h1>
-      ${this.tracks.map(track => {
+      ${this.tracks.map((track) => {
         const location = track.city && track.country ? ` - ${track.city} (${track.country})` : '';
         const date = new Date(track.created);
         return html`

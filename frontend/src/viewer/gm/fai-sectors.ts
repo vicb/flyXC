@@ -25,11 +25,11 @@ export class FaiSectors {
   }
 
   addListeners(name: string, handler: (...args: any[]) => void): google.maps.MapsEventListener[] {
-    return this.polygons.map(p => p.addListener(name, handler));
+    return this.polygons.map((p) => p.addListener(name, handler));
   }
 
   setMap(map: google.maps.Map | null): void {
-    this.polygons.forEach(p => p.setMap(map));
+    this.polygons.forEach((p) => p.setMap(map));
   }
 
   update(points: Point[]): void {

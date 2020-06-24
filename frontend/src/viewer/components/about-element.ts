@@ -52,7 +52,9 @@ export class AboutElement extends LitElement {
           <br />
           <div>
             <ui5-label
-              >See the <a href="https://github.com/vicb/flyxc/blob/master/README.md" target="_blank">Quick Start guide</a>.</ui5-label
+              >See the
+              <a href="https://github.com/vicb/flyxc/blob/master/README.md" target="_blank">Quick Start guide</a
+              >.</ui5-label
             >
           </div>
           <br />
@@ -76,7 +78,8 @@ export class AboutElement extends LitElement {
           <div>
             <ui5-label
               >Report issues on
-              <a href="https://github.com/vicb/flyxc/issues" target="_blank">github <i class="fab fa-github-square"></i></a
+              <a href="https://github.com/vicb/flyxc/issues" target="_blank"
+                >github <i class="fab fa-github-square"></i></a
             ></ui5-label>
           </div>
         </section>
