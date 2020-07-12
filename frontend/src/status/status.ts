@@ -26,8 +26,8 @@ export class FlyXcStatusElement extends LitElement {
 
   fetchStatus(): void {
     fetch('/_status.json')
-      .then(r => (r.ok ? r.json() : null))
-      .then(status => {
+      .then((r) => (r.ok ? r.json() : null))
+      .then((status) => {
         if (status) {
           this.status = status;
           this.timestamp = Date.now();

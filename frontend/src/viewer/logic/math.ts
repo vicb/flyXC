@@ -23,7 +23,7 @@ export function linearInterpolate(
 // xs and ys must have the same length.
 // xs must be sorted in ascending order.
 export function sampleAt(xs: number[], ys: number[], targetXs: number[]): number[] {
-  return targetXs.map(tx => {
+  return targetXs.map((tx) => {
     if (tx <= xs[0]) {
       return ys[0];
     }

@@ -65,7 +65,7 @@ export abstract class WMTSOverlayElement extends LitElement {
     if (bounds == null) {
       this.mapBounds = null;
     } else {
-      this.mapBounds = bounds.map(b => {
+      this.mapBounds = bounds.map((b) => {
         const lats = [b[0], b[2]].sort();
         const lons = [b[1], b[3]].sort();
 
@@ -110,7 +110,7 @@ export abstract class WMTSOverlayElement extends LitElement {
       projection.fromPointToLatLng(new google.maps.Point(w, s)),
       projection.fromPointToLatLng(new google.maps.Point(e, n)),
     );
-    return this.mapBounds.some(b => b.intersects(tileBounds));
+    return this.mapBounds.some((b) => b.intersects(tileBounds));
   }
 }
 

@@ -12,9 +12,9 @@ import { PlannerElement } from './planner-element';
 import { connect } from 'pwa-helpers';
 import { formatUnit } from '../logic/units';
 //import { isMobileDevice } from '../logic/util';
-
 import { BRecord, RecordExtensions } from 'igc-parser';
 import { Solution } from 'igc-xc-score';
+import { Units } from '../reducers/map';
 
 const ROUTE_STROKE_COLORS = {
   [CircuitType.OPEN_DISTANCE]: '#ff6600',
@@ -56,8 +56,6 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   expanded = false;
 
-  @property({ attribute: false })
-  units: { [type: string]: string; } | null = null;
   
   @property({ attribute: false })
   tracks: Track[] | null = null;
@@ -70,6 +68,9 @@ export class PathCtrlElement extends connect(store)(LitElement) {
 
   @property({ attribute: false })
   measureIcon: string = 'img/measuring.svg';
+
+  @property({ attribute: false })
+  units: Units | null = null;
 
   @property({ attribute: false })
   get map(): google.maps.Map | null {
@@ -98,7 +99,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
           const path = line.getPath();
           path.clear();
           const bounds = new google.maps.LatLngBounds();
-          this.initialPath?.forEach(p => {
+          this.initialPath?.forEach((p) => {
             bounds.extend(p);
             path.push(p);
           });
@@ -274,7 +275,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       ? this.line
           .getPath()
           .getArray()
-          .map(latLng => ({ lat: latLng.lat(), lon: latLng.lng() }))
+          .map((latLng) => ({ lat: latLng.lat(), lon: latLng.lng() }))
       : [];
   }
 
@@ -299,7 +300,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     scores.sort((score1, score2) => score2.points - score1.points);
     const score = scores[0];
     store.dispatch(setScore(score));
-    let path = score.indexes.map(index => new google.maps.LatLng(points[index].lat, points[index].lon));
+    let path = score.indexes.map((index) => new google.maps.LatLng(points[index].lat, points[index].lon));
     if (score.circuit == CircuitType.FLAT_TRIANGLE || score.circuit == CircuitType.FAI_TRIANGLE) {
       path = [path[1], path[2], path[3], path[1]];
     } else if (score.circuit == CircuitType.OUT_AND_RETURN) {
@@ -333,7 +334,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     }
     this.faiSectors.setMap(null);
     if (score.circuit == CircuitType.FLAT_TRIANGLE || score.circuit == CircuitType.FAI_TRIANGLE) {
-      const faiPoints = score.indexes.slice(1, 4).map(i => points[i]);
+      const faiPoints = score.indexes.slice(1, 4).map((i) => points[i]);
       this.faiSectors.update(faiPoints);
       this.faiSectors.setMap(this.map);
     }
@@ -509,10 +510,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
                 <ui5-label for="format">Format</ui5-label>
                 <ui5-select id="format">
                   ${Object.getOwnPropertyNames(WAYPOINT_FORMATS).map(
-                    f =>
-                      html`
-                        <ui5-option value=${f}>${WAYPOINT_FORMATS[f]}</ui5-option>
-                      `,
+                    (f) => html` <ui5-option value=${f}>${WAYPOINT_FORMATS[f]}</ui5-option> `,
                   )}
                 </ui5-select>
               </div>
@@ -550,12 +548,12 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       const elevator = new google.maps.ElevationService();
       elevator.getElevationForLocations(
         {
-          locations: this.getPathPoints().map(p => new google.maps.LatLng(p.lat, p.lon)),
+          locations: this.getPathPoints().map((p) => new google.maps.LatLng(p.lat, p.lon)),
         },
         (results: google.maps.ElevationResult[], status: google.maps.ElevationStatus) => {
           let elevations = null;
           if (status == google.maps.ElevationStatus.OK) {
-            elevations = results.map(r => r.elevation);
+            elevations = results.map((r) => r.elevation);
           }
           const shadowRoot = this.shadowRoot as ShadowRoot;
           const input = shadowRoot.getElementById('request') as HTMLInputElement;

@@ -4,6 +4,7 @@ import { RootState, store } from '../store';
 import { connect } from 'pwa-helpers';
 import { formatUnit } from '../logic/units';
 import { linearInterpolate } from '../logic/math';
+import { Units } from '../reducers/map';
 
 @customElement('tracking-element')
 export class TrackingElement extends connect(store)(LitElement) {
@@ -22,7 +23,7 @@ export class TrackingElement extends connect(store)(LitElement) {
   }
   map_: google.maps.Map | null = null;
 
-  units: { [type: string]: string } | null = null;
+  units: Units | null = null;
 
   info: google.maps.InfoWindow | null = null;
 
@@ -114,7 +115,7 @@ export class TrackingElement extends connect(store)(LitElement) {
         let color = `hsl(111, ${s}%, 53%)`;
         let zIndex = 10;
         const age_hours = (now - ts) / (3600 * 1000);
-        let opacity = age_hours > 6 ? 0.3 : 0.9;
+        let opacity = age_hours > 12 ? 0.3 : 0.9;
         if (feature.getProperty('msg')) {
           opacity = 1;
           color = 'yellow';

@@ -122,11 +122,7 @@ export class TrackerFrom extends LitElement {
             `
           : html`
               <div class="notification">
-                ${this.auth.currentUser
-                  .get()
-                  .getBasicProfile()
-                  .getName()},
-                select your device:
+                ${this.auth.currentUser.get().getBasicProfile().getName()}, select your device:
               </div>
               <form>
                 <div class="field">
@@ -248,11 +244,11 @@ export class TrackerFrom extends LitElement {
       },
       body: data.join('&'),
     })
-      .then(r => r.json())
-      .then(data => {
+      .then((r) => r.json())
+      .then((data) => {
         const shadowRoot = this.shadowRoot as ShadowRoot;
         // Radio buttons
-        ['inreach', 'spot', 'no'].map(device => {
+        ['inreach', 'spot', 'no'].map((device) => {
           const radio = shadowRoot.getElementById(device) as HTMLInputElement;
           if (data.device == device) {
             radio.setAttribute('checked', '');

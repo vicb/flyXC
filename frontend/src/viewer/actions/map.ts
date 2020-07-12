@@ -1,6 +1,7 @@
 import { Action, ActionCreator } from 'redux';
 
 import { Score } from '../logic/score/scorer';
+import { UNITS } from '../logic/units';
 
 export const SET_MAP = 'SET_MAP';
 export const ADD_TRACKS = 'ADD_TRACKS';
@@ -85,19 +86,19 @@ export interface SetLeague extends Action<typeof SET_LEAGUE> {
 }
 
 export interface SetSpeedUnit extends Action<typeof SET_SPEED_UNIT> {
-  payload: { unit: string };
+  payload: { unit: UNITS };
 }
 
 export interface SetDistanceUnit extends Action<typeof SET_DISTANCE_UNIT> {
-  payload: { unit: string };
+  payload: { unit: UNITS };
 }
 
 export interface SetAltitudeUnit extends Action<typeof SET_ALTITUDE_UNIT> {
-  payload: { unit: string };
+  payload: { unit: UNITS };
 }
 
 export interface SetVarioUnit extends Action<typeof SET_VARIO_UNIT> {
-  payload: { unit: string };
+  payload: { unit: UNITS };
 }
 
 export type MapAction =
@@ -152,12 +153,12 @@ export const setCurrentTrack: ActionCreator<SetCurrentTrack> = (index: number) =
   payload: { index },
 });
 
-export const setAspAltitude: ActionCreator<SetAspAltitude> = aspAltitude => ({
+export const setAspAltitude: ActionCreator<SetAspAltitude> = (aspAltitude) => ({
   type: SET_ASP_ALTITUDE,
   payload: { aspAltitude },
 });
 
-export const setAspShowRestricted: ActionCreator<SetAspShowRestricted> = aspShowRestricted => ({
+export const setAspShowRestricted: ActionCreator<SetAspShowRestricted> = (aspShowRestricted) => ({
   type: SET_ASP_SHOW_RESTRICTED,
   payload: { aspShowRestricted },
 });
@@ -198,22 +199,22 @@ export const setLeague: ActionCreator<SetLeague> = (league: string) => ({
   payload: { league },
 });
 
-export const setSpeedUnit: ActionCreator<SetSpeedUnit> = (unit: string) => ({
+export const setSpeedUnit: ActionCreator<SetSpeedUnit> = (unit: UNITS) => ({
   type: SET_SPEED_UNIT,
   payload: { unit },
 });
 
-export const setDistanceUnit: ActionCreator<SetDistanceUnit> = (unit: string) => ({
+export const setDistanceUnit: ActionCreator<SetDistanceUnit> = (unit: UNITS) => ({
   type: SET_DISTANCE_UNIT,
   payload: { unit },
 });
 
-export const setAltitudeUnit: ActionCreator<SetAltitudeUnit> = (unit: string) => ({
+export const setAltitudeUnit: ActionCreator<SetAltitudeUnit> = (unit: UNITS) => ({
   type: SET_ALTITUDE_UNIT,
   payload: { unit },
 });
 
-export const setVarioUnit: ActionCreator<SetVarioUnit> = (unit: string) => ({
+export const setVarioUnit: ActionCreator<SetVarioUnit> = (unit: UNITS) => ({
   type: SET_VARIO_UNIT,
   payload: { unit },
 });
