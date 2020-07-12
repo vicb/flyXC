@@ -424,10 +424,10 @@ export class PathCtrlElement extends connect(store)(LitElement) {
           /* Triangle -> first point is also last */
           turnPoints.push(turnPoints[0]);
         } else {
-          /* Open distance -> cp.in and cp.out are actually first and fifth turnpoint */
-          if (r.scoreInfo && r.scoreInfo.cp) {
-            turnPoints.unshift(new google.maps.LatLng(r.scoreInfo.cp.in.y, r.scoreInfo.cp.in.x));
-            turnPoints.push(new google.maps.LatLng(r.scoreInfo.cp.out.y, r.scoreInfo.cp.out.x));
+          /* Open distance -> ep.start and ep.finish are actually first and fifth turnpoint */
+          if (r.scoreInfo && r.scoreInfo.ep) {
+            turnPoints.unshift(new google.maps.LatLng(r.scoreInfo.ep.start.y, r.scoreInfo.ep.start.x));
+            turnPoints.push(new google.maps.LatLng(r.scoreInfo.ep.finish.y, r.scoreInfo.ep.finish.x));
           }
         }
         this.scoring.path = new google.maps.Polyline({

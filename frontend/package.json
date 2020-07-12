@@ -16,7 +16,7 @@
     "d3-array": "^2.4.0",
     "d3-scale-chromatic": "^1.5.0",
     "geolib": "^3.3.1",
-    "igc-xc-score": "^1.4.1",
+    "igc-xc-score": "^1.5.0",
     "lit-element": "^2.3.1",
     "lit-html": "^1.2.1",
     "pbf": "^3.2.1",
