@@ -198,8 +198,28 @@ function httpsGet(url: string): Promise<IncomingMessage> {
   });
 }
 
-async function addGroundAltitude(fixes: Fix[]): Promise<unknown> {
+async function getHeightData(url: string) {
+  const me = Symbol();
   let numErrors = 0;
+  let data: Buffer | null = null;
+  while (true) {
+    try {
+      await downloadQueue.wait(me, 0);
+      const message: IncomingMessage = await httpsGet(url);
+      data = await bufferStream(message.pipe(zlib.createGunzip()));
+      return data;
+    } catch (e) {
+      console.error(e);
+      if (numErrors++ > 5) {
+        throw e;
+      }
+    } finally {
+      downloadQueue.end(me);
+    }
+  }
+}
+
+async function addGroundAltitude(fixes: Fix[]): Promise<unknown> {
   let queuePromises: Promise<void>[] = [];
   for (let i = 0; i < fixes.length; i++) {
     queuePromises.push((async () => {
@@ -211,30 +231,14 @@ async function addGroundAltitude(fixes: Fix[]): Promise<unknown> {
       const url = getHgtUrl(south, west);
       let cache: Promise<Buffer> = hgtCache.has(url);
       if (!cache) {
-        const me = Symbol();
-        hgtCache.set(url, new Promise(async (resolve, reject) => {
-          await downloadQueue.wait(me, 0);
-          let data: Buffer | null = null;
-          try {
-            const message: IncomingMessage = await httpsGet(url);
-            data = await bufferStream(message.pipe(zlib.createGunzip()));
-          } catch (e) {
-            if (numErrors++ > 5) {
-              reject(e);
-            }
-            console.error(e);
-          } finally {
-            downloadQueue.end(me);
-          }
-          resolve(data);
-        }));
+        hgtCache.set(url, getHeightData(url));
       }
       let buffer: Buffer | null = null;
       try {
         buffer = await (hgtCache.get(url) as Promise<Buffer>);
       } catch (e) {
         console.error(e);
-        return;
+        throw e;
       }
 
       let gndAlt = 0;
