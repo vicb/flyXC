@@ -11,6 +11,7 @@ import { LEAGUES } from '../logic/score/league/leagues';
 import { PlannerElement } from './planner-element';
 import { connect } from 'pwa-helpers';
 import { formatUnit } from '../logic/units';
+//import { isMobileDevice } from '../logic/util';
 
 import { BRecord, RecordExtensions } from 'igc-parser';
 import { Solution } from 'igc-xc-score';
