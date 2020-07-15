@@ -95,7 +95,7 @@ export class ControlsElement extends connect(store)(LitElement) {
 
   protected render(): TemplateResult {
     return html`
-      ${this.isInIframe ? html`<expand-ctrl-element></expand-ctrl-element>` : html``}
+      ${this.isInIframe ? html`<expand-ctrl-element .map=${this.map}></expand-ctrl-element>` : html``}
       <airspace-ctrl-element .map=${this.map}></airspace-ctrl-element>
       <airways-ctrl-element .map=${this.map}></airways-ctrl-element>
       <path-ctrl-element .map=${this.map}></path-ctrl-element>

@@ -5,6 +5,9 @@ export class ExpandElement extends LitElement {
   @property({ attribute: false })
   expanded = false;
 
+  @property()
+  map: google.maps.Map | null = null;
+
   element: Element | null = null;
 
   constructor() {
@@ -12,7 +15,7 @@ export class ExpandElement extends LitElement {
     const fs = document.getElementsByClassName('fs-enabled');
     if (fs && fs.length) {
       const el = (this.element = fs[0]);
-      el.addEventListener('fullscreenchange', (_) => {
+      el.addEventListener('fullscreenchange', () => {
         this.expanded = document.fullscreenElement != null;
       });
     }
@@ -46,6 +49,11 @@ export class ExpandElement extends LitElement {
       } else {
         document.exitFullscreen();
       }
+    }
+    if (this.map) {
+      // In full screen mode the gesture handling must be greedy.
+      // Using ctrl (+ scroll) is unnecessary as thr page can not scroll anyway.
+      this.map.setOptions({ gestureHandling: this.expanded ? 'greedy' : 'auto' });
     }
   }
 
