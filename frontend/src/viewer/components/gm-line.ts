@@ -1,4 +1,4 @@
-import { customElement, LitElement, property, PropertyValues } from 'lit-element';
+import { customElement, LitElement, property } from 'lit-element';
 
 import { RuntimeTrack } from '../../../../common/track';
 import { trackColor } from '../logic/map';
@@ -22,7 +22,7 @@ export class GmLineElement extends LitElement {
   line: google.maps.Polyline | null = null;
   maskLine: google.maps.Polyline | null = null;
 
-  shouldUpdate(changedProperties: PropertyValues): boolean {
+  shouldUpdate(): boolean {
     if (this.map && this.track) {
       const path: { lat: number; lng: number }[] = [];
       const track = this.track;
@@ -35,6 +35,7 @@ export class GmLineElement extends LitElement {
 
       if (!this.maskLine) {
         this.maskLine = new google.maps.Polyline({
+          clickable: false,
           map: this.map,
           strokeColor: '#fff',
           strokeOpacity: 0.6,
@@ -46,6 +47,7 @@ export class GmLineElement extends LitElement {
 
       if (!this.line) {
         this.line = new google.maps.Polyline({
+          clickable: false,
           map: this.map,
           strokeOpacity: 1.0,
           strokeWeight: 2,

@@ -2,6 +2,7 @@ import { customElement, LitElement, property } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { RuntimeTrack } from '../../../../common/track';
+import { setCurrentTrack } from '../actions/map';
 import { trackColor } from '../logic/map';
 import { sampleAt } from '../logic/math';
 import { tsOffsets } from '../selectors/map';
@@ -38,16 +39,21 @@ export class GmMarkerElement extends connect(store)(LitElement) {
 
   shouldUpdate(): boolean {
     if (this.map && this.track) {
+      const track = this.track;
       if (!this.marker) {
         this.marker = new google.maps.Marker({
           map: this.map,
-          clickable: false,
+          clickable: true,
+          title: track.name,
+        });
+        google.maps.event.addListener(this.marker, 'click', () => {
+          store.dispatch(setCurrentTrack(this.index));
         });
       }
-      const track = this.track;
-      const lat = sampleAt(track.fixes.ts, track.fixes.lat, [this.timestamp + this.tsOffsets[this.index]])[0];
-      const lon = sampleAt(track.fixes.ts, track.fixes.lon, [this.timestamp + this.tsOffsets[this.index]])[0];
-      const alt = sampleAt(track.fixes.ts, track.fixes.alt, [this.timestamp + this.tsOffsets[this.index]])[0];
+      const timestamp = this.timestamp + this.tsOffsets[this.index];
+      const lat = sampleAt(track.fixes.ts, track.fixes.lat, [timestamp])[0];
+      const lon = sampleAt(track.fixes.ts, track.fixes.lon, [timestamp])[0];
+      const alt = sampleAt(track.fixes.ts, track.fixes.alt, [timestamp])[0];
       const scale = (50 * (alt - track.minAlt)) / (track.maxAlt - track.minAlt) + 20;
       this.marker.setPosition({ lat, lng: lon });
       this.marker.setIcon({
