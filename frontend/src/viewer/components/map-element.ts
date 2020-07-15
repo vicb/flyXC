@@ -132,9 +132,14 @@ export class MapElement extends connect(store)(LitElement) {
           map.setCenter(new google.maps.LatLng(last_coordinates.latitude, last_coordinates.longitude));
           map.setZoom(12);
         }
-        navigator.geolocation.getCurrentPosition((p: any) => {
-          map.setCenter(new google.maps.LatLng(p.coords.latitude, p.coords.longitude));
-          map.setZoom(12);
+        let hasMoved = false;
+        google.maps.event.addListenerOnce(map, 'drag', () => (hasMoved = true));
+        navigator.geolocation.getCurrentPosition((p: Position) => {
+          if (!hasMoved) {
+            // Ignore the GPS position when the user has already started to move the map around.
+            map.setCenter(new google.maps.LatLng(p.coords.latitude, p.coords.longitude));
+            map.setZoom(12);
+          }
           const { latitude, longitude } = p.coords;
           cookies({ coordinates: { latitude, longitude } });
         });
