@@ -5,6 +5,7 @@ import { RuntimeTrack } from '../../../../common/track';
 import { setCurrentTrack } from '../actions/map';
 import { trackColor } from '../logic/map';
 import { sampleAt } from '../logic/math';
+import { formatUnit } from '../logic/units';
 import { tsOffsets } from '../selectors/map';
 import { RootState, store } from '../store';
 
@@ -27,11 +28,19 @@ export class GmMarkerElement extends connect(store)(LitElement) {
   @property()
   index = 0;
 
+  @property({ attribute: false })
+  units: any = null;
+
+  @property({ attribute: false })
+  displayNames = true;
+
   tsOffsets: number[] = [];
 
   stateChanged(state: RootState): void {
     if (state.map) {
       this.tsOffsets = tsOffsets(state.map);
+      this.units = state.map.units;
+      this.displayNames = state.map.displayNames;
     }
   }
 
@@ -45,6 +54,10 @@ export class GmMarkerElement extends connect(store)(LitElement) {
           map: this.map,
           clickable: true,
           title: track.name,
+          label: {
+            color: trackColor(this.index),
+            text: track.name,
+          },
         });
         google.maps.event.addListener(this.marker, 'click', () => {
           store.dispatch(setCurrentTrack(this.index));
@@ -63,11 +76,20 @@ export class GmMarkerElement extends connect(store)(LitElement) {
         fillOpacity: this.active ? 1 : INACTIVE_OPACITY,
         strokeColor: '#000',
         strokeWeight: 2,
+        labelOrigin: new google.maps.Point(256, 430),
         anchor: new google.maps.Point(256, 330),
         scale: scale / 512,
       });
       // Display higher markers on top.
       this.marker.setZIndex(Math.floor(alt));
+      const label = this.displayNames
+        ? {
+            color: 'black',
+            fontWeight: 'bold',
+            text: `${track.name} · ${formatUnit(alt, this.units.altitude)}`,
+          }
+        : '';
+      this.marker.setLabel(label);
     }
     return false;
   }
@@ -77,5 +99,10 @@ export class GmMarkerElement extends connect(store)(LitElement) {
       this.marker.setMap(null);
       this.marker = null;
     }
+  }
+
+  // There is not content - no need to create a shadow root.
+  createRenderRoot(): Element {
+    return this;
   }
 }

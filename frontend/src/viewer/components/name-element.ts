@@ -11,6 +11,9 @@ export class NameElement extends LitElement {
   index: number | null = null;
 
   @property()
+  displayNames = false;
+
+  @property()
   // Total number of tracks.
   // Display a "next" button when multiple tracks are loaded.
   nbtracks = 0;
@@ -38,6 +41,12 @@ export class NameElement extends LitElement {
   render(): TemplateResult {
     return html`
       <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
+      <label
+        ><input type="checkbox" ?checked=${this.displayNames} @change=${this.handleDisplayNames} /><i
+          class="fas fa-user-tag fa-2x"
+        ></i
+      ></label>
+
       ${this.name}
       <i class="fas fa-user fa-2x" style=${`color: ${trackColor(this.index || 0)};`}></i>
       ${this.nbtracks > 1
@@ -53,5 +62,10 @@ export class NameElement extends LitElement {
 
   protected handleNext(): void {
     this.dispatchEvent(new CustomEvent('selectNextTrack'));
+  }
+
+  protected handleDisplayNames(e: Event): void {
+    const show = (e.target as HTMLInputElement).checked;
+    this.dispatchEvent(new CustomEvent('displayNames', { detail: show }));
   }
 }

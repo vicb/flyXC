@@ -64,6 +64,11 @@ export class GmLineElement extends LitElement {
     return false;
   }
 
+  // There is not content - no need to create a shadow root.
+  createRenderRoot(): Element {
+    return this;
+  }
+
   disconnectedCallback(): void {
     if (this.line) {
       this.line.setMap(null);

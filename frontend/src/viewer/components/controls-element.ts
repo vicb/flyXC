@@ -2,7 +2,7 @@ import { css, CSSResult, customElement, html, LitElement, property, TemplateResu
 import { connect } from 'pwa-helpers';
 
 import { RuntimeFixes, RuntimeTrack } from '../../../../common/track';
-import { closeActiveTrack, setCurrentTrack } from '../actions/map';
+import { closeActiveTrack, setCurrentTrack, setDisplayNames } from '../actions/map';
 import { Units } from '../reducers/map';
 import * as mapSel from '../selectors/map';
 import { RootState, store } from '../store';
@@ -93,6 +93,11 @@ export class ControlsElement extends connect(store)(LitElement) {
     }
   }
 
+  // Shows/Hides pilot names next to the marker.
+  protected handleDisplayNames(e: CustomEvent): void {
+    store.dispatch(setDisplayNames(e.detail));
+  }
+
   protected render(): TemplateResult {
     return html`
       ${this.isInIframe ? html`<expand-ctrl-element .map=${this.map}></expand-ctrl-element>` : html``}
@@ -111,6 +116,7 @@ export class ControlsElement extends connect(store)(LitElement) {
               .nbtracks=${this.tracks?.length || 0}
               @closeActiveTrack=${this.handleClose}
               @selectNextTrack=${this.handleNext}
+              @displayNames=${(e: CustomEvent) => this.handleDisplayNames(e)}
             ></name-ctrl-element>
           `
         : ''}

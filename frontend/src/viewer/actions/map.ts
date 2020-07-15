@@ -32,6 +32,7 @@ export const SET_VARIO_UNIT = 'SET_VARIO_UNIT';
 export const FETCH_METADATA = 'FETCH_METADATA';
 export const RECEIVE_METADATA = 'RECEIVE_METADATA';
 export const SET_FETCHING_METADATA = 'SET_FETCHING_METADATA';
+export const SET_DISPLAY_NAMES = 'SET_DISPLAY_NAMES';
 
 // Actions
 
@@ -121,6 +122,10 @@ export interface SetFetchingMetadata extends Action<typeof SET_FETCHING_METADATA
   payload: { isFetching: boolean };
 }
 
+export interface SetDisplayNames extends Action<typeof SET_DISPLAY_NAMES> {
+  payload: { enabled: boolean };
+}
+
 export type MapThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action>;
 
 export type MapAction =
@@ -136,6 +141,7 @@ export type MapAction =
   | SetAspShowRestricted
   | SetChartY
   | SetCurrentTrack
+  | SetDisplayNames
   | SetDistance
   | SetDistanceUnit
   | SetFetchingMetadata
@@ -270,4 +276,9 @@ export const setAltitudeUnit: ActionCreator<SetAltitudeUnit> = (unit: UNITS) => 
 export const setVarioUnit: ActionCreator<SetVarioUnit> = (unit: UNITS) => ({
   type: SET_VARIO_UNIT,
   payload: { unit },
+});
+
+export const setDisplayNames: ActionCreator<SetDisplayNames> = (enabled: boolean) => ({
+  type: SET_DISPLAY_NAMES,
+  payload: { enabled },
 });

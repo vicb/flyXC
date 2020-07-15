@@ -15,6 +15,7 @@ import {
   SET_ASP_SHOW_RESTRICTED,
   SET_CHART_Y,
   SET_CURRENT_TRACK,
+  SET_DISPLAY_NAMES,
   SET_DISTANCE,
   SET_DISTANCE_UNIT,
   SET_FETCHING_METADATA,
@@ -43,47 +44,49 @@ export interface Units {
 }
 
 export interface MapState {
-  map: google.maps.Map;
-  tracks: RuntimeTrack[];
-  ts: number;
-  currentTrack: number;
   aspAltitude: number;
   aspShowRestricted: boolean;
-  loading: boolean;
   chartY: string;
-  score: Score | null;
+  currentTrack: number;
+  displayNames: boolean;
   distance: number;
-  speed: number;
   league: string;
-  units: Units;
+  loading: boolean;
+  map: google.maps.Map;
   metadata: {
     idStartedOn: { [id: number]: number };
     isFetching: boolean;
   };
+  score: Score | null;
+  speed: number;
+  tracks: RuntimeTrack[];
+  ts: number;
+  units: Units;
 }
 
 const INITIAL_STATE: MapState = {
-  map: (null as unknown) as google.maps.Map,
-  tracks: [],
-  ts: 0,
-  currentTrack: 0,
   aspAltitude: 1000,
   aspShowRestricted: true,
-  loading: false,
   chartY: 'alt',
-  score: null,
+  currentTrack: 0,
+  displayNames: false,
   distance: 0,
-  speed: 20,
   league: cookies('league') || 'xc',
+  loading: false,
+  map: (null as unknown) as google.maps.Map,
+  metadata: {
+    idStartedOn: {},
+    isFetching: false,
+  },
+  score: null,
+  speed: 20,
+  tracks: [],
+  ts: 0,
   units: {
     distance: cookies('unit.distance') || UNITS.kilometers,
     speed: cookies('unit.speed') || UNITS.kilometers_hour,
     altitude: cookies('unit.altitude') || UNITS.meters,
     vario: cookies('unit.vario') || UNITS.meters_second,
-  },
-  metadata: {
-    idStartedOn: {},
-    isFetching: false,
   },
 };
 
@@ -239,6 +242,11 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
       const { unit } = action.payload;
       cookies({ 'unit.vario': unit });
       return { ...state, units: { ...state.units, vario: unit } };
+    }
+
+    case SET_DISPLAY_NAMES: {
+      const { enabled } = action.payload;
+      return { ...state, displayNames: enabled };
     }
 
     default:
