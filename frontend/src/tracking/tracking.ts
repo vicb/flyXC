@@ -2,20 +2,9 @@
 //
 // See https://developers.google.com/identity/sign-in/web.
 
-import { css, CSSResult, customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
-
-declare global {
-  interface Window {
-    initLogin: () => void;
-  }
-}
-
-window.initLogin = (): void => {
-  window.dispatchEvent(new CustomEvent('login-init'));
-};
+import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 
 declare const gapi: any;
-declare function gtag(...args: any[]): void;
 
 @customElement('tracker-form')
 export class TrackerFrom extends LitElement {
@@ -28,67 +17,18 @@ export class TrackerFrom extends LitElement {
   @property({ attribute: false })
   device = 'no';
 
+  @property({ attribute: false })
+  changesSaved = false;
+
   constructor() {
     super();
-    window.addEventListener('login-init', () => {
-      gapi.load('auth2', async () => {
-        try {
-          this.auth = await gapi.auth2.init({
-            client_id: '754556983658-qscerk4tpsu8mgb1kfcq5gvf8hmqsamn.apps.googleusercontent.com',
-          });
-
-          gapi.signin2.render('g-signin', {
-            scope: 'profile email',
-            longtitle: true,
-            theme: 'dark',
-            ux_mode: 'redirect',
-            onsuccess: (user: any) => {
-              this.onSignIn(user);
-              gtag('event', 'success', {
-                event_category: 'login',
-                event_label: 'render',
-              });
-            },
-            onerror: (err: any) => {
-              gtag('event', 'exception', {
-                description: 'render_onerror',
-                fatal: true,
-              });
-              gtag('event', 'failure', {
-                event_category: 'login',
-                event_label: JSON.stringify(err),
-              });
-            },
-          });
-          this.signedIn = this.auth.currentUser.get().isSignedIn();
-          this.auth.isSignedIn.listen((signedIn: boolean) => {
-            this.signedIn = signedIn;
-            gtag('event', 'success', {
-              event_category: 'login',
-              event_label: 'isSignedIn',
-            });
-          });
-        } catch (err) {
-          console.log(err);
-          gtag('event', 'failure', {
-            event_category: 'login',
-            event_label: JSON.stringify(err),
-          });
-          gtag('event', 'exception', {
-            description: 'login_trycatch',
-            fatal: true,
-          });
-        }
-      });
+    window.addEventListener('sign-in', () => {
+      this.auth = gapi.auth2.getAuthInstance();
+      this.signedIn = this.auth.isSignedIn.get();
+      if (this.signedIn) {
+        this.onSignIn();
+      }
     });
-  }
-
-  firstUpdated(changedProps: PropertyValues): void {
-    super.firstUpdated(changedProps);
-    const loader = document.createElement('script');
-    loader.src = `https://apis.google.com/js/platform.js?onload=initLogin`;
-    const shadowRoot = this.shadowRoot as ShadowRoot;
-    shadowRoot.appendChild(loader);
   }
 
   static get styles(): CSSResult[] {
@@ -104,7 +44,7 @@ export class TrackerFrom extends LitElement {
 
   render(): TemplateResult {
     return html`
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css" />
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css" />
       <section class="hero is-primary">
         <div class="hero-body">
           <div class="container">
@@ -112,7 +52,7 @@ export class TrackerFrom extends LitElement {
               Tracker configuration
             </h1>
             <h2 class="subtitle">
-              Configure your satellite tracking device.
+              Configure your live tracking device.
             </h2>
           </div>
         </div>
@@ -121,12 +61,26 @@ export class TrackerFrom extends LitElement {
       <div class="container">
         ${!this.signedIn
           ? html`
-              <div class="notification">Sign in to configure your tracking device</div>
+              <div class="notification my-4">
+                <p class="my-4">Sign in to configure your tracking device by using the button below.</p>
+                <p class="my-4">
+                  Once your tracker has been configured, your tracks for the past 24 hours will appear on the map. The
+                  positions are automatically refreshed as they become available
+                  <strong>there is no need to manually reload</strong> the browser window.
+                </p>
+                <p class="my-4">
+                  FlyXC records your name, email address, tracker address and the position of your tracker during the
+                  last 24 hours only.
+                </p>
+                <p class="my-4">
+                  You can disable tracking at any moment by setting your device to <strong>"no"</strong>.
+                </p>
+              </div>
               <slot name="button"></slot>
             `
           : html`
-              <div class="notification">
-                ${this.auth.currentUser.get().getBasicProfile().getName()}, select your device:
+              <div class="notification my-4">
+                <strong>${this.auth.currentUser.get().getBasicProfile().getName()}</strong>, select your device:
               </div>
               <form>
                 <div class="field">
@@ -210,6 +164,16 @@ export class TrackerFrom extends LitElement {
                   </p>
                 </div>
               </form>
+              <div class=${this.changesSaved ? 'modal is-active' : 'modal'} @click=${() => this.handleClose()}>
+                <div class="modal-background"></div>
+                <div class="modal-content">
+                  <div class="notification my-4">
+                    <p class="my-2">Your device configuration has been updated.</p>
+                    <p class="my-2">Click the close button to navigate back to the map.</p>
+                  </div>
+                </div>
+                <button class="modal-close is-large" aria-label="close"></button>
+              </div>
             `}
       </div>
     `;
@@ -231,11 +195,12 @@ export class TrackerFrom extends LitElement {
       body: data.join('&'),
     }).then(() => {
       this.auth.signOut();
-      document.location.href = '/';
+      this.changesSaved = true;
     });
   }
 
-  protected onSignIn(user: any): void {
+  protected onSignIn(): void {
+    const user = this.auth.currentUser.get();
     const data = [
       `token=${encodeURIComponent(user.getAuthResponse().id_token)}`,
       `email=${encodeURIComponent(user.getBasicProfile().getEmail())}`,
@@ -264,5 +229,9 @@ export class TrackerFrom extends LitElement {
         const spot = shadowRoot.getElementById('spot-id') as HTMLInputElement;
         spot.value = data.spot;
       });
+  }
+
+  protected handleClose(): void {
+    document.location.href = '/';
   }
 }

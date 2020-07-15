@@ -12,16 +12,25 @@
   <meta charset="utf-8" />
   <meta http-equiv="x-ua-compatible" content="ie=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="google-signin-scope" content="profile email">
+  <meta name="google-signin-client_id"
+    content="754556983658-qscerk4tpsu8mgb1kfcq5gvf8hmqsamn.apps.googleusercontent.com">
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
   <title>FlyXc</title>
 </head>
 
 <body>
   <tracker-form>
     <div slot="button">
-      <div id="g-signin"></div>
+      <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
     </div>
   </tracker-form>
   <script type="module" src="js/tracking.js"></script>
+  <script>
+    function onSignIn(googleUser) {
+      window.dispatchEvent(new CustomEvent('sign-in', { detail: googleUser }));
+    }
+  </script>
 </body>
 
 </html>
