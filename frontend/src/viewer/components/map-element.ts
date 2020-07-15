@@ -1,3 +1,5 @@
+import '@ui5/webcomponents/dist/Assets.js';
+
 import cookies from 'cookiesjs';
 import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';

@@ -8,6 +8,7 @@ import stripCode from 'rollup-plugin-strip-code';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
 import builtins from 'builtin-modules';
+import url from '@rollup/plugin-url';
 
 const prod = !process.env.ROLLUP_WATCH;
 
@@ -67,13 +68,13 @@ export default [
     ],
     external: builtins,
   },
-  buildFrontEnd('frontend/src/viewer/flyxc.ts'),
+  buildFrontEnd('frontend/src/viewer/flyxc.ts', { importUi5: true }),
   buildFrontEnd('frontend/src/archives/archives.ts'),
   buildFrontEnd('frontend/src/tracking/tracking.ts'),
   buildFrontEnd('frontend/src/status/status.ts'),
 ];
 
-function buildFrontEnd(input) {
+function buildFrontEnd(input, options = {}) {
   return {
     input,
 
@@ -99,6 +100,14 @@ function buildFrontEnd(input) {
       resolve(),
       cjs(),
       typescript(),
+      options.importUi5 &&
+        url({
+          limit: 0,
+          include: [/.*assets\/.*\.json/],
+          emitFiles: true,
+          fileName: '[name].[hash][extname]',
+          destDir: 'frontend/static/ui5',
+        }),
       prod && terser({ output: { comments: false } }),
     ],
   };

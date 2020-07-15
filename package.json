@@ -57,6 +57,7 @@
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^8.1.0",
     "@rollup/plugin-run": "^2.0.2",
+    "@rollup/plugin-url": "^5.0.1",
     "@types/ioredis": "^4.17.2",
     "@types/koa": "^2.11.3",
     "@types/koa-bodyparser": "^4.3.0",
