@@ -189,7 +189,7 @@ export class TrackingElement extends connect(store)(LitElement) {
       <i
         class="fas fa-satellite-dish fa-2x"
         style="cursor: pointer"
-        @click=${(): void => void (document.location.href = '/tracking.html')}
+        @click=${(): void => void (document.location.href = '/devices.html')}
       ></i>
     `;
   }

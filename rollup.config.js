@@ -70,7 +70,7 @@ export default [
   },
   buildFrontEnd('frontend/src/viewer/flyxc.ts', { importUi5: true }),
   buildFrontEnd('frontend/src/archives/archives.ts'),
-  buildFrontEnd('frontend/src/tracking/tracking.ts'),
+  buildFrontEnd('frontend/src/tracking/devices.ts'),
   buildFrontEnd('frontend/src/status/status.ts'),
 ];
 

@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-150271266-1"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
@@ -15,6 +14,7 @@
   <meta name="google-signin-scope" content="profile email">
   <meta name="google-signin-client_id"
     content="754556983658-qscerk4tpsu8mgb1kfcq5gvf8hmqsamn.apps.googleusercontent.com">
+  <meta name="google-signin-ux_mode" content="redirect">
   <script src="https://apis.google.com/js/platform.js" async defer></script>
   <title>FlyXc</title>
 </head>
@@ -22,10 +22,10 @@
 <body>
   <tracker-form>
     <div slot="button">
-      <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+      <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark" data-longtitle="true"></div>
     </div>
   </tracker-form>
-  <script type="module" src="js/tracking.js"></script>
+  <script type="module" src="js/devices.js"></script>
   <script>
     function onSignIn(googleUser) {
       window.dispatchEvent(new CustomEvent('sign-in', { detail: googleUser }));

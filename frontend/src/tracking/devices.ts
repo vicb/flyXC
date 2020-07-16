@@ -1,5 +1,7 @@
 // Login for tracker settings.
 //
+// Note: this file is named devices.ts because tracking.ts makes ublock origin unhappy.
+//
 // See https://developers.google.com/identity/sign-in/web.
 
 import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
