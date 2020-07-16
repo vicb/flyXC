@@ -15,6 +15,7 @@ import {
   SET_ASP_SHOW_RESTRICTED,
   SET_CHART_Y,
   SET_CURRENT_TRACK,
+  SET_DISPLAY_LIVE_NAMES,
   SET_DISPLAY_NAMES,
   SET_DISTANCE,
   SET_DISTANCE_UNIT,
@@ -48,6 +49,7 @@ export interface MapState {
   aspShowRestricted: boolean;
   chartY: string;
   currentTrack: number;
+  displayLiveNames: boolean;
   displayNames: boolean;
   distance: number;
   league: string;
@@ -69,6 +71,7 @@ const INITIAL_STATE: MapState = {
   aspShowRestricted: true,
   chartY: 'alt',
   currentTrack: 0,
+  displayLiveNames: true,
   displayNames: false,
   distance: 0,
   league: cookies('league') || 'xc',
@@ -247,6 +250,11 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
     case SET_DISPLAY_NAMES: {
       const { enabled } = action.payload;
       return { ...state, displayNames: enabled };
+    }
+
+    case SET_DISPLAY_LIVE_NAMES: {
+      const { enabled } = action.payload;
+      return { ...state, displayLiveNames: enabled };
     }
 
     default:

@@ -54,10 +54,6 @@ export class GmMarkerElement extends connect(store)(LitElement) {
           map: this.map,
           clickable: true,
           title: track.name,
-          label: {
-            color: trackColor(this.index),
-            text: track.name,
-          },
         });
         google.maps.event.addListener(this.marker, 'click', () => {
           store.dispatch(setCurrentTrack(this.index));

@@ -20,6 +20,8 @@ export interface Point {
   speed?: number;
   // Whether the gps fix is valid - inreach only.
   valid?: boolean;
+  // Is this the last fix for the tracker ?
+  is_last_fix?: boolean;
 }
 
 export interface LineString {

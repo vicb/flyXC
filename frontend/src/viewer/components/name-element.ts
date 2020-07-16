@@ -46,7 +46,6 @@ export class NameElement extends LitElement {
           class="fas fa-user-tag fa-2x"
         ></i
       ></label>
-
       ${this.name}
       <i class="fas fa-user fa-2x" style=${`color: ${trackColor(this.index || 0)};`}></i>
       ${this.nbtracks > 1

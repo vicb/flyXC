@@ -1,6 +1,7 @@
 import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
+import { setDisplayLiveNames } from '../actions/map';
 import { linearInterpolate } from '../logic/math';
 import { formatUnit } from '../logic/units';
 import { Units } from '../reducers/map';
@@ -8,6 +9,9 @@ import { RootState, store } from '../store';
 
 @customElement('tracking-element')
 export class TrackingElement extends connect(store)(LitElement) {
+  @property({ attribute: false })
+  private displayNames = true;
+
   @property({ attribute: false })
   get map(): google.maps.Map | null {
     return this.map_;
@@ -23,17 +27,18 @@ export class TrackingElement extends connect(store)(LitElement) {
   }
   map_: google.maps.Map | null = null;
 
-  units: Units | null = null;
+  private units: Units | null = null;
 
-  info: google.maps.InfoWindow | null = null;
+  private info: google.maps.InfoWindow | null = null;
 
-  features: any[] = [];
+  private features: any[] = [];
 
   private fetchId: any = null;
 
   stateChanged(state: RootState): void {
     if (state.map) {
       this.units = state.map.units;
+      this.displayNames = state.map.displayLiveNames;
     }
   }
 
@@ -134,7 +139,23 @@ export class TrackingElement extends connect(store)(LitElement) {
           color = 'red';
           zIndex += 10;
         }
+        let label: google.maps.MarkerLabel | null = null;
+        if (this.displayNames && feature.getProperty('is_last_fix') === true) {
+          const minutesOld = Math.round((now - ts) / (60 * 1000));
+          const age =
+            minutesOld < 60
+              ? `${minutesOld}min`
+              : `${Math.round(minutesOld / 60)}h${String(minutesOld % 60).padStart(2, '0')}`;
+          const text = feature.getProperty('name') + ' · ' + age;
+          label = {
+            color: 'black',
+            text,
+            fontSize: '14.001px',
+          };
+        }
+
         return {
+          label,
           strokeColor: '#555',
           strokeWeight: 2,
           strokeOpacity: opacity,
@@ -149,9 +170,10 @@ export class TrackingElement extends connect(store)(LitElement) {
             strokeWeight: 1,
             strokeOpacity: opacity,
             anchor: new google.maps.Point(10, 10),
+            labelOrigin: new google.maps.Point(10, 40),
             scale: 0.6,
           },
-        };
+        } as google.maps.Data.StyleOptions;
       },
     );
   }
@@ -159,11 +181,25 @@ export class TrackingElement extends connect(store)(LitElement) {
   render(): TemplateResult {
     return html`
       <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
+      <label
+        ><input type="checkbox" ?checked=${this.displayNames} @change=${this.handleDisplayNames} /><i
+          class="fas fa-user-tag fa-2x"
+        ></i
+      ></label>
       <i
         class="fas fa-satellite-dish fa-2x"
         style="cursor: pointer"
         @click=${(): void => void (document.location.href = '/tracking.html')}
       ></i>
     `;
+  }
+
+  protected handleDisplayNames(e: Event): void {
+    const show = (e.target as HTMLInputElement).checked;
+    store.dispatch(setDisplayLiveNames(show));
+    // The style depends on displayNames.
+    if (this.map_) {
+      this.setMapStyle(this.map_);
+    }
   }
 }

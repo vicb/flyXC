@@ -33,6 +33,7 @@ export const FETCH_METADATA = 'FETCH_METADATA';
 export const RECEIVE_METADATA = 'RECEIVE_METADATA';
 export const SET_FETCHING_METADATA = 'SET_FETCHING_METADATA';
 export const SET_DISPLAY_NAMES = 'SET_DISPLAY_NAMES';
+export const SET_DISPLAY_LIVE_NAMES = 'SET_DISPLAY_LIVES_NAMES';
 
 // Actions
 
@@ -126,6 +127,10 @@ export interface SetDisplayNames extends Action<typeof SET_DISPLAY_NAMES> {
   payload: { enabled: boolean };
 }
 
+export interface SetDisplayLiveNames extends Action<typeof SET_DISPLAY_LIVE_NAMES> {
+  payload: { enabled: boolean };
+}
+
 export type MapThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action>;
 
 export type MapAction =
@@ -142,6 +147,7 @@ export type MapAction =
   | SetChartY
   | SetCurrentTrack
   | SetDisplayNames
+  | SetDisplayLiveNames
   | SetDistance
   | SetDistanceUnit
   | SetFetchingMetadata
@@ -280,5 +286,10 @@ export const setVarioUnit: ActionCreator<SetVarioUnit> = (unit: UNITS) => ({
 
 export const setDisplayNames: ActionCreator<SetDisplayNames> = (enabled: boolean) => ({
   type: SET_DISPLAY_NAMES,
+  payload: { enabled },
+});
+
+export const setDisplayLiveNames: ActionCreator<SetDisplayLiveNames> = (enabled: boolean) => ({
+  type: SET_DISPLAY_LIVE_NAMES,
   payload: { enabled },
 });
