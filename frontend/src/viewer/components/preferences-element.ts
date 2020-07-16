@@ -67,7 +67,7 @@ export class PreferencesElement extends connect(store)(LitElement) {
     return this.units
       ? html`
           <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
-          <i class="fas fa-wrench fa-2x" @click=${this.openDialog}></i>
+          <i class="fas fa-wrench fa-2x" style="cursor: pointer" @click=${this.openDialog}></i>
           <ui5-dialog id="pref-dialog" header-text="Preferences">
             <section class="form-fields">
               <div>

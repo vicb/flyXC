@@ -40,7 +40,7 @@ export class AboutElement extends LitElement {
   render(): TemplateResult {
     return html`
       <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
-      <i class="fas fa-info-circle fa-2x" @click=${this.openDialog}></i>
+      <i class="fas fa-info-circle fa-2x" style="cursor: pointer" @click=${this.openDialog}></i>
       <ui5-dialog id="about-dialog" header-text="FlyXC.app">
         <section class="form-fields">
           <div>
