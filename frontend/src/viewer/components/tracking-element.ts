@@ -145,7 +145,7 @@ export class TrackingElement extends connect(store)(LitElement) {
           const age =
             minutesOld < 60
               ? `${minutesOld}min`
-              : `${Math.round(minutesOld / 60)}h${String(minutesOld % 60).padStart(2, '0')}`;
+              : `${Math.floor(minutesOld / 60)}h${String(minutesOld % 60).padStart(2, '0')}`;
           const text = feature.getProperty('name') + ' · ' + age;
           label = {
             color: 'black',
