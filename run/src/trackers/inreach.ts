@@ -1,13 +1,17 @@
 import request from 'request-zero';
 import { DOMParser } from 'xmldom';
 
-export async function refresh(datastore: any, hour: number, timeout: number): Promise<number> {
+import { LineString, Point, REFRESH_EVERY_MINUTES } from './trackers';
+
+// Queries the datastore for the devices that have not been updated in REFRESH_EVERY_MINUTES.
+// Queries the feeds until the timeout is reached and store the data back into the datastore.
+export async function refresh(datastore: any, hour: number, timeoutSecs: number): Promise<number> {
   const start = Date.now();
 
   const query = datastore
     .createQuery('Tracker')
     .filter('device', '=', 'inreach')
-    .filter('updated', '<', start - 3 * 60 * 1000)
+    .filter('updated', '<', start - REFRESH_EVERY_MINUTES * 60 * 1000)
     .order('updated', { descending: true });
 
   const devices = (await datastore.runQuery(query))[0];
@@ -16,7 +20,8 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
   let numDevices = 0;
   let numActiveDevices = 0;
   for (; numDevices < devices.length; numDevices++) {
-    const features: any[] = [];
+    const points: Point[] = [];
+    const lineStrings: LineString[] = [];
     const device = devices[numDevices];
     let url: string = device.inreach;
     // Automatically inserts "Feed/Share" when missing in url.
@@ -49,14 +54,14 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
           const timestamp = getChildNode(placemark.childNodes, 'TimeStamp.when');
           const dataNode = getChildNode(placemark.childNodes, 'ExtendedData');
           const data = dataNode ? getData(dataNode) : null;
-          const msg = getChildNode(placemark.childNodes, 'description')?.firstChild?.nodeValue;
+          const msg = getChildNode(placemark.childNodes, 'description')?.firstChild?.nodeValue || '';
           if (coords && timestamp && data && coords.firstChild?.nodeValue && timestamp.firstChild?.nodeValue) {
             const [lon, lat, alt] = coords.firstChild.nodeValue
               .trim()
               .split(',')
               .map((v: string): number => Number(v));
             const ts = new Date(timestamp.firstChild.nodeValue).getTime();
-            features.push({
+            points.push({
               lon,
               lat,
               alt: Math.round(alt),
@@ -64,13 +69,14 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
               name: data['Name'],
               msg,
               speed: Number(data['Velocity'].replace(/^([\d]+).*/, '$1')),
-              emergency: data['In Emergency'] != 'False',
+              emergency: data['In Emergency'] !== 'False',
+              valid: data['Valid GPS Fix'] === 'True',
             });
           }
         }
-        if (features.length) {
-          const line = features.map((f) => [f.lon, f.lat]);
-          features.push({ line, first_ts: features[0].ts });
+        if (points.length) {
+          const line = points.map((point) => [point.lon, point.lat]);
+          lineStrings.push({ line, first_ts: points[0].ts });
         }
       } else {
         console.log(
@@ -79,9 +85,9 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
       }
     }
 
-    device.features = JSON.stringify(features);
+    device.features = JSON.stringify([...points, ...lineStrings]);
     device.updated = Date.now();
-    device.active = features.length > 0;
+    device.active = points.length > 0;
 
     datastore.save({
       key: device[datastore.KEY],
@@ -89,8 +95,8 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
       excludeFromIndexes: ['features'],
     });
 
-    if (Date.now() - start > timeout * 1000) {
-      console.error(`Timeout for inreach devices (${timeout}s)`);
+    if (Date.now() - start > timeoutSecs * 1000) {
+      console.error(`Timeout for inreach devices (${timeoutSecs}s)`);
       break;
     }
   }

@@ -94,10 +94,19 @@ export class TrackingElement extends connect(store)(LitElement) {
         if (f.getProperty('emergency')) {
           content.push('<strong>Emergency</strong>');
         }
+        if (f.getProperty('valid') === false) {
+          content.push(
+            '<strong>WARNING:',
+            'The GPS fix is reported as invalid.',
+            'The actual location might be different.</strong>',
+          );
+        }
 
-        this.info?.setContent(content.join('<br/>'));
-        this.info?.setPosition(event.latLng);
-        this.info?.open(map);
+        if (this.info) {
+          this.info.setContent(content.join('<br>'));
+          this.info.setPosition(event.latLng);
+          this.info.open(map);
+        }
       }
     });
   }

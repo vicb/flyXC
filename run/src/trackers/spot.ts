@@ -1,12 +1,16 @@
 import request from 'request-zero';
 
-export async function refresh(datastore: any, hour: number, timeout: number): Promise<number> {
+import { LineString, Point, REFRESH_EVERY_MINUTES } from './trackers';
+
+// Queries the datastore for the devices that have not been updated in REFRESH_EVERY_MINUTES.
+// Queries the feeds until the timeout is reached and store the data back into the datastore.
+export async function refresh(datastore: any, hour: number, timeoutSecs: number): Promise<number> {
   const start = Date.now();
 
   const query = datastore
     .createQuery('Tracker')
     .filter('device', '=', 'spot')
-    .filter('updated', '<', start - 3 * 60 * 1000)
+    .filter('updated', '<', start - REFRESH_EVERY_MINUTES * 60 * 1000)
     .order('updated', { descending: true });
 
   const devices = (await datastore.runQuery(query))[0];
@@ -15,7 +19,8 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
   let numDevices = 0;
   let numActiveDevices = 0;
   for (; numDevices < devices.length; numDevices++) {
-    const features: any[] = [];
+    const points: Point[] = [];
+    const lineStrings: LineString[] = [];
     const device = devices[numDevices];
     const id: string = device.spot;
     if (/^\w+$/i.test(id)) {
@@ -27,7 +32,7 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
         if (messages && Array.isArray(messages)) {
           numActiveDevices++;
           messages.forEach((m: any) => {
-            features.push({
+            points.push({
               lon: m.longitude,
               lat: m.latitude,
               ts: m.unixTime * 1000,
@@ -41,15 +46,15 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
       } else {
         console.log(`Error refreshing spot @ ${id}`);
       }
-      if (features.length) {
-        const line = features.map((f) => [f.lon, f.lat]);
-        features.push({ line, first_ts: features[0].ts });
+      if (points.length) {
+        const line = points.map((point) => [point.lon, point.lat]);
+        lineStrings.push({ line, first_ts: points[0].ts });
       }
     }
 
-    device.features = JSON.stringify(features);
+    device.features = JSON.stringify([...points, ...lineStrings]);
     device.updated = Date.now();
-    device.active = features.length > 0;
+    device.active = points.length > 0;
 
     datastore.save({
       key: device[datastore.KEY],
@@ -57,8 +62,8 @@ export async function refresh(datastore: any, hour: number, timeout: number): Pr
       excludeFromIndexes: ['features'],
     });
 
-    if (Date.now() - start > timeout * 1000) {
-      console.error(`Timeout for spot devices (${timeout}s)`);
+    if (Date.now() - start > timeoutSecs * 1000) {
+      console.error(`Timeout for spot devices (${timeoutSecs}s)`);
       break;
     }
   }

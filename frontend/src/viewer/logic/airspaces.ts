@@ -51,13 +51,13 @@ export function AspAt(zoom: number, latLon: LatLon, altitude: number, includeRes
     }
   }
 
-  return info.join('<br/>');
+  return info.join('<br>');
 }
 
 // Returns an HTML description for the airspace.
 function getAirspaceDescription(feature: any): string {
   const p = feature.properties;
-  return `<b>[${p.category}] ${p.name}</b><br/>↧${p.bottom_lbl} ↥${p.top_lbl}`;
+  return `<b>[${p.category}] ${p.name}</b><br>↧${p.bottom_lbl} ↥${p.top_lbl}`;
 }
 
 // Returns whether the point is inside the polygon feature.
