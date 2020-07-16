@@ -6,7 +6,7 @@ import lru from 'tiny-lru';
 import { diffEncodeArray, ProtoGroundAltitude, ProtoTrack } from '../../../common/track';
 import { httpsGetUnzip } from './request';
 
-const hgtCache = lru(1000);
+const hgtCache = lru(400);
 
 // Returns the ground altitudes for the track (differential encoded).
 export async function fetchGroundAltitude(track: ProtoTrack): Promise<ProtoGroundAltitude> {
