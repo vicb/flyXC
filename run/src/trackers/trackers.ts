@@ -27,6 +27,6 @@ export interface Point {
 export interface LineString {
   // Array of [lon, lat].
   line: number[][];
-  // Timestamp of the first fix in milliseconds.
+  // Timestamp of the oldest fix in milliseconds.
   first_ts: number;
 }
