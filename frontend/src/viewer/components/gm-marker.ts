@@ -34,7 +34,9 @@ export class GmMarkerElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   displayNames = true;
 
-  tsOffsets: number[] = [];
+  protected tsOffsets: number[] = [];
+
+  protected marker: google.maps.Marker | null = null;
 
   stateChanged(state: RootState): void {
     if (state.map) {
@@ -43,8 +45,6 @@ export class GmMarkerElement extends connect(store)(LitElement) {
       this.displayNames = state.map.displayNames;
     }
   }
-
-  marker: google.maps.Marker | null = null;
 
   shouldUpdate(): boolean {
     if (this.map && this.track) {
@@ -76,7 +76,7 @@ export class GmMarkerElement extends connect(store)(LitElement) {
         fillOpacity: this.active ? 1 : INACTIVE_OPACITY,
         strokeColor: '#000',
         strokeWeight: 2,
-        labelOrigin: new google.maps.Point(256, 430),
+        labelOrigin: new google.maps.Point(256, 460),
         anchor: new google.maps.Point(256, 330),
         scale: scale / 512,
       });
@@ -85,7 +85,9 @@ export class GmMarkerElement extends connect(store)(LitElement) {
       const label = this.displayNames
         ? {
             color: 'black',
-            fontWeight: 'bold',
+            fontWeight: '500',
+            // "14.001px" is a hack to be able to style the labels with a `div[style*='14.001px']` selector.
+            fontSize: '14.001px',
             text: `${track.name} · ${formatUnit(alt, this.units.altitude)}`,
           }
         : '';
