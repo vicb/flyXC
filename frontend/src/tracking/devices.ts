@@ -8,8 +8,8 @@ import { css, CSSResult, customElement, html, LitElement, property, TemplateResu
 
 declare const gapi: any;
 
-@customElement('tracker-form')
-export class TrackerFrom extends LitElement {
+@customElement('device-form')
+export class DeviceForm extends LitElement {
   @property({ attribute: false })
   auth: any;
 

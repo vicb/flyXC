@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-150271266-1"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
@@ -20,11 +21,11 @@
 </head>
 
 <body>
-  <tracker-form>
+  <device-form>
     <div slot="button">
       <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark" data-longtitle="true"></div>
     </div>
-  </tracker-form>
+  </device-form>
   <script type="module" src="js/devices.js"></script>
   <script>
     function onSignIn(googleUser) {
