@@ -32,11 +32,6 @@ export async function getLastTracks(num: number): Promise<any[]> {
   return items.filter((entity) => entity.hash != null);
 }
 
-// Retrieve a single track from the Data Store.
-export async function retrieveByHash(hash: string): Promise<ProtoMetaTrackGroup> {
-  return (await retrieveMetaTrackGroupByHash(hash)) ?? { id: -1, num_postprocess: 0 };
-}
-
 // Returns a track given its url.
 // The track is either retrieved from the DB or parsed.
 //

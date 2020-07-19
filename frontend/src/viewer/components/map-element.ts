@@ -7,11 +7,19 @@ import { connect } from 'pwa-helpers';
 import { findClosestFix } from '../../../../common/distance';
 import { RuntimeTrack } from '../../../../common/track';
 import { getApiKey } from '../../apikey';
-import { setCurrentTrack, setMap, setTs } from '../actions/map';
-import { downloadTracks, downloadTracksFromHistory, uploadTracks } from '../logic/map';
+import * as mapActions from '../actions/map';
+import {
+  addUrlParamValues,
+  deleteUrlParam,
+  getUrlParam,
+  hasTrackOrRoute,
+  ParamNames,
+  pushCurrentState,
+} from '../logic/history';
+import { downloadTracksById, downloadTracksByUrl, uploadTracks } from '../logic/map';
 import { sampleAt } from '../logic/math';
 import * as mapSel from '../selectors/map';
-import { RootState, store } from '../store';
+import { dispatch, RootState, store } from '../store';
 import { ChartElement } from './chart-element';
 import { ControlsElement } from './controls-element';
 import { GmLineElement } from './gm-line';
@@ -73,7 +81,8 @@ export class MapElement extends connect(store)(LitElement) {
 
   constructor() {
     super();
-    window.addEventListener('google-map-ready', () => {
+    window.addEventListener('popstate', () => this.handlePopState());
+    window.addEventListener('google-map-ready', async () => {
       const map = (this.map = new google.maps.Map(this.querySelector('#map') as Element, {
         center: { lat: 45, lng: 0 },
         zoom: 5,
@@ -97,7 +106,7 @@ export class MapElement extends connect(store)(LitElement) {
           style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
         },
       }));
-      store.dispatch(setMap(map));
+      dispatch(mapActions.setMap(map));
 
       const ctrlsEl = document.createElement('controls-element');
       ctrlsEl.addEventListener('fullscreen' as any, (e: CustomEvent): void => {
@@ -113,22 +122,15 @@ export class MapElement extends connect(store)(LitElement) {
         const latLng = e.latLng;
         const closest = findClosestFix(store.getState().map.tracks, latLng.lat(), latLng.lng());
         if (closest) {
-          store.dispatch(setTs(closest.ts));
-          store.dispatch(setCurrentTrack(closest.track));
+          dispatch(mapActions.setTs(closest.ts));
+          dispatch(mapActions.setCurrentTrack(closest.track));
         }
       });
 
-      document.body.ondrop = (e: DragEvent): void => this.handleDrop(e);
+      document.body.ondrop = async (e: DragEvent): Promise<void> => await this.handleDrop(e);
       document.body.ondragover = (e: DragEvent): void => e.preventDefault();
 
-      const qs = new URL(document.location.href).search.substr(1);
-      const searchParams = new URLSearchParams(qs);
-      if (
-        !searchParams.has('track') &&
-        !searchParams.has('h') &&
-        !searchParams.has('p') &&
-        'geolocation' in navigator
-      ) {
+      if (!hasTrackOrRoute() && 'geolocation' in navigator) {
         const last_coordinates = cookies('coordinates');
         if (last_coordinates) {
           map.setCenter(new google.maps.LatLng(last_coordinates.latitude, last_coordinates.longitude));
@@ -146,8 +148,11 @@ export class MapElement extends connect(store)(LitElement) {
           cookies({ coordinates: { latitude, longitude } });
         });
       }
-      downloadTracks(searchParams.getAll('track'));
-      downloadTracksFromHistory(searchParams.getAll('h'));
+      // Update the url to use ids only.
+      const ids1 = await downloadTracksById(getUrlParam(ParamNames.TRACK_ID));
+      const ids2 = await downloadTracksByUrl(getUrlParam(ParamNames.TRACK_URL));
+      deleteUrlParam(ParamNames.TRACK_URL);
+      addUrlParamValues(ParamNames.TRACK_ID, [...ids1, ...ids2]);
     });
   }
 
@@ -182,32 +187,25 @@ export class MapElement extends connect(store)(LitElement) {
     `;
   }
 
-  protected handleDrop(e: DragEvent): void {
+  protected async handleDrop(e: DragEvent): Promise<void> {
     e.preventDefault();
-
+    let files: File[] = [];
     if (e.dataTransfer) {
       if (e.dataTransfer.items) {
-        const items = e.dataTransfer.items;
-        const files = [];
-        for (let i = 0; i < items.length; i++) {
-          const file = items[i].getAsFile();
-          if (file) {
-            files.push(file);
-          }
-        }
-        uploadTracks(files);
+        files = [...e.dataTransfer.items].map((e) => e.getAsFile()).filter((e) => e != null) as File[];
       } else if (e.dataTransfer.files) {
-        const files: File[] = [];
-        for (let i = 0; i < e.dataTransfer.files.length; i++) {
-          files.push(e.dataTransfer.files[i]);
-        }
-        uploadTracks(files);
+        files = [...e.dataTransfer.files];
       }
+    }
+    if (files.length) {
+      const ids = await uploadTracks(files);
+      pushCurrentState();
+      addUrlParamValues(ParamNames.TRACK_ID, ids);
     }
   }
 
   protected setTs(e: CustomEvent): void {
-    store.dispatch(setTs(e.detail.ts));
+    dispatch(mapActions.setTs(e.detail.ts));
   }
 
   protected centerMap(e: CustomEvent): void {
@@ -224,16 +222,29 @@ export class MapElement extends connect(store)(LitElement) {
     map.setZoom(map.getZoom() + (e.detail.event.deltaY < 0 ? 1 : -1));
   }
 
+  protected handlePopState(): void {
+    const currentIds = getUrlParam(ParamNames.TRACK_ID).map((txt) => Number(txt));
+    const previousIds = mapSel.trackIds(store.getState().map);
+    // Close all the tracks that have been removed from the previous state.
+    previousIds.forEach((id) => {
+      if (currentIds.indexOf(id) < 0) {
+        dispatch(mapActions.closeTrackById(id));
+        dispatch(mapActions.zoomTracks());
+      }
+    });
+    // Load all the tracks that have been added in the current state.
+    downloadTracksById(currentIds.filter((id) => previousIds.indexOf(id) == -1));
+  }
+
   firstUpdated(changedProps: PropertyValues): void {
     super.firstUpdated(changedProps);
-    // Track url
-    const qs = new URL(document.location.href).search.substr(1);
-    const searchParams = new URLSearchParams(qs);
+    // First track url.
+    const tracks = getUrlParam(ParamNames.TRACK_URL);
     // Load google maps
     const loader = document.createElement('script');
     loader.src = `https://maps.googleapis.com/maps/api/js?key=${getApiKey(
       'gmaps',
-      searchParams.get('track'),
+      tracks[0],
     )}&libraries=geometry&callback=initMap`;
     this.appendChild(loader);
   }

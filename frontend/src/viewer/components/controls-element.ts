@@ -3,9 +3,10 @@ import { connect } from 'pwa-helpers';
 
 import { RuntimeFixes, RuntimeTrack } from '../../../../common/track';
 import { closeActiveTrack, setCurrentTrack, setDisplayNames } from '../actions/map';
+import { deleteUrlParamValue, ParamNames, pushCurrentState } from '../logic/history';
 import { Units } from '../reducers/map';
 import * as mapSel from '../selectors/map';
-import { RootState, store } from '../store';
+import { dispatch, RootState, store } from '../store';
 import { AboutElement } from './about-element';
 import { AirspaceCtrlElement } from './airspace-element';
 import { AirwaysCtrlElement, AirwaysOverlay } from './airways-element';
@@ -82,20 +83,28 @@ export class ControlsElement extends connect(store)(LitElement) {
 
   // Closes the current track.
   protected handleClose(): void {
-    store.dispatch(closeActiveTrack());
+    if (this.currentTrack == null || this.tracks == null) {
+      return;
+    }
+    const id = this.tracks[this.currentTrack].id;
+    if (id != null) {
+      pushCurrentState();
+      deleteUrlParamValue(ParamNames.TRACK_ID, String(id));
+    }
+    dispatch(closeActiveTrack());
   }
 
   // Activates the next track.
   protected handleNext(): void {
     if (this.currentTrack != null && this.tracks != null) {
       const index = (this.currentTrack + 1) % this.tracks.length;
-      store.dispatch(setCurrentTrack(index));
+      dispatch(setCurrentTrack(index));
     }
   }
 
   // Shows/Hides pilot names next to the marker.
   protected handleDisplayNames(e: CustomEvent): void {
-    store.dispatch(setDisplayNames(e.detail));
+    dispatch(setDisplayNames(e.detail));
   }
 
   protected render(): TemplateResult {

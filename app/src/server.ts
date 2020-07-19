@@ -18,7 +18,7 @@ import { migrate } from '../../common/migrate';
 import { ProtoMetaTrackGroup } from '../../common/track';
 import * as protos from '../../common/track_proto';
 import { Keys } from './keys';
-import { getLastTracks, parse, parseFromUrl, retrieveByHash } from './parser/parser';
+import { getLastTracks, parse, parseFromUrl } from './parser/parser';
 import { encode } from './waypoints';
 
 const datastore = new Datastore();
@@ -57,8 +57,8 @@ router.get(
 router.get(
   '/_history',
   async (ctx: RouterContext): Promise<void> => {
-    const hashs = [].concat(ctx.query.h);
-    const trackGroups: ProtoMetaTrackGroup[] = await Promise.all(hashs.map(retrieveByHash));
+    const ids = [].concat(ctx.query.id);
+    const trackGroups: ProtoMetaTrackGroup[] = await retrieveMetaTrackGroupsByIds(ids);
     sendTracks(ctx, trackGroups);
   },
 );
@@ -72,10 +72,10 @@ router.get(
 
     ctx.body = JSON.stringify(
       tracks.map((track: any) => ({
+        id: track[datastore.KEY].id,
         city: track.city,
         country: track.country,
         path: track.path,
-        hash: track.hash,
         created: track.created,
       })),
     );

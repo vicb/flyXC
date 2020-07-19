@@ -2,6 +2,7 @@ import { Action, ActionCreator } from 'redux';
 import { ThunkAction, ThunkDispatch } from 'redux-thunk';
 
 import { RuntimeTrack } from '../../../../common/track';
+import { addUrlParamValue, ParamNames } from '../logic/history';
 import { scheduleMetadataFetch } from '../logic/metadata';
 import { Score } from '../logic/score/scorer';
 import { UNITS } from '../logic/units';
@@ -17,6 +18,7 @@ export const SET_CURRENT_TRACK = 'SET_CURRENT_TRACK';
 export const SET_ASP_ALTITUDE = 'SET_ASP_ALTITUDE';
 export const SET_ASP_SHOW_RESTRICTED = 'SET_ASP_SHOW_RESTRICTED';
 export const CLOSE_ACTIVE_TRACK = 'CLOSE_ACTIVE_TRACK';
+export const CLOSE_TRACK_BY_ID = 'CLOSE_TRACK_BY_ID';
 export const SET_LOADING = 'SET_LOADING';
 export const SET_CHART_Y = 'SET_CHART_Y';
 export const SET_SCORE = 'SET_SCORE';
@@ -67,6 +69,10 @@ export interface SetAspShowRestricted extends Action<typeof SET_ASP_SHOW_RESTRIC
 }
 
 export type CloseActiveTrack = Action<typeof CLOSE_ACTIVE_TRACK>;
+
+export interface CloseTrackById extends Action<typeof CLOSE_TRACK_BY_ID> {
+  payload: { id: number };
+}
 
 export interface SetLoading extends Action<typeof SET_LOADING> {
   payload: { loading: boolean };
@@ -136,6 +142,7 @@ export type MapThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unk
 export type MapAction =
   | AddTracks
   | CloseActiveTrack
+  | CloseTrackById
   | DecrementSpeed
   | FetchMetadata
   | IncrementSpeed
@@ -174,6 +181,13 @@ export const receiveTracks = (tracks: RuntimeTrack[]): MapThunk => (
 ): void => {
   dispatch(addTracks(tracks));
   dispatch(fetchMetadata(tracks));
+  // Add all the track ids to the current URL.
+  tracks.forEach((track) => {
+    if (track.id != null) {
+      addUrlParamValue(ParamNames.TRACK_ID, String(track.id));
+    }
+  });
+
   // Schedule a fetch when some tracks need metadata and no fetch is already started.
   if (!getState().map?.metadata.isFetching && tracks.some((track) => !track.isPostProcessed)) {
     dispatch(setFetchingMetadata(true));
@@ -229,6 +243,11 @@ export const setAspShowRestricted: ActionCreator<SetAspShowRestricted> = (aspSho
 });
 
 export const closeActiveTrack: ActionCreator<CloseActiveTrack> = () => ({ type: CLOSE_ACTIVE_TRACK });
+
+export const closeTrackById: ActionCreator<CloseTrackById> = (id: number) => ({
+  type: CLOSE_TRACK_BY_ID,
+  payload: { id },
+});
 
 export const setLoading: ActionCreator<SetLoading> = (loading: boolean) => ({
   type: SET_LOADING,

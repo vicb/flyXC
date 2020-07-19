@@ -4,6 +4,7 @@ import { connect } from 'pwa-helpers';
 import { setDistance, setLeague, setScore, setSpeed } from '../actions/map';
 import { ClosingSector } from '../gm/closing-sector';
 import { FaiSectors } from '../gm/fai-sectors';
+import { getCurrentUrl, getUrlParam, ParamNames, pushCurrentState, setUrlParamValue } from '../logic/history';
 import { LEAGUES } from '../logic/score/league/leagues';
 import { Measure, Point } from '../logic/score/measure';
 import { CircuitType } from '../logic/score/scorer';
@@ -12,6 +13,7 @@ import { Units } from '../reducers/map';
 import { RootState, store } from '../store';
 import { PlannerElement } from './planner-element';
 
+// Route color by circuit type.
 const ROUTE_STROKE_COLORS = {
   [CircuitType.OPEN_DISTANCE]: '#ff6600',
   [CircuitType.OUT_AND_RETURN]: '#ff9933',
@@ -19,6 +21,7 @@ const ROUTE_STROKE_COLORS = {
   [CircuitType.FAI_TRIANGLE]: '#ffff00',
 };
 
+// Circuit abbreviation by circuit type.
 const CIRCUIT_SHORT_NAME = {
   [CircuitType.OPEN_DISTANCE]: 'od',
   [CircuitType.OUT_AND_RETURN]: 'oar',
@@ -51,18 +54,21 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   set map(map: google.maps.Map | null) {
     this.map_ = map;
     if (!this.line) {
-      const url = new URL(document.location.href);
+      window.addEventListener('popstate', () => this.handlePopState());
       if (this.initialPath == null) {
-        if (url.searchParams.has('p')) {
-          this.initialPath = google.maps.geometry.encoding.decodePath(url.searchParams.get('p') as string);
+        const route = getUrlParam(ParamNames.ROUTE)[0];
+        if (route) {
+          this.initialPath = google.maps.geometry.encoding.decodePath(route);
         } else {
           this.initialPath = [];
         }
-        if (url.searchParams.has('s')) {
-          store.dispatch(setSpeed(parseFloat(url.searchParams.get('s') as string).toFixed(1)));
+        const speed = getUrlParam(ParamNames.SPEED)[0];
+        if (speed) {
+          store.dispatch(setSpeed(parseFloat(speed).toFixed(1)));
         }
-        if (url.searchParams.has('l')) {
-          store.dispatch(setLeague(url.searchParams.get('l')));
+        const league = getUrlParam(ParamNames.LEAGUE)[0];
+        if (league) {
+          store.dispatch(setLeague(league));
         }
       }
       if (map) {
@@ -109,7 +115,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
 
   shouldUpdate(changedProperties: PropertyValues): boolean {
     if (changedProperties.has('league')) {
-      this.updateDistance();
+      this.computeDistance();
       changedProperties.delete('league');
     }
     return super.shouldUpdate(changedProperties);
@@ -143,49 +149,20 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     ];
   }
 
+  // Handle expanding/collapsing the control.
   protected toggleExpanded(): void {
     this.expanded = !this.expanded;
     if (this.map) {
       if (this.expanded) {
-        if (!this.plannerElement) {
-          const shadowRoot = this.shadowRoot as ShadowRoot;
-          this.plannerElement = document.createElement('planner-element') as PlannerElement;
-          this.map.controls[google.maps.ControlPosition.LEFT_TOP].push(this.plannerElement);
-          this.plannerElement.addEventListener('close-flight', () => {
-            const path = (this.line as google.maps.Polyline).getPath();
-            path.push(path.getAt(0));
-          });
-          this.plannerElement.addEventListener('share', () => {
-            const dialog = shadowRoot.getElementById('share-dialog') as any;
-            const qr = shadowRoot.getElementById('qr-code') as HTMLImageElement;
-            qr.setAttribute('src', `_qr.svg?text=${this.getQrText()}`);
-            dialog.open();
-          });
-          this.plannerElement.addEventListener('download', () => {
-            const dialog = shadowRoot.getElementById('download-dialog') as any;
-            dialog.open();
-          });
-          this.plannerElement.addEventListener('reset', () => this.resetPath());
-        }
-        const line = this.line ? (this.line as google.maps.Polyline) : this.createLine(this.map);
+        this.createLeftPaneLazily(this.map);
+        const line = this.line ?? this.createLine(this.map);
         this.onAddPoint = google.maps.event.addListener(this.map, 'rightclick', (e: google.maps.MouseEvent) =>
           this.appendToPath(e.latLng),
         );
         line.setMap(this.map);
-        this.updateDistance();
+        this.computeDistance();
       } else {
-        const line = this.line as google.maps.Polyline;
-        line.setMap(null);
-        if (this.flight) {
-          this.flight.setMap(null);
-        }
-        if (this.closingSector) {
-          this.closingSector.setMap(null);
-        }
-        if (this.faiSectors) {
-          this.faiSectors.setMap(null);
-        }
-        store.dispatch(setScore(null));
+        this.cleanupOnCollapse();
         google.maps.event.removeListener(this.onAddPoint as google.maps.MapsEventListener);
         this.onAddPoint = null;
       }
@@ -213,9 +190,9 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     }));
 
     const path = this.resetPath();
-    google.maps.event.addListener(path, 'set_at', () => this.updateDistance());
-    google.maps.event.addListener(path, 'remove_at', () => this.updateDistance());
-    google.maps.event.addListener(path, 'insert_at', () => this.updateDistance());
+    google.maps.event.addListener(path, 'set_at', () => this.handlePathUpdates());
+    google.maps.event.addListener(path, 'remove_at', () => this.handlePathUpdates());
+    google.maps.event.addListener(path, 'insert_at', () => this.handlePathUpdates());
     google.maps.event.addListener(line, 'rightclick', (event: google.maps.PolyMouseEvent): void => {
       if (event.vertex != null) {
         const path = line.getPath();
@@ -253,7 +230,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       : [];
   }
 
-  protected updateDistance(): void {
+  protected computeDistance(): void {
     if (!this.line || this.line.getPath().getLength() < 2) {
       return;
     }
@@ -313,6 +290,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       this.faiSectors.setMap(this.map);
     }
 
+    // Sends a message to the iframe host with the changes.
     let kms = '';
     let circuit = '';
     if (score.distance && window.parent) {
@@ -335,7 +313,8 @@ export class PathCtrlElement extends connect(store)(LitElement) {
 
   protected render(): TemplateResult {
     // Update the URL on re-rendering
-    this.getQrText();
+    setUrlParamValue(ParamNames.SPEED, String(this.speed));
+    setUrlParamValue(ParamNames.LEAGUE, this.league);
     return this.units
       ? html`
           <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
@@ -443,16 +422,27 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     }
   }
 
-  protected getQrText(): string {
-    const url = new URL(document.location.href);
-    url.searchParams.set('s', String(this.speed));
-    url.searchParams.set('l', this.league);
+  // Update the route when history changes.
+  protected handlePopState(): void {
+    const route = getUrlParam(ParamNames.ROUTE)[0];
+    if (this.line) {
+      if (route) {
+        this.line.setPath(google.maps.geometry.encoding.decodePath(route));
+        this.computeDistance();
+      } else if (this.expanded) {
+        this.toggleExpanded();
+      }
+    }
+  }
+
+  // Updates the URL route parameter and add an history entry when the route is updated.
+  protected handlePathUpdates(): void {
     if (this.line) {
       const path = this.line.getPath();
-      url.searchParams.set('p', google.maps.geometry.encoding.encodePath(path));
+      pushCurrentState();
+      setUrlParamValue(ParamNames.ROUTE, google.maps.geometry.encoding.encodePath(path));
     }
-    history.replaceState({}, '', String(url));
-    return encodeURIComponent(String(url));
+    this.computeDistance();
   }
 
   protected getXcTrackHref(): string {
@@ -465,5 +455,49 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       params.set('route', points.join(':'));
     }
     return `http://xctrack.org/xcplanner?${params}`;
+  }
+
+  // Creates the left pane lazily.
+  protected createLeftPaneLazily(map: google.maps.Map): void {
+    if (this.plannerElement) {
+      return;
+    }
+    if (!this.plannerElement) {
+      const shadowRoot = this.shadowRoot as ShadowRoot;
+      this.plannerElement = document.createElement('planner-element') as PlannerElement;
+      map.controls[google.maps.ControlPosition.LEFT_TOP].push(this.plannerElement);
+      this.plannerElement.addEventListener('close-flight', () => {
+        const path = (this.line as google.maps.Polyline).getPath();
+        path.push(path.getAt(0));
+      });
+      this.plannerElement.addEventListener('share', () => {
+        const dialog = shadowRoot.getElementById('share-dialog') as any;
+        const qr = shadowRoot.getElementById('qr-code') as HTMLImageElement;
+        qr.setAttribute('src', `_qr.svg?text=${encodeURIComponent(getCurrentUrl().href)}`);
+        dialog.open();
+      });
+      this.plannerElement.addEventListener('download', () => {
+        const dialog = shadowRoot.getElementById('download-dialog') as any;
+        dialog.open();
+      });
+      this.plannerElement.addEventListener('reset', () => this.resetPath());
+    }
+  }
+
+  // Cleanup resources when the planner control gets closed.
+  protected cleanupOnCollapse(): void {
+    if (this.line) {
+      this.line.setMap(null);
+      if (this.flight) {
+        this.flight.setMap(null);
+      }
+      if (this.closingSector) {
+        this.closingSector.setMap(null);
+      }
+      if (this.faiSectors) {
+        this.faiSectors.setMap(null);
+      }
+      store.dispatch(setScore(null));
+    }
   }
 }

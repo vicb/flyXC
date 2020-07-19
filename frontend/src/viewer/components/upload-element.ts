@@ -1,5 +1,6 @@
 import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 
+import { addUrlParamValues, ParamNames, pushCurrentState } from '../logic/history';
 import { uploadTracks } from '../logic/map';
 
 @customElement('upload-ctrl-element')
@@ -39,7 +40,7 @@ export class UploadElement extends LitElement {
     `;
   }
 
-  protected upload(e: Event): void {
+  protected async upload(e: Event): Promise<void> {
     if (e.target) {
       const el = e.target as HTMLInputElement;
       if (el.files?.length) {
@@ -47,10 +48,11 @@ export class UploadElement extends LitElement {
         for (let i = 0; i < el.files.length; i++) {
           files.push(el.files[i]);
         }
-        uploadTracks(files).then(() => {
-          el.value = '';
-          this.expanded = false;
-        });
+        const ids = await uploadTracks(files);
+        pushCurrentState();
+        addUrlParamValues(ParamNames.TRACK_ID, ids);
+        el.value = '';
+        this.expanded = false;
       }
     }
   }

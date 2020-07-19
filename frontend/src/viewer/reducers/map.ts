@@ -5,6 +5,7 @@ import { RuntimeTrack } from '../../../../common/track';
 import {
   ADD_TRACKS,
   CLOSE_ACTIVE_TRACK,
+  CLOSE_TRACK_BY_ID,
   DECREMENT_SPEED,
   FETCH_METADATA,
   INCREMENT_SPEED,
@@ -99,7 +100,9 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
       return { ...state, map: action.payload.map };
 
     case ADD_TRACKS: {
-      const { tracks } = action.payload;
+      const ids = mapSel.trackIds(state);
+      // Filter out duplicates.
+      const tracks = action.payload.tracks.filter((track) => ids.indexOf(track.id ?? -1) < 0);
       const ts = state.tracks.length > 0 ? state.ts : tracks[0].fixes.ts[0];
 
       return {
@@ -179,6 +182,15 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
       const tracks = [...state.tracks];
       tracks.splice(state.currentTrack, 1);
       const currentTrack = 0;
+      const ts = tracks.length ? tracks[currentTrack].fixes.ts[0] : 0;
+      return { ...state, tracks, currentTrack, ts };
+    }
+
+    case CLOSE_TRACK_BY_ID: {
+      const { id } = action.payload;
+      const tracks = state.tracks.filter((track) => track.id != id);
+      // Set the first track as active when closing the active track.
+      const currentTrack = state.tracks[state.currentTrack].id === id ? 0 : state.currentTrack;
       const ts = tracks.length ? tracks[currentTrack].fixes.ts[0] : 0;
       return { ...state, tracks, currentTrack, ts };
     }

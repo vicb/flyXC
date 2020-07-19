@@ -5,71 +5,58 @@ import * as mapActions from '../actions/map';
 import { dispatch } from '../store';
 
 // Uploads files to the server and adds the tracks.
-export function uploadTracks(tracks: File[]): Promise<unknown> {
+export async function uploadTracks(tracks: File[]): Promise<number[]> {
   if (tracks.length == 0) {
-    return Promise.resolve();
+    return [];
   }
   const formData = new FormData();
   tracks.forEach((track) => formData.append('track', track));
-
-  dispatch(mapActions.setLoading(true));
-
-  return fetch('/_upload', { method: 'POST', body: formData })
-    .then((r) => (r.ok ? r.arrayBuffer() : null))
-    .then((metaTracks) => {
-      if (metaTracks) {
-        const runtimeTracks = createRuntimeTracks(metaTracks);
-        dispatch(mapActions.receiveTracks(runtimeTracks));
-        dispatch(mapActions.zoomTracks());
-      }
-      dispatch(mapActions.setLoading(false));
-    });
+  return await fetchTracks('/_upload', { method: 'POST', body: formData });
 }
 
 // Download tracks given their urls.
-export function downloadTracks(tracks: string[]): Promise<unknown> {
-  if (tracks.length == 0) {
-    return Promise.resolve();
+export async function downloadTracksByUrl(urls: string[]): Promise<number[]> {
+  if (urls.length == 0) {
+    return [];
   }
-
   const params = new URLSearchParams();
-  tracks.forEach((track) => params.append('track', track));
-
-  dispatch(mapActions.setLoading(true));
-
-  return fetch(`/_download?${params}`)
-    .then((r) => (r.ok ? r.arrayBuffer() : null))
-    .then((metaTracks) => {
-      if (metaTracks) {
-        const runtimeTracks = createRuntimeTracks(metaTracks);
-        dispatch(mapActions.receiveTracks(runtimeTracks));
-        dispatch(mapActions.zoomTracks());
-      }
-      dispatch(mapActions.setLoading(false));
-    });
+  urls.forEach((track) => params.append('track', track));
+  return await fetchTracks(`/_download?${params}`);
 }
 
 // Download tracks given then datastore ids
-export function downloadTracksFromHistory(ids: string[]): Promise<unknown> {
+export async function downloadTracksById(ids: Array<number | string>): Promise<number[]> {
   if (ids.length == 0) {
-    return Promise.resolve();
+    return [];
   }
-
   const params = new URLSearchParams();
-  ids.forEach((id) => params.append('h', id));
+  ids.forEach((id) => params.append('id', String(id)));
+  return await fetchTracks(`/_history?${params}`);
+}
 
+// Fetch tracks using the given URL and options.
+// Returns the list of ids.
+async function fetchTracks(url: string, options: RequestInit | undefined = undefined): Promise<number[]> {
   dispatch(mapActions.setLoading(true));
 
-  return fetch(`/_history?${params}`)
-    .then((r) => (r.ok ? r.arrayBuffer() : null))
-    .then((metaTracks) => {
-      if (metaTracks) {
-        const runtimeTracks = createRuntimeTracks(metaTracks);
-        dispatch(mapActions.receiveTracks(runtimeTracks));
-        dispatch(mapActions.zoomTracks());
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    return [];
+  }
+  const ids: number[] = [];
+  const metaTracks = await response.arrayBuffer();
+  if (metaTracks) {
+    const runtimeTracks = createRuntimeTracks(metaTracks);
+    runtimeTracks.forEach((track) => {
+      if (track.id != null) {
+        ids.push(track.id);
       }
-      dispatch(mapActions.setLoading(false));
     });
+    dispatch(mapActions.receiveTracks(runtimeTracks));
+    dispatch(mapActions.zoomTracks());
+  }
+  dispatch(mapActions.setLoading(false));
+  return ids;
 }
 
 export function zoomTracks(map: google.maps.Map, minLat: number, minLon: number, maxLat: number, maxLon: number): void {

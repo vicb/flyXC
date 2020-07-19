@@ -122,7 +122,7 @@ export class ArchivesElement extends LitElement {
         const date = new Date(track.created);
         return html`
           <a
-            href="/?h=${track.hash}"
+            href="/?id=${track.id}"
             @mouseenter=${(e: MouseEvent): void => this.createPopper(e, track.path)}
             @mouseleave=${this.destroyPopper}
           >

@@ -178,3 +178,13 @@ export const aspAltitudeStops = createSelector(altitudeUnits, (units) => {
 export const currentAspAltitudeStop = createSelector(aspAltitudeStops, aspAltitude, (stops, altitude) => {
   return stops.find((v: number) => v >= altitude) || stops[stop.length - 1];
 });
+
+// List of track ids.
+export const trackIds = createSelector(tracks, (tracks: RuntimeTrack[]) => {
+  return tracks.reduce((ids: number[], track: RuntimeTrack) => {
+    if (track.id != null) {
+      ids.push(track.id);
+    }
+    return ids;
+  }, []);
+});
