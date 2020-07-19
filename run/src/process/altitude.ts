@@ -1,51 +1,89 @@
 // Retrieves the altitude information for a track.
+//
+// Altitudes are retrieved from https://registry.opendata.aws/terrain-tiles/
+//
+// Docs:
+// - https://github.com/tilezen/joerd/blob/master/docs/formats.md,
+// - https://observablehq.com/@benjaminortizulloa/mapzen-dem,
+// - https://www.mapzen.com/blog/terrain-tile-service/
 
 import async from 'async';
-import lru from 'tiny-lru';
+import lru, { Lru } from 'tiny-lru';
 
+import { decode } from '@vivaxy/png';
+
+import { tileCoordinates } from '../../../common/proj';
 import { diffEncodeArray, ProtoGroundAltitude, ProtoTrack } from '../../../common/track';
-import { httpsGetUnzip } from './request';
+import { httpsGet } from './request';
 
-const hgtCache = lru(400);
+// Zoom level for the altitude tiles.
+const ZOOM_LEVEL = 10;
+
+// Expected tile size in pixels.
+const TILE_PX_SIZE = 256;
+
+// Cache for RGBA pixels.
+let rgbaCache: Lru<number[]> | null = null;
+
+// Default size of the RGBA LRU in MB.
+// Use the `RGBA_LRU_SIZE_MB` environment variable to override the capacity.
+const DEFAULT_RGBA_LRU_SIZE_MB = 80;
+const IMAGE_SIZE_MB = (TILE_PX_SIZE * TILE_PX_SIZE * 4) / (1000 * 1000);
+
+// Returns a lazily instantiated LRU for RGBA pixels.
+// Use the `RGBA_LRU_SIZE_MB` environment variable to override the capacity.
+function getRgbaCache(): Lru<number[]> {
+  if (rgbaCache == null) {
+    const mb = Number(process.env.RGBA_LRU_SIZE_MB || DEFAULT_RGBA_LRU_SIZE_MB);
+    const capacity = Math.floor(mb / IMAGE_SIZE_MB);
+    console.log(`RGBA LRU Capacity = ${capacity} - ${Math.round(capacity * IMAGE_SIZE_MB)}MB`);
+    rgbaCache = lru<number[]>(capacity);
+  }
+  return rgbaCache;
+}
 
 // Returns the ground altitudes for the track (differential encoded).
 export async function fetchGroundAltitude(track: ProtoTrack): Promise<ProtoGroundAltitude> {
   // Retrieve the list of files to download.
   const files = track.lat.reduce((files: Set<string>, lat: number, i: number) => {
     const lon = track.lon[i];
-    const south = Math.floor(lat);
-    const west = Math.floor(lon);
-    return files.add(getHgtUrl(south, west));
+    const { tile } = tileCoordinates({ lat, lon }, ZOOM_LEVEL);
+    return files.add(getPngUrl(tile.x, tile.y, ZOOM_LEVEL));
   }, new Set<string>());
 
   // Download the files.
   let hasErrors = false;
-  const hgts = new Map<string, Buffer>();
+  const rgbas = new Map<string, number[] | undefined>();
   await async.eachLimit(Array.from(files), 5, async (url: string) => {
-    try {
-      let buffer = hgtCache.get(url);
-      if (buffer == null) {
-        buffer = await httpsGetUnzip(url);
-        hgtCache.set(url, buffer);
+    let rgba = getRgbaCache().get(url);
+    if (rgba == null) {
+      try {
+        const metadata = decode(await httpsGet(url));
+        if (metadata.width == TILE_PX_SIZE && metadata.height == TILE_PX_SIZE) {
+          rgba = metadata.data;
+          getRgbaCache().set(url, rgba);
+        }
+      } catch (e) {
+        console.error(`Error downloading ${url}`);
+        hasErrors = true;
       }
-      hgts.set(url, buffer);
-    } catch (error) {
-      console.log('Error retrieving hgt:', error);
-      hasErrors = true;
     }
+    rgbas.set(url, rgba);
   });
 
   // Retrieve the fixes altitude.
   const altitudes = track.lat.map((lat: number, i: number) => {
     const lon = track.lon[i];
-    const south = Math.floor(lat);
-    const west = Math.floor(lon);
-    const url = getHgtUrl(south, west);
-    const buffer = hgts.get(url);
+    const { tile, px } = tileCoordinates({ lat, lon }, ZOOM_LEVEL);
+    const url = getPngUrl(tile.x, tile.y, ZOOM_LEVEL);
+    const rgba = rgbas.get(url);
     let gndAlt = 0;
-    if (buffer) {
-      const offset = Math.round((lon - west) * 3600) + Math.round((south + 1 - lat) * 3600) * 3601;
-      gndAlt = buffer.readInt16BE(offset * 2);
+    if (rgba != null) {
+      const offset = 4 * (256 * px.y + px.x);
+      const red = rgba[offset];
+      const green = rgba[offset + 1];
+      const blue = rgba[offset + 2];
+      gndAlt = Math.round(red * 256 + green + blue / 256 - 32768);
     }
     return gndAlt;
   });
@@ -56,13 +94,7 @@ export async function fetchGroundAltitude(track: ProtoTrack): Promise<ProtoGroun
   };
 }
 
-// Returns the url of an HGT file on the public amazon dataset.
-function getHgtUrl(lat: number, lon: number): string {
-  const ns = lat >= 0 ? 'N' : 'S';
-  const ew = lon >= 0 ? 'E' : 'W';
-  const nsLat = `${ns}${String(Math.abs(lat)).padStart(2, '0')}`;
-  return `https://elevation-tiles-prod.s3.amazonaws.com/skadi/${nsLat}/${nsLat}${ew}${String(Math.abs(lon)).padStart(
-    3,
-    '0',
-  )}.hgt.gz`;
+// Returns the url of a terrarium png image on the amazon public dataset.
+function getPngUrl(x: number, y: number, zoom: number): string {
+  return `https://elevation-tiles-prod.s3.amazonaws.com/terrarium/${zoom}/${x}/${y}.png`;
 }
