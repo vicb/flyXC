@@ -129,35 +129,41 @@ export class TrackingElement extends connect(store)(LitElement) {
         let zIndex = 10;
         const age_hours = (now - ts) / (3600 * 1000);
         let opacity = age_hours > 12 ? 0.3 : 0.9;
+        let scale = 0.3;
         if (feature.getProperty('msg')) {
+          scale = 0.6;
           opacity = 1;
           color = 'yellow';
           zIndex += 10;
         }
         if (feature.getProperty('emergency')) {
+          scale = 0.6;
           opacity = 1;
           color = 'red';
           zIndex += 10;
         }
         let label: google.maps.MarkerLabel | null = null;
-        if (this.displayNames && feature.getProperty('is_last_fix') === true) {
-          const minutesOld = Math.round((now - ts) / (60 * 1000));
-          const age =
-            minutesOld < 60
-              ? `${minutesOld}min`
-              : `${Math.floor(minutesOld / 60)}h${String(minutesOld % 60).padStart(2, '0')}`;
-          const text = feature.getProperty('name') + ' · ' + age;
-          label = {
-            color: 'black',
-            text,
-            fontSize: '14.001px',
-          };
+        if (feature.getProperty('is_last_fix') === true) {
+          scale = 0.6;
+          if (this.displayNames) {
+            const minutesOld = Math.round((now - ts) / (60 * 1000));
+            const age =
+              minutesOld < 60
+                ? `${minutesOld}min`
+                : `${Math.floor(minutesOld / 60)}h${String(minutesOld % 60).padStart(2, '0')}`;
+            const text = feature.getProperty('name') + ' · ' + age;
+            label = {
+              color: 'black',
+              text,
+              fontSize: '14.001px',
+            };
+          }
         }
 
         return {
           label,
           strokeColor: '#555',
-          strokeWeight: 2,
+          strokeWeight: 1,
           strokeOpacity: opacity,
           fillOpacity: opacity,
           zIndex,
@@ -171,7 +177,7 @@ export class TrackingElement extends connect(store)(LitElement) {
             strokeOpacity: opacity,
             anchor: new google.maps.Point(10, 10),
             labelOrigin: new google.maps.Point(10, 40),
-            scale: 0.6,
+            scale,
           },
         } as google.maps.Data.StyleOptions;
       },
