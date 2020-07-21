@@ -1,7 +1,4 @@
-import getDistance from 'geolib/es/getDistance';
-import getGreatCircleBearing from 'geolib/es/getGreatCircleBearing';
-import toDeg from 'geolib/es/toDeg';
-import toRad from 'geolib/es/toRad';
+import { getDistance, getGreatCircleBearing, toDeg, toRad } from 'geolib';
 
 import { Point } from '../logic/score/measure';
 

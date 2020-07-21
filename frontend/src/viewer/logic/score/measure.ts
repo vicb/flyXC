@@ -1,7 +1,7 @@
 // Optimization code adapted from
 // https://github.com/twpayne/maxxc/blob/7c22a46536ec7299ec91d135fea10b5b5925032c/track.c
 
-import getDistance from 'geolib/es/getDistance';
+import { getDistance } from 'geolib';
 
 export interface PointReference {
   index: number;

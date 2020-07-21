@@ -1,4 +1,4 @@
-import getDistance from 'geolib/es/getDistance';
+import { getDistance } from 'geolib';
 import Pbf from 'pbf';
 
 import { computeMaxDistance } from './distance';

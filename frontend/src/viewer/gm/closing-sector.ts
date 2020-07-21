@@ -1,4 +1,4 @@
-import computeDestinationPoint from 'geolib/es/computeDestinationPoint';
+import { computeDestinationPoint } from 'geolib';
 
 export class ClosingSector {
   center: { lat: number; lon: number } | null = null;
