@@ -19,6 +19,12 @@ export class ExpandElement extends LitElement {
         this.expanded = document.fullscreenElement != null;
       });
     }
+    window.addEventListener('fullscreenchange', () => {
+      if (this.map) {
+        // Switch back to 'auto' when full screen is exited by pressing the ESC key.
+        this.map.setOptions({ gestureHandling: document.fullscreenElement ? 'greedy' : 'auto' });
+      }
+    });
   }
 
   static get styles(): CSSResult[] {
