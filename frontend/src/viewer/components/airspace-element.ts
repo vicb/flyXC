@@ -102,7 +102,10 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
       return html``;
     }
     return html`
-      <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
+      />
       <div style="float:left;margin-right:5px" .hidden=${!this.expanded}>
         <label
           ><input type="checkbox" ?checked=${this.aspShowRestricted} @change=${this.handleRestricted} />E, F, G,
@@ -117,7 +120,7 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
           )}
         </select>
       </div>
-      <i class="fas fa-fighter-jet fa-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
+      <i class="la la-fighter-jet la-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
     `;
   }
 

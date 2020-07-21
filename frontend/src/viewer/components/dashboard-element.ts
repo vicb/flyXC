@@ -77,8 +77,11 @@ export class DashboardElement extends LitElement {
     const gndAlt = this.getGroundElevation();
     return this.units
       ? html`
-          <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
-          <h3><i class="fas fa-tachometer-alt fa-2x"></i></h3>
+          <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
+          />
+          <h3><i class="la la-tachometer-alt la-2x"></i></h3>
           <ul>
             <li>${formatUnit(alt, this.units.altitude)} [alt]</li>
             <li>${formatUnit(Math.max(0, alt - gndAlt), this.units.altitude)} [gndAlt]</li>

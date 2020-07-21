@@ -59,8 +59,11 @@ export class ExpandElement extends LitElement {
 
   render(): TemplateResult {
     return html`
-      <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
-      <i class="fas ${this.expanded ? 'fa-compress' : 'fa-expand'} fa-2x" @click=${this.toggleExpand}></i>
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
+      />
+      <i class="la ${this.expanded ? 'la-compress' : 'la-expand'} la-2x" @click=${this.toggleExpand}></i>
     `;
   }
 }

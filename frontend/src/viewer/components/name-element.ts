@@ -40,18 +40,21 @@ export class NameElement extends LitElement {
 
   render(): TemplateResult {
     return html`
-      <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
+      />
       <label
         ><input type="checkbox" ?checked=${this.displayNames} @change=${this.handleDisplayNames} /><i
-          class="fas fa-user-tag fa-2x"
+          class="la la-user-tag la-2x"
         ></i
       ></label>
       ${this.name}
-      <i class="fas fa-user fa-2x" style=${`color: ${trackColor(this.index || 0)};`}></i>
+      <i class="la la-user la-2x" style=${`color: ${trackColor(this.index || 0)};`}></i>
       ${this.nbtracks > 1
-        ? html`<i class="fas fa-chevron-right fa-2x" style="cursor: pointer" @click=${this.handleNext}></i>`
+        ? html`<i class="la la-chevron-right la-2x" style="cursor: pointer" @click=${this.handleNext}></i>`
         : html``}
-      <i class="fas fa-times-circle fa-2x" style="cursor: pointer" @click=${this.handleClose}></i>
+      <i class="la la-times-circle la-2x" style="cursor: pointer" @click=${this.handleClose}></i>
     `;
   }
 

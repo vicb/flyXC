@@ -92,7 +92,10 @@ export class AirwaysCtrlElement extends LitElement {
 
   render(): TemplateResult {
     return html`
-      <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
+      />
       <input
         type="range"
         min="0.2"
@@ -102,7 +105,7 @@ export class AirwaysCtrlElement extends LitElement {
         .value=${String(this.opacity)}
         @input=${this.handleChange}
       />
-      <i class="fas fa-road fa-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
+      <i class="la la-road la-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
       <airways-overlay @overlayready=${this.overlayReady} .map=${this.map}></airways-overlay>
     `;
   }

@@ -39,8 +39,11 @@ export class AboutElement extends LitElement {
 
   render(): TemplateResult {
     return html`
-      <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
-      <i class="fas fa-info-circle fa-2x" style="cursor: pointer" @click=${this.openDialog}></i>
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
+      />
+      <i class="la la-info-circle la-2x" style="cursor: pointer" @click=${this.openDialog}></i>
       <ui5-dialog id="about-dialog" header-text="FlyXC.app">
         <section class="form-fields">
           <div>
@@ -70,6 +73,12 @@ export class AboutElement extends LitElement {
               <a href="https://thermal.kk7.ch" target="_blank">thermal.kk7.ch</a>
             </ui5-label>
           </div>
+          <div>
+            <ui5-label
+              >Line Awesome icon font from
+              <a href="https://icons8.com/line-awesome" target="_blank">icons8</a>
+            </ui5-label>
+          </div>          
           <br />
           <div>
             <ui5-label>build <%BUILD%></ui5-label>
@@ -79,7 +88,7 @@ export class AboutElement extends LitElement {
             <ui5-label
               >Report issues on
               <a href="https://github.com/vicb/flyxc/issues" target="_blank"
-                >github <i class="fab fa-github-square"></i></a
+                >github <i class="lab la-github-square"></i></a
             ></ui5-label>
           </div>
         </section>

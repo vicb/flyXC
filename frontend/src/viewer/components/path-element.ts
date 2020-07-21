@@ -317,9 +317,12 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     setUrlParamValue(ParamNames.LEAGUE, this.league);
     return this.units
       ? html`
-          <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
+          <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
+          />
           <span .hidden=${!this.expanded}>${formatUnit(this.distance, this.units.distance)}</span>
-          <i class="fas fa-ruler fa-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
+          <i class="la la-ruler la-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
 
           <ui5-dialog id="share-dialog" header-text="Share">
             <section class="form-fields">

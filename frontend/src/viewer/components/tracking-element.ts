@@ -180,14 +180,17 @@ export class TrackingElement extends connect(store)(LitElement) {
 
   render(): TemplateResult {
     return html`
-      <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
+      />
       <label
         ><input type="checkbox" ?checked=${this.displayNames} @change=${this.handleDisplayNames} /><i
-          class="fas fa-user-tag fa-2x"
+          class="la la-user-tag la-2x"
         ></i
       ></label>
       <i
-        class="fas fa-satellite-dish fa-2x"
+        class="la la-satellite-dish la-2x"
         style="cursor: pointer"
         @click=${(): void => void (document.location.href = '/devices.html')}
       ></i>

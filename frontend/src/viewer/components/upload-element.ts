@@ -34,9 +34,12 @@ export class UploadElement extends LitElement {
 
   protected render(): TemplateResult {
     return html`
-      <link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css" />
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
+      />
       <input type="file" multiple id="track" name="track" .hidden=${!this.expanded} @change=${this.upload} />
-      <i class="fas fa-cloud-upload-alt fa-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
+      <i class="la la-cloud-upload-alt la-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
     `;
   }
 
