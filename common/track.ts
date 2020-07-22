@@ -1,6 +1,7 @@
 import { getDistance } from 'geolib';
 import Pbf from 'pbf';
 
+import { Flags } from './airspaces';
 import { computeMaxDistance } from './distance';
 import * as protos from './track_proto.js';
 
@@ -40,6 +41,23 @@ export interface ProtoGroundAltitudeGroup {
   ground_altitudes: ProtoGroundAltitude[];
 }
 
+// Airspaces along a single track.
+export interface ProtoAirspaces {
+  start_ts: number[];
+  end_ts: number[];
+  name: string[];
+  category: string[];
+  top: number[];
+  bottom: number[];
+  flags: Flags[];
+  has_errors: boolean;
+}
+
+// Airspaces for all the tracks in a group.
+export interface ProtoAirspacesGroup {
+  airspaces: ProtoAirspaces[];
+}
+
 // Meta Track Group.
 // This is the message sent over the wire for a single track group.
 export interface ProtoMetaTrackGroup {
@@ -47,6 +65,7 @@ export interface ProtoMetaTrackGroup {
   num_postprocess: number;
   track_group_bin?: ArrayBuffer;
   ground_altitude_group_bin?: ArrayBuffer;
+  airspaces_group_bin?: ArrayBuffer;
 }
 
 // Multiple Meta Track Groups.
@@ -89,13 +108,14 @@ export type RuntimeTrack = {
   minVz: number;
   // maximum distance between two consecutive points.
   maxDistance: number;
+  airspaces?: ProtoAirspaces;
 };
 
 // Creates a runtime track from a track proto (see track.proto).
 // - decodes differential encoded fields,
 // - adds computed fields (speed, ...).
 export function protoToRuntimeTrack(differentialTrack: ProtoTrack): RuntimeTrack {
-  const track = diffDecode(differentialTrack);
+  const track = diffDecodeTrack(differentialTrack);
 
   const vx: number[] = [];
   const vz: number[] = [];
@@ -171,6 +191,11 @@ export function addGroundAltitude(track: RuntimeTrack, gndAlt: ProtoGroundAltitu
   }
 }
 
+// Add the airspaces to a runtime track
+export function addAirspaces(track: RuntimeTrack, airspaces: ProtoAirspaces): void {
+  track.airspaces = diffDecodeAirspaces(airspaces);
+}
+
 // Creates tracks from a MetaTracks protocol buffer.
 export function createRuntimeTracks(metaTracks: ArrayBuffer): RuntimeTrack[] {
   const metaGroups: ProtoMetaTrackGroup[] = (protos.MetaTracks as any)
@@ -199,19 +224,35 @@ export function createRuntimeTracks(metaTracks: ArrayBuffer): RuntimeTrack[] {
         addGroundAltitude(rtTracks[i], gndAlt);
       });
     }
+    // Add the airspaces to the tracks if available.
+    if (metaGroup.airspaces_group_bin) {
+      const airspacesGroup = (protos.AirspacesGroup as any).read(new Pbf(metaGroup.airspaces_group_bin));
+      airspacesGroup.airspaces.forEach((airspaces: ProtoAirspaces, i: number) => {
+        console.log(`addAirspace`, i, airspaces);
+        addAirspaces(rtTracks[i], airspaces);
+      });
+    }
     runtimeTracks.push(...rtTracks);
   });
   return runtimeTracks;
 }
 
 // Differential encoding of a track.
-export function diffEncode(track: ProtoTrack): ProtoTrack {
+export function diffEncodeTrack(track: ProtoTrack): ProtoTrack {
   const lon = diffEncodeArray(track.lon, 1e5);
   const lat = diffEncodeArray(track.lat, 1e5);
   const ts = diffEncodeArray(track.ts, 1e-3, false);
   const alt = diffEncodeArray(track.alt);
 
-  return { pilot: track.pilot, lat, lon, alt, ts };
+  return { ...track, lat, lon, alt, ts };
+}
+
+// Differential encoding of airspaces.
+export function diffEncodeAirspaces(asp: ProtoAirspaces): ProtoAirspaces {
+  // Use signed values as the end are not ordered.
+  const start_ts = diffEncodeArray(asp.start_ts, 1e-3);
+  const end_ts = diffEncodeArray(asp.end_ts, 1e-3);
+  return { ...asp, start_ts, end_ts };
 }
 
 export function diffEncodeArray(data: number[], multiplier = 1, signed = true): number[] {
@@ -233,11 +274,18 @@ export function diffDecodeArray(data: number[], multiplier = 1): number[] {
 }
 
 // Differential decoding of a track.
-export function diffDecode(track: ProtoTrack): ProtoTrack {
+export function diffDecodeTrack(track: ProtoTrack): ProtoTrack {
   const lon = diffDecodeArray(track.lon, 1e5);
   const lat = diffDecodeArray(track.lat, 1e5);
   const ts = diffDecodeArray(track.ts, 1e-3);
   const alt = diffDecodeArray(track.alt);
 
-  return { pilot: track.pilot, lat, lon, alt, ts };
+  return { ...track, lat, lon, alt, ts };
+}
+
+// Differential decoding of airspaces.
+export function diffDecodeAirspaces(asp: ProtoAirspaces): ProtoAirspaces {
+  const start_ts = diffDecodeArray(asp.start_ts, 1e-3);
+  const end_ts = diffDecodeArray(asp.end_ts, 1e-3);
+  return { ...asp, start_ts, end_ts };
 }

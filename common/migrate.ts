@@ -5,71 +5,59 @@ const { Datastore } = require('@google-cloud/datastore');
 import async from 'async';
 import Pbf from 'pbf';
 
-import { postProcessTrack } from '../run/src/process/process';
+import { fetchAirspaces } from '../run/src/process/airspace';
 import { retrieveTrackById, saveTrack, TrackEntity } from './datastore';
-import { ProtoTrack } from './track';
+import {
+  diffDecodeArray,
+  diffDecodeTrack,
+  diffEncodeAirspaces,
+  ProtoAirspaces,
+  ProtoGroundAltitude,
+  ProtoGroundAltitudeGroup,
+  ProtoTrack,
+  ProtoTrackGroup,
+} from './track';
 import * as protos from './track_proto.js';
 
 const BATCH_SIZE = 300;
 
-export interface LegacyFix {
-  lat: number;
-  lon: number;
-  alt: number;
-  ts: number;
-}
+async function addAirspaces(trackEntity: TrackEntity) {
+  let migrated = false;
+  const trackGroupBin = trackEntity.track_group;
+  const gndAltGroupBin = trackEntity.ground_altitude_group;
+  const aspGroupBin = trackEntity.airspaces_group;
 
-export interface LegacyTrack {
-  fixes: LegacyFix[];
-  pilot: string;
-}
+  if (trackGroupBin && gndAltGroupBin && !aspGroupBin) {
+    // Retrieve the tracks.
+    const trackGroup: ProtoTrackGroup = (protos.TrackGroup as any).read(new Pbf(trackGroupBin));
+    const tracks: ProtoTrack[] = trackGroup.tracks.map(diffDecodeTrack);
 
-function populateNewFields(entity: TrackEntity): boolean {
-  if (!entity.data) {
-    console.error('No data field on the entity');
-    return true;
-  }
+    const gndAltGroup: ProtoGroundAltitudeGroup = (protos.GroundAltitudeGroup as any).read(new Pbf(gndAltGroupBin));
+    const gndAlts: ProtoGroundAltitude[] = gndAltGroup.ground_altitudes.map((g) => ({
+      altitudes: diffDecodeArray(g.altitudes, 1),
+      has_errors: g.has_errors,
+    }));
 
-  if (entity.track_group) {
-    // Already migrated
-    return false;
-  }
-
-  const legacyTracks: LegacyTrack[] = JSON.parse(entity.data.toString());
-
-  const newTracks: ProtoTrack[] = legacyTracks.map((legacyTrack) => {
-    const lat: number[] = [];
-    const lon: number[] = [];
-    const alt: number[] = [];
-    const ts: number[] = [];
-
-    // The legacy track is already differential encoded.
-    legacyTrack.fixes.forEach((f) => {
-      lat.push(f.lat);
-      lon.push(f.lon);
-      alt.push(f.alt);
-      ts.push(f.ts);
+    // Add airspaces.
+    const airspaces: ProtoAirspaces[] = [];
+    await async.eachOfSeries(tracks, async (track, i) => {
+      airspaces.push(await fetchAirspaces(track, gndAlts[Number(i)]));
     });
+    const pbf = new Pbf();
+    (protos.AirspacesGroup as any).write({ airspaces: airspaces.map(diffEncodeAirspaces) }, pbf);
+    trackEntity.airspaces_group = Buffer.from(pbf.finish());
+    migrated = true;
+  }
 
-    return {
-      pilot: legacyTrack.pilot,
-      lat,
-      lon,
-      alt,
-      ts,
-    };
-  });
+  if ((trackEntity as any).data) {
+    delete (trackEntity as any).data;
+    migrated = true;
+  }
 
-  const pbf = new Pbf();
-  (protos.TrackGroup as any).write({ tracks: newTracks }, pbf);
-  const track_group_bin = Buffer.from(pbf.finish());
-
-  entity.track_group = track_group_bin;
-
-  return true;
+  return migrated;
 }
 
-// Migrate legacy format (JSON data field) to the new format.
+// Add airspaces to the tracks.
 export async function migrate(): Promise<void> {
   console.log('Migrate');
   const datastore = new Datastore();
@@ -94,10 +82,13 @@ export async function migrate(): Promise<void> {
     await async.eachLimit(entities, 10, async (entity: any) => {
       const id = entity[datastore.KEY].id;
       const trackEntity = await retrieveTrackById(id);
-      if (trackEntity && populateNewFields(trackEntity)) {
-        console.log(` - migrating id: ${id} hash: ${trackEntity.hash} (${numMigrated++} tracks migrated)`);
-        await saveTrack(trackEntity);
-        await postProcessTrack(id);
+      if (trackEntity) {
+        console.log(`migrating id: ${id} hash: ${trackEntity.hash} (${numMigrated} tracks migrated)`);
+        const migrated = await addAirspaces(trackEntity);
+        if (migrated) {
+          numMigrated++;
+          await saveTrack(trackEntity);
+        }
       }
     });
   }

@@ -8,10 +8,12 @@ import {
   property,
   PropertyValues,
   svg,
+  SVGTemplateResult,
   TemplateResult,
 } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
+import { airspaceCategory, Flags } from '../../../../common/airspaces';
 import { RuntimeTrack } from '../../../../common/track';
 import { setChartY } from '../actions/map';
 import { trackColor } from '../logic/map';
@@ -41,6 +43,9 @@ export class ChartElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   units: Units | null = null;
 
+  @property({ attribute: false })
+  showRestricted = false;
+
   minTs = 0;
   maxTs = 1;
   tsOffsets: number[] = [];
@@ -55,6 +60,7 @@ export class ChartElement extends connect(store)(LitElement) {
       this.maxTs = mapSel.maxTs(map);
       this.units = map.units;
       this.tsOffsets = mapSel.tsOffsets(map);
+      this.showRestricted = map.aspShowRestricted;
     }
   }
 
@@ -128,6 +134,24 @@ export class ChartElement extends connect(store)(LitElement) {
           fill: #755445;
           fill-opacity: 0.8;
         }
+        .asp {
+          stroke: #808080;
+          fill: #808080;
+          fill-opacity: 0.4;
+          stroke-opacity: 0.6;
+        }
+        .asp.prohibited {
+          stroke: #bf4040;
+          fill: #bf4040;
+        }
+        .asp.restricted {
+          stroke: #bfbf40;
+          fill: #bfbf40;
+        }
+        .asp.danger {
+          stroke: #bf8040;
+          fill: #bf8040;
+        }
         .axis {
           stroke: lightgray;
           fill: none;
@@ -162,41 +186,130 @@ export class ChartElement extends connect(store)(LitElement) {
 
   protected paths(): TemplateResult[] {
     const paths: TemplateResult[] = [];
-    const tsSpan = this.maxTs - this.minTs;
-    const aY = -this.height / (this.maxY - this.minY);
-    const bY = -this.maxY * aY;
+    const spanTs = this.maxTs - this.minTs;
+    const scaleY = -this.height / (this.maxY - this.minY);
+    const offsetY = -this.maxY * scaleY;
 
-    if (this.tracks) {
+    if (this.tracks != null) {
       this.tracks.forEach((track, i) => {
-        const minX = Math.round(((track.fixes.ts[0] - this.tsOffsets[i] - this.minTs) / tsSpan) * this.width);
+        // Span of the track on the X axis.
+        const minX = Math.round(((track.fixes.ts[0] - this.tsOffsets[i] - this.minTs) / spanTs) * this.width);
         const maxX = Math.round(
-          ((track.fixes.ts[track.fixes.ts.length - 1] - this.tsOffsets[i] - this.minTs) / tsSpan) * this.width,
+          ((track.fixes.ts[track.fixes.ts.length - 1] - this.tsOffsets[i] - this.minTs) / spanTs) * this.width,
         );
-        const xSpan = maxX - minX;
-        const trackTsSpan = track.maxTs - track.minTs;
+        const spanX = maxX - minX;
+        const spanTrackTs = track.maxTs - track.minTs;
 
-        const coords: string[] = [];
-        const gndCoords = [`${minX},${(this.minY * aY + bY).toFixed(1)}`];
+        const trackCoords: string[] = [];
+        const gndCoords = [`${minX},${(this.minY * scaleY + offsetY).toFixed(1)}`];
         // Display the gnd elevation only if there is a single track & mode is altitude
-        const displayGndAlt = (this.tracks as RuntimeTrack[]).length == 1 && this.chartY == 'alt';
+        const displayGndAlt = this.tracks?.length == 1 && this.chartY == 'alt';
+        if (displayGndAlt && track.fixes.gndAlt) {
+          paths.push(...this.airspacePaths(track, minX, spanX, spanTrackTs, scaleY, offsetY));
+        }
         for (let x = minX; x < maxX; x++) {
-          const ts = ((x - minX) / xSpan) * trackTsSpan + track.minTs;
+          const ts = ((x - minX) / spanX) * spanTrackTs + track.minTs;
           const y = this.getY(track, ts);
-          coords.push(`${x},${(y * aY + bY).toFixed(1)}`);
+          trackCoords.push(`${x},${(y * scaleY + offsetY).toFixed(1)}`);
           if (displayGndAlt && track.fixes.gndAlt) {
             const gndAlt = sampleAt(track.fixes.ts, track.fixes.gndAlt, [ts])[0];
-            gndCoords.push(`${x},${(gndAlt * aY + bY).toFixed(1)}`);
+            gndCoords.push(`${x},${(gndAlt * scaleY + offsetY).toFixed(1)}`);
           }
         }
-        gndCoords.push(`${maxX},${(this.minY * aY + bY).toFixed(1)}`);
-        if (displayGndAlt) {
+        gndCoords.push(`${maxX},${(this.minY * scaleY + offsetY).toFixed(1)}`);
+        if (displayGndAlt && gndCoords.length > 4) {
           paths.push(svg`<path class=gnd d=${'M' + gndCoords.join('L')}></path>`);
         }
-        paths.push(svg`<path stroke=${trackColor(i)} filter="url(#shadow)" d=${'M' + coords.join('L')}></path>`);
+        if (trackCoords.length > 4) {
+          paths.push(svg`<path stroke=${trackColor(i)} filter="url(#shadow)" d=${'M' + trackCoords.join('L')}></path>`);
+        }
       });
     }
 
     return paths;
+  }
+
+  // Compute the SVG paths for the airspaces.
+  protected airspacePaths(
+    track: RuntimeTrack,
+    minX: number,
+    spanX: number,
+    spanTrackTs: number,
+    scaleY: number,
+    offsetY: number,
+  ): SVGTemplateResult[] {
+    const airspaces = track.airspaces;
+    if (airspaces == null) {
+      return [];
+    }
+    const paths: SVGTemplateResult[] = [];
+
+    for (let i = 0; i < airspaces.start_ts.length; i++) {
+      const flags = airspaces.flags[i];
+      if (!this.showRestricted && flags & Flags.AIRSPACE_RESTRICTED) {
+        continue;
+      }
+      const start = airspaces.start_ts[i];
+      const end = airspaces.end_ts[i];
+      const top = airspaces.top[i];
+      const bottom = airspaces.bottom[i];
+      const topRefGnd = flags & Flags.TOP_REF_GND;
+      const bottomRefGnd = flags & Flags.BOTTOM_REF_GND;
+      const coords = [
+        ...this.aspLine(track, start, end, minX, spanX, spanTrackTs, bottom, bottomRefGnd),
+        ...this.aspLine(track, end, start, minX, spanX, spanTrackTs, top, topRefGnd),
+      ];
+      if (coords.length < 4) {
+        continue;
+      }
+      coords.push(coords[0]);
+      const path = coords
+        .map(([time, alt]) => {
+          const x = ((time - track.minTs) / spanTrackTs) * spanX + minX;
+          const y = alt * scaleY + offsetY;
+          return `${x.toFixed(1)},${y.toFixed(1)}`;
+        })
+        .join('L');
+      paths.push(
+        svg`<path title=${`[${airspaces.category[i]}] ${airspaces.name[i]}`}  class=${`asp ${airspaceCategory(
+          airspaces.flags[i],
+        )}`} d=${'M' + path}></path>`,
+      );
+    }
+
+    return paths;
+  }
+
+  protected aspLine(
+    track: RuntimeTrack,
+    start: number,
+    end: number,
+    minX: number,
+    spanX: number,
+    spanTrackTs: number,
+    alt: number,
+    refGnd: number,
+  ): Array<[number, number]> {
+    if (!refGnd || !track.fixes.gndAlt) {
+      return [
+        [start, alt],
+        [end, alt],
+      ];
+    }
+    let reverse = false;
+    if (start > end) {
+      [start, end] = [end, start];
+      reverse = true;
+    }
+    const startX = Math.round(((start - track.minTs) / spanTrackTs) * spanX + minX);
+    const endX = Math.round(((end - track.minTs) / spanTrackTs) * spanX + minX);
+    const points: Array<[number, number]> = [];
+    for (let x = startX; x < endX; x++) {
+      const ts = ((x - minX) / spanX) * spanTrackTs + track.minTs;
+      const gndAlt = sampleAt(track.fixes.ts, track.fixes.gndAlt, [ts])[0];
+      points.push([ts, alt + gndAlt]);
+    }
+    return reverse ? points.reverse() : points;
   }
 
   protected axis(): TemplateResult[] {

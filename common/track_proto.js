@@ -68,6 +68,53 @@ GroundAltitudeGroup.write = function (obj, pbf) {
       pbf.writeMessage(1, GroundAltitude.write, obj.ground_altitudes[i]);
 };
 
+// Airspaces ========================================
+
+var Airspaces = (exports.Airspaces = {});
+
+Airspaces.read = function (pbf, end) {
+  return pbf.readFields(
+    Airspaces._readField,
+    { start_ts: [], end_ts: [], name: [], category: [], top: [], bottom: [], flags: [], has_errors: false },
+    end,
+  );
+};
+Airspaces._readField = function (tag, obj, pbf) {
+  if (tag === 1) pbf.readPackedSVarint(obj.start_ts);
+  else if (tag === 2) pbf.readPackedSVarint(obj.end_ts);
+  else if (tag === 3) obj.name.push(pbf.readString());
+  else if (tag === 4) obj.category.push(pbf.readString());
+  else if (tag === 5) pbf.readPackedSVarint(obj.top);
+  else if (tag === 6) pbf.readPackedSVarint(obj.bottom);
+  else if (tag === 7) pbf.readPackedVarint(obj.flags);
+  else if (tag === 8) obj.has_errors = pbf.readBoolean();
+};
+Airspaces.write = function (obj, pbf) {
+  if (obj.start_ts) for (var i = 0; i < obj.start_ts.length; i++) pbf.writeSVarintField(1, obj.start_ts[i]);
+  if (obj.end_ts) for (i = 0; i < obj.end_ts.length; i++) pbf.writeSVarintField(2, obj.end_ts[i]);
+  if (obj.name) for (i = 0; i < obj.name.length; i++) pbf.writeStringField(3, obj.name[i]);
+  if (obj.category) for (i = 0; i < obj.category.length; i++) pbf.writeStringField(4, obj.category[i]);
+  if (obj.top) for (i = 0; i < obj.top.length; i++) pbf.writeSVarintField(5, obj.top[i]);
+  if (obj.bottom) for (i = 0; i < obj.bottom.length; i++) pbf.writeSVarintField(6, obj.bottom[i]);
+  if (obj.flags) for (i = 0; i < obj.flags.length; i++) pbf.writeVarintField(7, obj.flags[i]);
+  if (obj.has_errors) pbf.writeBooleanField(8, obj.has_errors);
+};
+
+// AirspacesGroup ========================================
+
+var AirspacesGroup = (exports.AirspacesGroup = {});
+
+AirspacesGroup.read = function (pbf, end) {
+  return pbf.readFields(AirspacesGroup._readField, { airspaces: [] }, end);
+};
+AirspacesGroup._readField = function (tag, obj, pbf) {
+  if (tag === 1) obj.airspaces.push(Airspaces.read(pbf, pbf.readVarint() + pbf.pos));
+};
+AirspacesGroup.write = function (obj, pbf) {
+  if (obj.airspaces)
+    for (var i = 0; i < obj.airspaces.length; i++) pbf.writeMessage(1, Airspaces.write, obj.airspaces[i]);
+};
+
 // MetaTrackGroup ========================================
 
 var MetaTrackGroup = (exports.MetaTrackGroup = {});
@@ -75,7 +122,7 @@ var MetaTrackGroup = (exports.MetaTrackGroup = {});
 MetaTrackGroup.read = function (pbf, end) {
   return pbf.readFields(
     MetaTrackGroup._readField,
-    { id: 0, num_postprocess: 0, track_group_bin: null, ground_altitude_group_bin: null },
+    { id: 0, num_postprocess: 0, track_group_bin: null, ground_altitude_group_bin: null, airspaces_group_bin: null },
     end,
   );
 };
@@ -84,12 +131,14 @@ MetaTrackGroup._readField = function (tag, obj, pbf) {
   else if (tag === 2) obj.num_postprocess = pbf.readVarint();
   else if (tag === 3) obj.track_group_bin = pbf.readBytes();
   else if (tag === 4) obj.ground_altitude_group_bin = pbf.readBytes();
+  else if (tag === 5) obj.airspaces_group_bin = pbf.readBytes();
 };
 MetaTrackGroup.write = function (obj, pbf) {
   if (obj.id) pbf.writeVarintField(1, obj.id);
   if (obj.num_postprocess) pbf.writeVarintField(2, obj.num_postprocess);
   if (obj.track_group_bin) pbf.writeBytesField(3, obj.track_group_bin);
   if (obj.ground_altitude_group_bin) pbf.writeBytesField(4, obj.ground_altitude_group_bin);
+  if (obj.airspaces_group_bin) pbf.writeBytesField(5, obj.airspaces_group_bin);
 };
 
 // MetaTracks ========================================

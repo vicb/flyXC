@@ -13,7 +13,7 @@ import {
   saveTrack,
   TrackEntity,
 } from '../../../common/datastore';
-import { diffEncode, ProtoMetaTrackGroup, ProtoTrack } from '../../../common/track';
+import { diffEncodeTrack, ProtoMetaTrackGroup, ProtoTrack } from '../../../common/track';
 import * as protos from '../../../common/track_proto';
 import { parse as parseGpx } from './gpx';
 import { parse as parseIgc } from './igc';
@@ -90,7 +90,7 @@ export async function parse(content: string, srcUrl: string | null = null): Prom
 
   let id = -1;
   const pbf = new Pbf();
-  (protos.TrackGroup as any).write({ tracks: tracks.map(diffEncode) }, pbf);
+  (protos.TrackGroup as any).write({ tracks: tracks.map(diffEncodeTrack) }, pbf);
   const track_group_bin = Buffer.from(pbf.finish());
 
   // Save the entity in cache

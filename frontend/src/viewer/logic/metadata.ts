@@ -1,7 +1,14 @@
 import Pbf from 'pbf';
 import { ThunkDispatch } from 'redux-thunk';
 
-import { addGroundAltitude, ProtoGroundAltitude, ProtoMetaTrackGroup, RuntimeTrack } from '../../../../common/track';
+import {
+  addAirspaces,
+  addGroundAltitude,
+  ProtoAirspaces,
+  ProtoGroundAltitude,
+  ProtoMetaTrackGroup,
+  RuntimeTrack,
+} from '../../../../common/track';
 import * as protos from '../../../../common/track_proto';
 import { MapAction, receiveMetadata, setFetchingMetadata } from '../actions/map';
 import { RootState } from '../store';
@@ -36,6 +43,18 @@ export function patchMetadata(
       tracks.forEach((track) => {
         if (track.groupIndex != null && track.id == metaGroup.id) {
           addGroundAltitude(track, gndAltitudes[track.groupIndex]);
+          track.isPostProcessed = true;
+          tracks = [...tracks];
+        }
+      });
+    }
+    // Patch the airspaces.
+    if (metaGroup.airspaces_group_bin) {
+      const asp: ProtoAirspaces[] = (protos.AirspacesGroup as any).read(new Pbf(metaGroup.airspaces_group_bin))
+        .airspaces;
+      tracks.forEach((track) => {
+        if (track.groupIndex != null && track.id == metaGroup.id) {
+          addAirspaces(track, asp[track.groupIndex]);
           track.isPostProcessed = true;
           tracks = [...tracks];
         }

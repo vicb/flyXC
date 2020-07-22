@@ -29,6 +29,22 @@ message GroundAltitudeGroup {
   repeated GroundAltitude ground_altitudes = 1;
 }
 
+// Airspaces along a track.
+message Airspaces {
+  repeated sint32 start_ts = 1;
+  repeated sint32 end_ts = 2;
+  repeated string name = 3;
+  repeated string category = 4;
+  repeated sint32 top = 5;
+  repeated sint32 bottom = 6;
+  repeated uint32 flags = 7;
+  optional bool has_errors = 8;
+}
+
+message AirspacesGroup {
+  repeated Airspaces airspaces = 1;
+}
+
 message MetaTrackGroup {
   optional int64 id = 1;
   optional uint32 num_postprocess = 2;
@@ -37,6 +53,7 @@ message MetaTrackGroup {
   // The GroundAltitude can still have has_errors = true if not all the data
   // were retrieved correctly.
   optional bytes ground_altitude_group_bin = 4;
+  optional bytes airspaces_group_bin = 5;
 }
 
 message MetaTracks {

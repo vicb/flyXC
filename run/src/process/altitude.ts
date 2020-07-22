@@ -13,7 +13,7 @@ import lru, { Lru } from 'tiny-lru';
 import { decode } from '@vivaxy/png';
 
 import { tileCoordinates } from '../../../common/proj';
-import { diffEncodeArray, ProtoGroundAltitude, ProtoTrack } from '../../../common/track';
+import { ProtoGroundAltitude, ProtoTrack } from '../../../common/track';
 import { httpsGet } from './request';
 
 // Zoom level for the altitude tiles.
@@ -30,31 +30,19 @@ let rgbaCache: Lru<number[]> | null = null;
 const DEFAULT_RGBA_LRU_SIZE_MB = 80;
 const IMAGE_SIZE_MB = (TILE_PX_SIZE * TILE_PX_SIZE * 4) / (1000 * 1000);
 
-// Returns a lazily instantiated LRU for RGBA pixels.
-// Use the `RGBA_LRU_SIZE_MB` environment variable to override the capacity.
-function getRgbaCache(): Lru<number[]> {
-  if (rgbaCache == null) {
-    const mb = Number(process.env.RGBA_LRU_SIZE_MB || DEFAULT_RGBA_LRU_SIZE_MB);
-    const capacity = Math.floor(mb / IMAGE_SIZE_MB);
-    console.log(`RGBA LRU Capacity = ${capacity} - ${Math.round(capacity * IMAGE_SIZE_MB)}MB`);
-    rgbaCache = lru<number[]>(capacity);
-  }
-  return rgbaCache;
-}
-
-// Returns the ground altitudes for the track (differential encoded).
+// Returns the ground altitudes for the track.
 export async function fetchGroundAltitude(track: ProtoTrack): Promise<ProtoGroundAltitude> {
-  // Retrieve the list of files to download.
-  const files = track.lat.reduce((files: Set<string>, lat: number, i: number) => {
+  // Retrieve the list of urls to download.
+  const urls = track.lat.reduce((files: Set<string>, lat: number, i: number) => {
     const lon = track.lon[i];
     const { tile } = tileCoordinates({ lat, lon }, ZOOM_LEVEL);
     return files.add(getPngUrl(tile.x, tile.y, ZOOM_LEVEL));
   }, new Set<string>());
 
-  // Download the files.
+  // Download the tiles.
   let hasErrors = false;
   const rgbas = new Map<string, number[] | undefined>();
-  await async.eachLimit(Array.from(files), 5, async (url: string) => {
+  await async.eachLimit(Array.from(urls), 5, async (url: string) => {
     let rgba = getRgbaCache().get(url);
     if (rgba == null) {
       try {
@@ -89,7 +77,7 @@ export async function fetchGroundAltitude(track: ProtoTrack): Promise<ProtoGroun
   });
 
   return {
-    altitudes: diffEncodeArray(altitudes),
+    altitudes,
     has_errors: hasErrors,
   };
 }
@@ -97,4 +85,16 @@ export async function fetchGroundAltitude(track: ProtoTrack): Promise<ProtoGroun
 // Returns the url of a terrarium png image on the amazon public dataset.
 function getPngUrl(x: number, y: number, zoom: number): string {
   return `https://elevation-tiles-prod.s3.amazonaws.com/terrarium/${zoom}/${x}/${y}.png`;
+}
+
+// Returns a lazily instantiated LRU for RGBA pixels.
+// Use the `RGBA_LRU_SIZE_MB` environment variable to override the capacity.
+function getRgbaCache(): Lru<number[]> {
+  if (rgbaCache == null) {
+    const mb = Number(process.env.RGBA_LRU_SIZE_MB || DEFAULT_RGBA_LRU_SIZE_MB);
+    const capacity = Math.floor(mb / IMAGE_SIZE_MB);
+    console.log(`RGBA LRU Capacity = ${capacity} - ${Math.round(capacity * IMAGE_SIZE_MB)}MB`);
+    rgbaCache = lru<number[]>(capacity);
+  }
+  return rgbaCache;
 }

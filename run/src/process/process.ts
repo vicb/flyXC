@@ -6,8 +6,17 @@ import simplify from 'simplify-path';
 
 import { Keys } from '../../../app/src/keys';
 import { retrieveTrackById, saveTrack, TrackEntity } from '../../../common/datastore';
-import { diffDecode, ProtoGroundAltitude, ProtoTrack, ProtoTrackGroup } from '../../../common/track';
+import {
+  diffDecodeTrack,
+  diffEncodeAirspaces,
+  diffEncodeArray,
+  ProtoAirspaces,
+  ProtoGroundAltitude,
+  ProtoTrack,
+  ProtoTrackGroup,
+} from '../../../common/track';
 import * as protos from '../../../common/track_proto';
+import { fetchAirspaces } from './airspace';
 import { fetchGroundAltitude } from './altitude';
 
 // Post process a track adding metadata to it.
@@ -20,14 +29,31 @@ export async function postProcessTrack(trackId: number | string): Promise<TrackE
     if (trackGroupBin) {
       // Retrieve the tracks.
       const trackGroup: ProtoTrackGroup = (protos.TrackGroup as any).read(new Pbf(trackGroupBin));
-      const tracks: ProtoTrack[] = trackGroup.tracks.map(diffDecode);
+      const tracks: ProtoTrack[] = trackGroup.tracks.map(diffDecodeTrack);
 
       // Add ground altitude.
       const groundAltitudes: ProtoGroundAltitude[] = await async.mapSeries(tracks, fetchGroundAltitude);
       hasErrors = hasErrors || groundAltitudes.some((proto) => proto.has_errors);
-      const pbf = new Pbf();
-      (protos.GroundAltitudeGroup as any).write({ ground_altitudes: groundAltitudes }, pbf);
+      let pbf = new Pbf();
+      (protos.GroundAltitudeGroup as any).write(
+        {
+          ground_altitudes: groundAltitudes.map(({ altitudes, has_errors }) => ({
+            altitudes: diffEncodeArray(altitudes),
+            has_errors,
+          })),
+        },
+        pbf,
+      );
       trackEntity.ground_altitude_group = Buffer.from(pbf.finish());
+
+      // Add airspaces.
+      const airspaces: ProtoAirspaces[] = [];
+      await async.eachOfSeries(tracks, async (track, i) => {
+        airspaces.push(await fetchAirspaces(track, groundAltitudes[Number(i)]));
+      });
+      pbf = new Pbf();
+      (protos.AirspacesGroup as any).write({ airspaces: airspaces.map(diffEncodeAirspaces) }, pbf);
+      trackEntity.airspaces_group = Buffer.from(pbf.finish());
 
       const firstTrack = tracks[0];
       if (firstTrack != null) {

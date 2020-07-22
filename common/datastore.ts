@@ -15,11 +15,10 @@ const key_symbol: unique symbol = datastore.KEY;
 // They are automatically compressed and expanded when using the API in this file.
 export interface TrackEntity {
   [key_symbol]?: any;
+  airspaces_group?: ArrayBuffer;
   created: Date;
   city?: string;
   country?: string;
-  // TODO: delete after migration
-  data?: ArrayBuffer;
   // GroundAltitudeGroup.
   ground_altitude_group?: ArrayBuffer;
   // Whether there are some post-processing errors
@@ -45,11 +44,10 @@ export async function saveTrack(track: TrackEntity): Promise<number> {
 
   await datastore.save({
     key,
-    excludeFromIndexes: ['data', 'ground_altitude_group', 'path', 'track_group'],
+    excludeFromIndexes: ['airspaces_group', 'ground_altitude_group', 'path', 'track_group'],
     data: {
       ...track,
-      // TODO: delete after migration
-      data: zipOrUndefined(track.data),
+      airspaces_group: zipOrUndefined(track.airspaces_group),
       ground_altitude_group: zipOrUndefined(track.ground_altitude_group),
       track_group: zipOrUndefined(track.track_group),
     },
@@ -127,6 +125,7 @@ function entityToMetaTrackGroup(entity: TrackEntity): ProtoMetaTrackGroup {
     num_postprocess: entity.num_postprocess,
     track_group_bin: entity.track_group,
     ground_altitude_group_bin: entity.ground_altitude_group,
+    airspaces_group_bin: entity.airspaces_group,
   };
 }
 
@@ -142,8 +141,7 @@ function unzipOrUndefined(buffer: ArrayBuffer | undefined): ArrayBuffer | undefi
 function unzipEntity(track: TrackEntity): TrackEntity {
   return {
     ...track,
-    // TODO: delete after migration
-    data: unzipOrUndefined(track.data),
+    airspaces_group: unzipOrUndefined(track.airspaces_group),
     track_group: unzipOrUndefined(track.track_group),
     ground_altitude_group: unzipOrUndefined(track.ground_altitude_group),
   };
