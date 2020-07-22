@@ -10,14 +10,14 @@
 .git
 .gitignore
 
-track.proto
+.vscode/
+/airspaces
 /app/src/
+/common
+/docs
+/ds
 /frontend/src
 /run
-/airspaces
-/ds
 /tracks
-.vscode/
+# No node_modules in any folder
 node_modules/
-
-
