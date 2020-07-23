@@ -228,7 +228,6 @@ export function createRuntimeTracks(metaTracks: ArrayBuffer): RuntimeTrack[] {
     if (metaGroup.airspaces_group_bin) {
       const airspacesGroup = (protos.AirspacesGroup as any).read(new Pbf(metaGroup.airspaces_group_bin));
       airspacesGroup.airspaces.forEach((airspaces: ProtoAirspaces, i: number) => {
-        console.log(`addAirspace`, i, airspaces);
         addAirspaces(rtTracks[i], airspaces);
       });
     }
