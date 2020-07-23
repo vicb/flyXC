@@ -1,11 +1,20 @@
-import { css, CSSResult, customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
+import {
+  css,
+  CSSResult,
+  customElement,
+  html,
+  internalProperty,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+} from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { RootState, store } from '../store';
 
 @customElement('loader-element')
 export class LoaderElement extends connect(store)(LitElement) {
-  @property({ attribute: false })
+  @internalProperty()
   hidden = true;
 
   stateChanged(state: RootState): void {

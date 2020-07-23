@@ -4,22 +4,22 @@
 //
 // See https://developers.google.com/identity/sign-in/web.
 
-import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { css, CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 
 declare const gapi: any;
 
 @customElement('device-form')
 export class DeviceForm extends LitElement {
-  @property({ attribute: false })
+  @internalProperty()
   auth: any;
 
-  @property({ attribute: false })
+  @internalProperty()
   signedIn = false;
 
-  @property({ attribute: false })
+  @internalProperty()
   device = 'no';
 
-  @property({ attribute: false })
+  @internalProperty()
   changesSaved = false;
 
   constructor() {

@@ -1,11 +1,11 @@
-import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { css, CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 
 @customElement('flyxc-status')
 export class FlyXcStatusElement extends LitElement {
-  @property({ attribute: false })
+  @internalProperty()
   status: any = null;
 
-  @property({ attribute: false })
+  @internalProperty()
   timestamp: number | null = null;
 
   constructor() {

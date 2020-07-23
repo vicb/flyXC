@@ -1,4 +1,13 @@
-import { css, CSSResult, customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
+import {
+  css,
+  CSSResult,
+  customElement,
+  html,
+  internalProperty,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+} from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { setDistance, setLeague, setScore, setSpeed } from '../actions/map';
@@ -41,13 +50,13 @@ const WAYPOINT_FORMATS: { [id: string]: string } = {
 export class PathCtrlElement extends connect(store)(LitElement) {
   line: google.maps.Polyline | null = null;
 
-  @property({ attribute: false })
+  @internalProperty()
   expanded = false;
 
-  @property({ attribute: false })
+  @internalProperty()
   units: Units | null = null;
 
-  @property({ attribute: false })
+  @internalProperty()
   get map(): google.maps.Map | null {
     return this.map_;
   }
@@ -89,13 +98,13 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   }
   map_: google.maps.Map | null = null;
 
-  @property({ attribute: false })
+  @internalProperty()
   distance = 0;
 
-  @property({ attribute: false })
+  @internalProperty()
   speed = 0;
 
-  @property({ attribute: false })
+  @internalProperty()
   league = 'xc';
 
   initialPath: google.maps.LatLng[] | null = null;

@@ -1,4 +1,4 @@
-import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { css, CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { RuntimeFixes, RuntimeTrack } from '../../../../common/track';
@@ -34,26 +34,26 @@ export {
 
 @customElement('controls-element')
 export class ControlsElement extends connect(store)(LitElement) {
-  @property({ attribute: false })
+  @internalProperty()
   map: google.maps.Map | null = null;
 
-  @property({ attribute: false })
+  @internalProperty()
   timestamp = 0;
 
-  @property({ attribute: false })
+  @internalProperty()
   fixes: RuntimeFixes | null = null;
 
-  @property({ attribute: false })
+  @internalProperty()
   name: string | null = null;
 
-  @property({ attribute: false })
+  @internalProperty()
   tracks: RuntimeTrack[] | null = null;
 
-  @property({ attribute: false })
+  @internalProperty()
   units: Units | null = null;
 
-  @property({ attribute: false })
-  currentTrack: number | null = null;
+  @internalProperty()
+  currentTrackIndex: number | null = null;
 
   isInIframe = window.parent !== window;
 
@@ -65,7 +65,7 @@ export class ControlsElement extends connect(store)(LitElement) {
       this.name = mapSel.name(state.map);
       this.tracks = mapSel.tracks(state.map);
       this.units = state.map.units;
-      this.currentTrack = state.map.currentTrack;
+      this.currentTrackIndex = state.map.currentTrackIndex;
     }
   }
 
@@ -83,10 +83,10 @@ export class ControlsElement extends connect(store)(LitElement) {
 
   // Closes the current track.
   protected handleClose(): void {
-    if (this.currentTrack == null || this.tracks == null) {
+    if (this.currentTrackIndex == null || this.tracks == null) {
       return;
     }
-    const id = this.tracks[this.currentTrack].id;
+    const id = this.tracks[this.currentTrackIndex].id;
     if (id != null) {
       pushCurrentState();
       deleteUrlParamValue(ParamNames.TRACK_ID, String(id));
@@ -96,8 +96,8 @@ export class ControlsElement extends connect(store)(LitElement) {
 
   // Activates the next track.
   protected handleNext(): void {
-    if (this.currentTrack != null && this.tracks != null) {
-      const index = (this.currentTrack + 1) % this.tracks.length;
+    if (this.currentTrackIndex != null && this.tracks != null) {
+      const index = (this.currentTrackIndex + 1) % this.tracks.length;
       dispatch(setCurrentTrack(index));
     }
   }
@@ -121,7 +121,7 @@ export class ControlsElement extends connect(store)(LitElement) {
         ? html`
             <name-ctrl-element
               .name=${this.name}
-              .index=${this.currentTrack}
+              .index=${this.currentTrackIndex}
               .nbtracks=${this.tracks?.length || 0}
               @closeActiveTrack=${this.handleClose}
               @selectNextTrack=${this.handleNext}

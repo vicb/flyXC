@@ -1,4 +1,4 @@
-import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { css, CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { setDisplayLiveNames } from '../actions/map';
@@ -9,10 +9,10 @@ import { RootState, store } from '../store';
 
 @customElement('tracking-element')
 export class TrackingElement extends connect(store)(LitElement) {
-  @property({ attribute: false })
+  @internalProperty()
   private displayNames = true;
 
-  @property({ attribute: false })
+  @internalProperty()
   get map(): google.maps.Map | null {
     return this.map_;
   }

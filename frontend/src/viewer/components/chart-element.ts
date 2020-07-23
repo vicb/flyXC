@@ -4,9 +4,11 @@ import {
   CSSResult,
   customElement,
   html,
+  internalProperty,
   LitElement,
-  property,
   PropertyValues,
+  query,
+  queryAll,
   svg,
   SVGTemplateResult,
   TemplateResult,
@@ -15,46 +17,54 @@ import { connect } from 'pwa-helpers';
 
 import { airspaceCategory, Flags } from '../../../../common/airspaces';
 import { RuntimeTrack } from '../../../../common/track';
-import { setChartY } from '../actions/map';
+import { setChartAirspaces, setChartYAxis } from '../actions/map';
 import { trackColor } from '../logic/map';
 import { sampleAt } from '../logic/math';
 import { formatUnit, UNITS } from '../logic/units';
-import { Units } from '../reducers/map';
+import { ChartYAxis, Units } from '../reducers/map';
 import * as mapSel from '../selectors/map';
 import { RootState, store } from '../store';
 
 @customElement('chart-element')
 export class ChartElement extends connect(store)(LitElement) {
-  @property({ attribute: false })
+  @internalProperty()
   tracks: RuntimeTrack[] | null = null;
 
-  @property({ attribute: false })
-  chartY: string | null = null;
+  @internalProperty()
+  chartYAxis: ChartYAxis = ChartYAxis.Altitude;
 
-  @property({ attribute: false })
+  @internalProperty()
   ts = 0;
 
-  @property({ attribute: false })
+  @internalProperty()
   width = 0;
 
-  @property({ attribute: false })
+  @internalProperty()
   height = 0;
 
-  @property({ attribute: false })
+  @internalProperty()
   units: Units | null = null;
 
-  @property({ attribute: false })
+  @internalProperty()
   showRestricted = false;
+
+  @queryAll('path.asp')
+  aspPathElements: NodeList | undefined;
+
+  @query('svg#chart')
+  svgContainer: SVGSVGElement | undefined;
 
   minTs = 0;
   maxTs = 1;
   tsOffsets: number[] = [];
+  // Do not refresh airspaces on every mouse move event.
+  throttleAspUpdates = false;
 
   stateChanged(state: RootState): void {
     if (state.map) {
       const map = state.map;
       this.tracks = map.tracks;
-      this.chartY = map.chartY;
+      this.chartYAxis = map.chart.yAxis;
       this.ts = map.ts;
       this.minTs = mapSel.minTs(map);
       this.maxTs = mapSel.maxTs(map);
@@ -66,10 +76,10 @@ export class ChartElement extends connect(store)(LitElement) {
 
   get minY(): number {
     const mapState = store.getState().map;
-    switch (this.chartY) {
-      case 'speed':
+    switch (this.chartYAxis) {
+      case ChartYAxis.Speed:
         return mapSel.minSpeed(mapState);
-      case 'vario':
+      case ChartYAxis.Vario:
         return mapSel.minVario(mapState);
       default:
         return mapSel.minAlt(mapState);
@@ -78,10 +88,10 @@ export class ChartElement extends connect(store)(LitElement) {
 
   get maxY(): number {
     const mapState = store.getState().map;
-    switch (this.chartY) {
-      case 'speed':
+    switch (this.chartYAxis) {
+      case ChartYAxis.Speed:
         return mapSel.maxSpeed(mapState);
-      case 'vario':
+      case ChartYAxis.Vario:
         return mapSel.maxVario(mapState);
       default:
         return mapSel.maxAlt(mapState);
@@ -89,10 +99,10 @@ export class ChartElement extends connect(store)(LitElement) {
   }
 
   protected getY(track: RuntimeTrack, ts: number): number {
-    switch (this.chartY) {
-      case 'speed':
+    switch (this.chartYAxis) {
+      case ChartYAxis.Speed:
         return sampleAt(track.fixes.ts, track.fixes.vx, [ts])[0];
-      case 'vario':
+      case ChartYAxis.Vario:
         return sampleAt(track.fixes.ts, track.fixes.vz, [ts])[0];
       default:
         return sampleAt(track.fixes.ts, track.fixes.alt, [ts])[0];
@@ -101,10 +111,10 @@ export class ChartElement extends connect(store)(LitElement) {
 
   protected getYUnit(): UNITS {
     const units = this.units as Units;
-    switch (this.chartY) {
-      case 'speed':
+    switch (this.chartYAxis) {
+      case ChartYAxis.Speed:
         return units.speed;
-      case 'vario':
+      case ChartYAxis.Vario:
         return units.vario;
       default:
         return units.altitude;
@@ -137,8 +147,8 @@ export class ChartElement extends connect(store)(LitElement) {
         .asp {
           stroke: #808080;
           fill: #808080;
-          fill-opacity: 0.4;
-          stroke-opacity: 0.6;
+          fill-opacity: 0.2;
+          stroke-opacity: 0.3;
         }
         .asp.prohibited {
           stroke: #bf4040;
@@ -203,7 +213,7 @@ export class ChartElement extends connect(store)(LitElement) {
         const trackCoords: string[] = [];
         const gndCoords = [`${minX},${(this.minY * scaleY + offsetY).toFixed(1)}`];
         // Display the gnd elevation only if there is a single track & mode is altitude
-        const displayGndAlt = this.tracks?.length == 1 && this.chartY == 'alt';
+        const displayGndAlt = this.tracks?.length == 1 && this.chartYAxis == ChartYAxis.Altitude;
         if (displayGndAlt && track.fixes.gndAlt) {
           paths.push(...this.airspacePaths(track, minX, spanX, spanTrackTs, scaleY, offsetY));
         }
@@ -238,21 +248,21 @@ export class ChartElement extends connect(store)(LitElement) {
     scaleY: number,
     offsetY: number,
   ): SVGTemplateResult[] {
-    const airspaces = track.airspaces;
-    if (airspaces == null) {
+    const asp = track.airspaces;
+    if (asp == null) {
       return [];
     }
     const paths: SVGTemplateResult[] = [];
 
-    for (let i = 0; i < airspaces.start_ts.length; i++) {
-      const flags = airspaces.flags[i];
+    for (let i = 0; i < asp.start_ts.length; i++) {
+      const flags = asp.flags[i];
       if (!this.showRestricted && flags & Flags.AIRSPACE_RESTRICTED) {
         continue;
       }
-      const start = airspaces.start_ts[i];
-      const end = airspaces.end_ts[i];
-      const top = airspaces.top[i];
-      const bottom = airspaces.bottom[i];
+      const start = asp.start_ts[i];
+      const end = asp.end_ts[i];
+      const top = asp.top[i];
+      const bottom = asp.bottom[i];
       const topRefGnd = flags & Flags.TOP_REF_GND;
       const bottomRefGnd = flags & Flags.BOTTOM_REF_GND;
       const coords = [
@@ -271,8 +281,8 @@ export class ChartElement extends connect(store)(LitElement) {
         })
         .join('L');
       paths.push(
-        svg`<path title=${`[${airspaces.category[i]}] ${airspaces.name[i]}`}  class=${`asp ${airspaceCategory(
-          airspaces.flags[i],
+        svg`<path data-start=${start} data-end=${end} title=${`[${asp.category[i]}] ${asp.name[i]}`}  class=${`asp ${airspaceCategory(
+          flags,
         )}`} d=${'M' + path}></path>`,
       );
     }
@@ -424,16 +434,16 @@ export class ChartElement extends connect(store)(LitElement) {
         <line id="ts" x1="0" x2="0" y2="100%"></line>
       </svg>
       <select @change=${this.handleYChange}>
-        <option value="alt" selected>Altitude</option>
-        <option value="speed">Speed</option>
-        <option value="vario">Vario</option>
+        <option value=${ChartYAxis.Altitude} selected>Altitude</option>
+        <option value=${ChartYAxis.Speed}>Speed</option>
+        <option value=${ChartYAxis.Vario}>Vario</option>
       </select>
     `;
   }
 
   protected handleYChange(e: Event): void {
-    const axis: string = (e.target as HTMLSelectElement).value;
-    store.dispatch(setChartY(axis));
+    const y: ChartYAxis = Number((e.target as HTMLSelectElement).value);
+    store.dispatch(setChartYAxis(y));
   }
 
   protected tsX(): number {
@@ -447,7 +457,31 @@ export class ChartElement extends connect(store)(LitElement) {
       const ts = (x / this.width) * (this.maxTs - this.minTs) + this.minTs;
       this.dispatchEvent(new CustomEvent(name, { detail: { ts, event } }));
       event.preventDefault();
+      if (!this.throttleAspUpdates) {
+        const y = event.clientY - target.getBoundingClientRect().top;
+        this.updateAirspaces(x, y, ts);
+        this.throttleAspUpdates = true;
+        setTimeout(() => (this.throttleAspUpdates = false), 100);
+      }
     };
+  }
+
+  protected updateAirspaces(x: number, y: number, ts: number): void {
+    const airspaces: string[] = [];
+    if (this.svgContainer && this.aspPathElements) {
+      const point = this.svgContainer.createSVGPoint();
+      point.x = x;
+      point.y = y;
+      this.aspPathElements?.forEach((node: Node) => {
+        const geometry = node as SVGGeometryElement;
+        const start = Number(geometry.getAttribute('data-start'));
+        const end = Number(geometry.getAttribute('data-end'));
+        if (ts >= start && ts <= end && geometry.isPointInFill(point)) {
+          airspaces.push(geometry.getAttribute('title') as string);
+        }
+      });
+    }
+    store.dispatch(setChartAirspaces(ts, airspaces));
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {

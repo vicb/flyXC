@@ -14,7 +14,8 @@ import {
   SET_ALTITUDE_UNIT,
   SET_ASP_ALTITUDE,
   SET_ASP_SHOW_RESTRICTED,
-  SET_CHART_Y,
+  SET_CHART_AIRSPACES,
+  SET_CHART_Y_AXIS,
   SET_CURRENT_TRACK,
   SET_DISPLAY_LIVE_NAMES,
   SET_DISPLAY_NAMES,
@@ -45,19 +46,34 @@ export interface Units {
   vario: UNITS;
 }
 
+// Y axis of the chart.
+export const enum ChartYAxis {
+  Altitude,
+  Speed,
+  Vario,
+}
+
 export interface MapState {
   aspAltitude: number;
   aspShowRestricted: boolean;
-  chartY: string;
-  currentTrack: number;
+  chart: {
+    yAxis: ChartYAxis;
+    ts: number;
+    airspaces: string[];
+  };
+  currentTrackIndex: number;
+  // Display pilot labels for live tracks.
   displayLiveNames: boolean;
+  // Display pilot labels for tracks.
   displayNames: boolean;
   distance: number;
   league: string;
   loading: boolean;
   map: google.maps.Map;
   metadata: {
+    // Map from track id to when we started fetching metadata.
     idStartedOn: { [id: number]: number };
+    // Whether we are currently periodically fetching metadata.
     isFetching: boolean;
   };
   score: Score | null;
@@ -70,8 +86,12 @@ export interface MapState {
 const INITIAL_STATE: MapState = {
   aspAltitude: 1000,
   aspShowRestricted: true,
-  chartY: 'alt',
-  currentTrack: 0,
+  chart: {
+    yAxis: ChartYAxis.Altitude,
+    ts: 0,
+    airspaces: [],
+  },
+  currentTrackIndex: 0,
   displayLiveNames: true,
   displayNames: false,
   distance: 0,
@@ -165,7 +185,7 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
 
     case SET_CURRENT_TRACK: {
       const { index } = action.payload;
-      return { ...state, currentTrack: index };
+      return { ...state, currentTrackIndex: index };
     }
 
     case SET_ASP_ALTITUDE: {
@@ -180,28 +200,28 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
 
     case CLOSE_ACTIVE_TRACK: {
       const tracks = [...state.tracks];
-      tracks.splice(state.currentTrack, 1);
+      tracks.splice(state.currentTrackIndex, 1);
       const currentTrack = 0;
       const ts = tracks.length ? tracks[currentTrack].fixes.ts[0] : 0;
-      return { ...state, tracks, currentTrack, ts };
+      return { ...state, tracks, currentTrackIndex: currentTrack, ts };
     }
 
     case CLOSE_TRACK_BY_ID: {
       const { id } = action.payload;
       const tracks = state.tracks.filter((track) => track.id != id);
       // Set the first track as active when closing the active track.
-      const currentTrack = state.tracks[state.currentTrack].id === id ? 0 : state.currentTrack;
+      const currentTrack = state.tracks[state.currentTrackIndex].id === id ? 0 : state.currentTrackIndex;
       const ts = tracks.length ? tracks[currentTrack].fixes.ts[0] : 0;
-      return { ...state, tracks, currentTrack, ts };
+      return { ...state, tracks, currentTrackIndex: currentTrack, ts };
     }
 
     case SET_LOADING:
       const { loading } = action.payload;
       return { ...state, loading };
 
-    case SET_CHART_Y: {
+    case SET_CHART_Y_AXIS: {
       const { y } = action.payload;
-      return { ...state, chartY: y };
+      return { ...state, chart: { ...state.chart, yAxis: y } };
     }
 
     case SET_SCORE: {
@@ -231,31 +251,26 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
 
     case SET_LEAGUE: {
       const { league } = action.payload;
-      cookies({ league });
       return { ...state, league };
     }
 
     case SET_SPEED_UNIT: {
       const { unit } = action.payload;
-      cookies({ 'unit.speed': unit });
       return { ...state, units: { ...state.units, speed: unit } };
     }
 
     case SET_DISTANCE_UNIT: {
       const { unit } = action.payload;
-      cookies({ 'unit.distance': unit });
       return { ...state, units: { ...state.units, distance: unit } };
     }
 
     case SET_ALTITUDE_UNIT: {
       const { unit } = action.payload;
-      cookies({ 'unit.altitude': unit });
       return { ...state, units: { ...state.units, altitude: unit } };
     }
 
     case SET_VARIO_UNIT: {
       const { unit } = action.payload;
-      cookies({ 'unit.vario': unit });
       return { ...state, units: { ...state.units, vario: unit } };
     }
 
@@ -267,6 +282,11 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
     case SET_DISPLAY_LIVE_NAMES: {
       const { enabled } = action.payload;
       return { ...state, displayLiveNames: enabled };
+    }
+
+    case SET_CHART_AIRSPACES: {
+      const { ts, airspaces } = action.payload;
+      return { ...state, chart: { ...state.chart, ts, airspaces } };
     }
 
     default:

@@ -6,10 +6,10 @@ import { MapState, Units } from '../reducers/map';
 
 export const league = (state: MapState): string => state.league;
 export const tracks = (state: MapState): RuntimeTrack[] => state.tracks;
-export const trackIndex = (state: MapState): number => state.currentTrack;
+export const currentTrackIndex = (state: MapState): number => state.currentTrackIndex;
 export const aspAltitude = (state: MapState): number => state.aspAltitude;
 export const units = (state: MapState): Units => state.units;
-export const activeTrack = createSelector(tracks, trackIndex, (tracks, idx) => (tracks ? tracks[idx] : null));
+export const activeTrack = createSelector(tracks, currentTrackIndex, (tracks, idx) => (tracks ? tracks[idx] : null));
 export const activeFixes = createSelector(activeTrack, (track) => (track ? track.fixes : null));
 export const name = createSelector(activeTrack, (track) => (track ? track.name : ''));
 export const altitudeUnits = createSelector(units, (units) => units.altitude);
@@ -26,7 +26,7 @@ export const isMultiDay = createSelector(tracks, (tracks) => {
 
 // offset to subtract to each track timestamp to have them started
 // at the same time as the current one
-export const tsOffsets = createSelector(tracks, trackIndex, isMultiDay, (tracks, trackIndex, isMultiDay) => {
+export const tsOffsets = createSelector(tracks, currentTrackIndex, isMultiDay, (tracks, trackIndex, isMultiDay) => {
   if (tracks.length == 0) {
     return [];
   }

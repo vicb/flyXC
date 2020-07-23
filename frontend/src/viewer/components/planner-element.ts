@@ -1,4 +1,13 @@
-import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import {
+  css,
+  CSSResult,
+  customElement,
+  html,
+  internalProperty,
+  LitElement,
+  property,
+  TemplateResult,
+} from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { decrementSpeed, incrementSpeed, setSpeed } from '../actions/map';
@@ -10,19 +19,19 @@ import { RootState, store } from '../store';
 
 @customElement('planner-element')
 export class PlannerElement extends connect(store)(LitElement) {
-  @property({ attribute: false })
+  @internalProperty()
   score: Score | null = null;
 
-  @property({ attribute: false })
+  @internalProperty()
   speed: number | null = null;
 
-  @property({ attribute: false })
+  @internalProperty()
   league = 'xc';
 
-  @property({ attribute: false })
+  @internalProperty()
   units: Units | null = null;
 
-  @property({ attribute: false })
+  @internalProperty()
   distance = 0;
 
   @property()

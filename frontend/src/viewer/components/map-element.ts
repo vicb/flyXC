@@ -1,7 +1,7 @@
 import '@ui5/webcomponents/dist/Assets.js';
 
 import cookies from 'cookiesjs';
-import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
+import { customElement, html, internalProperty, LitElement, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { findClosestFix } from '../../../../common/distance';
@@ -54,20 +54,20 @@ window.initMap = (): boolean => window.dispatchEvent(new CustomEvent('google-map
 
 @customElement('map-element')
 export class MapElement extends connect(store)(LitElement) {
-  @property({ attribute: false })
+  @internalProperty()
   tracks: RuntimeTrack[] | null = null;
 
-  @property({ attribute: false })
+  @internalProperty()
   timestamp = 0;
 
-  @property({ attribute: false })
+  @internalProperty()
   aspAltitude = 1;
 
-  @property({ attribute: false })
+  @internalProperty()
   map: google.maps.Map | null = null;
 
-  @property({ attribute: false })
-  currentTrack = 0;
+  @internalProperty()
+  currentTrackIndex = 0;
 
   stateChanged(state: RootState): void {
     if (state.map) {
@@ -75,7 +75,7 @@ export class MapElement extends connect(store)(LitElement) {
       this.timestamp = state.map.ts;
       this.aspAltitude = state.map.aspAltitude;
       this.map = state.map.map;
-      this.currentTrack = state.map.currentTrack;
+      this.currentTrackIndex = state.map.currentTrackIndex;
     }
   }
 
@@ -179,9 +179,9 @@ export class MapElement extends connect(store)(LitElement) {
               .track=${track}
               .timestamp=${this.timestamp}
               .index=${i}
-              .active=${i == this.currentTrack}
+              .active=${i == this.currentTrackIndex}
             ></gm-marker>
-            <gm-line .map=${this.map} .track=${track} .index=${i} .active=${i == this.currentTrack}></gm-line>
+            <gm-line .map=${this.map} .track=${track} .index=${i} .active=${i == this.currentTrackIndex}></gm-line>
           `,
       )}
     `;
@@ -210,7 +210,7 @@ export class MapElement extends connect(store)(LitElement) {
 
   protected centerMap(e: CustomEvent): void {
     const state = store.getState().map;
-    const fixes = state.tracks[state.currentTrack].fixes;
+    const fixes = state.tracks[state.currentTrackIndex].fixes;
     const lat = sampleAt(fixes.ts, fixes.lat, [e.detail.ts])[0];
     const lng = sampleAt(fixes.ts, fixes.lon, [e.detail.ts])[0];
     (this.map as google.maps.Map).setCenter({ lat, lng });

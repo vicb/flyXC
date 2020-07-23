@@ -78,7 +78,7 @@ export class AboutElement extends LitElement {
               >Line Awesome icon font from
               <a href="https://icons8.com/line-awesome" target="_blank">icons8</a>
             </ui5-label>
-          </div>          
+          </div>
           <br />
           <div>
             <ui5-label>build <%BUILD%></ui5-label>

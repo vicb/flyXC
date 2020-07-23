@@ -1,4 +1,4 @@
-import { customElement, LitElement, property } from 'lit-element';
+import { customElement, internalProperty, LitElement, property } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { RuntimeTrack } from '../../../../common/track';
@@ -28,10 +28,10 @@ export class GmMarkerElement extends connect(store)(LitElement) {
   @property()
   index = 0;
 
-  @property({ attribute: false })
+  @internalProperty()
   units: any = null;
 
-  @property({ attribute: false })
+  @internalProperty()
   displayNames = true;
 
   protected tsOffsets: number[] = [];

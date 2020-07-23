@@ -1,8 +1,17 @@
-import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import {
+  css,
+  CSSResult,
+  customElement,
+  html,
+  internalProperty,
+  LitElement,
+  property,
+  TemplateResult,
+} from 'lit-element';
 
 @customElement('expand-ctrl-element')
 export class ExpandElement extends LitElement {
-  @property({ attribute: false })
+  @internalProperty()
   expanded = false;
 
   @property()
@@ -13,17 +22,15 @@ export class ExpandElement extends LitElement {
   constructor() {
     super();
     const fs = document.getElementsByClassName('fs-enabled');
-    if (fs && fs.length) {
+    if (fs?.length) {
       const el = (this.element = fs[0]);
       el.addEventListener('fullscreenchange', () => {
         this.expanded = document.fullscreenElement != null;
       });
     }
     window.addEventListener('fullscreenchange', () => {
-      if (this.map) {
-        // Switch back to 'auto' when full screen is exited by pressing the ESC key.
-        this.map.setOptions({ gestureHandling: document.fullscreenElement ? 'greedy' : 'auto' });
-      }
+      // Switch back to 'auto' when full screen is exited by pressing the ESC key.
+      this.map?.setOptions({ gestureHandling: document.fullscreenElement ? 'greedy' : 'auto' });
     });
   }
 
@@ -56,11 +63,9 @@ export class ExpandElement extends LitElement {
         document.exitFullscreen();
       }
     }
-    if (this.map) {
-      // In full screen mode the gesture handling must be greedy.
-      // Using ctrl (+ scroll) is unnecessary as thr page can not scroll anyway.
-      this.map.setOptions({ gestureHandling: this.expanded ? 'greedy' : 'auto' });
-    }
+    // In full screen mode the gesture handling must be greedy.
+    // Using ctrl (+ scroll) is unnecessary as thr page can not scroll anyway.
+    this.map?.setOptions({ gestureHandling: this.expanded ? 'greedy' : 'auto' });
   }
 
   render(): TemplateResult {

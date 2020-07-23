@@ -1,4 +1,13 @@
-import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import {
+  css,
+  CSSResult,
+  customElement,
+  html,
+  internalProperty,
+  LitElement,
+  property,
+  TemplateResult,
+} from 'lit-element';
 
 import { RuntimeFixes } from '../../../../common/track';
 import { sampleAt } from '../logic/math';
@@ -12,7 +21,7 @@ export class DashboardElement extends LitElement {
   @property()
   fixes: RuntimeFixes | null = null;
 
-  @property({ attribute: false })
+  @internalProperty()
   units: { [type: string]: UNITS } | null = null;
 
   static get styles(): CSSResult[] {

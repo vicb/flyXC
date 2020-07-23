@@ -1,3 +1,4 @@
+import cookies from 'cookiesjs';
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction, ThunkDispatch } from 'redux-thunk';
 
@@ -6,36 +7,37 @@ import { addUrlParamValue, ParamNames } from '../logic/history';
 import { scheduleMetadataFetch } from '../logic/metadata';
 import { Score } from '../logic/score/scorer';
 import { UNITS } from '../logic/units';
-import { MapState } from '../reducers/map';
+import { ChartYAxis, MapState } from '../reducers/map';
 import { RootState } from '../store';
 
-export const SET_MAP = 'SET_MAP';
 export const ADD_TRACKS = 'ADD_TRACKS';
-export const MOVE_CLOSE_TO = 'MOVE_CLOSE_TO';
-export const ZOOM_TRACKS = 'ZOOM_TRACKS';
-export const SET_TS = 'SET_TS';
-export const SET_CURRENT_TRACK = 'SET_CURRENT_TRACK';
-export const SET_ASP_ALTITUDE = 'SET_ASP_ALTITUDE';
-export const SET_ASP_SHOW_RESTRICTED = 'SET_ASP_SHOW_RESTRICTED';
 export const CLOSE_ACTIVE_TRACK = 'CLOSE_ACTIVE_TRACK';
 export const CLOSE_TRACK_BY_ID = 'CLOSE_TRACK_BY_ID';
-export const SET_LOADING = 'SET_LOADING';
-export const SET_CHART_Y = 'SET_CHART_Y';
-export const SET_SCORE = 'SET_SCORE';
-export const SET_DISTANCE = 'SET_DISTANCE';
-export const INCREMENT_SPEED = 'INCREMENT_SPEED';
 export const DECREMENT_SPEED = 'DECREMENT_SPEED';
-export const SET_SPEED = 'SET_SPEED';
-export const SET_LEAGUE = 'SET_LEAGUE';
-export const SET_SPEED_UNIT = 'SET_SPEED_UNIT';
-export const SET_DISTANCE_UNIT = 'SET_DISTANCE_UNIT';
-export const SET_ALTITUDE_UNIT = 'SET_ALTITUDE_UNIT';
-export const SET_VARIO_UNIT = 'SET_VARIO_UNIT';
 export const FETCH_METADATA = 'FETCH_METADATA';
+export const INCREMENT_SPEED = 'INCREMENT_SPEED';
+export const MOVE_CLOSE_TO = 'MOVE_CLOSE_TO';
 export const RECEIVE_METADATA = 'RECEIVE_METADATA';
-export const SET_FETCHING_METADATA = 'SET_FETCHING_METADATA';
-export const SET_DISPLAY_NAMES = 'SET_DISPLAY_NAMES';
+export const SET_ALTITUDE_UNIT = 'SET_ALTITUDE_UNIT';
+export const SET_ASP_ALTITUDE = 'SET_ASP_ALTITUDE';
+export const SET_ASP_SHOW_RESTRICTED = 'SET_ASP_SHOW_RESTRICTED';
+export const SET_CHART_AIRSPACES = 'SET_CHART_ASP';
+export const SET_CHART_Y_AXIS = 'SET_CHART_Y_AXIS';
+export const SET_CURRENT_TRACK = 'SET_CURRENT_TRACK';
 export const SET_DISPLAY_LIVE_NAMES = 'SET_DISPLAY_LIVES_NAMES';
+export const SET_DISPLAY_NAMES = 'SET_DISPLAY_NAMES';
+export const SET_DISTANCE = 'SET_DISTANCE';
+export const SET_DISTANCE_UNIT = 'SET_DISTANCE_UNIT';
+export const SET_FETCHING_METADATA = 'SET_FETCHING_METADATA';
+export const SET_LEAGUE = 'SET_LEAGUE';
+export const SET_LOADING = 'SET_LOADING';
+export const SET_MAP = 'SET_MAP';
+export const SET_SCORE = 'SET_SCORE';
+export const SET_SPEED = 'SET_SPEED';
+export const SET_SPEED_UNIT = 'SET_SPEED_UNIT';
+export const SET_TS = 'SET_TS';
+export const SET_VARIO_UNIT = 'SET_VARIO_UNIT';
+export const ZOOM_TRACKS = 'ZOOM_TRACKS';
 
 // Actions
 
@@ -78,8 +80,8 @@ export interface SetLoading extends Action<typeof SET_LOADING> {
   payload: { loading: boolean };
 }
 
-export interface SetChartY extends Action<typeof SET_CHART_Y> {
-  payload: { y: string };
+export interface SetChartYAxis extends Action<typeof SET_CHART_Y_AXIS> {
+  payload: { y: ChartYAxis };
 }
 
 export interface SetScore extends Action<typeof SET_SCORE> {
@@ -137,6 +139,10 @@ export interface SetDisplayLiveNames extends Action<typeof SET_DISPLAY_LIVE_NAME
   payload: { enabled: boolean };
 }
 
+export interface SetChartAirspaces extends Action<typeof SET_CHART_AIRSPACES> {
+  payload: { ts: number; airspaces: string[] };
+}
+
 export type MapThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action>;
 
 export type MapAction =
@@ -151,10 +157,11 @@ export type MapAction =
   | SetAltitudeUnit
   | SetAspAltitude
   | SetAspShowRestricted
-  | SetChartY
+  | SetChartAirspaces
+  | SetChartYAxis
   | SetCurrentTrack
-  | SetDisplayNames
   | SetDisplayLiveNames
+  | SetDisplayNames
   | SetDistance
   | SetDistanceUnit
   | SetFetchingMetadata
@@ -254,8 +261,8 @@ export const setLoading: ActionCreator<SetLoading> = (loading: boolean) => ({
   payload: { loading },
 });
 
-export const setChartY: ActionCreator<SetChartY> = (y: string) => ({
-  type: SET_CHART_Y,
+export const setChartYAxis: ActionCreator<SetChartYAxis> = (y: ChartYAxis) => ({
+  type: SET_CHART_Y_AXIS,
   payload: { y },
 });
 
@@ -278,30 +285,45 @@ export const setSpeed: ActionCreator<SetSpeed> = (speed: number) => ({
   payload: { speed },
 });
 
-export const setLeague: ActionCreator<SetLeague> = (league: string) => ({
-  type: SET_LEAGUE,
-  payload: { league },
-});
+export const setLeague: ActionCreator<SetLeague> = (league: string) => {
+  cookies({ league });
+  return {
+    type: SET_LEAGUE,
+    payload: { league },
+  };
+};
 
-export const setSpeedUnit: ActionCreator<SetSpeedUnit> = (unit: UNITS) => ({
-  type: SET_SPEED_UNIT,
-  payload: { unit },
-});
+export const setSpeedUnit: ActionCreator<SetSpeedUnit> = (unit: UNITS) => {
+  cookies({ 'unit.speed': unit });
+  return {
+    type: SET_SPEED_UNIT,
+    payload: { unit },
+  };
+};
 
-export const setDistanceUnit: ActionCreator<SetDistanceUnit> = (unit: UNITS) => ({
-  type: SET_DISTANCE_UNIT,
-  payload: { unit },
-});
+export const setDistanceUnit: ActionCreator<SetDistanceUnit> = (unit: UNITS) => {
+  cookies({ 'unit.distance': unit });
+  return {
+    type: SET_DISTANCE_UNIT,
+    payload: { unit },
+  };
+};
 
-export const setAltitudeUnit: ActionCreator<SetAltitudeUnit> = (unit: UNITS) => ({
-  type: SET_ALTITUDE_UNIT,
-  payload: { unit },
-});
+export const setAltitudeUnit: ActionCreator<SetAltitudeUnit> = (unit: UNITS) => {
+  cookies({ 'unit.altitude': unit });
+  return {
+    type: SET_ALTITUDE_UNIT,
+    payload: { unit },
+  };
+};
 
-export const setVarioUnit: ActionCreator<SetVarioUnit> = (unit: UNITS) => ({
-  type: SET_VARIO_UNIT,
-  payload: { unit },
-});
+export const setVarioUnit: ActionCreator<SetVarioUnit> = (unit: UNITS) => {
+  cookies({ 'unit.vario': unit });
+  return {
+    type: SET_VARIO_UNIT,
+    payload: { unit },
+  };
+};
 
 export const setDisplayNames: ActionCreator<SetDisplayNames> = (enabled: boolean) => ({
   type: SET_DISPLAY_NAMES,
@@ -311,4 +333,9 @@ export const setDisplayNames: ActionCreator<SetDisplayNames> = (enabled: boolean
 export const setDisplayLiveNames: ActionCreator<SetDisplayLiveNames> = (enabled: boolean) => ({
   type: SET_DISPLAY_LIVE_NAMES,
   payload: { enabled },
+});
+
+export const setChartAirspaces: ActionCreator<SetChartAirspaces> = (ts: number, airspaces: string[]) => ({
+  type: SET_CHART_AIRSPACES,
+  payload: { ts, airspaces },
 });
