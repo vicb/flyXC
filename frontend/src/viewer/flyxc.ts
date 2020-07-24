@@ -1,9 +1,11 @@
-import '@ui5/webcomponents/dist/Dialog';
-import '@ui5/webcomponents/dist/Label';
-import '@ui5/webcomponents/dist/Input';
 import '@ui5/webcomponents/dist/Button';
+import '@ui5/webcomponents/dist/Dialog';
+import '@ui5/webcomponents/dist/Icon';
+import '@ui5/webcomponents/dist/Input';
+import '@ui5/webcomponents/dist/Label';
 import '@ui5/webcomponents/dist/Option';
 import '@ui5/webcomponents/dist/Select';
+import '@ui5/webcomponents/dist/Toast';
 
 import { customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';

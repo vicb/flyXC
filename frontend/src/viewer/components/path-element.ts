@@ -6,6 +6,7 @@ import {
   internalProperty,
   LitElement,
   PropertyValues,
+  query,
   TemplateResult,
 } from 'lit-element';
 import { connect } from 'pwa-helpers';
@@ -108,6 +109,12 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   @internalProperty()
   league = 'xc';
 
+  @query('#share-dialog')
+  shareDialog?: any;
+
+  @query('#download-dialog')
+  downloadDialog?: any;
+
   initialPath: google.maps.LatLng[] | null = null;
   onAddPoint: google.maps.MapsEventListener | null = null;
   flight: google.maps.Polyline | null = null;
@@ -168,7 +175,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   }
 
   protected appendToPath(coord: google.maps.LatLng): void {
-    this.line!.getPath().push(coord);
+    this.line?.getPath().push(coord);
   }
 
   protected createLine(map: google.maps.Map): google.maps.Polyline {
@@ -325,8 +332,22 @@ export class PathCtrlElement extends connect(store)(LitElement) {
           <ui5-dialog id="share-dialog" header-text="Share">
             <section class="form-fields">
               <div>
+                <ui5-toast id="notif-copy" placement="TopCenter">Link copied to clipboard</ui5-toast>
                 <ui5-label for="link">Link</ui5-label>
-                <ui5-input id="link" readonly value=${document.location.href}></ui5-input>
+                <ui5-input id="link" readonly value=${document.location.href}>
+                  ${navigator.clipboard
+                    ? html`<i
+                        title="Copy to clipboard"
+                        class="la la-copy la-lg"
+                        slot="icon"
+                        @click=${async () => {
+                          await navigator.clipboard.writeText(document.location.href);
+                          const notification = (this.shadowRoot as ShadowRoot).getElementById('notif-copy') as any;
+                          notification?.show();
+                        }}
+                      ></i>`
+                    : html``}
+                </ui5-input>
               </div>
               <br />
               <div>
@@ -340,7 +361,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
             </div>
           </ui5-dialog>
 
-          <ui5-dialog id="download-dialog" header-text="Download">
+          <ui5-dialog id="download-dialog" header-text="Download Waypoints">
             <section class="form-fields">
               <div>
                 <ui5-label for="link">Turnpoints</ui5-label>
@@ -385,16 +406,12 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   }
 
   protected closeShareDialog(): void {
-    const shadowRoot = this.shadowRoot as ShadowRoot;
-    const dialog = shadowRoot.getElementById('share-dialog') as any;
-    dialog.close();
+    this.shareDialog?.close();
   }
 
   protected closeDownloadDialog(download: boolean): void {
-    const shadowRoot = this.shadowRoot as ShadowRoot;
-    const dialog = shadowRoot.getElementById('download-dialog') as any;
     if (!download) {
-      dialog.close();
+      this.downloadDialog?.close();
     } else {
       const elevator = new google.maps.ElevationService();
       elevator.getElevationForLocations(
@@ -417,7 +434,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
 
           const form = shadowRoot.getElementById('form-wpt') as HTMLFormElement;
           form.submit();
-          dialog.close();
+          this.downloadDialog.close();
         },
       );
     }
