@@ -20,6 +20,7 @@ import { CircuitType } from '../logic/score/scorer';
 import { formatUnit } from '../logic/units';
 import { Units } from '../reducers/map';
 import { RootState, store } from '../store';
+import { controlHostStyle } from './control-style';
 import { PlannerElement } from './planner-element';
 
 // Route color by circuit type.
@@ -132,20 +133,8 @@ export class PathCtrlElement extends connect(store)(LitElement) {
 
   static get styles(): CSSResult[] {
     return [
+      controlHostStyle,
       css`
-        :host {
-          display: block;
-          border: 1px inset #555;
-          padding: 4px;
-          margin: 2px 5px;
-          background-color: #adff2f;
-          text-align: right;
-          border-radius: 4px;
-          opacity: 0.9;
-          user-select: none;
-          float: right;
-          clear: both;
-        }
         .form-fields {
           display: flex;
           flex-direction: column;

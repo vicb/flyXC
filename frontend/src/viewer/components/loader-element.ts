@@ -23,36 +23,34 @@ export class LoaderElement extends connect(store)(LitElement) {
     }
   }
 
-  static get styles(): CSSResult[] {
-    return [
-      css`
-        :host {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-        }
-        div {
-          background-color: #111;
-          opacity: 0.99;
-          width: 100%;
-          height: 100%;
-        }
-        #bat {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          margin: -512px 0 0 -512px;
-        }
-        #loader {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          margin: 65px 0 0 -60px;
-        }
-      `,
-    ];
+  static get styles(): CSSResult {
+    return css`
+      :host {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+      div {
+        background-color: #111;
+        opacity: 0.99;
+        width: 100%;
+        height: 100%;
+      }
+      #bat {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin: -512px 0 0 -512px;
+      }
+      #loader {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin: 65px 0 0 -60px;
+      }
+    `;
   }
 
   protected update(changedProperties: PropertyValues): void {

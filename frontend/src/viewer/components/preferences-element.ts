@@ -6,6 +6,7 @@ import { LEAGUES } from '../logic/score/league/leagues';
 import { UNITS } from '../logic/units';
 import { Units } from '../reducers/map';
 import { RootState, store } from '../store';
+import { controlHostStyle } from './control-style';
 
 @customElement('preferences-ctrl-element')
 export class PreferencesElement extends connect(store)(LitElement) {
@@ -34,20 +35,8 @@ export class PreferencesElement extends connect(store)(LitElement) {
 
   static get styles(): CSSResult[] {
     return [
+      controlHostStyle,
       css`
-        :host {
-          display: block;
-          border: 1px inset #555;
-          padding: 4px;
-          margin: 2px 5px;
-          background-color: #adff2f;
-          text-align: right;
-          border-radius: 4px;
-          opacity: 0.9;
-          user-select: none;
-          float: right;
-          clear: both;
-        }
         .form-fields {
           display: grid;
           grid-template-columns: max-content max-content;

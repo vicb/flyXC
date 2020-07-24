@@ -1,13 +1,6 @@
-import {
-  css,
-  CSSResult,
-  customElement,
-  html,
-  internalProperty,
-  LitElement,
-  property,
-  TemplateResult,
-} from 'lit-element';
+import { CSSResult, customElement, html, internalProperty, LitElement, property, TemplateResult } from 'lit-element';
+
+import { controlHostStyle } from './control-style';
 
 @customElement('expand-ctrl-element')
 export class ExpandElement extends LitElement {
@@ -34,24 +27,8 @@ export class ExpandElement extends LitElement {
     });
   }
 
-  static get styles(): CSSResult[] {
-    return [
-      css`
-        :host {
-          display: block;
-          border: 1px inset #555;
-          padding: 4px;
-          margin: 2px 5px;
-          background-color: #adff2f;
-          text-align: right;
-          border-radius: 4px;
-          opacity: 0.9;
-          user-select: none;
-          float: right;
-          clear: both;
-        }
-      `,
-    ];
+  static get styles(): CSSResult {
+    return controlHostStyle;
   }
 
   protected toggleExpand(): void {

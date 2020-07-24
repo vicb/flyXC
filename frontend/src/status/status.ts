@@ -13,15 +13,13 @@ export class FlyXcStatusElement extends LitElement {
     this.fetchStatus();
     setInterval(() => this.fetchStatus(), 60 * 1000);
   }
-  static get styles(): CSSResult[] {
-    return [
-      css`
-        :host {
-          display: block;
-          font: 14px 'Nobile', verdana, sans-serif;
-        }
-      `,
-    ];
+  static get styles(): CSSResult {
+    return css`
+      :host {
+        display: block;
+        font: 14px 'Nobile', verdana, sans-serif;
+      }
+    `;
   }
 
   fetchStatus(): void {

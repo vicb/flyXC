@@ -1,6 +1,7 @@
-import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 
 import { trackColor } from '../logic/map';
+import { controlHostStyle } from './control-style';
 
 @customElement('name-ctrl-element')
 export class NameElement extends LitElement {
@@ -18,24 +19,8 @@ export class NameElement extends LitElement {
   // Display a "next" button when multiple tracks are loaded.
   nbtracks = 0;
 
-  static get styles(): CSSResult[] {
-    return [
-      css`
-        :host {
-          display: block;
-          border: 1px inset #555;
-          padding: 4px;
-          margin: 2px 5px;
-          background-color: #adff2f;
-          text-align: right;
-          border-radius: 4px;
-          opacity: 0.9;
-          user-select: none;
-          float: right;
-          clear: both;
-        }
-      `,
-    ];
+  static get styles(): CSSResult {
+    return controlHostStyle;
   }
 
   render(): TemplateResult {

@@ -12,6 +12,7 @@ import {
 import { RuntimeFixes } from '../../../../common/track';
 import { sampleAt } from '../logic/math';
 import { formatUnit, UNITS } from '../logic/units';
+import { controlHostStyle } from './control-style';
 
 @customElement('dashboard-ctrl-element')
 export class DashboardElement extends LitElement {
@@ -26,20 +27,8 @@ export class DashboardElement extends LitElement {
 
   static get styles(): CSSResult[] {
     return [
+      controlHostStyle,
       css`
-        :host {
-          display: block;
-          border: 1px inset #555;
-          padding: 4px;
-          margin: 2px 5px;
-          background-color: #adff2f;
-          text-align: right;
-          border-radius: 4px;
-          opacity: 0.9;
-          user-select: none;
-          float: right;
-          clear: both;
-        }
         h3 {
           padding: 0 0 5px 0;
           margin: 0;

@@ -18,6 +18,7 @@ import { sampleAt } from '../logic/math';
 import { formatUnit } from '../logic/units';
 import { activeTrack, aspAltitudeStops, currentAspAltitudeStop } from '../selectors/map';
 import { RootState, store } from '../store';
+import { controlHostStyle } from './control-style';
 
 @customElement('airspace-ctrl-element')
 export class AirspaceCtrlElement extends connect(store)(LitElement) {
@@ -115,20 +116,8 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
 
   static get styles(): CSSResult[] {
     return [
+      controlHostStyle,
       css`
-        :host {
-          display: block;
-          border: 1px inset #555;
-          padding: 4px;
-          margin: 2px 5px;
-          background-color: #adff2f;
-          text-align: right;
-          border-radius: 4px;
-          opacity: 0.9;
-          user-select: none;
-          float: right;
-          clear: both;
-        }
         select {
           font: inherit;
         }

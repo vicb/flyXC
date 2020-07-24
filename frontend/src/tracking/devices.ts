@@ -33,15 +33,13 @@ export class DeviceForm extends LitElement {
     });
   }
 
-  static get styles(): CSSResult[] {
-    return [
-      css`
-        :host {
-          display: block;
-          font: 14px 'Nobile', verdana, sans-serif;
-        }
-      `,
-    ];
+  static get styles(): CSSResult {
+    return css`
+      :host {
+        display: block;
+        font: 14px 'Nobile', verdana, sans-serif;
+      }
+    `;
   }
 
   render(): TemplateResult {

@@ -52,64 +52,62 @@ export class PlannerElement extends connect(store)(LitElement) {
     }
   }
 
-  static get styles(): CSSResult[] {
-    return [
-      css`
-        :host {
-          display: block;
-          opacity: 0.9;
-          user-select: none;
-        }
-        .control {
-          user-select: none;
-          text-align: center;
-          position: relative;
-          box-shadow: rgba(0, 0, 0, 0.4), 0, 2px, 4px;
-          background-color: #fff;
-          border-radius: 4px;
-          color: #000;
-          font-size: 13px;
-          margin: 0 5px;
-          min-width: 106px;
-          cursor: pointer;
-          min-height: 2em;
-        }
+  static get styles(): CSSResult {
+    return css`
+      :host {
+        display: block;
+        opacity: 0.9;
+        user-select: none;
+      }
+      .control {
+        user-select: none;
+        text-align: center;
+        position: relative;
+        box-shadow: rgba(0, 0, 0, 0.4), 0, 2px, 4px;
+        background-color: #fff;
+        border-radius: 4px;
+        color: #000;
+        font-size: 13px;
+        margin: 0 5px;
+        min-width: 106px;
+        cursor: pointer;
+        min-height: 2em;
+      }
 
-        .control > div {
-          border: solid 1px #717b87;
-          padding: 1px 0px;
-        }
+      .control > div {
+        border: solid 1px #717b87;
+        padding: 1px 0px;
+      }
 
-        .control > div.detail {
-          border-top: 0;
-          padding: 5px 5px;
-        }
+      .control > div.detail {
+        border-top: 0;
+        padding: 5px 5px;
+      }
 
-        .large {
-          font-size: 24px !important;
-          font-weight: bold !important;
-          overflow: hidden;
-        }
+      .large {
+        font-size: 24px !important;
+        font-weight: bold !important;
+        overflow: hidden;
+      }
 
-        .control_distance {
-          border-radius: 4px 4px 0 0;
-        }
+      .control_distance {
+        border-radius: 4px 4px 0 0;
+      }
 
-        .control_reset {
-          border-radius: 0 0 4px 4px;
-        }
+      .control_reset {
+        border-radius: 0 0 4px 4px;
+      }
 
-        .decrement {
-          float: left;
-          padding-left: 6px;
-        }
+      .decrement {
+        float: left;
+        padding-left: 6px;
+      }
 
-        .increment {
-          float: right;
-          padding-right: 6px;
-        }
-      `,
-    ];
+      .increment {
+        float: right;
+        padding-right: 6px;
+      }
+    `;
   }
 
   render(): TemplateResult {

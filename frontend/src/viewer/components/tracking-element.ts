@@ -1,4 +1,4 @@
-import { css, CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
+import { CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { setDisplayLiveNames } from '../actions/map';
@@ -6,6 +6,7 @@ import { linearInterpolate } from '../logic/math';
 import { formatUnit } from '../logic/units';
 import { Units } from '../reducers/map';
 import { RootState, store } from '../store';
+import { controlHostStyle } from './control-style';
 
 @customElement('tracking-element')
 export class TrackingElement extends connect(store)(LitElement) {
@@ -42,24 +43,8 @@ export class TrackingElement extends connect(store)(LitElement) {
     }
   }
 
-  static get styles(): CSSResult[] {
-    return [
-      css`
-        :host {
-          display: block;
-          border: 1px inset #555;
-          padding: 4px;
-          margin: 2px 5px;
-          background-color: #adff2f;
-          text-align: right;
-          border-radius: 4px;
-          opacity: 0.9;
-          user-select: none;
-          float: right;
-          clear: both;
-        }
-      `,
-    ];
+  static get styles(): CSSResult {
+    return controlHostStyle;
   }
 
   protected fetchTrackers(): void {

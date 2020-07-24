@@ -69,16 +69,14 @@ export class ControlsElement extends connect(store)(LitElement) {
     }
   }
 
-  static get styles(): CSSResult[] {
-    return [
-      css`
-        :host {
-          display: block;
-          font: 12px 'Nobile', verdana, sans-serif;
-          height: 1px;
-        }
-      `,
-    ];
+  static get styles(): CSSResult {
+    return css`
+      :host {
+        display: block;
+        font: 12px 'Nobile', verdana, sans-serif;
+        height: 1px;
+      }
+    `;
   }
 
   // Closes the current track.
