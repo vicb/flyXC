@@ -1,7 +1,7 @@
 import request from 'request-zero';
 import { DOMParser } from 'xmldom';
 
-import { LineString, Point, REFRESH_EVERY_MINUTES } from './trackers';
+import { createFeatures, Point, REFRESH_EVERY_MINUTES } from './trackers';
 
 // Queries the datastore for the devices that have not been updated in REFRESH_EVERY_MINUTES.
 // Queries the feeds until the timeout is reached and store the data back into the datastore.
@@ -21,7 +21,6 @@ export async function refresh(datastore: any, hour: number, timeoutSecs: number)
   let numActiveDevices = 0;
   for (; numDevices < devices.length; numDevices++) {
     const points: Point[] = [];
-    const lineStrings: LineString[] = [];
     const device = devices[numDevices];
     let url: string = device.inreach;
     // Automatically inserts "Feed/Share" when missing in url.
@@ -54,7 +53,7 @@ export async function refresh(datastore: any, hour: number, timeoutSecs: number)
           const timestamp = getChildNode(placemark.childNodes, 'TimeStamp.when');
           const dataNode = getChildNode(placemark.childNodes, 'ExtendedData');
           const data = dataNode ? getData(dataNode) : null;
-          const msg = getChildNode(placemark.childNodes, 'description')?.firstChild?.nodeValue || '';
+          const msg = getChildNode(placemark.childNodes, 'description')?.firstChild?.nodeValue ?? '';
           if (coords && timestamp && data && coords.firstChild?.nodeValue && timestamp.firstChild?.nodeValue) {
             const [lon, lat, alt] = coords.firstChild.nodeValue
               .trim()
@@ -74,12 +73,6 @@ export async function refresh(datastore: any, hour: number, timeoutSecs: number)
             });
           }
         }
-        if (points.length) {
-          // points[0] is the oldest fix.
-          points[points.length - 1].is_last_fix = true;
-          const line = points.map((point) => [point.lon, point.lat]);
-          lineStrings.push({ line, first_ts: points[0].ts });
-        }
       } else {
         console.log(
           `Error refreshing inreach @ ${url}. HTTP code = ${response.code}, length = ${response.body.length}`,
@@ -87,7 +80,7 @@ export async function refresh(datastore: any, hour: number, timeoutSecs: number)
       }
     }
 
-    device.features = JSON.stringify([...points, ...lineStrings]);
+    device.features = JSON.stringify(createFeatures(points));
     device.updated = Date.now();
     device.active = points.length > 0;
 

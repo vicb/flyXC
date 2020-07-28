@@ -1,6 +1,6 @@
 import request from 'request-zero';
 
-import { LineString, Point, REFRESH_EVERY_MINUTES } from './trackers';
+import { createFeatures, Point, REFRESH_EVERY_MINUTES } from './trackers';
 
 // Queries the datastore for the devices that have not been updated in REFRESH_EVERY_MINUTES.
 // Queries the feeds until the timeout is reached and store the data back into the datastore.
@@ -20,7 +20,6 @@ export async function refresh(datastore: any, hour: number, timeoutSecs: number)
   let numActiveDevices = 0;
   for (; numDevices < devices.length; numDevices++) {
     const points: Point[] = [];
-    const lineStrings: LineString[] = [];
     const device = devices[numDevices];
     const id: string = device.spot;
     if (/^\w+$/i.test(id)) {
@@ -28,33 +27,27 @@ export async function refresh(datastore: any, hour: number, timeoutSecs: number)
       const response = await request(url);
       if (response.code == 200) {
         console.log(`Refreshing spot @ ${id}`);
-        const messages = JSON.parse(response.body)?.response?.feedMessageResponse?.messages?.message;
-        if (messages && Array.isArray(messages)) {
+        const fixes = JSON.parse(response.body)?.response?.feedMessageResponse?.messages?.message;
+        if (fixes && Array.isArray(fixes)) {
           numActiveDevices++;
-          messages.forEach((m: any) => {
+          fixes.forEach((f: any) => {
             points.push({
-              lon: m.longitude,
-              lat: m.latitude,
-              ts: m.unixTime * 1000,
-              alt: m.altitude,
-              name: m.messengerName,
-              emergency: m.messageType == 'HELP',
-              msg: m.messageContent,
+              lon: f.longitude,
+              lat: f.latitude,
+              ts: f.unixTime * 1000,
+              alt: f.altitude,
+              name: f.messengerName,
+              emergency: f.messageType == 'HELP',
+              msg: f.messageContent,
             });
           });
         }
       } else {
         console.log(`Error refreshing spot @ ${id}`);
       }
-      if (points.length) {
-        // points[0] is the most recent fix.
-        points[0].is_last_fix = true;
-        const line = points.map((point) => [point.lon, point.lat]);
-        lineStrings.push({ line, first_ts: points[points.length - 1].ts });
-      }
     }
 
-    device.features = JSON.stringify([...points, ...lineStrings]);
+    device.features = JSON.stringify(createFeatures(points));
     device.updated = Date.now();
     device.active = points.length > 0;
 
