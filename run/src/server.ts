@@ -11,8 +11,9 @@ import Router, { RouterContext } from '@koa/router';
 
 import { Keys } from '../../app/src/keys';
 import { postProcessTrack } from './process/process';
-import { refresh as refreshInreach } from './trackers/inreach';
-import { refresh as refreshSpot } from './trackers/spot';
+import * as inreach from './trackers/inreach';
+import * as skylines from './trackers/skylines';
+import * as spot from './trackers/spot';
 import { REFRESH_MAX_HOURS, REFRESH_TIMEOUT_SECONDS } from './trackers/trackers';
 
 const app = new Koa();
@@ -25,8 +26,9 @@ router.post('/refresh', async (ctx: RouterContext) => {
   const request = Number(await redis.get('trackers.request'));
   if (request > Date.now() - 10 * 60 * 1000) {
     // Refresh the trackers
-    numRefreshed += await refreshInreach(datastore, REFRESH_MAX_HOURS, REFRESH_TIMEOUT_SECONDS);
-    numRefreshed += await refreshSpot(datastore, REFRESH_MAX_HOURS, REFRESH_TIMEOUT_SECONDS);
+    numRefreshed += await inreach.refresh(datastore, REFRESH_MAX_HOURS, REFRESH_TIMEOUT_SECONDS);
+    numRefreshed += await spot.refresh(datastore, REFRESH_MAX_HOURS, REFRESH_TIMEOUT_SECONDS);
+    numRefreshed += await skylines.refresh(datastore, REFRESH_MAX_HOURS, REFRESH_TIMEOUT_SECONDS);
     // Merge the tracks for all the trackers that have been updated less than 20 minutes ago.
     // The resulting GeoJSON is stored in Redis to be read by the flyxc server.
     const query = datastore.createQuery('Tracker').filter('updated', '>', Date.now() - 20 * 60 * 1000);

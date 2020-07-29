@@ -37,6 +37,7 @@ export function registerTrackerRoutes(router: Router): void {
             device: 'no',
             inreach: '',
             spot: '',
+            skylines: '',
             email: ctx.request.body.email,
             name: ctx.request.body.name,
           };
@@ -50,6 +51,7 @@ export function registerTrackerRoutes(router: Router): void {
           device: tracker.device,
           inreach: tracker.inreach,
           spot: tracker.spot,
+          skylines: tracker.skylines,
         });
       } catch (e) {
         ctx.throw(400);
@@ -69,6 +71,7 @@ export function registerTrackerRoutes(router: Router): void {
           tracker.device = ctx.request.body.device;
           tracker.inreach = ctx.request.body.inreach;
           tracker.spot = ctx.request.body.spot;
+          tracker.skylines = ctx.request.body.skylines;
           tracker.updated = 0;
           await datastore.save({
             key,
@@ -81,6 +84,7 @@ export function registerTrackerRoutes(router: Router): void {
           device: tracker.device,
           inreach: tracker.inreach,
           spot: tracker.spot,
+          skylines: tracker.skylines,
         });
       } catch (e) {
         ctx.throw(400);

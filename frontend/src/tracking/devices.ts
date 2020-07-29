@@ -61,7 +61,7 @@ export class DeviceForm extends LitElement {
       <div class="container">
         ${!this.signedIn
           ? html`
-              <div class="notification my-4">
+              <div class="notification my-4 content">
                 <p class="my-4">Sign in to configure your tracking device by using the button below.</p>
                 <p class="my-4">
                   Once your tracker has been configured, your tracks for the past 24 hours will appear on the map. The
@@ -74,6 +74,14 @@ export class DeviceForm extends LitElement {
                 </p>
                 <p class="my-4">
                   You can disable tracking at any moment by setting your device to <strong>"no"</strong>.
+                </p>
+                <p class="my-4">
+                  Supported devices:
+                  <ul class="my-4">
+                    <li>InReach</li>
+                    <li>Spot</li>
+                    <li>SkyLines</li>
+                  </ul>
                 </p>
                 <p class="my-4">
                   <a href="mailto:help@flyxc.app?subject=FlyXC%20registration%20error">Contact us</a> if you have any
@@ -94,12 +102,11 @@ export class DeviceForm extends LitElement {
                       id="inreach"
                       name="tracker"
                       value="inreach"
-                      @change=${(): void => void (this.device = 'inreach')}
+                      @change=${() => (this.device = 'inreach')}
                     />
                     InReach
                   </label>
                 </div>
-
                 <div class="field" style=${`display:${this.device == 'inreach' ? 'block' : 'none'}`}>
                   <label class="label"
                     >Raw KML data feed
@@ -126,7 +133,6 @@ export class DeviceForm extends LitElement {
                     Spot
                   </label>
                 </div>
-
                 <div class="field" style=${`display:${this.device == 'spot' ? 'block' : 'none'}`}>
                   <label class="label"
                     >SPOT id
@@ -137,21 +143,39 @@ export class DeviceForm extends LitElement {
                     http://share.findmespot.com/shared/faces/viewspots.jsp?glId=<strong>[id]</strong>
                   </p>
                 </div>
+
                 <div class="field">
                   <label class="label">
                     <input
                       type="radio"
-                      id="no"
+                      id="skylines"
                       name="tracker"
-                      value="no"
-                      @change=${(): void => void (this.device = 'no')}
+                      value="sklyines"
+                      @change=${() => (this.device = 'skylines')}
                     />
+                    Skylines
+                  </label>
+                </div>
+                <div class="field" style=${`display:${this.device == 'skylines' ? 'block' : 'none'}`}>
+                  <label class="label"
+                    >SkyLines pilot id
+                    <input id="skylines-id" class="input" type="text" name="skylines-id" />
+                  </label>
+                  <p class="help">
+                    Your SkyLines pilot's id is at the end of your SkyLines profile url:
+                    https://skylines.aero/users/<strong>[id]</strong>
+                  </p>
+                </div>
+
+                <div class="field">
+                  <label class="label">
+                    <input type="radio" id="no" name="tracker" value="no" @change=${() => (this.device = 'no')} />
                     Do not track me
                   </label>
                 </div>
                 <div class="field is-grouped">
                   <p class="control">
-                    <a class="button is-primary" @click=${(): void => this.updateTracker()}>
+                    <a class="button is-primary" @click=${() => this.updateTracker()}>
                       Save
                     </a>
                   </p>
@@ -190,6 +214,7 @@ export class DeviceForm extends LitElement {
       `token=${encodeURIComponent(this.auth.currentUser.get().getAuthResponse().id_token)}`,
       `inreach=${(shadowRoot.getElementById('inreach-url') as HTMLInputElement)?.value}`,
       `spot=${(shadowRoot.getElementById('spot-id') as HTMLInputElement)?.value}`,
+      `skylines=${(shadowRoot.getElementById('skylines-id') as HTMLInputElement)?.value}`,
     ];
     fetch('_updateTracker', {
       method: 'POST',
@@ -221,7 +246,7 @@ export class DeviceForm extends LitElement {
       .then((data) => {
         const shadowRoot = this.shadowRoot as ShadowRoot;
         // Radio buttons
-        ['inreach', 'spot', 'no'].map((device) => {
+        ['inreach', 'spot', 'skylines', 'no'].map((device) => {
           const radio = shadowRoot.getElementById(device) as HTMLInputElement;
           if (data.device == device) {
             radio.setAttribute('checked', '');
@@ -232,6 +257,8 @@ export class DeviceForm extends LitElement {
         inreach.value = data.inreach;
         const spot = shadowRoot.getElementById('spot-id') as HTMLInputElement;
         spot.value = data.spot;
+        const skylines = shadowRoot.getElementById('skylines-id') as HTMLInputElement;
+        skylines.value = data.skylines;
       });
   }
 

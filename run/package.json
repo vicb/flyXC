@@ -23,6 +23,10 @@
     "koa-router": "^9.1.0",
     "request-zero": "^0.2.7",
     "rss-parser": "^3.9.0",
+    "ol": "^6.4.0",
     "xmldom": "^0.3.0"
+  },
+  "devDependencies": {
+    "@types/ol": "^6.3.1"
   }
 }
