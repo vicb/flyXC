@@ -134,7 +134,7 @@ export class MapElement extends connect(store)(LitElement) {
         const last_coordinates = cookies('coordinates');
         if (last_coordinates) {
           map.setCenter(new google.maps.LatLng(last_coordinates.latitude, last_coordinates.longitude));
-          map.setZoom(12);
+          map.setZoom(11);
         }
         let hasMoved = false;
         google.maps.event.addListenerOnce(map, 'drag', () => (hasMoved = true));
@@ -142,7 +142,7 @@ export class MapElement extends connect(store)(LitElement) {
           if (!hasMoved) {
             // Ignore the GPS position when the user has already started to move the map around.
             map.setCenter(new google.maps.LatLng(p.coords.latitude, p.coords.longitude));
-            map.setZoom(12);
+            map.setZoom(11);
           }
           const { latitude, longitude } = p.coords;
           cookies({ coordinates: { latitude, longitude } });

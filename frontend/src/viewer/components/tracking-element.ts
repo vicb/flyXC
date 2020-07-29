@@ -146,6 +146,7 @@ export class TrackingElement extends connect(store)(LitElement) {
           scale = 1;
           anchor = new google.maps.Point(7, 9);
           labelOrigin = new google.maps.Point(0, 32);
+          rotation = 0;
           path = SPEECH_BUBBLE;
           opacity = 1;
           color = 'yellow';
@@ -156,6 +157,7 @@ export class TrackingElement extends connect(store)(LitElement) {
           scale = 1;
           anchor = new google.maps.Point(7, 9);
           labelOrigin = new google.maps.Point(0, 32);
+          rotation = 0;
           path = SPEECH_BUBBLE;
           opacity = 1;
           color = 'red';
