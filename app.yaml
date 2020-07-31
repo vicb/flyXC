@@ -3,8 +3,12 @@ runtime: nodejs12
 instance_class: F1
 
 automatic_scaling:
+  max_instances: 3
   max_concurrent_requests: 80
-  target_cpu_utilization: 0.9
+  target_throughput_utilization: 0.95
+  target_cpu_utilization: 0.95
+  max_pending_latency: 500ms
+  min_pending_latency: 400ms
 
 handlers:
 - url: /.*
