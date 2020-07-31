@@ -23,11 +23,12 @@ import { parse as parseTrk } from './trk';
 const datastore = new Datastore();
 
 // Returns the latest submitted track from the Data Store.
-export async function getLastTracks(num: number): Promise<any[]> {
+export async function getTracksMostRecentFirst(max_tracks: number): Promise<any[]> {
   if (!process.env.USE_CACHE) {
     return [];
   }
-  const query = datastore.createQuery('Track').order('created', { descending: true }).limit(num);
+  max_tracks = Math.min(max_tracks, 100);
+  const query = datastore.createQuery('Track').order('created', { descending: true }).limit(max_tracks);
   const items: TrackEntity[] = (await datastore.runQuery(query))[0];
   return items.filter((entity) => entity.hash != null);
 }

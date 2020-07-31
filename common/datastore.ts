@@ -8,7 +8,7 @@ import { ProtoMetaTrackGroup } from './track';
 
 const datastore = new Datastore();
 
-const key_symbol: unique symbol = datastore.KEY;
+export const key_symbol: unique symbol = datastore.KEY;
 
 // A track as stored in datastore.
 // The ArrayBuffer zre stored gzipped in the datastore.
