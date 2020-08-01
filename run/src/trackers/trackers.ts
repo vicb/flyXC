@@ -12,7 +12,7 @@ export const REFRESH_TIMEOUT_SECONDS = 40;
 // Break lines if gap is more than.
 const TRACK_GAP_MINUTES = 60;
 
-// Do not keep points that are less than apart.
+// Do not keep points that are less than minutes apart.
 const MIN_POINT_GAP_MINUTES = 2;
 
 export interface Point {
@@ -57,7 +57,7 @@ export function createFeatures(points: Point[]): Array<Point | LineString> {
   // Keep the first, last, and any protected point.
   let previousTs: number | undefined = points[0].ts;
   const simplifiedPoints: Point[] = [points[0]];
-  for (let i = 1; i < points.length - 2; i++) {
+  for (let i = 1; i < points.length - 1; i++) {
     const point = points[i];
     if (isProtectedPoint(point) || point.ts - previousTs > MIN_POINT_GAP_MINUTES * 60 * 1000) {
       simplifiedPoints.push(point);
