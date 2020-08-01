@@ -138,6 +138,7 @@ export class MapElement extends connect(store)(LitElement) {
         }
         let hasMoved = false;
         google.maps.event.addListenerOnce(map, 'drag', () => (hasMoved = true));
+        google.maps.event.addListenerOnce(map, 'zoom_changed', () => (hasMoved = true));
         navigator.geolocation.getCurrentPosition((p: Position) => {
           if (!hasMoved) {
             // Ignore the GPS position when the user has already started to move the map around.
