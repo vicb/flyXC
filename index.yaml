@@ -1,6 +1,22 @@
+# Update with:
+# $ gcloud datastore indexes create index.yaml
+
 indexes:
-- kind: "Tracker"
+- kind: Tracker
   properties:
-  - name: "device"
-  - name: "updated"
+  - name: device
+  - name: updated
     direction: desc
+
+- kind: Tracker
+  properties:
+  - name: device
+  - name: created      
+    direction: desc
+
+- kind: Tracker
+  properties:
+  - name: active
+  - name: created      
+    direction: desc
+  
