@@ -148,7 +148,6 @@ export class TrackingElement extends connect(store)(LitElement) {
           labelOrigin = new google.maps.Point(0, 32);
           rotation = 0;
           path = SPEECH_BUBBLE;
-          opacity = 1;
           color = 'yellow';
           zIndex += 10;
         }
