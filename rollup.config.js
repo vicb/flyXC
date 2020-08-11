@@ -10,6 +10,7 @@ import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
 import builtins from 'builtin-modules';
 import url from '@rollup/plugin-url';
+import visualizer from 'rollup-plugin-visualizer';
 
 const prod = !process.env.ROLLUP_WATCH;
 
@@ -69,7 +70,7 @@ export default [
     ],
     external: builtins,
   },
-  buildFrontEnd('frontend/src/viewer/flyxc.ts', { importUi5: true }),
+  buildFrontEnd('frontend/src/viewer/flyxc.ts', { importUi5: true, visualizer: true }),
   buildFrontEnd('frontend/src/archives/archives.ts'),
   buildFrontEnd('frontend/src/tracking/devices.ts'),
   buildFrontEnd('frontend/src/status/status.ts'),
@@ -118,6 +119,7 @@ function buildFrontEnd(input, options = {}) {
           destDir: 'frontend/static/ui5',
         }),
       prod && terser({ output: { comments: false } }),
+      process.env.ROLLUP_VISU && options.visualizer && visualizer(),
     ],
   };
 }

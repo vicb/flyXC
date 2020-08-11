@@ -88,7 +88,8 @@
     "rollup-plugin-sourcemaps": "^0.6.2",
     "rollup-plugin-strip-code": "^0.2.7",
     "rollup-plugin-terser": "^6.1.0",
-    "rollup-plugin-typescript2": "^0.27.1"
+    "rollup-plugin-typescript2": "^0.27.1",
+    "rollup-plugin-visualizer": "^4.1.0"
   },
   "repository": {
     "type": "git",
