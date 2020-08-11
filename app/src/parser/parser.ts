@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { Datastore } = require('@google-cloud/datastore');
 const { PubSub } = require('@google-cloud/pubsub');
+const request = require('request-zero');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
 import crypto from 'crypto';
 import Pbf from 'pbf';
-import request from 'request-zero';
 
 import {
   retrieveMetaTrackGroupByHash,

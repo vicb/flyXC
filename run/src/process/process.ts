@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+const request = require('request-zero');
+/* eslint-enable @typescript-eslint/no-var-requires */
+
 import async from 'async';
 import * as polyline from 'google-polyline';
 import Pbf from 'pbf';
-import request from 'request-zero';
 import simplify from 'simplify-path';
 
 import { Keys } from '../../../app/src/keys';

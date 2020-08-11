@@ -21,7 +21,7 @@
     "koa": "^2.13.0",
     "koa-bodyparser": "^4.3.0",
     "koa-router": "^9.1.0",
-    "request-zero": "^0.2.6",
+    "request-zero": "^0.2.7",
     "rss-parser": "^3.9.0",
     "xmldom": "^0.3.0"
   }

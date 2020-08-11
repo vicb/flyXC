@@ -10,9 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@ui5/webcomponents": "^1.0.0-rc.7",
+    "@ui5/webcomponents": "^1.0.0-rc.8",
     "cookiesjs": "^3.0.3",
-    "d3-array": "^2.4.0",
+    "d3-array": "^2.5.0",
     "d3-scale-chromatic": "^1.5.0",
     "lit-element": "^2.3.1",
     "lit-html": "^1.2.1",
@@ -21,12 +21,12 @@
     "redux": "^4.0.5",
     "redux-thunk": "^2.3.0",
     "reselect": "^4.0.0",
-    "tslib": "^2.0.0"
+    "tslib": "^2.0.1"
   },
   "devDependencies": {
     "@types/d3-array": "^2.0.0",
     "@types/d3-scale-chromatic": "^1.5.0",
-    "@types/googlemaps": "^3.39.9",
+    "@types/googlemaps": "^3.39.11",
     "@types/pbf": "^3.0.2",
     "rollup-plugin-json": "^4.0.0"
   }

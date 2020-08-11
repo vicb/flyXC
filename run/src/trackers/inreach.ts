@@ -1,4 +1,7 @@
-import request from 'request-zero';
+/* eslint-disable @typescript-eslint/no-var-requires */
+const request = require('request-zero');
+/* eslint-enable @typescript-eslint/no-var-requires */
+
 import { DOMParser } from 'xmldom';
 
 import { createFeatures, Point, REFRESH_EVERY_MINUTES } from './trackers';
