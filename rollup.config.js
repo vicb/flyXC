@@ -1,3 +1,4 @@
+import alias from '@rollup/plugin-alias';
 import cjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import minifyHTML from 'rollup-plugin-minify-html-literals';
@@ -97,6 +98,14 @@ function buildFrontEnd(input, options = {}) {
           end_comment: 'end-strip-from-prod',
         }),
       minifyHTML(),
+      alias({
+        entries: [
+          {
+            find: 'lit-html/lib/shady-render.js',
+            replacement: 'frontend/node_modules/lit-html/lit-html.js',
+          },
+        ],
+      }),
       resolve(),
       cjs(),
       typescript(),
