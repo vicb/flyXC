@@ -84,6 +84,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       }
       if (map) {
         if (this.initialPath.length) {
+          this.creatingInitialPath = true;
           const line = this.createLine(map);
           const path = line.getPath();
           path.clear();
@@ -94,6 +95,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
           });
           map.fitBounds(bounds);
           this.toggleExpanded();
+          this.creatingInitialPath = false;
         }
       }
     }
@@ -116,6 +118,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   downloadDialog?: any;
 
   initialPath: google.maps.LatLng[] | null = null;
+  creatingInitialPath = false;
   onAddPoint: google.maps.MapsEventListener | null = null;
   flight: google.maps.Polyline | null = null;
   closingSector: ClosingSector | null = null;
@@ -455,7 +458,8 @@ export class PathCtrlElement extends connect(store)(LitElement) {
 
   // Updates the URL route parameter and add an history entry when the route is updated.
   protected handlePathUpdates(): void {
-    if (this.line) {
+    // Do not record history when the path is being created from the URL parameter.
+    if (this.line && !this.creatingInitialPath) {
       const path = this.line.getPath();
       pushCurrentState();
       setUrlParamValue(ParamNames.ROUTE, google.maps.geometry.encoding.encodePath(path));
