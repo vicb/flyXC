@@ -13,6 +13,11 @@ import url from '@rollup/plugin-url';
 import visualizer from 'rollup-plugin-visualizer';
 
 const prod = !process.env.ROLLUP_WATCH;
+const build =
+  String(new Date().getFullYear()) +
+  String(new Date().getMonth() + 1).padStart(2, '0') +
+  String(new Date().getDate()).padStart(2, '0');
+const nodeEnv = JSON.stringify(prod ? 'production' : 'development');
 
 export default [
   {
@@ -26,9 +31,9 @@ export default [
     plugins: [
       replace({
         values: {
-          'process.env.NODE_ENV': JSON.stringify(prod ? 'production' : 'development'),
+          'process.env.NODE_ENV': nodeEnv,
           'process.env.USE_CACHE': process.env.USE_CACHE,
-          '<%BUILD%>': `${new Date().getFullYear()}${new Date().getMonth() + 1}${new Date().getDate()}`,
+          '<%BUILD%>': build,
         },
       }),
       json(),
@@ -55,8 +60,8 @@ export default [
     plugins: [
       replace({
         values: {
-          'process.env.NODE_ENV': JSON.stringify(prod ? 'production' : 'development'),
-          '<%BUILD%>': `${new Date().getFullYear()}${new Date().getMonth() + 1}${new Date().getDate()}`,
+          'process.env.NODE_ENV': nodeEnv,
+          '<%BUILD%>': build,
         },
       }),
       json(),
@@ -88,8 +93,8 @@ function buildFrontEnd(input, options = {}) {
     plugins: [
       replace({
         values: {
-          'process.env.NODE_ENV': JSON.stringify(prod ? 'production' : 'development'),
-          '<%BUILD%>': `${new Date().getFullYear()}${new Date().getMonth() + 1}${new Date().getDate()}`,
+          'process.env.NODE_ENV': nodeEnv,
+          '<%BUILD%>': build,
         },
         delimiters: ['', ''],
       }),
