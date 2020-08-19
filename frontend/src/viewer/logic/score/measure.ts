@@ -56,7 +56,7 @@ export class Measure {
     let distance;
     for (let i = startIndex; i < stopIndex; ) {
       distance = this.getDistance(ref, i);
-      if (distance > bound) {
+      if (distance >= bound) {
         index = i;
         bound = distance;
         i++;
