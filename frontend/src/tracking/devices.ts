@@ -75,6 +75,10 @@ export class DeviceForm extends LitElement {
                 <p class="my-4">
                   You can disable tracking at any moment by setting your device to <strong>"no"</strong>.
                 </p>
+                <p class="my-4">
+                  <a href="mailto:help@flyxc.app?subject=FlyXC%20registration%20error">Contact us</a> if you have any
+                  trouble registering your device.
+                </p>
               </div>
               <slot name="button"></slot>
             `
