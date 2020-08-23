@@ -73,26 +73,39 @@ export class DeviceForm extends LitElement {
                   last 24 hours only.
                 </p>
                 <p class="my-4">
-                  You can disable tracking at any moment by setting your device to <strong>"no"</strong>.
+                  You can disable tracking at any moment by setting your device to <strong>"Do not track me"</strong>.
                 </p>
                 <p class="my-4">
                   Supported devices:
                   <ul class="my-4">
-                    <li>InReach</li>
-                    <li>Spot</li>
-                    <li>SkyLines</li>
+                    <li><a href="https://www.garmin.com/en-US/inreach/personal/" target="_blank" class="has-text-link">InReach</a></li>
+                    <li><a href="https://www.findmespot.com/" target="_blank" class="has-text-link">Spot</a></li>
+                    <li><a href="https://skylines.aero/tracking/info" target="_blank" class="has-text-link">SkyLines</a></li>
                   </ul>
                 </p>
                 <p class="my-4">
-                  <a href="mailto:help@flyxc.app?subject=FlyXC%20registration%20error">Contact us</a> if you have any
+                  <a href="mailto:help@flyxc.app?subject=FlyXC%20registration%20error" class="has-text-link">Contact us</a> if you have any
                   trouble registering your device.
                 </p>
               </div>
               <slot name="button"></slot>
             `
           : html`
-              <div class="notification my-4">
-                <strong>${this.auth.currentUser.get().getBasicProfile().getName()}</strong>, select your device:
+              <div class="notification my-4 content">
+                <p class="my-4">
+                  <strong>${this.auth.currentUser.get().getBasicProfile().getName()}</strong> configure your device
+                  below.
+                </p>
+                <p class="my-4">
+                  Only one device could be active at a given time. Select "Do not track me" to temporarily disable the
+                  flyxc.app tracking (your position will no more appear on the map).
+                </p>
+                <p class="my-4">
+                  <a href="mailto:help@flyxc.app?subject=FlyXC%20registration%20error" class="has-text-link"
+                    >Contact us</a
+                  >
+                  if you have any trouble.
+                </p>
               </div>
               <form>
                 <div class="field">
@@ -109,21 +122,22 @@ export class DeviceForm extends LitElement {
                 </div>
                 <div class="field" style=${`display:${this.device == 'inreach' ? 'block' : 'none'}`}>
                   <label class="label"
-                    >Raw KML data feed
+                    >MapShare address
                     <input
                       class="input"
                       type="text"
                       id="inreach-url"
                       name="inreach-url"
-                      placeholder="https://inreach.garmin.com/Feed/Share/user_name"
+                      placeholder="https://share.garmin.com/user_name"
                     />
                   </label>
                   <p class="help">
-                    See
-                    <a href="https://support.garmin.com/en-US/?faq=tdlDCyo1fJ5UxjUbA9rMY8" target="_blank"
-                      >this Garmin post</a
+                    Visit
+                    <a href="https://explore.garmin.com/Social" target="_blank" class="has-text-link"
+                      >your InReach social profile</a
                     >
-                    to retrieve the <strong>raw KML data</strong> feed url
+                    and copy your MapShare address in this field (it should look like
+                    <span class="has-text-info">https://share.garmin.com/username</span>).
                   </p>
                 </div>
 
@@ -135,12 +149,19 @@ export class DeviceForm extends LitElement {
                 </div>
                 <div class="field" style=${`display:${this.device == 'spot' ? 'block' : 'none'}`}>
                   <label class="label"
-                    >SPOT id
+                    >XML feed id
                     <input id="spot-id" class="input" type="text" name="spot-id" />
                   </label>
                   <p class="help">
-                    The id for your spot device is at the end of your shared page url:
-                    http://share.findmespot.com/shared/faces/viewspots.jsp?glId=<strong>[id]</strong>
+                    Create an XML feed by following the instructions on this
+                    <a
+                      href="https://www.findmespot.com/en-us/support/spot-trace/get-help/general/spot-api-support"
+                      target="_blank"
+                      class="has-text-link"
+                      >spot support page.</a
+                    >
+                    and paste the feed id in this field (it should look similar to
+                    <span class="has-text-info">0onlLopfoM4bG5jXvWRE8H0Obd0oMxMBq</span>).
                   </p>
                 </div>
 
@@ -163,7 +184,8 @@ export class DeviceForm extends LitElement {
                   </label>
                   <p class="help">
                     Your SkyLines pilot's id is at the end of your SkyLines profile url:
-                    https://skylines.aero/users/<strong>[id]</strong>
+                    https://skylines.aero/users/<strong>[id]</strong> (it should look like
+                    <span class="has-text-info">1234</span>).
                   </p>
                 </div>
 
@@ -173,6 +195,12 @@ export class DeviceForm extends LitElement {
                     Do not track me
                   </label>
                 </div>
+                <div class="field" style=${`display:${this.device == 'no' ? 'block' : 'none'}`}>
+                  <p class="help">
+                    Live tracking is disabled and your position will not appear on the map.
+                  </p>
+                </div>
+
                 <div class="field is-grouped">
                   <p class="control">
                     <a class="button is-primary" @click=${() => this.updateTracker()}>
