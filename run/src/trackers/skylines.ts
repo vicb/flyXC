@@ -37,46 +37,43 @@ export async function refresh(datastore: any, hour: number, timeoutSecs: number)
         console.log(`Refreshing skylines @ ${id}`);
         const live = JSON.parse(response.body);
 
-        const flight = live.flights[0];
+        if (Array.isArray(live.flights) && live.flights.length > 0) {
+          const flight = live.flights[0];
 
-        if (flight == null) {
-          // no recent flight.
-          continue;
+          const time = decodeDeltas(flight.barogram_t, 1, 1);
+          const lonlat = decodeDeltas(flight.points, 2);
+          const height = decodeDeltas(flight.barogram_h, 1, 1);
+          const geoid = flight.geoid ?? 0;
+          const name = live?.pilots[0]?.name ?? 'unknown';
+
+          // startSeconds reference is a number of seconds since midnight UTC the day the track started.
+          const startSeconds = time[0];
+          // startDaySeconds is the number of seconds since previous midnight UTC.
+          const startDaySeconds = time[0] % SECONDS_IN_DAY;
+          // Current timestamp in seconds.
+          const nowSeconds = Math.ceil(Date.now() / 1000);
+          // Number of seconds since midnight UTC.
+          const daySeconds = nowSeconds % SECONDS_IN_DAY;
+          const startedOnPreviousDay = startDaySeconds > daySeconds;
+          // Timestamp of the first fix.
+          // Start of the current day - 24h if the track was started on the previous day + seconds in day of the first fix.
+          const startTimestampSeconds =
+            nowSeconds - daySeconds - (startedOnPreviousDay ? SECONDS_IN_DAY : 0) + startDaySeconds;
+
+          time.forEach((seconds: number, i: number) => {
+            const tsSeconds = startTimestampSeconds + seconds - startSeconds;
+            if (nowSeconds - tsSeconds <= hour * 3600) {
+              points.push({
+                ts: tsSeconds * 1000,
+                lat: lonlat[i * 2],
+                lon: lonlat[i * 2 + 1],
+                alt: Math.round(height[i] + geoid),
+                name,
+                emergency: false,
+              });
+            }
+          });
         }
-
-        const time = decodeDeltas(flight.barogram_t, 1, 1);
-        const lonlat = decodeDeltas(flight.points, 2);
-        const height = decodeDeltas(flight.barogram_h, 1, 1);
-        const geoid = flight.geoid ?? 0;
-        const name = live?.pilots[0]?.name ?? 'unknown';
-
-        // startSeconds reference is a number of seconds since midnight UTC the day the track started.
-        const startSeconds = time[0];
-        // startDaySeconds is the number of seconds since previous midnight UTC.
-        const startDaySeconds = time[0] % SECONDS_IN_DAY;
-        // Current timestamp in seconds.
-        const nowSeconds = Math.ceil(Date.now() / 1000);
-        // Number of seconds since midnight UTC.
-        const daySeconds = nowSeconds % SECONDS_IN_DAY;
-        const startedOnPreviousDay = startDaySeconds > daySeconds;
-        // Timestamp of the first fix.
-        // Start of the current day - 24h if the track was started on the previous day + seconds in day of the first fix.
-        const startTimestampSeconds =
-          nowSeconds - daySeconds - (startedOnPreviousDay ? SECONDS_IN_DAY : 0) + startDaySeconds;
-
-        time.forEach((seconds: number, i: number) => {
-          const tsSeconds = startTimestampSeconds + seconds - startSeconds;
-          if (nowSeconds - tsSeconds <= hour * 3600) {
-            points.push({
-              ts: tsSeconds * 1000,
-              lat: lonlat[i * 2],
-              lon: lonlat[i * 2 + 1],
-              alt: Math.round(height[i] + geoid),
-              name,
-              emergency: false,
-            });
-          }
-        });
       } else {
         console.log(`Error refreshing skylines @ ${id}`);
       }
