@@ -25,7 +25,7 @@ import { ControlsElement } from './controls-element';
 import { GmLineElement } from './gm-line';
 import { GmMarkerElement } from './gm-marker';
 import { PlannerElement } from './planner-element';
-import { TaskElement } from './task-element';
+import { SegmentsElement } from './segments-element';
 import { TopoEu, TopoFrance, TopoOtm, TopoSpain } from './topo-elements';
 import { TrackingElement } from './tracking-element';
 
@@ -36,7 +36,7 @@ export {
   GmLineElement,
   GmMarkerElement,
   PlannerElement,
-  TaskElement,
+  SegmentsElement,
   TopoEu,
   TopoSpain,
   TopoFrance,
@@ -164,14 +164,16 @@ export class MapElement extends connect(store)(LitElement) {
   render(): TemplateResult {
     return html`
       <div id="map"></div>
-      ${this.tracks?.length
-        ? html` <chart-element @move=${this.setTs} @pin=${this.centerMap} @zoom=${this.zoomMap}></chart-element> `
-        : ''}
+      ${
+        this.tracks?.length
+          ? html` <chart-element @move=${this.setTs} @pin=${this.centerMap} @zoom=${this.zoomMap}></chart-element> `
+          : ''
+      }
       <topo-eu .map=${this.map}></topo-eu>
       <topo-spain .map=${this.map}></topo-spain>
       <topo-france .map=${this.map}></topo-france>
       <topo-otm .map=${this.map}></topo-otm>
-      <task-element .map=${this.map} .query=${document.location.search.substr(1)}></task-element>
+      <segments-element .map=${this.map} .query=${document.location.search}></task-element>
       ${this.tracks?.map(
         (track, i) =>
           html`
