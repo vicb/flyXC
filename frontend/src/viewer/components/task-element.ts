@@ -1,4 +1,4 @@
-import { customElement, LitElement, property, PropertyValues } from 'lit-element';
+import { customElement, LitElement, property } from 'lit-element';
 
 @customElement('task-element')
 export class TaskElement extends LitElement {
@@ -105,7 +105,7 @@ export class TaskElement extends LitElement {
     }
   }
 
-  protected shouldUpdate(changedProperties: PropertyValues): boolean {
+  protected shouldUpdate(): boolean {
     if (!this.rendered) {
       if (this.map && this.query) {
         this.addTask();

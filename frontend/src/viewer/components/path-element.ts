@@ -250,10 +250,8 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     const league = LEAGUES[this.league];
     const scores = league.score(measure);
 
-    if (this.flight) {
-      this.flight.setMap(null);
-      this.flight = null;
-    }
+    this.flight?.setMap(null);
+    this.flight = null;
 
     store.dispatch(setDistance(distance));
     scores.sort((score1, score2) => score2.points - score1.points);
@@ -270,7 +268,8 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       map: this.map as google.maps.Map,
       path,
       strokeColor: ROUTE_STROKE_COLORS[score.circuit],
-      strokeWeight: 4,
+      strokeOpacity: 0.8,
+      strokeWeight: 3,
       zIndex: 1000,
     });
 
@@ -510,15 +509,9 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   protected cleanupOnCollapse(): void {
     if (this.line) {
       this.line.setMap(null);
-      if (this.flight) {
-        this.flight.setMap(null);
-      }
-      if (this.closingSector) {
-        this.closingSector.setMap(null);
-      }
-      if (this.faiSectors) {
-        this.faiSectors.setMap(null);
-      }
+      this.flight?.setMap(null);
+      this.closingSector?.setMap(null);
+      this.faiSectors?.setMap(null);
       store.dispatch(setScore(null));
     }
   }
