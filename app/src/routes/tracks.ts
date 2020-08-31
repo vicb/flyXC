@@ -6,8 +6,13 @@ import Pbf from 'pbf';
 
 import Router, { RouterContext } from '@koa/router';
 
-import { key_symbol, retrieveMetaTrackGroupsByIds, TrackEntity } from '../../../common/datastore';
-import { ProtoMetaTrackGroup } from '../../../common/track';
+import {
+  key_symbol,
+  retrieveMetaTrackGroupByUrl,
+  retrieveMetaTrackGroupsByIds,
+  TrackEntity,
+} from '../../../common/datastore';
+import { diffDecodeAirspaces, ProtoMetaTrackGroup } from '../../../common/track';
 import * as protos from '../../../common/track_proto';
 import { getTracksMostRecentFirst, parse, parseFromUrl } from '../parser/parser';
 
@@ -88,6 +93,28 @@ export function registerTrackRoutes(router: Router): void {
       } else {
         ctx.body = '';
       }
+    },
+  );
+
+  // Returns the airspaces info for the first track in the group as JSON.
+  // Returns 404 if the info are not available (/not ready yet).
+  router.get(
+    '/_airspaces',
+    async (ctx: RouterContext): Promise<void> => {
+      ctx.set('Access-Control-Allow-Origin', '*');
+      const url = ctx.query.track;
+      if (typeof url === 'string') {
+        const metaGroup = await retrieveMetaTrackGroupByUrl(url);
+        if (metaGroup?.airspaces_group_bin) {
+          const aspGroup = (protos.AirspacesGroup as any).read(new Pbf(metaGroup.airspaces_group_bin));
+          if (aspGroup?.airspaces) {
+            const airspaces = diffDecodeAirspaces(aspGroup.airspaces[0]);
+            ctx.body = JSON.stringify(airspaces);
+            return;
+          }
+        }
+      }
+      ctx.throw(404);
     },
   );
 }
