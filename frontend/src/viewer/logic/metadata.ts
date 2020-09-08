@@ -10,7 +10,7 @@ import {
   RuntimeTrack,
 } from '../../../../common/track';
 import * as protos from '../../../../common/track_proto';
-import { MapAction, receiveMetadata, setFetchingMetadata } from '../actions/map';
+import { MapAction, receiveMetadata, setFetchingMetadata } from '../actions';
 import { RootState } from '../store';
 
 const FETCH_EVERY_SECONDS = 15;

@@ -1,4 +1,4 @@
-import { getDistance } from 'geolib';
+import { getDistance, getRhumbLineBearing } from 'geolib';
 import Pbf from 'pbf';
 
 import { Flags } from './airspaces';
@@ -13,6 +13,7 @@ export type Point = {
 export type LatLon = {
   lat: number;
   lon: number;
+  alt?: number;
 };
 
 // A track.
@@ -82,6 +83,7 @@ export type RuntimeFixes = {
   vx: number[];
   vz: number[];
   ts: number[];
+  heading: number[];
 };
 
 // A track used by the runtime.
@@ -119,11 +121,13 @@ export function protoToRuntimeTrack(differentialTrack: ProtoTrack): RuntimeTrack
 
   const vx: number[] = [];
   const vz: number[] = [];
+  const heading: number[] = [];
   const distX: number[] = [0];
   const distZ: number[] = [0];
   const deltaTS: number[] = [0];
 
   const trackLen = track.lat.length;
+  let previousPoint = { lat: track.lat[0], lon: track.lon[0] };
 
   // Pre-computes values to save time.
   for (let i = 1; i < track.lat.length; i++) {
@@ -152,6 +156,10 @@ export function protoToRuntimeTrack(differentialTrack: ProtoTrack): RuntimeTrack
       if (time > 30) break;
     }
     vz[i] = time > 0 ? Number((distance / time).toFixed(1)) : 0;
+
+    const currentPoint = { lat: track.lat[i], lon: track.lon[i] };
+    heading[i] = getRhumbLineBearing(previousPoint, currentPoint);
+    previousPoint = currentPoint;
   }
 
   const runtimeFixes: RuntimeFixes = {
@@ -161,6 +169,7 @@ export function protoToRuntimeTrack(differentialTrack: ProtoTrack): RuntimeTrack
     ts: track.ts,
     vx,
     vz,
+    heading,
   };
 
   return {

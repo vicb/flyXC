@@ -11,22 +11,21 @@ import {
 } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { RuntimeTrack } from '../../../../common/track';
-import { setAspAltitude, setAspShowRestricted } from '../actions/map';
-import { AspAt, AspMapType, AspZoomMapType, MAX_ASP_TILE_ZOOM } from '../logic/airspaces';
-import { sampleAt } from '../logic/math';
-import { formatUnit } from '../logic/units';
-import { activeTrack, aspAltitudeStops, currentAspAltitudeStop } from '../selectors/map';
-import { RootState, store } from '../store';
-import { controlHostStyle } from './control-style';
+import { LatLon, RuntimeTrack } from '../../../../../common/track';
+import * as act from '../../actions';
+import { AspAt, AspMapType, AspZoomMapType, MAX_ASP_TILE_ZOOM } from '../../logic/airspaces';
+import { formatUnit } from '../../logic/units';
+import * as sel from '../../selectors';
+import { RootState, store } from '../../store';
+import { controlHostStyle } from '../control-style';
 
 @customElement('airspace-ctrl-element')
 export class AirspaceCtrlElement extends connect(store)(LitElement) {
   @property()
-  get map(): google.maps.Map | null {
+  get map(): google.maps.Map | undefined {
     return this.map_;
   }
-  set map(map: google.maps.Map | null) {
+  set map(map: google.maps.Map | undefined) {
     this.map_ = map;
     if (map) {
       if (this.overlays.length == 0) {
@@ -44,49 +43,47 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
     }
   }
 
-  map_: google.maps.Map | null = null;
+  private map_: google.maps.Map | undefined;
 
   @internalProperty()
-  expanded = false;
+  private expanded = false;
 
   @internalProperty()
-  units: any = null;
+  private units: any;
 
   @internalProperty()
-  ts = 0;
+  private ts = 0;
 
   @internalProperty()
-  airspaces: string[] = [];
+  private airspaces: string[] = [];
 
   // Current altitude stop in meters.
   @internalProperty()
-  altitudeStop = 1000;
+  private altitudeStop = 1000;
 
   // List of altitude stops.
   @internalProperty()
-  altitudeStops: number[] = [];
+  private altitudeStops: number[] = [];
 
   // Whether to display restricted airspaces.
   @internalProperty()
-  aspShowRestricted = true;
+  private aspShowRestricted = true;
 
   @internalProperty()
-  track: RuntimeTrack | null = null;
+  private track?: RuntimeTrack;
 
-  overlays: AspMapType[] = [];
+  private overlays: AspMapType[] = [];
 
-  info: google.maps.InfoWindow | null = null;
+  private info?: google.maps.InfoWindow;
 
   stateChanged(state: RootState): void {
-    if (state.map) {
-      this.units = state.map.units;
-      this.altitudeStop = currentAspAltitudeStop(state.map);
-      this.altitudeStops = aspAltitudeStops(state.map);
-      this.aspShowRestricted = state.map.aspShowRestricted;
-      this.track = activeTrack(state.map);
-      this.ts = state.map.chart.ts;
-      this.airspaces = state.map.chart.airspaces;
-    }
+    this.units = state.map.units;
+    this.altitudeStop = sel.currentAspAltitudeStop(state.map);
+    this.altitudeStops = sel.aspAltitudeStops(state.map);
+    this.aspShowRestricted = state.map.aspShowRestricted;
+    this.track = sel.currentTrack(state.map);
+    this.ts = state.map.chart.ts;
+    this.airspaces = state.map.chart.airspaces;
   }
 
   shouldUpdate(changedProperties: PropertyValues): boolean {
@@ -98,11 +95,9 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
       }
       if (this.track && (changedProperties.has('ts') || changedProperties.has('airspaces'))) {
         if (this.airspaces.length) {
-          const fixes = this.track.fixes;
-          const lat = sampleAt(fixes.ts, fixes.lat, [this.ts])[0];
-          const lng = sampleAt(fixes.ts, fixes.lon, [this.ts])[0];
+          const { lat, lon } = sel.getTrackLatLon(store.getState().map)(this.ts) as LatLon;
           this.info?.setContent(this.airspaces.map((t) => `<b>${t}</b>`).join('<br>'));
-          this.info?.setPosition({ lat, lng });
+          this.info?.setPosition({ lat, lng: lon });
           this.info?.open(this.map ?? undefined);
         } else {
           this.info?.close();
@@ -125,14 +120,14 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
     ];
   }
 
-  protected toggleExpanded(): void {
+  private toggleExpanded(): void {
     this.expanded = !this.expanded;
     if (!this.expanded) {
       this.info?.close();
     }
   }
 
-  render(): TemplateResult {
+  protected render(): TemplateResult {
     return html`
       <link
         rel="stylesheet"
@@ -146,9 +141,9 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
         <select value=${this.altitudeStop} @change=${this.handleAltitudeChange}>
           ${this.altitudeStops.map(
             (stop: number) =>
-              html`<option value=${stop} ?selected=${stop == this.altitudeStop}
-                >${formatUnit(stop, this.units.altitude)}</option
-              > `,
+              html`<option value=${stop} ?selected=${stop == this.altitudeStop}>
+                ${formatUnit(stop, this.units.altitude)}
+              </option> `,
           )}
         </select>
       </div>
@@ -157,18 +152,18 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
   }
 
   // Show/hide restricted airspaces.
-  protected handleRestricted(e: Event): void {
+  private handleRestricted(e: Event): void {
     const show = (e.target as HTMLInputElement).checked;
-    store.dispatch(setAspShowRestricted(show));
+    store.dispatch(act.setAspShowRestricted(show));
   }
 
   // Set the max altitude to display airspaces.
-  protected handleAltitudeChange(e: CustomEvent): void {
+  private handleAltitudeChange(e: CustomEvent): void {
     const altitude = (e.target as HTMLInputElement).value;
-    store.dispatch(setAspAltitude(altitude));
+    store.dispatch(act.setAspAltitude(altitude));
   }
 
-  protected handleClick(latLng: google.maps.LatLng): void {
+  private handleClick(latLng: google.maps.LatLng): void {
     if (this.expanded && this.map) {
       this.info?.close();
       const html = AspAt(
@@ -198,7 +193,7 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
     super.updated(changedProperties);
   }
 
-  protected addOverlays(): void {
+  private addOverlays(): void {
     this.overlays.forEach((o) => {
       if (this.map?.overlayMapTypes) {
         o.setAltitude(this.altitudeStop);
@@ -208,7 +203,7 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
     });
   }
 
-  protected removeOverlays(): void {
+  private removeOverlays(): void {
     if (this.map) {
       for (let i = this.map.overlayMapTypes.getLength() - 1; i >= 0; i--) {
         const o = this.map.overlayMapTypes.getAt(i);
@@ -220,7 +215,7 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
   }
 
   // Broadcast the current zoom level to the overlays so that they know when they are active.
-  protected setOverlaysZoom(): void {
+  private setOverlaysZoom(): void {
     if (this.map_) {
       const zoom = this.map_.getZoom();
       this.overlays.forEach((overlay) => overlay.setCurrentZoom(zoom));

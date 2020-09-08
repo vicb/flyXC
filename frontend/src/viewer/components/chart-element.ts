@@ -17,72 +17,74 @@ import { connect } from 'pwa-helpers';
 
 import { airspaceCategory, Flags } from '../../../../common/airspaces';
 import { RuntimeTrack } from '../../../../common/track';
-import { setChartAirspaces, setChartYAxis } from '../actions/map';
-import { trackColor } from '../logic/map';
+import { setChartAirspaces, setChartYAxis } from '../actions';
 import { sampleAt } from '../logic/math';
+import { trackColor } from '../logic/tracks';
 import { formatUnit, UNITS } from '../logic/units';
-import { ChartYAxis, Units } from '../reducers/map';
-import * as mapSel from '../selectors/map';
+import { ChartYAxis, Units } from '../reducers';
+import * as sel from '../selectors';
 import { RootState, store } from '../store';
 
 @customElement('chart-element')
 export class ChartElement extends connect(store)(LitElement) {
   @internalProperty()
-  tracks: RuntimeTrack[] | null = null;
+  private tracks: RuntimeTrack[] = [];
 
   @internalProperty()
-  chartYAxis: ChartYAxis = ChartYAxis.Altitude;
+  private chartYAxis: ChartYAxis = ChartYAxis.Altitude;
 
   @internalProperty()
-  ts = 0;
+  private ts = 0;
 
   @internalProperty()
-  width = 0;
+  private width = 0;
 
   @internalProperty()
-  height = 0;
+  private height = 0;
 
   @internalProperty()
-  units: Units | null = null;
+  private units?: Units;
 
   @internalProperty()
-  showRestricted = false;
+  private showRestricted = false;
+
+  @internalProperty()
+  private currentTrackIndex = 0;
 
   @queryAll('path.asp')
-  aspPathElements: NodeList | undefined;
+  private aspPathElements?: NodeList;
 
   @query('svg#chart')
-  svgContainer: SVGSVGElement | undefined;
+  private svgContainer?: SVGSVGElement;
 
-  minTs = 0;
-  maxTs = 1;
-  tsOffsets: number[] = [];
+  private minTs = 0;
+  private maxTs = 1;
+  private tsOffsets: number[] = [];
   // Do not refresh airspaces on every mouse move event.
-  throttleAspUpdates = false;
+  private throttleAspUpdates = false;
 
   stateChanged(state: RootState): void {
-    if (state.map) {
-      const map = state.map;
-      this.tracks = map.tracks;
-      this.chartYAxis = map.chart.yAxis;
-      this.ts = map.ts;
-      this.minTs = mapSel.minTs(map);
-      this.maxTs = mapSel.maxTs(map);
-      this.units = map.units;
-      this.tsOffsets = mapSel.tsOffsets(map);
-      this.showRestricted = map.aspShowRestricted;
-    }
+    const map = state.map;
+    this.tracks = map.tracks;
+    this.chartYAxis = map.chart.yAxis;
+    this.ts = map.ts;
+    this.minTs = sel.minTs(map);
+    this.maxTs = sel.maxTs(map);
+    this.units = map.units;
+    this.tsOffsets = sel.tsOffsets(map);
+    this.showRestricted = map.aspShowRestricted;
+    this.currentTrackIndex = map.currentTrackIndex;
   }
 
   get minY(): number {
     const mapState = store.getState().map;
     switch (this.chartYAxis) {
       case ChartYAxis.Speed:
-        return mapSel.minSpeed(mapState);
+        return sel.minSpeed(mapState);
       case ChartYAxis.Vario:
-        return mapSel.minVario(mapState);
+        return sel.minVario(mapState);
       default:
-        return mapSel.minAlt(mapState);
+        return sel.minAlt(mapState);
     }
   }
 
@@ -90,15 +92,15 @@ export class ChartElement extends connect(store)(LitElement) {
     const mapState = store.getState().map;
     switch (this.chartYAxis) {
       case ChartYAxis.Speed:
-        return mapSel.maxSpeed(mapState);
+        return sel.maxSpeed(mapState);
       case ChartYAxis.Vario:
-        return mapSel.maxVario(mapState);
+        return sel.maxVario(mapState);
       default:
-        return mapSel.maxAlt(mapState);
+        return sel.maxAlt(mapState);
     }
   }
 
-  protected getY(track: RuntimeTrack, ts: number): number {
+  private getY(track: RuntimeTrack, ts: number): number {
     switch (this.chartYAxis) {
       case ChartYAxis.Speed:
         return sampleAt(track.fixes.ts, track.fixes.vx, [ts])[0];
@@ -109,7 +111,7 @@ export class ChartElement extends connect(store)(LitElement) {
     }
   }
 
-  protected getYUnit(): UNITS {
+  private getYUnit(): UNITS {
     const units = this.units as Units;
     switch (this.chartYAxis) {
       case ChartYAxis.Speed:
@@ -182,7 +184,12 @@ export class ChartElement extends connect(store)(LitElement) {
         path {
           stroke-linecap: round;
           stroke-linejoin: round;
+          stroke-opacity: 0.6;
           stroke-width: 1;
+        }
+        path.active {
+          stroke-width: 1.5;
+          stroke-opacity: 1;
         }
         select {
           font: inherit;
@@ -194,53 +201,69 @@ export class ChartElement extends connect(store)(LitElement) {
     ];
   }
 
-  protected paths(): TemplateResult[] {
+  private paths(): TemplateResult[] {
     const paths: TemplateResult[] = [];
+
+    if (this.tracks.length == 0) {
+      return paths;
+    }
+
     const spanTs = this.maxTs - this.minTs;
     const scaleY = -this.height / (this.maxY - this.minY);
     const offsetY = -this.maxY * scaleY;
+    let activePath: SVGTemplateResult | undefined;
 
-    if (this.tracks != null) {
-      this.tracks.forEach((track, i) => {
-        // Span of the track on the X axis.
-        const minX = Math.round(((track.fixes.ts[0] - this.tsOffsets[i] - this.minTs) / spanTs) * this.width);
-        const maxX = Math.round(
-          ((track.fixes.ts[track.fixes.ts.length - 1] - this.tsOffsets[i] - this.minTs) / spanTs) * this.width,
-        );
-        const spanX = maxX - minX;
-        const spanTrackTs = track.maxTs - track.minTs;
+    // Display the gnd elevation only if there is a single track & mode is altitude
+    const displayGndAlt = this.tracks.length == 1 && this.chartYAxis == ChartYAxis.Altitude;
 
-        const trackCoords: string[] = [];
-        const gndCoords = [`${minX},${(this.minY * scaleY + offsetY).toFixed(1)}`];
-        // Display the gnd elevation only if there is a single track & mode is altitude
-        const displayGndAlt = this.tracks?.length == 1 && this.chartYAxis == ChartYAxis.Altitude;
-        if (displayGndAlt && track.fixes.gndAlt) {
-          paths.push(...this.airspacePaths(track, minX, spanX, spanTrackTs, scaleY, offsetY));
+    this.tracks.forEach((track, i) => {
+      const fixes = track.fixes;
+      if (fixes.ts.length < 5) {
+        return;
+      }
+      // Span of the track on the X axis.
+      const minX = Math.round(((fixes.ts[0] - this.tsOffsets[i] - this.minTs) / spanTs) * this.width);
+      const maxX = Math.round(((fixes.ts[fixes.ts.length - 1] - this.tsOffsets[i] - this.minTs) / spanTs) * this.width);
+      const spanX = maxX - minX;
+      const spanTrackTs = track.maxTs - track.minTs;
+
+      const trackCoords: string[] = [];
+      const gndCoords = [`${minX},${(this.minY * scaleY + offsetY).toFixed(1)}`];
+
+      if (displayGndAlt && fixes.gndAlt) {
+        paths.push(...this.airspacePaths(track, minX, spanX, spanTrackTs, scaleY, offsetY));
+      }
+      for (let x = minX; x < maxX; x++) {
+        const ts = ((x - minX) / spanX) * spanTrackTs + track.minTs;
+        const y = this.getY(track, ts);
+        trackCoords.push(`${x},${(y * scaleY + offsetY).toFixed(1)}`);
+        if (displayGndAlt && fixes.gndAlt) {
+          const gndAlt = sampleAt(fixes.ts, fixes.gndAlt, [ts])[0];
+          gndCoords.push(`${x},${(gndAlt * scaleY + offsetY).toFixed(1)}`);
         }
-        for (let x = minX; x < maxX; x++) {
-          const ts = ((x - minX) / spanX) * spanTrackTs + track.minTs;
-          const y = this.getY(track, ts);
-          trackCoords.push(`${x},${(y * scaleY + offsetY).toFixed(1)}`);
-          if (displayGndAlt && track.fixes.gndAlt) {
-            const gndAlt = sampleAt(track.fixes.ts, track.fixes.gndAlt, [ts])[0];
-            gndCoords.push(`${x},${(gndAlt * scaleY + offsetY).toFixed(1)}`);
-          }
-        }
-        gndCoords.push(`${maxX},${(this.minY * scaleY + offsetY).toFixed(1)}`);
-        if (displayGndAlt && gndCoords.length > 4) {
-          paths.push(svg`<path class=gnd d=${'M' + gndCoords.join('L')}></path>`);
-        }
-        if (trackCoords.length > 4) {
-          paths.push(svg`<path stroke=${trackColor(i)} filter="url(#shadow)" d=${'M' + trackCoords.join('L')}></path>`);
-        }
-      });
+      }
+      gndCoords.push(`${maxX},${(this.minY * scaleY + offsetY).toFixed(1)}`);
+      if (displayGndAlt) {
+        paths.push(svg`<path class=gnd d=${`M${gndCoords.join('L')}`}></path>`);
+      }
+      if (i == this.currentTrackIndex) {
+        activePath = svg`<path class='active' stroke=${trackColor(i)} filter=url(#shadow) 
+          d=${`M${trackCoords.join('L')}`}></path>`;
+      } else {
+        paths.push(svg`<path stroke=${trackColor(i)} d=${`M${trackCoords.join('L')}`}></path>`);
+      }
+    });
+
+    // The active path should be drawn last to be on top of others.
+    if (activePath) {
+      paths.push(activePath);
     }
 
     return paths;
   }
 
   // Compute the SVG paths for the airspaces.
-  protected airspacePaths(
+  private airspacePaths(
     track: RuntimeTrack,
     minX: number,
     spanX: number,
@@ -290,7 +313,7 @@ export class ChartElement extends connect(store)(LitElement) {
     return paths;
   }
 
-  protected aspLine(
+  private aspLine(
     track: RuntimeTrack,
     start: number,
     end: number,
@@ -322,7 +345,7 @@ export class ChartElement extends connect(store)(LitElement) {
     return reverse ? points.reverse() : points;
   }
 
-  protected axis(): TemplateResult[] {
+  private axis(): TemplateResult[] {
     const axis: TemplateResult[] = [];
 
     if (this.tracks) {
@@ -339,7 +362,7 @@ export class ChartElement extends connect(store)(LitElement) {
     return axis;
   }
 
-  protected yTexts(): TemplateResult[] {
+  private yTexts(): TemplateResult[] {
     const texts: TemplateResult[] = [];
 
     if (this.tracks) {
@@ -358,7 +381,7 @@ export class ChartElement extends connect(store)(LitElement) {
     return texts;
   }
 
-  protected xTexts(): TemplateResult[] {
+  private xTexts(): TemplateResult[] {
     const texts: TemplateResult[] = [];
 
     if (this.tracks) {
@@ -388,14 +411,14 @@ export class ChartElement extends connect(store)(LitElement) {
     return texts;
   }
 
-  protected updateSize(): void {
+  private updateSize(): void {
     const shadowRoot = this.shadowRoot as ShadowRoot;
     const host = shadowRoot.host;
     this.width = host.clientWidth;
     this.height = host.clientHeight;
   }
 
-  render(): TemplateResult {
+  protected render(): TemplateResult {
     if (!this.width) {
       // FF and Edge would report a size of 0x0 without setTimeout
       setTimeout(() => this.updateSize(), 0);
@@ -411,7 +434,7 @@ export class ChartElement extends connect(store)(LitElement) {
       >
         <defs>
           <filter id="shadow">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="1"></feGaussianBlur>
+            <feGaussianBlur in="SourceAlpha" stdDeviation="1.5"></feGaussianBlur>
             <feMerge>
               <feMergeNode></feMergeNode>
               <feMergeNode in="SourceGraphic"></feMergeNode>
@@ -419,18 +442,10 @@ export class ChartElement extends connect(store)(LitElement) {
           </filter>
         </defs>
         <rect width="100%" height="100%" fill="white" />
-        <g class="paths">
-          ${this.paths()}
-        </g>
-        <g class="axis">
-          ${this.axis()}
-        </g>
-        <g class="ticks">
-          ${this.yTexts()}
-        </g>
-        <g class="ticks">
-          ${this.xTexts()}
-        </g>
+        <g class="paths">${this.paths()}</g>
+        <g class="axis">${this.axis()}</g>
+        <g class="ticks">${this.yTexts()}</g>
+        <g class="ticks">${this.xTexts()}</g>
         <line id="ts" x1="0" x2="0" y2="100%"></line>
       </svg>
       <select @change=${this.handleYChange}>
@@ -441,16 +456,16 @@ export class ChartElement extends connect(store)(LitElement) {
     `;
   }
 
-  protected handleYChange(e: Event): void {
+  private handleYChange(e: Event): void {
     const y: ChartYAxis = Number((e.target as HTMLSelectElement).value);
     store.dispatch(setChartYAxis(y));
   }
 
-  protected tsX(): number {
+  private tsX(): number {
     return ((this.ts - this.minTs) / (this.maxTs - this.minTs)) * this.width;
   }
 
-  protected handleMouseEvent(name: string): (event: MouseEvent) => void {
+  private handleMouseEvent(name: string): (event: MouseEvent) => void {
     return (event: MouseEvent): void => {
       const target = event.currentTarget as HTMLElement;
       const x = event.clientX - target.getBoundingClientRect().left;
@@ -466,7 +481,7 @@ export class ChartElement extends connect(store)(LitElement) {
     };
   }
 
-  protected updateAirspaces(x: number, y: number, ts: number): void {
+  private updateAirspaces(x: number, y: number, ts: number): void {
     const airspaces: string[] = [];
     if (this.svgContainer && this.aspPathElements) {
       const point = this.svgContainer.createSVGPoint();

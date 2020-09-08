@@ -26,8 +26,8 @@ export class FaiSectors {
     return this.polygons.map((p) => p.addListener(name, handler));
   }
 
-  setMap(map: google.maps.Map | null): void {
-    this.polygons.forEach((p) => p.setMap(map));
+  setMap(map?: google.maps.Map | null): void {
+    this.polygons.forEach((p) => p.setMap(map ?? null));
   }
 
   update(points: Point[]): void {

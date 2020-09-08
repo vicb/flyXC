@@ -1,17 +1,17 @@
 import { customElement, LitElement, property } from 'lit-element';
 
-import { RuntimeTrack } from '../../../../common/track';
-import { trackColor } from '../logic/map';
+import { RuntimeTrack } from '../../../../../common/track';
+import { trackColor } from '../../logic/tracks';
 
-const INACTIVE_OPACITY = 0.7;
+const INACTIVE_OPACITY = 0.5;
 
-@customElement('gm-line')
-export class GmLineElement extends LitElement {
+@customElement('line-element')
+export class LineElement extends LitElement {
   @property()
-  map: google.maps.Map | null = null;
+  map: google.maps.Map | undefined;
 
   @property()
-  track: RuntimeTrack | null = null;
+  track?: RuntimeTrack;
 
   @property()
   active = false;
@@ -19,8 +19,8 @@ export class GmLineElement extends LitElement {
   @property()
   index = 0;
 
-  line: google.maps.Polyline | null = null;
-  maskLine: google.maps.Polyline | null = null;
+  private line: google.maps.Polyline | null = null;
+  private maskLine: google.maps.Polyline | null = null;
 
   shouldUpdate(): boolean {
     if (this.map && this.track) {
@@ -70,13 +70,9 @@ export class GmLineElement extends LitElement {
   }
 
   disconnectedCallback(): void {
-    if (this.line) {
-      this.line.setMap(null);
-      this.line = null;
-    }
-    if (this.maskLine) {
-      this.maskLine.setMap(null);
-      this.maskLine = null;
-    }
+    this.line?.setMap(null);
+    this.line = null;
+    this.maskLine?.setMap(null);
+    this.maskLine = null;
   }
 }

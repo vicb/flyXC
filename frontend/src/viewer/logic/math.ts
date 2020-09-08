@@ -24,22 +24,30 @@ export function linearInterpolate(
 // xs must be sorted in ascending order.
 export function sampleAt(xs: number[], ys: number[], targetXs: number[]): number[] {
   return targetXs.map((tx) => {
-    if (tx <= xs[0]) {
-      return ys[0];
-    }
-    if (tx >= xs[xs.length - 1]) {
-      return ys[ys.length - 1];
-    }
-    let left = 0;
-    let right = xs.length - 1;
-    while (right - left > 1) {
-      const m = Math.round((left + right) / 2);
-      if (xs[m] > tx) {
-        right = m;
-      } else {
-        left = m;
-      }
-    }
+    const [left, right] = findIndexes(xs, tx);
     return linearInterpolate(xs[left], ys[left], xs[right], ys[right], tx) as number;
   });
+}
+
+// Find the two indexes left and right of the value.
+export function findIndexes(ascendingList: number[], value: number): [number, number] {
+  let left = 0;
+  let right = ascendingList.length - 1;
+  if (value <= ascendingList[0]) {
+    return [left, left];
+  }
+  if (value >= ascendingList[ascendingList.length - 1]) {
+    return [right, right];
+  }
+
+  while (right - left > 1) {
+    const m = Math.round((left + right) / 2);
+    if (ascendingList[m] > value) {
+      right = m;
+    } else {
+      left = m;
+    }
+  }
+
+  return [left, right];
 }

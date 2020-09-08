@@ -1,55 +1,38 @@
-import {
-  css,
-  CSSResult,
-  customElement,
-  html,
-  internalProperty,
-  LitElement,
-  property,
-  TemplateResult,
-} from 'lit-element';
+import { css, CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { decrementSpeed, incrementSpeed, setSpeed } from '../actions/map';
-import { Point } from '../logic/score/measure';
-import { Score } from '../logic/score/scorer';
-import { formatUnit } from '../logic/units';
-import { Units } from '../reducers/map';
-import { RootState, store } from '../store';
+import { decrementSpeed, incrementSpeed, setSpeed } from '../../actions';
+import { Score } from '../../logic/score/scorer';
+import { formatUnit } from '../../logic/units';
+import { Units } from '../../reducers';
+import { RootState, store } from '../../store';
 
 @customElement('planner-element')
 export class PlannerElement extends connect(store)(LitElement) {
   @internalProperty()
-  score: Score | null = null;
+  private score?: Score;
 
   @internalProperty()
-  speed: number | null = null;
+  private speed?: number;
 
   @internalProperty()
-  league = 'xc';
+  private units?: Units;
 
   @internalProperty()
-  units: Units | null = null;
+  private distance = 0;
 
   @internalProperty()
-  distance = 0;
-
-  @property()
   // Don't display details by default when width is less than 640px.
-  detailed = window.matchMedia('(min-width: 640px)').matches;
+  private detailed = window.matchMedia('(min-width: 640px)').matches;
 
-  duration: number | null = null;
-  points: Point[] | null = null;
+  private duration?: number;
 
   stateChanged(state: RootState): void {
-    if (state.map) {
-      this.distance = state.map.distance;
-      this.score = state.map.score as Score;
-      this.speed = state.map.speed as number;
-      this.league = state.map.league;
-      this.units = state.map.units;
-      this.duration = ((this.distance / this.speed) * 60) / 1000;
-    }
+    this.distance = state.map.distance;
+    this.score = state.map.score as Score;
+    this.speed = state.map.speed as number;
+    this.units = state.map.units;
+    this.duration = ((this.distance / this.speed) * 60) / 1000;
   }
 
   static get styles(): CSSResult {
@@ -76,26 +59,26 @@ export class PlannerElement extends connect(store)(LitElement) {
 
       .control > div {
         border: solid 1px #717b87;
-        padding: 1px 0px;
+        border-top: 0;
+        padding: 4px;
       }
 
-      .control > div.detail {
-        border-top: 0;
-        padding: 5px 5px;
+      .control > :first-child {
+        border-radius: 4px 4px 0 0;
+        border-top: solid 1px #717b87;
+        padding: 4px 0px;
+        display: block;
+      }
+
+      .control > :last-child {
+        display: block;
+        border-radius: 0 0 4px 4px;
       }
 
       .large {
         font-size: 24px !important;
         font-weight: bold !important;
         overflow: hidden;
-      }
-
-      .control_distance {
-        border-radius: 4px 4px 0 0;
-      }
-
-      .control_reset {
-        border-radius: 0 0 4px 4px;
       }
 
       .decrement {
@@ -110,11 +93,11 @@ export class PlannerElement extends connect(store)(LitElement) {
     `;
   }
 
-  render(): TemplateResult {
+  protected render(): TemplateResult {
     return this.score && this.units
       ? html`
           <style>
-            .control > div.detail {
+            .control > div {
               display: ${this.detailed ? 'block' : 'none'};
             }
           </style>
@@ -123,24 +106,15 @@ export class PlannerElement extends connect(store)(LitElement) {
               <div>${this.score.circuit}</div>
               <div class="large">${formatUnit(this.score.distance / 1000, this.units.distance)}</div>
             </div>
-            <div class="detail">
-              <div>Multiplier</div>
-              <div class="large">×${this.score.multiplier}</div>
-            </div>
-            <div class="detail">
-              <div>Points</div>
+            <div>
+              <div>Points = ${this.getMultiplier()}</div>
               <div class="large">${this.score.points.toFixed(1)}</div>
             </div>
-            <div class="detail">
+            <div>
               <div>Total distance</div>
               <div class="large">${formatUnit(this.distance / 1000, this.units.distance)}</div>
             </div>
-            <div
-              class="detail"
-              @mousemove=${this.onMouseMove}
-              @click=${this.changeDuration}
-              @wheel=${this.wheelDuration}
-            >
+            <div @mousemove=${this.onMouseMove} @click=${this.changeDuration} @wheel=${this.wheelDuration}>
               <div>
                 <span>Duration</span>
                 <div class="decrement">
@@ -162,7 +136,7 @@ export class PlannerElement extends connect(store)(LitElement) {
               </div>
               <div class="large">${this.getDuration()}</div>
             </div>
-            <div class="detail" @mousemove=${this.onMouseMove} @click=${this.changeSpeed} @wheel=${this.wheelSpeed}>
+            <div @mousemove=${this.onMouseMove} @click=${this.changeSpeed} @wheel=${this.wheelSpeed}>
               <div>
                 <span>Speed</span>
                 <div class="decrement">
@@ -184,19 +158,19 @@ export class PlannerElement extends connect(store)(LitElement) {
               </div>
               <div class="large">${formatUnit(this.speed as number, this.units.speed)}</div>
             </div>
-            <div class="detail" @click=${(): boolean => this.dispatchEvent(new CustomEvent('close-flight'))}>
+            <div @click=${() => this.dispatchEvent(new CustomEvent('close-flight'))}>
               <div>Close flight</div>
             </div>
-            <div class="detail" @click=${(): boolean => this.dispatchEvent(new CustomEvent('share'))}>
+            <div @click=${() => this.dispatchEvent(new CustomEvent('share'))}>
               <div>Share</div>
             </div>
-            <div class="detail" @click=${(): boolean => this.dispatchEvent(new CustomEvent('download'))}>
+            <div @click=${() => this.dispatchEvent(new CustomEvent('download'))}>
               <div>Download</div>
             </div>
-            <div class="detail" @click=${(): boolean => this.dispatchEvent(new CustomEvent('reset'))}>
+            <div @click=${() => this.dispatchEvent(new CustomEvent('reset'))}>
               <div>Reset</div>
             </div>
-            <div style="border-top: 0" @click=${(): boolean => (this.detailed = !this.detailed)}>
+            <div @click=${() => (this.detailed = !this.detailed)}>
               <div>
                 ${this.detailed
                   ? html`
@@ -220,21 +194,25 @@ export class PlannerElement extends connect(store)(LitElement) {
       : html``;
   }
 
-  protected getDuration(): string {
+  private getMultiplier() {
+    return this.score?.multiplier == 1 ? 'kms' : `${this.score?.multiplier} x kms`;
+  }
+
+  private getDuration(): string {
     const duration = this.duration as number;
     const hour = Math.floor(duration / 60);
     const minutes = Math.floor(duration % 60).toString();
     return `${hour}:${minutes.padStart(2, '0')}`;
   }
 
-  protected onMouseMove(e: MouseEvent): void {
+  private onMouseMove(e: MouseEvent): void {
     const target = e.currentTarget as HTMLElement;
     const width = target.clientWidth;
     const x = e.clientX - target.getBoundingClientRect().left;
     target.style.cursor = x > width / 2 ? 'n-resize' : 's-resize';
   }
 
-  protected changeDuration(e: MouseEvent): void {
+  private changeDuration(e: MouseEvent): void {
     const target = e.currentTarget as HTMLElement;
     const width = target.clientWidth;
     const x = e.clientX - target.getBoundingClientRect().left;
@@ -243,20 +221,20 @@ export class PlannerElement extends connect(store)(LitElement) {
     store.dispatch(setSpeed(this.distance / ((1000 * Math.max(15, duration)) / 60)));
   }
 
-  protected wheelDuration(e: MouseWheelEvent): void {
+  private wheelDuration(e: WheelEvent): void {
     const delta = Math.sign(e.deltaY);
     const duration = (Math.floor((this.duration as number) / 15) + delta) * 15;
     store.dispatch(setSpeed(this.distance / ((1000 * Math.max(15, duration)) / 60)));
   }
 
-  protected changeSpeed(e: MouseEvent): void {
+  private changeSpeed(e: MouseEvent): void {
     const target = e.currentTarget as HTMLElement;
     const width = target.clientWidth;
     const x = e.clientX - target.getBoundingClientRect().left;
     store.dispatch(x > width / 2 ? incrementSpeed() : decrementSpeed());
   }
 
-  protected wheelSpeed(e: MouseWheelEvent): void {
+  private wheelSpeed(e: WheelEvent): void {
     store.dispatch(e.deltaY > 0 ? incrementSpeed() : decrementSpeed());
   }
 }

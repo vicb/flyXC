@@ -53,9 +53,11 @@ Change preferences.
 
 ## Credits
 
+- [ESRI](https://www.esri.com/) for their great [ArcGis API](https://developers.arcgis.com/javascript/) powering the 3D view, 
 - [openaip.net](http://openaip.net/) for the airspaces,
 - [thermal.kk7.ch](https://thermal.kk7.ch/) for the airways,
 - [Tom Payne](https://github.com/twpayne) for sharing his airspace handling code and for the great [XCPlanner](https://xcplanner.appspot.com/) that was a source of inspiration,
 - bat icons made by [Freepik](https://www.flaticon.com/authors/freepik) - [www.flaticon.com](https://www.flaticon.com/),
 - loader icon by [Sam Herbert](https://github.com/SamHerbert/SVG-Loaders/blob/master/svg-loaders/three-dots.svg),
+- 3d models by [snootsy31](https://sketchfab.com/snootsy31),
 - the many open source libraries, projects, and data sources used by FlyXc.

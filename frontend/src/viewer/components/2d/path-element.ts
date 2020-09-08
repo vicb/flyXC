@@ -11,17 +11,15 @@ import {
 } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { setDistance, setLeague, setScore, setSpeed } from '../actions/map';
-import { ClosingSector } from '../gm/closing-sector';
-import { FaiSectors } from '../gm/fai-sectors';
-import { getCurrentUrl, getUrlParam, ParamNames, pushCurrentState, setUrlParamValue } from '../logic/history';
-import { LEAGUES } from '../logic/score/league/leagues';
-import { Measure, Point } from '../logic/score/measure';
-import { CircuitType } from '../logic/score/scorer';
-import { formatUnit } from '../logic/units';
-import { Units } from '../reducers/map';
-import { RootState, store } from '../store';
-import { controlHostStyle } from './control-style';
+import { setDistance, setLeague, setScore, setSpeed } from '../../actions';
+import { ClosingSector } from '../../gm/closing-sector';
+import { FaiSectors } from '../../gm/fai-sectors';
+import { getCurrentUrl, getUrlParam, ParamNames, pushCurrentState, setUrlParamValue } from '../../logic/history';
+import { LEAGUES } from '../../logic/score/league/leagues';
+import { Measure, Point } from '../../logic/score/measure';
+import { CircuitType } from '../../logic/score/scorer';
+import { RootState, store } from '../../store';
+import { controlHostStyle } from '../control-style';
 import { PlannerElement } from './planner-element';
 
 // Route color by circuit type.
@@ -50,23 +48,20 @@ const WAYPOINT_FORMATS: { [id: string]: string } = {
 
 @customElement('path-ctrl-element')
 export class PathCtrlElement extends connect(store)(LitElement) {
-  line: google.maps.Polyline | null = null;
+  private line?: google.maps.Polyline;
 
   @internalProperty()
-  expanded = false;
+  private expanded = false;
 
   @internalProperty()
-  units: Units | null = null;
-
-  @internalProperty()
-  get map(): google.maps.Map | null {
+  private get map(): google.maps.Map | undefined {
     return this.map_;
   }
-  set map(map: google.maps.Map | null) {
+  private set map(map: google.maps.Map | undefined) {
     this.map_ = map;
     if (!this.line) {
       window.addEventListener('popstate', () => this.handlePopState());
-      if (this.initialPath == null) {
+      if (this.initialPath.length == 0) {
         const route = getUrlParam(ParamNames.ROUTE)[0];
         if (route) {
           this.initialPath = google.maps.geometry.encoding.decodePath(route);
@@ -100,37 +95,31 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       }
     }
   }
-  map_: google.maps.Map | null = null;
+  private map_: google.maps.Map | undefined;
 
   @internalProperty()
-  distance = 0;
+  private speed = 0;
 
   @internalProperty()
-  speed = 0;
-
-  @internalProperty()
-  league = 'xc';
+  private league = 'xc';
 
   @query('#share-dialog')
-  shareDialog?: any;
+  private shareDialog?: any;
 
   @query('#download-dialog')
-  downloadDialog?: any;
+  private downloadDialog?: any;
 
-  initialPath: google.maps.LatLng[] | null = null;
-  creatingInitialPath = false;
-  onAddPoint: google.maps.MapsEventListener | null = null;
-  flight: google.maps.Polyline | null = null;
-  closingSector: ClosingSector | null = null;
-  faiSectors: FaiSectors | null = null;
-  plannerElement: PlannerElement | null = null;
+  private initialPath: google.maps.LatLng[] = [];
+  private creatingInitialPath = false;
+  private onAddPoint: google.maps.MapsEventListener | null = null;
+  private flight: google.maps.Polyline | null = null;
+  private closingSector?: ClosingSector;
+  private faiSectors?: FaiSectors;
+  private plannerElement?: PlannerElement;
 
   stateChanged(state: RootState): void {
-    if (state.map) {
-      this.speed = state.map.speed;
-      this.league = state.map.league;
-      this.units = state.map.units;
-    }
+    this.speed = state.map.speed;
+    this.league = state.map.league;
   }
 
   shouldUpdate(changedProperties: PropertyValues): boolean {
@@ -158,7 +147,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   }
 
   // Handle expanding/collapsing the control.
-  protected toggleExpanded(): void {
+  private toggleExpanded(): void {
     this.expanded = !this.expanded;
     if (this.map) {
       if (this.expanded) {
@@ -177,11 +166,11 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     }
   }
 
-  protected appendToPath(coord: google.maps.LatLng): void {
+  private appendToPath(coord: google.maps.LatLng): void {
     this.line?.getPath().push(coord);
   }
 
-  protected createLine(map: google.maps.Map): google.maps.Polyline {
+  private createLine(map: google.maps.Map): google.maps.Polyline {
     const line = (this.line = new google.maps.Polyline({
       editable: true,
       map,
@@ -217,7 +206,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     return line;
   }
 
-  protected resetPath(): google.maps.MVCArray<google.maps.LatLng> {
+  private resetPath(): google.maps.MVCArray<google.maps.LatLng> {
     const map = this.map as google.maps.Map;
     const line = this.line as google.maps.Polyline;
     const path = line.getPath();
@@ -229,7 +218,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     return path;
   }
 
-  protected getPathPoints(): Point[] {
+  private getPathPoints(): Point[] {
     return this.line
       ? this.line
           .getPath()
@@ -238,13 +227,12 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       : [];
   }
 
-  protected computeDistance(): void {
+  private computeDistance(): void {
     if (!this.line || this.line.getPath().getLength() < 2) {
       return;
     }
     const line = this.line;
     const distance = google.maps.geometry.spherical.computeLength(line.getPath());
-    this.distance = Number((distance / 1000).toFixed(1));
     const points = this.getPathPoints();
     const measure = new Measure(points);
     const league = LEAGUES[this.league];
@@ -322,96 +310,93 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     // Update the URL on re-rendering
     setUrlParamValue(ParamNames.SPEED, String(this.speed));
     setUrlParamValue(ParamNames.LEAGUE, this.league);
-    return this.units
-      ? html`
-          <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
-          />
-          <span .hidden=${!this.expanded}>${formatUnit(this.distance, this.units.distance)}</span>
-          <i class="la la-ruler la-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
+    return html`
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
+      />
+      <i class="la la-ruler la-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
 
-          <ui5-dialog id="share-dialog" header-text="Share">
-            <section class="form-fields">
-              <div>
-                <ui5-toast id="notif-copy" placement="TopCenter">Link copied to clipboard</ui5-toast>
-                <ui5-label for="link">Link</ui5-label>
-                <ui5-input id="link" readonly value=${document.location.href}>
-                  ${navigator.clipboard
-                    ? html`<i
-                        title="Copy to clipboard"
-                        class="la la-copy la-lg"
-                        slot="icon"
-                        @click=${async () => {
-                          await navigator.clipboard.writeText(document.location.href);
-                          const notification = (this.shadowRoot as ShadowRoot).getElementById('notif-copy') as any;
-                          notification?.show();
-                        }}
-                      ></i>`
-                    : html``}
-                </ui5-input>
-              </div>
-              <br />
-              <div>
-                <ui5-label><a href=${this.getXcTrackHref()}>Open with XcTrack</a></ui5-label>
-              </div>
-              <img id="qr-code" width="256" height="256" />
-            </section>
-            <div slot="footer" style="display:flex;align-items:center;padding:.5rem">
-              <div style="flex: 1"></div>
-              <ui5-button design="Emphasized" @click=${this.closeShareDialog}>Close</ui5-button>
-            </div>
-          </ui5-dialog>
+      <ui5-dialog id="share-dialog" header-text="Share">
+        <section class="form-fields">
+          <div>
+            <ui5-toast id="notif-copy" placement="TopCenter">Link copied to clipboard</ui5-toast>
+            <ui5-label for="link">Link</ui5-label>
+            <ui5-input id="link" readonly value=${document.location.href}>
+              ${navigator.clipboard
+                ? html`<i
+                    title="Copy to clipboard"
+                    class="la la-copy la-lg"
+                    slot="icon"
+                    @click=${async () => {
+                      await navigator.clipboard.writeText(document.location.href);
+                      const notification = (this.shadowRoot as ShadowRoot).getElementById('notif-copy') as any;
+                      notification?.show();
+                    }}
+                  ></i>`
+                : html``}
+            </ui5-input>
+          </div>
+          <br />
+          <div>
+            <ui5-label><a href=${this.getXcTrackHref()}>Open with XcTrack</a></ui5-label>
+          </div>
+          <img id="qr-code" width="256" height="256" />
+        </section>
+        <div slot="footer" style="display:flex;align-items:center;padding:.5rem">
+          <div style="flex: 1"></div>
+          <ui5-button design="Emphasized" @click=${this.closeShareDialog}>Close</ui5-button>
+        </div>
+      </ui5-dialog>
 
-          <ui5-dialog id="download-dialog" header-text="Download Waypoints">
-            <section class="form-fields">
-              <div>
-                <ui5-label for="link">Turnpoints</ui5-label>
-                <table>
-                  ${this.getPathPoints().map(
-                    (p, i) =>
-                      html`
-                        <tr>
-                          <td>${String(i + 1).padStart(3, '0')}</td>
-                          <td>${p.lat.toFixed(6)}</td>
-                          <td>${p.lon.toFixed(6)}</td>
-                        </tr>
-                      `,
-                  )}
-                </table>
-              </div>
-              <div>
-                <ui5-label for="format">Format</ui5-label>
-                <ui5-select id="format">
-                  ${Object.getOwnPropertyNames(WAYPOINT_FORMATS).map(
-                    (f) => html` <ui5-option value=${f}>${WAYPOINT_FORMATS[f]}</ui5-option> `,
-                  )}
-                </ui5-select>
-              </div>
-              <div>
-                <ui5-label for="prefix">Waypoint prefix</ui5-label>
-                <ui5-input id="prefix" value="FXC"></ui5-input>
-              </div>
-            </section>
-            <div slot="footer" style="display:flex;align-items:center;padding:.5rem">
-              <div style="flex: 1"></div>
-              <ui5-button @click=${(): void => this.closeDownloadDialog(false)}>Close</ui5-button>
-              <div style="flex: .1"></div>
-              <ui5-button design="Emphasized" @click=${(): void => this.closeDownloadDialog(true)}>Download</ui5-button>
-            </div>
-          </ui5-dialog>
-          <form id="form-wpt" style="display: none" action="_waypoints" method="POST">
-            <input id="request" name="request" />
-          </form>
-        `
-      : html``;
+      <ui5-dialog id="download-dialog" header-text="Download Waypoints">
+        <section class="form-fields">
+          <div>
+            <ui5-label for="link">Turnpoints</ui5-label>
+            <table>
+              ${this.getPathPoints().map(
+                (p, i) =>
+                  html`
+                    <tr>
+                      <td>${String(i + 1).padStart(3, '0')}</td>
+                      <td>${p.lat.toFixed(6)}</td>
+                      <td>${p.lon.toFixed(6)}</td>
+                    </tr>
+                  `,
+              )}
+            </table>
+          </div>
+          <div>
+            <ui5-label for="format">Format</ui5-label>
+            <ui5-select id="format">
+              ${Object.getOwnPropertyNames(WAYPOINT_FORMATS).map(
+                (f) => html` <ui5-option value=${f}>${WAYPOINT_FORMATS[f]}</ui5-option> `,
+              )}
+            </ui5-select>
+          </div>
+          <div>
+            <ui5-label for="prefix">Waypoint prefix</ui5-label>
+            <ui5-input id="prefix" value="FXC"></ui5-input>
+          </div>
+        </section>
+        <div slot="footer" style="display:flex;align-items:center;padding:.5rem">
+          <div style="flex: 1"></div>
+          <ui5-button @click=${(): void => this.closeDownloadDialog(false)}>Close</ui5-button>
+          <div style="flex: .1"></div>
+          <ui5-button design="Emphasized" @click=${(): void => this.closeDownloadDialog(true)}>Download</ui5-button>
+        </div>
+      </ui5-dialog>
+      <form id="form-wpt" style="display: none" action="_waypoints" method="POST">
+        <input id="request" name="request" />
+      </form>
+    `;
   }
 
-  protected closeShareDialog(): void {
+  private closeShareDialog(): void {
     this.shareDialog?.close();
   }
 
-  protected closeDownloadDialog(download: boolean): void {
+  private closeDownloadDialog(download: boolean): void {
     if (!download) {
       this.downloadDialog?.close();
     } else {
@@ -443,7 +428,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   }
 
   // Update the route when history changes.
-  protected handlePopState(): void {
+  private handlePopState(): void {
     const route = getUrlParam(ParamNames.ROUTE)[0];
     if (this.line) {
       if (route) {
@@ -460,7 +445,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   }
 
   // Updates the URL route parameter and add an history entry when the route is updated.
-  protected handlePathUpdates(): void {
+  private handlePathUpdates(): void {
     // Do not record history when the path is being created from the URL parameter.
     if (this.line && !this.creatingInitialPath) {
       const path = this.line.getPath();
@@ -470,7 +455,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     this.computeDistance();
   }
 
-  protected getXcTrackHref(): string {
+  private getXcTrackHref(): string {
     const params = new URLSearchParams();
     if (this.line) {
       const points: string[] = [];
@@ -483,7 +468,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   }
 
   // Creates the left pane lazily.
-  protected createLeftPaneLazily(map: google.maps.Map): void {
+  private createLeftPaneLazily(map: google.maps.Map): void {
     if (this.plannerElement) {
       return;
     }
@@ -510,7 +495,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   }
 
   // Cleanup resources when the planner control gets closed.
-  protected cleanupOnCollapse(): void {
+  private cleanupOnCollapse(): void {
     if (this.line) {
       this.line.setMap(null);
       this.flight?.setMap(null);

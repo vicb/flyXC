@@ -2,12 +2,12 @@ import { toRad } from 'geolib';
 import { CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { setDisplayLiveNames } from '../actions/map';
-import { linearInterpolate } from '../logic/math';
-import { formatUnit } from '../logic/units';
-import { Units } from '../reducers/map';
-import { RootState, store } from '../store';
-import { controlHostStyle } from './control-style';
+import { setDisplayLiveNames } from '../../actions';
+import { linearInterpolate } from '../../logic/math';
+import { formatUnit } from '../../logic/units';
+import { Units } from '../../reducers';
+import { RootState, store } from '../../store';
+import { controlHostStyle } from '../control-style';
 
 const SPEECH_BUBBLE =
   'M2.5 2C1.7 2 1 2.7 1 3.5 l 0 8 c0 .8.7 1.5 1.5 1.5 H4 l 0 2.4 L 7.7 13 l 4.8 0 c.8 0 1.5 -.7 1.5 -1.5 l 0 -8 c 0 -.8 -.7 -1.5 -1.5 -1.5 z';
@@ -18,10 +18,10 @@ export class TrackingElement extends connect(store)(LitElement) {
   private displayNames = true;
 
   @internalProperty()
-  get map(): google.maps.Map | null {
+  get map(): google.maps.Map | undefined {
     return this.map_;
   }
-  set map(map: google.maps.Map | null) {
+  set map(map: google.maps.Map | undefined) {
     this.map_ = map;
     if (map) {
       this.handleVisibility();
@@ -29,11 +29,11 @@ export class TrackingElement extends connect(store)(LitElement) {
       this.setupInfoWindow(map);
     }
   }
-  map_: google.maps.Map | null = null;
+  map_: google.maps.Map | undefined;
 
-  private units: Units | null = null;
+  private units?: Units;
 
-  private info: google.maps.InfoWindow | null = null;
+  private info: google.maps.InfoWindow | undefined;
 
   private features: any[] = [];
 
@@ -53,7 +53,7 @@ export class TrackingElement extends connect(store)(LitElement) {
 
   // Do not fetch the trackers when flyxc is not visible.
   // Saves battery on mobiles.
-  protected handleVisibility(): void {
+  private handleVisibility(): void {
     const visible = document.visibilityState == 'visible';
     if (visible) {
       if (this.fetchId == null) {
@@ -69,17 +69,15 @@ export class TrackingElement extends connect(store)(LitElement) {
   }
 
   stateChanged(state: RootState): void {
-    if (state.map) {
-      this.units = state.map.units;
-      this.displayNames = state.map.displayLiveNames;
-    }
+    this.units = state.map.units;
+    this.displayNames = state.map.displayLiveNames;
   }
 
   static get styles(): CSSResult {
     return controlHostStyle;
   }
 
-  protected fetchTrackers(): void {
+  private fetchTrackers(): void {
     fetch('_trackers.geojson')
       .then((r) => (r.ok ? r.json() : null))
       .then((geoJson) => {
@@ -91,7 +89,7 @@ export class TrackingElement extends connect(store)(LitElement) {
       });
   }
 
-  protected setupInfoWindow(map: google.maps.Map): void {
+  private setupInfoWindow(map: google.maps.Map): void {
     const hasPointFeature = (event: any): boolean => event.feature?.getGeometry().getType() == 'Point';
     this.info = new google.maps.InfoWindow();
     this.info.close();
@@ -132,7 +130,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     });
   }
 
-  protected setMapStyle(map: google.maps.Map): void {
+  private setMapStyle(map: google.maps.Map): void {
     map.data.setStyle(
       (feature: google.maps.Data.Feature): google.maps.Data.StyleOptions => {
         const now = Date.now();
@@ -233,7 +231,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     );
   }
 
-  render(): TemplateResult {
+  protected render(): TemplateResult {
     return html`
       <link
         rel="stylesheet"
@@ -252,7 +250,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     `;
   }
 
-  protected handleDisplayNames(e: Event): void {
+  private handleDisplayNames(e: Event): void {
     const show = (e.target as HTMLInputElement).checked;
     store.dispatch(setDisplayLiveNames(show));
     // The style depends on displayNames.

@@ -1,9 +1,12 @@
-import { css, CSSResult, customElement, html, LitElement, TemplateResult } from 'lit-element';
+import { css, CSSResult, customElement, html, LitElement, query, TemplateResult } from 'lit-element';
 
 import { controlHostStyle } from './control-style';
 
 @customElement('about-ctrl-element')
 export class AboutElement extends LitElement {
+  @query('#about-dialog')
+  private dialog?: any;
+
   static get styles(): CSSResult[] {
     return [
       controlHostStyle,
@@ -27,7 +30,7 @@ export class AboutElement extends LitElement {
     ];
   }
 
-  render(): TemplateResult {
+  protected render(): TemplateResult {
     return html`
       <link
         rel="stylesheet"
@@ -90,15 +93,11 @@ export class AboutElement extends LitElement {
     `;
   }
 
-  protected openDialog(): void {
-    const shadowRoot = this.shadowRoot as ShadowRoot;
-    const dialog = shadowRoot.getElementById('about-dialog');
-    (dialog as any).open();
+  private openDialog(): void {
+    this.dialog?.open();
   }
 
-  protected closeDialog(): void {
-    const shadowRoot = this.shadowRoot as ShadowRoot;
-    const dialog = shadowRoot.getElementById('about-dialog');
-    (dialog as any).close();
+  private closeDialog(): void {
+    this.dialog?.close();
   }
 }

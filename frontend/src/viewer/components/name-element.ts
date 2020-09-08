@@ -1,15 +1,15 @@
 import { CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 
-import { trackColor } from '../logic/map';
+import { trackColor } from '../logic/tracks';
 import { controlHostStyle } from './control-style';
 
 @customElement('name-ctrl-element')
 export class NameElement extends LitElement {
   @property()
-  name: string | null = null;
+  name?: string;
 
   @property()
-  index: number | null = null;
+  index?: number;
 
   @property()
   displayNames = false;
@@ -23,7 +23,7 @@ export class NameElement extends LitElement {
     return controlHostStyle;
   }
 
-  render(): TemplateResult {
+  protected render(): TemplateResult {
     return html`
       <link
         rel="stylesheet"
@@ -32,10 +32,10 @@ export class NameElement extends LitElement {
       <label
         ><input type="checkbox" ?checked=${this.displayNames} @change=${this.handleDisplayNames} /><i
           class="la la-user-tag la-2x"
+          style=${`color: ${trackColor(this.index || 0)};`}
         ></i
       ></label>
       ${this.name}
-      <i class="la la-user la-2x" style=${`color: ${trackColor(this.index || 0)};`}></i>
       ${this.nbtracks > 1
         ? html`<i class="la la-chevron-right la-2x" style="cursor: pointer" @click=${this.handleNext}></i>`
         : html``}
@@ -43,15 +43,15 @@ export class NameElement extends LitElement {
     `;
   }
 
-  protected handleClose(): void {
+  private handleClose(): void {
     this.dispatchEvent(new CustomEvent('closeActiveTrack'));
   }
 
-  protected handleNext(): void {
+  private handleNext(): void {
     this.dispatchEvent(new CustomEvent('selectNextTrack'));
   }
 
-  protected handleDisplayNames(e: Event): void {
+  private handleDisplayNames(e: Event): void {
     const show = (e.target as HTMLInputElement).checked;
     this.dispatchEvent(new CustomEvent('displayNames', { detail: show }));
   }

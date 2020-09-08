@@ -1,7 +1,7 @@
 import { css, CSSResult, customElement, html, LitElement, TemplateResult } from 'lit-element';
 
 import { addUrlParamValues, ParamNames, pushCurrentState } from '../logic/history';
-import { uploadTracks } from '../logic/map';
+import { uploadTracks } from '../logic/tracks';
 import { controlHostStyle } from './control-style';
 
 @customElement('upload-ctrl-element')
@@ -30,12 +30,12 @@ export class UploadElement extends LitElement {
   }
 
   // Programmatically opens the file dialog.
-  protected forwardClick(): void {
+  private forwardClick(): void {
     const shadowRoot = this.shadowRoot as ShadowRoot;
     shadowRoot.getElementById('track')?.click();
   }
 
-  protected async upload(e: Event): Promise<void> {
+  private async upload(e: Event): Promise<void> {
     if (e.target) {
       const el = e.target as HTMLInputElement;
       if (el.files?.length) {

@@ -2,49 +2,46 @@ import cookies from 'cookiesjs';
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction, ThunkDispatch } from 'redux-thunk';
 
-import { RuntimeTrack } from '../../../../common/track';
-import { addUrlParamValue, ParamNames } from '../logic/history';
-import { scheduleMetadataFetch } from '../logic/metadata';
-import { Score } from '../logic/score/scorer';
-import { UNITS } from '../logic/units';
-import { ChartYAxis, MapState } from '../reducers/map';
-import { RootState } from '../store';
+import { LatLon, RuntimeTrack } from '../../../common/track';
+import { addUrlParamValue, ParamNames } from './logic/history';
+import { scheduleMetadataFetch } from './logic/metadata';
+import { Score } from './logic/score/scorer';
+import { UNITS } from './logic/units';
+import { ChartYAxis, MapState } from './reducers';
+import { RootState } from './store';
 
 export const ADD_TRACKS = 'ADD_TRACKS';
-export const CLOSE_ACTIVE_TRACK = 'CLOSE_ACTIVE_TRACK';
-export const CLOSE_TRACK_BY_ID = 'CLOSE_TRACK_BY_ID';
 export const DECREMENT_SPEED = 'DECREMENT_SPEED';
 export const FETCH_METADATA = 'FETCH_METADATA';
 export const INCREMENT_SPEED = 'INCREMENT_SPEED';
 export const MOVE_CLOSE_TO = 'MOVE_CLOSE_TO';
 export const RECEIVE_METADATA = 'RECEIVE_METADATA';
+export const REMOVE_TRACKS_BY_ID = 'DEL_TRACKS_BY_ID';
 export const SET_ALTITUDE_UNIT = 'SET_ALTITUDE_UNIT';
+export const SET_API_LOADING = 'SET_API_LOADING';
 export const SET_ASP_ALTITUDE = 'SET_ASP_ALTITUDE';
 export const SET_ASP_SHOW_RESTRICTED = 'SET_ASP_SHOW_RESTRICTED';
 export const SET_CHART_AIRSPACES = 'SET_CHART_ASP';
 export const SET_CHART_Y_AXIS = 'SET_CHART_Y_AXIS';
+export const SET_CURRENT_LOCATION = 'SET_CURRENT_LOCATION';
 export const SET_CURRENT_TRACK = 'SET_CURRENT_TRACK';
 export const SET_DISPLAY_LIVE_NAMES = 'SET_DISPLAY_LIVES_NAMES';
 export const SET_DISPLAY_NAMES = 'SET_DISPLAY_NAMES';
 export const SET_DISTANCE = 'SET_DISTANCE';
 export const SET_DISTANCE_UNIT = 'SET_DISTANCE_UNIT';
 export const SET_FETCHING_METADATA = 'SET_FETCHING_METADATA';
+export const SET_FULL_SCREEN = 'SET_FS';
+export const SET_GEOLOC = 'SET_GEOLOC';
 export const SET_LEAGUE = 'SET_LEAGUE';
-export const SET_LOADING = 'SET_LOADING';
-export const SET_MAP = 'SET_MAP';
 export const SET_SCORE = 'SET_SCORE';
 export const SET_SPEED = 'SET_SPEED';
 export const SET_SPEED_UNIT = 'SET_SPEED_UNIT';
-export const SET_TS = 'SET_TS';
+export const SET_TRACK_LOADING = 'SET_TRACK_LOADING';
+export const SET_TIMESTAMP = 'SET_TS';
 export const SET_VARIO_UNIT = 'SET_VARIO_UNIT';
-export const ZOOM_TRACKS = 'ZOOM_TRACKS';
+export const SET_VIEW_3D = 'SET_VIEW_3D';
 
 // Actions
-
-export interface SetMap extends Action<typeof SET_MAP> {
-  payload: { map: google.maps.Map };
-}
-
 export interface AddTracks extends Action<typeof ADD_TRACKS> {
   payload: { tracks: RuntimeTrack[] };
 }
@@ -52,9 +49,7 @@ export interface AddTracks extends Action<typeof ADD_TRACKS> {
 export interface MoveCloseTo extends Action<typeof MOVE_CLOSE_TO> {
   payload: { lat: number; lon: number };
 }
-export type ZoomTracks = Action<typeof ZOOM_TRACKS>;
-
-export interface SetTs extends Action<typeof SET_TS> {
+export interface SetTimestamp extends Action<typeof SET_TIMESTAMP> {
   payload: { ts: number };
 }
 
@@ -70,13 +65,15 @@ export interface SetAspShowRestricted extends Action<typeof SET_ASP_SHOW_RESTRIC
   payload: { aspShowRestricted: boolean };
 }
 
-export type CloseActiveTrack = Action<typeof CLOSE_ACTIVE_TRACK>;
-
-export interface CloseTrackById extends Action<typeof CLOSE_TRACK_BY_ID> {
-  payload: { id: number };
+export interface RemoveTracksById extends Action<typeof REMOVE_TRACKS_BY_ID> {
+  payload: { ids: number[] };
 }
 
-export interface SetLoading extends Action<typeof SET_LOADING> {
+export interface SetApiLoading extends Action<typeof SET_API_LOADING> {
+  payload: { loading: boolean };
+}
+
+export interface SetTrackLoading extends Action<typeof SET_TRACK_LOADING> {
   payload: { loading: boolean };
 }
 
@@ -143,44 +140,57 @@ export interface SetChartAirspaces extends Action<typeof SET_CHART_AIRSPACES> {
   payload: { ts: number; airspaces: string[] };
 }
 
+export interface SetView3d extends Action<typeof SET_VIEW_3D> {
+  payload: { enabled: boolean };
+}
+
+export interface SetCurrentLocation extends Action<typeof SET_CURRENT_LOCATION> {
+  payload: { latLon: LatLon; zoom: number };
+}
+
+export interface SetGeoloc extends Action<typeof SET_GEOLOC> {
+  payload: { latLon: LatLon };
+}
+
+export interface SetFullscreen extends Action<typeof SET_FULL_SCREEN> {
+  payload: { enabled: boolean };
+}
+
 export type MapThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action>;
 
 export type MapAction =
   | AddTracks
-  | CloseActiveTrack
-  | CloseTrackById
   | DecrementSpeed
   | FetchMetadata
   | IncrementSpeed
   | MoveCloseTo
   | ReceiveMetadata
+  | RemoveTracksById
   | SetAltitudeUnit
+  | SetApiLoading
   | SetAspAltitude
   | SetAspShowRestricted
   | SetChartAirspaces
   | SetChartYAxis
+  | SetCurrentLocation
   | SetCurrentTrack
   | SetDisplayLiveNames
   | SetDisplayNames
   | SetDistance
   | SetDistanceUnit
   | SetFetchingMetadata
+  | SetFullscreen
+  | SetGeoloc
   | SetLeague
-  | SetLoading
-  | SetMap
   | SetScore
   | SetSpeed
   | SetSpeedUnit
-  | SetTs
+  | SetTrackLoading
+  | SetTimestamp
   | SetVarioUnit
-  | ZoomTracks;
+  | SetView3d;
 
 // Action creators
-
-export const setMap: ActionCreator<SetMap> = (map: google.maps.Map) => ({
-  type: SET_MAP,
-  payload: { map },
-});
 
 export const receiveTracks = (tracks: RuntimeTrack[]): MapThunk => (
   dispatch: ThunkDispatch<MapState, void, MapAction>,
@@ -227,10 +237,8 @@ export const moveCloseTo: ActionCreator<MoveCloseTo> = (lat: number, lon: number
   payload: { lat, lon },
 });
 
-export const zoomTracks: ActionCreator<ZoomTracks> = () => ({ type: ZOOM_TRACKS });
-
-export const setTs: ActionCreator<SetTs> = (ts: number) => ({
-  type: SET_TS,
+export const setTimestamp: ActionCreator<SetTimestamp> = (ts: number) => ({
+  type: SET_TIMESTAMP,
   payload: { ts },
 });
 
@@ -249,15 +257,18 @@ export const setAspShowRestricted: ActionCreator<SetAspShowRestricted> = (aspSho
   payload: { aspShowRestricted },
 });
 
-export const closeActiveTrack: ActionCreator<CloseActiveTrack> = () => ({ type: CLOSE_ACTIVE_TRACK });
-
-export const closeTrackById: ActionCreator<CloseTrackById> = (id: number) => ({
-  type: CLOSE_TRACK_BY_ID,
-  payload: { id },
+export const removeTracksById: ActionCreator<RemoveTracksById> = (ids: number[]) => ({
+  type: REMOVE_TRACKS_BY_ID,
+  payload: { ids },
 });
 
-export const setLoading: ActionCreator<SetLoading> = (loading: boolean) => ({
-  type: SET_LOADING,
+export const setApiLoading: ActionCreator<SetApiLoading> = (loading: boolean) => ({
+  type: SET_API_LOADING,
+  payload: { loading },
+});
+
+export const setTrackLoading: ActionCreator<SetTrackLoading> = (loading: boolean) => ({
+  type: SET_TRACK_LOADING,
   payload: { loading },
 });
 
@@ -338,4 +349,24 @@ export const setDisplayLiveNames: ActionCreator<SetDisplayLiveNames> = (enabled:
 export const setChartAirspaces: ActionCreator<SetChartAirspaces> = (ts: number, airspaces: string[]) => ({
   type: SET_CHART_AIRSPACES,
   payload: { ts, airspaces },
+});
+
+export const setView3d: ActionCreator<SetView3d> = (enabled: boolean) => ({
+  type: SET_VIEW_3D,
+  payload: { enabled },
+});
+
+export const setCurrentLocation: ActionCreator<SetCurrentLocation> = (latLon: LatLon, zoom: number) => ({
+  type: SET_CURRENT_LOCATION,
+  payload: { latLon, zoom },
+});
+
+export const setGeoloc: ActionCreator<SetGeoloc> = (latLon: LatLon) => ({
+  type: SET_GEOLOC,
+  payload: { latLon },
+});
+
+export const setFullscreen: ActionCreator<SetFullscreen> = (enabled: boolean) => ({
+  type: SET_FULL_SCREEN,
+  payload: { enabled },
 });

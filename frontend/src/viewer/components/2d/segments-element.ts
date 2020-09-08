@@ -3,14 +3,14 @@ import { customElement, LitElement, property } from 'lit-element';
 @customElement('segments-element')
 export class SegmentsElement extends LitElement {
   @property()
-  query: string | null = null;
+  query?: string;
 
   @property()
-  map: google.maps.Map | null = null;
+  map: google.maps.Map | undefined;
 
-  rendered = false;
+  private rendered = false;
 
-  protected addTask(): void {
+  private addTask(): void {
     if (this.map && this.query) {
       const params = new URLSearchParams(this.query);
       const paths = params.getAll('seg').map(google.maps.geometry.encoding.decodePath);
@@ -19,7 +19,7 @@ export class SegmentsElement extends LitElement {
       paths.forEach((path, i) => {
         new google.maps.Polyline({
           clickable: false,
-          map: this.map!,
+          map: this.map,
           path,
           strokeColor: colors[i] ? '#' + colors[i] : 'yellow',
           strokeWeight: 3,

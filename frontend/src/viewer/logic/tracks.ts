@@ -1,8 +1,8 @@
-import { schemeCategory10 } from 'd3-scale-chromatic';
-
 import { createRuntimeTracks } from '../../../../common/track';
-import * as mapActions from '../actions/map';
-import { dispatch } from '../store';
+import * as act from '../actions';
+import * as sel from '../selectors';
+import { dispatch, store } from '../store';
+import * as msg from './messages';
 
 // Uploads files to the server and adds the tracks.
 export async function uploadTracks(tracks: File[]): Promise<number[]> {
@@ -24,7 +24,7 @@ export async function downloadTracksByUrl(urls: string[]): Promise<number[]> {
   return await fetchTracks(`/_download?${params}`);
 }
 
-// Download tracks given then datastore ids
+// Download tracks given then datastore ids.
 export async function downloadTracksById(ids: Array<number | string>): Promise<number[]> {
   if (ids.length == 0) {
     return [];
@@ -37,10 +37,11 @@ export async function downloadTracksById(ids: Array<number | string>): Promise<n
 // Fetch tracks using the given URL and options.
 // Returns the list of ids.
 async function fetchTracks(url: string, options: RequestInit | undefined = undefined): Promise<number[]> {
-  dispatch(mapActions.setLoading(true));
+  dispatch(act.setTrackLoading(true));
 
   const response = await fetch(url, options);
   if (!response.ok) {
+    dispatch(act.setTrackLoading(false));
     return [];
   }
   const ids: number[] = [];
@@ -52,18 +53,42 @@ async function fetchTracks(url: string, options: RequestInit | undefined = undef
         ids.push(track.id);
       }
     });
-    dispatch(mapActions.receiveTracks(runtimeTracks));
-    dispatch(mapActions.zoomTracks());
+    dispatch(act.receiveTracks(runtimeTracks));
+    msg.tracksAdded.emit(ids);
   }
-  dispatch(mapActions.setLoading(false));
+  dispatch(act.setTrackLoading(false));
+  dispatch(act.setAspAltitude(sel.maxAlt(store.getState().map)));
   return ids;
 }
 
-export function zoomTracks(map: google.maps.Map, minLat: number, minLon: number, maxLat: number, maxLon: number): void {
-  const bounds = new google.maps.LatLngBounds({ lat: minLat, lng: minLon }, { lat: maxLat, lng: maxLon });
-  map.fitBounds(bounds);
-}
+// from http://phrogz.net/tmp/24colors.html
+const colors = [
+  '#FF0000',
+  '#FFFF00',
+  '#00EAFF',
+  '#AA00FF',
+  '#FF7F00',
+  '#BFFF00',
+  '#0095FF',
+  '#FF00AA',
+  '#FFD400',
+  '#6AFF00',
+  '#0040FF',
+  '#EDB9B9',
+  '#B9D7ED',
+  '#E7E9B9',
+  '#DCB9ED',
+  '#B9EDE0',
+  '#8F2323',
+  '#23628F',
+  '#8F6A23',
+  '#6B238F',
+  '#4F8F23',
+  '#000000',
+  '#737373',
+  '#CCCCCC',
+];
 
 export function trackColor(index: number): string {
-  return schemeCategory10[(index + 3) % 10];
+  return colors[index % colors.length];
 }

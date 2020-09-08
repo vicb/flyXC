@@ -14,11 +14,11 @@ export interface Point {
 }
 
 export class Measure {
-  protected maxDelta = 0;
-  protected len: number;
-  protected distanceCache: { [idxA: number]: { [idxB: number]: number } } = {};
-  protected farthestBefore: PointReference[] = [];
-  protected farthestAfter: PointReference[] = [];
+  private maxDelta = 0;
+  private len: number;
+  private distanceCache: { [idxA: number]: { [idxB: number]: number } } = {};
+  private farthestBefore: PointReference[] = [];
+  private farthestAfter: PointReference[] = [];
 
   constructor(public points: Point[]) {
     this.len = points.length;
@@ -147,7 +147,7 @@ export class Measure {
     return { distance: bound, indexes };
   }
 
-  protected fastForward(index: number, distance: number): number {
+  private fastForward(index: number, distance: number): number {
     if (this.maxDelta == 0) {
       return index + 1;
     }

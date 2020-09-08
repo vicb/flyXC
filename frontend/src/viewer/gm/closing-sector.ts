@@ -16,8 +16,8 @@ export class ClosingSector {
     });
   }
 
-  setMap(map: google.maps.Map | null): void {
-    this.poly.setMap(map);
+  setMap(map?: google.maps.Map | null): void {
+    this.poly.setMap(map ?? null);
   }
 
   addListener(name: string, handler: (...args: any[]) => void): google.maps.MapsEventListener {

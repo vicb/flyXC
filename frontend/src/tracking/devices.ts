@@ -11,16 +11,16 @@ declare const gapi: any;
 @customElement('device-form')
 export class DeviceForm extends LitElement {
   @internalProperty()
-  auth: any;
+  private auth: any;
 
   @internalProperty()
-  signedIn = false;
+  private signedIn = false;
 
   @internalProperty()
-  device = 'no';
+  private device = 'no';
 
   @internalProperty()
-  changesSaved = false;
+  private changesSaved = false;
 
   constructor() {
     super();
@@ -48,12 +48,8 @@ export class DeviceForm extends LitElement {
       <section class="hero is-primary">
         <div class="hero-body">
           <div class="container">
-            <h1 class="title">
-              Tracker configuration
-            </h1>
-            <h2 class="subtitle">
-              Configure your live tracking device.
-            </h2>
+            <h1 class="title">Tracker configuration</h1>
+            <h2 class="subtitle">Configure your live tracking device.</h2>
           </div>
         </div>
       </section>
@@ -196,16 +192,12 @@ export class DeviceForm extends LitElement {
                   </label>
                 </div>
                 <div class="field" style=${`display:${this.device == 'no' ? 'block' : 'none'}`}>
-                  <p class="help">
-                    Live tracking is disabled and your position will not appear on the map.
-                  </p>
+                  <p class="help">Live tracking is disabled and your position will not appear on the map.</p>
                 </div>
 
                 <div class="field is-grouped">
                   <p class="control">
-                    <a class="button is-primary" @click=${() => this.updateTracker()}>
-                      Save
-                    </a>
+                    <a class="button is-primary" @click=${() => this.updateTracker()}> Save </a>
                   </p>
                   <p class="control">
                     <a
@@ -235,7 +227,7 @@ export class DeviceForm extends LitElement {
     `;
   }
 
-  protected updateTracker(): void {
+  private updateTracker(): void {
     const shadowRoot = this.shadowRoot as ShadowRoot;
     const data = [
       `device=${encodeURIComponent(this.device)}`,
@@ -256,7 +248,7 @@ export class DeviceForm extends LitElement {
     });
   }
 
-  protected onSignIn(): void {
+  private onSignIn(): void {
     const user = this.auth.currentUser.get();
     const data = [
       `token=${encodeURIComponent(user.getAuthResponse().id_token)}`,
@@ -290,7 +282,7 @@ export class DeviceForm extends LitElement {
       });
   }
 
-  protected handleClose(): void {
+  private handleClose(): void {
     document.location.href = '/';
   }
 }

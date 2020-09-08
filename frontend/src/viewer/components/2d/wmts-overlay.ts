@@ -3,13 +3,13 @@ import { LitElement, property } from 'lit-element';
 import { html as baseHtml, render as baseRender, TemplateResult } from 'lit-html';
 
 export abstract class WMTSOverlayElement extends LitElement {
-  map_: google.maps.Map | null = null;
+  map_: google.maps.Map | undefined;
 
   @property()
-  get map(): google.maps.Map | null {
+  get map(): google.maps.Map | undefined {
     return this.map_;
   }
-  set map(map: google.maps.Map | null) {
+  set map(map: google.maps.Map | undefined) {
     this.map_ = map;
     if (map && !this.registered) {
       this.init(map);
@@ -20,11 +20,9 @@ export abstract class WMTSOverlayElement extends LitElement {
     }
   }
 
-  mapBounds: google.maps.LatLngBounds[] | null = null;
-
-  copyrightEl: HTMLElement | null = null;
-
-  registered = false;
+  protected mapBounds: google.maps.LatLngBounds[] | null = null;
+  protected copyrightEl?: HTMLElement;
+  protected registered = false;
 
   abstract get mapName(): string;
   abstract get copyright(): { html: TemplateResult; url: string };

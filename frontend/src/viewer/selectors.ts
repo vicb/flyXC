@@ -1,17 +1,20 @@
 import { createSelector } from 'reselect';
 
-import { RuntimeTrack } from '../../../../common/track';
-import { UNITS } from '../logic/units';
-import { MapState, Units } from '../reducers/map';
+import { LatLon, RuntimeTrack } from '../../../common/track';
+import { sampleAt } from './logic/math';
+import { UNITS } from './logic/units';
+import { MapState, Units } from './reducers';
 
 export const league = (state: MapState): string => state.league;
 export const tracks = (state: MapState): RuntimeTrack[] => state.tracks;
 export const currentTrackIndex = (state: MapState): number => state.currentTrackIndex;
 export const aspAltitude = (state: MapState): number => state.aspAltitude;
 export const units = (state: MapState): Units => state.units;
-export const activeTrack = createSelector(tracks, currentTrackIndex, (tracks, idx) => (tracks ? tracks[idx] : null));
-export const activeFixes = createSelector(activeTrack, (track) => (track ? track.fixes : null));
-export const name = createSelector(activeTrack, (track) => (track ? track.name : ''));
+export const currentTrack = createSelector(tracks, currentTrackIndex, (tracks, idx) =>
+  tracks ? tracks[idx] : undefined,
+);
+export const activeFixes = createSelector(currentTrack, (track) => (track ? track.fixes : undefined));
+export const name = createSelector(currentTrack, (track) => (track ? track.name : ''));
 export const altitudeUnits = createSelector(units, (units) => units.altitude);
 
 // isMultiDay is true if tracks starts are more than 12h apart
@@ -75,6 +78,24 @@ export const minLons = createSelector(tracks, (tracks) => {
 });
 
 export const minLon = createSelector(minLons, (lons) => Math.min(...lons));
+
+// Return the bounding box of the tracks (null if no tracks).
+export const tracksExtent = createSelector(
+  tracks,
+  minLat,
+  minLon,
+  maxLat,
+  maxLon,
+  (tracks, minLat, minLon, maxLat, maxLon): { ne: LatLon; sw: LatLon } | null => {
+    if (tracks.length == 0) {
+      return null;
+    }
+    return {
+      ne: { lat: maxLat, lon: maxLon },
+      sw: { lat: minLat, lon: minLon },
+    };
+  },
+);
 
 export const maxTss = createSelector(tracks, tsOffsets, (tracks, tsOffsets) => {
   const maxTss: number[] = [];
@@ -188,3 +209,19 @@ export const trackIds = createSelector(tracks, (tracks: RuntimeTrack[]) => {
     return ids;
   }, []);
 });
+
+// Returns a function that compute the coordinates of the current track at the given timestamp.
+export const getTrackLatLon = createSelector(
+  tracks,
+  currentTrackIndex,
+  (tracks, currentTrackIndex) => (timestamp: number, index?: number): LatLon | null => {
+    if (tracks.length == 0) {
+      return null;
+    }
+    const fixes = tracks[index ?? currentTrackIndex].fixes;
+    const lat = sampleAt(fixes.ts, fixes.lat, [timestamp])[0];
+    const lon = sampleAt(fixes.ts, fixes.lon, [timestamp])[0];
+    const alt = sampleAt(fixes.ts, fixes.alt, [timestamp])[0];
+    return { lat, lon, alt };
+  },
+);

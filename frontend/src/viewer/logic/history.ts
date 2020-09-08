@@ -7,6 +7,7 @@ export enum ParamNames {
   ROUTE = 'p',
   LEAGUE = 'l',
   SPEED = 's',
+  VIEW_3D = '3d',
 }
 
 // Pushes the current URL on the stack to create a checkpoint.
@@ -95,7 +96,21 @@ function getSearchParams(url: URL = getCurrentUrl()): URLSearchParams {
   return url.searchParams;
 }
 
-// Update the current URL without push a new state.
+// Update the current URL without pushing a new state.
 function updateUrl(url: URL) {
   history.replaceState({}, '', url.href);
+}
+
+// Return wether 3D is enabled.
+export function has3dUrlParam(): boolean {
+  return getSearchParams().has(ParamNames.VIEW_3D);
+}
+
+// Set wether 3D is enabled.
+export function set3dUrlParam(enabled: boolean): void {
+  if (enabled) {
+    addUrlParamValue(ParamNames.VIEW_3D, '');
+  } else {
+    deleteUrlParam(ParamNames.VIEW_3D);
+  }
 }

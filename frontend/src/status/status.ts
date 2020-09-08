@@ -3,10 +3,10 @@ import { css, CSSResult, customElement, html, internalProperty, LitElement, Temp
 @customElement('flyxc-status')
 export class FlyXcStatusElement extends LitElement {
   @internalProperty()
-  status: any = null;
+  private status: any;
 
   @internalProperty()
-  timestamp: number | null = null;
+  private timestamp = 0;
 
   constructor() {
     super();
@@ -45,9 +45,7 @@ export class FlyXcStatusElement extends LitElement {
       <h1>Status</h1>
       <ul>
         <li>on ${lastStatus.toLocaleDateString()} ${lastStatus.toLocaleTimeString()}</li>
-        <li>
-          last request: ${lastRequest.toLocaleDateString()} ${lastRequest.toLocaleTimeString()}
-        </li>
+        <li>last request: ${lastRequest.toLocaleDateString()} ${lastRequest.toLocaleTimeString()}</li>
         <li>
           last refresh: ${this.status['num-refresh']} trackers on ${lastRefresh.toLocaleDateString()}
           ${lastRefresh.toLocaleTimeString()}

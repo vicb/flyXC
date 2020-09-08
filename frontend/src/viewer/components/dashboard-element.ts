@@ -1,13 +1,4 @@
-import {
-  css,
-  CSSResult,
-  customElement,
-  html,
-  internalProperty,
-  LitElement,
-  property,
-  TemplateResult,
-} from 'lit-element';
+import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 
 import { RuntimeFixes } from '../../../../common/track';
 import { sampleAt } from '../logic/math';
@@ -20,17 +11,17 @@ export class DashboardElement extends LitElement {
   timestamp = 0;
 
   @property()
-  fixes: RuntimeFixes | null = null;
+  fixes?: RuntimeFixes;
 
-  @internalProperty()
-  units: { [type: string]: UNITS } | null = null;
+  @property()
+  units?: { [type: string]: UNITS };
 
   static get styles(): CSSResult[] {
     return [
       controlHostStyle,
       css`
         h3 {
-          padding: 0 0 5px 0;
+          padding: 0;
           margin: 0;
         }
         ul {
@@ -42,35 +33,35 @@ export class DashboardElement extends LitElement {
     ];
   }
 
-  protected getElevation(): number {
+  private getElevation(): number {
     if (!this.fixes) {
       return 0;
     }
     return sampleAt(this.fixes.ts, this.fixes.alt, [this.timestamp])[0];
   }
 
-  protected getGroundElevation(): number {
-    if (this?.fixes?.gndAlt) {
+  private getGroundElevation(): number {
+    if (this.fixes?.gndAlt) {
       return sampleAt(this.fixes.ts, this.fixes.gndAlt, [this.timestamp])[0];
     }
     return 0;
   }
 
-  protected getVz(): number {
+  private getVz(): number {
     if (!this.fixes) {
       return 0;
     }
     return sampleAt(this.fixes.ts, this.fixes.vz, [this.timestamp])[0];
   }
 
-  protected getVx(): number {
+  private getVx(): number {
     if (!this.fixes) {
       return 0;
     }
     return sampleAt(this.fixes.ts, this.fixes.vx, [this.timestamp])[0];
   }
 
-  render(): TemplateResult {
+  protected render(): TemplateResult {
     const alt = this.getElevation();
     const gndAlt = this.getGroundElevation();
     return this.units

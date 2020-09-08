@@ -1,42 +1,44 @@
 import cookies from 'cookiesjs';
 import { Reducer } from 'redux';
 
-import { RuntimeTrack } from '../../../../common/track';
+import { LatLon, RuntimeTrack } from '../../../common/track';
 import {
   ADD_TRACKS,
-  CLOSE_ACTIVE_TRACK,
-  CLOSE_TRACK_BY_ID,
   DECREMENT_SPEED,
   FETCH_METADATA,
   INCREMENT_SPEED,
   MapAction,
   RECEIVE_METADATA,
+  REMOVE_TRACKS_BY_ID,
   SET_ALTITUDE_UNIT,
+  SET_API_LOADING,
   SET_ASP_ALTITUDE,
   SET_ASP_SHOW_RESTRICTED,
   SET_CHART_AIRSPACES,
   SET_CHART_Y_AXIS,
+  SET_CURRENT_LOCATION,
   SET_CURRENT_TRACK,
   SET_DISPLAY_LIVE_NAMES,
   SET_DISPLAY_NAMES,
   SET_DISTANCE,
   SET_DISTANCE_UNIT,
   SET_FETCHING_METADATA,
+  SET_FULL_SCREEN,
+  SET_GEOLOC,
   SET_LEAGUE,
-  SET_LOADING,
-  SET_MAP,
   SET_SCORE,
   SET_SPEED,
   SET_SPEED_UNIT,
-  SET_TS,
+  SET_TIMESTAMP,
+  SET_TRACK_LOADING,
   SET_VARIO_UNIT,
-  ZOOM_TRACKS,
-} from '../actions/map';
-import { zoomTracks } from '../logic/map';
-import { DropOutOfDateEntries, patchMetadata } from '../logic/metadata';
-import { Score } from '../logic/score/scorer';
-import { UNITS } from '../logic/units';
-import * as mapSel from '../selectors/map';
+  SET_VIEW_3D,
+} from './actions';
+import { has3dUrlParam } from './logic/history';
+import { DropOutOfDateEntries, patchMetadata } from './logic/metadata';
+import { Score } from './logic/score/scorer';
+import { UNITS } from './logic/units';
+import * as sel from './selectors';
 
 // Units for distance, altitude, speed and vario.
 export interface Units {
@@ -67,11 +69,23 @@ export interface MapState {
   // Display pilot labels for tracks.
   displayNames: boolean;
   distance: number;
+  fullscreen: boolean;
   // Running on a mobile ?
   isMobile: boolean;
   league: string;
-  loading: boolean;
-  map: google.maps.Map;
+  loadingApi: boolean;
+  loadingTracks: boolean;
+  location: {
+    // current location, used to sync 2D and 3D map.
+    current?: {
+      latLon: LatLon;
+      zoom: number;
+    };
+    // Initial location (read-only).
+    start: LatLon;
+    // Location retrieved from the browser.
+    geoloc?: LatLon;
+  };
   metadata: {
     // Map from track id to when we started fetching metadata.
     idStartedOn: { [id: number]: number };
@@ -83,6 +97,7 @@ export interface MapState {
   tracks: RuntimeTrack[];
   ts: number;
   units: Units;
+  view3d: boolean;
 }
 
 const INITIAL_STATE: MapState = {
@@ -97,11 +112,19 @@ const INITIAL_STATE: MapState = {
   displayLiveNames: true,
   displayNames: false,
   distance: 0,
+  fullscreen: false,
   // https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
   isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobi/i.test(navigator.userAgent),
   league: cookies('league') || 'xc',
-  loading: false,
-  map: (null as unknown) as google.maps.Map,
+  loadingApi: false,
+  loadingTracks: false,
+  location: {
+    // Start location (read-only).
+    start: {
+      lat: (cookies('init.lat') as number) ?? 45,
+      lon: (cookies('init.lon') as number) ?? 2,
+    },
+  },
   metadata: {
     idStartedOn: {},
     isFetching: false,
@@ -116,15 +139,13 @@ const INITIAL_STATE: MapState = {
     altitude: cookies('unit.altitude') || UNITS.meters,
     vario: cookies('unit.vario') || UNITS.meters_second,
   },
+  view3d: has3dUrlParam(),
 };
 
 const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, action: MapAction) => {
   switch (action.type) {
-    case SET_MAP:
-      return { ...state, map: action.payload.map };
-
     case ADD_TRACKS: {
-      const ids = mapSel.trackIds(state);
+      const ids = sel.trackIds(state);
       // Filter out duplicates.
       const tracks = action.payload.tracks.filter((track) => ids.indexOf(track.id ?? -1) < 0);
       const ts = state.tracks.length > 0 ? state.ts : tracks[0].fixes.ts[0];
@@ -171,26 +192,13 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
       };
     }
 
-    case ZOOM_TRACKS: {
-      const map = state.map;
-      const minLat = mapSel.minLat(state);
-      const minLon = mapSel.minLon(state);
-      const maxLat = mapSel.maxLat(state);
-      const maxLon = mapSel.maxLon(state);
-      const maxAlt = mapSel.maxAlt(state);
-      zoomTracks(map, minLat, minLon, maxLat, maxLon);
-      return { ...state, aspAltitude: maxAlt };
-    }
-
-    case SET_TS: {
+    case SET_TIMESTAMP: {
       const { ts } = action.payload;
       return { ...state, ts };
     }
 
-    case SET_CURRENT_TRACK: {
-      const { index } = action.payload;
-      return { ...state, currentTrackIndex: index };
-    }
+    case SET_CURRENT_TRACK:
+      return { ...state, currentTrackIndex: action.payload.index };
 
     case SET_ASP_ALTITUDE: {
       const { aspAltitude } = action.payload;
@@ -202,31 +210,23 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
       return { ...state, aspShowRestricted };
     }
 
-    case CLOSE_ACTIVE_TRACK: {
-      const tracks = [...state.tracks];
-      tracks.splice(state.currentTrackIndex, 1);
-      const currentTrack = 0;
-      const ts = tracks.length ? tracks[currentTrack].fixes.ts[0] : 0;
-      return { ...state, tracks, currentTrackIndex: currentTrack, ts };
-    }
-
-    case CLOSE_TRACK_BY_ID: {
-      const { id } = action.payload;
-      const tracks = state.tracks.filter((track) => track.id != id);
+    case REMOVE_TRACKS_BY_ID: {
+      const { ids } = action.payload;
+      const tracks = state.tracks.filter((track) => ids.indexOf(track.id ?? 0) < 0);
       // Set the first track as active when closing the active track.
-      const currentTrack = state.tracks[state.currentTrackIndex].id === id ? 0 : state.currentTrackIndex;
-      const ts = tracks.length ? tracks[currentTrack].fixes.ts[0] : 0;
-      return { ...state, tracks, currentTrackIndex: currentTrack, ts };
+      const nextIndex = ids.indexOf(state.tracks[state.currentTrackIndex].id ?? 0) < 0 ? state.currentTrackIndex : 0;
+      const ts = tracks.length ? tracks[nextIndex].fixes.ts[0] : 0;
+      return { ...state, tracks, currentTrackIndex: nextIndex, ts };
     }
 
-    case SET_LOADING:
-      const { loading } = action.payload;
-      return { ...state, loading };
+    case SET_API_LOADING:
+      return { ...state, loadingApi: action.payload.loading };
 
-    case SET_CHART_Y_AXIS: {
-      const { y } = action.payload;
-      return { ...state, chart: { ...state.chart, yAxis: y } };
-    }
+    case SET_TRACK_LOADING:
+      return { ...state, loadingTracks: action.payload.loading };
+
+    case SET_CHART_Y_AXIS:
+      return { ...state, chart: { ...state.chart, yAxis: action.payload.y } };
 
     case SET_SCORE: {
       const { score } = action.payload;
@@ -238,60 +238,63 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
       return { ...state, distance };
     }
 
-    case INCREMENT_SPEED: {
-      const { speed } = state;
-      return { ...state, speed: Math.floor(speed + 1) };
-    }
+    case INCREMENT_SPEED:
+      return { ...state, speed: Math.floor(state.speed + 1) };
 
-    case DECREMENT_SPEED: {
-      const { speed } = state;
-      return { ...state, speed: Math.max(1, Math.floor(speed - 1)) };
-    }
+    case DECREMENT_SPEED:
+      return { ...state, speed: Math.max(1, Math.floor(state.speed - 1)) };
 
-    case SET_SPEED: {
-      const { speed } = action.payload;
-      return { ...state, speed: Math.max(1, speed) };
-    }
+    case SET_SPEED:
+      return { ...state, speed: Math.max(1, action.payload.speed) };
 
     case SET_LEAGUE: {
       const { league } = action.payload;
       return { ...state, league };
     }
 
-    case SET_SPEED_UNIT: {
-      const { unit } = action.payload;
-      return { ...state, units: { ...state.units, speed: unit } };
-    }
+    case SET_SPEED_UNIT:
+      return { ...state, units: { ...state.units, speed: action.payload.unit } };
 
-    case SET_DISTANCE_UNIT: {
-      const { unit } = action.payload;
-      return { ...state, units: { ...state.units, distance: unit } };
-    }
+    case SET_DISTANCE_UNIT:
+      return { ...state, units: { ...state.units, distance: action.payload.unit } };
 
-    case SET_ALTITUDE_UNIT: {
-      const { unit } = action.payload;
-      return { ...state, units: { ...state.units, altitude: unit } };
-    }
+    case SET_ALTITUDE_UNIT:
+      return { ...state, units: { ...state.units, altitude: action.payload.unit } };
 
-    case SET_VARIO_UNIT: {
-      const { unit } = action.payload;
-      return { ...state, units: { ...state.units, vario: unit } };
-    }
+    case SET_VARIO_UNIT:
+      return { ...state, units: { ...state.units, vario: action.payload.unit } };
 
-    case SET_DISPLAY_NAMES: {
-      const { enabled } = action.payload;
-      return { ...state, displayNames: enabled };
-    }
+    case SET_DISPLAY_NAMES:
+      return { ...state, displayNames: action.payload.enabled };
 
-    case SET_DISPLAY_LIVE_NAMES: {
-      const { enabled } = action.payload;
-      return { ...state, displayLiveNames: enabled };
-    }
+    case SET_DISPLAY_LIVE_NAMES:
+      return { ...state, displayLiveNames: action.payload.enabled };
 
     case SET_CHART_AIRSPACES: {
       const { ts, airspaces } = action.payload;
       return { ...state, chart: { ...state.chart, ts, airspaces } };
     }
+
+    case SET_VIEW_3D:
+      return { ...state, view3d: action.payload.enabled };
+
+    case SET_GEOLOC: {
+      const { lat, lon } = action.payload.latLon;
+      // The next initial location will be here.
+      cookies({
+        'init.lat': lat,
+        'init.lon': lon,
+      });
+      return { ...state, location: { ...state.location, geoloc: { lat, lon } } };
+    }
+
+    case SET_CURRENT_LOCATION: {
+      const { latLon, zoom } = action.payload;
+      return { ...state, location: { ...state.location, current: { latLon, zoom } } };
+    }
+
+    case SET_FULL_SCREEN:
+      return { ...state, fullscreen: action.payload.enabled };
 
     default:
       return state;

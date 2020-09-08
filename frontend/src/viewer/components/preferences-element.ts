@@ -1,10 +1,10 @@
 import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { setAltitudeUnit, setDistanceUnit, setLeague, setSpeedUnit, setVarioUnit } from '../actions/map';
+import { setAltitudeUnit, setDistanceUnit, setLeague, setSpeedUnit, setVarioUnit } from '../actions';
 import { LEAGUES } from '../logic/score/league/leagues';
 import { UNITS } from '../logic/units';
-import { Units } from '../reducers/map';
+import { Units } from '../reducers';
 import { RootState, store } from '../store';
 import { controlHostStyle } from './control-style';
 
@@ -14,9 +14,9 @@ export class PreferencesElement extends connect(store)(LitElement) {
   league = 'xc';
 
   @property()
-  units: Units | null = null;
+  units?: Units;
 
-  leagues: { value: string; name: string }[] = [];
+  private leagues: { value: string; name: string }[] = [];
 
   constructor() {
     super();
@@ -27,10 +27,8 @@ export class PreferencesElement extends connect(store)(LitElement) {
   }
 
   stateChanged(state: RootState): void {
-    if (state.map) {
-      this.league = state.map.league;
-      this.units = state.map.units;
-    }
+    this.league = state.map.league;
+    this.units = state.map.units;
   }
 
   static get styles(): CSSResult[] {
@@ -55,7 +53,7 @@ export class PreferencesElement extends connect(store)(LitElement) {
     ];
   }
 
-  render(): TemplateResult {
+  protected render(): TemplateResult {
     return this.units
       ? html`
           <link
@@ -122,13 +120,13 @@ export class PreferencesElement extends connect(store)(LitElement) {
       : html``;
   }
 
-  protected openDialog(): void {
+  private openDialog(): void {
     const shadowRoot = this.shadowRoot as ShadowRoot;
     const dialog = shadowRoot.getElementById('pref-dialog') as any;
     dialog.open();
   }
 
-  protected closeDialog(): void {
+  private closeDialog(): void {
     const shadowRoot = this.shadowRoot as ShadowRoot;
     const dialog = shadowRoot.getElementById('pref-dialog') as any;
     dialog.close();

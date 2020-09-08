@@ -8,7 +8,7 @@ export function getApiKey(apiName: string, extraUrl?: string | null): string {
   if (allKeys != null) {
     const location = window.top == window ? window.location.href : document.referrer;
     key = findKey(allKeys, location);
-    if (extraUrl && key == null) {
+    if (extraUrl != null && key == null) {
       key = findKey(allKeys, extraUrl);
     }
   }

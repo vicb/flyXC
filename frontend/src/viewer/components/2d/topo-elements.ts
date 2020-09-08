@@ -2,7 +2,7 @@ import { customElement } from 'lit-element';
 // Warning: those are not the same at lit-element ones.
 import { html } from 'lit-html';
 
-import { getApiKey } from '../../apikey';
+import { getApiKey } from '../../../apikey';
 import { WMTSMapTypeElement } from './wmts-overlay';
 
 @customElement('topo-eu')

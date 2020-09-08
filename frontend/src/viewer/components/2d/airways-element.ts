@@ -1,7 +1,7 @@
 import { css, CSSResult, customElement, html, LitElement, property } from 'lit-element';
 import { html as baseHtml, TemplateResult } from 'lit-html';
 
-import { controlHostStyle } from './control-style';
+import { controlHostStyle } from '../control-style';
 import { WMTSOverlayElement } from './wmts-overlay';
 
 @customElement('airways-overlay')
@@ -36,9 +36,9 @@ export class AirwaysCtrlElement extends LitElement {
   expanded = false;
 
   @property()
-  map: google.maps.Map | null = null;
+  map: google.maps.Map | undefined;
 
-  overlay: google.maps.ImageMapType | null = null;
+  private overlay: google.maps.ImageMapType | undefined;
 
   handleChange(e: Event): void {
     if (e.target && this.overlay) {
@@ -58,7 +58,7 @@ export class AirwaysCtrlElement extends LitElement {
     ];
   }
 
-  protected toggleExpanded(): void {
+  private toggleExpanded(): void {
     this.expanded = !this.expanded;
     if (this.overlay && this.map) {
       if (this.expanded) {
@@ -75,11 +75,11 @@ export class AirwaysCtrlElement extends LitElement {
     }
   }
 
-  protected overlayReady(e: CustomEvent): void {
+  private overlayReady(e: CustomEvent): void {
     this.overlay = e.detail.mapType();
   }
 
-  render(): TemplateResult {
+  protected render(): TemplateResult {
     return html`
       <link
         rel="stylesheet"
