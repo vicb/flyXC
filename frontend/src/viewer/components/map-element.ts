@@ -83,34 +83,37 @@ export class MapElement extends connect(store)(LitElement) {
     super();
     window.addEventListener('popstate', () => this.handlePopState());
     window.addEventListener('google-map-ready', async () => {
-      const map = (this.map = new google.maps.Map(
-        this.querySelector('#map') as Element,
-        {
-          center: { lat: 45, lng: 0 },
-          zoom: 5,
-          minZoom: 3,
-          // Google maps terrain is only available up to zoom level 17.
-          maxZoom: 17,
-          mapTypeId: google.maps.MapTypeId.TERRAIN,
-          scaleControl: true,
-          fullscreenControl: false,
-          streetViewControl: false,
-          mapId: '997ff70df48844a5',
-          useStaticMap: true,
-          mapTypeControlOptions: {
-            mapTypeIds: [
-              'terrain',
-              'satellite',
-              TopoOtm.mapTypeId,
-              TopoFrance.mapTypeId,
-              TopoFrance.mapTypeIdScan,
-              TopoEu.mapTypeId,
-              TopoSpain.mapTypeId,
-            ],
-            style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-          },
-        } as any,
-      ));
+      const options: google.maps.MapOptions = {
+        center: { lat: 45, lng: 0 },
+        zoom: 5,
+        minZoom: 3,
+        // Google maps terrain is only available up to zoom level 17.
+        maxZoom: 17,
+        mapTypeId: google.maps.MapTypeId.TERRAIN,
+        scaleControl: true,
+        fullscreenControl: false,
+        streetViewControl: false,
+        mapTypeControlOptions: {
+          mapTypeIds: [
+            'terrain',
+            'satellite',
+            TopoOtm.mapTypeId,
+            TopoFrance.mapTypeId,
+            TopoFrance.mapTypeIdScan,
+            TopoEu.mapTypeId,
+            TopoSpain.mapTypeId,
+          ],
+          style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+        },
+      };
+
+      // Do not enable the webgl renderer on mobile devices as it is slow to load.
+      if (!store.getState().map.isMobile) {
+        (options as any).mapId = '997ff70df48844a5';
+        (options as any).useStaticMap = true;
+      }
+
+      const map = (this.map = new google.maps.Map(this.querySelector('#map') as Element, options));
       dispatch(mapActions.setMap(map));
 
       const ctrlsEl = document.createElement('controls-element');

@@ -67,6 +67,8 @@ export interface MapState {
   // Display pilot labels for tracks.
   displayNames: boolean;
   distance: number;
+  // Running on a mobile ?
+  isMobile: boolean;
   league: string;
   loading: boolean;
   map: google.maps.Map;
@@ -95,6 +97,8 @@ const INITIAL_STATE: MapState = {
   displayLiveNames: true,
   displayNames: false,
   distance: 0,
+  // https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
+  isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobi/i.test(navigator.userAgent),
   league: cookies('league') || 'xc',
   loading: false,
   map: (null as unknown) as google.maps.Map,
