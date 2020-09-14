@@ -23,11 +23,10 @@ export class TrackingElement extends connect(store)(LitElement) {
   }
   set map(map: google.maps.Map | null) {
     this.map_ = map;
-    if (map && this.fetchId == null) {
-      this.fetchTrackers();
-      this.fetchId = setInterval(() => this.fetchTrackers(), 2 * 60 * 1000);
+    if (map) {
+      this.handleVisibility();
       this.setMapStyle(map);
-      this.setupListener(map);
+      this.setupInfoWindow(map);
     }
   }
   map_: google.maps.Map | null = null;
@@ -39,6 +38,35 @@ export class TrackingElement extends connect(store)(LitElement) {
   private features: any[] = [];
 
   private fetchId: any = null;
+
+  private readonly visibilityListener = () => this.handleVisibility();
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    document.addEventListener('visibilitychange', this.visibilityListener);
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    document.removeEventListener('visibilitychange', this.visibilityListener);
+  }
+
+  // Do not fetch the trackers when flyxc is not visible.
+  // Saves battery on mobiles.
+  protected handleVisibility(): void {
+    const visible = document.visibilityState == 'visible';
+    if (visible) {
+      if (this.fetchId == null) {
+        this.fetchTrackers();
+        this.fetchId = setInterval(() => this.fetchTrackers(), 2 * 60 * 1000);
+      }
+    } else {
+      if (this.fetchId != null) {
+        clearInterval(this.fetchId);
+        this.fetchId = null;
+      }
+    }
+  }
 
   stateChanged(state: RootState): void {
     if (state.map) {
@@ -56,15 +84,14 @@ export class TrackingElement extends connect(store)(LitElement) {
       .then((r) => (r.ok ? r.json() : null))
       .then((geoJson) => {
         if (geoJson != null) {
-          const map = this.map as google.maps.Map;
           const features = this.features;
-          this.features = map.data.addGeoJson(geoJson);
-          features.forEach((f) => map.data.remove(f));
+          this.features = this.map?.data.addGeoJson(geoJson) || [];
+          features.forEach((f) => this.map?.data.remove(f));
         }
       });
   }
 
-  protected setupListener(map: google.maps.Map): void {
+  protected setupInfoWindow(map: google.maps.Map): void {
     const hasPointFeature = (event: any): boolean => event.feature?.getGeometry().getType() == 'Point';
     this.info = new google.maps.InfoWindow();
     this.info.close();
