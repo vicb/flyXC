@@ -20,10 +20,10 @@
     "ioredis": "^4.17.3",
     "koa": "^2.13.0",
     "koa-bodyparser": "^4.3.0",
-    "koa-router": "^9.1.0",
-    "request-zero": "^0.2.7",
+    "koa-router": "^9.4.0",
+    "request-zero": "^0.2.9",
     "rss-parser": "^3.9.0",
-    "ol": "^6.4.0",
+    "ol": "^6.4.3",
     "xmldom": "^0.3.0"
   },
   "devDependencies": {
