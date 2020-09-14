@@ -447,7 +447,11 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     const route = getUrlParam(ParamNames.ROUTE)[0];
     if (this.line) {
       if (route) {
-        this.line.setPath(google.maps.geometry.encoding.decodePath(route));
+        const path = this.line.getPath();
+        path.clear();
+        google.maps.geometry.encoding.decodePath(route).forEach((latLng) => {
+          path.push(latLng);
+        });
         this.computeDistance();
       } else if (this.expanded) {
         this.toggleExpanded();
