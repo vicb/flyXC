@@ -18,7 +18,8 @@ export function parse(content: string): ProtoTrack[] {
   igc.fixes.forEach((fix) => {
     lat.push(fix.latitude);
     lon.push(fix.longitude);
-    alt.push(fix.gpsAltitude || fix.pressureAltitude || 0);
+    // The pressure altitude has
+    alt.push(fix.pressureAltitude || fix.gpsAltitude || 0);
     ts.push(fix.timestamp);
   });
 
