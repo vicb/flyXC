@@ -1,17 +1,8 @@
 import type GraphicsLayer from 'esri/layers/GraphicsLayer';
 import type SceneView from 'esri/views/SceneView';
 import type NavigationToggle from 'esri/widgets/NavigationToggle';
-import {
-  css,
-  CSSResult,
-  customElement,
-  html,
-  internalProperty,
-  LitElement,
-  PropertyValues,
-  query,
-  TemplateResult,
-} from 'lit-element';
+import type Map from 'esri/Map';
+import { customElement, html, internalProperty, LitElement, PropertyValues, query, TemplateResult } from 'lit-element';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
@@ -43,25 +34,12 @@ export class Map3dElement extends connect(store)(LitElement) {
   private dialog?: any;
 
   // ArcGis objects.
+  private map?: Map;
   private view?: SceneView;
   private graphicsLayer?: GraphicsLayer;
 
   private subscriptions: UnsubscribeHandle[] = [];
   private timestamp = 0;
-
-  static get styles(): CSSResult {
-    return css`
-      .form-fields {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-evenly;
-        align-items: flex-start;
-        text-align: left;
-        margin: 1rem;
-        min-width: 200px;
-      }
-    `;
-  }
 
   stateChanged(state: RootState): void {
     this.tracks = sel.tracks(state.map);
@@ -82,18 +60,18 @@ export class Map3dElement extends connect(store)(LitElement) {
     set3dUrlParam(true);
     loadApi().then((ag: Api) => {
       this.api = ag;
-      const map = new ag.Map({
+      this.map = new ag.Map({
         basemap: 'satellite',
         ground: 'world-elevation',
       });
 
       this.graphicsLayer = new ag.GraphicsLayer();
-      map.add(this.graphicsLayer);
+      this.map.add(this.graphicsLayer);
 
       // TODO: add webgl is not supported
       this.view = new ag.SceneView({
         container: 'map',
-        map,
+        map: this.map,
         camera: { tilt: 80 },
         environment: { starsEnabled: false },
       });
@@ -101,6 +79,10 @@ export class Map3dElement extends connect(store)(LitElement) {
       this.view.ui.remove('zoom');
       const controls = document.createElement('controls3d-element') as Controls3dElement;
       this.view.ui.add(controls, 'top-right');
+
+      const layerSwitcher = this.renderRoot.querySelector('#layers') as HTMLSelectElement;
+      this.view.ui.add(layerSwitcher, 'top-left');
+      this.view.ui.move([layerSwitcher, 'compass', 'navigation-toggle'], 'top-left');
 
       // "Control" key sets the navigation mode to "rotate".
       const toggle = this.view.ui.find('navigation-toggle') as NavigationToggle;
@@ -207,7 +189,17 @@ export class Map3dElement extends connect(store)(LitElement) {
 
   protected render(): TemplateResult {
     return html`
+      <style>
+        #layers {
+          font: 18px Roboto, arial, sans-serif !important;
+        }
+      </style>
       <div id="map"></div>
+      <select id="layers" @change=${(e: any) => this.map?.set('basemap', e.target.value)}>
+        <option value="satellite">Satellite</option>
+        <option value="hybrid">Hybrid</option>
+        <option value="topo-vector">Terrain</option>
+      </select>
       <ui5-dialog id="webgl-dialog" header-text="Error">
         <section class="form-fields">
           <div>
