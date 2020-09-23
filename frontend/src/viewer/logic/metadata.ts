@@ -16,9 +16,9 @@ import { RootState } from '../store';
 const FETCH_EVERY_SECONDS = 15;
 export const FETCH_FOR_MINUTES = 3;
 
-// Patch the metadata on existing tracks.
+// Patch the metadata on existing tracks with the ground altitude and airspaces received from the server.
 // Remove the track from idStartedOn when it has been patched.
-export function patchMetadata(
+export function patchMetadataFromServer(
   tracks: RuntimeTrack[],
   metaTracks: ArrayBuffer,
   idStartedOn: { [id: number]: number },

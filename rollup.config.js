@@ -76,6 +76,7 @@ export default [
     external: builtins,
   },
   buildFrontEnd('frontend/src/viewer/flyxc.ts', { importUi5: true, visualizer: true }),
+  buildFrontEnd('frontend/src/viewer/workers/track.ts', { isWorker: true }),
   buildFrontEnd('frontend/src/archives/archives.ts'),
   buildFrontEnd('frontend/src/tracking/devices.ts'),
   buildFrontEnd('frontend/src/status/status.ts'),
@@ -86,7 +87,7 @@ function buildFrontEnd(input, options = {}) {
     input,
 
     output: {
-      dir: 'frontend/static/js/',
+      dir: options.isWorker ? 'frontend/static/js/workers' : 'frontend/static/js/',
       format: 'esm',
     },
 
@@ -114,7 +115,13 @@ function buildFrontEnd(input, options = {}) {
       }),
       resolve(),
       cjs(),
-      typescript(),
+      typescript({
+        tsconfigOverride: options.isWorker
+          ? {
+              compilerOptions: { lib: ['webworker'] },
+            }
+          : {},
+      }),
       options.importUi5 &&
         url({
           limit: 0,

@@ -9,6 +9,7 @@ import { Score } from './logic/score/scorer';
 import { UNITS } from './logic/units';
 import { ChartYAxis, MapState } from './reducers';
 import { RootState } from './store';
+import { Request, Response } from './workers/track';
 
 export const ADD_TRACKS = 'ADD_TRACKS';
 export const DECREMENT_SPEED = 'DECREMENT_SPEED';
@@ -16,6 +17,7 @@ export const FETCH_METADATA = 'FETCH_METADATA';
 export const INCREMENT_SPEED = 'INCREMENT_SPEED';
 export const MOVE_CLOSE_TO = 'MOVE_CLOSE_TO';
 export const RECEIVE_METADATA = 'RECEIVE_METADATA';
+export const RECEIVE_TRACK_WORKER_RESP = 'RECEIVE_TRKW_RESP';
 export const REMOVE_TRACKS_BY_ID = 'DEL_TRACKS_BY_ID';
 export const SET_ALTITUDE_UNIT = 'SET_ALTITUDE_UNIT';
 export const SET_API_LOADING = 'SET_API_LOADING';
@@ -156,6 +158,10 @@ export interface SetFullscreen extends Action<typeof SET_FULL_SCREEN> {
   payload: { enabled: boolean };
 }
 
+export interface ReceiveTrackWorkerResponse extends Action<typeof RECEIVE_TRACK_WORKER_RESP> {
+  payload: { response: Response };
+}
+
 export type MapThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action>;
 
 export type MapAction =
@@ -165,6 +171,7 @@ export type MapAction =
   | IncrementSpeed
   | MoveCloseTo
   | ReceiveMetadata
+  | ReceiveTrackWorkerResponse
   | RemoveTracksById
   | SetAltitudeUnit
   | SetApiLoading
@@ -192,16 +199,36 @@ export type MapAction =
 
 // Action creators
 
+// Client side track processing.
+let trackWorker: Worker | undefined;
+
 export const receiveTracks = (tracks: RuntimeTrack[]): MapThunk => (
   dispatch: ThunkDispatch<MapState, void, MapAction>,
   getState: () => RootState,
 ): void => {
+  if (!trackWorker) {
+    trackWorker = new Worker('js/workers/track.js');
+    trackWorker.onmessage = (msg: MessageEvent<Response>) => {
+      dispatch(receiveTrackWorkerResponse(msg.data));
+    };
+  }
   dispatch(addTracks(tracks));
+  // Actual fetching is started with `scheduleMetadataFetch`.
   dispatch(fetchMetadata(tracks));
-  // Add all the track ids to the current URL.
+
   tracks.forEach((track) => {
     if (track.id != null) {
+      // Add all the track ids to the current URL.
       addUrlParamValue(ParamNames.TRACK_ID, String(track.id));
+      // Start client side processing.
+      const req: Request = {
+        alt: track.fixes.alt,
+        id: track.id,
+        lat: track.fixes.lat,
+        lon: track.fixes.lon,
+        ts: track.fixes.ts,
+      };
+      trackWorker?.postMessage(req);
     }
   });
 
@@ -369,4 +396,9 @@ export const setGeoloc: ActionCreator<SetGeoloc> = (latLon: LatLon) => ({
 export const setFullscreen: ActionCreator<SetFullscreen> = (enabled: boolean) => ({
   type: SET_FULL_SCREEN,
   payload: { enabled },
+});
+
+export const receiveTrackWorkerResponse: ActionCreator<ReceiveTrackWorkerResponse> = (response: Response) => ({
+  type: RECEIVE_TRACK_WORKER_RESP,
+  payload: { response },
 });

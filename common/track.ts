@@ -1,4 +1,4 @@
-import { getDistance, getRhumbLineBearing } from 'geolib';
+import { getDistance } from 'geolib';
 import Pbf from 'pbf';
 
 import { Flags } from './airspaces';
@@ -83,6 +83,7 @@ export type RuntimeFixes = {
   vx: number[];
   vz: number[];
   ts: number[];
+  // Computed async in a web worker.
   heading: number[];
 };
 
@@ -92,7 +93,7 @@ export type RuntimeTrack = {
   id?: number;
   // Index in the track group.
   groupIndex?: number;
-  // Wether the track has been post-processed.
+  // Wether the track has been post-processed on the server.
   isPostProcessed: boolean;
   name: string;
   fixes: RuntimeFixes;
@@ -118,25 +119,22 @@ export type RuntimeTrack = {
 // - adds computed fields (speed, ...).
 export function protoToRuntimeTrack(differentialTrack: ProtoTrack): RuntimeTrack {
   const track = diffDecodeTrack(differentialTrack);
+  const trackLen = track.lat.length;
 
-  const vx: number[] = [];
-  const vz: number[] = [];
-  const heading: number[] = [];
   const distX: number[] = [0];
   const distZ: number[] = [0];
   const deltaTS: number[] = [0];
 
-  const trackLen = track.lat.length;
-  let previousPoint = { lat: track.lat[0], lon: track.lon[0] };
-
   // Pre-computes values to save time.
-  for (let i = 1; i < track.lat.length; i++) {
+  for (let i = 1; i < trackLen; i++) {
     distX[i] = getDistance({ lat: track.lat[i], lon: track.lon[i] }, { lat: track.lat[i - 1], lon: track.lon[i - 1] });
     distZ[i] = track.alt[i] - track.alt[i - 1];
     deltaTS[i] = (track.ts[i] - track.ts[i - 1]) / 1000;
   }
 
-  for (let i = 0; i < track.lat.length; i++) {
+  const vx: number[] = [];
+
+  for (let i = 0; i < trackLen; i++) {
     // Compute vx.
     let distance = 0;
     let time = 0;
@@ -146,21 +144,9 @@ export function protoToRuntimeTrack(differentialTrack: ProtoTrack): RuntimeTrack
       if (time > 60) break;
     }
     vx[i] = time > 0 ? Math.round((3.6 * distance) / time) : 0;
-
-    // Compute vz.
-    distance = 0;
-    time = 0;
-    for (let avg = 1; i + avg < trackLen && avg < 35; avg++) {
-      distance += distZ[i];
-      time += deltaTS[i];
-      if (time > 30) break;
-    }
-    vz[i] = time > 0 ? Number((distance / time).toFixed(1)) : 0;
-
-    const currentPoint = { lat: track.lat[i], lon: track.lon[i] };
-    heading[i] = getRhumbLineBearing(previousPoint, currentPoint);
-    previousPoint = currentPoint;
   }
+
+  const vz = computeVerticalSpeed(track.alt, track.ts);
 
   const runtimeFixes: RuntimeFixes = {
     lat: track.lat,
@@ -169,7 +155,7 @@ export function protoToRuntimeTrack(differentialTrack: ProtoTrack): RuntimeTrack
     ts: track.ts,
     vx,
     vz,
-    heading,
+    heading: new Array(trackLen).fill(0),
   };
 
   return {
@@ -190,6 +176,34 @@ export function protoToRuntimeTrack(differentialTrack: ProtoTrack): RuntimeTrack
     maxDistance: computeMaxDistance(runtimeFixes),
     isPostProcessed: false,
   };
+}
+
+export function computeVerticalSpeed(alt: number[], ts: number[]): number[] {
+  const trackLen = alt.length;
+  const distZ: number[] = [0];
+  const deltaTS: number[] = [0];
+
+  // Pre-computes values to save time.
+  for (let i = 1; i < trackLen; i++) {
+    distZ[i] = alt[i] - alt[i - 1];
+    deltaTS[i] = (ts[i] - ts[i - 1]) / 1000;
+  }
+
+  const vz: number[] = [];
+
+  for (let i = 0; i < trackLen; i++) {
+    // Compute vz.
+    let distance = 0;
+    let time = 0;
+    for (let avg = 1; i + avg < trackLen && avg < 35; avg++) {
+      distance += distZ[i];
+      time += deltaTS[i];
+      if (time > 30) break;
+    }
+    vz[i] = time > 0 ? Number((distance / time).toFixed(1)) : 0;
+  }
+
+  return vz;
 }
 
 // Add the ground altitude to a runtime track.

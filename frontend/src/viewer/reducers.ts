@@ -1,7 +1,7 @@
 import cookies from 'cookiesjs';
 import { Reducer } from 'redux';
 
-import { LatLon, RuntimeTrack } from '../../../common/track';
+import { computeVerticalSpeed, LatLon, RuntimeTrack } from '../../../common/track';
 import {
   ADD_TRACKS,
   DECREMENT_SPEED,
@@ -9,6 +9,7 @@ import {
   INCREMENT_SPEED,
   MapAction,
   RECEIVE_METADATA,
+  RECEIVE_TRACK_WORKER_RESP,
   REMOVE_TRACKS_BY_ID,
   SET_ALTITUDE_UNIT,
   SET_API_LOADING,
@@ -35,7 +36,7 @@ import {
   SET_VIEW_3D,
 } from './actions';
 import { has3dUrlParam } from './logic/history';
-import { DropOutOfDateEntries, patchMetadata } from './logic/metadata';
+import { DropOutOfDateEntries, patchMetadataFromServer } from './logic/metadata';
 import { Score } from './logic/score/scorer';
 import { UNITS } from './logic/units';
 import * as sel from './selectors';
@@ -178,7 +179,7 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
       let { tracks } = state;
 
       if (metaTracks != null && metaTracks.byteLength > 0) {
-        tracks = patchMetadata(tracks, metaTracks, idStartedOn);
+        tracks = patchMetadataFromServer(tracks, metaTracks, idStartedOn);
       }
 
       return { ...state, tracks, metadata: { ...state.metadata, idStartedOn } };
@@ -295,6 +296,26 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
 
     case SET_FULL_SCREEN:
       return { ...state, fullscreen: action.payload.enabled };
+
+    case RECEIVE_TRACK_WORKER_RESP: {
+      const { alt, heading, id } = action.payload.response;
+      const tracks = state.tracks;
+      let updated = false;
+      tracks.forEach((track) => {
+        if (track.id == id) {
+          track.fixes.alt = alt;
+          const vz = computeVerticalSpeed(alt, track.fixes.ts);
+          track.fixes.vz = vz;
+          track.minAlt = Math.min(...alt);
+          track.maxAlt = Math.max(...alt);
+          track.minVz = Math.min(...vz);
+          track.maxVz = Math.max(...vz);
+          track.fixes.heading = heading;
+          updated = true;
+        }
+      });
+      return updated ? { ...state, tracks: [...tracks] } : state;
+    }
 
     default:
       return state;
