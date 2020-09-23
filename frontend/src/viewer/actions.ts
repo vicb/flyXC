@@ -19,6 +19,7 @@ export const MOVE_CLOSE_TO = 'MOVE_CLOSE_TO';
 export const RECEIVE_METADATA = 'RECEIVE_METADATA';
 export const RECEIVE_TRACK_WORKER_RESP = 'RECEIVE_TRKW_RESP';
 export const REMOVE_TRACKS_BY_ID = 'DEL_TRACKS_BY_ID';
+export const SET_ALTITUDE_MULTIPLIER = 'SET_ALTITUDE_MULTI';
 export const SET_ALTITUDE_UNIT = 'SET_ALTITUDE_UNIT';
 export const SET_API_LOADING = 'SET_API_LOADING';
 export const SET_ASP_ALTITUDE = 'SET_ASP_ALTITUDE';
@@ -162,6 +163,10 @@ export interface ReceiveTrackWorkerResponse extends Action<typeof RECEIVE_TRACK_
   payload: { response: Response };
 }
 
+export interface SetAltitudeMultiplier extends Action<typeof SET_ALTITUDE_MULTIPLIER> {
+  payload: { multiplier: number };
+}
+
 export type MapThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action>;
 
 export type MapAction =
@@ -173,6 +178,7 @@ export type MapAction =
   | ReceiveMetadata
   | ReceiveTrackWorkerResponse
   | RemoveTracksById
+  | SetAltitudeMultiplier
   | SetAltitudeUnit
   | SetApiLoading
   | SetAspAltitude
@@ -401,4 +407,9 @@ export const setFullscreen: ActionCreator<SetFullscreen> = (enabled: boolean) =>
 export const receiveTrackWorkerResponse: ActionCreator<ReceiveTrackWorkerResponse> = (response: Response) => ({
   type: RECEIVE_TRACK_WORKER_RESP,
   payload: { response },
+});
+
+export const setAltitudeMultiplier: ActionCreator<SetAltitudeMultiplier> = (multiplier: number) => ({
+  type: SET_ALTITUDE_MULTIPLIER,
+  payload: { multiplier },
 });

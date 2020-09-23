@@ -33,6 +33,9 @@ export class Line3dElement extends connect(store)(LitElement) {
   private timestamp = 0;
 
   @internalProperty()
+  private multiplier = 0;
+
+  @internalProperty()
   private tsOffsets: number[] = [];
 
   private line = {
@@ -58,8 +61,9 @@ export class Line3dElement extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     this.tsOffsets = sel.tsOffsets(state.map);
-    this.timestamp = state.map?.ts;
-    this.active = state.map?.currentTrackIndex == this.index;
+    this.timestamp = state.map.ts;
+    this.active = state.map.currentTrackIndex == this.index;
+    this.multiplier = state.map.altMultiplier;
   }
 
   shouldUpdate(): boolean {
@@ -73,11 +77,11 @@ export class Line3dElement extends connect(store)(LitElement) {
 
       // TODO: precompute and slice ?
       for (let i = start; i < end; i++) {
-        path.push([fixes.lon[i], fixes.lat[i], fixes.alt[i]]);
+        path.push([fixes.lon[i], fixes.lat[i], this.multiplier * fixes.alt[i]]);
       }
       // Make sure the last point matches the marker position.
       const pos = sel.getTrackLatLon(store.getState().map)(timestamp, this.index) as LatLon;
-      path.push([pos.lon, pos.lat, pos.alt ?? 0]);
+      path.push([pos.lon, pos.lat, this.multiplier * (pos.alt ?? 0)]);
 
       this.line.paths[0] = path as any;
 

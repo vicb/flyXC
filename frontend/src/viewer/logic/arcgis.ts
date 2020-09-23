@@ -5,6 +5,8 @@ const moduleNames = [
   'esri/Map',
   'esri/views/SceneView',
   'esri/layers/GraphicsLayer',
+  'esri/layers/ElevationLayer',
+  'esri/layers/BaseElevationLayer',
   'esri/Graphic',
   'esri/Color',
   'esri/geometry/Point',
@@ -15,6 +17,8 @@ export type Api = {
   Map: typeof import('esri/Map');
   SceneView: typeof import('esri/views/SceneView');
   GraphicsLayer: typeof import('esri/layers/GraphicsLayer');
+  ElevationLayer: typeof import('esri/layers/ElevationLayer');
+  BaseElevationLayer: typeof import('esri/layers/BaseElevationLayer');
   Graphic: typeof import('esri/Graphic');
   Color: typeof import('esri/Color');
   Point: typeof import('esri/geometry/Point');

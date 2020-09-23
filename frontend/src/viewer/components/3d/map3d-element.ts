@@ -2,6 +2,7 @@ import type GraphicsLayer from 'esri/layers/GraphicsLayer';
 import type SceneView from 'esri/views/SceneView';
 import type NavigationToggle from 'esri/widgets/NavigationToggle';
 import type Map from 'esri/Map';
+import type BaseElevationLayer from 'esri/layers/BaseElevationLayer';
 import { customElement, html, internalProperty, LitElement, PropertyValues, query, TemplateResult } from 'lit-element';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
@@ -30,6 +31,9 @@ export class Map3dElement extends connect(store)(LitElement) {
   @internalProperty()
   protected currentTrackIndex = 0;
 
+  @internalProperty()
+  private multiplier = 1;
+
   @query('#webgl-dialog')
   private dialog?: any;
 
@@ -37,6 +41,8 @@ export class Map3dElement extends connect(store)(LitElement) {
   private map?: Map;
   private view?: SceneView;
   private graphicsLayer?: GraphicsLayer;
+  // Elevation layer with exageration.
+  private elevationLayer?: BaseElevationLayer;
 
   private subscriptions: UnsubscribeHandle[] = [];
   private timestamp = 0;
@@ -45,11 +51,21 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.tracks = sel.tracks(state.map);
     this.timestamp = state.map.ts;
     this.currentTrackIndex = state.map.currentTrackIndex;
+    this.multiplier = state.map.altMultiplier;
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
     if (changedProps.has('currentTrackIndex')) {
       this.centerOnMarker(16);
+    }
+    if (changedProps.has('multiplier')) {
+      console.log('shouldUpdate - multiplier', this.multiplier);
+      changedProps.delete('multiplier');
+      if (this.elevationLayer && this.api) {
+        this.map?.ground.layers.remove(this.elevationLayer as any);
+        this.elevationLayer = createElevationLayer(this.api, this.multiplier);
+        this.map?.ground.layers.add(this.elevationLayer as any);
+      }
     }
     return super.shouldUpdate(changedProps);
   }
@@ -60,9 +76,10 @@ export class Map3dElement extends connect(store)(LitElement) {
     set3dUrlParam(true);
     loadApi().then((ag: Api) => {
       this.api = ag;
+      this.elevationLayer = createElevationLayer(ag, this.multiplier);
       this.map = new ag.Map({
         basemap: 'satellite',
-        ground: 'world-elevation',
+        ground: { layers: [this.elevationLayer] },
       });
 
       this.graphicsLayer = new ag.GraphicsLayer();
@@ -243,4 +260,38 @@ export class Map3dElement extends connect(store)(LitElement) {
       store.dispatch(act.setCurrentLocation({ lat: center.latitude, lon: center.longitude }, this.view.zoom));
     }
   }
+}
+
+let Layer: any;
+
+// Creates a layer with exaggeration.
+// See https://developers.arcgis.com/javascript/latest/api-reference/esri-layers-BaseElevationLayer.html
+function createElevationLayer(ag: Api, multiplier = 1): BaseElevationLayer {
+  if (!Layer) {
+    Layer = (ag.BaseElevationLayer as any).createSubclass({
+      properties: {
+        // exaggeration multiplier.
+        multiplier: 1,
+      },
+      load: function () {
+        this._elevation = new ag.ElevationLayer({
+          url: '//elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer',
+        });
+      },
+      fetchTile: function (level: number, row: number, col: number, options: unknown) {
+        return this._elevation.fetchTile(level, row, col, options).then((data: { values?: number[] }) => {
+          if (data.values) {
+            for (let i = 0; i < data.values.length; i++) {
+              data.values[i] *= this.multiplier;
+            }
+          }
+          return data;
+        });
+      },
+    });
+  }
+
+  const layer = new Layer();
+  layer.multiplier = multiplier;
+  return layer;
 }

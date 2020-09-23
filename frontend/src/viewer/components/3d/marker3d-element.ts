@@ -34,6 +34,9 @@ export class Marker3dElement extends connect(store)(LitElement) {
   private timestamp = 0;
 
   @internalProperty()
+  private multiplier = 0;
+
+  @internalProperty()
   private tsOffsets: number[] = [];
 
   private point = {
@@ -63,8 +66,9 @@ export class Marker3dElement extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     this.tsOffsets = sel.tsOffsets(state.map);
-    this.timestamp = state.map?.ts;
-    this.active = state.map?.currentTrackIndex == this.index;
+    this.timestamp = state.map.ts;
+    this.active = state.map.currentTrackIndex == this.index;
+    this.multiplier = state.map.altMultiplier;
   }
 
   shouldUpdate(): boolean {
@@ -75,7 +79,7 @@ export class Marker3dElement extends connect(store)(LitElement) {
 
       this.point.latitude = lat;
       this.point.longitude = lon;
-      this.point.z = alt ?? 0;
+      this.point.z = (alt ?? 0) * this.multiplier;
 
       const objectSymbol = this.symbol.symbolLayers[0];
       objectSymbol.material.color = trackColor(this.index);

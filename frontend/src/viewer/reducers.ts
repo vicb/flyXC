@@ -11,6 +11,7 @@ import {
   RECEIVE_METADATA,
   RECEIVE_TRACK_WORKER_RESP,
   REMOVE_TRACKS_BY_ID,
+  SET_ALTITUDE_MULTIPLIER,
   SET_ALTITUDE_UNIT,
   SET_API_LOADING,
   SET_ASP_ALTITUDE,
@@ -57,6 +58,8 @@ export const enum ChartYAxis {
 }
 
 export interface MapState {
+  // Altitude exaggeration multiplier for 3d.
+  altMultiplier: number;
   aspAltitude: number;
   aspShowRestricted: boolean;
   chart: {
@@ -102,6 +105,7 @@ export interface MapState {
 }
 
 const INITIAL_STATE: MapState = {
+  altMultiplier: 1,
   aspAltitude: 1000,
   aspShowRestricted: true,
   chart: {
@@ -315,6 +319,9 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
       });
       return updated ? { ...state, tracks: [...tracks] } : state;
     }
+
+    case SET_ALTITUDE_MULTIPLIER:
+      return { ...state, altMultiplier: action.payload.multiplier };
 
     default:
       return state;

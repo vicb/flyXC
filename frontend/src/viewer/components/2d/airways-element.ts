@@ -1,4 +1,4 @@
-import { css, CSSResult, customElement, html, LitElement, property } from 'lit-element';
+import { css, CSSResult, customElement, html, internalProperty, LitElement, property } from 'lit-element';
 import { html as baseHtml, TemplateResult } from 'lit-html';
 
 import { controlHostStyle } from '../control-style';
@@ -32,8 +32,8 @@ export class AirwaysCtrlElement extends LitElement {
   @property()
   opacity = 0.5;
 
-  @property()
-  expanded = false;
+  @internalProperty()
+  private expanded = false;
 
   @property()
   map: google.maps.Map | undefined;

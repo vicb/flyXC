@@ -7,7 +7,7 @@ import { controlHostStyle } from './control-style';
 @customElement('expand-ctrl-element')
 export class ExpandElement extends LitElement {
   @internalProperty()
-  private expanded = false;
+  private fullscreen = document.fullscreenElement != null;
 
   private element?: Element;
 
@@ -17,7 +17,7 @@ export class ExpandElement extends LitElement {
     if (fs?.length) {
       const el = (this.element = fs[0]);
       el.addEventListener('fullscreenchange', () => {
-        this.expanded = document.fullscreenElement != null;
+        this.fullscreen = document.fullscreenElement != null;
       });
     }
     window.addEventListener('fullscreenchange', () => {
@@ -30,16 +30,16 @@ export class ExpandElement extends LitElement {
     return controlHostStyle;
   }
 
-  private toggleExpand(): void {
-    this.expanded = !this.expanded;
+  private toggleFullscreen(): void {
+    this.fullscreen = !this.fullscreen;
     if (this.element) {
-      if (this.expanded) {
+      if (this.fullscreen) {
         this.element.requestFullscreen();
       } else {
         document.exitFullscreen();
       }
     }
-    dispatch(act.setFullscreen(this.expanded));
+    dispatch(act.setFullscreen(this.fullscreen));
   }
 
   protected render(): TemplateResult {
@@ -48,7 +48,7 @@ export class ExpandElement extends LitElement {
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
       />
-      <i class="la ${this.expanded ? 'la-compress' : 'la-expand'} la-2x" @click=${this.toggleExpand}></i>
+      <i class="la ${this.fullscreen ? 'la-compress' : 'la-expand'} la-2x" @click=${this.toggleFullscreen}></i>
     `;
   }
 }
