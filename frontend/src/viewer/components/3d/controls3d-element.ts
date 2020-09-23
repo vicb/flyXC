@@ -10,11 +10,12 @@ import * as sel from '../../selectors';
 import { dispatch, RootState, store } from '../../store';
 import { AboutElement } from '../about-element';
 import { DashboardElement } from '../dashboard-element';
+import { ExpandElement } from '../expand-element';
 import { GlobeElement } from '../globe-element';
 import { NameElement } from '../name-element';
 import { UploadElement } from '../upload-element';
 
-export { AboutElement, DashboardElement, GlobeElement, NameElement, UploadElement };
+export { AboutElement, DashboardElement, GlobeElement, NameElement, UploadElement, ExpandElement };
 
 @customElement('controls3d-element')
 export class Controls3dElement extends connect(store)(LitElement) {
@@ -38,6 +39,8 @@ export class Controls3dElement extends connect(store)(LitElement) {
 
   @internalProperty()
   private view3d = false;
+
+  private isInIframe = true; //window.parent !== window;
 
   stateChanged(state: RootState): void {
     this.timestamp = state.map.ts;
@@ -93,6 +96,7 @@ export class Controls3dElement extends connect(store)(LitElement) {
   protected render(): TemplateResult {
     return html`
       <globe-element .view3d=${this.view3d} class="cl"></globe-element>
+      ${this.isInIframe ? html`<expand-ctrl-element></expand-ctrl-element>` : html``}
       <upload-ctrl-element class="cl"></upload-ctrl-element>
       <about-ctrl-element class="cl"></about-ctrl-element>
       <preferences-ctrl-element></preferences-ctrl-element>
