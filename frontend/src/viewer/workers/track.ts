@@ -4,6 +4,8 @@
 import { getRhumbLineBearing } from 'geolib';
 import createMedianFilter from 'moving-median';
 
+import { computeVerticalSpeed } from '../../../../common/track';
+
 export type Request = {
   alt: number[];
   id: number;
@@ -16,6 +18,11 @@ export type Response = {
   alt: number[];
   heading: number[];
   id: number;
+  maxAlt: number;
+  minAlt: number;
+  maxVz: number;
+  minVz: number;
+  vz: number[];
 };
 
 // Median filter:
@@ -93,5 +100,11 @@ w.addEventListener('message', (message: MessageEvent<Request>) => {
   filterSpikes(alt, ts);
   const heading = computeHeading(lat, lon);
 
-  w.postMessage({ alt, heading, id });
+  const vz = computeVerticalSpeed(alt, ts);
+  const minAlt = Math.min(...alt);
+  const maxAlt = Math.max(...alt);
+  const minVz = Math.min(...vz);
+  const maxVz = Math.max(...vz);
+
+  w.postMessage({ alt, heading, id, maxAlt, minAlt, maxVz, minVz, vz });
 });
