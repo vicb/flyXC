@@ -164,7 +164,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     if (this.view && this.api) {
       this.view.goTo(
         {
-          target: new this.api.Point({ latitude: lat, longitude: lon, z: alt }),
+          target: new this.api.Point({ latitude: lat, longitude: lon, z: this.multiplier * (alt ?? 0) }),
           zoom: zoom ?? this.view.zoom,
           heading: this.view.camera.heading,
           tilt: this.view.camera.tilt,
