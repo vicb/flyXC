@@ -39,6 +39,9 @@ export class Marker3dElement extends connect(store)(LitElement) {
   @internalProperty()
   private tsOffsets: number[] = [];
 
+  @internalProperty()
+  displayNames = true;
+
   private point = {
     type: 'point',
     latitude: 0,
@@ -62,13 +65,28 @@ export class Marker3dElement extends connect(store)(LitElement) {
     ],
   };
 
-  graphic?: Graphic;
+  private txtSymbol = {
+    type: 'point-3d',
+    symbolLayers: [
+      {
+        type: 'text',
+        material: { color: 'black' },
+        halo: { color: 'white', size: 1 },
+        size: 12,
+        text: '',
+      },
+    ],
+  };
+
+  private graphic?: Graphic;
+  private txtGraphic?: Graphic;
 
   stateChanged(state: RootState): void {
     this.tsOffsets = sel.tsOffsets(state.map);
     this.timestamp = state.map.ts;
     this.active = state.map.currentTrackIndex == this.index;
     this.multiplier = state.map.altMultiplier;
+    this.displayNames = state.map.displayNames;
   }
 
   shouldUpdate(): boolean {
@@ -77,22 +95,32 @@ export class Marker3dElement extends connect(store)(LitElement) {
       const timestamp = this.timestamp + this.tsOffsets[this.index];
       const { lat, lon, alt } = sel.getTrackLatLon(store.getState().map)(timestamp, this.index) as LatLon;
 
+      if (!this.graphic) {
+        this.graphic = new this.api.Graphic();
+        this.txtGraphic = new this.api.Graphic({ symbol: this.txtSymbol as any });
+        this.layer.addMany([this.graphic, this.txtGraphic]);
+      }
+
       this.point.latitude = lat;
       this.point.longitude = lon;
       this.point.z = (alt ?? 0) * this.multiplier;
+      this.graphic.set('geometry', this.point);
 
       const objectSymbol = this.symbol.symbolLayers[0];
       objectSymbol.material.color = trackColor(this.index);
       objectSymbol.heading = 180 + sampleAt(fixes.ts, fixes.heading, [timestamp])[0];
-      objectSymbol.height = this.active ? ACTIVE_HEIGHT : INACTIVE_HEIGHT;
+      const height = this.active ? ACTIVE_HEIGHT : INACTIVE_HEIGHT;
+      objectSymbol.height = height;
+      this.graphic.set('symbol', this.symbol);
 
-      if (!this.graphic) {
-        this.graphic = new this.api.Graphic({});
-        this.layer.add(this.graphic);
-      }
+      this.point.z += height;
+      this.txtGraphic?.set('geometry', this.point);
 
-      this.graphic.geometry = this.point as any;
-      this.graphic.symbol = this.symbol as any;
+      this.txtSymbol.symbolLayers[0].halo.color = this.active ? trackColor(this.index) : 'white';
+      this.txtSymbol.symbolLayers[0].text = this.track?.name ?? 'unknown';
+      this.txtGraphic?.set('symbol', this.txtSymbol);
+
+      this.txtGraphic?.set('visible', this.displayNames);
     }
 
     return false;
@@ -106,6 +134,9 @@ export class Marker3dElement extends connect(store)(LitElement) {
   disconnectedCallback(): void {
     if (this.graphic) {
       this.layer?.remove(this.graphic);
+    }
+    if (this.txtGraphic) {
+      this.layer?.remove(this.txtGraphic);
     }
   }
 }
