@@ -80,6 +80,12 @@ export class DeviceForm extends LitElement {
                   </ul>
                 </p>
                 <p class="my-4">
+                  <strong>Note:</strong> Due to a current limitation 3rd party cookies must be enabled to login and update your settings.
+                  When they are not enabled the "Sign in with Google" button below will re-load this exact same page. 
+                  You can revert to your preferred cookies settings after having updated the flyxc settings. 
+                  This limitation will be removed in the future.
+                </p>                
+                <p class="my-4">
                   <a href="mailto:help@flyxc.app?subject=FlyXC%20registration%20error" class="has-text-link">Contact us</a> if you have any
                   trouble registering your device.
                 </p>
