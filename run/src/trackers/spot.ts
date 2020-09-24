@@ -26,26 +26,32 @@ export async function refresh(datastore: any, hour: number, timeoutSecs: number)
     const id: string = device.spot;
     if (/^\w+$/i.test(id)) {
       const url = `https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed/${id}/message.json?startDate=${startDate}`;
-      const response = await request(url);
-      if (response.code == 200) {
-        console.log(`Refreshing spot @ ${id}`);
-        const fixes = JSON.parse(response.body)?.response?.feedMessageResponse?.messages?.message;
-        if (fixes && Array.isArray(fixes)) {
-          numActiveDevices++;
-          fixes.forEach((f: any) => {
-            points.push({
-              lon: f.longitude,
-              lat: f.latitude,
-              ts: f.unixTime * 1000,
-              alt: f.altitude,
-              name: f.messengerName,
-              emergency: f.messageType == 'HELP',
-              msg: f.messageContent,
-            });
+      let response;
+      try {
+        response = await request(url);
+      } catch (e) {
+        console.error(`Error refreshing spot @ ${id} = ${e.message}`);
+        continue;
+      }
+      if (response.code != 200) {
+        console.error(`Error refreshing spot @ ${id}`);
+        continue;
+      }
+      console.log(`Refreshing spot @ ${id}`);
+      const fixes = JSON.parse(response.body)?.response?.feedMessageResponse?.messages?.message;
+      if (fixes && Array.isArray(fixes)) {
+        numActiveDevices++;
+        fixes.forEach((f: any) => {
+          points.push({
+            lon: f.longitude,
+            lat: f.latitude,
+            ts: f.unixTime * 1000,
+            alt: f.altitude,
+            name: f.messengerName,
+            emergency: f.messageType == 'HELP',
+            msg: f.messageContent,
           });
-        }
-      } else {
-        console.log(`Error refreshing spot @ ${id}`);
+        });
       }
     }
 

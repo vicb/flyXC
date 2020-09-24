@@ -35,9 +35,19 @@ export async function refresh(datastore: any, hour: number, timeoutSecs: number)
       }
     }
     if (/^https?:\/\/[\w.]*?garmin.com\/Feed\/Share\/[^?]+/i.test(url)) {
-      const response = await request(`${url}?d1=${startDate}`);
+      let response;
+      try {
+        response = await request(`${url}?d1=${startDate}`);
+      } catch (e) {
+        console.error(`Error refreshing inreach @ ${url} = ${e.message}`);
+        continue;
+      }
+      if (response.code != 200) {
+        console.error(`Error refreshing inreach @ ${url}.`);
+        continue;
+      }
 
-      if (response.code == 200 && response.body.length > 0) {
+      if (response.body.length > 0) {
         console.log(`Refreshing inreach @ ${url}`);
         const dom = new DOMParser({
           errorHandler: (level: string, msg: string): void => {
@@ -76,22 +86,18 @@ export async function refresh(datastore: any, hour: number, timeoutSecs: number)
             });
           }
         }
-      } else {
-        console.log(
-          `Error refreshing inreach @ ${url}. HTTP code = ${response.code}, length = ${response.body.length}`,
-        );
       }
+
+      device.features = JSON.stringify(createFeatures(points));
+      device.updated = Date.now();
+      device.active = points.length > 0;
+
+      datastore.save({
+        key: device[datastore.KEY],
+        data: device,
+        excludeFromIndexes: ['features'],
+      });
     }
-
-    device.features = JSON.stringify(createFeatures(points));
-    device.updated = Date.now();
-    device.active = points.length > 0;
-
-    datastore.save({
-      key: device[datastore.KEY],
-      data: device,
-      excludeFromIndexes: ['features'],
-    });
 
     if (Date.now() - start > timeoutSecs * 1000) {
       console.error(`Timeout for inreach devices (${timeoutSecs}s)`);
