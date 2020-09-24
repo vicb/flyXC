@@ -41,6 +41,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   private map?: Map;
   private view?: SceneView;
   private graphicsLayer?: GraphicsLayer;
+  private gndGraphicsLayer?: GraphicsLayer;
   // Elevation layer with exageration.
   private elevationLayer?: BaseElevationLayer;
 
@@ -83,7 +84,8 @@ export class Map3dElement extends connect(store)(LitElement) {
       });
 
       this.graphicsLayer = new ag.GraphicsLayer();
-      this.map.add(this.graphicsLayer);
+      this.gndGraphicsLayer = new ag.GraphicsLayer({ elevationInfo: { mode: 'on-the-ground' } });
+      this.map.addMany([this.graphicsLayer, this.gndGraphicsLayer]);
 
       // TODO: add webgl is not supported
       this.view = new ag.SceneView({
@@ -197,6 +199,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     super.disconnectedCallback();
     this.subscriptions.forEach((sub) => sub());
     this.subscriptions.length = 0;
+    this.view?.destroy();
     this.view = undefined;
   }
 
@@ -233,7 +236,13 @@ export class Map3dElement extends connect(store)(LitElement) {
       ${this.tracks.map(
         (track, i) =>
           html`
-            <line3d-element .layer=${this.graphicsLayer} .track=${track} .index=${i} .api=${this.api}></line3d-element>
+            <line3d-element
+              .layer=${this.graphicsLayer}
+              .gndLayer=${this.gndGraphicsLayer}
+              .track=${track}
+              .index=${i}
+              .api=${this.api}
+            ></line3d-element>
             <marker3d-element
               .layer=${this.graphicsLayer}
               .track=${track}

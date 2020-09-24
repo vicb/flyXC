@@ -24,6 +24,9 @@ export class Line3dElement extends connect(store)(LitElement) {
   layer?: GraphicsLayer;
 
   @property()
+  gndLayer?: GraphicsLayer;
+
+  @property()
   index = 0;
 
   @internalProperty()
@@ -49,8 +52,8 @@ export class Line3dElement extends connect(store)(LitElement) {
     symbolLayers: [
       {
         type: 'line',
-        size: 1.5,
-        material: { color: [0, 0, 0, 0] },
+        size: 2,
+        material: { color: [50, 50, 50, 0.6] },
         cap: 'round',
         join: 'round',
       },
@@ -58,6 +61,7 @@ export class Line3dElement extends connect(store)(LitElement) {
   };
 
   private graphic?: Graphic;
+  private gndGraphic?: Graphic;
 
   stateChanged(state: RootState): void {
     this.tsOffsets = sel.tsOffsets(state.map);
@@ -67,7 +71,14 @@ export class Line3dElement extends connect(store)(LitElement) {
   }
 
   shouldUpdate(): boolean {
-    if (this.api && this.layer && this.track) {
+    if (this.api && this.track) {
+      if (!this.graphic) {
+        this.graphic = new this.api.Graphic();
+        this.layer?.add(this.graphic);
+        this.gndGraphic = new this.api.Graphic({ symbol: this.symbol as any });
+        this.gndLayer?.add(this.gndGraphic);
+      }
+
       const fixes = this.track.fixes;
       const path = [];
 
@@ -82,21 +93,16 @@ export class Line3dElement extends connect(store)(LitElement) {
       // Make sure the last point matches the marker position.
       const pos = sel.getTrackLatLon(store.getState().map)(timestamp, this.index) as LatLon;
       path.push([pos.lon, pos.lat, this.multiplier * (pos.alt ?? 0)]);
-
       this.line.paths[0] = path as any;
+
+      this.graphic.set('geometry', this.line);
+      this.gndGraphic?.set('geometry', this.line);
 
       const color = new this.api.Color(trackColor(this.index));
       color.a = this.active ? 1 : INACTIVE_ALPHA;
-
-      this.symbol.symbolLayers[0].material.color = color.toRgba();
-
-      if (!this.graphic) {
-        this.graphic = new this.api.Graphic();
-        this.layer.add(this.graphic);
-      }
-
-      this.graphic.geometry = this.line as any;
-      this.graphic.symbol = this.symbol as any;
+      const rgba = color.toRgba();
+      this.symbol.symbolLayers[0].material.color = rgba;
+      this.graphic.set('symbol', this.symbol);
     }
 
     return false;
@@ -110,6 +116,9 @@ export class Line3dElement extends connect(store)(LitElement) {
   disconnectedCallback(): void {
     if (this.graphic) {
       this.layer?.remove(this.graphic);
+    }
+    if (this.gndGraphic) {
+      this.gndLayer?.remove(this.gndGraphic);
     }
   }
 }
