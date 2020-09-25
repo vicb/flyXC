@@ -2,12 +2,12 @@ import alias from '@rollup/plugin-alias';
 import cjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import minifyHTML from 'rollup-plugin-minify-html-literals';
-import replace from 'rollup-plugin-replace';
+import replace from '@rollup/plugin-replace';
 import resolve from '@rollup/plugin-node-resolve';
 import run from '@rollup/plugin-run';
 import stripCode from 'rollup-plugin-strip-code';
 import { terser } from 'rollup-plugin-terser';
-import typescript from 'rollup-plugin-typescript2';
+import typescript from '@rollup/plugin-typescript';
 import builtins from 'builtin-modules';
 import url from '@rollup/plugin-url';
 import visualizer from 'rollup-plugin-visualizer';
@@ -41,9 +41,7 @@ export default [
         preferBuiltins: true,
       }),
       cjs(),
-      typescript({
-        tsconfigDefaults: {},
-      }),
+      typescript(),
       prod && terser({ output: { comments: false } }),
       !prod && run({ execArgv: ['--inspect'] }),
     ],
@@ -69,7 +67,7 @@ export default [
         preferBuiltins: true,
       }),
       cjs(),
-      typescript({}),
+      typescript(),
       prod && terser({ output: { comments: false } }),
       !prod && run({ env: { ...process.env, PORT: 8084 } }),
     ],
@@ -83,11 +81,17 @@ export default [
 ];
 
 function buildFrontEnd(input, options = {}) {
+  const m = input.match(/\/(\w+)\.ts$/);
+  if (m == null) {
+    throw Error('Can not find project name');
+  }
+  const outDir = options.isWorker ? 'frontend/static/js/workers/' : 'frontend/static/js/';
+
   return {
     input,
 
     output: {
-      dir: options.isWorker ? 'frontend/static/js/workers' : 'frontend/static/js/',
+      dir: outDir,
       format: 'esm',
     },
 
@@ -116,11 +120,7 @@ function buildFrontEnd(input, options = {}) {
       resolve(),
       cjs(),
       typescript({
-        tsconfigOverride: options.isWorker
-          ? {
-              compilerOptions: { lib: ['webworker'] },
-            }
-          : {},
+        lib: options.isWorker ? ['webworker'] : ['es6', 'dom'],
       }),
       options.importUi5 &&
         url({
