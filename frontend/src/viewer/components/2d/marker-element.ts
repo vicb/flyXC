@@ -78,16 +78,18 @@ export class MarkerElement extends connect(store)(LitElement) {
       });
       // Display higher markers on top.
       this.marker.setZIndex(Math.floor(alt ?? 0));
-      const label = this.displayNames
-        ? {
-            color: 'black',
-            fontWeight: '500',
-            // "14.001px" is a hack to be able to style the labels with a `div[style*='14.001px']` selector.
-            fontSize: '14.001px',
-            text: `${track.name} · ${formatUnit(alt ?? 0, this.units.altitude)}`,
-          }
-        : '';
-      this.marker.setLabel(label);
+      if (this.displayNames) {
+        const altitude = `${formatUnit(alt ?? 0, this.units.altitude)}`;
+        this.marker.setLabel({
+          color: this.active ? '#000' : '#555',
+          fontWeight: '500',
+          // "14.001px" is a hack to be able to style the labels with a `div[style*='14.001px']` selector.
+          fontSize: '14.001px',
+          text: (track.name == 'unknown' ? '' : `${track.name} · `) + altitude,
+        });
+      } else {
+        this.marker.setLabel('');
+      }
     }
     return false;
   }

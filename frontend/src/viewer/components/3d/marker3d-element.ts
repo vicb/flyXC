@@ -118,10 +118,11 @@ export class Marker3dElement extends connect(store)(LitElement) {
       this.txtGraphic?.set('geometry', this.point);
 
       this.txtSymbol.symbolLayers[0].halo.color = this.active ? trackColor(this.index) : 'white';
-      this.txtSymbol.symbolLayers[0].text = this.track?.name ?? 'unknown';
+      const label = this.track?.name ?? 'unknown';
+      this.txtSymbol.symbolLayers[0].text = label;
       this.txtGraphic?.set('symbol', this.txtSymbol);
       this.txtGraphic?.set('attributes', { index: this.index });
-      this.txtGraphic?.set('visible', this.displayNames);
+      this.txtGraphic?.set('visible', this.displayNames && label != 'unknown');
     }
 
     return false;
