@@ -165,6 +165,22 @@ export class Map3dElement extends connect(store)(LitElement) {
           }
         });
       });
+
+      // Horizontal wheel movements update the timestamp.
+      this.view.on('mouse-wheel', (e) => {
+        if (e.native.deltaX == 0 || e.native.deltaY != 0) {
+          // Capture only X scroll (either physical of shift + wheel).
+          return;
+        }
+        const direction = Math.sign(e.native.deltaX);
+        const map = store.getState().map;
+        const minTs = sel.minTs(map);
+        const maxTs = sel.maxTs(map);
+        const delta = Math.round((direction * (maxTs - minTs)) / 300) + 1;
+        const ts = Math.max(Math.min(map.ts + delta, maxTs), minTs);
+        dispatch(act.setTimestamp(ts));
+        e.stopPropagation();
+      });
     });
   }
 
