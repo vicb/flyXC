@@ -112,6 +112,7 @@ export class Marker3dElement extends connect(store)(LitElement) {
       const height = this.active ? ACTIVE_HEIGHT : INACTIVE_HEIGHT;
       objectSymbol.height = height;
       this.graphic.set('symbol', this.symbol);
+      this.graphic.set('attributes', { index: this.index });
 
       this.point.z += height;
       this.txtGraphic?.set('geometry', this.point);
@@ -119,7 +120,7 @@ export class Marker3dElement extends connect(store)(LitElement) {
       this.txtSymbol.symbolLayers[0].halo.color = this.active ? trackColor(this.index) : 'white';
       this.txtSymbol.symbolLayers[0].text = this.track?.name ?? 'unknown';
       this.txtGraphic?.set('symbol', this.txtSymbol);
-
+      this.txtGraphic?.set('attributes', { index: this.index });
       this.txtGraphic?.set('visible', this.displayNames);
     }
 

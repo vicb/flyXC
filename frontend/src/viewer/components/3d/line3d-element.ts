@@ -96,7 +96,9 @@ export class Line3dElement extends connect(store)(LitElement) {
       this.line.paths[0] = path as any;
 
       this.graphic.set('geometry', this.line);
+      this.graphic.set('attributes', { index: this.index });
       this.gndGraphic?.set('geometry', this.line);
+      this.gndGraphic?.set('attributes', { index: this.index });
 
       const color = new this.api.Color(trackColor(this.index));
       color.a = this.active ? 1 : INACTIVE_ALPHA;

@@ -60,7 +60,6 @@ export class Map3dElement extends connect(store)(LitElement) {
       this.centerOnMarker(16);
     }
     if (changedProps.has('multiplier')) {
-      console.log('shouldUpdate - multiplier', this.multiplier);
       changedProps.delete('multiplier');
       if (this.elevationLayer && this.api) {
         this.map?.ground.layers.remove(this.elevationLayer as any);
@@ -152,6 +151,20 @@ export class Map3dElement extends connect(store)(LitElement) {
             this.openWebGlDialog();
           }
         });
+
+      // Set the active track when clicking on a track, marker, label.
+      this.view.on('click', (e) => {
+        this.view?.hitTest(e).then(({ results }) => {
+          if (results.length > 0) {
+            // Sort hits by their distance to the camera.
+            results.sort((r1, r2) => r1.distance - r2.distance);
+            const index = results[0].graphic.attributes.index;
+            if (index != null) {
+              dispatch(act.setCurrentTrack(index));
+            }
+          }
+        });
+      });
     });
   }
 
