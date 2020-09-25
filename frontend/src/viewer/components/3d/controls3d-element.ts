@@ -41,6 +41,9 @@ export class Controls3dElement extends connect(store)(LitElement) {
   @internalProperty()
   private view3d = false;
 
+  @internalProperty()
+  private displayName = false;
+
   private isInIframe = true; //window.parent !== window;
 
   stateChanged(state: RootState): void {
@@ -51,6 +54,7 @@ export class Controls3dElement extends connect(store)(LitElement) {
     this.units = state.map.units;
     this.currentTrackIndex = state.map.currentTrackIndex;
     this.view3d = state.map.view3d;
+    this.displayName = state.map.displayNames;
   }
 
   static get styles(): CSSResult {
@@ -109,6 +113,7 @@ export class Controls3dElement extends connect(store)(LitElement) {
               .name=${this.name}
               .index=${this.currentTrackIndex}
               .nbtracks=${this.tracks?.length || 0}
+              .displayNames=${this.displayName}
               @closeActiveTrack=${this.handleClose}
               @selectNextTrack=${this.handleNext}
               @displayNames=${(e: CustomEvent) => this.handleDisplayNames(e)}

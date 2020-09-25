@@ -55,10 +55,12 @@ export class FlyXc extends connect(store)(LitElement) {
     Promise.all([
       downloadTracksById(getUrlParam(ParamNames.TRACK_ID)),
       downloadTracksByUrl(getUrlParam(ParamNames.TRACK_URL)),
-    ]).then(([ids1, ids2]) => {
+    ]).then(([ids, ids2]) => {
       // Update the url to use ids only.
+      ids.push(...ids2);
+      dispatch(act.setDisplayNames(ids.length > 1));
       deleteUrlParam(ParamNames.TRACK_URL);
-      addUrlParamValues(ParamNames.TRACK_ID, [...ids1, ...ids2]);
+      addUrlParamValues(ParamNames.TRACK_ID, ids);
     });
   }
 
