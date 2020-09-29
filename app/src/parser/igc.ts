@@ -2,6 +2,8 @@ import IGCParser from 'igc-parser';
 
 import { ProtoTrack } from '../../../common/track';
 
+const MAX_PRESSURE_OFFSET_METER = 100;
+
 export function parse(content: string): ProtoTrack[] {
   let igc: IGCParser.IGCFile;
   try {
@@ -15,11 +17,17 @@ export function parse(content: string): ProtoTrack[] {
   const alt: number[] = [];
   const ts: number[] = [];
 
+  // The pressure altitude is smoother.
+  // We use it when it exists and is close enough to the GPS altitude at start.
+  const { gpsAltitude, pressureAltitude } = igc.fixes[0];
+  const usePressureAltitude =
+    pressureAltitude != null && Math.abs((gpsAltitude ?? 0) - pressureAltitude) < MAX_PRESSURE_OFFSET_METER;
+
   igc.fixes.forEach((fix) => {
     lat.push(fix.latitude);
     lon.push(fix.longitude);
     // The pressure altitude has
-    alt.push(fix.pressureAltitude || fix.gpsAltitude || 0);
+    alt.push((usePressureAltitude ? fix.pressureAltitude : fix.gpsAltitude) || 0);
     ts.push(fix.timestamp);
   });
 
