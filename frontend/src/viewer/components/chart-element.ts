@@ -425,9 +425,9 @@ export class ChartElement extends connect(store)(LitElement) {
     }
     return html`
       <svg
-        @mousemove=${this.handleMouseEvent('move')}
+        @pointermove=${this.handleMouseEvent('move')}
         @wheel=${this.handleMouseEvent('zoom')}
-        @click=${this.handleMouseEvent('pin')}
+        @pointerdown=${this.handleMouseEvent('pin')}
         id="chart"
         width="100%"
         height="100%"
