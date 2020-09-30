@@ -7,6 +7,7 @@ import '@ui5/webcomponents/dist/Option';
 import '@ui5/webcomponents/dist/Select';
 import '@ui5/webcomponents/dist/Toast';
 import '@ui5/webcomponents/dist/Assets.js';
+import './styles/main.css';
 
 import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';

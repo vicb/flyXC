@@ -11,6 +11,8 @@ import typescript from '@rollup/plugin-typescript';
 import builtins from 'builtin-modules';
 import url from '@rollup/plugin-url';
 import visualizer from 'rollup-plugin-visualizer';
+import postcss from 'rollup-plugin-postcss';
+import cssnano from 'cssnano';
 
 const prod = !process.env.ROLLUP_WATCH;
 const build =
@@ -108,6 +110,9 @@ function buildFrontEnd(input, options = {}) {
           start_comment: 'strip-from-prod',
           end_comment: 'end-strip-from-prod',
         }),
+      postcss({
+        plugins: [cssnano()],
+      }),
       minifyHTML(),
       alias({
         entries: [
