@@ -18,7 +18,6 @@ const COUNTER_STALE_AFTER_HOURS = 240;
 const LAST_COUNT_TIMESTAMP = 'count.last-ts';
 const NO_DEVICE_TRACKER_COUNT = 'count.inactive-tracker';
 const TRACKER_COUNT = 'count.tracker';
-const ACTIVE_TRACKER_COUNT = 'count.active-tracker';
 const TRACK_COUNT = 'count.track';
 const TRACK_OFFSET = 45000;
 
@@ -81,14 +80,6 @@ async function getDatastoreCounts(): Promise<Counts> {
         .select('__key__')
         .run()
     )[0].length;
-    counts.activeTrackers = (
-      await datastore
-        .createQuery('Tracker')
-        .filter('created', '<=', lastCountDate)
-        .filter('active', '=', true)
-        .select('__key__')
-        .run()
-    )[0].length;
     counts.tracks =
       TRACK_OFFSET +
       (
@@ -104,16 +95,18 @@ async function getDatastoreCounts(): Promise<Counts> {
       redis.set(LAST_COUNT_TIMESTAMP, lastCountTs),
       redis.set(NO_DEVICE_TRACKER_COUNT, counts.noDeviceTrackers),
       redis.set(TRACKER_COUNT, counts.trackers),
-      redis.set(ACTIVE_TRACKER_COUNT, counts.activeTrackers),
       redis.set(TRACK_COUNT, counts.tracks),
     ]);
 
     return counts;
   }
 
+  counts.activeTrackers = (
+    await datastore.createQuery('Tracker').filter('active', '=', true).select('__key__').run()
+  )[0].length;
+
   // Get the base counts from REDIS
   counts.noDeviceTrackers = Number((await redis.get(NO_DEVICE_TRACKER_COUNT)) ?? 0);
-  counts.activeTrackers = Number((await redis.get(ACTIVE_TRACKER_COUNT)) ?? 0);
   counts.trackers = Number((await redis.get(TRACKER_COUNT)) ?? 0);
   counts.tracks = Number((await redis.get(TRACK_COUNT)) ?? 0);
 
@@ -128,14 +121,6 @@ async function getDatastoreCounts(): Promise<Counts> {
       .createQuery('Tracker')
       .filter('created', '>', lastCountDate)
       .filter('device', '=', 'no')
-      .select('__key__')
-      .run()
-  )[0].length;
-  counts.activeTrackers += (
-    await datastore
-      .createQuery('Tracker')
-      .filter('created', '>', lastCountDate)
-      .filter('active', '=', true)
       .select('__key__')
       .run()
   )[0].length;
