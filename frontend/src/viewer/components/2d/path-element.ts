@@ -19,7 +19,7 @@ import { LEAGUES } from '../../logic/score/league/leagues';
 import { Measure, Point } from '../../logic/score/measure';
 import { CircuitType } from '../../logic/score/scorer';
 import { RootState, store } from '../../store';
-import { controlHostStyle } from '../control-style';
+import { controlStyle } from '../control-style';
 import { PlannerElement } from './planner-element';
 
 // Route color by circuit type.
@@ -132,7 +132,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
 
   static get styles(): CSSResult[] {
     return [
-      controlHostStyle,
+      controlStyle,
       css`
         .form-fields {
           display: flex;

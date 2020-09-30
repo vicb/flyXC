@@ -3,7 +3,7 @@ import Protobuf from 'pbf';
 import { VectorTile } from '@mapbox/vector-tile';
 
 import { airspaceColor, classifyRings, Flags, getAspTileUrl, isInFeature, tileId } from '../../../../common/airspaces';
-import { tileCoordinates } from '../../../../common/proj';
+import { pixelCoordinates } from '../../../../common/proj';
 import { LatLon, Point } from '../../../../common/track';
 
 const TILE_SIZE = 256;
@@ -17,7 +17,7 @@ const aspLayerByTileId = new Map();
 // altitude is expressed in meters.
 export function AspAt(zoom: number, latLon: LatLon, altitude: number, includeRestricted: boolean): string | null {
   const tileZoom = Math.min(zoom, MAX_ASP_TILE_ZOOM);
-  const { tile, px } = tileCoordinates(latLon, tileZoom);
+  const { tile, px } = pixelCoordinates(latLon, tileZoom);
 
   // Retrieve the tile.
   const id = tileId(zoom, tile);

@@ -4,7 +4,7 @@ import { connect } from 'pwa-helpers';
 
 import { setAltitudeMultiplier } from '../../actions';
 import { dispatch, RootState, store } from '../../store';
-import { controlHostStyle } from '../control-style';
+import { controlStyle } from '../control-style';
 
 @customElement('exaggeration-element')
 export class ExaggerationElement extends connect(store)(LitElement) {
@@ -16,7 +16,7 @@ export class ExaggerationElement extends connect(store)(LitElement) {
 
   static get styles(): CSSResult[] {
     return [
-      controlHostStyle,
+      controlStyle,
       css`
         input[type='range'] {
           width: 100px;

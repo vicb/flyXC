@@ -5,22 +5,26 @@ import { LatLon, Point } from './track';
 const TILE_SIZE = 256;
 const mercator = new SphericalMercator({ size: TILE_SIZE });
 
-// Returns the coordinates of the tile and the pixel inside the tile.
-export function tileCoordinates(latLon: LatLon, zoom: number): { tile: Point; px: Point } {
-  const screenPx = mercator.px([latLon.lon, latLon.lat], zoom);
+// Returns:
+// - tile =  coordinates of the tile,
+// - px = pixel coordinates in the tile,
+// - word = world coordinates.
+export function pixelCoordinates(latLon: LatLon, zoom: number): { tile: Point; px: Point; world: Point } {
+  const [x, y] = mercator.px([latLon.lon, latLon.lat], zoom);
 
   const tile = {
-    x: Math.floor(screenPx[0] / TILE_SIZE),
-    y: Math.floor(screenPx[1] / TILE_SIZE),
+    x: Math.floor(x / TILE_SIZE),
+    y: Math.floor(y / TILE_SIZE),
   };
 
   const px = {
-    x: screenPx[0] % TILE_SIZE,
-    y: screenPx[1] % TILE_SIZE,
+    x: x % TILE_SIZE,
+    y: y % TILE_SIZE,
   };
 
   return {
     tile,
     px,
+    world: { x, y },
   };
 }

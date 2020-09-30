@@ -1,6 +1,6 @@
 import { css, CSSResult, customElement, html, LitElement, query, TemplateResult } from 'lit-element';
 
-import { controlHostStyle } from './control-style';
+import { controlStyle } from './control-style';
 
 @customElement('about-ctrl-element')
 export class AboutElement extends LitElement {
@@ -9,7 +9,7 @@ export class AboutElement extends LitElement {
 
   static get styles(): CSSResult[] {
     return [
-      controlHostStyle,
+      controlStyle,
       css`
         .form-fields {
           display: flex;

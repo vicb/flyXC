@@ -24,6 +24,7 @@ export const SET_ALTITUDE_UNIT = 'SET_ALTITUDE_UNIT';
 export const SET_API_LOADING = 'SET_API_LOADING';
 export const SET_ASP_ALTITUDE = 'SET_ASP_ALTITUDE';
 export const SET_ASP_SHOW_RESTRICTED = 'SET_ASP_SHOW_RESTRICTED';
+export const SET_CENTER_MAP = 'SET_CENTER_MAP';
 export const SET_CHART_AIRSPACES = 'SET_CHART_ASP';
 export const SET_CHART_Y_AXIS = 'SET_CHART_Y_AXIS';
 export const SET_CURRENT_LOCATION = 'SET_CURRENT_LOCATION';
@@ -167,6 +168,10 @@ export interface SetAltitudeMultiplier extends Action<typeof SET_ALTITUDE_MULTIP
   payload: { multiplier: number };
 }
 
+export interface SetCenterMap extends Action<typeof SET_CENTER_MAP> {
+  payload: { enabled: boolean };
+}
+
 export type MapThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action>;
 
 export type MapAction =
@@ -183,6 +188,7 @@ export type MapAction =
   | SetApiLoading
   | SetAspAltitude
   | SetAspShowRestricted
+  | SetCenterMap
   | SetChartAirspaces
   | SetChartYAxis
   | SetCurrentLocation
@@ -412,4 +418,9 @@ export const receiveTrackWorkerResponse: ActionCreator<ReceiveTrackWorkerRespons
 export const setAltitudeMultiplier: ActionCreator<SetAltitudeMultiplier> = (multiplier: number) => ({
   type: SET_ALTITUDE_MULTIPLIER,
   payload: { multiplier },
+});
+
+export const setCenterMap: ActionCreator<SetCenterMap> = (enabled: boolean) => ({
+  type: SET_CENTER_MAP,
+  payload: { enabled },
 });

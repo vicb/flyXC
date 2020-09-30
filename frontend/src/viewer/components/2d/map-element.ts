@@ -1,8 +1,17 @@
-import { customElement, html, internalProperty, LitElement, property, TemplateResult } from 'lit-element';
+import {
+  customElement,
+  html,
+  internalProperty,
+  LitElement,
+  property,
+  PropertyValues,
+  TemplateResult,
+} from 'lit-element';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
 import { findClosestFix } from '../../../../../common/distance';
+import { pixelCoordinates } from '../../../../../common/proj';
 import { LatLon, RuntimeTrack } from '../../../../../common/track';
 import { getApiKey } from '../../../apikey';
 import * as act from '../../actions';
@@ -72,6 +81,9 @@ export class MapElement extends connect(store)(LitElement) {
   @internalProperty()
   private currentTrackIndex = 0;
 
+  private centerMap = false;
+  private lockPanUntil = 0;
+
   private subscriptions: UnsubscribeHandle[] = [];
 
   stateChanged(state: RootState): void {
@@ -81,6 +93,29 @@ export class MapElement extends connect(store)(LitElement) {
     // In full screen mode the gesture handling must be greedy.
     // Using ctrl (+ scroll) is unnecessary as thr page can not scroll anyway.
     this.map?.setOptions({ gestureHandling: state.map.fullscreen ? 'greedy' : 'auto' });
+    this.centerMap = state.map.centerMap;
+  }
+
+  shouldUpdate(changedProps: PropertyValues): boolean {
+    const ts = Date.now();
+    if (this.map && this.tracks.length && this.centerMap && changedProps.has('timestamp') && ts > this.lockPanUntil) {
+      this.lockPanUntil = ts + 100;
+      const zoom = this.map.getZoom();
+      const currentPosition = sel.getTrackLatLon(store.getState().map)(this.timestamp) as LatLon;
+      const { x, y } = pixelCoordinates(currentPosition, zoom).world;
+      const bounds = this.map.getBounds() as google.maps.LatLngBounds;
+      const sw = bounds.getSouthWest();
+      const { x: minX, y: maxY } = pixelCoordinates({ lat: sw.lat(), lon: sw.lng() }, zoom).world;
+      const ne = bounds.getNorthEast();
+      const { x: maxX, y: minY } = pixelCoordinates({ lat: ne.lat(), lon: ne.lng() }, zoom).world;
+
+      if (x - minX < 100 || y - minY < 100) {
+        this.map.panTo({ lat: currentPosition.lat, lng: currentPosition.lon });
+      } else if (maxX - x < 100 || maxY - y < 100) {
+        this.map.panTo({ lat: currentPosition.lat, lng: currentPosition.lon });
+      }
+    }
+    return super.shouldUpdate(changedProps);
   }
 
   connectedCallback(): void {

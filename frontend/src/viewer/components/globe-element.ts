@@ -3,7 +3,7 @@ import { CSSResult, customElement, html, LitElement, property, TemplateResult } 
 import { setView3d } from '../actions';
 import * as msg from '../logic/messages';
 import { store } from '../store';
-import { controlHostStyle } from './control-style';
+import { controlStyle } from './control-style';
 
 @customElement('globe-element')
 export class GlobeElement extends LitElement {
@@ -11,7 +11,7 @@ export class GlobeElement extends LitElement {
   view3d = false;
 
   static get styles(): CSSResult[] {
-    return [controlHostStyle];
+    return [controlStyle];
   }
 
   protected render(): TemplateResult {

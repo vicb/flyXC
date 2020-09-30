@@ -2,13 +2,13 @@ import { css, CSSResult, customElement, html, LitElement, TemplateResult } from 
 
 import { addUrlParamValues, ParamNames, pushCurrentState } from '../logic/history';
 import { uploadTracks } from '../logic/tracks';
-import { controlHostStyle } from './control-style';
+import { controlStyle } from './control-style';
 
 @customElement('upload-ctrl-element')
 export class UploadElement extends LitElement {
   static get styles(): CSSResult[] {
     return [
-      controlHostStyle,
+      controlStyle,
       css`
         #track {
           position: absolute;

@@ -16,6 +16,7 @@ import {
   SET_API_LOADING,
   SET_ASP_ALTITUDE,
   SET_ASP_SHOW_RESTRICTED,
+  SET_CENTER_MAP,
   SET_CHART_AIRSPACES,
   SET_CHART_Y_AXIS,
   SET_CURRENT_LOCATION,
@@ -62,6 +63,8 @@ export interface MapState {
   altMultiplier: number;
   aspAltitude: number;
   aspShowRestricted: boolean;
+  // Wether to center the map on the pilot location.
+  centerMap: boolean;
   chart: {
     yAxis: ChartYAxis;
     ts: number;
@@ -108,6 +111,7 @@ const INITIAL_STATE: MapState = {
   altMultiplier: 1,
   aspAltitude: 1000,
   aspShowRestricted: true,
+  centerMap: true,
   chart: {
     yAxis: ChartYAxis.Altitude,
     ts: 0,
@@ -322,6 +326,9 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
 
     case SET_ALTITUDE_MULTIPLIER:
       return { ...state, altMultiplier: action.payload.multiplier };
+
+    case SET_CENTER_MAP:
+      return { ...state, centerMap: action.payload.enabled };
 
     default:
       return state;

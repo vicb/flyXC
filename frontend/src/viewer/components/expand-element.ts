@@ -2,7 +2,7 @@ import { CSSResult, customElement, html, internalProperty, LitElement, TemplateR
 
 import * as act from '../actions';
 import { dispatch } from '../store';
-import { controlHostStyle } from './control-style';
+import { controlStyle } from './control-style';
 
 @customElement('expand-ctrl-element')
 export class ExpandElement extends LitElement {
@@ -27,7 +27,7 @@ export class ExpandElement extends LitElement {
   }
 
   static get styles(): CSSResult {
-    return controlHostStyle;
+    return controlStyle;
   }
 
   private toggleFullscreen(): void {

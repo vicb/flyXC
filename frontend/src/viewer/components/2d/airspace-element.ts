@@ -17,7 +17,7 @@ import { AspAt, AspMapType, AspZoomMapType, MAX_ASP_TILE_ZOOM } from '../../logi
 import { formatUnit } from '../../logic/units';
 import * as sel from '../../selectors';
 import { RootState, store } from '../../store';
-import { controlHostStyle } from '../control-style';
+import { controlStyle } from '../control-style';
 
 @customElement('airspace-ctrl-element')
 export class AirspaceCtrlElement extends connect(store)(LitElement) {
@@ -111,7 +111,7 @@ export class AirspaceCtrlElement extends connect(store)(LitElement) {
 
   static get styles(): CSSResult[] {
     return [
-      controlHostStyle,
+      controlStyle,
       css`
         select {
           font: inherit;

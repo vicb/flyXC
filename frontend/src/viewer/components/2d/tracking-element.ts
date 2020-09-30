@@ -7,7 +7,7 @@ import { linearInterpolate } from '../../logic/math';
 import { formatUnit } from '../../logic/units';
 import { Units } from '../../reducers';
 import { RootState, store } from '../../store';
-import { controlHostStyle } from '../control-style';
+import { controlStyle } from '../control-style';
 
 const SPEECH_BUBBLE =
   'M2.5 2C1.7 2 1 2.7 1 3.5 l 0 8 c0 .8.7 1.5 1.5 1.5 H4 l 0 2.4 L 7.7 13 l 4.8 0 c.8 0 1.5 -.7 1.5 -1.5 l 0 -8 c 0 -.8 -.7 -1.5 -1.5 -1.5 z';
@@ -74,7 +74,7 @@ export class TrackingElement extends connect(store)(LitElement) {
   }
 
   static get styles(): CSSResult {
-    return controlHostStyle;
+    return controlStyle;
   }
 
   private fetchTrackers(): void {

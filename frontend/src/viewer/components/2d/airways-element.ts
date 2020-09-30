@@ -1,7 +1,7 @@
 import { css, CSSResult, customElement, html, internalProperty, LitElement, property } from 'lit-element';
 import { html as baseHtml, TemplateResult } from 'lit-html';
 
-import { controlHostStyle } from '../control-style';
+import { controlStyle } from '../control-style';
 import { WMTSOverlayElement } from './wmts-overlay';
 
 @customElement('airways-overlay')
@@ -49,7 +49,7 @@ export class AirwaysCtrlElement extends LitElement {
 
   static get styles(): CSSResult[] {
     return [
-      controlHostStyle,
+      controlStyle,
       css`
         input[type='range'] {
           width: 100px;

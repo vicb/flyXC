@@ -12,7 +12,7 @@ import lru, { Lru } from 'tiny-lru';
 
 import { decode } from '@vivaxy/png';
 
-import { tileCoordinates } from '../../../common/proj';
+import { pixelCoordinates } from '../../../common/proj';
 import { ProtoGroundAltitude, ProtoTrack } from '../../../common/track';
 import { httpsGet } from './request';
 
@@ -35,7 +35,7 @@ export async function fetchGroundAltitude(track: ProtoTrack): Promise<ProtoGroun
   // Retrieve the list of urls to download.
   const urls = track.lat.reduce((files: Set<string>, lat: number, i: number) => {
     const lon = track.lon[i];
-    const { tile } = tileCoordinates({ lat, lon }, ZOOM_LEVEL);
+    const { tile } = pixelCoordinates({ lat, lon }, ZOOM_LEVEL);
     return files.add(getPngUrl(tile.x, tile.y, ZOOM_LEVEL));
   }, new Set<string>());
 
@@ -62,7 +62,7 @@ export async function fetchGroundAltitude(track: ProtoTrack): Promise<ProtoGroun
   // Retrieve the fixes altitude.
   const altitudes = track.lat.map((lat: number, i: number) => {
     const lon = track.lon[i];
-    const { tile, px } = tileCoordinates({ lat, lon }, ZOOM_LEVEL);
+    const { tile, px } = pixelCoordinates({ lat, lon }, ZOOM_LEVEL);
     const url = getPngUrl(tile.x, tile.y, ZOOM_LEVEL);
     const rgba = rgbas.get(url);
     let gndAlt = 0;

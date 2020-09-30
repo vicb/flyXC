@@ -1,6 +1,6 @@
 import { css } from 'lit-element';
 
-export const controlHostStyle = css`
+export const controlStyle = css`
   :host {
     display: block;
     float: right;

@@ -1,7 +1,7 @@
 import { CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 
 import { trackColor } from '../logic/tracks';
-import { controlHostStyle } from './control-style';
+import { controlStyle } from './control-style';
 
 @customElement('name-ctrl-element')
 export class NameElement extends LitElement {
@@ -20,7 +20,7 @@ export class NameElement extends LitElement {
   nbtracks = 0;
 
   static get styles(): CSSResult {
-    return controlHostStyle;
+    return controlStyle;
   }
 
   protected render(): TemplateResult {

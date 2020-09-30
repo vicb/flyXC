@@ -17,13 +17,13 @@ import { connect } from 'pwa-helpers';
 
 import { airspaceCategory, Flags } from '../../../../common/airspaces';
 import { RuntimeTrack } from '../../../../common/track';
-import { setChartAirspaces, setChartYAxis } from '../actions';
+import { setCenterMap, setChartAirspaces, setChartYAxis } from '../actions';
 import { sampleAt } from '../logic/math';
 import { trackColor } from '../logic/tracks';
 import { formatUnit, UNITS } from '../logic/units';
 import { ChartYAxis, Units } from '../reducers';
 import * as sel from '../selectors';
-import { RootState, store } from '../store';
+import { dispatch, RootState, store } from '../store';
 
 @customElement('chart-element')
 export class ChartElement extends connect(store)(LitElement) {
@@ -51,6 +51,9 @@ export class ChartElement extends connect(store)(LitElement) {
   @internalProperty()
   private currentTrackIndex = 0;
 
+  @internalProperty()
+  centerMap = true;
+
   @queryAll('path.asp')
   private aspPathElements?: NodeList;
 
@@ -74,6 +77,7 @@ export class ChartElement extends connect(store)(LitElement) {
     this.tsOffsets = sel.tsOffsets(map);
     this.showRestricted = map.aspShowRestricted;
     this.currentTrackIndex = map.currentTrackIndex;
+    this.centerMap = map.centerMap;
   }
 
   get minY(): number {
@@ -191,11 +195,33 @@ export class ChartElement extends connect(store)(LitElement) {
           stroke-width: 1.5;
           stroke-opacity: 1;
         }
+        #ct {
+          position: absolute;
+          top: 3px;
+          right: 3px;
+          height: 1px;
+        }
         select {
           font: inherit;
-          position: absolute;
-          top: 2px;
-          right: 2px;
+          clear: both;
+          float: right;
+        }
+        .control {
+          display: block;
+          float: right;
+          border: 1px inset #555;
+          padding: 4px;
+          margin: 2px 2px 0 0;
+          text-align: right;
+          border-radius: 4px;
+          opacity: 0.5;
+          user-select: none;
+          background-color: white;
+          clear: both;
+        }
+        .control:hover {
+          background-color: #adff2f;
+          opacity: 0.9;
         }
       `,
     ];
@@ -424,6 +450,10 @@ export class ChartElement extends connect(store)(LitElement) {
       setTimeout(() => this.updateSize(), 0);
     }
     return html`
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
+      />
       <svg
         @pointermove=${this.handleMouseEvent('move')}
         @wheel=${this.handleMouseEvent('zoom')}
@@ -448,11 +478,20 @@ export class ChartElement extends connect(store)(LitElement) {
         <g class="ticks">${this.xTexts()}</g>
         <line id="ts" x1="0" x2="0" y2="100%"></line>
       </svg>
-      <select @change=${this.handleYChange}>
-        <option value=${ChartYAxis.Altitude} selected>Altitude</option>
-        <option value=${ChartYAxis.Speed}>Speed</option>
-        <option value=${ChartYAxis.Vario}>Vario</option>
-      </select>
+      <div id="ct">
+        <select @change=${this.handleYChange}>
+          <option value=${ChartYAxis.Altitude} selected>Altitude</option>
+          <option value=${ChartYAxis.Speed}>Speed</option>
+          <option value=${ChartYAxis.Vario}>Vario</option>
+        </select>
+        <div class="control">
+          <i
+            class=${`la la-2x ${this.centerMap ? `la-link` : `la-unlink`}`}
+            style="cursor: pointer"
+            @click=${() => dispatch(setCenterMap(!this.centerMap))}
+          ></i>
+        </div>
+      </div>
     `;
   }
 

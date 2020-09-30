@@ -5,7 +5,7 @@ import lru, { Lru } from 'tiny-lru';
 import { VectorTile } from '@mapbox/vector-tile';
 
 import { Flags, getAspTileUrl, isInFeature } from '../../../common/airspaces';
-import { tileCoordinates } from '../../../common/proj';
+import { pixelCoordinates } from '../../../common/proj';
 import { Point, ProtoAirspaces, ProtoGroundAltitude, ProtoTrack } from '../../../common/track';
 import { httpsGet } from './request';
 
@@ -32,7 +32,7 @@ export async function fetchAirspaces(track: ProtoTrack, altitude: ProtoGroundAlt
 
   track.lat.forEach((lat: number, i: number) => {
     const lon = track.lon[i];
-    const { tile, px } = tileCoordinates({ lat, lon }, ZOOM_LEVEL);
+    const { tile, px } = pixelCoordinates({ lat, lon }, ZOOM_LEVEL);
     tilePixels.push(px);
     const url = getAspTileUrl(tile.x, tile.y, ZOOM_LEVEL);
     if (!indexesByTileUrl.has(url)) {

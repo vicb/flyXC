@@ -3,7 +3,7 @@ import { css, CSSResult, customElement, html, LitElement, property, TemplateResu
 import { RuntimeFixes } from '../../../../common/track';
 import { sampleAt } from '../logic/math';
 import { formatUnit, UNITS } from '../logic/units';
-import { controlHostStyle } from './control-style';
+import { controlStyle } from './control-style';
 
 @customElement('dashboard-ctrl-element')
 export class DashboardElement extends LitElement {
@@ -18,7 +18,7 @@ export class DashboardElement extends LitElement {
 
   static get styles(): CSSResult[] {
     return [
-      controlHostStyle,
+      controlStyle,
       css`
         h3 {
           padding: 0;

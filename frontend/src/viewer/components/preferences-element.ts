@@ -6,7 +6,7 @@ import { LEAGUES } from '../logic/score/league/leagues';
 import { UNITS } from '../logic/units';
 import { Units } from '../reducers';
 import { RootState, store } from '../store';
-import { controlHostStyle } from './control-style';
+import { controlStyle } from './control-style';
 
 @customElement('preferences-ctrl-element')
 export class PreferencesElement extends connect(store)(LitElement) {
@@ -33,7 +33,7 @@ export class PreferencesElement extends connect(store)(LitElement) {
 
   static get styles(): CSSResult[] {
     return [
-      controlHostStyle,
+      controlStyle,
       css`
         .form-fields {
           display: grid;
