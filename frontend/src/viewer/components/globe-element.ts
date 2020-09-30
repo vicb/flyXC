@@ -21,7 +21,7 @@ export class GlobeElement extends LitElement {
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
       />
-      <i class=${`la la-2x ${icon}`} style="cursor: pointer" @click=${() => this.handleSwitch()}></i>
+      <i class=${`la la-2x ${icon}`} style="cursor: pointer" @click=${this.handleSwitch}></i>
     `;
   }
 

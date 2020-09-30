@@ -142,6 +142,11 @@ export class ChartElement extends connect(store)(LitElement) {
           position: relative;
           font: 12px 'Nobile', verdana, sans-serif;
         }
+        #chart {
+          width: 100%;
+          height: 100%;
+          touch-action: none;
+        }
         .paths {
           fill: none;
         }
@@ -455,12 +460,10 @@ export class ChartElement extends connect(store)(LitElement) {
         href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
       />
       <svg
-        @pointermove=${this.handleMouseEvent('move')}
-        @wheel=${this.handleMouseEvent('zoom')}
-        @pointerdown=${this.handleMouseEvent('pin')}
         id="chart"
-        width="100%"
-        height="100%"
+        @pointermove=${this.handlePointerMove}
+        @pointerDown=${this.handlePointerDown}
+        @wheel=${this.handleMouseWheel}
       >
         <defs>
           <filter id="shadow">
@@ -504,20 +507,33 @@ export class ChartElement extends connect(store)(LitElement) {
     return ((this.ts - this.minTs) / (this.maxTs - this.minTs)) * this.width;
   }
 
-  private handleMouseEvent(name: string): (event: MouseEvent) => void {
-    return (event: MouseEvent): void => {
-      const target = event.currentTarget as HTMLElement;
-      const x = event.clientX - target.getBoundingClientRect().left;
-      const ts = (x / this.width) * (this.maxTs - this.minTs) + this.minTs;
-      this.dispatchEvent(new CustomEvent(name, { detail: { ts, event } }));
-      event.preventDefault();
-      if (!this.throttleAspUpdates) {
-        const y = event.clientY - target.getBoundingClientRect().top;
-        this.updateAirspaces(x, y, ts);
-        this.throttleAspUpdates = true;
-        setTimeout(() => (this.throttleAspUpdates = false), 100);
-      }
-    };
+  private handlePointerDown(e: MouseEvent): void {
+    const { ts } = this.getCoordinatesFromEvent(e);
+    this.dispatchEvent(new CustomEvent('pin', { detail: { ts, event: e } }));
+  }
+
+  private handleMouseWheel(e: MouseEvent): void {
+    const { ts } = this.getCoordinatesFromEvent(e);
+    this.dispatchEvent(new CustomEvent('zoom', { detail: { ts, event: e } }));
+  }
+
+  private handlePointerMove(e: MouseEvent): void {
+    const { x, y, ts } = this.getCoordinatesFromEvent(e);
+    this.dispatchEvent(new CustomEvent('move', { detail: { ts, event: e } }));
+    if (!this.throttleAspUpdates) {
+      this.updateAirspaces(x, y, ts);
+      this.throttleAspUpdates = true;
+      setTimeout(() => (this.throttleAspUpdates = false), 100);
+    }
+  }
+
+  private getCoordinatesFromEvent(e: MouseEvent): { x: number; y: number; ts: number } {
+    const target = e.currentTarget as HTMLElement;
+    const { top, left } = target.getBoundingClientRect();
+    const x = e.clientX - left;
+    const y = e.clientY - top;
+    const ts = (x / this.width) * (this.maxTs - this.minTs) + this.minTs;
+    return { x, y, ts };
   }
 
   private updateAirspaces(x: number, y: number, ts: number): void {

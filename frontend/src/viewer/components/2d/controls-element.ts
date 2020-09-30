@@ -148,7 +148,7 @@ export class ControlsElement extends connect(store)(LitElement) {
               .displayNames=${this.displayName}
               @closeActiveTrack=${this.handleClose}
               @selectNextTrack=${this.handleNext}
-              @displayNames=${(e: CustomEvent) => this.handleDisplayNames(e)}
+              @displayNames=${this.handleDisplayNames}
             ></name-ctrl-element>
           `
         : ''}

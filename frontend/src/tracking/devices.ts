@@ -203,7 +203,7 @@ export class DeviceForm extends LitElement {
 
                 <div class="field is-grouped">
                   <p class="control">
-                    <a class="button is-primary" @click=${() => this.updateTracker()}> Save </a>
+                    <a class="button is-primary" @click=${this.updateTracker}> Save </a>
                   </p>
                   <p class="control">
                     <a
@@ -218,7 +218,7 @@ export class DeviceForm extends LitElement {
                   </p>
                 </div>
               </form>
-              <div class=${this.changesSaved ? 'modal is-active' : 'modal'} @click=${() => this.handleClose()}>
+              <div class=${this.changesSaved ? 'modal is-active' : 'modal'} @click=${this.handleClose}>
                 <div class="modal-background"></div>
                 <div class="modal-content">
                   <div class="notification my-4">
