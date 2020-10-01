@@ -83,7 +83,7 @@ export class FlyXc extends connect(store)(LitElement) {
             class=${hasTracks}
             @move=${(e: CustomEvent) => dispatch(act.setTimestamp(e.detail.ts))}
             @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.ts))}
-            @zoom=${(e: CustomEvent) => msg.centerZoomMap.emit(this.coordinatesAt(e.detail.ts), e.detail.event.deltaY)}
+            @zoom=${(e: CustomEvent) => msg.centerZoomMap.emit(this.coordinatesAt(e.detail.ts), e.detail.deltaY)}
           ></chart-element>`
         : ''}
       <loader-element .show=${this.showLoader}></loader-element>

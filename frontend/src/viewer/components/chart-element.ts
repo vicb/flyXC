@@ -25,6 +25,10 @@ import { ChartYAxis, Units } from '../reducers';
 import * as sel from '../selectors';
 import { dispatch, RootState, store } from '../store';
 
+const MIN_SPEED_FACTOR = 16;
+const MAX_SPEED_FACTOR = 4096;
+const PLAY_INTERVAL = 50;
+
 @customElement('chart-element')
 export class ChartElement extends connect(store)(LitElement) {
   @internalProperty()
@@ -34,7 +38,7 @@ export class ChartElement extends connect(store)(LitElement) {
   private chartYAxis: ChartYAxis = ChartYAxis.Altitude;
 
   @internalProperty()
-  private ts = 0;
+  private timestamp = 0;
 
   @internalProperty()
   private width = 0;
@@ -52,7 +56,15 @@ export class ChartElement extends connect(store)(LitElement) {
   private currentTrackIndex = 0;
 
   @internalProperty()
-  centerMap = true;
+  private centerMap = true;
+
+  @internalProperty()
+  private playSpeed = 64;
+
+  @internalProperty()
+  private playTimer: any;
+
+  private lastPlayTimestamp = 0;
 
   @queryAll('path.asp')
   private aspPathElements?: NodeList;
@@ -70,7 +82,7 @@ export class ChartElement extends connect(store)(LitElement) {
     const map = state.map;
     this.tracks = map.tracks;
     this.chartYAxis = map.chart.yAxis;
-    this.ts = map.ts;
+    this.timestamp = map.ts;
     this.minTs = sel.minTs(map);
     this.maxTs = sel.maxTs(map);
     this.units = map.units;
@@ -223,6 +235,7 @@ export class ChartElement extends connect(store)(LitElement) {
           user-select: none;
           background-color: white;
           clear: both;
+          cursor: pointer;
         }
         .control:hover {
           background-color: #adff2f;
@@ -462,7 +475,7 @@ export class ChartElement extends connect(store)(LitElement) {
       <svg
         id="chart"
         @pointermove=${this.handlePointerMove}
-        @pointerDown=${this.handlePointerDown}
+        @pointerdown=${this.handlePointerDown}
         @wheel=${this.handleMouseWheel}
       >
         <defs>
@@ -489,13 +502,51 @@ export class ChartElement extends connect(store)(LitElement) {
         </select>
         <div class="control">
           <i
-            class=${`la la-2x ${this.centerMap ? `la-link` : `la-unlink`}`}
-            style="cursor: pointer"
+            class="la la-lg la-chevron-down"
+            @click=${() => (this.playSpeed = Math.max(MIN_SPEED_FACTOR, this.playSpeed / 2))}
+            style=${`visibility: ${this.playSpeed == MIN_SPEED_FACTOR ? 'hidden' : 'visible'}`}
+          ></i>
+          ${this.playSpeed}x
+          <i
+            class="la la-lg la-chevron-up"
+            @click=${() => (this.playSpeed = Math.min(MAX_SPEED_FACTOR, this.playSpeed * 2))}
+            style=${`visibility: ${this.playSpeed == MAX_SPEED_FACTOR ? 'hidden' : 'visible'}`}
+          ></i>
+          <i class=${`la la-lg ${this.playTimer ? 'la-pause' : 'la-play'}`} @click="${this.handlePlay}}"></i>
+        </div>
+        <div class="control">
+          <i
+            class=${`la la-lg ${this.centerMap ? `la-link` : `la-unlink`}`}
             @click=${() => dispatch(setCenterMap(!this.centerMap))}
           ></i>
         </div>
       </div>
     `;
+  }
+
+  private handlePlay() {
+    if (this.playTimer) {
+      clearInterval(this.playTimer);
+      this.playTimer = undefined;
+    } else {
+      // Restart from the beginning if play has not been used for 30s,
+      if (this.lastPlayTimestamp < Date.now() - 30 * 1000 || this.timestamp == this.maxTs) {
+        this.dispatchEvent(new CustomEvent('move', { detail: { ts: this.minTs } }));
+      }
+      this.playTick();
+      this.playTimer = setInterval(() => this.playTick(), PLAY_INTERVAL);
+    }
+  }
+
+  private playTick() {
+    this.lastPlayTimestamp = Date.now();
+    let timestamp = this.timestamp + PLAY_INTERVAL * this.playSpeed;
+    if (timestamp >= this.maxTs) {
+      timestamp = this.maxTs;
+      clearInterval(this.playTimer);
+      this.playTimer = undefined;
+    }
+    this.dispatchEvent(new CustomEvent('move', { detail: { ts: timestamp } }));
   }
 
   private handleYChange(e: Event): void {
@@ -504,26 +555,29 @@ export class ChartElement extends connect(store)(LitElement) {
   }
 
   private tsX(): number {
-    return ((this.ts - this.minTs) / (this.maxTs - this.minTs)) * this.width;
+    return ((this.timestamp - this.minTs) / (this.maxTs - this.minTs)) * this.width;
   }
 
   private handlePointerDown(e: MouseEvent): void {
     const { ts } = this.getCoordinatesFromEvent(e);
-    this.dispatchEvent(new CustomEvent('pin', { detail: { ts, event: e } }));
+    this.dispatchEvent(new CustomEvent('pin', { detail: { ts } }));
+    this.dispatchEvent(new CustomEvent('move', { detail: { ts } }));
   }
 
-  private handleMouseWheel(e: MouseEvent): void {
+  private handleMouseWheel(e: WheelEvent): void {
     const { ts } = this.getCoordinatesFromEvent(e);
-    this.dispatchEvent(new CustomEvent('zoom', { detail: { ts, event: e } }));
+    this.dispatchEvent(new CustomEvent('zoom', { detail: { ts, deltaY: e.deltaY } }));
   }
 
   private handlePointerMove(e: MouseEvent): void {
-    const { x, y, ts } = this.getCoordinatesFromEvent(e);
-    this.dispatchEvent(new CustomEvent('move', { detail: { ts, event: e } }));
-    if (!this.throttleAspUpdates) {
-      this.updateAirspaces(x, y, ts);
-      this.throttleAspUpdates = true;
-      setTimeout(() => (this.throttleAspUpdates = false), 100);
+    if (!this.playTimer) {
+      const { x, y, ts } = this.getCoordinatesFromEvent(e);
+      this.dispatchEvent(new CustomEvent('move', { detail: { ts } }));
+      if (!this.throttleAspUpdates) {
+        this.updateAirspaces(x, y, ts);
+        this.throttleAspUpdates = true;
+        setTimeout(() => (this.throttleAspUpdates = false), 100);
+      }
     }
   }
 
@@ -555,7 +609,7 @@ export class ChartElement extends connect(store)(LitElement) {
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
-    if (changedProps.size == 1 && changedProps.has('ts')) {
+    if (changedProps.size == 1 && changedProps.has('timestamp')) {
       // Do not re-render if only the timestamp changes
       const shadowRoot = this.shadowRoot as ShadowRoot;
       const tsEl = (shadowRoot.getElementById('ts') as unknown) as SVGLineElement | null;
