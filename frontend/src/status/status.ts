@@ -8,11 +8,9 @@ export class FlyXcStatusElement extends LitElement {
   @internalProperty()
   private timestamp = 0;
 
-  constructor() {
-    super();
-    this.fetchStatus();
-    setInterval(() => this.fetchStatus(), 60 * 1000);
-  }
+  private fetchId: any;
+  private readonly visibilityListener = () => this.handleVisibility();
+
   static get styles(): CSSResult {
     return css`
       :host {
@@ -22,15 +20,15 @@ export class FlyXcStatusElement extends LitElement {
     `;
   }
 
-  fetchStatus(): void {
-    fetch('/_status.json')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((status) => {
-        if (status) {
-          this.status = status;
-          this.timestamp = Date.now();
-        }
-      });
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.visibilityListener();
+    document.addEventListener('visibilitychange', this.visibilityListener);
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    document.removeEventListener('visibilitychange', this.visibilityListener);
   }
 
   render(): TemplateResult {
@@ -57,5 +55,31 @@ export class FlyXcStatusElement extends LitElement {
         <li>tracks ${this.status.tracks}</li>
       </ul>
     `;
+  }
+
+  protected handleVisibility(): void {
+    const visible = document.visibilityState == 'visible';
+    if (visible) {
+      if (this.fetchId == null) {
+        this.fetchStatus();
+        this.fetchId = setInterval(() => this.fetchStatus(), 2 * 60 * 1000);
+      }
+    } else {
+      if (this.fetchId != null) {
+        clearInterval(this.fetchId);
+        this.fetchId = null;
+      }
+    }
+  }
+
+  private fetchStatus(): void {
+    fetch('/_status.json')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((status) => {
+        if (status) {
+          this.status = status;
+          this.timestamp = Date.now();
+        }
+      });
   }
 }
