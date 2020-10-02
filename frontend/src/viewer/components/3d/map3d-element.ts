@@ -2,6 +2,7 @@ import type GraphicsLayer from 'esri/layers/GraphicsLayer';
 import type SceneView from 'esri/views/SceneView';
 import type NavigationToggle from 'esri/widgets/NavigationToggle';
 import type Map from 'esri/Map';
+import type Basemap from 'esri/Basemap';
 import type BaseElevationLayer from 'esri/layers/BaseElevationLayer';
 import { customElement, html, internalProperty, LitElement, PropertyValues, query, TemplateResult } from 'lit-element';
 import { UnsubscribeHandle } from 'micro-typed-events';
@@ -44,6 +45,11 @@ export class Map3dElement extends connect(store)(LitElement) {
   private gndGraphicsLayer?: GraphicsLayer;
   // Elevation layer with exageration.
   private elevationLayer?: BaseElevationLayer;
+  private basemaps: Record<string, string | Basemap | null> = {
+    Satellite: 'satellite',
+    OpenTopoMap: null,
+    Terrain: 'terrain',
+  };
 
   private subscriptions: UnsubscribeHandle[] = [];
   private timestamp = 0;
@@ -77,6 +83,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     loadApi().then((ag: Api) => {
       this.api = ag;
       this.elevationLayer = createElevationLayer(ag, this.multiplier);
+
       this.map = new ag.Map({
         basemap: 'satellite',
         ground: { layers: [this.elevationLayer] },
@@ -181,6 +188,22 @@ export class Map3dElement extends connect(store)(LitElement) {
         dispatch(act.setTimestamp(ts));
         e.stopPropagation();
       });
+
+      this.basemaps.OpenTopoMap = new ag.Basemap({
+        baseLayers: [
+          new ag.WebTileLayer({
+            urlTemplate: 'https://{subDomain}.tile.opentopomap.org/{level}/{col}/{row}.png',
+            subDomains: ['a', 'b', 'c'],
+            copyright:
+              'Map tiles by <a href="https://opentopomap.org/">OpenTopoMap</a>, ' +
+              'under <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>. ' +
+              'Data by <a href="http://openstreetmap.org/">OpenStreetMap</a>, ' +
+              'under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.',
+          }),
+        ],
+        title: 'otm',
+        id: 'otm',
+      });
     });
   }
 
@@ -244,10 +267,8 @@ export class Map3dElement extends connect(store)(LitElement) {
         }
       </style>
       <div id="map"></div>
-      <select id="layers" @change=${(e: any) => this.map?.set('basemap', e.target.value)}>
-        <option value="satellite">Satellite</option>
-        <option value="hybrid">Hybrid</option>
-        <option value="topo-vector">Terrain</option>
+      <select id="layers" @change=${(e: any) => this.map?.set('basemap', this.basemaps[e.target.value])}>
+        ${Object.getOwnPropertyNames(this.basemaps).map((name) => html`<option value="${name}">${name}</option>`)}
       </select>
       <ui5-dialog id="webgl-dialog" header-text="Error">
         <section class="form-fields">
