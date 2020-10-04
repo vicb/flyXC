@@ -28,6 +28,7 @@ export default [
     output: {
       dir: 'app/',
       format: 'cjs',
+      sourcemap: prod ? false : 'inline',
     },
 
     plugins: [
@@ -43,7 +44,9 @@ export default [
         preferBuiltins: true,
       }),
       cjs(),
-      typescript(),
+      typescript({
+        sourceMap: !prod,
+      }),
       prod && terser({ output: { comments: false } }),
       !prod && run({ execArgv: ['--inspect'] }),
     ],
@@ -55,6 +58,7 @@ export default [
     output: {
       file: 'run/index.js',
       format: 'cjs',
+      sourcemap: prod ? false : 'inline',
     },
 
     plugins: [
@@ -69,7 +73,9 @@ export default [
         preferBuiltins: true,
       }),
       cjs(),
-      typescript(),
+      typescript({
+        sourceMap: !prod,
+      }),
       prod && terser({ output: { comments: false } }),
       !prod && run({ env: { ...process.env, PORT: 8084 } }),
     ],
@@ -95,6 +101,7 @@ function buildFrontEnd(input, options = {}) {
     output: {
       dir: outDir,
       format: 'esm',
+      sourcemap: prod ? false : 'inline',
     },
 
     plugins: [
@@ -126,6 +133,7 @@ function buildFrontEnd(input, options = {}) {
       cjs(),
       typescript({
         lib: options.isWorker ? ['webworker'] : ['es6', 'dom'],
+        sourceMap: !prod,
       }),
       options.importUi5 &&
         url({
