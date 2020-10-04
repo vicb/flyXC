@@ -34,6 +34,8 @@ export class TrackingElement extends connect(store)(LitElement) {
   private units?: Units;
 
   private info: google.maps.InfoWindow | undefined;
+  // Name of the pilot shown in the info window.
+  private currentName?: string;
 
   private features: any[] = [];
 
@@ -93,6 +95,12 @@ export class TrackingElement extends connect(store)(LitElement) {
     const hasPointFeature = (event: any): boolean => event.feature?.getGeometry().getType() == 'Point';
     this.info = new google.maps.InfoWindow();
     this.info.close();
+    this.info.addListener('closeclick', () => {
+      this.currentName = undefined;
+      if (this.map) {
+        this.setMapStyle(this.map);
+      }
+    });
 
     map.data.addListener('click', (event: any) => {
       if (hasPointFeature(event)) {
@@ -121,10 +129,12 @@ export class TrackingElement extends connect(store)(LitElement) {
           );
         }
 
-        if (this.info) {
+        if (this.map && this.info) {
           this.info.setContent(content.join('<br>'));
           this.info.setPosition(event.latLng);
           this.info.open(map);
+          this.currentName = f.getProperty('name');
+          this.setMapStyle(this.map);
         }
       }
     });
@@ -133,102 +143,125 @@ export class TrackingElement extends connect(store)(LitElement) {
   private setMapStyle(map: google.maps.Map): void {
     map.data.setStyle(
       (feature: google.maps.Data.Feature): google.maps.Data.StyleOptions => {
-        const now = Date.now();
-        // Point features have a 'ts' property.
-        // Line feature has a 'first_ts' property.
-        const ts = feature.getProperty('ts') || feature.getProperty('first_ts');
-        const old = now - 5 * 3600 * 1000;
-        const s = linearInterpolate(old, 10, now, 100, ts);
-        let color = `hsl(111, ${s}%, 53%)`;
-        let zIndex = 10;
-        const age_hours = (now - ts) / (3600 * 1000);
-        let opacity = age_hours > 12 ? 0.3 : 0.9;
-
-        // Small circle by default.
-        let scale = 3;
-        let rotation = 0;
-        let path: google.maps.SymbolPath | string = google.maps.SymbolPath.CIRCLE;
-        let labelOrigin = new google.maps.Point(0, 3);
-        let anchor: google.maps.Point | undefined;
-
-        // Display an arrow when we have a bearing (last point).
-        if (feature.getProperty('bearing') != null) {
-          rotation = Number(feature.getProperty('bearing'));
-          scale = 3;
-          const ANCHOR_Y = 2;
-          anchor = new google.maps.Point(0, ANCHOR_Y);
-          path = google.maps.SymbolPath.FORWARD_CLOSED_ARROW;
-          const rad = toRad(-rotation);
-          // x1 = x0cos(θ) – y0sin(θ)
-          // y1 = x0sin(θ) + y0cos(θ)
-          const x = -5 * Math.sin(rad);
-          const y = 5 * Math.cos(rad);
-          labelOrigin = new google.maps.Point(x, y + ANCHOR_Y);
+        const type = feature.getGeometry().getType();
+        switch (type) {
+          case 'Point':
+            return this.getFixStyle(feature);
+          case 'LineString':
+            return this.getTrackSyle(feature);
+          default:
+            return {};
         }
-
-        // Display speech bubble for messages and emergency.
-        if (feature.getProperty('msg')) {
-          scale = 1;
-          anchor = new google.maps.Point(7, 9);
-          labelOrigin = new google.maps.Point(0, 32);
-          rotation = 0;
-          path = SPEECH_BUBBLE;
-          color = 'yellow';
-          zIndex += 10;
-        }
-
-        if (feature.getProperty('emergency')) {
-          scale = 1;
-          anchor = new google.maps.Point(7, 9);
-          labelOrigin = new google.maps.Point(0, 32);
-          rotation = 0;
-          path = SPEECH_BUBBLE;
-          opacity = 1;
-          color = 'red';
-          zIndex += 10;
-        }
-
-        // Display pilot name.
-        let label: google.maps.MarkerLabel | null = null;
-        if (feature.getProperty('is_last_fix') === true) {
-          if (this.displayNames) {
-            const minutesOld = Math.round((now - ts) / (60 * 1000));
-            const age =
-              minutesOld < 60
-                ? `${minutesOld}min`
-                : `${Math.floor(minutesOld / 60)}h${String(minutesOld % 60).padStart(2, '0')}`;
-            const text = feature.getProperty('name') + ' · ' + age;
-            label = {
-              color: 'black',
-              text,
-              fontSize: '14.001px',
-            };
-          }
-        }
-
-        return {
-          label,
-          strokeColor: '#555',
-          strokeWeight: 1,
-          strokeOpacity: opacity,
-          fillOpacity: opacity,
-          zIndex,
-          cursor: 'zoom-in',
-          icon: {
-            path,
-            rotation,
-            fillColor: color,
-            fillOpacity: opacity,
-            strokeColor: 'black',
-            strokeWeight: 1,
-            strokeOpacity: opacity,
-            anchor,
-            labelOrigin,
-            scale,
-          },
-        } as google.maps.Data.StyleOptions;
       },
     );
+  }
+
+  private getFixStyle(feature: google.maps.Data.Feature): google.maps.Data.StyleOptions {
+    const now = Date.now();
+    const ts = feature.getProperty('ts');
+    const old = now - 5 * 3600 * 1000;
+    const s = linearInterpolate(old, 10, now, 100, ts);
+    let color = `hsl(111, ${s}%, 53%)`;
+    let zIndex = 10;
+    const age_hours = (now - ts) / (3600 * 1000);
+    let opacity = age_hours > 12 ? 0.3 : 0.9;
+
+    // Small circle by default.
+    let scale = 3;
+    let rotation = 0;
+    let path: google.maps.SymbolPath | string = google.maps.SymbolPath.CIRCLE;
+    let labelOrigin = new google.maps.Point(0, 3);
+    let anchor: google.maps.Point | undefined;
+
+    // Display an arrow when we have a bearing (last point).
+    if (feature.getProperty('bearing') != null) {
+      rotation = Number(feature.getProperty('bearing'));
+      scale = 3;
+      const ANCHOR_Y = 2;
+      anchor = new google.maps.Point(0, ANCHOR_Y);
+      path = google.maps.SymbolPath.FORWARD_CLOSED_ARROW;
+      const rad = toRad(-rotation);
+      // x1 = x0cos(θ) – y0sin(θ)
+      // y1 = x0sin(θ) + y0cos(θ)
+      const x = -5 * Math.sin(rad);
+      const y = 5 * Math.cos(rad);
+      labelOrigin = new google.maps.Point(x, y + ANCHOR_Y);
+    }
+
+    // Display speech bubble for messages and emergency.
+    if (feature.getProperty('msg')) {
+      scale = 1;
+      anchor = new google.maps.Point(7, 9);
+      labelOrigin = new google.maps.Point(0, 32);
+      rotation = 0;
+      path = SPEECH_BUBBLE;
+      color = 'yellow';
+      zIndex += 10;
+    }
+
+    if (feature.getProperty('emergency')) {
+      scale = 1;
+      anchor = new google.maps.Point(7, 9);
+      labelOrigin = new google.maps.Point(0, 32);
+      rotation = 0;
+      path = SPEECH_BUBBLE;
+      opacity = 1;
+      color = 'red';
+      zIndex += 10;
+    }
+
+    // Display pilot name.
+    let label: google.maps.MarkerLabel | null = null;
+    if (feature.getProperty('is_last_fix') === true) {
+      if (this.displayNames) {
+        const minutesOld = Math.round((now - ts) / (60 * 1000));
+        const age =
+          minutesOld < 60
+            ? `${minutesOld}min`
+            : `${Math.floor(minutesOld / 60)}h${String(minutesOld % 60).padStart(2, '0')}`;
+        label = {
+          color: 'black',
+          text: feature.getProperty('name') + ' · ' + age,
+          fontSize: '14.001px',
+        };
+      }
+    }
+    return {
+      label,
+      zIndex,
+      cursor: 'zoom-in',
+      icon: {
+        path,
+        rotation,
+        fillColor: color,
+        fillOpacity: opacity,
+        strokeColor: 'black',
+        strokeWeight: 1,
+        strokeOpacity: opacity,
+        anchor,
+        labelOrigin,
+        scale,
+      },
+    } as google.maps.Data.StyleOptions;
+  }
+
+  private getTrackSyle(feature: google.maps.Data.Feature): google.maps.Data.StyleOptions {
+    const now = Date.now();
+    const ts = feature.getProperty('first_ts');
+    const age_hours = (now - ts) / (3600 * 1000);
+    const opacity = age_hours > 12 ? 0.3 : 0.9;
+
+    let strokeWeight = 1;
+    if (feature.getProperty('name') && feature.getProperty('name') == this.currentName) {
+      strokeWeight = 4;
+    }
+    return {
+      strokeColor: '#555',
+      strokeWeight,
+      strokeOpacity: opacity,
+      fillOpacity: opacity,
+      zIndex: 10,
+    };
   }
 
   protected render(): TemplateResult {

@@ -40,6 +40,8 @@ export interface LineString {
   line: number[][];
   // Timestamp of the oldest fix in milliseconds.
   first_ts: number;
+  // Name of the pilot.
+  name: string;
 }
 
 // Creates GeoJson features for a list of points:
@@ -52,7 +54,7 @@ export function createFeatures(points: Point[]): Array<Point | LineString> {
     return [];
   }
   // Sort points with older TS first.
-  points.sort((a, b) => (a.ts > b.ts ? 1 : -1));
+  points.sort((a, b) => a.ts - b.ts);
   // Remove points that are too close to each other.
   // Keep the first, last, and any protected point.
   let previousTs: number | undefined = points[0].ts;
@@ -83,7 +85,7 @@ export function createFeatures(points: Point[]): Array<Point | LineString> {
       if (currentLine != null) {
         lines.push(currentLine);
       }
-      currentLine = { line: [], first_ts: ts };
+      currentLine = { line: [], first_ts: ts, name: points[0].name };
     }
     // Accumulate fixes.
     currentLine?.line.push([point.lon, point.lat]);
