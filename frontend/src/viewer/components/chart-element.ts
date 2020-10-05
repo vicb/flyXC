@@ -119,11 +119,11 @@ export class ChartElement extends connect(store)(LitElement) {
   private getY(track: RuntimeTrack, ts: number): number {
     switch (this.chartYAxis) {
       case ChartYAxis.Speed:
-        return sampleAt(track.fixes.ts, track.fixes.vx, [ts])[0];
+        return sampleAt(track.fixes.ts, track.fixes.vx, ts);
       case ChartYAxis.Vario:
-        return sampleAt(track.fixes.ts, track.fixes.vz, [ts])[0];
+        return sampleAt(track.fixes.ts, track.fixes.vz, ts);
       default:
-        return sampleAt(track.fixes.ts, track.fixes.alt, [ts])[0];
+        return sampleAt(track.fixes.ts, track.fixes.alt, ts);
     }
   }
 
@@ -282,7 +282,7 @@ export class ChartElement extends connect(store)(LitElement) {
         const y = this.getY(track, ts);
         trackCoords.push(`${x},${(y * scaleY + offsetY).toFixed(1)}`);
         if (displayGndAlt && fixes.gndAlt) {
-          const gndAlt = sampleAt(fixes.ts, fixes.gndAlt, [ts])[0];
+          const gndAlt = sampleAt(fixes.ts, fixes.gndAlt, ts);
           gndCoords.push(`${x},${(gndAlt * scaleY + offsetY).toFixed(1)}`);
         }
       }
@@ -383,7 +383,7 @@ export class ChartElement extends connect(store)(LitElement) {
     const points: Array<[number, number]> = [];
     for (let x = startX; x < endX; x++) {
       const ts = ((x - minX) / spanX) * spanTrackTs + track.minTs;
-      const gndAlt = sampleAt(track.fixes.ts, track.fixes.gndAlt, [ts])[0];
+      const gndAlt = sampleAt(track.fixes.ts, track.fixes.gndAlt, ts);
       points.push([ts, alt + gndAlt]);
     }
     return reverse ? points.reverse() : points;

@@ -108,7 +108,7 @@ export class Marker3dElement extends connect(store)(LitElement) {
 
       const objectSymbol = this.symbol.symbolLayers[0];
       objectSymbol.material.color = trackColor(this.index);
-      objectSymbol.heading = 180 + sampleAt(fixes.ts, fixes.heading, [timestamp])[0];
+      objectSymbol.heading = 180 + sampleAt(fixes.ts, fixes.heading, timestamp);
       const height = this.active ? ACTIVE_HEIGHT : INACTIVE_HEIGHT;
       objectSymbol.height = height;
       this.graphic.set('symbol', this.symbol);

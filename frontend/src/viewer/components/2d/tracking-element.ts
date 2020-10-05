@@ -186,7 +186,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     const now = Date.now();
     const ts = feature.getProperty('ts');
     const minutesOld = Math.round((now - ts) / (60 * 1000));
-    const s = Math.max(0, Math.round(linearInterpolate(0, 100, 4 * 60, 10, minutesOld) as number));
+    const s = Math.max(0, Math.round(linearInterpolate(0, 100, 5 * 60, 0, minutesOld)));
     let color = `hsl(111, ${s}%, 53%)`;
     let opacity = minutesOld > 12 * 60 ? 0.3 : 0.9;
 

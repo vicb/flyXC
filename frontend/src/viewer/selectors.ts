@@ -219,9 +219,9 @@ export const getTrackLatLon = createSelector(
       return null;
     }
     const fixes = tracks[index ?? currentTrackIndex].fixes;
-    const lat = sampleAt(fixes.ts, fixes.lat, [timestamp])[0];
-    const lon = sampleAt(fixes.ts, fixes.lon, [timestamp])[0];
-    const alt = sampleAt(fixes.ts, fixes.alt, [timestamp])[0];
+    const lat = sampleAt(fixes.ts, fixes.lat, timestamp);
+    const lon = sampleAt(fixes.ts, fixes.lon, timestamp);
+    const alt = sampleAt(fixes.ts, fixes.alt, timestamp);
     return { lat, lon, alt };
   },
 );

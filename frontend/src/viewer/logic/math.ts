@@ -1,5 +1,7 @@
 // Linear interpolation
 // The values (y1 and y2) can be arrays
+export function linearInterpolate(x1: number, y1: number, x2: number, y2: number, x: number): number;
+export function linearInterpolate(x1: number, y1: number[], x2: number, y2: number[], x: number): number[];
 export function linearInterpolate(
   x1: number,
   y1: number | number[],
@@ -19,14 +21,12 @@ export function linearInterpolate(
   return (y1 as number) * (1 - w) + (y2 as number) * w;
 }
 
-// Sampling at at targetXs with linear interpolation
+// Sampling at a single targetXs with linear interpolation
 // xs and ys must have the same length.
-// xs must be sorted in ascending order.
-export function sampleAt(xs: number[], ys: number[], targetXs: number[]): number[] {
-  return targetXs.map((tx) => {
-    const [left, right] = findIndexes(xs, tx);
-    return linearInterpolate(xs[left], ys[left], xs[right], ys[right], tx) as number;
-  });
+// xs must be sorted in ascending order
+export function sampleAt(xs: number[], ys: number[], targetX: number): number {
+  const [left, right] = findIndexes(xs, targetX);
+  return linearInterpolate(xs[left], ys[left], xs[right], ys[right], targetX) as number;
 }
 
 // Find the two indexes left and right of the value.

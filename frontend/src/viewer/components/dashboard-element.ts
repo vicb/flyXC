@@ -37,12 +37,12 @@ export class DashboardElement extends LitElement {
     if (!this.fixes) {
       return 0;
     }
-    return sampleAt(this.fixes.ts, this.fixes.alt, [this.timestamp])[0];
+    return sampleAt(this.fixes.ts, this.fixes.alt, this.timestamp);
   }
 
   private getGroundElevation(): number {
     if (this.fixes?.gndAlt) {
-      return sampleAt(this.fixes.ts, this.fixes.gndAlt, [this.timestamp])[0];
+      return sampleAt(this.fixes.ts, this.fixes.gndAlt, this.timestamp);
     }
     return 0;
   }
@@ -51,14 +51,14 @@ export class DashboardElement extends LitElement {
     if (!this.fixes) {
       return 0;
     }
-    return sampleAt(this.fixes.ts, this.fixes.vz, [this.timestamp])[0];
+    return sampleAt(this.fixes.ts, this.fixes.vz, this.timestamp);
   }
 
   private getVx(): number {
     if (!this.fixes) {
       return 0;
     }
-    return sampleAt(this.fixes.ts, this.fixes.vx, [this.timestamp])[0];
+    return sampleAt(this.fixes.ts, this.fixes.vx, this.timestamp);
   }
 
   protected render(): TemplateResult {
