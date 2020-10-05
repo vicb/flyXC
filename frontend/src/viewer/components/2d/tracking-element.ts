@@ -1,4 +1,3 @@
-import { toRad } from 'geolib';
 import { CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
@@ -9,8 +8,29 @@ import { Units } from '../../reducers';
 import { RootState, store } from '../../store';
 import { controlStyle } from '../control-style';
 
-const SPEECH_BUBBLE =
-  'M2.5 2C1.7 2 1 2.7 1 3.5 l 0 8 c0 .8.7 1.5 1.5 1.5 H4 l 0 2.4 L 7.7 13 l 4.8 0 c.8 0 1.5 -.7 1.5 -1.5 l 0 -8 c 0 -.8 -.7 -1.5 -1.5 -1.5 z';
+// Anchors and label origins for markers.
+let ANCHOR_POSITION: google.maps.Point | undefined;
+let ANCHOR_ARROW: google.maps.Point | undefined;
+let ORIGIN_ARROW: google.maps.Point | undefined;
+let ANCHOR_MSG: google.maps.Point | undefined;
+let ORIGIN_MSG: google.maps.Point | undefined;
+
+const positionSvg = (color: string, opacity: number): string =>
+  `<svg xmlns="http://www.w3.org/2000/svg" height="9" width="9">` +
+  `<circle r="3" cx="4" cy="4" style="fill:${color};stroke:black;stroke-width:1" opacity="${opacity}"/>` +
+  `</svg>`;
+
+const arrowSvg = (angle: number, color: string, opacity: number) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" height="19" width="19">` +
+  `<path d='M9 3 l-5 13 l5 -3 l5 3z' style="fill:${color};stroke:black;stroke-width:1"` +
+  ` transform="rotate(${angle}, 9, 9)"  opacity="${opacity}"/>` +
+  `</svg>`;
+
+const msgSvg = (color: string, opacity: number): string =>
+  `<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">` +
+  `<path style="fill:${color};stroke:black;stroke-width:1" opacity="${opacity}"` +
+  ` d="M2.5 2C1.7 2 1 2.7 1 3.5 l 0 8 c0 .8.7 1.5 1.5 1.5 H4 l 0 2.4 L 7.7 13 l 4.8 0 c.8 0 1.5 -.7 1.5 -1.5 l 0 -8 c 0 -.8 -.7 -1.5 -1.5 -1.5 z"/>` +
+  `</svg>`;
 
 @customElement('tracking-element')
 export class TrackingElement extends connect(store)(LitElement) {
@@ -24,6 +44,11 @@ export class TrackingElement extends connect(store)(LitElement) {
   set map(map: google.maps.Map | undefined) {
     this.map_ = map;
     if (map) {
+      ANCHOR_POSITION = new google.maps.Point(4, 4);
+      ANCHOR_ARROW = new google.maps.Point(9, 9);
+      ORIGIN_ARROW = new google.maps.Point(9, 22);
+      ANCHOR_MSG = new google.maps.Point(7, 9);
+      ORIGIN_MSG = new google.maps.Point(0, 32);
       this.handleVisibility();
       this.setMapStyle(map);
       this.setupInfoWindow(map);
@@ -148,7 +173,7 @@ export class TrackingElement extends connect(store)(LitElement) {
           case 'Point':
             return this.getFixStyle(feature);
           case 'LineString':
-            return this.getTrackSyle(feature);
+            return this.getTrackStyle(feature);
           default:
             return {};
         }
@@ -156,65 +181,57 @@ export class TrackingElement extends connect(store)(LitElement) {
     );
   }
 
+  // Using data-url with icon is much faster than using symbols.
   private getFixStyle(feature: google.maps.Data.Feature): google.maps.Data.StyleOptions {
     const now = Date.now();
     const ts = feature.getProperty('ts');
-    const old = now - 5 * 3600 * 1000;
-    const s = linearInterpolate(old, 10, now, 100, ts);
+    const minutesOld = Math.round((now - ts) / (60 * 1000));
+    const s = Math.max(0, Math.round(linearInterpolate(0, 100, 4 * 60, 10, minutesOld) as number));
     let color = `hsl(111, ${s}%, 53%)`;
-    let zIndex = 10;
-    const age_hours = (now - ts) / (3600 * 1000);
-    let opacity = age_hours > 12 ? 0.3 : 0.9;
+    let opacity = minutesOld > 12 * 60 ? 0.3 : 0.9;
 
-    // Small circle by default.
-    let scale = 3;
-    let rotation = 0;
-    let path: google.maps.SymbolPath | string = google.maps.SymbolPath.CIRCLE;
-    let labelOrigin = new google.maps.Point(0, 3);
+    if (feature.getProperty('name') === this.currentName) {
+      opacity = 0.9;
+      color = 'darkred';
+    }
+
+    let svg: string | undefined;
+    let labelOrigin: google.maps.Point | undefined;
     let anchor: google.maps.Point | undefined;
+    let zIndex = 10;
 
-    // Display an arrow when we have a bearing (last point).
+    // Display an arrow when we have a bearing (most recent point).
     if (feature.getProperty('bearing') != null) {
-      rotation = Number(feature.getProperty('bearing'));
-      scale = 3;
-      const ANCHOR_Y = 2;
-      anchor = new google.maps.Point(0, ANCHOR_Y);
-      path = google.maps.SymbolPath.FORWARD_CLOSED_ARROW;
-      const rad = toRad(-rotation);
-      // x1 = x0cos(θ) – y0sin(θ)
-      // y1 = x0sin(θ) + y0cos(θ)
-      const x = -5 * Math.sin(rad);
-      const y = 5 * Math.cos(rad);
-      labelOrigin = new google.maps.Point(x, y + ANCHOR_Y);
+      anchor = ANCHOR_ARROW;
+      labelOrigin = ORIGIN_ARROW;
+      svg = arrowSvg(Number(feature.getProperty('bearing')), color, opacity);
     }
 
     // Display speech bubble for messages and emergency.
     if (feature.getProperty('msg')) {
-      scale = 1;
-      anchor = new google.maps.Point(7, 9);
-      labelOrigin = new google.maps.Point(0, 32);
-      rotation = 0;
-      path = SPEECH_BUBBLE;
-      color = 'yellow';
-      zIndex += 10;
+      anchor = ANCHOR_MSG;
+      labelOrigin = ORIGIN_MSG;
+      svg = msgSvg('yellow', opacity);
+      zIndex = 20;
     }
 
     if (feature.getProperty('emergency')) {
-      scale = 1;
-      anchor = new google.maps.Point(7, 9);
-      labelOrigin = new google.maps.Point(0, 32);
-      rotation = 0;
-      path = SPEECH_BUBBLE;
-      opacity = 1;
-      color = 'red';
-      zIndex += 10;
+      anchor = ANCHOR_MSG;
+      labelOrigin = ORIGIN_MSG;
+      svg = msgSvg('red', 1);
+      zIndex = 30;
     }
 
-    // Display pilot name.
-    let label: google.maps.MarkerLabel | null = null;
+    // Simple dots for every other positions.
+    if (svg == null) {
+      svg = positionSvg(color, opacity);
+      anchor = ANCHOR_POSITION;
+    }
+
+    // Display the pilot name.
+    let label: google.maps.MarkerLabel | undefined;
     if (feature.getProperty('is_last_fix') === true) {
       if (this.displayNames) {
-        const minutesOld = Math.round((now - ts) / (60 * 1000));
         const age =
           minutesOld < 60
             ? `${minutesOld}min`
@@ -226,37 +243,35 @@ export class TrackingElement extends connect(store)(LitElement) {
         };
       }
     }
+
     return {
       label,
       zIndex,
       cursor: 'zoom-in',
       icon: {
-        path,
-        rotation,
-        fillColor: color,
-        fillOpacity: opacity,
-        strokeColor: 'black',
-        strokeWeight: 1,
-        strokeOpacity: opacity,
+        url: `data:image/svg+xml,${svg}`,
         anchor,
         labelOrigin,
-        scale,
       },
     } as google.maps.Data.StyleOptions;
   }
 
-  private getTrackSyle(feature: google.maps.Data.Feature): google.maps.Data.StyleOptions {
+  private getTrackStyle(feature: google.maps.Data.Feature): google.maps.Data.StyleOptions {
     const now = Date.now();
     const ts = feature.getProperty('first_ts');
-    const age_hours = (now - ts) / (3600 * 1000);
-    const opacity = age_hours > 12 ? 0.3 : 0.9;
-
+    const minutesOld = Math.round((now - ts) / (60 * 1000));
+    let opacity = minutesOld > 12 * 60 ? 0.3 : 0.9;
+    let strokeColor = '#555';
     let strokeWeight = 1;
-    if (feature.getProperty('name') && feature.getProperty('name') == this.currentName) {
-      strokeWeight = 4;
+
+    if (feature.getProperty('name') && feature.getProperty('name') === this.currentName) {
+      strokeWeight = 3;
+      opacity = 0.9;
+      strokeColor = '#c55';
     }
+
     return {
-      strokeColor: '#555',
+      strokeColor,
       strokeWeight,
       strokeOpacity: opacity,
       fillOpacity: opacity,
