@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { Datastore } = require('@google-cloud/datastore');
-const { OAuth2Client } = require('google-auth-library');
-/* eslint-enable @typescript-eslint/no-var-requires */
 
 import Redis from 'ioredis';
 
@@ -22,13 +20,18 @@ export function registerTrackerRoutes(router: Router): void {
     },
   );
 
-  // SignIn when adding/updating a tracker.
-  router.post(
-    '/_tokenSignIn',
+  // Get the tracker information if the users is signed id.
+  router.get(
+    '/_tracker',
     async (ctx: RouterContext): Promise<void> => {
+      if (ctx.session?.grant?.response?.access_token == null) {
+        ctx.body = JSON.stringify({ signedIn: false });
+        return;
+      }
+
       try {
-        const userId = await getUserId(ctx.request.body.token);
-        const key = datastore.key(['Tracker', userId]);
+        const { name, email, sub } = ctx.session?.grant?.response?.profile;
+        const key = datastore.key(['Tracker', sub]);
         let tracker = (await datastore.get(key))[0];
         if (!tracker) {
           tracker = {
@@ -38,8 +41,8 @@ export function registerTrackerRoutes(router: Router): void {
             inreach: '',
             spot: '',
             skylines: '',
-            email: ctx.request.body.email,
-            name: ctx.request.body.name,
+            email,
+            name,
           };
           await datastore.save({
             key,
@@ -48,6 +51,8 @@ export function registerTrackerRoutes(router: Router): void {
         }
         ctx.set('Content-Type', 'application/json');
         ctx.body = JSON.stringify({
+          signedIn: true,
+          name,
           device: tracker.device,
           inreach: tracker.inreach,
           spot: tracker.spot,
@@ -61,17 +66,18 @@ export function registerTrackerRoutes(router: Router): void {
 
   // Updates the tracker information.
   router.post(
-    '/_updateTracker',
+    '/_tracker',
     async (ctx: RouterContext): Promise<void> => {
       try {
-        const userId = await getUserId(ctx.request.body.token);
-        const key = datastore.key(['Tracker', userId]);
+        if (ctx.session?.grant?.response?.access_token == null) {
+          ctx.throw(400);
+        }
+        const key = datastore.key(['Tracker', ctx.session?.grant?.response?.profile?.sub]);
         const tracker = (await datastore.get(key))[0];
         if (tracker) {
-          tracker.device = ctx.request.body.device;
-          tracker.inreach = ctx.request.body.inreach;
-          tracker.spot = ctx.request.body.spot;
-          tracker.skylines = ctx.request.body.skylines;
+          ['device', 'inreach', 'spot', 'skylines'].forEach((k) => {
+            tracker[k] = ctx.request.body[k];
+          });
           tracker.updated = 0;
           await datastore.save({
             key,
@@ -80,26 +86,12 @@ export function registerTrackerRoutes(router: Router): void {
           });
         }
         ctx.set('Content-Type', 'application/json');
-        ctx.body = JSON.stringify({
-          device: tracker.device,
-          inreach: tracker.inreach,
-          spot: tracker.spot,
-          skylines: tracker.skylines,
-        });
+        ctx.body = JSON.stringify({ error: false });
+        // sign the user out
+        ctx.session = null;
       } catch (e) {
         ctx.throw(400);
       }
     },
   );
-
-  async function getUserId(idToken: string): Promise<string> {
-    const CLIENT_ID = '754556983658-qscerk4tpsu8mgb1kfcq5gvf8hmqsamn.apps.googleusercontent.com';
-    const client = new OAuth2Client(CLIENT_ID);
-    const ticket = await client.verifyIdToken({
-      idToken,
-      audience: CLIENT_ID,
-    });
-    const payload = ticket.getPayload();
-    return payload['sub'];
-  }
 }

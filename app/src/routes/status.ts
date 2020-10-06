@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { Datastore } = require('@google-cloud/datastore');
-/* eslint-enable @typescript-eslint/no-var-requires */
 
 import Redis from 'ioredis';
 

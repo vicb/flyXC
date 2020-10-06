@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const multer = require('@koa/multer');
-/* eslint-enable @typescript-eslint/no-var-requires */
 
 import Pbf from 'pbf';
 

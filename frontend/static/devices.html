@@ -12,26 +12,12 @@
   <meta charset="utf-8" />
   <meta http-equiv="x-ua-compatible" content="ie=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="google-signin-scope" content="profile email">
-  <meta name="google-signin-client_id"
-    content="754556983658-qscerk4tpsu8mgb1kfcq5gvf8hmqsamn.apps.googleusercontent.com">
-  <meta name="google-signin-ux_mode" content="redirect">
-  <script src="https://apis.google.com/js/platform.js" async defer></script>
   <title>FlyXc</title>
 </head>
 
 <body>
-  <device-form>
-    <div slot="button">
-      <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark" data-longtitle="true"></div>
-    </div>
-  </device-form>
+  <device-form></device-form>
   <script type="module" src="js/devices.js"></script>
-  <script>
-    function onSignIn(googleUser) {
-      window.dispatchEvent(new CustomEvent('sign-in', { detail: googleUser }));
-    }
-  </script>
 </body>
 
 </html>
