@@ -3,5 +3,5 @@ export const enum Keys {
   REDIS_URL = '<url>',
   GOOGLE_OAUTH_ID = '...',
   GOOGLE_OAUTH_SECRET = '...',
-  KOA_KEY = '...',
+  SESSION_SECRET = '...',
 }

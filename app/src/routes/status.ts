@@ -1,14 +1,9 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { Datastore } = require('@google-cloud/datastore');
-
+import express, { Request, Response, Router } from 'express';
 import Redis from 'ioredis';
 
-import Router, { RouterContext } from '@koa/router';
-
-import { Keys } from '../keys';
-
 const datastore = new Datastore();
-const redis = new Redis(Keys.REDIS_URL);
 
 // Cache the counter for hours.
 const COUNTER_STALE_AFTER_HOURS = 240;
@@ -30,29 +25,29 @@ interface Counts {
   tracks: number;
 }
 
-export function registerStatusRoutes(router: Router): void {
+export function getStatusRouter(redis: Redis.Redis): Router {
+  const router = express.Router();
+
   // Retrieves status information.
-  router.get(
-    '/_status.json',
-    async (ctx: RouterContext): Promise<void> => {
-      const counts = await getDatastoreCounts();
-      ctx.set('Content-Type', 'application/json');
-      ctx.body = JSON.stringify({
-        'last-request': Number(await redis.get('trackers.request')),
-        'last-refresh': Number(await redis.get('trackers.refreshed')),
-        'num-refresh': Number(await redis.get('trackers.numrefreshed')),
-        'active-trackers': counts.activeTrackers,
-        trackers: counts.trackers - counts.noDeviceTrackers,
-        noDeviceTrackers: counts.noDeviceTrackers,
-        tracks: counts.tracks,
-      });
-    },
-  );
+  router.get('/_status.json', async (req: Request, res: Response) => {
+    const counts = await getDatastoreCounts(redis);
+    res.json({
+      'last-request': Number(await redis.get('trackers.request')),
+      'last-refresh': Number(await redis.get('trackers.refreshed')),
+      'num-refresh': Number(await redis.get('trackers.numrefreshed')),
+      'active-trackers': counts.activeTrackers,
+      trackers: counts.trackers - counts.noDeviceTrackers,
+      noDeviceTrackers: counts.noDeviceTrackers,
+      tracks: counts.tracks,
+    });
+  });
+
+  return router;
 }
 
 // Cache the counter value for COUNTER_STALE_AFTER_HOURS.
 // Count queries are slow and we don't want them to run often.
-async function getDatastoreCounts(): Promise<Counts> {
+async function getDatastoreCounts(redis: Redis.Redis): Promise<Counts> {
   const counts = {
     trackers: 0,
     noDeviceTrackers: 0,

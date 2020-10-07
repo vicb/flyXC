@@ -1,115 +1,110 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const grant = require('grant').koa();
+const grant = require('grant').express();
 
-import Koa from 'koa';
-import bodyParser from 'koa-bodyparser';
-import session, { SessionStore } from 'koa-generic-session';
-import mount from 'koa-mount';
-import redisStore from 'koa-redis';
-import serve from 'koa-static';
+import bodyParser from 'body-parser';
+import redisStore from 'connect-redis';
+import express, { Request, Response } from 'express';
+import fileUpload from 'express-fileupload';
+import session from 'express-session';
+import Redis from 'ioredis';
 import QRCode from 'qrcode';
-
-import Router, { RouterContext } from '@koa/router';
 
 import { migrate } from '../../common/migrate';
 import { Keys } from './keys';
-import { registerStatusRoutes } from './routes/status';
-import { registerTrackerRoutes } from './routes/trackers';
-import { registerTrackRoutes } from './routes/tracks';
+import { getStatusRouter } from './routes/status';
+import { getTrackerRouter } from './routes/trackers';
+import { getTrackRouter } from './routes/tracks';
 import { encode } from './waypoints';
 
-const app = new Koa();
-app.keys = [Keys.KOA_KEY];
-const router = new Router();
+const USE_APP_ENGINE_PROXY = process.env.NODE_ENV == 'production';
+const USE_SECURE_COOKIES = USE_APP_ENGINE_PROXY;
+const redis = new Redis(Keys.REDIS_URL);
 
-registerTrackRoutes(router);
-registerTrackerRoutes(router);
-registerStatusRoutes(router);
+const app = express()
+  .set('trust proxy', USE_APP_ENGINE_PROXY)
+  .use(bodyParser.json())
+  .use(bodyParser.urlencoded({ extended: true }))
+  .use(fileUpload({ limits: { fileSize: 32 * 1024 * 1024 } }))
+  .use(
+    session({
+      secret: Keys.SESSION_SECRET,
+      cookie: {
+        httpOnly: true,
+        path: '/',
+        sameSite: true,
+        secure: USE_SECURE_COOKIES,
+      },
+      name: 'session',
+      resave: false,
+      store: new (redisStore(session))({ client: redis }),
+      unset: 'destroy',
+      saveUninitialized: false,
+    }),
+  )
+  .use(
+    '/oauth',
+    grant({
+      defaults: {
+        origin: process.env.NODE_ENV == 'development' ? 'http://localhost:8080' : 'https://flyxc.app',
+        transport: 'session',
+        state: true,
+        response: ['tokens', 'profile'],
+        prefix: '/oauth',
+      },
+      google: {
+        key: Keys.GOOGLE_OAUTH_ID,
+        secret: Keys.GOOGLE_OAUTH_SECRET,
+        scope: ['openid', 'email', 'profile'],
+        nonce: true,
+        callback: '/devices.html',
+        pkce: true,
+      },
+    }),
+  )
+  .use(express.static('frontend/static'));
+
+// mount extra routes.
+app.use(getStatusRouter(redis)).use(getTrackerRouter(redis)).use(getTrackRouter());
 
 // Generates a waypoint file.
-router.post('/_waypoints', (ctx: RouterContext): void => {
-  if (!ctx.request.body.request) {
-    ctx.throw(400);
+app.post('/_waypoints', (req: Request, res: Response) => {
+  if (!req.body.request) {
+    res.sendStatus(400);
   }
   // points elevations format prefix
-  const { format, points, elevations, prefix } = JSON.parse(ctx.request.body.request);
+  const { format, points, elevations, prefix } = JSON.parse(req.body.request);
   const { mime, file, ext, error } = encode(format, points, elevations, prefix);
 
   if (error) {
-    ctx.redirect('back');
+    res.redirect('back');
   } else {
-    ctx.set('Content-Type', mime!);
-    ctx.set('Content-disposition', `attachment; filename=waypoints.${ext}`);
-    ctx.body = file;
+    res.attachment(`waypoints.${ext}`).set('Content-Type', me).send(file);
   }
 });
 
 // Generates a QR code from the given route.
-router.get('/_qr.svg', async (ctx: RouterContext) => {
-  ctx.set('Content-Type', 'image/svg+xml');
-  ctx.body = await QRCode.toString(ctx.query.text, { type: 'svg' });
+app.get('/_qr.svg', async (req: Request, res: Response) => {
+  if (typeof req.query.text == 'string') {
+    res.set('Content-Type', 'image/svg+xml');
+    res.send(await QRCode.toString(req.query.text, { type: 'svg' }));
+  } else {
+    res.sendStatus(500);
+  }
 });
 
 // Logout.
-router.get('/logout', async (ctx: RouterContext) => {
-  ctx.session = null;
-  ctx.redirect('/');
+app.get('/logout', (req: Request, res: Response) => {
+  req.session?.destroy(() => null);
+  res.redirect('/');
 });
 
 // @ts-ignore: always false in prod mode.
 if (process.env.NODE_ENV == 'development') {
-  router.get('/__migrate', async (ctx: RouterContext) => {
+  app.get('/__migrate', async (req: Request, res: Response) => {
     await migrate();
-    ctx.status = 200;
+    res.sendStatus(200);
   });
 }
 
-const redisUrl = new URL(Keys.REDIS_URL);
-
-app
-  .use(
-    session({
-      store: (redisStore({
-        host: redisUrl.hostname,
-        port: Number(redisUrl.port),
-        password: redisUrl.password,
-      }) as unknown) as SessionStore,
-      cookie: {
-        // Do not set `secure: true` because of https://github.com/pillarjs/cookies#secure-cookies
-        path: '/',
-        httpOnly: true,
-        // maxAge = null to delete the cookie when the browser is closed.
-        maxAge: null,
-        signed: true,
-      },
-    }),
-  )
-  .use(
-    mount(
-      '/oauth',
-      grant({
-        defaults: {
-          origin: process.env.NODE_ENV == 'development' ? 'http://localhost:8080' : 'https://flyxc.app',
-          prefix: '/oauth',
-          transport: 'session',
-          state: true,
-          response: ['tokens', 'profile'],
-        },
-        google: {
-          key: Keys.GOOGLE_OAUTH_ID,
-          secret: Keys.GOOGLE_OAUTH_SECRET,
-          scope: ['openid', 'email', 'profile'],
-          nonce: true,
-          callback: '/devices.html',
-          pkce: true,
-        },
-      }),
-    ),
-  )
-  .use(bodyParser({ formLimit: '32mb' }))
-  .use(router.routes())
-  .use(router.allowedMethods())
-  .use(serve('frontend/static'));
-
 const port = process.env.PORT || 8080;
-app.listen(port);
+app.listen(port, () => console.info(`Started server on port ${port}.`));

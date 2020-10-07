@@ -410,16 +410,16 @@ export class PathCtrlElement extends connect(store)(LitElement) {
           if (status == google.maps.ElevationStatus.OK) {
             elevations = results.map((r) => r.elevation);
           }
-          const shadowRoot = this.shadowRoot as ShadowRoot;
-          const input = shadowRoot.getElementById('request') as HTMLInputElement;
+          const root = this.renderRoot;
+          const input = root.querySelector('#request') as HTMLInputElement;
           input.value = JSON.stringify({
             points: this.getPathPoints(),
             elevations,
-            format: (shadowRoot.getElementById('format') as any).selectedOption.value,
-            prefix: (shadowRoot.getElementById('prefix') as any).value,
+            format: (root.querySelector('#format') as any).selectedOption.value,
+            prefix: (root.querySelector('#prefix') as any).value,
           });
 
-          const form = shadowRoot.getElementById('form-wpt') as HTMLFormElement;
+          const form = root.querySelector('#form-wpt') as HTMLFormElement;
           form.submit();
           this.downloadDialog.close();
         },

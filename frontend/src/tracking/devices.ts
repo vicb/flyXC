@@ -77,7 +77,7 @@ export class DeviceForm extends LitElement {
         trouble registering your device.
       </p>
     </div>
-    <form action='/oauth/google/login'>
+    <form action='/oauth/google'>
       <input type="image" src=${`/img/btn_google_signin_dark_normal_web${
         devicePixelRatio > 1 ? '@2x' : ''
       }.png`} alt="Sign-in with Google" width=191 height=46 />
@@ -189,7 +189,14 @@ export class DeviceForm extends LitElement {
 
           <div class="field">
             <label class="label">
-              <input type="radio" id="no" name="tracker" value="no" @change=${this.updateDeviceFromRadio} />
+              <input
+                type="radio"
+                id="no"
+                name="tracker"
+                value="no"
+                ?checked=${this.tracker.device == 'no'}
+                @change=${this.updateDeviceFromRadio}
+              />
               Do not track me
             </label>
           </div>
@@ -255,17 +262,16 @@ export class DeviceForm extends LitElement {
       return;
     }
     const root = this.renderRoot;
-    const data = [
-      // TODO: apply encodeURIComponent for all
-      `device=${encodeURIComponent(this.tracker.device)}`,
-      `inreach=${(root.querySelector('#inreach-url') as HTMLInputElement)?.value}`,
-      `spot=${(root.querySelector('#spot-id') as HTMLInputElement)?.value}`,
-      `skylines=${(root.querySelector('#skylines-id') as HTMLInputElement)?.value}`,
-    ];
+    const data = {
+      device: this.tracker.device,
+      inreach: (root.querySelector('#inreach-url') as HTMLInputElement)?.value,
+      spot: (root.querySelector('#spot-id') as HTMLInputElement)?.value,
+      skylines: (root.querySelector('#skylines-id') as HTMLInputElement)?.value,
+    };
     fetch('_tracker', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: data.join('&'),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
     }).then(() => {
       this.renderRoot.querySelector('#dlg')?.classList.add('is-active');
     });
