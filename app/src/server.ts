@@ -78,7 +78,7 @@ app.post('/_waypoints', (req: Request, res: Response) => {
   if (error) {
     res.redirect('back');
   } else {
-    res.attachment(`waypoints.${ext}`).set('Content-Type', me).send(file);
+    res.attachment(`waypoints.${ext}`).set('Content-Type', mime).send(file);
   }
 });
 

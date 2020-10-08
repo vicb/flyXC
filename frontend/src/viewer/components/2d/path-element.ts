@@ -452,6 +452,8 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       pushCurrentState();
       setUrlParamValue(ParamNames.ROUTE, google.maps.geometry.encoding.encodePath(path));
     }
+    // Update the download dialog;
+    this.requestUpdate();
     this.computeDistance();
   }
 
