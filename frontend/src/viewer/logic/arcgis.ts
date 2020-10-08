@@ -1,4 +1,4 @@
-import { loadModules } from 'esri-loader';
+import { loadCss, loadModules } from 'esri-loader';
 
 // List of modules to load.
 const moduleNames = [
@@ -42,6 +42,8 @@ export function loadApi(): Promise<Api> {
       });
       return api;
     });
+
+    loadCss();
   }
   return apiPromise;
 }

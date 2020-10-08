@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const grant = require('grant').express();
 
-import bodyParser from 'body-parser';
 import redisStore from 'connect-redis';
 import express, { Request, Response } from 'express';
 import fileUpload from 'express-fileupload';
@@ -22,8 +21,8 @@ const redis = new Redis(Keys.REDIS_URL);
 
 const app = express()
   .set('trust proxy', USE_APP_ENGINE_PROXY)
-  .use(bodyParser.json())
-  .use(bodyParser.urlencoded({ extended: true }))
+  .use(express.json())
+  .use(express.urlencoded({ extended: true }))
   .use(fileUpload({ limits: { fileSize: 32 * 1024 * 1024 } }))
   .use(
     session({
@@ -61,7 +60,15 @@ const app = express()
       },
     }),
   )
-  .use(express.static('frontend/static'));
+  .use(
+    '/3d',
+    express.static('frontend/static/3d', { lastModified: false, maxAge: 2 * 24 * 3600 * 1000, fallthrough: true }),
+  )
+  .use(
+    '/img',
+    express.static('frontend/static/img', { lastModified: false, maxAge: 2 * 24 * 3600 * 1000, fallthrough: true }),
+  )
+  .use(express.static('frontend/static', { lastModified: false }));
 
 // mount extra routes.
 app.use(getStatusRouter(redis)).use(getTrackerRouter(redis)).use(getTrackRouter());
