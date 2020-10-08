@@ -90,7 +90,7 @@ export class Map3dElement extends connect(store)(LitElement) {
           const camera = this.view.camera.clone();
           camera.position.latitude += dLat;
           camera.position.longitude += dLon;
-          camera.position.z += dAlt;
+          camera.position.z += dAlt * this.multiplier;
           this.view.camera = camera;
         }
       }
