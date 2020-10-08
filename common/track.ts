@@ -78,6 +78,9 @@ export interface ProtoMetaTracks {
 export type RuntimeFixes = {
   lat: number[];
   lon: number[];
+  // Filtered position for the camera.
+  lookAtLat?: number[];
+  lookAtLon?: number[];
   alt: number[];
   gndAlt?: number[];
   vx: number[];

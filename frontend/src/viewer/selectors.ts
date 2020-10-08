@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 
 import { LatLon, RuntimeTrack } from '../../../common/track';
+import track from '../../static/js/workers/track';
 import { sampleAt } from './logic/math';
 import { UNITS } from './logic/units';
 import { MapState, Units } from './reducers';
@@ -214,13 +215,32 @@ export const trackIds = createSelector(tracks, (tracks: RuntimeTrack[]) => {
 export const getTrackLatLon = createSelector(
   tracks,
   currentTrackIndex,
-  (tracks, currentTrackIndex) => (timestamp: number, index?: number): LatLon | null => {
+  (tracks, currentTrackIndex) => (timestamp: number, index?: number): LatLon | undefined => {
     if (tracks.length == 0) {
-      return null;
+      return;
     }
     const fixes = tracks[index ?? currentTrackIndex].fixes;
     const lat = sampleAt(fixes.ts, fixes.lat, timestamp);
     const lon = sampleAt(fixes.ts, fixes.lon, timestamp);
+    const alt = sampleAt(fixes.ts, fixes.alt, timestamp);
+    return { lat, lon, alt };
+  },
+);
+
+// Returns a function that compute the lookAt coordinates at the given timestamp.
+export const getLookAtLatLon = createSelector(
+  tracks,
+  currentTrackIndex,
+  (tracks, currentTrackIndex) => (timestamp: number, index?: number): LatLon | undefined => {
+    if (tracks.length == 0) {
+      return;
+    }
+    const fixes = tracks[index ?? currentTrackIndex].fixes;
+    if (fixes.lookAtLat == null || fixes.lookAtLon == null) {
+      return;
+    }
+    const lat = sampleAt(fixes.ts, fixes.lookAtLat, timestamp);
+    const lon = sampleAt(fixes.ts, fixes.lookAtLon, timestamp);
     const alt = sampleAt(fixes.ts, fixes.alt, timestamp);
     return { lat, lon, alt };
   },

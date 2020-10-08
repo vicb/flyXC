@@ -306,7 +306,7 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
       return { ...state, fullscreen: action.payload.enabled };
 
     case RECEIVE_TRACK_WORKER_RESP: {
-      const { alt, heading, id, maxAlt, minAlt, maxVz, minVz, vz } = action.payload.response;
+      const { alt, heading, id, lookAtLat, lookAtLon, maxAlt, minAlt, maxVz, minVz, vz } = action.payload.response;
       const tracks = state.tracks;
       let updated = false;
       tracks.forEach((track) => {
@@ -314,6 +314,8 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
           track.fixes.alt = alt;
           track.fixes.vz = vz;
           track.fixes.heading = heading;
+          track.fixes.lookAtLat = lookAtLat;
+          track.fixes.lookAtLon = lookAtLon;
           track.minAlt = minAlt;
           track.maxAlt = maxAlt;
           track.minVz = minVz;

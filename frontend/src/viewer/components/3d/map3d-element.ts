@@ -35,6 +35,9 @@ export class Map3dElement extends connect(store)(LitElement) {
   @internalProperty()
   private multiplier = 1;
 
+  @internalProperty()
+  private timestamp = 0;
+
   @query('#webgl-dialog')
   private dialog?: any;
 
@@ -52,19 +55,51 @@ export class Map3dElement extends connect(store)(LitElement) {
   };
 
   private subscriptions: UnsubscribeHandle[] = [];
-  private timestamp = 0;
+  private previousLookAt?: LatLon;
+  private updateCamera = false;
+  private originalQuality = 'medium';
+  private qualityTimeout: any;
 
   stateChanged(state: RootState): void {
     this.tracks = sel.tracks(state.map);
     this.timestamp = state.map.ts;
     this.currentTrackIndex = state.map.currentTrackIndex;
     this.multiplier = state.map.altMultiplier;
+    this.updateCamera = state.map.centerMap;
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
     if (changedProps.has('currentTrackIndex')) {
       this.centerOnMarker(16);
+    } else if (changedProps.has('timestamp')) {
+      const lookAt = sel.getLookAtLatLon(store.getState().map)(this.timestamp);
+      if (this.updateCamera && lookAt && this.view && !this.view.interacting) {
+        if (this.previousLookAt) {
+          // Lower the quqlityProfile while animating.
+          if (this.qualityTimeout) {
+            clearTimeout(this.qualityTimeout);
+          }
+          this.qualityTimeout = setTimeout(() => {
+            this.view?.set('qualityProfile', this.originalQuality);
+            this.qualityTimeout = null;
+          }, 500);
+          this.view?.set('qualityProfile', 'low');
+          const dLat = lookAt.lat - this.previousLookAt.lat;
+          const dLon = lookAt.lon - this.previousLookAt.lon;
+          const dAlt = lookAt.alt! - this.previousLookAt.alt!;
+          const camera = this.view.camera.clone();
+          camera.position.latitude += dLat;
+          camera.position.longitude += dLon;
+          camera.position.z += dAlt;
+          this.view.camera = camera;
+        }
+      }
+      this.previousLookAt = lookAt;
     }
+
+    // timestamp updates should not cause a re-render
+    changedProps.delete('timestamp');
+
     if (changedProps.has('multiplier')) {
       changedProps.delete('multiplier');
       if (this.elevationLayer && this.api) {
@@ -73,6 +108,7 @@ export class Map3dElement extends connect(store)(LitElement) {
         this.map?.ground.layers.add(this.elevationLayer as any);
       }
     }
+
     return super.shouldUpdate(changedProps);
   }
 
@@ -93,7 +129,6 @@ export class Map3dElement extends connect(store)(LitElement) {
       this.gndGraphicsLayer = new ag.GraphicsLayer({ elevationInfo: { mode: 'on-the-ground' } });
       this.map.addMany([this.graphicsLayer, this.gndGraphicsLayer]);
 
-      // TODO: add webgl is not supported
       this.view = new ag.SceneView({
         container: 'map',
         map: this.map,
@@ -108,6 +143,8 @@ export class Map3dElement extends connect(store)(LitElement) {
       const layerSwitcher = this.renderRoot.querySelector('#layers') as HTMLSelectElement;
       this.view.ui.add(layerSwitcher, 'top-left');
       this.view.ui.move([layerSwitcher, 'compass', 'navigation-toggle'], 'top-left');
+
+      this.originalQuality = this.view.qualityProfile;
 
       // "Control" key sets the navigation mode to "rotate".
       const toggle = this.view.ui.find('navigation-toggle') as NavigationToggle;
@@ -214,8 +251,10 @@ export class Map3dElement extends connect(store)(LitElement) {
     }
   }
 
-  private center({ lat, lon, alt }: LatLon, zoom?: number): void {
+  private center(latLon: LatLon, zoom?: number): void {
+    this.previousLookAt = latLon;
     if (this.view && this.api) {
+      const { lat, lon, alt } = latLon;
       this.view.goTo(
         {
           target: new this.api.Point({ latitude: lat, longitude: lon, z: this.multiplier * (alt ?? 0) }),
