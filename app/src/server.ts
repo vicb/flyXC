@@ -15,12 +15,12 @@ import { getTrackerRouter } from './routes/trackers';
 import { getTrackRouter } from './routes/tracks';
 import { encode } from './waypoints';
 
-const USE_APP_ENGINE_PROXY = process.env.NODE_ENV == 'production';
-const USE_SECURE_COOKIES = USE_APP_ENGINE_PROXY;
+const USE_APP_ENGINE = process.env.NODE_ENV == 'production';
+const USE_SECURE_COOKIES = USE_APP_ENGINE;
 const redis = new Redis(Keys.REDIS_URL);
 
 const app = express()
-  .set('trust proxy', USE_APP_ENGINE_PROXY)
+  .set('trust proxy', USE_APP_ENGINE)
   .use(express.json())
   .use(express.urlencoded({ extended: true }))
   .use(fileUpload({ limits: { fileSize: 32 * 1024 * 1024 } }))
@@ -30,7 +30,7 @@ const app = express()
       cookie: {
         httpOnly: true,
         path: '/',
-        // "strict" would not send the cookie on the redirect. 
+        // "strict" would not send the cookie on the redirect.
         sameSite: 'lax',
         secure: USE_SECURE_COOKIES,
       },
@@ -60,16 +60,7 @@ const app = express()
         pkce: true,
       },
     }),
-  )
-  .use(
-    '/3d',
-    express.static('frontend/static/3d', { lastModified: false, maxAge: 2 * 24 * 3600 * 1000, fallthrough: true }),
-  )
-  .use(
-    '/img',
-    express.static('frontend/static/img', { lastModified: false, maxAge: 2 * 24 * 3600 * 1000, fallthrough: true }),
-  )
-  .use(express.static('frontend/static', { lastModified: false }));
+  );
 
 // mount extra routes.
 app.use(getStatusRouter(redis)).use(getTrackerRouter(redis)).use(getTrackRouter());
@@ -115,4 +106,6 @@ if (process.env.NODE_ENV == 'development') {
 }
 
 const port = process.env.PORT || 8080;
-app.listen(port, () => console.info(`Started server on port ${port}.`));
+app
+  .use(express.static('frontend/static', { lastModified: false }))
+  .listen(port, () => console.info(`Started server on port ${port}.`));

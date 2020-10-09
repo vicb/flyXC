@@ -1,7 +1,6 @@
 import { createSelector } from 'reselect';
 
 import { LatLon, RuntimeTrack } from '../../../common/track';
-import track from '../../static/js/workers/track';
 import { sampleAt } from './logic/math';
 import { UNITS } from './logic/units';
 import { MapState, Units } from './reducers';

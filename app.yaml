@@ -11,6 +11,39 @@ automatic_scaling:
   min_pending_latency: 400ms
 
 handlers:
+- url: /$
+  static_files: frontend/static/index.html
+  upload: frontend/static/index.html
+
+- url: /(.*\.html)$
+  static_files: frontend/static/\1
+  upload: frontend/static/.*\.html$
+
+- url: /favicon\.ico$
+  static_files: frontend/static/favicon.ico
+  upload: frontend/static/favicon\.ico$
+  expiration: "2d"
+
+- url: /robots\.txt$
+  static_files: frontend/static/robots.txt
+  upload: frontend/static/robots\.txt$
+  expiration: "2d"
+
+- url: /3d
+  static_dir: frontend/static/3d
+  expiration: "2d"
+
+- url: /img
+  static_dir: frontend/static/img
+  expiration: "2d"  
+
+- url: /js
+  static_dir: frontend/static/js
+
+- url: /ui5
+  static_dir: frontend/static/ui5
+  expiration: "2d"
+    
 - url: /.*
   secure: always
   redirect_http_response_code: 301
