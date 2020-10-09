@@ -30,7 +30,8 @@ const app = express()
       cookie: {
         httpOnly: true,
         path: '/',
-        sameSite: true,
+        // "strict" would not send the cookie on the redirect. 
+        sameSite: 'lax',
         secure: USE_SECURE_COOKIES,
       },
       name: 'session',
