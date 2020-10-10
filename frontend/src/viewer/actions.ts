@@ -1,4 +1,3 @@
-import cookies from 'cookiesjs';
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction, ThunkDispatch } from 'redux-thunk';
 
@@ -336,7 +335,7 @@ export const setSpeed: ActionCreator<SetSpeed> = (speed: number) => ({
 });
 
 export const setLeague: ActionCreator<SetLeague> = (league: string) => {
-  cookies({ league });
+  localStorage.setItem('league', league);
   return {
     type: SET_LEAGUE,
     payload: { league },
@@ -344,7 +343,7 @@ export const setLeague: ActionCreator<SetLeague> = (league: string) => {
 };
 
 export const setSpeedUnit: ActionCreator<SetSpeedUnit> = (unit: UNITS) => {
-  cookies({ 'unit.speed': unit });
+  localStorage.setItem('unit.speed', unit);
   return {
     type: SET_SPEED_UNIT,
     payload: { unit },
@@ -352,7 +351,7 @@ export const setSpeedUnit: ActionCreator<SetSpeedUnit> = (unit: UNITS) => {
 };
 
 export const setDistanceUnit: ActionCreator<SetDistanceUnit> = (unit: UNITS) => {
-  cookies({ 'unit.distance': unit });
+  localStorage.setItem('unit.distance', unit);
   return {
     type: SET_DISTANCE_UNIT,
     payload: { unit },
@@ -360,7 +359,7 @@ export const setDistanceUnit: ActionCreator<SetDistanceUnit> = (unit: UNITS) => 
 };
 
 export const setAltitudeUnit: ActionCreator<SetAltitudeUnit> = (unit: UNITS) => {
-  cookies({ 'unit.altitude': unit });
+  localStorage.setItem('unit.altitude', unit);
   return {
     type: SET_ALTITUDE_UNIT,
     payload: { unit },
@@ -368,7 +367,7 @@ export const setAltitudeUnit: ActionCreator<SetAltitudeUnit> = (unit: UNITS) => 
 };
 
 export const setVarioUnit: ActionCreator<SetVarioUnit> = (unit: UNITS) => {
-  cookies({ 'unit.vario': unit });
+  localStorage.setItem('unit.vario', unit);
   return {
     type: SET_VARIO_UNIT,
     payload: { unit },
@@ -400,10 +399,15 @@ export const setCurrentLocation: ActionCreator<SetCurrentLocation> = (latLon: La
   payload: { latLon, zoom },
 });
 
-export const setGeoloc: ActionCreator<SetGeoloc> = (latLon: LatLon) => ({
-  type: SET_GEOLOC,
-  payload: { latLon },
-});
+export const setGeoloc: ActionCreator<SetGeoloc> = (latLon: LatLon) => {
+  // The next initial location will be here.
+  localStorage.setItem('init.lat', String(latLon.lat));
+  localStorage.setItem('init.lon', String(latLon.lon));
+  return {
+    type: SET_GEOLOC,
+    payload: { latLon },
+  };
+};
 
 export const setFullscreen: ActionCreator<SetFullscreen> = (enabled: boolean) => ({
   type: SET_FULL_SCREEN,

@@ -1,4 +1,3 @@
-import cookies from 'cookiesjs';
 import { Reducer } from 'redux';
 
 import { LatLon, RuntimeTrack } from '../../../common/track';
@@ -124,14 +123,14 @@ const INITIAL_STATE: MapState = {
   fullscreen: false,
   // https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
   isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobi/i.test(navigator.userAgent),
-  league: cookies('league') || 'xc',
+  league: localStorage.getItem('league') ?? 'xc',
   loadingApi: false,
   loadingTracks: false,
   location: {
     // Start location (read-only).
     start: {
-      lat: (cookies('init.lat') as number) ?? 45,
-      lon: (cookies('init.lon') as number) ?? 2,
+      lat: Number(localStorage.getItem('init.lat') ?? 45),
+      lon: Number(localStorage.getItem('init.lon') ?? 2),
     },
   },
   metadata: {
@@ -143,10 +142,10 @@ const INITIAL_STATE: MapState = {
   tracks: [],
   ts: 0,
   units: {
-    distance: cookies('unit.distance') || UNITS.kilometers,
-    speed: cookies('unit.speed') || UNITS.kilometers_hour,
-    altitude: cookies('unit.altitude') || UNITS.meters,
-    vario: cookies('unit.vario') || UNITS.meters_second,
+    distance: (localStorage.getItem('unit.distance') ?? UNITS.kilometers) as UNITS,
+    speed: (localStorage.getItem('unit.speed') ?? UNITS.kilometers_hour) as UNITS,
+    altitude: (localStorage.getItem('unit.altitude') ?? UNITS.meters) as UNITS,
+    vario: (localStorage.getItem('unit.vario') ?? UNITS.meters_second) as UNITS,
   },
   view3d: has3dUrlParam(),
 };
@@ -289,11 +288,6 @@ const map: Reducer<MapState, MapAction> = (state: MapState = INITIAL_STATE, acti
 
     case SET_GEOLOC: {
       const { lat, lon } = action.payload.latLon;
-      // The next initial location will be here.
-      cookies({
-        'init.lat': lat,
-        'init.lon': lon,
-      });
       return { ...state, location: { ...state.location, geoloc: { lat, lon } } };
     }
 
