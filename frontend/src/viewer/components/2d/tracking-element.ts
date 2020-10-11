@@ -48,7 +48,7 @@ export class TrackingElement extends connect(store)(LitElement) {
       ANCHOR_ARROW = new google.maps.Point(9, 9);
       ORIGIN_ARROW = new google.maps.Point(9, 22);
       ANCHOR_MSG = new google.maps.Point(7, 9);
-      ORIGIN_MSG = new google.maps.Point(0, 32);
+      ORIGIN_MSG = new google.maps.Point(0, 22);
       this.handleVisibility();
       this.setMapStyle(map);
       this.setupInfoWindow(map);
@@ -189,16 +189,18 @@ export class TrackingElement extends connect(store)(LitElement) {
     const s = Math.max(0, Math.round(linearInterpolate(0, 100, 5 * 60, 0, minutesOld)));
     let color = `hsl(111, ${s}%, 53%)`;
     let opacity = minutesOld > 12 * 60 ? 0.3 : 0.9;
-
-    if (feature.getProperty('name') === this.currentName) {
-      opacity = 0.9;
-      color = 'darkred';
-    }
-
+    let labelColor = 'black';
     let svg: string | undefined;
     let labelOrigin: google.maps.Point | undefined;
     let anchor: google.maps.Point | undefined;
     let zIndex = 10;
+
+    if (feature.getProperty('name') === this.currentName) {
+      opacity = 0.9;
+      color = 'darkred';
+      labelColor = 'darkred';
+      zIndex = 50;
+    }
 
     // Display an arrow when we have a bearing (most recent point).
     if (feature.getProperty('bearing') != null) {
@@ -237,7 +239,7 @@ export class TrackingElement extends connect(store)(LitElement) {
             ? `${minutesOld}min`
             : `${Math.floor(minutesOld / 60)}h${String(minutesOld % 60).padStart(2, '0')}`;
         label = {
-          color: 'black',
+          color: labelColor,
           text: feature.getProperty('name') + ' · ' + age,
           fontSize: '14.001px',
         };
