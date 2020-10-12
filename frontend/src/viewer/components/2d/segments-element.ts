@@ -5,13 +5,18 @@ export class SegmentsElement extends LitElement {
   @property()
   query?: string;
 
-  @property()
-  map: google.maps.Map | undefined;
+  // Actual type is google.maps.Map.
+  @property({ attribute: false })
+  map: any;
+
+  private get gMap(): google.maps.Map {
+    return this.map;
+  }
 
   private rendered = false;
 
   private addTask(): void {
-    if (this.map && this.query) {
+    if (this.query) {
       const params = new URLSearchParams(this.query);
       const paths = params.getAll('seg').map(google.maps.geometry.encoding.decodePath);
       const colors = params.getAll('segcol');
@@ -19,7 +24,7 @@ export class SegmentsElement extends LitElement {
       paths.forEach((path, i) => {
         new google.maps.Polyline({
           clickable: false,
-          map: this.map,
+          map: this.gMap,
           path,
           strokeColor: colors[i] ? '#' + colors[i] : 'yellow',
           strokeWeight: 3,
@@ -31,8 +36,8 @@ export class SegmentsElement extends LitElement {
   }
 
   protected shouldUpdate(): boolean {
-    if (!this.rendered) {
-      if (this.map && this.query) {
+    if (!this.rendered && this.gMap) {
+      if (this.query) {
         this.addTask();
         this.rendered = true;
       }

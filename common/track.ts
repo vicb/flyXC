@@ -2,7 +2,6 @@ import { getDistance } from 'geolib';
 import Pbf from 'pbf';
 
 import { Flags } from './airspaces';
-import { computeMaxDistance } from './distance';
 import * as protos from './track_proto.js';
 
 export type Point = {
@@ -10,11 +9,13 @@ export type Point = {
   y: number;
 };
 
-export type LatLon = {
+export type LatLonZ = {
+  alt: number;
   lat: number;
   lon: number;
-  alt?: number;
 };
+
+export type LatLon = Omit<LatLonZ, 'alt'>;
 
 // A track.
 export interface ProtoTrack {
@@ -74,32 +75,26 @@ export interface ProtoMetaTracks {
   meta_track_groups_bin: ArrayBuffer[];
 }
 
-// A fix used by the runtime.
-export type RuntimeFixes = {
+// A track used by the runtime.
+export type RuntimeTrack = {
+  // Composed as `${groupId}-${groupIndex}`.
+  // There could be multiple tracks in the same group.
+  id: string;
+  // Whether the track has been post-processed on the server.
+  isPostProcessed: boolean;
+  name: string;
   lat: number[];
   lon: number[];
   // Filtered position for the camera.
-  lookAtLat?: number[];
-  lookAtLon?: number[];
+  lookAtLat: number[];
+  lookAtLon: number[];
   alt: number[];
-  gndAlt?: number[];
+  gndAlt: number[];
   vx: number[];
   vz: number[];
   ts: number[];
   // Computed async in a web worker.
   heading: number[];
-};
-
-// A track used by the runtime.
-export type RuntimeTrack = {
-  // Datastore id.
-  id?: number;
-  // Index in the track group.
-  groupIndex?: number;
-  // Wether the track has been post-processed on the server.
-  isPostProcessed: boolean;
-  name: string;
-  fixes: RuntimeFixes;
   maxAlt: number;
   minAlt: number;
   maxTs: number;
@@ -117,22 +112,36 @@ export type RuntimeTrack = {
   airspaces?: ProtoAirspaces;
 };
 
+// Creates a runtime track id from the datastore id and the group index.
+export function createTrackId(groupId: number, groupIndex: number): string {
+  return `${groupId}-${groupIndex}`;
+}
+
+// Extract the group id from the track id.
+export function extractGroupId(trackId: string): number {
+  const match = trackId.match(/^(\d+)-/);
+  return match ? Number(match[1]) : -1;
+}
+
 // Creates a runtime track from a track proto (see track.proto).
 // - decodes differential encoded fields,
 // - adds computed fields (speed, ...).
-export function protoToRuntimeTrack(differentialTrack: ProtoTrack): RuntimeTrack {
+export function protoToRuntimeTrack(id: string, differentialTrack: ProtoTrack, isPostProcessed: boolean): RuntimeTrack {
   const track = diffDecodeTrack(differentialTrack);
   const trackLen = track.lat.length;
 
   const distX: number[] = [0];
   const distZ: number[] = [0];
-  const deltaTS: number[] = [0];
+  const deltaSeconds: number[] = [0];
 
   // Pre-computes values to save time.
+  let previousLatLon = { lat: track.lat[0], lon: track.lon[0] };
   for (let i = 1; i < trackLen; i++) {
-    distX[i] = getDistance({ lat: track.lat[i], lon: track.lon[i] }, { lat: track.lat[i - 1], lon: track.lon[i - 1] });
+    const currentLatLon = { lat: track.lat[i], lon: track.lon[i] };
+    distX[i] = getDistance(previousLatLon, currentLatLon);
+    previousLatLon = currentLatLon;
     distZ[i] = track.alt[i] - track.alt[i - 1];
-    deltaTS[i] = (track.ts[i] - track.ts[i - 1]) / 1000;
+    deltaSeconds[i] = (track.ts[i] - track.ts[i - 1]) / 1000;
   }
 
   const vx: number[] = [];
@@ -143,7 +152,7 @@ export function protoToRuntimeTrack(differentialTrack: ProtoTrack): RuntimeTrack
     let time = 0;
     for (let avg = 1; i + avg < trackLen && avg < 65; avg++) {
       distance += distX[i];
-      time += deltaTS[i];
+      time += deltaSeconds[i];
       if (time > 60) break;
     }
     vx[i] = time > 0 ? Math.round((3.6 * distance) / time) : 0;
@@ -151,19 +160,21 @@ export function protoToRuntimeTrack(differentialTrack: ProtoTrack): RuntimeTrack
 
   const vz = computeVerticalSpeed(track.alt, track.ts);
 
-  const runtimeFixes: RuntimeFixes = {
+  return {
+    id,
+    name: track.pilot,
     lat: track.lat,
     lon: track.lon,
+    // lookAt coordinates will be replaced from the worker metadata.
+    lookAtLat: track.lat,
+    lookAtLon: track.lon,
     alt: track.alt,
+    // gndAlt will be replaced from the server metadata.
+    gndAlt: new Array(trackLen).fill(0),
     ts: track.ts,
     vx,
     vz,
     heading: new Array(trackLen).fill(0),
-  };
-
-  return {
-    name: track.pilot,
-    fixes: runtimeFixes,
     maxAlt: Math.max(...track.alt),
     minAlt: Math.min(...track.alt),
     maxLat: Math.max(...track.lat),
@@ -176,8 +187,8 @@ export function protoToRuntimeTrack(differentialTrack: ProtoTrack): RuntimeTrack
     minVz: Math.min(...vz),
     maxVx: Math.max(...vx),
     minVx: Math.min(...vx),
-    maxDistance: computeMaxDistance(runtimeFixes),
-    isPostProcessed: false,
+    maxDistance: Math.max(...distX),
+    isPostProcessed,
   };
 }
 
@@ -212,8 +223,8 @@ export function computeVerticalSpeed(alt: number[], ts: number[]): number[] {
 // Add the ground altitude to a runtime track.
 export function addGroundAltitude(track: RuntimeTrack, gndAlt: ProtoGroundAltitude): void {
   const { altitudes } = gndAlt;
-  if (Array.isArray(altitudes) && altitudes.length == track.fixes.lat.length) {
-    track.fixes.gndAlt = diffDecodeArray(altitudes);
+  if (Array.isArray(altitudes) && altitudes.length == track.lat.length) {
+    track.gndAlt = diffDecodeArray(altitudes);
   }
 }
 
@@ -231,16 +242,14 @@ export function createRuntimeTracks(metaTracks: ArrayBuffer): RuntimeTrack[] {
     });
 
   const runtimeTracks: RuntimeTrack[] = [];
+
   metaGroups.forEach((metaGroup: ProtoMetaTrackGroup) => {
-    let rtTracks: RuntimeTrack[] = [];
+    const rtTracks: RuntimeTrack[] = [];
     // Decode the TrackGroup proto and create runtime tracks.
     if (metaGroup.track_group_bin) {
       const trackGroup: ProtoTrackGroup = (protos.TrackGroup as any).read(new Pbf(metaGroup.track_group_bin));
-      rtTracks = trackGroup.tracks.map(protoToRuntimeTrack);
-      rtTracks.forEach((rtTrack, i) => {
-        rtTrack.id = metaGroup.id;
-        rtTrack.groupIndex = i;
-        rtTrack.isPostProcessed = metaGroup.num_postprocess > 0;
+      trackGroup.tracks.forEach((protoTrack, i) => {
+        rtTracks.push(protoToRuntimeTrack(createTrackId(metaGroup.id, i), protoTrack, metaGroup.num_postprocess > 0));
       });
     }
     // Add the ground altitude to the tracks if available.

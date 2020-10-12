@@ -1,23 +1,17 @@
 import { CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 
-import { trackColor } from '../logic/tracks';
 import { controlStyle } from './control-style';
 
 @customElement('name-ctrl-element')
 export class NameElement extends LitElement {
   @property()
-  name?: string;
-
+  name = '';
   @property()
-  index?: number;
-
+  color = 'black';
   @property()
   displayNames = false;
-
   @property()
-  // Total number of tracks.
-  // Display a "next" button when multiple tracks are loaded.
-  nbtracks = 0;
+  numtracks = 0;
 
   static get styles(): CSSResult {
     return controlStyle;
@@ -32,11 +26,11 @@ export class NameElement extends LitElement {
       <label
         ><input type="checkbox" ?checked=${this.displayNames} @change=${this.handleDisplayNames} /><i
           class="la la-user-tag la-2x"
-          style=${`color: ${trackColor(this.index || 0)};`}
+          style=${`color: ${this.color};`}
         ></i
       ></label>
       ${this.name}
-      ${this.nbtracks > 1
+      ${this.numtracks > 1
         ? html`<i class="la la-chevron-right la-2x" style="cursor: pointer" @click=${this.handleNext}></i>`
         : html``}
       <i class="la la-times-circle la-2x" style="cursor: pointer" @click=${this.handleClose}></i>

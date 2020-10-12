@@ -1,45 +1,27 @@
 import { CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
+import { connect } from 'pwa-helpers';
 
-import * as act from '../actions';
-import { dispatch } from '../store';
+import { RootState, store } from '../redux/store';
 import { controlStyle } from './control-style';
 
 @customElement('expand-ctrl-element')
-export class ExpandElement extends LitElement {
+export class ExpandElement extends connect(store)(LitElement) {
   @internalProperty()
-  private fullscreen = document.fullscreenElement != null;
+  private fullscreen = true;
 
-  private element?: Element;
+  private element: Element | null = null;
 
-  constructor() {
-    super();
-    const fs = document.getElementsByClassName('fs-enabled');
-    if (fs?.length) {
-      const el = (this.element = fs[0]);
-      el.addEventListener('fullscreenchange', () => {
-        this.fullscreen = document.fullscreenElement != null;
-      });
-    }
-    window.addEventListener('fullscreenchange', () => {
-      // Handle when full screen is exited by pressing the ESC key.
-      dispatch(act.setFullscreen(document.fullscreenElement != null));
-    });
+  stateChanged(state: RootState): void {
+    this.fullscreen = state.browser.isFullscreen;
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.element = document.querySelector('.fs-enabled');
   }
 
   static get styles(): CSSResult {
     return controlStyle;
-  }
-
-  private toggleFullscreen(): void {
-    this.fullscreen = !this.fullscreen;
-    if (this.element) {
-      if (this.fullscreen) {
-        this.element.requestFullscreen();
-      } else {
-        document.exitFullscreen();
-      }
-    }
-    dispatch(act.setFullscreen(this.fullscreen));
   }
 
   protected render(): TemplateResult {
@@ -50,5 +32,15 @@ export class ExpandElement extends LitElement {
       />
       <i class="la ${this.fullscreen ? 'la-compress' : 'la-expand'} la-2x" @click=${this.toggleFullscreen}></i>
     `;
+  }
+
+  private toggleFullscreen(): void {
+    if (this.element) {
+      if (!this.fullscreen) {
+        this.element.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
   }
 }

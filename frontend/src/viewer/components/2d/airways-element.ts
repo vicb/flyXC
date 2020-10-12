@@ -31,21 +31,18 @@ export class AirwaysOverlay extends WMTSOverlayElement {
 export class AirwaysCtrlElement extends LitElement {
   @property()
   opacity = 0.5;
+  // Actual type is google.maps.Map.
+  @property({ attribute: false })
+  map: any;
+
+  private get gMap(): google.maps.Map {
+    return this.map;
+  }
 
   @internalProperty()
   private expanded = false;
 
-  @property()
-  map: google.maps.Map | undefined;
-
-  private overlay: google.maps.ImageMapType | undefined;
-
-  handleChange(e: Event): void {
-    if (e.target && this.overlay) {
-      this.opacity = Number((e.target as HTMLInputElement).value);
-      this.overlay.setOpacity(this.opacity);
-    }
-  }
+  private overlay?: google.maps.ImageMapType;
 
   static get styles(): CSSResult[] {
     return [
@@ -56,27 +53,6 @@ export class AirwaysCtrlElement extends LitElement {
         }
       `,
     ];
-  }
-
-  private toggleExpanded(): void {
-    this.expanded = !this.expanded;
-    if (this.overlay && this.map) {
-      if (this.expanded) {
-        this.map.overlayMapTypes.push(this.overlay);
-        this.overlay.setOpacity(this.opacity);
-      } else {
-        for (let i = this.map.overlayMapTypes.getLength() - 1; i >= 0; --i) {
-          if (this.map.overlayMapTypes.getAt(i) == this.overlay) {
-            this.map.overlayMapTypes.removeAt(i);
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  private overlayReady(e: CustomEvent): void {
-    this.overlay = e.detail.mapType();
   }
 
   protected render(): TemplateResult {
@@ -92,10 +68,36 @@ export class AirwaysCtrlElement extends LitElement {
         step="any"
         .hidden=${!this.expanded}
         .value=${String(this.opacity)}
-        @input=${this.handleChange}
+        @input=${this.handleOpacityChange}
       />
       <i class="la la-road la-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
-      <airways-overlay @overlayready=${this.overlayReady} .map=${this.map}></airways-overlay>
+      <airways-overlay @overlayready=${this.overlayReady} .map=${this.gMap}></airways-overlay>
     `;
+  }
+
+  handleOpacityChange(e: Event): void {
+    this.opacity = Number((e.target as HTMLInputElement).value ?? 1);
+    this.overlay?.setOpacity(this.opacity);
+  }
+
+  private overlayReady(e: CustomEvent): void {
+    this.overlay = e.detail.mapType();
+  }
+
+  private toggleExpanded(): void {
+    this.expanded = !this.expanded;
+    if (this.overlay) {
+      if (this.expanded) {
+        this.gMap.overlayMapTypes.push(this.overlay);
+        this.overlay.setOpacity(this.opacity);
+      } else {
+        for (let i = this.gMap.overlayMapTypes.getLength() - 1; i >= 0; --i) {
+          if (this.gMap.overlayMapTypes.getAt(i) == this.overlay) {
+            this.gMap.overlayMapTypes.removeAt(i);
+            break;
+          }
+        }
+      }
+    }
   }
 }

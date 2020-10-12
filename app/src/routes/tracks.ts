@@ -59,8 +59,9 @@ export function getTrackRouter(): Router {
 
   // Retrieves track metadata by datastore ids.
   router.get('/_metadata', async (req: Request, res: Response) => {
+    res.set('Cache-Control', 'no-store');
     if (req.query.ids == null || typeof req.query.ids != 'string') {
-      res.sendStatus(200);
+      res.sendStatus(204);
       return;
     }
     const ids = req.query.ids.split(',');
@@ -76,7 +77,7 @@ export function getTrackRouter(): Router {
     if (processedGroups.length > 0) {
       sendTracks(res, processedGroups);
     } else {
-      res.sendStatus(200);
+      res.sendStatus(204);
     }
   });
 

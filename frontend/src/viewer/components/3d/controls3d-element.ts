@@ -1,13 +1,14 @@
+import { extractGroupId, RuntimeTrack } from 'flyxc/common/track';
 import { css, CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { RuntimeFixes, RuntimeTrack } from '../../../../../common/track';
-import { removeTracksById, setCurrentTrack, setDisplayNames } from '../../actions';
-import { deleteUrlParamValue, ParamNames, pushCurrentState } from '../../logic/history';
+import { pushCurrentState } from '../../logic/history';
 import * as msg from '../../logic/messages';
-import { Units } from '../../reducers';
-import * as sel from '../../selectors';
-import { dispatch, RootState, store } from '../../store';
+import { Units } from '../../logic/units';
+import { setDisplayNames } from '../../redux/app-slice';
+import * as sel from '../../redux/selectors';
+import { RootState, store } from '../../redux/store';
+import { removeTracksByGroupIds, selectNextTrack } from '../../redux/track-slice';
 import { AboutElement } from '../about-element';
 import { DashboardElement } from '../dashboard-element';
 import { ExpandElement } from '../expand-element';
@@ -22,39 +23,29 @@ export { AboutElement, DashboardElement, GlobeElement, NameElement, UploadElemen
 export class Controls3dElement extends connect(store)(LitElement) {
   @internalProperty()
   private timestamp = 0;
-
   @internalProperty()
-  private fixes?: RuntimeFixes;
-
+  private track?: RuntimeTrack;
   @internalProperty()
-  private name?: string;
-
-  @internalProperty()
-  private tracks: RuntimeTrack[] = [];
-
+  private numTracks = 0;
   @internalProperty()
   private units?: Units;
-
   @internalProperty()
-  private currentTrackIndex?: number;
-
+  private color = '';
   @internalProperty()
   private view3d = false;
-
   @internalProperty()
   private displayName = false;
 
-  private isInIframe = true; //window.parent !== window;
+  private readonly isInIframe = store.getState().browser.isInIframe;
 
   stateChanged(state: RootState): void {
-    this.timestamp = state.map.ts;
-    this.fixes = sel.activeFixes(state.map);
-    this.name = sel.name(state.map);
-    this.tracks = sel.tracks(state.map);
-    this.units = state.map.units;
-    this.currentTrackIndex = state.map.currentTrackIndex;
-    this.view3d = state.map.view3d;
-    this.displayName = state.map.displayNames;
+    this.timestamp = state.app.timestamp;
+    this.track = sel.currentTrack(state);
+    this.numTracks = sel.numTracks(state);
+    this.units = state.units;
+    this.view3d = state.app.view3d;
+    this.displayName = state.app.displayNames;
+    this.color = sel.trackColors(state)[this.track?.id ?? 0];
   }
 
   static get styles(): CSSResult {
@@ -71,33 +62,6 @@ export class Controls3dElement extends connect(store)(LitElement) {
     `;
   }
 
-  // Closes the current track.
-  private handleClose(): void {
-    if (this.currentTrackIndex == null || this.tracks == null) {
-      return;
-    }
-    const id = this.tracks[this.currentTrackIndex].id;
-    if (id != null) {
-      pushCurrentState();
-      deleteUrlParamValue(ParamNames.TRACK_ID, String(id));
-      dispatch(removeTracksById([id]));
-      msg.tracksRemoved.emit([id]);
-    }
-  }
-
-  // Activates the next track.
-  private handleNext(): void {
-    if (this.currentTrackIndex != null && this.tracks != null) {
-      const index = (this.currentTrackIndex + 1) % this.tracks.length;
-      dispatch(setCurrentTrack(index));
-    }
-  }
-
-  // Shows/Hides pilot names next to the marker.
-  private handleDisplayNames(e: CustomEvent): void {
-    dispatch(setDisplayNames(e.detail));
-  }
-
   protected render(): TemplateResult {
     return html`
       <globe-element .view3d=${this.view3d} class="cl"></globe-element>
@@ -106,13 +70,13 @@ export class Controls3dElement extends connect(store)(LitElement) {
       <upload-ctrl-element class="cl"></upload-ctrl-element>
       <about-ctrl-element class="cl"></about-ctrl-element>
       <preferences-ctrl-element></preferences-ctrl-element>
-      ${this.name
+      ${this.track?.name
         ? html`
             <name-ctrl-element
               class="cl"
-              .name=${this.name}
-              .index=${this.currentTrackIndex}
-              .nbtracks=${this.tracks?.length || 0}
+              .name=${this.track.name}
+              .color=${this.color}
+              .numtracks=${this.numTracks}
               .displayNames=${this.displayName}
               @closeActiveTrack=${this.handleClose}
               @selectNextTrack=${this.handleNext}
@@ -120,16 +84,37 @@ export class Controls3dElement extends connect(store)(LitElement) {
             ></name-ctrl-element>
           `
         : ''}
-      ${this.fixes
+      ${this.track
         ? html`
             <dashboard-ctrl-element
               class="cl"
-              .fixes=${this.fixes}
+              .track=${this.track}
               .timestamp=${this.timestamp}
               .units=${this.units}
             ></dashboard-ctrl-element>
           `
         : ''}
     `;
+  }
+
+  // Closes the current track.
+  private handleClose(): void {
+    if (this.track == null) {
+      return;
+    }
+    pushCurrentState();
+    const groupId = extractGroupId(this.track.id);
+    store.dispatch(removeTracksByGroupIds([groupId]));
+    msg.trackGroupsRemoved.emit([groupId]);
+  }
+
+  // Activates the next track.
+  private handleNext(): void {
+    store.dispatch(selectNextTrack());
+  }
+
+  // Shows/Hides pilot names next to the marker.
+  private handleDisplayNames(e: CustomEvent): void {
+    store.dispatch(setDisplayNames(e.detail));
   }
 }

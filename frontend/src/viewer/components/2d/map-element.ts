@@ -1,3 +1,6 @@
+import { findClosestFix } from 'flyxc/common/distance';
+import { pixelCoordinates } from 'flyxc/common/proj';
+import { LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/track';
 import {
   customElement,
   html,
@@ -7,18 +10,18 @@ import {
   PropertyValues,
   TemplateResult,
 } from 'lit-element';
+import { repeat } from 'lit-html/directives/repeat';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
-import { findClosestFix } from '../../../../../common/distance';
-import { pixelCoordinates } from '../../../../../common/proj';
-import { LatLon, RuntimeTrack } from '../../../../../common/track';
 import { getApiKey } from '../../../apikey';
-import * as act from '../../actions';
-import { getUrlParam, ParamNames, set3dUrlParam } from '../../logic/history';
+import { getUrlParamValues, ParamNames } from '../../logic/history';
 import * as msg from '../../logic/messages';
-import * as sel from '../../selectors';
-import { dispatch, RootState, store } from '../../store';
+import { setApiLoading, setTimestamp } from '../../redux/app-slice';
+import { setCurrentLocation } from '../../redux/location-slice';
+import * as sel from '../../redux/selectors';
+import { RootState, store } from '../../redux/store';
+import { setCurrentTrackId } from '../../redux/track-slice';
 import { ControlsElement } from './controls-element';
 import { LineElement } from './line-element';
 import { MarkerElement } from './marker-element';
@@ -56,7 +59,7 @@ function loadApi(): Promise<void> {
     let apiLoaded = (): void => undefined;
     window.initMap = () => apiLoaded();
     apiPromise = new Promise<void>((resolve) => (apiLoaded = resolve));
-    const tracks = getUrlParam(ParamNames.TRACK_URL);
+    const tracks = getUrlParamValues(ParamNames.trackUrl);
     const loader = document.createElement('script');
     loader.src = `https://maps.googleapis.com/maps/api/js?key=${getApiKey(
       'gmaps',
@@ -69,50 +72,50 @@ function loadApi(): Promise<void> {
 
 @customElement('map-element')
 export class MapElement extends connect(store)(LitElement) {
-  @property()
+  @property({ attribute: false })
   map: google.maps.Map | undefined;
 
   @internalProperty()
   private tracks: RuntimeTrack[] = [];
-
   @internalProperty()
   private timestamp = 0;
-
   @internalProperty()
-  private currentTrackIndex = 0;
+  private fullscreen = false;
 
   private centerMap = false;
-  private lockPanUntil = 0;
-
+  private lockPanBefore = 0;
   private subscriptions: UnsubscribeHandle[] = [];
 
   stateChanged(state: RootState): void {
-    this.tracks = sel.tracks(state.map);
-    this.timestamp = state.map.ts;
-    this.currentTrackIndex = state.map.currentTrackIndex;
+    this.tracks = sel.tracks(state);
+    this.timestamp = state.app.timestamp;
     // In full screen mode the gesture handling must be greedy.
     // Using ctrl (+ scroll) is unnecessary as thr page can not scroll anyway.
-    this.map?.setOptions({ gestureHandling: state.map.fullscreen ? 'greedy' : 'auto' });
-    this.centerMap = state.map.centerMap;
+    this.fullscreen = state.browser.isFullscreen;
+    this.centerMap = state.app.centerMap;
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
-    const ts = Date.now();
-    if (this.map && this.tracks.length && this.centerMap && changedProps.has('timestamp') && ts > this.lockPanUntil) {
-      this.lockPanUntil = ts + 100;
-      const zoom = this.map.getZoom();
-      const currentPosition = sel.getTrackLatLon(store.getState().map)(this.timestamp) as LatLon;
-      const { x, y } = pixelCoordinates(currentPosition, zoom).world;
-      const bounds = this.map.getBounds() as google.maps.LatLngBounds;
-      const sw = bounds.getSouthWest();
-      const { x: minX, y: maxY } = pixelCoordinates({ lat: sw.lat(), lon: sw.lng() }, zoom).world;
-      const ne = bounds.getNorthEast();
-      const { x: maxX, y: minY } = pixelCoordinates({ lat: ne.lat(), lon: ne.lng() }, zoom).world;
+    const now = Date.now();
+    if (this.map) {
+      if (this.tracks.length && this.centerMap && changedProps.has('timestamp') && now > this.lockPanBefore) {
+        this.lockPanBefore = now + 50;
+        const zoom = this.map.getZoom();
+        const currentPosition = sel.getTrackLatLonAlt(store.getState())(this.timestamp) as LatLonZ;
+        const { x, y } = pixelCoordinates(currentPosition, zoom).world;
+        const bounds = this.map.getBounds() as google.maps.LatLngBounds;
+        const sw = bounds.getSouthWest();
+        const { x: minX, y: maxY } = pixelCoordinates({ lat: sw.lat(), lon: sw.lng() }, zoom).world;
+        const ne = bounds.getNorthEast();
+        const { x: maxX, y: minY } = pixelCoordinates({ lat: ne.lat(), lon: ne.lng() }, zoom).world;
 
-      if (x - minX < 100 || y - minY < 100) {
-        this.map.panTo({ lat: currentPosition.lat, lng: currentPosition.lon });
-      } else if (maxX - x < 100 || maxY - y < 100) {
-        this.map.panTo({ lat: currentPosition.lat, lng: currentPosition.lon });
+        if (x - minX < 100 || y - minY < 100 || maxX - x < 100 || maxY - y < 100) {
+          this.map.panTo({ lat: currentPosition.lat, lng: currentPosition.lon });
+        }
+      }
+      if (changedProps.has('fullscreen')) {
+        this.map.setOptions({ gestureHandling: this.fullscreen ? 'greedy' : 'auto' });
+        changedProps.delete('fullscreen');
       }
     }
     return super.shouldUpdate(changedProps);
@@ -120,8 +123,7 @@ export class MapElement extends connect(store)(LitElement) {
 
   connectedCallback(): void {
     super.connectedCallback();
-    dispatch(act.setApiLoading(true));
-    set3dUrlParam(false);
+    store.dispatch(setApiLoading(true));
     loadApi().then((): void => {
       const options: google.maps.MapOptions = {
         center: { lat: 45, lng: 0 },
@@ -148,7 +150,7 @@ export class MapElement extends connect(store)(LitElement) {
       };
 
       // Do not enable the webgl renderer on mobile devices as it is slow to load.
-      if (!store.getState().map.isMobile) {
+      if (!store.getState().browser.isMobile) {
         (options as any).mapId = '997ff70df48844a5';
         (options as any).useStaticMap = true;
       }
@@ -161,10 +163,10 @@ export class MapElement extends connect(store)(LitElement) {
 
       this.map.addListener('click', (e: google.maps.MouseEvent) => {
         const latLng = e.latLng;
-        const closest = findClosestFix(this.tracks, latLng.lat(), latLng.lng());
-        if (closest) {
-          dispatch(act.setTimestamp(closest.ts));
-          dispatch(act.setCurrentTrack(closest.track));
+        const found = findClosestFix(this.tracks, latLng.lat(), latLng.lng());
+        if (found != null) {
+          store.dispatch(setTimestamp(found.timestamp));
+          store.dispatch(setCurrentTrackId(found.track.id));
         }
       });
 
@@ -174,23 +176,23 @@ export class MapElement extends connect(store)(LitElement) {
           this.center(lat, lon);
           this.zoom(delta);
         }),
-        msg.tracksAdded.subscribe(() => this.fitTracks()),
-        msg.tracksRemoved.subscribe(() => this.fitTracks()),
+        msg.trackGroupsAdded.subscribe(() => this.zoomToTracks()),
+        msg.trackGroupsRemoved.subscribe(() => this.zoomToTracks()),
         msg.requestLocation.subscribe(() => this.updateLocation()),
         msg.geoLocation.subscribe((latLon) => this.geolocation(latLon)),
       );
 
-      const location = store.getState().map.location;
+      const location = store.getState().location;
 
       if (this.tracks.length) {
         // Zoom to tracks when there are some.
-        this.fitTracks();
+        this.zoomToTracks();
       } else {
         // Otherwise go to (priority order):
         // - location on the 3d map,
         // - gps location,
         // - initial location.
-        let latLon = location.geoloc || location.start;
+        let latLon = location.geolocation || location.start;
         let zoom = 11;
         if (location.current) {
           latLon = location.current.latLon;
@@ -200,7 +202,7 @@ export class MapElement extends connect(store)(LitElement) {
         this.map.setZoom(zoom);
       }
 
-      dispatch(act.setApiLoading(false));
+      store.dispatch(setApiLoading(false));
     });
   }
 
@@ -211,10 +213,6 @@ export class MapElement extends connect(store)(LitElement) {
     this.map = undefined;
   }
 
-  createRenderRoot(): Element {
-    return this;
-  }
-
   protected render(): TemplateResult {
     return html`
       <div id="map"></div>
@@ -222,23 +220,14 @@ export class MapElement extends connect(store)(LitElement) {
       <topo-spain .map=${this.map}></topo-spain>
       <topo-france .map=${this.map}></topo-france>
       <topo-otm .map=${this.map}></topo-otm>
-      <segments-element .map=${this.map} .query=${document.location.search}></task-element>
-      ${this.tracks.map(
-        (track, i) =>
+      <segments-element .map=${this.map} .query=${document.location.search}></segments-element>
+      ${repeat(
+        this.tracks,
+        (track) => track.id,
+        (track) =>
           html`
-            <marker-element
-              .map=${this.map}
-              .track=${track}
-              .timestamp=${this.timestamp}
-              .index=${i}
-              .active=${i == this.currentTrackIndex}
-            ></marker-element>
-            <line-element
-              .map=${this.map}
-              .track=${track}
-              .index=${i}
-              .active=${i == this.currentTrackIndex}
-            ></line-element>
+            <marker-element .map=${this.map} .track=${track} .timestamp=${this.timestamp}></marker-element>
+            <line-element .map=${this.map} .track=${track}></line-element>
           `,
       )}
     `;
@@ -248,7 +237,7 @@ export class MapElement extends connect(store)(LitElement) {
   private geolocation({ lat, lon }: LatLon): void {
     if (this.map) {
       const center = this.map.getCenter();
-      const start = store.getState().map.location.start;
+      const start = store.getState().location.start;
       if (center.lat() == start.lat && center.lng() == start.lon) {
         this.center(lat, lon);
       }
@@ -260,12 +249,14 @@ export class MapElement extends connect(store)(LitElement) {
   }
 
   private zoom(delta: number): void {
-    const map = this.map as google.maps.Map;
-    map.setZoom(map.getZoom() + (delta < 0 ? 1 : -1));
+    const map = this.map;
+    if (map) {
+      map.setZoom(map.getZoom() + (delta < 0 ? 1 : -1));
+    }
   }
 
-  private fitTracks(): void {
-    const extent = sel.tracksExtent(store.getState().map);
+  private zoomToTracks(): void {
+    const extent = sel.tracksExtent(store.getState());
     if (extent != null) {
       const bounds = new google.maps.LatLngBounds(
         { lat: extent.sw.lat, lng: extent.sw.lon },
@@ -278,7 +269,11 @@ export class MapElement extends connect(store)(LitElement) {
   private updateLocation(): void {
     if (this.map) {
       const center = this.map.getCenter();
-      dispatch(act.setCurrentLocation({ lat: center.lat(), lon: center.lng() }, this.map.getZoom()));
+      store.dispatch(setCurrentLocation({ lat: center.lat(), lon: center.lng() }, this.map.getZoom()));
     }
+  }
+
+  createRenderRoot(): Element {
+    return this;
   }
 }

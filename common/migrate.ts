@@ -1,6 +1,5 @@
-/* eslint-enable @typescript-eslint/no-var-requires */
-const { Datastore } = require('@google-cloud/datastore');
 /* eslint-disable @typescript-eslint/no-var-requires */
+const { Datastore } = require('@google-cloud/datastore');
 
 import async from 'async';
 import Pbf from 'pbf';

@@ -1,10 +1,9 @@
+import { airspaceColor, classifyRings, Flags, getAspTileUrl, isInFeature, tileId } from 'flyxc/common/airspaces';
+import { pixelCoordinates } from 'flyxc/common/proj';
+import { LatLon, Point } from 'flyxc/common/track';
 import Protobuf from 'pbf';
 
 import { VectorTile } from '@mapbox/vector-tile';
-
-import { airspaceColor, classifyRings, Flags, getAspTileUrl, isInFeature, tileId } from '../../../../common/airspaces';
-import { pixelCoordinates } from '../../../../common/proj';
-import { LatLon, Point } from '../../../../common/track';
 
 const TILE_SIZE = 256;
 

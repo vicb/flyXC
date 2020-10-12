@@ -87,7 +87,7 @@ export async function retrieveMetaTrackGroupByUrl(url: string): Promise<ProtoMet
   return null;
 }
 
-// Retrieves a meta track group given its url.
+// Retrieves a meta track group given its datastore id.
 //
 // Note:
 // There can be no select clause here are fields are not indexed.

@@ -31,8 +31,7 @@ export class UploadElement extends LitElement {
 
   // Programmatically opens the file dialog.
   private forwardClick(): void {
-    const shadowRoot = this.shadowRoot as ShadowRoot;
-    shadowRoot.getElementById('track')?.click();
+    (this.renderRoot.querySelector('#track') as HTMLInputElement)?.click();
   }
 
   private async upload(e: Event): Promise<void> {
@@ -45,7 +44,7 @@ export class UploadElement extends LitElement {
         }
         const ids = await uploadTracks(files);
         pushCurrentState();
-        addUrlParamValues(ParamNames.TRACK_ID, ids);
+        addUrlParamValues(ParamNames.groupId, ids);
         el.value = '';
       }
     }

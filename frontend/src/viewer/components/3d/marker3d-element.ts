@@ -1,44 +1,35 @@
 import type Graphic from 'esri/Graphic';
 import type GraphicsLayer from 'esri/layers/GraphicsLayer';
-import { customElement, internalProperty, LitElement, property } from 'lit-element';
+import { LatLonZ, RuntimeTrack } from 'flyxc/common/track';
+import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { LatLon, RuntimeTrack } from '../../../../../common/track';
 import { Api } from '../../logic/arcgis';
 import { sampleAt } from '../../logic/math';
-import { trackColor } from '../../logic/tracks';
-import * as sel from '../../selectors';
-import { RootState, store } from '../../store';
+import * as sel from '../../redux/selectors';
+import { RootState, store } from '../../redux/store';
 
-const INACTIVE_HEIGHT = 25;
-const ACTIVE_HEIGHT = 50;
+const MARKER_HEIGHT = 30;
 
 @customElement('marker3d-element')
 export class Marker3dElement extends connect(store)(LitElement) {
-  @property()
+  @property({ attribute: false })
   track?: RuntimeTrack;
-
-  @property()
+  @property({ attribute: false })
   api?: Api;
-
-  @property()
+  @property({ attribute: false })
   layer?: GraphicsLayer;
-
-  @property()
-  index = 0;
 
   @internalProperty()
   private active = false;
-
   @internalProperty()
   private timestamp = 0;
-
   @internalProperty()
   private multiplier = 0;
-
   @internalProperty()
-  private tsOffsets: number[] = [];
-
+  private tsOffset = 0;
+  @internalProperty()
+  private color = '';
   @internalProperty()
   displayNames = true;
 
@@ -55,7 +46,7 @@ export class Marker3dElement extends connect(store)(LitElement) {
     symbolLayers: [
       {
         type: 'object',
-        height: 50,
+        height: MARKER_HEIGHT,
         resource: { href: '3d/angry/scene.gltf' },
         material: { color: 'red' },
         anchor: 'relative',
@@ -81,64 +72,85 @@ export class Marker3dElement extends connect(store)(LitElement) {
   private graphic?: Graphic;
   private txtGraphic?: Graphic;
 
-  stateChanged(state: RootState): void {
-    this.tsOffsets = sel.tsOffsets(state.map);
-    this.timestamp = state.map.ts;
-    this.active = state.map.currentTrackIndex == this.index;
-    this.multiplier = state.map.altMultiplier;
-    this.displayNames = state.map.displayNames;
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.destroyMarker();
   }
 
-  shouldUpdate(): boolean {
-    if (this.api && this.layer && this.track) {
-      const fixes = this.track.fixes;
-      const timestamp = this.timestamp + this.tsOffsets[this.index];
-      const { lat, lon, alt } = sel.getTrackLatLon(store.getState().map)(timestamp, this.index) as LatLon;
+  stateChanged(state: RootState): void {
+    if (this.track) {
+      const id = this.track.id;
+      this.tsOffset = sel.tsOffsets(state)[id];
+      this.color = sel.trackColors(state)[id];
+      this.active = id == sel.currentTrackId(state);
+    }
+    this.timestamp = state.app.timestamp;
+    this.multiplier = state.app.altMultiplier;
+    this.displayNames = state.app.displayNames;
+  }
 
-      if (!this.graphic) {
-        this.graphic = new this.api.Graphic();
-        this.txtGraphic = new this.api.Graphic({ symbol: this.txtSymbol as any });
-        this.layer.addMany([this.graphic, this.txtGraphic]);
-      }
+  shouldUpdate(changedProps: PropertyValues): boolean {
+    if (this.api == null || this.layer == null) {
+      this.destroyMarker();
+      return false;
+    }
+
+    if (changedProps.has('api') || changedProps.has('track')) {
+      this.destroyMarker();
+      this.maybeCreateMarker();
+    }
+
+    if (this.graphic && this.track) {
+      const track = this.track;
+      const timestamp = this.timestamp + this.tsOffset;
+      const { lat, lon, alt } = sel.getTrackLatLonAlt(store.getState())(timestamp, this.track) as LatLonZ;
 
       this.point.latitude = lat;
       this.point.longitude = lon;
-      this.point.z = (alt ?? 0) * this.multiplier;
+      this.point.z = alt * this.multiplier;
       this.graphic.set('geometry', this.point);
 
       const objectSymbol = this.symbol.symbolLayers[0];
-      objectSymbol.material.color = trackColor(this.index);
-      objectSymbol.heading = 180 + sampleAt(fixes.ts, fixes.heading, timestamp);
-      const height = this.active ? ACTIVE_HEIGHT : INACTIVE_HEIGHT;
-      objectSymbol.height = height;
+      objectSymbol.material.color = this.color;
+      objectSymbol.heading = 180 + sampleAt(track.ts, track.heading, timestamp);
       this.graphic.set('symbol', this.symbol);
-      this.graphic.set('attributes', { index: this.index });
+      this.graphic.set('attributes', { trackId: this.track?.id });
 
-      this.point.z += height;
+      this.point.z += MARKER_HEIGHT;
       this.txtGraphic?.set('geometry', this.point);
 
-      this.txtSymbol.symbolLayers[0].halo.color = this.active ? trackColor(this.index) : 'white';
-      const label = this.track?.name ?? 'unknown';
+      this.txtSymbol.symbolLayers[0].halo.color = this.active ? this.color : 'white';
+      const label = track.name ?? 'unknown';
       this.txtSymbol.symbolLayers[0].text = label;
       this.txtGraphic?.set('symbol', this.txtSymbol);
-      this.txtGraphic?.set('attributes', { index: this.index });
+      this.txtGraphic?.set('attributes', { trackId: track.id });
       this.txtGraphic?.set('visible', this.displayNames && label != 'unknown');
     }
 
     return false;
   }
 
-  // There is not content - no need to create a shadow root.
-  createRenderRoot(): Element {
-    return this;
+  private maybeCreateMarker(): void {
+    if (this.api && this.layer && this.track) {
+      this.graphic = new this.api.Graphic();
+      this.txtGraphic = new this.api.Graphic({ symbol: this.txtSymbol as any });
+      this.layer.addMany([this.graphic, this.txtGraphic]);
+    }
   }
 
-  disconnectedCallback(): void {
+  private destroyMarker(): void {
     if (this.graphic) {
       this.layer?.remove(this.graphic);
     }
+    this.graphic = undefined;
     if (this.txtGraphic) {
       this.layer?.remove(this.txtGraphic);
     }
+    this.txtGraphic = undefined;
+  }
+
+  // There is not content - no need to create a shadow root.
+  createRenderRoot(): Element {
+    return this;
   }
 }

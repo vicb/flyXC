@@ -1,39 +1,32 @@
 import { getDistance } from 'geolib';
 
-import { RuntimeFixes, RuntimeTrack } from './track';
-
-// Computes the maximum distance between two consecutive fixes of a track.
-export function computeMaxDistance(fixes: RuntimeFixes): number {
-  let max = 0;
-  for (let i = 1; i < fixes.lat.length; i++) {
-    const a = { lat: fixes.lat[i - 1], lon: fixes.lon[i - 1] };
-    const b = { lat: fixes.lat[i], lon: fixes.lon[i] };
-    max = Math.max(getDistance(a, b), max);
-  }
-  return max;
-}
+import { RuntimeTrack } from './track';
 
 // Finds the closest fix to {lat, lon} across all the tracks.
-export function findClosestFix(tracks: RuntimeTrack[], lat: number, lon: number): { track: number; ts: number } | null {
-  let track = 0;
-  let ts: number | null = null;
-  let distance = 10000;
+export function findClosestFix(
+  tracks: RuntimeTrack[],
+  lat: number,
+  lon: number,
+): { track: RuntimeTrack; timestamp: number } | undefined {
+  let foundTrack: RuntimeTrack | undefined;
+  let foundTimestamp = 0;
+  let foundDistance = 10000;
   const ref = { lat, lon };
-  tracks.forEach((t, tIdx) => {
-    for (let fixIdx = 0; fixIdx < t.fixes.lat.length; ) {
-      const lat = t.fixes.lat[fixIdx];
-      const lon = t.fixes.lon[fixIdx];
+  tracks.forEach((track) => {
+    for (let fixIdx = 0; fixIdx < track.lat.length; ) {
+      const lat = track.lat[fixIdx];
+      const lon = track.lon[fixIdx];
       const d = getDistance(ref, { lat, lon });
-      if (d < distance) {
-        ts = t.fixes.ts[fixIdx];
-        track = tIdx;
-        distance = d;
+      if (d < foundDistance) {
+        foundTimestamp = track.ts[fixIdx];
+        foundTrack = track;
+        foundDistance = d;
         fixIdx++;
       } else {
-        fixIdx += Math.max(1, Math.floor((d - distance) / t.maxDistance));
+        fixIdx += Math.max(1, Math.floor((d - foundDistance) / track.maxDistance));
       }
     }
   });
 
-  return ts ? { track, ts } : null;
+  return foundTrack != null ? { track: foundTrack, timestamp: foundTimestamp } : undefined;
 }

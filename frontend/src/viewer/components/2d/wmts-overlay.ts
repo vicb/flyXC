@@ -1,26 +1,17 @@
 import { LitElement, property } from 'lit-element';
 // Warning: those are not the same at lit-element ones.
-import { html as baseHtml, render as baseRender, TemplateResult } from 'lit-html';
+import { html as litHtml, render as litRender, TemplateResult } from 'lit-html';
 
 export abstract class WMTSOverlayElement extends LitElement {
-  map_: google.maps.Map | undefined;
+  // Actual type: google.maps.Map.
+  @property({ attribute: false })
+  map: any;
 
-  @property()
-  get map(): google.maps.Map | undefined {
-    return this.map_;
-  }
-  set map(map: google.maps.Map | undefined) {
-    this.map_ = map;
-    if (map && !this.registered) {
-      this.init(map);
-      this.registered = true;
-      this.dispatchEvent(
-        new CustomEvent('overlayready', { detail: { mapType: (): google.maps.ImageMapType => this.getMapType() } }),
-      );
-    }
+  protected get gMap(): google.maps.Map {
+    return this.map;
   }
 
-  protected mapBounds: google.maps.LatLngBounds[] | null = null;
+  protected mapBounds?: google.maps.LatLngBounds[];
   protected copyrightEl?: HTMLElement;
   protected registered = false;
 
@@ -29,6 +20,15 @@ export abstract class WMTSOverlayElement extends LitElement {
   abstract get url(): string;
   abstract get zoom(): number[];
   abstract get bounds(): number[][] | null;
+
+  shouldUpdate(): boolean {
+    if (this.map && !this.registered) {
+      this.init(this.gMap);
+      this.registered = true;
+      this.dispatchEvent(new CustomEvent('overlayready', { detail: { mapType: () => this.getMapType() } }));
+    }
+    return false;
+  }
 
   protected init(map: google.maps.Map): void {
     this.createCopyrightElement();
@@ -60,9 +60,7 @@ export abstract class WMTSOverlayElement extends LitElement {
 
   protected setBounds(): void {
     const bounds = this.bounds;
-    if (bounds == null) {
-      this.mapBounds = null;
-    } else {
+    if (bounds != null) {
       this.mapBounds = bounds.map((b) => {
         const lats = [b[0], b[2]].sort();
         const lons = [b[1], b[3]].sort();
@@ -76,34 +74,28 @@ export abstract class WMTSOverlayElement extends LitElement {
   }
 
   protected createCopyrightElement(): void {
-    if (this.map) {
-      const { html, url } = this.copyright;
-      this.copyrightEl = document.createElement('div');
-      baseRender(
-        baseHtml`
+    const { html, url } = this.copyright;
+    this.copyrightEl = document.createElement('div');
+    litRender(
+      litHtml`
           <a href=${url} target="_blank" class="attribution">${html}</a>
         `,
-        this.copyrightEl,
-      );
-      this.copyrightEl.hidden = true;
-      this.map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(this.copyrightEl);
-    }
+      this.copyrightEl,
+    );
+    this.copyrightEl.hidden = true;
+    this.gMap.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(this.copyrightEl);
   }
 
   protected isTileVisible(coord: google.maps.Point, zoom: number): boolean {
     if (this.mapBounds == null) {
       return true;
     }
-    const map = this.map;
-    if (!map) {
-      return false;
-    }
     const numTiles = Math.pow(2, zoom);
     const e = (256 * coord.x) / numTiles;
     const w = (256 * (coord.x + 1)) / numTiles;
     const s = (256 * (coord.y + 1)) / numTiles;
     const n = (256 * coord.y) / numTiles;
-    const projection = map.getProjection() as google.maps.Projection;
+    const projection = this.gMap.getProjection() as google.maps.Projection;
     const tileBounds = new google.maps.LatLngBounds(
       projection.fromPointToLatLng(new google.maps.Point(w, s)),
       projection.fromPointToLatLng(new google.maps.Point(e, n)),
@@ -125,14 +117,16 @@ export abstract class WMTSMapTypeElement extends WMTSOverlayElement {
     name = (this.constructor as any).mapTypeId,
     mapType: google.maps.ImageMapType = this.getMapType(),
   ): void {
-    if (this.map) {
-      this.map.mapTypes.set(name, mapType);
-    }
+    this.gMap.mapTypes.set(name, mapType);
   }
 
   protected visibilityHandler(mapTypeId: string): void {
     if (this.copyrightEl) {
       this.copyrightEl.hidden = mapTypeId != (this.constructor as any).mapTypeId;
     }
+  }
+
+  protected createRenderRoot(): Element {
+    return this;
   }
 }

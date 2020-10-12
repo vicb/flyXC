@@ -1,11 +1,19 @@
-import { CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
+import {
+  CSSResult,
+  customElement,
+  html,
+  internalProperty,
+  LitElement,
+  property,
+  PropertyValues,
+  TemplateResult,
+} from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { setDisplayLiveNames } from '../../actions';
 import { linearInterpolate } from '../../logic/math';
-import { formatUnit } from '../../logic/units';
-import { Units } from '../../reducers';
-import { RootState, store } from '../../store';
+import { formatUnit, Units } from '../../logic/units';
+import { setDisplayLiveNames } from '../../redux/app-slice';
+import { RootState, store } from '../../redux/store';
 import { controlStyle } from '../control-style';
 
 // Anchors and label origins for markers.
@@ -34,70 +42,61 @@ const msgSvg = (color: string, opacity: number): string =>
 
 @customElement('tracking-element')
 export class TrackingElement extends connect(store)(LitElement) {
+  // Actual type: google.maps.Map.
+  @property()
+  map: any;
+
+  private get gMap(): google.maps.Map {
+    return this.map;
+  }
+
+  @internalProperty()
+  private isVisible = false;
+
   @internalProperty()
   private displayNames = true;
 
-  @internalProperty()
-  get map(): google.maps.Map | undefined {
-    return this.map_;
-  }
-  set map(map: google.maps.Map | undefined) {
-    this.map_ = map;
-    if (map) {
-      ANCHOR_POSITION = new google.maps.Point(4, 4);
-      ANCHOR_ARROW = new google.maps.Point(9, 9);
-      ORIGIN_ARROW = new google.maps.Point(9, 22);
-      ANCHOR_MSG = new google.maps.Point(7, 9);
-      ORIGIN_MSG = new google.maps.Point(0, 22);
-      this.handleVisibility();
-      this.setMapStyle(map);
-      this.setupInfoWindow(map);
-    }
-  }
-  map_: google.maps.Map | undefined;
-
   private units?: Units;
-
-  private info: google.maps.InfoWindow | undefined;
+  private info?: google.maps.InfoWindow;
   // Name of the pilot shown in the info window.
   private currentName?: string;
-
   private features: any[] = [];
-
-  private fetchId: any = null;
-
-  private readonly visibilityListener = () => this.handleVisibility();
+  private fetchTimer?: number;
 
   connectedCallback(): void {
     super.connectedCallback();
-    document.addEventListener('visibilitychange', this.visibilityListener);
+    // At this point the api has been loaded.
+    ANCHOR_POSITION = new google.maps.Point(4, 4);
+    ANCHOR_ARROW = new google.maps.Point(9, 9);
+    ORIGIN_ARROW = new google.maps.Point(9, 22);
+    ANCHOR_MSG = new google.maps.Point(7, 9);
+    ORIGIN_MSG = new google.maps.Point(0, 22);
+    this.setMapStyle(this.gMap);
+    this.setupInfoWindow(this.gMap);
   }
 
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    document.removeEventListener('visibilitychange', this.visibilityListener);
-  }
-
-  // Do not fetch the trackers when flyxc is not visible.
-  // Saves battery on mobiles.
-  private handleVisibility(): void {
-    const visible = document.visibilityState == 'visible';
-    if (visible) {
-      if (this.fetchId == null) {
-        this.fetchTrackers();
-        this.fetchId = setInterval(() => this.fetchTrackers(), 2 * 60 * 1000);
+  shouldUpdate(changedProps: PropertyValues): boolean {
+    if (changedProps.has('isVisible')) {
+      if (this.isVisible) {
+        if (this.fetchTimer == null) {
+          this.fetchTrackers();
+          this.fetchTimer = window.setInterval(() => this.fetchTrackers(), 2 * 60 * 1000);
+        }
+      } else {
+        if (this.fetchTimer != null) {
+          clearInterval(this.fetchTimer);
+          this.fetchTimer = undefined;
+        }
       }
-    } else {
-      if (this.fetchId != null) {
-        clearInterval(this.fetchId);
-        this.fetchId = null;
-      }
+      changedProps.delete('isVisible');
     }
+    return super.shouldUpdate(changedProps);
   }
 
   stateChanged(state: RootState): void {
-    this.units = state.map.units;
-    this.displayNames = state.map.displayLiveNames;
+    this.units = state.units;
+    this.displayNames = state.app.displayLiveNames;
+    this.isVisible = state.browser.isVisible;
   }
 
   static get styles(): CSSResult {
@@ -110,8 +109,8 @@ export class TrackingElement extends connect(store)(LitElement) {
       .then((geoJson) => {
         if (geoJson != null) {
           const features = this.features;
-          this.features = this.map?.data.addGeoJson(geoJson) || [];
-          features.forEach((f) => this.map?.data.remove(f));
+          this.features = this.gMap.data.addGeoJson(geoJson) || [];
+          features.forEach((f) => this.gMap.data.remove(f));
         }
       });
   }
@@ -122,31 +121,29 @@ export class TrackingElement extends connect(store)(LitElement) {
     this.info.close();
     this.info.addListener('closeclick', () => {
       this.currentName = undefined;
-      if (this.map) {
-        this.setMapStyle(this.map);
-      }
+      this.setMapStyle(this.gMap);
     });
 
     map.data.addListener('click', (event: any) => {
       if (hasPointFeature(event)) {
-        const f = event.feature as any;
-        const latLng: google.maps.LatLng = f.getGeometry().get();
-        const date = new Date(f.getProperty('ts'));
+        const feat = event.feature as any;
+        const latLng: google.maps.LatLng = feat.getGeometry().get();
+        const date = new Date(feat.getProperty('ts'));
         const content: string[] = [
-          `<strong>${f.getProperty('name')}</strong>`,
+          `<strong>${feat.getProperty('name')}</strong>`,
           `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`,
-          `${formatUnit(f.getProperty('alt'), this.units?.altitude || 'm')} ${
-            f.getProperty('speed') != null ? formatUnit(f.getProperty('speed'), this.units?.speed || 'km/h') : ''
+          `${formatUnit(feat.getProperty('alt'), this.units?.altitude)} ${
+            feat.getProperty('speed') != null ? formatUnit(feat.getProperty('speed'), this.units?.speed) : ''
           }`,
           `<a href=${`https://www.google.com/maps/dir//${latLng.lat()},${latLng.lng()}`} target="_blank">Directions</a>`,
         ];
-        if (f.getProperty('msg')) {
-          content.push(f.getProperty('msg'));
+        if (feat.getProperty('msg')) {
+          content.push(feat.getProperty('msg'));
         }
-        if (f.getProperty('emergency')) {
+        if (feat.getProperty('emergency')) {
           content.push('<strong>Emergency</strong>');
         }
-        if (f.getProperty('valid') === false) {
+        if (feat.getProperty('valid') === false) {
           content.push(
             '<strong>WARNING:',
             'The GPS fix is reported as invalid.',
@@ -154,12 +151,12 @@ export class TrackingElement extends connect(store)(LitElement) {
           );
         }
 
-        if (this.map && this.info) {
+        if (this.info) {
           this.info.setContent(content.join('<br>'));
           this.info.setPosition(event.latLng);
           this.info.open(map);
-          this.currentName = f.getProperty('name');
-          this.setMapStyle(this.map);
+          this.currentName = feat.getProperty('name');
+          this.setMapStyle(this.gMap);
         }
       }
     });
@@ -168,8 +165,7 @@ export class TrackingElement extends connect(store)(LitElement) {
   private setMapStyle(map: google.maps.Map): void {
     map.data.setStyle(
       (feature: google.maps.Data.Feature): google.maps.Data.StyleOptions => {
-        const type = feature.getGeometry().getType();
-        switch (type) {
+        switch (feature.getGeometry().getType()) {
           case 'Point':
             return this.getFixStyle(feature);
           case 'LineString':
@@ -301,11 +297,8 @@ export class TrackingElement extends connect(store)(LitElement) {
   }
 
   private handleDisplayNames(e: Event): void {
-    const show = (e.target as HTMLInputElement).checked;
-    store.dispatch(setDisplayLiveNames(show));
+    store.dispatch(setDisplayLiveNames((e.target as HTMLInputElement).checked));
     // The style depends on displayNames.
-    if (this.map_) {
-      this.setMapStyle(this.map_);
-    }
+    this.setMapStyle(this.gMap);
   }
 }

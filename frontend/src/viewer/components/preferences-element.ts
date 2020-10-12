@@ -1,19 +1,18 @@
 import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { setAltitudeUnit, setDistanceUnit, setLeague, setSpeedUnit, setVarioUnit } from '../actions';
 import { LEAGUES } from '../logic/score/league/leagues';
-import { UNITS } from '../logic/units';
-import { Units } from '../reducers';
-import { RootState, store } from '../store';
+import { DistanceUnit, SpeedUnit, Units } from '../logic/units';
+import { setLeague } from '../redux/planner-slice';
+import { RootState, store } from '../redux/store';
+import { setAltitudeUnit, setDistanceUnit, setSpeedUnit, setVarioUnit } from '../redux/units-slice';
 import { controlStyle } from './control-style';
 
 @customElement('preferences-ctrl-element')
 export class PreferencesElement extends connect(store)(LitElement) {
   @property()
   league = 'xc';
-
-  @property()
+  @property({ attribute: false })
   units?: Units;
 
   private leagues: { value: string; name: string }[] = [];
@@ -27,8 +26,8 @@ export class PreferencesElement extends connect(store)(LitElement) {
   }
 
   stateChanged(state: RootState): void {
-    this.league = state.map.league;
-    this.units = state.map.units;
+    this.league = state.planner.league;
+    this.units = state.units;
   }
 
   static get styles(): CSSResult[] {
@@ -79,17 +78,21 @@ export class PreferencesElement extends connect(store)(LitElement) {
                 id="distance"
                 @change=${(e: any) => store.dispatch(setDistanceUnit(e.target.selectedOption.value))}
               >
-                <ui5-option value=${UNITS.kilometers} ?selected=${this.units.distance == UNITS.kilometers}
+                <ui5-option value=${DistanceUnit.kilometers} ?selected=${this.units.distance == DistanceUnit.kilometers}
                   >kilometers</ui5-option
                 >
-                <ui5-option value=${UNITS.miles} ?selected=${this.units.distance == UNITS.miles}>miles</ui5-option>
+                <ui5-option value=${DistanceUnit.miles} ?selected=${this.units.distance == DistanceUnit.miles}
+                  >miles</ui5-option
+                >
               </ui5-select>
               <ui5-label for="speed">Speed</ui5-label>
               <ui5-select id="speed" @change=${(e: any) => store.dispatch(setSpeedUnit(e.target.selectedOption.value))}>
-                <ui5-option value=${UNITS.kilometers_hour} ?selected=${this.units.speed == UNITS.kilometers_hour}
+                <ui5-option
+                  value=${SpeedUnit.kilometers_hour}
+                  ?selected=${this.units.speed == SpeedUnit.kilometers_hour}
                   >km/h</ui5-option
                 >
-                <ui5-option value=${UNITS.miles_hour} ?selected=${this.units.speed == UNITS.miles_hour}
+                <ui5-option value=${SpeedUnit.miles_hour} ?selected=${this.units.speed == SpeedUnit.miles_hour}
                   >mi/h</ui5-option
                 >
               </ui5-select>
@@ -98,15 +101,19 @@ export class PreferencesElement extends connect(store)(LitElement) {
                 id="altitude"
                 @change=${(e: any) => store.dispatch(setAltitudeUnit(e.target.selectedOption.value))}
               >
-                <ui5-option value=${UNITS.meters} ?selected=${this.units.altitude == UNITS.meters}>meters</ui5-option>
-                <ui5-option value=${UNITS.feet} ?selected=${this.units.altitude == UNITS.feet}>feet</ui5-option>
+                <ui5-option value=${DistanceUnit.meters} ?selected=${this.units.altitude == DistanceUnit.meters}
+                  >meters</ui5-option
+                >
+                <ui5-option value=${DistanceUnit.feet} ?selected=${this.units.altitude == DistanceUnit.feet}
+                  >feet</ui5-option
+                >
               </ui5-select>
               <ui5-label for="vario">Vario</ui5-label>
               <ui5-select id="vario" @change=${(e: any) => store.dispatch(setVarioUnit(e.target.selectedOption.value))}>
-                <ui5-option value=${UNITS.meters_second} ?selected=${this.units.vario == UNITS.meters_second}
+                <ui5-option value=${SpeedUnit.meters_second} ?selected=${this.units.vario == SpeedUnit.meters_second}
                   >m/s</ui5-option
                 >
-                <ui5-option value=${UNITS.feet_minute} ?selected=${this.units.vario == UNITS.feet_minute}
+                <ui5-option value=${SpeedUnit.feet_minute} ?selected=${this.units.vario == SpeedUnit.feet_minute}
                   >ft/min</ui5-option
                 >
               </ui5-select>
@@ -121,14 +128,12 @@ export class PreferencesElement extends connect(store)(LitElement) {
   }
 
   private openDialog(): void {
-    const shadowRoot = this.shadowRoot as ShadowRoot;
-    const dialog = shadowRoot.getElementById('pref-dialog') as any;
+    const dialog = this.renderRoot.querySelector('#pref-dialog') as any;
     dialog.open();
   }
 
   private closeDialog(): void {
-    const shadowRoot = this.shadowRoot as ShadowRoot;
-    const dialog = shadowRoot.getElementById('pref-dialog') as any;
+    const dialog = this.renderRoot.querySelector('#pref-dialog') as any;
     dialog.close();
   }
 }

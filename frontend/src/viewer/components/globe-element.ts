@@ -1,8 +1,9 @@
 import { CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 
-import { setView3d } from '../actions';
+import { pushCurrentState } from '../logic/history';
 import * as msg from '../logic/messages';
-import { store } from '../store';
+import { setView3d } from '../redux/app-slice';
+import { store } from '../redux/store';
 import { controlStyle } from './control-style';
 
 @customElement('globe-element')
@@ -28,6 +29,7 @@ export class GlobeElement extends LitElement {
   private handleSwitch(): void {
     // Request the current map to update the location.
     msg.requestLocation.emit();
+    pushCurrentState();
     store.dispatch(setView3d(!this.view3d));
   }
 }

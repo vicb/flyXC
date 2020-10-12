@@ -9,11 +9,11 @@ import '@ui5/webcomponents/dist/Toast';
 import '@ui5/webcomponents/dist/Assets.js';
 import './styles/main.css';
 
+import { LatLonZ } from 'flyxc/common/track';
 import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
+import { classMap } from 'lit-html/directives/class-map.js';
 import { connect } from 'pwa-helpers';
 
-import { LatLon, RuntimeTrack } from '../../../common/track';
-import * as act from './actions';
 import { MapElement } from './components/2d/map-element';
 import { Map3dElement } from './components/3d/map3d-element';
 import { ChartElement } from './components/chart-element';
@@ -21,22 +21,26 @@ import { LoaderElement } from './components/loader-element';
 import {
   addUrlParamValues,
   deleteUrlParam,
-  getUrlParam,
-  has3dUrlParam,
+  getSearchParams,
+  getUrlParamValues,
   ParamNames,
   pushCurrentState,
 } from './logic/history';
 import * as msg from './logic/messages';
-import { downloadTracksById, downloadTracksByUrl, uploadTracks } from './logic/tracks';
-import * as sel from './selectors';
-import { dispatch, RootState, store } from './store';
+import { downloadTracksByGroupIds, downloadTracksByUrls, uploadTracks } from './logic/tracks';
+import { setDisplayNames, setTimestamp, setView3d } from './redux/app-slice';
+import { setGeolocation } from './redux/location-slice';
+import { setRoute, setSpeed } from './redux/planner-slice';
+import * as sel from './redux/selectors';
+import { RootState, store } from './redux/store';
+import { removeTracksByGroupIds } from './redux/track-slice';
 
 export { MapElement, LoaderElement, ChartElement, Map3dElement };
 
 @customElement('fly-xc')
 export class FlyXc extends connect(store)(LitElement) {
   @internalProperty()
-  private tracks: RuntimeTrack[] = [];
+  private hasTrack = false;
 
   @internalProperty()
   private view3d = false;
@@ -48,40 +52,37 @@ export class FlyXc extends connect(store)(LitElement) {
     super();
     // Add or remove tracks when the url changes.
     window.addEventListener('popstate', () => this.handlePopState());
-    // Allow dropping tracks on flyxc.
+    // Handle dropping tracks.
     document.body.ondrop = async (e: DragEvent): Promise<void> => await this.handleDrop(e);
     document.body.ondragover = (e: DragEvent): void => e.preventDefault();
 
-    // Download tracks
+    // Download initial tracks.
     Promise.all([
-      downloadTracksById(getUrlParam(ParamNames.TRACK_ID)),
-      downloadTracksByUrl(getUrlParam(ParamNames.TRACK_URL)),
-    ]).then(([ids, ids2]) => {
-      // Update the url to use ids only.
-      ids.push(...ids2);
-      dispatch(act.setDisplayNames(ids.length > 1));
-      deleteUrlParam(ParamNames.TRACK_URL);
-      addUrlParamValues(ParamNames.TRACK_ID, ids);
+      downloadTracksByGroupIds(getUrlParamValues(ParamNames.groupId)),
+      downloadTracksByUrls(getUrlParamValues(ParamNames.trackUrl)),
+    ]).then(() => {
+      store.dispatch(setDisplayNames(sel.numTracks(store.getState()) > 1));
+      // Remove the track urls as they will be replaced with ids.
+      deleteUrlParam(ParamNames.trackUrl);
     });
   }
 
   stateChanged(state: RootState): void {
-    this.tracks = sel.tracks(state.map);
-    this.view3d = state.map.view3d;
-    this.showLoader = state.map.loadingTracks || state.map.loadingApi;
+    this.hasTrack = sel.numTracks(state) > 0;
+    this.view3d = state.app.view3d;
+    this.showLoader = state.track.fetching || state.app.loadingApi;
   }
 
   protected render(): TemplateResult {
-    const hasTracks = this.tracks.length > 0 ? 'has-tracks' : '';
-
+    const clMap = classMap({ 'has-tracks': this.hasTrack });
     return html`
       ${this.view3d
-        ? html`<map3d-element class=${hasTracks}></map3d-element>`
-        : html`<map-element class=${hasTracks}></map-element>`}
-      ${this.tracks.length
+        ? html`<map3d-element class=${clMap}></map3d-element>`
+        : html`<map-element class=${clMap}></map-element>`}
+      ${this.hasTrack
         ? html`<chart-element
-            class=${hasTracks}
-            @move=${(e: CustomEvent) => dispatch(act.setTimestamp(e.detail.ts))}
+            class=${clMap}
+            @move=${(e: CustomEvent) => store.dispatch(setTimestamp(e.detail.ts))}
             @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.ts))}
             @zoom=${(e: CustomEvent) => msg.centerZoomMap.emit(this.coordinatesAt(e.detail.ts), e.detail.deltaY)}
           ></chart-element>`
@@ -95,27 +96,27 @@ export class FlyXc extends connect(store)(LitElement) {
   }
 
   // Returns the coordinates of the active track at the given timestamp.
-  private coordinatesAt(ts: number): LatLon {
-    return sel.getTrackLatLon(store.getState().map)(ts) as LatLon;
+  private coordinatesAt(ts: number): LatLonZ {
+    return sel.getTrackLatLonAlt(store.getState())(ts) as LatLonZ;
   }
 
   private handlePopState(): void {
-    const currentIds = getUrlParam(ParamNames.TRACK_ID).map((txt) => Number(txt));
-    const previousIds = sel.trackIds(store.getState().map);
-    // Close all the tracks that have been removed from the previous state.
-    const removedTracks: number[] = [];
-    previousIds.forEach((id) => {
-      if (currentIds.indexOf(id) < 0) {
-        removedTracks.push(id);
-      }
-    });
-    if (removedTracks.length) {
-      dispatch(act.removeTracksById(removedTracks));
-      msg.tracksRemoved.emit(removedTracks);
+    // Handle added and removed tracks.
+    const nextGroupIds = new Set(getUrlParamValues(ParamNames.groupId).map((txt) => Number(txt)));
+    const currentGroupIds = sel.groupIds(store.getState());
+    // Close all the tracks that have been removed.
+    const removedTrackGroups = [...currentGroupIds].filter((id) => !nextGroupIds.has(id));
+    if (removedTrackGroups.length) {
+      store.dispatch(removeTracksByGroupIds(removedTrackGroups));
+      msg.trackGroupsRemoved.emit(removedTrackGroups);
     }
-    // Load all the tracks that have been added in the current state.
-    downloadTracksById(currentIds.filter((id) => previousIds.indexOf(id) == -1));
-    dispatch(act.setView3d(has3dUrlParam()));
+    // Load all the tracks that have been added.
+    downloadTracksByGroupIds([...nextGroupIds].filter((id) => !currentGroupIds.has(id)));
+    store.dispatch(setView3d(getSearchParams().has(ParamNames.view3d)));
+
+    // Update the route and speed.
+    store.dispatch(setRoute(getUrlParamValues(ParamNames.route)[0] ?? ''));
+    store.dispatch(setSpeed(Number(getUrlParamValues(ParamNames.speed)[0] ?? 20)));
   }
 
   // Load tracks dropped on the map.
@@ -132,7 +133,7 @@ export class FlyXc extends connect(store)(LitElement) {
     if (files.length) {
       const ids = await uploadTracks(files);
       pushCurrentState();
-      addUrlParamValues(ParamNames.TRACK_ID, ids);
+      addUrlParamValues(ParamNames.groupId, ids);
     }
   }
 }
@@ -141,6 +142,6 @@ if ('geolocation' in navigator) {
   navigator.geolocation.getCurrentPosition((p: Position) => {
     const { latitude: lat, longitude: lon } = p.coords;
     msg.geoLocation.emit({ lat, lon });
-    dispatch(act.setGeoloc({ lat, lon }));
+    store.dispatch(setGeolocation({ lat, lon }));
   });
 }

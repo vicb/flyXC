@@ -1,31 +1,16 @@
 // Filter the altitude using a median filter.
 // Compute the heading.
 
+import { computeVerticalSpeed, RuntimeTrack } from 'flyxc/common/track';
 import { getRhumbLineBearing } from 'geolib';
 import createMedianFilter from 'moving-median';
 
-import { computeVerticalSpeed } from '../../../../common/track';
+export type Request = Pick<RuntimeTrack, 'alt' | 'id' | 'lat' | 'lon' | 'ts'>;
 
-export type Request = {
-  alt: number[];
-  id: number;
-  lat: number[];
-  lon: number[];
-  ts: number[];
-};
-
-export type Response = {
-  alt: number[];
-  heading: number[];
-  lookAtLat: number[];
-  lookAtLon: number[];
-  id: number;
-  maxAlt: number;
-  minAlt: number;
-  maxVz: number;
-  minVz: number;
-  vz: number[];
-};
+export type Response = Pick<
+  RuntimeTrack,
+  'alt' | 'heading' | 'lookAtLat' | 'lookAtLon' | 'id' | 'maxAlt' | 'minAlt' | 'maxVz' | 'minVz' | 'vz'
+>;
 
 // Median filter:
 // Window size = 2 * HALF_WINDOW_SECONDS + 1
@@ -85,7 +70,7 @@ function computeHeading(lat: number[], lon: number[]): number[] {
 
   for (let i = 0; i < lat.length; i++) {
     const currentPoint = { lat: lat[i], lon: lon[i] };
-    heading.push(getRhumbLineBearing(previousPoint, currentPoint));
+    heading.push(Math.round(getRhumbLineBearing(previousPoint, currentPoint)));
     previousPoint = currentPoint;
   }
 

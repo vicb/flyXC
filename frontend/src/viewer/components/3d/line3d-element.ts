@@ -1,49 +1,41 @@
 import type Graphic from 'esri/Graphic';
 import type GraphicsLayer from 'esri/layers/GraphicsLayer';
-import { customElement, internalProperty, LitElement, property } from 'lit-element';
+import { LatLonZ, RuntimeTrack } from 'flyxc/common/track';
+import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { LatLon, RuntimeTrack } from '../../../../../common/track';
 import { Api } from '../../logic/arcgis';
 import { findIndexes } from '../../logic/math';
-import { trackColor } from '../../logic/tracks';
-import * as sel from '../../selectors';
-import { RootState, store } from '../../store';
+import * as sel from '../../redux/selectors';
+import { RootState, store } from '../../redux/store';
 
 const INACTIVE_ALPHA = 0.7;
 
 @customElement('line3d-element')
 export class Line3dElement extends connect(store)(LitElement) {
-  @property()
+  @property({ attribute: false })
   track?: RuntimeTrack;
-
-  @property()
+  @property({ attribute: false })
   api?: Api;
-
-  @property()
+  @property({ attribute: false })
   layer?: GraphicsLayer;
-
-  @property()
+  @property({ attribute: false })
   gndLayer?: GraphicsLayer;
 
-  @property()
-  index = 0;
-
   @internalProperty()
-  private active = false;
-
+  private opacity = 1;
   @internalProperty()
   private timestamp = 0;
-
   @internalProperty()
   private multiplier = 0;
-
   @internalProperty()
-  private tsOffsets: number[] = [];
+  private tsOffset = 0;
+  @internalProperty()
+  private color = '';
 
   private line = {
     type: 'polyline',
-    paths: [[]],
+    paths: [] as number[][][],
     hasZ: true,
   };
 
@@ -62,46 +54,55 @@ export class Line3dElement extends connect(store)(LitElement) {
 
   private graphic?: Graphic;
   private gndGraphic?: Graphic;
+  private path3d: number[][] = [];
 
-  stateChanged(state: RootState): void {
-    this.tsOffsets = sel.tsOffsets(state.map);
-    this.timestamp = state.map.ts;
-    this.active = state.map.currentTrackIndex == this.index;
-    this.multiplier = state.map.altMultiplier;
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.destroyLines();
   }
 
-  shouldUpdate(): boolean {
-    if (this.api && this.track) {
-      if (!this.graphic) {
-        this.graphic = new this.api.Graphic();
-        this.layer?.add(this.graphic);
-        this.gndGraphic = new this.api.Graphic({ symbol: this.symbol as any });
-        this.gndLayer?.add(this.gndGraphic);
-      }
+  stateChanged(state: RootState): void {
+    if (this.track) {
+      const id = this.track.id;
+      this.tsOffset = sel.tsOffsets(state)[id];
+      this.color = sel.trackColors(state)[id];
+      this.opacity = id == sel.currentTrackId(state) ? 1 : INACTIVE_ALPHA;
+    }
+    this.timestamp = state.app.timestamp;
+    this.multiplier = state.app.altMultiplier;
+  }
 
-      const fixes = this.track.fixes;
-      const path = [];
+  shouldUpdate(changedProps: PropertyValues): boolean {
+    if (this.api == null || this.layer == null || this.gndLayer == null) {
+      this.destroyLines();
+      return false;
+    }
 
-      const timestamp = this.timestamp + this.tsOffsets[this.index];
-      const start = Math.min(findIndexes(fixes.ts, timestamp - 15 * 60 * 1000)[0], fixes.ts.length - 4);
-      const end = Math.max(findIndexes(fixes.ts, timestamp)[0] + 1, 4);
+    if (changedProps.has('api') || changedProps.has('track') || changedProps.has('multiplier')) {
+      this.destroyLines();
+      this.maybeCreateLines();
+    }
 
-      // TODO: precompute and slice ?
-      for (let i = start; i < end; i++) {
-        path.push([fixes.lon[i], fixes.lat[i], this.multiplier * fixes.alt[i]]);
-      }
-      // Make sure the last point matches the marker position.
-      const pos = sel.getTrackLatLon(store.getState().map)(timestamp, this.index) as LatLon;
-      path.push([pos.lon, pos.lat, this.multiplier * (pos.alt ?? 0)]);
-      this.line.paths[0] = path as any;
+    if (this.graphic && this.track) {
+      const times = this.track.ts;
+
+      const timestamp = this.timestamp + this.tsOffset;
+
+      const start = Math.min(findIndexes(times, timestamp - 15 * 60 * 1000)[0], times.length - 4);
+      const end = Math.max(findIndexes(times, timestamp)[0] + 1, 4);
+      const path = this.path3d.slice(start, end);
+      // The last point must match the marker position and needs to be interpolated.
+      const pos = sel.getTrackLatLonAlt(store.getState())(timestamp, this.track) as LatLonZ;
+      path.push([pos.lon, pos.lat, this.multiplier * pos.alt]);
+      this.line.paths[0] = path;
 
       this.graphic.set('geometry', this.line);
-      this.graphic.set('attributes', { index: this.index });
+      this.graphic.set('attributes', { trackId: this.track.id });
       this.gndGraphic?.set('geometry', this.line);
-      this.gndGraphic?.set('attributes', { index: this.index });
+      this.gndGraphic?.set('attributes', { trackId: this.track.id });
 
-      const color = new this.api.Color(trackColor(this.index));
-      color.a = this.active ? 1 : INACTIVE_ALPHA;
+      const color = new this.api.Color(this.color);
+      color.a = this.opacity;
       const rgba = color.toRgba();
       this.symbol.symbolLayers[0].material.color = rgba;
       this.graphic.set('symbol', this.symbol);
@@ -110,17 +111,33 @@ export class Line3dElement extends connect(store)(LitElement) {
     return false;
   }
 
-  // There is not content - no need to create a shadow root.
-  createRenderRoot(): Element {
-    return this;
+  private maybeCreateLines(): void {
+    if (this.api && this.layer && this.gndLayer && this.track) {
+      this.graphic = new this.api.Graphic();
+      this.layer.add(this.graphic);
+      this.symbol.symbolLayers[0].material.color = [50, 50, 50, 0.6];
+      this.gndGraphic = new this.api.Graphic({ symbol: this.symbol as any });
+      this.gndLayer.add(this.gndGraphic);
+      this.path3d.length = 0;
+      const track = this.track;
+      this.track.lat.forEach((lat, i) => this.path3d.push([track.lon[i], lat, this.multiplier * track.alt[i]]));
+    }
   }
 
-  disconnectedCallback(): void {
+  private destroyLines(): void {
     if (this.graphic) {
       this.layer?.remove(this.graphic);
     }
+    this.graphic = undefined;
     if (this.gndGraphic) {
       this.gndLayer?.remove(this.gndGraphic);
     }
+    this.gndGraphic = undefined;
+    this.path3d.length = 0;
+  }
+
+  // There is not content - no need to create a shadow root.
+  createRenderRoot(): Element {
+    return this;
   }
 }

@@ -1,13 +1,13 @@
 export enum ParamNames {
   // URL of a track file (multiple).
-  TRACK_URL = 'track',
-  // ID of a datastore track (multiple).
-  TRACK_ID = 'id',
+  trackUrl = 'track',
+  // ID of a track group (multiple).
+  groupId = 'id',
   // Encoded route.
-  ROUTE = 'p',
-  LEAGUE = 'l',
-  SPEED = 's',
-  VIEW_3D = '3d',
+  route = 'p',
+  league = 'l',
+  speed = 's',
+  view3d = '3d',
 }
 
 // Pushes the current URL on the stack to create a checkpoint.
@@ -20,11 +20,11 @@ export function pushCurrentState(): void {
 // When the URL contains a track or a route, flyxc would center on that.
 export function hasTrackOrRoute(): boolean {
   const params = getSearchParams();
-  return params.has(ParamNames.TRACK_ID) || params.has(ParamNames.TRACK_URL) || params.has(ParamNames.ROUTE);
+  return params.has(ParamNames.groupId) || params.has(ParamNames.trackUrl) || params.has(ParamNames.route);
 }
 
 // Returns the list of values of an URL search parameter.
-export function getUrlParam(name: string): string[] {
+export function getUrlParamValues(name: string): string[] {
   const url = getCurrentUrl();
   const params = getSearchParams(url);
   const values = params.getAll(name);
@@ -92,25 +92,11 @@ export function getCurrentUrl(): URL {
 }
 
 // Returns the search params for the passed url.
-function getSearchParams(url: URL = getCurrentUrl()): URLSearchParams {
+export function getSearchParams(url: URL = getCurrentUrl()): URLSearchParams {
   return url.searchParams;
 }
 
 // Update the current URL without pushing a new state.
 function updateUrl(url: URL) {
   history.replaceState({}, '', url.href);
-}
-
-// Return wether 3D is enabled.
-export function has3dUrlParam(): boolean {
-  return getSearchParams().has(ParamNames.VIEW_3D);
-}
-
-// Set wether 3D is enabled.
-export function set3dUrlParam(enabled: boolean): void {
-  if (enabled) {
-    addUrlParamValue(ParamNames.VIEW_3D, '');
-  } else {
-    deleteUrlParam(ParamNames.VIEW_3D);
-  }
 }

@@ -1,4 +1,6 @@
 import { ticks } from 'd3-array';
+import { airspaceCategory, Flags } from 'flyxc/common/airspaces';
+import { RuntimeTrack } from 'flyxc/common/track';
 import {
   css,
   CSSResult,
@@ -15,15 +17,12 @@ import {
 } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { airspaceCategory, Flags } from '../../../../common/airspaces';
-import { RuntimeTrack } from '../../../../common/track';
-import { setCenterMap, setChartAirspaces, setChartYAxis } from '../actions';
 import { sampleAt } from '../logic/math';
-import { trackColor } from '../logic/tracks';
-import { formatUnit, UNITS } from '../logic/units';
-import { ChartYAxis, Units } from '../reducers';
-import * as sel from '../selectors';
-import { dispatch, RootState, store } from '../store';
+import { DistanceUnit, formatUnit, SpeedUnit, Units } from '../logic/units';
+import { setAirspacesOnGraph } from '../redux/airspace-slice';
+import { ChartYAxis, setCenterMap, setChartYAxis } from '../redux/app-slice';
+import * as sel from '../redux/selectors';
+import { RootState, store } from '../redux/store';
 
 const MIN_SPEED_FACTOR = 16;
 const MAX_SPEED_FACTOR = 4096;
@@ -33,36 +32,28 @@ const PLAY_INTERVAL = 50;
 export class ChartElement extends connect(store)(LitElement) {
   @internalProperty()
   private tracks: RuntimeTrack[] = [];
-
   @internalProperty()
   private chartYAxis: ChartYAxis = ChartYAxis.Altitude;
-
   @internalProperty()
   private timestamp = 0;
-
   @internalProperty()
   private width = 0;
-
   @internalProperty()
   private height = 0;
-
   @internalProperty()
   private units?: Units;
-
   @internalProperty()
   private showRestricted = false;
-
   @internalProperty()
-  private currentTrackIndex = 0;
-
+  private currentTrackId?: string;
   @internalProperty()
   private centerMap = true;
-
   @internalProperty()
   private playSpeed = 64;
-
   @internalProperty()
-  private playTimer: any;
+  private playTimer?: number;
+  @internalProperty()
+  private trackColors: { [id: string]: string } = {};
 
   private lastPlayTimestamp = 0;
 
@@ -72,62 +63,66 @@ export class ChartElement extends connect(store)(LitElement) {
   @query('svg#chart')
   private svgContainer?: SVGSVGElement;
 
+  @query('#thumb')
+  private thumbElement?: SVGLineElement;
+
   private minTs = 0;
   private maxTs = 1;
-  private tsOffsets: number[] = [];
-  // Do not refresh airspaces on every mouse move event.
-  private throttleAspUpdates = false;
+  private tsOffsets: { [id: string]: number } = {};
+  // Throttle timestamp and airspace updates.
+  private nextAspUpdate = 0;
+  private nextTimestampUpdate = 0;
 
   stateChanged(state: RootState): void {
-    const map = state.map;
-    this.tracks = map.tracks;
-    this.chartYAxis = map.chart.yAxis;
-    this.timestamp = map.ts;
-    this.minTs = sel.minTs(map);
-    this.maxTs = sel.maxTs(map);
-    this.units = map.units;
-    this.tsOffsets = sel.tsOffsets(map);
-    this.showRestricted = map.aspShowRestricted;
-    this.currentTrackIndex = map.currentTrackIndex;
-    this.centerMap = map.centerMap;
+    this.tracks = sel.tracks(state);
+    this.chartYAxis = state.app.chartYAxis;
+    this.timestamp = state.app.timestamp;
+    this.minTs = sel.minTimestamp(state);
+    this.maxTs = sel.maxTimestamp(state);
+    this.units = state.units;
+    this.tsOffsets = sel.tsOffsets(state);
+    this.showRestricted = state.airspace.showRestricted;
+    this.currentTrackId = state.track.currentTrackId;
+    this.centerMap = state.app.centerMap;
+    this.trackColors = sel.trackColors(state);
   }
 
   get minY(): number {
-    const mapState = store.getState().map;
+    const state = store.getState();
     switch (this.chartYAxis) {
       case ChartYAxis.Speed:
-        return sel.minSpeed(mapState);
+        return sel.minSpeed(state);
       case ChartYAxis.Vario:
-        return sel.minVario(mapState);
+        return sel.minVario(state);
       default:
-        return sel.minAlt(mapState);
+        return sel.minAlt(state);
     }
   }
 
   get maxY(): number {
-    const mapState = store.getState().map;
+    const state = store.getState();
     switch (this.chartYAxis) {
       case ChartYAxis.Speed:
-        return sel.maxSpeed(mapState);
+        return sel.maxSpeed(state);
       case ChartYAxis.Vario:
-        return sel.maxVario(mapState);
+        return sel.maxVario(state);
       default:
-        return sel.maxAlt(mapState);
+        return sel.maxAlt(state);
     }
   }
 
   private getY(track: RuntimeTrack, ts: number): number {
     switch (this.chartYAxis) {
       case ChartYAxis.Speed:
-        return sampleAt(track.fixes.ts, track.fixes.vx, ts);
+        return sampleAt(track.ts, track.vx, ts);
       case ChartYAxis.Vario:
-        return sampleAt(track.fixes.ts, track.fixes.vz, ts);
+        return sampleAt(track.ts, track.vz, ts);
       default:
-        return sampleAt(track.fixes.ts, track.fixes.alt, ts);
+        return sampleAt(track.ts, track.alt, ts);
     }
   }
 
-  private getYUnit(): UNITS {
+  private getYUnit(): DistanceUnit | SpeedUnit {
     const units = this.units as Units;
     switch (this.chartYAxis) {
       case ChartYAxis.Speed:
@@ -139,8 +134,8 @@ export class ChartElement extends connect(store)(LitElement) {
     }
   }
 
-  constructor() {
-    super();
+  connectedCallback(): void {
+    super.connectedCallback();
     window.addEventListener('resize', () => this.updateSize());
   }
 
@@ -197,7 +192,7 @@ export class ChartElement extends connect(store)(LitElement) {
           stroke: white;
           stroke-width: 0;
         }
-        #ts {
+        #thumb {
           stroke: gray;
           fill: none;
           stroke-width: 1.5px;
@@ -248,7 +243,8 @@ export class ChartElement extends connect(store)(LitElement) {
   private paths(): TemplateResult[] {
     const paths: TemplateResult[] = [];
 
-    if (this.tracks.length == 0) {
+    // Dot not render before the width is set.
+    if (this.tracks.length == 0 || this.width < 50) {
       return paths;
     }
 
@@ -258,31 +254,32 @@ export class ChartElement extends connect(store)(LitElement) {
     let activePath: SVGTemplateResult | undefined;
 
     // Display the gnd elevation only if there is a single track & mode is altitude
+
     const displayGndAlt = this.tracks.length == 1 && this.chartYAxis == ChartYAxis.Altitude;
 
-    this.tracks.forEach((track, i) => {
-      const fixes = track.fixes;
-      if (fixes.ts.length < 5) {
+    this.tracks.forEach((track) => {
+      if (track.ts.length < 5) {
         return;
       }
       // Span of the track on the X axis.
-      const minX = Math.round(((fixes.ts[0] - this.tsOffsets[i] - this.minTs) / spanTs) * this.width);
-      const maxX = Math.round(((fixes.ts[fixes.ts.length - 1] - this.tsOffsets[i] - this.minTs) / spanTs) * this.width);
+      const tsOffset = this.tsOffsets[track.id];
+      const minX = Math.round(((track.ts[0] - tsOffset - this.minTs) / spanTs) * this.width);
+      const maxX = Math.round(((track.ts[track.ts.length - 1] - tsOffset - this.minTs) / spanTs) * this.width);
       const spanX = maxX - minX;
       const spanTrackTs = track.maxTs - track.minTs;
 
       const trackCoords: string[] = [];
       const gndCoords = [`${minX},${(this.minY * scaleY + offsetY).toFixed(1)}`];
 
-      if (displayGndAlt && fixes.gndAlt) {
+      if (displayGndAlt && track.gndAlt) {
         paths.push(...this.airspacePaths(track, minX, spanX, spanTrackTs, scaleY, offsetY));
       }
       for (let x = minX; x < maxX; x++) {
         const ts = ((x - minX) / spanX) * spanTrackTs + track.minTs;
         const y = this.getY(track, ts);
         trackCoords.push(`${x},${(y * scaleY + offsetY).toFixed(1)}`);
-        if (displayGndAlt && fixes.gndAlt) {
-          const gndAlt = sampleAt(fixes.ts, fixes.gndAlt, ts);
+        if (displayGndAlt && track.gndAlt) {
+          const gndAlt = sampleAt(track.ts, track.gndAlt, ts);
           gndCoords.push(`${x},${(gndAlt * scaleY + offsetY).toFixed(1)}`);
         }
       }
@@ -290,11 +287,11 @@ export class ChartElement extends connect(store)(LitElement) {
       if (displayGndAlt) {
         paths.push(svg`<path class=gnd d=${`M${gndCoords.join('L')}`}></path>`);
       }
-      if (i == this.currentTrackIndex) {
-        activePath = svg`<path class='active' stroke=${trackColor(i)} filter=url(#shadow) 
+      if (track.id == this.currentTrackId) {
+        activePath = svg`<path class='active' stroke=${this.trackColors[track.id]} filter=url(#shadow) 
           d=${`M${trackCoords.join('L')}`}></path>`;
       } else {
-        paths.push(svg`<path stroke=${trackColor(i)} d=${`M${trackCoords.join('L')}`}></path>`);
+        paths.push(svg`<path stroke=${this.trackColors[track.id]} d=${`M${trackCoords.join('L')}`}></path>`);
       }
     });
 
@@ -367,7 +364,7 @@ export class ChartElement extends connect(store)(LitElement) {
     alt: number,
     refGnd: number,
   ): Array<[number, number]> {
-    if (!refGnd || !track.fixes.gndAlt) {
+    if (!refGnd || !track.gndAlt) {
       return [
         [start, alt],
         [end, alt],
@@ -383,7 +380,7 @@ export class ChartElement extends connect(store)(LitElement) {
     const points: Array<[number, number]> = [];
     for (let x = startX; x < endX; x++) {
       const ts = ((x - minX) / spanX) * spanTrackTs + track.minTs;
-      const gndAlt = sampleAt(track.fixes.ts, track.fixes.gndAlt, ts);
+      const gndAlt = sampleAt(track.ts, track.gndAlt, ts);
       points.push([ts, alt + gndAlt]);
     }
     return reverse ? points.reverse() : points;
@@ -492,7 +489,7 @@ export class ChartElement extends connect(store)(LitElement) {
         <g class="axis">${this.axis()}</g>
         <g class="ticks">${this.yTexts()}</g>
         <g class="ticks">${this.xTexts()}</g>
-        <line id="ts" x1="0" x2="0" y2="100%"></line>
+        <line id="thumb" x1="0" x2="0" y2="100%"></line>
       </svg>
       <div id="ct">
         <select @change=${this.handleYChange}>
@@ -517,7 +514,7 @@ export class ChartElement extends connect(store)(LitElement) {
         <div class="control">
           <i
             class=${`la la-lg ${this.centerMap ? `la-link` : `la-unlink`}`}
-            @click=${() => dispatch(setCenterMap(!this.centerMap))}
+            @click=${() => store.dispatch(setCenterMap(!this.centerMap))}
           ></i>
         </div>
       </div>
@@ -534,7 +531,7 @@ export class ChartElement extends connect(store)(LitElement) {
         this.dispatchEvent(new CustomEvent('move', { detail: { ts: this.minTs } }));
       }
       this.playTick();
-      this.playTimer = setInterval(() => this.playTick(), PLAY_INTERVAL);
+      this.playTimer = window.setInterval(() => this.playTick(), PLAY_INTERVAL);
     }
   }
 
@@ -554,40 +551,41 @@ export class ChartElement extends connect(store)(LitElement) {
     store.dispatch(setChartYAxis(y));
   }
 
-  private tsX(): number {
-    return ((this.timestamp - this.minTs) / (this.maxTs - this.minTs)) * this.width;
+  private xForTimestamp(): number {
+    return Math.round(((this.timestamp - this.minTs) / (this.maxTs - this.minTs)) * this.width);
   }
 
   private handlePointerDown(e: MouseEvent): void {
-    const { ts } = this.getCoordinatesFromEvent(e);
-    this.dispatchEvent(new CustomEvent('pin', { detail: { ts } }));
-    this.dispatchEvent(new CustomEvent('move', { detail: { ts } }));
+    const { timestamp } = this.getCoordinatesFromEvent(e);
+    this.dispatchEvent(new CustomEvent('pin', { detail: { ts: timestamp } }));
+    this.dispatchEvent(new CustomEvent('move', { detail: { ts: timestamp } }));
   }
 
   private handleMouseWheel(e: WheelEvent): void {
-    const { ts } = this.getCoordinatesFromEvent(e);
-    this.dispatchEvent(new CustomEvent('zoom', { detail: { ts, deltaY: e.deltaY } }));
+    const { timestamp } = this.getCoordinatesFromEvent(e);
+    this.dispatchEvent(new CustomEvent('zoom', { detail: { ts: timestamp, deltaY: e.deltaY } }));
   }
 
   private handlePointerMove(e: MouseEvent): void {
-    if (!this.playTimer) {
-      const { x, y, ts } = this.getCoordinatesFromEvent(e);
-      this.dispatchEvent(new CustomEvent('move', { detail: { ts } }));
-      if (!this.throttleAspUpdates) {
-        this.updateAirspaces(x, y, ts);
-        this.throttleAspUpdates = true;
-        setTimeout(() => (this.throttleAspUpdates = false), 100);
+    if (this.playTimer == null) {
+      const now = Date.now();
+      if (now > this.nextTimestampUpdate) {
+        const { x, y, timestamp } = this.getCoordinatesFromEvent(e);
+        this.dispatchEvent(new CustomEvent('move', { detail: { ts: timestamp } }));
+        this.nextTimestampUpdate = now + 20;
+        if (now > this.nextAspUpdate) {
+          this.updateAirspaces(x, y, timestamp);
+          this.nextAspUpdate = now + 40;
+        }
       }
     }
   }
 
-  private getCoordinatesFromEvent(e: MouseEvent): { x: number; y: number; ts: number } {
-    const target = e.currentTarget as HTMLElement;
-    const { top, left } = target.getBoundingClientRect();
-    const x = e.clientX - left;
-    const y = e.clientY - top;
-    const ts = (x / this.width) * (this.maxTs - this.minTs) + this.minTs;
-    return { x, y, ts };
+  private getCoordinatesFromEvent(e: MouseEvent): { x: number; y: number; timestamp: number } {
+    const x = e.offsetX;
+    const y = e.offsetY;
+    const timestamp = Math.round((x / this.width) * (this.maxTs - this.minTs) + this.minTs);
+    return { x, y, timestamp };
   }
 
   private updateAirspaces(x: number, y: number, ts: number): void {
@@ -605,19 +603,17 @@ export class ChartElement extends connect(store)(LitElement) {
         }
       });
     }
-    store.dispatch(setChartAirspaces(ts, airspaces));
+    store.dispatch(setAirspacesOnGraph(airspaces));
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
-    if (changedProps.size == 1 && changedProps.has('timestamp')) {
-      // Do not re-render if only the timestamp changes
-      const shadowRoot = this.shadowRoot as ShadowRoot;
-      const tsEl = (shadowRoot.getElementById('ts') as unknown) as SVGLineElement | null;
-      if (tsEl) {
-        tsEl.setAttribute('x1', `${this.tsX()}`);
-        tsEl.setAttribute('x2', `${this.tsX()}`);
+    if (changedProps.has('timestamp')) {
+      if (this.thumbElement) {
+        const x = String(this.xForTimestamp());
+        this.thumbElement.setAttribute('x1', x);
+        this.thumbElement.setAttribute('x2', x);
       }
-      return false;
+      changedProps.delete('timestamp');
     }
     return super.shouldUpdate(changedProps);
   }

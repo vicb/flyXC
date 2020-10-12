@@ -8,7 +8,7 @@ export class FlyXcStatusElement extends LitElement {
   @internalProperty()
   private timestamp = 0;
 
-  private fetchId: any;
+  private fetchId?: number;
   private readonly visibilityListener = () => this.handleVisibility();
 
   static get styles(): CSSResult {
@@ -62,12 +62,12 @@ export class FlyXcStatusElement extends LitElement {
     if (visible) {
       if (this.fetchId == null) {
         this.fetchStatus();
-        this.fetchId = setInterval(() => this.fetchStatus(), 2 * 60 * 1000);
+        this.fetchId = window.setInterval(() => this.fetchStatus(), 2 * 60 * 1000);
       }
     } else {
       if (this.fetchId != null) {
         clearInterval(this.fetchId);
-        this.fetchId = null;
+        this.fetchId = undefined;
       }
     }
   }

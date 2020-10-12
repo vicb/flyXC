@@ -5,20 +5,21 @@ import {
   html,
   internalProperty,
   LitElement,
+  property,
   PropertyValues,
   query,
   TemplateResult,
 } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { setDistance, setLeague, setScore, setSpeed } from '../../actions';
 import { ClosingSector } from '../../gm/closing-sector';
 import { FaiSectors } from '../../gm/fai-sectors';
-import { getCurrentUrl, getUrlParam, ParamNames, pushCurrentState, setUrlParamValue } from '../../logic/history';
+import { getCurrentUrl, pushCurrentState } from '../../logic/history';
 import { LEAGUES } from '../../logic/score/league/leagues';
 import { Measure, Point } from '../../logic/score/measure';
-import { CircuitType } from '../../logic/score/scorer';
-import { RootState, store } from '../../store';
+import { CircuitType, Score } from '../../logic/score/scorer';
+import { setDistance, setExpanded, setRoute, setScore } from '../../redux/planner-slice';
+import { RootState, store } from '../../redux/store';
 import { controlStyle } from '../control-style';
 import { PlannerElement } from './planner-element';
 
@@ -48,86 +49,72 @@ const WAYPOINT_FORMATS: { [id: string]: string } = {
 
 @customElement('path-ctrl-element')
 export class PathCtrlElement extends connect(store)(LitElement) {
-  private line?: google.maps.Polyline;
+  // Actual type is google.maps.Map.
+  @property({ attribute: false })
+  map: any;
+
+  private get gMap(): google.maps.Map {
+    return this.map;
+  }
 
   @internalProperty()
   private expanded = false;
-
-  @internalProperty()
-  private get map(): google.maps.Map | undefined {
-    return this.map_;
-  }
-  private set map(map: google.maps.Map | undefined) {
-    this.map_ = map;
-    if (!this.line) {
-      window.addEventListener('popstate', () => this.handlePopState());
-      if (this.initialPath.length == 0) {
-        const route = getUrlParam(ParamNames.ROUTE)[0];
-        if (route) {
-          this.initialPath = google.maps.geometry.encoding.decodePath(route);
-        } else {
-          this.initialPath = [];
-        }
-        const speed = getUrlParam(ParamNames.SPEED)[0];
-        if (speed) {
-          store.dispatch(setSpeed(parseFloat(speed).toFixed(1)));
-        }
-        const league = getUrlParam(ParamNames.LEAGUE)[0];
-        if (league) {
-          store.dispatch(setLeague(league));
-        }
-      }
-      if (map) {
-        if (this.initialPath.length) {
-          this.creatingInitialPath = true;
-          const line = this.createLine(map);
-          const path = line.getPath();
-          path.clear();
-          const bounds = new google.maps.LatLngBounds();
-          this.initialPath?.forEach((p) => {
-            bounds.extend(p);
-            path.push(p);
-          });
-          map.fitBounds(bounds);
-          this.toggleExpanded();
-          this.creatingInitialPath = false;
-        }
-      }
-    }
-  }
-  private map_: google.maps.Map | undefined;
-
-  @internalProperty()
-  private speed = 0;
-
   @internalProperty()
   private league = 'xc';
+  @internalProperty()
+  private encodedRoute = '';
 
   @query('#share-dialog')
   private shareDialog?: any;
-
   @query('#download-dialog')
   private downloadDialog?: any;
 
-  private initialPath: google.maps.LatLng[] = [];
-  private creatingInitialPath = false;
-  private onAddPoint: google.maps.MapsEventListener | null = null;
-  private flight: google.maps.Polyline | null = null;
+  private line?: google.maps.Polyline;
+  private optimizedLine?: google.maps.Polyline;
+  // Set to true to block updating the state.
+  // i.e. when the line is being created from the state.
+  private doNotSyncState = false;
+  private onPointAddeded?: google.maps.MapsEventListener;
+  private onBoundsChanged?: google.maps.MapsEventListener;
   private closingSector?: ClosingSector;
   private faiSectors?: FaiSectors;
   private plannerElement?: PlannerElement;
 
   stateChanged(state: RootState): void {
-    this.speed = state.map.speed;
-    this.league = state.map.league;
+    this.league = state.planner.league;
+    this.expanded = state.planner.expanded;
+    this.encodedRoute = state.planner.route;
   }
 
   shouldUpdate(changedProperties: PropertyValues): boolean {
-    if (changedProperties.has('league')) {
-      this.computeDistance();
-      changedProperties.delete('league');
+    if (changedProperties.has('expanded')) {
+      if (this.expanded) {
+        this.createPlannerElement(this.gMap);
+        this.line = this.createLine();
+        this.updateLineFromState();
+        if (this.encodedRoute.length > 0) {
+          const bounds = new google.maps.LatLngBounds();
+          this.line.getPath().forEach((p) => {
+            bounds.extend(p);
+          });
+          this.gMap.fitBounds(bounds);
+        }
+      } else {
+        this.destroy();
+      }
+    }
+    if (changedProperties.has('league') && this.expanded) {
+      this.optimize();
+    }
+    if (changedProperties.has('encodedRoute') && this.expanded) {
+      this.updateLineFromState();
     }
     return super.shouldUpdate(changedProperties);
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.destroy();
   }
 
   static get styles(): CSSResult[] {
@@ -146,176 +133,36 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     ];
   }
 
-  // Handle expanding/collapsing the control.
-  private toggleExpanded(): void {
-    this.expanded = !this.expanded;
-    if (this.map) {
-      if (this.expanded) {
-        this.createLeftPaneLazily(this.map);
-        const line = this.line ?? this.createLine(this.map);
-        this.onAddPoint = google.maps.event.addListener(this.map, 'rightclick', (e: google.maps.MouseEvent) =>
-          this.appendToPath(e.latLng),
-        );
-        line.setMap(this.map);
-        this.computeDistance();
-      } else {
-        this.cleanupOnCollapse();
-        google.maps.event.removeListener(this.onAddPoint as google.maps.MapsEventListener);
-        this.onAddPoint = null;
-      }
-    }
-  }
-
-  private appendToPath(coord: google.maps.LatLng): void {
-    this.line?.getPath().push(coord);
-  }
-
-  private createLine(map: google.maps.Map): google.maps.Polyline {
-    const line = (this.line = new google.maps.Polyline({
-      editable: true,
-      map,
-      strokeColor: 'black',
-      strokeWeight: 1,
-      path: new google.maps.MVCArray(),
-      zIndex: 100,
-      icons: [
-        {
-          icon: { path: google.maps.SymbolPath.FORWARD_OPEN_ARROW, scale: 1.5 },
-          repeat: '100px',
-        },
-      ],
-    }));
-
-    const path = this.resetPath();
-    google.maps.event.addListener(path, 'set_at', () => this.handlePathUpdates());
-    google.maps.event.addListener(path, 'remove_at', () => this.handlePathUpdates());
-    google.maps.event.addListener(path, 'insert_at', () => this.handlePathUpdates());
-    google.maps.event.addListener(line, 'rightclick', (event: google.maps.PolyMouseEvent): void => {
-      if (event.vertex != null) {
-        const path = line.getPath();
-        path.getLength() > 2 && path.removeAt(event.vertex);
-      }
-    });
-    google.maps.event.addListener(line, 'dblclick', (event: google.maps.PolyMouseEvent): void => {
-      if (event.vertex != null) {
-        const path = line.getPath();
-        path.getLength() > 2 && path.removeAt(event.vertex);
-      }
-    });
-
-    return line;
-  }
-
-  private resetPath(): google.maps.MVCArray<google.maps.LatLng> {
-    const map = this.map as google.maps.Map;
-    const line = this.line as google.maps.Polyline;
-    const path = line.getPath();
-    const center = map.getCenter();
-    const mapViewSpan = (map.getBounds() as google.maps.LatLngBounds).toSpan();
-    path.clear();
-    path.push(new google.maps.LatLng(center.lat(), center.lng() + mapViewSpan.lng() / 5));
-    path.push(new google.maps.LatLng(center.lat(), center.lng() - mapViewSpan.lng() / 5));
-    return path;
-  }
-
-  private getPathPoints(): Point[] {
-    return this.line
-      ? this.line
-          .getPath()
-          .getArray()
-          .map((latLng) => ({ lat: latLng.lat(), lon: latLng.lng() }))
-      : [];
-  }
-
-  private computeDistance(): void {
-    if (!this.line || this.line.getPath().getLength() < 2) {
+  private updateLineFromState() {
+    if (!this.line) {
       return;
     }
-    const line = this.line;
-    const distance = google.maps.geometry.spherical.computeLength(line.getPath());
-    const points = this.getPathPoints();
-    const measure = new Measure(points);
-    const league = LEAGUES[this.league];
-    const scores = league.score(measure);
-
-    this.flight?.setMap(null);
-    this.flight = null;
-
-    store.dispatch(setDistance(distance));
-    scores.sort((score1, score2) => score2.points - score1.points);
-    const score = scores[0];
-    store.dispatch(setScore(score));
-    let path = score.indexes.map((index) => new google.maps.LatLng(points[index].lat, points[index].lon));
-    if (score.circuit == CircuitType.FLAT_TRIANGLE || score.circuit == CircuitType.FAI_TRIANGLE) {
-      path = [path[1], path[2], path[3], path[1]];
-    } else if (score.circuit == CircuitType.OUT_AND_RETURN) {
-      path = [path[1], path[2]];
+    this.doNotSyncState = true;
+    if (this.encodedRoute.length == 0) {
+      this.setDefaultPath();
+    } else {
+      const path = this.line.getPath();
+      path.clear();
+      const coords = google.maps.geometry.encoding.decodePath(this.encodedRoute);
+      coords.forEach((latLon) => {
+        path.push(latLon);
+      });
     }
-
-    this.flight = new google.maps.Polyline({
-      map: this.map as google.maps.Map,
-      path,
-      strokeColor: ROUTE_STROKE_COLORS[score.circuit],
-      strokeOpacity: 0.8,
-      strokeWeight: 3,
-      zIndex: 1000,
-    });
-
-    if (!this.closingSector) {
-      this.closingSector = new ClosingSector();
-      this.closingSector.addListener('rightclick', (e: google.maps.MouseEvent) => this.appendToPath(e.latLng));
-    }
-    this.closingSector.setMap(null);
-    if (score.closingRadius) {
-      const center = points[score.indexes[0]];
-      this.closingSector.center = center;
-      this.closingSector.radius = score.closingRadius;
-      this.closingSector.update();
-      this.closingSector.setMap(this.map);
-    }
-
-    if (!this.faiSectors) {
-      this.faiSectors = new FaiSectors();
-      this.faiSectors.addListeners('rightclick', (e: google.maps.MouseEvent) => this.appendToPath(e.latLng));
-    }
-    this.faiSectors.setMap(null);
-    if (score.circuit == CircuitType.FLAT_TRIANGLE || score.circuit == CircuitType.FAI_TRIANGLE) {
-      const faiPoints = score.indexes.slice(1, 4).map((i) => points[i]);
-      this.faiSectors.update(faiPoints);
-      this.faiSectors.setMap(this.map);
-    }
-
-    // Sends a message to the iframe host with the changes.
-    let kms = '';
-    let circuit = '';
-    if (score.distance && window.parent) {
-      kms = (score.distance / 1000).toFixed(1);
-      circuit = CIRCUIT_SHORT_NAME[score.circuit];
-      if (score.circuit == CircuitType.OPEN_DISTANCE) {
-        circuit += score.indexes.length - 2;
-      }
-      window.parent.postMessage(
-        JSON.stringify({
-          kms,
-          circuit,
-          l: this.league,
-          p: google.maps.geometry.encoding.encodePath(line.getPath()),
-        }),
-        '*',
-      );
-    }
+    this.doNotSyncState = false;
+    this.optimize();
   }
 
   protected render(): TemplateResult {
-    // Update the URL on re-rendering
-    setUrlParamValue(ParamNames.SPEED, String(this.speed));
-    setUrlParamValue(ParamNames.LEAGUE, this.league);
     return html`
       <link
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
       />
-      <i class="la la-ruler la-2x" style="cursor: pointer" @click=${this.toggleExpanded}></i>
+      <i
+        class="la la-ruler la-2x"
+        style="cursor: pointer"
+        @click=${() => store.dispatch(setExpanded(!this.expanded))}
+      ></i>
 
       <ui5-dialog id="share-dialog" header-text="Share">
         <section class="form-fields">
@@ -339,7 +186,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
           </div>
           <br />
           <div>
-            <ui5-label><a href=${this.getXcTrackHref()}>Open with XcTrack</a></ui5-label>
+            <ui5-label><a href=${this.getXcTrackLink()}>Open with XcTrack</a></ui5-label>
           </div>
           <img id="qr-code" width="256" height="256" />
         </section>
@@ -392,6 +239,162 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     `;
   }
 
+  private setDefaultPath() {
+    if (this.line) {
+      const path = this.line.getPath();
+      path.clear();
+      const center = this.gMap.getCenter();
+      const mapViewSpan = (this.gMap.getBounds() as google.maps.LatLngBounds).toSpan();
+      path.push(new google.maps.LatLng(center.lat(), center.lng() + mapViewSpan.lng() / 5));
+      path.push(new google.maps.LatLng(center.lat(), center.lng() - mapViewSpan.lng() / 5));
+    }
+  }
+
+  private appendToPath(coord: google.maps.LatLng): void {
+    this.line?.getPath().push(coord);
+  }
+
+  private createLine(): google.maps.Polyline {
+    const line = new google.maps.Polyline({
+      editable: true,
+      map: this.gMap,
+      strokeColor: 'black',
+      strokeWeight: 1,
+      path: new google.maps.MVCArray(),
+      zIndex: 100,
+      icons: [
+        {
+          icon: { path: google.maps.SymbolPath.FORWARD_OPEN_ARROW, scale: 1.5 },
+          repeat: '100px',
+        },
+      ],
+    });
+
+    const path = line.getPath();
+    google.maps.event.addListener(path, 'set_at', () => this.handlePathUpdates());
+    google.maps.event.addListener(path, 'remove_at', () => this.handlePathUpdates());
+    google.maps.event.addListener(path, 'insert_at', () => this.handlePathUpdates());
+    google.maps.event.addListener(line, 'rightclick', (event: google.maps.PolyMouseEvent): void => {
+      if (event.vertex != null) {
+        const path = line.getPath();
+        path.getLength() > 2 && path.removeAt(event.vertex);
+      }
+    });
+    google.maps.event.addListener(line, 'dblclick', (event: google.maps.PolyMouseEvent): void => {
+      if (event.vertex != null) {
+        const path = line.getPath();
+        path.getLength() > 2 && path.removeAt(event.vertex);
+      }
+    });
+    this.onPointAddeded = google.maps.event.addListener(this.gMap, 'rightclick', (e: google.maps.MouseEvent) =>
+      this.appendToPath(e.latLng),
+    );
+    this.onBoundsChanged = google.maps.event.addListener(this.gMap, 'bounds_changed', () => {
+      if (this.expanded && this.encodedRoute.length == 0) {
+        this.updateLineFromState();
+      }
+    });
+
+    return line;
+  }
+
+  // Returns the route as an array of points.
+  private getPathPoints(): Point[] {
+    return this.line
+      ? this.line
+          .getPath()
+          .getArray()
+          .map((latLng) => ({ lat: latLng.lat(), lon: latLng.lng() }))
+      : [];
+  }
+
+  // Optimize the route and draw the optimize lines and sectors.
+  private optimize(): void {
+    if (!this.line || this.line.getPath().getLength() < 2) {
+      return;
+    }
+    const line = this.line;
+    store.dispatch(setDistance(google.maps.geometry.spherical.computeLength(line.getPath())));
+
+    const points = this.getPathPoints();
+    const measure = new Measure(points);
+    const scores = LEAGUES[this.league].score(measure);
+
+    scores.sort((score1, score2) => score2.points - score1.points);
+    const score = scores[0];
+    store.dispatch(setScore(score));
+
+    let optimizedPath = score.indexes.map((index) => new google.maps.LatLng(points[index].lat, points[index].lon));
+    if (score.circuit == CircuitType.FLAT_TRIANGLE || score.circuit == CircuitType.FAI_TRIANGLE) {
+      optimizedPath = [optimizedPath[1], optimizedPath[2], optimizedPath[3], optimizedPath[1]];
+    } else if (score.circuit == CircuitType.OUT_AND_RETURN) {
+      optimizedPath = [optimizedPath[1], optimizedPath[2]];
+    }
+
+    if (!this.optimizedLine) {
+      this, (this.optimizedLine = new google.maps.Polyline());
+    }
+    this.optimizedLine.setOptions({
+      map: this.gMap,
+      path: optimizedPath,
+      strokeColor: ROUTE_STROKE_COLORS[score.circuit],
+      strokeOpacity: 0.8,
+      strokeWeight: 3,
+      zIndex: 1000,
+    });
+
+    if (!this.closingSector) {
+      this.closingSector = new ClosingSector();
+      this.closingSector.addListener('rightclick', (e) => this.appendToPath(e.latLng));
+    }
+
+    if (score.closingRadius) {
+      const center = points[score.indexes[0]];
+      this.closingSector.center = center;
+      this.closingSector.radius = score.closingRadius;
+      this.closingSector.update();
+      this.closingSector.setMap(this.gMap);
+    } else {
+      this.closingSector.setMap(null);
+    }
+
+    if (!this.faiSectors) {
+      this.faiSectors = new FaiSectors();
+      this.faiSectors.addListeners('rightclick', (e) => this.appendToPath(e.latLng));
+    }
+    if (score.circuit == CircuitType.FLAT_TRIANGLE || score.circuit == CircuitType.FAI_TRIANGLE) {
+      const faiPoints = score.indexes.slice(1, 4).map((i) => points[i]);
+      this.faiSectors.update(faiPoints);
+      this.faiSectors.setMap(this.gMap);
+    } else {
+      this.faiSectors.setMap(null);
+    }
+
+    this.postScoreToHost(score);
+  }
+
+  // Sends a message to the iframe host with the changes.
+  private postScoreToHost(score: Score) {
+    let kms = '';
+    let circuit = '';
+    if (score.distance && window.parent) {
+      kms = (score.distance / 1000).toFixed(1);
+      circuit = CIRCUIT_SHORT_NAME[score.circuit];
+      if (score.circuit == CircuitType.OPEN_DISTANCE) {
+        circuit += score.indexes.length - 2;
+      }
+      window.parent.postMessage(
+        JSON.stringify({
+          kms,
+          circuit,
+          l: this.league,
+          p: this.encodedRoute,
+        }),
+        '*',
+      );
+    }
+  }
+
   private closeShareDialog(): void {
     this.shareDialog?.close();
   }
@@ -427,37 +430,15 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     }
   }
 
-  // Update the route when history changes.
-  private handlePopState(): void {
-    const route = getUrlParam(ParamNames.ROUTE)[0];
-    if (this.line) {
-      if (route) {
-        const path = this.line.getPath();
-        path.clear();
-        google.maps.geometry.encoding.decodePath(route).forEach((latLng) => {
-          path.push(latLng);
-        });
-        this.computeDistance();
-      } else if (this.expanded) {
-        this.toggleExpanded();
-      }
-    }
-  }
-
-  // Updates the URL route parameter and add an history entry when the route is updated.
   private handlePathUpdates(): void {
-    // Do not record history when the path is being created from the URL parameter.
-    if (this.line && !this.creatingInitialPath) {
-      const path = this.line.getPath();
+    if (this.line && !this.doNotSyncState) {
       pushCurrentState();
-      setUrlParamValue(ParamNames.ROUTE, google.maps.geometry.encoding.encodePath(path));
+      store.dispatch(setRoute(google.maps.geometry.encoding.encodePath(this.line.getPath())));
     }
-    // Update the download dialog;
-    this.requestUpdate();
-    this.computeDistance();
+    this.optimize();
   }
 
-  private getXcTrackHref(): string {
+  private getXcTrackLink(): string {
     const params = new URLSearchParams();
     if (this.line) {
       const points: string[] = [];
@@ -469,8 +450,8 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     return `http://xctrack.org/xcplanner?${params}`;
   }
 
-  // Creates the left pane lazily.
-  private createLeftPaneLazily(map: google.maps.Map): void {
+  // Creates the planner element lazily.
+  private createPlannerElement(map: google.maps.Map): void {
     if (this.plannerElement) {
       return;
     }
@@ -492,18 +473,25 @@ export class PathCtrlElement extends connect(store)(LitElement) {
         const dialog = shadowRoot.getElementById('download-dialog') as any;
         dialog.open();
       });
-      this.plannerElement.addEventListener('reset', () => this.resetPath());
+      this.plannerElement.addEventListener('reset', () => store.dispatch(setRoute('')));
     }
   }
 
   // Cleanup resources when the planner control gets closed.
-  private cleanupOnCollapse(): void {
-    if (this.line) {
-      this.line.setMap(null);
-      this.flight?.setMap(null);
-      this.closingSector?.setMap(null);
-      this.faiSectors?.setMap(null);
-      store.dispatch(setScore(null));
-    }
+  private destroy(): void {
+    google.maps.event.removeListener(this.onPointAddeded as google.maps.MapsEventListener);
+    this.onPointAddeded = undefined;
+    google.maps.event.removeListener(this.onBoundsChanged as google.maps.MapsEventListener);
+    this.onBoundsChanged = undefined;
+    this.line?.setMap(null);
+    this.line = undefined;
+    this.optimizedLine?.setMap(null);
+    this.optimizedLine = undefined;
+    this.closingSector?.setMap(null);
+    this.closingSector = undefined;
+    this.faiSectors?.setMap(null);
+    this.faiSectors = undefined;
+    this.plannerElement?.remove();
+    this.plannerElement = undefined;
   }
 }

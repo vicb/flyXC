@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es2017",
-    "module": "esNext",
+    "target": "ES2019",
+    "module": "ES2020",
     "allowJs": true,
     "sourceMap": true,
     "importHelpers": true,
