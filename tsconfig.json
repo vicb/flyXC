@@ -1,7 +1,5 @@
 {
   "compilerOptions": {
-    //"incremental": true ,
-    // see https://lit-element.polymer-project.org/guide/publish
     "target": "es2017",
     "module": "esNext",
     "allowJs": true,
@@ -12,9 +10,12 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",
-    // "baseUrl": "./",                       
-    // "paths": {},                           
-    // "rootDirs": [],                        
+    "baseUrl": ".",
+    "paths": {
+      "flyxc/*": [
+        "./*"
+      ]
+    },
     "typeRoots": [
       "node_modules/@types",
       "frontend/node_modules/@types"
