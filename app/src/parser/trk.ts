@@ -1,4 +1,4 @@
-import { ProtoTrack } from '../../../common/track';
+import { Track } from 'flyxc/common/protos/track';
 
 const months: { [key: string]: number } = {
   JAN: 0,
@@ -15,7 +15,7 @@ const months: { [key: string]: number } = {
   DEC: 11,
 };
 
-export function parse(content: string): ProtoTrack[] {
+export function parse(content: string): Track[] {
   const lat: number[] = [];
   const lon: number[] = [];
   const alt: number[] = [];

@@ -3,22 +3,13 @@ const request = require('request-zero');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
 import async from 'async';
+import { Keys } from 'flyxc/app/src/keys';
+import { retrieveTrackById, saveTrack, TrackEntity } from 'flyxc/common/datastore';
+import * as protos from 'flyxc/common/protos/track';
+import { diffDecodeTrack, diffEncodeAirspaces, diffEncodeArray } from 'flyxc/common/track';
 import * as polyline from 'google-polyline';
-import Pbf from 'pbf';
 import simplify from 'simplify-path';
 
-import { Keys } from '../../../app/src/keys';
-import { retrieveTrackById, saveTrack, TrackEntity } from '../../../common/datastore';
-import {
-  diffDecodeTrack,
-  diffEncodeAirspaces,
-  diffEncodeArray,
-  ProtoAirspaces,
-  ProtoGroundAltitude,
-  ProtoTrack,
-  ProtoTrackGroup,
-} from '../../../common/track';
-import * as protos from '../../../common/track_proto';
 import { fetchAirspaces } from './airspace';
 import { fetchGroundAltitude } from './altitude';
 
@@ -31,32 +22,26 @@ export async function postProcessTrack(trackId: number | string): Promise<TrackE
 
     if (trackGroupBin) {
       // Retrieve the tracks.
-      const trackGroup: ProtoTrackGroup = (protos.TrackGroup as any).read(new Pbf(trackGroupBin));
-      const tracks: ProtoTrack[] = trackGroup.tracks.map(diffDecodeTrack);
+      const trackGroup: protos.TrackGroup = protos.TrackGroup.fromBinary(new Uint8Array(trackGroupBin));
+      const tracks: protos.Track[] = trackGroup.tracks.map((t) => diffDecodeTrack(t));
 
       // Add ground altitude.
-      const groundAltitudes: ProtoGroundAltitude[] = await async.mapSeries(tracks, fetchGroundAltitude);
-      hasErrors = hasErrors || groundAltitudes.some((proto) => proto.has_errors);
-      let pbf = new Pbf();
-      (protos.GroundAltitudeGroup as any).write(
-        {
-          ground_altitudes: groundAltitudes.map(({ altitudes, has_errors }) => ({
-            altitudes: diffEncodeArray(altitudes),
-            has_errors,
-          })),
-        },
-        pbf,
-      );
-      trackEntity.ground_altitude_group = Buffer.from(pbf.finish());
+      const groundAltitudes: protos.GroundAltitude[] = await async.mapSeries(tracks, fetchGroundAltitude);
+      hasErrors = hasErrors || groundAltitudes.some((proto) => proto.hasErrors);
+
+      trackEntity.ground_altitude_group = protos.GroundAltitudeGroup.toBinary({
+        groundAltitudes: groundAltitudes.map(({ altitudes, hasErrors }) => ({
+          altitudes: diffEncodeArray(altitudes),
+          hasErrors,
+        })),
+      });
 
       // Add airspaces.
-      const airspaces: ProtoAirspaces[] = [];
+      const airspaces: protos.Airspaces[] = [];
       await async.eachOfSeries(tracks, async (track, i) => {
         airspaces.push(await fetchAirspaces(track, groundAltitudes[Number(i)]));
       });
-      pbf = new Pbf();
-      (protos.AirspacesGroup as any).write({ airspaces: airspaces.map(diffEncodeAirspaces) }, pbf);
-      trackEntity.airspaces_group = Buffer.from(pbf.finish());
+      trackEntity.airspaces_group = protos.AirspacesGroup.toBinary({ airspaces: airspaces.map(diffEncodeAirspaces) });
 
       const firstTrack = tracks[0];
       if (firstTrack != null) {
@@ -81,7 +66,7 @@ export async function postProcessTrack(trackId: number | string): Promise<TrackE
 }
 
 // Returns the location of the first fix in the track.
-async function getLocation(track: ProtoTrack): Promise<{ city: string; country: string }> {
+async function getLocation(track: protos.Track): Promise<{ city: string; country: string }> {
   const location = {
     city: '',
     country: '',

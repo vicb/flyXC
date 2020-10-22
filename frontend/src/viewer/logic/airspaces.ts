@@ -1,9 +1,7 @@
-import { airspaceColor, classifyRings, Flags, getAspTileUrl, isInFeature, tileId } from 'flyxc/common/airspaces';
+import { airspaceColor, Flags, getAspTileUrl, isInFeature, tileId } from 'flyxc/common/airspaces';
 import { pixelCoordinates } from 'flyxc/common/proj';
 import { LatLon, Point } from 'flyxc/common/track';
-import Protobuf from 'pbf';
-
-import { VectorTile } from '@mapbox/vector-tile';
+import { VectorTile } from 'mapbox-vector-tile';
 
 const TILE_SIZE = 256;
 
@@ -140,7 +138,7 @@ function getTile(
         return;
       }
 
-      const vTile = new VectorTile(new Protobuf(buffer));
+      const vTile = new VectorTile(new Uint8Array(buffer));
 
       if (vTile.layers.asp) {
         const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -161,12 +159,13 @@ function getTile(
           const f = vTile.layers.asp.feature(i);
           const props = f.properties;
           const ratio = mapTileSize / f.extent;
+          const flags = props.flags as number;
           if (
             f.type === 3 &&
-            props.bottom < altitude &&
-            !(props.flags & Flags.AIRSPACE_RESTRICTED && !showRestricted)
+            (props.bottom as number) < altitude &&
+            !(flags & Flags.AIRSPACE_RESTRICTED && !showRestricted)
           ) {
-            const polygons = classifyRings(f.loadGeometry());
+            const polygons = f.asPolygons() ?? [];
             polygons.forEach((polygon) => {
               ctx.beginPath();
               polygon.forEach((ring: Point[]) => {
@@ -174,7 +173,7 @@ function getTile(
                   x: Math.round(x * ratio),
                   y: Math.round(y * ratio),
                 }));
-                ctx.fillStyle = airspaceColor(props.flags, 70);
+                ctx.fillStyle = airspaceColor(flags, 70);
                 ctx.moveTo(coords[0].x, coords[0].y);
                 for (let j = 1; j < coords.length; j++) {
                   const p = coords[j];
@@ -183,7 +182,7 @@ function getTile(
               });
               ctx.closePath();
               ctx.fill('evenodd');
-              ctx.strokeStyle = airspaceColor(props.flags, 75);
+              ctx.strokeStyle = airspaceColor(flags, 75);
               ctx.stroke();
             });
           }

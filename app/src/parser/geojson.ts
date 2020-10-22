@@ -1,12 +1,12 @@
-import { ProtoTrack } from '../../../common/track';
+import { Track } from 'flyxc/common/protos/track';
 
 // Parse a GeoJson track to a proto message.
-export function parseGeoJson(geojson: any): ProtoTrack[] {
+export function parseGeoJson(geojson: any): Track[] {
   if (geojson.type != 'FeatureCollection') {
     return [];
   }
 
-  const tracks: ProtoTrack[] = [];
+  const tracks: Track[] = [];
 
   for (const feature of geojson.features) {
     const type = feature.geometry.type;

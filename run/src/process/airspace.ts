@@ -1,12 +1,11 @@
 import async from 'async';
-import Protobuf from 'pbf';
+import { Flags, getAspTileUrl, isInFeature } from 'flyxc/common/airspaces';
+import { pixelCoordinates } from 'flyxc/common/proj';
+import * as protos from 'flyxc/common/protos/track';
+import { Point } from 'flyxc/common/track';
+import { VectorTile } from 'mapbox-vector-tile';
 import lru, { Lru } from 'tiny-lru';
 
-import { VectorTile } from '@mapbox/vector-tile';
-
-import { Flags, getAspTileUrl, isInFeature } from '../../../common/airspaces';
-import { pixelCoordinates } from '../../../common/proj';
-import { Point, ProtoAirspaces, ProtoGroundAltitude, ProtoTrack } from '../../../common/track';
 import { httpsGet } from './request';
 
 // Zoom level for the airspaces tiles.
@@ -25,7 +24,7 @@ const ASP_SIZE_MB = 1000 / (1000 * 1000);
 let aspCache: Lru<Buffer | null> | null = null;
 
 // Retrieves the airspaces for the given track.
-export async function fetchAirspaces(track: ProtoTrack, altitude: ProtoGroundAltitude): Promise<ProtoAirspaces> {
+export async function fetchAirspaces(track: protos.Track, altitude: protos.GroundAltitude): Promise<protos.Airspaces> {
   // Retrieve the list of urls to download.
   const indexesByTileUrl = new Map<string, number[]>();
   const tilePixels: Array<Point> = [];
@@ -68,14 +67,15 @@ export async function fetchAirspaces(track: ProtoTrack, altitude: ProtoGroundAlt
     if (buffer == null) {
       continue;
     }
-    const aspLayer = new VectorTile(new Protobuf(buffer)).layers.asp;
+    const aspLayer = new VectorTile(new Uint8Array(buffer)).layers.asp;
 
     for (let i = 0; i < aspLayer.length; i++) {
       const feature = aspLayer.feature(i);
       const props = feature.properties;
       const key = getAspFeatureKey(feature);
       for (const fixIdx of indexes) {
-        const bottom = props.flags & Flags.BOTTOM_REF_GND ? gndAlt[fixIdx] + props.bottom : props.bottom;
+        const flags = props.flags as number;
+        const bottom = (props.bottom as number) + (flags & Flags.BOTTOM_REF_GND ? (gndAlt[fixIdx] as number) : 0);
         if (bottom > maxAltitude) {
           continue;
         }
@@ -129,20 +129,20 @@ export async function fetchAirspaces(track: ProtoTrack, altitude: ProtoGroundAlt
 
   aspObjects.sort((a, b) => (a.start < b.start ? -1 : 1));
 
-  const protoAirspaces: ProtoAirspaces = {
-    start_ts: [],
-    end_ts: [],
+  const protoAirspaces: protos.Airspaces = {
+    startTs: [],
+    endTs: [],
     name: [],
     category: [],
     top: [],
     bottom: [],
     flags: [],
-    has_errors: altitude.has_errors,
+    hasErrors: altitude.hasErrors,
   };
 
   aspObjects.forEach((asp) => {
-    protoAirspaces.start_ts.push(asp.start);
-    protoAirspaces.end_ts.push(asp.end);
+    protoAirspaces.startTs.push(asp.start);
+    protoAirspaces.endTs.push(asp.end);
     protoAirspaces.name.push(asp.name);
     protoAirspaces.category.push(asp.category);
     protoAirspaces.top.push(asp.top);

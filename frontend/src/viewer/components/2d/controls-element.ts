@@ -64,7 +64,7 @@ export class ControlsElement extends connect(store)(LitElement) {
   @internalProperty()
   private units?: Units;
   @internalProperty()
-  private color: '';
+  private color = '';
   @internalProperty()
   private view3d = false;
   @internalProperty()

@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { Datastore } = require('@google-cloud/datastore');
-/* eslint-enable @typescript-eslint/no-var-requires */
 
 import zlib from 'zlib';
 
-import { ProtoMetaTrackGroup } from './track';
+import * as protos from './protos/track';
 
 const datastore = new Datastore();
 
@@ -60,7 +59,7 @@ export async function saveTrack(track: TrackEntity): Promise<number> {
 // Note:
 // There can be no select clause here are fields are not indexed.
 // See https://cloud.google.com/datastore/docs/concepts/queries#projection_queries
-export async function retrieveMetaTrackGroupByHash(hash: string): Promise<ProtoMetaTrackGroup | null> {
+export async function retrieveMetaTrackGroupByHash(hash: string): Promise<protos.MetaTrackGroup | null> {
   if (process.env.USE_CACHE) {
     const query = datastore.createQuery('Track').filter('hash', hash).limit(1);
     const entities = (await datastore.runQuery(query))[0];
@@ -76,7 +75,7 @@ export async function retrieveMetaTrackGroupByHash(hash: string): Promise<ProtoM
 // Note:
 // There can be no select clause here are fields are not indexed.
 // See https://cloud.google.com/datastore/docs/concepts/queries#projection_queries
-export async function retrieveMetaTrackGroupByUrl(url: string): Promise<ProtoMetaTrackGroup | null> {
+export async function retrieveMetaTrackGroupByUrl(url: string): Promise<protos.MetaTrackGroup | null> {
   if (process.env.USE_CACHE) {
     const query = datastore.createQuery('Track').filter('url', url).filter('valid', true).limit(1);
     const entities = (await datastore.runQuery(query))[0];
@@ -92,7 +91,7 @@ export async function retrieveMetaTrackGroupByUrl(url: string): Promise<ProtoMet
 // Note:
 // There can be no select clause here are fields are not indexed.
 // See https://cloud.google.com/datastore/docs/concepts/queries#projection_queries
-export async function retrieveMetaTrackGroupsByIds(ids: Array<number | string>): Promise<ProtoMetaTrackGroup[]> {
+export async function retrieveMetaTrackGroupsByIds(ids: Array<number | string>): Promise<protos.MetaTrackGroup[]> {
   if (process.env.USE_CACHE) {
     const entities = await datastore.get(ids.map((id) => datastore.key(['Track', Number(id)])));
     return entities[0].map(entityToMetaTrackGroup);
@@ -113,7 +112,7 @@ export async function retrieveTrackById(id: number | string): Promise<TrackEntit
 }
 
 // Converts a gzipped entity to a Meta Track Group.
-function entityToMetaTrackGroup(entity: TrackEntity): ProtoMetaTrackGroup {
+function entityToMetaTrackGroup(entity: TrackEntity): protos.MetaTrackGroup {
   if (!(key_symbol in entity)) {
     throw new Error('An ID is required');
   }
@@ -122,10 +121,10 @@ function entityToMetaTrackGroup(entity: TrackEntity): ProtoMetaTrackGroup {
 
   return {
     id: entity[key_symbol].id as number,
-    num_postprocess: entity.num_postprocess,
-    track_group_bin: entity.track_group,
-    ground_altitude_group_bin: entity.ground_altitude_group,
-    airspaces_group_bin: entity.airspaces_group,
+    numPostprocess: entity.num_postprocess,
+    trackGroupBin: entity.track_group ? new Uint8Array(entity.track_group) : undefined,
+    groundAltitudeGroupBin: entity.ground_altitude_group ? new Uint8Array(entity.ground_altitude_group) : undefined,
+    airspacesGroupBin: entity.airspaces_group ? new Uint8Array(entity.airspaces_group) : undefined,
   };
 }
 

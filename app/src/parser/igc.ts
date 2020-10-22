@@ -1,10 +1,9 @@
+import { Track } from 'flyxc/common/protos/track';
 import IGCParser from 'igc-parser';
-
-import { ProtoTrack } from '../../../common/track';
 
 const MAX_PRESSURE_OFFSET_METER = 100;
 
-export function parse(content: string): ProtoTrack[] {
+export function parse(content: string): Track[] {
   let igc: IGCParser.IGCFile;
   try {
     igc = IGCParser.parse(content, { lenient: true });

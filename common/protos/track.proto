@@ -1,13 +1,13 @@
-syntax = "proto2";
+syntax = "proto3";
 
 // A single track.
 // Fixes are differential encoded.
 message Track {
-  optional string pilot = 1;
-  repeated sint32 lat = 2 [packed = true];
-  repeated sint32 lon = 3 [packed = true];
-  repeated sint32 alt = 4 [packed = true];
-  repeated uint32 ts = 5 [packed = true];
+  string pilot = 1;
+  repeated sint32 lat = 2;
+  repeated sint32 lon = 3;
+  repeated sint32 alt = 4;
+  repeated uint32 ts = 5;
 }
 
 // All the tracks for a single file.
@@ -18,9 +18,9 @@ message TrackGroup {
 
 // Ground altitude for a single Track.
 message GroundAltitude {
-  repeated sint32 altitudes = 1 [packed = true];
+  repeated sint32 altitudes = 1;
   // True when errors were encountered while retrieveing the altitudes.
-  optional bool has_errors = 2;
+  bool has_errors = 2;
 }
 
 // Ground altitude for a Track group.
@@ -38,7 +38,7 @@ message Airspaces {
   repeated sint32 top = 5;
   repeated sint32 bottom = 6;
   repeated uint32 flags = 7;
-  optional bool has_errors = 8;
+  bool has_errors = 8;
 }
 
 message AirspacesGroup {
@@ -46,8 +46,8 @@ message AirspacesGroup {
 }
 
 message MetaTrackGroup {
-  optional int64 id = 1;
-  optional uint32 num_postprocess = 2;
+  int64 id = 1 [jstype = JS_NUMBER];
+  uint32 num_postprocess = 2;
   optional bytes track_group_bin = 3;
   // This field is only present when there are some altitude data.
   // The GroundAltitude can still have has_errors = true if not all the data

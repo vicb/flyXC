@@ -8,7 +8,6 @@ import session from 'express-session';
 import Redis from 'ioredis';
 import QRCode from 'qrcode';
 
-import { migrate } from '../../common/migrate';
 import { Keys } from './keys';
 import { getStatusRouter } from './routes/status';
 import { getTrackerRouter } from './routes/trackers';
@@ -96,14 +95,6 @@ app.get('/logout', (req: Request, res: Response) => {
   req.session?.destroy(() => null);
   res.redirect('/');
 });
-
-// @ts-ignore: always false in prod mode.
-if (process.env.NODE_ENV == 'development') {
-  app.get('/__migrate', async (req: Request, res: Response) => {
-    await migrate();
-    res.sendStatus(200);
-  });
-}
 
 const port = process.env.PORT || 8080;
 app

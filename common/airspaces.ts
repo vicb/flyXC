@@ -1,6 +1,6 @@
-import { Point } from './track';
+import { Feature } from 'mapbox-vector-tile';
 
-type Polygon = Point[];
+import { Point } from './track';
 
 // Flags of the airspaces.
 export const enum Flags {
@@ -48,9 +48,9 @@ export function airspaceCategory(flags: number): string {
 }
 
 // Returns whether the point is inside the polygon feature.
-export function isInFeature(point: Point, feature: any): boolean {
+export function isInFeature(point: Point, feature: Feature): boolean {
   const ratio = 256 / feature.extent;
-  const polygons = classifyRings(feature.loadGeometry());
+  const polygons = feature.asPolygons() ?? [];
   for (const rings of polygons) {
     // The point must be in the outer ring.
     let isIn = isInPolygon(point, rings[0], ratio);
@@ -89,61 +89,4 @@ function isInPolygon(point: Point, polygon: Point[], ratio: number): boolean {
   }
 
   return isIn;
-}
-
-// Code adapted from https://github.com/mapbox/vector-tile-js
-
-// Returns an array of polygons.
-// Each polygon is an array ring.
-// The first ring in this array is the outer ring. Following rings are holes.
-export function classifyRings(rings: Point[][]): Polygon[][] {
-  const len = rings.length;
-
-  if (len <= 1) {
-    return [rings];
-  }
-
-  const polygons: Polygon[][] = [];
-  let polygon: Polygon[] | null = null;
-  let ccw: boolean | null = null;
-
-  for (let i = 0; i < len; i++) {
-    const area = signedArea(rings[i]);
-    if (area === 0) {
-      continue;
-    }
-
-    if (ccw == null) {
-      ccw = area < 0;
-    }
-
-    if (ccw === area < 0) {
-      // Create a new polygon when the winding is the same as the first polygon.
-      if (polygon) {
-        polygons.push(polygon);
-      }
-      polygon = [rings[i]];
-    } else {
-      // Pushes holes in the current polygon.
-      polygon?.push(rings[i]);
-    }
-  }
-  if (polygon) {
-    polygons.push(polygon);
-  }
-
-  return polygons;
-}
-
-// Computes the area of a polygon.
-// See https://en.wikipedia.org/wiki/Shoelace_formula.
-function signedArea(polygon: Polygon): number {
-  let sum = 0;
-  const len = polygon.length;
-  for (let i = 0, j = len - 1; i < len; j = i++) {
-    const p1 = polygon[i];
-    const p2 = polygon[j];
-    sum += (p2.x - p1.x) * (p1.y + p2.y);
-  }
-  return sum;
 }

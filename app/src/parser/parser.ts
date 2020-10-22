@@ -4,16 +4,15 @@ const { PubSub } = require('@google-cloud/pubsub');
 const request = require('request-zero');
 
 import crypto from 'crypto';
-import Pbf from 'pbf';
-
 import {
   retrieveMetaTrackGroupByHash,
   retrieveMetaTrackGroupByUrl,
   saveTrack,
   TrackEntity,
-} from '../../../common/datastore';
-import { diffEncodeTrack, ProtoMetaTrackGroup, ProtoTrack } from '../../../common/track';
-import * as protos from '../../../common/track_proto';
+} from 'flyxc/common/datastore';
+import * as protos from 'flyxc/common/protos/track';
+import { diffEncodeTrack } from 'flyxc/common/track';
+
 import { parse as parseGpx } from './gpx';
 import { parse as parseIgc } from './igc';
 import { parse as parseKml } from './kml';
@@ -22,12 +21,12 @@ import { parse as parseTrk } from './trk';
 const datastore = new Datastore();
 
 // Returns the latest submitted track from the Data Store.
-export async function getTracksMostRecentFirst(max_tracks: number): Promise<any[]> {
+export async function getTracksMostRecentFirst(maxTracks: number): Promise<any[]> {
   if (!process.env.USE_CACHE) {
     return [];
   }
-  max_tracks = Math.min(max_tracks, 100);
-  const query = datastore.createQuery('Track').order('created', { descending: true }).limit(max_tracks);
+  maxTracks = Math.min(maxTracks, 100);
+  const query = datastore.createQuery('Track').order('created', { descending: true }).limit(maxTracks);
   const items: TrackEntity[] = (await datastore.runQuery(query))[0];
   return items.filter((entity) => entity.hash != null);
 }
@@ -36,7 +35,7 @@ export async function getTracksMostRecentFirst(max_tracks: number): Promise<any[
 // The track is either retrieved from the DB or parsed.
 //
 // Returns am encoded ProtoTrackGroup.
-export async function parseFromUrl(url: string): Promise<ProtoMetaTrackGroup> {
+export async function parseFromUrl(url: string): Promise<protos.MetaTrackGroup> {
   // First check the cache.
   if (process.env.USE_CACHE) {
     const metaGroup = await retrieveMetaTrackGroupByUrl(url);
@@ -53,14 +52,14 @@ export async function parseFromUrl(url: string): Promise<ProtoMetaTrackGroup> {
       return await parse(response.body, url);
     }
   } catch (e) {}
-  return { id: -1, num_postprocess: 0 };
+  return { id: -1, numPostprocess: 0 };
 }
 
 // Parses the string `content` and try to find one or more tracks.
 //
 // When the cache is enabled, already processed content is returned immediately.
 // Otherwise we try to parse the content as any of the supported formats.
-export async function parse(content: string, srcUrl: string | null = null): Promise<ProtoMetaTrackGroup> {
+export async function parse(content: string, srcUrl: string | null = null): Promise<protos.MetaTrackGroup> {
   // First check the cache
   const hash = crypto.createHash('md5').update(content).digest('hex');
   if (process.env.USE_CACHE) {
@@ -73,7 +72,7 @@ export async function parse(content: string, srcUrl: string | null = null): Prom
   }
 
   // rawTracks are not differential encoded
-  let tracks: ProtoTrack[] = parseIgc(content);
+  let tracks: protos.Track[] = parseIgc(content);
   if (!tracks.length) {
     tracks = parseTrk(content);
   }
@@ -85,13 +84,11 @@ export async function parse(content: string, srcUrl: string | null = null): Prom
   }
   if (tracks.length == 0) {
     console.error(`Can not parse tracks`);
-    return { id: -1, num_postprocess: 0 };
+    return { id: -1, numPostprocess: 0 };
   }
 
   let id = -1;
-  const pbf = new Pbf();
-  (protos.TrackGroup as any).write({ tracks: tracks.map(diffEncodeTrack) }, pbf);
-  const track_group_bin = Buffer.from(pbf.finish());
+  const trackGroupBin = protos.TrackGroup.toBinary({ tracks: tracks.map(diffEncodeTrack) });
 
   // Save the entity in cache
   if (process.env.USE_CACHE && tracks.length > 0) {
@@ -99,7 +96,7 @@ export async function parse(content: string, srcUrl: string | null = null): Prom
       created: new Date(),
       valid: true,
       hash,
-      track_group: track_group_bin,
+      track_group: trackGroupBin,
       num_postprocess: 0,
       has_postprocess_errors: false,
       url: srcUrl || undefined,
@@ -112,7 +109,7 @@ export async function parse(content: string, srcUrl: string | null = null): Prom
 
   return {
     id,
-    num_postprocess: 0,
-    track_group_bin,
+    numPostprocess: 0,
+    trackGroupBin,
   };
 }

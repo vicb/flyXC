@@ -1,16 +1,12 @@
+import * as protos from 'flyxc/common/protos/track';
 import {
   addAirspaces,
   addGroundAltitude,
   createRuntimeTracks,
   createTrackId,
   extractGroupId,
-  ProtoAirspaces,
-  ProtoGroundAltitude,
-  ProtoMetaTrackGroup,
   RuntimeTrack,
 } from 'flyxc/common/track';
-import * as protos from 'flyxc/common/track_proto';
-import Pbf from 'pbf';
 
 import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
 
@@ -55,7 +51,7 @@ const fetchPendingServerMetadata = createAsyncThunk(
   'track/fetchMetadata',
   async (_: undefined, api) => {
     api.dispatch(trackSlice.actions.setFetchingMetadata(true));
-    await new Promise((resolve) => setTimeout(resolve, FETCH_EVERY_SECONDS));
+    await new Promise((resolve) => setTimeout(resolve, FETCH_EVERY_SECONDS * 1000));
     api.dispatch(trackSlice.actions.timeoutPendingServerMetadata());
     const state = api.getState() as RootState;
     const groupIds = Object.keys(state.track.metadata.groupIdToStart);
@@ -207,20 +203,18 @@ const trackSlice = createSlice({
         const metaTracks = action.payload;
         if (metaTracks) {
           // Decode the meta groups.
-          const metaGroups: ProtoMetaTrackGroup[] = (protos.MetaTracks as any)
-            .read(new Pbf(metaTracks))
-            .meta_track_groups_bin.map((metaGroupBin: any) => {
-              return (protos.MetaTrackGroup as any).read(new Pbf(metaGroupBin));
-            });
+          const metaGroups: protos.MetaTrackGroup[] = protos.MetaTracks.fromBinary(
+            new Uint8Array(metaTracks),
+          ).metaTrackGroupsBin.map((metaGroupBin) => protos.MetaTrackGroup.fromBinary(metaGroupBin));
+
           // Patch any tack from the meta groups.
           metaGroups.forEach((metaGroup) => {
             const groupId = metaGroup.id;
             delete state.metadata.groupIdToStart[groupId];
             // Patch the ground altitude.
-            if (metaGroup.ground_altitude_group_bin) {
-              const gndAltitudes: ProtoGroundAltitude[] = (protos.GroundAltitudeGroup as any).read(
-                new Pbf(metaGroup.ground_altitude_group_bin),
-              ).ground_altitudes;
+            if (metaGroup.groundAltitudeGroupBin) {
+              const gndAltitudes = protos.GroundAltitudeGroup.fromBinary(metaGroup.groundAltitudeGroupBin)
+                .groundAltitudes;
 
               gndAltitudes.forEach((gndAlt, index) => {
                 const id = createTrackId(groupId, index);
@@ -231,10 +225,8 @@ const trackSlice = createSlice({
               });
             }
             // Patch the airspaces.
-            if (metaGroup.airspaces_group_bin) {
-              const airspaces: ProtoAirspaces[] = (protos.AirspacesGroup as any).read(
-                new Pbf(metaGroup.airspaces_group_bin),
-              ).airspaces;
+            if (metaGroup.airspacesGroupBin) {
+              const airspaces = protos.AirspacesGroup.fromBinary(metaGroup.airspacesGroupBin).airspaces;
               airspaces.forEach((asp, index) => {
                 const id = createTrackId(groupId, index);
                 const track = state.tracks.entities[id];

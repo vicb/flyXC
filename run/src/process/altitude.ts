@@ -8,12 +8,12 @@
 // - https://www.mapzen.com/blog/terrain-tile-service/
 
 import async from 'async';
+import { pixelCoordinates } from 'flyxc/common/proj';
+import * as protos from 'flyxc/common/protos/track';
 import lru, { Lru } from 'tiny-lru';
 
 import { decode } from '@vivaxy/png';
 
-import { pixelCoordinates } from '../../../common/proj';
-import { ProtoGroundAltitude, ProtoTrack } from '../../../common/track';
 import { httpsGet } from './request';
 
 // Zoom level for the altitude tiles.
@@ -31,7 +31,7 @@ const DEFAULT_RGBA_LRU_SIZE_MB = 80;
 const IMAGE_SIZE_MB = (TILE_PX_SIZE * TILE_PX_SIZE * 4) / (1000 * 1000);
 
 // Returns the ground altitudes for the track.
-export async function fetchGroundAltitude(track: ProtoTrack): Promise<ProtoGroundAltitude> {
+export async function fetchGroundAltitude(track: protos.Track): Promise<protos.GroundAltitude> {
   // Retrieve the list of urls to download.
   const urls = track.lat.reduce((files: Set<string>, lat: number, i: number) => {
     const lon = track.lon[i];
@@ -78,7 +78,7 @@ export async function fetchGroundAltitude(track: ProtoTrack): Promise<ProtoGroun
 
   return {
     altitudes,
-    has_errors: hasErrors,
+    hasErrors,
   };
 }
 

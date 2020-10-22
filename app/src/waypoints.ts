@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { buildGPX, BaseBuilder } = require('gpx-builder');
 const builder = require('xmlbuilder');
-/* eslint-enable @typescript-eslint/no-var-requires */
 
 import printf from 'printf';
 

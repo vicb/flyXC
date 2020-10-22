@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { addUrlParamValue, deleteUrlParam, getSearchParams, has3dUrlParam, ParamNames } from '../logic/history';
+import { addUrlParamValue, deleteUrlParam, getSearchParams, ParamNames } from '../logic/history';
 
 // Y axis of the chart.
 export const enum ChartYAxis {

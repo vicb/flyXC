@@ -1,15 +1,14 @@
 import express, { Request, Response, Router } from 'express';
 import { UploadedFile } from 'express-fileupload';
-import Pbf from 'pbf';
-
 import {
   key_symbol,
   retrieveMetaTrackGroupByUrl,
   retrieveMetaTrackGroupsByIds,
   TrackEntity,
-} from '../../../common/datastore';
-import { diffDecodeAirspaces, ProtoMetaTrackGroup } from '../../../common/track';
-import * as protos from '../../../common/track_proto';
+} from 'flyxc/common/datastore';
+import * as protos from 'flyxc/common/protos/track';
+import { diffDecodeAirspaces } from 'flyxc/common/track';
+
 import { getTracksMostRecentFirst, parse, parseFromUrl } from '../parser/parser';
 
 export function getTrackRouter(): Router {
@@ -18,14 +17,14 @@ export function getTrackRouter(): Router {
   // Retrieves tracks by url.
   router.get('/_download', async (req: Request, res: Response) => {
     const urls = [].concat(req.query.track as any);
-    const trackGroups: ProtoMetaTrackGroup[] = await Promise.all(urls.map(parseFromUrl));
+    const trackGroups: protos.MetaTrackGroup[] = await Promise.all(urls.map(parseFromUrl));
     sendTracks(res, trackGroups);
   });
 
   // Retrieves tracks by datastore ids.
   router.get('/_history', async (req: Request, res: Response) => {
     const ids = [].concat(req.query.id as any);
-    const trackGroups: ProtoMetaTrackGroup[] = await retrieveMetaTrackGroupsByIds(ids);
+    const trackGroups: protos.MetaTrackGroup[] = await retrieveMetaTrackGroupsByIds(ids);
     sendTracks(res, trackGroups);
   });
 
@@ -50,7 +49,7 @@ export function getTrackRouter(): Router {
     if (req.files?.track) {
       const fileObjects: UploadedFile[] = [].concat(req.files.track as any);
       const files: string[] = fileObjects.map((file) => file.data.toString());
-      const tracks: ProtoMetaTrackGroup[] = await Promise.all(files.map((file) => parse(file)));
+      const tracks: protos.MetaTrackGroup[] = await Promise.all(files.map((file) => parse(file)));
       sendTracks(res, tracks);
       return;
     }
@@ -65,12 +64,12 @@ export function getTrackRouter(): Router {
       return;
     }
     const ids = req.query.ids.split(',');
-    const trackGroups: Array<ProtoMetaTrackGroup> = await retrieveMetaTrackGroupsByIds(ids);
-    const processedGroups: ProtoMetaTrackGroup[] = [];
+    const trackGroups: protos.MetaTrackGroup[] = await retrieveMetaTrackGroupsByIds(ids);
+    const processedGroups: protos.MetaTrackGroup[] = [];
     trackGroups.forEach((group) => {
-      if (group != null && group.num_postprocess > 0) {
+      if (group != null && group.numPostprocess > 0) {
         // Delete the tracks and keep only metadata.
-        group.track_group_bin = undefined;
+        group.trackGroupBin = undefined;
         processedGroups.push(group);
       }
     });
@@ -88,8 +87,8 @@ export function getTrackRouter(): Router {
     const url = req.query.track;
     if (typeof url === 'string') {
       const metaGroup = await retrieveMetaTrackGroupByUrl(url);
-      if (metaGroup?.airspaces_group_bin) {
-        const aspGroup = (protos.AirspacesGroup as any).read(new Pbf(metaGroup.airspaces_group_bin));
+      if (metaGroup?.airspacesGroupBin) {
+        const aspGroup = protos.AirspacesGroup.fromBinary(new Uint8Array(metaGroup.airspacesGroupBin));
         if (aspGroup?.airspaces) {
           const airspaces = diffDecodeAirspaces(aspGroup.airspaces[0]);
           res.json(airspaces);
@@ -104,18 +103,12 @@ export function getTrackRouter(): Router {
 }
 
 // Sends the tracks as an encoded protocol buffer.
-function sendTracks(res: Response, metaGroups: ProtoMetaTrackGroup[]): void {
+function sendTracks(res: Response, metaGroups: protos.MetaTrackGroup[]): void {
   if (metaGroups.length == 0) {
     res.sendStatus(400);
     return;
   }
-  const metaGroupsBin = metaGroups.map((group) => {
-    const pbf = new Pbf();
-    (protos.MetaTrackGroup as any).write(group, pbf);
-    return pbf.finish();
-  });
-  const pbf = new Pbf();
-  (protos.MetaTracks as any).write({ meta_track_groups_bin: metaGroupsBin }, pbf);
+  const metaTrackGroupsBin = metaGroups.map((group) => protos.MetaTrackGroup.toBinary(group));
   res.set('Content-Type', 'application/x-protobuf');
-  res.send(Buffer.from(pbf.finish()));
+  res.send(Buffer.from(protos.MetaTracks.toBinary({ metaTrackGroupsBin })));
 }

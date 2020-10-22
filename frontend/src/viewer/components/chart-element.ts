@@ -318,13 +318,13 @@ export class ChartElement extends connect(store)(LitElement) {
     }
     const paths: SVGTemplateResult[] = [];
 
-    for (let i = 0; i < asp.start_ts.length; i++) {
+    for (let i = 0; i < asp.startTs.length; i++) {
       const flags = asp.flags[i];
       if (!this.showRestricted && flags & Flags.AIRSPACE_RESTRICTED) {
         continue;
       }
-      const start = asp.start_ts[i];
-      const end = asp.end_ts[i];
+      const start = asp.startTs[i];
+      const end = asp.endTs[i];
       const top = asp.top[i];
       const bottom = asp.bottom[i];
       const topRefGnd = flags & Flags.TOP_REF_GND;

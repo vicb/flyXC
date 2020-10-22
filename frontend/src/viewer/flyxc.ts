@@ -122,16 +122,23 @@ export class FlyXc extends connect(store)(LitElement) {
   // Load tracks dropped on the map.
   private async handleDrop(e: DragEvent): Promise<void> {
     e.preventDefault();
-    let files: File[] = [];
+    const files: Array<File | null> = [];
     if (e.dataTransfer) {
       if (e.dataTransfer.items) {
-        files = [...e.dataTransfer.items].map((e) => e.getAsFile()).filter((e) => e != null) as File[];
+        const items = e.dataTransfer.items;
+        for (let i = 0; i < items.length; i++) {
+          files.push(items[i].getAsFile());
+        }
       } else if (e.dataTransfer.files) {
-        files = [...e.dataTransfer.files];
+        const fileList = e.dataTransfer.files;
+        for (let i = 0; i < fileList.length; i++) {
+          files.push(fileList[i]);
+        }
       }
     }
-    if (files.length) {
-      const ids = await uploadTracks(files);
+    const actualFiles = files.filter((file) => file != null) as File[];
+    if (actualFiles.length) {
+      const ids = await uploadTracks(actualFiles);
       pushCurrentState();
       addUrlParamValues(ParamNames.groupId, ids);
     }
