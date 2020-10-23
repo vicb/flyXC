@@ -10,12 +10,14 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
 
   // Get the geojson for the currently active trackers.
   router.get('/_trackers.geojson', async (req: Request, res: Response) => {
+    res.set('Cache-Control', 'no-store');
     await redis.set('trackers.request', Date.now());
     res.send(await redis.get('trackers.geojson'));
   });
 
   // Get the tracker information if the users is signed id.
   router.get('/_tracker', async (req: Request, res: Response) => {
+    res.set('Cache-Control', 'no-store');
     if (req.session?.grant?.response?.access_token == null) {
       res.json({ signedIn: false });
       return;

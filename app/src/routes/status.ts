@@ -30,6 +30,7 @@ export function getStatusRouter(redis: Redis.Redis): Router {
 
   // Retrieves status information.
   router.get('/_status.json', async (req: Request, res: Response) => {
+    res.set('Cache-Control', 'no-store');
     const counts = await getDatastoreCounts(redis);
     res.json({
       'last-request': Number(await redis.get('trackers.request')),
