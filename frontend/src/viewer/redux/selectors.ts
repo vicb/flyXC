@@ -159,8 +159,7 @@ export const trackColors = createSelector(trackAdapterSelector.selectIds, (ids) 
 // From http://phrogz.net/tmp/24colors.html.
 const distinctColors = [
   '#FF0000',
-  // yellow is hardly visible on a white background.
-  //'#FFFF00',
+  '#FFFF00',
   '#00EAFF',
   '#AA00FF',
   '#FF7F00',

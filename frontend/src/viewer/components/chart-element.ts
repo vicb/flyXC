@@ -288,10 +288,12 @@ export class ChartElement extends connect(store)(LitElement) {
         paths.push(svg`<path class=gnd d=${`M${gndCoords.join('L')}`}></path>`);
       }
       if (track.id == this.currentTrackId) {
-        activePath = svg`<path class='active' stroke=${this.trackColors[track.id]} filter=url(#shadow) 
+        activePath = svg`<path class='active' stroke=${this.trackColors[track.id]} filter=url(#shadow-active) 
           d=${`M${trackCoords.join('L')}`}></path>`;
       } else {
-        paths.push(svg`<path stroke=${this.trackColors[track.id]} d=${`M${trackCoords.join('L')}`}></path>`);
+        paths.push(
+          svg`<path stroke=${this.trackColors[track.id]} d=${`M${trackCoords.join('L')}`} filter=url(#shadow)></path>`,
+        );
       }
     });
 
@@ -476,8 +478,15 @@ export class ChartElement extends connect(store)(LitElement) {
         @wheel=${this.handleMouseWheel}
       >
         <defs>
-          <filter id="shadow">
+          <filter id="shadow-active">
             <feGaussianBlur in="SourceAlpha" stdDeviation="1.5"></feGaussianBlur>
+            <feMerge>
+              <feMergeNode></feMergeNode>
+              <feMergeNode in="SourceGraphic"></feMergeNode>
+            </feMerge>
+          </filter>
+          <filter id="shadow">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="0.5"></feGaussianBlur>
             <feMerge>
               <feMergeNode></feMergeNode>
               <feMergeNode in="SourceGraphic"></feMergeNode>
