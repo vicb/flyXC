@@ -8,16 +8,16 @@ import '@ui5/webcomponents/dist/Select';
 import '@ui5/webcomponents/dist/Toast';
 import '@ui5/webcomponents/dist/Assets.js';
 import './styles/main.css';
+import './components/2d/map-element';
+import './components/3d/map3d-element';
+import './components/chart-element';
+import './components/loader-element';
 
 import { LatLonZ } from 'flyxc/common/src/track';
 import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { classMap } from 'lit-html/directives/class-map.js';
 import { connect } from 'pwa-helpers';
 
-import { MapElement } from './components/2d/map-element';
-import { Map3dElement } from './components/3d/map3d-element';
-import { ChartElement } from './components/chart-element';
-import { LoaderElement } from './components/loader-element';
 import {
   addUrlParamValues,
   deleteUrlParam,
@@ -34,8 +34,6 @@ import { setRoute, setSpeed } from './redux/planner-slice';
 import * as sel from './redux/selectors';
 import { RootState, store } from './redux/store';
 import { removeTracksByGroupIds } from './redux/track-slice';
-
-export { MapElement, LoaderElement, ChartElement, Map3dElement };
 
 @customElement('fly-xc')
 export class FlyXc extends connect(store)(LitElement) {

@@ -1,3 +1,11 @@
+import '../about-element';
+import '../dashboard-element';
+import '../expand-element';
+import '../globe-element';
+import '../name-element';
+import '../upload-element';
+import './exaggeration-element';
+
 import { extractGroupId, RuntimeTrack } from 'flyxc/common/src/track';
 import { css, CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
@@ -9,15 +17,6 @@ import { setDisplayNames } from '../../redux/app-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { removeTracksByGroupIds, selectNextTrack } from '../../redux/track-slice';
-import { AboutElement } from '../about-element';
-import { DashboardElement } from '../dashboard-element';
-import { ExpandElement } from '../expand-element';
-import { GlobeElement } from '../globe-element';
-import { NameElement } from '../name-element';
-import { UploadElement } from '../upload-element';
-import { ExaggerationElement } from './exaggeration-element';
-
-export { AboutElement, DashboardElement, GlobeElement, NameElement, UploadElement, ExpandElement, ExaggerationElement };
 
 @customElement('controls3d-element')
 export class Controls3dElement extends connect(store)(LitElement) {

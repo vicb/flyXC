@@ -4,6 +4,10 @@ import type NavigationToggle from 'esri/widgets/NavigationToggle';
 import type Map from 'esri/Map';
 import type Basemap from 'esri/Basemap';
 import type BaseElevationLayer from 'esri/layers/BaseElevationLayer';
+import './line3d-element';
+import './marker3d-element';
+import './controls3d-element';
+
 import { LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/track';
 import { customElement, html, internalProperty, LitElement, PropertyValues, query, TemplateResult } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
@@ -17,11 +21,6 @@ import { setCurrentLocation } from '../../redux/location-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
-import { Controls3dElement } from './controls3d-element';
-import { Line3dElement } from './line3d-element';
-import { Marker3dElement } from './marker3d-element';
-
-export { Line3dElement, Marker3dElement, Controls3dElement };
 
 @customElement('map3d-element')
 export class Map3dElement extends connect(store)(LitElement) {
@@ -134,7 +133,7 @@ export class Map3dElement extends connect(store)(LitElement) {
       });
 
       this.view.ui.remove('zoom');
-      const controls = document.createElement('controls3d-element') as Controls3dElement;
+      const controls = document.createElement('controls3d-element');
       this.view.ui.add(controls, 'top-right');
 
       const layerSwitcher = this.renderRoot.querySelector('#layers') as HTMLSelectElement;
