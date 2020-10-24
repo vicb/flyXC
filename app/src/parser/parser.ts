@@ -4,14 +4,14 @@ const { PubSub } = require('@google-cloud/pubsub');
 const request = require('request-zero');
 
 import crypto from 'crypto';
+import * as protos from 'flyxc/common/protos/track';
 import {
   retrieveMetaTrackGroupByHash,
   retrieveMetaTrackGroupByUrl,
   saveTrack,
   TrackEntity,
-} from 'flyxc/common/datastore';
-import * as protos from 'flyxc/common/protos/track';
-import { diffEncodeTrack } from 'flyxc/common/track';
+} from 'flyxc/common/src/datastore';
+import { diffEncodeTrack } from 'flyxc/common/src/track';
 
 import { parse as parseGpx } from './gpx';
 import { parse as parseIgc } from './igc';

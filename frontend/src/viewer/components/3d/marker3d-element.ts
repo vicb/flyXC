@@ -1,6 +1,6 @@
 import type Graphic from 'esri/Graphic';
 import type GraphicsLayer from 'esri/layers/GraphicsLayer';
-import { LatLonZ, RuntimeTrack } from 'flyxc/common/track';
+import { LatLonZ, RuntimeTrack } from 'flyxc/common/src/track';
 import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
 import { connect } from 'pwa-helpers';
 

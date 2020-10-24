@@ -8,8 +8,8 @@
 // - https://www.mapzen.com/blog/terrain-tile-service/
 
 import async from 'async';
-import { pixelCoordinates } from 'flyxc/common/proj';
 import * as protos from 'flyxc/common/protos/track';
+import { pixelCoordinates } from 'flyxc/common/src/proj';
 import lru, { Lru } from 'tiny-lru';
 
 import { decode } from '@vivaxy/png';

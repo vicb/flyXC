@@ -1,4 +1,4 @@
-import { extractGroupId, RuntimeTrack } from 'flyxc/common/track';
+import { extractGroupId, RuntimeTrack } from 'flyxc/common/src/track';
 import { css, CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 

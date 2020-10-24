@@ -1,13 +1,13 @@
 import express, { Request, Response, Router } from 'express';
 import { UploadedFile } from 'express-fileupload';
+import * as protos from 'flyxc/common/protos/track';
 import {
   key_symbol,
   retrieveMetaTrackGroupByUrl,
   retrieveMetaTrackGroupsByIds,
   TrackEntity,
-} from 'flyxc/common/datastore';
-import * as protos from 'flyxc/common/protos/track';
-import { diffDecodeAirspaces } from 'flyxc/common/track';
+} from 'flyxc/common/src/datastore';
+import { diffDecodeAirspaces } from 'flyxc/common/src/track';
 
 import { getTracksMostRecentFirst, parse, parseFromUrl } from '../parser/parser';
 

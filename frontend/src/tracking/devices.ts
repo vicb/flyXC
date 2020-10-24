@@ -2,7 +2,7 @@
 //
 // Note: this file is named devices.ts because tracking.ts makes ublock origin unhappy.
 
-import { TrackerInfo } from 'flyxc/common/trackers';
+import { TrackerInfo } from 'flyxc/common/src/trackers';
 import { css, CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 
 @customElement('device-form')

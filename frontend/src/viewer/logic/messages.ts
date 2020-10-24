@@ -1,4 +1,4 @@
-import { LatLon } from 'flyxc/common/track';
+import { LatLon } from 'flyxc/common/src/track';
 import { createEvents } from 'micro-typed-events';
 
 // Zoom the map in the given direction (typically mouse wheel).

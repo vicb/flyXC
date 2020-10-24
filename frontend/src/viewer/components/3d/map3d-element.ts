@@ -4,7 +4,7 @@ import type NavigationToggle from 'esri/widgets/NavigationToggle';
 import type Map from 'esri/Map';
 import type Basemap from 'esri/Basemap';
 import type BaseElevationLayer from 'esri/layers/BaseElevationLayer';
-import { LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/track';
+import { LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/track';
 import { customElement, html, internalProperty, LitElement, PropertyValues, query, TemplateResult } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
 import { UnsubscribeHandle } from 'micro-typed-events';

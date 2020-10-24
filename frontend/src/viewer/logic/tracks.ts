@@ -1,4 +1,4 @@
-import { extractGroupId } from 'flyxc/common/track';
+import { extractGroupId } from 'flyxc/common/src/track';
 
 import { unwrapResult } from '@reduxjs/toolkit';
 

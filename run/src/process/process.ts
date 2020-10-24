@@ -4,9 +4,9 @@ const request = require('request-zero');
 
 import async from 'async';
 import { Keys } from 'flyxc/app/src/keys';
-import { retrieveTrackById, saveTrack, TrackEntity } from 'flyxc/common/datastore';
 import * as protos from 'flyxc/common/protos/track';
-import { diffDecodeTrack, diffEncodeAirspaces, diffEncodeArray } from 'flyxc/common/track';
+import { retrieveTrackById, saveTrack, TrackEntity } from 'flyxc/common/src/datastore';
+import { diffDecodeTrack, diffEncodeAirspaces, diffEncodeArray } from 'flyxc/common/src/track';
 import * as polyline from 'google-polyline';
 import simplify from 'simplify-path';
 

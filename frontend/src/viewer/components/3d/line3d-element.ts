@@ -1,6 +1,6 @@
 import type Graphic from 'esri/Graphic';
 import type GraphicsLayer from 'esri/layers/GraphicsLayer';
-import { LatLonZ, RuntimeTrack } from 'flyxc/common/track';
+import { LatLonZ, RuntimeTrack } from 'flyxc/common/src/track';
 import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
@@ -88,8 +88,8 @@ export class Line3dElement extends connect(store)(LitElement) {
 
       const timestamp = this.timestamp + this.tsOffset;
 
-      const start = Math.min(findIndexes(times, timestamp - 15 * 60 * 1000)[0], times.length - 4);
-      const end = Math.max(findIndexes(times, timestamp)[0] + 1, 4);
+      const start = Math.min(findIndexes(times, timestamp - 15 * 60 * 1000).beforeIndex, times.length - 4);
+      const end = Math.max(findIndexes(times, timestamp).beforeIndex + 1, 4);
       const path = this.path3d.slice(start, end);
       // The last point must match the marker position and needs to be interpolated.
       const pos = sel.getTrackLatLonAlt(store.getState())(timestamp, this.track) as LatLonZ;

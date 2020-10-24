@@ -6,7 +6,7 @@ import {
   createTrackId,
   extractGroupId,
   RuntimeTrack,
-} from 'flyxc/common/track';
+} from 'flyxc/common/src/track';
 
 import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
 

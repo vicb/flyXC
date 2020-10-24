@@ -1,4 +1,4 @@
-import { extractGroupId, LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/track';
+import { extractGroupId, LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/track';
 import { createSelector } from 'reselect';
 
 import { sampleAt } from '../logic/math';

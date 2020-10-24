@@ -1,6 +1,6 @@
 import { getDistance } from 'geolib';
 
-import * as protos from './protos/track';
+import * as protos from '../protos/track';
 
 export type Point = {
   x: number;

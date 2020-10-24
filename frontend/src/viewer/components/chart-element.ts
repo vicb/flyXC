@@ -1,6 +1,6 @@
 import { ticks } from 'd3-array';
-import { airspaceCategory, Flags } from 'flyxc/common/airspaces';
-import { RuntimeTrack } from 'flyxc/common/track';
+import { airspaceCategory, Flags } from 'flyxc/common/src/airspaces';
+import { RuntimeTrack } from 'flyxc/common/src/track';
 import {
   css,
   CSSResult,

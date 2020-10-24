@@ -1,4 +1,4 @@
-import { RuntimeTrack } from 'flyxc/common/track';
+import { RuntimeTrack } from 'flyxc/common/src/track';
 import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 
 import { sampleAt } from '../logic/math';

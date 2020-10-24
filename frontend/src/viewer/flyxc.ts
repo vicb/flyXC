@@ -9,7 +9,7 @@ import '@ui5/webcomponents/dist/Toast';
 import '@ui5/webcomponents/dist/Assets.js';
 import './styles/main.css';
 
-import { LatLonZ } from 'flyxc/common/track';
+import { LatLonZ } from 'flyxc/common/src/track';
 import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { classMap } from 'lit-html/directives/class-map.js';
 import { connect } from 'pwa-helpers';

@@ -3,7 +3,7 @@ const { Datastore } = require('@google-cloud/datastore');
 
 import zlib from 'zlib';
 
-import * as protos from './protos/track';
+import * as protos from '../protos/track';
 
 const datastore = new Datastore();
 

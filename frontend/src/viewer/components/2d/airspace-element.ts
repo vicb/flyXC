@@ -1,4 +1,4 @@
-import { LatLonZ, RuntimeTrack } from 'flyxc/common/track';
+import { LatLonZ, RuntimeTrack } from 'flyxc/common/src/track';
 import {
   css,
   CSSResult,
