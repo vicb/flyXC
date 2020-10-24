@@ -25,29 +25,69 @@ export function linearInterpolate(
 // xs and ys must have the same length.
 // xs must be sorted in ascending order
 export function sampleAt(xs: number[], ys: number[], targetX: number): number {
-  const [left, right] = findIndexes(xs, targetX);
-  return linearInterpolate(xs[left], ys[left], xs[right], ys[right], targetX) as number;
+  const { beforeIndex, afterIndex } = findIndexes(xs, targetX);
+  return linearInterpolate(xs[beforeIndex], ys[beforeIndex], xs[afterIndex], ys[afterIndex], targetX);
 }
 
 // Find the two indexes left and right of the value.
-export function findIndexes(ascendingList: number[], value: number): [number, number] {
-  let left = 0;
-  let right = ascendingList.length - 1;
-  if (value <= ascendingList[0]) {
-    return [left, left];
-  }
-  if (value >= ascendingList[ascendingList.length - 1]) {
-    return [right, right];
+export function findIndexes(
+  ascendingList: number[],
+  value: number,
+): { beforeAll: boolean; afterAll: boolean; beforeIndex: number; afterIndex: number } {
+  if (ascendingList.length == 0) {
+    throw new Error('The list must contain at least 1 element');
   }
 
-  while (right - left > 1) {
-    const m = Math.round((left + right) / 2);
+  if (value < ascendingList[0]) {
+    return {
+      beforeAll: true,
+      beforeIndex: 0,
+      afterAll: false,
+      afterIndex: 0,
+    };
+  }
+
+  let afterIndex = ascendingList.length - 1;
+
+  if (value > ascendingList[ascendingList.length - 1]) {
+    return {
+      beforeAll: false,
+      beforeIndex: afterIndex,
+      afterAll: true,
+      afterIndex: afterIndex,
+    };
+  }
+
+  if (afterIndex == 0) {
+    return {
+      beforeAll: false,
+      beforeIndex: 0,
+      afterAll: false,
+      afterIndex: 0,
+    };
+  }
+
+  let beforeIndex = 0;
+
+  while (afterIndex - beforeIndex > 1) {
+    const m = Math.round((beforeIndex + afterIndex) / 2);
     if (ascendingList[m] > value) {
-      right = m;
+      afterIndex = m;
     } else {
-      left = m;
+      beforeIndex = m;
     }
   }
 
-  return [left, right];
+  if (ascendingList[afterIndex - 1] == value) {
+    afterIndex = afterIndex - 1;
+  } else if (ascendingList[beforeIndex + 1] == value) {
+    beforeIndex = beforeIndex + 1;
+  }
+
+  return {
+    beforeAll: false,
+    afterIndex,
+    afterAll: false,
+    beforeIndex,
+  };
 }
