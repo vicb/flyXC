@@ -34,7 +34,7 @@ export async function refresh(datastore: any, hour: number, timeoutSecs: number)
         url = url.substr(0, lastSlash) + '/Feed/Share' + url.substr(lastSlash);
       }
     }
-    if (/^https?:\/\/[\w.]*?garmin.com\/Feed\/Share\/[^?]+/i.test(url)) {
+    if (/^https?:\/\/[\w.-]*?garmin.com\/Feed\/Share\/[^?]+/i.test(url)) {
       let response;
       try {
         response = await request(`${url}?d1=${startDate}`);
