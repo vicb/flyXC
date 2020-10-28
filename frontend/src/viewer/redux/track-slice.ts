@@ -13,7 +13,8 @@ import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, Payloa
 import { addUrlParamValue, deleteUrlParamValue, ParamNames } from '../logic/history';
 import * as msg from '../logic/messages';
 import * as TrackWorker from '../workers/track';
-import { AppDispatch, RootState } from './store';
+import { setTimestamp } from './app-slice';
+import { AppDispatch, AppThunk, RootState } from './store';
 
 const FETCH_EVERY_SECONDS = 15;
 export const FETCH_FOR_MINUTES = 3;
@@ -45,6 +46,18 @@ const initialState: TrackState = {
     fetchPending: false,
   },
   tracks: trackAdapter.getInitialState(),
+};
+
+// Thunk to set the timestamp and current id when the first track is loaded.
+const addTracks = (tracks: RuntimeTrack[]): AppThunk => (dispatch, getState) => {
+  const state = getState().track;
+  const hasTrack = state.tracks.ids.length > 0;
+  dispatch(trackSlice.actions.addTracksInternal(tracks));
+  trackAdapter.addMany(state.tracks, tracks);
+  if (!hasTrack) {
+    dispatch(setTimestamp(tracks[0].ts[0]));
+    dispatch(setCurrentTrackId(tracks[0].id));
+  }
 };
 
 const fetchPendingServerMetadata = createAsyncThunk(
@@ -119,7 +132,8 @@ export const fetchTrack = createAsyncThunk('track/fetch', async (params: FetchTr
       api.dispatch(trackSlice.actions.addPendingServerMetadata(groupId));
     }
   });
-  api.dispatch(trackSlice.actions.addTracks(tracks));
+  // api.dispatch does not support thunk.
+  (api.dispatch as any)(addTracks(tracks));
   api.dispatch(fetchPendingServerMetadata());
   msg.trackGroupsAdded.emit(Array.from(groupIds));
   return tracks;
@@ -129,12 +143,8 @@ const trackSlice = createSlice({
   name: 'track',
   initialState,
   reducers: {
-    addTracks: (state, action: PayloadAction<RuntimeTrack[]>) => {
-      const hasTrack = state.currentTrackId != null;
+    addTracksInternal: (state, action: PayloadAction<RuntimeTrack[]>) => {
       trackAdapter.addMany(state.tracks, action);
-      if (!hasTrack) {
-        state.currentTrackId = String(state.tracks.ids[0]);
-      }
     },
     removeTracksByGroupIds: (state, action: PayloadAction<number[]>) => {
       const groupIds = action.payload.map((v) => String(v));
