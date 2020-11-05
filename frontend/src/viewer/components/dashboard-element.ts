@@ -11,7 +11,7 @@ export class DashboardElement extends LitElement {
   timestamp = 0;
   @property({ attribute: false })
   track?: RuntimeTrack;
-  @property()
+  @property({ attribute: false })
   units?: Units;
 
   static get styles(): CSSResult[] {

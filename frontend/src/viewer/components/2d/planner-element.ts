@@ -183,14 +183,16 @@ export class PlannerElement extends connect(store)(LitElement) {
 
   private onMouseMove(e: MouseEvent): void {
     const target = e.currentTarget as HTMLElement;
+    const x = e.clientX - target.getBoundingClientRect().left;
     const width = target.clientWidth;
-    target.style.cursor = e.offsetX > width / 2 ? 'n-resize' : 's-resize';
+    target.style.cursor = x > width / 2 ? 'n-resize' : 's-resize';
   }
 
   private changeDuration(e: MouseEvent): void {
     const target = e.currentTarget as HTMLElement;
+    const x = e.clientX - target.getBoundingClientRect().left;
     const width = target.clientWidth;
-    const delta = e.offsetX > width / 2 ? 1 : -1;
+    const delta = x > width / 2 ? 1 : -1;
     const duration = (Math.floor((this.duration as number) / 15) + delta) * 15;
     store.dispatch(setSpeed(this.distance / ((1000 * Math.max(15, duration)) / 60)));
   }
@@ -203,8 +205,9 @@ export class PlannerElement extends connect(store)(LitElement) {
 
   private changeSpeed(e: MouseEvent): void {
     const target = e.currentTarget as HTMLElement;
+    const x = e.clientX - target.getBoundingClientRect().left;
     const width = target.clientWidth;
-    store.dispatch(e.offsetX > width / 2 ? incrementSpeed() : decrementSpeed());
+    store.dispatch(x > width / 2 ? incrementSpeed() : decrementSpeed());
   }
 
   private wheelSpeed(e: WheelEvent): void {

@@ -591,8 +591,10 @@ export class ChartElement extends connect(store)(LitElement) {
   }
 
   private getCoordinatesFromEvent(e: MouseEvent): { x: number; y: number; timestamp: number } {
-    const x = e.offsetX;
-    const y = e.offsetY;
+    // The event target could be any of the children of the element with the listener.
+    const { left, top } = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX - left;
+    const y = e.clientY - top;
     const timestamp = Math.round((x / this.width) * (this.maxTs - this.minTs) + this.minTs);
     return { x, y, timestamp };
   }
