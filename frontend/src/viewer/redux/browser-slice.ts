@@ -16,7 +16,7 @@ const initialState: BrowserState = {
   isInIframe: window.parent !== window,
   // https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
   isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobi/i.test(navigator.userAgent),
-  isSmallScreen: window.matchMedia('(min-width: 640px)').matches,
+  isSmallScreen: !window.matchMedia('(min-width: 640px)').matches,
 };
 
 const browserSlice = createSlice({

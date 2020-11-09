@@ -107,7 +107,7 @@ export class PlannerElement extends connect(store)(LitElement) {
     return html`
       <style>
         .control > div {
-          display: ${this.hideDetails ? 'block' : 'none'};
+          display: ${this.hideDetails ? 'none' : 'block'};
         }
       </style>
       <div class="control">

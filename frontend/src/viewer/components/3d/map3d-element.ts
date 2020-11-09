@@ -56,6 +56,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   private updateCamera = false;
   private originalQuality = 'medium';
   private qualityTimer?: number;
+  private readonly adRatio = store.getState().browser.isSmallScreen ? 0.7 : 1;
 
   stateChanged(state: RootState): void {
     this.tracks = sel.tracks(state);
@@ -135,6 +136,15 @@ export class Map3dElement extends connect(store)(LitElement) {
       this.view.ui.remove('zoom');
       const controls = document.createElement('controls3d-element');
       this.view.ui.add(controls, 'top-right');
+
+      const ad = document.createElement('a');
+      ad.setAttribute('href', 'https://www.flyozone.com/');
+      ad.setAttribute('target', '_blank');
+      ad.className = 'ad';
+      ad.innerHTML = `<img width="${Math.round(210 * this.adRatio)}" height="${Math.round(
+        35 * this.adRatio,
+      )}" src="img/ozone.svg">`;
+      this.view.ui.add(ad);
 
       const layerSwitcher = this.renderRoot.querySelector('#layers') as HTMLSelectElement;
       this.view.ui.add(layerSwitcher, 'top-left');
@@ -295,6 +305,12 @@ export class Map3dElement extends connect(store)(LitElement) {
       <style>
         #layers {
           font: 18px Roboto, arial, sans-serif !important;
+        }
+        .ad {
+          box-shadow: none;
+          bottom: 10px;
+          left: 50%;
+          transform: translate(-50%, 0);
         }
       </style>
       <div id="map"></div>

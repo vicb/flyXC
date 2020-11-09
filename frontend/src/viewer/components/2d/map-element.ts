@@ -85,6 +85,7 @@ export class MapElement extends connect(store)(LitElement) {
   private centerMap = false;
   private lockPanBefore = 0;
   private subscriptions: UnsubscribeHandle[] = [];
+  private readonly adRatio = store.getState().browser.isSmallScreen ? 0.7 : 1;
 
   stateChanged(state: RootState): void {
     this.tracks = sel.tracks(state);
@@ -160,6 +161,14 @@ export class MapElement extends connect(store)(LitElement) {
       const controls = document.createElement('controls-element') as ControlsElement;
       controls.map = this.map;
       this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controls);
+
+      const ad = document.createElement('a');
+      ad.setAttribute('href', 'https://www.flyozone.com/');
+      ad.setAttribute('target', '_blank');
+      ad.innerHTML = `<img width="${Math.round(210 * this.adRatio)}" height="${Math.round(
+        35 * this.adRatio,
+      )}" src="img/ozone.svg">`;
+      this.map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(ad);
 
       this.map.addListener('click', (e: google.maps.MouseEvent) => {
         const latLng = e.latLng;
