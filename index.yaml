@@ -1,22 +1,43 @@
 # Update with:
+#
 # $ gcloud datastore indexes create index.yaml
 
 indexes:
-- kind: Tracker
-  properties:
-  - name: device
-  - name: updated
-    direction: desc
-
-- kind: Tracker
-  properties:
-  - name: device
-  - name: created      
-    direction: desc
-
-- kind: Tracker
-  properties:
-  - name: active
-  - name: created      
-    direction: desc
+  - kind: Tracker
+    properties:
+    - name: device
+    - name: updated
+      direction: desc
   
+  - kind: Tracker
+    properties:
+    - name: device
+    - name: created
+      direction: desc
+  
+  - kind: Tracker
+    properties:
+    - name: active
+    - name: created
+      direction: desc
+    
+  - kind: LiveTrack
+    properties:
+    - name: enabled
+    - name: sky_enabled
+    - name: sky_updated
+    - name: sky_account
+  
+  - kind: LiveTrack
+    properties:
+    - name: enabled
+    - name: spt_enabled
+    - name: spt_updated
+    - name: spt_account
+  
+  - kind: LiveTrack
+    properties:
+    - name: enabled
+    - name: inr_enabled
+    - name: inr_updated
+    - name: inr_account
