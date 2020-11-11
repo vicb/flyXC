@@ -5,6 +5,22 @@ import Redis from 'ioredis';
 
 const datastore = new Datastore();
 
+// Interface for session.grant.response.
+interface GrantSession {
+  access_token?: string,
+  // The profile should only be accessed when the access token is defined.
+  profile: {
+    name: string;
+    email: string;
+    sub: string;
+  }
+}
+
+function getGrantSession(req: Request): GrantSession | undefined {
+  const session = req.session as any;
+  return session?.grant?.response;
+}
+
 export function getTrackerRouter(redis: Redis.Redis): Router {
   const router = express.Router();
 
@@ -18,13 +34,14 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
   // Get the tracker information if the users is signed id.
   router.get('/_tracker', async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
-    if (req.session?.grant?.response?.access_token == null) {
+    const session = getGrantSession(req);
+    if (!session || session.access_token == null) {
       res.json({ signedIn: false });
       return;
     }
 
     try {
-      const { name, email, sub } = req.session?.grant?.response?.profile;
+      const { name, email, sub } = session.profile;
       const key = datastore.key(['Tracker', sub]);
       let tracker = (await datastore.get(key))[0];
       if (!tracker) {
@@ -59,12 +76,12 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
   // Updates the tracker information.
   router.post('/_tracker', async (req: Request, res: Response) => {
     try {
-      if (req.session?.grant?.response?.access_token == null) {
+      if (getGrantSession(req)?.access_token == null) {
         res.sendStatus(400);
         return;
       }
 
-      const key = datastore.key(['Tracker', req.session?.grant?.response?.profile?.sub]);
+      const key = datastore.key(['Tracker', getGrantSession(req)?.profile?.sub]);
       const tracker = (await datastore.get(key))[0];
       if (tracker) {
         ['device', 'inreach', 'spot', 'skylines'].forEach((k) => {
