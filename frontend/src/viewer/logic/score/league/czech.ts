@@ -9,7 +9,7 @@ abstract class CZXCBase {
     ];
   }
   protected scoreTriangles = (measure: Measure, distances: number[], indexes: number[]): Score[] =>
-    scoreTriangles(this.faiTriangleMultiplier(), this.flatTriangleMultiplier(), 0.05, false, true, measure, distances, indexes);
+    scoreTriangles(this.flatTriangleMultiplier(),this.faiTriangleMultiplier(), 0.05, false, true, measure, distances, indexes);
 
   protected abstract faiTriangleMultiplier(): number;
   protected abstract flatTriangleMultiplier(): number;
