@@ -49,7 +49,8 @@ Change preferences.
 
 ## Contributors
 
-- [Momtchil Momtchev](https://github.com/mmomtchev)
+- [Momtchil Momtchev](https://github.com/mmomtchev),
+- [Stanislav Ošmera](https://github.com/osmeras)
 
 ## Credits
 

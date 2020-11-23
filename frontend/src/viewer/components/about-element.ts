@@ -42,7 +42,8 @@ export class AboutElement extends LitElement {
           <div>
             <ui5-label
               >FlyXC by <a href="https://github.com/vicb" target="_blank">Victor Berchet</a>,
-              <a href="https://github.com/mmomtchev" target="_blank">Momtchil Momtchev</a>.</ui5-label
+              <a href="https://github.com/mmomtchev" target="_blank">Momtchil Momtchev</a>,
+              <a href="https://github.com/osmeras" target="_blank">Stanislav Ošmera</a>.</ui5-label
             >
           </div>
           <br />
