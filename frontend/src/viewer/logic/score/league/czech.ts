@@ -21,10 +21,10 @@ abstract class CZXCBase {
 export class CzechLocal extends CZXCBase {
   name = 'Czech (ČPP local)';
 
-  faiTriangleMultiplier(): number {
+  protected faiTriangleMultiplier(): number {
     return 2.2;
   }
-  flatTriangleMultiplier(): number {
+  protected flatTriangleMultiplier(): number {
     return 1.8
   }
   protected openDistanceMultiplier(): number {
@@ -36,10 +36,10 @@ export class CzechLocal extends CZXCBase {
 export class CzechEurope extends CZXCBase {
   name = 'Czech (ČPP Europe)';
 
-  faiTriangleMultiplier(): number {
+  protected faiTriangleMultiplier(): number {
     return 1.4;
   }
-  flatTriangleMultiplier(): number {
+  protected flatTriangleMultiplier(): number {
     return 1.2
   }
   protected openDistanceMultiplier(): number {
@@ -50,10 +50,10 @@ export class CzechEurope extends CZXCBase {
 export class CzechOutEurope extends CZXCBase {
   name = 'Czech (ČPP outside Europe)';
 
-  faiTriangleMultiplier(): number {
+  protected faiTriangleMultiplier(): number {
     return 1.4;
   }
-  flatTriangleMultiplier(): number {
+  protected flatTriangleMultiplier(): number {
     return 1.2
   }
   protected openDistanceMultiplier(): number {

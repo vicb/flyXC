@@ -7,6 +7,9 @@ import { XContest } from './xcontest';
 import { CzechLocal, CzechEurope, CzechOutEurope } from './czech';
 
 export const LEAGUES: { [name: string]: League } = {
+  czl: new CzechLocal(),
+  cze: new CzechEurope(),
+  czo: new CzechOutEurope(),
   fr: new FrCfd(),
   leo: new Leonardo(),
   ukc: new UKXCLClub(),
@@ -14,7 +17,4 @@ export const LEAGUES: { [name: string]: League } = {
   ukn: new UKXCLNational(),
   xc: new XContest(),
   wxc: new WXC(),
-  czl: new CzechLocal(),
-  cze: new CzechEurope(),
-  czo: new CzechOutEurope(),
 };
