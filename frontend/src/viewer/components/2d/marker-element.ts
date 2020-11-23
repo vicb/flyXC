@@ -86,10 +86,9 @@ export class MarkerElement extends connect(store)(LitElement) {
         this.marker.setLabel({
           color: this.active ? '#000' : '#555',
           fontWeight: '500',
-          // "14.001px" is a hack to be able to style the labels with a `div[style*='14.001px']` selector.
-          fontSize: '14.001px',
+          className: 'gm-label-outline',
           text: (this.track.name == 'unknown' ? '' : `${this.track.name} · `) + altitude,
-        });
+        } as any);
       } else {
         this.marker.setLabel('');
       }

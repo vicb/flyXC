@@ -237,8 +237,8 @@ export class TrackingElement extends connect(store)(LitElement) {
         label = {
           color: labelColor,
           text: feature.getProperty('name') + ' · ' + age,
-          fontSize: '14.001px',
-        };
+          className: 'gm-label-outline',
+        } as any;
       }
     }
 
