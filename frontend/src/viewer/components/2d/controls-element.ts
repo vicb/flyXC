@@ -100,15 +100,15 @@ export class ControlsElement extends connect(store)(LitElement) {
 
   protected render(): TemplateResult {
     return html`<div id="ct">
-      <airspace-ctrl-element .map=${this.gMap} class="cl"></airspace-ctrl-element>
-      <airways-ctrl-element .map=${this.gMap} class="cl"></airways-ctrl-element>
-      <globe-element .view3d=${this.view3d} class="cl"></globe-element>
-      ${this.isInIframe ? html`<expand-ctrl-element></expand-ctrl-element>` : html``}
-      <path-ctrl-element .map=${this.gMap} class="cl"></path-ctrl-element>
-      <upload-ctrl-element></upload-ctrl-element>
-      <about-ctrl-element class="cl"></about-ctrl-element>
-      <preferences-ctrl-element></preferences-ctrl-element>
-      <tracking-element .map=${this.gMap} class="cl"></tracking-element>
+      <airspace-ctrl-element .map=${this.gMap} class="cl" title="airspaces"></airspace-ctrl-element>
+      <airways-ctrl-element .map=${this.gMap} class="cl" title="airways"></airways-ctrl-element>
+      <globe-element .view3d=${this.view3d} class="cl" title="3d"></globe-element>
+      ${this.isInIframe ? html`<expand-ctrl-element title="full screen"></expand-ctrl-element>` : html``}
+      <path-ctrl-element .map=${this.gMap} class="cl" title="planner"></path-ctrl-element>
+      <upload-ctrl-element title="upload tracks"></upload-ctrl-element>
+      <about-ctrl-element class="cl" title="about"></about-ctrl-element>
+      <preferences-ctrl-element title="settings"></preferences-ctrl-element>
+      <tracking-element .map=${this.gMap} class="cl" title="live tracking"></tracking-element>
       ${this.track?.name
         ? html`
             <name-ctrl-element

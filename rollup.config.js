@@ -132,7 +132,7 @@ function buildFrontEnd(input, options = {}) {
       resolve(),
       cjs(),
       typescript({
-        lib: options.isWorker ? ['webworker'] : ['es6', 'dom'],
+        lib: options.isWorker ? ['WebWorker'] : ['ES6', 'DOM'],
         sourceMap: !prod,
       }),
       options.importUi5 &&

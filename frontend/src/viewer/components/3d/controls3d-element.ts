@@ -64,11 +64,11 @@ export class Controls3dElement extends connect(store)(LitElement) {
   protected render(): TemplateResult {
     return html`
       <globe-element .view3d=${this.view3d} class="cl"></globe-element>
-      ${this.isInIframe ? html`<expand-ctrl-element></expand-ctrl-element>` : html``}
-      <exaggeration-element class="cl"></exaggeration-element>
-      <upload-ctrl-element class="cl"></upload-ctrl-element>
-      <about-ctrl-element class="cl"></about-ctrl-element>
-      <preferences-ctrl-element></preferences-ctrl-element>
+      ${this.isInIframe ? html`<expand-ctrl-element title="full screen"></expand-ctrl-element>` : html``}
+      <exaggeration-element class="cl" title="altitude exaggeration"></exaggeration-element>
+      <upload-ctrl-element class="cl" title="upload tracks"></upload-ctrl-element>
+      <about-ctrl-element class="cl" title="about"></about-ctrl-element>
+      <preferences-ctrl-element title="settings"></preferences-ctrl-element>
       ${this.track?.name
         ? html`
             <name-ctrl-element

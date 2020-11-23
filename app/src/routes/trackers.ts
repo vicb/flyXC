@@ -7,13 +7,13 @@ const datastore = new Datastore();
 
 // Interface for session.grant.response.
 interface GrantSession {
-  access_token?: string,
+  access_token?: string;
   // The profile should only be accessed when the access token is defined.
   profile: {
     name: string;
     email: string;
     sub: string;
-  }
+  };
 }
 
 function getGrantSession(req: Request): GrantSession | undefined {
@@ -96,7 +96,7 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
       }
       res.json({ error: false });
       // sign the user out
-      req.session.destroy(() => null);
+      req.session?.destroy(() => null);
     } catch (e) {
       res.sendStatus(400);
     }
