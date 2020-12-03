@@ -1,15 +1,17 @@
 import express, { Request, Response, Router } from 'express';
 import { UploadedFile } from 'express-fileupload';
 import * as protos from 'flyxc/common/protos/track';
+import { diffDecodeAirspaces } from 'flyxc/common/src/runtime-track';
 import {
-  key_symbol,
   retrieveMetaTrackGroupByUrl,
   retrieveMetaTrackGroupsByIds,
+  retrieveRecentTracks,
   TrackEntity,
-} from 'flyxc/common/src/datastore';
-import { diffDecodeAirspaces } from 'flyxc/common/src/track';
+} from 'flyxc/common/src/track-entity';
 
-import { getTracksMostRecentFirst, parse, parseFromUrl } from '../parser/parser';
+import { Datastore } from '@google-cloud/datastore';
+
+import { parse, parseFromUrl } from '../parser/parser';
 
 export function getTrackRouter(): Router {
   const router = express.Router();
@@ -31,11 +33,11 @@ export function getTrackRouter(): Router {
   // Retrieves the list of tracks.
   // The `tracks` query parameter set the number of tracks to retrieve.
   router.get('/_archives', async (req: Request, res: Response) => {
-    const tracks: TrackEntity[] = await getTracksMostRecentFirst((req.query.tracks as any) || 10);
+    const tracks: TrackEntity[] = await retrieveRecentTracks((req.query.tracks as any) || 10);
 
     res.json(
       tracks.map((track) => ({
-        id: track[key_symbol].id,
+        id: track[Datastore.KEY]?.id,
         city: track.city,
         country: track.country,
         path: track.path,

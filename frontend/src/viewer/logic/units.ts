@@ -8,37 +8,37 @@ export interface Units {
 }
 
 export const enum DistanceUnit {
-  kilometers = 'km',
-  miles = 'mi',
-  meters = 'm',
-  feet = 'ft',
+  Kilometers = 'km',
+  Miles = 'mi',
+  Meters = 'm',
+  Feet = 'ft',
 }
 
 export const enum SpeedUnit {
-  kilometers_hour = 'km/h',
-  miles_hour = 'mi/h',
-  meters_second = 'm/s',
-  feet_minute = 'ft/min',
+  KilometersPerHour = 'km/h',
+  MilesPerHour = 'mi/h',
+  MetersPerSecond = 'm/s',
+  FeetPerMinute = 'ft/min',
 }
 
 export function formatUnit(value: number, unit?: DistanceUnit | SpeedUnit, fixed?: number): string {
   switch (unit) {
-    case DistanceUnit.kilometers:
-      return value.toFixed(fixed ?? 1) + DistanceUnit.kilometers;
-    case DistanceUnit.miles:
-      return (value / 1.60934).toFixed(fixed ?? 1) + DistanceUnit.miles;
-    case DistanceUnit.meters:
-      return value.toFixed(fixed ?? 0) + DistanceUnit.meters;
-    case DistanceUnit.feet:
-      return (value * 3.28084).toFixed(fixed ?? 0) + DistanceUnit.feet;
-    case SpeedUnit.kilometers_hour:
-      return value.toFixed(fixed ?? 1) + SpeedUnit.kilometers_hour;
-    case SpeedUnit.miles_hour:
-      return (value / 1.60934).toFixed(fixed ?? 1) + SpeedUnit.miles_hour;
-    case SpeedUnit.meters_second:
-      return value.toFixed(fixed ?? 1) + SpeedUnit.meters_second;
-    case SpeedUnit.feet_minute:
-      return (value * 3.28084 * 60).toFixed(fixed ?? 0) + SpeedUnit.feet_minute;
+    case DistanceUnit.Kilometers:
+      return value.toFixed(fixed ?? 1) + DistanceUnit.Kilometers;
+    case DistanceUnit.Miles:
+      return (value / 1.60934).toFixed(fixed ?? 1) + DistanceUnit.Miles;
+    case DistanceUnit.Meters:
+      return value.toFixed(fixed ?? 0) + DistanceUnit.Meters;
+    case DistanceUnit.Feet:
+      return (value * 3.28084).toFixed(fixed ?? 0) + DistanceUnit.Feet;
+    case SpeedUnit.KilometersPerHour:
+      return value.toFixed(fixed ?? 1) + SpeedUnit.KilometersPerHour;
+    case SpeedUnit.MilesPerHour:
+      return (value / 1.60934).toFixed(fixed ?? 1) + SpeedUnit.MilesPerHour;
+    case SpeedUnit.MetersPerSecond:
+      return value.toFixed(fixed ?? 1) + SpeedUnit.MetersPerSecond;
+    case SpeedUnit.FeetPerMinute:
+      return (value * 3.28084 * 60).toFixed(fixed ?? 0) + SpeedUnit.FeetPerMinute;
     default:
       return '';
   }

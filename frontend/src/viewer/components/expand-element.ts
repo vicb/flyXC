@@ -2,7 +2,7 @@ import { CSSResult, customElement, html, internalProperty, LitElement, TemplateR
 import { connect } from 'pwa-helpers';
 
 import { RootState, store } from '../redux/store';
-import { controlStyle } from './control-style';
+import { controlStyle } from '../styles/control-style';
 
 @customElement('expand-ctrl-element')
 export class ExpandElement extends connect(store)(LitElement) {

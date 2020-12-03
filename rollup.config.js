@@ -35,7 +35,6 @@ export default [
       replace({
         values: {
           'process.env.NODE_ENV': nodeEnv,
-          'process.env.USE_CACHE': process.env.USE_CACHE,
           '<%BUILD%>': build,
         },
       }),
@@ -50,7 +49,7 @@ export default [
       prod && terser({ output: { comments: false } }),
       !prod && run({ execArgv: ['--inspect'] }),
     ],
-    external: builtins,
+    external: [...builtins, /@google-cloud/],
   },
   {
     input: 'run/src/server.ts',
@@ -79,17 +78,18 @@ export default [
       prod && terser({ output: { comments: false } }),
       !prod && run({ env: { ...process.env, PORT: 8084 } }),
     ],
-    external: builtins,
+    external: [...builtins, /@google-cloud/],
   },
   buildFrontEnd('frontend/src/viewer/flyxc.ts', { importUi5: true, visualizer: true }),
   buildFrontEnd('frontend/src/viewer/workers/track.ts', { isWorker: true }),
+  buildFrontEnd('frontend/src/viewer/workers/live-track.ts', { isWorker: true }),
   buildFrontEnd('frontend/src/archives/archives.ts'),
   buildFrontEnd('frontend/src/tracking/devices.ts'),
   buildFrontEnd('frontend/src/status/status.ts'),
 ];
 
 function buildFrontEnd(input, options = {}) {
-  const m = input.match(/\/(\w+)\.ts$/);
+  const m = input.match(/\/([\w-]+)\.ts$/);
   if (m == null) {
     throw Error('Can not find project name');
   }
@@ -132,7 +132,7 @@ function buildFrontEnd(input, options = {}) {
       resolve(),
       cjs(),
       typescript({
-        lib: options.isWorker ? ['WebWorker'] : ['ES6', 'DOM'],
+        lib: options.isWorker ? ['ES2020.Promise', 'WebWorker'] : ['ES2020.Promise', 'DOM'],
         sourceMap: !prod,
       }),
       options.importUi5 &&

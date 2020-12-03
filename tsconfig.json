@@ -2,6 +2,9 @@
   "compilerOptions": {
     "target": "ES2019",
     "module": "ES2020",
+    "lib": [
+      "ES2020.Promise"
+    ],
     "allowJs": true,
     "sourceMap": true,
     "importHelpers": true,
@@ -13,7 +16,11 @@
     "baseUrl": ".",
     "paths": {
       "flyxc/*": [
-        "./*"
+        "*"
+      ],
+      "@vaadin/*": [
+        "frontend/src/vaadin/*",
+        "common/src/vaadin/*"
       ]
     },
     "typeRoots": [
@@ -23,7 +30,7 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
+    "emitDecoratorMetadata": false,
     "removeComments": true
   }
 }

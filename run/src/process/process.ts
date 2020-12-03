@@ -3,10 +3,11 @@ const request = require('request-zero');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
 import async from 'async';
-import { Keys } from 'flyxc/app/src/keys';
 import * as protos from 'flyxc/common/protos/track';
-import { retrieveTrackById, saveTrack, TrackEntity } from 'flyxc/common/src/datastore';
-import { diffDecodeTrack, diffEncodeAirspaces, diffEncodeArray } from 'flyxc/common/src/track';
+import { Keys } from 'flyxc/common/src/keys';
+import { diffEncodeArray } from 'flyxc/common/src/math';
+import { diffDecodeTrack, diffEncodeAirspaces } from 'flyxc/common/src/runtime-track';
+import { retrieveTrackById, saveTrack, TrackEntity } from 'flyxc/common/src/track-entity';
 import * as polyline from 'google-polyline';
 import simplify from 'simplify-path';
 
@@ -29,19 +30,23 @@ export async function postProcessTrack(trackId: number | string): Promise<TrackE
       const groundAltitudes: protos.GroundAltitude[] = await async.mapSeries(tracks, fetchGroundAltitude);
       hasErrors = hasErrors || groundAltitudes.some((proto) => proto.hasErrors);
 
-      trackEntity.ground_altitude_group = protos.GroundAltitudeGroup.toBinary({
-        groundAltitudes: groundAltitudes.map(({ altitudes, hasErrors }) => ({
-          altitudes: diffEncodeArray(altitudes),
-          hasErrors,
-        })),
-      });
+      trackEntity.ground_altitude_group = Buffer.from(
+        protos.GroundAltitudeGroup.toBinary({
+          groundAltitudes: groundAltitudes.map(({ altitudes, hasErrors }) => ({
+            altitudes: diffEncodeArray(altitudes),
+            hasErrors,
+          })),
+        }),
+      );
 
       // Add airspaces.
       const airspaces: protos.Airspaces[] = [];
       await async.eachOfSeries(tracks, async (track, i) => {
         airspaces.push(await fetchAirspaces(track, groundAltitudes[Number(i)]));
       });
-      trackEntity.airspaces_group = protos.AirspacesGroup.toBinary({ airspaces: airspaces.map(diffEncodeAirspaces) });
+      trackEntity.airspaces_group = Buffer.from(
+        protos.AirspacesGroup.toBinary({ airspaces: airspaces.map(diffEncodeAirspaces) }),
+      );
 
       const firstTrack = tracks[0];
       if (firstTrack != null) {

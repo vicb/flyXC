@@ -2,9 +2,9 @@ import { css, CSSResult, customElement, html, internalProperty, LitElement } fro
 import { TemplateResult } from 'lit-html';
 import { connect } from 'pwa-helpers';
 
-import { setAltitudeMultiplier } from '../../redux/app-slice';
+import { setAltitudeMultiplier } from '../../redux/arcgis-slice';
 import { RootState, store } from '../../redux/store';
-import { controlStyle } from '../control-style';
+import { controlStyle } from '../../styles/control-style';
 
 @customElement('exaggeration-element')
 export class ExaggerationElement extends connect(store)(LitElement) {
@@ -25,7 +25,7 @@ export class ExaggerationElement extends connect(store)(LitElement) {
   }
 
   stateChanged(state: RootState): void {
-    this.multiplier = state.app.altMultiplier;
+    this.multiplier = state.arcgis.altMultiplier;
   }
 
   protected render(): TemplateResult {

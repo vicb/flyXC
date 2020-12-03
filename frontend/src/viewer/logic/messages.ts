@@ -1,5 +1,8 @@
-import { LatLon } from 'flyxc/common/src/track';
+import { LatLon } from 'flyxc/common/src/runtime-track';
 import { createEvents } from 'micro-typed-events';
+
+import type Graphic from 'esri/Graphic';
+import type SceneView from 'esri/views/SceneView';
 
 // Zoom the map in the given direction (typically mouse wheel).
 export const zoomMap = createEvents<number>();
@@ -17,6 +20,9 @@ export const trackGroupsRemoved = createEvents<number[]>();
 
 // Request current map to update the location.
 export const requestLocation = createEvents();
+
+// Click on a graphic of a SceneView (3d).
+export const clickSceneView = createEvents<Graphic, SceneView>();
 
 // User location.
 export const geoLocation = createEvents<LatLon>();

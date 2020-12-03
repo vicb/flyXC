@@ -2,7 +2,7 @@ import async from 'async';
 import * as protos from 'flyxc/common/protos/track';
 import { Flags, getAspTileUrl, isInFeature } from 'flyxc/common/src/airspaces';
 import { pixelCoordinates } from 'flyxc/common/src/proj';
-import { Point } from 'flyxc/common/src/track';
+import { Point } from 'flyxc/common/src/runtime-track';
 import { VectorTile } from 'mapbox-vector-tile';
 import lru, { Lru } from 'tiny-lru';
 
@@ -75,7 +75,7 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
       const key = getAspFeatureKey(feature);
       for (const fixIdx of indexes) {
         const flags = props.flags as number;
-        const bottom = (props.bottom as number) + (flags & Flags.BOTTOM_REF_GND ? (gndAlt[fixIdx] as number) : 0);
+        const bottom = (props.bottom as number) + (flags & Flags.FloorRefGnd ? (gndAlt[fixIdx] as number) : 0);
         if (bottom > maxAltitude) {
           continue;
         }

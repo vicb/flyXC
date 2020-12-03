@@ -1,4 +1,4 @@
-import { LatLonZ, RuntimeTrack } from 'flyxc/common/src/track';
+import { LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import {
   css,
   CSSResult,
@@ -19,7 +19,7 @@ import { DistanceUnit, formatUnit } from '../../logic/units';
 import { setShowRestrictedAirspace } from '../../redux/airspace-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
-import { controlStyle } from '../control-style';
+import { controlStyle } from '../../styles/control-style';
 
 @customElement('airspace-ctrl-element')
 export class AirspaceCtrlElement extends connect(store)(LitElement) {

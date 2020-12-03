@@ -3,10 +3,10 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { DistanceUnit, SpeedUnit, Units } from '../logic/units';
 
 const initialState: Units = {
-  distance: (localStorage.getItem('unit.distance') ?? DistanceUnit.kilometers) as DistanceUnit,
-  speed: (localStorage.getItem('unit.speed') ?? SpeedUnit.kilometers_hour) as SpeedUnit,
-  altitude: (localStorage.getItem('unit.altitude') ?? DistanceUnit.meters) as DistanceUnit,
-  vario: (localStorage.getItem('unit.vario') ?? SpeedUnit.meters_second) as SpeedUnit,
+  distance: (localStorage.getItem('unit.distance') ?? DistanceUnit.Kilometers) as DistanceUnit,
+  speed: (localStorage.getItem('unit.speed') ?? SpeedUnit.KilometersPerHour) as SpeedUnit,
+  altitude: (localStorage.getItem('unit.altitude') ?? DistanceUnit.Meters) as DistanceUnit,
+  vario: (localStorage.getItem('unit.vario') ?? SpeedUnit.MetersPerSecond) as SpeedUnit,
 };
 
 const unitsSlice = createSlice({

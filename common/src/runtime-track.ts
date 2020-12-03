@@ -1,6 +1,7 @@
 import { getDistance } from 'geolib';
 
 import * as protos from '../protos/track';
+import { diffDecodeArray, diffEncodeArray } from './math';
 
 export type Point = {
   x: number;
@@ -213,16 +214,6 @@ export function createRuntimeTracks(metaTracks: ArrayBuffer): RuntimeTrack[] {
   return runtimeTracks;
 }
 
-// Differential encoding of a track.
-export function diffEncodeTrack(track: protos.Track): protos.Track {
-  const lon = diffEncodeArray(track.lon, 1e5);
-  const lat = diffEncodeArray(track.lat, 1e5);
-  const ts = diffEncodeArray(track.ts, 1e-3, false);
-  const alt = diffEncodeArray(track.alt);
-
-  return { ...track, lat, lon, alt, ts };
-}
-
 // Differential encoding of airspaces.
 export function diffEncodeAirspaces(asp: protos.Airspaces): protos.Airspaces {
   // Use signed values as the end are not ordered.
@@ -231,22 +222,14 @@ export function diffEncodeAirspaces(asp: protos.Airspaces): protos.Airspaces {
   return { ...asp, startTs, endTs };
 }
 
-export function diffEncodeArray(data: number[], multiplier = 1, signed = true): number[] {
-  let previousValue: number;
-  return data.map((v: number, i: number) => {
-    v = Math.round(v * multiplier);
-    const res = i == 0 ? v : v - previousValue;
-    previousValue = v;
-    return signed ? res : Math.max(0, res);
-  });
-}
+// Differential encoding of a track.
+export function diffEncodeTrack(track: protos.Track): protos.Track {
+  const lon = diffEncodeArray(track.lon, 1e5);
+  const lat = diffEncodeArray(track.lat, 1e5);
+  const ts = diffEncodeArray(track.ts, 1e-3, false);
+  const alt = diffEncodeArray(track.alt);
 
-export function diffDecodeArray(data: number[], multiplier = 1): number[] {
-  let value: number;
-  return data.map((delta: number, i: number) => {
-    value = i == 0 ? delta : value + delta;
-    return value / multiplier;
-  });
+  return { ...track, lat, lon, alt, ts };
 }
 
 // Differential decoding of a track.

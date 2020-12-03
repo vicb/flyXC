@@ -13,7 +13,7 @@ import './components/3d/map3d-element';
 import './components/chart-element';
 import './components/loader-element';
 
-import { LatLonZ } from 'flyxc/common/src/track';
+import { LatLonZ } from 'flyxc/common/src/runtime-track';
 import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { classMap } from 'lit-html/directives/class-map.js';
 import { connect } from 'pwa-helpers';
@@ -27,7 +27,7 @@ import {
   pushCurrentState,
 } from './logic/history';
 import * as msg from './logic/messages';
-import { downloadTracksByGroupIds, downloadTracksByUrls, uploadTracks } from './logic/tracks';
+import { downloadTracksByGroupIds, downloadTracksByUrls, uploadTracks } from './logic/track';
 import { setDisplayNames, setTimestamp, setView3d } from './redux/app-slice';
 import { setGeolocation } from './redux/location-slice';
 import { setRoute, setSpeed } from './redux/planner-slice';
@@ -144,7 +144,8 @@ export class FlyXc extends connect(store)(LitElement) {
 }
 
 if ('geolocation' in navigator) {
-  navigator.geolocation.getCurrentPosition((p: Position) => {
+  // p should be a `Position`, why compile error ?
+  navigator.geolocation.getCurrentPosition((p: any) => {
     const { latitude: lat, longitude: lon } = p.coords;
     msg.geoLocation.emit({ lat, lon });
     store.dispatch(setGeolocation({ lat, lon }));

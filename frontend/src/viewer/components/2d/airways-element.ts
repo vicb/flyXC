@@ -1,7 +1,7 @@
 import { css, CSSResult, customElement, html, internalProperty, LitElement, property } from 'lit-element';
 import { html as baseHtml, TemplateResult } from 'lit-html';
 
-import { controlStyle } from '../control-style';
+import { controlStyle } from '../../styles/control-style';
 import { WMTSOverlayElement } from './wmts-overlay';
 
 @customElement('airways-overlay')

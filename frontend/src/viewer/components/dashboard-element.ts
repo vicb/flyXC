@@ -1,9 +1,9 @@
-import { RuntimeTrack } from 'flyxc/common/src/track';
+import { sampleAt } from 'flyxc/common/src/math';
+import { RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 
-import { sampleAt } from '../logic/math';
 import { formatUnit, Units } from '../logic/units';
-import { controlStyle } from './control-style';
+import { controlStyle } from '../styles/control-style';
 
 @customElement('dashboard-ctrl-element')
 export class DashboardElement extends LitElement {

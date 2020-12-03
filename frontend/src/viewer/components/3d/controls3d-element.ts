@@ -5,8 +5,9 @@ import '../globe-element';
 import '../name-element';
 import '../upload-element';
 import './exaggeration-element';
+import './tracking3d-element';
 
-import { extractGroupId, RuntimeTrack } from 'flyxc/common/src/track';
+import { extractGroupId, RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { css, CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
@@ -69,6 +70,7 @@ export class Controls3dElement extends connect(store)(LitElement) {
       <upload-ctrl-element class="cl" title="upload tracks"></upload-ctrl-element>
       <about-ctrl-element class="cl" title="about"></about-ctrl-element>
       <preferences-ctrl-element title="settings"></preferences-ctrl-element>
+      <tracking3d-element class="cl" title="live tracking"></tracking3d-element>
       ${this.track?.name
         ? html`
             <name-ctrl-element

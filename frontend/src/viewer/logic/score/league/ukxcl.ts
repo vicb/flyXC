@@ -31,7 +31,7 @@ function scoreOutAndReturn(multiplierFn: (d: number) => number, measure: Measure
           distance: maxScoringDistance,
           indexes: maxIndexes,
           multiplier: multiplierFn(2 * maxDistance),
-          circuit: CircuitType.OUT_AND_RETURN,
+          circuit: CircuitType.OutAndReturn,
           closingRadius: 800,
         }),
       ];
@@ -54,10 +54,10 @@ function scoreTriangles(
   let circuit;
   if (shortestLegFraction >= 0.28) {
     multiplier = faiMultiplierFn(distance);
-    circuit = CircuitType.FAI_TRIANGLE;
+    circuit = CircuitType.FaiTriangle;
   } else if (shortestLegFraction >= 0.15 && longestLegFraction <= 0.45) {
     multiplier = flatMultiplierFn(distance);
-    circuit = CircuitType.FLAT_TRIANGLE;
+    circuit = CircuitType.FlatTriangle;
   } else {
     return [];
   }

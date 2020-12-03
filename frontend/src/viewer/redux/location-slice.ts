@@ -1,4 +1,4 @@
-import { LatLon } from 'flyxc/common/src/track';
+import { LatLon } from 'flyxc/common/src/runtime-track';
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 

@@ -1,6 +1,6 @@
 import { getDistance } from 'geolib';
 
-import { RuntimeTrack } from './track';
+import { RuntimeTrack } from './runtime-track';
 
 // Finds the closest fix to {lat, lon} across all the tracks.
 export function findClosestFix(

@@ -1,75 +1,125 @@
+// Spot trackers API.
+//
+// See https://www.findmespot.com/en-us/support/spot-trace/get-help/general/spot-api-support.
+
 /* eslint-disable @typescript-eslint/no-var-requires */
 const request = require('request-zero');
-/* eslint-enable @typescript-eslint/no-var-requires */
 
-import { createFeatures, Point, REFRESH_EVERY_MINUTES } from './trackers';
+import { idFromEntity } from 'flyxc/common/src/datastore';
+import {
+  LIVE_FETCH_TIMEOUT_SEC,
+  LIVE_MINIMAL_INTERVAL_SEC,
+  LIVE_RETENTION_SEC,
+  removeBeforeFromLiveTrack,
+  simplifyLiveTrack,
+  SPOT_REFRESH_INTERVAL_SEC,
+  TrackerIds,
+} from 'flyxc/common/src/live-track';
+import { validateSpotAccount } from 'flyxc/common/src/models';
+
+import { getTrackersToUpdate, LivePoint, makeLiveTrack, ParseError, TrackerUpdate, TrackUpdate } from './live-track';
 
 // Queries the datastore for the devices that have not been updated in REFRESH_EVERY_MINUTES.
 // Queries the feeds until the timeout is reached and store the data back into the datastore.
-export async function refresh(datastore: any, hour: number, timeoutSecs: number): Promise<number> {
+export async function refresh(): Promise<TrackerUpdate> {
   const start = Date.now();
+  const timeoutAfter = start + LIVE_FETCH_TIMEOUT_SEC * 1000;
 
-  const query = datastore
-    .createQuery('Tracker')
-    .filter('device', '=', 'spot')
-    .filter('updated', '<', start - REFRESH_EVERY_MINUTES * 60 * 1000)
-    .order('updated', { descending: true });
+  const trackers = await getTrackersToUpdate(TrackerIds.Spot, start - SPOT_REFRESH_INTERVAL_SEC * 1000, 100);
 
-  const devices = (await datastore.runQuery(query))[0];
-  const startDate = new Date(start - hour * 3600 * 1000).toISOString().substring(0, 19) + '-0000';
+  const result: TrackerUpdate = {
+    trackerId: TrackerIds.Spot,
+    tracks: new Map<number, TrackUpdate>(),
+    errors: [],
+    durationSec: 0,
+  };
 
-  let numDevices = 0;
-  let numActiveDevices = 0;
-  for (; numDevices < devices.length; numDevices++) {
-    const points: Point[] = [];
-    const device = devices[numDevices];
-    const id: string = device.spot;
-    if (/^\w+$/i.test(id)) {
-      const url = `https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed/${id}/message.json?startDate=${startDate}`;
-      let response;
+  for (const tracker of trackers) {
+    const id = idFromEntity(tracker);
+
+    // Fetch an extra 30 minutes if some data were in flight.
+    const lastFetch = tracker.updated ?? 0;
+    const fetchFrom = Math.max(start - LIVE_RETENTION_SEC * 1000, lastFetch - 30 * 60 * 1000);
+    const fetchDate = new Date(fetchFrom).toISOString().substring(0, 19) + '-0000';
+
+    const update: TrackUpdate = { updated: start };
+    let points: LivePoint[] = [];
+
+    const spotId = validateSpotAccount(tracker.account);
+
+    if (spotId === false) {
+      update.error = `The id "${id}" is not valid`;
+    } else {
+      const url = `https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed/${spotId}/message.json?startDate=${fetchDate}`;
       try {
-        response = await request(url);
+        const response = await request(url);
+        if (response.code == 200) {
+          points = parse(response.body);
+        } else {
+          update.error = `HTTP Status = ${response.code} for ${url}`;
+        }
       } catch (e) {
-        console.error(`Error refreshing spot @ ${id} = ${e.message}`);
-        continue;
-      }
-      if (response.code != 200) {
-        console.error(`Error refreshing spot @ ${id}`);
-        continue;
-      }
-      console.log(`Refreshing spot @ ${id}`);
-      const fixes = JSON.parse(response.body)?.response?.feedMessageResponse?.messages?.message;
-      if (fixes && Array.isArray(fixes)) {
-        numActiveDevices++;
-        fixes.forEach((f: any) => {
-          points.push({
-            lon: f.longitude,
-            lat: f.latitude,
-            ts: f.unixTime * 1000,
-            alt: f.altitude,
-            name: f.messengerName,
-            emergency: f.messageType == 'HELP',
-            msg: f.messageContent,
-          });
-        });
+        update.error = `Error "${e}" for url ${url}`;
       }
     }
 
-    device.features = JSON.stringify(createFeatures(points));
-    device.updated = Date.now();
-    device.active = points.length > 0;
+    if (update.error == null && points.length > 0) {
+      let track = makeLiveTrack(points);
+      track = removeBeforeFromLiveTrack(track, fetchFrom / 1000);
+      simplifyLiveTrack(track, LIVE_MINIMAL_INTERVAL_SEC);
+      update.track = track;
+    }
 
-    datastore.save({
-      key: device[datastore.KEY],
-      data: device,
-      excludeFromIndexes: ['features'],
-    });
+    result.tracks.set(id, update);
 
-    if (Date.now() - start > timeoutSecs * 1000) {
-      console.error(`Timeout for spot devices (${timeoutSecs}s)`);
+    if (Date.now() > timeoutAfter) {
+      result.errors.push(`Fetch timeout`);
       break;
     }
   }
-  console.log(`Refreshed ${numDevices} spot in ${(Date.now() - start) / 1000}s`);
-  return numActiveDevices;
+
+  result.durationSec = Math.round((Date.now() - start) / 1000);
+
+  return result;
+}
+
+// Parses SPOT json feeds.
+//
+// Throws:
+// - a `ParseError` on invalid feed,
+// - an Error if spot response contain an error.
+export function parse(jsonFeed: string): LivePoint[] {
+  const points: LivePoint[] = [];
+
+  let feed: any;
+  try {
+    feed = JSON.parse(jsonFeed);
+  } catch (e) {
+    throw new ParseError('Invalid SPOT json');
+  }
+
+  const error = feed?.response?.errors?.error;
+
+  // Code E-0195 is used when there is no fix after the start time.
+  if (error && error.code != 'E-0195') {
+    throw new Error(error?.description ?? 'Feed error');
+  }
+
+  const fixes = feed.response?.feedMessageResponse?.messages?.message;
+  if (Array.isArray(fixes)) {
+    fixes.forEach((fix: any) => {
+      points.push({
+        device: TrackerIds.Spot,
+        lon: fix.longitude,
+        lat: fix.latitude,
+        alt: fix.altitude,
+        timestamp: fix.unixTime * 1000,
+        emergency: fix.messageType == 'HELP',
+        message: fix.messageContent,
+        lowBattery: fix.batteryState != 'GOOD',
+      });
+    });
+  }
+
+  return points;
 }

@@ -3,10 +3,10 @@ import { Measure } from './measure';
 export type ScoreFunction = (measure: Measure, distances: number[], indexes: number[]) => Score[];
 
 export const enum CircuitType {
-  OPEN_DISTANCE = 'Open distance',
-  FLAT_TRIANGLE = 'Flat triangle',
-  FAI_TRIANGLE = 'Fai triangle',
-  OUT_AND_RETURN = 'Out and return',
+  OpenDistance = 'Open distance',
+  FlatTriangle = 'Flat triangle',
+  FaiTriangle = 'Fai triangle',
+  OutAndReturn = 'Out and return',
 }
 
 export class Score {
@@ -21,7 +21,7 @@ export class Score {
     this.distance = score.distance || 0;
     this.indexes = score.indexes || [];
     this.multiplier = score.multiplier || 1;
-    this.circuit = score.circuit || CircuitType.OPEN_DISTANCE;
+    this.circuit = score.circuit || CircuitType.OpenDistance;
     this.closingRadius = score.closingRadius || null;
     this.points = (this.distance * this.multiplier) / 1000;
   }
@@ -50,7 +50,7 @@ export function scoreOpenDistance(
           distance: result.distance,
           indexes: result.indexes,
           multiplier: multiplierFn(result.distance),
-          circuit: CircuitType.OPEN_DISTANCE,
+          circuit: CircuitType.OpenDistance,
         }),
       ]
     : [];
@@ -121,10 +121,10 @@ export function scoreTriangles(
   let circuit: CircuitType;
   if (faiMul && Math.min(...distances) / distance >= 0.28) {
     multiplier = faiMul;
-    circuit = CircuitType.FAI_TRIANGLE;
+    circuit = CircuitType.FaiTriangle;
   } else if (flatMul) {
     multiplier = flatMul;
-    circuit = CircuitType.FLAT_TRIANGLE;
+    circuit = CircuitType.FlatTriangle;
   } else {
     return [];
   }

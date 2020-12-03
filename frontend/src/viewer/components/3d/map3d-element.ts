@@ -8,7 +8,7 @@ import './line3d-element';
 import './marker3d-element';
 import './controls3d-element';
 
-import { LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/track';
+import { LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { customElement, html, internalProperty, LitElement, PropertyValues, query, TemplateResult } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
 import { UnsubscribeHandle } from 'micro-typed-events';
@@ -17,6 +17,7 @@ import { connect } from 'pwa-helpers';
 import { Api, loadApi } from '../../logic/arcgis';
 import * as msg from '../../logic/messages';
 import { setApiLoading, setTimestamp, setView3d } from '../../redux/app-slice';
+import { setApi, setGndGraphicsLayer, setGraphicsLayer } from '../../redux/arcgis-slice';
 import { setCurrentLocation } from '../../redux/location-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
@@ -62,11 +63,11 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.tracks = sel.tracks(state);
     this.timestamp = state.app.timestamp;
     this.currentTrackId = state.track.currentTrackId;
-    this.multiplier = state.app.altMultiplier;
+    this.multiplier = state.arcgis.altMultiplier;
     this.updateCamera = state.app.centerMap;
   }
 
-  shouldUpdate(changedProps: PropertyValues): boolean {
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (changedProps.has('currentTrackId')) {
       this.centerOnMarker(16);
     } else if (changedProps.has('timestamp')) {
@@ -81,7 +82,7 @@ export class Map3dElement extends connect(store)(LitElement) {
             this.view?.set('qualityProfile', this.originalQuality);
             this.qualityTimer = undefined;
           }, 500);
-          this.view?.set('qualityProfile', 'low');
+          this.view.set('qualityProfile', 'low');
           const dLat = lookAt.lat - this.previousLookAt.lat;
           const dLon = lookAt.lon - this.previousLookAt.lon;
           const dAlt = lookAt.alt - this.previousLookAt.alt;
@@ -110,6 +111,17 @@ export class Map3dElement extends connect(store)(LitElement) {
     return super.shouldUpdate(changedProps);
   }
 
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.subscriptions.forEach((sub) => sub());
+    this.subscriptions.length = 0;
+    store.dispatch(setGraphicsLayer(undefined));
+    store.dispatch(setGndGraphicsLayer(undefined));
+    store.dispatch(setApi(undefined));
+    this.view?.destroy();
+    this.view = undefined;
+  }
+
   connectedCallback(): void {
     super.connectedCallback();
     store.dispatch(setApiLoading(true));
@@ -132,6 +144,10 @@ export class Map3dElement extends connect(store)(LitElement) {
         camera: { tilt: 80 },
         environment: { starsEnabled: false },
       });
+
+      store.dispatch(setApi(api));
+      store.dispatch(setGraphicsLayer(this.graphicsLayer));
+      store.dispatch(setGndGraphicsLayer(this.gndGraphicsLayer));
 
       this.view.ui.remove('zoom');
       const controls = document.createElement('controls3d-element');
@@ -208,7 +224,10 @@ export class Map3dElement extends connect(store)(LitElement) {
           if (results.length > 0) {
             // Sort hits by their distance to the camera.
             results.sort((r1, r2) => r1.distance - r2.distance);
-            const trackId = results[0].graphic.attributes.trackId;
+            const graphic = results[0].graphic;
+            msg.clickSceneView.emit(graphic, this.view!);
+            // The trackId is set on tracks and pilots (not on live tracks).
+            const trackId = graphic.attributes?.trackId;
             if (trackId != null) {
               store.dispatch(setCurrentTrackId(trackId));
             }
@@ -286,18 +305,11 @@ export class Map3dElement extends connect(store)(LitElement) {
     if (this.view) {
       const center = this.view.center;
       const start = store.getState().location.start;
-      if (center.latitude == start.lat && center.longitude == start.lon) {
+      // center might not be initialized yet.
+      if (center?.latitude == start.lat && center?.longitude == start.lon) {
         this.center({ lat, lon, alt: 0 });
       }
     }
-  }
-
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    this.subscriptions.forEach((sub) => sub());
-    this.subscriptions.length = 0;
-    this.view?.destroy();
-    this.view = undefined;
   }
 
   protected render(): TemplateResult {
@@ -335,13 +347,8 @@ export class Map3dElement extends connect(store)(LitElement) {
         (track) => track.id,
         (track) =>
           html`
-            <line3d-element
-              .layer=${this.graphicsLayer}
-              .gndLayer=${this.gndGraphicsLayer}
-              .track=${track}
-              .api=${this.api}
-            ></line3d-element>
-            <marker3d-element .layer=${this.graphicsLayer} .track=${track} .api=${this.api}></marker3d-element>
+            <line3d-element .track=${track}></line3d-element>
+            <marker3d-element .track=${track}></marker3d-element>
           `,
       )}
     `;

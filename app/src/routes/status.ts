@@ -1,7 +1,19 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { Datastore } = require('@google-cloud/datastore');
+// TODO: update after the live table is changed.
+/*
+- number of tracks
+
+- number of total accounts
+- number of devices
+- number of active devices last 24h
+- number of active devices last 2h
+
+- number of accounts with error > 200 (limit 10 / per devices) ?
+*/
+
 import express, { Request, Response, Router } from 'express';
 import Redis from 'ioredis';
+
+import { Datastore } from '@google-cloud/datastore';
 
 const datastore = new Datastore();
 

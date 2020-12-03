@@ -1,4 +1,4 @@
-export enum ParamNames {
+export const enum ParamNames {
   // URL of a track file (multiple).
   trackUrl = 'track',
   // ID of a track group (multiple).

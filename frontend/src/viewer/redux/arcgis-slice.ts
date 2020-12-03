@@ -1,0 +1,40 @@
+import type GraphicsLayer from 'esri/layers/GraphicsLayer';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+import { Api } from '../logic/arcgis';
+
+type ArcgisState = {
+  // Altitude exaggeration multiplier for 3d.
+  altMultiplier: number;
+  // Pilots, tracks, ...
+  graphicsLayer?: GraphicsLayer;
+  // Graphics layer with elevation mode "on-the-ground" for shadows.
+  gndGraphicsLayer?: GraphicsLayer;
+  api?: Api;
+};
+
+const initialState: ArcgisState = {
+  altMultiplier: 1,
+};
+
+const arcgisSlice = createSlice({
+  name: 'arcgis',
+  initialState,
+  reducers: {
+    setApi: (state, action: PayloadAction<Api | undefined>) => {
+      state.api = action.payload;
+    },
+    setGraphicsLayer: (state, action: PayloadAction<GraphicsLayer | undefined>) => {
+      state.graphicsLayer = action.payload;
+    },
+    setGndGraphicsLayer: (state, action: PayloadAction<GraphicsLayer | undefined>) => {
+      state.gndGraphicsLayer = action.payload;
+    },
+    setAltitudeMultiplier: (state, action: PayloadAction<number>) => {
+      state.altMultiplier = action.payload;
+    },
+  },
+});
+
+export const reducer = arcgisSlice.reducer;
+export const { setAltitudeMultiplier, setApi, setGraphicsLayer, setGndGraphicsLayer } = arcgisSlice.actions;

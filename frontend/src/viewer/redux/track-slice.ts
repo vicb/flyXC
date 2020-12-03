@@ -6,7 +6,7 @@ import {
   createTrackId,
   extractGroupId,
   RuntimeTrack,
-} from 'flyxc/common/src/track';
+} from 'flyxc/common/src/runtime-track';
 
 import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
 
@@ -28,8 +28,8 @@ export type TrackState = {
   currentTrackId?: string;
   fetching: boolean;
   metadata: {
-    // Map from track id to when we started fetching metadata.
-    groupIdToStart: { [id: string]: number };
+    // Map from group ids to when we started fetching metadata.
+    gIdToStart: { [id: string]: number };
     // True when fetching metadata is pending.
     // It is pending for FETCH_EVERY_SECONDS.
     fetchPending: boolean;
@@ -41,8 +41,7 @@ const initialState: TrackState = {
   currentTrackId: undefined,
   fetching: false,
   metadata: {
-    // map group ids to their fetch timestamp.
-    groupIdToStart: {},
+    gIdToStart: {},
     fetchPending: false,
   },
   tracks: trackAdapter.getInitialState(),
@@ -67,7 +66,7 @@ const fetchPendingServerMetadata = createAsyncThunk(
     await new Promise((resolve) => setTimeout(resolve, FETCH_EVERY_SECONDS * 1000));
     api.dispatch(trackSlice.actions.timeoutPendingServerMetadata());
     const state = api.getState() as RootState;
-    const groupIds = Object.keys(state.track.metadata.groupIdToStart);
+    const groupIds = Object.keys(state.track.metadata.gIdToStart);
     let output: ArrayBuffer | undefined;
     api.dispatch(trackSlice.actions.setFetchingMetadata(false));
     if (groupIds.length) {
@@ -181,13 +180,13 @@ const trackSlice = createSlice({
     // Add a group id to the schedule.
     addPendingServerMetadata: (state, action: PayloadAction<number>) => {
       const groupId = action.payload;
-      if (!(groupId in state.metadata.groupIdToStart)) {
-        state.metadata.groupIdToStart[groupId] = Date.now();
+      if (!(groupId in state.metadata.gIdToStart)) {
+        state.metadata.gIdToStart[groupId] = Date.now();
       }
     },
     // Remove old requests that haven't been fulfilled.
     timeoutPendingServerMetadata: (state) => {
-      const groupIdToStart = state.metadata.groupIdToStart;
+      const groupIdToStart = state.metadata.gIdToStart;
       const dropBefore = Date.now() - FETCH_FOR_MINUTES * 60 * 1000;
       for (const [id, startedOn] of Object.entries(groupIdToStart)) {
         if (startedOn <= dropBefore) {
@@ -220,7 +219,7 @@ const trackSlice = createSlice({
           // Patch any tack from the meta groups.
           metaGroups.forEach((metaGroup) => {
             const groupId = metaGroup.id;
-            delete state.metadata.groupIdToStart[groupId];
+            delete state.metadata.gIdToStart[groupId];
             // Patch the ground altitude.
             if (metaGroup.groundAltitudeGroupBin) {
               const gndAltitudes = protos.GroundAltitudeGroup.fromBinary(metaGroup.groundAltitudeGroupBin)

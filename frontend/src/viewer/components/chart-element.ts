@@ -1,6 +1,7 @@
 import { ticks } from 'd3-array';
 import { airspaceCategory, Flags } from 'flyxc/common/src/airspaces';
-import { RuntimeTrack } from 'flyxc/common/src/track';
+import { sampleAt } from 'flyxc/common/src/math';
+import { RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import {
   css,
   CSSResult,
@@ -17,7 +18,6 @@ import {
 } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { sampleAt } from '../logic/math';
 import { DistanceUnit, formatUnit, SpeedUnit, Units } from '../logic/units';
 import { setAirspacesOnGraph } from '../redux/airspace-slice';
 import { ChartYAxis, setCenterMap, setChartYAxis } from '../redux/app-slice';
@@ -87,7 +87,7 @@ export class ChartElement extends connect(store)(LitElement) {
     this.trackColors = sel.trackColors(state);
   }
 
-  get minY(): number {
+  private get minY(): number {
     const state = store.getState();
     switch (this.chartYAxis) {
       case ChartYAxis.Speed:
@@ -99,7 +99,7 @@ export class ChartElement extends connect(store)(LitElement) {
     }
   }
 
-  get maxY(): number {
+  private get maxY(): number {
     const state = store.getState();
     switch (this.chartYAxis) {
       case ChartYAxis.Speed:
@@ -187,6 +187,8 @@ export class ChartElement extends connect(store)(LitElement) {
         }
         .ticks {
           font: 10px sans-serif;
+          user-select: none;
+          pointer-events: none;
           stroke-width: 0.5px;
           fill: black;
           stroke: white;
@@ -322,15 +324,15 @@ export class ChartElement extends connect(store)(LitElement) {
 
     for (let i = 0; i < asp.startTs.length; i++) {
       const flags = asp.flags[i];
-      if (!this.showRestricted && flags & Flags.AIRSPACE_RESTRICTED) {
+      if (!this.showRestricted && flags & Flags.AirspaceRestricted) {
         continue;
       }
       const start = asp.startTs[i];
       const end = asp.endTs[i];
       const top = asp.top[i];
       const bottom = asp.bottom[i];
-      const topRefGnd = flags & Flags.TOP_REF_GND;
-      const bottomRefGnd = flags & Flags.BOTTOM_REF_GND;
+      const topRefGnd = flags & Flags.TopRefGnd;
+      const bottomRefGnd = flags & Flags.FloorRefGnd;
       const coords = [
         ...this.aspLine(track, start, end, minX, spanX, spanTrackTs, bottom, bottomRefGnd),
         ...this.aspLine(track, end, start, minX, spanX, spanTrackTs, top, topRefGnd),

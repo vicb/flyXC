@@ -1,79 +1,115 @@
 // Skylines API.
+//
+// See https://github.com/skylines-project/skylines.
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 const request = require('request-zero');
 
+import { idFromEntity } from 'flyxc/common/src/datastore';
+import {
+  LIVE_FETCH_TIMEOUT_SEC,
+  LIVE_MINIMAL_INTERVAL_SEC,
+  LIVE_RETENTION_SEC,
+  removeBeforeFromLiveTrack,
+  simplifyLiveTrack,
+  TrackerIds,
+} from 'flyxc/common/src/live-track';
+import { round } from 'flyxc/common/src/math';
 import { decodeDeltas } from 'ol/format/Polyline';
 
-import { createFeatures, Point, REFRESH_EVERY_MINUTES } from './trackers';
+import { getTrackersToUpdate, LivePoint, makeLiveTrack, TrackerUpdate, TrackUpdate } from './live-track';
 
 const SECONDS_IN_DAY = 60 * 60 * 24;
 
 // Queries the datastore for the devices that have not been updated in REFRESH_EVERY_MINUTES.
 // Queries the skylines API until the timeout is reached and store the data back into the datastore.
-export async function refresh(datastore: any, maxHour: number, timeoutSecs: number): Promise<number> {
+export async function refresh(): Promise<TrackerUpdate> {
   const start = Date.now();
+  const timeoutAfter = start + LIVE_FETCH_TIMEOUT_SEC * 1000;
 
-  const query = datastore
-    .createQuery('Tracker')
-    .filter('device', '=', 'skylines')
-    .filter('updated', '<', start - REFRESH_EVERY_MINUTES * 60 * 1000)
-    .order('updated', { descending: true });
+  const trackers = await getTrackersToUpdate(TrackerIds.Skylines, start - LIVE_MINIMAL_INTERVAL_SEC * 1000, 100);
 
-  const devices = (await datastore.runQuery(query))[0];
+  const result: TrackerUpdate = {
+    trackerId: TrackerIds.Skylines,
+    tracks: new Map<number, TrackUpdate>(),
+    errors: [],
+    durationSec: 0,
+  };
 
-  let numDevices = 0;
-  const numActiveDevices = 0;
+  while (trackers.length > 0) {
+    // Fetch up to 10 account at once.
+    const batchTrackers = trackers.splice(0, 10);
+    const sklIdToDsId = new Map<number, number>();
+    const sklIdToUpdated = new Map<number, number>();
 
-  for (; numDevices < devices.length; numDevices++) {
-    const device = devices[numDevices];
-    const id: string = device.skylines;
-    if (/^\d+$/i.test(id)) {
-      console.log(`Refreshing skylines @ ${id}`);
-      const url = `https://skylines.aero/api/live/${id}`;
-      let response;
-      try {
-        response = await request(url);
-      } catch (e) {
-        console.log(`Error refreshing skylines @ ${id} = ${e.message}`);
-        continue;
+    batchTrackers.forEach((tracker) => {
+      const sklId = Number(tracker.account);
+      sklIdToDsId.set(sklId, idFromEntity(tracker));
+      const updated = tracker.updated;
+      sklIdToUpdated.set(sklId, updated);
+    });
+
+    const url = `https://skylines.aero/api/live/${[...sklIdToDsId.keys()].join(',')}`;
+
+    const flights: any[] = [];
+    let isError = false;
+
+    try {
+      const response = await request(url);
+      if (response.code == 200) {
+        flights.push(...JSON.parse(response.body).flights);
+      } else {
+        isError = true;
+        result.errors.push(`HTTP Status = ${response.code} for ${url}`);
       }
-      if (response.code != 200) {
-        console.log(`Error refreshing skylines @ ${id}`);
-        continue;
-      }
-      const live = JSON.parse(response.body);
-
-      let points: Point[] = [];
-      if (Array.isArray(live.flights) && live.flights.length > 0) {
-        points = decodeFlight(live.flights[0], live?.pilots[0]?.name ?? 'unknown', maxHour);
-      }
-
-      device.features = JSON.stringify(createFeatures(points));
-      device.updated = Date.now();
-      device.active = points.length > 0;
-
-      datastore.save({
-        key: device[datastore.KEY],
-        data: device,
-        excludeFromIndexes: ['features'],
-      });
+    } catch (e) {
+      isError = true;
+      result.errors.push(`Error "${e}" for url ${url}`);
     }
 
-    if (Date.now() - start > timeoutSecs * 1000) {
-      console.error(`Timeout for skylines devices (${timeoutSecs}s)`);
+    flights.forEach((flight) => {
+      const sklId = Number(flight.sfid);
+      const dsId = sklIdToDsId.get(sklId) as number;
+      // Get an extra 5min of data that might not have been received (when no network coverage).
+      const lastUpdate = sklIdToUpdated.get(sklId) ?? 0;
+      const startTimestamp = Math.max(start - LIVE_RETENTION_SEC * 1000, lastUpdate - 5 * 60 * 1000);
+      const points = parse(flight);
+      let track = makeLiveTrack(points);
+      track = removeBeforeFromLiveTrack(track, startTimestamp / 1000);
+      simplifyLiveTrack(track, LIVE_MINIMAL_INTERVAL_SEC);
+      result.tracks.set(dsId, {
+        track,
+        updated: start,
+      });
+    });
+
+    // Skylines only returns a track if the flight has points.
+    for (const dsId of sklIdToDsId.values()) {
+      if (!result.tracks.has(dsId)) {
+        const update: TrackUpdate = { updated: start };
+        if (isError) {
+          update.error = 'Batch Error';
+        }
+        result.tracks.set(dsId, update);
+      }
+    }
+
+    if (Date.now() > timeoutAfter) {
+      result.errors.push(`Fetch timeout.`);
       break;
     }
   }
-  console.log(`Refreshed ${numDevices} skylines in ${(Date.now() - start) / 1000}s`);
-  return numActiveDevices;
+
+  result.durationSec = Math.round((Date.now() - start) / 1000);
+
+  return result;
 }
 
-export function decodeFlight(flight: any, name: string, maxHour: number, nowMillis = Date.now()): Point[] {
+// Parses a SkyLines flight.
+export function parse(flight: any, nowMillis = Date.now()): LivePoint[] {
   const time = decodeDeltas(flight.barogram_t, 1, 1);
   const lonlat = decodeDeltas(flight.points, 2);
   const height = decodeDeltas(flight.barogram_h, 1, 1);
-  const geoid = flight.geoid ?? 0;
 
   // startSeconds reference is a number of seconds since midnight UTC the day the track started.
   const startSeconds = time[0];
@@ -90,20 +126,16 @@ export function decodeFlight(flight: any, name: string, maxHour: number, nowMill
   const startTimestampSeconds =
     startOfCurrentDayInSeconds - (startedOnPreviousDay ? SECONDS_IN_DAY : 0) + startDaySeconds;
 
-  const points: Point[] = [];
-  time.forEach((seconds: number, i: number) => {
-    const tsSeconds = startTimestampSeconds + seconds - startSeconds;
-    if (nowSeconds - tsSeconds <= maxHour * 3600) {
-      points.push({
-        ts: tsSeconds * 1000,
-        lat: Math.round(lonlat[i * 2] * 1e5) / 1e5,
-        lon: Math.round(lonlat[i * 2 + 1] * 1e5) / 1e5,
-        alt: Math.round(height[i] + geoid),
-        name,
-        emergency: false,
-      });
-    }
-  });
-
-  return points;
+  return time.map(
+    (seconds: number, i: number): LivePoint => {
+      const tsSeconds = startTimestampSeconds + seconds - startSeconds;
+      return {
+        device: TrackerIds.Skylines,
+        lat: round(lonlat[i * 2], 5),
+        lon: round(lonlat[i * 2 + 1], 5),
+        alt: Math.round(height[i]),
+        timestamp: tsSeconds * 1000,
+      };
+    },
+  );
 }

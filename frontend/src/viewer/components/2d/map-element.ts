@@ -1,6 +1,6 @@
 import { findClosestFix } from 'flyxc/common/src/distance';
 import { pixelCoordinates } from 'flyxc/common/src/proj';
-import { LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/track';
+import { LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import {
   customElement,
   html,

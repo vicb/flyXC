@@ -29,7 +29,13 @@ export function sampleAt(xs: number[], ys: number[], targetX: number): number {
   return linearInterpolate(xs[beforeIndex], ys[beforeIndex], xs[afterIndex], ys[afterIndex], targetX);
 }
 
-// Find the two indexes left and right of the value.
+// Finds the two indexes left and right of the value.
+//
+// The output contains the following properties:
+// - beforeAll: true when the value is less than any element in the list,
+// - beforeIndex and afterIndex: indexes before and after the value. They are equal to the index of the value when
+//   it is in the list.
+// - afterAll: true when the value is greater than any element in the list.
 export function findIndexes(
   ascendingList: number[],
   value: number,
@@ -90,4 +96,37 @@ export function findIndexes(
     afterAll: false,
     beforeIndex,
   };
+}
+
+// Rounds a value with up to `numDigits` digits after the decimal point.
+export function round(value: number, numDigits: number): number {
+  const multiplier = 10 ** numDigits;
+  return Math.round(value * multiplier) / multiplier;
+}
+
+// Differential encoding of an array.
+// The value is multiplied by the given `multiplier`.
+// The first value is then stored unchanged followed by the deltas only.
+//
+// `signed == false` makes sure the value can not be less than 0.
+// It is used to sanitize some values (i.e. time should always be increasing).
+export function diffEncodeArray(data: number[], multiplier = 1, signed = true): number[] {
+  let previousValue: number;
+  return data.map((v: number, i: number) => {
+    v = Math.round(v * multiplier);
+    const res = i == 0 ? v : v - previousValue;
+    previousValue = v;
+    return signed ? res : Math.max(0, res);
+  });
+}
+
+// Decodes a differential encoded array.
+//
+// See `diffEncodeArray`.
+export function diffDecodeArray(data: number[], multiplier = 1): number[] {
+  let value: number;
+  return data.map((delta: number, i: number) => {
+    value = i == 0 ? delta : value + delta;
+    return value / multiplier;
+  });
 }

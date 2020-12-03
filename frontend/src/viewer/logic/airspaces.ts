@@ -1,6 +1,6 @@
 import { airspaceColor, Flags, getAspTileUrl, isInFeature, tileId } from 'flyxc/common/src/airspaces';
 import { pixelCoordinates } from 'flyxc/common/src/proj';
-import { LatLon, Point } from 'flyxc/common/src/track';
+import { LatLon, Point } from 'flyxc/common/src/runtime-track';
 import { VectorTile } from 'mapbox-vector-tile';
 
 const TILE_SIZE = 256;
@@ -28,7 +28,7 @@ export function AspAt(zoom: number, latLon: LatLon, altitude: number, includeRes
     const f = layer.feature(i);
     if (
       f.properties.bottom < altitude &&
-      !(f.properties.flags & Flags.AIRSPACE_RESTRICTED && !includeRestricted) &&
+      !(f.properties.flags & Flags.AirspaceRestricted && !includeRestricted) &&
       isInFeature(px, f)
     ) {
       if (info.push(getAirspaceDescription(f)) == 5) {
@@ -163,7 +163,7 @@ function getTile(
           if (
             f.type === 3 &&
             (props.bottom as number) < altitude &&
-            !(flags & Flags.AIRSPACE_RESTRICTED && !showRestricted)
+            !(flags & Flags.AirspaceRestricted && !showRestricted)
           ) {
             const polygons = f.asPolygons() ?? [];
             polygons.forEach((polygon) => {

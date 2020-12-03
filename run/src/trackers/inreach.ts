@@ -1,114 +1,156 @@
+// InReach tracker API.
+//
+// See https://support.garmin.com/en-US/?faq=tdlDCyo1fJ5UxjUbA9rMY8.
+
 /* eslint-disable @typescript-eslint/no-var-requires */
 const request = require('request-zero');
-/* eslint-enable @typescript-eslint/no-var-requires */
 
+import { idFromEntity } from 'flyxc/common/src/datastore';
+import {
+  INREACH_REFRESH_INTERVAL_SEC,
+  LIVE_FETCH_TIMEOUT_SEC,
+  LIVE_MINIMAL_INTERVAL_SEC,
+  LIVE_RETENTION_SEC,
+  removeBeforeFromLiveTrack,
+  simplifyLiveTrack,
+  TrackerIds,
+} from 'flyxc/common/src/live-track';
+import { validateInreachAccount } from 'flyxc/common/src/models';
 import { DOMParser } from 'xmldom';
 
-import { createFeatures, Point, REFRESH_EVERY_MINUTES } from './trackers';
+import { getTrackersToUpdate, LivePoint, makeLiveTrack, ParseError, TrackerUpdate, TrackUpdate } from './live-track';
 
 // Queries the datastore for the devices that have not been updated in REFRESH_EVERY_MINUTES.
 // Queries the feeds until the timeout is reached and store the data back into the datastore.
-export async function refresh(datastore: any, hour: number, timeoutSecs: number): Promise<number> {
+export async function refresh(): Promise<TrackerUpdate> {
   const start = Date.now();
+  const timeoutAfter = start + LIVE_FETCH_TIMEOUT_SEC * 1000;
 
-  const query = datastore
-    .createQuery('Tracker')
-    .filter('device', '=', 'inreach')
-    .filter('updated', '<', start - REFRESH_EVERY_MINUTES * 60 * 1000)
-    .order('updated', { descending: true });
+  const trackers = await getTrackersToUpdate(TrackerIds.Inreach, start - INREACH_REFRESH_INTERVAL_SEC * 1000, 100);
 
-  const devices = (await datastore.runQuery(query))[0];
-  const startDate = new Date(start - hour * 3600 * 1000).toISOString();
+  const result: TrackerUpdate = {
+    trackerId: TrackerIds.Inreach,
+    tracks: new Map<number, TrackUpdate>(),
+    errors: [],
+    durationSec: 0,
+  };
 
-  let numDevices = 0;
-  let numActiveDevices = 0;
-  for (; numDevices < devices.length; numDevices++) {
-    const points: Point[] = [];
-    const device = devices[numDevices];
-    let url: string = device.inreach;
-    // Automatically inserts "Feed/Share" when missing in url.
-    // That's missing for a lot of users.
-    if (url.match(/Feed\/Share/i) == null) {
-      const lastSlash = url.lastIndexOf('/');
-      if (lastSlash > -1) {
-        url = url.substr(0, lastSlash) + '/Feed/Share' + url.substr(lastSlash);
-      }
-    }
-    if (/^https?:\/\/[\w.-]*?garmin.com\/Feed\/Share\/[^?]+/i.test(url)) {
-      let response;
+  for (const tracker of trackers) {
+    const id = idFromEntity(tracker);
+
+    // Fetch an extra 30 minutes if some data were in flight.
+    const lastFetch = tracker.updated ?? 0;
+    const fetchFrom = Math.max(start - LIVE_RETENTION_SEC * 1000, lastFetch - 30 * 60 * 1000);
+
+    const update: TrackUpdate = { updated: start };
+    let points: LivePoint[] = [];
+
+    const inreachUrl = validateInreachAccount(tracker.account);
+
+    if (inreachUrl === false) {
+      update.error = `The url ${inreachUrl} is not valid`;
+    } else {
+      const url = `${inreachUrl}?d1=${new Date(fetchFrom).toISOString()}`;
+
       try {
-        response = await request(`${url}?d1=${startDate}`);
+        const response = await request(url);
+        if (response.code == 200) {
+          points = parse(response.body);
+        } else {
+          update.error = `HTTP Status = ${response.code} for ${url}`;
+        }
       } catch (e) {
-        console.error(`Error refreshing inreach @ ${url} = ${e.message}`);
-        continue;
+        update.error = `Error "${e}" for url ${url}`;
       }
-      if (response.code != 200) {
-        console.error(`Error refreshing inreach @ ${url}.`);
-        continue;
-      }
-
-      if (response.body.length > 0) {
-        console.log(`Refreshing inreach @ ${url}`);
-        const dom = new DOMParser({
-          errorHandler: (level: string, msg: string): void => {
-            if (level === 'error') {
-              console.error(`InReach parse error (${msg})`);
-            }
-          },
-        }).parseFromString(response.body);
-        const placemarks = dom ? dom.getElementsByTagName('Placemark') : [];
-        if (placemarks.length > 0) {
-          numActiveDevices++;
-        }
-        for (let p = 0; p < placemarks.length; p++) {
-          const placemark = placemarks[p];
-          const coords = getChildNode(placemark.childNodes, 'Point.coordinates');
-          const timestamp = getChildNode(placemark.childNodes, 'TimeStamp.when');
-          const dataNode = getChildNode(placemark.childNodes, 'ExtendedData');
-          const data = dataNode ? getData(dataNode) : null;
-          const msg = getChildNode(placemark.childNodes, 'description')?.firstChild?.nodeValue ?? '';
-          if (coords && timestamp && data && coords.firstChild?.nodeValue && timestamp.firstChild?.nodeValue) {
-            const [lon, lat, alt] = coords.firstChild.nodeValue
-              .trim()
-              .split(',')
-              .map((v: string): number => Number(v));
-            const ts = new Date(timestamp.firstChild.nodeValue).getTime();
-            points.push({
-              lon,
-              lat,
-              alt: Math.round(alt),
-              ts,
-              name: data['Name'],
-              msg,
-              speed: Number(data['Velocity'].replace(/^([\d]+).*/, '$1')),
-              emergency: data['In Emergency'] !== 'False',
-              valid: data['Valid GPS Fix'] === 'True',
-            });
-          }
-        }
-      }
-
-      device.features = JSON.stringify(createFeatures(points));
-      device.updated = Date.now();
-      device.active = points.length > 0;
-
-      datastore.save({
-        key: device[datastore.KEY],
-        data: device,
-        excludeFromIndexes: ['features'],
-      });
     }
 
-    if (Date.now() - start > timeoutSecs * 1000) {
-      console.error(`Timeout for inreach devices (${timeoutSecs}s)`);
+    if (update.error == null && points.length > 0) {
+      let track = makeLiveTrack(points);
+      track = removeBeforeFromLiveTrack(track, fetchFrom / 1000);
+      simplifyLiveTrack(track, LIVE_MINIMAL_INTERVAL_SEC);
+      update.track = track;
+    }
+
+    result.tracks.set(id, update);
+
+    if (Date.now() > timeoutAfter) {
+      result.errors.push(`Fetch timeout`);
       break;
     }
   }
-  console.log(`Refreshed ${numDevices} inreach in ${(Date.now() - start) / 1000}s`);
-  return numActiveDevices;
+
+  result.durationSec = Math.round((Date.now() - start) / 1000);
+
+  return result;
 }
 
-function getData(extendedData: ChildNode): { [k: string]: string } {
+// Parses the kml feed to a list of `LivePoint`s.
+//
+// Throws a `ParseError` on invalid feed.
+export function parse(kmlFeed: string): LivePoint[] {
+  const points: LivePoint[] = [];
+
+  if (kmlFeed.length == 0) {
+    return points;
+  }
+  const parser = new DOMParser({
+    errorHandler: (level: string, msg: string): void => {
+      if (/error/i.test(level)) {
+        throw new ParseError(`Invalid InReach feed (${msg})`);
+      }
+    },
+  });
+
+  const placemarks = parser.parseFromString(kmlFeed).getElementsByTagName('Placemark');
+
+  for (let p = 0; p < placemarks.length; p++) {
+    const placemark = placemarks[p];
+    const coordinates = getChildNode(placemark.childNodes, 'Point.coordinates')?.firstChild?.nodeValue;
+    const time = getChildNode(placemark.childNodes, 'TimeStamp.when')?.firstChild?.nodeValue;
+    const extendedDataNode = getChildNode(placemark.childNodes, 'ExtendedData');
+    const extendedData = extendedDataNode ? getExtendedDataMap(extendedDataNode) : null;
+    const message = getChildNode(placemark.childNodes, 'description')?.firstChild?.nodeValue;
+
+    if (coordinates && time && extendedData) {
+      const [lon, lat, alt] = coordinates
+        .trim()
+        .split(',')
+        .map((v: string) => Number(v));
+
+      points.push({
+        device: TrackerIds.Inreach,
+        lon,
+        lat,
+        alt: Math.round(alt),
+        timestamp: new Date(time).getTime(),
+        message,
+        speed: Number(extendedData['Velocity'].replace(/^([\d]+).*/, '$1')),
+        emergency: extendedData['In Emergency'] !== 'False',
+        valid: extendedData['Valid GPS Fix'] === 'True',
+      });
+    }
+  }
+
+  return points;
+}
+
+// Returns a child node by "." delimited path.
+function getChildNode(nodeList: NodeListOf<ChildNode>, tagPath: string): ChildNode | null {
+  const tagName = tagPath.split('.')[0];
+  for (let i = 0; i < nodeList.length; i++) {
+    const el = nodeList[i] as Element;
+    if (el.tagName == tagName) {
+      if (tagName == tagPath) {
+        return el;
+      }
+      return getChildNode(nodeList[i].childNodes, tagPath.substr(tagName.length + 1));
+    }
+  }
+  return null;
+}
+
+// Returns the ExtendedData node as a key-value list.
+function getExtendedDataMap(extendedData: ChildNode): { [k: string]: string } {
   const data: { [k: string]: string } = {};
   const childNodes = extendedData?.childNodes || [];
   for (let d = 0; d < childNodes.length; d++) {
@@ -122,18 +164,4 @@ function getData(extendedData: ChildNode): { [k: string]: string } {
     }
   }
   return data;
-}
-
-function getChildNode(nodeList: NodeListOf<ChildNode>, tagPath: string): ChildNode | null {
-  const tagName = tagPath.split('.')[0];
-  for (let i = 0; i < nodeList.length; i++) {
-    const el = nodeList[i] as Element;
-    if (el.tagName == tagName) {
-      if (tagName == tagPath) {
-        return el;
-      }
-      return getChildNode(nodeList[i].childNodes, tagPath.substr(tagName.length + 1));
-    }
-  }
-  return null;
 }

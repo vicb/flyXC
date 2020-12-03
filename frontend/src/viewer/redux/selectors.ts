@@ -1,8 +1,9 @@
-import { extractGroupId, LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/track';
+import { sampleAt } from 'flyxc/common/src/math';
+import { extractGroupId, LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { createSelector } from 'reselect';
 
-import { sampleAt } from '../logic/math';
 import { DistanceUnit, Units } from '../logic/units';
+import { getUniqueColor } from '../styles/track';
 import { RootState } from './store';
 import { trackAdapterSelector } from './track-slice';
 
@@ -102,7 +103,7 @@ export const tracksExtent = createSelector(
 // Returns a list of altitude stops for airspaces in meters.
 export const airspaceAltitudeStops = createSelector(altitudeUnits, (units) => {
   const steps: number[] = [];
-  if (units === DistanceUnit.feet) {
+  if (units === DistanceUnit.Feet) {
     for (let ft = 1000; ft <= 17000; ft += 1000) {
       const m = ft / 3.28084;
       steps.push(m);
@@ -151,35 +152,7 @@ export const getLookAtLatLonAlt = createSelector(
 export const trackColors = createSelector(trackAdapterSelector.selectIds, (ids) => {
   const colors: { [id: string]: string } = {};
   ids.forEach((id, i) => {
-    colors[id] = distinctColors[i % distinctColors.length];
+    colors[id] = getUniqueColor(i);
   });
   return colors;
 });
-
-// From http://phrogz.net/tmp/24colors.html.
-const distinctColors = [
-  '#FF0000',
-  '#FFFF00',
-  '#00EAFF',
-  '#AA00FF',
-  '#FF7F00',
-  '#BFFF00',
-  '#0095FF',
-  '#FF00AA',
-  '#FFD400',
-  '#6AFF00',
-  '#0040FF',
-  '#EDB9B9',
-  '#B9D7ED',
-  '#E7E9B9',
-  '#DCB9ED',
-  '#B9EDE0',
-  '#8F2323',
-  '#23628F',
-  '#8F6A23',
-  '#6B238F',
-  '#4F8F23',
-  '#000000',
-  '#737373',
-  '#CCCCCC',
-];

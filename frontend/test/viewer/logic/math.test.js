@@ -1,4 +1,4 @@
-import { findIndexes } from 'flyxc/frontend/src/viewer/logic/math';
+import { findIndexes } from 'flyxc/common/src/math';
 
 describe('findIndexes', () => {
   test('throws when the lis is empty', () => {
@@ -12,7 +12,12 @@ describe('findIndexes', () => {
   });
 
   test('value not found', () => {
-    expect(findIndexes([5, 10, 15], 9)).toEqual({ beforeAll: false, beforeIndex: 0, afterAll: false, afterIndex: 1 });
+    expect(findIndexes([5, 10, 15], 9)).toEqual({
+      beforeAll: false,
+      beforeIndex: 0,
+      afterAll: false,
+      afterIndex: 1,
+    });
   });
 
   test('value found', () => {

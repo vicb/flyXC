@@ -60,5 +60,7 @@ Change preferences.
 - [Tom Payne](https://github.com/twpayne) for sharing his airspace handling code and for the great [XCPlanner](https://xcplanner.appspot.com/) that was a source of inspiration,
 - bat icons made by [Freepik](https://www.flaticon.com/authors/freepik) - [www.flaticon.com](https://www.flaticon.com/),
 - loader icon by [Sam Herbert](https://github.com/SamHerbert/SVG-Loaders/blob/master/svg-loaders/three-dots.svg),
-- 3d models by [snootsy31](https://sketchfab.com/snootsy31),
+- Angry Bird 3d model by [snootsy31](https://sketchfab.com/snootsy31),
+- Santa 3d model by [MDALatam Studio dyn](https://sketchfab.com/minego90),
+- Message 3d model by [bariacg](https://sketchfab.com/bariacg),
 - the many open source libraries, projects, and data sources used by FlyXc.

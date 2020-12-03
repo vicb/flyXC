@@ -1,8 +1,8 @@
 import { css, CSSResult, customElement, html, LitElement, TemplateResult } from 'lit-element';
 
 import { addUrlParamValues, ParamNames, pushCurrentState } from '../logic/history';
-import { uploadTracks } from '../logic/tracks';
-import { controlStyle } from './control-style';
+import { uploadTracks } from '../logic/track';
+import { controlStyle } from '../styles/control-style';
 
 @customElement('upload-ctrl-element')
 export class UploadElement extends LitElement {
@@ -24,7 +24,7 @@ export class UploadElement extends LitElement {
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
       />
-      <input type="file" multiple id="track" name="track" @change=${this.upload} />
+      <input type="file" multiple id="track" name="track" tabindex="-1" @change=${this.upload} />
       <i class="la la-cloud-upload-alt la-2x" style="cursor: pointer" @click=${this.forwardClick}></i>
     `;
   }

@@ -1,6 +1,6 @@
 import { css, CSSResult, customElement, html, LitElement, query, TemplateResult } from 'lit-element';
 
-import { controlStyle } from './control-style';
+import { controlStyle } from '../styles/control-style';
 
 @customElement('about-ctrl-element')
 export class AboutElement extends LitElement {

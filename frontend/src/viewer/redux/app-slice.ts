@@ -10,8 +10,6 @@ export const enum ChartYAxis {
 }
 
 type AppState = {
-  // Altitude exaggeration multiplier for 3d.
-  altMultiplier: number;
   chartYAxis: ChartYAxis;
   // Whether to move the map to see the pilot.
   centerMap: boolean;
@@ -25,7 +23,6 @@ type AppState = {
 };
 
 const initialState: AppState = {
-  altMultiplier: 1,
   centerMap: true,
   chartYAxis: ChartYAxis.Altitude,
   displayLiveNames: true,
@@ -65,9 +62,6 @@ const appSlice = createSlice({
     setCenterMap: (state, action: PayloadAction<boolean>) => {
       state.centerMap = action.payload;
     },
-    setAltitudeMultiplier: (state, action: PayloadAction<number>) => {
-      state.altMultiplier = action.payload;
-    },
   },
 });
 
@@ -80,5 +74,4 @@ export const {
   setDisplayLiveNames,
   setView3d,
   setCenterMap,
-  setAltitudeMultiplier,
 } = appSlice.actions;

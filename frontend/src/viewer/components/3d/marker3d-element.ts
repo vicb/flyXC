@@ -1,11 +1,11 @@
 import type Graphic from 'esri/Graphic';
 import type GraphicsLayer from 'esri/layers/GraphicsLayer';
-import { LatLonZ, RuntimeTrack } from 'flyxc/common/src/track';
+import { sampleAt } from 'flyxc/common/src/math';
+import { LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { Api } from '../../logic/arcgis';
-import { sampleAt } from '../../logic/math';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 
@@ -15,11 +15,11 @@ const MARKER_HEIGHT = 30;
 export class Marker3dElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   track?: RuntimeTrack;
-  @property({ attribute: false })
-  api?: Api;
-  @property({ attribute: false })
-  layer?: GraphicsLayer;
 
+  @internalProperty()
+  api?: Api;
+  @internalProperty()
+  private layer?: GraphicsLayer;
   @internalProperty()
   private active = false;
   @internalProperty()
@@ -84,8 +84,10 @@ export class Marker3dElement extends connect(store)(LitElement) {
       this.color = sel.trackColors(state)[id];
       this.active = id == sel.currentTrackId(state);
     }
+    this.layer = state.arcgis.graphicsLayer;
+    this.api = state.arcgis.api;
     this.timestamp = state.app.timestamp;
-    this.multiplier = state.app.altMultiplier;
+    this.multiplier = state.arcgis.altMultiplier;
     this.displayNames = state.app.displayNames;
   }
 

@@ -51,6 +51,7 @@ chart-element.has-tracks {
 .gm-label-outline {
   text-shadow: white -1px 0, white 0 1px, white 1px 0, white 0 -1px;
   filter: drop-shadow(0 0 1px lightgray);
+  white-space: pre;
 }
 
 @font-face {

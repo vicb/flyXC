@@ -1,7 +1,7 @@
 // Filter the altitude using a median filter.
 // Compute the heading.
 
-import { computeVerticalSpeed, RuntimeTrack } from 'flyxc/common/src/track';
+import { computeVerticalSpeed, RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { getRhumbLineBearing } from 'geolib';
 import createMedianFilter from 'moving-median';
 

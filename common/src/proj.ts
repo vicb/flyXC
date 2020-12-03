@@ -1,6 +1,6 @@
 import SphericalMercator from '@mapbox/sphericalmercator';
 
-import { LatLon, Point } from './track';
+import { LatLon, Point } from './runtime-track';
 
 const TILE_SIZE = 256;
 const mercator = new SphericalMercator({ size: TILE_SIZE });

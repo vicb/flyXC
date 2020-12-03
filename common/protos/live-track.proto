@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+
+// An event on a Track.
+message LiveExtra {
+  optional string message = 1;
+  optional uint32 speed = 2;
+}
+
+// All the points for a tracker.
+// This message is stored in the DB.
+message LiveTrack {
+  // Only available client side, not stored in the DB.
+  optional int64 id = 1 [jstype = JS_NUMBER];
+  // Only available client side, not stored in the DB.
+  optional string name = 2;   
+  repeated float lat = 3;
+  repeated float lon = 4;
+  repeated int32 alt = 5;
+  repeated int32 time_sec = 6;
+  repeated uint32 flags = 7;
+  // map from an index to extra info.
+  map<uint32, LiveExtra> extra = 8;
+}
+
+// All the points for a tracker.
+// Differential encoded to transmit over the wire.
+// See `differentialDecodeLiveTrack(...)` for decoding the values.
+message LiveDifferentialTrack {
+  int64 id = 1 [jstype = JS_NUMBER];
+  string name = 2;
+  repeated sint32 lat = 3;
+  repeated sint32 lon = 4;
+  repeated sint32 alt = 5;
+  repeated uint32 time_sec = 6;
+  repeated uint32 flags = 7;
+  // map from an index to extra info.
+  map<uint32, LiveExtra> extra = 8;
+}
+
+// All active trackers.
+message LiveDifferentialTrackGroup {
+  repeated LiveDifferentialTrack tracks = 1;
+  // Whether this is a incremental update (vs full update).
+  bool incremental = 2;
+  // Remote IDs populated for export.
+  repeated string remoteId = 3;
+}

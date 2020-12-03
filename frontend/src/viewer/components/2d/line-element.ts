@@ -1,4 +1,4 @@
-import { RuntimeTrack } from 'flyxc/common/src/track';
+import { RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
 import { connect } from 'pwa-helpers';
 

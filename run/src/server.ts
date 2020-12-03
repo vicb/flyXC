@@ -1,62 +1,105 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { Datastore } = require('@google-cloud/datastore');
-/* eslint-enable @typescript-eslint/no-var-requires */
-
-import GeoJSON from 'geojson';
+import { LiveDifferentialTrackGroup, LiveTrack } from 'flyxc/common/protos/live-track';
+import { idFromEntity } from 'flyxc/common/src/datastore';
+import { Keys } from 'flyxc/common/src/keys';
+import {
+  differentialEncodeLiveTrack,
+  EXPORT_UPDATE_SEC,
+  INCREMENTAL_UPDATE_SEC,
+  LIVE_RETENTION_SEC,
+  removeBeforeFromLiveTrack,
+  removeDeviceFromLiveTrack,
+  TrackerIds,
+} from 'flyxc/common/src/live-track';
+import { LIVE_TRACK_TABLE, LiveTrackEntity } from 'flyxc/common/src/live-track-entity';
 import Redis from 'ioredis';
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 
+import { Datastore } from '@google-cloud/datastore';
 import Router, { RouterContext } from '@koa/router';
 
-import { Keys } from '../../app/src/keys';
 import { postProcessTrack } from './process/process';
-import * as inreach from './trackers/inreach';
-import * as skylines from './trackers/skylines';
-import * as spot from './trackers/spot';
-import { REFRESH_MAX_HOURS, REFRESH_TIMEOUT_SECONDS } from './trackers/trackers';
+import { updateTrackers } from './trackers/live-track';
 
 const app = new Koa();
 const router = new Router();
 const datastore = new Datastore();
 const redis = new Redis(Keys.REDIS_URL);
 
+// Refresh the live tracking devices.
 router.post('/refresh', async (ctx: RouterContext) => {
-  let numRefreshed = 0;
   const request = Number(await redis.get('trackers.request'));
+  // Refresh if there was a request from flyxc.app in the last 10 minutes.
+  const start = Date.now();
   if (request > Date.now() - 10 * 60 * 1000) {
-    // Refresh the trackers
-    numRefreshed += await inreach.refresh(datastore, REFRESH_MAX_HOURS, REFRESH_TIMEOUT_SECONDS);
-    numRefreshed += await spot.refresh(datastore, REFRESH_MAX_HOURS, REFRESH_TIMEOUT_SECONDS);
-    numRefreshed += await skylines.refresh(datastore, REFRESH_MAX_HOURS, REFRESH_TIMEOUT_SECONDS);
-    // Merge the tracks for all the trackers that have been updated less than 20 minutes ago.
-    // The resulting GeoJSON is stored in Redis to be read by the flyxc server.
-    const query = datastore.createQuery('Tracker').filter('updated', '>', Date.now() - 20 * 60 * 1000);
-    const trackers = (await datastore.runQuery(query))[0];
-    const features: any[] = [];
-    trackers.forEach((tracker: any) => features.push(...JSON.parse(tracker.features || [])));
-    const tracks = GeoJSON.parse(features, { Point: ['lat', 'lon'], LineString: 'line' });
-    await redis.set('trackers.geojson', JSON.stringify(tracks));
-    await redis.set('trackers.refreshed', Date.now());
-    await redis.set('trackers.numrefreshed', numRefreshed);
+    await updateTrackers();
+
+    const startQuery = Date.now();
+    const incrementalStart = Math.round(startQuery / 1000 - INCREMENTAL_UPDATE_SEC);
+    const exportStart = Math.round(startQuery / 1000 - EXPORT_UPDATE_SEC);
+
+    // Get all the tracks that have active points.
+    // TODO: re-use the track from the previous step to fetch less.
+    const query = datastore
+      .createQuery(LIVE_TRACK_TABLE)
+      // Math.round is required here: https://github.com/googleapis/nodejs-datastore/issues/754
+      .filter('last_fix_sec', '>', Math.round(Date.now() / 1000 - LIVE_RETENTION_SEC));
+
+    const [tracksEntities] = await datastore.runQuery(query);
+
+    const fullTracks = LiveDifferentialTrackGroup.create();
+    const incrementalTracks = LiveDifferentialTrackGroup.create({ incremental: true });
+    const flymeTracks = LiveDifferentialTrackGroup.create();
+
+    tracksEntities.forEach((entity: LiveTrackEntity) => {
+      const liveTrack = entity.track ? LiveTrack.fromBinary(entity.track) : LiveTrack.create();
+      const id = idFromEntity(entity);
+      const name = entity.name || 'unknown';
+      // Full update.
+      fullTracks.tracks.push(differentialEncodeLiveTrack(liveTrack, id, name));
+      // Incremental update.
+      const incrementalTrack = removeBeforeFromLiveTrack(liveTrack, incrementalStart);
+      if (liveTrack.timeSec.length > 0) {
+        incrementalTracks.tracks.push(differentialEncodeLiveTrack(incrementalTrack, id, name));
+      }
+      // Export updates.
+      const exportTrack = removeBeforeFromLiveTrack(incrementalTrack, exportStart);
+      if (exportTrack.timeSec.length > 0) {
+        const flymeTrack = removeDeviceFromLiveTrack(exportTrack, TrackerIds.Flyme);
+        if (flymeTrack.timeSec.length > 0) {
+          flymeTracks.tracks.push(differentialEncodeLiveTrack(flymeTrack, id, name));
+          // TODO: fn to retrieve the ID.
+          let flymeId = '';
+          try {
+            flymeId = String(JSON.parse(entity.flyme.account).id ?? '');
+          } catch (e) {}
+          flymeTracks.remoteId.push(flymeId);
+        }
+      }
+    });
+
+    // TODO: error mgmt - maybe util for allSettled
+    await Promise.allSettled([
+      redis.setBuffer('trackers.proto', Buffer.from(LiveDifferentialTrackGroup.toBinary(fullTracks))),
+      redis.setBuffer('trackers.inc.proto', Buffer.from(LiveDifferentialTrackGroup.toBinary(incrementalTracks))),
+      redis.setBuffer('trackers.flyme.proto', Buffer.from(LiveDifferentialTrackGroup.toBinary(flymeTracks))),
+    ]);
+
+    console.log(`Response prepared in ${Math.round((Date.now() - startQuery) / 1000)}s`);
+
+    // TODO(victor):
+    // set num actives 24h = trackers.length
+    // set num actives 2h
+    // Check redis set multiple ? (& get multiple);
+    //await redis.set('trackers.numrefreshed', numRefreshed);
   }
+
+  console.log(`Refresh total time: ${Math.round((Date.now() - start) / 1000)}s`);
 
   ctx.status = 200;
 });
 
-router.get('/refresh', async (ctx: RouterContext) => {
-  const query = datastore.createQuery('Tracker').order('updated', { descending: true }).limit(1);
-
-  const devices = (await datastore.runQuery(query))[0];
-
-  if (devices.length > 0) {
-    const date = new Date(devices[0].updated);
-    ctx.body = `Last refresh = ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
-  } else {
-    ctx.body = 'No device available';
-  }
-});
-
+// Post-process tracks.
 router.post('/process', async (ctx: RouterContext) => {
   const body = ctx.request.body;
   if (body?.message?.data) {

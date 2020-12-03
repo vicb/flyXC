@@ -4,7 +4,7 @@ import { pushCurrentState } from '../logic/history';
 import * as msg from '../logic/messages';
 import { setView3d } from '../redux/app-slice';
 import { store } from '../redux/store';
-import { controlStyle } from './control-style';
+import { controlStyle } from '../styles/control-style';
 
 @customElement('globe-element')
 export class GlobeElement extends LitElement {

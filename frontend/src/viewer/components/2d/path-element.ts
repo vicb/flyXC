@@ -20,23 +20,23 @@ import { Measure, Point } from '../../logic/score/measure';
 import { CircuitType, Score } from '../../logic/score/scorer';
 import { setDistance, setExpanded, setRoute, setScore } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
-import { controlStyle } from '../control-style';
+import { controlStyle } from '../../styles/control-style';
 import { PlannerElement } from './planner-element';
 
 // Route color by circuit type.
 const ROUTE_STROKE_COLORS = {
-  [CircuitType.OPEN_DISTANCE]: '#ff6600',
-  [CircuitType.OUT_AND_RETURN]: '#ff9933',
-  [CircuitType.FLAT_TRIANGLE]: '#ffcc00',
-  [CircuitType.FAI_TRIANGLE]: '#ffff00',
+  [CircuitType.OpenDistance]: '#ff6600',
+  [CircuitType.OutAndReturn]: '#ff9933',
+  [CircuitType.FlatTriangle]: '#ffcc00',
+  [CircuitType.FaiTriangle]: '#ffff00',
 };
 
 // Circuit abbreviation by circuit type.
 const CIRCUIT_SHORT_NAME = {
-  [CircuitType.OPEN_DISTANCE]: 'od',
-  [CircuitType.OUT_AND_RETURN]: 'oar',
-  [CircuitType.FLAT_TRIANGLE]: 'triangle',
-  [CircuitType.FAI_TRIANGLE]: 'fai',
+  [CircuitType.OpenDistance]: 'od',
+  [CircuitType.OutAndReturn]: 'oar',
+  [CircuitType.FlatTriangle]: 'triangle',
+  [CircuitType.FaiTriangle]: 'fai',
 };
 
 const WAYPOINT_FORMATS: { [id: string]: string } = {
@@ -325,9 +325,9 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     store.dispatch(setScore(score));
 
     let optimizedPath = score.indexes.map((index) => new google.maps.LatLng(points[index].lat, points[index].lon));
-    if (score.circuit == CircuitType.FLAT_TRIANGLE || score.circuit == CircuitType.FAI_TRIANGLE) {
+    if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {
       optimizedPath = [optimizedPath[1], optimizedPath[2], optimizedPath[3], optimizedPath[1]];
-    } else if (score.circuit == CircuitType.OUT_AND_RETURN) {
+    } else if (score.circuit == CircuitType.OutAndReturn) {
       optimizedPath = [optimizedPath[1], optimizedPath[2]];
     }
 
@@ -362,7 +362,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       this.faiSectors = new FaiSectors();
       this.faiSectors.addListeners('rightclick', (e) => this.appendToPath(e.latLng));
     }
-    if (score.circuit == CircuitType.FLAT_TRIANGLE || score.circuit == CircuitType.FAI_TRIANGLE) {
+    if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {
       const faiPoints = score.indexes.slice(1, 4).map((i) => points[i]);
       this.faiSectors.update(faiPoints);
       this.faiSectors.setMap(this.gMap);
@@ -380,7 +380,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     if (score.distance && window.parent) {
       kms = (score.distance / 1000).toFixed(1);
       circuit = CIRCUIT_SHORT_NAME[score.circuit];
-      if (score.circuit == CircuitType.OPEN_DISTANCE) {
+      if (score.circuit == CircuitType.OpenDistance) {
         circuit += score.indexes.length - 2;
       }
       window.parent.postMessage(
