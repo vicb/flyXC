@@ -221,10 +221,10 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       color.a = isOldTrack ? 0.8 : 1;
       const rgba = color.toRgba();
       this.trackSymbol.symbolLayers[0].material.color = rgba;
+      this.trackSymbol.symbolLayers[0].size = isOldTrack ? 1 : 2;
       graphic.set('symbol', this.trackSymbol);
       tracks.push(graphic);
       this.trackSymbol.symbolLayers[0].material.color = [50, 50, 50, isOldTrack ? 0.2 : 0.6];
-      this.trackSymbol.symbolLayers[0].size = isOldTrack ? 1 : 2;
       shadowGraphic.set('symbol', this.trackSymbol);
       trackShadows.push(shadowGraphic);
     }
@@ -268,7 +268,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         this.msgSymbol.symbolLayers[0].material.color = [255, 0, 0, 1.0];
         symbol = this.msgSymbol;
       } else if (message) {
-        this.msgSymbol.symbolLayers[0].material.color = [255, 255, 0, isOldTrack ? 0.3 : 0.9];
+        this.msgSymbol.symbolLayers[0].material.color = [255, 255, 0, isOldTrack ? 0.7 : 1.0];
         symbol = this.msgSymbol;
       } else if (heading != null) {
         // Pilot marker.
