@@ -1,4 +1,6 @@
 import type GraphicsLayer from 'esri/layers/GraphicsLayer';
+import type ElevationSampler from 'esri/layers/support/ElevationSampler';
+
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { Api } from '../logic/arcgis';
@@ -11,6 +13,8 @@ type ArcgisState = {
   // Graphics layer with elevation mode "on-the-ground" for shadows.
   gndGraphicsLayer?: GraphicsLayer;
   api?: Api;
+  // Sample ground elevation in the SceneView (takes the exaggeration into account).
+  elevationSampler?: ElevationSampler;
 };
 
 const initialState: ArcgisState = {
@@ -33,8 +37,17 @@ const arcgisSlice = createSlice({
     setAltitudeMultiplier: (state, action: PayloadAction<number>) => {
       state.altMultiplier = action.payload;
     },
+    setElevationSampler: (state, action: PayloadAction<ElevationSampler | undefined>) => {
+      state.elevationSampler = action.payload;
+    },
   },
 });
 
 export const reducer = arcgisSlice.reducer;
-export const { setAltitudeMultiplier, setApi, setGraphicsLayer, setGndGraphicsLayer } = arcgisSlice.actions;
+export const {
+  setAltitudeMultiplier,
+  setApi,
+  setElevationSampler,
+  setGraphicsLayer,
+  setGndGraphicsLayer,
+} = arcgisSlice.actions;

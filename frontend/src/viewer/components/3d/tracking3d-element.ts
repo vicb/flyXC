@@ -25,6 +25,9 @@ import { getUniqueColor } from '../../styles/track';
 import type GraphicsLayer from 'esri/layers/GraphicsLayer';
 import type Graphic from 'esri/Graphic';
 import type SceneView from 'esri/views/SceneView';
+import type ElevationSampler from 'esri/layers/support/ElevationSampler';
+import type Point from 'esri/geometry/Point';
+
 // A track is considered recent if ended less than timeout ago.
 const RECENT_TIMEOUT_MIN = 2 * 60;
 const MSG_MARKER_HEIGHT = 30;
@@ -43,6 +46,8 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   private multiplier = 1;
   @internalProperty()
   private displayNames = true;
+  @internalProperty()
+  private sampler?: ElevationSampler;
 
   // live tracks.
   private tracks: Graphic[] = [];
@@ -70,14 +75,6 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         join: 'round',
       },
     ],
-  };
-
-  private point = {
-    type: 'point',
-    latitude: 0,
-    longitude: 0,
-    z: 0,
-    hasZ: true,
   };
 
   private msgSymbol = {
@@ -152,6 +149,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
     this.api = state.arcgis.api;
     this.multiplier = state.arcgis.altMultiplier;
     this.units = state.units;
+    this.sampler = state.arcgis.elevationSampler;
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
@@ -213,6 +211,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       const graphic = new this.api.Graphic();
       const shadowGraphic = new this.api.Graphic();
       const path = feature.geometry.coordinates.map(([lon, lat, z]: number[]) => [lon, lat, z * this.multiplier]);
+
       this.line.paths[0] = path;
       graphic.set('geometry', this.line);
       shadowGraphic.set('geometry', this.line);
@@ -292,17 +291,25 @@ export class Tracking3DElement extends connect(store)(LitElement) {
 
       const graphic = new this.api.Graphic();
       graphic.set('symbol', symbol);
-      this.point.longitude = feature.geometry.coordinates[0];
-      this.point.latitude = feature.geometry.coordinates[1];
-      this.point.z = feature.geometry.coordinates[2] * this.multiplier;
-      graphic.set('geometry', this.point);
+      let point = new this.api.Point({
+        latitude: feature.geometry.coordinates[1],
+        longitude: feature.geometry.coordinates[0],
+        z: 0,
+        hasZ: true,
+      });
+      if (this.sampler) {
+        point = this.sampler.queryElevation(point) as Point;
+      }
+      point.z = Math.max(point.z, feature.geometry.coordinates[2] * this.multiplier);
+      graphic.set('geometry', point);
       graphic.set('attributes', { liveTrackId: id, liveTrackIndex: index });
       markers.push(graphic);
 
       if (label) {
         const graphic = new this.api.Graphic();
-        this.point.z += MSG_MARKER_HEIGHT;
-        graphic.set('geometry', this.point);
+        point = point.clone();
+        point.z += MSG_MARKER_HEIGHT;
+        graphic.set('geometry', point);
         this.txtSymbol.symbolLayers[0].text = label;
         graphic.set('symbol', this.txtSymbol);
         graphic.set('attributes', { liveTrackId: id, liveTrackIndex: index });

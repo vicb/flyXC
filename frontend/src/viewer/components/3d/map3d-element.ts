@@ -17,7 +17,7 @@ import { connect } from 'pwa-helpers';
 import { Api, loadApi } from '../../logic/arcgis';
 import * as msg from '../../logic/messages';
 import { setApiLoading, setTimestamp, setView3d } from '../../redux/app-slice';
-import { setApi, setGndGraphicsLayer, setGraphicsLayer } from '../../redux/arcgis-slice';
+import { setApi, setElevationSampler, setGndGraphicsLayer, setGraphicsLayer } from '../../redux/arcgis-slice';
 import { setCurrentLocation } from '../../redux/location-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
@@ -118,6 +118,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     store.dispatch(setGraphicsLayer(undefined));
     store.dispatch(setGndGraphicsLayer(undefined));
     store.dispatch(setApi(undefined));
+    store.dispatch(setElevationSampler(undefined));
     this.view?.destroy();
     this.view = undefined;
   }
@@ -138,20 +139,21 @@ export class Map3dElement extends connect(store)(LitElement) {
       this.gndGraphicsLayer = new api.GraphicsLayer({ elevationInfo: { mode: 'on-the-ground' } });
       this.map.addMany([this.graphicsLayer, this.gndGraphicsLayer]);
 
-      this.view = new api.SceneView({
+      const view = new api.SceneView({
         container: 'map',
         map: this.map,
         camera: { tilt: 80 },
         environment: { starsEnabled: false },
       });
+      this.view = view;
 
       store.dispatch(setApi(api));
       store.dispatch(setGraphicsLayer(this.graphicsLayer));
       store.dispatch(setGndGraphicsLayer(this.gndGraphicsLayer));
 
-      this.view.ui.remove('zoom');
+      view.ui.remove('zoom');
       const controls = document.createElement('controls3d-element');
-      this.view.ui.add(controls, 'top-right');
+      view.ui.add(controls, 'top-right');
 
       const ad = document.createElement('a');
       ad.setAttribute('href', 'https://www.flyozone.com/');
@@ -160,22 +162,22 @@ export class Map3dElement extends connect(store)(LitElement) {
       ad.innerHTML = `<img width="${Math.round(210 * this.adRatio)}" height="${Math.round(
         35 * this.adRatio,
       )}" src="img/ozone.svg">`;
-      this.view.ui.add(ad);
+      view.ui.add(ad);
 
       const layerSwitcher = this.renderRoot.querySelector('#layers') as HTMLSelectElement;
-      this.view.ui.add(layerSwitcher, 'top-left');
-      this.view.ui.move([layerSwitcher, 'compass', 'navigation-toggle'], 'top-left');
+      view.ui.add(layerSwitcher, 'top-left');
+      view.ui.move([layerSwitcher, 'compass', 'navigation-toggle'], 'top-left');
 
-      this.originalQuality = this.view.qualityProfile;
+      this.originalQuality = view.qualityProfile;
 
       // "Control" key sets the navigation mode to "rotate".
-      const toggle = this.view.ui.find('navigation-toggle') as NavigationToggle;
-      this.view.on('key-down', (e: any) => {
+      const toggle = view.ui.find('navigation-toggle') as NavigationToggle;
+      view.on('key-down', (e: any) => {
         if (e.key == 'Control' && !e.repeat) {
           toggle.toggle();
         }
       });
-      this.view.on('key-up', (e: any) => {
+      view.on('key-up', (e: any) => {
         if (e.key == 'Control') {
           toggle.toggle();
         }
@@ -184,15 +186,16 @@ export class Map3dElement extends connect(store)(LitElement) {
       this.subscriptions.push(
         msg.centerMap.subscribe(() => this.centerOnMarker()),
         msg.centerZoomMap.subscribe((_, delta) => this.centerAndZoom(delta)),
-        msg.trackGroupsAdded.subscribe(() => this.centerOnMarker(this.view?.zoom)),
-        msg.trackGroupsRemoved.subscribe(() => this.centerOnMarker(this.view?.zoom)),
+        msg.trackGroupsAdded.subscribe(() => this.centerOnMarker(view.zoom)),
+        msg.trackGroupsRemoved.subscribe(() => this.centerOnMarker(view.zoom)),
         msg.requestLocation.subscribe(() => this.updateLocation()),
         msg.geoLocation.subscribe((latLon) => this.geolocation(latLon)),
       );
 
-      this.view
+      view
         .when(() => {
           store.dispatch(setApiLoading(false));
+          store.dispatch(setElevationSampler(view.groundView.elevationSampler));
           const location = store.getState().location;
 
           if (this.tracks.length) {
@@ -219,13 +222,13 @@ export class Map3dElement extends connect(store)(LitElement) {
         });
 
       // Set the active track when clicking on a track, marker, label.
-      this.view.on('click', (e) => {
-        this.view?.hitTest(e).then(({ results }) => {
+      view.on('click', (e) => {
+        view.hitTest(e).then(({ results }) => {
           if (results.length > 0) {
             // Sort hits by their distance to the camera.
             results.sort((r1, r2) => r1.distance - r2.distance);
             const graphic = results[0].graphic;
-            msg.clickSceneView.emit(graphic, this.view!);
+            msg.clickSceneView.emit(graphic, view);
             // The trackId is set on tracks and pilots (not on live tracks).
             const trackId = graphic.attributes?.trackId;
             if (trackId != null) {
@@ -236,7 +239,7 @@ export class Map3dElement extends connect(store)(LitElement) {
       });
 
       // Horizontal wheel movements update the timestamp.
-      this.view.on('mouse-wheel', (e) => {
+      view.on('mouse-wheel', (e) => {
         if (e.native.deltaX == 0 || e.native.deltaY != 0) {
           // Capture only X scroll (either physical of shift + wheel).
           return;
