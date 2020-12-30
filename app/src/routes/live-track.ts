@@ -1,9 +1,10 @@
 import express, { Request, Response, Router } from 'express';
 import { LiveDifferentialTrackGroup } from 'flyxc/common/protos/live-track';
-import { Keys } from 'flyxc/common/src/keys';
+import { SecretKeys } from 'flyxc/common/src/keys';
 import { INCREMENTAL_UPDATE_SEC } from 'flyxc/common/src/live-track';
 import { LIVE_TRACK_TABLE, LiveTrackEntity, UpdateLiveTrackEntityFromModel } from 'flyxc/common/src/live-track-entity';
 import { AccountFormModel, AccountModel } from 'flyxc/common/src/models';
+import { Keys } from 'flyxc/common/src/redis';
 import { getFlyMeId } from 'flyxc/run/src/trackers/flyme';
 import Redis from 'ioredis';
 
@@ -35,18 +36,19 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
   // Get the geojson for the currently active trackers.
   router.get('/_livetracks', async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
-    await redis.set('trackers.request', Date.now());
+    await redis.set(Keys.trackerRequestTime, Date.now());
     const token = req.header('token');
     if (!token) {
+      // Pick the incremental proto if last request was recent.
       const time = req.query.s ?? 0;
       const incrementalAfter = Date.now() / 1000 - INCREMENTAL_UPDATE_SEC + 60;
-      const key = time > incrementalAfter ? 'trackers.inc.proto' : 'trackers.proto';
+      const key = time > incrementalAfter ? Keys.trackerIncrementalProto : Keys.trackerFullProto;
       res.set('Content-Type', 'application/x-protobuf');
       res.send(await redis.getBuffer(key));
     } else {
       switch (token) {
-        case Keys.FLYME_TOKEN:
-          const groupProto = await redis.getBuffer('trackers.flyme.proto');
+        case SecretKeys.FLYME_TOKEN:
+          const groupProto = await redis.getBuffer(Keys.trackerFlymeProto);
           if (req.header('accept') == 'application/json') {
             const track = LiveDifferentialTrackGroup.fromBinary(groupProto);
             res.json(LiveDifferentialTrackGroup.toJson(track));

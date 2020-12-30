@@ -5,8 +5,8 @@ import redisStore from 'connect-redis';
 import express, { Request, Response } from 'express';
 import fileUpload from 'express-fileupload';
 import session from 'express-session';
-import { Keys } from 'flyxc/common/src/keys';
-import Redis from 'ioredis';
+import { SecretKeys } from 'flyxc/common/src/keys';
+import { getRedisClient } from 'flyxc/common/src/redis';
 import QRCode from 'qrcode';
 
 import { migrate } from './migrate';
@@ -17,7 +17,7 @@ import { encode } from './waypoints';
 
 const USE_APP_ENGINE = process.env.NODE_ENV == 'production';
 const USE_SECURE_COOKIES = USE_APP_ENGINE;
-const redis = new Redis(Keys.REDIS_URL);
+const redis = getRedisClient();
 
 const app = express()
   .disable('x-powered-by')
@@ -39,7 +39,7 @@ const app = express()
   .use(fileUpload({ limits: { fileSize: 32 * 1024 * 1024 } }))
   .use(
     session({
-      secret: Keys.SESSION_SECRET,
+      secret: SecretKeys.SESSION_SECRET,
       cookie: {
         httpOnly: true,
         path: '/',
@@ -65,8 +65,8 @@ const app = express()
         prefix: '/oauth',
       },
       google: {
-        key: Keys.GOOGLE_OAUTH_ID,
-        secret: Keys.GOOGLE_OAUTH_SECRET,
+        key: SecretKeys.GOOGLE_OAUTH_ID,
+        secret: SecretKeys.GOOGLE_OAUTH_SECRET,
         scope: ['openid', 'email', 'profile'],
         nonce: true,
         callback: '/devices.html',

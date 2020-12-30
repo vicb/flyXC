@@ -1,4 +1,4 @@
-export const enum Keys {
+export const enum SecretKeys {
   GEONAMES = '<key>',
   REDIS_URL = '<url>',
   GOOGLE_OAUTH_ID = '...',

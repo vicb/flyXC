@@ -1,6 +1,5 @@
 import { LiveDifferentialTrackGroup, LiveTrack } from 'flyxc/common/protos/live-track';
 import { idFromEntity } from 'flyxc/common/src/datastore';
-import { Keys } from 'flyxc/common/src/keys';
 import {
   differentialEncodeLiveTrack,
   EXPORT_UPDATE_SEC,
@@ -11,7 +10,7 @@ import {
   TrackerIds,
 } from 'flyxc/common/src/live-track';
 import { LIVE_TRACK_TABLE, LiveTrackEntity } from 'flyxc/common/src/live-track-entity';
-import Redis from 'ioredis';
+import { getRedisClient, Keys } from 'flyxc/common/src/redis';
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 
@@ -24,26 +23,27 @@ import { updateTrackers } from './trackers/live-track';
 const app = new Koa();
 const router = new Router();
 const datastore = new Datastore();
-const redis = new Redis(Keys.REDIS_URL);
 
 // Refresh the live tracking devices.
 router.post('/refresh', async (ctx: RouterContext) => {
-  const request = Number(await redis.get('trackers.request'));
+  const refreshStart = Date.now();
+  const redis = getRedisClient();
+  const requestTime = Number((await redis.get(Keys.trackerRequestTime)) ?? refreshStart);
+  const requestAgeMin = (refreshStart - requestTime) / (60 * 1000);
+
   // Refresh if there was a request from flyxc.app in the last 10 minutes.
-  const start = Date.now();
-  if (request > Date.now() - 10 * 60 * 1000) {
+  if (requestAgeMin < 10) {
     await updateTrackers();
 
-    const startQuery = Date.now();
-    const incrementalStart = Math.round(startQuery / 1000 - INCREMENTAL_UPDATE_SEC);
-    const exportStart = Math.round(startQuery / 1000 - EXPORT_UPDATE_SEC);
+    const querySec = Math.round(Date.now() / 1000);
+    const incrementalStartSec = querySec - INCREMENTAL_UPDATE_SEC;
+    const exportStartSec = querySec - EXPORT_UPDATE_SEC;
 
     // Get all the tracks that have active points.
     // TODO: re-use the track from the previous step to fetch less.
     const query = datastore
       .createQuery(LIVE_TRACK_TABLE)
-      // Math.round is required here: https://github.com/googleapis/nodejs-datastore/issues/754
-      .filter('last_fix_sec', '>', Math.round(Date.now() / 1000 - LIVE_RETENTION_SEC));
+      .filter('last_fix_sec', '>', Datastore.int(querySec - LIVE_RETENTION_SEC));
 
     const [tracksEntities] = await datastore.runQuery(query);
 
@@ -58,12 +58,12 @@ router.post('/refresh', async (ctx: RouterContext) => {
       // Full update.
       fullTracks.tracks.push(differentialEncodeLiveTrack(liveTrack, id, name));
       // Incremental update.
-      const incrementalTrack = removeBeforeFromLiveTrack(liveTrack, incrementalStart);
-      if (liveTrack.timeSec.length > 0) {
+      const incrementalTrack = removeBeforeFromLiveTrack(liveTrack, incrementalStartSec);
+      if (incrementalTrack.timeSec.length > 0) {
         incrementalTracks.tracks.push(differentialEncodeLiveTrack(incrementalTrack, id, name));
       }
       // Export updates.
-      const exportTrack = removeBeforeFromLiveTrack(incrementalTrack, exportStart);
+      const exportTrack = removeBeforeFromLiveTrack(incrementalTrack, exportStartSec);
       if (exportTrack.timeSec.length > 0) {
         const flymeTrack = removeDeviceFromLiveTrack(exportTrack, TrackerIds.Flyme);
         if (flymeTrack.timeSec.length > 0) {
@@ -78,23 +78,24 @@ router.post('/refresh', async (ctx: RouterContext) => {
       }
     });
 
-    // TODO: error mgmt - maybe util for allSettled
-    await Promise.allSettled([
-      redis.setBuffer('trackers.proto', Buffer.from(LiveDifferentialTrackGroup.toBinary(fullTracks))),
-      redis.setBuffer('trackers.inc.proto', Buffer.from(LiveDifferentialTrackGroup.toBinary(incrementalTracks))),
-      redis.setBuffer('trackers.flyme.proto', Buffer.from(LiveDifferentialTrackGroup.toBinary(flymeTracks))),
-    ]);
+    try {
+      await redis
+        .pipeline()
+        .set(Keys.trackerFullProto, Buffer.from(LiveDifferentialTrackGroup.toBinary(fullTracks)))
+        .set(Keys.trackerFullSize, fullTracks.tracks.length)
+        .set(Keys.trackerIncrementalProto, Buffer.from(LiveDifferentialTrackGroup.toBinary(incrementalTracks)))
+        .set(Keys.trackerIncrementalSize, incrementalTracks.tracks.length)
+        .set(Keys.trackerFlymeProto, Buffer.from(LiveDifferentialTrackGroup.toBinary(flymeTracks)))
+        .set(Keys.trackerUpdateSec, querySec)
+        .exec();
+    } catch (e) {
+      console.error(`REDIS store error: ${e}`);
+    }
 
-    console.log(`Response prepared in ${Math.round((Date.now() - startQuery) / 1000)}s`);
-
-    // TODO(victor):
-    // set num actives 24h = trackers.length
-    // set num actives 2h
-    // Check redis set multiple ? (& get multiple);
-    //await redis.set('trackers.numrefreshed', numRefreshed);
+    console.log(`Response prepared in ${Math.round(Date.now() / 1000 - querySec)}s`);
   }
 
-  console.log(`Refresh total time: ${Math.round((Date.now() - start) / 1000)}s`);
+  console.log(`Refresh total time: ${Math.round((Date.now() - refreshStart) / 1000)}s`);
 
   ctx.status = 200;
 });

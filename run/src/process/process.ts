@@ -4,7 +4,7 @@ const request = require('request-zero');
 
 import async from 'async';
 import * as protos from 'flyxc/common/protos/track';
-import { Keys } from 'flyxc/common/src/keys';
+import { SecretKeys } from 'flyxc/common/src/keys';
 import { diffEncodeArray } from 'flyxc/common/src/math';
 import { diffDecodeTrack, diffEncodeAirspaces } from 'flyxc/common/src/runtime-track';
 import { retrieveTrackById, saveTrack, TrackEntity } from 'flyxc/common/src/track-entity';
@@ -79,7 +79,7 @@ async function getLocation(track: protos.Track): Promise<{ city: string; country
   try {
     if (track.lat && track.lat.length > 0 && track.lon && track.lon.length > 0) {
       const response = await request(
-        `http://api.geonames.org/findNearbyPlaceNameJSON?lat=${track.lat[0]}&lng=${track.lon[0]}&username=${Keys.GEONAMES}`,
+        `http://api.geonames.org/findNearbyPlaceNameJSON?lat=${track.lat[0]}&lng=${track.lon[0]}&username=${SecretKeys.GEONAMES}`,
       );
       if (response.code == 200) {
         const loc = JSON.parse(response.body).geonames[0];

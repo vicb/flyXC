@@ -7,7 +7,7 @@ const request = require('request-zero');
 
 import { LiveTrack } from 'flyxc/common/protos/live-track';
 import { idFromEntity } from 'flyxc/common/src/datastore';
-import { Keys } from 'flyxc/common/src/keys';
+import { SecretKeys } from 'flyxc/common/src/keys';
 import {
   getTrackerFlags,
   LIVE_RETENTION_SEC,
@@ -34,7 +34,7 @@ export async function refresh(): Promise<TrackerUpdate> {
 
   // Fixes are id, lat, lon, alt, timeSec and username.
   const flymeIdToFix = new Map<number, [number, number, number, number, number, string]>();
-  const url = `https://xcglobe.com/livetrack/flyxcPositions?token=${Keys.FLYME_TOKEN}`;
+  const url = `https://xcglobe.com/livetrack/flyxcPositions?token=${SecretKeys.FLYME_TOKEN}`;
   try {
     const response = await request(url);
     if (response.code == 200) {
@@ -128,7 +128,7 @@ export async function validateFlyMeAccount(username: string): Promise<number | f
 // Throws when there is a server error or a status code != 200.
 export async function getFlyMeId(username: string): Promise<number | undefined> {
   const url = `https://xcglobe.com/livetrack/flyxcRegisterUser?username=${encodeURIComponent(username)}&token=${
-    Keys.FLYME_TOKEN
+    SecretKeys.FLYME_TOKEN
   }`;
 
   let response: any;
