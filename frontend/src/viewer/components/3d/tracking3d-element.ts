@@ -342,7 +342,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         location: {
           latitude: track.lat[index],
           longitude: track.lon[index],
-          z: (track.alt[index] + MSG_MARKER_HEIGHT) * this.multiplier,
+          z: track.alt[index] * this.multiplier + MSG_MARKER_HEIGHT,
         } as any,
         title: popup.title,
         content: popup.content,
