@@ -170,7 +170,7 @@ export class MapElement extends connect(store)(LitElement) {
       )}" src="img/ozone.svg">`;
       this.map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(ad);
 
-      this.map.addListener('click', (e: google.maps.MouseEvent) => {
+      this.map.addListener('click', (e: google.maps.MapMouseEvent) => {
         const latLng = e.latLng;
         const found = findClosestFix(this.tracks, latLng.lat(), latLng.lng());
         if (found != null) {

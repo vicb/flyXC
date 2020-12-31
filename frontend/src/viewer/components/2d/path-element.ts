@@ -286,7 +286,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
         path.getLength() > 2 && path.removeAt(event.vertex);
       }
     });
-    this.onPointAddeded = google.maps.event.addListener(this.gMap, 'rightclick', (e: google.maps.MouseEvent) =>
+    this.onPointAddeded = google.maps.event.addListener(this.gMap, 'rightclick', (e: google.maps.MapMouseEvent) =>
       this.appendToPath(e.latLng),
     );
     this.onBoundsChanged = google.maps.event.addListener(this.gMap, 'bounds_changed', () => {
