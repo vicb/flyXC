@@ -78,7 +78,7 @@ export class TrackingElement extends connect(store)(LitElement) {
 
   private units?: Units;
   private info?: google.maps.InfoWindow;
-  // Name of the pilot shown in the info window.
+  // Id of the selected pilot.
   private currentId?: number;
   private features: google.maps.Data.Feature[] = [];
 
@@ -92,6 +92,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     ORIGIN_MSG = new google.maps.Point(0, 22);
     this.setMapStyle(this.gMap);
     this.setupInfoWindow(this.gMap);
+    this.currentId = undefined;
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
@@ -168,6 +169,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     const message = getFixMessage(track, index);
     const isEmergency = isEmergencyFix(track.flags[index]);
     const heading = feature.getProperty('heading');
+    const isActive = id === this.currentId;
 
     const ageMin = Math.round((nowSec - track.timeSec[index]) / 60);
 
@@ -179,7 +181,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     let anchor: google.maps.Point | undefined;
     let zIndex = 10;
 
-    if (id === this.currentId) {
+    if (isActive) {
       opacity = 0.9;
       labelColor = 'darkred';
       zIndex = 20;
@@ -192,7 +194,7 @@ export class TrackingElement extends connect(store)(LitElement) {
       labelOrigin = ORIGIN_ARROW;
       svg = arrowSvg(heading, color, opacity);
       // Display the pilot name.
-      if (this.displayNames && (id === this.currentId || ageMin < 12 * 60)) {
+      if (this.displayNames && (isActive || ageMin < 12 * 60)) {
         const age = ageMin < 60 ? `${ageMin}min` : `${Math.floor(ageMin / 60)}h${String(ageMin % 60).padStart(2, '0')}`;
         label = {
           color: labelColor,

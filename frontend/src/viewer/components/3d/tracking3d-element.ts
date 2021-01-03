@@ -48,6 +48,9 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   private displayNames = true;
   @internalProperty()
   private sampler?: ElevationSampler;
+  // Id of the selected pilot.
+  @internalProperty()
+  private currentId?: number;
 
   // live tracks.
   private tracks: Graphic[] = [];
@@ -57,6 +60,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   private markers: Graphic[] = [];
   private subscriptions: UnsubscribeHandle[] = [];
   private units?: Units;
+  private popupConfigured = false;
 
   private line = {
     type: 'polyline',
@@ -139,6 +143,8 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   connectedCallback(): void {
     super.connectedCallback();
     this.subscriptions.push(msg.clickSceneView.subscribe((graphic, view) => this.handleClick(graphic, view)));
+    this.currentId = undefined;
+    this.popupConfigured = false;
   }
 
   stateChanged(state: RootState): void {
@@ -206,7 +212,8 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       const endIdx = feature.properties.endIndex;
       const track = liveTrackSelectors.selectById(store.getState(), id) as LiveTrack;
       const ageMin = (nowSec - track.timeSec[endIdx]) / 60;
-      const isOldTrack = ageMin > RECENT_TIMEOUT_MIN;
+      const isRecentTrack = ageMin < RECENT_TIMEOUT_MIN;
+      const isActive = id === this.currentId;
 
       const graphic = new this.api.Graphic();
       const shadowGraphic = new this.api.Graphic();
@@ -217,13 +224,13 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       shadowGraphic.set('geometry', this.line);
 
       const color = new this.api.Color(getUniqueColor(Math.round(id / 1000)));
-      color.a = isOldTrack ? 0.8 : 1;
+      color.a = isRecentTrack || isActive ? 1 : 0.8;
       const rgba = color.toRgba();
       this.trackSymbol.symbolLayers[0].material.color = rgba;
-      this.trackSymbol.symbolLayers[0].size = isOldTrack ? 1 : 2;
+      this.trackSymbol.symbolLayers[0].size = isActive ? 3 : isRecentTrack ? 2 : 1;
       graphic.set('symbol', this.trackSymbol);
       tracks.push(graphic);
-      this.trackSymbol.symbolLayers[0].material.color = [50, 50, 50, isOldTrack ? 0.2 : 0.6];
+      this.trackSymbol.symbolLayers[0].material.color = [50, 50, 50, isActive || isRecentTrack ? 0.6 : 0.2];
       shadowGraphic.set('symbol', this.trackSymbol);
       trackShadows.push(shadowGraphic);
     }
@@ -258,7 +265,8 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       // heading is set for the last point only (i.e. the pilot position).
       const heading = feature.properties.heading;
       const ageMin = Math.round((nowSec - track.timeSec[index]) / 60);
-      const isOldTrack = ageMin > RECENT_TIMEOUT_MIN;
+      const isRecentTrack = ageMin < RECENT_TIMEOUT_MIN;
+      const isActive = id === this.currentId;
 
       let symbol: any;
       let label: string | undefined;
@@ -267,18 +275,18 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         this.msgSymbol.symbolLayers[0].material.color = [255, 0, 0, 1.0];
         symbol = this.msgSymbol;
       } else if (message) {
-        this.msgSymbol.symbolLayers[0].material.color = [255, 255, 0, isOldTrack ? 0.7 : 1.0];
+        this.msgSymbol.symbolLayers[0].material.color = [255, 255, 0, isActive || isRecentTrack ? 1 : 0.7];
         symbol = this.msgSymbol;
       } else if (heading != null) {
         // Pilot marker.
         const color = new this.api.Color(getUniqueColor(Math.round(id / 1000)));
-        color.a = isOldTrack ? 0.7 : 1;
+        color.a = isActive || isRecentTrack ? 1 : 0.7;
         const rgba = color.toRgba();
         this.santaSymbol.symbolLayers[0].material.color = rgba;
         this.santaSymbol.symbolLayers[0].heading = heading + 180;
         symbol = this.santaSymbol;
         // Text.
-        if (this.displayNames) {
+        if (this.displayNames && (isActive || ageMin < 12 * 60)) {
           const age =
             ageMin < 60 ? `${ageMin}min` : `${Math.floor(ageMin / 60)}h${String(ageMin % 60).padStart(2, '0')}`;
           label = track.name + ' -' + age;
@@ -311,6 +319,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         point.z += MSG_MARKER_HEIGHT;
         graphic.set('geometry', point);
         this.txtSymbol.symbolLayers[0].text = label;
+        this.txtSymbol.symbolLayers[0].material.color = isActive ? 'darkred' : 'black';
         graphic.set('symbol', this.txtSymbol);
         graphic.set('attributes', { liveTrackId: id, liveTrackIndex: index });
         markers.push(graphic);
@@ -331,13 +340,11 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       if (!popup) {
         return;
       }
+      this.currentId = attr.liveTrackId;
 
       const track = liveTrackSelectors.selectById(store.getState(), attr.liveTrackId) as LiveTrack;
 
-      view.popup.autoOpenEnabled = false;
-      view.popup.actions.removeAll();
-      view.popup.dockOptions = { buttonEnabled: false };
-      view.popup.collapseEnabled = false;
+      this.configurePopup(view);
       view.popup.open({
         location: {
           latitude: track.lat[index],
@@ -348,5 +355,21 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         content: popup.content,
       });
     }
+  }
+
+  private configurePopup(view: SceneView): void {
+    if (this.popupConfigured) {
+      return;
+    }
+    this.popupConfigured = true;
+    view.popup.autoOpenEnabled = false;
+    view.popup.actions.removeAll();
+    view.popup.dockOptions = { buttonEnabled: false };
+    view.popup.collapseEnabled = false;
+    view.watch('popup.visible', (visible) => {
+      if (visible == false) {
+        this.currentId = undefined;
+      }
+    });
   }
 }
