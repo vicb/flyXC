@@ -8,9 +8,10 @@ import {
   removeBeforeFromLiveTrack,
   removeDeviceFromLiveTrack,
   TrackerIds,
+  trackerPropNames,
 } from 'flyxc/common/src/live-track';
 import { LIVE_TRACK_TABLE, LiveTrackEntity } from 'flyxc/common/src/live-track-entity';
-import { getRedisClient, Keys } from 'flyxc/common/src/redis';
+import { getRedisClient, Keys, pushListCap } from 'flyxc/common/src/redis';
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 
@@ -28,12 +29,12 @@ const datastore = new Datastore();
 router.post('/refresh', async (ctx: RouterContext) => {
   const refreshStart = Date.now();
   const redis = getRedisClient();
-  const requestTime = Number((await redis.get(Keys.trackerRequestTime)) ?? refreshStart);
+  const requestTime = Number((await redis.get(Keys.trackerRequestTimestamp)) ?? refreshStart);
   const requestAgeMin = (refreshStart - requestTime) / (60 * 1000);
 
   // Refresh if there was a request from flyxc.app in the last 10 minutes.
   if (requestAgeMin < 10) {
-    await updateTrackers();
+    const logs = await updateTrackers();
 
     const querySec = Math.round(Date.now() / 1000);
     const incrementalStartSec = querySec - INCREMENTAL_UPDATE_SEC;
@@ -78,9 +79,31 @@ router.post('/refresh', async (ctx: RouterContext) => {
       }
     });
 
+    const pipeline = redis.pipeline();
+
+    // Write logs to Redis.
+    for (const [trackerId, logEntry] of logs.entries()) {
+      const time = Math.round(logEntry.timestamp / 1000);
+      const prefix = Keys.trackerLogsPrefix + ':' + trackerPropNames[trackerId] + ':';
+      pushListCap(
+        pipeline,
+        `${prefix}errors`,
+        logEntry.errors.map((e) => `[${time}] ${e}`),
+        10,
+      );
+      pushListCap(
+        pipeline,
+        `${prefix}errors:id`,
+        Array.from(logEntry.accountErrors.entries()).map(([id, error]) => `[${time}] id=${id} ${error}`),
+        10,
+      );
+      pushListCap(pipeline, `${prefix}size`, [logEntry.numDevices], 10);
+      pushListCap(pipeline, `${prefix}time`, [time], 10);
+      pushListCap(pipeline, `${prefix}duration`, [logEntry.durationSec], 10);
+    }
+
     try {
-      await redis
-        .pipeline()
+      await pipeline
         .set(Keys.trackerFullProto, Buffer.from(LiveDifferentialTrackGroup.toBinary(fullTracks)))
         .set(Keys.trackerFullSize, fullTracks.tracks.length)
         .set(Keys.trackerIncrementalProto, Buffer.from(LiveDifferentialTrackGroup.toBinary(incrementalTracks)))

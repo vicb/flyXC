@@ -163,7 +163,7 @@ export interface TrackUpdate {
   updated: number;
 }
 
-// Update for a tracker type.
+// Updates for a tracker type.
 export interface TrackerUpdate {
   trackerId: TrackerIds;
   // Map of id to track update.
@@ -176,33 +176,41 @@ export interface TrackerUpdate {
   durationSec: number;
 }
 
+export interface TrackerLogEntry {
+  errors: string[];
+  accountErrors: Map<number, string>;
+  numDevices: number;
+  timestamp: number;
+  durationSec: number;
+}
+
+export type TrackerLogs = Map<TrackerIds, TrackerLogEntry>;
+
 // Update all the trackers:
 // - Fetch the deltas,
 // - Merge with existing tracks,
 // - Save to datastore.
-export async function updateTrackers(): Promise<LiveTrackEntity[]> {
+export async function updateTrackers(): Promise<TrackerLogs> {
   const start = Date.now();
   const refreshes = await Promise.allSettled([inreach.refresh(), spot.refresh(), skylines.refresh(), flyme.refresh()]);
 
   const updates: TrackerUpdate[] = [];
   // Collect all the ids that have been updated.
   const idSet = new Set<number>();
-  const batchEntities: LiveTrackEntity[] = [];
 
   // Accumulate the updates from all the devices.
-  refreshes.forEach((result, i: number) => {
-    if (result.status == 'fulfilled') {
-      const update = result.value;
+  refreshes.forEach((trackerPromise, i: number) => {
+    if (trackerPromise.status == 'fulfilled') {
+      const update = trackerPromise.value;
       updates.push(update);
       [...update.tracks.keys()].forEach((id) => idSet.add(id));
-      console.log(
-        `[${trackerDisplayNames[update.trackerId]}] Update ${update.tracks.size} devices in ${update.durationSec}s`,
-      );
+      const tracker = trackerDisplayNames[update.trackerId];
+      console.log(`[${tracker}] Update ${update.tracks.size} devices in ${update.durationSec}s`);
       if (update.errors.length > 0) {
-        console.error(`[${trackerDisplayNames[update.trackerId]}] Update error: ${update.errors.join(`, `)}`);
+        console.error(`[${tracker}] Update error: ${update.errors.join(`, `)}`);
       }
     } else {
-      console.error(`Tracker update #${i} error: ${result.reason}`);
+      console.error(`Tracker update #${i} error: ${trackerPromise.reason}`);
     }
   });
 
@@ -217,6 +225,26 @@ export async function updateTrackers(): Promise<LiveTrackEntity[]> {
     const batchKeys = batchIds.map((id) => datastore.key([LIVE_TRACK_TABLE, id]));
     savePromises.push(saveTrackersWithRetries(batchKeys, updates));
   }
+
+  const logs = new Map<TrackerIds, TrackerLogEntry>();
+
+  updates.forEach((update) => {
+    const log = {
+      errors: update.errors,
+      accountErrors: new Map<number, string>(),
+      numDevices: update.tracks.size,
+      timestamp: start,
+      durationSec: update.durationSec,
+    };
+
+    for (const [id, track] of update.tracks.entries()) {
+      if (track.error) {
+        log.accountErrors.set(id, track.error);
+      }
+    }
+
+    logs.set(update.trackerId, log);
+  });
 
   const saveResults = await Promise.allSettled(savePromises);
   let saveErrors = 0;
@@ -236,7 +264,7 @@ export async function updateTrackers(): Promise<LiveTrackEntity[]> {
   }
 
   console.log(`Trackers updated in ${Math.round((Date.now() - startSave) / 1000)}s`);
-  return batchEntities;
+  return logs;
 }
 
 // Updates the tracker in a transaction.

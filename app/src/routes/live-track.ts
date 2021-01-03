@@ -36,7 +36,7 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
   // Get the geojson for the currently active trackers.
   router.get('/_livetracks', async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
-    await redis.set(Keys.trackerRequestTime, Date.now());
+    await redis.set(Keys.trackerRequestTimestamp, Date.now());
     const token = req.header('token');
     if (!token) {
       // Pick the incremental proto if last request was recent.
