@@ -10,8 +10,8 @@ import { getRedisClient } from 'flyxc/common/src/redis';
 import QRCode from 'qrcode';
 
 import { migrate } from './migrate';
+import { getAdminRouter } from './routes/admin';
 import { getTrackerRouter } from './routes/live-track';
-import { getStatusRouter } from './routes/status';
 import { getTrackRouter } from './routes/track';
 import { encode } from './waypoints';
 
@@ -71,12 +71,15 @@ const app = express()
         nonce: true,
         callback: '/devices.html',
         pkce: true,
+        overrides: {
+          admin: { callback: '/admin.html' },
+        },
       },
     }),
   );
 
 // mount extra routes.
-app.use(getStatusRouter(redis)).use(getTrackerRouter(redis)).use(getTrackRouter());
+app.use(getAdminRouter(redis)).use(getTrackerRouter(redis)).use(getTrackRouter());
 
 // Generates a waypoint file.
 app.post('/_waypoints', (req: Request, res: Response) => {

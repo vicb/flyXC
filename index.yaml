@@ -7,6 +7,8 @@
 
 indexes:
 
+  # Retrieve devices to update.
+
   - kind: LiveTrack
     properties:
     - name: enabled
@@ -34,3 +36,33 @@ indexes:
     - name: flyme.enabled
     - name: flyme.updated
     - name: flyme.account
+
+  # Retrieve devices with errors.
+
+  - kind: LiveTrack
+    properties:
+    - name: enabled
+    - name: skylines.enabled
+    - name: skylines.errors_requests
+      direction: desc
+
+  - kind: LiveTrack
+    properties:
+    - name: enabled
+    - name: spot.enabled
+    - name: spot.errors_requests
+      direction: desc
+
+  - kind: LiveTrack
+    properties:
+    - name: enabled
+    - name: inreach.enabled
+    - name: inreach.errors_requests
+      direction: desc
+
+  - kind: LiveTrack
+    properties:
+    - name: enabled
+    - name: flyme.enabled
+    - name: flyme.errors_requests
+      direction: desc                  

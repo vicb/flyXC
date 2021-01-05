@@ -18,7 +18,7 @@ import {
 import { validateInreachAccount } from 'flyxc/common/src/models';
 import { DOMParser } from 'xmldom';
 
-import { getTrackersToUpdate, LivePoint, makeLiveTrack, ParseError, TrackerUpdate, TrackUpdate } from './live-track';
+import { getTrackersToUpdate, LivePoint, makeLiveTrack, TrackerUpdate, TrackUpdate } from './live-track';
 
 // Queries the datastore for the devices that have not been updated in REFRESH_EVERY_MINUTES.
 // Queries the feeds until the timeout is reached and store the data back into the datastore.
@@ -53,14 +53,15 @@ export async function refresh(): Promise<TrackerUpdate> {
       const url = `${inreachUrl}?d1=${new Date(fetchFrom).toISOString()}`;
 
       try {
-        const response = await request(url);
+        // Retry because InReach servers often fails with ECONNRESET.
+        const response = await request(url, { maxRetry: 3, retryDelay: 200 });
         if (response.code == 200) {
           points = parse(response.body);
         } else {
           update.error = `HTTP Status = ${response.code} for ${url}`;
         }
       } catch (e) {
-        update.error = `Error "${e}" for url ${url}`;
+        update.error = `Error ${JSON.stringify(e)} for url ${url}`;
       }
     }
 
@@ -86,7 +87,7 @@ export async function refresh(): Promise<TrackerUpdate> {
 
 // Parses the kml feed to a list of `LivePoint`s.
 //
-// Throws a `ParseError` on invalid feed.
+// Throws an `Error` on invalid feed.
 export function parse(kmlFeed: string): LivePoint[] {
   const points: LivePoint[] = [];
 
@@ -96,7 +97,7 @@ export function parse(kmlFeed: string): LivePoint[] {
   const parser = new DOMParser({
     errorHandler: (level: string, msg: string): void => {
       if (/error/i.test(level)) {
-        throw new ParseError(`Invalid InReach feed (${msg})`);
+        throw new Error(`Invalid InReach feed (${msg}) - feed: ${kmlFeed}`);
       }
     },
   });

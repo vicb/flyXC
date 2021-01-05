@@ -1,7 +1,10 @@
-import { css, CSSResult, customElement, html, LitElement, TemplateResult } from 'lit-element';
+import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 
 @customElement('google-btn')
 export class GoogleButton extends LitElement {
+  @property()
+  override?: string;
+
   private devicePixelRatio = devicePixelRatio;
 
   static get styles(): CSSResult {
@@ -19,7 +22,8 @@ export class GoogleButton extends LitElement {
   }
 
   protected render(): TemplateResult {
-    return html` <form action="/oauth/google">
+    const action = '/oauth/google' + (this.override ? `/${this.override}` : '');
+    return html` <form action=${action}>
       <input
         type="image"
         src=${`/img/btn_google_signin_dark_normal_web${this.devicePixelRatio > 1 ? '@2x' : ''}.png`}

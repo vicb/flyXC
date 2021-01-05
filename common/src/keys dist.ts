@@ -5,4 +5,5 @@ export const enum SecretKeys {
   GOOGLE_OAUTH_SECRET = '...',
   SESSION_SECRET = '...',
   FLYME_TOKEN = '...',
+  ADMINS = 'user@gmail.com,...',
 }

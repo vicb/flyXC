@@ -17,8 +17,26 @@ export const enum Keys {
   trackerFlymeProto = 'tracker:proto:flyme',
   // Last tracker update (start time).
   trackerUpdateSec = 'tracker:update:time',
-  // trackers errors.
-  trackerLogsPrefix = 'tracker:log',
+  // [List] Global errors.
+  trackerLogsErrors = 'tracker:log:{name}:errors',
+  // [List]Errors per account.
+  trackerLogsErrorsById = 'tracker:log:{name}:errors:id',
+  // [List] Number of fetch devices.
+  trackerLogsSize = 'tracker:log:{name}:size',
+  // [List] Fetch time in seconds.
+  trackerLogsTime = 'tracker:log:{name}:time',
+  // [List] Fetch duration in seconds.
+  trackerLogsDuration = 'tracker:log:{name}:duration',
+  // Number of tracks.
+  dashboardTotalTracks = 'dash:track:size',
+  // Number of trackers.
+  dashboardTotalTrackers = 'dash:tracker:size',
+  // Number of trackers.
+  dashboardNumTrackers = 'dash:tracker:{name}:size',
+  // Top accounts with errors.
+  dashboardTopErrors = 'dash:tracker:{name}:errors',
+  // Last DS request for dashboard.
+  dashboardDsRequestTime = 'dash:ds:time',
 }
 
 // lazily created client.

@@ -85,7 +85,7 @@ export default [
   buildFrontEnd('frontend/src/viewer/workers/live-track.ts', { isWorker: true }),
   buildFrontEnd('frontend/src/archives/archives.ts'),
   buildFrontEnd('frontend/src/tracking/devices.ts'),
-  buildFrontEnd('frontend/src/status/status.ts'),
+  buildFrontEnd('frontend/src/admin/admin.ts'),
 ];
 
 function buildFrontEnd(input, options = {}) {

@@ -78,13 +78,6 @@ export function makeLiveTrack(points: LivePoint[]): protos.LiveTrack {
   return track;
 }
 
-// Error thrown by the parsers.
-export class ParseError extends Error {
-  constructor(message: string) {
-    super('[Parse Error]: ' + message);
-  }
-}
-
 // The error and requests fields has
 // - 3 upper digits for the errors,
 // - 3 lower digits for the requests.

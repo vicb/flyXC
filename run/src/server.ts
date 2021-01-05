@@ -84,22 +84,22 @@ router.post('/refresh', async (ctx: RouterContext) => {
     // Write logs to Redis.
     for (const [trackerId, logEntry] of logs.entries()) {
       const time = Math.round(logEntry.timestamp / 1000);
-      const prefix = Keys.trackerLogsPrefix + ':' + trackerPropNames[trackerId] + ':';
+      const name = trackerPropNames[trackerId];
       pushListCap(
         pipeline,
-        `${prefix}errors`,
+        Keys.trackerLogsErrors.replace('{name}', name),
         logEntry.errors.map((e) => `[${time}] ${e}`),
-        10,
+        20,
       );
       pushListCap(
         pipeline,
-        `${prefix}errors:id`,
+        Keys.trackerLogsErrorsById.replace('{name}', name),
         Array.from(logEntry.accountErrors.entries()).map(([id, error]) => `[${time}] id=${id} ${error}`),
-        10,
+        20,
       );
-      pushListCap(pipeline, `${prefix}size`, [logEntry.numDevices], 10);
-      pushListCap(pipeline, `${prefix}time`, [time], 10);
-      pushListCap(pipeline, `${prefix}duration`, [logEntry.durationSec], 10);
+      pushListCap(pipeline, Keys.trackerLogsSize.replace('{name}', name), [logEntry.numDevices], 10);
+      pushListCap(pipeline, Keys.trackerLogsTime.replace('{name}', name), [time], 10);
+      pushListCap(pipeline, Keys.trackerLogsDuration.replace('{name}', name), [logEntry.durationSec], 10);
     }
 
     try {

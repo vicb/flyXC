@@ -12,23 +12,9 @@ import Redis from 'ioredis';
 import { Datastore } from '@google-cloud/datastore';
 import { NoDomBinder } from '@vaadin/form/NoDomBinder';
 
+import { getGrantSession } from './grant';
+
 const datastore = new Datastore();
-
-// Interface for session.grant.response.
-interface GrantSession {
-  access_token?: string;
-  // The profile should only be accessed when the access token is defined.
-  profile: {
-    name: string;
-    email: string;
-    sub: string;
-  };
-}
-
-function getGrantSession(req: Request): GrantSession | undefined {
-  const session = req.session as any;
-  return session?.grant?.response;
-}
 
 export function getTrackerRouter(redis: Redis.Redis): Router {
   const router = express.Router();

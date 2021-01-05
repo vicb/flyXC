@@ -1,7 +1,7 @@
 // Login for tracker settings.
 //
 // Note: this file is named devices.ts because tracking.ts makes ublock origin unhappy.
-import './google-btn';
+import '../google-btn';
 import './device-form';
 
 import { AccountModel } from 'flyxc/common/src/models';

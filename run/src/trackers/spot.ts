@@ -17,7 +17,7 @@ import {
 } from 'flyxc/common/src/live-track';
 import { validateSpotAccount } from 'flyxc/common/src/models';
 
-import { getTrackersToUpdate, LivePoint, makeLiveTrack, ParseError, TrackerUpdate, TrackUpdate } from './live-track';
+import { getTrackersToUpdate, LivePoint, makeLiveTrack, TrackerUpdate, TrackUpdate } from './live-track';
 
 // Queries the datastore for the devices that have not been updated in REFRESH_EVERY_MINUTES.
 // Queries the feeds until the timeout is reached and store the data back into the datastore.
@@ -86,7 +86,7 @@ export async function refresh(): Promise<TrackerUpdate> {
 // Parses SPOT json feeds.
 //
 // Throws:
-// - a `ParseError` on invalid feed,
+// - an Error on invalid feed,
 // - an Error if spot response contain an error.
 export function parse(jsonFeed: string): LivePoint[] {
   const points: LivePoint[] = [];
@@ -95,14 +95,19 @@ export function parse(jsonFeed: string): LivePoint[] {
   try {
     feed = JSON.parse(jsonFeed);
   } catch (e) {
-    throw new ParseError('Invalid SPOT json');
+    throw new Error(`Invalid SPOT json - feed: ${jsonFeed}`);
   }
 
+  // error could be a single object or an array ob objects.
   const error = feed?.response?.errors?.error;
 
-  // Code E-0195 is used when there is no fix after the start time.
-  if (error && error.code != 'E-0195') {
-    throw new Error(error?.description ?? 'Feed error');
+  if (error) {
+    const errors: any[] = [].concat(error);
+    // Code E-0195 is used when there is no fix after the start time.
+    if (errors.some((e) => e.code === 'E-0195')) {
+      return points;
+    }
+    throw new Error(error.description ?? `Feed error ${error.code} - feed: ${jsonFeed}`);
   }
 
   const fixes = feed.response?.feedMessageResponse?.messages?.message;
