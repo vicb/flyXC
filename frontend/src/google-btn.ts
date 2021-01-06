@@ -9,6 +9,9 @@ export class GoogleButton extends LitElement {
 
   static get styles(): CSSResult {
     return css`
+      :host {
+        display: block;
+      }
       input[type='image']:hover {
         box-shadow: 0 0 3px #4285f4;
       }
@@ -23,7 +26,7 @@ export class GoogleButton extends LitElement {
 
   protected render(): TemplateResult {
     const action = '/oauth/google' + (this.override ? `/${this.override}` : '');
-    return html` <form action=${action}>
+    return html`<form action=${action}>
       <input
         type="image"
         src=${`/img/btn_google_signin_dark_normal_web${this.devicePixelRatio > 1 ? '@2x' : ''}.png`}

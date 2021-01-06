@@ -64,7 +64,7 @@ export async function refresh(): Promise<TrackerUpdate> {
       }
     } catch (e) {
       isError = true;
-      result.errors.push(`Error "${e}" for url ${url}`);
+      result.errors.push(`Error ${JSON.stringify(e)} for url ${url}`);
     }
 
     flights.forEach((flight) => {

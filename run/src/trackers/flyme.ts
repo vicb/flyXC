@@ -47,7 +47,7 @@ export async function refresh(): Promise<TrackerUpdate> {
       result.errors.push(`HTTP status ${response.code}`);
     }
   } catch (e) {
-    result.errors.push(`Fetch error: ${e}`);
+    result.errors.push(`Error ${JSON.stringify(e)}`);
   }
 
   const resolvePromises: Promise<unknown>[] = [];
@@ -135,13 +135,12 @@ export async function getFlyMeId(username: string): Promise<number | undefined> 
 
   try {
     response = await request(url);
+    if (response.code == 200) {
+      const matches = response.body.match(/^ok:\s*(\d+)$/);
+      return matches == null ? undefined : Number(matches[1]);
+    }
   } catch (e) {
-    throw new Error(`Server error: ${e}`);
-  }
-
-  if (response.code == 200) {
-    const matches = response.body.match(/^ok:\s*(\d+)$/);
-    return matches == null ? undefined : Number(matches[1]);
+    throw new Error(`Server error: ${JSON.stringify(e)}`);
   }
 
   throw new Error(`HTTP status code ${response.code}`);

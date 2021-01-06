@@ -219,8 +219,10 @@ export class DeviceForm extends LitElement {
   }
 
   private handleCloseOk(): void {
-    const url = localStorage.getItem('url.tracking.return');
-    document.location.assign(url ?? '/');
+    fetch('/logout').finally(() => {
+      const url = localStorage.getItem('url.tracking.return');
+      document.location.assign(url ?? '/');
+    });
   }
 
   private handleCloseError(): void {

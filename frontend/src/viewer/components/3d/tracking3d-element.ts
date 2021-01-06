@@ -102,10 +102,10 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       {
         type: 'object',
         width: MSG_MARKER_HEIGHT,
-        resource: { href: '3d/santa/scene.gltf' },
+        resource: { href: '3d/santa.glb' },
         material: { color: [50, 50, 50, 0.6] },
         anchor: 'relative',
-        tilt: 90,
+        tilt: 0,
         heading: 0,
       },
     ],

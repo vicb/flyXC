@@ -136,8 +136,6 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
         return;
       }
 
-      // Sign out the user.
-      req.session.destroy(() => null);
       res.json({ error: false });
     } catch (e) {
       console.error(`Error updating an account: ${e}`);
