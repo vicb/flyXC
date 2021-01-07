@@ -7,4 +7,5 @@ node_modules/
 /ds
 srtm/
 frontend/static/js/*
+frontend/static/css/*
 stats.html

@@ -93,13 +93,14 @@ function buildFrontEnd(input, options = {}) {
   if (m == null) {
     throw Error('Can not find project name');
   }
-  const outDir = options.isWorker ? 'frontend/static/js/workers/' : 'frontend/static/js/';
+  const cssFile = `css/${m[1]}.css`;
 
   return {
     input,
 
     output: {
-      dir: outDir,
+      dir: 'frontend/static/',
+      entryFileNames: options.isWorker ? 'js/workers/[name].js' : 'js/[name].js',
       format: 'esm',
       sourcemap: prod ? false : 'inline',
     },
@@ -118,6 +119,7 @@ function buildFrontEnd(input, options = {}) {
           end_comment: 'end-strip-from-prod',
         }),
       postcss({
+        extract: cssFile,
         plugins: [cssnano()],
       }),
       minifyHTML(),
