@@ -14,35 +14,56 @@ handlers:
 - url: /$
   static_files: frontend/static/index.html
   upload: frontend/static/index.html
+  secure: always
+  redirect_http_response_code: 301  
 
 - url: /(.*\.html)$
   static_files: frontend/static/\1
   upload: frontend/static/.*\.html$
+  secure: always
+  redirect_http_response_code: 301  
 
 - url: /favicon\.ico$
   static_files: frontend/static/favicon.ico
   upload: frontend/static/favicon\.ico$
   expiration: "2d"
+  secure: always
+  redirect_http_response_code: 301  
 
 - url: /robots\.txt$
   static_files: frontend/static/robots.txt
   upload: frontend/static/robots\.txt$
   expiration: "2d"
+  secure: always
+  redirect_http_response_code: 301  
 
 - url: /3d
   static_dir: frontend/static/3d
   expiration: "2d"
+  secure: always
+  redirect_http_response_code: 301  
 
 - url: /img
   static_dir: frontend/static/img
-  expiration: "2d"  
+  expiration: "2d"
+  secure: always
+  redirect_http_response_code: 301   
 
 - url: /js
   static_dir: frontend/static/js
+  secure: always
+  redirect_http_response_code: 301  
+
+- url: /css
+  static_dir: frontend/static/css 
+  secure: always
+  redirect_http_response_code: 301   
 
 - url: /ui5
   static_dir: frontend/static/ui5
   expiration: "2d"
+  secure: always
+  redirect_http_response_code: 301  
     
 - url: /.*
   secure: always
