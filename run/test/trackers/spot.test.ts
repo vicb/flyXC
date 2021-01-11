@@ -148,7 +148,7 @@ describe('Parse JSON feed', () => {
   });
 
   it('should throw on invalid format', () => {
-    expect(() => parse('random')).toThrowError('[Parse Error]: Invalid SPOT json');
+    expect(() => parse('random')).toThrowError('Invalid SPOT json - feed: random');
   });
 
   it('should throw on invalid feed error', () => {

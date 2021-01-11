@@ -90,6 +90,6 @@ describe('Parse kml feed', () => {
   });
 
   it('should throw on invalid feed', () => {
-    expect(() => parse('<')).toThrowError('[Parse Error]: Invalid InReach feed');
+    expect(() => parse('<')).toThrowError(/^Invalid InReach feed \(\[xmldom error\]/);
   });
 });

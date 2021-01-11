@@ -206,7 +206,7 @@ export function validateInreachAccount(url: string): string | false {
     url = 'https://' + url;
   }
   // Check url validity.
-  if (/^https?:\/\/[\w.-]*?garmin.com\/Feed\/Share\/[^?]+/i.test(url)) {
+  if (/^https?:\/\/[\w.-]*?garmin.com\/Feed\/Share\/\w+$/i.test(url)) {
     return url;
   }
 
