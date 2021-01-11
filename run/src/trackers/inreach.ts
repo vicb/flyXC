@@ -16,6 +16,7 @@ import {
   TrackerIds,
 } from 'flyxc/common/src/live-track';
 import { validateInreachAccount } from 'flyxc/common/src/models';
+import { formatReqError } from 'flyxc/common/src/util';
 import { DOMParser } from 'xmldom';
 
 import { getTrackersToUpdate, LivePoint, makeLiveTrack, TrackerUpdate, TrackUpdate } from './live-track';
@@ -61,7 +62,7 @@ export async function refresh(): Promise<TrackerUpdate> {
           update.error = `HTTP Status = ${response.code} for ${url}`;
         }
       } catch (e) {
-        update.error = `Error ${JSON.stringify(e)} for url ${url}`;
+        update.error = `Error ${formatReqError(e)} for url ${url}`;
       }
     }
 

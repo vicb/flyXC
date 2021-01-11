@@ -15,6 +15,7 @@ import {
   TrackerIds,
 } from 'flyxc/common/src/live-track';
 import { TrackerAccountWithServerId } from 'flyxc/common/src/models';
+import { formatReqError } from 'flyxc/common/src/util';
 
 import { getTrackersToUpdate, TrackerForUpdate, TrackerUpdate, TrackUpdate } from './live-track';
 
@@ -47,7 +48,7 @@ export async function refresh(): Promise<TrackerUpdate> {
       result.errors.push(`HTTP status ${response.code}`);
     }
   } catch (e) {
-    result.errors.push(`Error ${JSON.stringify(e)}`);
+    result.errors.push(`Error ${formatReqError(e)}`);
   }
 
   const resolvePromises: Promise<unknown>[] = [];
@@ -61,7 +62,7 @@ export async function refresh(): Promise<TrackerUpdate> {
       let track: LiveTrack | undefined;
 
       if (flymeId == null) {
-        resolvePromises.push(resolveAccount(account).then((value) => result.accounts?.set(datastoreId, value)));
+        resolvePromises.push(resolveAccount(account).then((flyMeId) => result.accounts?.set(datastoreId, flyMeId)));
       } else {
         const lastFetch = tracker.updated ?? 0;
         const startTimestamp = Math.max(start - LIVE_RETENTION_SEC * 1000, lastFetch - 5 * 60 * 1000);
@@ -83,7 +84,7 @@ export async function refresh(): Promise<TrackerUpdate> {
         track,
       });
     } catch (e) {
-      result.tracks.set(datastoreId, { updated: start, error: e.toString() });
+      result.tracks.set(datastoreId, { updated: start, error: JSON.stringify(e) });
     }
   });
 

@@ -15,6 +15,7 @@ import {
   TrackerIds,
 } from 'flyxc/common/src/live-track';
 import { round } from 'flyxc/common/src/math';
+import { formatReqError } from 'flyxc/common/src/util';
 import { decodeDeltas } from 'ol/format/Polyline';
 
 import { getTrackersToUpdate, LivePoint, makeLiveTrack, TrackerUpdate, TrackUpdate } from './live-track';
@@ -64,7 +65,7 @@ export async function refresh(): Promise<TrackerUpdate> {
       }
     } catch (e) {
       isError = true;
-      result.errors.push(`Error ${JSON.stringify(e)} for url ${url}`);
+      result.errors.push(`Error ${formatReqError(e)} for url ${url}`);
     }
 
     flights.forEach((flight) => {
