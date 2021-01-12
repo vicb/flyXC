@@ -134,12 +134,14 @@ describe('incrementRequests', () => {
     expect(incrementRequests(0, { isError: false })).toEqual(1);
     expect(incrementRequests(100, { isError: false })).toEqual(101);
     expect(incrementRequests(50123, { isError: false })).toEqual(50124);
+    expect(incrementRequests(50990, { isError: false })).toEqual(50991);
   });
 
   it('should increment errors', () => {
     expect(incrementRequests(0, { isError: true })).toEqual(1001);
     expect(incrementRequests(10123, { isError: true })).toEqual(11124);
     expect(incrementRequests(50001, { isError: true })).toEqual(51002);
+    expect(incrementRequests(50990, { isError: true })).toEqual(51991);
   });
 
   it('should divide count by 2 on overflow', () => {

@@ -87,7 +87,7 @@ export function makeLiveTrack(points: LivePoint[]): protos.LiveTrack {
 // When any of the field overflow they are both divided by 2 to keep some history.
 export function incrementRequests(errorAndRequests: number | undefined, value: { isError: boolean }): number {
   errorAndRequests ??= 0;
-  let errors = Math.round(errorAndRequests / 1000);
+  let errors = Math.floor(errorAndRequests / 1000);
   if (value.isError === true) {
     errors++;
   }
