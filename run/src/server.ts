@@ -63,18 +63,20 @@ router.post('/refresh', async (ctx: RouterContext) => {
       if (incrementalTrack.timeSec.length > 0) {
         incrementalTracks.tracks.push(differentialEncodeLiveTrack(incrementalTrack, id, name));
       }
-      // Export updates.
-      const exportTrack = removeBeforeFromLiveTrack(incrementalTrack, exportStartSec);
-      if (exportTrack.timeSec.length > 0) {
-        const flymeTrack = removeDeviceFromLiveTrack(exportTrack, TrackerIds.Flyme);
-        if (flymeTrack.timeSec.length > 0) {
-          flymeTracks.tracks.push(differentialEncodeLiveTrack(flymeTrack, id, name));
-          // TODO: fn to retrieve the ID.
-          let flymeId = '';
-          try {
-            flymeId = String(JSON.parse(entity.flyme.account).id ?? '');
-          } catch (e) {}
-          flymeTracks.remoteId.push(flymeId);
+      // Export updates if users opted-in sharing.
+      if (entity.share) {
+        const exportTrack = removeBeforeFromLiveTrack(incrementalTrack, exportStartSec);
+        if (exportTrack.timeSec.length > 0) {
+          const flymeTrack = removeDeviceFromLiveTrack(exportTrack, TrackerIds.Flyme);
+          if (flymeTrack.timeSec.length > 0) {
+            flymeTracks.tracks.push(differentialEncodeLiveTrack(flymeTrack, id, name));
+            // TODO: fn to retrieve the ID.
+            let flymeId = '';
+            try {
+              flymeId = String(JSON.parse(entity.flyme.account).id ?? '');
+            } catch (e) {}
+            flymeTracks.remoteId.push(flymeId);
+          }
         }
       }
     });
