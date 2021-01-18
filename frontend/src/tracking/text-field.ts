@@ -9,6 +9,9 @@ export class TextField extends LitElement {
   @property()
   label?: string;
 
+  @property()
+  inputMode = 'text';
+
   @property({ attribute: false })
   invalid = false;
 
@@ -38,6 +41,7 @@ export class TextField extends LitElement {
             class=${`input ${this.errorMessage ? 'is-danger' : ''}`}
             type="text"
             value=${this.value}
+            inputmode=${this.inputMode}
           />
         </div>
         ${this.errorMessage ? html`<p class="help is-danger">${this.errorMessage}</p>` : null}

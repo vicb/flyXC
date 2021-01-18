@@ -97,7 +97,7 @@ export class DeviceForm extends LitElement {
 
       ${model.enabled.valueOf()
         ? html`<p class="my-4">FlyXC aggregates the positions from all the tracking providers enabled below.</p>
-            <tracker-panel .tracker=${TrackerIds.Inreach} .binder=${this.binder} label="MapShare URL">
+            <tracker-panel .tracker=${TrackerIds.Inreach} .binder=${this.binder} label="MapShare URL" inputmode="url">
               <p class="help" slot="hint">
                 Visit
                 <a href="https://explore.garmin.com/Social" target="_blank" class="has-text-link"
@@ -121,14 +121,14 @@ export class DeviceForm extends LitElement {
                 <span class="has-text-info">0onlLopfoM4bG5jXvWRE8H0Obd0oMxMBq</span>).
               </p></tracker-panel
             >
-            <tracker-panel .tracker=${TrackerIds.Skylines} .binder=${this.binder} label="Pilot Id">
+            <tracker-panel .tracker=${TrackerIds.Skylines} .binder=${this.binder} label="Pilot Id" inputmode="numeric">
               <p class="help" slot="hint">
                 Your pilot's id is at the end of your SkyLines profile url:
                 <span class="has-text-info">https://skylines.aero/users/id</span> (it should be a numerical value like
                 <span class="has-text-info">1234</span>).
               </p>
             </tracker-panel>
-            <tracker-panel .tracker=${TrackerIds.Flyme} .binder=${this.binder} label="Username">
+            <tracker-panel .tracker=${TrackerIds.Flyme} .binder=${this.binder} label="Username" inputmode="email">
               <p class="help" slot="hint">Enter your FlyMe username in the field above. It commonly is your email.</p>
             </tracker-panel>`
         : null}
@@ -236,6 +236,9 @@ export class TrackerPanel extends LitElement {
   @property()
   label = '';
 
+  @property()
+  inputMode = 'text';
+
   @property({ attribute: false })
   binder!: Binder<AccountModel, AccountFormModel>;
 
@@ -266,7 +269,7 @@ export class TrackerPanel extends LitElement {
         </div>
         ${model.enabled.valueOf()
           ? html`<div class="panel-block">
-              <text-field label=${this.label} ...=${field(model.account)}></text-field>
+              <text-field label=${this.label} inputmode=${this.inputMode} ...=${field(model.account)}></text-field>
               <slot name="hint"></slot>
             </div>`
           : html`<div class="panel-block has-text-centered">
