@@ -123,6 +123,7 @@ export class DashSummary extends LitElement {
   values: any;
 
   private link?: HTMLLinkElement;
+  private timer: any;
 
   static get styles(): CSSResult {
     return css`
@@ -145,12 +146,19 @@ export class DashSummary extends LitElement {
     this.link.setAttribute('rel', 'shortcut icon');
     this.link.href = `data:image/svg+xml;base64,${btoa(ICON_SVG())}`;
     document.head.append(this.link);
+    this.timer = setInterval(() => {
+      this.requestUpdate();
+    }, 10 * 1000);
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
     if (this.link) {
       this.link.remove();
+    }
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = undefined;
     }
   }
 
@@ -304,7 +312,7 @@ export class DashTracker extends LitElement {
 }
 
 // Returns readable time relative to now.
-function relativeTime(time: number) {
+function relativeTime(time: number): string {
   const delta = Date.now() / 1000 - time;
   if (delta >= 24 * 3600 * 7) {
     return `-${round(delta / (24 * 3600 * 7), 1)}w`;
