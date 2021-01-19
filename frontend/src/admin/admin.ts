@@ -179,7 +179,12 @@ export class DashSummary extends LitElement {
         <div class="panel-block">
           <ul>
             <li>Uploaded tracks: ${this.values[Keys.dashboardTotalTracks]}</li>
-            <li>Trackers: ${this.values[Keys.dashboardTotalTrackers]}</li>
+            <li>
+              <a
+                href="https://console.cloud.google.com/datastore/entities;kind=LiveTrack;ns=__$DEFAULT$__;sortCol=created;sortDir=DESCENDING/query/kind?project=fly-xc"
+                >Trackers: ${this.values[Keys.dashboardTotalTrackers]}</a
+              >
+            </li>
             <li>Trackers h24: ${this.values[Keys.trackerFullSize]}</li>
             <li>Trackers h1: ${trackerH1}</li>
             <li>Last refresh: ${relativeTime(this.values[Keys.trackerUpdateSec])}</li>
