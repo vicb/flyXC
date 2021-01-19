@@ -15,6 +15,8 @@ export function formatReqError(error: any): string {
           return `${error.code} (${error.message ?? ''})`;
         case 404:
           return '404';
+        case 500:
+          return `500 (Internal server error)`;
       }
     }
   }
