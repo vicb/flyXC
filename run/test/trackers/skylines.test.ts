@@ -32,5 +32,3 @@ describe('Parse Skylines json', () => {
     expect(points[points.length - 1].timestamp).toBe(lastTimestamp);
   });
 });
-
-0;
