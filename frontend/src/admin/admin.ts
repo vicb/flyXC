@@ -90,7 +90,7 @@ export class AdminPage extends LitElement {
       }
     }
 
-    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css" />
+    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
 
       <section class="hero is-dark">
         <div class="hero-body">
@@ -167,7 +167,7 @@ export class DashSummary extends LitElement {
     if (this.link) {
       this.link.href = `data:image/svg+xml;base64,${btoa(ICON_SVG(trackerH1))}`;
     }
-    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css" />
+    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
       <link
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
@@ -263,7 +263,7 @@ export class DashTracker extends LitElement {
       }
     });
 
-    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css" />
+    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
       <div class="panel is-warning" style="margin-top: 1em;">
         <div class="panel-heading">
           <p>${this.name}</p>

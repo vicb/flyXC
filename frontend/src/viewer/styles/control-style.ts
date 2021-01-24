@@ -4,6 +4,7 @@ export const controlStyle = css`
   :host {
     display: block;
     float: right;
+    clear: both;
     border: 1px inset #555;
     padding: 4px;
     margin: 2px 2px 0 0;

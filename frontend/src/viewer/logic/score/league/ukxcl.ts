@@ -105,7 +105,7 @@ abstract class UKXCLBase {
 }
 
 export class UKXCLClub extends UKXCLBase {
-  name = 'United Kingdom (XC League, Club)';
+  name = 'UK (XC League, Club)';
 
   protected outAndReturnFlatTriangleMultiplier(distance: number): number {
     return distance < 5000 ? 0 : distance < 15000 ? 1.2 : distance < 35000 ? 1.3 : 1.7;
@@ -121,7 +121,7 @@ export class UKXCLClub extends UKXCLBase {
 }
 
 export class UKXCLInternational extends UKXCLBase {
-  name = 'United Kingdom (XC League, International)';
+  name = 'UK (XC League, International)';
 
   protected outAndReturnFlatTriangleMultiplier(distance: number): number {
     return distance < 35000 ? 0 : 1.2;
@@ -137,7 +137,7 @@ export class UKXCLInternational extends UKXCLBase {
 }
 
 export class UKXCLNational extends UKXCLBase {
-  name = 'United Kingdom (XC League, National)';
+  name = 'UK (XC League, National)';
 
   protected outAndReturnFlatTriangleMultiplier(distance: number): number {
     return distance < 15000 ? 0 : distance < 35000 ? 1.3 : 1.7;

@@ -21,11 +21,11 @@
       "@vaadin/*": [
         "frontend/src/vaadin/*",
         "common/src/vaadin/*"
-      ]
+      ],
     },
     "typeRoots": [
       "node_modules/@types",
-      "frontend/node_modules/@types"
+      "frontend/node_modules/@types",
     ],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

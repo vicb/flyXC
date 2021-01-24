@@ -67,8 +67,10 @@ export class DeviceConfig extends LitElement {
           <li><a href="http://xcglobe.com/flyme" target="_blank" class="has-text-link">XCGlobe FlyMe</a></li>
         </ul>
         <p class="my-4">
-          <a href="mailto:help@flyxc.app?subject=FlyXC%20registration%20error" class="has-text-link">Contact us</a> if
-          you have any trouble registering your device.
+          <a href="mailto:help@flyxc.app?subject=FlyXC%20registration%20error" class="has-text-link" target="_blank"
+            >Contact us</a
+          >
+          if you have any trouble registering your device.
         </p>
         <google-btn></google-btn>
       </div>`;
@@ -77,7 +79,7 @@ export class DeviceConfig extends LitElement {
     }
 
     return html`
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css" />
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
       <section class="hero is-dark">
         <div class="hero-body">
           <div class="container">

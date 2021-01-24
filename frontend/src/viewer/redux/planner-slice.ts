@@ -8,20 +8,20 @@ export type PlannerState = {
   speed: number;
   distance: number;
   league: string;
-  expanded: boolean;
+  enabled: boolean;
   // Encoded route.
   route: string;
 };
 
 const route = getUrlParamValues(ParamNames.route)[0] ?? '';
-const expanded = route.length > 0;
+const enabled = route.length > 0;
 
 const initialState: PlannerState = {
   score: undefined,
   speed: Number(getUrlParamValues(ParamNames.speed)[0] ?? 20),
   distance: 0,
   league: getUrlParamValues(ParamNames.league)[0] ?? localStorage.getItem('league') ?? 'xc',
-  expanded,
+  enabled,
   route,
 };
 
@@ -61,8 +61,8 @@ const plannerSlice = createSlice({
       }
       state.route = route;
     },
-    setExpanded: (state, action: PayloadAction<boolean>) => {
-      state.expanded = action.payload;
+    setEnabled: (state, action: PayloadAction<boolean>) => {
+      state.enabled = action.payload;
     },
   },
 });
@@ -76,5 +76,5 @@ export const {
   incrementSpeed,
   decrementSpeed,
   setRoute,
-  setExpanded,
+  setEnabled,
 } = plannerSlice.actions;

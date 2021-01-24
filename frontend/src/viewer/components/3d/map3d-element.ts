@@ -9,10 +9,12 @@ import './marker3d-element';
 import './controls3d-element';
 
 import { LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import { customElement, html, internalProperty, LitElement, PropertyValues, query, TemplateResult } from 'lit-element';
+import { customElement, html, internalProperty, LitElement, PropertyValues, TemplateResult } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
+
+import { alertController } from '@ionic/core';
 
 import { Api, loadApi } from '../../logic/arcgis';
 import * as msg from '../../logic/messages';
@@ -35,9 +37,6 @@ export class Map3dElement extends connect(store)(LitElement) {
   private multiplier = 1;
   @internalProperty()
   private timestamp = 0;
-
-  @query('#webgl-dialog')
-  private dialog?: any;
 
   // ArcGis objects.
   private map?: Map;
@@ -215,9 +214,21 @@ export class Map3dElement extends connect(store)(LitElement) {
             this.center({ ...latLon, alt: 0 }, zoom);
           }
         })
-        .catch((e) => {
+        .catch(async (e) => {
+          store.dispatch(setApiLoading(false));
           if (e.name.includes('webgl')) {
-            this.openWebGlDialog();
+            const alert = await alertController.create({
+              header: 'WebGL Error',
+              message: 'Sorry, 3d requires WebGL which does not seem to be supported on your platform.',
+              buttons: [
+                {
+                  text: 'Ok',
+                  role: 'cancel',
+                },
+              ],
+            });
+            await alert.present();
+            store.dispatch(setView3d(false));
           }
         });
 
@@ -332,19 +343,6 @@ export class Map3dElement extends connect(store)(LitElement) {
       <select id="layers" @change=${(e: any) => this.map?.set('basemap', this.basemaps[e.target.value])}>
         ${Object.getOwnPropertyNames(this.basemaps).map((name) => html`<option value="${name}">${name}</option>`)}
       </select>
-      <ui5-dialog id="webgl-dialog" header-text="Error">
-        <section class="form-fields">
-          <div>
-            <ui5-label
-              >Sorry, the 3d mode requires WebGL which does not seem to be supported on your platform.</ui5-label
-            >
-          </div>
-        </section>
-        <div slot="footer" style="display:flex;align-items:center;padding:.5rem">
-          <div style="flex: 1"></div>
-          <ui5-button design="Emphasized" @click=${this.closeWebGlDialog}>Back to 2d</ui5-button>
-        </div>
-      </ui5-dialog>
       ${repeat(
         this.tracks,
         (track) => track.id,
@@ -355,15 +353,6 @@ export class Map3dElement extends connect(store)(LitElement) {
           `,
       )}
     `;
-  }
-
-  private openWebGlDialog(): void {
-    this.dialog?.open();
-  }
-
-  private closeWebGlDialog(): void {
-    this.dialog?.close();
-    store.dispatch(setView3d(false));
   }
 
   private updateLocation(): void {

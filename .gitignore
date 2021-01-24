@@ -6,6 +6,7 @@ node_modules/
 /run/index.js
 /ds
 srtm/
+frontend/static/ionic/*
 frontend/static/js/*
 frontend/static/css/*
 stats.html

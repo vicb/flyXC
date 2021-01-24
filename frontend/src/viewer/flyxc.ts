@@ -1,17 +1,15 @@
-import '@ui5/webcomponents/dist/Button';
-import '@ui5/webcomponents/dist/Dialog';
-import '@ui5/webcomponents/dist/Icon';
-import '@ui5/webcomponents/dist/Input';
-import '@ui5/webcomponents/dist/Label';
-import '@ui5/webcomponents/dist/Option';
-import '@ui5/webcomponents/dist/Select';
-import '@ui5/webcomponents/dist/Toast';
-import '@ui5/webcomponents/dist/Assets.js';
 import './styles/main.css';
+// https://ionicframework.com/docs/intro/cdn
+import '../../node_modules/@ionic/core/css/core.css';
+import '../../node_modules/@ionic/core/css/normalize.css';
+import '../../node_modules/@ionic/core/css/structure.css';
+import '../../node_modules/@ionic/core/css/typography.css';
+import '../../node_modules/@ionic/core/css/padding.css';
 import './components/2d/map-element';
 import './components/3d/map3d-element';
 import './components/chart-element';
 import './components/loader-element';
+import './components/ui/main-menu';
 
 import { LatLonZ } from 'flyxc/common/src/runtime-track';
 import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
@@ -74,17 +72,26 @@ export class FlyXc extends connect(store)(LitElement) {
   protected render(): TemplateResult {
     const clMap = classMap({ 'has-tracks': this.hasTrack });
     return html`
-      ${this.view3d
-        ? html`<map3d-element class=${clMap}></map3d-element>`
-        : html`<map-element class=${clMap}></map-element>`}
-      ${this.hasTrack
-        ? html`<chart-element
-            class=${clMap}
-            @move=${(e: CustomEvent) => store.dispatch(setTimestamp(e.detail.ts))}
-            @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.ts))}
-            @zoom=${(e: CustomEvent) => msg.centerZoomMap.emit(this.coordinatesAt(e.detail.ts), e.detail.deltaY)}
-          ></chart-element>`
-        : ''}
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
+      />
+      <ion-app>
+        <main-menu></main-menu>
+        <ion-content id="main">
+          ${this.view3d
+            ? html`<map3d-element class=${clMap}></map3d-element>`
+            : html`<map-element class=${clMap}></map-element>`}
+          ${this.hasTrack
+            ? html`<chart-element
+                class=${clMap}
+                @move=${(e: CustomEvent) => store.dispatch(setTimestamp(e.detail.ts))}
+                @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.ts))}
+                @zoom=${(e: CustomEvent) => msg.centerZoomMap.emit(this.coordinatesAt(e.detail.ts), e.detail.deltaY)}
+              ></chart-element>`
+            : ''}
+        </ion-content>
+      </ion-app>
       <loader-element .show=${this.showLoader}></loader-element>
     `;
   }

@@ -3,6 +3,7 @@ import { ThunkAction } from 'redux-thunk';
 import { Action, combineReducers, configureStore } from '@reduxjs/toolkit';
 
 import * as airspace from './airspace-slice';
+import * as skyways from './airways-slice';
 import * as app from './app-slice';
 import * as arcgis from './arcgis-slice';
 import * as browser from './browser-slice';
@@ -26,6 +27,7 @@ const rootReducer = combineReducers({
   units: units.reducer,
   liveTrack: liveTrack.reducer,
   arcgis: arcgis.reducer,
+  airways: skyways.reducer,
 });
 
 export const store = configureStore({

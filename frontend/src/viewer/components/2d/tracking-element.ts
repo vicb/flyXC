@@ -1,23 +1,12 @@
 import { LiveTrack } from 'flyxc/common/protos/live-track';
 import { getFixMessage, isEmergencyFix } from 'flyxc/common/src/live-track';
-import {
-  CSSResult,
-  customElement,
-  html,
-  internalProperty,
-  LitElement,
-  property,
-  PropertyValues,
-  TemplateResult,
-} from 'lit-element';
+import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { popupContent } from '../../logic/live-track-popup';
 import { Units } from '../../logic/units';
-import { setDisplayLiveNames } from '../../redux/app-slice';
-import { liveTrackSelectors, setReturnUrl } from '../../redux/live-track-slice';
+import { liveTrackSelectors } from '../../redux/live-track-slice';
 import { RootState, store } from '../../redux/store';
-import { controlStyle } from '../../styles/control-style';
 import { getUniqueColor } from '../../styles/track';
 
 // Anchors and label origins for markers.
@@ -102,6 +91,10 @@ export class TrackingElement extends connect(store)(LitElement) {
       features.forEach((f) => this.gMap.data.remove(f));
       changedProps.delete('geojson');
     }
+    if (changedProps.has('displayNames')) {
+      // The style depends on displayNames.
+      this.setMapStyle(this.gMap);
+    }
     return super.shouldUpdate(changedProps);
   }
 
@@ -109,10 +102,6 @@ export class TrackingElement extends connect(store)(LitElement) {
     this.units = state.units;
     this.displayNames = state.app.displayLiveNames;
     this.geojson = state.liveTrack.geojson;
-  }
-
-  static get styles(): CSSResult {
-    return controlStyle;
   }
 
   private setupInfoWindow(map: google.maps.Map): void {
@@ -267,31 +256,5 @@ export class TrackingElement extends connect(store)(LitElement) {
       zIndex,
       icons,
     } as google.maps.Data.StyleOptions;
-  }
-
-  protected render(): TemplateResult {
-    return html`
-      <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
-      />
-      <label
-        ><input type="checkbox" ?checked=${this.displayNames} @change=${this.handleDisplayNames} /><i
-          class="la la-user-tag la-2x"
-        ></i
-      ></label>
-      <i class="la la-satellite-dish la-2x" style="cursor: pointer" @click=${this.handleConfig}></i>
-    `;
-  }
-
-  private handleConfig(): void {
-    store.dispatch(setReturnUrl(document.location.toString()));
-    document.location.href = '/devices.html';
-  }
-
-  private handleDisplayNames(e: Event): void {
-    store.dispatch(setDisplayLiveNames((e.target as HTMLInputElement).checked));
-    // The style depends on displayNames.
-    this.setMapStyle(this.gMap);
   }
 }

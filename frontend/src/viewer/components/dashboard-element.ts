@@ -1,6 +1,10 @@
+import './ui/pref-modal';
+
 import { sampleAt } from 'flyxc/common/src/math';
 import { RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+
+import { modalController } from '@ionic/core';
 
 import { formatUnit, Units } from '../logic/units';
 import { controlStyle } from '../styles/control-style';
@@ -18,10 +22,6 @@ export class DashboardElement extends LitElement {
     return [
       controlStyle,
       css`
-        h3 {
-          padding: 0;
-          margin: 0;
-        }
         ul {
           list-style-type: none;
           margin: 0;
@@ -40,8 +40,7 @@ export class DashboardElement extends LitElement {
             rel="stylesheet"
             href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
           />
-          <h3><i class="la la-tachometer-alt la-2x"></i></h3>
-          <ul>
+          <ul style="cursor: pointer" @click=${this.handlePreferences}>
             <li>${formatUnit(alt, this.units.altitude)} [Alt]</li>
             <li>${formatUnit(Math.max(0, alt - gndAlt), this.units.altitude)} [AGL]</li>
             <li>${formatUnit(this.getVz(), this.units.vario)} [Vz]</li>
@@ -51,6 +50,13 @@ export class DashboardElement extends LitElement {
           </ul>
         `
       : html``;
+  }
+
+  private async handlePreferences() {
+    const modal = await modalController.create({
+      component: 'pref-modal',
+    });
+    await modal.present();
   }
 
   private getElevation(): number {

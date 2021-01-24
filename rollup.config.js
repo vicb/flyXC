@@ -9,7 +9,6 @@ import stripCode from 'rollup-plugin-strip-code';
 import { terser } from 'rollup-plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import builtins from 'builtin-modules';
-import url from '@rollup/plugin-url';
 import visualizer from 'rollup-plugin-visualizer';
 import postcss from 'rollup-plugin-postcss';
 import cssnano from 'cssnano';
@@ -80,7 +79,7 @@ export default [
     ],
     external: [...builtins, /@google-cloud/],
   },
-  buildFrontEnd('frontend/src/viewer/flyxc.ts', { importUi5: true, visualizer: true }),
+  buildFrontEnd('frontend/src/viewer/flyxc.ts', { visualizer: true }),
   buildFrontEnd('frontend/src/viewer/workers/track.ts', { isWorker: true }),
   buildFrontEnd('frontend/src/viewer/workers/live-track.ts', { isWorker: true }),
   buildFrontEnd('frontend/src/archives/archives.ts'),
@@ -137,14 +136,6 @@ function buildFrontEnd(input, options = {}) {
         lib: options.isWorker ? ['ES2020.Promise', 'WebWorker'] : ['ES2020.Promise', 'DOM'],
         sourceMap: !prod,
       }),
-      options.importUi5 &&
-        url({
-          limit: 0,
-          include: [/.*assets\/.*\.json/],
-          emitFiles: true,
-          fileName: '[name].[hash][extname]',
-          destDir: 'frontend/static/ui5',
-        }),
       prod && terser({ output: { comments: false } }),
       process.env.ROLLUP_VISU && options.visualizer && visualizer(),
     ],

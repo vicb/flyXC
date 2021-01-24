@@ -10,9 +10,9 @@ const ICON_MINUS =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJAQMAAADaX5RTAAAABlBMVEX///9xe4e/5menAAAAE0lEQVQImWP438DQAEP7kNj/GwCK4wo9HA2mvgAAAABJRU5ErkJggg==';
 const ICON_PLUS =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJAQMAAADaX5RTAAAABlBMVEX///9xe4e/5menAAAAGElEQVQImWP438DQ0MDQAUb7YAygyP8GAIyjCl0WJTcvAAAAAElFTkSuQmCC';
-const ICON_EXPAND =
+const ICON_COLLAPSE =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAADAQAAAABzTfhVAAAADklEQVQImWO4wdDBwAAABdYBYfESkFcAAAAASUVORK5CYII=';
-const ICON_COLAPSE =
+const ICON_EXPAND =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAADAQAAAABzTfhVAAAADklEQVQImWNgYOhguAEAAnYBYaFuVa4AAAAASUVORK5CYII=';
 
 @customElement('planner-element')
@@ -163,7 +163,7 @@ export class PlannerElement extends connect(store)(LitElement) {
           <div>
             ${this.hideDetails
               ? html` <img height="5" width="8" src=${ICON_EXPAND} /> `
-              : html` <img height="5" width="8" src=${ICON_COLAPSE} /> `}
+              : html` <img height="5" width="8" src=${ICON_COLLAPSE} /> `}
           </div>
         </div>
       </div>

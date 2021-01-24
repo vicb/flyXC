@@ -1,16 +1,10 @@
-import {
-  css,
-  CSSResult,
-  customElement,
-  html,
-  internalProperty,
-  LitElement,
-  property,
-  PropertyValues,
-  query,
-  TemplateResult,
-} from 'lit-element';
+import '../ui/share-modal';
+import '../ui/waypoint-modal';
+
+import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
 import { connect } from 'pwa-helpers';
+
+import { modalController } from '@ionic/core';
 
 import { ClosingSector } from '../../gm/closing-sector';
 import { FaiSectors } from '../../gm/fai-sectors';
@@ -18,9 +12,8 @@ import { getCurrentUrl, pushCurrentState } from '../../logic/history';
 import { LEAGUES } from '../../logic/score/league/leagues';
 import { Measure, Point } from '../../logic/score/measure';
 import { CircuitType, Score } from '../../logic/score/scorer';
-import { setDistance, setExpanded, setRoute, setScore } from '../../redux/planner-slice';
+import { setDistance, setRoute, setScore } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
-import { controlStyle } from '../../styles/control-style';
 import { PlannerElement } from './planner-element';
 
 // Route color by circuit type.
@@ -39,16 +32,8 @@ const CIRCUIT_SHORT_NAME = {
   [CircuitType.FaiTriangle]: 'fai',
 };
 
-const WAYPOINT_FORMATS: { [id: string]: string } = {
-  cup: 'See You (cup)',
-  gpx: 'GPX',
-  kml: 'KML (Google Earth)',
-  tsk: 'XCSoar',
-  wpt: 'FormatGEO (GpsDump)',
-};
-
-@customElement('path-ctrl-element')
-export class PathCtrlElement extends connect(store)(LitElement) {
+@customElement('path-element')
+export class PathElement extends connect(store)(LitElement) {
   // Actual type is google.maps.Map.
   @property({ attribute: false })
   map: any;
@@ -58,16 +43,11 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   }
 
   @internalProperty()
-  private expanded = false;
+  private enabled = false;
   @internalProperty()
   private league = 'xc';
   @internalProperty()
   private encodedRoute = '';
-
-  @query('#share-dialog')
-  private shareDialog?: any;
-  @query('#download-dialog')
-  private downloadDialog?: any;
 
   private line?: google.maps.Polyline;
   private optimizedLine?: google.maps.Polyline;
@@ -82,13 +62,13 @@ export class PathCtrlElement extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     this.league = state.planner.league;
-    this.expanded = state.planner.expanded;
+    this.enabled = state.planner.enabled;
     this.encodedRoute = state.planner.route;
   }
 
   shouldUpdate(changedProperties: PropertyValues): boolean {
-    if (changedProperties.has('expanded')) {
-      if (this.expanded) {
+    if (changedProperties.has('enabled')) {
+      if (this.enabled) {
         this.createPlannerElement(this.gMap);
         this.line = this.createLine();
         this.updateLineFromState();
@@ -103,10 +83,10 @@ export class PathCtrlElement extends connect(store)(LitElement) {
         this.destroy();
       }
     }
-    if (changedProperties.has('league') && this.expanded) {
+    if (changedProperties.has('league') && this.enabled) {
       this.optimize();
     }
-    if (changedProperties.has('encodedRoute') && this.expanded) {
+    if (changedProperties.has('encodedRoute') && this.enabled) {
       this.updateLineFromState();
     }
     return super.shouldUpdate(changedProperties);
@@ -115,22 +95,6 @@ export class PathCtrlElement extends connect(store)(LitElement) {
   disconnectedCallback(): void {
     super.disconnectedCallback();
     this.destroy();
-  }
-
-  static get styles(): CSSResult[] {
-    return [
-      controlStyle,
-      css`
-        .form-fields {
-          display: flex;
-          flex-direction: column;
-          justify-content: space-evenly;
-          align-items: flex-start;
-          text-align: left;
-          margin: 1rem;
-        }
-      `,
-    ];
   }
 
   private updateLineFromState() {
@@ -150,93 +114,6 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     }
     this.doNotSyncState = false;
     this.optimize();
-  }
-
-  protected render(): TemplateResult {
-    return html`
-      <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
-      />
-      <i
-        class="la la-ruler la-2x"
-        style="cursor: pointer"
-        @click=${() => store.dispatch(setExpanded(!this.expanded))}
-      ></i>
-
-      <ui5-dialog id="share-dialog" header-text="Share">
-        <section class="form-fields">
-          <div>
-            <ui5-toast id="notif-copy" placement="TopCenter">Link copied to clipboard</ui5-toast>
-            <ui5-label for="link">Link</ui5-label>
-            <ui5-input id="link" readonly value=${document.location.href}>
-              ${navigator.clipboard
-                ? html`<i
-                    title="Copy to clipboard"
-                    class="la la-copy la-lg"
-                    slot="icon"
-                    @click=${async () => {
-                      await navigator.clipboard.writeText(document.location.href);
-                      const notification = (this.shadowRoot as ShadowRoot).getElementById('notif-copy') as any;
-                      notification?.show();
-                    }}
-                  ></i>`
-                : html``}
-            </ui5-input>
-          </div>
-          <br />
-          <div>
-            <ui5-label><a href=${this.getXcTrackLink()}>Open with XcTrack</a></ui5-label>
-          </div>
-          <img id="qr-code" width="256" height="256" />
-        </section>
-        <div slot="footer" style="display:flex;align-items:center;padding:.5rem">
-          <div style="flex: 1"></div>
-          <ui5-button design="Emphasized" @click=${this.closeShareDialog}>Close</ui5-button>
-        </div>
-      </ui5-dialog>
-
-      <ui5-dialog id="download-dialog" header-text="Download Waypoints">
-        <section class="form-fields">
-          <div>
-            <ui5-label for="link">Turnpoints</ui5-label>
-            <table>
-              ${this.getPathPoints().map(
-                (p, i) =>
-                  html`
-                    <tr>
-                      <td>${String(i + 1).padStart(3, '0')}</td>
-                      <td>${p.lat.toFixed(6)}</td>
-                      <td>${p.lon.toFixed(6)}</td>
-                    </tr>
-                  `,
-              )}
-            </table>
-          </div>
-          <div>
-            <ui5-label for="format">Format</ui5-label>
-            <ui5-select id="format">
-              ${Object.getOwnPropertyNames(WAYPOINT_FORMATS).map(
-                (f) => html` <ui5-option value=${f}>${WAYPOINT_FORMATS[f]}</ui5-option> `,
-              )}
-            </ui5-select>
-          </div>
-          <div>
-            <ui5-label for="prefix">Waypoint prefix</ui5-label>
-            <ui5-input id="prefix" value="FXC"></ui5-input>
-          </div>
-        </section>
-        <div slot="footer" style="display:flex;align-items:center;padding:.5rem">
-          <div style="flex: 1"></div>
-          <ui5-button @click=${(): void => this.closeDownloadDialog(false)}>Close</ui5-button>
-          <div style="flex: .1"></div>
-          <ui5-button design="Emphasized" @click=${(): void => this.closeDownloadDialog(true)}>Download</ui5-button>
-        </div>
-      </ui5-dialog>
-      <form id="form-wpt" style="display: none" action="_waypoints" method="POST">
-        <input id="request" name="request" />
-      </form>
-    `;
   }
 
   private setDefaultPath() {
@@ -290,7 +167,7 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       this.appendToPath(e.latLng),
     );
     this.onBoundsChanged = google.maps.event.addListener(this.gMap, 'bounds_changed', () => {
-      if (this.expanded && this.encodedRoute.length == 0) {
+      if (this.enabled && this.encodedRoute.length == 0) {
         this.updateLineFromState();
       }
     });
@@ -395,39 +272,30 @@ export class PathCtrlElement extends connect(store)(LitElement) {
     }
   }
 
-  private closeShareDialog(): void {
-    this.shareDialog?.close();
-  }
+  private async openDownloadModal(): Promise<void> {
+    const elevator = new google.maps.ElevationService();
+    elevator.getElevationForLocations(
+      {
+        locations: this.getPathPoints().map((p) => new google.maps.LatLng(p.lat, p.lon)),
+      },
+      async (results: google.maps.ElevationResult[], status: google.maps.ElevationStatus) => {
+        let elevations = null;
+        if (status == google.maps.ElevationStatus.OK) {
+          elevations = results.map((r) => r.elevation);
+        }
 
-  private closeDownloadDialog(download: boolean): void {
-    if (!download) {
-      this.downloadDialog?.close();
-    } else {
-      const elevator = new google.maps.ElevationService();
-      elevator.getElevationForLocations(
-        {
-          locations: this.getPathPoints().map((p) => new google.maps.LatLng(p.lat, p.lon)),
-        },
-        (results: google.maps.ElevationResult[], status: google.maps.ElevationStatus) => {
-          let elevations = null;
-          if (status == google.maps.ElevationStatus.OK) {
-            elevations = results.map((r) => r.elevation);
-          }
-          const root = this.renderRoot;
-          const input = root.querySelector('#request') as HTMLInputElement;
-          input.value = JSON.stringify({
-            points: this.getPathPoints(),
-            elevations,
-            format: (root.querySelector('#format') as any).selectedOption.value,
-            prefix: (root.querySelector('#prefix') as any).value,
-          });
+        const payload = {
+          points: this.getPathPoints(),
+          elevations,
+        };
 
-          const form = root.querySelector('#form-wpt') as HTMLFormElement;
-          form.submit();
-          this.downloadDialog.close();
-        },
-      );
-    }
+        const modal = await modalController.create({
+          component: 'waypoint-modal',
+          componentProps: { payload },
+        });
+        await modal.present();
+      },
+    );
   }
 
   private handlePathUpdates(): void {
@@ -456,22 +324,24 @@ export class PathCtrlElement extends connect(store)(LitElement) {
       return;
     }
     if (!this.plannerElement) {
-      const shadowRoot = this.shadowRoot as ShadowRoot;
       this.plannerElement = document.createElement('planner-element') as PlannerElement;
       map.controls[google.maps.ControlPosition.LEFT_TOP].push(this.plannerElement);
       this.plannerElement.addEventListener('close-flight', () => {
         const path = (this.line as google.maps.Polyline).getPath();
         path.push(path.getAt(0));
       });
-      this.plannerElement.addEventListener('share', () => {
-        const dialog = shadowRoot.getElementById('share-dialog') as any;
-        const qr = shadowRoot.getElementById('qr-code') as HTMLImageElement;
-        qr.setAttribute('src', `_qr.svg?text=${encodeURIComponent(getCurrentUrl().href)}`);
-        dialog.open();
+      this.plannerElement.addEventListener('share', async () => {
+        const modal = await modalController.create({
+          component: 'share-modal',
+          componentProps: {
+            link: getCurrentUrl().href,
+            xctrackLink: this.getXcTrackLink(),
+          },
+        });
+        await modal.present();
       });
-      this.plannerElement.addEventListener('download', () => {
-        const dialog = shadowRoot.getElementById('download-dialog') as any;
-        dialog.open();
+      this.plannerElement.addEventListener('download', async () => {
+        await this.openDownloadModal();
       });
       this.plannerElement.addEventListener('reset', () => store.dispatch(setRoute('')));
     }

@@ -13,6 +13,7 @@ export function formatReqError(error: any): string {
         case 'ETIMEDOUT':
         case 401: // Unauthorized
         case 503: // Unavailable
+        case 502: // Bad Gateway
           return `${error.code} (${error.message ?? ''})`;
         case 404:
           return '404';

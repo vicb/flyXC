@@ -32,7 +32,7 @@ export class TextField extends LitElement {
 
   protected render(): TemplateResult {
     return html`
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css" />
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
       <div class="field">
         <label class="label">${this.label}</label>
         <div class="control">

@@ -66,7 +66,7 @@ export class DeviceForm extends LitElement {
   protected render(): TemplateResult {
     const model = this.binder.model;
 
-    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css" />
+    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
 
       <div class="panel is-warning" style="margin-top: 1em;">
         <div class="panel-heading">
@@ -259,7 +259,7 @@ export class TrackerPanel extends LitElement {
     const property = trackerPropNames[this.tracker];
     const model = (this.binder.model as any)[property];
 
-    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css" />
+    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
       <div class="panel is-warning">
         <div class="panel-heading">
           <label class="checkbox">

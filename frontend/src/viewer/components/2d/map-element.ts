@@ -14,6 +14,8 @@ import { repeat } from 'lit-html/directives/repeat';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
+import { Loader } from '@googlemaps/js-api-loader';
+
 import { getApiKey } from '../../../apikey';
 import { getUrlParamValues, ParamNames } from '../../logic/history';
 import * as msg from '../../logic/messages';
@@ -44,28 +46,18 @@ export {
   TrackingElement,
 };
 
-// Load the google maps api
-declare global {
-  interface Window {
-    initMap: () => void;
-  }
-}
-
 let apiPromise: Promise<void> | undefined;
 
 // Load google maps
 function loadApi(): Promise<void> {
   if (!apiPromise) {
-    let apiLoaded = (): void => undefined;
-    window.initMap = () => apiLoaded();
-    apiPromise = new Promise<void>((resolve) => (apiLoaded = resolve));
     const tracks = getUrlParamValues(ParamNames.trackUrl);
-    const loader = document.createElement('script');
-    loader.src = `https://maps.googleapis.com/maps/api/js?key=${getApiKey(
-      'gmaps',
-      tracks[0],
-    )}&libraries=geometry&callback=initMap&v=beta&map_ids=997ff70df48844a5`;
-    document.head.appendChild(loader);
+    apiPromise = new Loader({
+      apiKey: getApiKey('gmaps', tracks[0]),
+      version: 'weekly',
+      libraries: ['geometry'],
+      mapIds: ['997ff70df48844a5'],
+    }).load();
   }
   return apiPromise;
 }
