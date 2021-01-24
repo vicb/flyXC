@@ -16,16 +16,22 @@ import {
   TrackerIds,
 } from 'flyxc/common/src/live-track';
 import { validateInreachAccount } from 'flyxc/common/src/models';
-import { formatReqError } from 'flyxc/common/src/util';
+import { formatReqError, parallelTasksWithTimeout } from 'flyxc/common/src/util';
 import { DOMParser } from 'xmldom';
 
-import { getTrackersToUpdate, LivePoint, makeLiveTrack, TrackerUpdate, TrackUpdate } from './live-track';
+import {
+  getTrackersToUpdate,
+  LivePoint,
+  makeLiveTrack,
+  TrackerForUpdate,
+  TrackerUpdate,
+  TrackUpdate,
+} from './live-track';
 
 // Queries the datastore for the devices that have not been updated in REFRESH_EVERY_MINUTES.
 // Queries the feeds until the timeout is reached and store the data back into the datastore.
 export async function refresh(): Promise<TrackerUpdate> {
   const start = Date.now();
-  const timeoutAfter = start + LIVE_FETCH_TIMEOUT_SEC * 1000;
 
   const trackers = await getTrackersToUpdate(TrackerIds.Inreach, start - INREACH_REFRESH_INTERVAL_SEC * 1000, 100);
 
@@ -36,7 +42,7 @@ export async function refresh(): Promise<TrackerUpdate> {
     durationSec: 0,
   };
 
-  for (const tracker of trackers) {
+  const fetchTracker = async (tracker: TrackerForUpdate) => {
     const id = idFromEntity(tracker);
 
     // Fetch an extra 30 minutes if some data were in flight.
@@ -74,11 +80,12 @@ export async function refresh(): Promise<TrackerUpdate> {
     }
 
     result.tracks.set(id, update);
+  };
 
-    if (Date.now() > timeoutAfter) {
-      result.errors.push(`Fetch timeout`);
-      break;
-    }
+  const { isTimeout } = await parallelTasksWithTimeout(4, trackers, fetchTracker, LIVE_FETCH_TIMEOUT_SEC * 1000);
+
+  if (isTimeout) {
+    result.errors.push(`Fetch timeout`);
   }
 
   result.durationSec = Math.round((Date.now() - start) / 1000);

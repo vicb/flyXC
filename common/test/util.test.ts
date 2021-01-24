@@ -1,4 +1,4 @@
-import { formatReqError } from '../src/util';
+import { formatReqError, parallelTasksWithTimeout } from '../src/util';
 
 describe('FormatReqError', () => {
   it('should format scalars', () => {
@@ -32,5 +32,46 @@ describe('FormatReqError', () => {
       headers: { date: 'Sat, 09 Jan 2021 15:44:02 GMT' },
     };
     expect(formatReqError(error)).toBe('404');
+  });
+});
+
+describe('parallelTasksWithTimeout', () => {
+  it('only runs as many promises in parallel as given by the pool limit', async () => {
+    const results: number[] = [];
+    const timeout = (i: number) =>
+      new Promise((resolve) =>
+        setTimeout(() => {
+          results.push(i);
+          resolve(i);
+        }, i),
+      );
+    await parallelTasksWithTimeout(2, [100, 500, 300, 200], timeout);
+    expect(results).toEqual([100, 300, 500, 200]);
+  });
+
+  it('runs all promises in parallel when the pool is bigger than needed', async () => {
+    const results: number[] = [];
+    const timeout = (i: number) =>
+      new Promise((resolve) =>
+        setTimeout(() => {
+          results.push(i);
+          resolve(i);
+        }, i),
+      );
+    await parallelTasksWithTimeout(5, [100, 500, 300, 200], timeout);
+    expect(results).toEqual([100, 200, 300, 500]);
+  });
+
+  it('stop running tasks after timeout', async () => {
+    const results: number[] = [];
+    const timeout = (i: number) =>
+      new Promise((resolve) =>
+        setTimeout(() => {
+          results.push(i);
+          resolve(i);
+        }, i),
+      );
+    await parallelTasksWithTimeout(2, [100, 100, 100, 100], timeout, 50);
+    expect(results).toEqual([100, 100]);
   });
 });

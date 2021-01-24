@@ -24,3 +24,47 @@ export function formatReqError(error: any): string {
 
   return JSON.stringify(error).replace(/\"/gi, '');
 }
+
+// Executes `slots` callbacks in parallel with a timeout.
+//
+// Based on https://github.com/rxaviers/async-pool.
+export async function parallelTasksWithTimeout<T>(
+  slots: number,
+  items: T[],
+  callback: (item: T, index: number) => unknown,
+  timeoutMs = 0,
+): Promise<{ results: unknown; isTimeout: boolean }> {
+  const executed: Promise<unknown>[] = [];
+  const executing: Promise<unknown>[] = [];
+
+  let isTimeout = false;
+  const timeoutId: any = timeoutMs > 0 ? setInterval(() => (isTimeout = true), timeoutMs) : 0;
+  let index = 0;
+
+  for (const item of items) {
+    const p = Promise.resolve().then(() => callback(item, index));
+    executed.push(p);
+    index++;
+
+    if (items.length >= slots) {
+      // Track executing tasks.
+      const e: Promise<unknown> = p.then(() => executing.splice(executing.indexOf(e), 1));
+      executing.push(e);
+
+      // Wait on a task when all slots are busy.
+      if (executing.length >= slots) {
+        try {
+          await Promise.race(executing);
+        } catch {}
+      }
+    }
+
+    if (isTimeout) {
+      break;
+    }
+  }
+
+  const results = await Promise.allSettled(executed);
+  clearInterval(timeoutId);
+  return { results, isTimeout };
+}
