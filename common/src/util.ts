@@ -33,8 +33,8 @@ export async function parallelTasksWithTimeout<T>(
   items: T[],
   callback: (item: T, index: number) => unknown,
   timeoutMs = 0,
-): Promise<{ results: unknown; isTimeout: boolean }> {
-  const executed: Promise<unknown>[] = [];
+): Promise<{ results: PromiseSettledResult<unknown>[]; isTimeout: boolean }> {
+  const started: Promise<unknown>[] = [];
   const executing: Promise<unknown>[] = [];
 
   let isTimeout = false;
@@ -43,12 +43,12 @@ export async function parallelTasksWithTimeout<T>(
 
   for (const item of items) {
     const p = Promise.resolve().then(() => callback(item, index));
-    executed.push(p);
+    started.push(p);
     index++;
 
     if (items.length >= slots) {
       // Track executing tasks.
-      const e: Promise<unknown> = p.then(() => executing.splice(executing.indexOf(e), 1));
+      const e: Promise<unknown> = p.finally(() => executing.splice(executing.indexOf(e), 1));
       executing.push(e);
 
       // Wait on a task when all slots are busy.
@@ -64,7 +64,7 @@ export async function parallelTasksWithTimeout<T>(
     }
   }
 
-  const results = await Promise.allSettled(executed);
+  const results = await Promise.allSettled(started);
   clearInterval(timeoutId);
   return { results, isTimeout };
 }

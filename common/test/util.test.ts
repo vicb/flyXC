@@ -36,42 +36,49 @@ describe('FormatReqError', () => {
 });
 
 describe('parallelTasksWithTimeout', () => {
+  const callback = (results: number[]) => (i: number) =>
+    new Promise((resolve, reject) => {
+      if (i >= 1000) {
+        reject(i);
+      }
+      setTimeout(() => {
+        results.push(i);
+        resolve(i);
+      }, i);
+    });
+
   it('only runs as many promises in parallel as given by the pool limit', async () => {
     const results: number[] = [];
-    const timeout = (i: number) =>
-      new Promise((resolve) =>
-        setTimeout(() => {
-          results.push(i);
-          resolve(i);
-        }, i),
-      );
-    await parallelTasksWithTimeout(2, [100, 500, 300, 200], timeout);
+    await parallelTasksWithTimeout(2, [100, 500, 300, 200], callback(results));
     expect(results).toEqual([100, 300, 500, 200]);
   });
 
   it('runs all promises in parallel when the pool is bigger than needed', async () => {
     const results: number[] = [];
-    const timeout = (i: number) =>
-      new Promise((resolve) =>
-        setTimeout(() => {
-          results.push(i);
-          resolve(i);
-        }, i),
-      );
-    await parallelTasksWithTimeout(5, [100, 500, 300, 200], timeout);
+    await parallelTasksWithTimeout(5, [100, 500, 300, 200], callback(results));
     expect(results).toEqual([100, 200, 300, 500]);
   });
 
   it('stop running tasks after timeout', async () => {
     const results: number[] = [];
-    const timeout = (i: number) =>
-      new Promise((resolve) =>
-        setTimeout(() => {
-          results.push(i);
-          resolve(i);
-        }, i),
-      );
-    await parallelTasksWithTimeout(2, [100, 100, 100, 100], timeout, 50);
+    const output = await parallelTasksWithTimeout(2, [100, 100, 100, 100], callback(results), 50);
     expect(results).toEqual([100, 100]);
+    expect(output.isTimeout).toBe(true);
+  });
+
+  it('process all items and record errors', async () => {
+    const results: number[] = [];
+
+    const output = await parallelTasksWithTimeout(1, [10, 2000, 30, 40], callback(results));
+    expect(results).toEqual([10, 30, 40]);
+    expect(output).toEqual({
+      isTimeout: false,
+      results: [
+        { status: 'fulfilled', value: 10 },
+        { reason: 2000, status: 'rejected' },
+        { status: 'fulfilled', value: 30 },
+        { status: 'fulfilled', value: 40 },
+      ],
+    });
   });
 });
