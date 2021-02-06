@@ -1,10 +1,10 @@
 import './styles/main.css';
 // https://ionicframework.com/docs/intro/cdn
-import '../../node_modules/@ionic/core/css/core.css';
-import '../../node_modules/@ionic/core/css/normalize.css';
-import '../../node_modules/@ionic/core/css/structure.css';
-import '../../node_modules/@ionic/core/css/typography.css';
-import '../../node_modules/@ionic/core/css/padding.css';
+import '../../../node_modules/@ionic/core/css/core.css';
+import '../../../node_modules/@ionic/core/css/normalize.css';
+import '../../../node_modules/@ionic/core/css/structure.css';
+import '../../../node_modules/@ionic/core/css/typography.css';
+import '../../../node_modules/@ionic/core/css/padding.css';
 import './components/2d/map-element';
 import './components/3d/map3d-element';
 import './components/chart-element';

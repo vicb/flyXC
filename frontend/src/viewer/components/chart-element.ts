@@ -20,7 +20,7 @@ import { connect } from 'pwa-helpers';
 
 import { DistanceUnit, formatUnit, SpeedUnit, Units } from '../logic/units';
 import { setAirspacesOnGraph } from '../redux/airspace-slice';
-import { ChartYAxis, setCenterMap, setChartYAxis } from '../redux/app-slice';
+import { ChartYAxis, setChartYAxis } from '../redux/app-slice';
 import * as sel from '../redux/selectors';
 import { RootState, store } from '../redux/store';
 
@@ -46,8 +46,6 @@ export class ChartElement extends connect(store)(LitElement) {
   private showRestricted = false;
   @internalProperty()
   private currentTrackId?: string;
-  @internalProperty()
-  private centerMap = true;
   @internalProperty()
   private playSpeed = 64;
   @internalProperty()
@@ -83,7 +81,6 @@ export class ChartElement extends connect(store)(LitElement) {
     this.tsOffsets = sel.tsOffsets(state);
     this.showRestricted = state.airspace.showRestricted;
     this.currentTrackId = state.track.currentTrackId;
-    this.centerMap = state.app.centerMap;
     this.trackColors = sel.trackColors(state);
   }
 
@@ -237,6 +234,14 @@ export class ChartElement extends connect(store)(LitElement) {
         .control:hover {
           background-color: #adff2f;
           opacity: 0.9;
+        }
+        .hidden-mobile {
+          display: inline-block;
+        }
+        @media (max-width: 767px) {
+          .hidden-mobile {
+            display: none;
+          }
         }
       `,
     ];
@@ -510,23 +515,17 @@ export class ChartElement extends connect(store)(LitElement) {
         </select>
         <div class="control">
           <i
-            class="la la-lg la-chevron-down"
+            class="la la-2x la-chevron-down"
             @click=${() => (this.playSpeed = Math.max(MIN_SPEED_FACTOR, this.playSpeed / 2))}
             style=${`visibility: ${this.playSpeed == MIN_SPEED_FACTOR ? 'hidden' : 'visible'}`}
           ></i>
-          ${this.playSpeed}x
+          <span class="hidden-mobile" style="vertical-align: .3em;">${this.playSpeed}x</span>
           <i
-            class="la la-lg la-chevron-up"
+            class="la la-2x la-chevron-up"
             @click=${() => (this.playSpeed = Math.min(MAX_SPEED_FACTOR, this.playSpeed * 2))}
             style=${`visibility: ${this.playSpeed == MAX_SPEED_FACTOR ? 'hidden' : 'visible'}`}
           ></i>
-          <i class=${`la la-lg ${this.playTimer ? 'la-pause' : 'la-play'}`} @click="${this.handlePlay}}"></i>
-        </div>
-        <div class="control">
-          <i
-            class=${`la la-lg ${this.centerMap ? `la-link` : `la-unlink`}`}
-            @click=${() => store.dispatch(setCenterMap(!this.centerMap))}
-          ></i>
+          <i class=${`la la-2x ${this.playTimer ? 'la-pause' : 'la-play'}`} @click="${this.handlePlay}}"></i>
         </div>
       </div>
     `;

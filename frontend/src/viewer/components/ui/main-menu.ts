@@ -14,7 +14,7 @@ import { uploadTracks } from '../../logic/track';
 import { DistanceUnit, formatUnit } from '../../logic/units';
 import * as airspaces from '../../redux/airspace-slice';
 import * as airways from '../../redux/airways-slice';
-import { setDisplayLiveNames, setDisplayNames, setView3d } from '../../redux/app-slice';
+import { setCenterMap, setDisplayLiveNames, setDisplayNames, setView3d } from '../../redux/app-slice';
 import { setAltitudeMultiplier } from '../../redux/arcgis-slice';
 import { setReturnUrl } from '../../redux/live-track-slice';
 import { setEnabled } from '../../redux/planner-slice';
@@ -41,7 +41,7 @@ export class MainMenu extends connect(store)(LitElement) {
   render(): TemplateResult {
     return html`<style>
         ion-item i.las {
-          margin-right: 10px;
+          margin-right: 5px;
         }
         .about-alert {
           --max-width: 350px;
@@ -309,10 +309,13 @@ export class TrackItems extends connect(store)(LitElement) {
   private numTracks = 0;
   @internalProperty()
   private displayName = false;
+  @internalProperty()
+  private centerMap = true;
 
   stateChanged(state: RootState): void {
     this.numTracks = sel.numTracks(state);
     this.displayName = state.app.displayNames;
+    this.centerMap = state.app.centerMap;
   }
 
   render(): TemplateResult {
@@ -334,10 +337,18 @@ export class TrackItems extends connect(store)(LitElement) {
         Pilots
         <ion-badge slot="end" color="primary">${this.numTracks}</ion-badge>
       </ion-item>
-      <ion-item lines="full" .disabled=${this.numTracks == 0} button @click=${this.handleDisplayNames}>
+      <ion-item lines="none" .disabled=${this.numTracks == 0} button @click=${this.handleDisplayNames}>
         <ion-label>Labels</ion-label>
         <ion-toggle slot="end" .checked=${this.displayName}></ion-toggle>
-      </ion-item>`;
+      </ion-item>
+      <ion-item lines="full" .disabled=${this.numTracks == 0} button @click=${this.handleCenterMap}>
+        <i class=${`las la-2x ${this.centerMap ? 'la-link' : 'la-unlink'}`}></i>Lock on pilot
+        <ion-toggle slot="end" .checked=${this.centerMap}></ion-toggle>
+      </ion-item> `;
+  }
+
+  private handleCenterMap() {
+    store.dispatch(setCenterMap(!this.centerMap));
   }
 
   // Programmatically opens the file dialog.
