@@ -2,13 +2,12 @@ import { extractGroupId, RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { menuController, modalController } from '@ionic/core';
-
 import { pushCurrentState } from '../../logic/history';
 import * as msg from '../../logic/messages';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { removeTracksByGroupIds, setCurrentTrackId } from '../../redux/track-slice';
+import { getMenuController, getModalController } from './ion-controllers';
 
 @customElement('track-modal')
 export class TrackModal extends connect(store)(LitElement) {
@@ -67,25 +66,28 @@ export class TrackModal extends connect(store)(LitElement) {
     return this;
   }
 
-  private handleClose(e: Event, track: RuntimeTrack) {
+  private async handleClose(e: Event, track: RuntimeTrack) {
     e.preventDefault();
     e.stopPropagation();
     pushCurrentState();
     const groupId = extractGroupId(track.id);
     store.dispatch(removeTracksByGroupIds([groupId]));
     msg.trackGroupsRemoved.emit([groupId]);
+    // Closes the modal and the menu when all tracks are closed.
+    if (sel.numTracks(store.getState()) == 0) {
+      await this.dismiss();
+      await getMenuController().close();
+    }
   }
 
-  private handleSelect(track: RuntimeTrack) {
+  private async handleSelect(track: RuntimeTrack) {
     store.dispatch(setCurrentTrackId(track.id));
-    this.dismiss();
-    menuController.close();
+    await this.dismiss();
+    await getMenuController().close();
   }
 
-  private async dismiss(): Promise<void> {
-    const modal = await modalController.getTop();
-    modal?.dismiss({
-      dismissed: true,
-    });
+  private async dismiss(): Promise<any> {
+    const modal = await getModalController().getTop();
+    await modal?.dismiss();
   }
 }

@@ -182,6 +182,7 @@ export class DashSummary extends LitElement {
             <li>
               <a
                 href="https://console.cloud.google.com/datastore/entities;kind=LiveTrack;ns=__$DEFAULT$__;sortCol=created;sortDir=DESCENDING/query/kind?project=fly-xc"
+                target="_blank"
                 >Trackers: ${this.values[Keys.dashboardTotalTrackers]}</a
               >
             </li>

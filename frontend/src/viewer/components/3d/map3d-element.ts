@@ -14,8 +14,6 @@ import { repeat } from 'lit-html/directives/repeat';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
-import { alertController } from '@ionic/core';
-
 import { Api, loadApi } from '../../logic/arcgis';
 import * as msg from '../../logic/messages';
 import { setApiLoading, setTimestamp, setView3d } from '../../redux/app-slice';
@@ -24,6 +22,7 @@ import { setCurrentLocation } from '../../redux/location-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
+import { getAlertController } from '../ui/ion-controllers';
 
 @customElement('map3d-element')
 export class Map3dElement extends connect(store)(LitElement) {
@@ -63,7 +62,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.timestamp = state.app.timestamp;
     this.currentTrackId = state.track.currentTrackId;
     this.multiplier = state.arcgis.altMultiplier;
-    this.updateCamera = state.app.centerMap;
+    this.updateCamera = state.app.lockOnPilot;
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
@@ -183,8 +182,8 @@ export class Map3dElement extends connect(store)(LitElement) {
       });
 
       this.subscriptions.push(
-        msg.centerMap.subscribe(() => this.centerOnMarker()),
-        msg.centerZoomMap.subscribe((_, delta) => this.centerAndZoom(delta)),
+        msg.centerMap.subscribe((ll) => this.center(ll)),
+        msg.centerZoomMap.subscribe((ll, delta) => this.centerZoom(ll, delta)),
         msg.trackGroupsAdded.subscribe(() => this.centerOnMarker(view.zoom)),
         msg.trackGroupsRemoved.subscribe(() => this.centerOnMarker(view.zoom)),
         msg.requestLocation.subscribe(() => this.updateLocation()),
@@ -217,7 +216,7 @@ export class Map3dElement extends connect(store)(LitElement) {
         .catch(async (e) => {
           store.dispatch(setApiLoading(false));
           if (e.name.includes('webgl')) {
-            const alert = await alertController.create({
+            const alert = await getAlertController().create({
               header: 'WebGL Error',
               message: 'Sorry, 3d requires WebGL which does not seem to be supported on your platform.',
               buttons: [
@@ -283,16 +282,27 @@ export class Map3dElement extends connect(store)(LitElement) {
     });
   }
 
-  private centerOnMarker(zoom?: number): void {
-    const latLon = sel.getTrackLatLonAlt(store.getState())(this.timestamp);
-    if (latLon != null) {
-      this.center(latLon, zoom);
+  // Center the map on the position and optionally set the zoom.
+  private center(latLon: LatLonZ, zoom?: number): void {
+    this.previousLookAt = latLon;
+    if (this.view?.center && this.api) {
+      const { lat, lon, alt } = latLon;
+      this.view.center = new this.api.Point({ latitude: lat, longitude: lon, z: alt });
+      if (zoom != null) {
+        this.view.zoom = zoom;
+      }
     }
   }
 
-  private center(latLon: LatLonZ, zoom?: number): void {
-    this.previousLookAt = latLon;
-    if (this.view && this.api) {
+  private centerZoom(ll: LatLonZ, delta: number): void {
+    if (this.view) {
+      this.center(ll, this.view.zoom + (delta < 0 ? 0.3 : -0.3));
+    }
+  }
+
+  private centerOnMarker(zoom?: number): void {
+    const latLon = sel.getTrackLatLonAlt(store.getState())(this.timestamp);
+    if (latLon && this.view && this.api) {
       const { lat, lon, alt } = latLon;
       this.view.goTo(
         {
@@ -305,12 +315,6 @@ export class Map3dElement extends connect(store)(LitElement) {
           animate: false,
         },
       );
-    }
-  }
-
-  private centerAndZoom(delta: number): void {
-    if (this.view) {
-      this.centerOnMarker(this.view.zoom + (delta < 0 ? 0.3 : -0.3));
     }
   }
 

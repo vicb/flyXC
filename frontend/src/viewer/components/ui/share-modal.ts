@@ -1,6 +1,6 @@
 import { customElement, html, LitElement, property, TemplateResult } from 'lit-element';
 
-import { modalController, toastController } from '@ionic/core';
+import { getModalController, getToastController } from './ion-controllers';
 
 @customElement('share-modal')
 export class ShareModal extends LitElement {
@@ -48,7 +48,7 @@ export class ShareModal extends LitElement {
 
   private async handleCopy() {
     await navigator.clipboard.writeText(this.link);
-    const toast = await toastController.create({
+    const toast = await getToastController().create({
       message: 'Link copied to the clipboard',
       duration: 3000,
       buttons: [
@@ -61,10 +61,8 @@ export class ShareModal extends LitElement {
     await toast.present();
   }
 
-  private async dismiss(): Promise<void> {
-    const modal = await modalController.getTop();
-    modal?.dismiss({
-      dismissed: true,
-    });
+  private async dismiss(): Promise<any> {
+    const modal = await getModalController().getTop();
+    await modal?.dismiss();
   }
 }

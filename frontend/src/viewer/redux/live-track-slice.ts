@@ -1,6 +1,14 @@
 import { LiveTrack } from 'flyxc/common/protos/live-track';
+import { LatLonZ } from 'flyxc/common/src/runtime-track';
 
-import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
+import {
+  createAsyncThunk,
+  createEntityAdapter,
+  createSelector,
+  createSlice,
+  EntityState,
+  PayloadAction,
+} from '@reduxjs/toolkit';
 
 import * as TrackWorker from '../workers/live-track';
 import { RootState, store } from './store';
@@ -101,3 +109,32 @@ document.addEventListener('visibilitychange', handleVisibility);
 
 export const reducer = trackSlice.reducer;
 export const { setReturnUrl } = trackSlice.actions;
+
+export type LivePilot = {
+  id: number;
+  name: string;
+  position: LatLonZ;
+  timeSec: number;
+  message?: {
+    text: string;
+    timeSec: number;
+  };
+  isEmergency: boolean;
+};
+
+export const getLivePilots = createSelector(liveTrackSelectors.selectAll, (tracks): LivePilot[] => {
+  return tracks.map((track) => {
+    const lastIndex = track.timeSec.length - 1;
+    return {
+      id: track.id as number,
+      name: track.name as string,
+      position: {
+        lat: track.lat[lastIndex],
+        lon: track.lon[lastIndex],
+        alt: track.alt[lastIndex],
+      },
+      timeSec: track.timeSec[lastIndex],
+      isEmergency: false,
+    };
+  });
+});

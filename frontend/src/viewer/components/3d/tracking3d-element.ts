@@ -7,7 +7,7 @@ import { connect } from 'pwa-helpers';
 import { Api } from '../../logic/arcgis';
 import { popupContent } from '../../logic/live-track-popup';
 import * as msg from '../../logic/messages';
-import { Units } from '../../logic/units';
+import { formatDurationMin, Units } from '../../logic/units';
 import { liveTrackSelectors } from '../../redux/live-track-slice';
 import { RootState, store } from '../../redux/store';
 import { getUniqueColor } from '../../styles/track';
@@ -249,9 +249,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         symbol = this.santaSymbol;
         // Text.
         if (this.displayNames && (isActive || ageMin < 12 * 60)) {
-          const age =
-            ageMin < 60 ? `${ageMin}min` : `${Math.floor(ageMin / 60)}h${String(ageMin % 60).padStart(2, '0')}`;
-          label = track.name + ' -' + age;
+          label = track.name + ' -' + formatDurationMin(ageMin);
         }
       }
 

@@ -7,8 +7,8 @@ import { getUniqueColor } from '../styles/track';
 import { RootState } from './store';
 import { trackAdapterSelector } from './track-slice';
 
-export const unitsState = (state: RootState): Units => state.units;
-export const altitudeUnits = createSelector(unitsState, (units) => units.altitude);
+export const units = (state: RootState): Units => state.units;
+export const altitudeUnits = createSelector(units, (units) => units.altitude);
 export const tracks = trackAdapterSelector.selectAll;
 export const currentTrack = (state: RootState): RuntimeTrack | undefined =>
   state.track.currentTrackId ? trackAdapterSelector.selectById(state, state.track.currentTrackId) : undefined;

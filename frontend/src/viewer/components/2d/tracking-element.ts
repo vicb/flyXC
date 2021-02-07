@@ -4,7 +4,7 @@ import { customElement, internalProperty, LitElement, property, PropertyValues }
 import { connect } from 'pwa-helpers';
 
 import { popupContent } from '../../logic/live-track-popup';
-import { Units } from '../../logic/units';
+import { formatDurationMin, Units } from '../../logic/units';
 import { liveTrackSelectors } from '../../redux/live-track-slice';
 import { RootState, store } from '../../redux/store';
 import { getUniqueColor } from '../../styles/track';
@@ -184,10 +184,9 @@ export class TrackingElement extends connect(store)(LitElement) {
       svg = arrowSvg(heading, color, opacity);
       // Display the pilot name.
       if (this.displayNames && (isActive || ageMin < 12 * 60)) {
-        const age = ageMin < 60 ? `${ageMin}min` : `${Math.floor(ageMin / 60)}h${String(ageMin % 60).padStart(2, '0')}`;
         label = {
           color: labelColor,
-          text: track.name + '\n-' + age,
+          text: track.name + '\n-' + formatDurationMin(ageMin),
           className: 'gm-label-outline',
         } as any;
       }

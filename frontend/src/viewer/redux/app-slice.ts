@@ -12,7 +12,7 @@ export const enum ChartYAxis {
 type AppState = {
   chartYAxis: ChartYAxis;
   // Whether to move the map to see the pilot.
-  centerMap: boolean;
+  lockOnPilot: boolean;
   // Display pilot labels for live tracks.
   displayLiveNames: boolean;
   // Display pilot labels for tracks.
@@ -23,7 +23,7 @@ type AppState = {
 };
 
 const initialState: AppState = {
-  centerMap: true,
+  lockOnPilot: true,
   chartYAxis: ChartYAxis.Altitude,
   displayLiveNames: true,
   displayNames: false,
@@ -59,8 +59,8 @@ const appSlice = createSlice({
       }
       state.view3d = action.payload;
     },
-    setCenterMap: (state, action: PayloadAction<boolean>) => {
-      state.centerMap = action.payload;
+    setLockOnPilot: (state, action: PayloadAction<boolean>) => {
+      state.lockOnPilot = action.payload;
     },
   },
 });
@@ -73,5 +73,5 @@ export const {
   setDisplayNames,
   setDisplayLiveNames,
   setView3d,
-  setCenterMap,
+  setLockOnPilot,
 } = appSlice.actions;

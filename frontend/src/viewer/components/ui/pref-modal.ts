@@ -1,13 +1,12 @@
 import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { modalController } from '@ionic/core';
-
 import { LEAGUES } from '../../logic/score/league/leagues';
 import { DistanceUnit, SpeedUnit, Units } from '../../logic/units';
 import { setLeague } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
 import { setAltitudeUnit, setDistanceUnit, setSpeedUnit, setVarioUnit } from '../../redux/units-slice';
+import { getModalController } from './ion-controllers';
 
 @customElement('pref-modal')
 export class PrefModal extends connect(store)(LitElement) {
@@ -124,10 +123,8 @@ export class PrefModal extends connect(store)(LitElement) {
     store.dispatch(setVarioUnit(e.detail.value));
   }
 
-  private async dismiss(): Promise<void> {
-    const modal = await modalController.getTop();
-    modal?.dismiss({
-      dismissed: true,
-    });
+  private async dismiss(): Promise<any> {
+    const modal = await getModalController().getTop();
+    await modal?.dismiss();
   }
 }

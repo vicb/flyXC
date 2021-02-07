@@ -1,6 +1,6 @@
 import { customElement, html, internalProperty, LitElement, property, TemplateResult } from 'lit-element';
 
-import { modalController } from '@ionic/core';
+import { getModalController } from './ion-controllers';
 
 const WAYPOINT_FORMATS: { [id: string]: string } = {
   cup: 'See You (cup)',
@@ -71,7 +71,7 @@ export class WaypointModal extends LitElement {
     this.prefix = e.detail.value;
   }
 
-  private handleDownload(): void {
+  private async handleDownload(): Promise<any> {
     const root = this.renderRoot;
     const form = root.querySelector('#wpt-form') as HTMLFormElement;
     const input = form.querySelector('input') as HTMLInputElement;
@@ -79,13 +79,11 @@ export class WaypointModal extends LitElement {
     this.payload.prefix = this.prefix;
     input.value = JSON.stringify(this.payload);
     form.submit();
-    this.dismiss();
+    await this.dismiss();
   }
 
-  private async dismiss(): Promise<void> {
-    const modal = await modalController.getTop();
-    modal?.dismiss({
-      dismissed: true,
-    });
+  private async dismiss(): Promise<any> {
+    const modal = await getModalController().getTop();
+    await modal?.dismiss();
   }
 }

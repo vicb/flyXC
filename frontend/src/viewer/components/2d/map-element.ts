@@ -73,8 +73,10 @@ export class MapElement extends connect(store)(LitElement) {
   private timestamp = 0;
   @internalProperty()
   private fullscreen = false;
+  @internalProperty()
+  protected currentTrackId?: string;
 
-  private centerMap = false;
+  private lockOnPilot = false;
   private lockPanBefore = 0;
   private subscriptions: UnsubscribeHandle[] = [];
   private readonly adRatio = store.getState().browser.isSmallScreen ? 0.7 : 1;
@@ -85,13 +87,21 @@ export class MapElement extends connect(store)(LitElement) {
     // In full screen mode the gesture handling must be greedy.
     // Using ctrl (+ scroll) is unnecessary as thr page can not scroll anyway.
     this.fullscreen = state.browser.isFullscreen;
-    this.centerMap = state.app.centerMap;
+    this.lockOnPilot = state.app.lockOnPilot;
+    this.currentTrackId = state.track.currentTrackId;
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
     const now = Date.now();
     if (this.map) {
-      if (this.tracks.length && this.centerMap && changedProps.has('timestamp') && now > this.lockPanBefore) {
+      if (changedProps.has('currentTrackId')) {
+        const latLon = sel.getTrackLatLonAlt(store.getState())(this.timestamp);
+        if (latLon) {
+          const { lat, lon } = latLon;
+          this.center(lat, lon);
+        }
+      }
+      if (this.tracks.length && this.lockOnPilot && changedProps.has('timestamp') && now > this.lockPanBefore) {
         this.lockPanBefore = now + 50;
         const zoom = this.map.getZoom();
         const currentPosition = sel.getTrackLatLonAlt(store.getState())(this.timestamp) as LatLonZ;

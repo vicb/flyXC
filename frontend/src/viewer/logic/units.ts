@@ -43,3 +43,20 @@ export function formatUnit(value: number, unit?: DistanceUnit | SpeedUnit, fixed
       return '';
   }
 }
+
+// Return the number of minutes or hours.
+export function formatDurationMin(minutes: number): string {
+  minutes = Math.round(minutes);
+  return minutes < 60 ? `${minutes}min` : `${Math.floor(minutes / 60)}h${String(minutes % 60).padStart(2, '0')}`;
+}
+
+// Return distance in (m/km) or (ft/mi).
+export function formatDistance(meters: number, unit: DistanceUnit): string {
+  if (unit == DistanceUnit.Kilometers) {
+    return meters < 1000
+      ? formatUnit(meters, DistanceUnit.Meters)
+      : formatUnit(meters / 1000, DistanceUnit.Kilometers, 0);
+  }
+
+  return meters < 1610 ? formatUnit(meters, DistanceUnit.Feet) : formatUnit(meters / 1000, DistanceUnit.Miles, 0);
+}

@@ -1,6 +1,6 @@
 import { customElement, html, LitElement, TemplateResult } from 'lit-element';
 
-import { modalController } from '@ionic/core';
+import { getModalController } from './ion-controllers';
 
 @customElement('about-modal')
 export class AboutModal extends LitElement {
@@ -49,10 +49,8 @@ export class AboutModal extends LitElement {
     return this;
   }
 
-  private async dismiss(): Promise<void> {
-    const modal = await modalController.getTop();
-    modal?.dismiss({
-      dismissed: true,
-    });
+  private async dismiss(): Promise<any> {
+    const modal = await getModalController().getTop();
+    await modal?.dismiss();
   }
 }

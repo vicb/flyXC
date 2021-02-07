@@ -1,12 +1,11 @@
 import './pref-modal';
 import './track-modal';
 import './about-modal';
+import './live-modal';
 
 import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
-
-import { menuController, modalController } from '@ionic/core';
 
 import { addUrlParamValues, ParamNames, pushCurrentState } from '../../logic/history';
 import * as msg from '../../logic/messages';
@@ -14,12 +13,13 @@ import { uploadTracks } from '../../logic/track';
 import { DistanceUnit, formatUnit } from '../../logic/units';
 import * as airspaces from '../../redux/airspace-slice';
 import * as airways from '../../redux/airways-slice';
-import { setCenterMap, setDisplayLiveNames, setDisplayNames, setView3d } from '../../redux/app-slice';
+import { setDisplayLiveNames, setDisplayNames, setLockOnPilot, setView3d } from '../../redux/app-slice';
 import { setAltitudeMultiplier } from '../../redux/arcgis-slice';
-import { setReturnUrl } from '../../redux/live-track-slice';
+import { liveTrackSelectors, setReturnUrl } from '../../redux/live-track-slice';
 import { setEnabled } from '../../redux/planner-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
+import { getMenuController, getModalController } from './ion-controllers';
 
 @customElement('main-menu')
 export class MainMenu extends connect(store)(LitElement) {
@@ -92,23 +92,22 @@ export class MainMenu extends connect(store)(LitElement) {
     return this;
   }
 
-  private handlePlanner() {
+  private async handlePlanner() {
     if (!this.plannerEnabled) {
-      // TODO: better way
-      menuController.close();
+      await getMenuController().close();
     }
     store.dispatch(setEnabled(!this.plannerEnabled));
   }
 
   private async handleAbout() {
-    const modal = await modalController.create({
+    const modal = await getModalController().create({
       component: 'about-modal',
     });
     await modal.present();
   }
 
   private async handlePreferences() {
-    const modal = await modalController.create({
+    const modal = await getModalController().create({
       component: 'pref-modal',
     });
     await modal.present();
@@ -162,7 +161,7 @@ export class AirspaceItems extends connect(store)(LitElement) {
         <ion-toggle slot="end" .checked=${this.show}></ion-toggle>
       </ion-item>
       <ion-item button lines="none" .disabled=${!this.show} @click=${this.handleShowRestricted}>
-        <ion-label>Show E, F, G, restricted</ion-label>
+        <ion-label>E, F, G, restricted</ion-label>
         <ion-toggle slot="end" .checked=${this.showRestricted}></ion-toggle>
       </ion-item>
       <ion-item .disabled=${!this.show}>
@@ -310,20 +309,22 @@ export class TrackItems extends connect(store)(LitElement) {
   @internalProperty()
   private displayName = false;
   @internalProperty()
-  private centerMap = true;
+  private lockOnPilot = true;
 
   stateChanged(state: RootState): void {
     this.numTracks = sel.numTracks(state);
     this.displayName = state.app.displayNames;
-    this.centerMap = state.app.centerMap;
+    this.lockOnPilot = state.app.lockOnPilot;
   }
 
   render(): TemplateResult {
-    return html`<ion-item button @click=${this.forwardClick} lines="none">
+    const hasTracks = this.numTracks > 0;
+    return html`<ion-item .button=${hasTracks} .detail=${hasTracks} @click=${this.handleSelect} lines="none">
         <i class="las la-route la-2x"></i>Tracks
-        <ion-button slot="end" color="primary" fill="outline">
-          <i class="las la-cloud-upload-alt la-2x" slot="start"></i>Upload
-        </ion-button>
+        ${hasTracks ? html`<ion-badge slot="end" color="primary">${this.numTracks}</ion-badge>` : null}
+      </ion-item>
+      <ion-item lines="none" button @click=${this.forwardClick}>
+        Upload
         <input
           type="file"
           multiple
@@ -333,22 +334,18 @@ export class TrackItems extends connect(store)(LitElement) {
           @change=${this.handleUpload}
         />
       </ion-item>
-      <ion-item lines="none" button detail .disabled=${this.numTracks == 0} @click=${this.handleSelect}>
-        Pilots
-        <ion-badge slot="end" color="primary">${this.numTracks}</ion-badge>
-      </ion-item>
-      <ion-item lines="none" .disabled=${this.numTracks == 0} button @click=${this.handleDisplayNames}>
+      <ion-item lines="none" .disabled=${!hasTracks} button @click=${this.handleDisplayNames}>
         <ion-label>Labels</ion-label>
         <ion-toggle slot="end" .checked=${this.displayName}></ion-toggle>
       </ion-item>
-      <ion-item lines="full" .disabled=${this.numTracks == 0} button @click=${this.handleCenterMap}>
-        <i class=${`las la-2x ${this.centerMap ? 'la-link' : 'la-unlink'}`}></i>Lock on pilot
-        <ion-toggle slot="end" .checked=${this.centerMap}></ion-toggle>
+      <ion-item lines="full" .disabled=${!hasTracks} button @click=${this.handleLock}>
+        Lock on pilot
+        <ion-toggle slot="end" .checked=${this.lockOnPilot}></ion-toggle>
       </ion-item> `;
   }
 
-  private handleCenterMap() {
-    store.dispatch(setCenterMap(!this.centerMap));
+  private handleLock() {
+    store.dispatch(setLockOnPilot(!this.lockOnPilot));
   }
 
   // Programmatically opens the file dialog.
@@ -378,7 +375,10 @@ export class TrackItems extends connect(store)(LitElement) {
   }
 
   private async handleSelect() {
-    const modal = await modalController.create({
+    if (this.numTracks == 0) {
+      return;
+    }
+    const modal = await getModalController().create({
       component: 'track-modal',
     });
     await modal.present();
@@ -393,13 +393,20 @@ export class TrackItems extends connect(store)(LitElement) {
 export class LiveTrackItems extends connect(store)(LitElement) {
   @internalProperty()
   private displayLiveName = false;
+  @internalProperty()
+  private numPilots = 0;
 
   stateChanged(state: RootState): void {
     this.displayLiveName = state.app.displayLiveNames;
+    this.numPilots = liveTrackSelectors.selectTotal(state);
   }
 
   render(): TemplateResult {
-    return html`<ion-item lines="none"> <i class="las la-satellite-dish la-2x"></i>Live tracks </ion-item>
+    const hasPilots = this.numPilots > 0;
+    return html`<ion-item lines="none" .button=${hasPilots} .detail=${hasPilots} @click=${this.handleSelect}>
+        <i class="las la-satellite-dish la-2x"></i>Live tracks
+        ${hasPilots ? html`<ion-badge slot="end" color="primary">${this.numPilots}</ion-badge>` : null}
+      </ion-item>
       <ion-item button detail lines="none" @click=${this.handleConfig}>
         <ion-label>Configuration</ion-label>
       </ion-item>
@@ -407,6 +414,15 @@ export class LiveTrackItems extends connect(store)(LitElement) {
         <ion-label>Labels</ion-label>
         <ion-toggle slot="end" .checked=${this.displayLiveName}></ion-toggle>
       </ion-item>`;
+  }
+
+  private async handleSelect() {
+    if (this.numPilots > 0) {
+      const modal = await getModalController().create({
+        component: 'live-modal',
+      });
+      await modal.present();
+    }
   }
 
   // Shows/Hides pilot names next to the marker.

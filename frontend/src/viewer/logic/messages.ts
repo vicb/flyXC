@@ -1,4 +1,4 @@
-import { LatLon } from 'flyxc/common/src/runtime-track';
+import { LatLon, LatLonZ } from 'flyxc/common/src/runtime-track';
 import { createEvents } from 'micro-typed-events';
 
 import type Graphic from 'esri/Graphic';
@@ -8,10 +8,10 @@ import type SceneView from 'esri/views/SceneView';
 export const zoomMap = createEvents<number>();
 
 // Center the map on the passed position.
-export const centerMap = createEvents<LatLon>();
+export const centerMap = createEvents<LatLonZ>();
 
-// Center and zoon the map.
-export const centerZoomMap = createEvents<LatLon, number>();
+// Center and zoom the map.
+export const centerZoomMap = createEvents<LatLonZ, number>();
 
 // Emit the group id of the added tracks.
 export const trackGroupsAdded = createEvents<number[]>();
