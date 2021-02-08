@@ -16,6 +16,7 @@ import { customElement, html, internalProperty, LitElement, TemplateResult } fro
 import { classMap } from 'lit-html/directives/class-map.js';
 import { connect } from 'pwa-helpers';
 
+import { requestCurrentPosition } from './logic/geolocation';
 import {
   addUrlParamValues,
   deleteUrlParam,
@@ -27,7 +28,6 @@ import {
 import * as msg from './logic/messages';
 import { downloadTracksByGroupIds, downloadTracksByUrls, uploadTracks } from './logic/track';
 import { setDisplayNames, setTimestamp, setView3d } from './redux/app-slice';
-import { setGeolocation } from './redux/location-slice';
 import { setRoute, setSpeed } from './redux/planner-slice';
 import * as sel from './redux/selectors';
 import { RootState, store } from './redux/store';
@@ -150,10 +150,4 @@ export class FlyXc extends connect(store)(LitElement) {
   }
 }
 
-if ('geolocation' in navigator) {
-  navigator.geolocation.getCurrentPosition((p: GeolocationPosition) => {
-    const { latitude: lat, longitude: lon } = p.coords;
-    msg.geoLocation.emit({ lat, lon });
-    store.dispatch(setGeolocation({ lat, lon }));
-  });
-}
+requestCurrentPosition(false);

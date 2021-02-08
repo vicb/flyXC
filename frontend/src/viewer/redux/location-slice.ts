@@ -14,6 +14,7 @@ type State = {
   start: LatLon;
   // Location retrieved from the browser.
   geolocation?: LatLon;
+  requestingLocation: boolean;
 };
 
 const initialState: State = {
@@ -22,6 +23,7 @@ const initialState: State = {
     lat: Number(localStorage.getItem('init.lat') ?? 45),
     lon: Number(localStorage.getItem('init.lon') ?? 2),
   },
+  requestingLocation: false,
 };
 
 const locationSlice = createSlice({
@@ -43,8 +45,11 @@ const locationSlice = createSlice({
       localStorage.setItem('init.lon', String(latLon.lon));
       state.geolocation = latLon;
     },
+    setRequestingLocation: (state, action: PayloadAction<boolean>) => {
+      state.requestingLocation = action.payload;
+    },
   },
 });
 
 export const reducer = locationSlice.reducer;
-export const { setCurrentLocation, setGeolocation } = locationSlice.actions;
+export const { setCurrentLocation, setGeolocation, setRequestingLocation } = locationSlice.actions;

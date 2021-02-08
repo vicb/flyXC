@@ -190,7 +190,7 @@ export class MapElement extends connect(store)(LitElement) {
         msg.trackGroupsAdded.subscribe(() => this.zoomToTracks()),
         msg.trackGroupsRemoved.subscribe(() => this.zoomToTracks()),
         msg.requestLocation.subscribe(() => this.updateLocation()),
-        msg.geoLocation.subscribe((latLon) => this.geolocation(latLon)),
+        msg.geoLocation.subscribe((latLon, userInitiated) => this.geolocation(latLon, userInitiated)),
       );
 
       const location = store.getState().location;
@@ -244,12 +244,14 @@ export class MapElement extends connect(store)(LitElement) {
     `;
   }
 
-  // Center the map on the user location if they have not yet interacted with the map.
-  private geolocation({ lat, lon }: LatLon): void {
+  // Center the map on the user location:
+  // - if they have not yet interacted with the map,
+  // - or if the request was initiated by them (i.e. from the menu).
+  private geolocation({ lat, lon }: LatLon, userInitiated: boolean): void {
     if (this.map) {
       const center = this.map.getCenter();
       const start = store.getState().location.start;
-      if (center.lat() == start.lat && center.lng() == start.lon) {
+      if (userInitiated || (center.lat() == start.lat && center.lng() == start.lon)) {
         this.center(lat, lon);
       }
     }

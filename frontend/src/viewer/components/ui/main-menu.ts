@@ -7,6 +7,7 @@ import { customElement, html, internalProperty, LitElement, TemplateResult } fro
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
+import { requestCurrentPosition } from '../../logic/geolocation';
 import { addUrlParamValues, ParamNames, pushCurrentState } from '../../logic/history';
 import * as msg from '../../logic/messages';
 import { uploadTracks } from '../../logic/track';
@@ -25,17 +26,18 @@ import { getMenuController, getModalController } from './ion-controllers';
 export class MainMenu extends connect(store)(LitElement) {
   @internalProperty()
   view3d = false;
-
   @internalProperty()
   exaggeration = 1;
-
   @internalProperty()
   plannerEnabled = false;
+  @internalProperty()
+  requestingLocation = false;
 
   stateChanged(state: RootState): void {
     this.view3d = state.app.view3d;
     this.exaggeration = state.arcgis.altMultiplier;
     this.plannerEnabled = state.planner.enabled;
+    this.requestingLocation = state.location.requestingLocation;
   }
 
   render(): TemplateResult {
@@ -79,6 +81,14 @@ export class MainMenu extends connect(store)(LitElement) {
                   </ion-item>`
               : null}
             <fullscreen-items></fullscreen-items>
+            <ion-item
+              button
+              @click=${() => requestCurrentPosition(true)}
+              .disabled=${this.requestingLocation}
+              lines="full"
+            >
+              <i class="las la-crosshairs la-2x"></i>Center on my location
+            </ion-item>
             <ion-item button @click=${this.handlePreferences} lines="full">
               <i class="las la-cog la-2x"></i>Preferences
             </ion-item>
