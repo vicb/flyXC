@@ -151,8 +151,7 @@ export class FlyXc extends connect(store)(LitElement) {
 }
 
 if ('geolocation' in navigator) {
-  // p should be a `Position`, why compile error ?
-  navigator.geolocation.getCurrentPosition((p: any) => {
+  navigator.geolocation.getCurrentPosition((p: GeolocationPosition) => {
     const { latitude: lat, longitude: lon } = p.coords;
     msg.geoLocation.emit({ lat, lon });
     store.dispatch(setGeolocation({ lat, lon }));
