@@ -68,6 +68,10 @@ export function isEmergencyFix(flags: number): boolean {
   return (flags & LiveTrackFlag.Emergency) != 0;
 }
 
+export function isEmergencyTrack(track: LiveTrack): boolean {
+  return track.flags.some((f) => isEmergencyFix(f));
+}
+
 export function isLowBatFix(flags: number): boolean {
   return (flags & LiveTrackFlag.LowBat) != 0;
 }
@@ -78,6 +82,21 @@ export function getFixDevice(flags: number): TrackerIds {
 
 export function getFixMessage(track: LiveTrack, index: number): string | undefined {
   return track.extra[index]?.message;
+}
+
+export function getLastMessage(track: LiveTrack): { timeSec: number; text: string } | undefined {
+  const extraIndexes = Object.keys(track.extra).map((v) => Number(v));
+  extraIndexes.sort((a, b) => b - a);
+  for (const index of extraIndexes) {
+    const text = track.extra[index]?.message;
+    if (text) {
+      return {
+        timeSec: track.timeSec[index],
+        text,
+      };
+    }
+  }
+  return undefined;
 }
 
 export function getTrackerFlags(value: {

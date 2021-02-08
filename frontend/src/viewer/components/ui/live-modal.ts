@@ -96,9 +96,9 @@ export class LiveModal extends connect(store)(LitElement) {
     });
 
     if (this.orderBy == OrderBy.Time) {
-      pilots.sort((a, b) => b.timeSec - a.timeSec);
+      pilots.sort((a, b) => (a.isEmergency ? -1 : b.timeSec - a.timeSec));
     } else {
-      pilots.sort((a, b) => (distances.get(a.id) as number) - (distances.get(b.id) as number));
+      pilots.sort((a, b) => (a.isEmergency ? -1 : (distances.get(a.id) as number) - (distances.get(b.id) as number)));
     }
 
     pilots = pilots.slice(0, MAX_PILOTS - 1);
@@ -141,9 +141,26 @@ export class LiveModal extends connect(store)(LitElement) {
   // Returns the template for a single pilot.
   private getPilotItem(pilot: LivePilot, distance: number, nowSec: number): TemplateResult {
     const ageMin = (nowSec - pilot.timeSec) / 60;
-    return html`<ion-item button @click=${() => this.handleFlyTo(pilot)} lines="full">
-      <i class="las la-user-astronaut la-2x" style=${`color: ${getUniqueColor(Math.round(pilot.id / 1000))}`}></i
-      >${pilot.name}
+    return html`<ion-item
+      button
+      @click=${() => this.handleFlyTo(pilot)}
+      lines="full"
+      color=${pilot.isEmergency ? 'warning' : ''}
+    >
+      <i
+        slot="start"
+        class="las la-user-astronaut la-2x"
+        style=${`color: ${getUniqueColor(Math.round(pilot.id / 1000))}`}
+      ></i>
+      <ion-label class="ion-text-wrap">
+        <h2>${pilot.name}</h2>
+        ${pilot.message
+          ? html`<p>
+              <i class="las la-sms"></i>“${pilot.message.text}”
+              (${formatDurationMin((nowSec - pilot.message.timeSec) / 60)} ago)
+            </p>`
+          : null}
+      </ion-label>
       <span slot="end">
         <ion-badge color="secondary">-${formatDurationMin(ageMin)}</ion-badge>
         <ion-badge color="primary" style="margin-left: 5px">${formatDistance(distance, this.distanceUnit)}</ion-badge>

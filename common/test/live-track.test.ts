@@ -1,6 +1,8 @@
 import {
   differentialDecodeLiveTrack,
   differentialEncodeLiveTrack,
+  getLastMessage,
+  isEmergencyTrack,
   LiveTrackFlag,
   mergeLiveTracks,
   removeBeforeFromLiveTrack,
@@ -618,8 +620,6 @@ describe('mergeLiveTracks', () => {
   });
 });
 
-// merge extra
-
 describe('differential', () => {
   it('should encode', () => {
     const track: LiveTrack = {
@@ -679,5 +679,89 @@ describe('differential', () => {
         1: { message: 'hello', speed: 100 },
       },
     });
+  });
+});
+
+describe('isEmergencyTrack', () => {
+  it('should return true if any fix is an emergency', () => {
+    const track: LiveTrack = {
+      timeSec: [10, 20, 30],
+      lat: [11, 12, 13],
+      lon: [21, 22, 23],
+      alt: [31, 32, 33],
+      flags: [TrackerIds.Inreach, TrackerIds.Inreach | LiveTrackFlag.Emergency, TrackerIds.Inreach],
+      extra: {
+        0: { message: 'hello' },
+        2: { speed: 10 },
+      },
+    };
+
+    expect(isEmergencyTrack(track)).toEqual(true);
+  });
+
+  it('should return false if no fix is an emergency', () => {
+    const track: LiveTrack = {
+      timeSec: [10, 20, 30],
+      lat: [11, 12, 13],
+      lon: [21, 22, 23],
+      alt: [31, 32, 33],
+      flags: [TrackerIds.Inreach, TrackerIds.Inreach, TrackerIds.Inreach],
+      extra: {
+        0: { message: 'hello' },
+        2: { speed: 10 },
+      },
+    };
+
+    expect(isEmergencyTrack(track)).toEqual(false);
+  });
+});
+
+describe('getLastMessage', () => {
+  it('should return undefined if no message', () => {
+    const track: LiveTrack = {
+      timeSec: [10, 20, 30],
+      lat: [11, 12, 13],
+      lon: [21, 22, 23],
+      alt: [31, 32, 33],
+      flags: [TrackerIds.Inreach, TrackerIds.Inreach, TrackerIds.Inreach],
+      extra: {
+        0: { speed: 5 },
+        2: { speed: 10 },
+      },
+    };
+
+    expect(getLastMessage(track)).toBe(undefined);
+  });
+
+  it('should return a message', () => {
+    const track: LiveTrack = {
+      timeSec: [10, 20, 30],
+      lat: [11, 12, 13],
+      lon: [21, 22, 23],
+      alt: [31, 32, 33],
+      flags: [TrackerIds.Inreach, TrackerIds.Inreach, TrackerIds.Inreach],
+      extra: {
+        0: { message: 'hello' },
+        2: { speed: 10 },
+      },
+    };
+
+    expect(getLastMessage(track)).toEqual({ text: 'hello', timeSec: 10 });
+  });
+
+  it('should return the last message', () => {
+    const track: LiveTrack = {
+      timeSec: [10, 20, 30],
+      lat: [11, 12, 13],
+      lon: [21, 22, 23],
+      alt: [31, 32, 33],
+      flags: [TrackerIds.Inreach, TrackerIds.Inreach, TrackerIds.Inreach],
+      extra: {
+        0: { message: 'first' },
+        2: { speed: 10, message: 'last' },
+      },
+    };
+
+    expect(getLastMessage(track)).toEqual({ text: 'last', timeSec: 30 });
   });
 });

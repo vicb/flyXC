@@ -1,4 +1,5 @@
 import { LiveTrack } from 'flyxc/common/protos/live-track';
+import { getLastMessage, isEmergencyTrack } from 'flyxc/common/src/live-track';
 import { LatLonZ } from 'flyxc/common/src/runtime-track';
 
 import {
@@ -119,10 +120,12 @@ export type LivePilot = {
   name: string;
   position: LatLonZ;
   timeSec: number;
+  // Last message along the track.
   message?: {
     text: string;
     timeSec: number;
   };
+  // Whether there is an emergency.
   isEmergency: boolean;
 };
 
@@ -138,7 +141,8 @@ export const getLivePilots = createSelector(liveTrackSelectors.selectAll, (track
         alt: track.alt[lastIndex],
       },
       timeSec: track.timeSec[lastIndex],
-      isEmergency: false,
+      isEmergency: isEmergencyTrack(track),
+      message: getLastMessage(track),
     };
   });
 });
