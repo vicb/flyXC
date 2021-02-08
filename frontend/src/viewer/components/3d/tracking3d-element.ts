@@ -8,7 +8,7 @@ import { Api } from '../../logic/arcgis';
 import { popupContent } from '../../logic/live-track-popup';
 import * as msg from '../../logic/messages';
 import { formatDurationMin, Units } from '../../logic/units';
-import { liveTrackSelectors } from '../../redux/live-track-slice';
+import { liveTrackSelectors, setCurrentLiveId } from '../../redux/live-track-slice';
 import { RootState, store } from '../../redux/store';
 import { getUniqueColor } from '../../styles/track';
 
@@ -133,7 +133,6 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   connectedCallback(): void {
     super.connectedCallback();
     this.subscriptions.push(msg.clickSceneView.subscribe((graphic, view) => this.handleClick(graphic, view)));
-    this.currentId = undefined;
     this.popupConfigured = false;
   }
 
@@ -146,6 +145,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
     this.multiplier = state.arcgis.altMultiplier;
     this.units = state.units;
     this.sampler = state.arcgis.elevationSampler;
+    this.currentId = state.liveTrack.currentLiveId;
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
@@ -300,7 +300,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       if (!popup) {
         return;
       }
-      this.currentId = attr.liveTrackId;
+      store.dispatch(setCurrentLiveId(attr.liveTrackId));
 
       const track = liveTrackSelectors.selectById(store.getState(), attr.liveTrackId) as LiveTrack;
 
@@ -328,7 +328,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
     view.popup.collapseEnabled = false;
     view.watch('popup.visible', (visible) => {
       if (visible == false) {
-        this.currentId = undefined;
+        store.dispatch(setCurrentLiveId(undefined));
       }
     });
   }

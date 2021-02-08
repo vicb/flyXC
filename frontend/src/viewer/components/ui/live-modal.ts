@@ -5,7 +5,7 @@ import { connect } from 'pwa-helpers';
 
 import * as msg from '../../logic/messages';
 import { DistanceUnit, formatDistance, formatDurationMin } from '../../logic/units';
-import { getLivePilots, LivePilot } from '../../redux/live-track-slice';
+import { getLivePilots, LivePilot, setCurrentLiveId } from '../../redux/live-track-slice';
 import { RootState, store } from '../../redux/store';
 import { getUniqueColor } from '../../styles/track';
 import { getMenuController, getModalController } from './ion-controllers';
@@ -78,8 +78,8 @@ export class LiveModal extends connect(store)(LitElement) {
   }
 
   private async handleFlyTo(pilot: LivePilot) {
-    // Does not work in 3D ?
     msg.centerMap.emit(pilot.position);
+    store.dispatch(setCurrentLiveId(pilot.id));
     await this.dismiss();
     await getMenuController().close();
   }

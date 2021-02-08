@@ -31,6 +31,7 @@ export type TrackState = {
   timestamp: number;
   geojson: any;
   refreshTimer: any;
+  currentLiveId?: number;
 };
 
 const initialState: TrackState = {
@@ -66,6 +67,9 @@ const trackSlice = createSlice({
     },
     setReturnUrl: (state, action: PayloadAction<string>) => {
       localStorage.setItem(RETURN_URL_KEY, action.payload);
+    },
+    setCurrentLiveId: (state, action: PayloadAction<number | undefined>) => {
+      state.currentLiveId = action.payload;
     },
   },
 });
@@ -108,7 +112,7 @@ export function handleVisibility(): void {
 document.addEventListener('visibilitychange', handleVisibility);
 
 export const reducer = trackSlice.reducer;
-export const { setReturnUrl } = trackSlice.actions;
+export const { setReturnUrl, setCurrentLiveId } = trackSlice.actions;
 
 export type LivePilot = {
   id: number;

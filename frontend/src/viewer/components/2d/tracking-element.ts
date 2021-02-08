@@ -5,7 +5,7 @@ import { connect } from 'pwa-helpers';
 
 import { popupContent } from '../../logic/live-track-popup';
 import { formatDurationMin, Units } from '../../logic/units';
-import { liveTrackSelectors } from '../../redux/live-track-slice';
+import { liveTrackSelectors, setCurrentLiveId } from '../../redux/live-track-slice';
 import { RootState, store } from '../../redux/store';
 import { getUniqueColor } from '../../styles/track';
 
@@ -61,14 +61,15 @@ export class TrackingElement extends connect(store)(LitElement) {
 
   @internalProperty()
   private displayNames = true;
-
   @internalProperty()
   private geojson: any;
+  // Id of the selected pilot.
+  @internalProperty()
+  private currentId?: number;
 
   private units?: Units;
   private info?: google.maps.InfoWindow;
-  // Id of the selected pilot.
-  private currentId?: number;
+
   private features: google.maps.Data.Feature[] = [];
 
   connectedCallback(): void {
@@ -81,7 +82,6 @@ export class TrackingElement extends connect(store)(LitElement) {
     ORIGIN_MSG = new google.maps.Point(0, 22);
     this.setMapStyle(this.gMap);
     this.setupInfoWindow(this.gMap);
-    this.currentId = undefined;
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
@@ -91,8 +91,8 @@ export class TrackingElement extends connect(store)(LitElement) {
       features.forEach((f) => this.gMap.data.remove(f));
       changedProps.delete('geojson');
     }
-    if (changedProps.has('displayNames')) {
-      // The style depends on displayNames.
+    // Update the style when related props change.
+    if (changedProps.has('displayNames') || changedProps.has('currentId')) {
       this.setMapStyle(this.gMap);
     }
     return super.shouldUpdate(changedProps);
@@ -102,13 +102,14 @@ export class TrackingElement extends connect(store)(LitElement) {
     this.units = state.units;
     this.displayNames = state.app.displayLiveNames;
     this.geojson = state.liveTrack.geojson;
+    this.currentId = state.liveTrack.currentLiveId;
   }
 
   private setupInfoWindow(map: google.maps.Map): void {
     this.info = new google.maps.InfoWindow();
     this.info.close();
     this.info.addListener('closeclick', () => {
-      this.currentId = undefined;
+      store.dispatch(setCurrentLiveId(undefined));
       this.setMapStyle(this.gMap);
     });
 
@@ -127,7 +128,7 @@ export class TrackingElement extends connect(store)(LitElement) {
           this.info.setContent(`<strong>${popup.title}</strong><br>${popup.content}`);
           this.info.setPosition(event.latLng);
           this.info.open(map);
-          this.currentId = id;
+          store.dispatch(setCurrentLiveId(id));
           this.setMapStyle(this.gMap);
         }
       }
