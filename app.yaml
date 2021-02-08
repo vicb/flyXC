@@ -61,7 +61,6 @@ handlers:
 
 - url: /ionic
   static_dir: frontend/static/ionic
-  expiration: "2d"
   secure: always
   redirect_http_response_code: 301  
     

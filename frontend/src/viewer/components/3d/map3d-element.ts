@@ -302,6 +302,7 @@ export class Map3dElement extends connect(store)(LitElement) {
 
   private centerOnMarker(zoom?: number): void {
     const latLon = sel.getTrackLatLonAlt(store.getState())(this.timestamp);
+    this.previousLookAt = latLon;
     if (latLon && this.view && this.api) {
       const { lat, lon, alt } = latLon;
       this.view.goTo(
