@@ -30,12 +30,13 @@ export class TrackModal extends connect(store)(LitElement) {
           <ion-title>Select / Close</ion-title>
         </ion-toolbar>
       </ion-header>
-      <ion-content class="ion-padding">
+      <ion-content>
         <ion-list>
           ${this.tracks.map(
             (track: RuntimeTrack) =>
               html`<ion-item
                 button
+                lines="full"
                 color=${track.id == this.currentTrackId ? 'primary' : ''}
                 @click=${() => this.handleSelect(track)}
               >

@@ -28,7 +28,7 @@ export class WaypointModal extends LitElement {
           <ion-title>Download the waypoints</ion-title>
         </ion-toolbar>
       </ion-header>
-      <ion-content class="ion-padding">
+      <ion-content>
         <ion-item lines="full">
           <ion-label position="floating">File type</ion-label>
           <ion-select value=${this.fileType} interface="popover" @ionChange=${this.handleFormat}>

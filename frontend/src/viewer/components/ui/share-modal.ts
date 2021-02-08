@@ -17,8 +17,8 @@ export class ShareModal extends LitElement {
           <ion-title>Share the route</ion-title>
         </ion-toolbar>
       </ion-header>
-      <ion-content class="ion-padding">
-        <ion-item button @click=${this.handleCopy}>
+      <ion-content>
+        <ion-item button @click=${this.handleCopy} lines="full">
           <ion-label>Link</ion-label>
           <ion-input readonly value=${this.link} color="medium"></ion-input>
           <ion-label slot="end"><i class="la la-copy la-2x"></i></ion-label>

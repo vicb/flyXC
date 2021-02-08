@@ -12,6 +12,8 @@ import { getMenuController, getModalController } from './ion-controllers';
 
 const MAX_PILOTS = 40;
 
+const RECENT_PILOTS_HOUR = 3;
+
 const enum OrderBy {
   Time,
   Distance,
@@ -58,8 +60,8 @@ export class LiveModal extends connect(store)(LitElement) {
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
-      <ion-content class="ion-padding">
-        <ion-list>${this.getPilotList()}</ion-list>
+      <ion-content>
+        <ion-list>${this.getPilotItems()}</ion-list>
       </ion-content>
       <ion-footer>
         <ion-toolbar color="light">
@@ -82,25 +84,10 @@ export class LiveModal extends connect(store)(LitElement) {
     await getMenuController().close();
   }
 
-  private getPilotList(): TemplateResult[] {
+  // Returns the templates for all the pilots.
+  private getPilotItems(): TemplateResult[] {
     const nowSec = Date.now() / 1000;
     let pilots = [...this.pilots];
-
-    if (this.orderBy == OrderBy.Time) {
-      pilots.sort((a, b) => b.timeSec - a.timeSec);
-      pilots = pilots.slice(0, MAX_PILOTS - 1);
-
-      return pilots.map((pilot: LivePilot) => {
-        const ageMin = (nowSec - pilot.timeSec) / 60;
-        return html`<ion-item button @click=${() => this.handleFlyTo(pilot)}>
-          <i class="las la-user-astronaut la-2x" style=${`color: ${getUniqueColor(Math.round(pilot.id / 1000))}`}></i
-          >${pilot.name}
-          <ion-badge slot="end" color="primary">-${formatDurationMin(ageMin)}</ion-badge>
-        </ion-item>`;
-      });
-    }
-
-    // Order by distance
     const distances = new Map<number, number>();
 
     pilots.forEach((pilot) => {
@@ -108,17 +95,60 @@ export class LiveModal extends connect(store)(LitElement) {
       distances.set(pilot.id, distance);
     });
 
-    pilots.sort((a, b) => (distances.get(a.id) as number) - (distances.get(b.id) as number));
+    if (this.orderBy == OrderBy.Time) {
+      pilots.sort((a, b) => b.timeSec - a.timeSec);
+    } else {
+      pilots.sort((a, b) => (distances.get(a.id) as number) - (distances.get(b.id) as number));
+    }
+
     pilots = pilots.slice(0, MAX_PILOTS - 1);
 
-    return pilots.map((pilot: LivePilot) => {
-      const distance = distances.get(pilot.id) as number;
-      return html`<ion-item button @click=${() => this.handleFlyTo(pilot)}>
-        <i class="las la-user-astronaut la-2x" style=${`color: ${getUniqueColor(Math.round(pilot.id / 1000))}`}></i
-        >${pilot.name}
-        <ion-badge slot="end" color="primary">${formatDistance(distance, this.distanceUnit)}</ion-badge>
-      </ion-item>`;
+    if (this.orderBy == OrderBy.Time) {
+      return pilots.map((pilot: LivePilot) => this.getPilotItem(pilot, distances.get(pilot.id) as number, nowSec));
+    }
+
+    const recent: LivePilot[] = [];
+    const old: LivePilot[] = [];
+    const recentTimeSec = nowSec - RECENT_PILOTS_HOUR * 3600;
+
+    pilots.forEach((pilot) => {
+      if (pilot.timeSec < recentTimeSec) {
+        old.push(pilot);
+      } else {
+        recent.push(pilot);
+      }
     });
+
+    const parts: TemplateResult[] = [];
+
+    if (recent.length > 0) {
+      parts.push(html`<ion-item-divider class="divider" sticky color="light">Recent</ion-item-divider>`);
+      parts.push(...recent.map((pilot) => this.getPilotItem(pilot, distances.get(pilot.id) as number, nowSec)));
+    }
+
+    if (old.length > 0) {
+      parts.push(
+        html`<ion-item-divider class="divider" sticky color="light"
+          >Older than ${RECENT_PILOTS_HOUR}h</ion-item-divider
+        >`,
+      );
+      parts.push(...old.map((pilot) => this.getPilotItem(pilot, distances.get(pilot.id) as number, nowSec)));
+    }
+
+    return parts;
+  }
+
+  // Returns the template for a single pilot.
+  private getPilotItem(pilot: LivePilot, distance: number, nowSec: number): TemplateResult {
+    const ageMin = (nowSec - pilot.timeSec) / 60;
+    return html`<ion-item button @click=${() => this.handleFlyTo(pilot)} lines="full">
+      <i class="las la-user-astronaut la-2x" style=${`color: ${getUniqueColor(Math.round(pilot.id / 1000))}`}></i
+      >${pilot.name}
+      <span slot="end">
+        <ion-badge color="secondary">-${formatDurationMin(ageMin)}</ion-badge>
+        <ion-badge color="primary" style="margin-left: 5px">${formatDistance(distance, this.distanceUnit)}</ion-badge>
+      </span>
+    </ion-item>`;
   }
 
   private async dismiss(): Promise<any> {
