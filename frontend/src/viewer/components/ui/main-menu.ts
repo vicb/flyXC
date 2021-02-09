@@ -48,6 +48,14 @@ export class MainMenu extends connect(store)(LitElement) {
         .about-alert {
           --max-width: 350px;
         }
+        @keyframes spinner {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        .spinner {
+          animation: spinner 1s linear infinite;
+        }
       </style>
       <ion-menu side="end" type="overlay" swipe-gesture="false" menu-id="main" content-id="main">
         <ion-header>
@@ -87,7 +95,8 @@ export class MainMenu extends connect(store)(LitElement) {
               .disabled=${this.requestingLocation}
               lines="full"
             >
-              <i class="las la-crosshairs la-2x"></i>Center on my location
+              <i class=${`las la-2x ${this.requestingLocation ? 'la-circle-notch spinner' : 'la-crosshairs'}`}></i
+              >Center on my location
             </ion-item>
             <ion-item button @click=${this.handleSounding} lines="full">
               <i class="las la-chart-line la-2x" style="transform: rotate(90deg)"></i>Sounding
