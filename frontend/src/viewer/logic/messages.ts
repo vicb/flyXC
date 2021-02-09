@@ -18,9 +18,6 @@ export const trackGroupsAdded = createEvents<number[]>();
 // Emit the group id of the removed tracks.
 export const trackGroupsRemoved = createEvents<number[]>();
 
-// Request current map to update the location.
-export const requestLocation = createEvents();
-
 // Click on a graphic of a SceneView (3d).
 export const clickSceneView = createEvents<Graphic, SceneView>();
 

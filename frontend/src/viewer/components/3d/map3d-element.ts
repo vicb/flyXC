@@ -4,6 +4,7 @@ import type NavigationToggle from 'esri/widgets/NavigationToggle';
 import type Map from 'esri/Map';
 import type Basemap from 'esri/Basemap';
 import type BaseElevationLayer from 'esri/layers/BaseElevationLayer';
+import type Point from 'esri/geometry/Point';
 import './line3d-element';
 import './marker3d-element';
 import './controls3d-element';
@@ -186,7 +187,6 @@ export class Map3dElement extends connect(store)(LitElement) {
         msg.centerZoomMap.subscribe((ll, delta) => this.centerZoom(ll, delta)),
         msg.trackGroupsAdded.subscribe(() => this.centerOnMarker(view.zoom)),
         msg.trackGroupsRemoved.subscribe(() => this.centerOnMarker(view.zoom)),
-        msg.requestLocation.subscribe(() => this.updateLocation()),
         msg.geoLocation.subscribe((latLon, userInitiated) => this.geolocation(latLon, userInitiated)),
       );
 
@@ -200,18 +200,12 @@ export class Map3dElement extends connect(store)(LitElement) {
             // Zoom to tracks when there are some.
             this.centerOnMarker(16);
           } else {
-            // Otherwise go to (priority order):
-            // - location on the 3d map,
-            // - gps location,
-            // - initial location.
-            let latLon = location.geolocation || location.start;
-            let zoom = 11;
-            if (location.current) {
-              latLon = location.current.latLon;
-              zoom = location.current.zoom;
-            }
+            const latLon = location.current.latLon;
+            const zoom = location.current.zoom;
             this.center({ ...latLon, alt: 0 }, zoom);
           }
+
+          view.watch('center', (point: Point) => this.handleLocation({ lat: point.latitude, lon: point.longitude }));
         })
         .catch(async (e) => {
           store.dispatch(setApiLoading(false));
@@ -361,11 +355,8 @@ export class Map3dElement extends connect(store)(LitElement) {
     `;
   }
 
-  private updateLocation(): void {
-    if (this.view) {
-      const center = this.view.center;
-      store.dispatch(setCurrentLocation({ lat: center.latitude, lon: center.longitude }, this.view.zoom));
-    }
+  private handleLocation(center: LatLon): void {
+    store.dispatch(setCurrentLocation(center, this.view?.zoom ?? 10));
   }
 
   createRenderRoot(): Element {

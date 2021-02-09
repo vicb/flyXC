@@ -36,11 +36,6 @@ export class LiveModal extends connect(store)(LitElement) {
     this.distanceUnit = state.units.distance;
   }
 
-  connectedCallback(): void {
-    super.connectedCallback();
-    msg.requestLocation.emit();
-  }
-
   render(): TemplateResult {
     return html`
       <ion-header>

@@ -106,12 +106,8 @@ export class MainMenu extends connect(store)(LitElement) {
   }
 
   private handleSounding() {
-    msg.requestLocation.emit();
-    const location = store.getState().location.current?.latLon;
-    if (location) {
-      const { lat, lon } = location;
-      window.open(`https://www.windy.com/plugins/windy-plugin-sounding?lat=${lat}&lon=${lon}`, '_blank');
-    }
+    const { lat, lon } = store.getState().location.current.latLon;
+    window.open(`https://www.windy.com/plugins/windy-plugin-sounding?lat=${lat}&lon=${lon}`, '_blank');
   }
 
   private async handlePlanner() {
@@ -280,8 +276,6 @@ export class ViewItems extends connect(store)(LitElement) {
   }
 
   private handleSwitch() {
-    // Request the current map to update the location.
-    msg.requestLocation.emit();
     pushCurrentState();
     store.dispatch(setView3d(!this.view3d));
   }

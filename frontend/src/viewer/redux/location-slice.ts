@@ -9,7 +9,7 @@ export type CurrentLocation = {
 
 type State = {
   // current location, used to sync 2D and 3D map.
-  current?: CurrentLocation;
+  current: CurrentLocation;
   // Initial location (read-only).
   start: LatLon;
   // Location retrieved from the browser.
@@ -17,12 +17,18 @@ type State = {
   requestingLocation: boolean;
 };
 
+const start: LatLon = {
+  lat: Number(localStorage.getItem('init.lat') ?? 45),
+  lon: Number(localStorage.getItem('init.lon') ?? 2),
+};
+
 const initialState: State = {
-  // Start location (read-only).
-  start: {
-    lat: Number(localStorage.getItem('init.lat') ?? 45),
-    lon: Number(localStorage.getItem('init.lon') ?? 2),
+  current: {
+    latLon: start,
+    zoom: 11,
   },
+  // Start location (read-only).
+  start,
   requestingLocation: false,
 };
 

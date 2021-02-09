@@ -129,7 +129,6 @@ export class MapElement extends connect(store)(LitElement) {
     store.dispatch(setApiLoading(true));
     loadApi().then((): void => {
       const options: google.maps.MapOptions = {
-        center: { lat: 45, lng: 0 },
         zoom: 5,
         minZoom: 3,
         // Google maps terrain is only available up to zoom level 17.
@@ -181,6 +180,8 @@ export class MapElement extends connect(store)(LitElement) {
         }
       });
 
+      this.map.addListener('center_changed', () => this.handleLocation());
+
       this.subscriptions.push(
         msg.centerMap.subscribe(({ lat, lon }) => this.center(lat, lon)),
         msg.centerZoomMap.subscribe(({ lat, lon }, delta) => {
@@ -189,7 +190,6 @@ export class MapElement extends connect(store)(LitElement) {
         }),
         msg.trackGroupsAdded.subscribe(() => this.zoomToTracks()),
         msg.trackGroupsRemoved.subscribe(() => this.zoomToTracks()),
-        msg.requestLocation.subscribe(() => this.updateLocation()),
         msg.geoLocation.subscribe((latLon, userInitiated) => this.geolocation(latLon, userInitiated)),
       );
 
@@ -203,12 +203,8 @@ export class MapElement extends connect(store)(LitElement) {
         // - location on the 3d map,
         // - gps location,
         // - initial location.
-        let latLon = location.geolocation || location.start;
-        let zoom = 11;
-        if (location.current) {
-          latLon = location.current.latLon;
-          zoom = location.current.zoom;
-        }
+        const latLon = location.current.latLon;
+        const zoom = location.current.zoom;
         this.map.setCenter({ lat: latLon.lat, lng: latLon.lon });
         this.map.setZoom(zoom);
       }
@@ -279,7 +275,7 @@ export class MapElement extends connect(store)(LitElement) {
     }
   }
 
-  private updateLocation(): void {
+  private handleLocation(): void {
     if (this.map) {
       const center = this.map.getCenter();
       store.dispatch(setCurrentLocation({ lat: center.lat(), lon: center.lng() }, this.map.getZoom()));
