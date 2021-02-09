@@ -142,7 +142,11 @@ export class Map3dElement extends connect(store)(LitElement) {
         container: 'map',
         map: this.map,
         camera: { tilt: 80 },
-        environment: { starsEnabled: false },
+        environment: {
+          starsEnabled: false,
+          atmosphereEnabled: true,
+          atmosphere: { quality: 'high' },
+        },
       });
       this.view = view;
 
