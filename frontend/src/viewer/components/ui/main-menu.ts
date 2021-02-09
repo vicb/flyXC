@@ -89,6 +89,9 @@ export class MainMenu extends connect(store)(LitElement) {
             >
               <i class="las la-crosshairs la-2x"></i>Center on my location
             </ion-item>
+            <ion-item button @click=${this.handleSounding} lines="full">
+              <i class="las la-chart-line la-2x" style="transform: rotate(90deg)"></i>Sounding
+            </ion-item>
             <ion-item button @click=${this.handlePreferences} lines="full">
               <i class="las la-cog la-2x"></i>Preferences
             </ion-item>
@@ -100,6 +103,15 @@ export class MainMenu extends connect(store)(LitElement) {
 
   protected createRenderRoot(): Element {
     return this;
+  }
+
+  private handleSounding() {
+    msg.requestLocation.emit();
+    const location = store.getState().location.current?.latLon;
+    if (location) {
+      const { lat, lon } = location;
+      window.open(`https://www.windy.com/plugins/windy-plugin-sounding?lat=${lat}&lon=${lon}`, '_blank');
+    }
   }
 
   private async handlePlanner() {
