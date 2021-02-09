@@ -6,6 +6,7 @@ import { connect } from 'pwa-helpers';
 import { popupContent } from '../../logic/live-track-popup';
 import { formatDurationMin, Units } from '../../logic/units';
 import { liveTrackSelectors, setCurrentLiveId } from '../../redux/live-track-slice';
+import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { getUniqueColor } from '../../styles/track';
 
@@ -66,6 +67,8 @@ export class TrackingElement extends connect(store)(LitElement) {
   // Id of the selected pilot.
   @internalProperty()
   private currentId?: number;
+  @internalProperty()
+  private numTracks = 0;
 
   private units?: Units;
   private info?: google.maps.InfoWindow;
@@ -92,7 +95,7 @@ export class TrackingElement extends connect(store)(LitElement) {
       changedProps.delete('geojson');
     }
     // Update the style when related props change.
-    if (changedProps.has('displayNames') || changedProps.has('currentId')) {
+    if (changedProps.has('displayNames') || changedProps.has('currentId') || changedProps.has('numTracks')) {
       this.setMapStyle(this.gMap);
     }
     return super.shouldUpdate(changedProps);
@@ -103,6 +106,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     this.displayNames = state.app.displayLiveNames;
     this.geojson = state.liveTrack.geojson;
     this.currentId = state.liveTrack.currentLiveId;
+    this.numTracks = sel.numTracks(state);
   }
 
   private setupInfoWindow(map: google.maps.Map): void {
@@ -240,11 +244,15 @@ export class TrackingElement extends connect(store)(LitElement) {
     let icons: google.maps.IconSequence[] | undefined;
 
     if (feature.getProperty('last') !== true) {
+      // Dashed lines for previous tracks.
       icons = formerTrackIcons;
       strokeOpacity = 0;
     } else if (id == this.currentId) {
+      // Make the selected track very visible.
       strokeWeight = 4;
-    } else if (ageMin < RECENT_TIMEOUT_MIN) {
+      zIndex = 20;
+    } else if (ageMin < RECENT_TIMEOUT_MIN && this.numTracks == 0) {
+      // Make the recent tracks more visible when there are no non-live tracks.
       strokeWeight = 2;
       zIndex = 15;
     }

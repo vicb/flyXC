@@ -9,6 +9,7 @@ import { popupContent } from '../../logic/live-track-popup';
 import * as msg from '../../logic/messages';
 import { formatDurationMin, Units } from '../../logic/units';
 import { liveTrackSelectors, setCurrentLiveId } from '../../redux/live-track-slice';
+import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { getUniqueColor } from '../../styles/track';
 
@@ -41,6 +42,8 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   // Id of the selected pilot.
   @internalProperty()
   private currentId?: number;
+  @internalProperty()
+  private numTracks = 0;
 
   // live tracks.
   private tracks: Graphic[] = [];
@@ -146,6 +149,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
     this.units = state.units;
     this.sampler = state.arcgis.elevationSampler;
     this.currentId = state.liveTrack.currentLiveId;
+    this.numTracks = sel.numTracks(state);
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
@@ -174,8 +178,9 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       const endIdx = feature.properties.endIndex;
       const track = liveTrackSelectors.selectById(store.getState(), id) as LiveTrack;
       const ageMin = (nowSec - track.timeSec[endIdx]) / 60;
-      const isRecentTrack = ageMin < RECENT_TIMEOUT_MIN;
-      const isActive = id === this.currentId;
+      // Recent tracks should be more visible unless there are non-live tracks.
+      const hasRecentStyle = ageMin < RECENT_TIMEOUT_MIN && this.numTracks == 0;
+      const hasSelectedStyle = id === this.currentId;
 
       const graphic = new this.api.Graphic();
       const shadowGraphic = new this.api.Graphic();
@@ -186,13 +191,13 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       shadowGraphic.set('geometry', this.line);
 
       const color = new this.api.Color(getUniqueColor(Math.round(id / 1000)));
-      color.a = isRecentTrack || isActive ? 1 : 0.8;
+      color.a = hasRecentStyle || hasSelectedStyle ? 1 : 0.8;
       const rgba = color.toRgba();
       this.trackSymbol.symbolLayers[0].material.color = rgba;
-      this.trackSymbol.symbolLayers[0].size = isActive ? 3 : isRecentTrack ? 2 : 1;
+      this.trackSymbol.symbolLayers[0].size = hasSelectedStyle ? 3 : hasRecentStyle ? 2 : 1;
       graphic.set('symbol', this.trackSymbol);
       tracks.push(graphic);
-      this.trackSymbol.symbolLayers[0].material.color = [50, 50, 50, isActive || isRecentTrack ? 0.6 : 0.2];
+      this.trackSymbol.symbolLayers[0].material.color = [50, 50, 50, hasSelectedStyle || hasRecentStyle ? 0.6 : 0.2];
       shadowGraphic.set('symbol', this.trackSymbol);
       trackShadows.push(shadowGraphic);
     }
