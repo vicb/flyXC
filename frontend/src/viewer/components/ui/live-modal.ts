@@ -157,8 +157,8 @@ export class LiveModal extends connect(store)(LitElement) {
           : null}
       </ion-label>
       <span slot="end">
-        <ion-badge color="secondary">-${formatDurationMin(ageMin)}</ion-badge>
-        <ion-badge color="primary" style="margin-left: 5px">${formatDistance(distance, this.distanceUnit)}</ion-badge>
+        <ion-chip color="secondary">-${formatDurationMin(ageMin)}</ion-chip>
+        <ion-chip color="primary" style="margin-left: 5px">${formatDistance(distance, this.distanceUnit)}</ion-chip>
       </span>
     </ion-item>`;
   }
