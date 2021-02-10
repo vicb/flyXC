@@ -198,10 +198,10 @@ export class AirspaceItems extends connect(store)(LitElement) {
       </ion-item>
       <ion-item .disabled=${!this.show}>
         <ion-label position="floating">Floor below</ion-label>
-        <ion-select @ionChange=${this.handleMaxAltitude} value=${this.maxAltitude} interface="popover">
+        <ion-select @ionChange=${this.handleMaxAltitude} .value=${this.maxAltitude} interface="popover">
           ${this.altitudeStops.map(
             (altitude: number) =>
-              html`<ion-select-option value=${altitude}> ${formatUnit(altitude, this.unit)} </ion-select-option> `,
+              html`<ion-select-option .value=${altitude}> ${formatUnit(altitude, this.unit)} </ion-select-option> `,
           )}
         </ion-select>
       </ion-item>`;
@@ -213,7 +213,7 @@ export class AirspaceItems extends connect(store)(LitElement) {
     const stops = this.altitudeStops;
     if (stops.length > 0) {
       const maxAlt = sel.maxAlt(store.getState());
-      this.maxAltitude = stops.find((alt) => alt >= maxAlt) ?? stops[stops.length - 1];
+      store.dispatch(airspaces.setMaxAltitude(stops.find((alt) => alt >= maxAlt) ?? stops[stops.length - 1]));
     }
   }
 
