@@ -27,11 +27,11 @@ import {
 } from './logic/history';
 import * as msg from './logic/messages';
 import { downloadTracksByGroupIds, downloadTracksByUrls, uploadTracks } from './logic/track';
-import { setDisplayNames, setTimestamp, setView3d } from './redux/app-slice';
+import { setTimestamp, setView3d } from './redux/app-slice';
 import { setRoute, setSpeed } from './redux/planner-slice';
 import * as sel from './redux/selectors';
 import { RootState, store } from './redux/store';
-import { removeTracksByGroupIds } from './redux/track-slice';
+import { removeTracksByGroupIds, setDisplayLabels } from './redux/track-slice';
 
 @customElement('fly-xc')
 export class FlyXc extends connect(store)(LitElement) {
@@ -57,7 +57,7 @@ export class FlyXc extends connect(store)(LitElement) {
       downloadTracksByGroupIds(getUrlParamValues(ParamNames.groupId)),
       downloadTracksByUrls(getUrlParamValues(ParamNames.trackUrl)),
     ]).then(() => {
-      store.dispatch(setDisplayNames(sel.numTracks(store.getState()) > 1));
+      store.dispatch(setDisplayLabels(sel.numTracks(store.getState()) > 1));
       // Remove the track urls as they will be replaced with ids.
       deleteUrlParam(ParamNames.trackUrl);
     });

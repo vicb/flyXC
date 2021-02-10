@@ -35,6 +35,9 @@ export type TrackState = {
     fetchPending: boolean;
   };
   tracks: EntityState<RuntimeTrack>;
+  displayLabels: boolean;
+  // Whether to move the map to see the pilot.
+  lockOnPilot: boolean;
 };
 
 const initialState: TrackState = {
@@ -45,6 +48,8 @@ const initialState: TrackState = {
     fetchPending: false,
   },
   tracks: trackAdapter.getInitialState(),
+  displayLabels: false,
+  lockOnPilot: true,
 };
 
 // Thunk to set the timestamp and current id when the first track is loaded.
@@ -142,6 +147,12 @@ const trackSlice = createSlice({
   name: 'track',
   initialState,
   reducers: {
+    setDisplayLabels: (state, action: PayloadAction<boolean>) => {
+      state.displayLabels = action.payload;
+    },
+    setLockOnPilot: (state, action: PayloadAction<boolean>) => {
+      state.lockOnPilot = action.payload;
+    },
     addTracksInternal: (state, action: PayloadAction<RuntimeTrack[]>) => {
       trackAdapter.addMany(state.tracks, action);
     },
@@ -251,5 +262,11 @@ const trackSlice = createSlice({
 });
 
 export const reducer = trackSlice.reducer;
-export const { removeTracksByGroupIds, setCurrentTrackId, selectNextTrack } = trackSlice.actions;
+export const {
+  removeTracksByGroupIds,
+  setCurrentTrackId,
+  selectNextTrack,
+  setDisplayLabels,
+  setLockOnPilot,
+} = trackSlice.actions;
 export const trackAdapterSelector = trackAdapter.getSelectors((state: RootState) => state.track.tracks);

@@ -11,22 +11,13 @@ export const enum ChartYAxis {
 
 type AppState = {
   chartYAxis: ChartYAxis;
-  // Whether to move the map to see the pilot.
-  lockOnPilot: boolean;
-  // Display pilot labels for live tracks.
-  displayLiveNames: boolean;
-  // Display pilot labels for tracks.
-  displayNames: boolean;
   timestamp: number;
   view3d: boolean;
   loadingApi: boolean;
 };
 
 const initialState: AppState = {
-  lockOnPilot: true,
   chartYAxis: ChartYAxis.Altitude,
-  displayLiveNames: true,
-  displayNames: false,
   loadingApi: false,
   timestamp: 0,
   view3d: getSearchParams().has(ParamNames.view3d),
@@ -45,12 +36,6 @@ const appSlice = createSlice({
     setChartYAxis: (state, action: PayloadAction<ChartYAxis>) => {
       state.chartYAxis = action.payload;
     },
-    setDisplayNames: (state, action: PayloadAction<boolean>) => {
-      state.displayNames = action.payload;
-    },
-    setDisplayLiveNames: (state, action: PayloadAction<boolean>) => {
-      state.displayLiveNames = action.payload;
-    },
     setView3d: (state, action: PayloadAction<boolean>) => {
       if (action.payload) {
         addUrlParamValue(ParamNames.view3d, '');
@@ -59,19 +44,8 @@ const appSlice = createSlice({
       }
       state.view3d = action.payload;
     },
-    setLockOnPilot: (state, action: PayloadAction<boolean>) => {
-      state.lockOnPilot = action.payload;
-    },
   },
 });
 
 export const reducer = appSlice.reducer;
-export const {
-  setTimestamp,
-  setApiLoading,
-  setChartYAxis,
-  setDisplayNames,
-  setDisplayLiveNames,
-  setView3d,
-  setLockOnPilot,
-} = appSlice.actions;
+export const { setTimestamp, setApiLoading, setChartYAxis, setView3d } = appSlice.actions;

@@ -87,7 +87,7 @@ export class MapElement extends connect(store)(LitElement) {
     // In full screen mode the gesture handling must be greedy.
     // Using ctrl (+ scroll) is unnecessary as thr page can not scroll anyway.
     this.fullscreen = state.browser.isFullscreen;
-    this.lockOnPilot = state.app.lockOnPilot;
+    this.lockOnPilot = state.track.lockOnPilot;
     this.currentTrackId = state.track.currentTrackId;
   }
 
@@ -129,7 +129,7 @@ export class MapElement extends connect(store)(LitElement) {
     store.dispatch(setApiLoading(true));
     loadApi().then((): void => {
       const options: google.maps.MapOptions = {
-        zoom: 5,
+        zoom: 11,
         minZoom: 3,
         // Google maps terrain is only available up to zoom level 17.
         maxZoom: 17,

@@ -33,6 +33,7 @@ export type TrackState = {
   geojson: any;
   refreshTimer: any;
   currentLiveId?: number;
+  displayLabels: boolean;
 };
 
 const initialState: TrackState = {
@@ -40,12 +41,16 @@ const initialState: TrackState = {
   tracks: trackAdapter.getInitialState(),
   geojson: { type: 'FeatureCollection', features: [] },
   refreshTimer: undefined,
+  displayLabels: true,
 };
 
 const trackSlice = createSlice({
   name: 'liveTrack',
   initialState,
   reducers: {
+    setDisplayLabels: (state, action: PayloadAction<boolean>) => {
+      state.displayLabels = action.payload;
+    },
     setTracks: (state, action: PayloadAction<LiveTrack[]>) => {
       trackAdapter.setAll(state.tracks, action);
     },
@@ -113,7 +118,7 @@ export function handleVisibility(): void {
 document.addEventListener('visibilitychange', handleVisibility);
 
 export const reducer = trackSlice.reducer;
-export const { setReturnUrl, setCurrentLiveId } = trackSlice.actions;
+export const { setReturnUrl, setCurrentLiveId, setDisplayLabels } = trackSlice.actions;
 
 export type LivePilot = {
   id: number;

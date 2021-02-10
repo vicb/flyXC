@@ -63,7 +63,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.timestamp = state.app.timestamp;
     this.currentTrackId = state.track.currentTrackId;
     this.multiplier = state.arcgis.altMultiplier;
-    this.updateCamera = state.app.lockOnPilot;
+    this.updateCamera = state.track.lockOnPilot;
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {

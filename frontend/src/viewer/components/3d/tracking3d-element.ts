@@ -36,7 +36,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   @internalProperty()
   private multiplier = 1;
   @internalProperty()
-  private displayNames = true;
+  private displayLabels = true;
   @internalProperty()
   private sampler?: ElevationSampler;
   // Id of the selected pilot.
@@ -140,7 +140,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   }
 
   stateChanged(state: RootState): void {
-    this.displayNames = state.app.displayLiveNames;
+    this.displayLabels = state.liveTrack.displayLabels;
     this.geojson = state.liveTrack.geojson;
     this.layer = state.arcgis.graphicsLayer;
     this.gndLayer = state.arcgis.gndGraphicsLayer;
@@ -253,7 +253,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         this.santaSymbol.symbolLayers[0].heading = heading + 180;
         symbol = this.santaSymbol;
         // Text.
-        if (this.displayNames && (isActive || ageMin < 12 * 60)) {
+        if (this.displayLabels && (isActive || ageMin < 12 * 60)) {
           label = track.name + ' -' + formatDurationMin(ageMin);
         }
       }

@@ -29,7 +29,7 @@ export class MarkerElement extends connect(store)(LitElement) {
   @internalProperty()
   private units?: Units;
   @internalProperty()
-  private displayNames = true;
+  private displayLabels = true;
   @internalProperty()
   private color = '';
 
@@ -45,7 +45,7 @@ export class MarkerElement extends connect(store)(LitElement) {
       this.active = sel.currentTrackId(state) == id;
     }
     this.units = state.units;
-    this.displayNames = state.app.displayNames;
+    this.displayLabels = state.track.displayLabels;
   }
 
   disconnectedCallback(): void {
@@ -81,7 +81,7 @@ export class MarkerElement extends connect(store)(LitElement) {
       this.marker.setIcon(icon);
       // Display higher markers on top.
       this.marker.setZIndex(Math.floor(alt ?? 0));
-      if (this.displayNames) {
+      if (this.displayLabels) {
         const altitude = `${formatUnit(alt ?? 0, this.units?.altitude)}`;
         this.marker.setLabel({
           color: this.active ? '#000' : '#555',

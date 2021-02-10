@@ -61,7 +61,7 @@ export class TrackingElement extends connect(store)(LitElement) {
   }
 
   @internalProperty()
-  private displayNames = true;
+  private displayLabels = true;
   @internalProperty()
   private geojson: any;
   // Id of the selected pilot.
@@ -95,7 +95,7 @@ export class TrackingElement extends connect(store)(LitElement) {
       changedProps.delete('geojson');
     }
     // Update the style when related props change.
-    if (changedProps.has('displayNames') || changedProps.has('currentId') || changedProps.has('numTracks')) {
+    if (changedProps.has('displayLabels') || changedProps.has('currentId') || changedProps.has('numTracks')) {
       this.setMapStyle(this.gMap);
     }
     return super.shouldUpdate(changedProps);
@@ -103,7 +103,7 @@ export class TrackingElement extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     this.units = state.units;
-    this.displayNames = state.app.displayLiveNames;
+    this.displayLabels = state.liveTrack.displayLabels;
     this.geojson = state.liveTrack.geojson;
     this.currentId = state.liveTrack.currentLiveId;
     this.numTracks = sel.numTracks(state);
@@ -188,7 +188,7 @@ export class TrackingElement extends connect(store)(LitElement) {
       labelOrigin = ORIGIN_ARROW;
       svg = arrowSvg(heading, color, opacity);
       // Display the pilot name.
-      if (this.displayNames && (isActive || ageMin < 12 * 60)) {
+      if (this.displayLabels && (isActive || ageMin < 12 * 60)) {
         label = {
           color: labelColor,
           text: track.name + '\n-' + formatDurationMin(ageMin),

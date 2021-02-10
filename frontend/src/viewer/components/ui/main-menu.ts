@@ -14,12 +14,17 @@ import { uploadTracks } from '../../logic/track';
 import { DistanceUnit, formatUnit } from '../../logic/units';
 import * as airspaces from '../../redux/airspace-slice';
 import * as airways from '../../redux/airways-slice';
-import { setDisplayLiveNames, setDisplayNames, setLockOnPilot, setView3d } from '../../redux/app-slice';
+import { setView3d } from '../../redux/app-slice';
 import { setAltitudeMultiplier } from '../../redux/arcgis-slice';
-import { liveTrackSelectors, setReturnUrl } from '../../redux/live-track-slice';
+import {
+  liveTrackSelectors,
+  setDisplayLabels as setDisplayLiveLabels,
+  setReturnUrl,
+} from '../../redux/live-track-slice';
 import { setEnabled } from '../../redux/planner-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
+import { setDisplayLabels, setLockOnPilot } from '../../redux/track-slice';
 import { getMenuController, getModalController } from './ion-controllers';
 
 @customElement('main-menu')
@@ -332,14 +337,14 @@ export class TrackItems extends connect(store)(LitElement) {
   @internalProperty()
   private numTracks = 0;
   @internalProperty()
-  private displayName = false;
+  private displayLabels = false;
   @internalProperty()
   private lockOnPilot = true;
 
   stateChanged(state: RootState): void {
     this.numTracks = sel.numTracks(state);
-    this.displayName = state.app.displayNames;
-    this.lockOnPilot = state.app.lockOnPilot;
+    this.displayLabels = state.track.displayLabels;
+    this.lockOnPilot = state.track.lockOnPilot;
   }
 
   render(): TemplateResult {
@@ -361,7 +366,7 @@ export class TrackItems extends connect(store)(LitElement) {
       </ion-item>
       <ion-item lines="none" .disabled=${!hasTracks} button @click=${this.handleDisplayNames}>
         <ion-label>Labels</ion-label>
-        <ion-toggle slot="end" .checked=${this.displayName}></ion-toggle>
+        <ion-toggle slot="end" .checked=${this.displayLabels}></ion-toggle>
       </ion-item>
       <ion-item lines="full" .disabled=${!hasTracks} button @click=${this.handleLock}>
         Lock on pilot
@@ -396,7 +401,7 @@ export class TrackItems extends connect(store)(LitElement) {
 
   // Shows/Hides pilot names next to the marker.
   private handleDisplayNames(): void {
-    store.dispatch(setDisplayNames(!this.displayName));
+    store.dispatch(setDisplayLabels(!this.displayLabels));
   }
 
   private async handleSelect() {
@@ -417,12 +422,12 @@ export class TrackItems extends connect(store)(LitElement) {
 @customElement('live-items')
 export class LiveTrackItems extends connect(store)(LitElement) {
   @internalProperty()
-  private displayLiveName = false;
+  private displayLabels = true;
   @internalProperty()
   private numPilots = 0;
 
   stateChanged(state: RootState): void {
-    this.displayLiveName = state.app.displayLiveNames;
+    this.displayLabels = state.liveTrack.displayLabels;
     this.numPilots = liveTrackSelectors.selectTotal(state);
   }
 
@@ -437,7 +442,7 @@ export class LiveTrackItems extends connect(store)(LitElement) {
       </ion-item>
       <ion-item lines="full" button @click=${this.handleDisplayNames}>
         <ion-label>Labels</ion-label>
-        <ion-toggle slot="end" .checked=${this.displayLiveName}></ion-toggle>
+        <ion-toggle slot="end" .checked=${this.displayLabels}></ion-toggle>
       </ion-item>`;
   }
 
@@ -452,7 +457,7 @@ export class LiveTrackItems extends connect(store)(LitElement) {
 
   // Shows/Hides pilot names next to the marker.
   private handleDisplayNames(): void {
-    store.dispatch(setDisplayLiveNames(!this.displayLiveName));
+    store.dispatch(setDisplayLiveLabels(!this.displayLabels));
   }
 
   private handleConfig() {

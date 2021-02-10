@@ -31,7 +31,7 @@ export class Marker3dElement extends connect(store)(LitElement) {
   @internalProperty()
   private color = '';
   @internalProperty()
-  displayNames = true;
+  displayLabels = true;
 
   private point = {
     type: 'point',
@@ -88,7 +88,7 @@ export class Marker3dElement extends connect(store)(LitElement) {
     this.api = state.arcgis.api;
     this.timestamp = state.app.timestamp;
     this.multiplier = state.arcgis.altMultiplier;
-    this.displayNames = state.app.displayNames;
+    this.displayLabels = state.track.displayLabels;
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
@@ -126,7 +126,7 @@ export class Marker3dElement extends connect(store)(LitElement) {
       this.txtSymbol.symbolLayers[0].text = label;
       this.txtGraphic?.set('symbol', this.txtSymbol);
       this.txtGraphic?.set('attributes', { trackId: track.id });
-      this.txtGraphic?.set('visible', this.displayNames && label != 'unknown');
+      this.txtGraphic?.set('visible', this.displayLabels && label != 'unknown');
     }
 
     return false;
