@@ -180,8 +180,6 @@ export class MapElement extends connect(store)(LitElement) {
         }
       });
 
-      this.map.addListener('center_changed', () => this.handleLocation());
-
       this.subscriptions.push(
         msg.centerMap.subscribe(({ lat, lon }) => this.center(lat, lon)),
         msg.centerZoomMap.subscribe(({ lat, lon }, delta) => {
@@ -199,15 +197,13 @@ export class MapElement extends connect(store)(LitElement) {
         // Zoom to tracks when there are some.
         this.zoomToTracks();
       } else {
-        // Otherwise go to (priority order):
-        // - location on the 3d map,
-        // - gps location,
-        // - initial location.
         const latLon = location.current.latLon;
         const zoom = location.current.zoom;
         this.map.setCenter({ lat: latLon.lat, lng: latLon.lon });
         this.map.setZoom(zoom);
       }
+
+      this.map.addListener('center_changed', () => this.handleLocation());
 
       store.dispatch(setApiLoading(false));
     });
