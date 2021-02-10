@@ -338,9 +338,16 @@ export class ChartElement extends connect(store)(LitElement) {
       const bottom = asp.bottom[i];
       const topRefGnd = flags & Flags.TopRefGnd;
       const bottomRefGnd = flags & Flags.FloorRefGnd;
+      const clampTo: { minAlt?: number; maxAlt?: number } = {};
+      if (bottomRefGnd && !topRefGnd) {
+        clampTo.maxAlt = top;
+      }
+      if (topRefGnd && !bottomRefGnd) {
+        clampTo.minAlt = bottom;
+      }
       const coords = [
-        ...this.aspLine(track, start, end, minX, spanX, spanTrackTs, bottom, bottomRefGnd),
-        ...this.aspLine(track, end, start, minX, spanX, spanTrackTs, top, topRefGnd),
+        ...this.aspLine(track, start, end, minX, spanX, spanTrackTs, bottom, bottomRefGnd, clampTo),
+        ...this.aspLine(track, end, start, minX, spanX, spanTrackTs, top, topRefGnd, clampTo),
       ];
       if (coords.length < 4) {
         continue;
@@ -372,6 +379,7 @@ export class ChartElement extends connect(store)(LitElement) {
     spanTrackTs: number,
     alt: number,
     refGnd: number,
+    clampTo: { minAlt?: number; maxAlt?: number },
   ): Array<[number, number]> {
     if (!refGnd || !track.gndAlt) {
       return [
@@ -387,10 +395,18 @@ export class ChartElement extends connect(store)(LitElement) {
     const startX = Math.round(((start - track.minTs) / spanTrackTs) * spanX + minX);
     const endX = Math.round(((end - track.minTs) / spanTrackTs) * spanX + minX);
     const points: Array<[number, number]> = [];
+    const { minAlt, maxAlt } = clampTo;
     for (let x = startX; x < endX; x++) {
       const ts = ((x - minX) / spanX) * spanTrackTs + track.minTs;
       const gndAlt = sampleAt(track.ts, track.gndAlt, ts);
-      points.push([ts, alt + gndAlt]);
+      let altitude = alt + gndAlt;
+      if (maxAlt != null) {
+        altitude = Math.min(maxAlt, altitude);
+      }
+      if (minAlt != null) {
+        altitude = Math.max(minAlt, altitude);
+      }
+      points.push([ts, altitude]);
     }
     return reverse ? points.reverse() : points;
   }
