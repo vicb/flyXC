@@ -17,7 +17,8 @@ import * as airways from '../../redux/airways-slice';
 import { setView3d } from '../../redux/app-slice';
 import { setAltitudeMultiplier } from '../../redux/arcgis-slice';
 import {
-  liveTrackSelectors,
+  getLivePilots,
+  LivePilot,
   setDisplayLabels as setDisplayLiveLabels,
   setReturnUrl,
 } from '../../redux/live-track-slice';
@@ -424,18 +425,23 @@ export class LiveTrackItems extends connect(store)(LitElement) {
   @internalProperty()
   private displayLabels = true;
   @internalProperty()
-  private numPilots = 0;
+  private pilots: LivePilot[] = [];
 
   stateChanged(state: RootState): void {
     this.displayLabels = state.liveTrack.displayLabels;
-    this.numPilots = liveTrackSelectors.selectTotal(state);
+    this.pilots = getLivePilots(state);
   }
 
   render(): TemplateResult {
-    const hasPilots = this.numPilots > 0;
+    const hasEmergency = this.pilots.some((p) => p.isEmergency == true);
+    const numPilots = this.pilots.length;
+    const hasPilots = numPilots > 0;
+
     return html`<ion-item lines="none" .button=${hasPilots} .detail=${hasPilots} @click=${this.handleSelect}>
         <i class="las la-satellite-dish la-2x"></i>Live tracks
-        ${hasPilots ? html`<ion-badge slot="end" color="primary">${this.numPilots}</ion-badge>` : null}
+        ${hasPilots
+          ? html`<ion-badge slot="end" color=${hasEmergency ? 'warning' : 'primary'}>${numPilots}</ion-badge>`
+          : null}
       </ion-item>
       <ion-item button detail lines="none" @click=${this.handleConfig}>
         <ion-label>Configuration</ion-label>
@@ -447,7 +453,7 @@ export class LiveTrackItems extends connect(store)(LitElement) {
   }
 
   private async handleSelect() {
-    if (this.numPilots > 0) {
+    if (this.pilots.length > 0) {
       const modal = await getModalController().create({
         component: 'live-modal',
       });
