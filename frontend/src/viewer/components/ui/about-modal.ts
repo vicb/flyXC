@@ -49,7 +49,7 @@ export class AboutModal extends LitElement {
     return this;
   }
 
-  private async dismiss(): Promise<any> {
+  private async dismiss(): Promise<void> {
     const modal = await getModalController().getTop();
     await modal?.dismiss();
   }

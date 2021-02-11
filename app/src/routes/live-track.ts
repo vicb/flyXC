@@ -67,7 +67,6 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
         account = AccountFormModel.createEmptyValue();
         account.name = name;
       } else {
-        // TODO: erase the current track on update ?
         const entity = entities[0] as LiveTrackEntity;
         account = AccountFormModel.createFromEntity(entity);
       }

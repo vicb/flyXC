@@ -5,7 +5,6 @@ import { Validator } from '@vaadin/form/Validation';
 import { NotBlank, NotNull, Size } from '@vaadin/form/Validators';
 
 import { TrackerIds, trackerPropNames } from './live-track';
-// TODO: make sure this is not pulling things in the front
 import { LiveTrackEntity, TrackerEntity } from './live-track-entity';
 
 // Client side model for an account.

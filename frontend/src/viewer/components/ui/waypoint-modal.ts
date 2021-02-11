@@ -71,7 +71,7 @@ export class WaypointModal extends LitElement {
     this.prefix = e.detail.value;
   }
 
-  private async handleDownload(): Promise<any> {
+  private async handleDownload(): Promise<void> {
     const root = this.renderRoot;
     const form = root.querySelector('#wpt-form') as HTMLFormElement;
     const input = form.querySelector('input') as HTMLInputElement;
@@ -82,7 +82,7 @@ export class WaypointModal extends LitElement {
     await this.dismiss();
   }
 
-  private async dismiss(): Promise<any> {
+  private async dismiss(): Promise<void> {
     const modal = await getModalController().getTop();
     await modal?.dismiss();
   }

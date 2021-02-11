@@ -61,7 +61,7 @@ export class ShareModal extends LitElement {
     await toast.present();
   }
 
-  private async dismiss(): Promise<any> {
+  private async dismiss(): Promise<void> {
     const modal = await getModalController().getTop();
     await modal?.dismiss();
   }

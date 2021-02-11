@@ -123,7 +123,7 @@ export class PrefModal extends connect(store)(LitElement) {
     store.dispatch(setVarioUnit(e.detail.value));
   }
 
-  private async dismiss(): Promise<any> {
+  private async dismiss(): Promise<void> {
     const modal = await getModalController().getTop();
     await modal?.dismiss();
   }
