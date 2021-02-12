@@ -56,7 +56,6 @@ const initialState: TrackState = {
 const addTracks = (tracks: RuntimeTrack[]): AppThunk => (dispatch, getState) => {
   const state = getState().track;
   const hasTrack = state.tracks.ids.length > 0;
-  dispatch(trackSlice.actions.addTracksInternal(tracks));
   trackAdapter.addMany(state.tracks, tracks);
   if (!hasTrack) {
     dispatch(setTimestamp(tracks[0].ts[0]));
@@ -151,9 +150,6 @@ const trackSlice = createSlice({
     },
     setLockOnPilot: (state, action: PayloadAction<boolean>) => {
       state.lockOnPilot = action.payload;
-    },
-    addTracksInternal: (state, action: PayloadAction<RuntimeTrack[]>) => {
-      trackAdapter.addMany(state.tracks, action);
     },
     removeTracksByGroupIds: (state, action: PayloadAction<number[]>) => {
       const groupIds = action.payload.map((v) => String(v));

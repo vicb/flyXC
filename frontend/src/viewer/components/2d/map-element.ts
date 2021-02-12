@@ -261,14 +261,26 @@ export class MapElement extends connect(store)(LitElement) {
   }
 
   private zoomToTracks(): void {
-    const extent = sel.tracksExtent(store.getState());
-    if (extent != null) {
-      const bounds = new google.maps.LatLngBounds(
-        { lat: extent.sw.lat, lng: extent.sw.lon },
-        { lat: extent.ne.lat, lng: extent.ne.lon },
-      );
-      this.map?.fitBounds(bounds);
-    }
+    // When first loaded the div has no dimension then fitBounds does not work.
+    // The workaround is to wait for the div to have a width before calling fitBounds.
+    const timeout = Date.now() + 5000;
+    const zoomWhenSize = () => {
+      const div = this.map?.getDiv();
+      const hasWidth = div && div.clientWidth > 0;
+      if (Date.now() < timeout && !hasWidth) {
+        setTimeout(zoomWhenSize, 50);
+      } else {
+        const extent = sel.tracksExtent(store.getState());
+        if (extent != null) {
+          const bounds = new google.maps.LatLngBounds(
+            { lat: extent.sw.lat, lng: extent.sw.lon },
+            { lat: extent.ne.lat, lng: extent.ne.lon },
+          );
+          this.map?.fitBounds(bounds);
+        }
+      }
+    };
+    zoomWhenSize();
   }
 
   private handleLocation(): void {
