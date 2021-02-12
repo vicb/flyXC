@@ -139,7 +139,6 @@ export const fetchTrack = createAsyncThunk('track/fetch', async (params: FetchTr
   // api.dispatch does not support thunk.
   (api.dispatch as any)(addTracks(tracks));
   api.dispatch(fetchPendingServerMetadata());
-  msg.trackGroupsAdded.emit(Array.from(groupIds));
   return tracks;
 });
 
@@ -214,6 +213,13 @@ const trackSlice = createSlice({
       .addCase(fetchTrack.fulfilled, (state, action: PayloadAction<RuntimeTrack[]>) => {
         state.fetching = false;
         trackAdapter.addMany(state.tracks, action);
+
+        const groupIds = new Set<number>();
+        for (const track of action.payload) {
+          groupIds.add(extractGroupId(track.id));
+        }
+        // Only emit the message after the reducer is done to avoid reentrancy.
+        Promise.resolve().then(() => msg.trackGroupsAdded.emit(Array.from(groupIds)));
       })
       .addCase(fetchTrack.rejected, (state) => {
         state.fetching = false;
