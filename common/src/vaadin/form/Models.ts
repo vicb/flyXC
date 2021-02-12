@@ -1,7 +1,10 @@
 /* tslint:disable:max-classes-per-file */
 
+import isNumeric from 'validator/es/lib/isNumeric';
+
 import { BinderNode } from './BinderNode';
 import { Validator } from './Validation';
+import { IsNumber } from './Validators';
 
 export const _ItemModel = Symbol('ItemModel');
 export const _parent = Symbol('parent');
@@ -78,7 +81,18 @@ export class BooleanModel extends PrimitiveModel<boolean> implements HasFromStri
 
 export class NumberModel extends PrimitiveModel<number> implements HasFromString<number> {
   static createEmptyValue = Number;
-  [_fromString] = Number;
+  constructor(
+    parent: ModelParent<number>,
+    key: keyof any,
+    optional: boolean,
+    ...validators: ReadonlyArray<Validator<number>>
+  ) {
+    // Prepend a built-in validator to indicate NaN input
+    super(parent, key, optional, new IsNumber(), ...validators);
+  }
+  [_fromString](str: string): number {
+    return isNumeric(str) ? Number.parseFloat(str) : NaN;
+  }
 }
 
 export class StringModel extends PrimitiveModel<string> implements HasFromString<string> {

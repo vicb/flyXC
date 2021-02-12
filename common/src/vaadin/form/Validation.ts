@@ -1,6 +1,6 @@
 /* tslint:disable:max-classes-per-file */
 
-import { AbstractModel, getBinderNode } from './Models';
+import { AbstractModel, getBinderNode, NumberModel } from './Models';
 import { NoDomBinder } from './NoDomBinder';
 import { Required } from './Validators';
 
@@ -53,8 +53,10 @@ export async function runValidator<T>(
   validator: Validator<T>,
 ): Promise<ReadonlyArray<ValueError<T>>> {
   const value = getBinderNode(model).value as T;
-  // if model is not required and value empty, do not run any validator
-  if (!getBinderNode(model).required && !new Required().validate(value)) {
+  // If model is not required and value empty, do not run any validator. Except
+  // always validate NumberModel, which has a mandatory builtin validator
+  // to indicate NaN input.
+  if (!getBinderNode(model).required && !new Required().validate(value!) && !(model instanceof NumberModel)) {
     return [];
   }
   return (async () => (validator.validate as any)(value, getBinderNode(model).binder, model))().then((result) => {
