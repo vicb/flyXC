@@ -53,6 +53,32 @@ export async function saveTrack(track: TrackEntity): Promise<number> {
   return Number(key.id as string);
 }
 
+// Updates existing track entities from unzipped entities.
+export async function updateUnzippedTracks(tracks: TrackEntity[]): Promise<void> {
+  const updates: unknown[] = [];
+
+  for (const track of tracks) {
+    const key = track[Datastore.KEY];
+
+    if (key == null) {
+      continue;
+    }
+
+    updates.push({
+      key,
+      excludeFromIndexes: ['airspaces_group', 'ground_altitude_group', 'path', 'track_group'],
+      data: {
+        ...track,
+        airspaces_group: zipOrUndefined(track.airspaces_group),
+        ground_altitude_group: zipOrUndefined(track.ground_altitude_group),
+        track_group: zipOrUndefined(track.track_group),
+      },
+    });
+  }
+
+  await datastore.save(updates);
+}
+
 // Retrieves a meta track group given its hash.
 //
 // Note:

@@ -38,6 +38,7 @@ message Airspaces {
   repeated sint32 top = 5;
   repeated sint32 bottom = 6;
   repeated uint32 flags = 7;
+  repeated bool into = 9;
   bool has_errors = 8;
 }
 

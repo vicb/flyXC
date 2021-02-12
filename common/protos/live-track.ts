@@ -69,6 +69,7 @@ export interface LiveTrack {
 /**
  * All the points for a tracker.
  * Differential encoded to transmit over the wire.
+ * See `differentialDecodeLiveTrack(...)` for decoding the values.
  *
  * @generated from protobuf message LiveDifferentialTrack
  */

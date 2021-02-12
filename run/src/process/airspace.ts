@@ -60,7 +60,7 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
   // Retrieve fix indexes for every airspaces.
   const gndAlt = altitude.altitudes;
   const indexesByAirspaceKey = new Map<string, number[]>();
-  const airspaceKeys = new Map<string, any>();
+  const featureByKey = new Map<string, any>();
   const maxAltitude = Math.max(...track.alt) + MARGIN_METER;
   for (const [url, indexes] of indexesByTileUrl) {
     const buffer = bufferByTileUrl.get(url);
@@ -82,7 +82,7 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
         if (isInFeature(tilePixels[fixIdx], feature)) {
           if (!indexesByAirspaceKey.has(key)) {
             indexesByAirspaceKey.set(key, []);
-            airspaceKeys.set(key, feature);
+            featureByKey.set(key, feature);
           }
           indexesByAirspaceKey.get(key)?.push(fixIdx);
         }
@@ -90,7 +90,7 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
     }
   }
 
-  // Compute timestamp ranges.
+  // Compute index ranges.
   const rangesByAirspaceKey = new Map<string, Array<[number, number]>>();
   for (const [key, indexes] of indexesByAirspaceKey) {
     indexes.sort((a, b) => (a < b ? -1 : 1));
@@ -103,42 +103,57 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
         current = next;
         continue;
       }
-      rangesByAirspaceKey.get(key)?.push([track.ts[start], track.ts[current]]);
+      rangesByAirspaceKey.get(key)?.push([start, current]);
       start = next;
       current = next;
     }
-    rangesByAirspaceKey.get(key)?.push([track.ts[start], track.ts[current]]);
+    rangesByAirspaceKey.get(key)?.push([start, current]);
+  }
+
+  // Check if the tracks crosses the airspaces.
+  const intoRangesByAirspaceKey = new Map<string, boolean[]>();
+  for (const [key, ranges] of rangesByAirspaceKey) {
+    const props = featureByKey.get(key).properties;
+    const intoRanges: boolean[] = [];
+    intoRangesByAirspaceKey.set(key, intoRanges);
+    for (const [start, end] of ranges) {
+      let into = false;
+      for (let index = start; index <= end; index++) {
+        const gndAlt = altitude.altitudes[index];
+        const alt = track.alt[index];
+        const top = props.top + (props.flags & Flags.TopRefGnd ? gndAlt : 0);
+        const bottom = props.bottom + (props.flags & Flags.FloorRefGnd ? gndAlt : 0);
+        if (alt >= bottom && alt <= top) {
+          into = true;
+          break;
+        }
+      }
+      intoRanges.push(into);
+    }
   }
 
   // Build the proto object
   const aspObjects: any[] = [];
   for (const [key, ranges] of rangesByAirspaceKey) {
-    const props = airspaceKeys.get(key)?.properties;
-    ranges.forEach(([start, end]) => {
+    const props = featureByKey.get(key)?.properties;
+    const intoRanges = intoRangesByAirspaceKey.get(key) as boolean[];
+    ranges.forEach(([start, end], rangeIndex) => {
       aspObjects.push({
-        start,
-        end,
+        start: track.ts[start],
+        end: track.ts[end],
         name: props.name,
         category: props.category,
         top: props.top,
         bottom: props.bottom,
         flags: props.flags,
+        into: intoRanges[rangeIndex],
       });
     });
   }
 
   aspObjects.sort((a, b) => (a.start < b.start ? -1 : 1));
 
-  const protoAirspaces: protos.Airspaces = {
-    startTs: [],
-    endTs: [],
-    name: [],
-    category: [],
-    top: [],
-    bottom: [],
-    flags: [],
-    hasErrors: altitude.hasErrors,
-  };
+  const protoAirspaces = protos.Airspaces.create({ hasErrors: altitude.hasErrors });
 
   aspObjects.forEach((asp) => {
     protoAirspaces.startTs.push(asp.start);
@@ -148,6 +163,7 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
     protoAirspaces.top.push(asp.top);
     protoAirspaces.bottom.push(asp.bottom);
     protoAirspaces.flags.push(asp.flags);
+    protoAirspaces.into.push(asp.into);
   });
 
   return protoAirspaces;
