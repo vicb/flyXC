@@ -5,10 +5,11 @@ import { connect } from 'pwa-helpers';
 
 import * as msg from '../../logic/messages';
 import { DistanceUnit, formatDistance, formatDurationMin } from '../../logic/units';
-import { getLivePilots, LivePilot, setCurrentLiveId } from '../../redux/live-track-slice';
+import { getLivePilots, LivePilot, setCenterOnLocation, setCurrentLiveId } from '../../redux/live-track-slice';
+import { setCurrentLocation } from '../../redux/location-slice';
 import { RootState, store } from '../../redux/store';
 import { getUniqueColor } from '../../styles/track';
-import { getMenuController, getModalController } from './ion-controllers';
+import { getMenuController, getModalController, getToastController } from './ion-controllers';
 
 // Maximum number of pilots to list.
 const MAX_PILOTS = 40;
@@ -29,13 +30,27 @@ export class LiveModal extends connect(store)(LitElement) {
   private orderBy = OrderBy.Distance;
   @internalProperty()
   private distanceUnit!: DistanceUnit;
-
+  @internalProperty()
+  private centerOnLocation = false;
+  @internalProperty()
   private location!: LatLon;
+
+  private watchLocationId = 0;
 
   stateChanged(state: RootState): void {
     this.pilots = getLivePilots(state);
-    this.location = state.location.current?.latLon as LatLon;
+    this.location = state.location.location;
     this.distanceUnit = state.units.distance;
+    this.centerOnLocation = state.liveTrack.centerOnLocation;
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.watchLocation(this.centerOnLocation);
+  }
+
+  disconnectedCallback(): void {
+    this.watchLocation(false);
   }
 
   render(): TemplateResult {
@@ -44,6 +59,12 @@ export class LiveModal extends connect(store)(LitElement) {
         <ion-toolbar color="light">
           <ion-title>Fly to</ion-title>
           <ion-buttons slot="end">
+            <ion-fab-button
+              size="small"
+              color=${this.centerOnLocation ? 'primary' : 'light'}
+              @click=${this.handleCenter}
+              ><i class="la la-crosshairs la-2x"></i
+            ></ion-fab-button>
             <ion-fab-button
               size="small"
               color=${this.orderBy == OrderBy.Time ? 'primary' : 'light'}
@@ -74,6 +95,48 @@ export class LiveModal extends connect(store)(LitElement) {
 
   protected createRenderRoot(): Element {
     return this;
+  }
+
+  private async handleCenter(): Promise<void> {
+    const watch = !this.centerOnLocation;
+    await this.watchLocation(watch);
+    store.dispatch(setCenterOnLocation(watch));
+  }
+
+  private async watchLocation(watch: boolean): Promise<void> {
+    if ('geolocation' in navigator) {
+      if (watch) {
+        this.watchLocationId = navigator.geolocation.watchPosition(
+          (p: GeolocationPosition) => {
+            const { latitude: lat, longitude: lon } = p.coords;
+            msg.centerMap.emit({ lat, lon, alt: 0 });
+            store.dispatch(setCurrentLocation({ lat, lon }));
+          },
+          () => {
+            store.dispatch(setCenterOnLocation(false));
+            this.watchLocation(false);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 60 * 1000,
+          },
+        );
+
+        const toast = await getToastController().create({
+          message: 'Keeps the map centered on your current location',
+          duration: 3000,
+          buttons: [
+            {
+              text: 'Close',
+              role: 'cancel',
+            },
+          ],
+        });
+        await toast.present();
+      } else {
+        navigator.geolocation.clearWatch(this.watchLocationId);
+      }
+    }
   }
 
   private async handleFlyTo(pilot: LivePilot) {

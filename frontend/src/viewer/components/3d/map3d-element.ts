@@ -19,7 +19,7 @@ import { Api, loadApi } from '../../logic/arcgis';
 import * as msg from '../../logic/messages';
 import { setApiLoading, setTimestamp, setView3d } from '../../redux/app-slice';
 import { setApi, setElevationSampler, setGndGraphicsLayer, setGraphicsLayer } from '../../redux/arcgis-slice';
-import { setCurrentLocation } from '../../redux/location-slice';
+import { setCurrentLocation, setCurrentZoom } from '../../redux/location-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
@@ -198,15 +198,13 @@ export class Map3dElement extends connect(store)(LitElement) {
         .when(() => {
           store.dispatch(setApiLoading(false));
           store.dispatch(setElevationSampler(view.groundView.elevationSampler));
-          const location = store.getState().location;
 
           if (this.tracks.length) {
             // Zoom to tracks when there are some.
             this.centerOnMarker(16);
           } else {
-            const latLon = location.current.latLon;
-            const zoom = location.current.zoom;
-            this.center({ ...latLon, alt: 0 }, zoom);
+            const { location, zoom } = store.getState().location;
+            this.center({ ...location, alt: 0 }, zoom);
           }
 
           view.watch('center', (point: Point) => this.handleLocation({ lat: point.latitude, lon: point.longitude }));
@@ -360,7 +358,8 @@ export class Map3dElement extends connect(store)(LitElement) {
   }
 
   private handleLocation(center: LatLon): void {
-    store.dispatch(setCurrentLocation(center, this.view?.zoom ?? 10));
+    store.dispatch(setCurrentLocation(center));
+    store.dispatch(setCurrentZoom(this.view?.zoom ?? 10));
   }
 
   createRenderRoot(): Element {

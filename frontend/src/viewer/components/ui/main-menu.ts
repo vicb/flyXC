@@ -121,7 +121,7 @@ export class MainMenu extends connect(store)(LitElement) {
   }
 
   private handleSounding() {
-    const { lat, lon } = store.getState().location.current.latLon;
+    const { lat, lon } = store.getState().location.location;
     window.open(`https://www.windy.com/plugins/windy-plugin-sounding?lat=${lat}&lon=${lon}`, '_blank');
   }
 

@@ -20,7 +20,7 @@ import { getApiKey } from '../../../apikey';
 import { getUrlParamValues, ParamNames } from '../../logic/history';
 import * as msg from '../../logic/messages';
 import { setApiLoading, setTimestamp } from '../../redux/app-slice';
-import { setCurrentLocation } from '../../redux/location-slice';
+import { setCurrentLocation, setCurrentZoom } from '../../redux/location-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
@@ -191,15 +191,12 @@ export class MapElement extends connect(store)(LitElement) {
         msg.geoLocation.subscribe((latLon, userInitiated) => this.geolocation(latLon, userInitiated)),
       );
 
-      const location = store.getState().location;
-
       if (this.tracks.length) {
         // Zoom to tracks when there are some.
         this.zoomToTracks();
       } else {
-        const latLon = location.current.latLon;
-        const zoom = location.current.zoom;
-        this.map.setCenter({ lat: latLon.lat, lng: latLon.lon });
+        const { location, zoom } = store.getState().location;
+        this.map.setCenter({ lat: location.lat, lng: location.lon });
         this.map.setZoom(zoom);
       }
 
@@ -286,7 +283,8 @@ export class MapElement extends connect(store)(LitElement) {
   private handleLocation(): void {
     if (this.map) {
       const center = this.map.getCenter();
-      store.dispatch(setCurrentLocation({ lat: center.lat(), lon: center.lng() }, this.map.getZoom()));
+      store.dispatch(setCurrentLocation({ lat: center.lat(), lon: center.lng() }));
+      store.dispatch(setCurrentZoom(this.map.getZoom()));
     }
   }
 

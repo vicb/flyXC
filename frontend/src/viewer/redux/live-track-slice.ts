@@ -34,6 +34,9 @@ export type TrackState = {
   refreshTimer: any;
   currentLiveId?: number;
   displayLabels: boolean;
+  // Whether the map should be centered on the current location.
+  // Only used when the live modal is opened.
+  centerOnLocation: boolean;
 };
 
 const initialState: TrackState = {
@@ -42,12 +45,16 @@ const initialState: TrackState = {
   geojson: { type: 'FeatureCollection', features: [] },
   refreshTimer: undefined,
   displayLabels: true,
+  centerOnLocation: false,
 };
 
 const trackSlice = createSlice({
   name: 'liveTrack',
   initialState,
   reducers: {
+    setCenterOnLocation: (state, action: PayloadAction<boolean>) => {
+      state.centerOnLocation = action.payload;
+    },
     setDisplayLabels: (state, action: PayloadAction<boolean>) => {
       state.displayLabels = action.payload;
     },
@@ -118,7 +125,7 @@ export function handleVisibility(): void {
 document.addEventListener('visibilitychange', handleVisibility);
 
 export const reducer = trackSlice.reducer;
-export const { setReturnUrl, setCurrentLiveId, setDisplayLabels } = trackSlice.actions;
+export const { setReturnUrl, setCurrentLiveId, setDisplayLabels, setCenterOnLocation } = trackSlice.actions;
 
 export type LivePilot = {
   id: number;

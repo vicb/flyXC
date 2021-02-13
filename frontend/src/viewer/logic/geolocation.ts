@@ -25,6 +25,7 @@ export function requestCurrentPosition(userInitiated: boolean): void {
           showGeolocationDisabledAlert();
         }
       },
+      { enableHighAccuracy: true },
     );
   }
 }

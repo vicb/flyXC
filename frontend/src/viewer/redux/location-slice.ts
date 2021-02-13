@@ -2,14 +2,10 @@ import { LatLon } from 'flyxc/common/src/runtime-track';
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-export type CurrentLocation = {
-  latLon: LatLon;
-  zoom: number;
-};
-
 type State = {
-  // current location, used to sync 2D and 3D map.
-  current: CurrentLocation;
+  // Current location and zoom level.
+  location: LatLon;
+  zoom: number;
   // Initial location (read-only).
   start: LatLon;
   // Location retrieved from the browser.
@@ -23,10 +19,8 @@ const start: LatLon = {
 };
 
 const initialState: State = {
-  current: {
-    latLon: start,
-    zoom: 11,
-  },
+  location: start,
+  zoom: 11,
   // Start location (read-only).
   start,
   requestingLocation: false,
@@ -36,13 +30,11 @@ const locationSlice = createSlice({
   name: 'location',
   initialState,
   reducers: {
-    setCurrentLocation: {
-      reducer: (state, action: PayloadAction<CurrentLocation>) => {
-        state.current = action.payload;
-      },
-      prepare: (latLon: LatLon, zoom: number) => ({
-        payload: { latLon, zoom },
-      }),
+    setCurrentLocation: (state, action: PayloadAction<LatLon>) => {
+      state.location = action.payload;
+    },
+    setCurrentZoom: (state, action: PayloadAction<number>) => {
+      state.zoom = action.payload;
     },
     setGeolocation: (state, action: PayloadAction<LatLon>) => {
       // The next initial location will be here.
@@ -58,4 +50,4 @@ const locationSlice = createSlice({
 });
 
 export const reducer = locationSlice.reducer;
-export const { setCurrentLocation, setGeolocation, setRequestingLocation } = locationSlice.actions;
+export const { setCurrentLocation, setCurrentZoom, setGeolocation, setRequestingLocation } = locationSlice.actions;
