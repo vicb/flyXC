@@ -10,8 +10,10 @@ import { RootState, store } from '../../redux/store';
 import { getUniqueColor } from '../../styles/track';
 import { getMenuController, getModalController } from './ion-controllers';
 
+// Maximum number of pilots to list.
 const MAX_PILOTS = 40;
 
+// How long tracks are considered recent.
 const RECENT_PILOTS_HOUR = 3;
 
 const enum OrderBy {
@@ -40,18 +42,20 @@ export class LiveModal extends connect(store)(LitElement) {
     return html`
       <ion-header>
         <ion-toolbar color="light">
-          <ion-title>FlyTo</ion-title>
+          <ion-title>Fly to</ion-title>
           <ion-buttons slot="end">
-            <ion-button
-              color=${this.orderBy == OrderBy.Time ? 'dark' : 'medium'}
+            <ion-fab-button
+              size="small"
+              color=${this.orderBy == OrderBy.Time ? 'primary' : 'light'}
               @click=${() => (this.orderBy = OrderBy.Time)}
-              ><i slot="icon-only" class="la la-clock la-2x"></i
-            ></ion-button>
-            <ion-button
-              color=${this.orderBy == OrderBy.Distance ? 'dark' : 'medium'}
+              ><i class="la la-clock la-2x"></i
+            ></ion-fab-button>
+            <ion-fab-button
+              size="small"
+              color=${this.orderBy == OrderBy.Distance ? 'primary' : 'light'}
               @click=${() => (this.orderBy = OrderBy.Distance)}
-              ><i slot="icon-only" class="la la-ruler la-2x"></i
-            ></ion-button>
+              ><i class="la la-ruler la-2x"></i
+            ></ion-fab-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
