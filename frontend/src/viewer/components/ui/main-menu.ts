@@ -444,7 +444,7 @@ export class LiveTrackItems extends connect(store)(LitElement) {
           : null}
       </ion-item>
       <ion-item button detail lines="none" @click=${this.handleConfig}>
-        <ion-label>Configuration</ion-label>
+        <ion-label>Setup</ion-label>
       </ion-item>
       <ion-item lines="full" button @click=${this.handleDisplayNames}>
         <ion-label>Labels</ion-label>

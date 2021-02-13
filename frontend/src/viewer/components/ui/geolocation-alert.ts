@@ -12,4 +12,5 @@ export async function showGeolocationDisabledAlert(): Promise<void> {
     ],
   });
   await alert.present();
+  setTimeout(() => alert.dismiss(), 5000);
 }
