@@ -15,6 +15,8 @@ export class DeviceConfig extends LitElement {
   @internalProperty()
   private isLoading = true;
 
+  private token = '';
+
   static get styles(): CSSResult {
     return css`
       :host {
@@ -29,6 +31,7 @@ export class DeviceConfig extends LitElement {
     fetch(`/_account`)
       .then((response) => {
         this.isLoading = false;
+        this.token = response.headers.get('xsrf-token') ?? '';
         return response.ok ? response.json() : null;
       })
       .then((account) => {
@@ -75,7 +78,7 @@ export class DeviceConfig extends LitElement {
         <google-btn></google-btn>
       </div>`;
     } else {
-      body = html`<device-form .account=${this.account}></device-form>`;
+      body = html`<device-form .token=${this.token} .account=${this.account}></device-form>`;
     }
 
     return html`

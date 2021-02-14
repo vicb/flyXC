@@ -1,3 +1,4 @@
+import csurf from 'csurf';
 import express, { Request, Response, Router } from 'express';
 import { LiveDifferentialTrackGroup } from 'flyxc/common/protos/live-track';
 import { SecretKeys } from 'flyxc/common/src/keys';
@@ -15,6 +16,7 @@ import { NoDomBinder } from '@vaadin/form/NoDomBinder';
 import { getGrantSession } from './grant';
 
 const datastore = new Datastore();
+const csrfProtection = csurf();
 
 export function getTrackerRouter(redis: Redis.Redis): Router {
   const router = express.Router();
@@ -50,7 +52,7 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
   });
 
   // Get the account information.
-  router.get('/_account', async (req: Request, res: Response) => {
+  router.get('/_account', csrfProtection, async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
     const session = getGrantSession(req);
     if (!session || session.access_token == null) {
@@ -71,6 +73,7 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
         account = AccountFormModel.createFromEntity(entity);
       }
 
+      res.set('xsrf-token', req.csrfToken());
       res.json(account);
     } catch (e) {
       res.sendStatus(400);
@@ -78,7 +81,7 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
   });
 
   // Updates the tracker information.
-  router.post('/_account', async (req: Request, res: Response) => {
+  router.post('/_account', csrfProtection, async (req: Request, res: Response) => {
     const session = getGrantSession(req);
     if (!session || session.access_token == null) {
       res.sendStatus(403);

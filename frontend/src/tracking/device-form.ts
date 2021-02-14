@@ -20,8 +20,11 @@ import { field } from '@vaadin/form/Field';
 
 @customElement('device-form')
 export class DeviceForm extends LitElement {
-  @internalProperty()
-  private account!: AccountModel;
+  @property({ attribute: false })
+  account!: AccountModel;
+
+  @property({ attribute: false })
+  token = '';
 
   @internalProperty()
   private submitting = false;
@@ -188,7 +191,10 @@ export class DeviceForm extends LitElement {
           response = await fetch('_account', {
             method: 'POST',
             credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'xsrf-token': this.token,
+            },
             body: JSON.stringify(values),
           });
         } catch (e) {
