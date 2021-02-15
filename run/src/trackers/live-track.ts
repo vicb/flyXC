@@ -233,7 +233,7 @@ export async function updateTrackers(): Promise<TrackerLogs> {
 
   console.log(`Updates fetched in ${Math.round((Date.now() - start) / 1000)}s`);
 
-  await fetchLastFixGroundAltitude(updates);
+  await patchLastFixGroundAltitude(updates);
 
   const ids = [...idSet];
   const startSave = Date.now();
@@ -291,7 +291,7 @@ export async function updateTrackers(): Promise<TrackerLogs> {
 // We mostly care about the AGL of the last fix.
 //
 // Note: the implementation relies on a constant map iteration order (that is insertion order).
-async function fetchLastFixGroundAltitude(updates: TrackerUpdate[]): Promise<void> {
+async function patchLastFixGroundAltitude(updates: TrackerUpdate[]): Promise<void> {
   const points: LatLon[] = [];
 
   for (const tracker of updates) {
@@ -302,6 +302,10 @@ async function fetchLastFixGroundAltitude(updates: TrackerUpdate[]): Promise<voi
         points.push({ lat: track.lat[index], lon: track.lon[index] });
       }
     }
+  }
+
+  if (points.length == 0) {
+    return;
   }
 
   try {
