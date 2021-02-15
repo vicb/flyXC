@@ -7,12 +7,13 @@ import {
   TrackerIds,
 } from 'flyxc/common/src/live-track';
 import { incrementRequests, LivePoint, makeLiveTrack } from 'flyxc/run/src/trackers/live-track';
+import { computeDestinationPoint } from 'geolib';
 
 describe('makeLiveTrack', () => {
   it('should order the points in chronological order', () => {
     const points: LivePoint[] = [
-      { device: TrackerIds.Inreach, lat: 10.123456, lon: -12.123456, alt: 100.123, timestamp: 20001, valid: false },
-      { device: TrackerIds.Skylines, lat: 11.123456, lon: -13.123456, alt: 200.123, timestamp: 10001, valid: true },
+      { device: TrackerIds.Inreach, lat: 10.123456, lon: -12.123456, alt: 100.123, timestamp: 2000001, valid: false },
+      { device: TrackerIds.Skylines, lat: 11.123456, lon: -13.123456, alt: 200.123, timestamp: 1000001, valid: true },
     ];
 
     expect(makeLiveTrack(points)).toEqual({
@@ -21,7 +22,7 @@ describe('makeLiveTrack', () => {
       lat: [11.12346, 10.12346],
       lon: [-13.12346, -12.12346],
       flags: [LiveTrackFlag.Valid | TrackerIds.Skylines, TrackerIds.Inreach],
-      timeSec: [10, 20],
+      timeSec: [1000, 2000],
     });
   });
 
@@ -60,8 +61,8 @@ describe('makeLiveTrack', () => {
 
   it('should add extra for speed with a single digit', () => {
     const track = makeLiveTrack([
-      { device: TrackerIds.Inreach, lat: 10, lon: -12, alt: 100, timestamp: 1000, valid: false },
-      { device: TrackerIds.Inreach, lat: 10, lon: -12, alt: 100, timestamp: 2000, valid: false, speed: 10.123 },
+      { device: TrackerIds.Inreach, lat: 10, lon: -12, alt: 100, timestamp: 1000000, valid: false },
+      { device: TrackerIds.Inreach, lat: 10, lon: -12, alt: 100, timestamp: 2000000, valid: false, speed: 10.123 },
     ]);
 
     expect(track.extra).toEqual({ 1: { speed: 10.1 } });
@@ -69,11 +70,24 @@ describe('makeLiveTrack', () => {
 
   it('should add extra for messages', () => {
     const track = makeLiveTrack([
-      { device: TrackerIds.Inreach, lat: 10, lon: -12, alt: 100, timestamp: 1000, valid: false },
-      { device: TrackerIds.Inreach, lat: 10, lon: -12, alt: 100, timestamp: 2000, valid: false, message: 'hello' },
+      { device: TrackerIds.Inreach, lat: 10, lon: -12, alt: 100, timestamp: 1000000, valid: false },
+      { device: TrackerIds.Inreach, lat: 10, lon: -12, alt: 100, timestamp: 2000000, valid: false, message: 'hello' },
     ]);
 
     expect(track.extra).toEqual({ 1: { message: 'hello' } });
+  });
+
+  it('should compute the speed for the last point', () => {
+    const start = { lat: 0, lon: 0 };
+    const end = computeDestinationPoint(start, 10000, 0);
+
+    const track = makeLiveTrack([
+      { device: TrackerIds.Inreach, lat: start.lat, lon: start.lon, alt: 100, timestamp: 1000000, valid: false },
+      { device: TrackerIds.Inreach, lat: end.latitude, lon: end.longitude, alt: 100, timestamp: 1060000, valid: false },
+    ]);
+
+    expect(track.extra[1].speed).toBeGreaterThan(59);
+    expect(track.extra[1].speed).toBeGreaterThan(61);
   });
 
   it('should encode valid', () => {

@@ -11,6 +11,7 @@ import {
 } from 'flyxc/common/src/live-track';
 import { LIVE_TRACK_TABLE, LiveTrackEntity, TrackerEntity } from 'flyxc/common/src/live-track-entity';
 import { round } from 'flyxc/common/src/math';
+import { getDistance } from 'geolib';
 
 import { Datastore, Key } from '@google-cloud/datastore';
 
@@ -36,11 +37,12 @@ export interface LivePoint {
   // Optional fields.
   emergency?: boolean | null;
   message?: string | null;
+  // Speed in km/h.
   speed?: number | null;
   lowBattery?: boolean | null;
 }
 
-// Make a track for a list of points.
+// Makes a track for a list of points.
 // The track is in chronological order (oldest point first).
 export function makeLiveTrack(points: LivePoint[]): protos.LiveTrack {
   points.sort((a, b) => a.timestamp - b.timestamp);
@@ -74,6 +76,22 @@ export function makeLiveTrack(points: LivePoint[]): protos.LiveTrack {
       track.extra[index] = extra;
     }
   });
+
+  // Try to compute the speed for the last point when not provided.
+  const i1 = points.length - 1;
+
+  if (track.extra[i1]?.speed == null && points.length >= 2) {
+    const i2 = points.length - 2;
+    const seconds = track.timeSec[i1] - track.timeSec[i2];
+    if (seconds > 0 && seconds < 2 * 60) {
+      const distance = getDistance(
+        { lat: track.lat[i1], lon: track.lon[i1] },
+        { lat: track.lat[i2], lon: track.lon[i2] },
+      );
+      const speed = (3.6 * distance) / seconds;
+      track.extra[i1] = { ...track.extra[i1], speed };
+    }
+  }
 
   return track;
 }
@@ -181,6 +199,7 @@ export type TrackerLogs = Map<TrackerIds, TrackerLogEntry>;
 
 // Update all the trackers:
 // - Fetch the deltas,
+// - Fetch the ground elevation,
 // - Merge with existing tracks,
 // - Save to datastore.
 export async function updateTrackers(): Promise<TrackerLogs> {
