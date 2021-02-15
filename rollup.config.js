@@ -133,7 +133,7 @@ function buildFrontEnd(input, options = {}) {
       resolve(),
       cjs(),
       typescript({
-        lib: options.isWorker ? ['ES2020.Promise', 'WebWorker'] : ['ES2020.Promise', 'DOM'],
+        lib: options.isWorker ? ['ES2020', 'WebWorker'] : ['ES2020', 'DOM'],
         sourceMap: !prod,
       }),
       prod && terser({ output: { comments: false } }),
