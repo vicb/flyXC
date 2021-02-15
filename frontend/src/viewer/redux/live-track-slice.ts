@@ -131,6 +131,7 @@ export type LivePilot = {
   id: number;
   name: string;
   position: LatLonZ;
+  gndAlt?: number;
   timeSec: number;
   // Last message along the track.
   message?: {
@@ -152,6 +153,7 @@ export const getLivePilots = createSelector(liveTrackSelectors.selectAll, (track
         lon: track.lon[lastIndex],
         alt: track.alt[lastIndex],
       },
+      gndAlt: track.extra[lastIndex]?.gndAlt,
       timeSec: track.timeSec[lastIndex],
       isEmergency: isEmergencyTrack(track),
       message: getLastMessage(track),

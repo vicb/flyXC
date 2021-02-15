@@ -5,6 +5,7 @@ syntax = "proto3";
 message LiveExtra {
   optional string message = 1;
   optional uint32 speed = 2;
+  optional int32 gnd_alt = 3;
 }
 
 // All the points for a tracker.

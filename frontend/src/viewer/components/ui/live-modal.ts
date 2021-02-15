@@ -225,8 +225,12 @@ export class LiveModal extends connect(store)(LitElement) {
       ></i>
       <ion-label class="ion-text-wrap">
         <h2>${pilot.name}</h2>
-        <p>${sub}</p>
-        <p><i class="las la-arrow-up"></i>${formatUnit(pilot.position.alt, this.units.altitude)}</p>
+        <p>
+          ${sub} <i class="las la-arrows-alt-v"></i>${formatUnit(pilot.position.alt, this.units.altitude)}
+          ${pilot.gndAlt == null
+            ? ''
+            : `(${formatUnit(Math.max(pilot.position.alt - pilot.gndAlt, 0), this.units.altitude)} AGL)`}
+        </p>
         ${pilot.message
           ? html`<p>
               <i class="las la-sms"></i>“${pilot.message.text}”

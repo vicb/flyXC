@@ -17,6 +17,10 @@ export interface LiveExtra {
    * @generated from protobuf field: optional uint32 speed = 2;
    */
   speed?: number;
+  /**
+   * @generated from protobuf field: optional int32 gnd_alt = 3;
+   */
+  gndAlt?: number;
 }
 /**
  * All the points for a tracker.
@@ -142,6 +146,7 @@ class LiveExtra$Type extends MessageType<LiveExtra> {
     super('LiveExtra', [
       { no: 1, name: 'message', kind: 'scalar', opt: true, T: 9 /*ScalarType.STRING*/ },
       { no: 2, name: 'speed', kind: 'scalar', opt: true, T: 13 /*ScalarType.UINT32*/ },
+      { no: 3, name: 'gnd_alt', kind: 'scalar', opt: true, T: 5 /*ScalarType.INT32*/ },
     ]);
   }
 }

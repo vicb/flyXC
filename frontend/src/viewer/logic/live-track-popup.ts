@@ -25,11 +25,14 @@ export function popupContent(
   const flags = track.flags[index];
   const alt = track.alt[index];
   const speed = track.extra[index]?.speed;
+  const gndAlt = track.extra[index]?.gndAlt;
   const date = new Date(track.timeSec[index] * 1000);
 
   const content: string[] = [
     `<i class="las la-clock"></i> ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`,
-    `<i class="las la-arrow-up"></i> ${formatUnit(alt, units.altitude)}`,
+    `<i class="las la-arrows-alt-v"></i> ${formatUnit(alt, units.altitude)} ${
+      gndAlt == null ? '' : `(${formatUnit(Math.max(0, alt - gndAlt), units.altitude)} AGL)`
+    }`,
   ];
   if (speed != null) {
     content.push(`<i class="las la-tachometer-alt"></i> ${formatUnit(speed, units.speed)}`);

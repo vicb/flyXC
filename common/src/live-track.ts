@@ -293,6 +293,7 @@ export function mergeLiveTracks(track1: LiveTrack, track2: LiveTrack): LiveTrack
           const toExtra = toTrack.extra[toIndex];
           toExtra.speed = toExtra.speed ?? extra2.speed;
           toExtra.message = toExtra.message ?? extra2.message;
+          toExtra.gndAlt = toExtra.gndAlt ?? extra2.gndAlt;
         } else {
           toTrack.extra[toIndex] = extra2;
         }

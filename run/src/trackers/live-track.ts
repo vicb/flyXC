@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+const request = require('request-zero');
+
 import * as protos from 'flyxc/common/protos/live-track';
 import { idFromEntity } from 'flyxc/common/src/datastore';
 import {
@@ -11,10 +14,12 @@ import {
 } from 'flyxc/common/src/live-track';
 import { LIVE_TRACK_TABLE, LiveTrackEntity, TrackerEntity } from 'flyxc/common/src/live-track-entity';
 import { round } from 'flyxc/common/src/math';
+import { LatLon } from 'flyxc/common/src/runtime-track';
 import { getDistance } from 'geolib';
 
 import { Datastore, Key } from '@google-cloud/datastore';
 
+import { getElevationUrl, parseElevationResponse } from '../elevation/arcgis';
 import * as flyme from './flyme';
 import * as inreach from './inreach';
 import * as skylines from './skylines';
@@ -228,6 +233,8 @@ export async function updateTrackers(): Promise<TrackerLogs> {
 
   console.log(`Updates fetched in ${Math.round((Date.now() - start) / 1000)}s`);
 
+  await fetchLastFixGroundAltitude(updates);
+
   const ids = [...idSet];
   const startSave = Date.now();
   const savePromises: Promise<boolean>[] = [];
@@ -277,6 +284,50 @@ export async function updateTrackers(): Promise<TrackerLogs> {
 
   console.log(`Trackers updated in ${Math.round((Date.now() - startSave) / 1000)}s`);
   return logs;
+}
+
+// Fetches the elevation for the last fix of each update.
+//
+// We mostly care about the AGL of the last fix.
+//
+// Note: the implementation relies on a constant map iteration order (that is insertion order).
+async function fetchLastFixGroundAltitude(updates: TrackerUpdate[]): Promise<void> {
+  const points: LatLon[] = [];
+
+  for (const tracker of updates) {
+    for (const trackUpdate of tracker.tracks.values()) {
+      const track = trackUpdate.track;
+      if (track && track.lat.length > 0) {
+        const index = track.lat.length - 1;
+        points.push({ lat: track.lat[index], lon: track.lon[index] });
+      }
+    }
+  }
+
+  try {
+    const url = getElevationUrl(points);
+    const response = await request(url, { maxRetry: 3, retryDelay: 200 });
+    if (response.code == 200) {
+      const elevations = parseElevationResponse(JSON.parse(response.body), points);
+      let elevationIndex = 0;
+      for (const tracker of updates) {
+        for (const trackUpdate of tracker.tracks.values()) {
+          if (elevationIndex < elevations.length) {
+            const track = trackUpdate.track;
+            if (track && track.lat.length > 0) {
+              const index = track.lat.length - 1;
+              track.extra[index] = { ...track.extra[index], gndAlt: elevations[elevationIndex] };
+              elevationIndex++;
+            }
+          }
+        }
+      }
+    } else {
+      throw new Error(`HTTP Status = ${response.code} for ${url}`);
+    }
+  } catch (e) {
+    console.error(`[ESRI elevation] ${e}`);
+  }
 }
 
 // Updates the tracker in a transaction.

@@ -570,7 +570,7 @@ describe('mergeLiveTracks', () => {
         extra: {
           0: { speed: 2 },
           1: { message: 'olleh' },
-          3: { message: '2', speed: 2 },
+          3: { message: '2', speed: 2, gndAlt: 100 },
         },
       };
 
@@ -589,7 +589,7 @@ describe('mergeLiveTracks', () => {
           0: { message: 'hello', speed: 2 },
           1: { message: 'olleh', speed: 1 },
           2: { message: '1', speed: 1 },
-          3: { message: '2', speed: 2 },
+          3: { message: '2', speed: 2, gndAlt: 100 },
         },
       });
     });
@@ -629,7 +629,7 @@ describe('differential', () => {
       timeSec: [1, 2, 12, 112],
       flags: [1, 2, 10, 20],
       extra: {
-        1: { message: 'hello', speed: 100 },
+        1: { message: 'hello', speed: 100, gndAlt: 123 },
       },
     };
 
@@ -639,6 +639,7 @@ describe('differential', () => {
         '1': {
           message: 'hello',
           speed: 100,
+          gndAlt: 123,
         },
       },
       id: 321,
@@ -657,6 +658,7 @@ describe('differential', () => {
         '1': {
           message: 'hello',
           speed: 100,
+          gndAlt: 321,
         },
       },
       id: 321,
@@ -676,7 +678,7 @@ describe('differential', () => {
       timeSec: [1, 2, 12, 112],
       flags: [1, 2, 10, 20],
       extra: {
-        1: { message: 'hello', speed: 100 },
+        1: { message: 'hello', speed: 100, gndAlt: 321 },
       },
     });
   });
