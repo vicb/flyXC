@@ -132,6 +132,7 @@ export type LivePilot = {
   name: string;
   position: LatLonZ;
   gndAlt?: number;
+  speed?: number;
   timeSec: number;
   // Last message along the track.
   message?: {
@@ -145,6 +146,7 @@ export type LivePilot = {
 export const getLivePilots = createSelector(liveTrackSelectors.selectAll, (tracks): LivePilot[] => {
   return tracks.map((track) => {
     const lastIndex = track.timeSec.length - 1;
+    const extra = track.extra[lastIndex];
     return {
       id: track.id as number,
       name: track.name as string,
@@ -153,7 +155,8 @@ export const getLivePilots = createSelector(liveTrackSelectors.selectAll, (track
         lon: track.lon[lastIndex],
         alt: track.alt[lastIndex],
       },
-      gndAlt: track.extra[lastIndex]?.gndAlt,
+      gndAlt: extra?.gndAlt,
+      speed: extra?.speed,
       timeSec: track.timeSec[lastIndex],
       isEmergency: isEmergencyTrack(track),
       message: getLastMessage(track),

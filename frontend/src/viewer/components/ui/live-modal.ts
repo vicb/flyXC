@@ -168,7 +168,7 @@ export class LiveModal extends connect(store)(LitElement) {
     if (this.orderBy == OrderBy.Time) {
       return pilots.map((pilot: LivePilot) => {
         const note = `-${formatDurationMin((nowSec - pilot.timeSec) / 60)}`;
-        const sub = html`<i class="las la-ruler"></i>${formatDistance(
+        const sub = html`<i class="la la-ruler"></i>${formatDistance(
             distances.get(pilot.id) as number,
             this.units.distance,
           )}`;
@@ -182,7 +182,7 @@ export class LiveModal extends connect(store)(LitElement) {
 
     pilots.forEach((pilot) => {
       const note = formatDistance(distances.get(pilot.id) as number, this.units.distance);
-      const sub = html`<i class="las la-clock"></i>-${formatDurationMin((nowSec - pilot.timeSec) / 60)}`;
+      const sub = html`<i class="la la-clock"></i>-${formatDurationMin((nowSec - pilot.timeSec) / 60)}`;
       const item = this.getPilotItem(pilot, note, sub, nowSec);
 
       if (pilot.timeSec < recentTimeSec) {
@@ -226,10 +226,18 @@ export class LiveModal extends connect(store)(LitElement) {
       <ion-label class="ion-text-wrap">
         <h2>${pilot.name}</h2>
         <p>
-          ${sub} <i class="las la-arrows-alt-v"></i>${formatUnit(pilot.position.alt, this.units.altitude)}
-          ${pilot.gndAlt == null
+          <span class="nobr">${sub}</span>
+          <span class="nobr">
+            <i class="la la-arrows-alt-v"></i>${formatUnit(pilot.position.alt, this.units.altitude)}
+            ${pilot.gndAlt == null
+              ? ''
+              : `(${formatUnit(Math.max(pilot.position.alt - pilot.gndAlt, 0), this.units.altitude)} AGL)`}
+          </span>
+          ${pilot.speed == null
             ? ''
-            : `(${formatUnit(Math.max(pilot.position.alt - pilot.gndAlt, 0), this.units.altitude)} AGL)`}
+            : html`<span class="nobr">
+                <i class="la la-tachometer-alt"></i> ${formatUnit(pilot.speed, this.units.speed)}
+              </span>`}
         </p>
         ${pilot.message
           ? html`<p>

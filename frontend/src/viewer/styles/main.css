@@ -76,3 +76,5 @@ chart-element.has-tracks {
 .esri-ui-corner-container {
   inset: 5px 5px 20px !important;
 }
+
+.nobr { white-space: nowrap }
