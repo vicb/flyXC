@@ -4,7 +4,7 @@ import { customElement, html, internalProperty, LitElement, TemplateResult } fro
 import { connect } from 'pwa-helpers';
 
 import * as msg from '../../logic/messages';
-import { DistanceUnit, formatDistance, formatDurationMin } from '../../logic/units';
+import { formatDistance, formatDurationMin, formatUnit, Units } from '../../logic/units';
 import { getLivePilots, LivePilot, setCenterOnLocation, setCurrentLiveId } from '../../redux/live-track-slice';
 import { setCurrentLocation } from '../../redux/location-slice';
 import { RootState, store } from '../../redux/store';
@@ -29,7 +29,7 @@ export class LiveModal extends connect(store)(LitElement) {
   @internalProperty()
   private orderBy = OrderBy.Distance;
   @internalProperty()
-  private distanceUnit!: DistanceUnit;
+  private units!: Units;
   @internalProperty()
   private centerOnLocation = false;
   @internalProperty()
@@ -40,7 +40,7 @@ export class LiveModal extends connect(store)(LitElement) {
   stateChanged(state: RootState): void {
     this.pilots = getLivePilots(state);
     this.location = state.location.location;
-    this.distanceUnit = state.units.distance;
+    this.units = state.units;
     this.centerOnLocation = state.liveTrack.centerOnLocation;
   }
 
@@ -166,26 +166,36 @@ export class LiveModal extends connect(store)(LitElement) {
     pilots = pilots.slice(0, MAX_PILOTS - 1);
 
     if (this.orderBy == OrderBy.Time) {
-      return pilots.map((pilot: LivePilot) => this.getPilotItem(pilot, distances.get(pilot.id) as number, nowSec));
+      return pilots.map((pilot: LivePilot) => {
+        const note = `-${formatDurationMin((nowSec - pilot.timeSec) / 60)}`;
+        const sub = html`<i class="las la-ruler"></i>${formatDistance(
+            distances.get(pilot.id) as number,
+            this.units.distance,
+          )}`;
+        return this.getPilotItem(pilot, note, sub, nowSec);
+      });
     }
 
-    const recent: LivePilot[] = [];
-    const old: LivePilot[] = [];
+    const recent: TemplateResult[] = [];
+    const old: TemplateResult[] = [];
     const recentTimeSec = nowSec - RECENT_PILOTS_HOUR * 3600;
 
     pilots.forEach((pilot) => {
+      const note = formatDistance(distances.get(pilot.id) as number, this.units.distance);
+      const sub = html`<i class="las la-clock"></i>-${formatDurationMin((nowSec - pilot.timeSec) / 60)}`;
+      const item = this.getPilotItem(pilot, note, sub, nowSec);
+
       if (pilot.timeSec < recentTimeSec) {
-        old.push(pilot);
+        old.push(item);
       } else {
-        recent.push(pilot);
+        recent.push(item);
       }
     });
 
     const parts: TemplateResult[] = [];
 
     if (recent.length > 0) {
-      parts.push(html`<ion-item-divider class="divider" sticky color="light">Recent</ion-item-divider>`);
-      parts.push(...recent.map((pilot) => this.getPilotItem(pilot, distances.get(pilot.id) as number, nowSec)));
+      parts.push(html`<ion-item-divider class="divider" sticky color="light">Recent</ion-item-divider>`, ...recent);
     }
 
     if (old.length > 0) {
@@ -193,16 +203,15 @@ export class LiveModal extends connect(store)(LitElement) {
         html`<ion-item-divider class="divider" sticky color="light"
           >Older than ${RECENT_PILOTS_HOUR}h</ion-item-divider
         >`,
+        ...old,
       );
-      parts.push(...old.map((pilot) => this.getPilotItem(pilot, distances.get(pilot.id) as number, nowSec)));
     }
 
     return parts;
   }
 
   // Returns the template for a single pilot.
-  private getPilotItem(pilot: LivePilot, distance: number, nowSec: number): TemplateResult {
-    const ageMin = (nowSec - pilot.timeSec) / 60;
+  private getPilotItem(pilot: LivePilot, note: string, sub: string | TemplateResult, nowSec: number): TemplateResult {
     return html`<ion-item
       button
       @click=${() => this.handleFlyTo(pilot)}
@@ -216,6 +225,8 @@ export class LiveModal extends connect(store)(LitElement) {
       ></i>
       <ion-label class="ion-text-wrap">
         <h2>${pilot.name}</h2>
+        <p>${sub}</p>
+        <p><i class="las la-arrow-up"></i>${formatUnit(pilot.position.alt, this.units.altitude)}</p>
         ${pilot.message
           ? html`<p>
               <i class="las la-sms"></i>“${pilot.message.text}”
@@ -224,8 +235,7 @@ export class LiveModal extends connect(store)(LitElement) {
           : null}
       </ion-label>
       <span slot="end">
-        <ion-chip color="secondary">-${formatDurationMin(ageMin)}</ion-chip>
-        <ion-chip color="primary" style="margin-left: 5px">${formatDistance(distance, this.distanceUnit)}</ion-chip>
+        <ion-note color="primary" style="margin-left: 5px">${note}</ion-note>
       </span>
     </ion-item>`;
   }
