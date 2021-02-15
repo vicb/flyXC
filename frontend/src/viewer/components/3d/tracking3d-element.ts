@@ -284,7 +284,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         point.z += MSG_MARKER_HEIGHT;
         graphic.set('geometry', point);
         this.txtSymbol.symbolLayers[0].text = label;
-        this.txtSymbol.symbolLayers[0].material.color = isActive ? 'darkred' : 'black';
+        this.txtSymbol.symbolLayers[0].material.color = isActive ? '#BF1515' : 'black';
         graphic.set('symbol', this.txtSymbol);
         graphic.set('attributes', { liveTrackId: id, liveTrackIndex: index });
         markers.push(graphic);

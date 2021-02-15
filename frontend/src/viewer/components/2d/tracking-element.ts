@@ -177,7 +177,7 @@ export class TrackingElement extends connect(store)(LitElement) {
 
     if (isActive) {
       opacity = 0.9;
-      labelColor = 'darkred';
+      labelColor = '#BF1515';
       zIndex = 20;
     }
 
