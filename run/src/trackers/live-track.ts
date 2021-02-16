@@ -70,7 +70,7 @@ export function makeLiveTrack(points: LivePoint[]): protos.LiveTrack {
     let hasExtra = false;
     const extra: protos.LiveExtra = {};
     if (point.speed != null) {
-      extra.speed = round(point.speed, 1);
+      extra.speed = Math.round(Math.max(point.speed, 0));
       hasExtra = true;
     }
     if (point.message != null) {
@@ -93,7 +93,7 @@ export function makeLiveTrack(points: LivePoint[]): protos.LiveTrack {
         { lat: track.lat[i1], lon: track.lon[i1] },
         { lat: track.lat[i2], lon: track.lon[i2] },
       );
-      const speed = (3.6 * distance) / seconds;
+      const speed = Math.round(Math.max((3.6 * distance) / seconds, 0));
       track.extra[i1] = { ...track.extra[i1], speed };
     }
   }

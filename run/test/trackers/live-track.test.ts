@@ -59,13 +59,13 @@ describe('makeLiveTrack', () => {
     expect(track.extra).toEqual({});
   });
 
-  it('should add extra for speed with a single digit', () => {
+  it('should add extra for speed as uint32', () => {
     const track = makeLiveTrack([
       { device: TrackerIds.Inreach, lat: 10, lon: -12, alt: 100, timestamp: 1000000, valid: false },
       { device: TrackerIds.Inreach, lat: 10, lon: -12, alt: 100, timestamp: 2000000, valid: false, speed: 10.123 },
     ]);
 
-    expect(track.extra).toEqual({ 1: { speed: 10.1 } });
+    expect(track.extra).toEqual({ 1: { speed: 10 } });
   });
 
   it('should add extra for messages', () => {
@@ -77,17 +77,19 @@ describe('makeLiveTrack', () => {
     expect(track.extra).toEqual({ 1: { message: 'hello' } });
   });
 
-  it('should compute the speed for the last point', () => {
+  it('should compute the speed for the last point as an uint32', () => {
     const start = { lat: 0, lon: 0 };
-    const end = computeDestinationPoint(start, 10000, 0);
+    const end = computeDestinationPoint(start, 1000, 0);
 
     const track = makeLiveTrack([
       { device: TrackerIds.Inreach, lat: start.lat, lon: start.lon, alt: 100, timestamp: 1000000, valid: false },
       { device: TrackerIds.Inreach, lat: end.latitude, lon: end.longitude, alt: 100, timestamp: 1060000, valid: false },
     ]);
 
-    expect(track.extra[1].speed).toBeGreaterThan(59);
-    expect(track.extra[1].speed).toBeGreaterThan(61);
+    const speed = track.extra[1].speed as number;
+    expect(speed).toBeGreaterThan(58);
+    expect(speed).toBeLessThan(62);
+    expect(Math.round(speed)).toEqual(speed);
   });
 
   it('should encode valid', () => {
