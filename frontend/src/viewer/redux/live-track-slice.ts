@@ -87,7 +87,7 @@ const trackSlice = createSlice({
   },
 });
 
-const trackWorker = new Worker('js/workers/live-track.js');
+const trackWorker = new Worker('/js/workers/live-track.js');
 trackWorker.onmessage = (msg: MessageEvent<TrackWorker.Response>) => {
   store.dispatch(trackSlice.actions.setTracks(msg.data.tracks));
   store.dispatch(trackSlice.actions.setGeojson(msg.data.geojson));
@@ -97,7 +97,7 @@ const updateTrackers = createAsyncThunk('liveTrack/fetch', async (_: undefined, 
   const fetchTimestamp = Date.now();
   try {
     const time = Math.round(((api.getState() as RootState).liveTrack.timestamp ?? 0) / 1000);
-    const response = await fetch(`_livetracks?s=${time}`);
+    const response = await fetch(`/_livetracks?s=${time}`);
     if (response.status == 200) {
       const tracks = (api.getState() as RootState).liveTrack.tracks.entities;
       trackWorker.postMessage({

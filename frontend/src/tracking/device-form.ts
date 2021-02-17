@@ -188,7 +188,7 @@ export class DeviceForm extends LitElement {
         let response: any;
 
         try {
-          response = await fetch('_account', {
+          response = await fetch('/_account', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {

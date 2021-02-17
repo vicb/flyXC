@@ -75,7 +75,7 @@ const fetchPendingServerMetadata = createAsyncThunk(
     api.dispatch(trackSlice.actions.setFetchingMetadata(false));
     if (groupIds.length) {
       try {
-        const response = await fetch(`_metadata?ids=${groupIds.join(',')}`);
+        const response = await fetch(`/_metadata?ids=${groupIds.join(',')}`);
         // The server returns a 204 (No content) status code when the metadata is not ready.
         if (response.status == 200) {
           output = await response.arrayBuffer();
@@ -99,7 +99,7 @@ let trackWorker: Worker | undefined;
 
 function getTrackWorker(dispatch: AppDispatch): Worker {
   if (!trackWorker) {
-    trackWorker = new Worker('js/workers/track.js');
+    trackWorker = new Worker('/js/workers/track.js');
     trackWorker.onmessage = (msg: MessageEvent<TrackWorker.Response>) => {
       dispatch(trackSlice.actions.patchTrack(msg.data));
     };
