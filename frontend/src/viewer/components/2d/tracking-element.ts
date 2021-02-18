@@ -119,7 +119,15 @@ export class TrackingElement extends connect(store)(LitElement) {
 
     map.data.addListener('click', (event) => {
       const feature: google.maps.Data.Feature | undefined = event.feature;
-      if (feature?.getGeometry().getType() == 'Point' && this.units) {
+      if (!feature) {
+        return;
+      }
+      const type = feature.getGeometry().getType();
+      if (type === 'LineString') {
+        const id = Number(feature.getProperty('id') ?? 0);
+        store.dispatch(setCurrentLiveId(id));
+        this.setMapStyle(this.gMap);
+      } else if (type === 'Point' && this.units) {
         const id = Number(feature.getProperty('id') ?? 0);
         const index = Number(feature.getProperty('index') ?? 0);
         const popup = popupContent(id, index, this.units);
@@ -193,7 +201,7 @@ export class TrackingElement extends connect(store)(LitElement) {
           color: labelColor,
           text: track.name + '\n-' + formatDurationMin(ageMin),
           className: 'gm-label-outline',
-        } as any;
+        };
       }
     }
 

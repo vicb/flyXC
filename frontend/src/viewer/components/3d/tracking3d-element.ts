@@ -196,6 +196,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       this.trackSymbol.symbolLayers[0].material.color = rgba;
       this.trackSymbol.symbolLayers[0].size = hasSelectedStyle ? 3 : hasRecentStyle ? 2 : 1;
       graphic.set('symbol', this.trackSymbol);
+      graphic.set('attributes', { liveTrackId: id });
       tracks.push(graphic);
       this.trackSymbol.symbolLayers[0].material.color = [50, 50, 50, hasSelectedStyle || hasRecentStyle ? 0.6 : 0.2];
       shadowGraphic.set('symbol', this.trackSymbol);
@@ -299,26 +300,29 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   // Display the popup when a Graphic gets clicked.
   private handleClick(graphic: Graphic, view: SceneView) {
     const attr = graphic.attributes;
-    if (attr.liveTrackId != null && attr.liveTrackIndex != null && this.units) {
-      const index = attr.liveTrackIndex;
-      const popup = popupContent(attr.liveTrackId, index, this.units);
-      if (!popup) {
-        return;
-      }
+    if (attr.liveTrackId != null) {
       store.dispatch(setCurrentLiveId(attr.liveTrackId));
+      if (attr.liveTrackIndex != null && this.units) {
+        // Style for markers.
+        const index = attr.liveTrackIndex;
+        const popup = popupContent(attr.liveTrackId, index, this.units);
+        if (!popup) {
+          return;
+        }
 
-      const track = liveTrackSelectors.selectById(store.getState(), attr.liveTrackId) as LiveTrack;
+        const track = liveTrackSelectors.selectById(store.getState(), attr.liveTrackId) as LiveTrack;
 
-      this.configurePopup(view);
-      view.popup.open({
-        location: {
-          latitude: track.lat[index],
-          longitude: track.lon[index],
-          z: track.alt[index] * this.multiplier + MSG_MARKER_HEIGHT,
-        } as any,
-        title: popup.title,
-        content: popup.content,
-      });
+        this.configurePopup(view);
+        view.popup.open({
+          location: {
+            latitude: track.lat[index],
+            longitude: track.lon[index],
+            z: track.alt[index] * this.multiplier + MSG_MARKER_HEIGHT,
+          } as any,
+          title: popup.title,
+          content: popup.content,
+        });
+      }
     }
   }
 
