@@ -16,6 +16,8 @@ import {
 
 const REFRESH_MIN = 15;
 
+const GQL_URL = `https://console.cloud.google.com/datastore/entities;kind=LiveTrack;ns=__$DEFAULT$__/query/gql;gql=SELECT%2520*%2520FROM%2520LiveTrack%2520WHERE%2520{name}.enabled%253Dtrue?project=fly-xc`;
+
 const ICON_SVG = (
   count = 0,
 ) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
@@ -271,7 +273,7 @@ export class DashTracker extends LitElement {
         </div>
         <div class="panel-block">
           <ul>
-            <li>Trackers: ${number}</li>
+            <li><a href=${GQL_URL.replace('{name}', this.name)} target="_blank">Trackers: ${number}</a></li>
             <li>Fetches: ${fetchTimes.join(', ')}</li>
             <li>Duration: ${durations.join(', ')}</li>
             <li>Devices: ${numDevices.join(', ')}</li>
