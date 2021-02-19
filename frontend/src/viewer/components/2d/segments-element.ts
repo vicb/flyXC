@@ -7,11 +7,7 @@ export class SegmentsElement extends LitElement {
 
   // Actual type is google.maps.Map.
   @property({ attribute: false })
-  map: any;
-
-  private get gMap(): google.maps.Map {
-    return this.map;
-  }
+  map!: google.maps.Map;
 
   private rendered = false;
 
@@ -24,7 +20,7 @@ export class SegmentsElement extends LitElement {
       paths.forEach((path, i) => {
         new google.maps.Polyline({
           clickable: false,
-          map: this.gMap,
+          map: this.map,
           path,
           strokeColor: colors[i] ? '#' + colors[i] : 'yellow',
           strokeWeight: 3,
@@ -36,7 +32,7 @@ export class SegmentsElement extends LitElement {
   }
 
   protected shouldUpdate(): boolean {
-    if (!this.rendered && this.gMap) {
+    if (!this.rendered && this.map) {
       if (this.query) {
         this.addTask();
         this.rendered = true;

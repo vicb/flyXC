@@ -31,10 +31,7 @@ export class AirwaysOverlay extends WMTSOverlayElement {
 @customElement('airways-element')
 export class AirwaysElement extends connect(store)(LitElement) {
   @property({ attribute: false })
-  map: any;
-  private get gMap(): google.maps.Map {
-    return this.map;
-  }
+  map!: google.maps.Map;
 
   @internalProperty()
   opacity = 100;
@@ -52,12 +49,12 @@ export class AirwaysElement extends connect(store)(LitElement) {
     if (this.overlay) {
       if (changedProperties.has('show')) {
         if (this.show) {
-          this.gMap.overlayMapTypes.push(this.overlay);
+          this.map.overlayMapTypes.push(this.overlay);
           this.overlay.setOpacity(this.opacity / 100);
         } else {
-          for (let i = this.gMap.overlayMapTypes.getLength() - 1; i >= 0; --i) {
-            if (this.gMap.overlayMapTypes.getAt(i) == this.overlay) {
-              this.gMap.overlayMapTypes.removeAt(i);
+          for (let i = this.map.overlayMapTypes.getLength() - 1; i >= 0; --i) {
+            if (this.map.overlayMapTypes.getAt(i) == this.overlay) {
+              this.map.overlayMapTypes.removeAt(i);
               break;
             }
           }
@@ -75,7 +72,7 @@ export class AirwaysElement extends connect(store)(LitElement) {
   }
 
   protected render(): TemplateResult {
-    return html`<airways-overlay @overlayready=${this.overlayReady} .map=${this.gMap}></airways-overlay>`;
+    return html`<airways-overlay @overlayready=${this.overlayReady} .map=${this.map}></airways-overlay>`;
   }
 
   private overlayReady(e: CustomEvent): void {

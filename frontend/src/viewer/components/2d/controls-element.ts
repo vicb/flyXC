@@ -27,11 +27,7 @@ import { RootState, store } from '../../redux/store';
 export class ControlsElement extends connect(store)(LitElement) {
   // Actual type is google.maps.Map.
   @property({ attribute: false })
-  map: any;
-
-  private get gMap(): google.maps.Map {
-    return this.map;
-  }
+  map!: google.maps.Map;
 
   @internalProperty()
   private timeSec = 0;
@@ -65,10 +61,10 @@ export class ControlsElement extends connect(store)(LitElement) {
   protected render(): TemplateResult {
     return html`<div id="ct">
       <menu-ctrl-element></menu-ctrl-element>
-      <airspace-element .map=${this.gMap}></airspace-element>
-      <airways-element .map=${this.gMap}></airways-element>
-      <path-element .map=${this.gMap}></path-element>
-      <tracking-element .map=${this.gMap}></tracking-element>
+      <airspace-element .map=${this.map}></airspace-element>
+      <airways-element .map=${this.map}></airways-element>
+      <path-element .map=${this.map}></path-element>
+      <tracking-element .map=${this.map}></tracking-element>
       ${this.track?.name
         ? html`
             <name-ctrl-element .name=${this.track.name} .color=${this.color} .track=${this.track}></name-ctrl-element>

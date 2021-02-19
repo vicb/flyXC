@@ -36,11 +36,7 @@ const CIRCUIT_SHORT_NAME = {
 export class PathElement extends connect(store)(LitElement) {
   // Actual type is google.maps.Map.
   @property({ attribute: false })
-  map: any;
-
-  private get gMap(): google.maps.Map {
-    return this.map;
-  }
+  map!: google.maps.Map;
 
   @internalProperty()
   private enabled = false;
@@ -72,7 +68,7 @@ export class PathElement extends connect(store)(LitElement) {
   shouldUpdate(changedProperties: PropertyValues): boolean {
     if (changedProperties.has('enabled')) {
       if (this.enabled) {
-        this.createPlannerElement(this.gMap);
+        this.createPlannerElement(this.map);
         this.line = this.createLine();
         this.updateLineFromState();
         if (this.encodedRoute.length > 0) {
@@ -80,7 +76,7 @@ export class PathElement extends connect(store)(LitElement) {
           this.line.getPath().forEach((p) => {
             bounds.extend(p);
           });
-          this.gMap.fitBounds(bounds);
+          this.map.fitBounds(bounds);
         }
       } else {
         this.destroy();
@@ -125,8 +121,8 @@ export class PathElement extends connect(store)(LitElement) {
     if (this.line) {
       const path = this.line.getPath();
       path.clear();
-      const center = this.gMap.getCenter();
-      const mapViewSpan = (this.gMap.getBounds() as google.maps.LatLngBounds).toSpan();
+      const center = this.map.getCenter();
+      const mapViewSpan = (this.map.getBounds() as google.maps.LatLngBounds).toSpan();
       path.push(new google.maps.LatLng(center.lat(), center.lng() + mapViewSpan.lng() / 5));
       path.push(new google.maps.LatLng(center.lat(), center.lng() - mapViewSpan.lng() / 5));
     }
@@ -139,7 +135,7 @@ export class PathElement extends connect(store)(LitElement) {
   private createLine(): google.maps.Polyline {
     const line = new google.maps.Polyline({
       editable: true,
-      map: this.gMap,
+      map: this.map,
       strokeColor: 'black',
       strokeWeight: 1,
       path: new google.maps.MVCArray(),
@@ -168,10 +164,10 @@ export class PathElement extends connect(store)(LitElement) {
         path.getLength() > 2 && path.removeAt(event.vertex);
       }
     });
-    this.onPointAddeded = google.maps.event.addListener(this.gMap, 'rightclick', (e: google.maps.MapMouseEvent) =>
+    this.onPointAddeded = google.maps.event.addListener(this.map, 'rightclick', (e: google.maps.MapMouseEvent) =>
       this.appendToPath(e.latLng),
     );
-    this.onBoundsChanged = google.maps.event.addListener(this.gMap, 'bounds_changed', () => {
+    this.onBoundsChanged = google.maps.event.addListener(this.map, 'bounds_changed', () => {
       if (this.enabled && this.encodedRoute.length == 0) {
         this.updateLineFromState();
       }
@@ -217,7 +213,7 @@ export class PathElement extends connect(store)(LitElement) {
       this, (this.optimizedLine = new google.maps.Polyline());
     }
     this.optimizedLine.setOptions({
-      map: this.gMap,
+      map: this.map,
       path: optimizedPath,
       strokeColor: ROUTE_STROKE_COLORS[score.circuit],
       strokeOpacity: 0.8,
@@ -235,7 +231,7 @@ export class PathElement extends connect(store)(LitElement) {
       this.closingSector.center = center;
       this.closingSector.radius = score.closingRadius;
       this.closingSector.update();
-      this.closingSector.setMap(this.gMap);
+      this.closingSector.setMap(this.map);
     } else {
       this.closingSector.setMap(null);
     }
@@ -247,7 +243,7 @@ export class PathElement extends connect(store)(LitElement) {
     if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {
       const faiPoints = score.indexes.slice(1, 4).map((i) => points[i]);
       this.faiSectors.update(faiPoints);
-      this.faiSectors.setMap(this.gMap);
+      this.faiSectors.setMap(this.map);
     } else {
       this.faiSectors.setMap(null);
     }

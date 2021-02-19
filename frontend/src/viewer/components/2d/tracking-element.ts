@@ -55,12 +55,8 @@ const msgSvg = (color: string, opacity: number): string =>
 @customElement('tracking-element')
 export class TrackingElement extends connect(store)(LitElement) {
   // Actual type: google.maps.Map.
-  @property()
-  map: any;
-
-  private get gMap(): google.maps.Map {
-    return this.map;
-  }
+  @property({ attribute: false })
+  map!: google.maps.Map;
 
   @internalProperty()
   private displayLabels = true;
@@ -85,20 +81,20 @@ export class TrackingElement extends connect(store)(LitElement) {
     ORIGIN_ARROW = new google.maps.Point(9, 36);
     ANCHOR_MSG = new google.maps.Point(7, 9);
     ORIGIN_MSG = new google.maps.Point(0, 22);
-    this.setMapStyle(this.gMap);
-    this.setupInfoWindow(this.gMap);
+    this.setMapStyle(this.map);
+    this.setupInfoWindow(this.map);
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
     if (changedProps.has('geojson')) {
       const features = this.features;
-      this.features = this.gMap.data.addGeoJson(this.geojson) || [];
-      features.forEach((f) => this.gMap.data.remove(f));
+      this.features = this.map.data.addGeoJson(this.geojson) || [];
+      features.forEach((f) => this.map.data.remove(f));
       changedProps.delete('geojson');
     }
     // Update the style when related props change.
     if (changedProps.has('displayLabels') || changedProps.has('currentId') || changedProps.has('numTracks')) {
-      this.setMapStyle(this.gMap);
+      this.setMapStyle(this.map);
     }
     return super.shouldUpdate(changedProps);
   }
@@ -116,7 +112,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     this.info.close();
     this.info.addListener('closeclick', () => {
       store.dispatch(setCurrentLiveId(undefined));
-      this.setMapStyle(this.gMap);
+      this.setMapStyle(this.map);
     });
 
     map.data.addListener('click', (event) => {
@@ -128,7 +124,7 @@ export class TrackingElement extends connect(store)(LitElement) {
       if (type === 'LineString') {
         const id = Number(feature.getProperty('id') ?? 0);
         store.dispatch(setCurrentLiveId(id));
-        this.setMapStyle(this.gMap);
+        this.setMapStyle(this.map);
       } else if (type === 'Point' && this.units) {
         const id = Number(feature.getProperty('id') ?? 0);
         const index = Number(feature.getProperty('index') ?? 0);
@@ -143,7 +139,7 @@ export class TrackingElement extends connect(store)(LitElement) {
           this.info.setPosition(event.latLng);
           this.info.open(map);
           store.dispatch(setCurrentLiveId(id));
-          this.setMapStyle(this.gMap);
+          this.setMapStyle(this.map);
         }
       }
     });

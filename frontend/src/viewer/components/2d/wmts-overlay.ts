@@ -5,11 +5,7 @@ import { html as litHtml, render as litRender, TemplateResult } from 'lit-html';
 export abstract class WMTSOverlayElement extends LitElement {
   // Actual type: google.maps.Map.
   @property({ attribute: false })
-  map: any;
-
-  protected get gMap(): google.maps.Map {
-    return this.map;
-  }
+  map!: google.maps.Map;
 
   protected mapBounds?: google.maps.LatLngBounds[];
   protected copyrightEl?: HTMLElement;
@@ -23,7 +19,7 @@ export abstract class WMTSOverlayElement extends LitElement {
 
   shouldUpdate(): boolean {
     if (this.map && !this.registered) {
-      this.init(this.gMap);
+      this.init(this.map);
       this.registered = true;
       this.dispatchEvent(new CustomEvent('overlayready', { detail: { mapType: () => this.getMapType() } }));
     }
@@ -83,7 +79,7 @@ export abstract class WMTSOverlayElement extends LitElement {
       this.copyrightEl,
     );
     this.copyrightEl.hidden = true;
-    this.gMap.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(this.copyrightEl);
+    this.map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(this.copyrightEl);
   }
 
   protected isTileVisible(coord: google.maps.Point, zoom: number): boolean {
@@ -95,7 +91,7 @@ export abstract class WMTSOverlayElement extends LitElement {
     const w = (256 * (coord.x + 1)) / numTiles;
     const s = (256 * (coord.y + 1)) / numTiles;
     const n = (256 * coord.y) / numTiles;
-    const projection = this.gMap.getProjection() as google.maps.Projection;
+    const projection = this.map.getProjection() as google.maps.Projection;
     const tileBounds = new google.maps.LatLngBounds(
       projection.fromPointToLatLng(new google.maps.Point(w, s)),
       projection.fromPointToLatLng(new google.maps.Point(e, n)),
@@ -117,7 +113,7 @@ export abstract class WMTSMapTypeElement extends WMTSOverlayElement {
     name = (this.constructor as any).mapTypeId,
     mapType: google.maps.ImageMapType = this.getMapType(),
   ): void {
-    this.gMap.mapTypes.set(name, mapType);
+    this.map.mapTypes.set(name, mapType);
   }
 
   protected visibilityHandler(mapTypeId: string): void {

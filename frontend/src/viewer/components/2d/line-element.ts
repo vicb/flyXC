@@ -11,11 +11,7 @@ const INACTIVE_OPACITY = 0.5;
 export class LineElement extends connect(store)(LitElement) {
   // Actual type is google.maps.Map.
   @property({ attribute: false })
-  map: any;
-
-  private get gMap(): google.maps.Map {
-    return this.map;
-  }
+  map!: google.maps.Map;
 
   @property({ attribute: false })
   track?: RuntimeTrack;
@@ -73,7 +69,7 @@ export class LineElement extends connect(store)(LitElement) {
     this.maskLine = new google.maps.Polyline({
       path,
       clickable: false,
-      map: this.gMap,
+      map: this.map,
       strokeColor: '#fff',
       strokeOpacity: 0.6,
       strokeWeight: 6,
@@ -82,7 +78,7 @@ export class LineElement extends connect(store)(LitElement) {
     this.lineOption = {
       path,
       clickable: false,
-      map: this.gMap,
+      map: this.map,
       strokeWeight: 2,
       strokeOpacity: this.opacity,
       strokeColor: this.color,

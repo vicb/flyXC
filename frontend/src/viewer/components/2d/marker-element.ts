@@ -13,11 +13,7 @@ const INACTIVE_OPACITY = 0.5;
 export class MarkerElement extends connect(store)(LitElement) {
   // Actual type is google.maps.Map.
   @property({ attribute: false })
-  map: any;
-
-  private get gMap(): google.maps.Map {
-    return this.map;
-  }
+  map!: google.maps.Map;
 
   @property()
   timeSec = 0;
@@ -104,7 +100,7 @@ export class MarkerElement extends connect(store)(LitElement) {
     }
 
     this.marker = new google.maps.Marker({
-      map: this.gMap,
+      map: this.map,
       clickable: true,
       title: this.track.name,
     });
