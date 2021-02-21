@@ -114,7 +114,7 @@ export function diffEncodeArray(data: number[], multiplier = 1, signed = true): 
   let previousValue: number;
   return data.map((v: number, i: number) => {
     v = Math.round(v * multiplier);
-    const res = i == 0 ? v : v - previousValue;
+    const res = Math.round(i == 0 ? v : v - previousValue);
     previousValue = v;
     return signed ? res : Math.max(0, res);
   });

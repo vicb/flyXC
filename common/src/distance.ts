@@ -7,9 +7,9 @@ export function findClosestFix(
   tracks: RuntimeTrack[],
   lat: number,
   lon: number,
-): { track: RuntimeTrack; timestamp: number } | undefined {
+): { track: RuntimeTrack; timeSec: number } | undefined {
   let foundTrack: RuntimeTrack | undefined;
-  let foundTimestamp = 0;
+  let foundTimeSec = 0;
   let foundDistance = 10000;
   const ref = { lat, lon };
   tracks.forEach((track) => {
@@ -18,7 +18,7 @@ export function findClosestFix(
       const lon = track.lon[fixIdx];
       const d = getDistance(ref, { lat, lon });
       if (d < foundDistance) {
-        foundTimestamp = track.ts[fixIdx];
+        foundTimeSec = track.timeSec[fixIdx];
         foundTrack = track;
         foundDistance = d;
         fixIdx++;
@@ -28,5 +28,5 @@ export function findClosestFix(
     }
   });
 
-  return foundTrack != null ? { track: foundTrack, timestamp: foundTimestamp } : undefined;
+  return foundTrack != null ? { track: foundTrack, timeSec: foundTimeSec } : undefined;
 }

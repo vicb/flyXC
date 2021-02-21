@@ -14,7 +14,7 @@ import { RootState, store } from '../../redux/store';
 @customElement('controls3d-element')
 export class Controls3dElement extends connect(store)(LitElement) {
   @internalProperty()
-  private timestamp = 0;
+  private timeSec = 0;
   @internalProperty()
   private track?: RuntimeTrack;
   @internalProperty()
@@ -23,7 +23,7 @@ export class Controls3dElement extends connect(store)(LitElement) {
   private color = '';
 
   stateChanged(state: RootState): void {
-    this.timestamp = state.app.timestamp;
+    this.timeSec = state.app.timeSec;
     this.track = sel.currentTrack(state);
     this.units = state.units;
     this.color = sel.trackColors(state)[this.track?.id ?? 0];
@@ -53,7 +53,7 @@ export class Controls3dElement extends connect(store)(LitElement) {
         ? html`
             <dashboard-ctrl-element
               .track=${this.track}
-              .timestamp=${this.timestamp}
+              .timeSec=${this.timeSec}
               .units=${this.units}
             ></dashboard-ctrl-element>
           `

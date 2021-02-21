@@ -14,7 +14,7 @@ export function parseGeoJson(geojson: any): Track[] {
       const lat: number[] = [];
       const lon: number[] = [];
       const alt: number[] = [];
-      const ts: number[] = [];
+      const timeSec: number[] = [];
 
       const coords =
         feature.geometry.type == 'LineString'
@@ -22,7 +22,7 @@ export function parseGeoJson(geojson: any): Track[] {
           : [].concat(...feature.geometry.coordinates);
       let times: number[];
       if (feature.properties.coordTimes) {
-        times = [].concat(feature.properties.coordTimes).map((t) => new Date(t).getTime());
+        times = [].concat(feature.properties.coordTimes).map((t) => Math.round(new Date(t).getTime() / 1000));
       } else {
         times = fakeTime(coords.length);
       }
@@ -30,9 +30,9 @@ export function parseGeoJson(geojson: any): Track[] {
         lon.push(c[0]);
         lat.push(c[1]);
         alt.push(c[2] || 0);
-        ts.push(times[i]);
+        timeSec.push(times[i]);
       });
-      tracks.push({ pilot: geojson.name || 'unknown', lat, lon, alt, ts });
+      tracks.push({ pilot: geojson.name || 'unknown', lat, lon, alt, timeSec });
     }
   }
 
@@ -43,10 +43,10 @@ export function parseGeoJson(geojson: any): Track[] {
 // The series starts on 2000-01-01 and each fix is separated by 10s.
 function fakeTime(length: number): number[] {
   const fakeTimes: number[] = [];
-  let time = new Date(2000, 0, 1).getTime();
+  let timeSec = Math.round(new Date(2000, 0, 1).getTime() / 1000);
   for (let i = 0; i < length; i++) {
-    fakeTimes.push(time);
-    time += 10000;
+    fakeTimes.push(timeSec);
+    timeSec += 10;
   }
   return fakeTimes;
 }

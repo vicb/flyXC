@@ -17,7 +17,7 @@ import { connect } from 'pwa-helpers';
 
 import { Api, loadApi } from '../../logic/arcgis';
 import * as msg from '../../logic/messages';
-import { setApiLoading, setTimestamp, setView3d } from '../../redux/app-slice';
+import { setApiLoading, setTimeSec, setView3d } from '../../redux/app-slice';
 import { setApi, setElevationSampler, setGndGraphicsLayer, setGraphicsLayer } from '../../redux/arcgis-slice';
 import { setCurrentLocation, setCurrentZoom } from '../../redux/location-slice';
 import * as sel from '../../redux/selectors';
@@ -36,7 +36,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   @internalProperty()
   private multiplier = 1;
   @internalProperty()
-  private timestamp = 0;
+  private timeSec = 0;
 
   // ArcGis objects.
   private map?: Map;
@@ -60,7 +60,7 @@ export class Map3dElement extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     this.tracks = sel.tracks(state);
-    this.timestamp = state.app.timestamp;
+    this.timeSec = state.app.timeSec;
     this.currentTrackId = state.track.currentTrackId;
     this.multiplier = state.arcgis.altMultiplier;
     this.updateCamera = state.track.lockOnPilot;
@@ -69,8 +69,8 @@ export class Map3dElement extends connect(store)(LitElement) {
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (changedProps.has('currentTrackId')) {
       this.centerOnMarker(16);
-    } else if (changedProps.has('timestamp')) {
-      const lookAt = sel.getLookAtLatLonAlt(store.getState())(this.timestamp);
+    } else if (changedProps.has('timeSec')) {
+      const lookAt = sel.getLookAtLatLonAlt(store.getState())(this.timeSec);
       if (this.updateCamera && lookAt && this.view && !this.view.interacting) {
         if (this.previousLookAt) {
           // Lower the qualityProfile while animating.
@@ -96,7 +96,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     }
 
     // timestamp updates should not cause a re-render
-    changedProps.delete('timestamp');
+    changedProps.delete('timeSec');
 
     if (changedProps.has('multiplier')) {
       changedProps.delete('multiplier');
@@ -252,11 +252,11 @@ export class Map3dElement extends connect(store)(LitElement) {
         }
         const direction = Math.sign(e.native.deltaX);
         const state = store.getState();
-        const minTs = sel.minTimestamp(state);
-        const maxTs = sel.maxTimestamp(state);
-        const delta = Math.round((direction * (maxTs - minTs)) / 300) + 1;
-        const ts = Math.max(Math.min(state.app.timestamp + delta, maxTs), minTs);
-        store.dispatch(setTimestamp(ts));
+        const minTimeSec = sel.minTimeSec(state);
+        const maxTimeSec = sel.maxTimeSec(state);
+        const delta = Math.round(direction * (maxTimeSec - minTimeSec) / 300) + 1;
+        const ts = Math.max(Math.min(state.app.timeSec + delta, maxTimeSec), minTimeSec);
+        store.dispatch(setTimeSec(ts));
         e.stopPropagation();
       });
 
@@ -297,7 +297,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   }
 
   private centerOnMarker(zoom?: number): void {
-    const latLon = sel.getTrackLatLonAlt(store.getState())(this.timestamp);
+    const latLon = sel.getTrackLatLonAlt(store.getState())(this.timeSec);
     this.previousLookAt = latLon;
     if (latLon && this.view && this.api) {
       const { lat, lon, alt } = latLon;

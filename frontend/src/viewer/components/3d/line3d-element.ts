@@ -25,11 +25,11 @@ export class Line3dElement extends connect(store)(LitElement) {
   @internalProperty()
   private opacity = 1;
   @internalProperty()
-  private timestamp = 0;
+  private timeSec = 0;
   @internalProperty()
   private multiplier = 0;
   @internalProperty()
-  private tsOffset = 0;
+  private offsetSeconds = 0;
   @internalProperty()
   private color = '';
 
@@ -64,14 +64,14 @@ export class Line3dElement extends connect(store)(LitElement) {
   stateChanged(state: RootState): void {
     if (this.track) {
       const id = this.track.id;
-      this.tsOffset = sel.tsOffsets(state)[id];
+      this.offsetSeconds = sel.offsetSeconds(state)[id];
       this.color = sel.trackColors(state)[id];
       this.opacity = id == sel.currentTrackId(state) ? 1 : INACTIVE_ALPHA;
     }
     this.layer = state.arcgis.graphicsLayer;
     this.gndLayer = state.arcgis.gndGraphicsLayer;
     this.api = state.arcgis.api;
-    this.timestamp = state.app.timestamp;
+    this.timeSec = state.app.timeSec;
     this.multiplier = state.arcgis.altMultiplier;
   }
 
@@ -87,15 +87,15 @@ export class Line3dElement extends connect(store)(LitElement) {
     }
 
     if (this.graphic && this.track) {
-      const times = this.track.ts;
+      const timeSecs = this.track.timeSec;
 
-      const timestamp = this.timestamp + this.tsOffset;
+      const timeSec = this.timeSec + this.offsetSeconds;
 
-      const start = Math.min(findIndexes(times, timestamp - 15 * 60 * 1000).beforeIndex, times.length - 4);
-      const end = Math.max(findIndexes(times, timestamp).beforeIndex + 1, 4);
+      const start = Math.min(findIndexes(timeSecs, timeSec - 15 * 60).beforeIndex, timeSecs.length - 4);
+      const end = Math.max(findIndexes(timeSecs, timeSec).beforeIndex + 1, 4);
       const path = this.path3d.slice(start, end);
       // The last point must match the marker position and needs to be interpolated.
-      const pos = sel.getTrackLatLonAlt(store.getState())(timestamp, this.track) as LatLonZ;
+      const pos = sel.getTrackLatLonAlt(store.getState())(timeSec, this.track) as LatLonZ;
       path.push([pos.lon, pos.lat, this.multiplier * pos.alt]);
       this.line.paths[0] = path;
 

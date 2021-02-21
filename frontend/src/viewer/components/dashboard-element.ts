@@ -10,8 +10,8 @@ import { getModalController } from './ui/ion-controllers';
 
 @customElement('dashboard-ctrl-element')
 export class DashboardElement extends LitElement {
-  @property()
-  timestamp = 0;
+  @property({ attribute: false })
+  timeSec = 0;
   @property({ attribute: false })
   track?: RuntimeTrack;
   @property({ attribute: false })
@@ -33,6 +33,7 @@ export class DashboardElement extends LitElement {
   protected render(): TemplateResult {
     const alt = this.getElevation();
     const gndAlt = this.getGroundElevation();
+    const date = new Date(this.timeSec * 1000);
     return this.units
       ? html`
           <link
@@ -44,8 +45,8 @@ export class DashboardElement extends LitElement {
             <li>${formatUnit(Math.max(0, alt - gndAlt), this.units.altitude)} [AGL]</li>
             <li>${formatUnit(this.getVz(), this.units.vario)} [Vz]</li>
             <li>${formatUnit(this.getVx(), this.units.speed)} [Vx]</li>
-            <li>${new Date(this.timestamp).toLocaleTimeString()}</li>
-            <li>${new Date(this.timestamp).toLocaleDateString()}</li>
+            <li>${date.toLocaleTimeString()}</li>
+            <li>${date.toLocaleDateString()}</li>
           </ul>
         `
       : html``;
@@ -62,12 +63,12 @@ export class DashboardElement extends LitElement {
     if (!this.track) {
       return 0;
     }
-    return sampleAt(this.track.ts, this.track.alt, this.timestamp);
+    return sampleAt(this.track.timeSec, this.track.alt, this.timeSec);
   }
 
   private getGroundElevation(): number {
     if (this.track?.gndAlt) {
-      return sampleAt(this.track.ts, this.track.gndAlt, this.timestamp);
+      return sampleAt(this.track.timeSec, this.track.gndAlt, this.timeSec);
     }
     return 0;
   }
@@ -76,13 +77,13 @@ export class DashboardElement extends LitElement {
     if (!this.track) {
       return 0;
     }
-    return sampleAt(this.track.ts, this.track.vz, this.timestamp);
+    return sampleAt(this.track.timeSec, this.track.vz, this.timeSec);
   }
 
   private getVx(): number {
     if (!this.track) {
       return 0;
     }
-    return sampleAt(this.track.ts, this.track.vx, this.timestamp);
+    return sampleAt(this.track.timeSec, this.track.vx, this.timeSec);
   }
 }

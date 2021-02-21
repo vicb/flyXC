@@ -20,7 +20,7 @@ export class MarkerElement extends connect(store)(LitElement) {
   }
 
   @property()
-  timestamp = 0;
+  timeSec = 0;
   @property({ attribute: false })
   track?: RuntimeTrack;
 
@@ -33,14 +33,14 @@ export class MarkerElement extends connect(store)(LitElement) {
   @internalProperty()
   private color = '';
 
-  private tsOffset = 0;
+  private offsetSeconds = 0;
   private marker?: google.maps.Marker;
   private icon?: google.maps.Symbol;
 
   stateChanged(state: RootState): void {
     if (this.track) {
       const id = this.track.id;
-      this.tsOffset = sel.tsOffsets(state)[id];
+      this.offsetSeconds = sel.offsetSeconds(state)[id];
       this.color = sel.trackColors(state)[id];
       this.active = sel.currentTrackId(state) == id;
     }
@@ -69,8 +69,8 @@ export class MarkerElement extends connect(store)(LitElement) {
       this.maybeCreateMarker();
     }
     if (this.marker && this.icon && this.track) {
-      const timestamp = this.timestamp + this.tsOffset;
-      const { lat, lon, alt } = sel.getTrackLatLonAlt(store.getState())(timestamp, this.track) as LatLonZ;
+      const timeSec = this.timeSec + this.offsetSeconds;
+      const { lat, lon, alt } = sel.getTrackLatLonAlt(store.getState())(timeSec, this.track) as LatLonZ;
       const scale = (50 * ((alt ?? 0) - this.track.minAlt)) / (this.track.maxAlt - this.track.minAlt) + 20;
       this.marker.setPosition({ lat, lng: lon });
       const icon = this.icon as google.maps.Symbol;

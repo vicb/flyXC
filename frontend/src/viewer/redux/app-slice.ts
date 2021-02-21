@@ -11,7 +11,8 @@ export const enum ChartYAxis {
 
 type AppState = {
   chartYAxis: ChartYAxis;
-  timestamp: number;
+  // time in seconds.
+  timeSec: number;
   view3d: boolean;
   loadingApi: boolean;
 };
@@ -19,7 +20,7 @@ type AppState = {
 const initialState: AppState = {
   chartYAxis: ChartYAxis.Altitude,
   loadingApi: false,
-  timestamp: 0,
+  timeSec: 0,
   view3d: getSearchParams().has(ParamNames.view3d),
 };
 
@@ -27,8 +28,8 @@ const appSlice = createSlice({
   name: 'app',
   initialState,
   reducers: {
-    setTimestamp: (state, action: PayloadAction<number>) => {
-      state.timestamp = action.payload;
+    setTimeSec: (state, action: PayloadAction<number>) => {
+      state.timeSec = action.payload;
     },
     setApiLoading: (state, action: PayloadAction<boolean>) => {
       state.loadingApi = action.payload;
@@ -48,4 +49,4 @@ const appSlice = createSlice({
 });
 
 export const reducer = appSlice.reducer;
-export const { setTimestamp, setApiLoading, setChartYAxis, setView3d } = appSlice.actions;
+export const { setTimeSec, setApiLoading, setChartYAxis, setView3d } = appSlice.actions;

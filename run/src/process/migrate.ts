@@ -10,6 +10,8 @@ import { fetchAirspaces } from './airspace';
 
 const datastore = new Datastore();
 
+// ex track = 5663322160496640
+
 export async function migrate(): Promise<void> {
   let start: string | undefined;
   let res: RunQueryResponse | undefined;
@@ -59,17 +61,6 @@ export async function migrateTrack(id: number): Promise<TrackEntity | undefined>
 
   if (entity.track_group == null) {
     console.error('missing track_group');
-    return;
-  }
-
-  if (entity.airspaces_group == null) {
-    console.error('missing airspaces_group');
-    return;
-  }
-
-  const airspaceGroup = protos.AirspacesGroup.fromBinary(entity.airspaces_group);
-  const asp = airspaceGroup.airspaces[0];
-  if (!asp || asp.bottom.length === 0) {
     return;
   }
 

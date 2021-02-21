@@ -19,7 +19,7 @@ import { Loader } from '@googlemaps/js-api-loader';
 import { getApiKey } from '../../../apikey';
 import { getUrlParamValues, ParamNames } from '../../logic/history';
 import * as msg from '../../logic/messages';
-import { setApiLoading, setTimestamp } from '../../redux/app-slice';
+import { setApiLoading, setTimeSec } from '../../redux/app-slice';
 import { setCurrentLocation, setCurrentZoom } from '../../redux/location-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
@@ -70,7 +70,7 @@ export class MapElement extends connect(store)(LitElement) {
   @internalProperty()
   private tracks: RuntimeTrack[] = [];
   @internalProperty()
-  private timestamp = 0;
+  private timeSec = 0;
   @internalProperty()
   private fullscreen = false;
   @internalProperty()
@@ -83,7 +83,7 @@ export class MapElement extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     this.tracks = sel.tracks(state);
-    this.timestamp = state.app.timestamp;
+    this.timeSec = state.app.timeSec;
     // In full screen mode the gesture handling must be greedy.
     // Using ctrl (+ scroll) is unnecessary as thr page can not scroll anyway.
     this.fullscreen = state.browser.isFullscreen;
@@ -95,16 +95,16 @@ export class MapElement extends connect(store)(LitElement) {
     const now = Date.now();
     if (this.map) {
       if (changedProps.has('currentTrackId')) {
-        const latLon = sel.getTrackLatLonAlt(store.getState())(this.timestamp);
+        const latLon = sel.getTrackLatLonAlt(store.getState())(this.timeSec);
         if (latLon) {
           const { lat, lon } = latLon;
           this.center(lat, lon);
         }
       }
-      if (this.tracks.length && this.lockOnPilot && changedProps.has('timestamp') && now > this.lockPanBefore) {
+      if (this.tracks.length && this.lockOnPilot && changedProps.has('timeSec') && now > this.lockPanBefore) {
         this.lockPanBefore = now + 50;
         const zoom = this.map.getZoom();
-        const currentPosition = sel.getTrackLatLonAlt(store.getState())(this.timestamp) as LatLonZ;
+        const currentPosition = sel.getTrackLatLonAlt(store.getState())(this.timeSec) as LatLonZ;
         const { x, y } = pixelCoordinates(currentPosition, zoom).world;
         const bounds = this.map.getBounds() as google.maps.LatLngBounds;
         const sw = bounds.getSouthWest();
@@ -175,7 +175,7 @@ export class MapElement extends connect(store)(LitElement) {
         const latLng = e.latLng;
         const found = findClosestFix(this.tracks, latLng.lat(), latLng.lng());
         if (found != null) {
-          store.dispatch(setTimestamp(found.timestamp));
+          store.dispatch(setTimeSec(found.timeSec));
           store.dispatch(setCurrentTrackId(found.track.id));
         }
       });
@@ -226,7 +226,7 @@ export class MapElement extends connect(store)(LitElement) {
         (track) => track.id,
         (track) =>
           html`
-            <marker-element .map=${this.map} .track=${track} .timestamp=${this.timestamp}></marker-element>
+            <marker-element .map=${this.map} .track=${track} .timeSec=${this.timeSec}></marker-element>
             <line-element .map=${this.map} .track=${track}></line-element>
           `,
       )}

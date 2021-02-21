@@ -13,7 +13,7 @@ import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, Payloa
 import { addUrlParamValue, deleteUrlParamValue, ParamNames } from '../logic/history';
 import * as msg from '../logic/messages';
 import * as TrackWorker from '../workers/track';
-import { setTimestamp } from './app-slice';
+import { setTimeSec } from './app-slice';
 import { AppDispatch, AppThunk, RootState } from './store';
 
 const FETCH_EVERY_SECONDS = 15;
@@ -21,7 +21,7 @@ export const FETCH_FOR_MINUTES = 3;
 
 const trackAdapter = createEntityAdapter<RuntimeTrack>({
   selectId: (track) => track.id,
-  sortComparer: (a, b) => a.ts[0] - b.ts[0],
+  sortComparer: (a, b) => a.timeSec[0] - b.timeSec[0],
 });
 
 export type TrackState = {
@@ -58,7 +58,7 @@ const addTracks = (tracks: RuntimeTrack[]): AppThunk => (dispatch, getState) => 
   const hasTrack = state.tracks.ids.length > 0;
   trackAdapter.addMany(state.tracks, tracks);
   if (!hasTrack) {
-    dispatch(setTimestamp(tracks[0].ts[0]));
+    dispatch(setTimeSec(tracks[0].timeSec[0]));
     dispatch(setCurrentTrackId(tracks[0].id));
   }
 };

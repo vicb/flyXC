@@ -14,7 +14,7 @@ export function parse(content: string): Track[] {
   const lat: number[] = [];
   const lon: number[] = [];
   const alt: number[] = [];
-  const ts: number[] = [];
+  const timeSec: number[] = [];
 
   // The pressure altitude is smoother.
   // We use it when it exists and is close enough to the GPS altitude at start.
@@ -27,9 +27,9 @@ export function parse(content: string): Track[] {
     lon.push(fix.longitude);
     // The pressure altitude has
     alt.push((usePressureAltitude ? fix.pressureAltitude : fix.gpsAltitude) || 0);
-    ts.push(fix.timestamp);
+    timeSec.push(Math.round(fix.timestamp / 1000));
   });
 
   const pilot = igc.pilot || 'unknown';
-  return [{ pilot, lat, lon, alt, ts }];
+  return [{ pilot, lat, lon, alt, timeSec }];
 }

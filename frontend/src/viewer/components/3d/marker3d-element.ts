@@ -23,11 +23,11 @@ export class Marker3dElement extends connect(store)(LitElement) {
   @internalProperty()
   private active = false;
   @internalProperty()
-  private timestamp = 0;
+  private timeSec = 0;
   @internalProperty()
   private multiplier = 0;
   @internalProperty()
-  private tsOffset = 0;
+  private offsetSeconds = 0;
   @internalProperty()
   private color = '';
   @internalProperty()
@@ -80,13 +80,13 @@ export class Marker3dElement extends connect(store)(LitElement) {
   stateChanged(state: RootState): void {
     if (this.track) {
       const id = this.track.id;
-      this.tsOffset = sel.tsOffsets(state)[id];
+      this.offsetSeconds = sel.offsetSeconds(state)[id];
       this.color = sel.trackColors(state)[id];
       this.active = id == sel.currentTrackId(state);
     }
     this.layer = state.arcgis.graphicsLayer;
     this.api = state.arcgis.api;
-    this.timestamp = state.app.timestamp;
+    this.timeSec = state.app.timeSec;
     this.multiplier = state.arcgis.altMultiplier;
     this.displayLabels = state.track.displayLabels;
   }
@@ -104,8 +104,8 @@ export class Marker3dElement extends connect(store)(LitElement) {
 
     if (this.graphic && this.track) {
       const track = this.track;
-      const timestamp = this.timestamp + this.tsOffset;
-      const { lat, lon, alt } = sel.getTrackLatLonAlt(store.getState())(timestamp, this.track) as LatLonZ;
+      const timeSec = this.timeSec + this.offsetSeconds;
+      const { lat, lon, alt } = sel.getTrackLatLonAlt(store.getState())(timeSec, this.track) as LatLonZ;
 
       this.point.latitude = lat;
       this.point.longitude = lon;
@@ -114,7 +114,7 @@ export class Marker3dElement extends connect(store)(LitElement) {
 
       const objectSymbol = this.symbol.symbolLayers[0];
       objectSymbol.material.color = this.color;
-      objectSymbol.heading = 180 + sampleAt(track.ts, track.heading, timestamp);
+      objectSymbol.heading = 180 + sampleAt(track.timeSec, track.heading, timeSec);
       this.graphic.set('symbol', this.symbol);
       this.graphic.set('attributes', { trackId: this.track?.id });
 

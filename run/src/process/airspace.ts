@@ -139,8 +139,8 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
     const intoRanges = intoRangesByAirspaceKey.get(key) as boolean[];
     ranges.forEach(([start, end], rangeIndex) => {
       aspObjects.push({
-        start: track.ts[start],
-        end: track.ts[end],
+        startSec: track.timeSec[start],
+        endSec: track.timeSec[end],
         name: props.name,
         category: props.category,
         top: props.top,
@@ -151,13 +151,13 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
     });
   }
 
-  aspObjects.sort((a, b) => (a.start < b.start ? -1 : 1));
+  aspObjects.sort((a, b) => (a.startSec < b.startSec ? -1 : 1));
 
   const protoAirspaces = protos.Airspaces.create({ hasErrors: altitude.hasErrors });
 
   aspObjects.forEach((asp) => {
-    protoAirspaces.startTs.push(asp.start);
-    protoAirspaces.endTs.push(asp.end);
+    protoAirspaces.startSec.push(asp.startSec);
+    protoAirspaces.endSec.push(asp.endSec);
     protoAirspaces.name.push(asp.name);
     protoAirspaces.category.push(asp.category);
     protoAirspaces.top.push(asp.top);

@@ -227,7 +227,7 @@ export class DashTracker extends LitElement {
   }
 
   render(): TemplateResult {
-    const oldTime = Date.now() / 1000 - 24 * 3 * 3600;
+    const oldTimeSec = Date.now() / 1000 - 24 * 3 * 3600;
     const number = this.values[Keys.dashboardNumTrackers.replace('{name}', this.name)];
     const fetchTimes = this.values[Keys.trackerLogsTime.replace('{name}', this.name)].map(relativeTime);
     const durations = this.values[Keys.trackerLogsDuration.replace('{name}', this.name)];
@@ -244,8 +244,8 @@ export class DashTracker extends LitElement {
     this.values[Keys.trackerLogsErrorsById.replace('{name}', this.name)].forEach((entry: string) => {
       const m = entry.match(/\[(\d+)\] id=(\d+) (.*)/i);
       if (m) {
-        const time = Number(m[1]);
-        if (time < oldTime) {
+        const timeSec = Number(m[1]);
+        if (timeSec < oldTimeSec) {
           oldErrorsById.push([relativeTime(Number(m[1])), m[2], m[3]]);
         } else {
           errorsById.push([relativeTime(Number(m[1])), m[2], m[3]]);
@@ -257,8 +257,8 @@ export class DashTracker extends LitElement {
     this.values[Keys.trackerLogsErrors.replace('{name}', this.name)].forEach((entry: string) => {
       const m = entry.match(/\[(\d+)\] (.*)/i);
       if (m) {
-        const time = Number(m[1]);
-        if (time < oldTime) {
+        const timeSec = Number(m[1]);
+        if (timeSec < oldTimeSec) {
           oldErrors.push(`${relativeTime(Number(m[1]))} ${m[2]}`);
         } else {
           errors.push(`${relativeTime(Number(m[1]))} ${m[2]}`);
@@ -319,9 +319,9 @@ export class DashTracker extends LitElement {
   }
 }
 
-// Returns readable time relative to now.
-function relativeTime(time: number): string {
-  const delta = Date.now() / 1000 - time;
+// Returns readable relative time.
+function relativeTime(timeSec: number): string {
+  const delta = Date.now() / 1000 - timeSec;
   if (delta >= 24 * 3600 * 7) {
     return `-${round(delta / (24 * 3600 * 7), 1)}w`;
   }

@@ -32,7 +32,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
   private info?: google.maps.InfoWindow;
   private zoomListener?: google.maps.MapsEventListener;
   private clickListener?: google.maps.MapsEventListener;
-  private timestamp = 0;
+  private timeSec = 0;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -57,7 +57,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
     this.showRestricted = state.airspace.showRestricted;
     this.maxAltitude = state.airspace.maxAltitude;
     this.track = sel.currentTrack(state);
-    this.timestamp = state.app.timestamp;
+    this.timeSec = state.app.timeSec;
     this.airspacesOnGraph = state.airspace.onGraph;
   }
 
@@ -71,7 +71,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
       // The airspacesOnGraph property gets updated from the graph each time the cursor moves.
       if (this.track && changedProperties.has('airspacesOnGraph')) {
         if (this.airspacesOnGraph.length) {
-          const { lat, lon } = sel.getTrackLatLonAlt(store.getState())(this.timestamp) as LatLonZ;
+          const { lat, lon } = sel.getTrackLatLonAlt(store.getState())(this.timeSec) as LatLonZ;
           this.info?.setContent(this.airspacesOnGraph.map((t) => `<b>${t}</b>`).join('<br>'));
           this.info?.setPosition({ lat, lng: lon });
           this.info?.open(this.gMap);

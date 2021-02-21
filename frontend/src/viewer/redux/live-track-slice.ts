@@ -29,7 +29,7 @@ export const liveTrackSelectors = trackAdapter.getSelectors((state: RootState) =
 export type TrackState = {
   tracks: EntityState<LiveTrack>;
   // Fetch timestamp of the current data.
-  timestamp: number;
+  fecthMillis: number;
   geojson: any;
   refreshTimer: any;
   currentLiveId?: number;
@@ -40,7 +40,7 @@ export type TrackState = {
 };
 
 const initialState: TrackState = {
-  timestamp: 0,
+  fecthMillis: 0,
   tracks: trackAdapter.getInitialState(),
   geojson: { type: 'FeatureCollection', features: [] },
   refreshTimer: undefined,
@@ -64,8 +64,8 @@ const trackSlice = createSlice({
     setGeojson: (state, action: PayloadAction<any>) => {
       state.geojson = action.payload;
     },
-    setTimestamp: (state, action: PayloadAction<number>) => {
-      state.timestamp = action.payload;
+    setFetchMillis: (state, action: PayloadAction<number>) => {
+      state.fecthMillis = action.payload;
     },
     startRefreshTimer: (state) => {
       if (!state.refreshTimer) {
@@ -96,15 +96,15 @@ trackWorker.onmessage = (msg: MessageEvent<TrackWorker.Response>) => {
 const updateTrackers = createAsyncThunk('liveTrack/fetch', async (_: undefined, api) => {
   const fetchTimestamp = Date.now();
   try {
-    const time = Math.round(((api.getState() as RootState).liveTrack.timestamp ?? 0) / 1000);
-    const response = await fetch(`/_livetracks?s=${time}`);
+    const timeSec = Math.round(((api.getState() as RootState).liveTrack.fecthMillis ?? 0) / 1000);
+    const response = await fetch(`/_livetracks?s=${timeSec}`);
     if (response.status == 200) {
       const tracks = (api.getState() as RootState).liveTrack.tracks.entities;
       trackWorker.postMessage({
         buffer: await response.arrayBuffer(),
         tracks,
       });
-      api.dispatch(trackSlice.actions.setTimestamp(fetchTimestamp));
+      api.dispatch(trackSlice.actions.setFetchMillis(fetchTimestamp));
     }
   } catch (e) {
     console.error(e);

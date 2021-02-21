@@ -19,7 +19,7 @@ export function parse(content: string): Track[] {
   const lat: number[] = [];
   const lon: number[] = [];
   const alt: number[] = [];
-  const ts: number[] = [];
+  const timeSec: number[] = [];
 
   content.split(/[\n\r]+/).forEach((line) => {
     let m;
@@ -38,7 +38,7 @@ export function parse(content: string): Track[] {
         parseInt(m[9], 10),
         parseInt(m[10], 10),
       );
-      ts.push(date.getTime());
+      timeSec.push(Math.round(date.getTime() / 1000));
       alt.push(parseInt(m[11], 10));
     } else {
       // T  N45.6321216 E003.1162763 19-JUL-10 14:33:59 00785
@@ -54,11 +54,11 @@ export function parse(content: string): Track[] {
           parseInt(m[9], 10),
           parseInt(m[10], 10),
         );
-        ts.push(date.getTime());
+        timeSec.push(Math.round(date.getTime() / 1000));
         alt.push(parseInt(m[11], 10));
       }
     }
   });
 
-  return lat.length > 5 ? [{ pilot: 'unknown', lat, lon, alt, ts }] : [];
+  return lat.length > 5 ? [{ pilot: 'unknown', lat, lon, alt, timeSec }] : [];
 }

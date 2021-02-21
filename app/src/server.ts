@@ -9,7 +9,6 @@ import { SecretKeys } from 'flyxc/common/src/keys';
 import { getRedisClient } from 'flyxc/common/src/redis';
 import QRCode from 'qrcode';
 
-import { migrate } from './migrate';
 import { getAdminRouter } from './routes/admin';
 import { getTrackerRouter } from './routes/live-track';
 import { getTrackRouter } from './routes/track';
@@ -112,13 +111,6 @@ app.get('/logout', (req: Request, res: Response) => {
   req.session?.destroy(() => null);
   res.redirect('/');
 });
-
-if (process.env.NODE_ENV != 'production') {
-  app.get('/__migrate_lt', (req: Request, res: Response) => {
-    migrate();
-    res.sendStatus(200);
-  });
-}
 
 const port = process.env.PORT || 8080;
 app

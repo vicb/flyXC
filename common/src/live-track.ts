@@ -202,10 +202,10 @@ export function simplifyLiveTrack(track: LiveTrack, intervalSec: number, startSe
     startIndex = Math.max(0, indexes.beforeIndex);
   }
   let dstIndex = startIndex;
-  let previousTime = track.timeSec[startIndex] - 2 * intervalSec;
+  let previousTimeSec = track.timeSec[startIndex] - 2 * intervalSec;
   for (let index = startIndex; index < track.timeSec.length; index++) {
-    const time = track.timeSec[index];
-    if (IsSimplifiableFix(track, index) && time - previousTime < intervalSec) {
+    const timeSec = track.timeSec[index];
+    if (IsSimplifiableFix(track, index) && timeSec - previousTimeSec < intervalSec) {
       delete track.extra[index];
       continue;
     }
@@ -215,7 +215,7 @@ export function simplifyLiveTrack(track: LiveTrack, intervalSec: number, startSe
       delete track.extra[index];
     }
     dstIndex++;
-    previousTime = time;
+    previousTimeSec = timeSec;
   }
   // Remove excess points.
   track.lat.splice(dstIndex);

@@ -27,9 +27,11 @@ export interface Track {
    */
   alt: number[];
   /**
-   * @generated from protobuf field: repeated uint32 ts = 5;
+   * Time in seconds.
+   *
+   * @generated from protobuf field: repeated uint32 timeSec = 5;
    */
-  ts: number[];
+  timeSec: number[];
 }
 /**
  * All the tracks for a single file.
@@ -79,13 +81,15 @@ export interface GroundAltitudeGroup {
  */
 export interface Airspaces {
   /**
-   * @generated from protobuf field: repeated sint32 start_ts = 1;
+   * Start and end in seconds.
+   *
+   * @generated from protobuf field: repeated sint32 start_sec = 1;
    */
-  startTs: number[];
+  startSec: number[];
   /**
-   * @generated from protobuf field: repeated sint32 end_ts = 2;
+   * @generated from protobuf field: repeated sint32 end_sec = 2;
    */
-  endTs: number[];
+  endSec: number[];
   /**
    * @generated from protobuf field: repeated string name = 3;
    */
@@ -172,7 +176,7 @@ class Track$Type extends MessageType<Track> {
       { no: 2, name: 'lat', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
       { no: 3, name: 'lon', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
       { no: 4, name: 'alt', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
-      { no: 5, name: 'ts', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 13 /*ScalarType.UINT32*/ },
+      { no: 5, name: 'timeSec', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 13 /*ScalarType.UINT32*/ },
     ]);
   }
 }
@@ -215,8 +219,8 @@ export const GroundAltitudeGroup = new GroundAltitudeGroup$Type();
 class Airspaces$Type extends MessageType<Airspaces> {
   constructor() {
     super('Airspaces', [
-      { no: 1, name: 'start_ts', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
-      { no: 2, name: 'end_ts', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
+      { no: 1, name: 'start_sec', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
+      { no: 2, name: 'end_sec', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
       { no: 3, name: 'name', kind: 'scalar', repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
       { no: 4, name: 'category', kind: 'scalar', repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
       { no: 5, name: 'top', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },

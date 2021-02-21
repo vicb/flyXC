@@ -26,7 +26,7 @@ import { RootState, store } from '../redux/store';
 
 const MIN_SPEED_FACTOR = 16;
 const MAX_SPEED_FACTOR = 4096;
-const PLAY_INTERVAL = 50;
+const PLAY_INTERVAL_MILLIS = 50;
 
 @customElement('chart-element')
 export class ChartElement extends connect(store)(LitElement) {
@@ -35,7 +35,7 @@ export class ChartElement extends connect(store)(LitElement) {
   @internalProperty()
   private chartYAxis: ChartYAxis = ChartYAxis.Altitude;
   @internalProperty()
-  private timestamp = 0;
+  private timeSec = 0;
   @internalProperty()
   private width = 0;
   @internalProperty()
@@ -64,9 +64,10 @@ export class ChartElement extends connect(store)(LitElement) {
   @query('#thumb')
   private thumbElement?: SVGLineElement;
 
-  private minTs = 0;
-  private maxTs = 1;
-  private tsOffsets: { [id: string]: number } = {};
+  // mins, maxs and offsets are in seconds.
+  private minTimeSec = 0;
+  private maxTimeSec = 1;
+  private offsetSeconds: { [id: string]: number } = {};
   // Throttle timestamp and airspace updates.
   private nextAspUpdate = 0;
   private nextTimestampUpdate = 0;
@@ -75,11 +76,11 @@ export class ChartElement extends connect(store)(LitElement) {
   stateChanged(state: RootState): void {
     this.tracks = sel.tracks(state);
     this.chartYAxis = state.app.chartYAxis;
-    this.timestamp = state.app.timestamp;
-    this.minTs = sel.minTimestamp(state);
-    this.maxTs = sel.maxTimestamp(state);
+    this.timeSec = state.app.timeSec;
+    this.minTimeSec = sel.minTimeSec(state);
+    this.maxTimeSec = sel.maxTimeSec(state);
     this.units = state.units;
-    this.tsOffsets = sel.tsOffsets(state);
+    this.offsetSeconds = sel.offsetSeconds(state);
     this.showRestricted = state.airspace.showRestricted;
     this.currentTrackId = state.track.currentTrackId;
     this.trackColors = sel.trackColors(state);
@@ -109,14 +110,15 @@ export class ChartElement extends connect(store)(LitElement) {
     }
   }
 
-  private getY(track: RuntimeTrack, ts: number): number {
+  // time is in seconds.
+  private getY(track: RuntimeTrack, timeSec: number): number {
     switch (this.chartYAxis) {
       case ChartYAxis.Speed:
-        return sampleAt(track.ts, track.vx, ts);
+        return sampleAt(track.timeSec, track.vx, timeSec);
       case ChartYAxis.Vario:
-        return sampleAt(track.ts, track.vz, ts);
+        return sampleAt(track.timeSec, track.vz, timeSec);
       default:
-        return sampleAt(track.ts, track.alt, ts);
+        return sampleAt(track.timeSec, track.alt, timeSec);
     }
   }
 
@@ -252,13 +254,13 @@ export class ChartElement extends connect(store)(LitElement) {
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
-    if (changedProps.has('timestamp')) {
+    if (changedProps.has('timeSec')) {
       if (this.thumbElement) {
-        const x = String(this.getXAtTimestamp(this.timestamp));
+        const x = String(this.getXAtTimeSec(this.timeSec));
         this.thumbElement.setAttribute('x1', x);
         this.thumbElement.setAttribute('x2', x);
       }
-      changedProps.delete('timestamp');
+      changedProps.delete('timeSec');
     }
     return super.shouldUpdate(changedProps);
   }
@@ -356,13 +358,13 @@ export class ChartElement extends connect(store)(LitElement) {
     const displayGndAlt = this.tracks.length == 1 && this.chartYAxis == ChartYAxis.Altitude;
 
     this.tracks.forEach((track) => {
-      if (track.ts.length < 5) {
+      if (track.timeSec.length < 5) {
         return;
       }
       // Span of the track on the X axis.
-      const tsOffset = this.tsOffsets[track.id];
-      const minX = this.getXAtTimestamp(track.ts[0], tsOffset);
-      const maxX = this.getXAtTimestamp(track.ts[track.ts.length - 1], tsOffset);
+      const offsetSeconds = this.offsetSeconds[track.id];
+      const minX = this.getXAtTimeSec(track.timeSec[0], offsetSeconds);
+      const maxX = this.getXAtTimeSec(track.timeSec[track.timeSec.length - 1], offsetSeconds);
 
       const trackCoords: string[] = [];
       const gndCoords = [`${minX},${this.getYAtHeight(this.minY).toFixed(1)}`];
@@ -371,11 +373,11 @@ export class ChartElement extends connect(store)(LitElement) {
         paths.push(...this.airspacePaths(track));
       }
       for (let x = minX; x < maxX; x++) {
-        const ts = this.getTimestampAtX(x);
-        const y = this.getY(track, ts);
+        const timeSec = this.getTimeSecAtX(x);
+        const y = this.getY(track, timeSec);
         trackCoords.push(`${x.toFixed(1)},${this.getYAtHeight(y).toFixed(1)}`);
         if (displayGndAlt && track.gndAlt) {
-          const gndAlt = sampleAt(track.ts, track.gndAlt, ts);
+          const gndAlt = sampleAt(track.timeSec, track.gndAlt, timeSec);
           gndCoords.push(`${x.toFixed(1)},${this.getYAtHeight(gndAlt).toFixed(1)}`);
         }
       }
@@ -409,13 +411,13 @@ export class ChartElement extends connect(store)(LitElement) {
     }
     const paths: SVGTemplateResult[] = [];
 
-    for (let i = 0; i < asp.startTs.length; i++) {
+    for (let i = 0; i < asp.startSec.length; i++) {
       const flags = asp.flags[i];
       if (!this.showRestricted && flags & Flags.AirspaceRestricted) {
         continue;
       }
-      const start = asp.startTs[i];
-      const end = asp.endTs[i];
+      const startSec = asp.startSec[i];
+      const endSec = asp.endSec[i];
       const top = asp.top[i];
       const bottom = asp.bottom[i];
       const topRefGnd = flags & Flags.TopRefGnd;
@@ -428,22 +430,22 @@ export class ChartElement extends connect(store)(LitElement) {
         clampTo.minAlt = bottom;
       }
       const coords = [
-        ...this.aspLine(track, start, end, bottom, bottomRefGnd, clampTo),
-        ...this.aspLine(track, end, start, top, topRefGnd, clampTo),
+        ...this.aspLine(track, startSec, endSec, bottom, bottomRefGnd, clampTo),
+        ...this.aspLine(track, endSec, startSec, top, topRefGnd, clampTo),
       ];
       if (coords.length < 4) {
         continue;
       }
       coords.push(coords[0]);
       const path = coords
-        .map(([time, alt]) => {
-          const x = this.getXAtTimestamp(time);
+        .map(([timeSec, alt]) => {
+          const x = this.getXAtTimeSec(timeSec);
           const y = this.getYAtHeight(alt);
           return `${x.toFixed(1)},${y.toFixed(1)}`;
         })
         .join('L');
       paths.push(
-        svg`<path data-start=${start} data-end=${end} title=${`[${asp.category[i]}] ${asp.name[i]}`}  class=${`asp ${airspaceCategory(
+        svg`<path data-start=${startSec} data-end=${endSec} title=${`[${asp.category[i]}] ${asp.name[i]}`}  class=${`asp ${airspaceCategory(
           flags,
         )}`} d=${'M' + path}></path>`,
       );
@@ -454,30 +456,30 @@ export class ChartElement extends connect(store)(LitElement) {
 
   private aspLine(
     track: RuntimeTrack,
-    start: number,
-    end: number,
+    startSec: number,
+    endSec: number,
     alt: number,
     refGnd: number,
     clampTo: { minAlt?: number; maxAlt?: number },
   ): Array<[number, number]> {
     if (!refGnd || !track.gndAlt) {
       return [
-        [start, alt],
-        [end, alt],
+        [startSec, alt],
+        [endSec, alt],
       ];
     }
     let reverse = false;
-    if (start > end) {
-      [start, end] = [end, start];
+    if (startSec > endSec) {
+      [startSec, endSec] = [endSec, startSec];
       reverse = true;
     }
-    const startX = this.getXAtTimestamp(start);
-    const endX = this.getXAtTimestamp(end);
+    const startX = this.getXAtTimeSec(startSec);
+    const endX = this.getXAtTimeSec(endSec);
     const points: Array<[number, number]> = [];
     const { minAlt, maxAlt } = clampTo;
     for (let x = startX; x < endX; x++) {
-      const ts = this.getTimestampAtX(x);
-      const gndAlt = sampleAt(track.ts, track.gndAlt, ts);
+      const timeSec = this.getTimeSecAtX(x);
+      const gndAlt = sampleAt(track.timeSec, track.gndAlt, timeSec);
       let altitude = alt + gndAlt;
       if (maxAlt != null) {
         altitude = Math.min(maxAlt, altitude);
@@ -485,7 +487,7 @@ export class ChartElement extends connect(store)(LitElement) {
       if (minAlt != null) {
         altitude = Math.max(minAlt, altitude);
       }
-      points.push([ts, altitude]);
+      points.push([timeSec, altitude]);
     }
     return reverse ? points.reverse() : points;
   }
@@ -532,18 +534,19 @@ export class ChartElement extends connect(store)(LitElement) {
       const hour = 60 * minute;
 
       // Push minTs 50px right to avoid writing over the alt scale
-      const minTs = this.getTimestampAtX(50);
-      const timeSpan = this.maxTs - minTs;
+      const minSec = this.getTimeSecAtX(50);
+      const timeSpan = this.maxTimeSec - minSec;
       const tickSpan = Math.ceil(timeSpan / hour / 6) * hour;
-      const time = new Date(minTs);
-      const startTs = new Date(time.getFullYear(), time.getMonth(), time.getDate(), time.getHours() + 1).getTime();
+      const date = new Date(minSec * 1000);
+      const startTime =
+        new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() + 1).getTime() / 1000;
 
-      for (let ts = startTs; ts < this.maxTs; ts += tickSpan) {
-        const x = this.getXAtTimestamp(ts);
-        const time = new Date(ts).toLocaleTimeString();
+      for (let timeSec = startTime; timeSec < this.maxTimeSec; timeSec += tickSpan) {
+        const x = this.getXAtTimeSec(timeSec);
+        const date = new Date(timeSec * 1000).toLocaleTimeString();
         texts.push(
-          svg`<text text-anchor=middle stroke-width=3 y=${this.height} x=${x.toFixed(1)} dy=-4>${time}</text>
-          <text text-anchor=middle y=${this.height} x=${x.toFixed(1)} dy=-4>${time}</text>`,
+          svg`<text text-anchor=middle stroke-width=3 y=${this.height} x=${x.toFixed(1)} dy=-4>${date}</text>
+          <text text-anchor=middle y=${this.height} x=${x.toFixed(1)} dy=-4>${date}</text>`,
         );
       }
     }
@@ -562,23 +565,23 @@ export class ChartElement extends connect(store)(LitElement) {
       this.playTimer = undefined;
     } else {
       // Restart from the beginning if play has not been used for 30s,
-      if (this.lastPlayTimestamp < Date.now() - 30 * 1000 || this.timestamp == this.maxTs) {
-        this.dispatchEvent(new CustomEvent('move', { detail: { ts: this.minTs } }));
+      if (this.lastPlayTimestamp < Date.now() - 30 * 1000 || this.timeSec == this.maxTimeSec) {
+        this.dispatchEvent(new CustomEvent('move', { detail: { timeSec: this.minTimeSec } }));
       }
       this.playTick();
-      this.playTimer = window.setInterval(() => this.playTick(), PLAY_INTERVAL);
+      this.playTimer = window.setInterval(() => this.playTick(), PLAY_INTERVAL_MILLIS);
     }
   }
 
   private playTick() {
     this.lastPlayTimestamp = Date.now();
-    let timestamp = this.timestamp + PLAY_INTERVAL * this.playSpeed;
-    if (timestamp >= this.maxTs) {
-      timestamp = this.maxTs;
+    let timeSec = this.timeSec + (PLAY_INTERVAL_MILLIS * this.playSpeed) / 1000;
+    if (timeSec >= this.maxTimeSec) {
+      timeSec = this.maxTimeSec;
       clearInterval(this.playTimer);
       this.playTimer = undefined;
     }
-    this.dispatchEvent(new CustomEvent('move', { detail: { ts: timestamp } }));
+    this.dispatchEvent(new CustomEvent('move', { detail: { timeSec } }));
   }
 
   private handleYChange(e: Event): void {
@@ -586,12 +589,12 @@ export class ChartElement extends connect(store)(LitElement) {
     store.dispatch(setChartYAxis(y));
   }
 
-  private getXAtTimestamp(timestamp: number, tsOffset = 0): number {
-    return Math.round(((timestamp - tsOffset - this.minTs) / (this.maxTs - this.minTs)) * this.width);
+  private getXAtTimeSec(timeSec: number, offsetSec = 0): number {
+    return Math.round(((timeSec - offsetSec - this.minTimeSec) / (this.maxTimeSec - this.minTimeSec)) * this.width);
   }
 
-  private getTimestampAtX(x: number) {
-    return (x / this.width) * (this.maxTs - this.minTs) + this.minTs;
+  private getTimeSecAtX(x: number) {
+    return (x / this.width) * (this.maxTimeSec - this.minTimeSec) + this.minTimeSec;
   }
 
   private getYAtHeight(height: number) {
@@ -599,41 +602,40 @@ export class ChartElement extends connect(store)(LitElement) {
   }
 
   private handlePointerDown(e: MouseEvent): void {
-    const { timestamp } = this.getCoordinatesFromEvent(e);
-    this.dispatchEvent(new CustomEvent('pin', { detail: { ts: timestamp } }));
-    this.dispatchEvent(new CustomEvent('move', { detail: { ts: timestamp } }));
+    const { timeSec } = this.getCoordinatesFromEvent(e);
+    this.dispatchEvent(new CustomEvent('pin', { detail: { timeSec } }));
+    this.dispatchEvent(new CustomEvent('move', { detail: { timeSec } }));
   }
 
   private handleMouseWheel(e: WheelEvent): void {
-    const { timestamp } = this.getCoordinatesFromEvent(e);
-    this.dispatchEvent(new CustomEvent('zoom', { detail: { ts: timestamp, deltaY: e.deltaY } }));
+    const { timeSec } = this.getCoordinatesFromEvent(e);
+    this.dispatchEvent(new CustomEvent('zoom', { detail: { timeSec, deltaY: e.deltaY } }));
   }
 
   private handlePointerMove(e: MouseEvent): void {
     if (this.playTimer == null) {
       const now = Date.now();
       if (now > this.nextTimestampUpdate) {
-        const { x, y, timestamp } = this.getCoordinatesFromEvent(e);
-        this.dispatchEvent(new CustomEvent('move', { detail: { ts: timestamp } }));
+        const { x, y, timeSec } = this.getCoordinatesFromEvent(e);
+        this.dispatchEvent(new CustomEvent('move', { detail: { timeSec } }));
         this.nextTimestampUpdate = now + 20;
         if (now > this.nextAspUpdate) {
-          this.updateAirspaces(x, y, timestamp);
+          this.updateAirspaces(x, y, timeSec);
           this.nextAspUpdate = now + 40;
         }
       }
     }
   }
 
-  private getCoordinatesFromEvent(e: MouseEvent): { x: number; y: number; timestamp: number } {
+  private getCoordinatesFromEvent(e: MouseEvent): { x: number; y: number; timeSec: number } {
     // The event target could be any of the children of the element with the listener.
     const { left, top } = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const x = e.clientX - left;
     const y = e.clientY - top;
-    const timestamp = Math.round((x / this.width) * (this.maxTs - this.minTs) + this.minTs);
-    return { x, y, timestamp };
+    return { x, y, timeSec: this.getTimeSecAtX(x) };
   }
 
-  private updateAirspaces(x: number, y: number, ts: number): void {
+  private updateAirspaces(x: number, y: number, timeSec: number): void {
     const airspaces: string[] = [];
     if (this.svgContainer && this.aspPathElements) {
       const point = this.svgContainer.createSVGPoint();
@@ -641,9 +643,9 @@ export class ChartElement extends connect(store)(LitElement) {
       point.y = y;
       this.aspPathElements?.forEach((node: Node) => {
         const geometry = node as SVGGeometryElement;
-        const start = Number(geometry.getAttribute('data-start'));
-        const end = Number(geometry.getAttribute('data-end'));
-        if (ts >= start && ts <= end && geometry.isPointInFill(point)) {
+        const startSec = Number(geometry.getAttribute('data-start'));
+        const endSec = Number(geometry.getAttribute('data-end'));
+        if (timeSec >= startSec && timeSec <= endSec && geometry.isPointInFill(point)) {
           airspaces.push(geometry.getAttribute('title') as string);
         }
       });

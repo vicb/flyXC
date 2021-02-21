@@ -27,7 +27,7 @@ import {
 } from './logic/history';
 import * as msg from './logic/messages';
 import { downloadTracksByGroupIds, downloadTracksByUrls, uploadTracks } from './logic/track';
-import { setTimestamp, setView3d } from './redux/app-slice';
+import { setTimeSec, setView3d } from './redux/app-slice';
 import { setRoute, setSpeed } from './redux/planner-slice';
 import * as sel from './redux/selectors';
 import { RootState, store } from './redux/store';
@@ -85,9 +85,10 @@ export class FlyXc extends connect(store)(LitElement) {
           ${this.hasTrack
             ? html`<chart-element
                 class=${clMap}
-                @move=${(e: CustomEvent) => store.dispatch(setTimestamp(e.detail.ts))}
-                @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.ts))}
-                @zoom=${(e: CustomEvent) => msg.centerZoomMap.emit(this.coordinatesAt(e.detail.ts), e.detail.deltaY)}
+                @move=${(e: CustomEvent) => store.dispatch(setTimeSec(e.detail.timeSec))}
+                @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.timeSec))}
+                @zoom=${(e: CustomEvent) =>
+                  msg.centerZoomMap.emit(this.coordinatesAt(e.detail.timeSec), e.detail.deltaY)}
               ></chart-element>`
             : ''}
         </ion-content>
@@ -100,9 +101,9 @@ export class FlyXc extends connect(store)(LitElement) {
     return this;
   }
 
-  // Returns the coordinates of the active track at the given timestamp.
-  private coordinatesAt(ts: number): LatLonZ {
-    return sel.getTrackLatLonAlt(store.getState())(ts) as LatLonZ;
+  // Returns the coordinates of the active track at the given time.
+  private coordinatesAt(timeSec: number): LatLonZ {
+    return sel.getTrackLatLonAlt(store.getState())(timeSec) as LatLonZ;
   }
 
   private handlePopState(): void {

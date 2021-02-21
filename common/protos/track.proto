@@ -7,7 +7,8 @@ message Track {
   repeated sint32 lat = 2;
   repeated sint32 lon = 3;
   repeated sint32 alt = 4;
-  repeated uint32 ts = 5;
+  // Time in seconds.
+  repeated uint32 timeSec = 5;
 }
 
 // All the tracks for a single file.
@@ -31,8 +32,9 @@ message GroundAltitudeGroup {
 
 // Airspaces along a track.
 message Airspaces {
-  repeated sint32 start_ts = 1;
-  repeated sint32 end_ts = 2;
+  // Start and end in seconds.
+  repeated sint32 start_sec = 1;
+  repeated sint32 end_sec = 2;
   repeated string name = 3;
   repeated string category = 4;
   repeated sint32 top = 5;

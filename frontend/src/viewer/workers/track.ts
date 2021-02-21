@@ -5,7 +5,7 @@ import { computeVerticalSpeed, RuntimeTrack } from 'flyxc/common/src/runtime-tra
 import { getRhumbLineBearing } from 'geolib';
 import createMedianFilter from 'moving-median';
 
-export type Request = Pick<RuntimeTrack, 'alt' | 'id' | 'lat' | 'lon' | 'ts'>;
+export type Request = Pick<RuntimeTrack, 'alt' | 'id' | 'lat' | 'lon' | 'timeSec'>;
 
 export type Response = Pick<
   RuntimeTrack,
@@ -20,12 +20,12 @@ const HALF_WINDOW_SECONDS = 15;
 // Removes the spikes using a median filter.
 // `altitude` is updated in place.
 // see https://observablehq.com/@vicb/filter-spikes-on-gps-tracks
-function filterSpikes(altitude: number[], ts: number[]) {
+function filterSpikes(altitude: number[], timeSecs: number[]) {
   const filter = createMedianFilter(2 * HALF_WINDOW_SECONDS + 1);
 
-  const len = ts.length;
+  const len = timeSecs.length;
 
-  let currentTimestamp = ts[0];
+  let currentSec = timeSecs[0];
   let currentAltitude = altitude[0];
   let currentIndex = 0;
 
@@ -37,8 +37,8 @@ function filterSpikes(altitude: number[], ts: number[]) {
     }
     let hasFix = false;
     const alt = currentAltitude;
-    currentTimestamp += 1000;
-    if (currentTimestamp >= ts[currentIndex]) {
+    currentSec += 1;
+    if (currentSec >= timeSecs[currentIndex]) {
       hasFix = true;
       currentIndex++;
       currentAltitude = altitude[currentIndex];
@@ -47,7 +47,7 @@ function filterSpikes(altitude: number[], ts: number[]) {
   };
 
   // Start using the output after the delay.
-  const lenSeconds = Math.round((ts[len - 1] - ts[0]) / 1000) + HALF_WINDOW_SECONDS;
+  const lenSeconds = Math.round(timeSecs[len - 1] - timeSecs[0]) + HALF_WINDOW_SECONDS;
   let dstIdx = 0;
   for (let seconds = 0; seconds < lenSeconds; ++seconds) {
     const { hasFix, alt } = getNextAltitude();
@@ -58,7 +58,7 @@ function filterSpikes(altitude: number[], ts: number[]) {
   }
 
   // Compensate for the delay.
-  for (let i = 0, dstIdx = ts.length - HALF_WINDOW_SECONDS; i < HALF_WINDOW_SECONDS; ++i, dstIdx++) {
+  for (let i = 0, dstIdx = len - HALF_WINDOW_SECONDS; i < HALF_WINDOW_SECONDS; ++i, dstIdx++) {
     altitude[dstIdx] = filter(altitude[len - 1]);
   }
 }
@@ -81,11 +81,11 @@ function computeHeading(lat: number[], lon: number[]): number[] {
 // see:
 // - https://github.com/rochars/low-pass-filter
 // - https://observablehq.com/@vicb/filter-camera-position
-function filterPosition(lat: number[], lon: number[], ts: number[]) {
-  const len = ts.length;
+function filterPosition(lat: number[], lon: number[], timeSecs: number[]) {
+  const len = timeSecs.length;
 
   let currentIndex = 0;
-  let currentTimestamp = ts[0];
+  let currentSec = timeSecs[0];
 
   // Generates one altitude for every seconds (buffering the last value if needed).
   // The last value gets duplicated to account for the filter delay.
@@ -95,8 +95,8 @@ function filterPosition(lat: number[], lon: number[], ts: number[]) {
     }
     let hasFix = false;
     const index = currentIndex;
-    currentTimestamp += 1000;
-    if (currentTimestamp >= ts[currentIndex]) {
+    currentSec += 1;
+    if (currentSec >= timeSecs[currentIndex]) {
       hasFix = true;
       currentIndex++;
     }
@@ -119,7 +119,7 @@ function filterPosition(lat: number[], lon: number[], ts: number[]) {
   };
 
   // Start using the output after the delay.
-  const lenSeconds = Math.round((ts[len - 1] - ts[0]) / 1000) + filterDelay;
+  const lenSeconds = Math.round(timeSecs[len - 1] - timeSecs[0]) + filterDelay;
   let dstIdx = 0;
   for (let seconds = 0; seconds < lenSeconds; ++seconds) {
     const { hasFix, index } = getNextIndex();
@@ -132,7 +132,7 @@ function filterPosition(lat: number[], lon: number[], ts: number[]) {
   }
 
   // Compensate for the delay.
-  for (let i = 0, dstIdx = ts.length - filterDelay; i < filterDelay; ++i, dstIdx++) {
+  for (let i = 0, dstIdx = len - filterDelay; i < filterDelay; ++i, dstIdx++) {
     lowPass(len - 1);
     lat[dstIdx] = lastLat;
     lon[dstIdx] = lastLon;
@@ -142,18 +142,18 @@ function filterPosition(lat: number[], lon: number[], ts: number[]) {
 const w: Worker = self as any;
 
 w.addEventListener('message', (message: MessageEvent<Request>) => {
-  const { alt, id, lat, lon, ts } = message.data;
+  const { alt, id, lat, lon, timeSec } = message.data;
 
-  filterSpikes(alt, ts);
+  filterSpikes(alt, timeSec);
   const heading = computeHeading(lat, lon);
 
-  const vz = computeVerticalSpeed(alt, ts);
+  const vz = computeVerticalSpeed(alt, timeSec);
   const minAlt = Math.min(...alt);
   const maxAlt = Math.max(...alt);
   const minVz = Math.min(...vz);
   const maxVz = Math.max(...vz);
 
-  filterPosition(lat, lon, ts);
+  filterPosition(lat, lon, timeSec);
 
   w.postMessage({ alt, heading, id, lookAtLat: lat, lookAtLon: lon, maxAlt, minAlt, maxVz, minVz, vz });
 });

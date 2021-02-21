@@ -32,5 +32,8 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": false,
     "removeComments": true
-  }
+  },
+  "exclude": [
+    "frontend/static"
+  ]
 }

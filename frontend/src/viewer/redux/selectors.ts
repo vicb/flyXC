@@ -23,18 +23,18 @@ export const isMultiDay = createSelector(tracks, (tracks): boolean => {
   if (tracks.length == 0) {
     return false;
   }
-  const minTs = Math.min(...tracks.map((t) => t.ts[0]));
-  const maxTs = Math.max(...tracks.map((t) => t.ts[t.ts.length - 1]));
-  return maxTs - minTs > 12 * 3600 * 1000;
+  const minTime = Math.min(...tracks.map((t) => t.minTimeSec));
+  const maxTime = Math.max(...tracks.map((t) => t.maxTimeSec));
+  return maxTime - minTime > 12 * 3600;
 });
 
 // Offset to subtract to each track timestamp to have them started at the same time as the current one.
-export const tsOffsets = createSelector(tracks, currentTrack, isMultiDay, (tracks, currentTrack, isMultiDay) => {
+export const offsetSeconds = createSelector(tracks, currentTrack, isMultiDay, (tracks, currentTrack, isMultiDay) => {
   const offsets: { [id: string]: number } = {};
   if (tracks.length > 0 && currentTrack != null) {
-    const start = currentTrack.ts[0];
+    const start = currentTrack.timeSec[0];
     tracks.forEach((track) => {
-      offsets[track.id] = isMultiDay ? track.ts[0] - start : 0;
+      offsets[track.id] = isMultiDay ? track.timeSec[0] - start : 0;
     });
   }
   return offsets;
@@ -54,15 +54,15 @@ export const minLat = createSelector(minLats, (lats) => Math.min(...lats));
 export const minLons = createSelector(tracks, (tracks) => tracks.map((t) => t.minLon));
 export const minLon = createSelector(minLons, (lons) => Math.min(...lons));
 
-export const maxTimestamps = createSelector(tracks, tsOffsets, (t, tsOffsets) =>
-  t.map((t) => t.ts[t.ts.length - 1] - tsOffsets[t.id]),
+export const maxTimeSecs = createSelector(tracks, offsetSeconds, (t, offsetSeconds) =>
+  t.map((t) => t.maxTimeSec - offsetSeconds[t.id]),
 );
-export const maxTimestamp = createSelector(maxTimestamps, (tss) => (tss.length ? Math.max(...tss) : 1));
+export const maxTimeSec = createSelector(maxTimeSecs, (timeSecs) => (timeSecs.length ? Math.max(...timeSecs) : 1));
 
-export const minTimestamps = createSelector(tracks, tsOffsets, (tracks, tsOffsets) =>
-  tracks.map((t) => t.ts[0] - tsOffsets[t.id]),
+export const minTimeSecs = createSelector(tracks, offsetSeconds, (tracks, offsetSeconds) =>
+  tracks.map((t) => t.minTimeSec - offsetSeconds[t.id]),
 );
-export const minTimestamp = createSelector(minTimestamps, (tss) => (tss.length ? Math.min(...tss) : 0));
+export const minTimeSec = createSelector(minTimeSecs, (timeSecs) => (timeSecs.length ? Math.min(...timeSecs) : 0));
 
 export const maxAlts = createSelector(tracks, (tracks) => tracks.map((t) => t.maxAlt));
 export const maxAlt = createSelector(maxAlts, (alts) => Math.max(...alts));
@@ -116,25 +116,25 @@ export const airspaceAltitudeStops = createSelector(altitudeUnits, (units) => {
   return steps;
 });
 
-// Returns a function that compute the coordinates of the current track at the given timestamp.
+// Returns a function that compute the coordinates of the current track at the given time in seconds.
 export const getTrackLatLonAlt = createSelector(
   currentTrack,
-  (currentTrack) => (timestamp: number, track?: RuntimeTrack): LatLonZ | undefined => {
+  (currentTrack) => (timeSec: number, track?: RuntimeTrack): LatLonZ | undefined => {
     track ??= currentTrack;
     if (track == null) {
       return;
     }
-    const lat = sampleAt(track.ts, track.lat, timestamp);
-    const lon = sampleAt(track.ts, track.lon, timestamp);
-    const alt = sampleAt(track.ts, track.alt, timestamp);
+    const lat = sampleAt(track.timeSec, track.lat, timeSec);
+    const lon = sampleAt(track.timeSec, track.lon, timeSec);
+    const alt = sampleAt(track.timeSec, track.alt, timeSec);
     return { lat, lon, alt };
   },
 );
 
-// Returns a function that compute the lookAt coordinates at the given timestamp.
+// Returns a function that compute the lookAt coordinates at the given time in seconds.
 export const getLookAtLatLonAlt = createSelector(
   currentTrack,
-  (currentTrack) => (timestamp: number, track?: RuntimeTrack): LatLonZ | undefined => {
+  (currentTrack) => (timeSec: number, track?: RuntimeTrack): LatLonZ | undefined => {
     track ??= currentTrack;
     if (track == null) {
       return;
@@ -142,9 +142,9 @@ export const getLookAtLatLonAlt = createSelector(
     if (track.lookAtLat == null || track.lookAtLon == null) {
       return;
     }
-    const lat = sampleAt(track.ts, track.lookAtLat, timestamp);
-    const lon = sampleAt(track.ts, track.lookAtLon, timestamp);
-    const alt = sampleAt(track.ts, track.alt, timestamp);
+    const lat = sampleAt(track.timeSec, track.lookAtLat, timeSec);
+    const lon = sampleAt(track.timeSec, track.lookAtLon, timeSec);
+    const alt = sampleAt(track.timeSec, track.alt, timeSec);
     return { lat, lon, alt };
   },
 );
