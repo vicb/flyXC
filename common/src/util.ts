@@ -11,6 +11,7 @@ export function formatReqError(error: any): string {
       switch (error.code) {
         case 'ECONNRESET':
         case 'ETIMEDOUT':
+        case 'CERT_HAS_EXPIRED':
         case 401: // Unauthorized
         case 503: // Unavailable
         case 502: // Bad Gateway
