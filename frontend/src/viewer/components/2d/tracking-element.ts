@@ -182,11 +182,13 @@ export class TrackingElement extends connect(store)(LitElement) {
     let labelOrigin: google.maps.Point | undefined;
     let anchor: google.maps.Point | undefined;
     let zIndex = 10;
+    let fontWeight: string | undefined;
 
     if (isActive) {
       opacity = 0.9;
       labelColor = '#BF1515';
       zIndex = 20;
+      fontWeight = '500';
     }
 
     let label: google.maps.MarkerLabel | undefined;
@@ -201,6 +203,7 @@ export class TrackingElement extends connect(store)(LitElement) {
           color: labelColor,
           text: track.name + '\n-' + formatDurationMin(ageMin),
           className: 'gm-label-outline',
+          fontWeight,
         };
       }
     }
