@@ -373,7 +373,7 @@ export class ChartElement extends connect(store)(LitElement) {
         paths.push(...this.airspacePaths(track));
       }
       for (let x = minX; x < maxX; x++) {
-        const timeSec = this.getTimeSecAtX(x);
+        const timeSec = this.getTimeSecAtX(x) + offsetSeconds;
         const y = this.getY(track, timeSec);
         trackCoords.push(`${x.toFixed(1)},${this.getYAtHeight(y).toFixed(1)}`);
         if (displayGndAlt && track.gndAlt) {
