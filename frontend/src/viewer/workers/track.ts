@@ -29,7 +29,7 @@ function filterSpikes(altitude: number[], timeSecs: number[]) {
   let currentAltitude = altitude[0];
   let currentIndex = 0;
 
-  // Generates one altitude for every seconds (buffering the last value if needed).
+  // Generates one sample for every seconds (buffering the last value if needed).
   // The last value gets duplicated to account for the filter delay.
   const getNextAltitude = (): { hasFix: boolean; alt: number } => {
     if (currentIndex >= len) {
@@ -47,7 +47,7 @@ function filterSpikes(altitude: number[], timeSecs: number[]) {
   };
 
   // Start using the output after the delay.
-  const lenSeconds = Math.round(timeSecs[len - 1] - timeSecs[0]) + HALF_WINDOW_SECONDS;
+  const lenSeconds = timeSecs[len - 1] - timeSecs[0] + HALF_WINDOW_SECONDS;
   let dstIdx = 0;
   for (let seconds = 0; seconds < lenSeconds; ++seconds) {
     const { hasFix, alt } = getNextAltitude();
@@ -87,7 +87,7 @@ function filterPosition(lat: number[], lon: number[], timeSecs: number[]) {
   let currentIndex = 0;
   let currentSec = timeSecs[0];
 
-  // Generates one altitude for every seconds (buffering the last value if needed).
+  // Generates one sample for every seconds (buffering the last value if needed).
   // The last value gets duplicated to account for the filter delay.
   const getNextIndex = (): { hasFix: boolean; index: number } => {
     if (currentIndex >= len) {
@@ -119,7 +119,7 @@ function filterPosition(lat: number[], lon: number[], timeSecs: number[]) {
   };
 
   // Start using the output after the delay.
-  const lenSeconds = Math.round(timeSecs[len - 1] - timeSecs[0]) + filterDelay;
+  const lenSeconds = timeSecs[len - 1] - timeSecs[0] + filterDelay;
   let dstIdx = 0;
   for (let seconds = 0; seconds < lenSeconds; ++seconds) {
     const { hasFix, index } = getNextIndex();

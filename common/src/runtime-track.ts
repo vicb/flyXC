@@ -75,10 +75,7 @@ export function protoToRuntimeTrack(
 ): RuntimeTrack {
   const track = diffDecodeTrack(differentialTrack);
   const trackLen = track.lat.length;
-
   const distX: number[] = [0];
-  const distZ: number[] = [0];
-  const deltaSeconds: number[] = [0];
 
   // Pre-computes values to save time.
   let previousLatLon = { lat: track.lat[0], lon: track.lon[0] };
@@ -86,23 +83,9 @@ export function protoToRuntimeTrack(
     const currentLatLon = { lat: track.lat[i], lon: track.lon[i] };
     distX[i] = getDistance(previousLatLon, currentLatLon);
     previousLatLon = currentLatLon;
-    distZ[i] = track.alt[i] - track.alt[i - 1];
-    deltaSeconds[i] = track.timeSec[i] - track.timeSec[i - 1];
   }
 
-  const vx: number[] = [];
-
-  for (let i = 0; i < trackLen; i++) {
-    // Compute vx.
-    let distance = 0;
-    let timeSec = 0;
-    for (let avg = 1; i + avg < trackLen && avg < 65; avg++) {
-      distance += distX[i];
-      timeSec += deltaSeconds[i];
-      if (timeSec > 60) break;
-    }
-    vx[i] = timeSec > 0 ? Math.round((3.6 * distance) / timeSec) : 0;
-  }
+  const vx = averagePerSeconds(distX, track.timeSec, 60).map((speed) => 3.6 * speed);
 
   const vz = computeVerticalSpeed(track.alt, track.timeSec);
 
@@ -143,29 +126,13 @@ export function protoToRuntimeTrack(
 export function computeVerticalSpeed(alt: number[], timeSec: number[]): number[] {
   const trackLen = alt.length;
   const distZ: number[] = [0];
-  const deltaSec: number[] = [0];
 
   // Pre-computes values to save time.
   for (let i = 1; i < trackLen; i++) {
     distZ[i] = alt[i] - alt[i - 1];
-    deltaSec[i] = timeSec[i] - timeSec[i - 1];
   }
 
-  const vz: number[] = [];
-
-  for (let i = 0; i < trackLen; i++) {
-    // Compute vz.
-    let distance = 0;
-    let timeSec = 0;
-    for (let avg = 1; i + avg < trackLen && avg < 35; avg++) {
-      distance += distZ[i];
-      timeSec += deltaSec[i];
-      if (timeSec > 30) break;
-    }
-    vz[i] = timeSec > 0 ? Number((distance / timeSec).toFixed(1)) : 0;
-  }
-
-  return vz;
+  return averagePerSeconds(distZ, timeSec, 60);
 }
 
 // Add the ground altitude to a runtime track.
@@ -254,4 +221,37 @@ export function diffDecodeAirspaces(asp: protos.Airspaces): protos.Airspaces {
     startSec: diffDecodeArray(asp.startSec),
     endSec: diffDecodeArray(asp.endSec),
   };
+}
+
+// Average data per seconds.
+function averagePerSeconds(data: number[], timesSec: number[], windowSec: number) {
+  const len = timesSec.length;
+  const average = [];
+
+  let sum = 0;
+  const lookAheadSec = Math.round(windowSec / 2);
+  let firstIndex = 0;
+  let lastIndex = 0;
+
+  for (let index = 0; index < len; index++) {
+    const windowStart = timesSec[index] - lookAheadSec;
+    const windowEnd = windowStart + windowSec;
+
+    // Remove samples from the beginning.
+    while (timesSec[firstIndex] < windowStart) {
+      sum -= data[firstIndex];
+      firstIndex++;
+    }
+
+    // Add samples to the end.
+    while (lastIndex < len - 1 && timesSec[lastIndex] < windowEnd) {
+      sum += data[lastIndex];
+      lastIndex++;
+    }
+
+    const deltaSec = timesSec[lastIndex] - timesSec[firstIndex];
+    average.push(deltaSec == 0 ? 0 : sum / deltaSec);
+  }
+
+  return average;
 }
