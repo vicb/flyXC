@@ -14,7 +14,7 @@ export class AirwaysOverlay extends WMTSOverlayElement {
   };
   zoom = [0, 15];
   bounds = null;
-  url = 'https://thermal.kk7.ch/php/tile.php?typ=skyways&t=all&z={zoom}&x={x}&y={y}&src={domain}'.replace(
+  url = 'https://thermal.kk7.ch/tiles/skyways_all/{zoom}/{x}/{y}.png?src={domain}'.replace(
     '{domain}',
     window.location.hostname,
   );
