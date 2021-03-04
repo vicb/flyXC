@@ -11,6 +11,7 @@ import QRCode from 'qrcode';
 
 import { getAdminRouter } from './routes/admin';
 import { getTrackerRouter } from './routes/live-track';
+import { logout } from './routes/session';
 import { getTrackRouter } from './routes/track';
 import { encode } from './waypoints';
 
@@ -107,8 +108,8 @@ app.get('/_qr.svg', async (req: Request, res: Response) => {
 });
 
 // Logout.
-app.get('/logout', (req: Request, res: Response) => {
-  req.session?.destroy(() => null);
+app.get('/logout', async (req: Request, res: Response) => {
+  await logout(req);
   res.redirect('/');
 });
 

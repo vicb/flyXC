@@ -1,6 +1,5 @@
 import express, { Request, Response, Router } from 'express';
 import { idFromEntity } from 'flyxc/common/src/datastore';
-import { SecretKeys } from 'flyxc/common/src/keys';
 import { trackerPropNames } from 'flyxc/common/src/live-track';
 import { LIVE_TRACK_TABLE } from 'flyxc/common/src/live-track-entity';
 import { Keys } from 'flyxc/common/src/redis';
@@ -9,7 +8,7 @@ import Redis from 'ioredis';
 
 import { Datastore } from '@google-cloud/datastore';
 
-import { getGrantSession } from './grant';
+import { isAdmin } from './session';
 
 const datastore = new Datastore();
 
@@ -23,9 +22,8 @@ export function getAdminRouter(redis: Redis.Redis): Router {
 
   router.get('/_admin.json', async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
-    const adminEmails = SecretKeys.ADMINS.split(',');
-    const session = getGrantSession(req);
-    if (!session || session.access_token == null || adminEmails.indexOf(session.profile?.email)) {
+
+    if (!isAdmin(req)) {
       res.sendStatus(403);
       return;
     }

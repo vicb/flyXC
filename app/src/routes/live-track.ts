@@ -13,7 +13,7 @@ import Redis from 'ioredis';
 import { Datastore } from '@google-cloud/datastore';
 import { NoDomBinder } from '@vaadin/form/NoDomBinder';
 
-import { getGrantSession } from './grant';
+import { getUserInfo, isLoggedIn } from './session';
 
 const datastore = new Datastore();
 const csrfProtection = csurf();
@@ -54,16 +54,21 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
   // Get the account information.
   router.get('/_account', csrfProtection, async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
-    const session = getGrantSession(req);
-    if (!session || session.access_token == null) {
+    if (!isLoggedIn(req)) {
       res.sendStatus(403);
       return;
     }
 
     try {
-      const { name, sub } = session.profile;
+      const userInfo = getUserInfo(req);
+      if (!userInfo) {
+        res.sendStatus(500);
+        return;
+      }
+
+      const { name, token } = userInfo;
       let account: AccountModel;
-      const [entities] = await datastore.createQuery(LIVE_TRACK_TABLE).filter('google_id', sub).limit(1).run();
+      const [entities] = await datastore.createQuery(LIVE_TRACK_TABLE).filter('google_id', token).limit(1).run();
 
       if (entities.length == 0) {
         account = AccountFormModel.createEmptyValue();
@@ -82,8 +87,7 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
 
   // Updates the tracker information.
   router.post('/_account', csrfProtection, async (req: Request, res: Response) => {
-    const session = getGrantSession(req);
-    if (!session || session.access_token == null) {
+    if (!isLoggedIn(req)) {
       res.sendStatus(403);
       return;
     }
@@ -121,10 +125,16 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
         return;
       }
 
-      const { email, sub } = session.profile;
-      const [entities] = await datastore.createQuery(LIVE_TRACK_TABLE).filter('google_id', sub).limit(1).run();
+      const userInfo = getUserInfo(req);
+      if (!userInfo) {
+        res.sendStatus(500);
+        return;
+      }
+      const { email, token } = userInfo;
 
-      const entity = UpdateLiveTrackEntityFromModel(entities[0], account, email, sub);
+      const [entities] = await datastore.createQuery(LIVE_TRACK_TABLE).filter('google_id', token).limit(1).run();
+
+      const entity = UpdateLiveTrackEntityFromModel(entities[0], account, email, token);
 
       try {
         await datastore.save({
