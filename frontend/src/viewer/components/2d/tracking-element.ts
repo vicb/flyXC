@@ -19,6 +19,8 @@ let ORIGIN_MSG: google.maps.Point | undefined;
 
 // A track is considered recent if ended less than timeout ago.
 const RECENT_TIMEOUT_MIN = 2 * 60;
+// Old tracks.
+const OLD_TIMEOUT_MIN = 12 * 60;
 
 // Only the last track uses a solid line.
 // Former tracks use a dashed line.
@@ -262,6 +264,10 @@ export class TrackingElement extends connect(store)(LitElement) {
       // Make the selected track very visible.
       strokeWeight = 4;
       zIndex = 20;
+    } else if (ageMin > OLD_TIMEOUT_MIN) {
+      // Dashed lines for old tracks.
+      icons = formerTrackIcons;
+      strokeOpacity = 0;
     } else if (ageMin < RECENT_TIMEOUT_MIN && this.numTracks == 0) {
       // Make the recent tracks more visible when there are no non-live tracks.
       strokeWeight = 2;
