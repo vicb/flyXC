@@ -43,6 +43,22 @@ describe('makeLiveTrack', () => {
     expect(track.alt[0]).toBe(100);
   });
 
+  it('should round the ground altitude', () => {
+    const track = makeLiveTrack([
+      {
+        device: TrackerIds.Inreach,
+        lat: 10.123456,
+        lon: -12.123456,
+        alt: 100.123,
+        gndAlt: 80.123,
+        timestamp: 20001,
+        valid: false,
+      },
+    ]);
+
+    expect(track.extra[0].gndAlt).toBe(80);
+  });
+
   it('should convert the timestamp to seconds', () => {
     const track = makeLiveTrack([
       { device: TrackerIds.Inreach, lat: 10.123456, lon: -12.123456, alt: 100.123, timestamp: 20001, valid: false },
@@ -75,6 +91,15 @@ describe('makeLiveTrack', () => {
     ]);
 
     expect(track.extra).toEqual({ 1: { message: 'hello' } });
+  });
+
+  it('should add extra for ground altitude', () => {
+    const track = makeLiveTrack([
+      { device: TrackerIds.Inreach, lat: 10, lon: -12, alt: 100, timestamp: 1000000, valid: false },
+      { device: TrackerIds.Inreach, lat: 10, lon: -12, alt: 100, timestamp: 2000000, valid: false, gndAlt: 32 },
+    ]);
+
+    expect(track.extra).toEqual({ 1: { gndAlt: 32 } });
   });
 
   it('should compute the speed for the last point as an uint32', () => {
@@ -130,12 +155,16 @@ describe('makeLiveTrack', () => {
       { device: TrackerIds.Inreach, lat: 10, lon: -12, alt: 100, timestamp: 1000 },
       { device: TrackerIds.Spot, lat: 10, lon: -12, alt: 100, timestamp: 2000 },
       { device: TrackerIds.Skylines, lat: 10, lon: -12, alt: 100, timestamp: 2000 },
+      { device: TrackerIds.Flyme, lat: 10, lon: -12, alt: 100, timestamp: 2000 },
+      { device: TrackerIds.Flymaster, lat: 10, lon: -12, alt: 100, timestamp: 2000 },
     ]);
 
     expect(track.flags.map((flags) => getFixDevice(flags))).toEqual([
       TrackerIds.Inreach,
       TrackerIds.Spot,
       TrackerIds.Skylines,
+      TrackerIds.Flyme,
+      TrackerIds.Flymaster,
     ]);
   });
 });

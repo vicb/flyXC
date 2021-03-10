@@ -25,7 +25,6 @@ import * as inreach from './inreach';
 import * as skylines from './skylines';
 import * as spot from './spot';
 
-// TODO: one instance ?
 const datastore = new Datastore();
 
 export interface LivePoint {
@@ -44,6 +43,7 @@ export interface LivePoint {
   message?: string | null;
   // Speed in km/h.
   speed?: number | null;
+  gndAlt?: number;
   lowBattery?: boolean | null;
 }
 
@@ -75,6 +75,10 @@ export function makeLiveTrack(points: LivePoint[]): protos.LiveTrack {
     }
     if (point.message != null) {
       extra.message = point.message;
+      hasExtra = true;
+    }
+    if (point.gndAlt != null) {
+      extra.gndAlt = point.gndAlt;
       hasExtra = true;
     }
     if (hasExtra) {
