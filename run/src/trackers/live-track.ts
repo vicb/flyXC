@@ -20,6 +20,7 @@ import { getDistance } from 'geolib';
 import { Datastore, Key } from '@google-cloud/datastore';
 
 import { getElevationUrl, parseElevationResponse } from '../elevation/arcgis';
+import * as flymaster from './flymaster';
 import * as flyme from './flyme';
 import * as inreach from './inreach';
 import * as skylines from './skylines';
@@ -78,7 +79,7 @@ export function makeLiveTrack(points: LivePoint[]): protos.LiveTrack {
       hasExtra = true;
     }
     if (point.gndAlt != null) {
-      extra.gndAlt = point.gndAlt;
+      extra.gndAlt = Math.round(point.gndAlt);
       hasExtra = true;
     }
     if (hasExtra) {
@@ -213,7 +214,13 @@ export type TrackerLogs = Map<TrackerIds, TrackerLogEntry>;
 // - Save to datastore.
 export async function updateTrackers(): Promise<TrackerLogs> {
   const start = Date.now();
-  const refreshes = await Promise.allSettled([inreach.refresh(), spot.refresh(), skylines.refresh(), flyme.refresh()]);
+  const refreshes = await Promise.allSettled([
+    inreach.refresh(), 
+    spot.refresh(), 
+    skylines.refresh(), 
+    flyme.refresh(), 
+    flymaster.refresh(),
+  ]);
 
   const updates: TrackerUpdate[] = [];
   // Collect all the ids that have been updated.

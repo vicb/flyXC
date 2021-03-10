@@ -1,4 +1,9 @@
-import { validateInreachAccount, validateSkylinesAccount, validateSpotAccount } from 'flyxc/common/src/models';
+import {
+  validateFlymasterAccount,
+  validateInreachAccount,
+  validateSkylinesAccount,
+  validateSpotAccount,
+} from 'flyxc/common/src/models';
 
 describe('Validate Inreach account', () => {
   test('Valid urls', () => {
@@ -73,5 +78,21 @@ describe('Validate Spot accounts', () => {
   test('invalid ids', () => {
     expect(validateSpotAccount('0-2462937')).toEqual(false);
     expect(validateSpotAccount('random')).toEqual(false);
+  });
+});
+
+describe('Validate Flymaster accounts', () => {
+  test('Valid ids', () => {
+    expect(validateFlymasterAccount('123')).toBe('123');
+    expect(validateFlymasterAccount('00123')).toBe('00123');
+  });
+
+  test('Invalid ids', () => {
+    expect(validateFlymasterAccount('')).toEqual(false);
+    expect(validateFlymasterAccount('1')).toEqual(false);
+    expect(validateFlymasterAccount('12')).toEqual(false);
+    expect(validateFlymasterAccount('0a')).toEqual(false);
+    expect(validateFlymasterAccount('a123')).toEqual(false);
+    expect(validateFlymasterAccount('random')).toEqual(false);
   });
 });

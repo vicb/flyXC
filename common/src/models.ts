@@ -16,6 +16,7 @@ export interface AccountModel {
   spot: TrackerModel;
   skylines: TrackerModel;
   flyme: TrackerModel;
+  flymaster: TrackerModel;
 }
 
 // Form model for a client side account.
@@ -29,6 +30,7 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
       spot: TrackerFormModel.createEmptyValue(),
       skylines: TrackerFormModel.createEmptyValue(),
       flyme: TrackerFormModel.createEmptyValue(),
+      flymaster: TrackerFormModel.createEmptyValue(),
     };
   }
 
@@ -36,7 +38,7 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
     const trackerModels: Record<string, TrackerModel> = {};
 
     for (const [trackerKey, prop] of Object.entries(trackerPropNames)) {
-      const trackerEntity: TrackerEntity = (entity as any)[prop];
+      const trackerEntity: TrackerEntity = (entity as any)[prop] ?? {enabled: false, account: ""};
       const transformer: AccountTransformer = (accountTransformers as any)[trackerKey];
       (trackerModels as any)[prop] = {
         enabled: trackerEntity.enabled,
@@ -64,6 +66,7 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
   readonly spot = this.createTrackerModel(TrackerIds.Spot);
   readonly skylines = this.createTrackerModel(TrackerIds.Skylines);
   readonly flyme = this.createTrackerModel(TrackerIds.Flyme);
+  readonly flymaster = this.createTrackerModel(TrackerIds.Flymaster);
 
   private createTrackerModel(tracker: TrackerIds): TrackerFormModel {
     const validators = trackerValidators[tracker];
@@ -112,6 +115,7 @@ export const trackerValidators: Readonly<Record<TrackerIds, Validator<TrackerMod
   [TrackerIds.Spot]: [new TrackerCallbackValidator('This Spot ID is invalid', validateSpotAccount)],
   [TrackerIds.Skylines]: [new TrackerCallbackValidator('This Skylines ID is invalid', validateSkylinesAccount)],
   [TrackerIds.Flyme]: [],
+  [TrackerIds.Flymaster]: [new TrackerCallbackValidator('This Flymaster ID is invalid', validateFlymasterAccount)],
 };
 
 // Transforms a tracker `account` property (server <-> client).
@@ -166,6 +170,7 @@ export const accountTransformers: Readonly<Record<TrackerIds, AccountTransformer
   [TrackerIds.Spot]: noOpAccountTransformer,
   [TrackerIds.Skylines]: noOpAccountTransformer,
   [TrackerIds.Flyme]: accountWithServerIdTransformer,
+  [TrackerIds.Flymaster]: noOpAccountTransformer,
 };
 
 // Validates a Spot Id.
@@ -210,4 +215,11 @@ export function validateInreachAccount(url: string): string | false {
   }
 
   return false;
+}
+
+// Validates a Flymaster Id.
+//
+// Flymaster uses numerical ids (last digit of the serial number).
+export function validateFlymasterAccount(id: string): string | false {
+  return /^\d{3,}$/.test(id) ? id : false;
 }

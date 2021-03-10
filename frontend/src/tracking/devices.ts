@@ -68,6 +68,7 @@ export class DeviceConfig extends LitElement {
           <li><a href="https://www.findmespot.com/" target="_blank" class="has-text-link">Spot</a></li>
           <li><a href="https://skylines.aero/tracking/info" target="_blank" class="has-text-link">SkyLines</a></li>
           <li><a href="http://xcglobe.com/flyme" target="_blank" class="has-text-link">XCGlobe FlyMe</a></li>
+          <li><a href="https://www.flymaster.net/" target="_blank" class="has-text-link">Flymaster</a></li>
         </ul>
         <p class="my-4">
           <a href="mailto:help@flyxc.app?subject=FlyXC%20registration%20error" class="has-text-link" target="_blank"

@@ -34,6 +34,7 @@ export const enum TrackerIds {
   Spot = 2,
   Skylines = 3,
   Flyme = 4,
+  Flymaster = 5,
 }
 
 // The property names should be in sync with LiveTrackEntity.
@@ -42,6 +43,7 @@ export const trackerPropNames: Readonly<Record<TrackerIds, string>> = {
   [TrackerIds.Spot]: 'spot',
   [TrackerIds.Skylines]: 'skylines',
   [TrackerIds.Flyme]: 'flyme',
+  [TrackerIds.Flymaster]: 'flymaster',
 };
 
 // How to display the tracker name.
@@ -49,7 +51,8 @@ export const trackerDisplayNames: Readonly<Record<TrackerIds, string>> = {
   [TrackerIds.Inreach]: 'InReach',
   [TrackerIds.Spot]: 'Spot',
   [TrackerIds.Skylines]: 'Skylines',
-  [TrackerIds.Flyme]: 'FlyMe',
+  [TrackerIds.Flyme]: 'FlyMe (XCGlobe)',
+  [TrackerIds.Flymaster]: 'Flymaster',
 };
 
 export const enum LiveTrackFlag {

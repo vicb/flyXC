@@ -36,6 +36,7 @@ export interface LiveTrackEntity {
   spot: TrackerEntity;
   skylines: TrackerEntity;
   flyme: TrackerEntity;
+  flymaster: TrackerEntity;
 }
 
 // Retrieves a tracker given its Google Id (=oauth sub).

@@ -228,12 +228,12 @@ export class DashTracker extends LitElement {
 
   render(): TemplateResult {
     const oldTimeSec = Date.now() / 1000 - 24 * 3 * 3600;
-    const number = this.values[Keys.dashboardNumTrackers.replace('{name}', this.name)];
+    const number = this.values[Keys.dashboardNumTrackers.replace('{name}', this.name)] ?? 0;
     const fetchTimes = this.values[Keys.trackerLogsTime.replace('{name}', this.name)].map(relativeTime);
     const durations = this.values[Keys.trackerLogsDuration.replace('{name}', this.name)];
     const numDevices = this.values[Keys.trackerLogsSize.replace('{name}', this.name)];
     const topErrors: [string, string][] = [];
-    this.values[Keys.dashboardTopErrors.replace('{name}', this.name)].split(',').forEach((entry: string) => {
+    (this.values[Keys.dashboardTopErrors.replace('{name}', this.name)] ?? "").split(',').forEach((entry: string) => {
       const m = entry.match(/id=(\d+) errors=(\d+)/i);
       if (m) {
         topErrors.push([m[1], m[2]]);

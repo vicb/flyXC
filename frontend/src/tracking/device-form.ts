@@ -133,7 +133,15 @@ export class DeviceForm extends LitElement {
             </tracker-panel>
             <tracker-panel .tracker=${TrackerIds.Flyme} .binder=${this.binder} label="Username" inputmode="email">
               <p class="help" slot="hint">Enter your FlyMe username in the field above. It commonly is your email.</p>
-            </tracker-panel>`
+            </tracker-panel>
+            <tracker-panel .tracker=${TrackerIds.Flymaster} .binder=${this.binder} label="Device Id">
+              <p class="help" slot="hint">
+                Login to
+                <a href="https://lt.flymaster.net" target="_blank" class="has-text-link">lt.flymaster.net</a> and
+                click on "My account", followed by "My Instruments". Copy the numerical id of the instrument in the
+                field above.
+              </p>
+            </tracker-panel> `
         : null}
 
       <div class="field is-grouped is-grouped-right">

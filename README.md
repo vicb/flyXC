@@ -4,7 +4,7 @@
 
 - Visualize your flights,
 - Plan your flights,
-- Add your satellite trackers (inreach/spot) to the map
+- Add your live trackers (inreach, spot, skylines, flyme, flymaster) to the map.
 
 ## Manual
 

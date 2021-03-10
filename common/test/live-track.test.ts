@@ -321,6 +321,7 @@ describe('mergeLiveTracks', () => {
     const track = LiveTrack.create();
     expect(mergeLiveTracks(track, track)).toEqual(track);
   });
+
   it('should use the track that is not empty', () => {
     const track: LiveTrack = {
       timeSec: [1, 2, 3],
@@ -539,11 +540,12 @@ describe('mergeLiveTracks', () => {
 
     it('should merge extras', () => {
       const track1: LiveTrack = {
-        timeSec: [10, 20, 30, 40],
-        lat: [11, 12, 13, 14],
-        lon: [21, 22, 23, 24],
-        alt: [31, 32, 33, 34],
+        timeSec: [10, 20, 30, 40, 50],
+        lat: [11, 12, 13, 14, 15],
+        lon: [21, 22, 23, 24, 25],
+        alt: [31, 32, 33, 34, 35],
         flags: [
+          TrackerIds.Spot | LiveTrackFlag.Valid,
           TrackerIds.Spot | LiveTrackFlag.Valid,
           TrackerIds.Spot | LiveTrackFlag.Valid,
           TrackerIds.Spot | LiveTrackFlag.Valid,
@@ -575,11 +577,12 @@ describe('mergeLiveTracks', () => {
       };
 
       expect(mergeLiveTracks(track1, track2)).toEqual({
-        timeSec: [10, 20, 30, 40],
-        lat: [11, 12, 13, 14],
-        lon: [21, 22, 23, 24],
-        alt: [31, 32, 33, 34],
+        timeSec: [10, 20, 30, 40, 50],
+        lat: [11, 12, 13, 14, 15],
+        lon: [21, 22, 23, 24, 25],
+        alt: [31, 32, 33, 34, 35],
         flags: [
+          TrackerIds.Spot | LiveTrackFlag.Valid,
           TrackerIds.Spot | LiveTrackFlag.Valid,
           TrackerIds.Spot | LiveTrackFlag.Valid,
           TrackerIds.Spot | LiveTrackFlag.Valid,

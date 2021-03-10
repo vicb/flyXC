@@ -37,6 +37,13 @@ indexes:
     - name: flyme.updated
     - name: flyme.account
 
+  - kind: LiveTrack
+    properties:
+    - name: enabled
+    - name: flymaster.enabled
+    - name: flymaster.updated
+    - name: flymaster.account    
+
   # Retrieve devices with errors.
 
   - kind: LiveTrack
@@ -65,4 +72,11 @@ indexes:
     - name: enabled
     - name: flyme.enabled
     - name: flyme.errors_requests
-      direction: desc                  
+      direction: desc
+
+  - kind: LiveTrack
+    properties:
+    - name: enabled
+    - name: flymaster.enabled
+    - name: flymaster.errors_requests
+      direction: desc                 
