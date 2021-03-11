@@ -85,7 +85,8 @@ function encodeTSK(
   elevations: number[] | null,
   prefix: string,
 ): { mime?: string; file?: string; ext?: string; error?: string } {
-  const task = builder.begin().ele('Task');
+  // See https://github.com/XCSoar/XCSoar/issues/542
+  const task = builder.begin().ele('Task', { type: 'RT' });
   points.forEach((p, i) => {
     let type = 'Turn';
     if (i == 0) {
