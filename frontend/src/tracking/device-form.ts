@@ -103,9 +103,9 @@ export class DeviceForm extends LitElement {
             <tracker-panel .tracker=${TrackerIds.Inreach} .binder=${this.binder} label="MapShare URL" inputmode="url">
               <p class="help" slot="hint">
                 Visit
-                <a href="https://explore.garmin.com/Social" target="_blank" class="has-text-link"
-                  >your InReach social profile</a
-                >
+                <a href="https://explore.garmin.com/Social" target="_blank" class="has-text-link">
+                  your InReach social profile
+                </a>
                 and copy your MapShare address in the field above (it should look like
                 <span class="has-text-info">https://share.garmin.com/username</span> or
                 <span class="has-text-info">https://share.garmin.com/Feed/Share/username</span>).
@@ -118,12 +118,13 @@ export class DeviceForm extends LitElement {
                   href="https://www.findmespot.com/en-us/support/spot-trace/get-help/general/spot-api-support"
                   target="_blank"
                   class="has-text-link"
-                  >page.</a
                 >
+                  page.
+                </a>
                 and paste the feed id into the field above (it should look like
                 <span class="has-text-info">0onlLopfoM4bG5jXvWRE8H0Obd0oMxMBq</span>).
-              </p></tracker-panel
-            >
+              </p>
+            </tracker-panel>
             <tracker-panel .tracker=${TrackerIds.Skylines} .binder=${this.binder} label="Pilot Id" inputmode="numeric">
               <p class="help" slot="hint">
                 Your pilot's id is at the end of your SkyLines profile url:
@@ -132,16 +133,18 @@ export class DeviceForm extends LitElement {
               </p>
             </tracker-panel>
             <tracker-panel .tracker=${TrackerIds.Flyme} .binder=${this.binder} label="Username" inputmode="email">
-              <p class="help" slot="hint">Enter your FlyMe username in the field above. It commonly is your email.</p>
+              <p class="help" slot="hint">
+                Enter your FlyMe (XCGlobe) username in the field above. It commonly is your email.
+              </p>
             </tracker-panel>
             <tracker-panel .tracker=${TrackerIds.Flymaster} .binder=${this.binder} label="Device Id">
               <p class="help" slot="hint">
                 Login to
-                <a href="https://lt.flymaster.net" target="_blank" class="has-text-link">lt.flymaster.net</a> and
-                click on "My account", followed by "My Instruments". Copy the numerical id of the instrument in the
-                field above.
+                <a href="https://lt.flymaster.net" target="_blank" class="has-text-link">lt.flymaster.net</a> and click
+                on "My account", followed by "My Instruments". Copy the numerical id of the instrument in the field
+                above.
               </p>
-            </tracker-panel> `
+            </tracker-panel>`
         : null}
 
       <div class="field is-grouped is-grouped-right">
