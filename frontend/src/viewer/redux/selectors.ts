@@ -65,7 +65,7 @@ export const minTimeSecs = createSelector(tracks, offsetSeconds, (tracks, offset
 export const minTimeSec = createSelector(minTimeSecs, (timeSecs) => (timeSecs.length ? Math.min(...timeSecs) : 0));
 
 export const maxAlts = createSelector(tracks, (tracks) => tracks.map((t) => t.maxAlt));
-export const maxAlt = createSelector(maxAlts, (alts) => Math.max(...alts));
+export const maxAlt = createSelector(maxAlts, (alts) => (alts.length ? Math.max(...alts) : 0));
 
 export const minAlts = createSelector(tracks, (tracks) => tracks.map((t) => t.minAlt));
 export const minAlt = createSelector(minAlts, (alts) => Math.min(...alts));

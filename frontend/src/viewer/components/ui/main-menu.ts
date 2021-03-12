@@ -202,7 +202,7 @@ export class AirspaceItems extends connect(store)(LitElement) {
         <ion-select @ionChange=${this.handleMaxAltitude} .value=${this.maxAltitude} interface="popover">
           ${this.altitudeStops.map(
             (altitude: number) =>
-              html`<ion-select-option .value=${altitude}> ${formatUnit(altitude, this.unit)} </ion-select-option> `,
+              html`<ion-select-option .value=${altitude}> ${formatUnit(altitude, this.unit)}</ion-select-option> `,
           )}
         </ion-select>
       </ion-item>`;
@@ -212,8 +212,10 @@ export class AirspaceItems extends connect(store)(LitElement) {
   // Triggered on init and when tracks get added or removed.
   private updateMaxAltitude(): void {
     const stops = this.altitudeStops;
-    if (stops.length > 0) {
-      const maxAlt = sel.maxAlt(store.getState());
+    const state = store.getState();
+
+    if (stops.length > 0 && sel.numTracks(state) > 0) {
+      const maxAlt = sel.maxAlt(state);
       store.dispatch(airspaces.setMaxAltitude(stops.find((alt) => alt >= maxAlt) ?? stops[stops.length - 1]));
     }
   }
