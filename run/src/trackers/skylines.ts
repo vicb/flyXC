@@ -110,7 +110,8 @@ export async function refresh(): Promise<TrackerUpdate> {
 export function parse(flight: any, nowMillis = Date.now()): LivePoint[] {
   const time = decodeDeltas(flight.barogram_t, 1, 1);
   const lonlat = decodeDeltas(flight.points, 2);
-  const height = decodeDeltas(flight.barogram_h, 1, 1);
+  const alt = decodeDeltas(flight.barogram_h, 1, 1);
+  const gndAlt = decodeDeltas(flight.elevations_h, 1, 1);
 
   // startSeconds reference is a number of seconds since midnight UTC the day the track started.
   const startSeconds = time[0];
@@ -134,7 +135,8 @@ export function parse(flight: any, nowMillis = Date.now()): LivePoint[] {
         device: TrackerIds.Skylines,
         lat: round(lonlat[i * 2], 5),
         lon: round(lonlat[i * 2 + 1], 5),
-        alt: Math.round(height[i]),
+        alt: Math.round(alt[i] - (flight.geoid ?? 0)),
+        gndAlt: Math.round(gndAlt[i]),
         timestamp: tsSeconds * 1000,
       };
     },

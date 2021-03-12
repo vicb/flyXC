@@ -1,2620 +1,2994 @@
 [
   {
-    "alt": 3088,
     "device": 3,
     "lat": 37.57852,
     "lon": -118.81417,
+    "alt": 3115,
+    "gndAlt": 3104,
     "timestamp": 1603913563000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57853,
     "lon": -118.81417,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603913593000
   },
   {
-    "alt": 2936,
     "device": 3,
     "lat": 37.57853,
     "lon": -118.81416,
+    "alt": 2963,
+    "gndAlt": 3104,
     "timestamp": 1603913653000
   },
   {
-    "alt": 2936,
     "device": 3,
     "lat": 37.57853,
     "lon": -118.81416,
+    "alt": 2963,
+    "gndAlt": 3104,
     "timestamp": 1603913713000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57853,
     "lon": -118.81416,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603913773000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57853,
     "lon": -118.81416,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603913803000
   },
   {
-    "alt": 2936,
     "device": 3,
     "lat": 37.57852,
     "lon": -118.81415,
+    "alt": 2963,
+    "gndAlt": 3104,
     "timestamp": 1603913863000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57852,
     "lon": -118.81416,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603913923000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57852,
     "lon": -118.81417,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603913983000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57851,
     "lon": -118.81417,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603914013000
   },
   {
-    "alt": 2939,
     "device": 3,
     "lat": 37.57853,
     "lon": -118.8142,
+    "alt": 2966,
+    "gndAlt": 3104,
     "timestamp": 1603914073000
   },
   {
-    "alt": 2939,
     "device": 3,
     "lat": 37.57852,
     "lon": -118.81418,
+    "alt": 2966,
+    "gndAlt": 3104,
     "timestamp": 1603914133000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57854,
     "lon": -118.81405,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603914193000
   },
   {
-    "alt": 2936,
     "device": 3,
     "lat": 37.57851,
     "lon": -118.81391,
+    "alt": 2963,
+    "gndAlt": 3104,
     "timestamp": 1603914253000
   },
   {
-    "alt": 2936,
     "device": 3,
     "lat": 37.57852,
     "lon": -118.81391,
+    "alt": 2963,
+    "gndAlt": 3104,
     "timestamp": 1603914313000
   },
   {
-    "alt": 2936,
     "device": 3,
     "lat": 37.57852,
     "lon": -118.81393,
+    "alt": 2963,
+    "gndAlt": 3104,
     "timestamp": 1603914373000
   },
   {
-    "alt": 2936,
     "device": 3,
     "lat": 37.57852,
     "lon": -118.81392,
+    "alt": 2963,
+    "gndAlt": 3104,
     "timestamp": 1603914433000
   },
   {
-    "alt": 2936,
     "device": 3,
     "lat": 37.57853,
     "lon": -118.81392,
+    "alt": 2963,
+    "gndAlt": 3104,
     "timestamp": 1603914463000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.5785,
     "lon": -118.81397,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603914523000
   },
   {
-    "alt": 2936,
     "device": 3,
     "lat": 37.57853,
     "lon": -118.81397,
+    "alt": 2963,
+    "gndAlt": 3104,
     "timestamp": 1603914583000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57853,
     "lon": -118.81394,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603914643000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57853,
     "lon": -118.81392,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603914703000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57853,
     "lon": -118.81395,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603914763000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57854,
     "lon": -118.81394,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603914823000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57854,
     "lon": -118.81394,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603914883000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57854,
     "lon": -118.81394,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603914913000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57854,
     "lon": -118.81394,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603914973000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57854,
     "lon": -118.81395,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603915033000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57854,
     "lon": -118.81396,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603915093000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57857,
     "lon": -118.81393,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603915153000
   },
   {
-    "alt": 2937,
     "device": 3,
     "lat": 37.57853,
     "lon": -118.81392,
+    "alt": 2964,
+    "gndAlt": 3104,
     "timestamp": 1603915213000
   },
   {
-    "alt": 2928,
     "device": 3,
     "lat": 37.57992,
     "lon": -118.81333,
+    "alt": 2955,
+    "gndAlt": 3043,
     "timestamp": 1603915259000
   },
   {
-    "alt": 2944,
     "device": 3,
     "lat": 37.57842,
     "lon": -118.81333,
+    "alt": 2971,
+    "gndAlt": 3075,
     "timestamp": 1603915273000
   },
   {
-    "alt": 2967,
     "device": 3,
     "lat": 37.57966,
     "lon": -118.81419,
+    "alt": 2994,
+    "gndAlt": 3066,
     "timestamp": 1603915333000
   },
   {
-    "alt": 2959,
     "device": 3,
     "lat": 37.57778,
     "lon": -118.81376,
+    "alt": 2986,
+    "gndAlt": 3112,
     "timestamp": 1603915358000
   },
   {
-    "alt": 2965,
     "device": 3,
     "lat": 37.57878,
     "lon": -118.81264,
+    "alt": 2992,
+    "gndAlt": 3016,
     "timestamp": 1603915393000
   },
   {
-    "alt": 2984,
     "device": 3,
     "lat": 37.57781,
     "lon": -118.81346,
+    "alt": 3011,
+    "gndAlt": 3064,
     "timestamp": 1603915453000
   },
   {
-    "alt": 3009,
     "device": 3,
     "lat": 37.57885,
     "lon": -118.81309,
+    "alt": 3036,
+    "gndAlt": 3063,
     "timestamp": 1603915468000
   },
   {
-    "alt": 3030,
     "device": 3,
     "lat": 37.57785,
     "lon": -118.81425,
+    "alt": 3057,
+    "gndAlt": 3112,
     "timestamp": 1603915480000
   },
   {
-    "alt": 3049,
     "device": 3,
     "lat": 37.57757,
     "lon": -118.81273,
+    "alt": 3076,
+    "gndAlt": 3020,
     "timestamp": 1603915513000
   },
   {
-    "alt": 3063,
     "device": 3,
     "lat": 37.57801,
     "lon": -118.81449,
+    "alt": 3090,
+    "gndAlt": 3104,
     "timestamp": 1603915534000
   },
   {
-    "alt": 3035,
     "device": 3,
     "lat": 37.57547,
     "lon": -118.81141,
+    "alt": 3062,
+    "gndAlt": 3105,
     "timestamp": 1603915573000
   },
   {
-    "alt": 3032,
     "device": 3,
     "lat": 37.57474,
     "lon": -118.81155,
+    "alt": 3059,
+    "gndAlt": 3155,
     "timestamp": 1603915603000
   },
   {
-    "alt": 3035,
     "device": 3,
     "lat": 37.5735,
     "lon": -118.81022,
+    "alt": 3062,
+    "gndAlt": 3106,
     "timestamp": 1603915623000
   },
   {
-    "alt": 3021,
     "device": 3,
     "lat": 37.57546,
     "lon": -118.81011,
+    "alt": 3048,
+    "gndAlt": 3073,
     "timestamp": 1603915648000
   },
   {
-    "alt": 3029,
     "device": 3,
     "lat": 37.57578,
     "lon": -118.80839,
+    "alt": 3056,
+    "gndAlt": 2995,
     "timestamp": 1603915664000
   },
   {
-    "alt": 3038,
     "device": 3,
     "lat": 37.57494,
     "lon": -118.80982,
+    "alt": 3065,
+    "gndAlt": 3083,
     "timestamp": 1603915693000
   },
   {
-    "alt": 3035,
     "device": 3,
     "lat": 37.57588,
     "lon": -118.81153,
+    "alt": 3062,
+    "gndAlt": 3105,
     "timestamp": 1603915710000
   },
   {
-    "alt": 3041,
     "device": 3,
     "lat": 37.57597,
     "lon": -118.80987,
+    "alt": 3068,
+    "gndAlt": 3073,
     "timestamp": 1603915725000
   },
   {
-    "alt": 3055,
     "device": 3,
     "lat": 37.57258,
     "lon": -118.80934,
+    "alt": 3082,
+    "gndAlt": 3125,
     "timestamp": 1603915753000
   },
   {
-    "alt": 3058,
     "device": 3,
     "lat": 37.56886,
     "lon": -118.80804,
+    "alt": 3085,
+    "gndAlt": 3128,
     "timestamp": 1603915783000
   },
   {
-    "alt": 3219,
     "device": 3,
     "lat": 37.56572,
     "lon": -118.80543,
+    "alt": 3246,
+    "gndAlt": 3103,
     "timestamp": 1603915856000
   },
   {
-    "alt": 3340,
     "device": 3,
     "lat": 37.56804,
     "lon": -118.81169,
+    "alt": 3367,
+    "gndAlt": 3264,
     "timestamp": 1603915922000
   },
   {
-    "alt": 3298,
     "device": 3,
     "lat": 37.57586,
     "lon": -118.81385,
+    "alt": 3325,
+    "gndAlt": 3121,
     "timestamp": 1603916006000
   },
   {
-    "alt": 3345,
     "device": 3,
     "lat": 37.57767,
     "lon": -118.81271,
+    "alt": 3372,
+    "gndAlt": 3020,
     "timestamp": 1603916036000
   },
   {
-    "alt": 3368,
     "device": 3,
     "lat": 37.57704,
     "lon": -118.81436,
+    "alt": 3395,
+    "gndAlt": 3120,
     "timestamp": 1603916052000
   },
   {
-    "alt": 3388,
     "device": 3,
     "lat": 37.57736,
     "lon": -118.81339,
+    "alt": 3415,
+    "gndAlt": 3064,
     "timestamp": 1603916064000
   },
   {
-    "alt": 3413,
     "device": 3,
     "lat": 37.57843,
     "lon": -118.81487,
+    "alt": 3440,
+    "gndAlt": 3096,
     "timestamp": 1603916096000
   },
   {
-    "alt": 3436,
     "device": 3,
     "lat": 37.5779,
     "lon": -118.81254,
+    "alt": 3463,
+    "gndAlt": 3020,
     "timestamp": 1603916137000
   },
   {
-    "alt": 3504,
     "device": 3,
     "lat": 37.57588,
     "lon": -118.81708,
+    "alt": 3531,
+    "gndAlt": 3077,
     "timestamp": 1603916203000
   },
   {
-    "alt": 3543,
     "device": 3,
     "lat": 37.57423,
     "lon": -118.81861,
+    "alt": 3570,
+    "gndAlt": 3084,
     "timestamp": 1603916233000
   },
   {
-    "alt": 3421,
     "device": 3,
     "lat": 37.57838,
     "lon": -118.82331,
+    "alt": 3448,
+    "gndAlt": 3038,
     "timestamp": 1603916290000
   },
   {
-    "alt": 3382,
     "device": 3,
     "lat": 37.57874,
     "lon": -118.82614,
+    "alt": 3409,
+    "gndAlt": 2993,
     "timestamp": 1603916314000
   },
   {
-    "alt": 3323,
     "device": 3,
     "lat": 37.58384,
     "lon": -118.82467,
+    "alt": 3350,
+    "gndAlt": 2927,
     "timestamp": 1603916362000
   },
   {
-    "alt": 3327,
     "device": 3,
     "lat": 37.585,
     "lon": -118.8198,
+    "alt": 3354,
+    "gndAlt": 3012,
     "timestamp": 1603916400000
   },
   {
-    "alt": 3332,
     "device": 3,
     "lat": 37.58564,
     "lon": -118.82059,
+    "alt": 3359,
+    "gndAlt": 2979,
     "timestamp": 1603916413000
   },
   {
-    "alt": 3334,
     "device": 3,
     "lat": 37.58391,
     "lon": -118.82001,
+    "alt": 3361,
+    "gndAlt": 3025,
     "timestamp": 1603916433000
   },
   {
-    "alt": 3356,
     "device": 3,
     "lat": 37.5831,
     "lon": -118.81492,
+    "alt": 3383,
+    "gndAlt": 2943,
     "timestamp": 1603916468000
   },
   {
-    "alt": 3328,
     "device": 3,
     "lat": 37.58422,
     "lon": -118.81037,
+    "alt": 3355,
+    "gndAlt": 2759,
     "timestamp": 1603916498000
   },
   {
-    "alt": 3300,
     "device": 3,
     "lat": 37.58194,
     "lon": -118.81156,
+    "alt": 3327,
+    "gndAlt": 2882,
     "timestamp": 1603916528000
   },
   {
-    "alt": 3208,
     "device": 3,
     "lat": 37.58085,
     "lon": -118.81502,
+    "alt": 3235,
+    "gndAlt": 3046,
     "timestamp": 1603916571000
   },
   {
-    "alt": 3114,
     "device": 3,
     "lat": 37.5779,
     "lon": -118.81636,
+    "alt": 3141,
+    "gndAlt": 3077,
     "timestamp": 1603916606000
   },
   {
-    "alt": 3053,
     "device": 3,
     "lat": 37.58173,
     "lon": -118.81785,
+    "alt": 3080,
+    "gndAlt": 3032,
     "timestamp": 1603916653000
   },
   {
-    "alt": 3044,
     "device": 3,
     "lat": 37.5821,
     "lon": -118.81987,
+    "alt": 3071,
+    "gndAlt": 3042,
     "timestamp": 1603916671000
   },
   {
-    "alt": 3038,
     "device": 3,
     "lat": 37.58485,
     "lon": -118.82086,
+    "alt": 3065,
+    "gndAlt": 3007,
     "timestamp": 1603916699000
   },
   {
-    "alt": 3059,
     "device": 3,
     "lat": 37.58432,
     "lon": -118.82324,
+    "alt": 3086,
+    "gndAlt": 2995,
     "timestamp": 1603916730000
   },
   {
-    "alt": 3077,
     "device": 3,
     "lat": 37.5849,
     "lon": -118.81933,
+    "alt": 3104,
+    "gndAlt": 3005,
     "timestamp": 1603916783000
   },
   {
-    "alt": 3057,
     "device": 3,
     "lat": 37.5834,
     "lon": -118.81657,
+    "alt": 3084,
+    "gndAlt": 3003,
     "timestamp": 1603916808000
   },
   {
-    "alt": 3046,
     "device": 3,
     "lat": 37.58004,
     "lon": -118.81654,
+    "alt": 3073,
+    "gndAlt": 3051,
     "timestamp": 1603916841000
   },
   {
-    "alt": 3032,
     "device": 3,
     "lat": 37.57932,
     "lon": -118.81497,
+    "alt": 3059,
+    "gndAlt": 3075,
     "timestamp": 1603916863000
   },
   {
-    "alt": 3016,
     "device": 3,
     "lat": 37.57794,
     "lon": -118.81473,
+    "alt": 3043,
+    "gndAlt": 3096,
     "timestamp": 1603916881000
   },
   {
-    "alt": 2993,
     "device": 3,
     "lat": 37.57833,
     "lon": -118.81603,
+    "alt": 3020,
+    "gndAlt": 3077,
     "timestamp": 1603916900000
   },
   {
-    "alt": 2959,
     "device": 3,
     "lat": 37.57886,
     "lon": -118.81439,
+    "alt": 2986,
+    "gndAlt": 3087,
     "timestamp": 1603916923000
   },
   {
-    "alt": 2990,
     "device": 3,
     "lat": 37.57898,
     "lon": -118.81176,
+    "alt": 3017,
+    "gndAlt": 2953,
     "timestamp": 1603916970000
   },
   {
-    "alt": 3004,
     "device": 3,
     "lat": 37.5792,
     "lon": -118.81315,
+    "alt": 3031,
+    "gndAlt": 3063,
     "timestamp": 1603916983000
   },
   {
-    "alt": 2999,
     "device": 3,
     "lat": 37.57731,
     "lon": -118.81376,
+    "alt": 3026,
+    "gndAlt": 3112,
     "timestamp": 1603917001000
   },
   {
-    "alt": 3013,
     "device": 3,
     "lat": 37.57792,
     "lon": -118.8127,
+    "alt": 3040,
+    "gndAlt": 3021,
     "timestamp": 1603917015000
   },
   {
-    "alt": 3015,
     "device": 3,
     "lat": 37.58042,
     "lon": -118.81366,
+    "alt": 3042,
+    "gndAlt": 3003,
     "timestamp": 1603917043000
   },
   {
-    "alt": 2970,
     "device": 3,
     "lat": 37.5851,
     "lon": -118.81785,
+    "alt": 2997,
+    "gndAlt": 2978,
     "timestamp": 1603917103000
   },
   {
-    "alt": 2936,
     "device": 3,
     "lat": 37.58672,
     "lon": -118.82083,
+    "alt": 2963,
+    "gndAlt": 2941,
     "timestamp": 1603917149000
   },
   {
-    "alt": 2914,
     "device": 3,
     "lat": 37.58427,
     "lon": -118.82336,
+    "alt": 2941,
+    "gndAlt": 2995,
     "timestamp": 1603917182000
   },
   {
-    "alt": 2857,
     "device": 3,
     "lat": 37.58536,
     "lon": -118.81706,
+    "alt": 2884,
+    "gndAlt": 2962,
     "timestamp": 1603917235000
   },
   {
-    "alt": 2835,
     "device": 3,
     "lat": 37.58423,
     "lon": -118.81355,
+    "alt": 2862,
+    "gndAlt": 2864,
     "timestamp": 1603917262000
   },
   {
-    "alt": 2809,
     "device": 3,
     "lat": 37.57935,
     "lon": -118.81053,
+    "alt": 2836,
+    "gndAlt": 2892,
     "timestamp": 1603917306000
   },
   {
-    "alt": 2795,
     "device": 3,
     "lat": 37.58414,
     "lon": -118.81228,
+    "alt": 2822,
+    "gndAlt": 2873,
     "timestamp": 1603917363000
   },
   {
-    "alt": 2782,
     "device": 3,
     "lat": 37.58243,
     "lon": -118.81144,
+    "alt": 2809,
+    "gndAlt": 2871,
     "timestamp": 1603917383000
   },
   {
-    "alt": 2755,
     "device": 3,
     "lat": 37.58275,
     "lon": -118.8099,
+    "alt": 2782,
+    "gndAlt": 2780,
     "timestamp": 1603917396000
   },
   {
-    "alt": 2739,
     "device": 3,
     "lat": 37.58729,
     "lon": -118.81563,
+    "alt": 2766,
+    "gndAlt": 2820,
     "timestamp": 1603917456000
   },
   {
-    "alt": 2799,
     "device": 3,
     "lat": 37.58676,
     "lon": -118.81651,
+    "alt": 2826,
+    "gndAlt": 2868,
     "timestamp": 1603917523000
   },
   {
-    "alt": 2818,
     "device": 3,
     "lat": 37.58601,
     "lon": -118.81577,
+    "alt": 2845,
+    "gndAlt": 2900,
     "timestamp": 1603917537000
   },
   {
-    "alt": 2838,
     "device": 3,
     "lat": 37.58598,
     "lon": -118.81729,
+    "alt": 2865,
+    "gndAlt": 2917,
     "timestamp": 1603917553000
   },
   {
-    "alt": 2874,
     "device": 3,
     "lat": 37.5861,
     "lon": -118.81575,
+    "alt": 2901,
+    "gndAlt": 2900,
     "timestamp": 1603917582000
   },
   {
-    "alt": 2931,
     "device": 3,
     "lat": 37.58589,
     "lon": -118.81755,
+    "alt": 2958,
+    "gndAlt": 2917,
     "timestamp": 1603917613000
   },
   {
-    "alt": 3018,
     "device": 3,
     "lat": 37.58548,
     "lon": -118.81727,
+    "alt": 3045,
+    "gndAlt": 2917,
     "timestamp": 1603917673000
   },
   {
-    "alt": 3050,
     "device": 3,
     "lat": 37.58617,
     "lon": -118.81496,
+    "alt": 3077,
+    "gndAlt": 2848,
     "timestamp": 1603917697000
   },
   {
-    "alt": 3106,
     "device": 3,
     "lat": 37.58599,
     "lon": -118.81693,
+    "alt": 3133,
+    "gndAlt": 2929,
     "timestamp": 1603917733000
   },
   {
-    "alt": 3117,
     "device": 3,
     "lat": 37.58442,
     "lon": -118.81626,
+    "alt": 3144,
+    "gndAlt": 2987,
     "timestamp": 1603917749000
   },
   {
-    "alt": 2985,
     "device": 3,
     "lat": 37.58404,
     "lon": -118.81299,
+    "alt": 3012,
+    "gndAlt": 2864,
     "timestamp": 1603917777000
   },
   {
-    "alt": 2889,
     "device": 3,
     "lat": 37.58443,
     "lon": -118.81449,
+    "alt": 2916,
+    "gndAlt": 2865,
     "timestamp": 1603917793000
   },
   {
-    "alt": 2900,
     "device": 3,
     "lat": 37.58606,
     "lon": -118.81689,
+    "alt": 2927,
+    "gndAlt": 2929,
     "timestamp": 1603917825000
   },
   {
-    "alt": 2905,
     "device": 3,
     "lat": 37.58542,
     "lon": -118.81422,
+    "alt": 2932,
+    "gndAlt": 2802,
     "timestamp": 1603917853000
   },
   {
-    "alt": 2914,
     "device": 3,
     "lat": 37.5864,
     "lon": -118.81339,
+    "alt": 2941,
+    "gndAlt": 2727,
     "timestamp": 1603917869000
   },
   {
-    "alt": 2925,
     "device": 3,
     "lat": 37.58591,
     "lon": -118.81434,
+    "alt": 2952,
+    "gndAlt": 2802,
     "timestamp": 1603917878000
   },
   {
-    "alt": 2911,
     "device": 3,
     "lat": 37.58482,
     "lon": -118.81275,
+    "alt": 2938,
+    "gndAlt": 2795,
     "timestamp": 1603917913000
   },
   {
-    "alt": 2874,
     "device": 3,
     "lat": 37.58524,
     "lon": -118.81378,
+    "alt": 2901,
+    "gndAlt": 2828,
     "timestamp": 1603917937000
   },
   {
-    "alt": 2817,
     "device": 3,
     "lat": 37.58568,
     "lon": -118.81053,
+    "alt": 2844,
+    "gndAlt": 2763,
     "timestamp": 1603917973000
   },
   {
-    "alt": 2748,
     "device": 3,
     "lat": 37.5816,
     "lon": -118.81,
+    "alt": 2775,
+    "gndAlt": 2799,
     "timestamp": 1603918015000
   },
   {
-    "alt": 2711,
     "device": 3,
     "lat": 37.58715,
     "lon": -118.8101,
+    "alt": 2738,
+    "gndAlt": 2638,
     "timestamp": 1603918090000
   },
   {
-    "alt": 2731,
     "device": 3,
     "lat": 37.58657,
     "lon": -118.81069,
+    "alt": 2758,
+    "gndAlt": 2687,
     "timestamp": 1603918120000
   },
   {
-    "alt": 2790,
     "device": 3,
     "lat": 37.58625,
     "lon": -118.81285,
+    "alt": 2817,
+    "gndAlt": 2682,
     "timestamp": 1603918183000
   },
   {
-    "alt": 2798,
     "device": 3,
     "lat": 37.58503,
     "lon": -118.81181,
+    "alt": 2825,
+    "gndAlt": 2813,
     "timestamp": 1603918201000
   },
   {
-    "alt": 2830,
     "device": 3,
     "lat": 37.58464,
     "lon": -118.81301,
+    "alt": 2857,
+    "gndAlt": 2790,
     "timestamp": 1603918243000
   },
   {
-    "alt": 2886,
     "device": 3,
     "lat": 37.5834,
     "lon": -118.81068,
+    "alt": 2913,
+    "gndAlt": 2823,
     "timestamp": 1603918303000
   },
   {
-    "alt": 2882,
     "device": 3,
     "lat": 37.58488,
     "lon": -118.81511,
+    "alt": 2909,
+    "gndAlt": 2877,
     "timestamp": 1603918355000
   },
   {
-    "alt": 2883,
     "device": 3,
     "lat": 37.58203,
     "lon": -118.81221,
+    "alt": 2910,
+    "gndAlt": 2920,
     "timestamp": 1603918392000
   },
   {
-    "alt": 2922,
     "device": 3,
     "lat": 37.58294,
     "lon": -118.81292,
+    "alt": 2949,
+    "gndAlt": 2922,
     "timestamp": 1603918423000
   },
   {
-    "alt": 2964,
     "device": 3,
     "lat": 37.58154,
     "lon": -118.81387,
+    "alt": 2991,
+    "gndAlt": 3023,
     "timestamp": 1603918457000
   },
   {
-    "alt": 2959,
     "device": 3,
     "lat": 37.58238,
     "lon": -118.81515,
+    "alt": 2986,
+    "gndAlt": 3001,
     "timestamp": 1603918471000
   },
   {
-    "alt": 2993,
     "device": 3,
     "lat": 37.58131,
     "lon": -118.81388,
+    "alt": 3020,
+    "gndAlt": 3023,
     "timestamp": 1603918513000
   },
   {
-    "alt": 3038,
     "device": 3,
     "lat": 37.58096,
     "lon": -118.81518,
+    "alt": 3065,
+    "gndAlt": 3046,
     "timestamp": 1603918564000
   },
   {
-    "alt": 3052,
     "device": 3,
     "lat": 37.58005,
     "lon": -118.81421,
+    "alt": 3079,
+    "gndAlt": 3066,
     "timestamp": 1603918584000
   },
   {
-    "alt": 3055,
     "device": 3,
     "lat": 37.58065,
     "lon": -118.81581,
+    "alt": 3082,
+    "gndAlt": 3042,
     "timestamp": 1603918598000
   },
   {
-    "alt": 3026,
     "device": 3,
     "lat": 37.58126,
     "lon": -118.81389,
+    "alt": 3053,
+    "gndAlt": 3023,
     "timestamp": 1603918614000
   },
   {
-    "alt": 3023,
     "device": 3,
     "lat": 37.57896,
     "lon": -118.81304,
+    "alt": 3050,
+    "gndAlt": 3063,
     "timestamp": 1603918633000
   },
   {
-    "alt": 3018,
     "device": 3,
     "lat": 37.57827,
     "lon": -118.8144,
+    "alt": 3045,
+    "gndAlt": 3104,
     "timestamp": 1603918646000
   },
   {
-    "alt": 2978,
     "device": 3,
     "lat": 37.58282,
     "lon": -118.81521,
+    "alt": 3005,
+    "gndAlt": 3001,
     "timestamp": 1603918704000
   },
   {
-    "alt": 3016,
     "device": 3,
     "lat": 37.58271,
     "lon": -118.81193,
+    "alt": 3043,
+    "gndAlt": 2871,
     "timestamp": 1603918753000
   },
   {
-    "alt": 3089,
     "device": 3,
     "lat": 37.58005,
     "lon": -118.81321,
+    "alt": 3116,
+    "gndAlt": 3043,
     "timestamp": 1603918836000
   },
   {
-    "alt": 3069,
     "device": 3,
     "lat": 37.58241,
     "lon": -118.81532,
+    "alt": 3096,
+    "gndAlt": 3001,
     "timestamp": 1603918873000
   },
   {
-    "alt": 3080,
     "device": 3,
     "lat": 37.58363,
     "lon": -118.81616,
+    "alt": 3107,
+    "gndAlt": 2972,
     "timestamp": 1603918890000
   },
   {
-    "alt": 3122,
     "device": 3,
     "lat": 37.58233,
     "lon": -118.81675,
+    "alt": 3149,
+    "gndAlt": 3012,
     "timestamp": 1603918933000
   },
   {
-    "alt": 3174,
     "device": 3,
     "lat": 37.58124,
     "lon": -118.81603,
+    "alt": 3201,
+    "gndAlt": 3042,
     "timestamp": 1603918993000
   },
   {
-    "alt": 3171,
     "device": 3,
     "lat": 37.58086,
     "lon": -118.81771,
+    "alt": 3198,
+    "gndAlt": 3043,
     "timestamp": 1603919038000
   },
   {
-    "alt": 3111,
     "device": 3,
     "lat": 37.58135,
     "lon": -118.81613,
+    "alt": 3138,
+    "gndAlt": 3024,
     "timestamp": 1603919053000
   },
   {
-    "alt": 3123,
     "device": 3,
     "lat": 37.57969,
     "lon": -118.81456,
+    "alt": 3150,
+    "gndAlt": 3066,
     "timestamp": 1603919071000
   },
   {
-    "alt": 3103,
     "device": 3,
     "lat": 37.57935,
     "lon": -118.81559,
+    "alt": 3130,
+    "gndAlt": 3065,
     "timestamp": 1603919083000
   },
   {
-    "alt": 3047,
     "device": 3,
     "lat": 37.57472,
     "lon": -118.81064,
+    "alt": 3074,
+    "gndAlt": 3128,
     "timestamp": 1603919170000
   },
   {
-    "alt": 3032,
     "device": 3,
     "lat": 37.577,
     "lon": -118.8115,
+    "alt": 3059,
+    "gndAlt": 3053,
     "timestamp": 1603919200000
   },
   {
-    "alt": 3006,
     "device": 3,
     "lat": 37.58278,
     "lon": -118.8143,
+    "alt": 3033,
+    "gndAlt": 3000,
     "timestamp": 1603919261000
   },
   {
-    "alt": 2922,
     "device": 3,
     "lat": 37.5852,
     "lon": -118.8202,
+    "alt": 2949,
+    "gndAlt": 3012,
     "timestamp": 1603919323000
   },
   {
-    "alt": 2914,
     "device": 3,
     "lat": 37.58485,
     "lon": -118.82083,
+    "alt": 2941,
+    "gndAlt": 3007,
     "timestamp": 1603919353000
   },
   {
-    "alt": 2829,
     "device": 3,
     "lat": 37.58962,
     "lon": -118.81991,
+    "alt": 2856,
+    "gndAlt": 2773,
     "timestamp": 1603919413000
   },
   {
-    "alt": 2823,
     "device": 3,
     "lat": 37.5932,
     "lon": -118.81806,
+    "alt": 2850,
+    "gndAlt": 2587,
     "timestamp": 1603919445000
   },
   {
-    "alt": 2798,
     "device": 3,
     "lat": 37.59233,
     "lon": -118.81639,
+    "alt": 2825,
+    "gndAlt": 2634,
     "timestamp": 1603919462000
   },
   {
-    "alt": 2777,
     "device": 3,
     "lat": 37.59212,
     "lon": -118.81924,
+    "alt": 2804,
+    "gndAlt": 2639,
     "timestamp": 1603919483000
   },
   {
-    "alt": 2772,
     "device": 3,
     "lat": 37.59326,
     "lon": -118.81861,
+    "alt": 2799,
+    "gndAlt": 2587,
     "timestamp": 1603919502000
   },
   {
-    "alt": 2768,
     "device": 3,
     "lat": 37.59393,
     "lon": -118.81997,
+    "alt": 2795,
+    "gndAlt": 2571,
     "timestamp": 1603919520000
   },
   {
-    "alt": 2768,
     "device": 3,
     "lat": 37.59411,
     "lon": -118.81874,
+    "alt": 2795,
+    "gndAlt": 2547,
     "timestamp": 1603919533000
   },
   {
-    "alt": 2759,
     "device": 3,
     "lat": 37.59241,
     "lon": -118.82004,
+    "alt": 2786,
+    "gndAlt": 2661,
     "timestamp": 1603919557000
   },
   {
-    "alt": 2742,
     "device": 3,
     "lat": 37.59564,
     "lon": -118.82141,
+    "alt": 2769,
+    "gndAlt": 2461,
     "timestamp": 1603919587000
   },
   {
-    "alt": 2713,
     "device": 3,
     "lat": 37.5956,
     "lon": -118.82213,
+    "alt": 2740,
+    "gndAlt": 2451,
     "timestamp": 1603919653000
   },
   {
-    "alt": 2600,
     "device": 3,
     "lat": 37.60396,
     "lon": -118.81832,
+    "alt": 2627,
+    "gndAlt": 2251,
     "timestamp": 1603919722000
   },
   {
-    "alt": 2465,
     "device": 3,
     "lat": 37.60742,
     "lon": -118.81235,
+    "alt": 2492,
+    "gndAlt": 2205,
     "timestamp": 1603919773000
   },
   {
-    "alt": 2253,
     "device": 3,
     "lat": 37.61755,
     "lon": -118.80932,
+    "alt": 2280,
+    "gndAlt": 2120,
     "timestamp": 1603919856000
   },
   {
-    "alt": 2205,
     "device": 3,
     "lat": 37.62305,
     "lon": -118.81129,
+    "alt": 2232,
+    "gndAlt": 2123,
     "timestamp": 1603919902000
   },
   {
-    "alt": 2195,
     "device": 3,
     "lat": 37.6232,
     "lon": -118.81025,
+    "alt": 2222,
+    "gndAlt": 2122,
     "timestamp": 1603919914000
   },
   {
-    "alt": 2205,
     "device": 3,
     "lat": 37.62359,
     "lon": -118.81311,
+    "alt": 2232,
+    "gndAlt": 2125,
     "timestamp": 1603919983000
   },
   {
-    "alt": 2253,
     "device": 3,
     "lat": 37.62373,
     "lon": -118.81362,
+    "alt": 2280,
+    "gndAlt": 2125,
     "timestamp": 1603920043000
   },
   {
-    "alt": 2293,
     "device": 3,
     "lat": 37.62449,
     "lon": -118.81495,
+    "alt": 2320,
+    "gndAlt": 2131,
     "timestamp": 1603920103000
   },
   {
-    "alt": 2316,
     "device": 3,
     "lat": 37.6234,
     "lon": -118.81459,
+    "alt": 2343,
+    "gndAlt": 2126,
     "timestamp": 1603920127000
   },
   {
-    "alt": 2364,
     "device": 3,
     "lat": 37.62471,
     "lon": -118.81512,
+    "alt": 2391,
+    "gndAlt": 2135,
     "timestamp": 1603920163000
   },
   {
-    "alt": 2494,
     "device": 3,
     "lat": 37.6242,
     "lon": -118.81611,
+    "alt": 2521,
+    "gndAlt": 2133,
     "timestamp": 1603920223000
   },
   {
-    "alt": 2559,
     "device": 3,
     "lat": 37.62489,
     "lon": -118.8159,
+    "alt": 2586,
+    "gndAlt": 2136,
     "timestamp": 1603920253000
   },
   {
-    "alt": 2697,
     "device": 3,
     "lat": 37.62516,
     "lon": -118.81574,
+    "alt": 2724,
+    "gndAlt": 2136,
     "timestamp": 1603920313000
   },
   {
-    "alt": 2764,
     "device": 3,
     "lat": 37.62599,
     "lon": -118.81654,
+    "alt": 2791,
+    "gndAlt": 2137,
     "timestamp": 1603920373000
   },
   {
-    "alt": 2793,
     "device": 3,
     "lat": 37.62483,
     "lon": -118.81723,
+    "alt": 2820,
+    "gndAlt": 2137,
     "timestamp": 1603920385000
   },
   {
-    "alt": 2792,
     "device": 3,
     "lat": 37.62458,
     "lon": -118.81589,
+    "alt": 2819,
+    "gndAlt": 2136,
     "timestamp": 1603920397000
   },
   {
-    "alt": 2797,
     "device": 3,
     "lat": 37.6262,
     "lon": -118.81691,
+    "alt": 2824,
+    "gndAlt": 2137,
     "timestamp": 1603920417000
   },
   {
-    "alt": 2801,
     "device": 3,
     "lat": 37.62501,
     "lon": -118.81821,
+    "alt": 2828,
+    "gndAlt": 2138,
     "timestamp": 1603920433000
   },
   {
-    "alt": 2841,
     "device": 3,
     "lat": 37.6261,
     "lon": -118.8174,
+    "alt": 2868,
+    "gndAlt": 2138,
     "timestamp": 1603920493000
   },
   {
-    "alt": 2868,
     "device": 3,
     "lat": 37.62698,
     "lon": -118.81856,
+    "alt": 2895,
+    "gndAlt": 2139,
     "timestamp": 1603920553000
   },
   {
-    "alt": 2853,
     "device": 3,
     "lat": 37.62446,
     "lon": -118.81428,
+    "alt": 2880,
+    "gndAlt": 2130,
     "timestamp": 1603920606000
   },
   {
-    "alt": 2948,
     "device": 3,
     "lat": 37.62739,
     "lon": -118.8125,
+    "alt": 2975,
+    "gndAlt": 2131,
     "timestamp": 1603920673000
   },
   {
-    "alt": 3083,
     "device": 3,
     "lat": 37.62614,
     "lon": -118.81337,
+    "alt": 3110,
+    "gndAlt": 2132,
     "timestamp": 1603920728000
   },
   {
-    "alt": 3111,
     "device": 3,
     "lat": 37.62567,
     "lon": -118.81192,
+    "alt": 3138,
+    "gndAlt": 2130,
     "timestamp": 1603920739000
   },
   {
-    "alt": 3114,
     "device": 3,
     "lat": 37.62763,
     "lon": -118.81158,
+    "alt": 3141,
+    "gndAlt": 2130,
     "timestamp": 1603920763000
   },
   {
-    "alt": 3149,
     "device": 3,
     "lat": 37.6282,
     "lon": -118.81407,
+    "alt": 3176,
+    "gndAlt": 2134,
     "timestamp": 1603920784000
   },
   {
-    "alt": 3211,
     "device": 3,
     "lat": 37.62583,
     "lon": -118.81359,
+    "alt": 3238,
+    "gndAlt": 2132,
     "timestamp": 1603920821000
   },
   {
-    "alt": 3252,
     "device": 3,
     "lat": 37.62806,
     "lon": -118.81127,
+    "alt": 3279,
+    "gndAlt": 2130,
     "timestamp": 1603920861000
   },
   {
-    "alt": 3261,
     "device": 3,
     "lat": 37.6279,
     "lon": -118.81265,
+    "alt": 3288,
+    "gndAlt": 2131,
     "timestamp": 1603920883000
   },
   {
-    "alt": 3250,
     "device": 3,
     "lat": 37.62679,
     "lon": -118.81019,
+    "alt": 3277,
+    "gndAlt": 2127,
     "timestamp": 1603920900000
   },
   {
-    "alt": 3264,
     "device": 3,
     "lat": 37.62893,
     "lon": -118.8091,
+    "alt": 3291,
+    "gndAlt": 2127,
     "timestamp": 1603920930000
   },
   {
-    "alt": 3288,
     "device": 3,
     "lat": 37.62894,
     "lon": -118.8072,
+    "alt": 3315,
+    "gndAlt": 2126,
     "timestamp": 1603920953000
   },
   {
-    "alt": 3329,
     "device": 3,
     "lat": 37.63188,
     "lon": -118.80847,
+    "alt": 3356,
+    "gndAlt": 2127,
     "timestamp": 1603920991000
   },
   {
-    "alt": 3380,
     "device": 3,
     "lat": 37.6316,
     "lon": -118.81171,
+    "alt": 3407,
+    "gndAlt": 2130,
     "timestamp": 1603921021000
   },
   {
-    "alt": 3521,
     "device": 3,
     "lat": 37.63037,
     "lon": -118.8125,
+    "alt": 3548,
+    "gndAlt": 2132,
     "timestamp": 1603921080000
   },
   {
-    "alt": 3552,
     "device": 3,
     "lat": 37.6304,
     "lon": -118.81131,
+    "alt": 3579,
+    "gndAlt": 2131,
     "timestamp": 1603921093000
   },
   {
-    "alt": 3558,
     "device": 3,
     "lat": 37.63188,
     "lon": -118.81447,
+    "alt": 3585,
+    "gndAlt": 2165,
     "timestamp": 1603921154000
   },
   {
-    "alt": 3560,
     "device": 3,
     "lat": 37.62993,
     "lon": -118.81608,
+    "alt": 3587,
+    "gndAlt": 2160,
     "timestamp": 1603921183000
   },
   {
-    "alt": 3563,
     "device": 3,
     "lat": 37.63055,
     "lon": -118.81467,
+    "alt": 3590,
+    "gndAlt": 2166,
     "timestamp": 1603921200000
   },
   {
-    "alt": 3557,
     "device": 3,
     "lat": 37.6307,
     "lon": -118.81678,
+    "alt": 3584,
+    "gndAlt": 2196,
     "timestamp": 1603921219000
   },
   {
-    "alt": 3576,
     "device": 3,
     "lat": 37.62931,
     "lon": -118.81723,
+    "alt": 3603,
+    "gndAlt": 2153,
     "timestamp": 1603921231000
   },
   {
-    "alt": 3580,
     "device": 3,
     "lat": 37.62959,
     "lon": -118.81617,
+    "alt": 3607,
+    "gndAlt": 2160,
     "timestamp": 1603921243000
   },
   {
-    "alt": 3608,
     "device": 3,
     "lat": 37.62729,
     "lon": -118.81753,
+    "alt": 3635,
+    "gndAlt": 2139,
     "timestamp": 1603921270000
   },
   {
-    "alt": 3607,
     "device": 3,
     "lat": 37.62706,
     "lon": -118.81551,
+    "alt": 3634,
+    "gndAlt": 2136,
     "timestamp": 1603921283000
   },
   {
-    "alt": 3617,
     "device": 3,
     "lat": 37.62842,
     "lon": -118.81608,
+    "alt": 3644,
+    "gndAlt": 2137,
     "timestamp": 1603921303000
   },
   {
-    "alt": 3636,
     "device": 3,
     "lat": 37.62837,
     "lon": -118.81761,
+    "alt": 3663,
+    "gndAlt": 2140,
     "timestamp": 1603921315000
   },
   {
-    "alt": 3644,
     "device": 3,
     "lat": 37.62783,
     "lon": -118.81582,
+    "alt": 3671,
+    "gndAlt": 2136,
     "timestamp": 1603921335000
   },
   {
-    "alt": 3693,
     "device": 3,
     "lat": 37.6259,
     "lon": -118.81795,
+    "alt": 3720,
+    "gndAlt": 2139,
     "timestamp": 1603921392000
   },
   {
-    "alt": 3712,
     "device": 3,
     "lat": 37.62567,
     "lon": -118.8149,
+    "alt": 3739,
+    "gndAlt": 2136,
     "timestamp": 1603921423000
   },
   {
-    "alt": 3740,
     "device": 3,
     "lat": 37.6265,
     "lon": -118.81409,
+    "alt": 3767,
+    "gndAlt": 2134,
     "timestamp": 1603921438000
   },
   {
-    "alt": 3763,
     "device": 3,
     "lat": 37.62549,
     "lon": -118.81476,
+    "alt": 3790,
+    "gndAlt": 2136,
     "timestamp": 1603921450000
   },
   {
-    "alt": 3785,
     "device": 3,
     "lat": 37.62516,
     "lon": -118.81333,
+    "alt": 3812,
+    "gndAlt": 2131,
     "timestamp": 1603921464000
   },
   {
-    "alt": 3816,
     "device": 3,
     "lat": 37.62536,
     "lon": -118.81474,
+    "alt": 3843,
+    "gndAlt": 2135,
     "timestamp": 1603921483000
   },
   {
-    "alt": 3923,
     "device": 3,
     "lat": 37.62332,
     "lon": -118.81307,
+    "alt": 3950,
+    "gndAlt": 2125,
     "timestamp": 1603921543000
   },
   {
-    "alt": 3930,
     "device": 3,
     "lat": 37.62277,
     "lon": -118.81441,
+    "alt": 3957,
+    "gndAlt": 2126,
     "timestamp": 1603921557000
   },
   {
-    "alt": 3940,
     "device": 3,
     "lat": 37.62163,
     "lon": -118.81339,
+    "alt": 3967,
+    "gndAlt": 2128,
     "timestamp": 1603921567000
   },
   {
-    "alt": 3940,
     "device": 3,
     "lat": 37.62653,
     "lon": -118.80884,
+    "alt": 3967,
+    "gndAlt": 2126,
     "timestamp": 1603921633000
   },
   {
-    "alt": 3916,
     "device": 3,
     "lat": 37.63161,
     "lon": -118.80228,
+    "alt": 3943,
+    "gndAlt": 2120,
     "timestamp": 1603921693000
   },
   {
-    "alt": 3878,
     "device": 3,
     "lat": 37.63659,
     "lon": -118.7961,
+    "alt": 3905,
+    "gndAlt": 2115,
     "timestamp": 1603921753000
   },
   {
-    "alt": 3738,
     "device": 3,
     "lat": 37.64172,
     "lon": -118.79156,
+    "alt": 3765,
+    "gndAlt": 2121,
     "timestamp": 1603921813000
   },
   {
-    "alt": 3659,
     "device": 3,
     "lat": 37.64602,
     "lon": -118.78382,
+    "alt": 3686,
+    "gndAlt": 2116,
     "timestamp": 1603921873000
   },
   {
-    "alt": 3678,
     "device": 3,
     "lat": 37.64916,
     "lon": -118.77884,
+    "alt": 3705,
+    "gndAlt": 2118,
     "timestamp": 1603921910000
   },
   {
-    "alt": 3698,
     "device": 3,
     "lat": 37.65041,
     "lon": -118.7792,
+    "alt": 3725,
+    "gndAlt": 2120,
     "timestamp": 1603921927000
   },
   {
-    "alt": 3695,
     "device": 3,
     "lat": 37.64901,
     "lon": -118.77886,
+    "alt": 3722,
+    "gndAlt": 2118,
     "timestamp": 1603921942000
   },
   {
-    "alt": 3698,
     "device": 3,
     "lat": 37.64931,
     "lon": -118.77668,
+    "alt": 3725,
+    "gndAlt": 2116,
     "timestamp": 1603921955000
   },
   {
-    "alt": 3707,
     "device": 3,
     "lat": 37.65097,
     "lon": -118.77581,
+    "alt": 3734,
+    "gndAlt": 2117,
     "timestamp": 1603921969000
   },
   {
-    "alt": 3744,
     "device": 3,
     "lat": 37.65168,
     "lon": -118.77704,
+    "alt": 3771,
+    "gndAlt": 2120,
     "timestamp": 1603921993000
   },
   {
-    "alt": 3806,
     "device": 3,
     "lat": 37.6522,
     "lon": -118.77565,
+    "alt": 3833,
+    "gndAlt": 2115,
     "timestamp": 1603922023000
   },
   {
-    "alt": 3998,
     "device": 3,
     "lat": 37.65378,
     "lon": -118.77411,
+    "alt": 4025,
+    "gndAlt": 2108,
     "timestamp": 1603922083000
   },
   {
-    "alt": 4032,
     "device": 3,
     "lat": 37.65313,
     "lon": -118.77295,
+    "alt": 4059,
+    "gndAlt": 2108,
     "timestamp": 1603922095000
   },
   {
-    "alt": 4074,
     "device": 3,
     "lat": 37.65404,
     "lon": -118.77357,
+    "alt": 4101,
+    "gndAlt": 2108,
     "timestamp": 1603922113000
   },
   {
-    "alt": 4082,
     "device": 3,
     "lat": 37.65544,
     "lon": -118.7722,
+    "alt": 4109,
+    "gndAlt": 2107,
     "timestamp": 1603922129000
   },
   {
-    "alt": 4060,
     "device": 3,
     "lat": 37.65474,
     "lon": -118.7706,
+    "alt": 4087,
+    "gndAlt": 2102,
     "timestamp": 1603922143000
   },
   {
-    "alt": 4059,
     "device": 3,
     "lat": 37.65552,
     "lon": -118.77196,
+    "alt": 4086,
+    "gndAlt": 2106,
     "timestamp": 1603922163000
   },
   {
-    "alt": 4025,
     "device": 3,
     "lat": 37.6565,
     "lon": -118.77035,
+    "alt": 4052,
+    "gndAlt": 2098,
     "timestamp": 1603922176000
   },
   {
-    "alt": 3997,
     "device": 3,
     "lat": 37.6538,
     "lon": -118.768,
+    "alt": 4024,
+    "gndAlt": 2102,
     "timestamp": 1603922203000
   },
   {
-    "alt": 4037,
     "device": 3,
     "lat": 37.65114,
     "lon": -118.76652,
+    "alt": 4064,
+    "gndAlt": 2109,
     "timestamp": 1603922229000
   },
   {
-    "alt": 4059,
     "device": 3,
     "lat": 37.65171,
     "lon": -118.7626,
+    "alt": 4086,
+    "gndAlt": 2107,
     "timestamp": 1603922270000
   },
   {
-    "alt": 4042,
     "device": 3,
     "lat": 37.64987,
     "lon": -118.76161,
+    "alt": 4069,
+    "gndAlt": 2104,
     "timestamp": 1603922290000
   },
   {
-    "alt": 3972,
     "device": 3,
     "lat": 37.65557,
     "lon": -118.75336,
+    "alt": 3999,
+    "gndAlt": 2093,
     "timestamp": 1603922350000
   },
   {
-    "alt": 3932,
     "device": 3,
     "lat": 37.65766,
     "lon": -118.74833,
+    "alt": 3959,
+    "gndAlt": 2063,
     "timestamp": 1603922380000
   },
   {
-    "alt": 3820,
     "device": 3,
     "lat": 37.66174,
     "lon": -118.73758,
+    "alt": 3847,
+    "gndAlt": 2079,
     "timestamp": 1603922443000
   },
   {
-    "alt": 3698,
     "device": 3,
     "lat": 37.66597,
     "lon": -118.72815,
+    "alt": 3725,
+    "gndAlt": 2101,
     "timestamp": 1603922503000
   },
   {
-    "alt": 3647,
     "device": 3,
     "lat": 37.66811,
     "lon": -118.72339,
+    "alt": 3674,
+    "gndAlt": 2111,
     "timestamp": 1603922533000
   },
   {
-    "alt": 3455,
     "device": 3,
     "lat": 37.67448,
     "lon": -118.7107,
+    "alt": 3482,
+    "gndAlt": 2132,
     "timestamp": 1603922616000
   },
   {
-    "alt": 3278,
     "device": 3,
     "lat": 37.67325,
     "lon": -118.70227,
+    "alt": 3305,
+    "gndAlt": 2157,
     "timestamp": 1603922653000
   },
   {
-    "alt": 3023,
     "device": 3,
     "lat": 37.67741,
     "lon": -118.69406,
+    "alt": 3050,
+    "gndAlt": 2177,
     "timestamp": 1603922719000
   },
   {
-    "alt": 2934,
     "device": 3,
     "lat": 37.67595,
     "lon": -118.69091,
+    "alt": 2961,
+    "gndAlt": 2199,
     "timestamp": 1603922743000
   },
   {
-    "alt": 2852,
     "device": 3,
     "lat": 37.67646,
     "lon": -118.68358,
+    "alt": 2879,
+    "gndAlt": 2231,
     "timestamp": 1603922790000
   },
   {
-    "alt": 2853,
     "device": 3,
     "lat": 37.67528,
     "lon": -118.68316,
+    "alt": 2880,
+    "gndAlt": 2247,
     "timestamp": 1603922803000
   },
   {
-    "alt": 2863,
     "device": 3,
     "lat": 37.67563,
     "lon": -118.68174,
+    "alt": 2890,
+    "gndAlt": 2243,
     "timestamp": 1603922815000
   },
   {
-    "alt": 2874,
     "device": 3,
     "lat": 37.67698,
     "lon": -118.68241,
+    "alt": 2901,
+    "gndAlt": 2239,
     "timestamp": 1603922831000
   },
   {
-    "alt": 2869,
     "device": 3,
     "lat": 37.6757,
     "lon": -118.68259,
+    "alt": 2896,
+    "gndAlt": 2239,
     "timestamp": 1603922847000
   },
   {
-    "alt": 2869,
     "device": 3,
     "lat": 37.67563,
     "lon": -118.68051,
+    "alt": 2896,
+    "gndAlt": 2250,
     "timestamp": 1603922863000
   },
   {
-    "alt": 2882,
     "device": 3,
     "lat": 37.67743,
     "lon": -118.68002,
+    "alt": 2909,
+    "gndAlt": 2242,
     "timestamp": 1603922889000
   },
   {
-    "alt": 2894,
     "device": 3,
     "lat": 37.67563,
     "lon": -118.6788,
+    "alt": 2921,
+    "gndAlt": 2265,
     "timestamp": 1603922912000
   },
   {
-    "alt": 2942,
     "device": 3,
     "lat": 37.67632,
     "lon": -118.6761,
+    "alt": 2969,
+    "gndAlt": 2268,
     "timestamp": 1603922953000
   },
   {
-    "alt": 2984,
     "device": 3,
     "lat": 37.67732,
     "lon": -118.67773,
+    "alt": 3011,
+    "gndAlt": 2266,
     "timestamp": 1603922971000
   },
   {
-    "alt": 3023,
     "device": 3,
     "lat": 37.67552,
     "lon": -118.67751,
+    "alt": 3050,
+    "gndAlt": 2282,
     "timestamp": 1603923000000
   },
   {
-    "alt": 3052,
     "device": 3,
     "lat": 37.67616,
     "lon": -118.67661,
+    "alt": 3079,
+    "gndAlt": 2286,
     "timestamp": 1603923013000
   },
   {
-    "alt": 3159,
     "device": 3,
     "lat": 37.67655,
     "lon": -118.67754,
+    "alt": 3186,
+    "gndAlt": 2260,
     "timestamp": 1603923073000
   },
   {
-    "alt": 3229,
     "device": 3,
     "lat": 37.67778,
     "lon": -118.67795,
+    "alt": 3256,
+    "gndAlt": 2260,
     "timestamp": 1603923133000
   },
   {
-    "alt": 3252,
     "device": 3,
     "lat": 37.67745,
     "lon": -118.67928,
+    "alt": 3279,
+    "gndAlt": 2250,
     "timestamp": 1603923178000
   },
   {
-    "alt": 3252,
     "device": 3,
     "lat": 37.67778,
     "lon": -118.67831,
+    "alt": 3279,
+    "gndAlt": 2260,
     "timestamp": 1603923193000
   },
   {
-    "alt": 3261,
     "device": 3,
     "lat": 37.67728,
     "lon": -118.68059,
+    "alt": 3288,
+    "gndAlt": 2232,
     "timestamp": 1603923244000
   },
   {
-    "alt": 3165,
     "device": 3,
     "lat": 37.67948,
     "lon": -118.6714,
+    "alt": 3192,
+    "gndAlt": 2301,
     "timestamp": 1603923313000
   },
   {
-    "alt": 3154,
     "device": 3,
     "lat": 37.68116,
     "lon": -118.66888,
+    "alt": 3181,
+    "gndAlt": 2335,
     "timestamp": 1603923335000
   },
   {
-    "alt": 3171,
     "device": 3,
     "lat": 37.68307,
     "lon": -118.67264,
+    "alt": 3198,
+    "gndAlt": 2328,
     "timestamp": 1603923369000
   },
   {
-    "alt": 3103,
     "device": 3,
     "lat": 37.67821,
     "lon": -118.67443,
+    "alt": 3130,
+    "gndAlt": 2290,
     "timestamp": 1603923433000
   },
   {
-    "alt": 3086,
     "device": 3,
     "lat": 37.67666,
     "lon": -118.6727,
+    "alt": 3113,
+    "gndAlt": 2292,
     "timestamp": 1603923455000
   },
   {
-    "alt": 3137,
     "device": 3,
     "lat": 37.67804,
     "lon": -118.67087,
+    "alt": 3164,
+    "gndAlt": 2309,
     "timestamp": 1603923491000
   },
   {
-    "alt": 3153,
     "device": 3,
     "lat": 37.67876,
     "lon": -118.6721,
+    "alt": 3180,
+    "gndAlt": 2299,
     "timestamp": 1603923507000
   },
   {
-    "alt": 3157,
     "device": 3,
     "lat": 37.67841,
     "lon": -118.67095,
+    "alt": 3184,
+    "gndAlt": 2309,
     "timestamp": 1603923523000
   },
   {
-    "alt": 3165,
     "device": 3,
     "lat": 37.67972,
     "lon": -118.67203,
+    "alt": 3192,
+    "gndAlt": 2310,
     "timestamp": 1603923544000
   },
   {
-    "alt": 3154,
     "device": 3,
     "lat": 37.67893,
     "lon": -118.67095,
+    "alt": 3181,
+    "gndAlt": 2304,
     "timestamp": 1603923562000
   },
   {
-    "alt": 3159,
     "device": 3,
     "lat": 37.68066,
     "lon": -118.66886,
+    "alt": 3186,
+    "gndAlt": 2335,
     "timestamp": 1603923585000
   },
   {
-    "alt": 3153,
     "device": 3,
     "lat": 37.68147,
     "lon": -118.67068,
+    "alt": 3180,
+    "gndAlt": 2329,
     "timestamp": 1603923601000
   },
   {
-    "alt": 3140,
     "device": 3,
     "lat": 37.67969,
     "lon": -118.67036,
+    "alt": 3167,
+    "gndAlt": 2317,
     "timestamp": 1603923622000
   },
   {
-    "alt": 3143,
     "device": 3,
     "lat": 37.6793,
     "lon": -118.66736,
+    "alt": 3170,
+    "gndAlt": 2334,
     "timestamp": 1603923643000
   },
   {
-    "alt": 3145,
     "device": 3,
     "lat": 37.67869,
     "lon": -118.66846,
+    "alt": 3172,
+    "gndAlt": 2329,
     "timestamp": 1603923668000
   },
   {
-    "alt": 3153,
     "device": 3,
     "lat": 37.67791,
     "lon": -118.66707,
+    "alt": 3180,
+    "gndAlt": 2322,
     "timestamp": 1603923680000
   },
   {
-    "alt": 3162,
     "device": 3,
     "lat": 37.67938,
     "lon": -118.66621,
+    "alt": 3189,
+    "gndAlt": 2354,
     "timestamp": 1603923703000
   },
   {
-    "alt": 3207,
     "device": 3,
     "lat": 37.67653,
     "lon": -118.66385,
+    "alt": 3234,
+    "gndAlt": 2336,
     "timestamp": 1603923763000
   },
   {
-    "alt": 3405,
     "device": 3,
     "lat": 37.6753,
     "lon": -118.66048,
+    "alt": 3432,
+    "gndAlt": 2305,
     "timestamp": 1603923818000
   },
   {
-    "alt": 3481,
     "device": 3,
     "lat": 37.67704,
     "lon": -118.66042,
+    "alt": 3508,
+    "gndAlt": 2320,
     "timestamp": 1603923836000
   },
   {
-    "alt": 3531,
     "device": 3,
     "lat": 37.67667,
     "lon": -118.66148,
+    "alt": 3558,
+    "gndAlt": 2309,
     "timestamp": 1603923853000
   },
   {
-    "alt": 3594,
     "device": 3,
     "lat": 37.67562,
     "lon": -118.65956,
+    "alt": 3621,
+    "gndAlt": 2308,
     "timestamp": 1603923869000
   },
   {
-    "alt": 3721,
     "device": 3,
     "lat": 37.67754,
     "lon": -118.65677,
+    "alt": 3748,
+    "gndAlt": 2344,
     "timestamp": 1603923913000
   },
   {
-    "alt": 3758,
     "device": 3,
     "lat": 37.67864,
     "lon": -118.65763,
+    "alt": 3785,
+    "gndAlt": 2383,
     "timestamp": 1603923927000
   },
   {
-    "alt": 3809,
     "device": 3,
     "lat": 37.67767,
     "lon": -118.65871,
+    "alt": 3836,
+    "gndAlt": 2351,
     "timestamp": 1603923944000
   },
   {
-    "alt": 3876,
     "device": 3,
     "lat": 37.6773,
     "lon": -118.65566,
+    "alt": 3903,
+    "gndAlt": 2339,
     "timestamp": 1603923973000
   },
   {
-    "alt": 3933,
     "device": 3,
     "lat": 37.67941,
     "lon": -118.6553,
+    "alt": 3960,
+    "gndAlt": 2370,
     "timestamp": 1603923993000
   },
   {
-    "alt": 3975,
     "device": 3,
     "lat": 37.67922,
     "lon": -118.65664,
+    "alt": 4002,
+    "gndAlt": 2401,
     "timestamp": 1603924009000
   },
   {
-    "alt": 4003,
     "device": 3,
     "lat": 37.67749,
     "lon": -118.6553,
+    "alt": 4030,
+    "gndAlt": 2340,
     "timestamp": 1603924033000
   },
   {
-    "alt": 4020,
     "device": 3,
     "lat": 37.67774,
     "lon": -118.65306,
+    "alt": 4047,
+    "gndAlt": 2367,
     "timestamp": 1603924046000
   },
   {
-    "alt": 4037,
     "device": 3,
     "lat": 37.68102,
     "lon": -118.6524,
+    "alt": 4064,
+    "gndAlt": 2404,
     "timestamp": 1603924081000
   },
   {
-    "alt": 4065,
     "device": 3,
     "lat": 37.67779,
     "lon": -118.65093,
+    "alt": 4092,
+    "gndAlt": 2394,
     "timestamp": 1603924118000
   },
   {
-    "alt": 4073,
     "device": 3,
     "lat": 37.67645,
     "lon": -118.64753,
+    "alt": 4100,
+    "gndAlt": 2429,
     "timestamp": 1603924141000
   },
   {
-    "alt": 4133,
     "device": 3,
     "lat": 37.67249,
     "lon": -118.63906,
+    "alt": 4160,
+    "gndAlt": 2470,
     "timestamp": 1603924213000
   },
   {
-    "alt": 4096,
     "device": 3,
     "lat": 37.66858,
     "lon": -118.6289,
+    "alt": 4123,
+    "gndAlt": 2380,
     "timestamp": 1603924273000
   },
   {
-    "alt": 3960,
     "device": 3,
     "lat": 37.66345,
     "lon": -118.61766,
+    "alt": 3987,
+    "gndAlt": 2303,
     "timestamp": 1603924333000
   },
   {
-    "alt": 3918,
     "device": 3,
     "lat": 37.6607,
     "lon": -118.61096,
+    "alt": 3945,
+    "gndAlt": 2222,
     "timestamp": 1603924363000
   },
   {
-    "alt": 3820,
     "device": 3,
     "lat": 37.65617,
     "lon": -118.59788,
+    "alt": 3847,
+    "gndAlt": 2185,
     "timestamp": 1603924423000
   },
   {
-    "alt": 3777,
     "device": 3,
     "lat": 37.65245,
     "lon": -118.58631,
+    "alt": 3804,
+    "gndAlt": 2129,
     "timestamp": 1603924483000
   },
   {
-    "alt": 3808,
     "device": 3,
     "lat": 37.65021,
     "lon": -118.5813,
+    "alt": 3835,
+    "gndAlt": 2220,
     "timestamp": 1603924543000
   },
   {
-    "alt": 3791,
     "device": 3,
     "lat": 37.65008,
     "lon": -118.57918,
+    "alt": 3818,
+    "gndAlt": 2140,
     "timestamp": 1603924573000
   },
   {
-    "alt": 3774,
     "device": 3,
     "lat": 37.64893,
     "lon": -118.57929,
+    "alt": 3801,
+    "gndAlt": 2175,
     "timestamp": 1603924591000
   },
   {
-    "alt": 3712,
     "device": 3,
     "lat": 37.64863,
     "lon": -118.57304,
+    "alt": 3739,
+    "gndAlt": 2103,
     "timestamp": 1603924633000
   },
   {
-    "alt": 3704,
     "device": 3,
     "lat": 37.64732,
     "lon": -118.56695,
+    "alt": 3731,
+    "gndAlt": 2134,
     "timestamp": 1603924663000
   },
   {
-    "alt": 3644,
     "device": 3,
     "lat": 37.64282,
     "lon": -118.5551,
+    "alt": 3671,
+    "gndAlt": 2096,
     "timestamp": 1603924723000
   },
   {
-    "alt": 3515,
     "device": 3,
     "lat": 37.63954,
     "lon": -118.54153,
+    "alt": 3542,
+    "gndAlt": 2029,
     "timestamp": 1603924783000
   },
   {
-    "alt": 3407,
     "device": 3,
     "lat": 37.63816,
     "lon": -118.52812,
+    "alt": 3434,
+    "gndAlt": 1993,
     "timestamp": 1603924843000
   },
   {
-    "alt": 3283,
     "device": 3,
     "lat": 37.63733,
     "lon": -118.51637,
+    "alt": 3310,
+    "gndAlt": 2060,
     "timestamp": 1603924903000
   },
   {
-    "alt": 3114,
     "device": 3,
     "lat": 37.6352,
     "lon": -118.50381,
+    "alt": 3141,
+    "gndAlt": 1951,
     "timestamp": 1603924963000
   },
   {
-    "alt": 3004,
     "device": 3,
     "lat": 37.63418,
     "lon": -118.48726,
+    "alt": 3031,
+    "gndAlt": 1756,
     "timestamp": 1603925050000
   },
   {
-    "alt": 2999,
     "device": 3,
     "lat": 37.63208,
     "lon": -118.48704,
+    "alt": 3026,
+    "gndAlt": 1748,
     "timestamp": 1603925071000
   },
   {
-    "alt": 2984,
     "device": 3,
     "lat": 37.63185,
     "lon": -118.48387,
+    "alt": 3011,
+    "gndAlt": 1724,
     "timestamp": 1603925110000
   },
   {
-    "alt": 2984,
     "device": 3,
     "lat": 37.62617,
     "lon": -118.47837,
+    "alt": 3011,
+    "gndAlt": 1645,
     "timestamp": 1603925173000
   },
   {
-    "alt": 2965,
     "device": 3,
     "lat": 37.62368,
     "lon": -118.46775,
+    "alt": 2992,
+    "gndAlt": 1589,
     "timestamp": 1603925233000
   },
   {
-    "alt": 2931,
     "device": 3,
     "lat": 37.62162,
     "lon": -118.45727,
+    "alt": 2958,
+    "gndAlt": 1507,
     "timestamp": 1603925293000
   },
   {
-    "alt": 2863,
     "device": 3,
     "lat": 37.62036,
     "lon": -118.44671,
+    "alt": 2890,
+    "gndAlt": 1498,
     "timestamp": 1603925353000
   },
   {
-    "alt": 2821,
     "device": 3,
     "lat": 37.61768,
     "lon": -118.43636,
+    "alt": 2848,
+    "gndAlt": 1450,
     "timestamp": 1603925413000
   },
   {
-    "alt": 2795,
     "device": 3,
     "lat": 37.61559,
     "lon": -118.42637,
+    "alt": 2822,
+    "gndAlt": 1419,
     "timestamp": 1603925473000
   },
   {
-    "alt": 2770,
     "device": 3,
     "lat": 37.61407,
     "lon": -118.41737,
+    "alt": 2797,
+    "gndAlt": 1449,
     "timestamp": 1603925533000
   },
   {
-    "alt": 2714,
     "device": 3,
     "lat": 37.61204,
     "lon": -118.40695,
+    "alt": 2741,
+    "gndAlt": 1412,
     "timestamp": 1603925593000
   },
   {
-    "alt": 2682,
     "device": 3,
     "lat": 37.61028,
     "lon": -118.39656,
+    "alt": 2709,
+    "gndAlt": 1380,
     "timestamp": 1603925653000
   },
   {
-    "alt": 2668,
     "device": 3,
     "lat": 37.60876,
     "lon": -118.39577,
+    "alt": 2695,
+    "gndAlt": 1382,
     "timestamp": 1603925673000
   },
   {
-    "alt": 2637,
     "device": 3,
     "lat": 37.60832,
     "lon": -118.38943,
+    "alt": 2664,
+    "gndAlt": 1394,
     "timestamp": 1603925713000
   },
   {
-    "alt": 2550,
     "device": 3,
     "lat": 37.60825,
     "lon": -118.37978,
+    "alt": 2577,
+    "gndAlt": 1426,
     "timestamp": 1603925773000
   },
   {
-    "alt": 2437,
     "device": 3,
     "lat": 37.60848,
     "lon": -118.37039,
+    "alt": 2464,
+    "gndAlt": 1473,
     "timestamp": 1603925833000
   },
   {
-    "alt": 2341,
     "device": 3,
     "lat": 37.60921,
     "lon": -118.36185,
+    "alt": 2368,
+    "gndAlt": 1515,
     "timestamp": 1603925893000
   },
   {
-    "alt": 2248,
     "device": 3,
     "lat": 37.6101,
     "lon": -118.35442,
+    "alt": 2275,
+    "gndAlt": 1581,
     "timestamp": 1603925953000
   },
   {
-    "alt": 2180,
     "device": 3,
     "lat": 37.61232,
     "lon": -118.34947,
+    "alt": 2207,
+    "gndAlt": 1743,
     "timestamp": 1603926013000
   },
   {
-    "alt": 2166,
     "device": 3,
     "lat": 37.61355,
     "lon": -118.34337,
+    "alt": 2193,
+    "gndAlt": 1903,
     "timestamp": 1603926073000
   },
   {
-    "alt": 2180,
     "device": 3,
     "lat": 37.61164,
     "lon": -118.34311,
+    "alt": 2207,
+    "gndAlt": 1885,
     "timestamp": 1603926095000
   },
   {
-    "alt": 2132,
     "device": 3,
     "lat": 37.61372,
     "lon": -118.34205,
+    "alt": 2159,
+    "gndAlt": 1958,
     "timestamp": 1603926137000
   },
   {
-    "alt": 2070,
     "device": 3,
     "lat": 37.61386,
     "lon": -118.33634,
+    "alt": 2097,
+    "gndAlt": 1993,
     "timestamp": 1603926186000
   },
   {
-    "alt": 2037,
     "device": 3,
     "lat": 37.61403,
     "lon": -118.33937,
+    "alt": 2064,
+    "gndAlt": 1931,
     "timestamp": 1603926216000
   },
   {
-    "alt": 2048,
     "device": 3,
     "lat": 37.61412,
     "lon": -118.34191,
+    "alt": 2075,
+    "gndAlt": 1936,
     "timestamp": 1603926276000
   },
   {
-    "alt": 2034,
     "device": 3,
     "lat": 37.61481,
     "lon": -118.34297,
+    "alt": 2061,
+    "gndAlt": 1853,
     "timestamp": 1603926306000
   },
   {
-    "alt": 1976,
     "device": 3,
     "lat": 37.61527,
     "lon": -118.34498,
+    "alt": 2003,
+    "gndAlt": 1848,
     "timestamp": 1603926366000
   },
   {
-    "alt": 1951,
     "device": 3,
     "lat": 37.61609,
     "lon": -118.34712,
+    "alt": 1978,
+    "gndAlt": 1790,
     "timestamp": 1603926396000
   },
   {
-    "alt": 1916,
     "device": 3,
     "lat": 37.61816,
     "lon": -118.34859,
+    "alt": 1943,
+    "gndAlt": 1711,
     "timestamp": 1603926456000
   },
   {
-    "alt": 1904,
     "device": 3,
     "lat": 37.61623,
     "lon": -118.34721,
+    "alt": 1931,
+    "gndAlt": 1790,
     "timestamp": 1603926493000
   },
   {
-    "alt": 1900,
     "device": 3,
     "lat": 37.61586,
     "lon": -118.34865,
+    "alt": 1927,
+    "gndAlt": 1771,
     "timestamp": 1603926516000
   },
   {
-    "alt": 1963,
     "device": 3,
     "lat": 37.6154,
     "lon": -118.34799,
+    "alt": 1990,
+    "gndAlt": 1770,
     "timestamp": 1603926576000
   },
   {
-    "alt": 1971,
     "device": 3,
     "lat": 37.61454,
     "lon": -118.34708,
+    "alt": 1998,
+    "gndAlt": 1836,
     "timestamp": 1603926606000
   },
   {
-    "alt": 1994,
     "device": 3,
     "lat": 37.61245,
     "lon": -118.34652,
+    "alt": 2021,
+    "gndAlt": 1847,
     "timestamp": 1603926666000
   },
   {
-    "alt": 2008,
     "device": 3,
     "lat": 37.61161,
     "lon": -118.3445,
+    "alt": 2035,
+    "gndAlt": 1862,
     "timestamp": 1603926715000
   },
   {
-    "alt": 1997,
     "device": 3,
     "lat": 37.61356,
     "lon": -118.34438,
+    "alt": 2024,
+    "gndAlt": 1874,
     "timestamp": 1603926761000
   },
   {
-    "alt": 1991,
     "device": 3,
     "lat": 37.60995,
     "lon": -118.34421,
+    "alt": 2018,
+    "gndAlt": 1849,
     "timestamp": 1603926786000
   },
   {
-    "alt": 1941,
     "device": 3,
     "lat": 37.60888,
     "lon": -118.34818,
+    "alt": 1968,
+    "gndAlt": 1676,
     "timestamp": 1603926844000
   },
   {
-    "alt": 1929,
     "device": 3,
     "lat": 37.60707,
     "lon": -118.34726,
+    "alt": 1956,
+    "gndAlt": 1789,
     "timestamp": 1603926876000
   },
   {
-    "alt": 1927,
     "device": 3,
     "lat": 37.60592,
     "lon": -118.34632,
+    "alt": 1954,
+    "gndAlt": 1844,
     "timestamp": 1603926886000
   },
   {
-    "alt": 1938,
     "device": 3,
     "lat": 37.60245,
     "lon": -118.34858,
+    "alt": 1965,
+    "gndAlt": 1701,
     "timestamp": 1603926936000
   },
   {
-    "alt": 1853,
     "device": 3,
     "lat": 37.60125,
     "lon": -118.35238,
+    "alt": 1880,
+    "gndAlt": 1612,
     "timestamp": 1603926982000
   },
   {
-    "alt": 1842,
     "device": 3,
     "lat": 37.60021,
     "lon": -118.35118,
+    "alt": 1869,
+    "gndAlt": 1633,
     "timestamp": 1603926996000
   },
   {
-    "alt": 1842,
     "device": 3,
     "lat": 37.59921,
     "lon": -118.35195,
+    "alt": 1869,
+    "gndAlt": 1635,
     "timestamp": 1603927008000
   },
   {
-    "alt": 1814,
     "device": 3,
     "lat": 37.59589,
     "lon": -118.34619,
+    "alt": 1841,
+    "gndAlt": 1723,
     "timestamp": 1603927049000
   },
   {
-    "alt": 1783,
     "device": 3,
     "lat": 37.59415,
     "lon": -118.34608,
+    "alt": 1810,
+    "gndAlt": 1736,
     "timestamp": 1603927060000
   },
   {
-    "alt": 1709,
     "device": 3,
     "lat": 37.59062,
     "lon": -118.35265,
+    "alt": 1736,
+    "gndAlt": 1595,
     "timestamp": 1603927120000
   },
   {
-    "alt": 1667,
     "device": 3,
     "lat": 37.58778,
     "lon": -118.35601,
+    "alt": 1694,
+    "gndAlt": 1552,
     "timestamp": 1603927150000
   },
   {
-    "alt": 1568,
     "device": 3,
     "lat": 37.58081,
     "lon": -118.36218,
+    "alt": 1595,
+    "gndAlt": 1477,
     "timestamp": 1603927210000
   },
   {
-    "alt": 1472,
     "device": 3,
     "lat": 37.57474,
     "lon": -118.369,
+    "alt": 1499,
+    "gndAlt": 1417,
     "timestamp": 1603927270000
   },
   {
-    "alt": 1436,
     "device": 3,
     "lat": 37.57128,
     "lon": -118.37139,
+    "alt": 1463,
+    "gndAlt": 1389,
     "timestamp": 1603927300000
   },
   {
-    "alt": 1309,
     "device": 3,
     "lat": 37.55986,
     "lon": -118.37664,
+    "alt": 1336,
+    "gndAlt": 1323,
     "timestamp": 1603927386000
   },
   {
-    "alt": 1308,
     "device": 3,
     "lat": 37.55988,
     "lon": -118.37669,
+    "alt": 1335,
+    "gndAlt": 1323,
     "timestamp": 1603927416000
   },
   {
-    "alt": 1306,
     "device": 3,
     "lat": 37.55988,
     "lon": -118.37684,
+    "alt": 1333,
+    "gndAlt": 1323,
     "timestamp": 1603927476000
   },
   {
-    "alt": 1309,
     "device": 3,
     "lat": 37.55976,
     "lon": -118.37721,
+    "alt": 1336,
+    "gndAlt": 1323,
     "timestamp": 1603927596000
   },
   {
-    "alt": 1308,
     "device": 3,
     "lat": 37.55975,
     "lon": -118.37722,
+    "alt": 1335,
+    "gndAlt": 1323,
     "timestamp": 1603927626000
   },
   {
-    "alt": 1308,
     "device": 3,
     "lat": 37.5598,
     "lon": -118.37719,
+    "alt": 1335,
+    "gndAlt": 1323,
     "timestamp": 1603927686000
   },
   {
-    "alt": 1308,
     "device": 3,
     "lat": 37.55976,
     "lon": -118.3772,
+    "alt": 1335,
+    "gndAlt": 1323,
     "timestamp": 1603927746000
   },
   {
-    "alt": 1308,
     "device": 3,
     "lat": 37.55977,
     "lon": -118.37721,
+    "alt": 1335,
+    "gndAlt": 1323,
     "timestamp": 1603927806000
   }
 ]
