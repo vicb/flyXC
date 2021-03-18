@@ -78,7 +78,7 @@ export class MainMenu extends connect(store)(LitElement) {
             <track-items></track-items>
             <live-items></live-items>
             ${!this.view3d
-              ? html`<ion-item button @click=${this.handlePlanner}>
+              ? html`<ion-item button lines="full" @click=${this.handlePlanner}>
                   <i class="las la-drafting-compass la-2x"></i>XC planning
                   <ion-toggle slot="end" .checked=${this.plannerEnabled}></ion-toggle>
                 </ion-item>`
