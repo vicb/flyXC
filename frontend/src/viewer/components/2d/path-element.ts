@@ -333,7 +333,11 @@ export class PathElement extends connect(store)(LitElement) {
       map.controls[google.maps.ControlPosition.LEFT_TOP].push(el);
       el.addEventListener('close-flight', () => {
         const path = (this.line as google.maps.Polyline).getPath();
-        path.push(path.getAt(0));
+        const last = path.getAt(path.getLength() - 1);
+        const first = path.getAt(0);
+        if (!first.equals(last)) {
+          path.push(first);
+        }
       });
       el.addEventListener('share', async () => {
         const modal = await getModalController().create({
