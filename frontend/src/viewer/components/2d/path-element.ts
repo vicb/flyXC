@@ -7,6 +7,7 @@ import { connect } from 'pwa-helpers';
 import { ClosingSector } from '../../gm/closing-sector';
 import { FaiSectors } from '../../gm/fai-sectors';
 import { getCurrentUrl, pushCurrentState } from '../../logic/history';
+import { drawRoute } from '../../logic/messages';
 import { LEAGUES } from '../../logic/score/league/leagues';
 import { Measure, Point } from '../../logic/score/measure';
 import { CircuitType, Score } from '../../logic/score/scorer';
@@ -47,6 +48,8 @@ export class PathElement extends connect(store)(LitElement) {
   private league = 'xc';
   @internalProperty()
   private encodedRoute = '';
+  @internalProperty()
+  private isFreeDrawing = false;
 
   private line?: google.maps.Polyline;
   private optimizedLine?: google.maps.Polyline;
@@ -63,6 +66,7 @@ export class PathElement extends connect(store)(LitElement) {
     this.league = state.planner.league;
     this.enabled = state.planner.enabled;
     this.encodedRoute = state.planner.route;
+    this.isFreeDrawing = state.planner.isFreeDrawing;
   }
 
   shouldUpdate(changedProperties: PropertyValues): boolean {
@@ -85,7 +89,7 @@ export class PathElement extends connect(store)(LitElement) {
     if (changedProperties.has('league') && this.enabled) {
       this.optimize();
     }
-    if (changedProperties.has('encodedRoute') && this.enabled) {
+    if ((changedProperties.has('encodedRoute') || changedProperties.has('isFreeDrawing')) && this.enabled) {
       this.updateLineFromState();
     }
     return super.shouldUpdate(changedProperties);
@@ -100,6 +104,8 @@ export class PathElement extends connect(store)(LitElement) {
     if (!this.line) {
       return;
     }
+    this.line.setVisible(!this.isFreeDrawing);
+    this.optimizedLine?.setVisible(!this.isFreeDrawing);
     this.doNotSyncState = true;
     if (this.encodedRoute.length == 0) {
       this.setDefaultPath();
@@ -323,13 +329,13 @@ export class PathElement extends connect(store)(LitElement) {
       return;
     }
     if (!this.plannerElement) {
-      this.plannerElement = document.createElement('planner-element') as PlannerElement;
-      map.controls[google.maps.ControlPosition.LEFT_TOP].push(this.plannerElement);
-      this.plannerElement.addEventListener('close-flight', () => {
+      const el = (this.plannerElement = document.createElement('planner-element') as PlannerElement);
+      map.controls[google.maps.ControlPosition.LEFT_TOP].push(el);
+      el.addEventListener('close-flight', () => {
         const path = (this.line as google.maps.Polyline).getPath();
         path.push(path.getAt(0));
       });
-      this.plannerElement.addEventListener('share', async () => {
+      el.addEventListener('share', async () => {
         const modal = await getModalController().create({
           component: 'share-modal',
           componentProps: {
@@ -339,10 +345,14 @@ export class PathElement extends connect(store)(LitElement) {
         });
         await modal.present();
       });
-      this.plannerElement.addEventListener('download', async () => {
+      el.addEventListener('download', async () => {
         await this.openDownloadModal();
       });
-      this.plannerElement.addEventListener('reset', () => store.dispatch(setRoute('')));
+      el.addEventListener('reset', () => store.dispatch(setRoute('')));
+      el.addEventListener('draw-route', () => {
+        drawRoute.emit();
+        store.dispatch(setRoute(''));
+      });
     }
   }
 

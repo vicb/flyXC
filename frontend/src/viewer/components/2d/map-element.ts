@@ -13,6 +13,7 @@ import {
 import { repeat } from 'lit-html/directives/repeat';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
+import simplify from 'simplify-path';
 
 import { Loader } from '@googlemaps/js-api-loader';
 
@@ -21,6 +22,7 @@ import { getUrlParamValues, ParamNames } from '../../logic/history';
 import * as msg from '../../logic/messages';
 import { setApiLoading, setTimeSec } from '../../redux/app-slice';
 import { setCurrentLocation, setCurrentZoom } from '../../redux/location-slice';
+import { setIsFreeDrawing, setRoute } from '../../redux/planner-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
@@ -75,7 +77,12 @@ export class MapElement extends connect(store)(LitElement) {
   private fullscreen = false;
   @internalProperty()
   protected currentTrackId?: string;
+  @internalProperty()
+  private isFreeDrawing = false;
+  @internalProperty()
+  private freeDrawPath = '';
 
+  private pointerEventId?: number;
   private lockOnPilot = false;
   private lockPanBefore = 0;
   private subscriptions: UnsubscribeHandle[] = [];
@@ -89,6 +96,7 @@ export class MapElement extends connect(store)(LitElement) {
     this.fullscreen = state.browser.isFullscreen;
     this.lockOnPilot = state.track.lockOnPilot;
     this.currentTrackId = state.track.currentTrackId;
+    this.isFreeDrawing = state.planner.isFreeDrawing;
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
@@ -189,6 +197,7 @@ export class MapElement extends connect(store)(LitElement) {
         msg.trackGroupsAdded.subscribe(() => this.zoomToTracks()),
         msg.trackGroupsRemoved.subscribe(() => this.zoomToTracks()),
         msg.geoLocation.subscribe((latLon, userInitiated) => this.geolocation(latLon, userInitiated)),
+        msg.drawRoute.subscribe(() => this.handleDrawing()),
       );
 
       if (this.tracks.length) {
@@ -215,6 +224,39 @@ export class MapElement extends connect(store)(LitElement) {
 
   protected render(): TemplateResult {
     return html`
+      <style>
+        #drw-container {
+          width: 100%;
+          height: 100%;
+          position: absolute;
+          top: 0px;
+          left: 0px;
+          z-index: 1;
+        }
+        path {
+          stroke-width: 1px;
+          stroke: black;
+          fill: none;
+        }
+        svg {
+          width: 100%;
+          height: 100%;
+          touch-action: none;
+        }
+        rect {
+          width: 100%;
+          height: 100%;
+          opacity: 0.1;
+          fill: lightgray;
+          stroke: none;
+        }
+      </style>
+      <div id="drw-container" style=${`display:${this.isFreeDrawing ? 'block' : 'none'}`}>
+        <svg width="100%" height="100%">
+          <path d=${this.freeDrawPath}></path>
+          <rect width="100%" height="100%"></rect>
+        </svg>
+      </div>
       <div id="map"></div>
       <topo-eu .map=${this.map}></topo-eu>
       <topo-spain .map=${this.map}></topo-spain>
@@ -231,6 +273,68 @@ export class MapElement extends connect(store)(LitElement) {
           `,
       )}
     `;
+  }
+
+  firstUpdated(): void {
+    const rect = this.querySelector('rect') as SVGRectElement;
+    let points: [number, number][] = [];
+
+    rect.addEventListener(
+      'pointerdown',
+      (e) => {
+        e.stopPropagation();
+        if (this.pointerEventId != null) {
+          return;
+        }
+        this.pointerEventId = e.pointerId;
+        rect.setPointerCapture(e.pointerId);
+        this.freeDrawPath = '';
+        points.length = 0;
+      },
+      true,
+    );
+
+    rect.addEventListener('pointermove', (e) => {
+      e.stopPropagation();
+      if (this.pointerEventId == null) {
+        return;
+      }
+      points.push([e.offsetX, e.offsetY]);
+      if (points.length > 1) {
+        this.freeDrawPath = points.map(([x, y], i) => `${i == 0 ? 'M' : 'L'}${x},${y}`).join(' ');
+      }
+    });
+
+    rect.addEventListener('pointerup', () => {
+      if (this.pointerEventId == null) {
+        return;
+      }
+      rect.releasePointerCapture(this.pointerEventId);
+      this.pointerEventId = undefined;
+      this.freeDrawPath = '';
+      store.dispatch(setIsFreeDrawing(false));
+      points = simplify(points, 30);
+      let encodedRoute = '';
+      if (points.length >= 2 && this.map) {
+        const proj = this.map.getProjection() as google.maps.Projection;
+        const bounds = this.map.getBounds() as google.maps.LatLngBounds;
+        const topRight = proj.fromLatLngToPoint(bounds.getNorthEast());
+        const bottomLeft = proj.fromLatLngToPoint(bounds.getSouthWest());
+        const scale = Math.pow(2, this.map.getZoom());
+        encodedRoute = google.maps.geometry.encoding.encodePath(
+          points.map(([x, y]) => {
+            const worldPoint = new google.maps.Point(x / scale + bottomLeft.x, y / scale + topRight.y);
+            return proj.fromPointToLatLng(worldPoint);
+          }),
+        );
+      }
+      store.dispatch(setRoute(encodedRoute));
+      points.length = 0;
+    });
+  }
+
+  private handleDrawing() {
+    store.dispatch(setIsFreeDrawing(true));
   }
 
   // Center the map on the user location:

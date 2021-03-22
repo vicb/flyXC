@@ -27,12 +27,15 @@ export class PlannerElement extends connect(store)(LitElement) {
   private distance = 0;
   @internalProperty()
   private hideDetails = store.getState().browser.isSmallScreen;
+  @internalProperty()
+  private isFreeDrawing = false;
 
   private duration?: number;
   private readonly closeHandler = () => this.dispatchEvent(new CustomEvent('close-flight'));
   private readonly shareHandler = () => this.dispatchEvent(new CustomEvent('share'));
   private readonly downloadHandler = () => this.dispatchEvent(new CustomEvent('download'));
   private readonly resetHandler = () => this.dispatchEvent(new CustomEvent('reset'));
+  private readonly drawHandler = () => this.dispatchEvent(new CustomEvent('draw-route'));
 
   stateChanged(state: RootState): void {
     this.distance = state.planner.distance;
@@ -40,6 +43,7 @@ export class PlannerElement extends connect(store)(LitElement) {
     this.speed = state.planner.speed;
     this.units = state.units;
     this.duration = ((this.distance / this.speed) * 60) / 1000;
+    this.isFreeDrawing = state.planner.isFreeDrawing;
   }
 
   static get styles(): CSSResult {
@@ -74,11 +78,9 @@ export class PlannerElement extends connect(store)(LitElement) {
         border-radius: 4px 4px 0 0;
         border-top: solid 1px #717b87;
         padding: 4px 0px;
-        display: block;
       }
 
       .control > :last-child {
-        display: block;
         border-radius: 0 0 4px 4px;
       }
 
@@ -105,9 +107,16 @@ export class PlannerElement extends connect(store)(LitElement) {
       return html``;
     }
     return html`
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
+      />
       <style>
-        .control > div {
+        .collapsible {
           display: ${this.hideDetails ? 'none' : 'block'};
+        }
+        .active {
+          background-color: lightgray;
         }
       </style>
       <div class="control">
@@ -115,15 +124,20 @@ export class PlannerElement extends connect(store)(LitElement) {
           <div>${this.score.circuit}</div>
           <div class="large">${formatUnit(this.score.distance / 1000, this.units.distance)}</div>
         </div>
-        <div>
+        <div class="collapsible">
           <div>Points = ${this.getMultiplier()}</div>
           <div class="large">${this.score.points.toFixed(1)}</div>
         </div>
-        <div>
+        <div class="collapsible">
           <div>Total distance</div>
           <div class="large">${formatUnit(this.distance / 1000, this.units.distance)}</div>
         </div>
-        <div @mousemove=${this.onMouseMove} @click=${this.changeDuration} @wheel=${this.wheelDuration}>
+        <div
+          class="collapsible"
+          @mousemove=${this.onMouseMove}
+          @click=${this.changeDuration}
+          @wheel=${this.wheelDuration}
+        >
           <div>
             <span>Duration</span>
             <div class="decrement">
@@ -135,7 +149,7 @@ export class PlannerElement extends connect(store)(LitElement) {
           </div>
           <div class="large">${this.getDuration()}</div>
         </div>
-        <div @mousemove=${this.onMouseMove} @click=${this.changeSpeed} @wheel=${this.wheelSpeed}>
+        <div class="collapsible" @mousemove=${this.onMouseMove} @click=${this.changeSpeed} @wheel=${this.wheelSpeed}>
           <div>
             <span>Speed</span>
             <div class="decrement">
@@ -147,16 +161,19 @@ export class PlannerElement extends connect(store)(LitElement) {
           </div>
           <div class="large">${formatUnit(this.speed as number, this.units.speed)}</div>
         </div>
-        <div @click=${this.closeHandler}>
+        <div @click=${this.drawHandler} class=${this.isFreeDrawing ? 'active' : ''}>
+          <div><i class="las la-pen"></i> Free draw</div>
+        </div>
+        <div class="collapsible" @click=${this.closeHandler}>
           <div>Close flight</div>
         </div>
-        <div @click=${this.shareHandler}>
+        <div class="collapsible" @click=${this.shareHandler}>
           <div>Share</div>
         </div>
-        <div @click=${this.downloadHandler}>
+        <div class="collapsible" @click=${this.downloadHandler}>
           <div>Download</div>
         </div>
-        <div @click=${this.resetHandler}>
+        <div class="collapsible" @click=${this.resetHandler}>
           <div>Reset</div>
         </div>
         <div @click=${() => (this.hideDetails = !this.hideDetails)}>

@@ -24,3 +24,6 @@ export const clickSceneView = createEvents<Graphic, SceneView>();
 // User location.
 // The second parameter is whether the location is user initiated.
 export const geoLocation = createEvents<LatLon, boolean>();
+
+// Start drawing a route on the maps.
+export const drawRoute = createEvents<void>();

@@ -11,6 +11,7 @@ export type PlannerState = {
   enabled: boolean;
   // Encoded route.
   route: string;
+  isFreeDrawing: boolean;
 };
 
 const route = getUrlParamValues(ParamNames.route)[0] ?? '';
@@ -23,6 +24,7 @@ const initialState: PlannerState = {
   league: getUrlParamValues(ParamNames.league)[0] ?? localStorage.getItem('league') ?? 'xc',
   enabled,
   route,
+  isFreeDrawing: false,
 };
 
 const plannerSlice = createSlice({
@@ -64,6 +66,9 @@ const plannerSlice = createSlice({
     setEnabled: (state, action: PayloadAction<boolean>) => {
       state.enabled = action.payload;
     },
+    setIsFreeDrawing: (state, action: PayloadAction<boolean>) => {
+      state.isFreeDrawing = action.payload;
+    },
   },
 });
 
@@ -77,4 +82,5 @@ export const {
   decrementSpeed,
   setRoute,
   setEnabled,
+  setIsFreeDrawing,
 } = plannerSlice.actions;
