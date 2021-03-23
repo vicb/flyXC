@@ -145,6 +145,7 @@ export class MapElement extends connect(store)(LitElement) {
         scaleControl: true,
         fullscreenControl: false,
         streetViewControl: false,
+        clickableIcons: false,
         mapTypeControlOptions: {
           mapTypeIds: [
             'terrain',
