@@ -91,13 +91,13 @@ export function getElevationUrl(points: LatLon[]): string {
 export function parseElevationResponse(json: any, points: LatLon[]): number[] {
   const result = json.results[0].value.features[0].geometry.paths[0];
   if (!Array.isArray(result)) {
-    throw new Error('Error parsing the ARCGIS output');
+    throw new Error('Error parsing json');
   }
   const elevations: number[] = [];
   for (let i = 0; 2 * i < result.length && i < points.length; i++) {
     const [lon, lat, alt] = result[2 * i];
     if (Math.abs(lon - points[i].lon) > 0.1 || Math.abs(lat - points[i].lat) > 0.1) {
-      throw new Error('[ESRI elevation] invalid response');
+      throw new Error('Invalid response');
     }
     elevations.push(Math.round(alt));
   }

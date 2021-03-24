@@ -15,6 +15,7 @@ import {
 import { LIVE_TRACK_TABLE, LiveTrackEntity, TrackerEntity } from 'flyxc/common/src/live-track-entity';
 import { round } from 'flyxc/common/src/math';
 import { LatLon } from 'flyxc/common/src/runtime-track';
+import { formatReqError } from 'flyxc/common/src/util';
 import { getDistance } from 'geolib';
 
 import { Datastore, Key } from '@google-cloud/datastore';
@@ -215,10 +216,10 @@ export type TrackerLogs = Map<TrackerIds, TrackerLogEntry>;
 export async function updateTrackers(): Promise<TrackerLogs> {
   const start = Date.now();
   const refreshes = await Promise.allSettled([
-    inreach.refresh(), 
-    spot.refresh(), 
-    skylines.refresh(), 
-    flyme.refresh(), 
+    inreach.refresh(),
+    spot.refresh(),
+    skylines.refresh(),
+    flyme.refresh(),
     flymaster.refresh(),
   ]);
 
@@ -341,7 +342,7 @@ async function patchLastFixGroundAltitude(updates: TrackerUpdate[]): Promise<voi
       throw new Error(`HTTP Status = ${response.code} for ${url}`);
     }
   } catch (e) {
-    console.error(`[ESRI elevation] ${e}`);
+    console.error(`[ESRI elevation] ${formatReqError(e)}`);
   }
 }
 

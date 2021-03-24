@@ -119,6 +119,6 @@ describe('parseElevationResponse', () => {
       messages: [],
     };
 
-    expect(() => parseElevationResponse(output, points)).toThrow('[ESRI elevation] invalid response');
+    expect(() => parseElevationResponse(output, points)).toThrow('Invalid response');
   });
 });
