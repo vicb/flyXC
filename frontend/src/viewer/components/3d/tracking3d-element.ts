@@ -1,5 +1,5 @@
 import { LiveTrack } from 'flyxc/common/protos/live-track';
-import { getFixMessage, isEmergencyFix } from 'flyxc/common/src/live-track';
+import { getFixMessage, isEmergencyFix, isEmergencyTrack } from 'flyxc/common/src/live-track';
 import { customElement, internalProperty, LitElement, PropertyValues } from 'lit-element';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
@@ -177,6 +177,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       const id = feature.properties.id;
       const endIdx = feature.properties.endIndex;
       const track = liveTrackSelectors.selectById(store.getState(), id) as LiveTrack;
+      const isEmergency = isEmergencyTrack(track);
       const ageMin = (nowSec - track.timeSec[endIdx]) / 60;
       // Recent tracks should be more visible unless there are non-live tracks.
       const hasRecentStyle = ageMin < RECENT_TIMEOUT_MIN && this.numTracks == 0;
@@ -191,10 +192,10 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       shadowGraphic.set('geometry', this.line);
 
       const color = new this.api.Color(getUniqueColor(Math.round(id / 1000)));
-      color.a = hasRecentStyle || hasSelectedStyle ? 1 : 0.8;
+      color.a = isEmergency || hasRecentStyle || hasSelectedStyle ? 1 : 0.8;
       const rgba = color.toRgba();
       this.trackSymbol.symbolLayers[0].material.color = rgba;
-      this.trackSymbol.symbolLayers[0].size = hasSelectedStyle ? 3 : hasRecentStyle ? 2 : 1;
+      this.trackSymbol.symbolLayers[0].size = isEmergency ? 5 : hasSelectedStyle ? 3 : hasRecentStyle ? 2 : 1;
       graphic.set('symbol', this.trackSymbol);
       graphic.set('attributes', { liveTrackId: id });
       tracks.push(graphic);

@@ -1,5 +1,5 @@
 import { LiveTrack } from 'flyxc/common/protos/live-track';
-import { getFixMessage, isEmergencyFix } from 'flyxc/common/src/live-track';
+import { getFixMessage, isEmergencyFix, isEmergencyTrack } from 'flyxc/common/src/live-track';
 import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
@@ -24,7 +24,7 @@ const OLD_TIMEOUT_MIN = 12 * 60;
 
 // Only the last track uses a solid line.
 // Former tracks use a dashed line.
-const formerTrackIcons: google.maps.IconSequence[] = [
+const dashedLineIcons: google.maps.IconSequence[] = [
   {
     icon: {
       path: 'M 0,-1 0,1',
@@ -243,6 +243,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     const nowSec = Date.now() / 1000;
     const id = feature.getProperty('id') as number;
     const track = liveTrackSelectors.selectById(store.getState(), id) as LiveTrack;
+    const isEmergency = isEmergencyTrack(track);
     const endIdx = feature.getProperty('endIndex');
     const ageMin = (nowSec - track.timeSec[endIdx]) / 60;
 
@@ -252,9 +253,12 @@ export class TrackingElement extends connect(store)(LitElement) {
     let zIndex = 10;
     let icons: google.maps.IconSequence[] | undefined;
 
-    if (feature.getProperty('last') !== true) {
+    if (isEmergency) {
+      strokeWeight = 6;
+      zIndex = 30;
+    } else if (feature.getProperty('last') !== true) {
       // Dashed lines for previous tracks.
-      icons = formerTrackIcons;
+      icons = dashedLineIcons;
       strokeOpacity = 0;
     } else if (id == this.currentId) {
       // Make the selected track very visible.
@@ -262,7 +266,7 @@ export class TrackingElement extends connect(store)(LitElement) {
       zIndex = 20;
     } else if (ageMin > OLD_TIMEOUT_MIN) {
       // Dashed lines for old tracks.
-      icons = formerTrackIcons;
+      icons = dashedLineIcons;
       strokeOpacity = 0;
     } else if (ageMin < RECENT_TIMEOUT_MIN && this.numTracks == 0) {
       // Make the recent tracks more visible when there are no non-live tracks.
