@@ -78,7 +78,7 @@
             "modelId": "SPOT3",
             "showCustomMsg": "Y",
             "dateTime": "2019-10-16T12:38:12+0000",
-            "batteryState": "LOW (LOW is a guess, update when known)",
+            "batteryState": "LOW",
             "hidden": 0,
             "altitude": 123
           },

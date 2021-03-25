@@ -122,7 +122,8 @@ export function parse(jsonFeed: string): LivePoint[] {
         timestamp: fix.unixTime * 1000,
         emergency: fix.messageType == 'HELP',
         message: fix.messageContent,
-        lowBattery: fix.batteryState != 'GOOD',
+        // Values could be "GOOD" or "LOW".
+        lowBattery: fix.batteryState == 'LOW',
       });
     });
   }
