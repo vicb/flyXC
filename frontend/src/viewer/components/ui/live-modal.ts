@@ -34,6 +34,8 @@ export class LiveModal extends connect(store)(LitElement) {
   private centerOnLocation = false;
   @internalProperty()
   private location!: LatLon;
+  @internalProperty()
+  private currentLiveId?: number;
 
   private watchLocationId = 0;
 
@@ -42,6 +44,7 @@ export class LiveModal extends connect(store)(LitElement) {
     this.location = state.location.location;
     this.units = state.units;
     this.centerOnLocation = state.liveTrack.centerOnLocation;
+    this.currentLiveId = state.liveTrack.currentLiveId;
   }
 
   connectedCallback(): void {
@@ -216,7 +219,7 @@ export class LiveModal extends connect(store)(LitElement) {
       button
       @click=${() => this.handleFlyTo(pilot)}
       lines="full"
-      color=${pilot.isEmergency ? 'warning' : ''}
+      color=${pilot.isEmergency ? 'warning' : pilot.id == this.currentLiveId ? 'primary' : ''}
     >
       <i
         slot="start"
