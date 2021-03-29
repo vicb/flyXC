@@ -38,7 +38,7 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
     const trackerModels: Record<string, TrackerModel> = {};
 
     for (const [trackerKey, prop] of Object.entries(trackerPropNames)) {
-      const trackerEntity: TrackerEntity = (entity as any)[prop] ?? {enabled: false, account: ""};
+      const trackerEntity: TrackerEntity = (entity as any)[prop] ?? { enabled: false, account: '' };
       const transformer: AccountTransformer = (accountTransformers as any)[trackerKey];
       (trackerModels as any)[prop] = {
         enabled: trackerEntity.enabled,
@@ -178,14 +178,16 @@ export const accountTransformers: Readonly<Record<TrackerIds, AccountTransformer
 // Ids look like "0onlLopfoM4bG5jXvWRE8H0Obd0oMxMBq".
 // They all seem to be 33 char long string starting with "0" but there is no doc about the exact format.
 export function validateSpotAccount(id: string): string | false {
-  return /^[\w]{30,36}$/.test(id) ? id : false;
+  id = id.trim();
+  return /^\w{30,36}$/.test(id) ? id : false;
 }
 
 // Validates a SkyLines Id.
 //
 // Skylines uses numerical ids.
 export function validateSkylinesAccount(id: string): string | false {
-  return /^\d+$/.test(id) ? id : false;
+  id = id.trim();
+  return /^\d+$/.test(id.trim()) ? id : false;
 }
 
 // Validate an inreach url.
@@ -198,6 +200,7 @@ export function validateSkylinesAccount(id: string): string | false {
 //
 // urls are transformed to the second form (with '/Feed/Share/').
 export function validateInreachAccount(url: string): string | false {
+  url = url.trim();
   // Insert '/Feed/Share' when missing.
   if (!/Feed\/Share/i.test(url)) {
     const lastSlash = url.lastIndexOf('/');
@@ -221,5 +224,6 @@ export function validateInreachAccount(url: string): string | false {
 //
 // Flymaster uses numerical ids (last digit of the serial number).
 export function validateFlymasterAccount(id: string): string | false {
+  id = id.trim();
   return /^\d{3,}$/.test(id) ? id : false;
 }
