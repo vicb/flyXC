@@ -38,7 +38,9 @@ export function popupContent(
     content.push(`<i class="las la-tachometer-alt"></i> ${formatUnit(speed, units.speed)}`);
   }
   content.push(
-    `<i class="las la-map-marked"></i> <a href=${`https://www.google.com/maps/dir//${track.lat[index]},${track.lon[index]}`} target="_blank">Directions</a>`,
+    `<i class="las la-map-marked"></i> <a href=${`https://www.google.com/maps/dir//${track.lat[index]},${track.lon[index]}`} target="_blank">Directions</a> to ${
+      track.lat[index]
+    }, ${track.lon[index]}`,
   );
   if (message != null) {
     content.push(`<i class="las la-sms"></i> “${message}”`);
