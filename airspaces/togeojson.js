@@ -1,4 +1,4 @@
-#!/usr/bin/env node --no-warnings
+#!/usr/bin/env node
 
 // Generate the geojson from aip/openair files
 //
@@ -13,9 +13,12 @@ const path = require('path');
 const GeoJSON = require('geojson');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
-prog.option('-i, --input <folder>', 'input folder', 'asp').option('-o, --output <file>', 'output file', 'airspaces');
-prog.parse(process.argv);
+prog
+  .option('-i, --input <folder>', 'input folder', 'asp')
+  .option('-o, --output <file>', 'output file', 'airspaces')
+  .parse();
 
+const AIRSPACE_IGNORED = 0;
 const AIRSPACE_PROHIBITED = 1 << 0;
 const AIRSPACE_RESTRICTED = 1 << 1;
 const AIRSPACE_DANGER = 1 << 2;
@@ -23,17 +26,41 @@ const AIRSPACE_OTHER = 1 << 3;
 const BOTTOM_REF_GND = 1 << 4;
 const TOP_REF_GND = 1 << 5;
 
-// AIP files
-const aipFiles = glob.sync(prog.input + '/**/*_asp.aip');
-let airspaces = aipFiles.reduce((asps, f) => [...asps, ...decodeAipFile(f)], []);
+let airspaces = [];
 
-// OpenAir files
-const openAirFiles = glob.sync(prog.input + '/**/UKRAINE (UK).txt');
-airspaces = openAirFiles.reduce((asps, f) => [...asps, ...decodeOpenAirFile(f)], airspaces);
+// openaip.net files (AIP format).
+const aipFiles = glob.sync(prog.opts().input + '/**/*_asp.aip');
+for (const file of aipFiles) {
+  const asp = decodeAipFile(file);
+  // OpenAIP does not contain class E2 as of Apr 2021.
+  // We get them from soaringdata.info.
+  if (file.indexOf('us_asp.aip') > -1) {
+    const catE = asp.filter((a) => a.category.toUpperCase().startsWith('E')).length;
+    if (catE > 0) {
+      throw new Error('Unexpected class E in us_asp.aip');
+    }
+    console.info('No class E in us_asp.aip (expected)');
+  }
+  airspaces.push(...asp);
+}
+
+// Ukraine.
+const ukraineFiles = glob.sync(prog.opts().input + '/UKRAINE (UK).txt');
+if (ukraineFiles.length == 0) {
+  throw new Error('Ukraine file not found');
+}
+for (const file of ukraineFiles) {
+  airspaces.push(...decodeOpenAirFile(file));
+}
+
+// US Class E
+
+// Write output.
+console.log(`\nTotal: ${airspaces.length} airspaces`);
 
 const geoJson = GeoJSON.parse(airspaces, { Polygon: 'polygon' });
 
-fs.writeFileSync(`${prog.output}.geojson`, JSON.stringify(geoJson));
+fs.writeFileSync(`${prog.opts().output}.geojson`, JSON.stringify(geoJson));
 
 // Decodes AIP format (i.e. from openaip.net).
 function decodeAipFile(filename) {
@@ -44,8 +71,9 @@ function decodeAipFile(filename) {
       console.log(`# ${path.basename(filename)}`);
       const total = json.OPENAIP.AIRSPACES.ASP.length;
       console.log(` - ${total} airspaces`);
-      let airspaces = json.OPENAIP.AIRSPACES.ASP;
-      airspaces = airspaces.reduce((as, a) => ((a = decodeAipAirspace(a)) ? as.concat(a) : as), []);
+      const airspaces = json.OPENAIP.AIRSPACES.ASP.map((aip) => decodeAipAirspace(aip)).filter(
+        (airspace) => airspace != null,
+      );
       if (airspaces.length < total) {
         console.log(` - dropped ${total - airspaces.length} airspaces`);
       }
@@ -165,7 +193,7 @@ function pushOpenAirAirspace(airspaces, name, category, bottomLabel, topLabel, c
 
   a.flags = airspaceTypeFlags(a);
 
-  if (a.flags != 0) {
+  if (a.flags != AIRSPACE_IGNORED) {
     a.flags |= openAirReferenceFlags(bottomLabel, topLabel);
     airspaces.push(a);
   }
@@ -245,7 +273,7 @@ function decodeAipAirspace(asp) {
 
   a.flags = airspaceTypeFlags(a, asp.COUNTRY._text);
 
-  if (a.flags != 0) {
+  if (a.flags != AIRSPACE_IGNORED) {
     a.flags |= openAipReferenceFlags(asp);
     return a;
   }
@@ -266,28 +294,31 @@ function openAipReferenceFlags(asp) {
 // Return the flags for the type of the airspace.
 function airspaceTypeFlags(airspace, country = '') {
   const ignoreRegexp = [
-    /(\d+-)?(\d+)\s+(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)/,
-    /(\d+)\s+(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)-(\d+)\s+(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)/,
+    /(\d+-)?(\d+)\s+(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)\b/,
+    /(\d+)\s+(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)-(\d+)\s+(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)\b/,
     /\bILS\b/,
     /high paragliding and hang gliding activity/,
   ];
 
-  ignoreRegexp.forEach((r) => {
-    if (r.test(airspace.name)) {
-      return 0;
+  for (const regexp of ignoreRegexp) {
+    if (regexp.test(airspace.name)) {
+      console.info(`Ignored airspace (name) "${airspace.name}"`);
+      return AIRSPACE_IGNORED;
     }
-  });
+  }
 
   if (airspace.bottom > 6000) {
-    return 0; // Ignore airspaces > 6000m
+    console.info(`Ignored airspace (> 6000m) "${airspace.name}"`);
+    return AIRSPACE_IGNORED;
   }
 
   if (country == 'AU' && (airspace.category == 'E' || airspace.category == 'G') && airspace.top == 0) {
-    return 0; // Ignore
+    return AIRSPACE_IGNORED;
   }
   if (country == 'CO' && airspace.category == 'D') {
     return AIRSPACE_OTHER;
   }
+
   switch (airspace.category) {
     case 'A':
     case 'B':
@@ -311,7 +342,12 @@ function airspaceTypeFlags(airspace, country = '') {
       return AIRSPACE_OTHER;
     case 'FIR':
     case 'WAVE':
+    case 'T': // Ukraine
+    case 'R': // Ukraine
+    case 'P': // Ukraine
+      return AIRSPACE_IGNORED;
     default:
-      return 0;
+      console.info(`Ignored airspace (category "${airspace.category}") "${airspace.name}"`);
+      return AIRSPACE_IGNORED;
   }
 }
