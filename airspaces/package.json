@@ -18,6 +18,7 @@
     "commander": "^7.2.0",
     "fast-crc32": "^1.0.1",
     "geojson": "^0.5.0",
+    "geolib": "^3.3.1",
     "glob": "^7.1.6",
     "unzipper": "^0.10.11",
     "xml-js": "^1.6.11"
