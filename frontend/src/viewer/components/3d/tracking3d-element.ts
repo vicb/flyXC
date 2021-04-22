@@ -336,6 +336,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
     view.popup.actions.removeAll();
     view.popup.dockOptions = { buttonEnabled: false };
     view.popup.collapseEnabled = false;
+    view.popup.viewModel.includeDefaultActions = false;
     view.watch('popup.visible', (visible) => {
       if (visible == false) {
         store.dispatch(setCurrentLiveId(undefined));
