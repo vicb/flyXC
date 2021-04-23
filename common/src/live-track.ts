@@ -195,20 +195,32 @@ export function IsSimplifiableFix(track: LiveTrack, index: number, start = 0, en
 
 // Removes simplifiable points that are less than `intervalSec` apart.
 // Note: Points from startSec inclusive are simplified.
-export function simplifyLiveTrack(track: LiveTrack, intervalSec: number, startSec?: number): void {
+export function simplifyLiveTrack(
+  track: LiveTrack,
+  intervalSec: number,
+  time?: { fromSec?: number; toSec?: number },
+): void {
   let startIndex = 0;
-  if (startSec != undefined) {
-    const indexes = findIndexes(track.timeSec, startSec);
+  if (time?.fromSec != undefined) {
+    const indexes = findIndexes(track.timeSec, time.fromSec);
     if (indexes.afterAll) {
       return;
     }
-    startIndex = Math.max(0, indexes.beforeIndex);
+    startIndex = Math.max(startIndex, indexes.beforeIndex);
+  }
+  let simplifyUntilIndex = track.timeSec.length;
+  if (time?.toSec != undefined) {
+    const indexes = findIndexes(track.timeSec, time.toSec);
+    if (indexes.beforeAll) {
+      return;
+    }
+    simplifyUntilIndex = Math.min(simplifyUntilIndex, indexes.beforeIndex);
   }
   let dstIndex = startIndex;
   let previousTimeSec = track.timeSec[startIndex] - 2 * intervalSec;
   for (let index = startIndex; index < track.timeSec.length; index++) {
     const timeSec = track.timeSec[index];
-    if (IsSimplifiableFix(track, index) && timeSec - previousTimeSec < intervalSec) {
+    if (index <= simplifyUntilIndex && IsSimplifiableFix(track, index) && timeSec - previousTimeSec < intervalSec) {
       delete track.extra[index];
       continue;
     }

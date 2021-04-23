@@ -271,7 +271,7 @@ describe('simplifyLiveTrack', () => {
     });
   });
 
-  it('should simplify from the start time', () => {
+  it('should simplify from fromSec', () => {
     const track: LiveTrack = {
       timeSec: [1, 10, 20, 25, 30, 35, 40, 45],
       lat: [2, 11, 21, 26, 31, 36, 41, 46],
@@ -281,7 +281,7 @@ describe('simplifyLiveTrack', () => {
       extra: { 4: { message: 'hello' } },
     };
 
-    simplifyLiveTrack(track, 10, 26);
+    simplifyLiveTrack(track, 10, { fromSec: 26 });
 
     expect(track).toEqual({
       timeSec: [1, 10, 20, 25, 30, 40, 45],
@@ -303,7 +303,7 @@ describe('simplifyLiveTrack', () => {
       extra: { 4: { message: 'hello' } },
     };
 
-    simplifyLiveTrack(track, 10, 50);
+    simplifyLiveTrack(track, 10, { fromSec: 50 });
 
     expect(track).toEqual({
       timeSec: [1, 10, 20, 25, 30, 35, 40, 45],
@@ -312,6 +312,72 @@ describe('simplifyLiveTrack', () => {
       alt: [4, 13, 23, 28, 33, 38, 43, 48],
       flags: [0, 0, 0, 0, 0, 0, 0, 0],
       extra: { 4: { message: 'hello' } },
+    });
+  });
+
+  it('should simplify up to toSec', () => {
+    const track: LiveTrack = {
+      timeSec: [1, 10, 20, 25, 30, 35, 40, 45],
+      lat: [2, 11, 21, 26, 31, 36, 41, 46],
+      lon: [3, 12, 22, 27, 32, 37, 42, 47],
+      alt: [4, 13, 23, 28, 33, 38, 43, 48],
+      flags: [0, 0, 0, 0, 0, 0, 0, 0],
+      extra: { 4: { message: 'hello' } },
+    };
+
+    simplifyLiveTrack(track, 10, { toSec: 25 });
+
+    expect(track).toEqual({
+      timeSec: [1, 20, 30, 35, 40, 45],
+      lat: [2, 21, 31, 36, 41, 46],
+      lon: [3, 22, 32, 37, 42, 47],
+      alt: [4, 23, 33, 38, 43, 48],
+      flags: [0, 0, 0, 0, 0, 0],
+      extra: { 2: { message: 'hello' } },
+    });
+  });
+
+  it('should return unchanged track if the end time is before the track', () => {
+    const track: LiveTrack = {
+      timeSec: [51, 52, 53, 54, 55, 56, 57, 58],
+      lat: [2, 11, 21, 26, 31, 36, 41, 46],
+      lon: [3, 12, 22, 27, 32, 37, 42, 47],
+      alt: [4, 13, 23, 28, 33, 38, 43, 48],
+      flags: [0, 0, 0, 0, 0, 0, 0, 0],
+      extra: { 4: { message: 'hello' } },
+    };
+
+    simplifyLiveTrack(track, 10, { toSec: 50 });
+
+    expect(track).toEqual({
+      timeSec: [51, 52, 53, 54, 55, 56, 57, 58],
+      lat: [2, 11, 21, 26, 31, 36, 41, 46],
+      lon: [3, 12, 22, 27, 32, 37, 42, 47],
+      alt: [4, 13, 23, 28, 33, 38, 43, 48],
+      flags: [0, 0, 0, 0, 0, 0, 0, 0],
+      extra: { 4: { message: 'hello' } },
+    });
+  });
+
+  it('should simplify between fromSec and toSec', () => {
+    const track: LiveTrack = {
+      timeSec: [51, 52, 53, 54, 55, 56, 57, 58],
+      lat: [2, 11, 21, 26, 31, 36, 41, 46],
+      lon: [3, 12, 22, 27, 32, 37, 42, 47],
+      alt: [4, 13, 23, 28, 33, 38, 43, 48],
+      flags: [0, 0, 0, 0, 0, 0, 0, 0],
+      extra: { 4: { message: 'hello' } },
+    };
+
+    simplifyLiveTrack(track, 10, { fromSec: 53, toSec: 57 });
+
+    expect(track).toEqual({
+      timeSec: [51, 52, 53, 55, 58],
+      lat: [2, 11, 21, 31, 46],
+      lon: [3, 12, 22, 32, 47],
+      alt: [4, 13, 23, 33, 48],
+      flags: [0, 0, 0, 0, 0],
+      extra: { 3: { message: 'hello' } },
     });
   });
 });
