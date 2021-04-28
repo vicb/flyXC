@@ -10,7 +10,7 @@ const { Storage } = require('@google-cloud/storage');
 prog.option('-i, --input <folder>', 'zip file').option('-b, --bucket <file>', 'bucket name', 'airspaces');
 prog.parse(process.argv);
 
-const { input, bucket } = prog;
+const { input, bucket } = prog.opts();
 
 console.log(`Expand configuration:`);
 console.log(`input: ${input}`);
@@ -57,10 +57,8 @@ async function expand(inputFile, bucketName, retries, paths = null) {
               return;
             }
           }
-          // Compute the target file name.
-          const filename = path.replace('tiles/', `tiles/${ymd}/`);
           // Expand the file.
-          const file = bucket.file(filename);
+          const file = bucket.file(path);
           entry
             .pipe(
               file.createWriteStream({
