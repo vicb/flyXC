@@ -32,15 +32,6 @@ let airspaces = [];
 const aipFiles = glob.sync(prog.opts().input + '/**/*_asp.aip');
 for (const file of aipFiles) {
   const asp = decodeAipFile(file);
-  // OpenAIP does not contain class E2 as of Apr 2021.
-  // We get them from soaringdata.info.
-  if (file.indexOf('us_asp.aip') > -1) {
-    const catE = asp.filter((a) => a.category.toUpperCase().startsWith('E')).length;
-    if (catE > 0) {
-      throw new Error('Unexpected class E in us_asp.aip');
-    }
-    console.info('No class E in us_asp.aip (expected)');
-  }
   airspaces.push(...asp);
 }
 
@@ -52,11 +43,6 @@ if (ukraineFiles.length == 0) {
 for (const file of ukraineFiles) {
   airspaces.push(...decodeOpenAirFile(file));
 }
-
-// US Class E
-const USClassE = decodeOpenAirFile(prog.opts().input + '/US-classE.txt').filter((a) => a.category == 'E');
-console.log(`\n# US class E: ${USClassE.length} airspaces`);
-airspaces.push(...USClassE);
 
 // Write output.
 console.log(`\nTotal: ${airspaces.length} airspaces`);
