@@ -69,7 +69,7 @@ export function isInFeature(point: Point, feature: Feature): boolean {
 }
 
 export function getAspTileUrl(x: number, y: number, z: number): string {
-  return `https://airspaces.storage.googleapis.com/tiles/20200714/${z}/${x}/${y}.pbf`;
+  return `https://airspaces.storage.googleapis.com/tiles/${z}/${x}/${y}.pbf`;
 }
 
 // Returns whether the point is in the polygon.
