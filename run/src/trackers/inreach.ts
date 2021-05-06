@@ -33,7 +33,7 @@ import {
 export async function refresh(): Promise<TrackerUpdate> {
   const start = Date.now();
 
-  const trackers = await getTrackersToUpdate(TrackerIds.Inreach, start - INREACH_REFRESH_INTERVAL_SEC * 1000, 100);
+  const trackers = await getTrackersToUpdate(TrackerIds.Inreach, start - INREACH_REFRESH_INTERVAL_SEC * 1000, 150);
 
   const result: TrackerUpdate = {
     trackerId: TrackerIds.Inreach,
