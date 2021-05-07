@@ -43,3 +43,10 @@ $ node unzip.js -i /tiles/tiles.zip
 $ npm run docker:build
 
 $ npm run docker:push
+
+# Diff update
+
+- Create the tiles (pbf),
+- Execute `node tiles-info.js` to generate the info,
+- Execute `node tiles-info-diff.js -ref <former version of tile-info.json>` to generate the diff,
+- Execute `node unzip.js -d tiles-info-diff.json` to apply the diffs.

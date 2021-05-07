@@ -7,21 +7,25 @@ const unzipper = require('unzipper');
 const { Storage } = require('@google-cloud/storage');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
-prog.option('-i, --input <folder>', 'zip file').option('-b, --bucket <file>', 'bucket name', 'airspaces');
-prog.parse(process.argv);
+prog
+  .option('-i, --input <file>', 'zip file')
+  .option('-b, --bucket <file>', 'bucket name', 'airspaces')
+  .option('-d, --diff <file>', 'Diff to apply')
+  .parse(process.argv);
 
-const { input, bucket } = prog.opts();
+const { input, bucket, diff } = prog.opts();
 
 console.log(`Expand configuration:`);
 console.log(`input: ${input}`);
 console.log(`bucket: ${bucket}`);
+console.log(`diff: ${diff}`);
 console.log(`\n`);
 
 if (!fs.existsSync(input)) {
   throw new Error(`Input file not found`);
 }
 
-async function expand(inputFile, bucketName, retries, paths = null) {
+async function getBucket(bucketName) {
   const config = process.env.GCP_PRIVATE_KEY
     ? {
         projectId: process.env.GCP_PROJECT_ID,
@@ -33,7 +37,16 @@ async function expand(inputFile, bucketName, retries, paths = null) {
       }
     : {};
   const storage = new Storage(config);
-  const bucket = await storage.bucket(bucketName);
+  return await storage.bucket(bucketName);
+}
+
+// Expand the passed .zip file to the given bucket.
+//
+// Errors are retried up to retries time.
+//
+// If paths are specified, only those are expanded.
+async function expandZip(zipFile, bucketName, retries, paths = null) {
+  const bucket = await getBucket(bucketName);
   const startTime = Date.now();
   const start = new Date();
   const ymd =
@@ -44,7 +57,7 @@ async function expand(inputFile, bucketName, retries, paths = null) {
   let numErrors = 0;
   let errorPaths = new Set();
 
-  fs.createReadStream(inputFile)
+  fs.createReadStream(zipFile)
     .pipe(unzipper.Parse())
     .on('entry', function (entry) {
       const { path, type } = entry;
@@ -95,12 +108,50 @@ async function expand(inputFile, bucketName, retries, paths = null) {
         console.log(`Errors:\n ${Array.from(errorPaths).join('\n')}`);
         if (retries-- > 0) {
           console.log(`Retrying...`);
-          await expand(inputFile, bucketName, retries, errorPaths);
+          await expandZip(zipFile, bucketName, retries, errorPaths);
         }
       }
     });
 }
 
+async function deleteFiles(files, bucketName, retries) {
+  const bucket = await getBucket(bucketName);
+  const errorFiles = [];
+
+  for (const file of files) {
+    const [response] = await bucket.file(file).delete({ ignoreNotFound: true });
+    if (response.statusCode != 200) {
+      errorFiles.push(file);
+    }
+  }
+
+  if (retries > 0 && errorFiles.length > 0) {
+    await deleteFiles(errorFiles, bucketName, retries--);
+  }
+}
+
+function idToFilename(id) {
+  const [z, x, y] = id.split('-');
+  return `tiles/${z}/${x}/${y}.pbf`;
+}
+
 (async function () {
-  await expand(input, bucket, 3);
+  let uploadFiles = null;
+
+  if (diff != null) {
+    if (!fs.existsSync(diff)) {
+      throw new Error(`Diff file not found`);
+    }
+
+    const instructions = JSON.parse(fs.readFileSync(diff, 'utf8'));
+
+    const files = instructions.deleted.map((id) => idToFilename(id));
+    console.log(`Deleting ${files.length} files`);
+    deleteFiles(files, bucket, 3);
+
+    uploadFiles = new Set([...instructions.added, ...instructions.updated].map((id) => idToFilename(id)));
+    console.log(`Uploading ${uploadFiles.size} files`);
+  }
+
+  await expandZip(input, bucket, 3, uploadFiles);
 })();
