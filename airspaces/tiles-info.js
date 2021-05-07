@@ -5,7 +5,7 @@ const prog = require('commander');
 const hasha = require('hasha');
 
 prog
-  .option('-i, --input <folder>', 'input folder', 'asp')
+  .option('-i, --input <folder>', 'input folder', 'tiles')
   .option('-o, --output <file>', 'output file', 'tiles-info.json')
   .parse();
 
