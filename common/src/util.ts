@@ -17,6 +17,7 @@ export function formatReqError(error: any): string {
         case 502: // Bad Gateway
           return `${error.code} (${error.message ?? ''})`;
         case 'ECONNREFUSED':
+        case 'EAI_AGAIN': // DNS timeout
         case 404:
           return String(error.code);
         case 500:
