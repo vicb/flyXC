@@ -36,6 +36,7 @@ export default [
           'process.env.NODE_ENV': nodeEnv,
           '<%BUILD%>': build,
         },
+        preventAssignment: true,
       }),
       json(),
       resolve({
@@ -65,6 +66,7 @@ export default [
           'process.env.NODE_ENV': nodeEnv,
           '<%BUILD%>': build,
         },
+        preventAssignment: true,
       }),
       json(),
       resolve({
@@ -111,6 +113,7 @@ function buildFrontEnd(input, options = {}) {
           '<%BUILD%>': build,
         },
         delimiters: ['', ''],
+        preventAssignment: true,
       }),
       prod &&
         stripCode({
