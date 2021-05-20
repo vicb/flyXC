@@ -49,19 +49,21 @@ const initialState: TrackState = {
   },
   tracks: trackAdapter.getInitialState(),
   displayLabels: false,
-  lockOnPilot: true,
+  lockOnPilot: localStorage.getItem('track.lock-pilot') !== 'false',
 };
 
 // Thunk to set the timestamp and current id when the first track is loaded.
-const addTracks = (tracks: RuntimeTrack[]): AppThunk => (dispatch, getState) => {
-  const state = getState().track;
-  const hasTrack = state.tracks.ids.length > 0;
-  trackAdapter.addMany(state.tracks, tracks);
-  if (!hasTrack) {
-    dispatch(setTimeSec(tracks[0].timeSec[0]));
-    dispatch(setCurrentTrackId(tracks[0].id));
-  }
-};
+const addTracks =
+  (tracks: RuntimeTrack[]): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState().track;
+    const hasTrack = state.tracks.ids.length > 0;
+    trackAdapter.addMany(state.tracks, tracks);
+    if (!hasTrack) {
+      dispatch(setTimeSec(tracks[0].timeSec[0]));
+      dispatch(setCurrentTrackId(tracks[0].id));
+    }
+  };
 
 const fetchPendingServerMetadata = createAsyncThunk(
   'track/fetchMetadata',
@@ -149,6 +151,7 @@ const trackSlice = createSlice({
       state.displayLabels = action.payload;
     },
     setLockOnPilot: (state, action: PayloadAction<boolean>) => {
+      localStorage.setItem('track.lock-pilot', String(action.payload));
       state.lockOnPilot = action.payload;
     },
     removeTracksByGroupIds: (state, action: PayloadAction<number[]>) => {
@@ -235,8 +238,9 @@ const trackSlice = createSlice({
             delete state.metadata.gIdToStart[groupId];
             // Patch the ground altitude.
             if (metaGroup.groundAltitudeGroupBin) {
-              const gndAltitudes = protos.GroundAltitudeGroup.fromBinary(metaGroup.groundAltitudeGroupBin)
-                .groundAltitudes;
+              const gndAltitudes = protos.GroundAltitudeGroup.fromBinary(
+                metaGroup.groundAltitudeGroupBin,
+              ).groundAltitudes;
 
               gndAltitudes.forEach((gndAlt, index) => {
                 const id = createTrackId(groupId, index);
@@ -264,11 +268,6 @@ const trackSlice = createSlice({
 });
 
 export const reducer = trackSlice.reducer;
-export const {
-  removeTracksByGroupIds,
-  setCurrentTrackId,
-  selectNextTrack,
-  setDisplayLabels,
-  setLockOnPilot,
-} = trackSlice.actions;
+export const { removeTracksByGroupIds, setCurrentTrackId, selectNextTrack, setDisplayLabels, setLockOnPilot } =
+  trackSlice.actions;
 export const trackAdapterSelector = trackAdapter.getSelectors((state: RootState) => state.track.tracks);
