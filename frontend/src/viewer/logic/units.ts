@@ -21,27 +21,33 @@ export const enum SpeedUnit {
   FeetPerMinute = 'ft/min',
 }
 
-export function formatUnit(value: number, unit?: DistanceUnit | SpeedUnit, fixed?: number): string {
+export function formatUnit(value: number, unit: DistanceUnit | SpeedUnit, fixed?: number, classname?: string): string {
+  let str = '';
+
   switch (unit) {
     case DistanceUnit.Kilometers:
-      return value.toFixed(fixed ?? 1) + DistanceUnit.Kilometers;
-    case DistanceUnit.Miles:
-      return (value / 1.60934).toFixed(fixed ?? 1) + DistanceUnit.Miles;
-    case DistanceUnit.Meters:
-      return value.toFixed(fixed ?? 0) + DistanceUnit.Meters;
-    case DistanceUnit.Feet:
-      return (value * 3.28084).toFixed(fixed ?? 0) + DistanceUnit.Feet;
     case SpeedUnit.KilometersPerHour:
-      return value.toFixed(fixed ?? 1) + SpeedUnit.KilometersPerHour;
-    case SpeedUnit.MilesPerHour:
-      return (value / 1.60934).toFixed(fixed ?? 1) + SpeedUnit.MilesPerHour;
     case SpeedUnit.MetersPerSecond:
-      return value.toFixed(fixed ?? 1) + SpeedUnit.MetersPerSecond;
+      str = value.toFixed(fixed ?? 1);
+      break;
+    case DistanceUnit.Miles:
+      str = (value / 1.60934).toFixed(fixed ?? 1);
+      break;
+    case DistanceUnit.Meters:
+      str = value.toFixed(fixed ?? 0);
+      break;
+    case DistanceUnit.Feet:
+      str = (value * 3.28084).toFixed(fixed ?? 0);
+      break;
+    case SpeedUnit.MilesPerHour:
+      str = (value / 1.60934).toFixed(fixed ?? 1);
+      break;
     case SpeedUnit.FeetPerMinute:
-      return (value * 3.28084 * 60).toFixed(fixed ?? 0) + SpeedUnit.FeetPerMinute;
-    default:
-      return '';
+      str = (value * 3.28084 * 60).toFixed(fixed ?? 0);
+      break;
   }
+
+  return str + (classname ? `<span class="${classname}">${unit}</span>` : unit);
 }
 
 // Return the number of minutes or hours.

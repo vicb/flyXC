@@ -154,7 +154,7 @@ export class MainMenu extends connect(store)(LitElement) {
 @customElement('airspace-items')
 export class AirspaceItems extends connect(store)(LitElement) {
   @internalProperty()
-  unit?: DistanceUnit;
+  unit!: DistanceUnit;
   @internalProperty()
   private maxAltitude = 1000;
   @internalProperty()

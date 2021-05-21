@@ -1,4 +1,5 @@
 import { css, CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
+import { unsafeHTML } from 'lit-html/directives/unsafe-html';
 import { connect } from 'pwa-helpers';
 
 import { Score } from '../../logic/score/scorer';
@@ -53,6 +54,7 @@ export class PlannerElement extends connect(store)(LitElement) {
         opacity: 0.9;
         user-select: none;
       }
+
       .control {
         user-select: none;
         text-align: center;
@@ -99,6 +101,11 @@ export class PlannerElement extends connect(store)(LitElement) {
         float: right;
         padding-right: 6px;
       }
+
+      .unit {
+        color: darkgray;
+        font-size: 0.7em;
+      }
     `;
   }
 
@@ -122,7 +129,9 @@ export class PlannerElement extends connect(store)(LitElement) {
       <div class="control">
         <div>
           <div>${this.score.circuit}</div>
-          <div class="large">${formatUnit(this.score.distance / 1000, this.units.distance)}</div>
+          <div class="large">
+            ${unsafeHTML(formatUnit(this.score.distance / 1000, this.units.distance, undefined, 'unit'))}
+          </div>
         </div>
         <div class="collapsible">
           <div>Points = ${this.getMultiplier()}</div>
@@ -130,7 +139,9 @@ export class PlannerElement extends connect(store)(LitElement) {
         </div>
         <div class="collapsible">
           <div>Total distance</div>
-          <div class="large">${formatUnit(this.distance / 1000, this.units.distance)}</div>
+          <div class="large">
+            ${unsafeHTML(formatUnit(this.distance / 1000, this.units.distance, undefined, 'unit'))}
+          </div>
         </div>
         <div
           class="collapsible"
@@ -159,7 +170,7 @@ export class PlannerElement extends connect(store)(LitElement) {
               <img alt="Increase speed" src=${ICON_PLUS} height="9" width="9" />
             </div>
           </div>
-          <div class="large">${formatUnit(this.speed as number, this.units.speed)}</div>
+          <div class="large">${unsafeHTML(formatUnit(this.speed as number, this.units.speed, undefined, 'unit'))}</div>
         </div>
         <div @click=${this.drawHandler} class=${this.isFreeDrawing ? 'active' : ''}>
           <div><i class="las la-pen"></i> Free draw</div>

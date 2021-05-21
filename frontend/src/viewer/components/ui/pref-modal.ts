@@ -59,7 +59,7 @@ export class PrefModal extends connect(store)(LitElement) {
 
           <ion-item>
             <ion-label position="floating">Distance</ion-label>
-            <ion-select @ionChange=${this.handleDistance} value=${this.units?.distance} interface="popover">
+            <ion-select @ionChange=${this.handleDistance} value=${this.units.distance} interface="popover">
               <ion-select-option value=${DistanceUnit.Kilometers}>kilometers</ion-select-option>
               <ion-select-option value=${DistanceUnit.Miles}>miles</ion-select-option>
             </ion-select>
@@ -67,7 +67,7 @@ export class PrefModal extends connect(store)(LitElement) {
 
           <ion-item>
             <ion-label position="floating">Speed</ion-label>
-            <ion-select @ionChange=${this.handleSpeed} value=${this.units?.speed} interface="popover">
+            <ion-select @ionChange=${this.handleSpeed} value=${this.units.speed} interface="popover">
               <ion-select-option value=${SpeedUnit.KilometersPerHour}>km/h</ion-select-option>
               <ion-select-option value=${SpeedUnit.MilesPerHour}>mi/h</ion-select-option>
             </ion-select>
@@ -75,7 +75,7 @@ export class PrefModal extends connect(store)(LitElement) {
 
           <ion-item>
             <ion-label position="floating">Altitude</ion-label>
-            <ion-select @ionChange=${this.handleAltitude} value=${this.units?.altitude} interface="popover">
+            <ion-select @ionChange=${this.handleAltitude} value=${this.units.altitude} interface="popover">
               <ion-select-option value=${DistanceUnit.Meters}>meters</ion-select-option>
               <ion-select-option value=${DistanceUnit.Feet}>feet</ion-select-option>
             </ion-select>
@@ -83,7 +83,7 @@ export class PrefModal extends connect(store)(LitElement) {
 
           <ion-item>
             <ion-label position="floating">Vario</ion-label>
-            <ion-select @ionChange=${this.handleVario} value=${this.units?.vario} interface="popover">
+            <ion-select @ionChange=${this.handleVario} value=${this.units.vario} interface="popover">
               <ion-select-option value=${SpeedUnit.MetersPerSecond}>m/s</ion-select-option>
               <ion-select-option value=${SpeedUnit.FeetPerMinute}>ft/min</ion-select-option>
             </ion-select>
