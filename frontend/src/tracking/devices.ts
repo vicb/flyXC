@@ -5,14 +5,14 @@ import '../google-btn';
 import './device-form';
 
 import { AccountModel } from 'flyxc/common/src/models';
-import { css, CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
+import { css, CSSResult, customElement, html, LitElement, state, TemplateResult } from 'lit-element';
 
 @customElement('device-config')
 export class DeviceConfig extends LitElement {
-  @internalProperty()
+  @state()
   private account?: AccountModel;
 
-  @internalProperty()
+  @state()
   private isLoading = true;
 
   private token = '';

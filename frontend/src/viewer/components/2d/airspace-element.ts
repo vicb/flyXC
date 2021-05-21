@@ -1,5 +1,5 @@
 import { LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
+import { customElement, LitElement, property, PropertyValues, state } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { AspAt, AspMapType, AspZoomMapType, MAX_ASP_TILE_ZOOM } from '../../logic/airspaces';
@@ -12,16 +12,16 @@ export class AirspaceElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   map!: google.maps.Map;
 
-  @internalProperty()
+  @state()
   private show = false;
-  @internalProperty()
+  @state()
   private airspacesOnGraph: string[] = [];
-  @internalProperty()
+  @state()
   private maxAltitude = 1000;
   // Whether to display restricted airspaces.
-  @internalProperty()
+  @state()
   private showRestricted = true;
-  @internalProperty()
+  @state()
   private track?: RuntimeTrack;
 
   private overlays: AspMapType[] = [];

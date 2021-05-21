@@ -1,5 +1,5 @@
 import { LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
+import { customElement, LitElement, property, PropertyValues, state } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { formatUnit, Units } from '../../logic/units';
@@ -20,13 +20,13 @@ export class MarkerElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   track?: RuntimeTrack;
 
-  @internalProperty()
+  @state()
   active = false;
-  @internalProperty()
+  @state()
   private units!: Units;
-  @internalProperty()
+  @state()
   private displayLabels = true;
-  @internalProperty()
+  @state()
   private color = '';
 
   private offsetSeconds = 0;

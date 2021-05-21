@@ -1,4 +1,4 @@
-import { customElement, html, internalProperty, LitElement, property, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, property, state, TemplateResult } from 'lit-element';
 
 import { getModalController } from './ion-controllers';
 
@@ -15,10 +15,10 @@ export class WaypointModal extends LitElement {
   @property()
   payload: any;
 
-  @internalProperty()
+  @state()
   fileType = 'cup';
 
-  @internalProperty()
+  @state()
   prefix = 'FXC';
 
   render(): TemplateResult {

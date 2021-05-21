@@ -1,15 +1,7 @@
 import { findClosestFix } from 'flyxc/common/src/distance';
 import { pixelCoordinates } from 'flyxc/common/src/proj';
 import { LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import {
-  customElement,
-  html,
-  internalProperty,
-  LitElement,
-  property,
-  PropertyValues,
-  TemplateResult,
-} from 'lit-element';
+import { customElement, html, LitElement, property, PropertyValues, state, TemplateResult } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
@@ -69,17 +61,17 @@ export class MapElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   map: google.maps.Map | undefined;
 
-  @internalProperty()
+  @state()
   private tracks: RuntimeTrack[] = [];
-  @internalProperty()
+  @state()
   private timeSec = 0;
-  @internalProperty()
+  @state()
   private fullscreen = false;
-  @internalProperty()
+  @state()
   protected currentTrackId?: string;
-  @internalProperty()
+  @state()
   private isFreeDrawing = false;
-  @internalProperty()
+  @state()
   private freeDrawPath = '';
 
   private pointerEventId?: number;

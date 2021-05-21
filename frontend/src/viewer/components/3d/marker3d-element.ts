@@ -2,7 +2,7 @@ import type Graphic from 'esri/Graphic';
 import type GraphicsLayer from 'esri/layers/GraphicsLayer';
 import { sampleAt } from 'flyxc/common/src/math';
 import { LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
+import { customElement, LitElement, property, PropertyValues, state } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { Api } from '../../logic/arcgis';
@@ -16,21 +16,21 @@ export class Marker3dElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   track?: RuntimeTrack;
 
-  @internalProperty()
+  @state()
   api?: Api;
-  @internalProperty()
+  @state()
   private layer?: GraphicsLayer;
-  @internalProperty()
+  @state()
   private active = false;
-  @internalProperty()
+  @state()
   private timeSec = 0;
-  @internalProperty()
+  @state()
   private multiplier = 0;
-  @internalProperty()
+  @state()
   private offsetSeconds = 0;
-  @internalProperty()
+  @state()
   private color = '';
-  @internalProperty()
+  @state()
   displayLabels = true;
 
   private point = {

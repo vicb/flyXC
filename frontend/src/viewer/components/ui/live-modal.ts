@@ -1,6 +1,6 @@
 import { LatLon } from 'flyxc/common/src/runtime-track';
 import { getDistance } from 'geolib';
-import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, state, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import * as msg from '../../logic/messages';
@@ -24,17 +24,17 @@ const enum OrderBy {
 
 @customElement('live-modal')
 export class LiveModal extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   private pilots: LivePilot[] = [];
-  @internalProperty()
+  @state()
   private orderBy = OrderBy.Distance;
-  @internalProperty()
+  @state()
   private units!: Units;
-  @internalProperty()
+  @state()
   private centerOnLocation = false;
-  @internalProperty()
+  @state()
   private location!: LatLon;
-  @internalProperty()
+  @state()
   private currentLiveId?: number;
 
   private watchLocationId = 0;

@@ -12,7 +12,7 @@ import './components/loader-element';
 import './components/ui/main-menu';
 
 import { LatLonZ } from 'flyxc/common/src/runtime-track';
-import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, state, TemplateResult } from 'lit-element';
 import { classMap } from 'lit-html/directives/class-map.js';
 import { connect } from 'pwa-helpers';
 
@@ -35,13 +35,13 @@ import { removeTracksByGroupIds, setDisplayLabels } from './redux/track-slice';
 
 @customElement('fly-xc')
 export class FlyXc extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   private hasTrack = false;
 
-  @internalProperty()
+  @state()
   private view3d = false;
 
-  @internalProperty()
+  @state()
   private showLoader = false;
 
   constructor() {

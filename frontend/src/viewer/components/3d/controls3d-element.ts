@@ -4,7 +4,7 @@ import '../name-element';
 import './tracking3d-element';
 
 import { RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import { css, CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
+import { css, CSSResult, customElement, html, LitElement, state, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { Units } from '../../logic/units';
@@ -13,13 +13,13 @@ import { RootState, store } from '../../redux/store';
 
 @customElement('controls3d-element')
 export class Controls3dElement extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   private timeSec = 0;
-  @internalProperty()
+  @state()
   private track?: RuntimeTrack;
-  @internalProperty()
+  @state()
   private units?: Units;
-  @internalProperty()
+  @state()
   private color = '';
 
   stateChanged(state: RootState): void {

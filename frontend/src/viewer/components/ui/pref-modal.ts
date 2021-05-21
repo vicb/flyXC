@@ -1,4 +1,4 @@
-import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, state, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { LEAGUES } from '../../logic/score/league/leagues';
@@ -10,9 +10,9 @@ import { getModalController } from './ion-controllers';
 
 @customElement('pref-modal')
 export class PrefModal extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   league = 'xc';
-  @internalProperty()
+  @state()
   units!: Units;
 
   private leagues: { value: string; name: string }[] = [];

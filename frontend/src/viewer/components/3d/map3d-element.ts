@@ -10,7 +10,7 @@ import './marker3d-element';
 import './controls3d-element';
 
 import { LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import { customElement, html, internalProperty, LitElement, PropertyValues, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, PropertyValues, state, TemplateResult } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
@@ -27,15 +27,15 @@ import { getAlertController } from '../ui/ion-controllers';
 
 @customElement('map3d-element')
 export class Map3dElement extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   private tracks: RuntimeTrack[] = [];
-  @internalProperty()
+  @state()
   private api?: Api;
-  @internalProperty()
+  @state()
   protected currentTrackId?: string;
-  @internalProperty()
+  @state()
   private multiplier = 1;
-  @internalProperty()
+  @state()
   private timeSec = 0;
 
   // ArcGis objects.
@@ -254,7 +254,7 @@ export class Map3dElement extends connect(store)(LitElement) {
         const state = store.getState();
         const minTimeSec = sel.minTimeSec(state);
         const maxTimeSec = sel.maxTimeSec(state);
-        const delta = Math.round(direction * (maxTimeSec - minTimeSec) / 300) + 1;
+        const delta = Math.round((direction * (maxTimeSec - minTimeSec)) / 300) + 1;
         const ts = Math.max(Math.min(state.app.timeSec + delta, maxTimeSec), minTimeSec);
         store.dispatch(setTimeSec(ts));
         e.stopPropagation();

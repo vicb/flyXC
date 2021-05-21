@@ -1,4 +1,4 @@
-import { customElement, html, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
+import { customElement, html, LitElement, property, PropertyValues, state } from 'lit-element';
 import { html as baseHtml, TemplateResult } from 'lit-html';
 import { connect } from 'pwa-helpers';
 
@@ -33,9 +33,9 @@ export class AirwaysElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   map!: google.maps.Map;
 
-  @internalProperty()
+  @state()
   opacity = 100;
-  @internalProperty()
+  @state()
   show = false;
 
   private overlay?: google.maps.ImageMapType;

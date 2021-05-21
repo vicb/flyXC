@@ -1,4 +1,4 @@
-import { css, CSSResult, customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
+import { css, CSSResult, customElement, html, LitElement, state, TemplateResult } from 'lit-element';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html';
 import { connect } from 'pwa-helpers';
 
@@ -18,17 +18,17 @@ const ICON_EXPAND =
 
 @customElement('planner-element')
 export class PlannerElement extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   private score?: Score;
-  @internalProperty()
+  @state()
   private speed = 20;
-  @internalProperty()
+  @state()
   private units?: Units;
-  @internalProperty()
+  @state()
   private distance = 0;
-  @internalProperty()
+  @state()
   private hideDetails = store.getState().browser.isSmallScreen;
-  @internalProperty()
+  @state()
   private isFreeDrawing = false;
 
   private duration?: number;

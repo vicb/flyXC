@@ -1,5 +1,5 @@
 import { RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
+import { customElement, LitElement, property, PropertyValues, state } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import * as sel from '../../redux/selectors';
@@ -16,9 +16,9 @@ export class LineElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   track?: RuntimeTrack;
 
-  @internalProperty()
+  @state()
   private color = '';
-  @internalProperty()
+  @state()
   private opacity = 1;
 
   private line?: google.maps.Polyline;

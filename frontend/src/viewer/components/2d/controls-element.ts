@@ -7,16 +7,7 @@ import './tracking-element';
 import './path-element';
 
 import { RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import {
-  css,
-  CSSResult,
-  customElement,
-  html,
-  internalProperty,
-  LitElement,
-  property,
-  TemplateResult,
-} from 'lit-element';
+import { css, CSSResult, customElement, html, LitElement, property, state, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { Units } from '../../logic/units';
@@ -29,13 +20,13 @@ export class ControlsElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   map!: google.maps.Map;
 
-  @internalProperty()
+  @state()
   private timeSec = 0;
-  @internalProperty()
+  @state()
   private track?: RuntimeTrack;
-  @internalProperty()
+  @state()
   private units?: Units;
-  @internalProperty()
+  @state()
   private color = '';
 
   stateChanged(state: RootState): void {

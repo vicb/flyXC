@@ -3,16 +3,7 @@ import '../google-btn';
 import { trackerPropNames } from 'flyxc/common/src/live-track';
 import { round } from 'flyxc/common/src/math';
 import { Keys } from 'flyxc/common/src/redis';
-import {
-  css,
-  CSSResult,
-  customElement,
-  html,
-  internalProperty,
-  LitElement,
-  property,
-  TemplateResult,
-} from 'lit-element';
+import { css, CSSResult, customElement, html, LitElement, property, state, TemplateResult } from 'lit-element';
 
 const REFRESH_MIN = 15;
 
@@ -35,13 +26,13 @@ ${
 
 @customElement('admin-app')
 export class AdminPage extends LitElement {
-  @internalProperty()
+  @state()
   private isLoading = true;
 
-  @internalProperty()
+  @state()
   private connected = false;
 
-  @internalProperty()
+  @state()
   private values: unknown;
 
   private timer: any;
@@ -233,7 +224,7 @@ export class DashTracker extends LitElement {
     const durations = this.values[Keys.trackerLogsDuration.replace('{name}', this.name)];
     const numDevices = this.values[Keys.trackerLogsSize.replace('{name}', this.name)];
     const topErrors: [string, string][] = [];
-    (this.values[Keys.dashboardTopErrors.replace('{name}', this.name)] ?? "").split(',').forEach((entry: string) => {
+    (this.values[Keys.dashboardTopErrors.replace('{name}', this.name)] ?? '').split(',').forEach((entry: string) => {
       const m = entry.match(/id=(\d+) errors=(\d+)/i);
       if (m) {
         topErrors.push([m[1], m[2]]);

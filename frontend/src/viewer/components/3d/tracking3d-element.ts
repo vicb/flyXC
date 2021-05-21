@@ -1,6 +1,6 @@
 import { LiveTrack } from 'flyxc/common/protos/live-track';
 import { getFixMessage, isEmergencyFix, isEmergencyTrack } from 'flyxc/common/src/live-track';
-import { customElement, internalProperty, LitElement, PropertyValues } from 'lit-element';
+import { customElement, LitElement, PropertyValues, state } from 'lit-element';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
@@ -25,24 +25,24 @@ const MSG_MARKER_HEIGHT = 30;
 
 @customElement('tracking3d-element')
 export class Tracking3DElement extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   private geojson: any;
-  @internalProperty()
+  @state()
   private layer?: GraphicsLayer;
-  @internalProperty()
+  @state()
   private gndLayer?: GraphicsLayer;
-  @internalProperty()
+  @state()
   private api?: Api;
-  @internalProperty()
+  @state()
   private multiplier = 1;
-  @internalProperty()
+  @state()
   private displayLabels = true;
-  @internalProperty()
+  @state()
   private sampler?: ElevationSampler;
   // Id of the selected pilot.
-  @internalProperty()
+  @state()
   private currentId?: number;
-  @internalProperty()
+  @state()
   private numTracks = 0;
 
   // live tracks.

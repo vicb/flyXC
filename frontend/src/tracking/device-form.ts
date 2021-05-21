@@ -7,11 +7,11 @@ import {
   CSSResult,
   customElement,
   html,
-  internalProperty,
   LitElement,
   property,
   query,
   queryAll,
+  state,
   TemplateResult,
 } from 'lit-element';
 
@@ -26,10 +26,10 @@ export class DeviceForm extends LitElement {
   @property({ attribute: false })
   token = '';
 
-  @internalProperty()
+  @state()
   private submitting = false;
 
-  @internalProperty()
+  @state()
   private error = '';
 
   @queryAll('tracker-panel')

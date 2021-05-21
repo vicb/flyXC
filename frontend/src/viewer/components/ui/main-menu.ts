@@ -3,7 +3,7 @@ import './track-modal';
 import './about-modal';
 import './live-modal';
 
-import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, state, TemplateResult } from 'lit-element';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
@@ -30,13 +30,13 @@ import { getMenuController, getModalController } from './ion-controllers';
 
 @customElement('main-menu')
 export class MainMenu extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   view3d = false;
-  @internalProperty()
+  @state()
   exaggeration = 1;
-  @internalProperty()
+  @state()
   plannerEnabled = false;
-  @internalProperty()
+  @state()
   requestingLocation = false;
 
   stateChanged(state: RootState): void {
@@ -153,15 +153,15 @@ export class MainMenu extends connect(store)(LitElement) {
 
 @customElement('airspace-items')
 export class AirspaceItems extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   unit!: DistanceUnit;
-  @internalProperty()
+  @state()
   private maxAltitude = 1000;
-  @internalProperty()
+  @state()
   private altitudeStops: number[] = [];
-  @internalProperty()
+  @state()
   private showRestricted = true;
-  @internalProperty()
+  @state()
   private show = false;
 
   private subscriptions: UnsubscribeHandle[] = [];
@@ -239,9 +239,9 @@ export class AirspaceItems extends connect(store)(LitElement) {
 
 @customElement('airways-items')
 export class SkywaysItems extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   private opacity = 100;
-  @internalProperty()
+  @state()
   private show = false;
 
   stateChanged(state: RootState): void {
@@ -277,7 +277,7 @@ export class SkywaysItems extends connect(store)(LitElement) {
 
 @customElement('view-items')
 export class ViewItems extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   view3d = false;
 
   stateChanged(state: RootState): void {
@@ -304,7 +304,7 @@ export class ViewItems extends connect(store)(LitElement) {
 
 @customElement('fullscreen-items')
 export class FullScreenItems extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   private fullscreen = true;
 
   stateChanged(state: RootState): void {
@@ -337,11 +337,11 @@ export class FullScreenItems extends connect(store)(LitElement) {
 
 @customElement('track-items')
 export class TrackItems extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   private numTracks = 0;
-  @internalProperty()
+  @state()
   private displayLabels = false;
-  @internalProperty()
+  @state()
   private lockOnPilot = true;
 
   stateChanged(state: RootState): void {
@@ -424,9 +424,9 @@ export class TrackItems extends connect(store)(LitElement) {
 
 @customElement('live-items')
 export class LiveTrackItems extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   private displayLabels = true;
-  @internalProperty()
+  @state()
   private pilots: LivePilot[] = [];
 
   stateChanged(state: RootState): void {

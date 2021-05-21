@@ -1,5 +1,5 @@
 import { extractGroupId, RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
+import { customElement, html, LitElement, state, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { pushCurrentState } from '../../logic/history';
@@ -11,9 +11,9 @@ import { getMenuController, getModalController } from './ion-controllers';
 
 @customElement('track-modal')
 export class TrackModal extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   private tracks: RuntimeTrack[] = [];
-  @internalProperty()
+  @state()
   private currentTrackId?: string;
   private state!: RootState;
 

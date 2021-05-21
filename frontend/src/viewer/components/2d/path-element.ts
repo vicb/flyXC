@@ -1,7 +1,7 @@
 import '../ui/share-modal';
 import '../ui/waypoint-modal';
 
-import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
+import { customElement, LitElement, property, PropertyValues, state } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { ClosingSector } from '../../gm/closing-sector';
@@ -38,13 +38,13 @@ export class PathElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   map!: google.maps.Map;
 
-  @internalProperty()
+  @state()
   private enabled = false;
-  @internalProperty()
+  @state()
   private league = 'xc';
-  @internalProperty()
+  @state()
   private encodedRoute = '';
-  @internalProperty()
+  @state()
   private isFreeDrawing = false;
 
   private line?: google.maps.Polyline;

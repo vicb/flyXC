@@ -7,11 +7,11 @@ import {
   CSSResult,
   customElement,
   html,
-  internalProperty,
   LitElement,
   PropertyValues,
   query,
   queryAll,
+  state,
   svg,
   SVGTemplateResult,
   TemplateResult,
@@ -30,27 +30,27 @@ const PLAY_INTERVAL_MILLIS = 50;
 
 @customElement('chart-element')
 export class ChartElement extends connect(store)(LitElement) {
-  @internalProperty()
+  @state()
   private tracks: RuntimeTrack[] = [];
-  @internalProperty()
+  @state()
   private chartYAxis: ChartYAxis = ChartYAxis.Altitude;
-  @internalProperty()
+  @state()
   private timeSec = 0;
-  @internalProperty()
+  @state()
   private width = 0;
-  @internalProperty()
+  @state()
   private height = 0;
-  @internalProperty()
+  @state()
   private units?: Units;
-  @internalProperty()
+  @state()
   private showRestricted = false;
-  @internalProperty()
+  @state()
   private currentTrackId?: string;
-  @internalProperty()
+  @state()
   private playSpeed = 64;
-  @internalProperty()
+  @state()
   private playTimer?: number;
-  @internalProperty()
+  @state()
   private trackColors: { [id: string]: string } = {};
 
   private lastPlayTimestamp = 0;

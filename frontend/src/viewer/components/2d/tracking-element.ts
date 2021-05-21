@@ -1,6 +1,6 @@
 import { LiveTrack } from 'flyxc/common/protos/live-track';
 import { getFixMessage, isEmergencyFix, isEmergencyTrack } from 'flyxc/common/src/live-track';
-import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
+import { customElement, LitElement, property, PropertyValues, state } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
 import { popupContent } from '../../logic/live-track-popup';
@@ -58,14 +58,14 @@ export class TrackingElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   map!: google.maps.Map;
 
-  @internalProperty()
+  @state()
   private displayLabels = true;
-  @internalProperty()
+  @state()
   private geojson: any;
   // Id of the selected pilot.
-  @internalProperty()
+  @state()
   private currentId?: number;
-  @internalProperty()
+  @state()
   private numTracks = 0;
 
   private units?: Units;
@@ -146,18 +146,16 @@ export class TrackingElement extends connect(store)(LitElement) {
   }
 
   private setMapStyle(map: google.maps.Map): void {
-    map.data.setStyle(
-      (feature: google.maps.Data.Feature): google.maps.Data.StyleOptions => {
-        switch (feature.getGeometry().getType()) {
-          case 'Point':
-            return this.getPointStyle(feature);
-          case 'LineString':
-            return this.getTrackStyle(feature);
-          default:
-            return {};
-        }
-      },
-    );
+    map.data.setStyle((feature: google.maps.Data.Feature): google.maps.Data.StyleOptions => {
+      switch (feature.getGeometry().getType()) {
+        case 'Point':
+          return this.getPointStyle(feature);
+        case 'LineString':
+          return this.getTrackStyle(feature);
+        default:
+          return {};
+      }
+    });
   }
 
   // Using data-url with icon is much faster than using symbols.
