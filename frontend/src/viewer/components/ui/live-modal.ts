@@ -250,7 +250,11 @@ export class LiveModal extends connect(store)(LitElement) {
           : null}
       </ion-label>
       <span slot="end">
-        <ion-note color="primary" style="margin-left: 5px">${note}</ion-note>
+        <ion-note
+          color=${pilot.isEmergency || pilot.id == this.currentLiveId ? 'light' : 'primary'}
+          style="margin-left: 5px"
+          >${note}</ion-note
+        >
       </span>
     </ion-item>`;
   }
