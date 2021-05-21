@@ -398,13 +398,18 @@ function airspaceTypeFlags(airspace, country = '') {
     return AIRSPACE_OTHER;
   }
 
+  // https://github.com/vicb/flyxc/issues/101
+  if (airspace.category == 'RMZ' && airspace.name.includes('RAZ')) {
+    airspace.category = 'RAZ';
+  }
+
   switch (airspace.category) {
     case 'A':
     case 'B':
     case 'C':
     case 'CTR':
     case 'D':
-    case 'RMZ':
+    case 'RMZ': // Radio Mandatory Zone
     case 'TMA':
     case 'TMZ':
     case 'PROHIBITED':
@@ -414,6 +419,7 @@ function airspaceTypeFlags(airspace, country = '') {
     case 'G':
     case 'GLIDING':
     case 'RESTRICTED':
+    case 'RAZ': // Radio Advisory Zone
       return AIRSPACE_RESTRICTED;
     case 'DANGER':
       return AIRSPACE_DANGER;
