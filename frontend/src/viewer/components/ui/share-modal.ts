@@ -10,6 +10,9 @@ export class ShareModal extends LitElement {
   @property({ attribute: false })
   xctrackLink = '';
 
+  @property({ attribute: false })
+  xctsk = '';
+
   render(): TemplateResult {
     return html`
       <ion-header>
@@ -24,12 +27,21 @@ export class ShareModal extends LitElement {
           <ion-label slot="end"><i class="la la-copy la-2x"></i></ion-label>
         </ion-item>
 
+        <ion-item lines="full">
+          <img width="200" height="200" src=${`_qr.svg?text=${encodeURIComponent(this.link)}`} style="margin: 0 auto" />
+        </ion-item>
+
         <ion-item button target="_blank" href=${this.xctrackLink} lines="full">
           <i class="las la-external-link-alt la-2x"></i>Open with XcTrack
         </ion-item>
 
         <ion-item lines="full">
-          <img width="200" height="200" src=${`_qr.svg?text=${encodeURIComponent(this.link)}`} style="margin: 0 auto" />
+          <img
+            width="200"
+            height="200"
+            src=${`_qr.svg?text=${encodeURIComponent(this.xctsk)}`}
+            style="margin: 0 auto"
+          />
         </ion-item>
       </ion-content>
       <ion-footer>

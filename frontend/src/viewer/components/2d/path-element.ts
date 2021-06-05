@@ -319,6 +319,35 @@ export class PathElement extends connect(store)(LitElement) {
     return `http://xctrack.org/xcplanner?${params}`;
   }
 
+  private encodeNumber(num: number): string {
+    // google.maps.geometry.encoding.encodePath is for latLng only.
+    let pnum = num << 1;
+    if (num < 0) {
+      pnum = ~pnum;
+    }
+    let result = '';
+    while (pnum > 0x1f) {
+      result += String.fromCharCode(((pnum & 0x1f) | 0x20) + 63);
+      pnum = pnum >>> 5;
+    }
+    result += String.fromCharCode(63 + pnum);
+    return result;
+  }
+
+  private getXctsk(): string {
+    const path = this.line ? this.line.getPath() : [];
+    // https://xctrack.org/Competition_Interfaces.html#task-definition-format-2---for-qr-codes
+    const turnpoints = path.map((latLng: google.maps.LatLng, i: number) => ({
+      n: 'WPT ' + (i + 1),
+      z:
+        this.encodeNumber(1e5 * latLng.lng()) +
+        this.encodeNumber(1e5 * latLng.lat()) +
+        this.encodeNumber(0) + // Altitude
+        this.encodeNumber(400), // Radius
+    }));
+    return `XCTSK:${JSON.stringify({ taskType: 'CLASSIC', version: 2, t: turnpoints })}`;
+  }
+
   // Creates the planner element lazily.
   private createPlannerElement(map: google.maps.Map): void {
     if (this.plannerElement) {
@@ -341,6 +370,7 @@ export class PathElement extends connect(store)(LitElement) {
           componentProps: {
             link: getCurrentUrl().href,
             xctrackLink: this.getXcTrackLink(),
+            xctsk: this.getXctsk(),
           },
         });
         await modal.present();
