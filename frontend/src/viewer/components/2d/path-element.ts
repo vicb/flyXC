@@ -338,7 +338,7 @@ export class PathElement extends connect(store)(LitElement) {
     const path = this.line ? this.line.getPath() : [];
     // https://xctrack.org/Competition_Interfaces.html#task-definition-format-2---for-qr-codes
     const turnpoints = path.map((latLng: google.maps.LatLng, i: number) => ({
-      n: 'WPT ' + (i + 1),
+      n: `WPT {i + 1}`,
       z:
         this.encodeNumber(1e5 * latLng.lng()) +
         this.encodeNumber(1e5 * latLng.lat()) +
