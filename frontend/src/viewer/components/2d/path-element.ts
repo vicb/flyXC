@@ -273,30 +273,28 @@ export class PathElement extends connect(store)(LitElement) {
     }
   }
 
-  private async openDownloadModal(): Promise<void> {
+  private getElevations(): Promise<?number[]> {
     const elevator = new google.maps.ElevationService();
-    elevator.getElevationForLocations(
-      {
+    return elevator
+      .getElevationForLocations({
         locations: this.getPathPoints().map((p) => new google.maps.LatLng(p.lat, p.lon)),
-      },
-      async (results: google.maps.ElevationResult[], status: google.maps.ElevationStatus) => {
-        let elevations = null;
-        if (status == google.maps.ElevationStatus.OK) {
-          elevations = results.map((r) => r.elevation);
-        }
+      })
+      .then((results) => results && results.map((r) => r.elevation));
+  }
 
-        const payload = {
-          points: this.getPathPoints(),
-          elevations,
-        };
+  private async openDownloadModal(): Promise<void> {
+    this.getElevations().then(async (elevations: ?number[]) => {
+      const payload = {
+        points: this.getPathPoints(),
+        elevations,
+      };
 
-        const modal = await getModalController().create({
-          component: 'waypoint-modal',
-          componentProps: { payload },
-        });
-        await modal.present();
-      },
-    );
+      const modal = await getModalController().create({
+        component: 'waypoint-modal',
+        componentProps: { payload },
+      });
+      await modal.present();
+    });
   }
 
   private handlePathUpdates(): void {
@@ -334,7 +332,7 @@ export class PathElement extends connect(store)(LitElement) {
     return result;
   }
 
-  private getXctsk(): string {
+  private getXctsk(elevations: ?number[]): string {
     const path = this.line ? this.line.getPath() : [];
     // https://xctrack.org/Competition_Interfaces.html#task-definition-format-2---for-qr-codes
     const turnpoints = path.map((latLng: google.maps.LatLng, i: number) => ({
@@ -342,7 +340,7 @@ export class PathElement extends connect(store)(LitElement) {
       z:
         this.encodeNumber(1e5 * latLng.lng()) +
         this.encodeNumber(1e5 * latLng.lat()) +
-        this.encodeNumber(0) + // Altitude
+        this.encodeNumber(elevations ? elevations[i] : 0) + // Altitude
         this.encodeNumber(400), // Radius
     }));
     return { taskType: 'CLASSIC', version: 2, t: turnpoints };
@@ -369,7 +367,7 @@ export class PathElement extends connect(store)(LitElement) {
           component: 'share-modal',
           componentProps: {
             xctrackLink: this.getXcTrackLink(),
-            xctsk: this.getXctsk(),
+            xctsk: this.getXctsk(await getElevations()),
           },
         });
         await modal.present();
