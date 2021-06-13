@@ -5,9 +5,6 @@ import { getModalController, getToastController } from './ion-controllers';
 @customElement('share-modal')
 export class ShareModal extends LitElement {
   @property({ attribute: false })
-  link = '';
-
-  @property({ attribute: false })
   xctrackLink = '';
 
   @property({ attribute: false })
@@ -25,10 +22,6 @@ export class ShareModal extends LitElement {
           <ion-label>Link</ion-label>
           <ion-input readonly value=${this.link} color="medium"></ion-input>
           <ion-label slot="end"><i class="la la-copy la-2x"></i></ion-label>
-        </ion-item>
-
-        <ion-item lines="full">
-          <img width="200" height="200" src=${`_qr.svg?text=${encodeURIComponent(this.link)}`} style="margin: 0 auto" />
         </ion-item>
 
         <ion-item button target="_blank" href=${this.xctrackLink} lines="full">

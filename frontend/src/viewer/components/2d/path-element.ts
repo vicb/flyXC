@@ -368,7 +368,6 @@ export class PathElement extends connect(store)(LitElement) {
         const modal = await getModalController().create({
           component: 'share-modal',
           componentProps: {
-            link: getCurrentUrl().href,
             xctrackLink: this.getXcTrackLink(),
             xctsk: this.getXctsk(),
           },
