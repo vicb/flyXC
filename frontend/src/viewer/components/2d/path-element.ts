@@ -345,7 +345,7 @@ export class PathElement extends connect(store)(LitElement) {
         this.encodeNumber(0) + // Altitude
         this.encodeNumber(400), // Radius
     }));
-    return `XCTSK:${JSON.stringify({ taskType: 'CLASSIC', version: 2, t: turnpoints })}`;
+    return { taskType: 'CLASSIC', version: 2, t: turnpoints };
   }
 
   // Creates the planner element lazily.

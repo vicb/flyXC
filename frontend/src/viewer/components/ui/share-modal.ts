@@ -32,7 +32,7 @@ export class ShareModal extends LitElement {
           <img
             width="200"
             height="200"
-            src=${`_qr.svg?text=${encodeURIComponent(this.xctsk)}`}
+            src=${`_qr.svg?text=${encodeURIComponent(`XCTSK:${JSON.stringify(this.xctsk)}`)}`}
             style="margin: 0 auto"
           />
         </ion-item>
