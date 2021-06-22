@@ -11,7 +11,6 @@ const INACTIVE_OPACITY = 0.5;
 
 @customElement('marker-element')
 export class MarkerElement extends connect(store)(LitElement) {
-  // Actual type is google.maps.Map.
   @property({ attribute: false })
   map!: google.maps.Map;
 

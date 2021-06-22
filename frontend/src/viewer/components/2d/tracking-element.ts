@@ -11,11 +11,12 @@ import { RootState, store } from '../../redux/store';
 import { getUniqueColor } from '../../styles/track';
 
 // Anchors and label origins for markers.
-let ANCHOR_POSITION: google.maps.Point | undefined;
 let ANCHOR_ARROW: google.maps.Point | undefined;
 let ORIGIN_ARROW: google.maps.Point | undefined;
 let ANCHOR_MSG: google.maps.Point | undefined;
 let ORIGIN_MSG: google.maps.Point | undefined;
+
+const MSG_SYMBOL = `M2.5 2C1.7 2 1 2.7 1 3.5 l 0 8 c0 .8.7 1.5 1.5 1.5 H4 l 0 2.4 L 7.7 13 l 4.8 0 c.8 0 1.5 -.7 1.5 -1.5 l 0 -8 c 0 -.8 -.7 -1.5 -1.5 -1.5 z`;
 
 // A track is considered recent if ended less than timeout ago.
 const RECENT_TIMEOUT_MIN = 2 * 60;
@@ -34,23 +35,6 @@ const dashedLineIcons: google.maps.IconSequence[] = [
     repeat: '5px',
   },
 ];
-
-const positionSvg = (color: string, opacity: number): string =>
-  `<svg xmlns="http://www.w3.org/2000/svg" height="9" width="9">` +
-  `<circle r="3" cx="4" cy="4" fill="${color}" stroke="black" stroke-width="1" opacity="${opacity}"/>` +
-  `</svg>`;
-
-const arrowSvg = (angle: number, color: string, opacity: number) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" height="19" width="19">` +
-  `<path d='M9 3 l-5 13 l5 -3 l5 3z' fill="${color}" stroke="black" stroke-width="1"` +
-  ` transform="rotate(${angle}, 9, 9)"  opacity="${opacity}"/>` +
-  `</svg>`;
-
-const msgSvg = (color: string, opacity: number): string =>
-  `<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">` +
-  `<path fill="${color}" stroke="black" stroke-width="1" opacity="${opacity}"` +
-  ` d="M2.5 2C1.7 2 1 2.7 1 3.5 l 0 8 c0 .8.7 1.5 1.5 1.5 H4 l 0 2.4 L 7.7 13 l 4.8 0 c.8 0 1.5 -.7 1.5 -1.5 l 0 -8 c 0 -.8 -.7 -1.5 -1.5 -1.5 z"/>` +
-  `</svg>`;
 
 @customElement('tracking-element')
 export class TrackingElement extends connect(store)(LitElement) {
@@ -76,7 +60,6 @@ export class TrackingElement extends connect(store)(LitElement) {
   connectedCallback(): void {
     super.connectedCallback();
     // At this point the api has been loaded.
-    ANCHOR_POSITION = new google.maps.Point(4, 4);
     ANCHOR_ARROW = new google.maps.Point(9, 9);
     ORIGIN_ARROW = new google.maps.Point(9, 36);
     ANCHOR_MSG = new google.maps.Point(7, 9);
@@ -166,22 +149,22 @@ export class TrackingElement extends connect(store)(LitElement) {
     const index = feature.getProperty('index') ?? 0;
     const message = getFixMessage(track, index);
     const isEmergency = isEmergencyFix(track.flags[index]);
-    const heading = feature.getProperty('heading');
+    const rotation = feature.getProperty('heading');
     const isActive = id === this.currentId;
 
     const ageMin = Math.round((nowSec - track.timeSec[index]) / 60);
 
-    let opacity = ageMin > RECENT_TIMEOUT_MIN ? 0.3 : 0.9;
-    const color = getUniqueColor(Math.round(id / 1000));
+    let fillOpacity = ageMin > RECENT_TIMEOUT_MIN ? 0.3 : 0.9;
+    let fillColor = getUniqueColor(Math.round(id / 1000));
     let labelColor = 'black';
-    let svg: string | undefined;
+    let path: string | undefined;
     let labelOrigin: google.maps.Point | undefined;
     let anchor: google.maps.Point | undefined;
     let zIndex = 10;
     let fontWeight: string | undefined;
 
     if (isActive) {
-      opacity = 0.9;
+      fillOpacity = 0.9;
       labelColor = '#BF1515';
       zIndex = 20;
       fontWeight = '500';
@@ -189,10 +172,10 @@ export class TrackingElement extends connect(store)(LitElement) {
 
     let label: google.maps.MarkerLabel | undefined;
     // Display an arrow when we have a bearing (most recent point).
-    if (heading != null) {
+    if (rotation != null) {
       anchor = ANCHOR_ARROW;
       labelOrigin = ORIGIN_ARROW;
-      svg = arrowSvg(heading, color, opacity);
+      path = `M9 3 l-5 13 l5 -3 l5 3z`;
       // Display the pilot name.
       if (this.displayLabels && (isActive || ageMin < 12 * 60)) {
         label = {
@@ -208,21 +191,23 @@ export class TrackingElement extends connect(store)(LitElement) {
     if (message) {
       anchor = ANCHOR_MSG;
       labelOrigin = ORIGIN_MSG;
-      svg = msgSvg('yellow', opacity);
+      fillColor = 'yellow';
+      path = MSG_SYMBOL;
       zIndex = 50;
     }
 
     if (isEmergency) {
       anchor = ANCHOR_MSG;
       labelOrigin = ORIGIN_MSG;
-      svg = msgSvg('red', 1);
+      fillOpacity = 1;
+      fillColor = 'red';
+      path = MSG_SYMBOL;
       zIndex = 60;
     }
 
     // Simple dots for every other positions.
-    if (svg == null) {
-      svg = positionSvg(color, opacity);
-      anchor = ANCHOR_POSITION;
+    if (path == null) {
+      path = `M-3,0a3,3 0 1,0 6,0a3,3 0 1,0 -6,0`;
     }
 
     return {
@@ -230,9 +215,15 @@ export class TrackingElement extends connect(store)(LitElement) {
       zIndex,
       cursor: 'zoom-in',
       icon: {
-        url: `data:image/svg+xml;base64,${btoa(svg)}`,
+        path,
         anchor,
         labelOrigin,
+        rotation,
+        fillColor,
+        fillOpacity,
+        strokeWeight: 1,
+        strokeColor: 'black',
+        strokeOpacity: fillOpacity,
       },
     } as google.maps.Data.StyleOptions;
   }
