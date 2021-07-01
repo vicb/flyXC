@@ -10,9 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@googlemaps/js-api-loader": "^1.11.4",
-    "@reduxjs/toolkit": "^1.5.1",
-    "d3-array": "^2.12.1",
+    "@googlemaps/js-api-loader": "^1.12.1",
+    "@reduxjs/toolkit": "^1.6.0",
+    "d3-array": "^3.0.1",
     "esri-loader": "^3.1.0",
     "lit-element": "^2.5.1",
     "lit-html": "^1.4.1",
@@ -21,8 +21,8 @@
     "pwa-helpers": "^0.9.1"
   },
   "devDependencies": {
-    "@types/arcgis-js-api": "^4.19.0",
-    "@types/d3-array": "^2.11.0",
+    "@types/arcgis-js-api": "^4.20.0",
+    "@types/d3-array": "^3.0.1",
     "@types/googlemaps": "^3.43.3"
   }
 }

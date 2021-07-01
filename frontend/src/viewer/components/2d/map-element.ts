@@ -40,10 +40,10 @@ export {
   TrackingElement,
 };
 
-let apiPromise: Promise<void> | undefined;
+let apiPromise: Promise<typeof google> | undefined;
 
 // Load google maps
-function loadApi(): Promise<void> {
+function loadApi(): Promise<typeof google> {
   if (!apiPromise) {
     const tracks = getUrlParamValues(ParamNames.trackUrl);
     apiPromise = new Loader({
