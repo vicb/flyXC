@@ -149,7 +149,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     const index = feature.getProperty('index') ?? 0;
     const message = getFixMessage(track, index);
     const isEmergency = isEmergencyFix(track.flags[index]);
-    const rotation = feature.getProperty('heading');
+    let rotation = feature.getProperty('heading');
     const isActive = id === this.currentId;
 
     const ageMin = Math.round((nowSec - track.timeSec[index]) / 60);
@@ -194,6 +194,7 @@ export class TrackingElement extends connect(store)(LitElement) {
       fillColor = 'yellow';
       path = MSG_SYMBOL;
       zIndex = 50;
+      rotation = 0;
     }
 
     if (isEmergency) {
@@ -203,6 +204,7 @@ export class TrackingElement extends connect(store)(LitElement) {
       fillColor = 'red';
       path = MSG_SYMBOL;
       zIndex = 60;
+      rotation = 0;
     }
 
     // Simple dots for every other positions.
