@@ -8,7 +8,7 @@ type AirspaceState = {
 };
 
 const initialState: AirspaceState = {
-  maxAltitude: 1000,
+  maxAltitude: 3000,
   show: false,
   showRestricted: true,
   onGraph: [],
