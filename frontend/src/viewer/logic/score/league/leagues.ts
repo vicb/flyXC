@@ -4,7 +4,7 @@ import { FrCfd } from './frcfd';
 import { Leonardo } from './leonardo';
 import { UKXCLClub, UKXCLInternational, UKXCLNational } from './ukxcl';
 import { WXC } from './wxc';
-import { NorwayLeague, XContest } from './xcontest';
+import { NorwayLeague, XContest, XContestPPG } from './xcontest';
 
 export const LEAGUES: { [name: string]: League } = {
   czl: new CzechLocal(),
@@ -17,5 +17,6 @@ export const LEAGUES: { [name: string]: League } = {
   uki: new UKXCLInternational(),
   ukn: new UKXCLNational(),
   xc: new XContest(),
+  xcppg: new XContestPPG(),
   wxc: new WXC(),
 };
