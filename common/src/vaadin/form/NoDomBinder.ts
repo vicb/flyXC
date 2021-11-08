@@ -30,10 +30,8 @@ export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M>
   protected [_onChange]: (oldValue?: T) => void;
   protected [_onSubmit]: (value: T) => Promise<T | void>;
 
-  protected [_validations]: Map<
-    AbstractModel<any>,
-    Map<Validator<any>, Promise<ReadonlyArray<ValueError<any>>>>
-  > = new Map();
+  protected [_validations]: Map<AbstractModel<any>, Map<Validator<any>, Promise<ReadonlyArray<ValueError<any>>>>> =
+    new Map();
 
   public context: any = null;
 
@@ -153,13 +151,14 @@ export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M>
     this.update(this.value);
     try {
       return await endpointMethod.call(this.context, this.value);
-    } catch (error) {
+    } catch (error: any) {
       if (error.validationErrorData && error.validationErrorData.length) {
         const valueErrors: Array<ValueError<any>> = [];
         error.validationErrorData.forEach((data: any) => {
-          const res = /Object of type '(.+)' has invalid property '(.+)' with value '(.+)', validation error: '(.+)'/.exec(
-            data.message,
-          );
+          const res =
+            /Object of type '(.+)' has invalid property '(.+)' with value '(.+)', validation error: '(.+)'/.exec(
+              data.message,
+            );
           const [property, value, message] = res ? res.splice(2) : [data.parameterName, undefined, data.message];
           valueErrors.push({ property, value, validator: new ServerValidator(message), message });
         });
