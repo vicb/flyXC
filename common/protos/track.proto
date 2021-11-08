@@ -49,7 +49,7 @@ message AirspacesGroup {
 }
 
 message MetaTrackGroup {
-  int64 id = 1 [jstype = JS_NUMBER];
+  int64 id = 1;
   uint32 num_postprocess = 2;
   optional bytes track_group_bin = 3;
   // This field is only present when there are some altitude data.

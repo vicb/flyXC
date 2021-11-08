@@ -56,6 +56,12 @@ describe('Validate Inreach account', () => {
     expect(validateInreachAccount('  https://share.garmin.com/feed/share/user  ')).toBe(
       'https://share.garmin.com/feed/share/user',
     );
+
+    // Protocol and host should be lower case (ENOTFOUND error otherwise)
+    expect(validateInreachAccount('HTTPS://share.garmin.com/user')).toBe('https://share.garmin.com/Feed/Share/user');
+    expect(validateInreachAccount('HTTPS://share.garmin.com/FEED/Share/user')).toBe(
+      'https://share.garmin.com/FEED/Share/user',
+    );
   });
 
   test('Invalid urls', () => {

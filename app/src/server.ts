@@ -79,7 +79,7 @@ const app = express()
   );
 
 // mount extra routes.
-app.use(getAdminRouter(redis)).use(getTrackerRouter(redis)).use(getTrackRouter());
+app.use('/admin', getAdminRouter(redis)).use(getTrackerRouter(redis)).use(getTrackRouter());
 
 // Generates a waypoint file.
 app.post('/_waypoints', (req: Request, res: Response) => {

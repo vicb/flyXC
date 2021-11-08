@@ -1,4 +1,4 @@
-import { getElevationUrl, parseElevationResponse } from 'flyxc/run/src/elevation/arcgis';
+import { getElevationUrl, parseElevationResponse } from 'flyxc/fetcher/src/elevation/arcgis';
 
 describe('getElevationUrl', () => {
   it('should encode the points', () => {

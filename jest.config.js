@@ -1,7 +1,7 @@
 // See https://github.com/facebook/jest/issues/2081#issuecomment-619441551 for the config.
 
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { pathsToModuleNameMapper } = require('ts-jest/utils');
+const { pathsToModuleNameMapper } = require('ts-jest');
 const { compilerOptions } = require('./tsconfig');
 
 /** @typedef {import('ts-jest')} */

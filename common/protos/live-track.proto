@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-
 // An event on a Track.
 message LiveExtra {
   optional string message = 1;
@@ -12,9 +11,9 @@ message LiveExtra {
 // This message is stored in the DB.
 message LiveTrack {
   // Only available client side, not stored in the DB.
-  optional int64 id = 1 [jstype = JS_NUMBER];
+  optional int64 id = 1;
   // Only available client side, not stored in the DB.
-  optional string name = 2;   
+  optional string name = 2;
   repeated float lat = 3;
   repeated float lon = 4;
   repeated int32 alt = 5;
@@ -28,7 +27,7 @@ message LiveTrack {
 // Differential encoded to transmit over the wire.
 // See `differentialDecodeLiveTrack(...)` for decoding the values.
 message LiveDifferentialTrack {
-  int64 id = 1 [jstype = JS_NUMBER];
+  int64 id = 1;
   string name = 2;
   repeated sint32 lat = 3;
   repeated sint32 lon = 4;

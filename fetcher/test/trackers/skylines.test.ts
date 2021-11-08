@@ -2,7 +2,7 @@
 const skyline = require('./fixtures/skylines.json');
 const skylineTrack = require('./fixtures/skylines-track.json');
 
-import { parse } from 'flyxc/run/src/trackers/skylines';
+import { parse } from 'flyxc/fetcher/src/trackers/skylines';
 
 describe('Parse Skylines json', () => {
   test('it should parse a flight', () => {

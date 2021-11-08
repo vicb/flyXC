@@ -8,17 +8,14 @@ export const LIVE_RETENTION_SEC = 24 * 3600;
 // Minimum interval between points.
 export const LIVE_MINIMAL_INTERVAL_SEC = 30;
 // Refresh interval (how often one update is triggered)
-export const LIVE_REFRESH_SEC = 2 * 60;
+export const LIVE_REFRESH_SEC = 60;
 // Timeout for fetching - need time for completing the transaction.
-export const LIVE_FETCH_TIMEOUT_SEC = LIVE_REFRESH_SEC - 30;
+export const LIVE_FETCH_TIMEOUT_SEC = LIVE_REFRESH_SEC - 20;
 
 // How often to refresh InReach.
 export const INREACH_REFRESH_INTERVAL_SEC = 3 * 60;
 // How often to refresh Spot.
 export const SPOT_REFRESH_INTERVAL_SEC = 3 * 60;
-
-// Split segments if the gap is longer than.
-export const GAP_FOR_SEGMENT_MIN = 60;
 
 // Break tracks if gap is more than.
 export const TRACK_GAP_MIN = 60;
@@ -126,6 +123,8 @@ export function getTrackerFlags(value: {
 }
 
 // Delete all the fixes strictly before timeSec from the track.
+// Note:
+// - A new track is returned.
 export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): LiveTrack {
   track = deepcopy(track);
   if (track.timeSec.length == 0) {
@@ -194,7 +193,9 @@ export function IsSimplifiableFix(track: LiveTrack, index: number, start = 0, en
 }
 
 // Removes simplifiable points that are less than `intervalSec` apart.
-// Note: Points from startSec inclusive are simplified.
+// Notes:
+// - Points from startSec inclusive are simplified.
+// - The track is simplified in place.
 export function simplifyLiveTrack(
   track: LiveTrack,
   intervalSec: number,

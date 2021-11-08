@@ -10,3 +10,7 @@ frontend/static/ionic/*
 frontend/static/js/*
 frontend/static/css/*
 stats.html
+
+fetcher/dist/*
+tools/dist/*
+

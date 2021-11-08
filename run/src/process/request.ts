@@ -6,9 +6,9 @@ import { Stream } from 'stream';
 export async function httpsGet(url: string): Promise<Buffer> {
   // Retry up to 3 times.
   // Note the cast is needed because of an error in the types.
-  const msg = ((await async.retry({ times: 3, interval: 50 }, async () =>
+  const msg = (await async.retry({ times: 3, interval: 50 }, async () =>
     httpsGetStream(url),
-  )) as unknown) as IncomingMessage;
+  )) as unknown as IncomingMessage;
   return await bufferStream(msg);
 }
 

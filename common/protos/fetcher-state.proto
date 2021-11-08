@@ -1,0 +1,71 @@
+// Fetcher state.
+//
+// All int64 are JS_NUMBER.
+
+syntax = "proto3";
+
+import "live-track.proto";
+
+// State of the fetcher
+message FetcherState {
+  int64 version = 1;
+
+  int64 started_sec = 2;
+  int64 re_started_sec = 3;
+  int64 stopped_sec = 4;
+  int64 last_tick_sec = 5;
+  // Number of ticks since last start.
+  int64 num_ticks = 6;
+  int64 num_starts = 7;
+
+  // Max updated value of all the pilots.
+  int64 last_updated_ms = 8;
+
+  // Sync to files and from datastore.
+  int64 next_partial_sync_sec = 9;
+  int64 next_full_sync_sec = 10;
+  int64 next_export_sec = 11;
+
+  int64 mem_rss_mb = 12;
+  int64 mem_heap_mb = 13;
+
+  // Tick ongoing ?
+  bool in_tick = 14;
+
+  map<int64, Pilot> pilots = 15;
+}
+
+message Pilot {
+  string name = 1;
+
+  LiveTrack track = 2;
+
+  // Whether to share positions with partners.
+  bool share = 3;
+  // Whether to display the user on flyxc.
+  bool enabled = 4;
+  // Trackers.
+  // The name must be in sync with TrackerProps.
+  Tracker inreach = 5;
+  Tracker spot = 6;
+  Tracker skylines = 7;
+  Tracker flyme = 8;
+  Tracker flymaster = 9;
+}
+
+message Tracker {
+  bool enabled = 1;
+  string account = 2;
+
+  // Last time the tracker was fetched (whether ok or not).
+  int64 last_fetch_sec = 3;
+  // Last fix for this tracker.
+  int64 last_fix_sec = 4;
+  // Next time the tracker should be fetcher.
+  int64 next_fetch_sec = 5;
+
+  // Requests and errors.
+  int64 num_errors = 6;
+  int64 num_requests = 7;
+  int64 num_consecutive_errors = 8;
+}

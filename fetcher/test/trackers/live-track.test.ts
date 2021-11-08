@@ -6,7 +6,7 @@ import {
   LiveTrackFlag,
   TrackerIds,
 } from 'flyxc/common/src/live-track';
-import { incrementRequests, LivePoint, makeLiveTrack } from 'flyxc/run/src/trackers/live-track';
+import { LivePoint, makeLiveTrack } from 'flyxc/fetcher/src/trackers/live-track';
 import { computeDestinationPoint } from 'geolib';
 
 describe('makeLiveTrack', () => {
@@ -166,34 +166,5 @@ describe('makeLiveTrack', () => {
       TrackerIds.Flyme,
       TrackerIds.Flymaster,
     ]);
-  });
-});
-
-describe('incrementRequests', () => {
-  it('should support undefined', () => {
-    expect(incrementRequests(undefined, { isError: false })).toEqual(1);
-    expect(incrementRequests(undefined, { isError: true })).toEqual(1001);
-  });
-
-  it('should increment requests', () => {
-    expect(incrementRequests(0, { isError: false })).toEqual(1);
-    expect(incrementRequests(100, { isError: false })).toEqual(101);
-    expect(incrementRequests(50123, { isError: false })).toEqual(50124);
-    expect(incrementRequests(50990, { isError: false })).toEqual(50991);
-  });
-
-  it('should increment errors', () => {
-    expect(incrementRequests(0, { isError: true })).toEqual(1001);
-    expect(incrementRequests(10123, { isError: true })).toEqual(11124);
-    expect(incrementRequests(50001, { isError: true })).toEqual(51002);
-    expect(incrementRequests(50990, { isError: true })).toEqual(51991);
-  });
-
-  it('should divide count by 2 on overflow', () => {
-    expect(incrementRequests(999, { isError: false })).toEqual(500);
-    expect(incrementRequests(100999, { isError: false })).toEqual(50500);
-    expect(incrementRequests(999001, { isError: true })).toEqual(500001);
-    expect(incrementRequests(999100, { isError: true })).toEqual(500050);
-    expect(incrementRequests(999999, { isError: true })).toEqual(500500);
   });
 });

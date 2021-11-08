@@ -2,7 +2,7 @@
 const feed = require('./fixtures/inreach-feed.kml');
 
 import { TrackerIds } from 'flyxc/common/src/live-track';
-import { parse } from 'flyxc/run/src/trackers/inreach';
+import { parse } from 'flyxc/fetcher/src/trackers/inreach';
 
 describe('Parse kml feed', () => {
   it('Should parse a valid feed', () => {

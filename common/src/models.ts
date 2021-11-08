@@ -145,20 +145,24 @@ export function validateSkylinesAccount(id: string): string | false {
 // urls are transformed to the second form (with '/Feed/Share/').
 export function validateInreachAccount(url: string): string | false {
   url = url.trim();
+
   // Insert '/Feed/Share' when missing.
   if (!/Feed\/Share/i.test(url)) {
     const lastSlash = url.lastIndexOf('/');
     if (lastSlash > -1) {
-      url = url.substr(0, lastSlash) + '/Feed/Share' + url.substr(lastSlash);
+      url = url.substring(0, lastSlash) + '/Feed/Share' + url.substr(lastSlash);
     }
   }
+
   // Prefix with `https:// if missing`.
   if (!/^https?:\/\//i.test(url)) {
     url = 'https://' + url;
   }
+
   // Check url validity.
-  if (/^https?:\/\/[\w.-]*?garmin.com\/Feed\/Share\/\w+$/i.test(url)) {
-    return url;
+  const m = url.match(/^(https?:\/\/[\w.-]*?garmin.com)(\/Feed\/Share\/\w+$)/i);
+  if (m) {
+    return `${m[1].toLowerCase()}${m[2]}`;
   }
 
   return false;
@@ -170,4 +174,12 @@ export function validateInreachAccount(url: string): string | false {
 export function validateFlymasterAccount(id: string): string | false {
   id = id.trim();
   return /^\d{3,}$/.test(id) ? id : false;
+}
+
+// Validates a Flyme Id.
+//
+// This is the resolved account for FlyMe.
+export function validateFlymeAccount(id: string): string | false {
+  id = id.trim();
+  return /^\d+$/.test(id) ? id : false;
 }

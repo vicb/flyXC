@@ -167,6 +167,7 @@ export class DeviceForm extends LitElement {
         <div class="modal-content">
           <div class="notification my-4">
             <p class="my-2">Your device configuration has been updated.</p>
+            <p class="my-2">Please allow up to 15 minutes for changes to take effect.</p>
             <p class="my-2">Click the close button to navigate back to the map.</p>
           </div>
         </div>

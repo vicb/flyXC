@@ -5,7 +5,6 @@ import { SecretKeys } from 'flyxc/common/src/keys';
 import { INCREMENTAL_UPDATE_SEC } from 'flyxc/common/src/live-track';
 import {
   LIVE_TRACK_TABLE,
-  LiveTrackEntity,
   retrieveLiveTrackByGoogleId,
   TrackerEntity,
   UpdateLiveTrackEntityFromModel,
@@ -13,8 +12,8 @@ import {
 import { AccountFormModel, AccountModel, TrackerModel } from 'flyxc/common/src/models';
 import { Keys } from 'flyxc/common/src/redis';
 import { Validator } from 'flyxc/common/src/vaadin/form/Validation';
-import { getFlyMeId } from 'flyxc/run/src/trackers/flyme';
-import Redis from 'ioredis';
+import { getFlyMeId } from 'flyxc/fetcher/src/trackers/flyme';
+import { Redis } from 'ioredis';
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { Datastore } from '@google-cloud/datastore';
@@ -25,25 +24,24 @@ import { getUserInfo, isLoggedIn } from './session';
 const datastore = new Datastore();
 const csrfProtection = csurf();
 
-export function getTrackerRouter(redis: Redis.Redis): Router {
+export function getTrackerRouter(redis: Redis): Router {
   const router = express.Router();
 
   // Get the geojson for the currently active trackers.
   router.get('/_livetracks', async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
-    await redis.set(Keys.trackerRequestTimestamp, Date.now());
     const token = req.header('token');
     if (!token) {
       // Pick the incremental proto if last request was recent.
       const timeSec = req.query.s ?? 0;
       const incrementalAfter = Date.now() / 1000 - INCREMENTAL_UPDATE_SEC + 60;
-      const key = timeSec > incrementalAfter ? Keys.trackerIncrementalProto : Keys.trackerFullProto;
+      const key = timeSec > incrementalAfter ? Keys.fetcherIncrementalProto : Keys.fetcherFullProto;
       res.set('Content-Type', 'application/x-protobuf');
       res.send(await redis.getBuffer(key));
     } else {
       switch (token) {
         case SecretKeys.FLYME_TOKEN:
-          const groupProto = await redis.getBuffer(Keys.trackerFlymeProto);
+          const groupProto = await redis.getBuffer(Keys.fetcherExportFlymeProto);
           if (req.header('accept') == 'application/json') {
             const track = LiveDifferentialTrackGroup.fromBinary(groupProto);
             res.json(LiveDifferentialTrackGroup.toJson(track));
@@ -75,13 +73,12 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
 
       const { name, token } = userInfo;
       let account: AccountModel;
-      const [entities] = await datastore.createQuery(LIVE_TRACK_TABLE).filter('google_id', token).limit(1).run();
+      const entity = await retrieveLiveTrackByGoogleId(token);
 
-      if (entities.length == 0) {
+      if (!entity) {
         account = AccountFormModel.createEmptyValue();
         account.name = name;
       } else {
-        const entity = entities[0] as LiveTrackEntity;
         account = AccountFormModel.createFromEntity(entity);
       }
 
@@ -138,6 +135,8 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
           data: entity,
           excludeFromIndexes: ['track'],
         });
+        // Sends a command to the fetcher to sync from the DB.
+        await redis.incr(Keys.fetcherCmdSyncIncCount);
       } catch (e) {
         console.error(`Error saving the account ${email}`);
         res.json({ error: `An error has occurred, please try again later.` });
@@ -154,6 +153,9 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
   return router;
 }
 
+// Validates a Flyme account.
+//
+// Fetches the ID from the server when the device is enabled and config has changed.
 class FlyMeValidator implements Validator<TrackerModel> {
   public message = '';
   private currentEnabled = false;
@@ -181,7 +183,7 @@ class FlyMeValidator implements Validator<TrackerModel> {
         return { property: 'account' };
       }
     } else {
-      // Only clear the resolved account when disabled.
+      // Clear the resolved account when disabled.
       tracker.account_resolved = '';
       return true;
     }

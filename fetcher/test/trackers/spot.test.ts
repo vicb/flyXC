@@ -3,8 +3,8 @@ const spot2Feed = require('./fixtures/spot2.txt');
 const spot3Feed = require('./fixtures/spot3.txt');
 
 import { TrackerIds } from 'flyxc/common/src/live-track';
-import { LivePoint } from 'flyxc/run/src/trackers/live-track';
-import { parse } from 'flyxc/run/src/trackers/spot';
+import { LivePoint } from 'flyxc/fetcher/src/trackers/live-track';
+import { parse } from 'flyxc/fetcher/src/trackers/spot';
 
 describe('Parse JSON feed', () => {
   let spot2: LivePoint[];

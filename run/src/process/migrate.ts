@@ -149,7 +149,6 @@ export async function migrateFlyme(): Promise<void> {
   let start: string | undefined;
   let res: RunQueryResponse | undefined;
   const batchSize = 50;
-  let count = 0;
 
   do {
     const query = datastore.createQuery('LiveTrack').limit(batchSize);
@@ -163,13 +162,16 @@ export async function migrateFlyme(): Promise<void> {
 
     for (const entity of res[0]) {
       try {
-        const account = entity?.flyme?.account;
-        if (account != null && account !== '') {
-          console.log(`${count++} id=${entity[Datastore.KEY].id}`);
-          const { value, id } = JSON.parse(account);
-          entity.flyme.account = value;
-          entity.flyme.account_resolved = id;
-          console.log(entity.flyme);
+        const flyme = entity?.flyme;
+        if (flyme && 'account_resolved' in flyme) {
+          console.log(`-\n${JSON.stringify(flyme)}`);
+          if (flyme.account_resolved === undefined) {
+            delete flyme.account_resolved;
+          } else {
+            flyme.account_resolved = String(flyme.account_resolved);
+          }
+          console.log(`+\n${JSON.stringify(flyme)}\n`);
+
           entities.push(entity);
         }
       } catch (e) {

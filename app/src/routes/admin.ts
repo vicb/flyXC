@@ -1,10 +1,9 @@
-import express, { Request, Response, Router } from 'express';
-import { idFromEntity } from 'flyxc/common/src/datastore';
+import express, { NextFunction, Request, Response, Router } from 'express';
 import { trackerPropNames } from 'flyxc/common/src/live-track';
-import { LIVE_TRACK_TABLE } from 'flyxc/common/src/live-track-entity';
 import { Keys } from 'flyxc/common/src/redis';
 import { TRACK_TABLE } from 'flyxc/common/src/track-entity';
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
+import zlib from 'zlib';
 
 import { Datastore } from '@google-cloud/datastore';
 
@@ -15,27 +14,65 @@ const datastore = new Datastore();
 // Cache the counter for hours.
 const REDIS_CACHE_HOURS = 5;
 // Initial offset for the number of tracks
-const NUM_TRACKS_OFFSET = 68000;
+const NUM_TRACKS_OFFSET = 120000;
 
-export function getAdminRouter(redis: Redis.Redis): Router {
+export function getAdminRouter(redis: Redis): Router {
   const router = express.Router();
+
+  // Restrict routes to admin users.
+  router.use((req: Request, res: Response, next: NextFunction) => {
+    if (!isAdmin(req)) {
+      return res.sendStatus(403);
+    }
+    return next();
+  });
 
   router.get('/_admin.json', async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
+    res.json(await getDashboardValues(redis));
+  });
 
-    if (!isAdmin(req)) {
-      res.sendStatus(403);
-      return;
+  router.get('/_state.json', async (req: Request, res: Response) => {
+    res.set('Cache-Control', 'no-store');
+
+    try {
+      const state = await redis.getBuffer(Keys.fetcherStateBrotli);
+      if (state) {
+        return res.send(zlib.brotliDecompressSync(state));
+      }
+      // No content - maybe the state has not been captured yet ?
+      return res.sendStatus(204);
+    } catch (e) {
+      return res.sendStatus(500);
+    }
+  });
+
+  router.post('/_state/cmd/:cmd', async (req: Request, res: Response) => {
+    switch (req.params.cmd) {
+      case Keys.fetcherCmdCaptureState:
+        await redis.del(Keys.fetcherStateBrotli);
+        await redis.set(Keys.fetcherCmdCaptureState, 'admin', 'EX', 3 * 60);
+        break;
+      case Keys.fetcherCmdSyncFull:
+      case Keys.fetcherCmdExportFile:
+        await redis.set(req.params.cmd, 'admin', 'EX', 3 * 60);
+        break;
+      case Keys.fetcherCmdSyncIncCount:
+        await redis.incr(Keys.fetcherCmdSyncIncCount);
+        break;
+      default:
+        return res.sendStatus(404);
     }
 
-    res.json(await getDashboardValues(redis));
+    return res.sendStatus(204);
   });
 
   return router;
 }
 
-async function getDashboardValues(redis: Redis.Redis): Promise<unknown> {
-  const redisOut = await redis.pipeline().get(Keys.dashboardDsRequestTime).get(Keys.dashboardTotalTracks).exec();
+// Returns all the values needed for the dashboard (from REDIS).
+async function getDashboardValues(redis: Redis): Promise<unknown> {
+  const redisOut = await redis.pipeline().get(Keys.dsLastRequestSec).get(Keys.trackNum).exec();
 
   const cacheTimeSec = Number(redisOut[0][1] ?? 0);
   const trackOffset = Number(redisOut[1][1] ?? NUM_TRACKS_OFFSET) - 100;
@@ -44,93 +81,83 @@ async function getDashboardValues(redis: Redis.Redis): Promise<unknown> {
 
   // Query the datastore when the cache is outdated.
   if (nowSec - cacheTimeSec > REDIS_CACHE_HOURS * 3600) {
-    const queryPromises = [
-      datastore.createQuery(TRACK_TABLE).offset(trackOffset).select('__key__').run(),
-      datastore.createQuery(LIVE_TRACK_TABLE).filter('enabled', true).select('__key__').run(),
-    ];
-
-    const trackerNames = Object.values(trackerPropNames);
-    for (const name of trackerNames) {
-      queryPromises.push(
-        datastore
-          .createQuery(LIVE_TRACK_TABLE)
-          .filter('enabled', true)
-          .filter(`${name}.enabled`, true)
-          .select('__key__')
-          .run(),
-      );
-    }
-
-    for (const name of trackerNames) {
-      queryPromises.push(
-        datastore
-          .createQuery(LIVE_TRACK_TABLE)
-          .filter('enabled', true)
-          .filter(`${name}.enabled`, true)
-          .filter(`${name}.errors_requests`, '>', 300000)
-          .order(`${name}.errors_requests`, { descending: true })
-          .limit(10)
-          .select([`${name}.errors_requests`])
-          .run(),
-      );
-    }
-
-    const queries = await Promise.all(queryPromises);
-    let index = 0;
+    const [tracks] = await datastore.createQuery(TRACK_TABLE).offset(trackOffset).select('__key__').run();
 
     const pipeline = redis
       .pipeline()
-      .set(Keys.dashboardDsRequestTime, nowSec)
-      .set(Keys.dashboardTotalTracks, trackOffset + queries[index++][0].length)
-      .set(Keys.dashboardTotalTrackers, queries[index++][0].length);
-
-    for (const name of trackerNames) {
-      pipeline.set(Keys.dashboardNumTrackers.replace('{name}', name), queries[index++][0].length);
-    }
-
-    for (const name of trackerNames) {
-      const text = queries[index++][0].map(
-        (device) => `id=${idFromEntity(device)} errors=${device[`${name}.errors_requests`]}`,
-      );
-      pipeline.set(Keys.dashboardTopErrors.replace('{name}', name), text.join(','));
-    }
+      .set(Keys.dsLastRequestSec, nowSec)
+      .set(Keys.trackNum, trackOffset + tracks.length);
 
     await pipeline.exec();
   }
 
-  // Retrieves all values from Redis.
-  const opByKey: { [key: string]: string } = {
-    [Keys.trackerRequestTimestamp]: 'get',
-    [Keys.trackerFullSize]: 'get',
-    [Keys.trackerIncrementalSize]: 'get',
-    [Keys.trackerUpdateSec]: 'get',
-    [Keys.dashboardTotalTracks]: 'get',
-    [Keys.dashboardTotalTrackers]: 'get',
-    [Keys.dashboardDsRequestTime]: 'get',
+  // Retrieves all values from Redis (Scalar or List).
+  const typeByKey: { [key: string]: 'S' | 'L' } = {
+    // Scalars
+    [Keys.fetcherMemoryRssMb]: 'S',
+    [Keys.fetcherMemoryHeapMb]: 'S',
+    [Keys.fetcherStartedSec]: 'S',
+    [Keys.fetcherReStartedSec]: 'S',
+    [Keys.fetcherStoppedSec]: 'S',
+    [Keys.fetcherNumTicks]: 'S',
+    [Keys.fetcherNumStarts]: 'S',
+    [Keys.fetcherLastDeviceUpdatedMs]: 'S',
+    [Keys.fetcherNextPartialSyncSec]: 'S',
+    [Keys.fetcherNextFullSyncSec]: 'S',
+    [Keys.fetcherNextExportSec]: 'S',
+    [Keys.fetcherFullNumTracks]: 'S',
+    [Keys.fetcherIncrementalNumTracks]: 'S',
+    [Keys.trackerNum]: 'S',
+    [Keys.dsLastRequestSec]: 'S',
+    [Keys.trackNum]: 'S',
+
+    // Lists
+    [Keys.stateSyncErrors.replace('{type}', 'full')]: 'L',
+    [Keys.stateSyncNum.replace('{type}', 'full')]: 'L',
+    [Keys.stateSyncErrors.replace('{type}', 'inc')]: 'L',
+    [Keys.stateSyncNum.replace('{type}', 'inc')]: 'L',
+    [Keys.stateExportStatus]: 'L',
+    [Keys.elevationErrors]: 'L',
+    [Keys.elevationNumFetched]: 'L',
+    [Keys.elevationNumRetrieved]: 'L',
+    [Keys.fetcherLastTicksSec]: 'L',
   };
 
   for (const name of Object.values(trackerPropNames)) {
-    opByKey[Keys.trackerLogsErrors.replace('{name}', name)] = 'lrange 0 -1';
-    opByKey[Keys.trackerLogsErrorsById.replace('{name}', name)] = 'lrange 0 -1';
-    opByKey[Keys.trackerLogsSize.replace('{name}', name)] = 'lrange 0 -1';
-    opByKey[Keys.trackerLogsTime.replace('{name}', name)] = 'lrange 0 -1';
-    opByKey[Keys.trackerLogsDuration.replace('{name}', name)] = 'lrange 0 -1';
-
-    opByKey[Keys.dashboardNumTrackers.replace('{name}', name)] = 'get';
-    opByKey[Keys.dashboardTopErrors.replace('{name}', name)] = 'get';
+    // Number of enabled trackers per type.
+    typeByKey[Keys.trackerNumByType.replace('{name}', name)] = 'S';
+    // [List] Global errors.
+    typeByKey[Keys.trackerErrorsByType.replace('{name}', name)] = 'L';
+    // [List] Errors per account.
+    typeByKey[Keys.trackerErrorsById.replace('{name}', name)] = 'L';
+    // [List] Devices with high consecutive errors.
+    typeByKey[Keys.trackerConsecutiveErrorsById.replace('{name}', name)] = 'L';
+    // [List] Devices with high consecutive errors.
+    typeByKey[Keys.trackerManyErrorsById.replace('{name}', name)] = 'L';
+    // [List] Number of fetch devices.
+    typeByKey[Keys.trackerNumFetches.replace('{name}', name)] = 'L';
+    // [List] Number of fetch devices.
+    typeByKey[Keys.trackerNumUpdates.replace('{name}', name)] = 'L';
+    // [List] Fetch duration in seconds.
+    typeByKey[Keys.trackerFetchDuration.replace('{name}', name)] = 'L';
   }
 
-  const commands: string[][] = Object.entries(opByKey).map(([key, cmd]) => {
-    const parts = cmd.split(' ');
-    parts.splice(1, 0, key);
-    return parts;
-  });
+  const pipeline = redis.pipeline();
 
-  const result = await redis.pipeline(commands).exec();
+  for (const [key, cmd] of Object.entries(typeByKey)) {
+    if (cmd === 'S') {
+      pipeline.get(key);
+    }
+    if (cmd === 'L') {
+      pipeline.lrange(key, 0, -1);
+    }
+  }
+
+  const result = await pipeline.exec();
 
   const values: { [key: string]: string | string[] } = {};
 
-  commands.forEach(([_, key], i) => {
+  Object.keys(typeByKey).forEach((key, i) => {
     values[key] = result[i][1];
   });
 

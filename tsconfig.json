@@ -31,9 +31,11 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": false,
-    "removeComments": true
+    "removeComments": true,
+    "resolveJsonModule": true
   },
   "exclude": [
-    "frontend/static"
+    "frontend/static",
+    "fetcher/dist/*"
   ]
 }

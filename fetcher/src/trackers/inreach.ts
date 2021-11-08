@@ -2,95 +2,87 @@
 //
 // See https://support.garmin.com/en-US/?faq=tdlDCyo1fJ5UxjUbA9rMY8.
 
-/* eslint-disable @typescript-eslint/no-var-requires */
-const request = require('request-zero');
-
-import { idFromEntity } from 'flyxc/common/src/datastore';
-import {
-  INREACH_REFRESH_INTERVAL_SEC,
-  LIVE_FETCH_TIMEOUT_SEC,
-  LIVE_MINIMAL_INTERVAL_SEC,
-  LIVE_RETENTION_SEC,
-  removeBeforeFromLiveTrack,
-  simplifyLiveTrack,
-  TrackerIds,
-} from 'flyxc/common/src/live-track';
+import { Tracker } from 'flyxc/common/protos/fetcher-state';
+import { LIVE_MINIMAL_INTERVAL_SEC, simplifyLiveTrack, TrackerIds } from 'flyxc/common/src/live-track';
 import { validateInreachAccount } from 'flyxc/common/src/models';
 import { formatReqError, parallelTasksWithTimeout } from 'flyxc/common/src/util';
 import { DOMParser } from 'xmldom';
 
-import {
-  getTrackersToUpdate,
-  LivePoint,
-  makeLiveTrack,
-  TrackerForUpdate,
-  TrackerUpdate,
-  TrackUpdate,
-} from './live-track';
+import { LivePoint, makeLiveTrack } from './live-track';
+import { getTextRetry } from './superagent';
+import { TrackerFetcher, TrackerUpdates } from './tracker';
 
-// Queries the datastore for the devices that have not been updated in REFRESH_EVERY_MINUTES.
-// Queries the feeds until the timeout is reached and store the data back into the datastore.
-export async function refresh(): Promise<TrackerUpdate> {
-  const start = Date.now();
-
-  const trackers = await getTrackersToUpdate(TrackerIds.Inreach, start - INREACH_REFRESH_INTERVAL_SEC * 1000, 150);
-
-  const result: TrackerUpdate = {
-    trackerId: TrackerIds.Inreach,
-    tracks: new Map<number, TrackUpdate>(),
-    errors: [],
-    durationSec: 0,
-  };
-
-  const fetchTracker = async (tracker: TrackerForUpdate) => {
-    const id = idFromEntity(tracker);
-
-    // Fetch an extra 30 minutes if some data were in flight.
-    const lastFetch = tracker.updated ?? 0;
-    const fetchFrom = Math.max(start - LIVE_RETENTION_SEC * 1000, lastFetch - 30 * 60 * 1000);
-
-    const update: TrackUpdate = { updated: start };
-    let points: LivePoint[] = [];
-
-    const inreachUrl = validateInreachAccount(tracker.account);
-
-    if (inreachUrl === false) {
-      update.error = `The url ${inreachUrl} is not valid`;
-    } else {
-      const url = `${inreachUrl}?d1=${new Date(fetchFrom).toISOString()}`;
-
-      try {
-        // Retry because InReach servers often fails with ECONNRESET.
-        const response = await request(url, { maxRetry: 3, retryDelay: 200 });
-        if (response.code == 200) {
-          points = parse(response.body);
-        } else {
-          update.error = `HTTP Status = ${response.code} for ${url}`;
-        }
-      } catch (e) {
-        update.error = `Error ${formatReqError(e)} for url ${url}`;
-      }
-    }
-
-    if (update.error == null && points.length > 0) {
-      let track = makeLiveTrack(points);
-      track = removeBeforeFromLiveTrack(track, fetchFrom / 1000);
-      simplifyLiveTrack(track, LIVE_MINIMAL_INTERVAL_SEC);
-      update.track = track;
-    }
-
-    result.tracks.set(id, update);
-  };
-
-  const { isTimeout } = await parallelTasksWithTimeout(4, trackers, fetchTracker, LIVE_FETCH_TIMEOUT_SEC * 1000);
-
-  if (isTimeout) {
-    result.errors.push(`Fetch timeout`);
+export class InreachFetcher extends TrackerFetcher {
+  protected getTrackerId(): TrackerIds {
+    return TrackerIds.Inreach;
   }
 
-  result.durationSec = Math.round((Date.now() - start) / 1000);
+  protected async fetch(devices: number[], updates: TrackerUpdates, timeoutSec: number): Promise<void> {
+    const fetchSingle = async (id: number) => {
+      const tracker = this.getTracker(id);
+      if (tracker == null) {
+        return;
+      }
+      if (validateInreachAccount(tracker.account) === false) {
+        updates.trackerErrors.set(id, `Invalid account ${tracker.account}`);
+        return;
+      }
 
-  return result;
+      const fetchFromSec = this.getTrackerFetchFromSec(id, updates.startFetchSec, 2 * 3600);
+      const url = `${tracker.account}?d1=${new Date(fetchFromSec * 1000).toISOString()}`;
+
+      try {
+        updates.fetchedTracker.add(id);
+        const response = await getTextRetry(url);
+        if (response.ok) {
+          try {
+            const points = parse(response.body);
+            const track = makeLiveTrack(points);
+            simplifyLiveTrack(track, LIVE_MINIMAL_INTERVAL_SEC);
+            if (track.timeSec.length > 0) {
+              updates.trackerDeltas.set(id, track);
+            }
+          } catch (e) {
+            updates.trackerErrors.set(id, `Error parsing the kml for ${id}\n${e}`);
+          }
+        } else {
+          updates.trackerErrors.set(id, `HTTP Status = ${response.status} for ${url}`);
+        }
+      } catch (e) {
+        updates.trackerErrors.set(id, `Error ${formatReqError(e)} for url ${url}`);
+      }
+    };
+
+    const { isTimeout } = await parallelTasksWithTimeout(4, devices, fetchSingle, timeoutSec * 1000);
+
+    if (isTimeout) {
+      updates.errors.push(`Fetch timeout`);
+    }
+  }
+
+  // Introduce some spread to avoid congested ticks.
+  protected getNextFetchAfterSec(tracker: Readonly<Tracker>): number {
+    if (tracker.numConsecutiveErrors > 30) {
+      return 24 * 3600;
+    }
+    if (tracker.numConsecutiveErrors > 20) {
+      return 3600;
+    }
+    if (tracker.numConsecutiveErrors > 10) {
+      return 10 * 60;
+    }
+    const lastFixAgeSec = Math.round(Date.now() / 1000) - tracker.lastFixSec;
+    if (lastFixAgeSec > 3 * 30 * 24 * 3600) {
+      return 20 * 60;
+    }
+    if (lastFixAgeSec > 3 * 3600) {
+      return Math.floor(9 + Math.random() * 3) * 60;
+    }
+    if (lastFixAgeSec > 1800) {
+      return Math.floor(3 + Math.random() * 3) * 60;
+    }
+    return 60;
+  }
 }
 
 // Parses the kml feed to a list of `LivePoint`s.

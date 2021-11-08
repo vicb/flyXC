@@ -9,6 +9,7 @@ export function formatReqError(error: any): string {
     }
     if (typeof error === 'object') {
       switch (error.code) {
+        case 'ENOTFOUND':
         case 'ECONNRESET':
         case 'EHOSTUNREACH':
         case 'ETIMEDOUT':

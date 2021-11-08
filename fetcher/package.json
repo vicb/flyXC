@@ -1,0 +1,25 @@
+{
+  "name": "fetcher",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "docker:build": "docker build . --tag gcr.io/fly-xc/fetcher",
+    "docker:push": "docker push gcr.io/fly-xc/fetcher",
+    "deploy": "npm run docker:build && npm run docker:push"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/datastore": "^6.6.2",
+    "@google-cloud/logging": "^9.6.6",
+    "@google-cloud/storage": "^5.16.1",
+    "@protobuf-ts/runtime": "^2.1.0",
+    "ol": "^6.10.0",
+    "superagent": "^6.1.0"
+  },
+  "devDependencies": {
+    "@types/ol": "^6.5.3",
+    "@types/superagent": "^4.1.14"
+  }
+}

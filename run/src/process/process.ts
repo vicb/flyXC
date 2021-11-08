@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const request = require('request-zero');
+import request from 'request-zero';
 /* eslint-enable @typescript-eslint/no-var-requires */
 
 import async from 'async';

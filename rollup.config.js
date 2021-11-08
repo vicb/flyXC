@@ -22,6 +22,37 @@ const nodeEnv = JSON.stringify(prod ? 'production' : 'development');
 
 export default [
   {
+    input: 'fetcher/src/fetcher.ts',
+
+    output: {
+      dir: 'fetcher/dist',
+      format: 'cjs',
+      sourcemap: prod ? false : 'inline',
+    },
+
+    plugins: [
+      replace({
+        values: {
+          'process.env.NODE_ENV': nodeEnv,
+          '<%BUILD%>': build,
+          // Suppress an error in formidable
+          'global.GENTLY': false,
+        },
+        preventAssignment: true,
+      }),
+      json(),
+      resolve({
+        preferBuiltins: true,
+      }),
+      cjs(),
+      typescript({
+        sourceMap: !prod,
+      }),
+      prod && terser({ output: { comments: false } }),
+    ],
+    external: [...builtins, /@google-cloud/],
+  },
+  {
     input: 'app/src/server.ts',
 
     output: {
@@ -35,6 +66,8 @@ export default [
         values: {
           'process.env.NODE_ENV': nodeEnv,
           '<%BUILD%>': build,
+          // Suppress an error in formidable
+          'global.GENTLY': false,
         },
         preventAssignment: true,
       }),
@@ -65,6 +98,8 @@ export default [
         values: {
           'process.env.NODE_ENV': nodeEnv,
           '<%BUILD%>': build,
+          // Suppress an error in formidable
+          'global.GENTLY': false,
         },
         preventAssignment: true,
       }),
@@ -111,6 +146,8 @@ function buildFrontEnd(input, options = {}) {
         values: {
           'process.env.NODE_ENV': nodeEnv,
           '<%BUILD%>': build,
+          // Suppress an error in formidable
+          'global.GENTLY': false,
         },
         delimiters: ['', ''],
         preventAssignment: true,
