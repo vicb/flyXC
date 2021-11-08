@@ -8,7 +8,7 @@ const { Storage } = require('@google-cloud/storage');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
 prog
-  .option('-i, --input <file>', 'zip file')
+  .option('-i, --input <file>', 'zip file', 'tiles.zip')
   .option('-b, --bucket <file>', 'bucket name', 'airspaces')
   .option('-d, --diff <file>', 'Diff to apply')
   .parse(process.argv);
@@ -48,11 +48,7 @@ async function getBucket(bucketName) {
 async function expandZip(zipFile, bucketName, retries, paths = null) {
   const bucket = await getBucket(bucketName);
   const startTime = Date.now();
-  const start = new Date();
-  const ymd =
-    String(start.getFullYear()) +
-    String(start.getMonth() + 1).padStart(2, '0') +
-    String(start.getDate()).padStart(2, '0');
+
   let numFiles = 0;
   let numErrors = 0;
   let errorPaths = new Set();

@@ -46,7 +46,12 @@ $ npm run docker:push
 
 # Diff update
 
-- Create the tiles (pbf),
+- Delete the `asp` and `tiles` folders,
+- Create the tiles - See above,
+- Execute `zip -r -9 tiles.zip tiles` to create the zip file,
+- Rename `tiles-info.json` to `tiles-info.ref.json`
 - Execute `node tiles-info.js` to generate the info,
-- Execute `node tiles-info-diff.js -ref <former version of tile-info.json>` to generate the diff,
-- Execute `node unzip.js -d tiles-info-diff.json` to apply the diffs.
+- Execute `node tiles-info-diff.js -r tiles-info.ref.json` to generate the diff,
+- Execute `node unzip.js -d tiles-info-diff.json` to apply the diffs,
+- Delete `tiles-info.ref.json`,
+- Commit `tiles-info.json`.
