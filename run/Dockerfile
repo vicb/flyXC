@@ -11,7 +11,10 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install production dependencies.
+RUN npm install -g npm@latest
 RUN npm install --only=production
+# Adding @google-cloud/datastore in package.json would conflict with the root version
+RUN npm install @google-cloud/datastore
 
 # Copy local code to the container image.
 COPY . ./

@@ -6,4 +6,4 @@
 
 ## Test
 
-PORT=8081 && docker run -p 8080:${PORT} -e PORT=${PORT} gcr.io/fly-xc/trackers
+PORT=8081 && docker run -it -p 8080:${PORT} -e PORT=${PORT} gcr.io/fly-xc/trackers
