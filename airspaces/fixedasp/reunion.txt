@@ -1,0 +1,213 @@
+*
+********************************************************************************
+*                                                                              *
+*                              AIRSPACE OF REUNION                             *
+*                         OPTIMIZED FOR GLIDER ACTIVITY                        *
+*                                                                              *
+*                            creation : 28102020                               *
+*                           FFVL LVLR CHPT FRANCE 2020                         *
+*                           SIA DGAC REUNION et REFERENT LVLR                  *
+*                                                                              *
+********************************************************************************
+********************************************************************************
+*                                                                              *
+*                      Document réalisé à titre informatif                     *
+*     a utilisé sous votre propre responsabilité et en connaissance de cause   *
+* Notre responsabilité ne peut etre engagée pour de quelconque manquements     *
+* Rapprochez-vous de toute la documentations officielle avant de voler         *
+********************************************************************************
+********************************************************************************
+********************************************************************************
+*                                                                              *
+*                                  Sont representes:                           *
+*                                                                              *
+*                                la CTR de Roland Garros,                      *
+*                       la R2 du chantier de la rte du Littorale               *
+*              la R3 de la fournaise (elargie en mer, mais suit la cote)       *
+*                                                                              *
+*                           la D23 CHAMP DE TIR DE PIERREFONDS                 *
+*                               D50 CHAMP DE TIR en Mer                        *
+*                                                                              *
+*                                                                              *
+********************************************************************************
+********************************************************************************
+********************************************************************************
+*                                                                              *
+*          Ne sont pas représentés: les parc nationnaux, agglomérations...     *
+*                                                                              *
+********************************************************************************
+********************************************************************************
+********************************************************************************
+*                    Remarques pour le vol en Parapente:                       *
+*                                                                              *
+*                      CTR Roland garros : interdite                           *
+*                       Airport Pierrefonds                                    *
+*                   R2 CHANTIER RTE LITTORAL: interdite en dessous de 305m     *
+*  R3 MASSIF DE LA FOURNAISE: 2200M en activité normale et 1600m si éruption   *
+* Les zones D et Q sont dangereuses où la pénétration est réglementée          *
+*            et autorisée mais à ses risques et périls                         *
+*             Q2 Zone heliport Corail                                          *
+*              Q5 Zone heliport Eperon                                         *
+*                Q6 Zone heliport CHU SUD                                      *
+*                     Q7 Zone aeromodelisme bassin Martin                      *
+*                                                                              *
+*                                                                              *
+*                                                                              *
+********************************************************************************
+*********************************
+*   CONTROL TRAFFIC AREAS (CTR) *
+*********************************
+*
+** CTR LA REUNION-ROLAND GARROS **
+AC CTR
+AN CTR ROLAND GARROS freq:118.4
+AH 6500FT AMSL
+AL SFC
+V X=20:53:05 S 055:30:35 E
+DC 6.5
+*
+*
+** PIERREFONDS AIRPORT **
+AC CTR
+AN D1 AIRPORT PIERREFONDS
+AH UNL
+AL SFC
+V X=21:19:07 S 055:25:34 E
+DC 1
+*
+********************************
+*     RESTRICTED AREAS (R)     *
+********************************
+*
+** R2 CHANTIER RTE LITTORAL **
+AC R
+AN R2 CHANTIER RTE LITTORAL - H24
+AH 1000FT AMSL
+AL SFC
+DP 20:52:35 S 055:26:37 E
+DP 20:52:54 S 055:23:46 E
+DP 20:56:43 S 055:19:23 E
+DP 20:55:16 S 055:19:14 E
+DP 20:52:16 S 055:23:32 E
+DP 20:52:16 S 055:26:39 E
+DP 20:52:35 S 055:26:37 E
+*
+** R3 MASSIF DE LA FOURNAISE **
+AC R
+AN R3 MASSIF DE LA FOURNAISE - H24 - freq:122.3
+AL 500 FT ASFC
+AH 10000 FT AMSL
+DP 21:11:22 S 055:38:09 E
+DP 21:08:55 S 055:49:38 E
+DP 21:09:02 S 055:49:46 E
+DP 21:09:15 S 055:49:56 E
+DP 21:09:27 S 055:50:04 E
+DP 21:09:42 S 055:50:11 E
+DP 21:10:01 S 055:50:02 E
+DP 21:10:35 S 055:50:05 E
+DP 21:10:57 S 055:50:17 E
+DP 21:11:08 S 055:50:04 E
+DP 21:11:13 S 055:49:35 E
+DP 21:11:47 S 055:49:35 E
+DP 21:12:21 S 055:49:27 E
+DP 21:12:45 S 055:48:59 E
+DP 21:13:15 S 055:48:48 E
+DP 21:14:38 S 055:48:24 E
+DP 21:15:29 S 055:48:12 E
+DP 21:16:08 S 055:48:18 E
+DP 21:17:31 S 055:48:22 E
+DP 21:19:09 S 055:48:23 E
+DP 21:19:56 S 055:48:36 E
+DP 21:20:43 S 055:48:07 E
+DP 21:21:41 S 055:46:58 E
+DP 21:21:56 S 055:46:32 E
+DP 21:21:57 S 055:45:54 E
+DP 21:21:49 S 055:45:26 E
+DP 21:22:00 S 055:45:10 E
+DP 21:22:12 S 055:44:20 E
+DP 21:22:17 S 055:43:31 E
+DP 21:22:34 S 055:42:49 E
+DP 21:22:38 S 055:42:04 E
+DP 21:22:31 S 055:40:53 E
+DP 21:22:38 S 055:40:45 E
+DP 21:23:03 S 055:40:15 E
+DP 21:23:03 S 055:39:57 E
+DP 21:23:06 S 055:39:20 E
+DP 21:23:17 S 055:38:51 E
+DP 21:23:15 S 055:38:33 E
+DP 21:23:00 S 055:38:02 E
+DP 21:23:06 S 055:37:25 E
+DP 21:23:17 S 055:36:34 E
+DP 21:23:01 S 055:36:03 E
+DP 21:22:44 S 055:35:50 E
+DP 21:22:23 S 055:34:55 E
+DP 21:22:35 S 055:34:35 E
+DP 21:22:36 S 055:34:05 E
+*
+********************************
+* DANGER AREAS (D) *
+********************************
+
+** D23 CHAMP DE TIR DE PIERREFONDS **
+AC Q
+AN D23 CHAMP DE TIR DE PIERREFONDS du Lun au Sam 02:00-15:00
+AH 600FT ASFC
+AL SFC
+DP 21:20:01 S 055:23:29 E
+DP 21:19:01 S 055:24:36 E
+DP 21:18:56 S 055:25:02 E
+DP 21:19:19 S 055:25:02 E
+DP 21:20:35 S 055:24:20 E
+*
+** D50 CHAMP DE TIR en Mer **
+AC Q
+AN D50 CHAMP DE TIR en Mer
+AH FL460
+AL SFC
+DP 21:12:00 S 054:57:00 E
+DP 21:26:00 S 055:02:30 E
+DP 21:39:02 S 054:33:30 E
+DP 21:19:30 S 054:25:54 E
+*
+** Zone heliport Corail **
+AC Q2
+AN D1 ZONE HELIPORT CORAIL
+AH UNL
+AL SFC
+V X=21:04:05 S 055:14:59 E
+DC 0.25
+
+* Zone heliport Eperon
+AC Q5
+AN D2 ZONE HELIPORT EPERON
+AH UNL
+*AUID GUId=FM9743 UId=10321926 Id=FM9743
+*ADescr Radio controlled model flying (aircraft, helicopter, glider)
+*AActiv [HX] SR-SS
+AL SFC
+V X=21:02:06 S 055:15:37 E
+DC 0.25
+
+* Zone heliport CHU SUD
+AC Q6
+AN D3 ZONE HELIPORT CHU SUD
+AH UNL
+*AUID GUId=FM9743 UId=10321926 Id=FM9743
+*ADescr Radio controlled model flying (aircraft, helicopter, glider)
+*AActiv [HX] SR-SS
+AL SFC
+V X=21:20:45 S 055:29:36 E
+DC 0.25
+
+** Zone aeromodelisme bassin Martin **
+AC Q7
+AN D4 ZONE AEROMODELISME BASSIN MARTIN
+*AAlt ["SFC/1633FT AMSL|500FT AGL", "0m/497m"]
+*AUID GUId=FM9745 UId=1610330 Id=FM9745
+*ADescr Radio controlled gliders flying. Activation with PPR by phone from PIERREFONDS AFIS.
+*AActiv [HX] MON-SAT: 1000-SS SUN, HOL: SR-SS
+AH 1633FT AMSL
+*AH2 500FT AGL
+AL SFC
+V X=21:18:56 S 055:30:40 E
+DC 0.4319654427645788

@@ -44,6 +44,13 @@ for (const file of ukraineFiles) {
   airspaces.push(...decodeOpenAirFile(file));
 }
 
+// Reunion
+const reunionFile = glob.sync(prog.opts().input + '/../fixedasp/reunion.txt');
+if (reunionFile.length != 1) {
+  throw new Error('Reunion file not found');
+}
+airspaces.push(...decodeOpenAirFile(reunionFile[0]));
+
 // Write output.
 console.log(`\nTotal: ${airspaces.length} airspaces`);
 
@@ -419,6 +426,7 @@ function airspaceTypeFlags(airspace, country = '') {
     case 'G':
     case 'GLIDING':
     case 'RESTRICTED':
+    case 'R':
     case 'RAZ': // Radio Advisory Zone
       return AIRSPACE_RESTRICTED;
     case 'DANGER':
@@ -427,10 +435,14 @@ function airspaceTypeFlags(airspace, country = '') {
       return AIRSPACE_OTHER;
     case 'FIR':
     case 'WAVE':
-    case 'T': // Ukraine
-    case 'R': // Ukraine
-    case 'P': // Ukraine
-    case 'Q': // US
+    case 'TRANING': // Ukraine
+    case 'UNKNOWN': // Ukraine
+    case 'ATZ': // Ukraine
+    case 'Q': // Reunion
+    case 'Q2': // Reunion
+    case 'Q5': // Reunion
+    case 'Q6': // Reunion
+    case 'Q7': // Reunion
       return AIRSPACE_IGNORED;
     default:
       console.info(`Ignored airspace (category "${airspace.category}") "${airspace.name}"`);
