@@ -1,4 +1,5 @@
 import * as protos from 'flyxc/common/protos/track';
+import { LiveTrackEntity } from 'flyxc/common/src/live-track-entity';
 import { diffDecodeArray } from 'flyxc/common/src/math';
 import { diffDecodeTrack, diffEncodeAirspaces } from 'flyxc/common/src/runtime-track';
 import { retrieveTrackById, TrackEntity, updateUnzippedTracks } from 'flyxc/common/src/track-entity';
@@ -82,4 +83,63 @@ export async function migrateTrack(id: number): Promise<TrackEntity | undefined>
   );
 
   return entity;
+}
+
+// Add updated to LiveTrack entities
+export async function migrateAddUpdated(): Promise<void> {
+  let start: string | undefined;
+  let res: RunQueryResponse | undefined;
+  const batchSize = 50;
+  let count = 0;
+  const updated = new Date();
+
+  do {
+    const query = datastore.createQuery('LiveTrack').limit(batchSize);
+    const entities: LiveTrackEntity[] = [];
+
+    if (start) {
+      query.start(start);
+    }
+
+    res = await datastore.runQuery(query);
+
+    for (const entity of res[0]) {
+      console.log(`${count++} id=${entity[Datastore.KEY].id}`);
+      try {
+        entity.updated = updated;
+        entities.push(entity);
+      } catch (e) {
+        console.error(`migration error ${entity[Datastore.KEY].id}`);
+      }
+    }
+
+    console.log(`Retrieved ${entities.length} entities`);
+
+    const updates: unknown[] = [];
+
+    for (const entity of entities) {
+      const key = entity[Datastore.KEY];
+
+      if (key == null) {
+        continue;
+      }
+
+      updates.push({
+        key,
+        excludeFromIndexes: ['track'],
+        data: entity,
+      });
+    }
+
+    console.log(`Prepared ${updates.length} updates`);
+
+    try {
+      await datastore.save(updates);
+      console.log(`Update successful`);
+    } catch (e) {
+      console.error(`Update failed ${e}`);
+    }
+
+    start = res[1].endCursor;
+  } while (res[1].moreResults != datastore.NO_MORE_RESULTS);
 }
