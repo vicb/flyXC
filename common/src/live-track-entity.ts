@@ -24,6 +24,7 @@ export interface LiveTrackEntity {
   name: string;
   google_id: string;
   created: Date;
+  updated: Date;
   last_fix_sec: number;
   track: Buffer | null;
   // Whether to share positions with partners.
@@ -59,12 +60,14 @@ export function UpdateLiveTrackEntityFromModel(
     email,
     google_id: googleId,
     created: new Date(),
+    updated: new Date(),
   };
 
   // Update the entity.
   liveTrack.name = account.name;
   liveTrack.share = account.share;
   liveTrack.enabled = account.enabled;
+  liveTrack.updated = new Date();
   liveTrack.last_fix_sec = 0;
   liveTrack.track = null;
 
