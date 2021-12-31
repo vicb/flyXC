@@ -1,4 +1,4 @@
-import { loadCss, loadModules, setDefaultOptions } from 'esri-loader';
+import { loadCss, loadModules } from 'esri-loader';
 
 // List of modules to load.
 const moduleNames = [
@@ -33,7 +33,6 @@ let apiPromise: Promise<Api> | undefined;
 // Loading of the ArcGis API.
 export function loadApi(): Promise<Api> {
   if (!apiPromise) {
-    setDefaultOptions({ version: '4.21' });
     apiPromise = loadModules(moduleNames).then((modules) => {
       const api: any = {};
       modules.forEach((module, index) => {
