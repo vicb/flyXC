@@ -10,6 +10,7 @@ export function formatReqError(error: any): string {
     if (typeof error === 'object') {
       switch (error.code) {
         case 'ECONNRESET':
+        case 'EHOSTUNREACH':
         case 'ETIMEDOUT':
         case 'CERT_HAS_EXPIRED':
         case 401: // Unauthorized
