@@ -143,3 +143,67 @@ export async function migrateAddUpdated(): Promise<void> {
     start = res[1].endCursor;
   } while (res[1].moreResults != datastore.NO_MORE_RESULTS);
 }
+
+// Add updated to LiveTrack entities
+export async function migrateFlyme(): Promise<void> {
+  let start: string | undefined;
+  let res: RunQueryResponse | undefined;
+  const batchSize = 50;
+  let count = 0;
+
+  do {
+    const query = datastore.createQuery('LiveTrack').limit(batchSize);
+    const entities: LiveTrackEntity[] = [];
+
+    if (start) {
+      query.start(start);
+    }
+
+    res = await datastore.runQuery(query);
+
+    for (const entity of res[0]) {
+      try {
+        const account = entity?.flyme?.account;
+        if (account != null && account !== '') {
+          console.log(`${count++} id=${entity[Datastore.KEY].id}`);
+          const { value, id } = JSON.parse(account);
+          entity.flyme.account = value;
+          entity.flyme.account_resolved = id;
+          console.log(entity.flyme);
+          entities.push(entity);
+        }
+      } catch (e) {
+        console.error(`migration error ${entity[Datastore.KEY].id}`);
+      }
+    }
+
+    console.log(`Updated ${entities.length} entities`);
+
+    const updates: unknown[] = [];
+
+    for (const entity of entities) {
+      const key = entity[Datastore.KEY];
+
+      if (key == null) {
+        continue;
+      }
+
+      updates.push({
+        key,
+        excludeFromIndexes: ['track'],
+        data: entity,
+      });
+    }
+
+    console.log(`Prepared ${updates.length} updates`);
+
+    try {
+      await datastore.save(updates);
+      console.log(`Update successful`);
+    } catch (e) {
+      console.error(`Update failed ${e}`);
+    }
+
+    start = res[1].endCursor;
+  } while (res[1].moreResults != datastore.NO_MORE_RESULTS);
+}

@@ -18,7 +18,7 @@ import bodyParser from 'koa-bodyparser';
 import { Datastore } from '@google-cloud/datastore';
 import Router, { RouterContext } from '@koa/router';
 
-import { migrateAddUpdated } from './process/migrate';
+import { migrateFlyme } from './process/migrate';
 import { postProcessTrack } from './process/process';
 import { updateTrackers } from './trackers/live-track';
 
@@ -144,8 +144,8 @@ router.post('/process', async (ctx: RouterContext) => {
 });
 
 if (process.env.NODE_ENV == 'development') {
-  router.get('/migrate-updated', async (ctx: RouterContext) => {
-    await migrateAddUpdated();
+  router.get('/migrate-flyme', async (ctx: RouterContext) => {
+    await migrateFlyme();
     ctx.body = 'Migrated';
   });
 }
