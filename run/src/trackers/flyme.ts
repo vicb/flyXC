@@ -14,7 +14,6 @@ import {
   removeBeforeFromLiveTrack,
   TrackerIds,
 } from 'flyxc/common/src/live-track';
-import { TrackerAccountWithServerId } from 'flyxc/common/src/models';
 import { formatReqError } from 'flyxc/common/src/util';
 
 import { getTrackersToUpdate, TrackerForUpdate, TrackerUpdate, TrackUpdate } from './live-track';
@@ -51,32 +50,25 @@ export async function refresh(): Promise<TrackerUpdate> {
     result.errors.push(`Error ${formatReqError(e)}`);
   }
 
-  const resolvePromises: Promise<unknown>[] = [];
-
   trackers.forEach((tracker: TrackerForUpdate) => {
     const datastoreId = idFromEntity(tracker);
     try {
-      const account: TrackerAccountWithServerId = JSON.parse(tracker.account);
-      const flymeId = account.id;
+      const flymeId = tracker.account_resolved ?? '';
 
       let track: LiveTrack | undefined;
 
-      if (flymeId == null) {
-        resolvePromises.push(resolveAccount(account).then((flyMeId) => result.accounts?.set(datastoreId, flyMeId)));
-      } else {
-        const lastFetch = tracker.updated ?? 0;
-        const startTimestamp = Math.max(start - LIVE_RETENTION_SEC * 1000, lastFetch - 5 * 60 * 1000);
-        const fix = flymeIdToFix.get(Number(flymeId));
-        if (fix) {
-          track = LiveTrack.create({
-            lat: [fix[1]],
-            lon: [fix[2]],
-            alt: [fix[3]],
-            timeSec: [fix[4]],
-            flags: [getTrackerFlags({ valid: true, device: TrackerIds.Flyme })],
-          });
-          track = removeBeforeFromLiveTrack(track, startTimestamp / 1000);
-        }
+      const lastFetch = tracker.updated ?? 0;
+      const startTimestamp = Math.max(start - LIVE_RETENTION_SEC * 1000, lastFetch - 5 * 60 * 1000);
+      const fix = flymeIdToFix.get(Number(flymeId));
+      if (fix) {
+        track = LiveTrack.create({
+          lat: [fix[1]],
+          lon: [fix[2]],
+          alt: [fix[3]],
+          timeSec: [fix[4]],
+          flags: [getTrackerFlags({ valid: true, device: TrackerIds.Flyme })],
+        });
+        track = removeBeforeFromLiveTrack(track, startTimestamp / 1000);
       }
 
       result.tracks.set(datastoreId, {
@@ -88,46 +80,16 @@ export async function refresh(): Promise<TrackerUpdate> {
     }
   });
 
-  await Promise.all(resolvePromises);
-
   result.durationSec = Math.round((Date.now() - start) / 1000);
 
   return result;
-}
-
-// Resolves a FlyMe account.
-//
-// Returns:
-// - a resolved account when the username exists,
-// - an unresolved account if it should be retried,
-// - false to disable the account if the username does not exist or too many retries.
-export async function resolveAccount(account: TrackerAccountWithServerId): Promise<false | string> {
-  try {
-    const id = await getFlyMeId(account.value);
-    return id == null ? false : JSON.stringify({ value: account.value, id });
-  } catch (e) {
-    console.error(`[FlyMe] Error resolving account: ${e}`);
-    const retries = (account.retries ?? 0) + 1;
-    return retries > 10 ? false : JSON.stringify({ value: account.value, retries });
-  }
-}
-
-// Validate the FlyMe id.
-export async function validateFlyMeAccount(username: string): Promise<number | false> {
-  try {
-    const id = await getFlyMeId(username);
-    if (id != null) {
-      return id;
-    }
-  } catch (e) {}
-  return false;
 }
 
 // Fetch the FlyMe server id for the username.
 //
 // Returns a numeric id when the username exists or undefined.
 // Throws when there is a server error or a status code != 200.
-export async function getFlyMeId(username: string): Promise<number | undefined> {
+export async function getFlyMeId(username: string): Promise<string | undefined> {
   const url = `https://xcglobe.com/livetrack/flyxcRegisterUser?username=${encodeURIComponent(username)}&token=${
     SecretKeys.FLYME_TOKEN
   }`;
@@ -135,14 +97,18 @@ export async function getFlyMeId(username: string): Promise<number | undefined> 
   let response: any;
 
   try {
-    response = await request(url);
-    if (response.code == 200) {
-      const matches = response.body.match(/^ok:\s*(\d+)$/);
-      return matches == null ? undefined : Number(matches[1]);
-    }
+    response = await request(url, { maxRetry: 3, retryDelay: 100 });
   } catch (e) {
-    throw new Error(`Server error: ${JSON.stringify(e)}`);
+    throw new Error(`Flyme server error`);
   }
 
-  throw new Error(`HTTP status code ${response.code}`);
+  if (response.code == 200) {
+    const matches = response.body.match(/^ok:\s*(\d+)$/);
+    if (matches == null) {
+      throw new Error(`The FlyMe account can not be found`);
+    }
+    return matches[1];
+  }
+
+  throw new Error(`Flyme server error`);
 }

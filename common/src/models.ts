@@ -2,7 +2,7 @@
 
 import { _getPropertyModel, BooleanModel, ObjectModel, StringModel } from '@vaadin/form/Models';
 import { Validator } from '@vaadin/form/Validation';
-import { NotBlank, NotNull, Size } from '@vaadin/form/Validators';
+import { NotBlank, NotNull, Null, Size } from '@vaadin/form/Validators';
 
 import { TrackerIds, trackerPropNames } from './live-track';
 import { LiveTrackEntity, TrackerEntity } from './live-track-entity';
@@ -37,12 +37,11 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
   static createFromEntity(entity: LiveTrackEntity): AccountModel {
     const trackerModels: Record<string, TrackerModel> = {};
 
-    for (const [trackerKey, prop] of Object.entries(trackerPropNames)) {
+    for (const prop of Object.values(trackerPropNames)) {
       const trackerEntity: TrackerEntity = (entity as any)[prop] ?? { enabled: false, account: '' };
-      const transformer: AccountTransformer = (accountTransformers as any)[trackerKey];
-      (trackerModels as any)[prop] = {
+      trackerModels[prop] = {
         enabled: trackerEntity.enabled,
-        account: transformer.toClientAccount(trackerEntity.account),
+        account: trackerEntity.account,
       };
     }
 
@@ -76,7 +75,10 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
 
 // Client side model for a tracker.
 export interface TrackerModel {
+  // Account as entered by the user.
   account: string;
+  // Account resolved on entity persisted.
+  account_resolved?: string;
   enabled: boolean;
 }
 
@@ -90,20 +92,17 @@ export class TrackerFormModel extends ObjectModel<TrackerModel> {
   }
 
   readonly enabled: BooleanModel = this[_getPropertyModel]('enabled', BooleanModel, [false, new NotNull()]);
-  readonly account: StringModel = this[_getPropertyModel]('account', StringModel, [false]);
+  readonly account: StringModel = this[_getPropertyModel]('account', StringModel, [false, new Size({ max: 150 })]);
+  readonly account_enabled: StringModel = this[_getPropertyModel]('account_resolved', StringModel, [true, new Null()]);
 }
 
 // Validates a TrackerModel using a callback.
-class TrackerCallbackValidator implements Validator<TrackerModel> {
-  constructor(
-    public message: string,
-    public callback: (account: string) => string | false,
-    protected property = 'account',
-  ) {}
+class AccountSyncValidator implements Validator<TrackerModel> {
+  constructor(public message: string, public callback: (account: string) => string | false) {}
 
-  async validate(value: TrackerModel) {
-    if (value.enabled && (await Promise.resolve(this.callback(value.account))) === false) {
-      return { property: this.property };
+  async validate(tracker: TrackerModel) {
+    if (tracker.enabled && this.callback(tracker.account) === false) {
+      return { property: 'account' };
     }
     return true;
   }
@@ -111,66 +110,11 @@ class TrackerCallbackValidator implements Validator<TrackerModel> {
 
 // Validators used on both the client and server sides.
 export const trackerValidators: Readonly<Record<TrackerIds, Validator<TrackerModel>[]>> = {
-  [TrackerIds.Inreach]: [new TrackerCallbackValidator('This InReach URL is invalid', validateInreachAccount)],
-  [TrackerIds.Spot]: [new TrackerCallbackValidator('This Spot ID is invalid', validateSpotAccount)],
-  [TrackerIds.Skylines]: [new TrackerCallbackValidator('This Skylines ID is invalid', validateSkylinesAccount)],
+  [TrackerIds.Inreach]: [new AccountSyncValidator('This InReach URL is invalid', validateInreachAccount)],
+  [TrackerIds.Spot]: [new AccountSyncValidator('This Spot ID is invalid', validateSpotAccount)],
+  [TrackerIds.Skylines]: [new AccountSyncValidator('This Skylines ID is invalid', validateSkylinesAccount)],
   [TrackerIds.Flyme]: [],
-  [TrackerIds.Flymaster]: [new TrackerCallbackValidator('This Flymaster ID is invalid', validateFlymasterAccount)],
-};
-
-// Transforms a tracker `account` property (server <-> client).
-export interface AccountTransformer {
-  toClientAccount(serverValue?: string): string;
-  toServerAccount(clientValue?: string): string;
-}
-
-// Most accounts are the same on the client and server side.
-const noOpAccountTransformer: AccountTransformer = {
-  toClientAccount: (account?: string) => account ?? '',
-  toServerAccount: (account?: string) => account ?? '',
-};
-
-// Account for trackers having a server id.
-// The server id is derived from the user facing value.
-// The object is serialized as JSON to the DB.
-export interface TrackerAccountWithServerId {
-  // User facing value.
-  value: string;
-  // Internal value (i.e. server id) that is retrieved async.
-  id?: string;
-  // Number of retries.
-  retries?: number;
-}
-
-// Some accounts needs more info (typically an ID) to be retrieved.
-// Extra info are encoded in the account field (JSON).
-const accountWithServerIdTransformer: AccountTransformer = {
-  toClientAccount(account?: string) {
-    if (account == null) {
-      return '';
-    }
-    try {
-      const serverAccount: TrackerAccountWithServerId = JSON.parse(account);
-      return serverAccount.value ?? '';
-    } catch (e) {
-      return '';
-    }
-  },
-  toServerAccount(clientValue?: string) {
-    const serverAccount: TrackerAccountWithServerId = {
-      value: clientValue || '',
-      retries: 0,
-    };
-    return JSON.stringify(serverAccount);
-  },
-};
-
-export const accountTransformers: Readonly<Record<TrackerIds, AccountTransformer>> = {
-  [TrackerIds.Inreach]: noOpAccountTransformer,
-  [TrackerIds.Spot]: noOpAccountTransformer,
-  [TrackerIds.Skylines]: noOpAccountTransformer,
-  [TrackerIds.Flyme]: accountWithServerIdTransformer,
-  [TrackerIds.Flymaster]: noOpAccountTransformer,
+  [TrackerIds.Flymaster]: [new AccountSyncValidator('This Flymaster ID is invalid', validateFlymasterAccount)],
 };
 
 // Validates a Spot Id.

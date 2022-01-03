@@ -3,9 +3,16 @@ import express, { Request, Response, Router } from 'express';
 import { LiveDifferentialTrackGroup } from 'flyxc/common/protos/live-track';
 import { SecretKeys } from 'flyxc/common/src/keys';
 import { INCREMENTAL_UPDATE_SEC } from 'flyxc/common/src/live-track';
-import { LIVE_TRACK_TABLE, LiveTrackEntity, UpdateLiveTrackEntityFromModel } from 'flyxc/common/src/live-track-entity';
-import { AccountFormModel, AccountModel } from 'flyxc/common/src/models';
+import {
+  LIVE_TRACK_TABLE,
+  LiveTrackEntity,
+  retrieveLiveTrackByGoogleId,
+  TrackerEntity,
+  UpdateLiveTrackEntityFromModel,
+} from 'flyxc/common/src/live-track-entity';
+import { AccountFormModel, AccountModel, TrackerModel } from 'flyxc/common/src/models';
 import { Keys } from 'flyxc/common/src/redis';
+import { Validator } from 'flyxc/common/src/vaadin/form/Validation';
 import { getFlyMeId } from 'flyxc/run/src/trackers/flyme';
 import Redis from 'ioredis';
 
@@ -93,25 +100,23 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
     }
 
     try {
-      const account: AccountModel = req.body;
+      const userInfo = getUserInfo(req);
+      if (!userInfo) {
+        res.sendStatus(500);
+        return;
+      }
+      const { email, token } = userInfo;
 
+      let entity = await retrieveLiveTrackByGoogleId(token);
+
+      const account: AccountModel = req.body;
       const binder = new NoDomBinder(AccountFormModel);
       binder.read(account);
 
       const model = binder.model;
-      binder.for(model.flyme.account).addValidator({
-        message: 'This FlyMe username is invalid.',
-        validate: async (username: string) => {
-          try {
-            const id = await getFlyMeId(username);
-            if (id === undefined) {
-              return false;
-            }
-          } catch (e) {}
-          return true;
-        },
-      });
+      binder.for(model.flyme).addValidator(new FlyMeValidator(entity?.flyme));
 
+      // Sends error to the client.
       const validationErrorData = (await binder.validate()).map(({ property, message }) => ({
         parameterName: property,
         message,
@@ -125,16 +130,7 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
         return;
       }
 
-      const userInfo = getUserInfo(req);
-      if (!userInfo) {
-        res.sendStatus(500);
-        return;
-      }
-      const { email, token } = userInfo;
-
-      const [entities] = await datastore.createQuery(LIVE_TRACK_TABLE).filter('google_id', token).limit(1).run();
-
-      const entity = UpdateLiveTrackEntityFromModel(entities[0], account, email, token);
+      entity = UpdateLiveTrackEntityFromModel(entity, account, email, token);
 
       try {
         await datastore.save({
@@ -156,4 +152,43 @@ export function getTrackerRouter(redis: Redis.Redis): Router {
   });
 
   return router;
+}
+
+class FlyMeValidator implements Validator<TrackerModel> {
+  public message = '';
+  private currentEnabled = false;
+  private currentAccount = '';
+
+  constructor(flyme: TrackerEntity | undefined) {
+    if (flyme != null) {
+      this.currentAccount = flyme.account;
+      this.currentEnabled = flyme.enabled;
+    }
+  }
+
+  async validate(tracker: TrackerModel) {
+    if (tracker.enabled) {
+      console.log('## enabled');
+      if (tracker.enabled === this.currentEnabled && tracker.account === this.currentAccount) {
+        console.log('## same');
+        // No need to resolve again when not changing.
+        return true;
+      }
+
+      try {
+        console.log('## resolving');
+        tracker.account_resolved = await getFlyMeId(tracker.account);
+        return true;
+      } catch (e) {
+        console.log('## error resolving');
+        this.message = `${e}`;
+        return { property: 'account' };
+      }
+    } else {
+      console.log('## disabled');
+      // Only clear the resolved account when disabled.
+      tracker.account_resolved = '';
+      return true;
+    }
+  }
 }

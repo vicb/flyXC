@@ -1,7 +1,7 @@
 import { Datastore, Key } from '@google-cloud/datastore';
 
 import { trackerPropNames as trackerPropNames } from './live-track';
-import { AccountModel, AccountTransformer, accountTransformers, TrackerModel } from './models';
+import { AccountModel, TrackerModel } from './models';
 
 const datastore = new Datastore();
 
@@ -10,7 +10,10 @@ export const NAME_MAX_LENGTH = 30;
 
 export interface TrackerEntity {
   enabled: boolean;
+  // Account as entered by the user.
   account: string;
+  // Resolved account (i.e. the id retrieved from the account for flyme).
+  account_resolved?: string;
   // Last time the tracker was updated without errors.
   updated: number;
   // Error and requests as an int: EEERRR.
@@ -43,10 +46,10 @@ export interface LiveTrackEntity {
 // Retrieves a tracker given its Google Id (=oauth sub).
 // - Retrieves all the fields,
 // - Used to update the account.
-export async function retrieveTrackerByGoogleId(googleId: string): Promise<LiveTrackEntity | null> {
+export async function retrieveLiveTrackByGoogleId(googleId: string): Promise<LiveTrackEntity | undefined> {
   const query = datastore.createQuery(LIVE_TRACK_TABLE).order('google_id').filter('google_id', googleId).limit(1);
   const [entities] = await datastore.runQuery(query);
-  return entities[0] ?? null;
+  return entities[0];
 }
 
 // Updates a live track entity with user edits.
@@ -71,15 +74,18 @@ export function UpdateLiveTrackEntityFromModel(
   liveTrack.last_fix_sec = 0;
   liveTrack.track = null;
 
-  for (const [trackerKey, prop] of Object.entries(trackerPropNames)) {
+  // TODO: we want to save account_resolved if any
+  for (const prop of Object.values(trackerPropNames)) {
     const model: TrackerModel = (account as any)[prop];
-    const transformer: AccountTransformer = (accountTransformers as any)[trackerKey];
     (liveTrack as any)[prop] = {
       enabled: model.enabled,
-      account: transformer.toServerAccount(model.account),
+      account: model.account,
       errors_requests: 0,
       updated: 0,
     };
+    if (model.account_resolved != null) {
+      (liveTrack as any)[prop].account_resolved = model.account_resolved;
+    }
   }
 
   return liveTrack as LiveTrackEntity;

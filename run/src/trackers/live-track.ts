@@ -133,6 +133,7 @@ export interface TrackerForUpdate {
   [Datastore.KEY]: Key;
   account: string;
   updated: number;
+  account_resolved?: string;
 }
 
 // Returns the list of trackers to update.
