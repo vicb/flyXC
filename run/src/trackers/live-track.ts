@@ -147,14 +147,13 @@ export async function getTrackersToUpdate(
 ): Promise<TrackerForUpdate[]> {
   const trackerProp = trackerPropNames[deviceType];
   const accountPath = `${trackerProp}.account`;
-  const accountResolvedPath = `${trackerProp}.account_resolved`;
   const updatedPath = `${trackerProp}.updated`;
   const enabledPath = `${trackerProp}.enabled`;
 
   try {
     let query = datastore
       .createQuery(LIVE_TRACK_TABLE)
-      .select([accountPath, accountResolvedPath, updatedPath])
+      .select([accountPath, updatedPath])
       .filter('enabled', true)
       .filter(enabledPath, true)
       .filter(updatedPath, '<', updatedBeforeMicros)
@@ -169,7 +168,6 @@ export async function getTrackersToUpdate(
     return response[0].map((entity) => ({
       [Datastore.KEY]: entity[Datastore.KEY],
       account: entity[accountPath],
-      account_resolved: entity[accountResolvedPath],
       updated: entity[updatedPath],
     }));
   } catch (e) {
