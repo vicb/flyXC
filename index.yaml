@@ -15,6 +15,7 @@ indexes:
     - name: skylines.enabled
     - name: skylines.updated
     - name: skylines.account
+    - name: skylines.account_resolved
   
   - kind: LiveTrack
     properties:
@@ -22,6 +23,7 @@ indexes:
     - name: spot.enabled
     - name: spot.updated
     - name: spot.account
+    - name: spot.account_resolved
   
   - kind: LiveTrack
     properties:
@@ -29,6 +31,7 @@ indexes:
     - name: inreach.enabled
     - name: inreach.updated
     - name: inreach.account
+    - name: inreach.account_resolved
 
   - kind: LiveTrack
     properties:
@@ -36,6 +39,7 @@ indexes:
     - name: flyme.enabled
     - name: flyme.updated
     - name: flyme.account
+    - name: flyme.account_resolved
 
   - kind: LiveTrack
     properties:
@@ -43,6 +47,7 @@ indexes:
     - name: flymaster.enabled
     - name: flymaster.updated
     - name: flymaster.account    
+    - name: flymaster.account_resolved    
 
   # Retrieve devices with errors.
 

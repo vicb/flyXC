@@ -38,6 +38,7 @@ export async function refresh(): Promise<TrackerUpdate> {
   try {
     const response = await request(url);
     if (response.code == 200) {
+      console.log(`response.body`, response.body);
       const fixes = JSON.parse(response.body);
       fixes.forEach((fix: [number, number, number, number, number, string]) => {
         const id = fix[0];
@@ -55,6 +56,8 @@ export async function refresh(): Promise<TrackerUpdate> {
     try {
       const flymeId = tracker.account_resolved ?? '';
 
+      console.log(`flyme: ${JSON.stringify(tracker)}`);
+
       let track: LiveTrack | undefined;
 
       const lastFetch = tracker.updated ?? 0;
@@ -69,6 +72,9 @@ export async function refresh(): Promise<TrackerUpdate> {
           flags: [getTrackerFlags({ valid: true, device: TrackerIds.Flyme })],
         });
         track = removeBeforeFromLiveTrack(track, startTimestamp / 1000);
+        console.log('has fix, track');
+      } else {
+        console.log('no fix');
       }
 
       result.tracks.set(datastoreId, {
