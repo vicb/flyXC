@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const request = require('request-zero');
-
 import crypto from 'crypto';
 import * as protos from 'flyxc/common/protos/track';
 import { diffEncodeTrack } from 'flyxc/common/src/runtime-track';
+import { getTextRetry } from 'flyxc/common/src/superagent';
 import {
   retrieveMetaTrackGroupByHash,
   retrieveMetaTrackGroupByUrl,
@@ -32,8 +30,8 @@ export async function parseFromUrl(url: string): Promise<protos.MetaTrackGroup> 
   console.log(`Cache miss (url = ${url})`);
 
   try {
-    const response = await request(url);
-    if (response.code == 200) {
+    const response = await getTextRetry(url);
+    if (response.ok) {
       return await parse(response.body, url);
     }
   } catch (e) {}

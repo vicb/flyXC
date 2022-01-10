@@ -10,11 +10,10 @@
 import async from 'async';
 import * as protos from 'flyxc/common/protos/track';
 import { pixelCoordinates } from 'flyxc/common/src/proj';
+import { getBufferRetry } from 'flyxc/common/src/superagent';
 import lru, { Lru } from 'tiny-lru';
 
 import { decode } from '@vivaxy/png';
-
-import { httpsGet } from './request';
 
 // Zoom level for the altitude tiles.
 const ZOOM_LEVEL = 10;
@@ -46,17 +45,20 @@ export async function fetchGroundAltitude(track: protos.Track): Promise<protos.G
     let rgba = getRgbaCache().get(url);
     if (rgba == null) {
       try {
-        const metadata = decode(await httpsGet(url));
-        if (metadata.width == TILE_PX_SIZE && metadata.height == TILE_PX_SIZE) {
-          rgba = metadata.data;
-          getRgbaCache().set(url, rgba);
+        const response = await getBufferRetry(url);
+        if (response.ok) {
+          const metadata = decode(response.body);
+          if (metadata.width == TILE_PX_SIZE && metadata.height == TILE_PX_SIZE) {
+            rgba = metadata.data;
+            getRgbaCache().set(url, rgba);
+          }
+          rgbas.set(url, rgba);
         }
       } catch (e) {
         console.error(`Error downloading ${url}`);
         hasErrors = true;
       }
     }
-    rgbas.set(url, rgba);
   });
 
   // Retrieve the fixes altitude.

@@ -8,10 +8,10 @@ import {
   TrackerIds,
 } from 'flyxc/common/src/live-track';
 import { validateFlymasterAccount } from 'flyxc/common/src/models';
+import { getTextRetry } from 'flyxc/common/src/superagent';
 import { formatReqError } from 'flyxc/common/src/util';
 
 import { LivePoint, makeLiveTrack } from './live-track';
-import { getTextRetry } from './superagent';
 import { TrackerFetcher, TrackerUpdates } from './tracker';
 
 // Latency before a fix is available (usually ~4min).

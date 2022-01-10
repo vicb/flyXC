@@ -5,9 +5,9 @@
 import { FetcherState } from 'flyxc/common/protos/fetcher-state';
 import { LiveTrack } from 'flyxc/common/protos/live-track';
 import { LatLon } from 'flyxc/common/src/runtime-track';
+import { getTextRetry } from 'flyxc/common/src/superagent';
 import { formatReqError } from 'flyxc/common/src/util';
 
-import { getTextRetry } from '../trackers/superagent';
 import { getElevationUrl, parseElevationResponse } from './arcgis';
 
 export interface ElevationUpdates {

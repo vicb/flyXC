@@ -6,11 +6,11 @@ import { Tracker } from 'flyxc/common/protos/fetcher-state';
 import { SecretKeys } from 'flyxc/common/src/keys';
 import { TrackerIds } from 'flyxc/common/src/live-track';
 import { validateFlymeAccount } from 'flyxc/common/src/models';
+import { getTextRetry } from 'flyxc/common/src/superagent';
 import { formatReqError } from 'flyxc/common/src/util';
 import request from 'superagent';
 
 import { LivePoint, makeLiveTrack } from './live-track';
-import { getTextRetry } from './superagent';
 import { TrackerFetcher, TrackerUpdates } from './tracker';
 
 export class FlymeFetcher extends TrackerFetcher {

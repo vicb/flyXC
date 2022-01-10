@@ -19,12 +19,13 @@
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
     "ol": "^6.10.0",
-    "request-zero": "^0.3.2"
+    "superagent": "^6.1.0"
   },
   "devDependencies": {
     "@types/koa": "^2.13.4",
     "@types/koa__router": "^8.0.11",
     "@types/koa-bodyparser": "^4.3.5",
-    "@types/ol": "^6.5.3"
+    "@types/ol": "^6.5.3",
+    "@types/superagent": "^4.1.14"
   }
 }

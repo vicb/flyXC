@@ -10,11 +10,11 @@ import {
   TrackerIds,
 } from 'flyxc/common/src/live-track';
 import { validateSkylinesAccount } from 'flyxc/common/src/models';
+import { getTextRetry } from 'flyxc/common/src/superagent';
 import { formatReqError } from 'flyxc/common/src/util';
 import { decodeDeltas } from 'ol/format/Polyline';
 
 import { LivePoint, makeLiveTrack } from './live-track';
-import { getTextRetry } from './superagent';
 import { TrackerFetcher, TrackerUpdates } from './tracker';
 
 const SECONDS_IN_DAY = 60 * 60 * 24;

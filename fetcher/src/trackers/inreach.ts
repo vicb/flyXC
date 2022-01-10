@@ -5,11 +5,11 @@
 import { Tracker } from 'flyxc/common/protos/fetcher-state';
 import { LIVE_MINIMAL_INTERVAL_SEC, simplifyLiveTrack, TrackerIds } from 'flyxc/common/src/live-track';
 import { validateInreachAccount } from 'flyxc/common/src/models';
+import { getTextRetry } from 'flyxc/common/src/superagent';
 import { formatReqError, parallelTasksWithTimeout } from 'flyxc/common/src/util';
 import { DOMParser } from 'xmldom';
 
 import { LivePoint, makeLiveTrack } from './live-track';
-import { getTextRetry } from './superagent';
 import { TrackerFetcher, TrackerUpdates } from './tracker';
 
 export class InreachFetcher extends TrackerFetcher {
