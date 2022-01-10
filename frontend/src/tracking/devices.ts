@@ -6,7 +6,7 @@ import './device-form';
 
 import { AccountModel } from 'flyxc/common/src/models';
 import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, query, state } from 'lit/decorators.js';
 
 @customElement('device-config')
 export class DeviceConfig extends LitElement {
@@ -15,6 +15,9 @@ export class DeviceConfig extends LitElement {
 
   @state()
   private isLoading = true;
+
+  @query('#dlg-ok')
+  private dialogOk: any;
 
   private token = '';
 
@@ -80,7 +83,25 @@ export class DeviceConfig extends LitElement {
         <google-btn></google-btn>
       </div>`;
     } else {
-      body = html`<device-form .token=${this.token} .account=${this.account}></device-form>`;
+      body = html`<device-form
+          .token=${this.token}
+          .account=${this.account}
+          action="/_account"
+          @save=${this.handleSaveOk}
+          @cancel=${this.handleCloseOk}
+        ></device-form>
+
+        <div id="dlg-ok" class="modal" @click=${this.handleCloseOk}>
+          <div class="modal-background"></div>
+          <div class="modal-content">
+            <div class="notification my-4">
+              <p class="my-2">Your device configuration has been updated.</p>
+              <p class="my-2">Please allow up to 15 minutes for changes to take effect.</p>
+              <p class="my-2">Click the close button to navigate back to the map.</p>
+            </div>
+          </div>
+          <button class="modal-close is-large" aria-label="close"></button>
+        </div> `;
     }
 
     return html`
@@ -96,5 +117,16 @@ export class DeviceConfig extends LitElement {
 
       <div class="container">${body}</div>
     `;
+  }
+
+  private handleSaveOk(): void {
+    this.dialogOk.classList.add('is-active');
+  }
+
+  private handleCloseOk(): void {
+    fetch('/logout').finally(() => {
+      const url = localStorage.getItem('url.tracking.return');
+      document.location.assign(url ?? '/');
+    });
   }
 }

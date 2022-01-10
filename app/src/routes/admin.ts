@@ -1,5 +1,8 @@
+import csurf from 'csurf';
 import express, { NextFunction, Request, Response, Router } from 'express';
 import { trackerPropNames } from 'flyxc/common/src/live-track';
+import { retrieveLiveTrackById } from 'flyxc/common/src/live-track-entity';
+import { AccountFormModel } from 'flyxc/common/src/models';
 import { Keys } from 'flyxc/common/src/redis';
 import { TRACK_TABLE } from 'flyxc/common/src/track-entity';
 import { Redis } from 'ioredis';
@@ -7,14 +10,40 @@ import zlib from 'zlib';
 
 import { Datastore } from '@google-cloud/datastore';
 
+import { createOrUpdateEntity } from './live-track';
 import { isAdmin } from './session';
 
 const datastore = new Datastore();
+const csrfProtection = csurf();
 
 // Cache the counter for hours.
 const REDIS_CACHE_HOURS = 5;
 // Initial offset for the number of tracks
 const NUM_TRACKS_OFFSET = 120000;
+
+const EDITOR_HTML = `<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-150271266-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'UA-150271266-1');
+  </script>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>FlyXc Account Editor</title>
+</head>
+
+<body style="margin: 0; padding: 0;">
+  <account-editor id="{{id}}"></account-editor>
+  <script type="module" src="/js/editor.js"></script>
+</body>
+
+</html>`;
 
 export function getAdminRouter(redis: Redis): Router {
   const router = express.Router();
@@ -65,6 +94,37 @@ export function getAdminRouter(redis: Redis): Router {
     }
 
     return res.sendStatus(204);
+  });
+
+  router.get(`/account/:id`, async (req: Request, res: Response) => {
+    res.set('Content-Type', 'text/html');
+    res.send(EDITOR_HTML.replace('{{id}}', req.params.id));
+  });
+
+  router.get(`/_account/:id`, csrfProtection, async (req: Request, res: Response) => {
+    try {
+      const entity = await retrieveLiveTrackById(req.params.id);
+      if (entity) {
+        const account = AccountFormModel.createFromEntity(entity);
+        res.set('xsrf-token', req.csrfToken());
+        return res.json(account);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return res.sendStatus(400);
+  });
+
+  router.post(`/_account/:id`, csrfProtection, async (req: Request, res: Response) => {
+    try {
+      const entity = await retrieveLiveTrackById(req.params.id);
+      if (entity) {
+        return createOrUpdateEntity(entity, req, res, entity.email, entity.google_id, redis);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return res.sendStatus(400);
   });
 
   return router;

@@ -5,6 +5,7 @@ import { SecretKeys } from 'flyxc/common/src/keys';
 import { INCREMENTAL_UPDATE_SEC } from 'flyxc/common/src/live-track';
 import {
   LIVE_TRACK_TABLE,
+  LiveTrackEntity,
   retrieveLiveTrackByGoogleId,
   TrackerEntity,
   UpdateLiveTrackEntityFromModel,
@@ -92,62 +93,16 @@ export function getTrackerRouter(redis: Redis): Router {
   // Updates the tracker information.
   router.post('/_account', csrfProtection, async (req: Request, res: Response) => {
     if (!isLoggedIn(req)) {
-      res.sendStatus(403);
-      return;
+      return res.sendStatus(403);
     }
 
-    try {
-      const userInfo = getUserInfo(req);
-      if (!userInfo) {
-        res.sendStatus(500);
-        return;
-      }
-      const { email, token } = userInfo;
-
-      let entity = await retrieveLiveTrackByGoogleId(token);
-
-      const account: AccountModel = req.body;
-      const binder = new NoDomBinder(AccountFormModel);
-      binder.read(account);
-
-      const model = binder.model;
-      binder.for(model.flyme).addValidator(new FlyMeValidator(entity?.flyme));
-
-      // Sends error to the client.
-      const validationErrorData = (await binder.validate()).map(({ property, message }) => ({
-        parameterName: property,
-        message,
-      }));
-
-      if (validationErrorData.length) {
-        res.json({
-          error: `The form contains invalid values!`,
-          validationErrorData,
-        });
-        return;
-      }
-
-      entity = UpdateLiveTrackEntityFromModel(entity, account, email, token);
-
-      try {
-        await datastore.save({
-          key: entity[Datastore.KEY] ?? datastore.key([LIVE_TRACK_TABLE]),
-          data: entity,
-          excludeFromIndexes: ['track'],
-        });
-        // Sends a command to the fetcher to sync from the DB.
-        await redis.incr(Keys.fetcherCmdSyncIncCount);
-      } catch (e) {
-        console.error(`Error saving the account ${email}`);
-        res.json({ error: `An error has occurred, please try again later.` });
-        return;
-      }
-
-      res.json({ error: false });
-    } catch (e) {
-      console.error(`Error updating an account: ${e}`);
-      res.sendStatus(400);
+    const userInfo = getUserInfo(req);
+    if (!userInfo) {
+      return res.sendStatus(500);
     }
+    const { email, token } = userInfo;
+    const entity = await retrieveLiveTrackByGoogleId(token);
+    return createOrUpdateEntity(entity, req, res, email, token, redis);
   });
 
   return router;
@@ -187,5 +142,57 @@ class FlyMeValidator implements Validator<TrackerModel> {
       tracker.account_resolved = '';
       return true;
     }
+  }
+}
+
+// Create or update a LiveTrack entity from the form POST data.
+export async function createOrUpdateEntity(
+  entity: LiveTrackEntity | undefined,
+  req: Request,
+  res: Response,
+  email: string,
+  token: string,
+  redis: Redis,
+) {
+  try {
+    const account: AccountModel = req.body;
+    const binder = new NoDomBinder(AccountFormModel);
+    binder.read(account);
+
+    const model = binder.model;
+    binder.for(model.flyme).addValidator(new FlyMeValidator(entity?.flyme));
+
+    // Sends error to the client.
+    const validationErrorData = (await binder.validate()).map(({ property, message }) => ({
+      parameterName: property,
+      message,
+    }));
+
+    if (validationErrorData.length) {
+      return res.json({
+        error: `The form contains invalid values!`,
+        validationErrorData,
+      });
+    }
+
+    entity = UpdateLiveTrackEntityFromModel(entity, account, email, token);
+
+    try {
+      await datastore.save({
+        key: entity[Datastore.KEY] ?? datastore.key([LIVE_TRACK_TABLE]),
+        data: entity,
+        excludeFromIndexes: ['track'],
+      });
+      // Sends a command to the fetcher to sync from the DB.
+      await redis.incr(Keys.fetcherCmdSyncIncCount);
+    } catch (e) {
+      console.error(`Error saving the account ${email}`);
+      return res.json({ error: `An error has occurred, please try again later.` });
+    }
+
+    return res.json({ error: false });
+  } catch (e) {
+    console.error(`Error updating an account: ${e}`);
+    return res.sendStatus(400);
   }
 }

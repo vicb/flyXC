@@ -122,6 +122,7 @@ export default [
   buildFrontEnd('frontend/src/archives/archives.ts'),
   buildFrontEnd('frontend/src/tracking/devices.ts'),
   buildFrontEnd('frontend/src/admin/admin.ts'),
+  buildFrontEnd('frontend/src/admin/editor.ts'),
 ];
 
 function buildFrontEnd(input, options = {}) {

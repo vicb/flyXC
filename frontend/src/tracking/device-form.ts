@@ -16,6 +16,9 @@ export class DeviceForm extends LitElement {
   @property({ attribute: false })
   token = '';
 
+  @property()
+  public action = '';
+
   @state()
   private submitting = false;
 
@@ -24,9 +27,6 @@ export class DeviceForm extends LitElement {
 
   @queryAll('tracker-panel')
   private trackerPanels: any;
-
-  @query('#dlg-ok')
-  private dialogOk: any;
 
   @query('#dlg-error')
   private dialogError: any;
@@ -139,7 +139,7 @@ export class DeviceForm extends LitElement {
 
       <div class="field is-grouped is-grouped-right">
         <p class="control">
-          <button class="button is-light" @click=${this.handleCloseOk}>Cancel</button>
+          <button class="button is-light" @click=${this.handleCancel}>Cancel</button>
         </p>
         <p class="control">
           <button
@@ -150,18 +150,6 @@ export class DeviceForm extends LitElement {
             Save
           </button>
         </p>
-      </div>
-
-      <div id="dlg-ok" class="modal" @click=${this.handleCloseOk}>
-        <div class="modal-background"></div>
-        <div class="modal-content">
-          <div class="notification my-4">
-            <p class="my-2">Your device configuration has been updated.</p>
-            <p class="my-2">Please allow up to 15 minutes for changes to take effect.</p>
-            <p class="my-2">Click the close button to navigate back to the map.</p>
-          </div>
-        </div>
-        <button class="modal-close is-large" aria-label="close"></button>
       </div>
 
       <div id="dlg-error" class="modal" @click=${this.handleCloseError}>
@@ -190,7 +178,7 @@ export class DeviceForm extends LitElement {
         let response: any;
 
         try {
-          response = await fetch('/_account', {
+          response = await fetch(this.action, {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
@@ -222,19 +210,16 @@ export class DeviceForm extends LitElement {
     if (this.error.length) {
       this.dialogError.classList.add('is-active');
     } else {
-      this.dialogOk.classList.add('is-active');
+      this.dispatchEvent(new CustomEvent('save'));
     }
-  }
-
-  private handleCloseOk(): void {
-    fetch('/logout').finally(() => {
-      const url = localStorage.getItem('url.tracking.return');
-      document.location.assign(url ?? '/');
-    });
   }
 
   private handleCloseError(): void {
     this.dialogError.classList.remove('is-active');
+  }
+
+  private handleCancel(): void {
+    this.dispatchEvent(new CustomEvent('cancel'));
   }
 }
 

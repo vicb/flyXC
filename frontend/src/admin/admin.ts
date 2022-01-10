@@ -627,10 +627,9 @@ function splitByDate(entries: string[], splitSec: number) {
   return { recent, old };
 }
 
-// Link to the entity in the cloud console.
+// Link to the account editor.
 function entityHref(id: string) {
-  const key = btoa(`key('LiveTrack',${id})`.replace(/=/g, '.'));
-  return `https://console.cloud.google.com/datastore/entities;kind=LiveTrack;ns=__$DEFAULT$__/query/kind;filter=%5B%227%2F__key__%7CKEY%7CEQ%7C48%2F${key}%22%5D?project=fly-xc`;
+  return `/admin/account/${id}`;
 }
 
 // Format the app state to a shorter and more understandable form for display.

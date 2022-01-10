@@ -52,6 +52,12 @@ export async function retrieveLiveTrackByGoogleId(googleId: string): Promise<Liv
   return entities[0];
 }
 
+// Retrieves a tracker by datastore id.
+export async function retrieveLiveTrackById(id: string): Promise<LiveTrackEntity | undefined> {
+  const [entity] = await datastore.get(datastore.key([LIVE_TRACK_TABLE, Number(id)]));
+  return entity;
+}
+
 // Updates a live track entity with user edits.
 export function UpdateLiveTrackEntityFromModel(
   entity: LiveTrackEntity | undefined,
@@ -74,7 +80,6 @@ export function UpdateLiveTrackEntityFromModel(
   liveTrack.last_fix_sec = 0;
   liveTrack.track = null;
 
-  // TODO: we want to save account_resolved if any
   for (const prop of Object.values(trackerPropNames)) {
     const model: TrackerModel = (account as any)[prop];
     (liveTrack as any)[prop] = {
