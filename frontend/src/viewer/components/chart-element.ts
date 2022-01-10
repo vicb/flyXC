@@ -2,20 +2,8 @@ import { ticks } from 'd3-array';
 import { airspaceCategory, Flags } from 'flyxc/common/src/airspaces';
 import { sampleAt } from 'flyxc/common/src/math';
 import { RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import {
-  css,
-  CSSResult,
-  customElement,
-  html,
-  LitElement,
-  PropertyValues,
-  query,
-  queryAll,
-  state,
-  svg,
-  SVGTemplateResult,
-  TemplateResult,
-} from 'lit-element';
+import { css, CSSResult, html, LitElement, PropertyValues, svg, SVGTemplateResult, TemplateResult } from 'lit';
+import { customElement, query, queryAll, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { DistanceUnit, formatUnit, SpeedUnit, Units } from '../logic/units';
@@ -321,7 +309,7 @@ export class ChartElement extends connect(store)(LitElement) {
             @click=${() => (this.playSpeed = Math.min(MAX_SPEED_FACTOR, this.playSpeed * 2))}
             style=${`visibility: ${this.playSpeed == MAX_SPEED_FACTOR ? 'hidden' : 'visible'}`}
           ></i>
-          <i class=${`la la-2x ${this.playTimer ? 'la-pause' : 'la-play'}`} @click="${this.handlePlay}}"></i>
+          <i class=${`la la-2x ${this.playTimer ? 'la-pause' : 'la-play'}`} @click="${this.handlePlay}"></i>
         </div>
       </div>
     `;
@@ -560,6 +548,7 @@ export class ChartElement extends connect(store)(LitElement) {
   }
 
   private handlePlay() {
+    console.log('handlePlay');
     if (this.playTimer) {
       clearInterval(this.playTimer);
       this.playTimer = undefined;

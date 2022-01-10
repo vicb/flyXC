@@ -1,7 +1,8 @@
 import './ui/track-modal';
 
 import { RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import { CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { CSSResult, html, LitElement, TemplateResult } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 
 import { controlStyle } from '../styles/control-style';
 import { getModalController } from './ui/ion-controllers';

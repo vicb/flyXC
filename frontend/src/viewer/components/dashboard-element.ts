@@ -2,7 +2,8 @@ import './ui/pref-modal';
 
 import { sampleAt } from 'flyxc/common/src/math';
 import { RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 
 import { formatUnit, Units } from '../logic/units';
 import { controlStyle } from '../styles/control-style';

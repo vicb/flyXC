@@ -1,10 +1,11 @@
-/* tslint:disable:max-classes-per-file */
+// TODO: Fix dependency cycle
 
 import isNumeric from 'validator/es/lib/isNumeric';
 
 import { BinderNode } from './BinderNode';
-import { Validator } from './Validation';
 import { IsNumber } from './Validators';
+
+import type { Validator } from './Validation';
 
 export const _ItemModel = Symbol('ItemModel');
 export const _parent = Symbol('parent');
@@ -16,6 +17,14 @@ export const _getPropertyModel = Symbol('getPropertyModel');
 
 const _properties = Symbol('properties');
 const _optional = Symbol('optional');
+
+export function getBinderNode<M extends AbstractModel<any>, T = ModelValue<M>>(model: M): BinderNode<T, M> {
+  if (!model[_binderNode]) {
+    model[_binderNode] = new BinderNode(model);
+  }
+
+  return model[_binderNode]!;
+}
 
 interface HasFromString<T> {
   [_fromString](value: string): T;
@@ -42,29 +51,38 @@ type ModelVariableArguments<C extends ModelConstructor<any, AbstractModel<any>>>
   : never;
 
 export abstract class AbstractModel<T> {
-  static createEmptyValue(): unknown {
+  public static createEmptyValue(): unknown {
     return undefined;
   }
 
-  readonly [_parent]: ModelParent<T>;
-  readonly [_validators]: ReadonlyArray<Validator<T>>;
-  readonly [_optional]: boolean;
+  public readonly [_parent]: ModelParent<T>;
 
-  [_binderNode]?: BinderNode<T, this>;
-  [_key]: keyof any;
+  public readonly [_validators]: ReadonlyArray<Validator<T>>;
 
-  constructor(parent: ModelParent<T>, key: keyof any, optional: boolean, ...validators: ReadonlyArray<Validator<T>>) {
+  public readonly [_optional]: boolean;
+
+  public [_binderNode]?: BinderNode<T, this>;
+
+  public [_key]: keyof any;
+
+  public constructor(
+    parent: ModelParent<T>,
+    key: keyof any,
+    optional: boolean,
+    ...validators: ReadonlyArray<Validator<T>>
+  ) {
     this[_parent] = parent;
     this[_key] = key;
     this[_optional] = optional;
     this[_validators] = validators;
   }
 
-  toString() {
+  public toString() {
     return String(this.valueOf());
   }
-  valueOf(): T {
-    const value = getBinderNode(this).value;
+
+  public valueOf(): T {
+    const { value } = getBinderNode(this);
     if (value === undefined) {
       throw new TypeError('Value is undefined');
     }
@@ -75,13 +93,15 @@ export abstract class AbstractModel<T> {
 export abstract class PrimitiveModel<T> extends AbstractModel<T> {}
 
 export class BooleanModel extends PrimitiveModel<boolean> implements HasFromString<boolean> {
-  static createEmptyValue = Boolean;
-  [_fromString] = Boolean;
+  public static override createEmptyValue = Boolean;
+
+  public [_fromString] = Boolean;
 }
 
-export class NumberModel extends PrimitiveModel<number> implements HasFromString<number> {
-  static createEmptyValue = Number;
-  constructor(
+export class NumberModel extends PrimitiveModel<number> implements HasFromString<number | undefined> {
+  public static override createEmptyValue = Number;
+
+  public constructor(
     parent: ModelParent<number>,
     key: keyof any,
     optional: boolean,
@@ -90,18 +110,23 @@ export class NumberModel extends PrimitiveModel<number> implements HasFromString
     // Prepend a built-in validator to indicate NaN input
     super(parent, key, optional, new IsNumber(optional), ...validators);
   }
-  [_fromString](str: string): number {
+
+  public [_fromString](str: string): number | undefined {
+    // Returning undefined is needed to support passing the validation when the value of an optional number field is
+    // an empty string
+    if (str === '') return undefined;
     return isNumeric(str) ? Number.parseFloat(str) : NaN;
   }
 }
 
 export class StringModel extends PrimitiveModel<string> implements HasFromString<string> {
-  static createEmptyValue = String;
-  [_fromString] = String;
+  public static override createEmptyValue = String;
+
+  public [_fromString] = String;
 }
 
 export class ObjectModel<T> extends AbstractModel<T> {
-  static createEmptyValue() {
+  public static override createEmptyValue() {
     const modelInstance = new this({ value: undefined }, 'value', false);
     let obj = {};
     // Iterate the model class hierarchy up to the ObjectModel, and extract
@@ -129,25 +154,30 @@ export class ObjectModel<T> extends AbstractModel<T> {
 
   protected [_getPropertyModel]<
     N extends keyof T,
-    C extends new (parent: ModelParent<NonNullable<T[N]>>, key: keyof any, optional: boolean, ...args: any[]) => any
+    C extends new (parent: ModelParent<NonNullable<T[N]>>, key: keyof any, optional: boolean, ...args: any[]) => any,
   >(name: N, ValueModel: C, valueModelArgs: any[]): InstanceType<C> {
     const [optional, ...rest] = valueModelArgs;
-    return this[_properties][name] !== undefined
-      ? (this[_properties][name] as InstanceType<C>)
-      : (this[_properties][name] = new ValueModel(this, name, optional, ...rest));
+
+    if (this[_properties][name] === undefined) {
+      this[_properties][name] = new ValueModel(this, name, optional, ...rest);
+    }
+
+    return this[_properties][name] as InstanceType<C>;
   }
 }
 
 export class ArrayModel<T, M extends AbstractModel<T>> extends AbstractModel<ReadonlyArray<T>> {
-  static createEmptyValue() {
+  public static override createEmptyValue() {
     return [] as ReadonlyArray<unknown>;
   }
 
   private readonly [_ItemModel]: ModelConstructor<T, M>;
+
   private readonly itemModelArgs: ReadonlyArray<any>;
+
   private readonly itemModels: M[] = [];
 
-  constructor(
+  public constructor(
     parent: ModelParent<ReadonlyArray<T>>,
     key: keyof any,
     optional: boolean,
@@ -163,7 +193,7 @@ export class ArrayModel<T, M extends AbstractModel<T>> extends AbstractModel<Rea
   /**
    * Iterates the current array value and yields a binder node for every item.
    */
-  *[Symbol.iterator](): IterableIterator<BinderNode<T, M>> {
+  public *[Symbol.iterator](): IterableIterator<BinderNode<T, M>> {
     const array = this.valueOf();
     const ItemModel = this[_ItemModel];
     if (array.length !== this.itemModels.length) {
@@ -179,8 +209,4 @@ export class ArrayModel<T, M extends AbstractModel<T>> extends AbstractModel<Rea
       yield getBinderNode(itemModel);
     }
   }
-}
-
-export function getBinderNode<M extends AbstractModel<any>, T = ModelValue<M>>(model: M): BinderNode<T, M> {
-  return model[_binderNode] || (model[_binderNode] = new BinderNode(model));
 }

@@ -1,6 +1,7 @@
 import { LiveTrack } from 'flyxc/common/protos/live-track';
 import { getFixMessage, isEmergencyFix, isEmergencyTrack } from 'flyxc/common/src/live-track';
-import { customElement, LitElement, PropertyValues, state } from 'lit-element';
+import { LitElement, PropertyValues } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 

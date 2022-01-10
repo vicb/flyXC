@@ -1,5 +1,6 @@
-import { customElement, html, LitElement, property, PropertyValues, state } from 'lit-element';
-import { html as baseHtml, TemplateResult } from 'lit-html';
+import { html, LitElement, PropertyValues } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import { html as baseHtml, TemplateResult } from 'lit/html.js';
 import { connect } from 'pwa-helpers';
 
 import { RootState, store } from '../../redux/store';

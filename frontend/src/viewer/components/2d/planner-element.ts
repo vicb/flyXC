@@ -1,5 +1,6 @@
-import { css, CSSResult, customElement, html, LitElement, state, TemplateResult } from 'lit-element';
-import { unsafeHTML } from 'lit-html/directives/unsafe-html';
+import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { connect } from 'pwa-helpers';
 
 import { Score } from '../../logic/score/scorer';

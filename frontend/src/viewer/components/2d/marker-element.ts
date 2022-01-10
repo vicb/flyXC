@@ -1,5 +1,6 @@
 import { LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import { customElement, LitElement, property, PropertyValues, state } from 'lit-element';
+import { LitElement, PropertyValues } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { formatUnit, Units } from '../../logic/units';

@@ -1,4 +1,5 @@
-import { customElement, html, LitElement, property, state, TemplateResult } from 'lit-element';
+import { html, LitElement, TemplateResult } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 
 import { getModalController } from './ion-controllers';
 

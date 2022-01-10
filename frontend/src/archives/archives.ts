@@ -1,4 +1,5 @@
-import { css, CSSResult, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 
 import { getApiKey } from '../apikey';
 

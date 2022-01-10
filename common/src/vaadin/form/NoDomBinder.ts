@@ -1,6 +1,13 @@
 import { BinderNode } from './BinderNode';
 import { _parent, AbstractModel, ModelConstructor } from './Models';
-import { runValidator, ServerValidator, ValidationError, Validator, ValueError } from './Validation';
+import {
+  InterpolateMessageCallback,
+  runValidator,
+  ServerValidator,
+  ValidationError,
+  Validator,
+  ValueError,
+} from './Validation';
 
 const _submitting = Symbol('submitting');
 const _defaultValue = Symbol('defaultValue');
@@ -21,17 +28,26 @@ const _validationRequestSymbol = Symbol('validationRequest');
  * @param <M> is the type of the model that describes the structure of the value
  */
 export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M> {
-  protected [_defaultValue]: T;
-  protected [_value]: T;
-  protected [_emptyValue]: T;
-  protected [_submitting] = false;
-  protected [_validating] = false;
-  protected [_validationRequestSymbol]: Promise<void> | undefined = undefined;
-  protected [_onChange]: (oldValue?: T) => void;
-  protected [_onSubmit]: (value: T) => Promise<T | void>;
+  private [_defaultValue]: T;
 
-  protected [_validations]: Map<AbstractModel<any>, Map<Validator<any>, Promise<ReadonlyArray<ValueError<any>>>>> =
+  private [_value]: T;
+
+  private [_emptyValue]: T;
+
+  private [_submitting] = false;
+
+  private [_validating] = false;
+
+  private [_validationRequestSymbol]: Promise<void> | undefined = undefined;
+
+  private [_onChange]: (oldValue?: T) => void;
+
+  private [_onSubmit]: (value: T) => Promise<any>;
+
+  private [_validations]: Map<AbstractModel<any>, Map<Validator<any>, Promise<ReadonlyArray<ValueError<any>>>>> =
     new Map();
+
+  public static interpolateMessageCallback?: InterpolateMessageCallback<any>;
 
   public context: any = null;
 
@@ -47,7 +63,7 @@ export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M>
    * binder = new Binder(OrderModel, {onSubmit: async (order) => {endpoint.save(order)}});
    * ```
    */
-  constructor(Model: ModelConstructor<T, M>, config?: BinderConfiguration<T>) {
+  public constructor(Model: ModelConstructor<T, M>, config?: BinderConfiguration<T>) {
     super(new Model({ value: undefined }, 'value', false));
     this[_emptyValue] = (this.model[_parent] as { value: T }).value;
     // @ts-ignore
@@ -61,22 +77,22 @@ export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M>
   /**
    * The initial value of the form, before any fields are edited by the user.
    */
-  get defaultValue() {
+  public override get defaultValue() {
     return this[_defaultValue];
   }
 
-  set defaultValue(newValue) {
+  public override set defaultValue(newValue) {
     this[_defaultValue] = newValue;
   }
 
   /**
    * The current value of the form.
    */
-  get value() {
+  public override get value() {
     return this[_value];
   }
 
-  set value(newValue) {
+  public override set value(newValue) {
     if (newValue === this[_value]) {
       return;
     }
@@ -93,7 +109,7 @@ export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M>
    * @param value Sets the argument as the new default
    * value before resetting, otherwise the previous default is used.
    */
-  read(value: T) {
+  public read(value: T) {
     this.defaultValue = value;
     if (
       // Skip when no value is set yet (e. g., invoked from constructor)
@@ -113,14 +129,14 @@ export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M>
   /**
    * Reset the form to the previous value
    */
-  reset() {
+  public reset() {
     this.read(this[_defaultValue]);
   }
 
   /**
    * Sets the form to empty value, as defined in the Model.
    */
-  clear() {
+  public clear() {
     this.read(this[_emptyValue]);
   }
 
@@ -130,10 +146,11 @@ export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M>
    *
    * It's a no-op if the onSubmit callback is undefined.
    */
-  async submit(): Promise<T | void> {
+  public async submit(): Promise<T | void> {
     if (this[_onSubmit] !== undefined) {
       return this.submitTo(this[_onSubmit]);
     }
+    return undefined;
   }
 
   /**
@@ -141,7 +158,7 @@ export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M>
    *
    * @param endpointMethod the callback function
    */
-  async submitTo(endpointMethod: (value: T) => Promise<T | void>): Promise<T | void> {
+  public async submitTo<V>(endpointMethod: (value: T) => Promise<V>): Promise<V> {
     const errors = await this.validate();
     if (errors.length) {
       throw new ValidationError(errors);
@@ -163,9 +180,9 @@ export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M>
           valueErrors.push({ property, value, validator: new ServerValidator(message), message });
         });
         this.setErrorsWithDescendants(valueErrors);
-        error = new ValidationError(valueErrors);
-        console.log(`errors:`, valueErrors);
+        throw new ValidationError(valueErrors);
       }
+
       throw error;
     } finally {
       this[_submitting] = false;
@@ -174,7 +191,7 @@ export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M>
     }
   }
 
-  async requestValidation<NT, NM extends AbstractModel<NT>>(
+  public async requestValidation<NT, NM extends AbstractModel<NT>>(
     model: NM,
     validator: Validator<NT>,
   ): Promise<ReadonlyArray<ValueError<NT>>> {
@@ -192,7 +209,7 @@ export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M>
       return modelValidations.get(validator) as Promise<ReadonlyArray<ValueError<NT>>>;
     }
 
-    const promise = runValidator(model, validator);
+    const promise = runValidator(model, validator, NoDomBinder.interpolateMessageCallback);
     modelValidations.set(validator, promise);
     const valueErrors = await promise;
 
@@ -211,7 +228,7 @@ export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M>
    * Indicates the submitting status of the form.
    * True if the form was submitted, but the submit promise is not resolved yet.
    */
-  get submitting() {
+  public get submitting() {
     return this[_submitting];
   }
 
@@ -219,7 +236,7 @@ export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M>
    * Indicates the validating status of the form.
    * True when there is an ongoing validation.
    */
-  get validating() {
+  public get validating() {
     return this[_validating];
   }
 
@@ -237,7 +254,7 @@ export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M>
     this[_validating] = false;
   }
 
-  protected update(oldValue: T) {
+  protected override update(oldValue: T) {
     if (this[_onChange]) {
       this[_onChange].call(this.context, oldValue);
     }

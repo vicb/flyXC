@@ -1,6 +1,7 @@
 import { LatLon } from 'flyxc/common/src/runtime-track';
 import { getDistance } from 'geolib';
-import { customElement, html, LitElement, state, TemplateResult } from 'lit-element';
+import { html, LitElement, TemplateResult } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import * as msg from '../../logic/messages';

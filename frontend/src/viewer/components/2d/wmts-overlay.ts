@@ -1,6 +1,7 @@
-import { LitElement, property } from 'lit-element';
+import { LitElement } from 'lit';
+import { property } from 'lit/decorators.js';
 // Warning: those are not the same at lit-element ones.
-import { html as litHtml, render as litRender, TemplateResult } from 'lit-html';
+import { html as litHtml, render as litRender, TemplateResult } from 'lit/html.js';
 
 export abstract class WMTSOverlayElement extends LitElement {
   // Actual type: google.maps.Map.

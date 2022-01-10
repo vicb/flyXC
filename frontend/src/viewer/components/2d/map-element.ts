@@ -1,8 +1,9 @@
 import { findClosestFix } from 'flyxc/common/src/distance';
 import { pixelCoordinates } from 'flyxc/common/src/proj';
 import { LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import { customElement, html, LitElement, property, PropertyValues, state, TemplateResult } from 'lit-element';
-import { repeat } from 'lit-html/directives/repeat';
+import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import { repeat } from 'lit/directives/repeat.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 import simplify from 'simplify-path';

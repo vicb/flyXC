@@ -15,7 +15,7 @@ export class Binder<T, M extends AbstractModel<T>> extends NoDomBinder<T, M> {
    * binder = new Binder(orderView, OrderModel, {onSubmit: async (order) => {endpoint.save(order)}});
    * ```
    */
-  constructor(context: Element, Model: ModelConstructor<T, M>, config?: BinderConfiguration<T>) {
+  constructor(public context: Element, Model: ModelConstructor<T, M>, config?: BinderConfiguration<T>) {
     super(Model, config);
 
     this.context = context;

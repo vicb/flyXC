@@ -1,16 +1,3 @@
-import {
-  _binderNode,
-  _ItemModel,
-  _key,
-  _parent,
-  _validators,
-  AbstractModel,
-  ArrayModel,
-  getBinderNode,
-  ModelConstructor,
-  ModelValue,
-  ObjectModel,
-} from './Models';
 /*
  * Copyright 2000-2020 Vaadin Ltd.
  *
@@ -26,8 +13,24 @@ import {
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-import { NoDomBinder } from './NoDomBinder';
-import { Validator, ValueError } from './Validation';
+// TODO: Fix dependency cycle
+
+import type { NoDomBinder } from './NoDomBinder';
+import {
+  _binderNode,
+  _ItemModel,
+  _key,
+  _parent,
+  _validators,
+  AbstractModel,
+  ArrayModel,
+  getBinderNode,
+  ModelConstructor,
+  ModelValue,
+  ObjectModel,
+} from './Models';
+
+import type { Validator, ValueError } from './Validation';
 
 const _ownErrors = Symbol('ownErrorsSymbol');
 const _visited = Symbol('visited');
@@ -45,21 +48,28 @@ function getErrorPropertyName(valueError: ValueError<any>): string {
  * instances.
  */
 export class BinderNode<T, M extends AbstractModel<T>> {
+  public readonly model: M;
+
   private [_visited] = false;
+
   private [_validators]: ReadonlyArray<Validator<T>>;
+
   private [_ownErrors]?: ReadonlyArray<ValueError<T>>;
+
   private defaultArrayItemValue?: T;
 
-  constructor(readonly model: M) {
+  public constructor(model: M) {
+    this.model = model;
     model[_binderNode] = this;
     this.initializeValue();
     this[_validators] = model[_validators];
   }
 
   /**
-   * The parent node, if this binder node corresponds to a nested model, otherwise undefined for the top-level binder.
+   * The parent node, if this binder node corresponds to a nested model,
+   * otherwise undefined for the top-level binder.
    */
-  get parent(): BinderNode<any, AbstractModel<any>> | undefined {
+  public get parent(): BinderNode<any, AbstractModel<any>> | undefined {
     const modelParent = this.model[_parent];
     return modelParent instanceof AbstractModel ? getBinderNode(modelParent) : undefined;
   }
@@ -67,14 +77,15 @@ export class BinderNode<T, M extends AbstractModel<T>> {
   /**
    * The binder for the top-level model.
    */
-  get binder(): NoDomBinder<any, AbstractModel<any>> {
+  public get binder(): NoDomBinder<any, AbstractModel<any>> {
     return this.parent ? this.parent.binder : (this as any);
   }
 
   /**
-   * The name generated from the model structure, used to set the name attribute on the field components.
+   * The name generated from the model structure, used to set the name
+   * attribute on the field components.
    */
-  get name(): string {
+  public get name(): string {
     let model = this.model as AbstractModel<any>;
     const strings = [];
     while (model[_parent] instanceof AbstractModel) {
@@ -87,23 +98,27 @@ export class BinderNode<T, M extends AbstractModel<T>> {
   /**
    * The current value related to the model
    */
-  get value(): T | undefined {
+  public get value(): T | undefined {
+    if (this.parent!.value === undefined) {
+      this.parent!.initializeValue(true);
+    }
     return this.parent!.value[this.model[_key]];
   }
 
-  set value(value: T | undefined) {
+  public set value(value: T | undefined) {
     this.setValueState(value);
   }
 
   /**
    * The default value related to the model
    */
-  get defaultValue(): T {
+  public get defaultValue(): T {
     if (this.parent && this.parent.model instanceof ArrayModel) {
-      return (
-        this.parent.defaultArrayItemValue ||
-        (this.parent.defaultArrayItemValue = this.parent.model[_ItemModel].createEmptyValue())
-      );
+      if (!this.parent.defaultArrayItemValue) {
+        this.parent.defaultArrayItemValue = this.parent.model[_ItemModel].createEmptyValue();
+      }
+
+      return this.parent.defaultArrayItemValue;
     }
 
     return this.parent!.defaultValue[this.model[_key]];
@@ -112,18 +127,19 @@ export class BinderNode<T, M extends AbstractModel<T>> {
   /**
    * True if the current value is different from the defaultValue.
    */
-  get dirty(): boolean {
+  public get dirty(): boolean {
     return this.value !== this.defaultValue;
   }
 
   /**
-   * The array of validators for the model. The default value is defined in the model.
+   * The array of validators for the model. The default value is defined in the
+   * model.
    */
-  get validators(): ReadonlyArray<Validator<T>> {
+  public get validators(): ReadonlyArray<Validator<T>> {
     return this[_validators];
   }
 
-  set validators(validators: ReadonlyArray<Validator<T>>) {
+  public set validators(validators: ReadonlyArray<Validator<T>>) {
     this[_validators] = validators;
   }
 
@@ -132,7 +148,7 @@ export class BinderNode<T, M extends AbstractModel<T>> {
    *
    * @param model The nested model instance
    */
-  for<NM extends AbstractModel<any>>(model: NM): BinderNode<ReturnType<NM['valueOf']>, NM> {
+  public for<NM extends AbstractModel<any>>(model: NM): BinderNode<ReturnType<NM['valueOf']>, NM> {
     const binderNode = getBinderNode(model);
     if (binderNode.binder !== this.binder) {
       throw new Error('Unknown binder');
@@ -146,7 +162,7 @@ export class BinderNode<T, M extends AbstractModel<T>> {
    * or any nested model. Returns the combined array of all
    * errors as in the errors property.
    */
-  async validate(): Promise<ReadonlyArray<ValueError<any>>> {
+  public async validate(): Promise<ReadonlyArray<ValueError<any>>> {
     // TODO: Replace reduce() with flat() when the following issue is solved
     //  https://github.com/vaadin/flow/issues/8658
     const errors = (
@@ -164,18 +180,18 @@ export class BinderNode<T, M extends AbstractModel<T>> {
    *
    * @param validator a validator
    */
-  addValidator(validator: Validator<T>) {
+  public addValidator(validator: Validator<T>) {
     this.validators = [...this[_validators], validator];
   }
 
   /**
    * True if the bound field was ever focused and blurred by the user.
    */
-  get visited() {
+  public get visited() {
     return this[_visited];
   }
 
-  set visited(v) {
+  public set visited(v) {
     if (this[_visited] !== v) {
       this[_visited] = v;
       this.updateValidation();
@@ -183,9 +199,10 @@ export class BinderNode<T, M extends AbstractModel<T>> {
   }
 
   /**
-   * The combined array of all errors for this node’s model and all its nested models
+   * The combined array of all errors for this node’s model and all its nested
+   * models
    */
-  get errors(): ReadonlyArray<ValueError<any>> {
+  public get errors(): ReadonlyArray<ValueError<any>> {
     const descendantsErrors = [...this.getChildBinderNodes()].reduce(
       (errors, childBinderNode) => [...errors, ...childBinderNode.errors],
       [] as ReadonlyArray<any>,
@@ -196,21 +213,21 @@ export class BinderNode<T, M extends AbstractModel<T>> {
   /**
    * The array of validation errors directly related with the model.
    */
-  get ownErrors() {
+  public get ownErrors() {
     return this[_ownErrors] ? this[_ownErrors] : [];
   }
 
   /**
    * Indicates if there is any error for the node's model.
    */
-  get invalid() {
+  public get invalid() {
     return this.errors.length > 0;
   }
 
   /**
    * True if the value is required to be non-empty.
    */
-  get required() {
+  public get required() {
     return this[_validators].some((validator) => validator.impliesRequired);
   }
 
@@ -222,7 +239,7 @@ export class BinderNode<T, M extends AbstractModel<T>> {
    * @param itemValue optional new item value, an empty item is
    * appended if the argument is omitted
    */
-  appendItem<IT extends ModelValue<M extends ArrayModel<any, infer IM> ? IM : never>>(itemValue?: IT) {
+  public appendItem<IT extends ModelValue<M extends ArrayModel<any, infer IM> ? IM : never>>(itemValue?: IT) {
     if (!(this.model instanceof ArrayModel)) {
       throw new Error('Model is not an array');
     }
@@ -230,7 +247,7 @@ export class BinderNode<T, M extends AbstractModel<T>> {
     if (!itemValue) {
       itemValue = this.model[_ItemModel].createEmptyValue();
     }
-    this.value = ([...((this.value as unknown) as ReadonlyArray<IT>), itemValue] as unknown) as T;
+    this.value = [...(this.value as unknown as ReadonlyArray<IT>), itemValue] as unknown as T;
   }
 
   /**
@@ -241,7 +258,7 @@ export class BinderNode<T, M extends AbstractModel<T>> {
    * @param itemValue optional new item value, an empty item is prepended if
    * the argument is omitted
    */
-  prependItem<IT extends ModelValue<M extends ArrayModel<any, infer IM> ? IM : never>>(itemValue?: IT) {
+  public prependItem<IT extends ModelValue<M extends ArrayModel<any, infer IM> ? IM : never>>(itemValue?: IT) {
     if (!(this.model instanceof ArrayModel)) {
       throw new Error('Model is not an array');
     }
@@ -249,7 +266,7 @@ export class BinderNode<T, M extends AbstractModel<T>> {
     if (!itemValue) {
       itemValue = this.model[_ItemModel].createEmptyValue();
     }
-    this.value = ([itemValue, ...((this.value as unknown) as ReadonlyArray<IT>)] as unknown) as T;
+    this.value = [itemValue, ...(this.value as unknown as ReadonlyArray<IT>)] as unknown as T;
   }
 
   /**
@@ -257,7 +274,7 @@ export class BinderNode<T, M extends AbstractModel<T>> {
    *
    * Requires the context model to be an array item reference.
    */
-  removeSelf() {
+  public removeSelf() {
     if (!(this.model[_parent] instanceof ArrayModel)) {
       throw new TypeError('Model is not an array item');
     }
@@ -283,10 +300,8 @@ export class BinderNode<T, M extends AbstractModel<T>> {
   protected async updateValidation() {
     if (this[_visited]) {
       await this.validate();
-    } else {
-      if (this.dirty || this.invalid) {
-        await Promise.all([...this.getChildBinderNodes()].map((childBinderNode) => childBinderNode.updateValidation()));
-      }
+    } else if (this.dirty || this.invalid) {
+      await Promise.all([...this.getChildBinderNodes()].map((childBinderNode) => childBinderNode.updateValidation()));
     }
   }
 
@@ -297,7 +312,7 @@ export class BinderNode<T, M extends AbstractModel<T>> {
   }
 
   protected setErrorsWithDescendants(errors?: ReadonlyArray<ValueError<any>>) {
-    const name = this.name;
+    const { name } = this;
     const ownErrors = errors ? errors.filter((valueError) => getErrorPropertyName(valueError) === name) : undefined;
     const relatedErrors = errors
       ? errors.filter((valueError) => getErrorPropertyName(valueError).startsWith(name))
@@ -309,6 +324,11 @@ export class BinderNode<T, M extends AbstractModel<T>> {
   }
 
   private *getChildBinderNodes(): Generator<BinderNode<any, AbstractModel<any>>> {
+    if (this.value === undefined) {
+      // Undefined value cannot have child properties and items.
+      return;
+    }
+
     if (this.model instanceof ObjectModel) {
       // We need to skip all non-initialised optional fields here in order to
       // prevent infinite recursion for circular references in the model.
@@ -326,11 +346,8 @@ export class BinderNode<T, M extends AbstractModel<T>> {
         }
       }
     } else if (this.model instanceof ArrayModel) {
-      // Only iterate if optional array is initialised
-      if (this.value !== undefined) {
-        for (const childModel of this.model) {
-          yield childModel;
-        }
+      for (const childBinderNode of this.model) {
+        yield childBinderNode;
       }
     }
   }

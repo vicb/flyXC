@@ -10,8 +10,9 @@ import './marker3d-element';
 import './controls3d-element';
 
 import { LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import { customElement, html, LitElement, PropertyValues, state, TemplateResult } from 'lit-element';
-import { repeat } from 'lit-html/directives/repeat';
+import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { repeat } from 'lit/directives/repeat.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 

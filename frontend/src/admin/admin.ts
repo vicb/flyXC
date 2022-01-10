@@ -5,8 +5,9 @@ import { FetcherState, Pilot, Tracker } from 'flyxc/common/protos/fetcher-state'
 import { trackerPropNames } from 'flyxc/common/src/live-track';
 import { round } from 'flyxc/common/src/math';
 import { Keys } from 'flyxc/common/src/redis';
-import { css, CSSResult, customElement, html, LitElement, property, state, TemplateResult } from 'lit-element';
-import { unsafeHTML } from 'lit-html/directives/unsafe-html';
+import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 const REFRESH_MIN = 10;
 

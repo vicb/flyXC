@@ -2,18 +2,8 @@ import './text-field';
 
 import { trackerDisplayNames, TrackerIds, trackerPropNames } from 'flyxc/common/src/live-track';
 import { AccountFormModel, AccountModel } from 'flyxc/common/src/models';
-import {
-  css,
-  CSSResult,
-  customElement,
-  html,
-  LitElement,
-  property,
-  query,
-  queryAll,
-  state,
-  TemplateResult,
-} from 'lit-element';
+import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
+import { customElement, property, query, queryAll, state } from 'lit/decorators.js';
 
 import { Binder } from '@vaadin/form/Binder';
 import { field } from '@vaadin/form/Field';

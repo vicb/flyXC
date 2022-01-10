@@ -5,7 +5,8 @@ import '../google-btn';
 import './device-form';
 
 import { AccountModel } from 'flyxc/common/src/models';
-import { css, CSSResult, customElement, html, LitElement, state, TemplateResult } from 'lit-element';
+import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
 
 @customElement('device-config')
 export class DeviceConfig extends LitElement {

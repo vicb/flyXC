@@ -1,6 +1,6 @@
-import { customElement } from 'lit-element';
+import { customElement } from 'lit/decorators.js';
 // Warning: those are not the same at lit-element ones.
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 
 import { getApiKey } from '../../../apikey';
 import { WMTSMapTypeElement } from './wmts-overlay';

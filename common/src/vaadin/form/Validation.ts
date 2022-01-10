@@ -1,8 +1,9 @@
-/* tslint:disable:max-classes-per-file */
+// TODO: Fix dependency cycle
 
-import { AbstractModel, getBinderNode, NumberModel } from './Models';
-import { NoDomBinder } from './NoDomBinder';
-import { Required } from './Validators';
+import type { NoDomBinder } from './NoDomBinder.js';
+import type { BinderNode } from './BinderNode.js';
+import { AbstractModel, getBinderNode, NumberModel } from './Models.js';
+import { Required } from './Validators.js';
 
 export interface ValueError<T> {
   property: string | AbstractModel<any>;
@@ -17,11 +18,11 @@ export interface ValidationResult {
 }
 
 export class ValidationError extends Error {
-  constructor(public errors: ReadonlyArray<ValueError<any>>) {
+  public constructor(public errors: ReadonlyArray<ValueError<any>>) {
     super(
       [
         'There are validation errors in the form.',
-        ...errors.map((e) => `${e.property} - ${e.validator.constructor.name}${e.message ? ': ' + e.message : ''}`),
+        ...errors.map((e) => `${e.property} - ${e.validator.constructor.name}${e.message ? `: ${e.message}` : ''}`),
       ].join('\n - '),
     );
     this.name = this.constructor.name;
@@ -37,6 +38,12 @@ export type ValidationCallback<T> = (
   | ReadonlyArray<ValidationResult>
   | Promise<boolean | ValidationResult | ReadonlyArray<ValidationResult>>;
 
+export type InterpolateMessageCallback<T> = (
+  message: string,
+  validator: Validator<T>,
+  binderNode: BinderNode<T, AbstractModel<T>>,
+) => string;
+
 export interface Validator<T> {
   validate: ValidationCallback<T>;
   message: string;
@@ -44,40 +51,67 @@ export interface Validator<T> {
 }
 
 export class ServerValidator implements Validator<any> {
-  constructor(public message: string) {}
-  validate = () => false;
+  public message: string;
+
+  public constructor(message: string) {
+    this.message = message;
+  }
+
+  public validate = () => false;
 }
 
 export async function runValidator<T>(
   model: AbstractModel<T>,
   validator: Validator<T>,
+  interpolateMessageCallback?: InterpolateMessageCallback<T>,
 ): Promise<ReadonlyArray<ValueError<T>>> {
-  const value = getBinderNode(model).value as T;
+  const binderNode = getBinderNode(model);
+  const { value } = binderNode;
+
+  const interpolateMessage = (message: string) => {
+    if (!interpolateMessageCallback) {
+      return message;
+    }
+    return interpolateMessageCallback(message, validator, binderNode);
+  };
+
   // If model is not required and value empty, do not run any validator. Except
   // always validate NumberModel, which has a mandatory builtin validator
   // to indicate NaN input.
   if (!getBinderNode(model).required && !new Required().validate(value!) && !(model instanceof NumberModel)) {
     return [];
   }
-  return (async () => (validator.validate as any)(value, getBinderNode(model).binder, model))().then((result) => {
+  return (async () => validator.validate(value!, getBinderNode(model).binder))().then((result) => {
     if (result === false) {
-      return [{ property: getBinderNode(model).name, value, validator, message: validator.message }];
-    } else if (result === true || (Array.isArray(result) && result.length === 0)) {
+      return [
+        { property: getBinderNode(model).name, value, validator, message: interpolateMessage(validator.message) },
+      ];
+    }
+    if (result === true || (Array.isArray(result) && result.length === 0)) {
       return [];
     } else if (Array.isArray(result)) {
-      return result.map((result2) => ({
-        message: validator.message,
-        ...absolutePropertyPath(model, result2),
+      return result.map((result2: ValidationResult) => ({
+        message: interpolateMessage(validator.message),
+        ...(absolutePropertyPath(model, result2) as any),
         value,
         validator,
       }));
     } else {
-      return [{ message: validator.message, ...absolutePropertyPath(model, result), value, validator }];
+      return [
+        {
+          message: interpolateMessage(validator.message),
+          ...absolutePropertyPath(model, result as any as ValidationResult),
+          value,
+          validator,
+        },
+      ];
     }
+    return [];
   });
 }
 
-// transforms the "property" field of the result to an absolute path
+// Transforms the "property" field of the result to an absolute path.
+// Note: this is a fix for vaadin.
 function absolutePropertyPath<T>(model: AbstractModel<T>, result: ValidationResult): ValidationResult {
   if (typeof result.property === 'string') {
     const path = getBinderNode(model).name;

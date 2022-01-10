@@ -1,4 +1,5 @@
-import { customElement, html, LitElement, state, TemplateResult } from 'lit-element';
+import { html, LitElement, TemplateResult } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { LEAGUES } from '../../logic/score/league/leagues';

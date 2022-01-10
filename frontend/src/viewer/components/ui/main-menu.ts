@@ -3,7 +3,8 @@ import './track-modal';
 import './about-modal';
 import './live-modal';
 
-import { customElement, html, LitElement, state, TemplateResult } from 'lit-element';
+import { html, LitElement, TemplateResult } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 

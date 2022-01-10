@@ -1,5 +1,6 @@
 import { extractGroupId, RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import { customElement, html, LitElement, state, TemplateResult } from 'lit-element';
+import { html, LitElement, TemplateResult } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { pushCurrentState } from '../../logic/history';

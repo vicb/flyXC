@@ -12,8 +12,9 @@ import './components/loader-element';
 import './components/ui/main-menu';
 
 import { LatLonZ } from 'flyxc/common/src/runtime-track';
-import { customElement, html, LitElement, state, TemplateResult } from 'lit-element';
-import { classMap } from 'lit-html/directives/class-map.js';
+import { html, LitElement, TemplateResult } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { connect } from 'pwa-helpers';
 
 import { requestCurrentPosition } from './logic/geolocation';

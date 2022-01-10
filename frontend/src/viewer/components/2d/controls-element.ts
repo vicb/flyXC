@@ -7,7 +7,8 @@ import './tracking-element';
 import './path-element';
 
 import { RuntimeTrack } from 'flyxc/common/src/runtime-track';
-import { css, CSSResult, customElement, html, LitElement, property, state, TemplateResult } from 'lit-element';
+import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { Units } from '../../logic/units';

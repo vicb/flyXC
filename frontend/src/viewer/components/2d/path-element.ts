@@ -1,7 +1,8 @@
 import '../ui/share-modal';
 import '../ui/waypoint-modal';
 
-import { customElement, LitElement, property, PropertyValues, state } from 'lit-element';
+import { LitElement, PropertyValues } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { ClosingSector } from '../../gm/closing-sector';
