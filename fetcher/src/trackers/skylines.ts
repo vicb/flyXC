@@ -2,6 +2,7 @@
 //
 // See https://github.com/skylines-project/skylines.
 
+import { Tracker } from 'flyxc/common/protos/fetcher-state';
 import {
   LIVE_MINIMAL_INTERVAL_SEC,
   removeBeforeFromLiveTrack,
@@ -78,6 +79,14 @@ export class SkylinesFetcher extends TrackerFetcher {
         break;
       }
     }
+  }
+
+  protected getNextFetchAfterSec(tracker: Readonly<Tracker>): number {
+    const lastFixAgeSec = Math.round(Date.now() / 1000) - tracker.lastFixSec;
+    if (lastFixAgeSec > 24 * 3600) {
+      return Math.floor(3 + Math.random() * 3) * 60;
+    }
+    return 60;
   }
 }
 
