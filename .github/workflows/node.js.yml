@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [16.x]
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
@@ -25,6 +25,9 @@ jobs:
     - uses: bahmutov/npm-install@v1
       with:
         working-directory: run
+    - uses: bahmutov/npm-install@v1
+      with:
+        working-directory: fetcher        
     - run: cp frontend/src/keys.ts.dist frontend/src/keys.ts
     - run: cp common/src/keys.ts.dist common/src/keys.ts
     - run: npm test    
