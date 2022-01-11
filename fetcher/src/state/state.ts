@@ -5,9 +5,10 @@ import { importFromStorage } from './serialize';
 export const BUCKET_NAME = 'fly-xc.appspot.com';
 
 // Update the state version when the shape change (i.e. proto).
+const STATE_FOLDER = process.env.NODE_ENV == 'development' ? 'fetcher.dev' : 'fetcher';
 const STATE_VERSION = 1;
-export const PERIODIC_STATE_FILE = `fetcher/state_v${STATE_VERSION}.brotli`;
-export const SHUTDOWN_STATE_FILE = `fetcher/state_v${STATE_VERSION}.shutdown.brotli`;
+export const PERIODIC_STATE_FILE = `${STATE_FOLDER}/state_v${STATE_VERSION}.brotli`;
+export const SHUTDOWN_STATE_FILE = `${STATE_FOLDER}/state_v${STATE_VERSION}.shutdown.brotli`;
 
 export const EXPORT_FILE_SEC = 4 * 3600;
 export const FULL_SYNC_SEC = 24 * 3600;
