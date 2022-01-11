@@ -18,8 +18,8 @@
     "@vivaxy/png": "^1.3.0",
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
-    "ol": "^6.10.0",
-    "superagent": "^6.1.0"
+    "ol": "^6.11.0",
+    "superagent": "^7.0.1"
   },
   "devDependencies": {
     "@types/koa": "^2.13.4",

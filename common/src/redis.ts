@@ -106,7 +106,7 @@ let redis: IORedis.Redis | undefined;
 export function getRedisClient(): IORedis.Redis {
   if (!redis) {
     const keyPrefix = process.env.NODE_ENV == 'development' ? 'dev:' : undefined;
-    redis = new IORedis(SecretKeys.REDIS_URL, {keyPrefix});
+    redis = new IORedis(SecretKeys.REDIS_URL, { keyPrefix });
   }
   return redis;
 }

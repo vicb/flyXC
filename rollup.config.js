@@ -44,7 +44,12 @@ export default [
       resolve({
         preferBuiltins: true,
       }),
-      cjs(),
+      cjs({
+        requireReturnsDefault: (moduleName) => {
+          // hexoid import would fail without this (used by formidable)
+          return /hexoid\/dist\/index.mjs/.test(moduleName);
+        },
+      }),
       typescript({
         sourceMap: !prod,
       }),
@@ -75,7 +80,12 @@ export default [
       resolve({
         preferBuiltins: true,
       }),
-      cjs(),
+      cjs({
+        requireReturnsDefault: (moduleName) => {
+          // hexoid import would fail without this (used by formidable)
+          return /hexoid\/dist\/index.mjs/.test(moduleName);
+        },
+      }),
       typescript({
         sourceMap: !prod,
       }),
@@ -107,7 +117,12 @@ export default [
       resolve({
         preferBuiltins: true,
       }),
-      cjs(),
+      cjs({
+        requireReturnsDefault: (moduleName) => {
+          // hexoid import would fail without this (used by formidable)
+          return /hexoid\/dist\/index.mjs/.test(moduleName);
+        },
+      }),
       typescript({
         sourceMap: !prod,
       }),
@@ -172,7 +187,12 @@ function buildFrontEnd(input, options = {}) {
         ],
       }),
       resolve(),
-      cjs(),
+      cjs({
+        requireReturnsDefault: (moduleName) => {
+          // hexoid import would fail without this (used by formidable)
+          return /hexoid\/dist\/index.mjs/.test(moduleName);
+        },
+      }),
       typescript({
         lib: options.isWorker ? ['ES2020', 'WebWorker'] : ['ES2020', 'DOM'],
         sourceMap: !prod,
