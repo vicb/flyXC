@@ -71,6 +71,10 @@ export class InreachFetcher extends TrackerFetcher {
     if (tracker.numConsecutiveErrors > 10) {
       return 10 * 60;
     }
+    if (tracker.numConsecutiveErrors == 1 || tracker.numConsecutiveErrors == 2) {
+      // Retry fast on few errors.
+      return 60;
+    }
     const lastFixAgeSec = Math.round(Date.now() / 1000) - tracker.lastFixSec;
     if (lastFixAgeSec > 3 * 30 * 24 * 3600) {
       return 20 * 60;
