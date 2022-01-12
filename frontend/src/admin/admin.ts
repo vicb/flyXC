@@ -258,7 +258,7 @@ export class DashTracker extends LitElement {
     const topErrors = this.values[Keys.trackerManyErrorsById.replace('{name}', this.name)];
     const { recent: topRecentErrorsById, old: topOldErrorsById } = splitByDate(topErrors, oldTimeSec);
 
-    const consErrors = this.values[Keys.trackerManyErrorsById.replace('{name}', this.name)];
+    const consErrors = this.values[Keys.trackerConsecutiveErrorsById.replace('{name}', this.name)];
     const { recent: consRecentErrorsById, old: consOldErrorsById } = splitByDate(consErrors, oldTimeSec);
 
     const errorsById = this.values[Keys.trackerErrorsById.replace('{name}', this.name)];

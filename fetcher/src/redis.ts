@@ -71,7 +71,7 @@ export function addTrackerLogs(pipeline: Pipeline, updates: TrackerUpdates, stat
       pushListCap(
         pipeline,
         Keys.trackerConsecutiveErrorsById.replace('{name}', name),
-        [`[${time} id=${id} ${error}]`],
+        [`[${time}] id=${id} ${error}`],
         20,
       );
     }
@@ -80,7 +80,7 @@ export function addTrackerLogs(pipeline: Pipeline, updates: TrackerUpdates, stat
       pushListCap(
         pipeline,
         Keys.trackerManyErrorsById.replace('{name}', name),
-        [`[${time} id=${id} ${numErrors} errors]`],
+        [`[${time}] id=${id} ${numErrors} errors`],
         20,
       );
     }
