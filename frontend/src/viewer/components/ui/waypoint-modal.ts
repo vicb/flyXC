@@ -1,3 +1,4 @@
+import { LatLonZ } from 'flyxc/common/src/runtime-track';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
@@ -14,7 +15,7 @@ const WAYPOINT_FORMATS: { [id: string]: string } = {
 @customElement('waypoint-modal')
 export class WaypointModal extends LitElement {
   @property()
-  payload: any;
+  points: LatLonZ[] = [];
 
   @state()
   fileType = 'cup';
@@ -76,9 +77,12 @@ export class WaypointModal extends LitElement {
     const root = this.renderRoot;
     const form = root.querySelector('#wpt-form') as HTMLFormElement;
     const input = form.querySelector('input') as HTMLInputElement;
-    this.payload.format = this.fileType;
-    this.payload.prefix = this.prefix;
-    input.value = JSON.stringify(this.payload);
+    const payload = {
+      format: this.fileType,
+      prefix: this.prefix,
+      points: this.points,
+    };
+    input.value = JSON.stringify(payload);
     form.submit();
     await this.dismiss();
   }

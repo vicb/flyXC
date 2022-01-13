@@ -10,12 +10,14 @@ import { FaiSectors } from '../../gm/fai-sectors';
 import { getCurrentUrl, pushCurrentState } from '../../logic/history';
 import { drawRoute } from '../../logic/messages';
 import { LEAGUES } from '../../logic/score/league/leagues';
-import { Measure, Point } from '../../logic/score/measure';
+import { Measure } from '../../logic/score/measure';
 import { CircuitType, Score } from '../../logic/score/scorer';
 import { setDistance, setRoute, setScore } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
 import { getModalController } from '../ui/ion-controllers';
 import { PlannerElement } from './planner-element';
+import { addAltitude } from '../../logic/elevation';
+import { LatLon } from 'flyxc/common/src/runtime-track';
 
 // Route color by circuit type.
 const ROUTE_STROKE_COLORS = {
@@ -178,7 +180,7 @@ export class PathElement extends connect(store)(LitElement) {
   }
 
   // Returns the route as an array of points.
-  private getPathPoints(): Point[] {
+  private getPathPoints(): LatLon[] {
     return this.line
       ? this.line
           .getPath()
@@ -275,29 +277,12 @@ export class PathElement extends connect(store)(LitElement) {
   }
 
   private async openDownloadModal(): Promise<void> {
-    const elevator = new google.maps.ElevationService();
-    elevator.getElevationForLocations(
-      {
-        locations: this.getPathPoints().map((p) => new google.maps.LatLng(p.lat, p.lon)),
-      },
-      async (results: google.maps.ElevationResult[], status: google.maps.ElevationStatus) => {
-        let elevations = null;
-        if (status == google.maps.ElevationStatus.OK) {
-          elevations = results.map((r) => r.elevation);
-        }
-
-        const payload = {
-          points: this.getPathPoints(),
-          elevations,
-        };
-
-        const modal = await getModalController().create({
-          component: 'waypoint-modal',
-          componentProps: { payload },
-        });
-        await modal.present();
-      },
-    );
+    const points = await addAltitude(this.getPathPoints());
+    const modal = await getModalController().create({
+      component: 'waypoint-modal',
+      componentProps: { points },
+    });
+    await modal.present();
   }
 
   private handlePathUpdates(): void {
@@ -306,18 +291,6 @@ export class PathElement extends connect(store)(LitElement) {
       store.dispatch(setRoute(google.maps.geometry.encoding.encodePath(this.line.getPath())));
     }
     this.optimize();
-  }
-
-  private getXcTrackLink(): string {
-    const params = new URLSearchParams();
-    if (this.line) {
-      const points: string[] = [];
-      this.line
-        .getPath()
-        .forEach((latLng: google.maps.LatLng) => points.push(latLng.lat().toFixed(6) + ',' + latLng.lng().toFixed(6)));
-      params.set('route', points.join(':'));
-    }
-    return `http://xctrack.org/xcplanner?${params}`;
   }
 
   // Creates the planner element lazily.
@@ -337,11 +310,12 @@ export class PathElement extends connect(store)(LitElement) {
         }
       });
       el.addEventListener('share', async () => {
+        const points = await addAltitude(this.getPathPoints());
         const modal = await getModalController().create({
           component: 'share-modal',
           componentProps: {
             link: getCurrentUrl().href,
-            xctrackLink: this.getXcTrackLink(),
+            points,
           },
         });
         await modal.present();

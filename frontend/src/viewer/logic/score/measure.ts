@@ -1,16 +1,12 @@
 // Optimization code adapted from
 // https://github.com/twpayne/maxxc/blob/7c22a46536ec7299ec91d135fea10b5b5925032c/track.c
 
+import { LatLon } from 'flyxc/common/src/runtime-track';
 import { getDistance } from 'geolib';
 
 export interface PointReference {
   index: number;
   distance: number;
-}
-
-export interface Point {
-  lat: number;
-  lon: number;
 }
 
 export class Measure {
@@ -20,7 +16,7 @@ export class Measure {
   private farthestBefore: PointReference[] = [];
   private farthestAfter: PointReference[] = [];
 
-  constructor(public points: Point[]) {
+  constructor(public points: LatLon[]) {
     this.len = points.length;
     for (let i = 0; i < this.len - 1; i++) {
       this.maxDelta = Math.max(this.maxDelta, getDistance(points[i], points[i + 1]));

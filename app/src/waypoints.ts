@@ -2,44 +2,38 @@
 const { buildGPX, BaseBuilder } = require('gpx-builder');
 const builder = require('xmlbuilder');
 
+import { LatLonZ } from 'flyxc/common/src/runtime-track';
 import printf from 'printf';
 
 export function encode(
   format: string,
-  points: { lat: number; lon: number }[],
-  elevations: number[] | null,
+  points: LatLonZ[],
   prefix: string,
 ): { mime?: string; file?: string; ext?: string; error?: string } {
   switch (format) {
     case 'gpx':
-      return encodeGPX(points, elevations, prefix);
+      return encodeGPX(points, prefix);
     case 'kml':
-      return encodeKML(points, elevations, prefix);
+      return encodeKML(points, prefix);
     case 'tsk':
-      return encodeTSK(points, elevations, prefix);
+      return encodeTSK(points, prefix);
     case 'wpt':
-      return encodeWPT(points, elevations, prefix);
+      return encodeWPT(points, prefix);
     case 'cup':
-      return encodeCUP(points, elevations, prefix);
+      return encodeCUP(points, prefix);
 
     default:
       return { error: 'Unsupported format' };
   }
 }
 
-function encodeGPX(
-  points: { lat: number; lon: number }[],
-  elevations: number[] | null,
-  prefix: string,
-): { mime?: string; file?: string; ext?: string; error?: string } {
+function encodeGPX(points: LatLonZ[], prefix: string): { mime?: string; file?: string; ext?: string; error?: string } {
   const Point = BaseBuilder.MODELS.Point;
   const waypoints = points.map((p: any, i: number) => {
     const attributes: { [k: string]: string } = {
       name: prefix + String(i + 1).padStart(3, '0'),
     };
-    if (elevations) {
-      attributes.ele = Math.round(elevations[i]).toString();
-    }
+    attributes.ele = p.alt.toString();
     return new Point(p.lat.toFixed(6), p.lon.toFixed(6), attributes);
   });
   const gpxData = new BaseBuilder();
@@ -47,14 +41,8 @@ function encodeGPX(
   return { file: buildGPX(gpxData), mime: 'application/gpx+xml', ext: 'gpx' };
 }
 
-function encodeKML(
-  points: { lat: number; lon: number }[],
-  elevations: number[] | null,
-  prefix: string,
-): { mime?: string; file?: string; ext?: string; error?: string } {
-  const coordinates = points.map(
-    (p, i) => `${p.lon.toFixed(6)},${p.lat.toFixed(6)}` + (elevations ? `,${Math.round(elevations[i])}` : ''),
-  );
+function encodeKML(points: LatLonZ[], prefix: string): { mime?: string; file?: string; ext?: string; error?: string } {
+  const coordinates = points.map((p) => `${p.lon.toFixed(6)},${p.lat.toFixed(6)},${p.alt}`);
 
   const kml = builder.begin().ele('kml', { xmlns: 'http://www.opengis.net/kml/2.2' });
   const document = kml.ele('Document');
@@ -80,11 +68,7 @@ function encodeKML(
   return { mime: 'application/vnd.google-earth.kml+xml', file: kml.toString(), ext: 'kml' };
 }
 
-function encodeTSK(
-  points: { lat: number; lon: number }[],
-  elevations: number[] | null,
-  prefix: string,
-): { mime?: string; file?: string; ext?: string; error?: string } {
+function encodeTSK(points: LatLonZ[], prefix: string): { mime?: string; file?: string; ext?: string; error?: string } {
   // See https://github.com/XCSoar/XCSoar/issues/542
   const task = builder.begin().ele('Task', { type: 'RT' });
   points.forEach((p, i) => {
@@ -100,21 +84,15 @@ function encodeTSK(
     waypoint
       .ele('Location', { latitude: p.lat.toFixed(6), longitude: p.lon.toFixed(6) })
       .up()
-      .ele('ObservationZone', { type: 'Cylinder', radius: 400 });
-    if (elevations) {
-      waypoint.att('altitude', Math.round(elevations[i]));
-    }
+      .ele('ObservationZone', { type: 'Cylinder', radius: 400 })
+      .att('altitude', p.alt);
   });
   task.end({ pretty: true });
 
   return { mime: 'application/tsk+xml', file: task.toString(), ext: 'tsk' };
 }
 
-function encodeWPT(
-  points: { lat: number; lon: number }[],
-  elevations: number[] | null,
-  prefix: string,
-): { mime?: string; file?: string; ext?: string; error?: string } {
+function encodeWPT(points: LatLonZ[], prefix: string): { mime?: string; file?: string; ext?: string; error?: string } {
   const file =
     '$FormatGEO\r\n' +
     points
@@ -132,7 +110,7 @@ function encodeWPT(
           lonD,
           lonM,
           lonS,
-          elevations ? elevations[i] : 0,
+          p.alt,
         );
       })
       .join('\r\n');
@@ -141,11 +119,7 @@ function encodeWPT(
 }
 
 // http://download.naviter.com/docs/CUP-file-format-description.pdf
-function encodeCUP(
-  points: { lat: number; lon: number }[],
-  elevations: number[] | null,
-  prefix: string,
-): { mime?: string; file?: string; ext?: string; error?: string } {
+function encodeCUP(points: LatLonZ[], prefix: string): { mime?: string; file?: string; ext?: string; error?: string } {
   let file = 'name,code,country,lat,lon,elev,style,rwdir,rwlen,freq,desc\r\n';
   file += points
     .map((p, i) => {
@@ -162,7 +136,7 @@ function encodeCUP(
         lonD,
         lonM,
         lonH,
-        elevations ? elevations[i] : 0,
+        p.alt,
       );
     })
     .join('\r\n');

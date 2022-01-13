@@ -20,7 +20,7 @@
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
     "ol": "^6.11.0",
-    "superagent": "^7.0.1"
+    "superagent": "^7.0.2"
   },
   "devDependencies": {
     "@types/koa": "^2.13.4",

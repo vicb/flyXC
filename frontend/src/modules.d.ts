@@ -12,3 +12,6 @@ declare module 'validator/es/lib/isLength';
 declare module 'validator/es/lib/isNumeric';
 declare module 'validator/es/lib/matches';
 declare module 'validator/es/lib/toFloat';
+
+// The official types does not work in the browser.
+declare module 'qrcode/lib/browser';

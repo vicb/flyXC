@@ -1,6 +1,6 @@
 import { getDistance, getGreatCircleBearing, toDeg, toRad } from 'geolib';
 
-import { Point } from '../logic/score/measure';
+import { LatLon } from 'flyxc/common/src/runtime-track';
 
 const SECTOR_COLORS = ['#f00', '#0f0', '#00f'];
 
@@ -30,7 +30,7 @@ export class FaiSectors {
     this.polygons.forEach((p) => p.setMap(map ?? null));
   }
 
-  update(points: Point[]): void {
+  update(points: LatLon[]): void {
     const v0 = [points[0].lat - points[1].lat, points[0].lon - points[1].lon];
     const v1 = [points[2].lat - points[1].lat, points[2].lon - points[1].lon];
     const reverse = v0[0] * v1[1] - v0[1] * v1[0] < 0;
@@ -71,7 +71,7 @@ function calcC(cosSqAlpha: number): number {
 }
 
 // Code adapted from XCSoar - https://github.com/XCSoar/XCSoar
-function generateFAITriangleArea(point1: Point, point2: Point, reverse: boolean): google.maps.LatLng[] {
+function generateFAITriangleArea(point1: LatLon, point2: LatLon, reverse: boolean): google.maps.LatLng[] {
   const coords: google.maps.LatLng[] = [];
   const distance = getDistance(point1, point2);
   const bearing = toRad(getGreatCircleBearing(point1, point2));
@@ -86,7 +86,7 @@ function generateFAITriangleArea(point1: Point, point2: Point, reverse: boolean)
 }
 
 function generateFAITriangleRight(
-  origin: Point,
+  origin: LatLon,
   distance: number,
   bearing: number,
   distMin: number,
@@ -106,7 +106,7 @@ function generateFAITriangleRight(
 }
 
 function generateFAITriangleTop(
-  origin: Point,
+  origin: LatLon,
   distance: number,
   bearing: number,
   distMax: number,
@@ -123,7 +123,7 @@ function generateFAITriangleTop(
 }
 
 function generateFAITriangleLeft(
-  origin: Point,
+  origin: LatLon,
   distance: number,
   bearing: number,
   distMin: number,
@@ -143,7 +143,7 @@ function generateFAITriangleLeft(
 }
 
 function calcGeoPoint(
-  origin: Point,
+  origin: LatLon,
   angle: number,
   distA: number,
   distB: number,
@@ -163,7 +163,7 @@ function calcAlpha(distA: number, distB: number, distC: number): number {
   return Math.acos(cosAlpha);
 }
 
-function findLatitudeLongitude(loc: Point, bearing: number, distance: number): google.maps.LatLng {
+function findLatitudeLongitude(loc: LatLon, bearing: number, distance: number): google.maps.LatLng {
   const lon1 = toRad(loc.lon);
   const lat1 = toRad(loc.lat);
 

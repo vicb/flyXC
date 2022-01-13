@@ -12,11 +12,11 @@
   "license": "ISC",
   "dependencies": {
     "@google-cloud/datastore": "^6.6.2",
-    "@google-cloud/logging": "^9.6.6",
+    "@google-cloud/logging": "^9.6.7",
     "@google-cloud/storage": "^5.17.0",
     "@protobuf-ts/runtime": "^2.2.1",
     "ol": "^6.11.0",
-    "superagent": "^7.0.1"
+    "superagent": "^7.0.2"
   },
   "devDependencies": {
     "@types/ol": "^6.5.3",

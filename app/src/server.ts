@@ -7,7 +7,6 @@ import fileUpload from 'express-fileupload';
 import session from 'express-session';
 import { SecretKeys } from 'flyxc/common/src/keys';
 import { getRedisClient } from 'flyxc/common/src/redis';
-import QRCode from 'qrcode';
 
 import { getAdminRouter } from './routes/admin';
 import { getTrackerRouter } from './routes/live-track';
@@ -87,23 +86,13 @@ app.post('/_waypoints', (req: Request, res: Response) => {
     res.sendStatus(400);
   }
   // points elevations format prefix
-  const { format, points, elevations, prefix } = JSON.parse(req.body.request);
-  const { mime, file, ext, error } = encode(format, points, elevations, prefix);
+  const { format, points, prefix } = JSON.parse(req.body.request);
+  const { mime, file, ext, error } = encode(format, points, prefix);
 
   if (error) {
     res.redirect('back');
   } else {
     res.attachment(`waypoints.${ext}`).set('Content-Type', mime).send(file);
-  }
-});
-
-// Generates a QR code from the given route.
-app.get('/_qr.svg', async (req: Request, res: Response) => {
-  if (typeof req.query.text == 'string') {
-    res.set('Content-Type', 'image/svg+xml');
-    res.send(await QRCode.toString(req.query.text, { type: 'svg' }));
-  } else {
-    res.sendStatus(500);
   }
 });
 
