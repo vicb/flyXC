@@ -106,15 +106,13 @@ async function tick(state: FetcherState) {
       addSyncLogs(pipeline, status, state.lastTickSec);
     }
 
-    if (state.lastTickSec > state.nextExportSec) {
-      const success = await exportToStorage(state, BUCKET_NAME, PERIODIC_STATE_PATH);
-      state.nextExportSec = state.lastTickSec + EXPORT_FILE_SEC;
-      addExportLogs(pipeline, success, state.lastTickSec);
-    }
-
     if (state.lastTickSec > state.nextArchiveExportSec) {
       await createStateArchive(state, BUCKET_NAME, ARCHIVE_STATE_FOLDER, ARCHIVE_STATE_FILE);
       state.nextArchiveExportSec = state.lastTickSec + EXPORT_ARCHIVE_SEC;
+    } else if (state.lastTickSec > state.nextExportSec) {
+      const success = await exportToStorage(state, BUCKET_NAME, PERIODIC_STATE_PATH);
+      state.nextExportSec = state.lastTickSec + EXPORT_FILE_SEC;
+      addExportLogs(pipeline, success, state.lastTickSec);
     }
 
     await pipeline.exec();
