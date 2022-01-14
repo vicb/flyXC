@@ -50,6 +50,7 @@ let state = createInitState();
   await start();
 })();
 
+// Loads the state from storage and start ticking.
 async function start(): Promise<void> {
   state = await restoreState(state);
 
@@ -74,6 +75,7 @@ async function start(): Promise<void> {
   }
 }
 
+// Main loop.
 async function tick(state: FetcherState) {
   if (state.inTick) {
     return;
@@ -98,6 +100,7 @@ async function tick(state: FetcherState) {
 
     addStateLogs(pipeline, state);
 
+    // Sync from Datastore.
     if (state.lastTickSec > state.nextFullSyncSec) {
       const status = await syncFromDatastore(state, { full: true });
       addSyncLogs(pipeline, status, state.lastTickSec);
@@ -106,6 +109,7 @@ async function tick(state: FetcherState) {
       addSyncLogs(pipeline, status, state.lastTickSec);
     }
 
+    // Export to storage.
     if (state.lastTickSec > state.nextArchiveExportSec) {
       await createStateArchive(state, BUCKET_NAME, ARCHIVE_STATE_FOLDER, ARCHIVE_STATE_FILE);
       state.nextArchiveExportSec = state.lastTickSec + EXPORT_ARCHIVE_SEC;
@@ -221,6 +225,7 @@ async function updateTrackers(pipeline: Pipeline, state: FetcherState) {
   }
 }
 
+// Export the state on shutdown.
 async function shutdown(state: FetcherState) {
   try {
     console.log('Shutdown');

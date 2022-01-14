@@ -38,7 +38,7 @@ export function createInitState(): FetcherState {
     nextPartialSyncSec: nowSec + PARTIAL_SYNC_SEC,
     nextFullSyncSec: nowSec + FULL_SYNC_SEC,
     nextExportSec: nowSec + EXPORT_FILE_SEC,
-    nextArchiveExportSec: nowSec + EXPORT_FILE_SEC,
+    nextArchiveExportSec: nowSec + EXPORT_ARCHIVE_SEC,
 
     memRssMb: 0,
     memHeapMb: 0,

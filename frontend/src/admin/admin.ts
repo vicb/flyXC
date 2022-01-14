@@ -202,8 +202,8 @@ export class DashSummary extends LitElement {
             <li>Fetcher last started: ${relativeTime(this.values[Keys.fetcherReStartedSec])}</li>
             <li>Fetcher num starts: ${this.values[Keys.fetcherNumStarts]}</li>
 
-            <li style="padding-top: .5em">Memory RSS ${this.values[Keys.fetcherMemoryRssMb]}MB</li>
-            <li>Memory Heap ${this.values[Keys.fetcherMemoryHeapMb]}MB</li>
+            <li style="padding-top: .5em">Memory RSS: ${this.values[Keys.fetcherMemoryRssMb]}MB</li>
+            <li>Memory Heap: ${this.values[Keys.fetcherMemoryHeapMb]}MB</li>
           </ul>
           <ul style="padding-top: .5em">
             <li>Uploaded tracks: ${this.values[Keys.trackNum]}</li>
