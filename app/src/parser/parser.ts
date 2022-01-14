@@ -85,7 +85,7 @@ export async function parse(content: string, srcUrl: string | null = null): Prom
     id = await saveTrack(trackEntity);
     // Publish the created track to PubSub for further processing.
     const client = new PubSub.PubSub();
-    await client.topic('projects/fly-xc/topics/track.upload').publishJSON({ id });
+    await client.topic('projects/fly-xc/topics/track.upload').publishMessage({ json: { id } });
   }
 
   return {
