@@ -5,17 +5,18 @@ import { diffDecodeArray, diffEncodeArray, findIndexes } from './math';
 
 // How long to retain live tracking positions.
 export const LIVE_RETENTION_SEC = 24 * 3600;
+
+// Age for a point to be considered old.
+export const LIVE_AGE_OLD_SEC = 6 * 3600;
+// Minimum interval for old points points.
+export const LIVE_OLD_INTERVAL_SEC = 3 * 60;
 // Minimum interval between points.
 export const LIVE_MINIMAL_INTERVAL_SEC = 30;
 // Refresh interval (how often one update is triggered)
+
 export const LIVE_REFRESH_SEC = 60;
 // Timeout for fetching - need time for completing the transaction.
 export const LIVE_FETCH_TIMEOUT_SEC = LIVE_REFRESH_SEC - 20;
-
-// How often to refresh InReach.
-export const INREACH_REFRESH_INTERVAL_SEC = 3 * 60;
-// How often to refresh Spot.
-export const SPOT_REFRESH_INTERVAL_SEC = 3 * 60;
 
 // Break tracks if gap is more than.
 export const TRACK_GAP_MIN = 60;

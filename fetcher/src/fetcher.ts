@@ -6,6 +6,7 @@ import {
   INCREMENTAL_UPDATE_SEC,
   LIVE_FETCH_TIMEOUT_SEC,
   LIVE_MINIMAL_INTERVAL_SEC,
+  LIVE_AGE_OLD_SEC,
   LIVE_REFRESH_SEC,
   LIVE_RETENTION_SEC,
   mergeLiveTracks,
@@ -13,6 +14,7 @@ import {
   removeDeviceFromLiveTrack,
   simplifyLiveTrack,
   TrackerIds,
+  LIVE_OLD_INTERVAL_SEC,
 } from 'flyxc/common/src/live-track';
 import { getRedisClient, Keys } from 'flyxc/common/src/redis';
 import { Pipeline } from 'ioredis';
@@ -161,6 +163,8 @@ async function updateTrackers(pipeline: Pipeline, state: FetcherState) {
       // Trim and simplify
       pilot.track = removeBeforeFromLiveTrack(pilot.track!, fullStartSec);
       simplifyLiveTrack(pilot.track, LIVE_MINIMAL_INTERVAL_SEC);
+      // Reduce precision for old point.
+      simplifyLiveTrack(pilot.track, LIVE_OLD_INTERVAL_SEC, { toSec: nowSec - LIVE_AGE_OLD_SEC });
     }
 
     // Add the elevation for the last fix of every tracks when not present.
