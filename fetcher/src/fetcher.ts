@@ -22,14 +22,17 @@ import process from 'process';
 
 import { patchLastFixAGL as patchLastFixElevation } from './elevation/elevation';
 import { addElevationLogs, addExportLogs, addStateLogs, addSyncLogs, addTrackerLogs, HandleCommand } from './redis';
-import { exportToStorage } from './state/serialize';
+import { createStateArchive, exportToStorage } from './state/serialize';
 import {
+  ARCHIVE_STATE_FILE,
+  ARCHIVE_STATE_FOLDER,
   BUCKET_NAME,
   createInitState,
+  EXPORT_ARCHIVE_SEC,
   EXPORT_FILE_SEC,
-  PERIODIC_STATE_FILE,
+  PERIODIC_STATE_PATH,
   restoreState,
-  SHUTDOWN_STATE_FILE,
+  SHUTDOWN_STATE_PATH,
 } from './state/state';
 import { syncFromDatastore } from './state/sync';
 import { FlymasterFetcher } from './trackers/flymaster';
@@ -104,9 +107,14 @@ async function tick(state: FetcherState) {
     }
 
     if (state.lastTickSec > state.nextExportSec) {
-      const success = await exportToStorage(state, BUCKET_NAME, PERIODIC_STATE_FILE);
+      const success = await exportToStorage(state, BUCKET_NAME, PERIODIC_STATE_PATH);
       state.nextExportSec = state.lastTickSec + EXPORT_FILE_SEC;
       addExportLogs(pipeline, success, state.lastTickSec);
+    }
+
+    if (state.lastTickSec > state.nextArchiveExportSec) {
+      await createStateArchive(state, BUCKET_NAME, ARCHIVE_STATE_FOLDER, ARCHIVE_STATE_FILE);
+      state.nextArchiveExportSec = state.lastTickSec + EXPORT_ARCHIVE_SEC;
     }
 
     await pipeline.exec();
@@ -219,7 +227,7 @@ async function shutdown(state: FetcherState) {
   try {
     console.log('Shutdown');
     state.stoppedSec = state.lastTickSec;
-    await exportToStorage(state, BUCKET_NAME, SHUTDOWN_STATE_FILE);
+    await exportToStorage(state, BUCKET_NAME, SHUTDOWN_STATE_PATH);
   } catch (e) {
     console.error(`storage error: ${e}`);
   }

@@ -25,14 +25,15 @@ message FetcherState {
   int64 next_partial_sync_sec = 9;
   int64 next_full_sync_sec = 10;
   int64 next_export_sec = 11;
+  int64 next_archive_export_sec = 12;
 
-  int64 mem_rss_mb = 12;
-  int64 mem_heap_mb = 13;
+  int64 mem_rss_mb = 13;
+  int64 mem_heap_mb = 14;
 
   // Tick ongoing ?
-  bool in_tick = 14;
+  bool in_tick = 15;
 
-  map<int64, Pilot> pilots = 15;
+  map<int64, Pilot> pilots = 16;
 }
 
 message Pilot {

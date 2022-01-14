@@ -6,7 +6,7 @@ import zlib from 'zlib';
 
 import { ElevationUpdates } from './elevation/elevation';
 import { exportToStorage } from './state/serialize';
-import { BUCKET_NAME, EXPORT_FILE_SEC, PERIODIC_STATE_FILE } from './state/state';
+import { BUCKET_NAME, EXPORT_FILE_SEC, PERIODIC_STATE_PATH } from './state/state';
 import { syncFromDatastore, SyncStatus } from './state/sync';
 import { TrackerUpdates } from './trackers/tracker';
 
@@ -147,7 +147,7 @@ export async function HandleCommand(redis: Redis, state: FetcherState): Promise<
     }
 
     if (cmdExport != null) {
-      const success = await exportToStorage(state, BUCKET_NAME, PERIODIC_STATE_FILE);
+      const success = await exportToStorage(state, BUCKET_NAME, PERIODIC_STATE_PATH);
       state.nextExportSec = state.lastTickSec + EXPORT_FILE_SEC;
       const pipeline = redis.pipeline();
       pipeline.del(Keys.fetcherCmdExportFile);
