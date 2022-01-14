@@ -202,6 +202,10 @@ export function simplifyLiveTrack(
   intervalSec: number,
   time?: { fromSec?: number; toSec?: number },
 ): void {
+  if (track.timeSec.length == 0) {
+    return;
+  }
+
   let startIndex = 0;
   if (time?.fromSec != undefined) {
     const indexes = findIndexes(track.timeSec, time.fromSec);

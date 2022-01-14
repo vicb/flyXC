@@ -293,6 +293,28 @@ describe('simplifyLiveTrack', () => {
     });
   });
 
+  it('should simplify from fromSec with an empty track', () => {
+    const track: LiveTrack = {
+      timeSec: [],
+      lat: [],
+      lon: [],
+      alt: [],
+      flags: [],
+      extra: {},
+    };
+
+    simplifyLiveTrack(track, 10, { fromSec: 26 });
+
+    expect(track).toEqual({
+      timeSec: [],
+      lat: [],
+      lon: [],
+      alt: [],
+      flags: [],
+      extra: {},
+    });
+  });
+
   it('should return unchanged track if the start time is after the track', () => {
     const track: LiveTrack = {
       timeSec: [1, 10, 20, 25, 30, 35, 40, 45],
@@ -334,6 +356,28 @@ describe('simplifyLiveTrack', () => {
       alt: [4, 23, 33, 38, 43, 48],
       flags: [0, 0, 0, 0, 0, 0],
       extra: { 2: { message: 'hello' } },
+    });
+  });
+
+  it('should simplify up to toSec with an empty track', () => {
+    const track: LiveTrack = {
+      timeSec: [],
+      lat: [],
+      lon: [],
+      alt: [],
+      flags: [],
+      extra: {},
+    };
+
+    simplifyLiveTrack(track, 10, { toSec: 26 });
+
+    expect(track).toEqual({
+      timeSec: [],
+      lat: [],
+      lon: [],
+      alt: [],
+      flags: [],
+      extra: {},
     });
   });
 
