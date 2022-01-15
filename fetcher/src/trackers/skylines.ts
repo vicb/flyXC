@@ -9,9 +9,11 @@ import {
   simplifyLiveTrack,
   TrackerIds,
 } from 'flyxc/common/src/live-track';
-import { validateSkylinesAccount } from 'flyxc/common/src/models';
+import { TrackerEntity } from 'flyxc/common/src/live-track-entity';
+import { TrackerModel, validateSkylinesAccount } from 'flyxc/common/src/models';
 import { getTextRetry } from 'flyxc/common/src/superagent';
 import { formatReqError } from 'flyxc/common/src/util';
+import { Validator } from 'flyxc/common/src/vaadin/form/Validation';
 import { decodeDeltas } from 'ol/format/Polyline';
 
 import { LivePoint, makeLiveTrack } from './live-track';
@@ -123,4 +125,42 @@ export function parse(flight: any, nowMillis = Date.now()): LivePoint[] {
       timestamp: tsSeconds * 1000,
     };
   });
+}
+
+// Makes sure the account exists.
+export class SkylinesValidator implements Validator<TrackerModel> {
+  public message = '';
+  private currentEnabled = false;
+  private currentAccount = '';
+
+  constructor(skylines: TrackerEntity | undefined) {
+    if (skylines != null) {
+      this.currentAccount = skylines.account;
+      this.currentEnabled = skylines.enabled;
+    }
+  }
+
+  async validate(tracker: TrackerModel) {
+    if (tracker.enabled === this.currentEnabled && tracker.account === this.currentAccount) {
+      // No need to resolve again when not changing.
+      return true;
+    }
+
+    if (tracker.enabled) {
+      const id = validateSkylinesAccount(tracker.account);
+      if (id !== false) {
+        const url = `https://skylines.aero/api/users/${id}`;
+        try {
+          await getTextRetry(url, { timeoutSec: 10 });
+        } catch (e: any) {
+          if (e?.status === 404) {
+            this.message = `This skylines account does not exist.`;
+            return { property: 'account' };
+          }
+        }
+      }
+    }
+
+    return true;
+  }
 }

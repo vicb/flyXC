@@ -4,9 +4,11 @@
 
 import { Tracker } from 'flyxc/common/protos/fetcher-state';
 import { LIVE_MINIMAL_INTERVAL_SEC, simplifyLiveTrack, TrackerIds } from 'flyxc/common/src/live-track';
-import { validateInreachAccount } from 'flyxc/common/src/models';
+import { TrackerEntity } from 'flyxc/common/src/live-track-entity';
+import { TrackerModel, validateInreachAccount } from 'flyxc/common/src/models';
 import { getTextRetry } from 'flyxc/common/src/superagent';
 import { formatReqError, parallelTasksWithTimeout } from 'flyxc/common/src/util';
+import { Validator } from 'flyxc/common/src/vaadin/form/Validation';
 import { DOMParser } from 'xmldom';
 
 import { LivePoint, makeLiveTrack } from './live-track';
@@ -169,4 +171,44 @@ function getExtendedDataMap(extendedData: ChildNode): { [k: string]: string } {
     }
   }
   return data;
+}
+
+// Makes sure the account is not password protected.
+export class InreachValidator implements Validator<TrackerModel> {
+  public message = '';
+  private currentEnabled = false;
+  private currentAccount = '';
+
+  constructor(inreach: TrackerEntity | undefined) {
+    if (inreach != null) {
+      this.currentAccount = inreach.account;
+      this.currentEnabled = inreach.enabled;
+    }
+  }
+
+  async validate(tracker: TrackerModel) {
+    if (tracker.enabled === this.currentEnabled && tracker.account === this.currentAccount) {
+      // No need to resolve again when not changing.
+      return true;
+    }
+
+    if (tracker.enabled) {
+      const url = validateInreachAccount(tracker.account);
+      if (url !== false) {
+        try {
+          await getTextRetry(url, { timeoutSec: 10 });
+        } catch (e: any) {
+          if (e?.status === 401) {
+            this.message =
+              'Please remove the MapShare password on ' +
+              '<a href="https://explore.garmin.com/Social" target="_blank" class="has-text-link">explore.garmin.com/Social</a>' +
+              ' before enabling your InReach.';
+            return { property: 'account' };
+          }
+        }
+      }
+    }
+
+    return true;
+  }
 }

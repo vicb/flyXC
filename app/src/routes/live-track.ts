@@ -7,13 +7,13 @@ import {
   LIVE_TRACK_TABLE,
   LiveTrackEntity,
   retrieveLiveTrackByGoogleId,
-  TrackerEntity,
   UpdateLiveTrackEntityFromModel,
 } from 'flyxc/common/src/live-track-entity';
-import { AccountFormModel, AccountModel, TrackerModel } from 'flyxc/common/src/models';
+import { AccountFormModel, AccountModel } from 'flyxc/common/src/models';
 import { Keys } from 'flyxc/common/src/redis';
-import { Validator } from 'flyxc/common/src/vaadin/form/Validation';
-import { getFlyMeId } from 'flyxc/fetcher/src/trackers/flyme';
+import { FlyMeValidator } from 'flyxc/fetcher/src/trackers/flyme';
+import { InreachValidator } from 'flyxc/fetcher/src/trackers/inreach';
+import { SkylinesValidator } from 'flyxc/fetcher/src/trackers/skylines';
 import { Redis } from 'ioredis';
 
 /* eslint-disable @typescript-eslint/no-var-requires */
@@ -108,43 +108,6 @@ export function getTrackerRouter(redis: Redis): Router {
   return router;
 }
 
-// Validates a Flyme account.
-//
-// Fetches the ID from the server when the device is enabled and config has changed.
-class FlyMeValidator implements Validator<TrackerModel> {
-  public message = '';
-  private currentEnabled = false;
-  private currentAccount = '';
-
-  constructor(flyme: TrackerEntity | undefined) {
-    if (flyme != null) {
-      this.currentAccount = flyme.account;
-      this.currentEnabled = flyme.enabled;
-    }
-  }
-
-  async validate(tracker: TrackerModel) {
-    if (tracker.enabled) {
-      if (tracker.enabled === this.currentEnabled && tracker.account === this.currentAccount) {
-        // No need to resolve again when not changing.
-        return true;
-      }
-
-      try {
-        tracker.account_resolved = await getFlyMeId(tracker.account);
-        return true;
-      } catch (e) {
-        this.message = `${e}`;
-        return { property: 'account' };
-      }
-    } else {
-      // Clear the resolved account when disabled.
-      tracker.account_resolved = '';
-      return true;
-    }
-  }
-}
-
 // Create or update a LiveTrack entity from the form POST data.
 export async function createOrUpdateEntity(
   entity: LiveTrackEntity | undefined,
@@ -159,8 +122,11 @@ export async function createOrUpdateEntity(
     const binder = new NoDomBinder(AccountFormModel);
     binder.read(account);
 
+    // Server side validators.
     const model = binder.model;
     binder.for(model.flyme).addValidator(new FlyMeValidator(entity?.flyme));
+    binder.for(model.inreach).addValidator(new InreachValidator(entity?.inreach));
+    binder.for(model.skylines).addValidator(new SkylinesValidator(entity?.skylines));
 
     // Sends error to the client.
     const validationErrorData = (await binder.validate()).map(({ property, message }) => ({

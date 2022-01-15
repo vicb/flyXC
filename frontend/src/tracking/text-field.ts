@@ -1,5 +1,6 @@
 import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 // Text field with Vaadin Flow support.
 @customElement('text-field')
@@ -45,7 +46,7 @@ export class TextField extends LitElement {
             inputmode=${this.inputMode}
           />
         </div>
-        ${this.errorMessage ? html`<p class="help is-danger">${this.errorMessage}</p>` : null}
+        ${this.errorMessage ? html`<p class="help is-danger">${unsafeHTML(this.errorMessage)}</p>` : null}
       </div>
     `;
   }

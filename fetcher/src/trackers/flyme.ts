@@ -5,9 +5,11 @@
 import { Tracker } from 'flyxc/common/protos/fetcher-state';
 import { SecretKeys } from 'flyxc/common/src/keys';
 import { TrackerIds } from 'flyxc/common/src/live-track';
-import { validateFlymeAccount } from 'flyxc/common/src/models';
+import { TrackerEntity } from 'flyxc/common/src/live-track-entity';
+import { TrackerModel, validateFlymeAccount } from 'flyxc/common/src/models';
 import { getTextRetry } from 'flyxc/common/src/superagent';
 import { formatReqError } from 'flyxc/common/src/util';
+import { Validator } from 'flyxc/common/src/vaadin/form/Validation';
 import request from 'superagent';
 
 import { LivePoint, makeLiveTrack } from './live-track';
@@ -103,4 +105,41 @@ export async function getFlyMeId(username: string): Promise<string | undefined> 
   }
 
   throw new Error(`Flyme server error`);
+}
+
+// Validates a Flyme account.
+//
+// Fetches the ID from the server when the device is enabled and config has changed.
+export class FlyMeValidator implements Validator<TrackerModel> {
+  public message = '';
+  private currentEnabled = false;
+  private currentAccount = '';
+
+  constructor(flyme: TrackerEntity | undefined) {
+    if (flyme != null) {
+      this.currentAccount = flyme.account;
+      this.currentEnabled = flyme.enabled;
+    }
+  }
+
+  async validate(tracker: TrackerModel) {
+    if (tracker.enabled) {
+      if (tracker.enabled === this.currentEnabled && tracker.account === this.currentAccount) {
+        // No need to resolve again when not changing.
+        return true;
+      }
+
+      try {
+        tracker.account_resolved = await getFlyMeId(tracker.account);
+        return true;
+      } catch (e) {
+        this.message = `${e}`;
+        return { property: 'account' };
+      }
+    } else {
+      // Clear the resolved account when disabled.
+      tracker.account_resolved = '';
+      return true;
+    }
+  }
 }
