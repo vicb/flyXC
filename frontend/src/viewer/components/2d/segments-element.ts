@@ -6,7 +6,6 @@ export class SegmentsElement extends LitElement {
   @property()
   query?: string;
 
-  // Actual type is google.maps.Map.
   @property({ attribute: false })
   map!: google.maps.Map;
 

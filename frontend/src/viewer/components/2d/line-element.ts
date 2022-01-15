@@ -10,7 +10,6 @@ const INACTIVE_OPACITY = 0.5;
 
 @customElement('line-element')
 export class LineElement extends connect(store)(LitElement) {
-  // Actual type is google.maps.Map.
   @property({ attribute: false })
   map!: google.maps.Map;
 

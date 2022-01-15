@@ -39,7 +39,6 @@ const dashedLineIcons: google.maps.IconSequence[] = [
 
 @customElement('tracking-element')
 export class TrackingElement extends connect(store)(LitElement) {
-  // Actual type: google.maps.Map.
   @property({ attribute: false })
   map!: google.maps.Map;
 

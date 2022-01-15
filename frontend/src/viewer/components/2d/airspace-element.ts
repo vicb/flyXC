@@ -9,7 +9,6 @@ import { RootState, store } from '../../redux/store';
 
 @customElement('airspace-element')
 export class AirspaceElement extends connect(store)(LitElement) {
-  // Actual type is google.maps.Map.
   @property({ attribute: false })
   map!: google.maps.Map;
 

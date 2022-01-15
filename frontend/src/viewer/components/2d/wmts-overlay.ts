@@ -4,7 +4,6 @@ import { property } from 'lit/decorators.js';
 import { html as litHtml, render as litRender, TemplateResult } from 'lit/html.js';
 
 export abstract class WMTSOverlayElement extends LitElement {
-  // Actual type: google.maps.Map.
   @property({ attribute: false })
   map!: google.maps.Map;
 
@@ -27,6 +26,7 @@ export abstract class WMTSOverlayElement extends LitElement {
     return false;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected init(map: google.maps.Map): void {
     this.createCopyrightElement();
     this.setBounds();
