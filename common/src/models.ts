@@ -43,6 +43,10 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
         enabled: trackerEntity.enabled,
         account: trackerEntity.account,
       };
+      // Copy the optional account_resolved property.
+      if (trackerEntity.account_resolved != null) {
+        trackerModels[prop].account_resolved = trackerEntity.account_resolved;
+      }
     }
 
     return {

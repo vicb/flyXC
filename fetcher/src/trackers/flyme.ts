@@ -123,23 +123,23 @@ export class FlyMeValidator implements Validator<TrackerModel> {
   }
 
   async validate(tracker: TrackerModel) {
-    if (tracker.enabled) {
-      if (tracker.enabled === this.currentEnabled && tracker.account === this.currentAccount) {
-        // No need to resolve again when not changing.
-        return true;
-      }
-
-      try {
-        tracker.account_resolved = await getFlyMeId(tracker.account);
-        return true;
-      } catch (e) {
-        this.message = `${e}`;
-        return { property: 'account' };
-      }
-    } else {
+    if (!tracker.enabled) {
       // Clear the resolved account when disabled.
       tracker.account_resolved = '';
       return true;
+    }
+
+    if (this.currentEnabled && tracker.account === this.currentAccount) {
+      // No need to resolve again when not changing.
+      return true;
+    }
+
+    try {
+      tracker.account_resolved = await getFlyMeId(tracker.account);
+      return true;
+    } catch (e) {
+      this.message = `${e}`;
+      return { property: 'account' };
     }
   }
 }

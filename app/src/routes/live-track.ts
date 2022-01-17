@@ -151,12 +151,11 @@ export async function createOrUpdateEntity(
       });
       // Sends a command to the fetcher to sync from the DB.
       await redis.incr(Keys.fetcherCmdSyncIncCount);
+      return res.json({ error: false });
     } catch (e) {
       console.error(`Error saving the account ${email}`);
       return res.json({ error: `An error has occurred, please try again later.` });
     }
-
-    return res.json({ error: false });
   } catch (e) {
     console.error(`Error updating an account: ${e}`);
     return res.sendStatus(400);
