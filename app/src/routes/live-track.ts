@@ -147,7 +147,6 @@ export async function createOrUpdateEntity(
       await datastore.save({
         key: entity[Datastore.KEY] ?? datastore.key([LIVE_TRACK_TABLE]),
         data: entity,
-        excludeFromIndexes: ['track'],
       });
       // Sends a command to the fetcher to sync from the DB.
       await redis.incr(Keys.fetcherCmdSyncIncCount);

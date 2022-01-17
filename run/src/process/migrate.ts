@@ -1,4 +1,5 @@
 import * as protos from 'flyxc/common/protos/track';
+import { trackerPropNames } from 'flyxc/common/src/live-track';
 import { LiveTrackEntity } from 'flyxc/common/src/live-track-entity';
 import { diffDecodeArray } from 'flyxc/common/src/math';
 import { diffDecodeTrack, diffEncodeAirspaces } from 'flyxc/common/src/runtime-track';
@@ -174,6 +175,71 @@ export async function migrateFlyme(): Promise<void> {
 
           entities.push(entity);
         }
+      } catch (e) {
+        console.error(`migration error ${entity[Datastore.KEY].id}`);
+      }
+    }
+
+    console.log(`Updated ${entities.length} entities`);
+
+    const updates: unknown[] = [];
+
+    for (const entity of entities) {
+      const key = entity[Datastore.KEY];
+
+      if (key == null) {
+        continue;
+      }
+
+      updates.push({
+        key,
+        excludeFromIndexes: ['track'],
+        data: entity,
+      });
+    }
+
+    console.log(`Prepared ${updates.length} updates`);
+
+    try {
+      await datastore.save(updates);
+      console.log(`Update successful`);
+    } catch (e) {
+      console.error(`Update failed ${e}`);
+    }
+
+    start = res[1].endCursor;
+  } while (res[1].moreResults != datastore.NO_MORE_RESULTS);
+}
+
+// Remove old properties from livetrack
+export async function migrateToFetcher(): Promise<void> {
+  let start: string | undefined;
+  let res: RunQueryResponse | undefined;
+  const batchSize = 50;
+
+  do {
+    const query = datastore.createQuery('LiveTrack').limit(batchSize);
+    const entities: LiveTrackEntity[] = [];
+
+    if (start) {
+      query.start(start);
+    }
+
+    res = await datastore.runQuery(query);
+
+    for (const entity of res[0]) {
+      try {
+        delete entity.track;
+        delete entity.last_fix_sec;
+        for (const prop of Object.values(trackerPropNames)) {
+          const tracker = entity[prop];
+          if (!tracker) {
+            continue;
+          }
+          delete tracker.errors_requests;
+          delete tracker.updated;
+        }
+        entities.push(entity);
       } catch (e) {
         console.error(`migration error ${entity[Datastore.KEY].id}`);
       }

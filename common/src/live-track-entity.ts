@@ -14,10 +14,6 @@ export interface TrackerEntity {
   account: string;
   // Resolved account (i.e. the id retrieved from the account for flyme).
   account_resolved?: string;
-  // Last time the tracker was updated without errors.
-  updated: number;
-  // Error and requests as an int: EEERRR.
-  errors_requests: number;
 }
 
 // A tracker user in the DataStore.
@@ -28,8 +24,6 @@ export interface LiveTrackEntity {
   google_id: string;
   created: Date;
   updated: Date;
-  last_fix_sec: number;
-  track: Buffer | null;
   // Whether to share positions with partners.
   share: boolean;
   // Whether to display the user on flyxc.
@@ -77,16 +71,12 @@ export function UpdateLiveTrackEntityFromModel(
   liveTrack.share = account.share;
   liveTrack.enabled = account.enabled;
   liveTrack.updated = new Date();
-  liveTrack.last_fix_sec = 0;
-  liveTrack.track = null;
 
   for (const prop of Object.values(trackerPropNames)) {
     const model: TrackerModel = (account as any)[prop];
     (liveTrack as any)[prop] = {
       enabled: model.enabled,
       account: model.account,
-      errors_requests: 0,
-      updated: 0,
     };
     if (model.account_resolved != null) {
       (liveTrack as any)[prop].account_resolved = model.account_resolved;

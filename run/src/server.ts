@@ -3,7 +3,7 @@ import bodyParser from 'koa-bodyparser';
 
 import Router, { RouterContext } from '@koa/router';
 
-import { migrateFlyme } from './process/migrate';
+import { migrateToFetcher } from './process/migrate';
 import { postProcessTrack } from './process/process';
 
 const app = new Koa();
@@ -27,8 +27,8 @@ router.post('/process', async (ctx: RouterContext) => {
 });
 
 if (process.env.NODE_ENV == 'development') {
-  router.get('/migrate-flyme', async (ctx: RouterContext) => {
-    await migrateFlyme();
+  router.get('/migrate-fetcher', async (ctx: RouterContext) => {
+    await migrateToFetcher();
     ctx.body = 'Migrated';
   });
 }

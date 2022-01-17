@@ -245,8 +245,6 @@ function createLiveTrackEntity(id: string, liveTrack: Partial<LiveTrackEntity> =
     google_id: 'google_id',
     created: new Date(),
     updated: new Date(),
-    last_fix_sec: 0,
-    track: null,
     share: true,
     enabled: true,
     inreach: createTrackerEntity(INREACH),
@@ -268,8 +266,6 @@ function createTrackerEntity(
   const entity: TrackerEntity = {
     enabled,
     account: flyme ? 'account@flyme.com' : account,
-    updated: 0,
-    errors_requests: 0,
   };
   if (flyme ?? true) {
     entity.account_resolved = account;
