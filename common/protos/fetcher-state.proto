@@ -13,6 +13,8 @@ message FetcherState {
   int64 started_sec = 2;
   int64 re_started_sec = 3;
   int64 stopped_sec = 4;
+  // Exit the process after (0 to disable).
+  int64 next_stop_sec = 17;
   int64 last_tick_sec = 5;
   // Number of ticks since last start.
   int64 num_ticks = 6;

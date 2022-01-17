@@ -16,5 +16,5 @@ RUN npm install --only=production
 
 COPY dist/fetcher.js ./
 
-# Run the web service on container startup.
-CMD [ "node", "fetcher.js" ]
+# Restart the fetcher every 24h for memory leaks.
+CMD [ "node", "fetcher.js", "-e", "24" ]

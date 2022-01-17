@@ -1,12 +1,14 @@
+import { program } from 'commander';
 import { FetcherState } from 'flyxc/common/protos/fetcher-state';
 import { LiveDifferentialTrackGroup } from 'flyxc/common/protos/live-track';
 import {
   differentialEncodeLiveTrack,
   EXPORT_UPDATE_SEC,
   INCREMENTAL_UPDATE_SEC,
+  LIVE_AGE_OLD_SEC,
   LIVE_FETCH_TIMEOUT_SEC,
   LIVE_MINIMAL_INTERVAL_SEC,
-  LIVE_AGE_OLD_SEC,
+  LIVE_OLD_INTERVAL_SEC,
   LIVE_REFRESH_SEC,
   LIVE_RETENTION_SEC,
   mergeLiveTracks,
@@ -14,7 +16,6 @@ import {
   removeDeviceFromLiveTrack,
   simplifyLiveTrack,
   TrackerIds,
-  LIVE_OLD_INTERVAL_SEC,
 } from 'flyxc/common/src/live-track';
 import { getRedisClient, Keys } from 'flyxc/common/src/redis';
 import { Pipeline } from 'ioredis';
@@ -44,6 +45,11 @@ import { TrackerUpdates } from './trackers/tracker';
 
 const redis = getRedisClient();
 
+program.option('-e, --exit_hours <hours>', 'restart after', '0').parse();
+
+const exitAfterHour = parseFloat(program.opts().exit_hours);
+const exitAfterSec = isNaN(exitAfterHour) ? 0 : Math.round(exitAfterHour * 3600);
+
 let state = createInitState();
 
 (async () => {
@@ -54,13 +60,16 @@ let state = createInitState();
 async function start(): Promise<void> {
   state = await restoreState(state);
 
-  const status = await syncFromDatastore(state, { full: true });
-  console.log(`State updated from the datastore`, status);
+  if (state.numStarts == 0) {
+    const status = await syncFromDatastore(state, { full: true });
+    console.log(`Initial sync from the datastore`, status);
+  }
 
   state.numStarts++;
   state.inTick = false;
   state.numTicks = 0;
   state.reStartedSec = Math.round(Date.now() / 1000);
+  state.nextStopSec = exitAfterSec == 0 ? 0 : exitAfterSec + Math.round(Date.now() / 1000);
 
   console.log(`State last tick ${new Date(state.lastTickSec * 1000)}`);
 
@@ -100,26 +109,33 @@ async function tick(state: FetcherState) {
 
     addStateLogs(pipeline, state);
 
-    // Sync from Datastore.
-    if (state.lastTickSec > state.nextFullSyncSec) {
-      const status = await syncFromDatastore(state, { full: true });
-      addSyncLogs(pipeline, status, state.lastTickSec);
-    } else if (state.lastTickSec > state.nextPartialSyncSec) {
-      const status = await syncFromDatastore(state, { full: false });
-      addSyncLogs(pipeline, status, state.lastTickSec);
-    }
+    if (state.nextStopSec > 0 && state.lastTickSec > state.nextStopSec) {
+      // We do not need to sync on shutdown as there will be a sync on startup.
+      await pipeline.exec();
+      state.nextStopSec = state.lastTickSec + exitAfterSec;
+      await shutdown(state);
+    } else {
+      // Sync from Datastore.
+      if (state.lastTickSec > state.nextFullSyncSec) {
+        const status = await syncFromDatastore(state, { full: true });
+        addSyncLogs(pipeline, status, state.lastTickSec);
+      } else if (state.lastTickSec > state.nextPartialSyncSec) {
+        const status = await syncFromDatastore(state, { full: false });
+        addSyncLogs(pipeline, status, state.lastTickSec);
+      }
 
-    // Export to storage.
-    if (state.lastTickSec > state.nextArchiveExportSec) {
-      await createStateArchive(state, BUCKET_NAME, ARCHIVE_STATE_FOLDER, ARCHIVE_STATE_FILE);
-      state.nextArchiveExportSec = state.lastTickSec + EXPORT_ARCHIVE_SEC;
-    } else if (state.lastTickSec > state.nextExportSec) {
-      const success = await exportToStorage(state, BUCKET_NAME, PERIODIC_STATE_PATH);
-      state.nextExportSec = state.lastTickSec + EXPORT_FILE_SEC;
-      addExportLogs(pipeline, success, state.lastTickSec);
-    }
+      // Export to storage.
+      if (state.lastTickSec > state.nextArchiveExportSec) {
+        await createStateArchive(state, BUCKET_NAME, ARCHIVE_STATE_FOLDER, ARCHIVE_STATE_FILE);
+        state.nextArchiveExportSec = state.lastTickSec + EXPORT_ARCHIVE_SEC;
+      } else if (state.lastTickSec > state.nextExportSec) {
+        const success = await exportToStorage(state, BUCKET_NAME, PERIODIC_STATE_PATH);
+        state.nextExportSec = state.lastTickSec + EXPORT_FILE_SEC;
+        addExportLogs(pipeline, success, state.lastTickSec);
+      }
 
-    await pipeline.exec();
+      await pipeline.exec();
+    }
 
     // Handle commands received via Redis
     await HandleCommand(redis, state);

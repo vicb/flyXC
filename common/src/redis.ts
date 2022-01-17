@@ -30,6 +30,7 @@ export const enum Keys {
   fetcherStartedSec = 'f:state:started',
   fetcherReStartedSec = 'f:state:restarted',
   fetcherStoppedSec = 'f:state:stopped',
+  fetcherNextStopSec = 'f:state:stop',
   fetcherNumTicks = 'f:state:ticks',
   // [List]
   fetcherLastTicksSec = 'f:state:lastTick',

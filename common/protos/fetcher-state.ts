@@ -7,7 +7,9 @@
 // All int64 are JS_NUMBER.
 //
 import { MessageType } from '@protobuf-ts/runtime';
+
 import { LiveTrack } from './live-track';
+
 /**
  * State of the fetcher
  *
@@ -30,6 +32,12 @@ export interface FetcherState {
    * @generated from protobuf field: int64 stopped_sec = 4;
    */
   stoppedSec: number;
+  /**
+   * Exit the process after (0 to disable).
+   *
+   * @generated from protobuf field: int64 next_stop_sec = 17;
+   */
+  nextStopSec: number;
   /**
    * @generated from protobuf field: int64 last_tick_sec = 5;
    */
@@ -190,6 +198,7 @@ class FetcherState$Type extends MessageType<FetcherState> {
       { no: 2, name: 'started_sec', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
       { no: 3, name: 're_started_sec', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
       { no: 4, name: 'stopped_sec', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
+      { no: 17, name: 'next_stop_sec', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
       { no: 5, name: 'last_tick_sec', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
       { no: 6, name: 'num_ticks', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
       { no: 7, name: 'num_starts', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },

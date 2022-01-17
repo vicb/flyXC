@@ -29,6 +29,7 @@ export function createInitState(): FetcherState {
     startedSec: nowSec,
     reStartedSec: nowSec,
     stoppedSec: 0,
+    nextStopSec: 0,
     lastTickSec: 0,
     numTicks: 0,
     numStarts: 0,

@@ -95,6 +95,7 @@ export function addStateLogs(pipeline: Pipeline, state: FetcherState): void {
     .set(Keys.fetcherStartedSec, state.startedSec)
     .set(Keys.fetcherReStartedSec, state.reStartedSec)
     .set(Keys.fetcherStoppedSec, state.stoppedSec)
+    .set(Keys.fetcherNextStopSec, state.nextStopSec)
     .set(Keys.fetcherNumTicks, state.numTicks)
     .set(Keys.fetcherNumStarts, state.numStarts)
     .set(Keys.fetcherLastDeviceUpdatedMs, state.lastUpdatedMs)

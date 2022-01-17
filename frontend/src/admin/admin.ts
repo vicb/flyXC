@@ -168,6 +168,9 @@ export class DashSummary extends LitElement {
 
   render(): TemplateResult {
     const trackerH1 = this.values[Keys.fetcherIncrementalNumTracks];
+    const nextStopSec = this.values[Keys.fetcherNextStopSec];
+    const lastStopSec = this.values[Keys.fetcherStoppedSec];
+
     if (this.link) {
       this.link.href = `data:image/svg+xml;base64,${btoa(FAVICON_SVG(trackerH1))}`;
     }
@@ -198,9 +201,10 @@ export class DashSummary extends LitElement {
             <li style="padding-top: .5em">
               Fetcher first started: ${relativeTime(this.values[Keys.fetcherStartedSec])}
             </li>
-            <li>Fetcher last stopped: ${relativeTime(this.values[Keys.fetcherStoppedSec])}</li>
             <li>Fetcher last started: ${relativeTime(this.values[Keys.fetcherReStartedSec])}</li>
             <li>Fetcher num starts: ${this.values[Keys.fetcherNumStarts]}</li>
+            <li>Fetcher last stopped: ${lastStopSec == 0 ? '-' : relativeTime(lastStopSec)}</li>
+            <li>Fetcher next stop: ${nextStopSec == 0 ? '-' : relativeTime(nextStopSec)}</li>
 
             <li style="padding-top: .5em">Memory RSS: ${this.values[Keys.fetcherMemoryRssMb]}MB</li>
             <li>Memory Heap: ${this.values[Keys.fetcherMemoryHeapMb]}MB</li>

@@ -158,6 +158,7 @@ async function getDashboardValues(redis: Redis): Promise<unknown> {
     [Keys.fetcherMemoryHeapMb]: 'S',
     [Keys.fetcherStartedSec]: 'S',
     [Keys.fetcherReStartedSec]: 'S',
+    [Keys.fetcherNextStopSec]: 'S',
     [Keys.fetcherStoppedSec]: 'S',
     [Keys.fetcherNumTicks]: 'S',
     [Keys.fetcherNumStarts]: 'S',
