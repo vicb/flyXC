@@ -1,5 +1,4 @@
 # This file specifies files that are *not* uploaded to Google Cloud Platform
-#
 
 .gcloudignore
 .git
@@ -14,6 +13,7 @@
 /frontend/src
 /run
 /tracks
+/fetcher
 test/
 # /node_modules is required for external modules
 node_modules
