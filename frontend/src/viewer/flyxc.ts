@@ -15,6 +15,7 @@ import { LatLonZ } from 'flyxc/common/src/runtime-track';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
 import { requestCurrentPosition } from './logic/geolocation';
@@ -83,15 +84,17 @@ export class FlyXc extends connect(store)(LitElement) {
           ${this.view3d
             ? html`<map3d-element class=${clMap}></map3d-element>`
             : html`<map-element class=${clMap}></map-element>`}
-          ${this.hasTrack
-            ? html`<chart-element
+          ${when(
+            this.hasTrack,
+            () =>
+              html`<chart-element
                 class=${clMap}
                 @move=${(e: CustomEvent) => store.dispatch(setTimeSec(e.detail.timeSec))}
                 @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.timeSec))}
                 @zoom=${(e: CustomEvent) =>
                   msg.centerZoomMap.emit(this.coordinatesAt(e.detail.timeSec), e.detail.deltaY)}
-              ></chart-element>`
-            : ''}
+              ></chart-element>`,
+          )}
         </ion-content>
       </ion-app>
       <loader-element .show=${this.showLoader}></loader-element>

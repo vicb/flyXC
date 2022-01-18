@@ -2,6 +2,7 @@ import { LatLon } from 'flyxc/common/src/runtime-track';
 import { getDistance } from 'geolib';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
 import * as msg from '../../logic/messages';
@@ -243,12 +244,14 @@ export class LiveModal extends connect(store)(LitElement) {
                 <i class="la la-tachometer-alt"></i> ${formatUnit(pilot.speed, this.units.speed)}
               </span>`}
         </p>
-        ${pilot.message
-          ? html`<p>
-              <i class="las la-sms"></i>“${pilot.message.text}”
-              (${formatDurationMin((nowSec - pilot.message.timeSec) / 60)} ago)
-            </p>`
-          : null}
+        ${when(
+          pilot.message,
+          () =>
+            html`<p>
+              <i class="las la-sms"></i>“${pilot.message!.text}”
+              (${formatDurationMin((nowSec - pilot.message!.timeSec) / 60)} ago)
+            </p>`,
+        )}
       </ion-label>
       <span slot="end">
         <ion-note

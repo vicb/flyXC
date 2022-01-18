@@ -6,6 +6,7 @@ import './tracking3d-element';
 import { RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
 import { Units } from '../../logic/units';
@@ -45,20 +46,24 @@ export class Controls3dElement extends connect(store)(LitElement) {
     return html`
       <menu-ctrl-element></menu-ctrl-element>
       <tracking3d-element></tracking3d-element>
-      ${this.track?.name
-        ? html`
-            <name-ctrl-element .name=${this.track.name} .color=${this.color} .track=${this.track}></name-ctrl-element>
-          `
-        : ''}
-      ${this.track
-        ? html`
+      ${when(
+        this.track?.name,
+        () =>
+          html`
+            <name-ctrl-element .name=${this.track?.name} .color=${this.color} .track=${this.track}></name-ctrl-element>
+          `,
+      )}
+      ${when(
+        this.track,
+        () =>
+          html`
             <dashboard-ctrl-element
               .track=${this.track}
               .timeSec=${this.timeSec}
               .units=${this.units}
             ></dashboard-ctrl-element>
-          `
-        : ''}
+          `,
+      )}
     `;
   }
 }

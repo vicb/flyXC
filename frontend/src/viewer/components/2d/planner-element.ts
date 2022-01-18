@@ -1,6 +1,7 @@
 import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
 import { Score } from '../../logic/score/scorer';
@@ -173,7 +174,7 @@ export class PlannerElement extends connect(store)(LitElement) {
           </div>
           <div class="large">${unsafeHTML(formatUnit(this.speed as number, this.units.speed, undefined, 'unit'))}</div>
         </div>
-        <div @click=${this.drawHandler} class=${this.isFreeDrawing ? 'active' : ''}>
+        <div @click=${this.drawHandler} class=${when(this.isFreeDrawing, () => 'active')}>
           <div><i class="las la-pen"></i> Free draw</div>
         </div>
         <div class="collapsible" @click=${this.closeHandler}>

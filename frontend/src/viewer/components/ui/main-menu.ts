@@ -5,6 +5,7 @@ import './live-modal';
 
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
@@ -78,23 +79,27 @@ export class MainMenu extends connect(store)(LitElement) {
             <view-items></view-items>
             <track-items></track-items>
             <live-items></live-items>
-            ${!this.view3d
-              ? html`<ion-item button lines="full" @click=${this.handlePlanner}>
+            ${when(
+              !this.view3d,
+              () =>
+                html`<ion-item button lines="full" @click=${this.handlePlanner}>
                   <i class="las la-drafting-compass la-2x"></i>XC planning
                   <ion-toggle slot="end" .checked=${this.plannerEnabled}></ion-toggle>
-                </ion-item>`
-              : null}
-            ${!this.view3d ? html`` : null} ${!this.view3d ? html`<airspace-items></airspace-items>` : null}
-            ${!this.view3d ? html`<airways-items></airways-items>` : null}
-            ${this.view3d
-              ? html`<ion-item lines="none"><i class="las la-mountain la-2x"></i>Altitude exaggeration</ion-item>
+                </ion-item>`,
+            )}
+            ${when(!this.view3d, () => html`<airspace-items></airspace-items>`)}
+            ${when(!this.view3d, () => html`<airways-items></airways-items>`)}
+            ${when(
+              this.view3d,
+              () =>
+                html`<ion-item lines="none"><i class="las la-mountain la-2x"></i>Altitude exaggeration</ion-item>
                   <ion-item @ionChange=${this.handleExaggeration}>
                     <ion-range min="1" max="2.6" step="0.2" debounce="50" value=${this.exaggeration}>
                       <ion-label slot="start">1.0x</ion-label>
                       <ion-label slot="end">2.6x</ion-label>
                     </ion-range>
-                  </ion-item>`
-              : null}
+                  </ion-item>`,
+            )}
             <fullscreen-items></fullscreen-items>
             <ion-item
               button
@@ -355,7 +360,7 @@ export class TrackItems extends connect(store)(LitElement) {
     const hasTracks = this.numTracks > 0;
     return html`<ion-item .button=${hasTracks} .detail=${hasTracks} @click=${this.handleSelect} lines="none">
         <i class="las la-route la-2x"></i>Tracks
-        ${hasTracks ? html`<ion-badge slot="end" color="primary">${this.numTracks}</ion-badge>` : null}
+        ${when(hasTracks, () => html`<ion-badge slot="end" color="primary">${this.numTracks}</ion-badge>`)}
       </ion-item>
       <ion-item lines="none" button @click=${this.forwardClick}>
         Upload
@@ -442,9 +447,10 @@ export class LiveTrackItems extends connect(store)(LitElement) {
 
     return html`<ion-item lines="none" .button=${hasPilots} .detail=${hasPilots} @click=${this.handleSelect}>
         <i class="las la-satellite-dish la-2x"></i>Live tracks
-        ${hasPilots
-          ? html`<ion-badge slot="end" color=${hasEmergency ? 'warning' : 'primary'}>${numPilots}</ion-badge>`
-          : null}
+        ${when(
+          hasPilots,
+          () => html`<ion-badge slot="end" color=${hasEmergency ? 'warning' : 'primary'}>${numPilots}</ion-badge>`,
+        )}
       </ion-item>
       <ion-item button detail lines="none" @click=${this.handleConfig}>
         <ion-label>Setup</ion-label>

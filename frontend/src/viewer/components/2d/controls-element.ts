@@ -9,6 +9,7 @@ import './path-element';
 import { RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
 import { Units } from '../../logic/units';
@@ -56,20 +57,26 @@ export class ControlsElement extends connect(store)(LitElement) {
       <airways-element .map=${this.map}></airways-element>
       <path-element .map=${this.map}></path-element>
       <tracking-element .map=${this.map}></tracking-element>
-      ${this.track?.name
-        ? html`
-            <name-ctrl-element .name=${this.track.name} .color=${this.color} .track=${this.track}></name-ctrl-element>
-          `
-        : ''}
-      ${this.track
-        ? html`
+      ${when(
+        this.track?.name,
+        () =>
+          html`<name-ctrl-element
+            .name=${this.track!.name}
+            .color=${this.color}
+            .track=${this.track}
+          ></name-ctrl-element>`,
+      )}
+      ${when(
+        this.track,
+        () =>
+          html`
             <dashboard-ctrl-element
               .track=${this.track}
               .timeSec=${this.timeSec}
               .units=${this.units}
             ></dashboard-ctrl-element>
-          `
-        : ''}
+          `,
+      )}
     </div>`;
   }
 }
