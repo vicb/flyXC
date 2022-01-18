@@ -42,6 +42,12 @@ export const enum Keys {
   fetcherNextFullSyncSec = 'f:state:nextFullSync',
   fetcherNextExportSec = 'f:state:nextExport',
 
+  // # Host
+
+  hostMemoryUsedMb = 'h:mem:used',
+  hostMemoryTotalMb = 'h:mem:total',
+  hostCpuUsage = 'h:cpu:usage',
+
   // # Live Tracks
 
   // Full tracks.

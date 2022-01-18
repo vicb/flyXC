@@ -22,7 +22,15 @@ import { Pipeline } from 'ioredis';
 import process from 'process';
 
 import { patchLastFixAGL as patchLastFixElevation } from './elevation/elevation';
-import { addElevationLogs, addExportLogs, addStateLogs, addSyncLogs, addTrackerLogs, HandleCommand } from './redis';
+import {
+  addElevationLogs,
+  addExportLogs,
+  addHostInfo,
+  addStateLogs,
+  addSyncLogs,
+  addTrackerLogs,
+  HandleCommand,
+} from './redis';
 import { createStateArchive, exportToStorage } from './state/serialize';
 import {
   ARCHIVE_STATE_FILE,
@@ -108,6 +116,7 @@ async function tick(state: FetcherState) {
     await updateTrackers(pipeline, state);
 
     addStateLogs(pipeline, state);
+    await addHostInfo(pipeline);
 
     if (state.nextStopSec > 0 && state.lastTickSec > state.nextStopSec) {
       // We do not need to sync on shutdown as there will be a sync on startup.

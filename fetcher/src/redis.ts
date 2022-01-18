@@ -2,6 +2,7 @@ import { FetcherState, Tracker } from 'flyxc/common/protos/fetcher-state';
 import { trackerPropNames } from 'flyxc/common/src/live-track';
 import { Keys, pushListCap } from 'flyxc/common/src/redis';
 import { Pipeline, Redis } from 'ioredis';
+import nos from 'node-os-utils';
 import zlib from 'zlib';
 
 import { ElevationUpdates } from './elevation/elevation';
@@ -85,6 +86,17 @@ export function addTrackerLogs(pipeline: Pipeline, updates: TrackerUpdates, stat
       );
     }
   }
+}
+
+// Logs host CPU and memory.
+export async function addHostInfo(pipeline: Pipeline): Promise<void> {
+  const cpuUsage = await nos.cpu.usage(1000);
+  const { totalMemMb, usedMemMb } = await nos.mem.info();
+
+  pipeline
+    .set(Keys.hostCpuUsage, cpuUsage)
+    .set(Keys.hostMemoryUsedMb, usedMemMb)
+    .set(Keys.hostMemoryTotalMb, totalMemMb);
 }
 
 // Logs state variables.

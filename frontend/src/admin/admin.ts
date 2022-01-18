@@ -215,6 +215,11 @@ export class DashSummary extends LitElement {
 
             <li style="padding-top: .5em">Memory RSS: ${this.values[Keys.fetcherMemoryRssMb]}MB</li>
             <li>Memory Heap: ${this.values[Keys.fetcherMemoryHeapMb]}MB</li>
+            <li>
+              Host memory:
+              ${Math.round(this.values[Keys.hostMemoryUsedMb])}/${Math.round(this.values[Keys.hostMemoryTotalMb])}MB
+            </li>
+            <li>Host CPU: ${Math.round(this.values[Keys.hostCpuUsage])}%</li>
           </ul>
           <ul style="padding-top: .5em">
             <li>Uploaded tracks: ${this.values[Keys.trackNum]}</li>
