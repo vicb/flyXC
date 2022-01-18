@@ -8,6 +8,7 @@ import { Keys } from 'flyxc/common/src/redis';
 import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import { when } from 'lit/directives/when.js';
 
 const REFRESH_MIN = 10;
 
@@ -86,22 +87,28 @@ export class AdminPage extends LitElement {
       </section>
 
       <div class="container">
-        ${!this.connected
-          ? html`<google-btn override="admin" style="margin-top: 10px"></google-btn>`
-          : this.isLoading && !this.values
-          ? html` <div class="notification my-4 content">
+        ${when(!this.connected, () => html`<google-btn override="admin" style="margin-top: 10px"></google-btn>`)}
+        ${when(
+          this.isLoading && !this.values,
+          () =>
+            html` <div class="notification my-4 content">
               <progress class="progress is-small is-primary" max="100">60%</progress>
-            </div>`
-          : null}
-        ${this.values
-          ? html`<dash-summary .values=${this.values} .isLoading=${this.isLoading} @sync=${this.fetch}></dash-summary>
-              ${Object.values(trackerPropNames).map(
-                (name) => html`<dash-tracker .values=${this.values} name=${name}></dash-tracker>`,
-              )}
-              <dash-elev .values=${this.values}></dash-elev>
-              <dash-sync .values=${this.values}></dash-sync>
-              <state-explorer></state-explorer>`
-          : null}
+            </div>`,
+        )}
+        ${when(
+          this.values,
+          () => html`<dash-summary
+              .values=${this.values}
+              .isLoading=${this.isLoading}
+              @sync=${this.fetch}
+            ></dash-summary>
+            ${Object.values(trackerPropNames).map(
+              (name) => html`<dash-tracker .values=${this.values} name=${name}></dash-tracker>`,
+            )}
+            <dash-elev .values=${this.values}></dash-elev>
+            <dash-sync .values=${this.values}></dash-sync>
+            <state-explorer></state-explorer>`,
+        )}
       </div>`;
   }
 
@@ -217,7 +224,7 @@ export class DashSummary extends LitElement {
           </ul>
           <div class="buttons" style="margin-top: .5rem">
             <button
-              class=${`button is-success is-small ${this.isLoading ? 'is-loading' : ''}`}
+              class=${`button is-success is-small ${when(this.isLoading, () => 'is-loading')}`}
               @click=${() => this.dispatchEvent(new CustomEvent('sync'))}
             >
               <i class="la la-sync la-2x"></i> Refresh
@@ -253,23 +260,23 @@ export class DashTracker extends LitElement {
   }
 
   render(): TemplateResult {
-    const oldTimeSec = Date.now() / 1000 - 24 * 3 * 3600;
+    const oldAfterSec = 24 * 3 * 3600;
     const number = this.values[Keys.trackerNumByType.replace('{name}', this.name)];
     const durations = this.values[Keys.trackerFetchDuration.replace('{name}', this.name)];
     const numDevices = this.values[Keys.trackerNumFetches.replace('{name}', this.name)];
     const numUpdates = this.values[Keys.trackerNumUpdates.replace('{name}', this.name)];
 
     const topErrors = this.values[Keys.trackerManyErrorsById.replace('{name}', this.name)];
-    const { recent: topRecentErrorsById, old: topOldErrorsById } = splitByDate(topErrors, oldTimeSec);
+    const { recent: topRecentErrorsById, old: topOldErrorsById } = splitByDate(topErrors, oldAfterSec);
 
     const consErrors = this.values[Keys.trackerConsecutiveErrorsById.replace('{name}', this.name)];
-    const { recent: consRecentErrorsById, old: consOldErrorsById } = splitByDate(consErrors, oldTimeSec);
+    const { recent: consRecentErrorsById, old: consOldErrorsById } = splitByDate(consErrors, oldAfterSec);
 
     const errorsById = this.values[Keys.trackerErrorsById.replace('{name}', this.name)];
-    const { recent: recentErrorsById, old: oldErrorsById } = splitByDate(errorsById, oldTimeSec);
+    const { recent: recentErrorsById, old: oldErrorsById } = splitByDate(errorsById, oldAfterSec);
 
     const errors = this.values[Keys.trackerErrorsByType.replace('{name}', this.name)];
-    const { recent: recentErrors, old: oldErrors } = splitByDate(errors, oldTimeSec);
+    const { recent: recentErrors, old: oldErrors } = splitByDate(errors, oldAfterSec);
 
     return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
       <div class="panel is-warning" style="margin-top: 1em;">
@@ -423,13 +430,19 @@ export class DashSync extends LitElement {
           </ul>
           <div class="buttons" style="margin-top: .5rem">
             <button
-              class=${`button is-success is-small ${this.btnLoading[Keys.fetcherCmdSyncFull] ? 'is-loading' : ''}`}
+              class=${`button is-success is-small ${when(
+                this.btnLoading[Keys.fetcherCmdSyncFull],
+                () => 'is-loading',
+              )}`}
               @click=${async () => await this.sendCommand(Keys.fetcherCmdSyncFull)}
             >
               <i class="la la-sync la-2x"></i> Sync
             </button>
             <a
-              class=${`button is-success is-small ${this.btnLoading[Keys.fetcherCmdExportFile] ? 'is-loading' : ''}`}
+              class=${`button is-success is-small ${when(
+                this.btnLoading[Keys.fetcherCmdExportFile],
+                () => 'is-loading',
+              )}`}
               @click=${async () => await this.sendCommand(Keys.fetcherCmdExportFile)}
               ><i class="la la-cloud-upload-alt la-2x"></i> Export</a
             >
@@ -508,7 +521,7 @@ export class StateExplorer extends LitElement {
         <div class="panel-block">
           <div class="buttons" style="margin-top: .5em">
             <button
-              class=${`button is-success is-small ${this.isLoading ? 'is-loading' : ''}`}
+              class=${`button is-success is-small ${when(this.isLoading, () => 'is-loading')}`}
               @click=${async () => this.fetchState()}
             >
               <i class="la la-cloud-download-alt la-2x"></i> Fetch
@@ -525,7 +538,7 @@ export class StateExplorer extends LitElement {
                   </div>
                   <p class="help">
                     ${numMatchingPilots} pilots.
-                    ${numMatchingPilots > STATE_MAX_PILOT ? `Only first ${STATE_MAX_PILOT} shown.` : ''}
+                    ${when(numMatchingPilots > STATE_MAX_PILOT, () => `Only first ${STATE_MAX_PILOT} shown.`)}
                   </p>
                 </div>
                 <json-viewer .data=${state}>{}</json-viewer>`
