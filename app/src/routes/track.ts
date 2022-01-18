@@ -93,15 +93,11 @@ export function getTrackRouter(): Router {
         const aspGroup = protos.AirspacesGroup.fromBinary(new Uint8Array(metaGroup.airspacesGroupBin));
         if (aspGroup?.airspaces) {
           const airspaces = diffDecodeAirspaces(aspGroup.airspaces[0]);
-          const anyAirspaces = airspaces as any;
-          anyAirspaces.startTs = anyAirspaces.startSec.map((s: number) => 1000 * s);
-          anyAirspaces.endTs = anyAirspaces.endSec.map((s: number) => 1000 * s);
-          res.json(anyAirspaces);
-          return;
+          return res.json(airspaces);
         }
       }
     }
-    res.sendStatus(404);
+    return res.sendStatus(404);
   });
 
   return router;
