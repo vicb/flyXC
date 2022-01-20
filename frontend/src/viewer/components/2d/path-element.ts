@@ -1,23 +1,23 @@
 import '../ui/share-modal';
 import '../ui/waypoint-modal';
 
+import { LatLon } from 'flyxc/common/src/runtime-track';
 import { LitElement, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { ClosingSector } from '../../gm/closing-sector';
 import { FaiSectors } from '../../gm/fai-sectors';
+import { addAltitude } from '../../logic/elevation';
 import { getCurrentUrl, pushCurrentState } from '../../logic/history';
 import { drawRoute } from '../../logic/messages';
 import { LEAGUES } from '../../logic/score/league/leagues';
 import { Measure } from '../../logic/score/measure';
 import { CircuitType, Score } from '../../logic/score/scorer';
-import { setDistance, setRoute, setScore } from '../../redux/planner-slice';
+import { setDistance, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
 import { getModalController } from '../ui/ion-controllers';
 import { PlannerElement } from './planner-element';
-import { addAltitude } from '../../logic/elevation';
-import { LatLon } from 'flyxc/common/src/runtime-track';
 
 // Route color by circuit type.
 const ROUTE_STROKE_COLORS = {
@@ -327,6 +327,7 @@ export class PathElement extends connect(store)(LitElement) {
         drawRoute.emit();
         store.dispatch(setRoute(''));
       });
+      el.addEventListener('close', () => store.dispatch(setEnabled(false)));
     }
   }
 

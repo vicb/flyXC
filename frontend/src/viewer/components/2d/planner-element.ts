@@ -34,7 +34,8 @@ export class PlannerElement extends connect(store)(LitElement) {
   private isFreeDrawing = false;
 
   private duration?: number;
-  private readonly closeHandler = () => this.dispatchEvent(new CustomEvent('close-flight'));
+  private readonly closeHandler = () => this.dispatchEvent(new CustomEvent('close'));
+  private readonly closeFlightHandler = () => this.dispatchEvent(new CustomEvent('close-flight'));
   private readonly shareHandler = () => this.dispatchEvent(new CustomEvent('share'));
   private readonly downloadHandler = () => this.dispatchEvent(new CustomEvent('download'));
   private readonly resetHandler = () => this.dispatchEvent(new CustomEvent('reset'));
@@ -129,6 +130,9 @@ export class PlannerElement extends connect(store)(LitElement) {
         }
       </style>
       <div class="control">
+        <div @click=${this.closeHandler}>
+          <div><i class="las la-times-circle"></i> Close</div>
+        </div>
         <div>
           <div>${this.score.circuit}</div>
           <div class="large">
@@ -177,17 +181,17 @@ export class PlannerElement extends connect(store)(LitElement) {
         <div @click=${this.drawHandler} class=${when(this.isFreeDrawing, () => 'active')}>
           <div><i class="las la-pen"></i> Free draw</div>
         </div>
-        <div class="collapsible" @click=${this.closeHandler}>
-          <div>Close flight</div>
+        <div class="collapsible" @click=${this.closeFlightHandler}>
+          <div><i class="las la-redo-alt"></i> Close flight</div>
         </div>
         <div class="collapsible" @click=${this.shareHandler}>
-          <div>Share</div>
+          <div><i class="las la-share"></i> Share</div>
         </div>
         <div class="collapsible" @click=${this.downloadHandler}>
-          <div>Download</div>
+          <div><i class="las la-cloud-download-alt"></i> Download</div>
         </div>
         <div class="collapsible" @click=${this.resetHandler}>
-          <div>Reset</div>
+          <div><i class="las la-broom"></i> Reset</div>
         </div>
         <div @click=${() => (this.hideDetails = !this.hideDetails)}>
           <div>
