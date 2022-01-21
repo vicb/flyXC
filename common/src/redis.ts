@@ -47,6 +47,7 @@ export const enum Keys {
   hostMemoryUsedMb = 'h:mem:used',
   hostMemoryTotalMb = 'h:mem:total',
   hostCpuUsage = 'h:cpu:usage',
+  hostUptimeSec = 'h:uptime',
 
   // # Live Tracks
 

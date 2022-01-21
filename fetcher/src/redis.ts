@@ -88,15 +88,26 @@ export function addTrackerLogs(pipeline: Pipeline, updates: TrackerUpdates, stat
   }
 }
 
-// Logs host CPU and memory.
+let cpuUsage = 0;
+let cpuUsagePromise: Promise<number> | null = null;
+
+// Logs host info.
 export async function addHostInfo(pipeline: Pipeline): Promise<void> {
-  const cpuUsage = await nos.cpu.usage(1000);
+  // CPU usage over 5min.
+  if (cpuUsagePromise == null) {
+    cpuUsagePromise = nos.cpu
+      .usage(5 * 60 * 1000)
+      .then((cpu) => (cpuUsage = cpu))
+      .finally(() => (cpuUsagePromise = null));
+  }
+
   const { totalMemMb, usedMemMb } = await nos.mem.info();
 
   pipeline
     .set(Keys.hostCpuUsage, cpuUsage)
     .set(Keys.hostMemoryUsedMb, usedMemMb)
-    .set(Keys.hostMemoryTotalMb, totalMemMb);
+    .set(Keys.hostMemoryTotalMb, totalMemMb)
+    .set(Keys.hostUptimeSec, nos.os.uptime());
 }
 
 // Logs state variables.

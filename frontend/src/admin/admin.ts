@@ -220,6 +220,7 @@ export class DashSummary extends LitElement {
               ${Math.round(this.values[Keys.hostMemoryUsedMb])}/${Math.round(this.values[Keys.hostMemoryTotalMb])}MB
             </li>
             <li>Host CPU: ${Math.round(this.values[Keys.hostCpuUsage])}%</li>
+            <li>Uptime: ${relativeTime(this.values[Keys.hostUptimeSec], 0)}</li>
           </ul>
           <ul style="padding-top: .5em">
             <li>Uploaded tracks: ${this.values[Keys.trackNum]}</li>
@@ -583,8 +584,8 @@ export class StateExplorer extends LitElement {
 }
 
 // Returns readable relative time.
-function relativeTime(timeSec: number, tickSec = Math.round(Date.now() / 1000)): string {
-  const delta = timeSec - tickSec;
+function relativeTime(timeSec: number, relativeToSec = Math.round(Date.now() / 1000)): string {
+  const delta = timeSec - relativeToSec;
   if (Math.abs(delta) >= 24 * 3600 * 365) {
     return `${round(delta / (24 * 3600 * 365), 1)}y`;
   }

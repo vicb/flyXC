@@ -167,6 +167,7 @@ async function getDashboardValues(redis: Redis): Promise<unknown> {
     [Keys.fetcherNextFullSyncSec]: 'S',
     [Keys.fetcherNextExportSec]: 'S',
     [Keys.hostCpuUsage]: 'S',
+    [Keys.hostUptimeSec]: 'S',
     [Keys.hostMemoryUsedMb]: 'S',
     [Keys.hostMemoryTotalMb]: 'S',
     [Keys.fetcherFullNumTracks]: 'S',
