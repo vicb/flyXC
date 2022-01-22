@@ -511,8 +511,8 @@ export class StateExplorer extends LitElement {
   }
 
   render(): TemplateResult {
-    const state = filterState(this.fetcherState, STATE_MAX_PILOT, this.filter);
-    const { numMatchingPilots } = state as any;
+    const state: any = filterState(this.fetcherState, STATE_MAX_PILOT, this.filter);
+    const numMatchingPilots = state.numMatchingPilots ?? 0;
 
     return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
       <link
@@ -533,22 +533,23 @@ export class StateExplorer extends LitElement {
               <i class="la la-cloud-download-alt la-2x"></i> Fetch
             </button>
           </div>
-          ${this.fetcherState
-            ? html`<div class="field">
-                  <label class="label">Filter</label>
-                  <div class="control has-icons-left">
-                    <input class="input" type="text" .value="${this.filter}" @input="${this.onFilterInput}" />
-                    <span class="icon is-left">
-                      <i class="la la-filter la-2x"></i>
-                    </span>
-                  </div>
-                  <p class="help">
-                    ${numMatchingPilots} pilots.
-                    ${when(numMatchingPilots > STATE_MAX_PILOT, () => `Only first ${STATE_MAX_PILOT} shown.`)}
-                  </p>
+          ${when(
+            this.fetcherState,
+            () => html`<div class="field">
+                <label class="label">Filter</label>
+                <div class="control has-icons-left">
+                  <input class="input" type="text" .value="${this.filter}" @input="${this.onFilterInput}" />
+                  <span class="icon is-left">
+                    <i class="la la-filter la-2x"></i>
+                  </span>
                 </div>
-                <json-viewer .data=${state}>{}</json-viewer>`
-            : null}
+                <p class="help">
+                  ${numMatchingPilots} pilots.
+                  ${when(numMatchingPilots > STATE_MAX_PILOT, () => `Only first ${STATE_MAX_PILOT} shown.`)}
+                </p>
+              </div>
+              <json-viewer .data=${state}>{}</json-viewer>`,
+          )}
         </div>
       </div>`;
   }
@@ -573,6 +574,8 @@ export class StateExplorer extends LitElement {
         this.isLoading = false;
         clearInterval(this.timer);
         this.timer = null;
+        // Force an update of the JSON viewer.
+        setTimeout(() => this.requestUpdate(), 100);
         return;
       }
       if (Date.now() > deadline) {
@@ -657,8 +660,8 @@ function entityHref(id: string) {
 
 // Format the app state to a shorter and more understandable form for display.
 function filterState(state: FetcherState | undefined, maxPilots: number, filter: string): unknown {
-  if (!state) {
-    return '-';
+  if (state == null) {
+    return {};
   }
 
   const tickSec = state.lastTickSec;
@@ -675,7 +678,7 @@ function filterState(state: FetcherState | undefined, maxPilots: number, filter:
     nextFullSyncSec: relativeTime(state.nextFullSyncSec, tickSec),
     nextExportSec: relativeTime(state.nextExportSec, tickSec),
     numMatchingPilots: 0,
-    pilots: {},
+    pilots: [],
   };
 
   let numMatchingPilots = 0;
@@ -685,22 +688,21 @@ function filterState(state: FetcherState | undefined, maxPilots: number, filter:
       continue;
     }
 
-    if (numMatchingPilots++ >= maxPilots) {
-      continue;
-    }
-
-    const outPid = `[${numMatchingPilots}] ${pilot.name}`;
+    numMatchingPilots++;
 
     if (pilot.enabled === false) {
-      output.pilots[outPid] = { id: pId, tracking: false };
+      output.pilots.push({ name: pilot.name, id: pId, tracking: false });
       continue;
     }
 
     const outPilot: any = {
+      name: pilot.name,
       id: pId,
       share: pilot.share,
       track: pilot.track,
     };
+
+    let lastFixSec = 0;
 
     for (const tId of Object.values(trackerPropNames)) {
       const tracker: Tracker | undefined = (pilot as any)[tId];
@@ -708,6 +710,9 @@ function filterState(state: FetcherState | undefined, maxPilots: number, filter:
         outPilot[tId] = 'Tracker disabled';
         continue;
       }
+
+      lastFixSec = Math.max(lastFixSec, tracker.lastFixSec);
+
       outPilot[tId] = {
         account: tracker.account,
         lastFetchSec: relativeTime(tracker.lastFetchSec, tickSec),
@@ -719,8 +724,27 @@ function filterState(state: FetcherState | undefined, maxPilots: number, filter:
       };
     }
 
-    output.pilots[outPid] = outPilot;
+    if (lastFixSec > 0) {
+      outPilot.lastFixSec = lastFixSec;
+    }
+
+    output.pilots.push(outPilot);
   }
+
+  // Sort pilots with the last updated first.
+  output.pilots.sort((pa: any, pb: any) => {
+    const lastFixA = pa.lastFixSec ?? 0;
+    const lastFixB = pb.lastFixSec ?? 0;
+    return lastFixB - lastFixA;
+  });
+
+  output.pilots.forEach((p: any) => {
+    if (p.lastFixSec != null) {
+      p.lastFixSec = relativeTime(p.lastFixSec, tickSec);
+    }
+  });
+
+  output.pilots.splice(maxPilots);
 
   output.numMatchingPilots = numMatchingPilots;
 
