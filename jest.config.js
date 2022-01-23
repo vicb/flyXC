@@ -20,6 +20,7 @@ config = {
   // explicitly include any node libs using ESM modules
   transformIgnorePatterns: ['node_modules/?!(ol)'],
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/' }),
+  modulePathIgnorePatterns: ['.rollup.cache/'],
 };
 
 module.exports = config;

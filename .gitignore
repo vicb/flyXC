@@ -14,3 +14,5 @@ stats.html
 fetcher/dist/*
 tools/dist/*
 
+/tsconfig.tsbuildinfo
+/.rollup.cache

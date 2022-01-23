@@ -32,10 +32,17 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": false,
     "removeComments": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "incremental": true
   },
   "exclude": [
-    "frontend/static",
-    "fetcher/dist/*"
+    "app/server.js",
+    "run/index.js",
+    "airspaces/**/*",
+    "fetcher/dist/**/*",
+    "frontend/static/**/*",
+    "**/node_modules/**/*",
+    "scripts/**/*",
+    ".rollup.cache/**/*"
   ]
 }
