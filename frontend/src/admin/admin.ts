@@ -503,6 +503,11 @@ export class StateExplorer extends LitElement {
     `;
   }
 
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.fetchState();
+  }
+
   disconnectedCallback(): void {
     if (this.timer) {
       clearInterval(this.timer);
