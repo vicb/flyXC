@@ -128,9 +128,12 @@ export class PlannerElement extends connect(store)(LitElement) {
         .active {
           background-color: lightgray;
         }
+        .hoverable:hover {
+          background-color: #f0f0f0;
+        }
       </style>
       <div class="control">
-        <div @click=${this.closeHandler}>
+        <div @click=${this.closeHandler} class="hoverable">
           <div><i class="las la-times-circle"></i> Close</div>
         </div>
         <div>
@@ -178,22 +181,29 @@ export class PlannerElement extends connect(store)(LitElement) {
           </div>
           <div class="large">${unsafeHTML(formatUnit(this.speed as number, this.units.speed, undefined, 'unit'))}</div>
         </div>
-        <div @click=${this.drawHandler} class=${when(this.isFreeDrawing, () => 'active')}>
+        <div
+          @click=${this.drawHandler}
+          class=${when(
+            this.isFreeDrawing,
+            () => 'active',
+            () => 'hoverable',
+          )}
+        >
           <div><i class="las la-pen"></i> Free draw</div>
         </div>
-        <div class="collapsible" @click=${this.closeFlightHandler}>
+        <div class="collapsible hoverable" @click=${this.closeFlightHandler}>
           <div><i class="las la-redo-alt"></i> Close flight</div>
         </div>
-        <div class="collapsible" @click=${this.shareHandler}>
+        <div class="collapsible hoverable" @click=${this.shareHandler}>
           <div><i class="las la-share"></i> Share</div>
         </div>
-        <div class="collapsible" @click=${this.downloadHandler}>
+        <div class="collapsible hoverable" @click=${this.downloadHandler}>
           <div><i class="las la-cloud-download-alt"></i> Download</div>
         </div>
-        <div class="collapsible" @click=${this.resetHandler}>
+        <div class="collapsible hoverable" @click=${this.resetHandler}>
           <div><i class="las la-broom"></i> Reset</div>
         </div>
-        <div @click=${() => (this.hideDetails = !this.hideDetails)}>
+        <div @click=${() => (this.hideDetails = !this.hideDetails)} class="hoverable">
           <div>
             ${this.hideDetails
               ? html` <img height="5" width="8" src=${ICON_EXPAND} /> `
