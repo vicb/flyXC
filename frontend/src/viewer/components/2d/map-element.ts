@@ -205,6 +205,11 @@ export class MapElement extends connect(store)(LitElement) {
 
       this.map.addListener('center_changed', () => this.handleLocation());
 
+      // Zoom to the track the first time the document becomes visible.
+      if (document.visibilityState != 'visible') {
+        document.addEventListener('visibilitychange', () => this.zoomToTracks(), { once: true });
+      }
+
       store.dispatch(setApiLoading(false));
     });
   }
@@ -363,7 +368,7 @@ export class MapElement extends connect(store)(LitElement) {
       const div = this.map?.getDiv();
       const hasWidth = div && div.clientWidth > 0;
       if (Date.now() < timeout && !hasWidth) {
-        setTimeout(zoomWhenSize, 50);
+        setTimeout(zoomWhenSize, 100);
       } else {
         const extent = sel.tracksExtent(store.getState());
         if (extent != null) {

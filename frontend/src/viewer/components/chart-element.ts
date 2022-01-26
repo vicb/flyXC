@@ -234,11 +234,16 @@ export class ChartElement extends connect(store)(LitElement) {
   connectedCallback(): void {
     super.connectedCallback();
     window.addEventListener('resize', this.sizeListener);
+    // Sometimes the SVG has a 0x0 size when opened in a new window.
+    if (document.visibilityState != 'visible') {
+      document.addEventListener('visibilitychange', () => setTimeout(this.sizeListener, 500));
+    }
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
     window.removeEventListener('resize', this.sizeListener);
+    document.removeEventListener('visibilitychange', this.sizeListener);
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
