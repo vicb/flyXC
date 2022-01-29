@@ -483,7 +483,9 @@ export class StateExplorer extends LitElement {
   @state()
   private fetcherState?: FetcherState;
 
-  private timer: any;
+  private fetchTimer: any;
+  private refreshTimer: any;
+  private fetchSec = 0;
 
   static get styles(): CSSResult {
     return css`
@@ -506,13 +508,18 @@ export class StateExplorer extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     this.fetchState();
+    this.refreshTimer = setInterval(() => {
+      this.requestUpdate();
+    }, 10 * 1000);
   }
 
   disconnectedCallback(): void {
-    if (this.timer) {
-      clearInterval(this.timer);
-      this.timer = undefined;
+    if (this.fetchTimer) {
+      clearInterval(this.fetchTimer);
+      this.fetchTimer = undefined;
     }
+    clearInterval(this.refreshTimer);
+    this.refreshTimer = null;
   }
 
   render(): TemplateResult {
@@ -553,7 +560,10 @@ export class StateExplorer extends LitElement {
                   ${when(numMatchingPilots > STATE_MAX_PILOT, () => `Only first ${STATE_MAX_PILOT} shown.`)}
                 </p>
               </div>
-              <json-viewer .data=${state}>{}</json-viewer>`,
+              <json-viewer .data=${state}>{}</json-viewer>
+              <ul style="padding-top: .5em">
+                <li class="has-text-grey">State age: ${relativeTime(Date.now() / 1000, this.fetchSec)}</li>
+              </ul> `,
           )}
         </div>
       </div>`;
@@ -571,21 +581,22 @@ export class StateExplorer extends LitElement {
     this.isLoading = true;
     await fetch(`/admin/_state/cmd/${Keys.fetcherCmdCaptureState}`, { method: 'POST', credentials: 'include' });
     const deadline = Date.now() + 2 * 60 * 1000;
-    this.timer = setInterval(async () => {
+    this.fetchTimer = setInterval(async () => {
       const response = await fetch('/admin/_state.json', { credentials: 'include' });
       if (response.status == 200) {
         const buffer = new Uint8Array(await response.arrayBuffer());
         this.fetcherState = FetcherState.fromBinary(buffer);
         this.isLoading = false;
-        clearInterval(this.timer);
-        this.timer = null;
+        clearInterval(this.fetchTimer);
+        this.fetchTimer = null;
+        this.fetchSec = Math.round(Date.now() / 1000);
         // Force an update of the JSON viewer.
         setTimeout(() => this.requestUpdate(), 100);
         return;
       }
       if (Date.now() > deadline) {
-        clearInterval(this.timer);
-        this.timer = null;
+        clearInterval(this.fetchTimer);
+        this.fetchTimer = null;
       }
     }, 10 * 1000);
   }
