@@ -10,12 +10,15 @@ type BrowserState = {
   readonly isSmallScreen: boolean;
 };
 
+// https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
+export const isMobile = () =>
+  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobi/i.test(navigator.userAgent);
+
 const initialState: BrowserState = {
   isFullscreen: document.fullscreenElement != null,
   isVisible: document.visibilityState == 'visible',
   isInIframe: window.parent !== window,
-  // https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
-  isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobi/i.test(navigator.userAgent),
+  isMobile: isMobile(),
   isSmallScreen: !window.matchMedia('(min-width: 640px)').matches,
 };
 

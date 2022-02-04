@@ -12,10 +12,11 @@ import {
 } from '@reduxjs/toolkit';
 
 import * as TrackWorker from '../workers/live-track';
+import { isMobile } from './browser-slice';
 import { RootState, store } from './store';
 
 // Refresh live tracks every.
-const REFRESH_INTERVAL_SEC = 2 * 60;
+const REFRESH_INTERVAL_SEC = isMobile() ? 2 * 60 : 60;
 // Local storage key for the return URL.
 // Must be kept in sync with device-form.ts.
 const RETURN_URL_KEY = 'url.tracking.return';
