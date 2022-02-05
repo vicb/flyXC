@@ -73,6 +73,7 @@ export class LineElement extends connect(store)(LitElement) {
       strokeColor: '#fff',
       strokeOpacity: 0.6,
       strokeWeight: 6,
+      zIndex: 50000,
     });
 
     this.lineOption = {
@@ -82,6 +83,7 @@ export class LineElement extends connect(store)(LitElement) {
       strokeWeight: 2,
       strokeOpacity: this.opacity,
       strokeColor: this.color,
+      zIndex: 60000,
     };
 
     this.line = new google.maps.Polyline(this.lineOption);
