@@ -45,7 +45,7 @@ export async function fetchGroundAltitude(track: protos.Track): Promise<protos.G
     let rgba = getRgbaCache().get(url);
     if (rgba == null) {
       try {
-        const response = await getBufferRetry(url);
+        const response = await getBufferRetry(url, { timeoutSec: 10 });
         if (response.ok) {
           const metadata = decode(response.body);
           if (metadata.width == TILE_PX_SIZE && metadata.height == TILE_PX_SIZE) {

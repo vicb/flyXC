@@ -45,14 +45,14 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
     let buffer = getAspCache().get(url);
     if (buffer === undefined) {
       try {
-        const response = await getBufferRetry(url);
+        const response = await getBufferRetry(url, { timeoutSec: 10 });
         if (response.ok) {
           const buffer = response.body;
           getAspCache().set(url, buffer);
           bufferByTileUrl.set(url, buffer);
         }
       } catch (e) {
-        // Downloading tiles might return 404 if there is not airspace.
+        // Downloading tiles might return 404 if there is no airspace.
         // We then can not rely on 404 to detect errors.
         buffer = null;
       }
