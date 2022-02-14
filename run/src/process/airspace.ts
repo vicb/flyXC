@@ -3,9 +3,10 @@ import * as protos from 'flyxc/common/protos/track';
 import { Flags, getAspTileUrl, isInFeature } from 'flyxc/common/src/airspaces';
 import { pixelCoordinates } from 'flyxc/common/src/proj';
 import { Point } from 'flyxc/common/src/runtime-track';
-import { getBufferRetry } from 'flyxc/common/src/superagent';
 import { VectorTile } from 'mapbox-vector-tile';
 import lru, { Lru } from 'tiny-lru';
+
+import { httpsGet } from './request';
 
 // Zoom level for the airspaces tiles.
 const ZOOM_LEVEL = 12;
@@ -45,18 +46,15 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
     let buffer = getAspCache().get(url);
     if (buffer === undefined) {
       try {
-        const response = await getBufferRetry(url, { timeoutSec: 10 });
-        if (response.ok) {
-          const buffer = response.body;
-          getAspCache().set(url, buffer);
-          bufferByTileUrl.set(url, buffer);
-        }
+        buffer = await httpsGet(url);
       } catch (e) {
-        // Downloading tiles might return 404 if there is no airspace.
+        // Downloading tiles might return 404 if there is not airspace.
         // We then can not rely on 404 to detect errors.
         buffer = null;
       }
     }
+    getAspCache().set(url, buffer);
+    bufferByTileUrl.set(url, buffer);
   });
 
   // Retrieve fix indexes for every airspaces.

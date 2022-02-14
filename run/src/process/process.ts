@@ -3,9 +3,9 @@ import * as protos from 'flyxc/common/protos/track';
 import { SecretKeys } from 'flyxc/common/src/keys';
 import { diffEncodeArray } from 'flyxc/common/src/math';
 import { diffDecodeTrack, diffEncodeAirspaces } from 'flyxc/common/src/runtime-track';
-import { getTextRetry } from 'flyxc/common/src/superagent';
 import { retrieveTrackById, saveTrack, TrackEntity } from 'flyxc/common/src/track-entity';
 import * as polyline from 'google-polyline';
+import request from 'request-zero';
 import simplify from 'simplify-path';
 
 import { fetchAirspaces } from './airspace';
@@ -75,10 +75,10 @@ async function getLocation(track: protos.Track): Promise<{ city: string; country
   };
   try {
     if (track.lat && track.lat.length > 0 && track.lon && track.lon.length > 0) {
-      const response = await getTextRetry(
+      const response = await request(
         `http://api.geonames.org/findNearbyPlaceNameJSON?lat=${track.lat[0]}&lng=${track.lon[0]}&username=${SecretKeys.GEONAMES}`,
       );
-      if (response.ok) {
+      if (response.code == 200) {
         const loc = JSON.parse(response.body).geonames[0];
         location.city = loc?.name ?? '-';
         location.country = loc?.countryCode ?? '-';
