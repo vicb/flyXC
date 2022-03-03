@@ -20,7 +20,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@alenaksu/json-viewer": "^1.0.0",
     "@babel/runtime": "^7.17.2",
     "@google-cloud/datastore": "^6.6.2",
     "@google-cloud/logging": "^9.8.0",
@@ -48,7 +47,6 @@
     "mapbox-vector-tile": "^0.3.0",
     "ol": "^6.13.0",
     "printf": "^0.6.1",
-    "qrcode": "^1.5.0",
     "simplify-path": "^1.1.0",
     "superagent": "^7.1.1",
     "tiny-lru": "^8.0.1",
