@@ -71,9 +71,7 @@ const app = express()
         nonce: true,
         callback: '/devices.html',
         pkce: true,
-        overrides: {
-          admin: { callback: '/admin.html' },
-        },
+        dynamic: ['callback'],
       },
     }),
   );
@@ -107,6 +105,6 @@ const port = process.env.PORT || 8080;
 app
   .use(express.static('frontend/static', { lastModified: false }))
   .get('*', (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, '../frontend/static', 'index.html'));
+    res.type('html').sendFile(path.join(__dirname, '../frontend/static', 'index.html'));
   })
   .listen(port, () => console.info(`Started server on port ${port}.`));

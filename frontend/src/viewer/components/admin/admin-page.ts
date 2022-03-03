@@ -76,6 +76,7 @@ export class AdminPage extends LitElement {
         }
         json-viewer {
           --font-size: 0.8rem;
+          margin: 0 10px;
         }
       </style>
 
@@ -86,7 +87,7 @@ export class AdminPage extends LitElement {
         </ion-toolbar>
       </ion-header>
       <ion-content>
-        ${when(!this.connected, () => html`<google-btn override="admin" style="margin-top: 10px"></google-btn>`)}
+        ${when(!this.connected, () => html`<google-btn callback="/admin.html" style="margin-top: 10px"></google-btn>`)}
         ${when(this.isLoading && !this.values, () => html`<ion-progress-bar type="indeterminate"></ion-progress-bar>`)}
         ${when(
           this.values,
@@ -372,12 +373,16 @@ export class DashSync extends LitElement {
         <ion-button
           .disabled=${this.btnLoading[Keys.fetcherCmdSyncFull]}
           @click=${async () => await this.sendCommand(Keys.fetcherCmdSyncFull)}
-          ><i class="la la-sync"></i> Sync</ion-button
+          ><i class=${`la la-sync ${when(this.btnLoading[Keys.fetcherCmdSyncFull], () => 'la-spin')}`}></i>
+          Sync</ion-button
         >
         <ion-button
           .disabled=${this.btnLoading[Keys.fetcherCmdExportFile]}
           @click=${async () => await this.sendCommand(Keys.fetcherCmdExportFile)}
-          ><i class="la la-cloud-upload-alt"></i> Export</ion-button
+          ><i
+            class=${`la la-cloud-upload-alt ${when(this.btnLoading[Keys.fetcherCmdExportFile], () => 'la-spin')}`}
+          ></i>
+          Export</ion-button
         >
       </ion-item>
     </ion-card>`;
@@ -449,7 +454,7 @@ export class StateExplorer extends LitElement {
         </ion-card-header>
         <ion-item lines="none">
           <ion-button .disabled=${this.isLoading} @click=${async () => await this.fetchState()}
-            ><i class="la la-sync"></i> Sync</ion-button
+            ><i class=${`la la-sync ${when(this.isLoading, () => 'la-spin')}`}></i> Sync</ion-button
           >
         </ion-item>
         ${when(

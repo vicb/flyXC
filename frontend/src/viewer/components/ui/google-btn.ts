@@ -1,10 +1,11 @@
 import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
 
 @customElement('google-btn')
 export class GoogleButton extends LitElement {
   @property()
-  override?: string;
+  callback?: string;
 
   private devicePixelRatio = devicePixelRatio;
 
@@ -26,8 +27,9 @@ export class GoogleButton extends LitElement {
   }
 
   protected render(): TemplateResult {
-    const action = '/oauth/google' + (this.override ? `/${this.override}` : '');
+    const action = '/oauth/google';
     return html`<form action=${action}>
+      ${when(this.callback, () => html`<input type="hidden" name="callback" value=${this.callback} />`)}
       <input
         type="image"
         src=${`/img/btn_google_signin_dark_normal_web${this.devicePixelRatio > 1 ? '@2x' : ''}.png`}

@@ -352,7 +352,7 @@ export class DevicesPage extends LitElement {
           </a>
           if you have any trouble registering your device.
         </p>
-        <google-btn></google-btn>
+        <google-btn callback=${this.getCallback()}></google-btn>
       </ion-content>
     `;
   }
@@ -363,5 +363,9 @@ export class DevicesPage extends LitElement {
 
   private getAction(): string {
     return this.accountId == null ? `/_account` : `/admin/_account/${this.accountId}`;
+  }
+
+  private getCallback(): string {
+    return this.accountId == null ? '/devices.html' : `/admin/account/${this.accountId}`;
   }
 }
