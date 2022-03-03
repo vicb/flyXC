@@ -5,9 +5,10 @@ import { RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
+import { modalController } from '@ionic/core/components';
+
 import { formatUnit, Units } from '../logic/units';
 import { controlStyle } from '../styles/control-style';
-import { getModalController } from './ui/ion-controllers';
 
 @customElement('dashboard-ctrl-element')
 export class DashboardElement extends LitElement {
@@ -54,7 +55,7 @@ export class DashboardElement extends LitElement {
   }
 
   private async handlePreferences() {
-    const modal = await getModalController().create({
+    const modal = await modalController.create({
       component: 'pref-modal',
     });
     await modal.present();

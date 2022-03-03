@@ -38,11 +38,6 @@ handlers:
   secure: always
   redirect_http_response_code: 301
 
-- url: /ionic
-  static_dir: frontend/static/ionic
-  secure: always
-  redirect_http_response_code: 301
-
 - url: /favicon\.ico$
   static_files: frontend/static/favicon.ico
   upload: frontend/static/favicon\.ico$

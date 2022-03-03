@@ -16,6 +16,8 @@ import { repeat } from 'lit/directives/repeat.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
+import { alertController } from '@ionic/core/components';
+
 import { Api, loadApi } from '../../logic/arcgis';
 import * as msg from '../../logic/messages';
 import { setApiLoading, setTimeSec, setView3d } from '../../redux/app-slice';
@@ -24,7 +26,6 @@ import { setCurrentLocation, setCurrentZoom } from '../../redux/location-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
-import { getAlertController } from '../ui/ion-controllers';
 
 @customElement('map3d-element')
 export class Map3dElement extends connect(store)(LitElement) {
@@ -213,7 +214,7 @@ export class Map3dElement extends connect(store)(LitElement) {
         .catch(async (e) => {
           store.dispatch(setApiLoading(false));
           if (e.name.includes('webgl')) {
-            const alert = await getAlertController().create({
+            const alert = await alertController.create({
               header: 'WebGL Error',
               message: 'Sorry, 3d requires WebGL which does not seem to be supported on your platform.',
               buttons: [

@@ -2,12 +2,13 @@ import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
+import { modalController } from '@ionic/core/components';
+
 import { LEAGUES } from '../../logic/score/league/leagues';
 import { DistanceUnit, SpeedUnit, Units } from '../../logic/units';
 import { setLeague } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
 import { setAltitudeUnit, setDistanceUnit, setSpeedUnit, setVarioUnit } from '../../redux/units-slice';
-import { getModalController } from './ion-controllers';
 
 @customElement('pref-modal')
 export class PrefModal extends connect(store)(LitElement) {
@@ -125,7 +126,7 @@ export class PrefModal extends connect(store)(LitElement) {
   }
 
   private async dismiss(): Promise<void> {
-    const modal = await getModalController().getTop();
+    const modal = await modalController.getTop();
     await modal?.dismiss();
   }
 }

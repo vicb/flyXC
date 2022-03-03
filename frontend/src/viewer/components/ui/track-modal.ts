@@ -3,12 +3,13 @@ import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
+import { menuController, modalController } from '@ionic/core/components';
+
 import { pushCurrentState } from '../../logic/history';
 import * as msg from '../../logic/messages';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { removeTracksByGroupIds, setCurrentTrackId } from '../../redux/track-slice';
-import { getMenuController, getModalController } from './ion-controllers';
 
 @customElement('track-modal')
 export class TrackModal extends connect(store)(LitElement) {
@@ -78,18 +79,18 @@ export class TrackModal extends connect(store)(LitElement) {
     // Closes the modal and the menu when all tracks are closed.
     if (sel.numTracks(store.getState()) == 0) {
       await this.dismiss();
-      await getMenuController().close();
+      await menuController.close();
     }
   }
 
   private async handleSelect(track: RuntimeTrack) {
     store.dispatch(setCurrentTrackId(track.id));
     await this.dismiss();
-    await getMenuController().close();
+    await menuController.close();
   }
 
   private async dismiss(): Promise<void> {
-    const modal = await getModalController().getTop();
+    const modal = await modalController.getTop();
     await modal?.dismiss();
   }
 }

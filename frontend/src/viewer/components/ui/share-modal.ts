@@ -1,12 +1,11 @@
+import { LatLonZ } from 'flyxc/common/src/runtime-track';
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-
-import { getModalController, getToastController } from './ion-controllers';
-
-import { toDataURL } from 'qrcode/lib/browser';
-import { SegmentCustomEvent } from '@ionic/core';
-import { LatLonZ } from 'flyxc/common/src/runtime-track';
 import { encodeFloats, encodeSignedIntegers } from 'ol/format/Polyline';
+import { toDataURL } from 'qrcode/lib/browser';
+
+import { SegmentCustomEvent } from '@ionic/core';
+import { modalController, toastController } from '@ionic/core/components';
 
 @customElement('share-modal')
 export class ShareModal extends LitElement {
@@ -108,7 +107,7 @@ export class ShareModal extends LitElement {
 
   private async handleCopy() {
     await navigator.clipboard.writeText(this.link);
-    const toast = await getToastController().create({
+    const toast = await toastController.create({
       message: 'Link copied to the clipboard',
       duration: 3000,
       buttons: [
@@ -122,7 +121,7 @@ export class ShareModal extends LitElement {
   }
 
   private async dismiss(): Promise<void> {
-    const modal = await getModalController().getTop();
+    const modal = await modalController.getTop();
     await modal?.dismiss();
   }
 }

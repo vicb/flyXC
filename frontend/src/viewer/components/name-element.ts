@@ -4,8 +4,9 @@ import { RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { CSSResult, html, LitElement, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
+import { modalController } from '@ionic/core/components';
+
 import { controlStyle } from '../styles/control-style';
-import { getModalController } from './ui/ion-controllers';
 
 @customElement('name-ctrl-element')
 export class NameElement extends LitElement {
@@ -35,7 +36,7 @@ export class NameElement extends LitElement {
 
   // Activates the next track.
   private async handleSelect() {
-    const modal = await getModalController().create({
+    const modal = await modalController.create({
       component: 'track-modal',
     });
     await modal.present();

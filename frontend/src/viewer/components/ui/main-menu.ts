@@ -9,6 +9,8 @@ import { when } from 'lit/directives/when.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
+import { menuController, modalController } from '@ionic/core/components';
+
 import { requestCurrentPosition } from '../../logic/geolocation';
 import { addUrlParamValues, ParamNames, pushCurrentState } from '../../logic/history';
 import * as msg from '../../logic/messages';
@@ -28,7 +30,6 @@ import { setEnabled } from '../../redux/planner-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { setDisplayLabels, setLockOnPilot } from '../../redux/track-slice';
-import { getMenuController, getModalController } from './ion-controllers';
 
 @customElement('main-menu')
 export class MainMenu extends connect(store)(LitElement) {
@@ -133,20 +134,20 @@ export class MainMenu extends connect(store)(LitElement) {
 
   private async handlePlanner() {
     if (!this.plannerEnabled) {
-      await getMenuController().close();
+      await menuController.close();
     }
     store.dispatch(setEnabled(!this.plannerEnabled));
   }
 
   private async handleAbout() {
-    const modal = await getModalController().create({
+    const modal = await modalController.create({
       component: 'about-modal',
     });
     await modal.present();
   }
 
   private async handlePreferences() {
-    const modal = await getModalController().create({
+    const modal = await modalController.create({
       component: 'pref-modal',
     });
     await modal.present();
@@ -417,7 +418,7 @@ export class TrackItems extends connect(store)(LitElement) {
     if (this.numTracks == 0) {
       return;
     }
-    const modal = await getModalController().create({
+    const modal = await modalController.create({
       component: 'track-modal',
     });
     await modal.present();
@@ -463,7 +464,7 @@ export class LiveTrackItems extends connect(store)(LitElement) {
 
   private async handleSelect() {
     if (this.pilots.length > 0) {
-      const modal = await getModalController().create({
+      const modal = await modalController.create({
         component: 'live-modal',
       });
       await modal.present();

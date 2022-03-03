@@ -9,7 +9,6 @@ export const enum ParamNames {
   speed = 's',
   view3d = '3d',
 }
-
 // Pushes the current URL on the stack to create a checkpoint.
 export function pushCurrentState(): void {
   history.pushState({}, '', getCurrentUrl().href);

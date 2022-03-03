@@ -2,7 +2,7 @@ import { LatLonZ } from 'flyxc/common/src/runtime-track';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
-import { getModalController } from './ion-controllers';
+import { modalController } from '@ionic/core/components';
 
 const WAYPOINT_FORMATS: { [id: string]: string } = {
   cup: 'See You (cup)',
@@ -88,7 +88,7 @@ export class WaypointModal extends LitElement {
   }
 
   private async dismiss(): Promise<void> {
-    const modal = await getModalController().getTop();
+    const modal = await modalController.getTop();
     await modal?.dismiss();
   }
 }

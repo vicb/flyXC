@@ -18,6 +18,7 @@ import { connect } from 'pwa-helpers';
 
 import { NavigationHookResult } from '@ionic/core/dist/types/components/route/route-interface';
 
+import { ionicInit } from './components/ui/ionic';
 import { requestCurrentPosition } from './logic/geolocation';
 import {
   addUrlParamValues,
@@ -61,28 +62,24 @@ export class FlyXc extends connect(store)(LitElement) {
       <ion-app>
         <ion-router .useHash=${false}>
           <ion-route component="maps-element">
-            <ion-route url="/" component="map-element" .beforeEnter=${async () => this.before2d()}></ion-route>
-            <ion-route url="/3d" component="map3d-element" .beforeEnter=${async () => this.before3d()}></ion-route>
+            <ion-route url="/" component="map-element" .beforeEnter=${this.before2d}></ion-route>
+            <ion-route url="/3d" component="map3d-element" .beforeEnter=${this.before3d}></ion-route>
           </ion-route>
           <ion-route
             url="/devices.html"
             component="devices-page"
-            .beforeEnter=${async () => this.beforeDevices()}
+            .beforeEnter=${this.beforeDevices}
             .componentProps=${{ accountId: null }}
           ></ion-route>
-          <ion-route
-            url="/admin.html"
-            component="admin-page"
-            .beforeEnter=${async () => this.beforeAdmin()}
-          ></ion-route>
+          <ion-route url="/admin.html" component="admin-page" .beforeEnter=${this.beforeAdmin}></ion-route>
           <ion-route
             url="/admin/account/:accountId"
             component="devices-page"
-            .beforeEnter=${async () => this.beforeDevices()}
+            .beforeEnter=${this.beforeDevices}
           ></ion-route>
           <ion-route url="*" .beforeEnter=${() => ({ redirect: '/' })} component="x-301"></ion-route>
         </ion-router>
-        <ion-nav .animated=${false}></ion-nav>
+        <ion-router-outlet .animated=${false}></ion-router-outlet>
       </ion-app>
     `;
   }
@@ -180,7 +177,7 @@ export class MapsElement extends connect(store)(LitElement) {
     const clMap = classMap({ 'has-tracks': this.hasTrack });
 
     return html`<ion-content id="main">
-        <ion-nav .animated=${false} class=${clMap}></ion-nav>
+        <ion-router-outlet class=${clMap}></ion-router-outlet>
         ${when(
           this.hasTrack,
           () => html`<chart-element
@@ -206,3 +203,5 @@ export class MapsElement extends connect(store)(LitElement) {
 }
 
 requestCurrentPosition(false);
+
+ionicInit();

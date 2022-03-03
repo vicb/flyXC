@@ -6,6 +6,8 @@ import { LitElement, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
+import { modalController } from '@ionic/core/components';
+
 import { ClosingSector } from '../../gm/closing-sector';
 import { FaiSectors } from '../../gm/fai-sectors';
 import { addAltitude } from '../../logic/elevation';
@@ -16,7 +18,6 @@ import { Measure } from '../../logic/score/measure';
 import { CircuitType, Score } from '../../logic/score/scorer';
 import { setDistance, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
-import { getModalController } from '../ui/ion-controllers';
 import { PlannerElement } from './planner-element';
 
 // Route color by circuit type.
@@ -277,7 +278,7 @@ export class PathElement extends connect(store)(LitElement) {
 
   private async openDownloadModal(): Promise<void> {
     const points = await addAltitude(this.getPathPoints());
-    const modal = await getModalController().create({
+    const modal = await modalController.create({
       component: 'waypoint-modal',
       componentProps: { points },
     });
@@ -310,7 +311,7 @@ export class PathElement extends connect(store)(LitElement) {
       });
       el.addEventListener('share', async () => {
         const points = await addAltitude(this.getPathPoints());
-        const modal = await getModalController().create({
+        const modal = await modalController.create({
           component: 'share-modal',
           componentProps: {
             link: getCurrentUrl().href,

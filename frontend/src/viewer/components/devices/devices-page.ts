@@ -8,10 +8,9 @@ import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, queryAll, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
+import { alertController } from '@ionic/core/components';
 import { Binder } from '@vaadin/form/Binder';
 import { field } from '@vaadin/form/Field';
-
-import { getAlertController } from '../ui/ion-controllers';
 
 @customElement('devices-page')
 export class DevicesPage extends LitElement {
@@ -294,7 +293,7 @@ export class DevicesPage extends LitElement {
     console.log(error);
 
     if (error) {
-      const alert = await getAlertController().create({
+      const alert = await alertController.create({
         header: 'Settings error',
         message: `<p>An error has occurred:</p><p>${error}</p>`,
         buttons: [
@@ -307,7 +306,7 @@ export class DevicesPage extends LitElement {
       await alert.present();
       this.isSubmitting = false;
     } else {
-      const alert = await getAlertController().create({
+      const alert = await alertController.create({
         header: 'Settings updated',
         message: `<p>Your settings have been updated. Please allow up to 15 minutes for changes to take effect.</p>`,
         buttons: [
