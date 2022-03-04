@@ -1,10 +1,3 @@
-import type GraphicsLayer from 'esri/layers/GraphicsLayer';
-import type SceneView from 'esri/views/SceneView';
-import type NavigationToggle from 'esri/widgets/NavigationToggle';
-import type Map from 'esri/Map';
-import type Basemap from 'esri/Basemap';
-import type BaseElevationLayer from 'esri/layers/BaseElevationLayer';
-import type Point from 'esri/geometry/Point';
 import './line3d-element';
 import './marker3d-element';
 import './controls3d-element';
@@ -16,12 +9,20 @@ import { repeat } from 'lit/directives/repeat.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
+import Basemap from '@arcgis/core/Basemap';
+import Point from '@arcgis/core/geometry/Point';
+import BaseElevationLayer from '@arcgis/core/layers/BaseElevationLayer';
+import ElevationLayer from '@arcgis/core/layers/ElevationLayer';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
+import Map from '@arcgis/core/Map';
+import SceneView from '@arcgis/core/views/SceneView';
+import NavigationToggle from '@arcgis/core/widgets/NavigationToggle';
 import { alertController } from '@ionic/core/components';
 
-import { Api, loadApi } from '../../logic/arcgis';
 import * as msg from '../../logic/messages';
 import { setApiLoading, setTimeSec, setView3d } from '../../redux/app-slice';
-import { setApi, setElevationSampler, setGndGraphicsLayer, setGraphicsLayer } from '../../redux/arcgis-slice';
+import { setElevationSampler, setGndGraphicsLayer, setGraphicsLayer } from '../../redux/arcgis-slice';
 import { setCurrentLocation, setCurrentZoom } from '../../redux/location-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
@@ -31,8 +32,6 @@ import { setCurrentTrackId } from '../../redux/track-slice';
 export class Map3dElement extends connect(store)(LitElement) {
   @state()
   private tracks: RuntimeTrack[] = [];
-  @state()
-  private api?: Api;
   @state()
   protected currentTrackId?: string;
   @state()
@@ -102,9 +101,9 @@ export class Map3dElement extends connect(store)(LitElement) {
 
     if (changedProps.has('multiplier')) {
       changedProps.delete('multiplier');
-      if (this.elevationLayer && this.api) {
+      if (this.elevationLayer) {
         this.map?.ground.layers.remove(this.elevationLayer as any);
-        this.elevationLayer = createElevationLayer(this.api, this.multiplier);
+        this.elevationLayer = createElevationLayer(this.multiplier);
         this.map?.ground.layers.add(this.elevationLayer as any);
       }
     }
@@ -118,7 +117,6 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.subscriptions.length = 0;
     store.dispatch(setGraphicsLayer(undefined));
     store.dispatch(setGndGraphicsLayer(undefined));
-    store.dispatch(setApi(undefined));
     store.dispatch(setElevationSampler(undefined));
     this.view?.destroy();
     this.view = undefined;
@@ -127,165 +125,165 @@ export class Map3dElement extends connect(store)(LitElement) {
   connectedCallback(): void {
     super.connectedCallback();
     store.dispatch(setApiLoading(true));
-    loadApi().then((api: Api) => {
-      this.api = api;
-      this.elevationLayer = createElevationLayer(api, this.multiplier);
+  }
 
-      this.map = new api.Map({
-        basemap: 'satellite',
-        ground: { layers: [this.elevationLayer] },
-      });
+  firstUpdated(): void {
+    this.elevationLayer = createElevationLayer(this.multiplier);
 
-      this.graphicsLayer = new api.GraphicsLayer();
-      this.gndGraphicsLayer = new api.GraphicsLayer({ elevationInfo: { mode: 'on-the-ground' } });
-      this.map.addMany([this.graphicsLayer, this.gndGraphicsLayer]);
+    this.map = new Map({
+      basemap: 'satellite',
+      ground: { layers: [this.elevationLayer] },
+    });
 
-      const view = new api.SceneView({
-        container: 'map',
-        map: this.map,
-        camera: { tilt: 80 },
-        environment: {
-          starsEnabled: false,
-          atmosphereEnabled: true,
-          atmosphere: { quality: 'high' },
-        },
-      });
-      this.view = view;
+    this.graphicsLayer = new GraphicsLayer();
+    this.gndGraphicsLayer = new GraphicsLayer({ elevationInfo: { mode: 'on-the-ground' } });
+    this.map.addMany([this.graphicsLayer, this.gndGraphicsLayer]);
 
-      store.dispatch(setApi(api));
-      store.dispatch(setGraphicsLayer(this.graphicsLayer));
-      store.dispatch(setGndGraphicsLayer(this.gndGraphicsLayer));
+    const view = new SceneView({
+      container: 'map3d',
+      map: this.map,
+      camera: { tilt: 80 },
+      environment: {
+        starsEnabled: false,
+        atmosphereEnabled: true,
+        atmosphere: { quality: 'high' },
+      },
+    });
+    this.view = view;
 
-      view.ui.remove('zoom');
-      const controls = document.createElement('controls3d-element');
-      view.ui.add(controls, 'top-right');
+    store.dispatch(setGraphicsLayer(this.graphicsLayer));
+    store.dispatch(setGndGraphicsLayer(this.gndGraphicsLayer));
 
-      const ad = document.createElement('a');
-      ad.setAttribute('href', 'https://www.flyozone.com/');
-      ad.setAttribute('target', '_blank');
-      ad.className = 'ad';
-      ad.innerHTML = `<img width="${Math.round(210 * this.adRatio)}" height="${Math.round(
-        35 * this.adRatio,
-      )}" src="img/ozone.svg">`;
-      view.ui.add(ad);
+    view.ui.remove('zoom');
 
-      const layerSwitcher = this.renderRoot.querySelector('#layers') as HTMLSelectElement;
-      view.ui.add(layerSwitcher, 'top-left');
-      view.ui.move([layerSwitcher, 'compass', 'navigation-toggle'], 'top-left');
+    const controls = document.createElement('controls3d-element');
+    view.ui.add(controls, 'top-right');
 
-      this.originalQuality = view.qualityProfile;
+    const ad = document.createElement('a');
+    ad.setAttribute('href', 'https://www.flyozone.com/');
+    ad.setAttribute('target', '_blank');
+    ad.className = 'ad';
+    ad.innerHTML = `<img width="${Math.round(210 * this.adRatio)}" height="${Math.round(
+      35 * this.adRatio,
+    )}" src="/img/ozone.svg">`;
+    view.ui.add(ad);
 
-      // "Control" key sets the navigation mode to "rotate".
-      const toggle = view.ui.find('navigation-toggle') as NavigationToggle;
-      view.on('key-down', (e: any) => {
-        if (e.key == 'Control' && !e.repeat) {
-          toggle.toggle();
+    const layerSwitcher = this.renderRoot.querySelector('#layers') as HTMLSelectElement;
+    view.ui.add(layerSwitcher, 'top-left');
+    view.ui.move([layerSwitcher, 'compass', 'navigation-toggle'], 'top-left');
+
+    this.originalQuality = view.qualityProfile;
+
+    // "Control" key sets the navigation mode to "rotate".
+    const toggle = view.ui.find('navigation-toggle') as NavigationToggle;
+    view.on('key-down', (e: any) => {
+      if (e.key == 'Control' && !e.repeat) {
+        toggle.toggle();
+      }
+    });
+    view.on('key-up', (e: any) => {
+      if (e.key == 'Control') {
+        toggle.toggle();
+      }
+    });
+
+    this.subscriptions.push(
+      msg.centerMap.subscribe((ll) => this.center(ll)),
+      msg.centerZoomMap.subscribe((ll, delta) => this.centerZoom(ll, delta)),
+      msg.trackGroupsAdded.subscribe(() => this.centerOnMarker(view.zoom)),
+      msg.trackGroupsRemoved.subscribe(() => this.centerOnMarker(view.zoom)),
+      msg.geoLocation.subscribe((latLon, userInitiated) => this.geolocation(latLon, userInitiated)),
+    );
+
+    view
+      .when(() => {
+        store.dispatch(setApiLoading(false));
+        store.dispatch(setElevationSampler(view.groundView.elevationSampler));
+
+        if (this.tracks.length) {
+          // Zoom to tracks when there are some.
+          this.centerOnMarker(16);
+        } else {
+          const { location, zoom } = store.getState().location;
+          this.center({ ...location, alt: 0 }, zoom);
+        }
+
+        view.watch('center', (point: Point) => this.handleLocation({ lat: point.latitude, lon: point.longitude }));
+      })
+      .catch(async (e) => {
+        store.dispatch(setApiLoading(false));
+        if (e.name.includes('webgl')) {
+          const alert = await alertController.create({
+            header: 'WebGL Error',
+            message: 'Sorry, 3d requires WebGL which does not seem to be supported on your platform.',
+            buttons: [
+              {
+                text: 'Ok',
+                role: 'cancel',
+              },
+            ],
+          });
+          await alert.present();
+          store.dispatch(setView3d(false));
         }
       });
-      view.on('key-up', (e: any) => {
-        if (e.key == 'Control') {
-          toggle.toggle();
+
+    // Set the active track when clicking on a track, marker, label.
+    view.on('click', (e) => {
+      view.hitTest(e).then(({ results }) => {
+        if (results.length > 0) {
+          // Sort hits by their distance to the camera.
+          results.sort((r1, r2) => r1.distance - r2.distance);
+          const graphic = results[0].graphic;
+          msg.clickSceneView.emit(graphic, view);
+          // The trackId is set on tracks and pilots (not on live tracks).
+          const trackId = graphic.attributes?.trackId;
+          if (trackId != null) {
+            store.dispatch(setCurrentTrackId(trackId));
+          }
         }
       });
+    });
 
-      this.subscriptions.push(
-        msg.centerMap.subscribe((ll) => this.center(ll)),
-        msg.centerZoomMap.subscribe((ll, delta) => this.centerZoom(ll, delta)),
-        msg.trackGroupsAdded.subscribe(() => this.centerOnMarker(view.zoom)),
-        msg.trackGroupsRemoved.subscribe(() => this.centerOnMarker(view.zoom)),
-        msg.geoLocation.subscribe((latLon, userInitiated) => this.geolocation(latLon, userInitiated)),
-      );
+    // Horizontal wheel movements update the timestamp.
+    view.on('mouse-wheel', (e) => {
+      if (e.native.deltaX == 0 || e.native.deltaY != 0) {
+        // Capture only X scroll (either physical of shift + wheel).
+        return;
+      }
+      const direction = Math.sign(e.native.deltaX);
+      const state = store.getState();
+      const minTimeSec = sel.minTimeSec(state);
+      const maxTimeSec = sel.maxTimeSec(state);
+      const delta = Math.round((direction * (maxTimeSec - minTimeSec)) / 300) + 1;
+      const ts = Math.max(Math.min(state.app.timeSec + delta, maxTimeSec), minTimeSec);
+      store.dispatch(setTimeSec(ts));
+      e.stopPropagation();
+    });
 
-      view
-        .when(() => {
-          store.dispatch(setApiLoading(false));
-          store.dispatch(setElevationSampler(view.groundView.elevationSampler));
-
-          if (this.tracks.length) {
-            // Zoom to tracks when there are some.
-            this.centerOnMarker(16);
-          } else {
-            const { location, zoom } = store.getState().location;
-            this.center({ ...location, alt: 0 }, zoom);
-          }
-
-          view.watch('center', (point: Point) => this.handleLocation({ lat: point.latitude, lon: point.longitude }));
-        })
-        .catch(async (e) => {
-          store.dispatch(setApiLoading(false));
-          if (e.name.includes('webgl')) {
-            const alert = await alertController.create({
-              header: 'WebGL Error',
-              message: 'Sorry, 3d requires WebGL which does not seem to be supported on your platform.',
-              buttons: [
-                {
-                  text: 'Ok',
-                  role: 'cancel',
-                },
-              ],
-            });
-            await alert.present();
-            store.dispatch(setView3d(false));
-          }
-        });
-
-      // Set the active track when clicking on a track, marker, label.
-      view.on('click', (e) => {
-        view.hitTest(e).then(({ results }) => {
-          if (results.length > 0) {
-            // Sort hits by their distance to the camera.
-            results.sort((r1, r2) => r1.distance - r2.distance);
-            const graphic = results[0].graphic;
-            msg.clickSceneView.emit(graphic, view);
-            // The trackId is set on tracks and pilots (not on live tracks).
-            const trackId = graphic.attributes?.trackId;
-            if (trackId != null) {
-              store.dispatch(setCurrentTrackId(trackId));
-            }
-          }
-        });
-      });
-
-      // Horizontal wheel movements update the timestamp.
-      view.on('mouse-wheel', (e) => {
-        if (e.native.deltaX == 0 || e.native.deltaY != 0) {
-          // Capture only X scroll (either physical of shift + wheel).
-          return;
-        }
-        const direction = Math.sign(e.native.deltaX);
-        const state = store.getState();
-        const minTimeSec = sel.minTimeSec(state);
-        const maxTimeSec = sel.maxTimeSec(state);
-        const delta = Math.round((direction * (maxTimeSec - minTimeSec)) / 300) + 1;
-        const ts = Math.max(Math.min(state.app.timeSec + delta, maxTimeSec), minTimeSec);
-        store.dispatch(setTimeSec(ts));
-        e.stopPropagation();
-      });
-
-      this.basemaps.OpenTopoMap = new api.Basemap({
-        baseLayers: [
-          new api.WebTileLayer({
-            urlTemplate: 'https://{subDomain}.tile.opentopomap.org/{level}/{col}/{row}.png',
-            subDomains: ['a', 'b', 'c'],
-            copyright:
-              'Map tiles by <a href="https://opentopomap.org/">OpenTopoMap</a>, ' +
-              'under <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>. ' +
-              'Data by <a href="http://openstreetmap.org/">OpenStreetMap</a>, ' +
-              'under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.',
-          }),
-        ],
-        title: 'otm',
-        id: 'otm',
-      });
+    this.basemaps.OpenTopoMap = new Basemap({
+      baseLayers: [
+        new WebTileLayer({
+          urlTemplate: 'https://{subDomain}.tile.opentopomap.org/{level}/{col}/{row}.png',
+          subDomains: ['a', 'b', 'c'],
+          copyright:
+            'Map tiles by <a href="https://opentopomap.org/">OpenTopoMap</a>, ' +
+            'under <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>. ' +
+            'Data by <a href="http://openstreetmap.org/">OpenStreetMap</a>, ' +
+            'under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.',
+        }),
+      ],
+      title: 'otm',
+      id: 'otm',
     });
   }
 
   // Center the map on the position and optionally set the zoom.
   private center(latLon: LatLonZ, zoom?: number): void {
     this.previousLookAt = latLon;
-    if (this.view?.center && this.api) {
+    if (this.view?.center) {
       const { lat, lon, alt } = latLon;
-      this.view.center = new this.api.Point({ latitude: lat, longitude: lon, z: alt });
+      this.view.center = new Point({ latitude: lat, longitude: lon, z: alt });
       if (zoom != null) {
         this.view.zoom = zoom;
       }
@@ -301,11 +299,11 @@ export class Map3dElement extends connect(store)(LitElement) {
   private centerOnMarker(zoom?: number): void {
     const latLon = sel.getTrackLatLonAlt(store.getState())(this.timeSec);
     this.previousLookAt = latLon;
-    if (latLon && this.view && this.api) {
+    if (latLon && this.view) {
       const { lat, lon, alt } = latLon;
       this.view.goTo(
         {
-          target: new this.api.Point({ latitude: lat, longitude: lon, z: this.multiplier * alt }),
+          target: new Point({ latitude: lat, longitude: lon, z: this.multiplier * alt }),
           zoom: zoom ?? this.view.zoom,
           heading: this.view.camera.heading,
           tilt: this.view.camera.tilt,
@@ -343,7 +341,7 @@ export class Map3dElement extends connect(store)(LitElement) {
           transform: translate(-50%, 0);
         }
       </style>
-      <div id="map"></div>
+      <div id="map3d"></div>
       <select id="layers" @change=${(e: any) => this.map?.set('basemap', this.basemaps[e.target.value])}>
         ${Object.getOwnPropertyNames(this.basemaps).map((name) => html`<option value="${name}">${name}</option>`)}
       </select>
@@ -373,15 +371,15 @@ let Layer: any;
 
 // Creates a layer with exaggeration.
 // See https://developers.arcgis.com/javascript/latest/api-reference/esri-layers-BaseElevationLayer.html
-function createElevationLayer(ag: Api, multiplier = 1): BaseElevationLayer {
+function createElevationLayer(multiplier = 1): BaseElevationLayer {
   if (!Layer) {
-    Layer = (ag.BaseElevationLayer as any).createSubclass({
+    Layer = (BaseElevationLayer as any).createSubclass({
       properties: {
         // exaggeration multiplier.
         multiplier: 1,
       },
       load: function () {
-        this._elevation = new ag.ElevationLayer({
+        this._elevation = new ElevationLayer({
           url: '//elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer',
         });
       },

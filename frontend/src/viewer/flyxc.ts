@@ -5,6 +5,7 @@ import '../../node_modules/@ionic/core/css/normalize.css';
 import '../../node_modules/@ionic/core/css/structure.css';
 import '../../node_modules/@ionic/core/css/typography.css';
 import '../../node_modules/@ionic/core/css/padding.css';
+import '../../node_modules/@arcgis/core/assets/esri/css/main.css';
 import './components/chart-element';
 import './components/loader-element';
 import './components/ui/main-menu';
@@ -16,6 +17,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
+import esriConfig from '@arcgis/core/config';
 import { NavigationHookResult } from '@ionic/core/dist/types/components/route/route-interface';
 
 import { ionicInit } from './components/ui/ionic';
@@ -205,3 +207,5 @@ export class MapsElement extends connect(store)(LitElement) {
 requestCurrentPosition(false);
 
 ionicInit();
+// Set the esri assets parent folder.
+esriConfig.assetsPath = '/';

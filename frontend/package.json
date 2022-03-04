@@ -4,13 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts}' --quiet --fix"
+    "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts}' --quiet --fix",
+    "postinstall": "node scripts/copy_arcgis.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@alenaksu/json-viewer": "^1.0.0",
+    "@arcgis/core": "4.19",
     "@googlemaps/js-api-loader": "^1.13.7",
     "@ionic/core": "^6.0.10",
     "@reduxjs/toolkit": "^1.8.0",
