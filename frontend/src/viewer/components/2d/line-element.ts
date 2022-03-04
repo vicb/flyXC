@@ -43,7 +43,9 @@ export class LineElement extends connect(store)(LitElement) {
     }
     if (changedProps.has('map') || changedProps.has('track')) {
       this.destroyLines();
-      this.maybeCreateLines();
+      if (this.map) {
+        this.maybeCreateLines();
+      }
     }
     if (this.lineOption && (changedProps.has('opacity') || changedProps.has('color'))) {
       this.lineOption.strokeColor = this.color;

@@ -170,7 +170,7 @@ export class MapElement extends connect(store)(LitElement) {
       ad.setAttribute('target', '_blank');
       ad.innerHTML = `<img width="${Math.round(210 * this.adRatio)}" height="${Math.round(
         35 * this.adRatio,
-      )}" src="img/ozone.svg">`;
+      )}" src="/img/ozone.svg">`;
       this.map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(ad);
 
       this.map.addListener('click', (e: google.maps.MapMouseEvent) => {

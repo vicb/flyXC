@@ -1,11 +1,11 @@
-import '../google-btn';
+import '../ui/google-btn';
 import '@alenaksu/json-viewer';
 
 import { FetcherState, Pilot, Tracker } from 'flyxc/common/protos/fetcher-state';
 import { trackerPropNames } from 'flyxc/common/src/live-track';
 import { round } from 'flyxc/common/src/math';
 import { Keys } from 'flyxc/common/src/redis';
-import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
+import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
@@ -26,12 +26,12 @@ ${
       }</text>`
     : `<circle cx="25" cy="7" r="4" fill="#f23c50" stroke="#000" />
 <path fill="none" stroke="#000" d="M29 7h2M19 7h2M27.83 4.17l1.41-1.41M20.76 11.24l1.41-1.41M25 3V1M25 13v-2M22.17 4.17l-1.41-1.41M29.24 11.24l-1.41-1.41"/>`
-}  
+}
 </svg>`;
 
 let lastFetchMs = Date.now();
 
-@customElement('admin-app')
+@customElement('admin-page')
 export class AdminPage extends LitElement {
   @state()
   private isLoading = true;
@@ -43,18 +43,6 @@ export class AdminPage extends LitElement {
   private values: unknown;
 
   private timer: any;
-
-  static get styles(): CSSResult {
-    return css`
-      :host {
-        display: block;
-        font: 14px 'Nobile', verdana, sans-serif;
-      }
-      .container {
-        margin-bottom: 1em;
-      }
-    `;
-  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -75,33 +63,34 @@ export class AdminPage extends LitElement {
   }
 
   render(): TemplateResult {
-    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
+    return html`<style>
+        ion-item {
+          --min-height: 0px;
+          font-size: 0.9rem;
+        }
+        ion-item ion-text.value {
+          padding-left: 0.3em;
+        }
+        ion-label {
+          margin: 0;
+        }
+        json-viewer {
+          --font-size: 0.8rem;
+        }
+      </style>
 
-      <section class="hero is-dark">
-        <div class="hero-body">
-          <div class="container">
-            <h1 class="title">FlyXC admin</h1>
-            <h2 class="subtitle">Dashboard</h2>
-          </div>
-        </div>
-      </section>
-
-      <div class="container">
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>FlyXC admin</ion-title>
+          <ion-title size="small">Dashboard</ion-title>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
         ${when(!this.connected, () => html`<google-btn override="admin" style="margin-top: 10px"></google-btn>`)}
-        ${when(
-          this.isLoading && !this.values,
-          () =>
-            html` <div class="notification my-4 content">
-              <progress class="progress is-small is-primary" max="100">60%</progress>
-            </div>`,
-        )}
+        ${when(this.isLoading && !this.values, () => html`<ion-progress-bar type="indeterminate"></ion-progress-bar>`)}
         ${when(
           this.values,
-          () => html`<dash-summary
-              .values=${this.values}
-              .isLoading=${this.isLoading}
-              @sync=${this.fetch}
-            ></dash-summary>
+          () => html`<dash-summary .values=${this.values} @sync=${this.fetch}></dash-summary>
             ${Object.values(trackerPropNames).map(
               (name) => html`<dash-tracker .values=${this.values} name=${name}></dash-tracker>`,
             )}
@@ -109,7 +98,17 @@ export class AdminPage extends LitElement {
             <dash-sync .values=${this.values}></dash-sync>
             <state-explorer></state-explorer>`,
         )}
-      </div>`;
+      </ion-content>
+      <ion-footer>
+        <ion-toolbar color="light">
+          <ion-buttons slot="primary">
+            <ion-button @click=${this.fetch}>Refresh</ion-button>
+          </ion-buttons>
+          <ion-buttons slot="secondary">
+            <ion-button href="/logout">Logout</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-footer>`;
   }
 
   private fetch() {
@@ -123,6 +122,10 @@ export class AdminPage extends LitElement {
       }
     });
   }
+
+  createRenderRoot(): HTMLElement {
+    return this;
+  }
 }
 
 @customElement('dash-summary')
@@ -130,26 +133,8 @@ export class DashSummary extends LitElement {
   @property({ attribute: false })
   values: any;
 
-  @state()
-  private isLoading = false;
-
   private link?: HTMLLinkElement;
   private timer: any;
-
-  static get styles(): CSSResult {
-    return css`
-      :host {
-        display: block;
-        font: 14px 'Nobile', verdana, sans-serif;
-      }
-      .panel-block {
-        display: block;
-      }
-      .panel {
-        font-size: 0.8rem !important;
-      }
-    `;
-  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -181,64 +166,44 @@ export class DashSummary extends LitElement {
     if (this.link) {
       this.link.href = `data:image/svg+xml;base64,${btoa(FAVICON_SVG(trackerH1))}`;
     }
-    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
-      <link
+    return html`<link
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
       />
-      <div class="panel is-warning" style="margin-top: 1em;">
-        <div class="panel-heading">
-          <p>Fetcher</p>
-        </div>
-        <div class="panel-block">
-          <ul>
-            <li>
-              <a
-                href="https://console.cloud.google.com/datastore/entities;kind=LiveTrack;ns=__$DEFAULT$__;sortCol=created;sortDir=DESCENDING/query/kind?project=fly-xc"
-                target="_blank"
-                >Trackers: ${this.values[Keys.trackerNum]}</a
-              >
-            </li>
-            <li>Trackers h24: ${this.values[Keys.fetcherFullNumTracks]}</li>
-            <li>Trackers h1: ${trackerH1}</li>
-            <li>Last device updated: ${relativeTime(this.values[Keys.fetcherLastDeviceUpdatedMs] / 1000)}</li>
-            <li>Ticks since start: ${this.values[Keys.fetcherNumTicks]}</li>
-            <li>Ticks: ${this.values[Keys.fetcherLastTicksSec].map((t: number) => relativeTime(t)).join(', ')}</li>
+      <ion-card>
+        <ion-card-header color="secondary">
+          <ion-card-title><i class="las la-heartbeat"></i> Fetcher</ion-card-title>
+        </ion-card-header>
+        ${singleLineItem(
+          'Trackers',
+          this.values[Keys.trackerNum],
+          'https://console.cloud.google.com/datastore/entities;kind=LiveTrack;ns=__$DEFAULT$__;sortCol=created;sortDir=DESCENDING/query/kind?project=fly-xc',
+        )}
+        ${singleLineItem('Trackers h24', this.values[Keys.fetcherFullNumTracks])}
+        ${singleLineItem('Trackers h1', trackerH1)}
+        ${singleLineItem('Last device updated', relativeTime(this.values[Keys.fetcherLastDeviceUpdatedMs] / 1000))}
+        ${singleLineItem('Ticks since start', this.values[Keys.fetcherNumTicks])}
+        ${singleLineItem('Ticks', this.values[Keys.fetcherLastTicksSec].map((t: number) => relativeTime(t)).join(', '))}
+        ${singleLineItem('Fetcher first started', relativeTime(this.values[Keys.fetcherStartedSec]))}
+        ${singleLineItem('Fetcher last started', relativeTime(this.values[Keys.fetcherReStartedSec]))}
+        ${singleLineItem('Fetcher num starts', this.values[Keys.fetcherNumStarts])}
+        ${singleLineItem('Fetcher last stopped', lastStopSec == 0 ? '-' : relativeTime(lastStopSec))}
+        ${singleLineItem('Fetcher next stop', nextStopSec == 0 ? '-' : relativeTime(nextStopSec))}
+        ${singleLineItem('Memory RSS', `${this.values[Keys.fetcherMemoryRssMb]}MB`)}
+        ${singleLineItem('Memory Heap', `${this.values[Keys.fetcherMemoryHeapMb]}MB`)}
+        ${singleLineItem(
+          'Host memory',
+          `${Math.round(this.values[Keys.hostMemoryUsedMb])}/${Math.round(this.values[Keys.hostMemoryTotalMb])}MB`,
+        )}
+        ${singleLineItem('Host CPU', `${Math.round(this.values[Keys.hostCpuUsage])}%`)}
+        ${singleLineItem('Uptime', relativeTime(this.values[Keys.hostUptimeSec], 0))}
+        ${singleLineItem('Uploaded tracks', this.values[Keys.trackNum])}
+        ${singleLineItem('Data age', relativeTime(lastFetchMs / 1000))}
+      </ion-card>`;
+  }
 
-            <li style="padding-top: .5em">
-              Fetcher first started: ${relativeTime(this.values[Keys.fetcherStartedSec])}
-            </li>
-            <li>Fetcher last started: ${relativeTime(this.values[Keys.fetcherReStartedSec])}</li>
-            <li>Fetcher num starts: ${this.values[Keys.fetcherNumStarts]}</li>
-            <li>Fetcher last stopped: ${lastStopSec == 0 ? '-' : relativeTime(lastStopSec)}</li>
-            <li>Fetcher next stop: ${nextStopSec == 0 ? '-' : relativeTime(nextStopSec)}</li>
-
-            <li style="padding-top: .5em">Memory RSS: ${this.values[Keys.fetcherMemoryRssMb]}MB</li>
-            <li>Memory Heap: ${this.values[Keys.fetcherMemoryHeapMb]}MB</li>
-            <li>
-              Host memory:
-              ${Math.round(this.values[Keys.hostMemoryUsedMb])}/${Math.round(this.values[Keys.hostMemoryTotalMb])}MB
-            </li>
-            <li>Host CPU: ${Math.round(this.values[Keys.hostCpuUsage])}%</li>
-            <li>Uptime: ${relativeTime(this.values[Keys.hostUptimeSec], 0)}</li>
-          </ul>
-          <ul style="padding-top: .5em">
-            <li>Uploaded tracks: ${this.values[Keys.trackNum]}</li>
-          </ul>
-          <ul style="padding-top: .5em">
-            <li class="has-text-grey">Data age: ${relativeTime(lastFetchMs / 1000)}</li>
-          </ul>
-          <div class="buttons" style="margin-top: .5rem">
-            <button
-              class=${`button is-success is-small ${when(this.isLoading, () => 'is-loading')}`}
-              @click=${() => this.dispatchEvent(new CustomEvent('sync'))}
-            >
-              <i class="la la-sync la-2x"></i> Refresh
-            </button>
-            <a class="button is-danger is-small" href="/logout"><i class="la la-power-off la-2x"></i> Sign out</a>
-          </div>
-        </div>
-      </div>`;
+  createRenderRoot(): HTMLElement {
+    return this;
   }
 }
 
@@ -249,21 +214,6 @@ export class DashTracker extends LitElement {
 
   @property()
   name = '';
-
-  static get styles(): CSSResult {
-    return css`
-      :host {
-        display: block;
-        font: 14px 'Nobile', verdana, sans-serif;
-      }
-      .panel-block {
-        display: block;
-      }
-      .panel {
-        font-size: 0.8rem !important;
-      }
-    `;
-  }
 
   render(): TemplateResult {
     const oldAfterSec = 24 * 3 * 3600;
@@ -284,43 +234,64 @@ export class DashTracker extends LitElement {
     const errors = this.values[Keys.trackerErrorsByType.replace('{name}', this.name)];
     const { recent: recentErrors, old: oldErrors } = splitByDate(errors, oldAfterSec);
 
-    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
-      <div class="panel is-warning" style="margin-top: 1em;">
-        <div class="panel-heading">
-          <p>${this.name}</p>
-        </div>
-        <div class="panel-block">
-          <ul>
-            <li><a href=${GQL_URL.replace('{name}', this.name)} target="_blank">Trackers: ${number}</a></li>
-            <li>Duration (sec): ${durations.join(', ')}</li>
-            <li>Devices fetched: ${numDevices.join(', ')}</li>
-            <li>Devices updated: ${numUpdates.join(', ')}</li>
-          </ul>
+    return html`
+      <ion-card>
+        <ion-card-header color="secondary">
+          <ion-card-title><i class="las la-calculator"></i> ${this.name}</ion-card-title>
+        </ion-card-header>
+
+        ${singleLineItem('Trackers', number, GQL_URL.replace('{name}', this.name))}
+        ${item('Duration (sec)', durations.join(', '))} ${item('Devices fetched', numDevices.join(', '))}
+        ${item('Devices updated', numUpdates.join(', '))}
+        <ion-accordion-group
+          .multiple=${true}
+          .value=${['Top errors', 'Consecutive errors', 'Device errors', 'Tracker level errors']}
+        >
           ${errorMarkup('Top errors', topRecentErrorsById, topOldErrorsById)}
           ${errorMarkup('Consecutive errors', consRecentErrorsById, consOldErrorsById)}
           ${errorMarkup('Device errors', recentErrorsById, oldErrorsById)}
           ${errorMarkup('Tracker level errors', recentErrors, oldErrors)}
-        </div>
-      </div>`;
+        </ion-accordion-group>
+      </ion-card>
+    `;
+  }
+
+  createRenderRoot(): HTMLElement {
+    return this;
   }
 }
 
 function errorMarkup(title: string, recent: string[], old: string[]): TemplateResult {
-  if (recent.length == 0 && old.length == 0) {
-    return html`<p style="padding-top: .5em">No ${title.toLowerCase()}</p>`;
-  }
-  return html`<p style="padding-top: .5em"><strong>${title}</strong></p>
-    <ul>
-      ${recent.map((e) => html`<li>${unsafeHTML(e)}</li>`)}
-    </ul>
-    ${old.length > 0
-      ? html`<details>
-          <summary>Old</summary>
-          <ul>
-            ${old.map((e) => html`<li>${unsafeHTML(e)}</li>`)}
-          </ul>
-        </details>`
-      : null}`;
+  return html`${when(
+    recent.length > 0,
+    () => html`<ion-accordion .value=${title}>
+      <ion-item slot="header">
+        <ion-label>${title} (${recent.length})</ion-label>
+      </ion-item>
+      <ion-list slot="content">
+        ${recent.map(
+          (e) => html`<ion-item lines="none">
+            <ion-label>${unsafeHTML(e)}</ion-label>
+          </ion-item>`,
+        )}
+      </ion-list>
+    </ion-accordion>`,
+  )}
+  ${when(
+    old.length > 0,
+    () => html`<ion-accordion>
+      <ion-item slot="header">
+        <ion-label>Old ${title} (${old.length})</ion-label>
+      </ion-item>
+      <ion-list slot="content">
+        ${old.map(
+          (e) => html`<ion-item lines="none">
+            <ion-label>${unsafeHTML(e)}</ion-label>
+          </ion-item>`,
+        )}
+      </ion-list>
+    </ion-accordion>`,
+  )}`;
 }
 
 @customElement('dash-elev')
@@ -328,35 +299,20 @@ export class DashElevation extends LitElement {
   @property({ attribute: false })
   values: any;
 
-  static get styles(): CSSResult {
-    return css`
-      :host {
-        display: block;
-        font: 14px 'Nobile', verdana, sans-serif;
-      }
-      .panel-block {
-        display: block;
-      }
-      .panel {
-        font-size: 0.8rem !important;
-      }
-    `;
+  render(): TemplateResult {
+    return html`<ion-card>
+      <ion-card-header color="secondary">
+        <ion-card-title><i class="las la-mountain"></i> Elevation</ion-card-title>
+      </ion-card-header>
+
+      ${item('Num fetched', this.values[Keys.elevationNumFetched].join(', '))}
+      ${item('Num Retrieved', this.values[Keys.elevationNumRetrieved].join(', '))}
+      ${this.values[Keys.elevationErrors].map((e: string) => item(formatLogEntry(e)))}
+    </ion-card>`;
   }
 
-  render(): TemplateResult {
-    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
-      <div class="panel is-warning" style="margin-top: 1em;">
-        <div class="panel-heading">
-          <p>Elevation</p>
-        </div>
-        <div class="panel-block">
-          <ul>
-            <li>Num fetched: ${this.values[Keys.elevationNumFetched].join(', ')}</li>
-            <li>Num Retrieved: ${this.values[Keys.elevationNumRetrieved].join(', ')}</li>
-            ${this.values[Keys.elevationErrors].map((e: string) => html`<li>${formatLogEntry(e)}</li>`)}
-          </ul>
-        </div>
-      </div>`;
+  createRenderRoot(): HTMLElement {
+    return this;
   }
 }
 
@@ -371,90 +327,60 @@ export class DashSync extends LitElement {
     [Keys.fetcherCmdSyncFull]: false,
   };
 
-  static get styles(): CSSResult {
-    return css`
-      :host {
-        display: block;
-        font: 14px 'Nobile', verdana, sans-serif;
-      }
-      .panel-block {
-        display: block;
-      }
-      .panel {
-        font-size: 0.8rem !important;
-      }
-    `;
-  }
-
   render(): TemplateResult {
-    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
-      <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
-      />
-      <div class="panel is-warning" style="margin-top: 1em;">
-        <div class="panel-heading">
-          <p>Sync and Export</p>
-        </div>
-        <div class="panel-block">
-          <p><strong>Full sync</strong></p>
-          <ul>
-            <li>Next: ${relativeTime(this.values[Keys.fetcherNextFullSyncSec])}</li>
-            <li>
-              Last num sync:
-              ${this.values[Keys.stateSyncNum.replace('{type}', 'full')]
-                .map((e: string) => formatLogEntry(e))
-                .join(', ')}
-            </li>
-            <li>
-              Last errors:
-              ${this.values[Keys.stateSyncErrors.replace('{type}', 'full')]
-                .map((e: string) => formatLogEntry(e))
-                .join(', ')}
-            </li>
-          </ul>
-          <p style="padding-top: .5em"><strong>Partial sync</strong></p>
-          <ul>
-            <li>Next: ${relativeTime(this.values[Keys.fetcherNextPartialSyncSec])}</li>
-            <li>
-              Last num sync:
-              ${this.values[Keys.stateSyncNum.replace('{type}', 'inc')]
-                .map((e: string) => formatLogEntry(e))
-                .join(', ')}
-            </li>
-            <li>
-              Last errors:
-              ${this.values[Keys.stateSyncErrors.replace('{type}', 'inc')]
-                .map((e: string) => formatLogEntry(e))
-                .join(', ')}
-            </li>
-          </ul>
-          <p style="padding-top: .5em"><strong>Export</strong></p>
-          <ul>
-            <li>Next: ${relativeTime(this.values[Keys.fetcherNextExportSec])}</li>
-            ${this.values[Keys.stateExportStatus].map((e: string) => html`<li>${formatLogEntry(e)}</li>`)}
-          </ul>
-          <div class="buttons" style="margin-top: .5rem">
-            <button
-              class=${`button is-success is-small ${when(
-                this.btnLoading[Keys.fetcherCmdSyncFull],
-                () => 'is-loading',
-              )}`}
-              @click=${async () => await this.sendCommand(Keys.fetcherCmdSyncFull)}
-            >
-              <i class="la la-sync la-2x"></i> Sync
-            </button>
-            <a
-              class=${`button is-success is-small ${when(
-                this.btnLoading[Keys.fetcherCmdExportFile],
-                () => 'is-loading',
-              )}`}
-              @click=${async () => await this.sendCommand(Keys.fetcherCmdExportFile)}
-              ><i class="la la-cloud-upload-alt la-2x"></i> Export</a
-            >
-          </div>
-        </div>
-      </div>`;
+    return html`<ion-card>
+      <ion-card-header color="secondary">
+        <ion-card-title><i class="las la-sync"></i> Sync and Export</ion-card-title>
+      </ion-card-header>
+
+      <ion-item-divider>
+        <ion-label>Full sync</ion-label>
+      </ion-item-divider>
+
+      ${singleLineItem('Next', relativeTime(this.values[Keys.fetcherNextFullSyncSec]))}
+      ${item(
+        'Last num sync',
+        this.values[Keys.stateSyncNum.replace('{type}', 'full')].map((e: string) => formatLogEntry(e)).join(', '),
+      )}
+      ${item(
+        'Last errors',
+        this.values[Keys.stateSyncErrors.replace('{type}', 'full')].map((e: string) => formatLogEntry(e)).join(', '),
+      )}
+
+      <ion-item-divider>
+        <ion-label>Partial sync</ion-label>
+      </ion-item-divider>
+
+      ${singleLineItem('Next', relativeTime(this.values[Keys.fetcherNextPartialSyncSec]))}
+      ${item(
+        'Last num sync',
+        this.values[Keys.stateSyncNum.replace('{type}', 'inc')].map((e: string) => formatLogEntry(e)).join(', '),
+      )}
+      ${item(
+        'Last errors',
+        this.values[Keys.stateSyncErrors.replace('{type}', 'inc')].map((e: string) => formatLogEntry(e)).join(', '),
+      )}
+
+      <ion-item-divider>
+        <ion-label>Export</ion-label>
+      </ion-item-divider>
+
+      ${singleLineItem('Next', relativeTime(this.values[Keys.fetcherNextExportSec]))}
+      ${this.values[Keys.stateExportStatus].map((e: string) => item(e))}
+
+      <ion-item lines="none">
+        <ion-button
+          .disabled=${this.btnLoading[Keys.fetcherCmdSyncFull]}
+          @click=${async () => await this.sendCommand(Keys.fetcherCmdSyncFull)}
+          ><i class="la la-sync"></i> Sync</ion-button
+        >
+        <ion-button
+          .disabled=${this.btnLoading[Keys.fetcherCmdExportFile]}
+          @click=${async () => await this.sendCommand(Keys.fetcherCmdExportFile)}
+          ><i class="la la-cloud-upload-alt"></i> Export</ion-button
+        >
+      </ion-item>
+    </ion-card>`;
   }
 
   // Send a state command.
@@ -467,6 +393,10 @@ export class DashSync extends LitElement {
     setInterval(() => {
       this.btnLoading = { ...this.btnLoading, [command]: false };
     }, 5000);
+  }
+
+  createRenderRoot(): HTMLElement {
+    return this;
   }
 }
 
@@ -486,24 +416,6 @@ export class StateExplorer extends LitElement {
   private fetchTimer: any;
   private refreshTimer: any;
   private fetchSec = 0;
-
-  static get styles(): CSSResult {
-    return css`
-      :host {
-        display: block;
-        font: 14px 'Nobile', verdana, sans-serif;
-      }
-      .panel-block {
-        display: block;
-      }
-      .panel {
-        font-size: 0.8rem !important;
-      }
-      json-viewer {
-        font-size: 0.8rem;
-      }
-    `;
-  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -526,47 +438,35 @@ export class StateExplorer extends LitElement {
     const state: any = filterState(this.fetcherState, STATE_MAX_PILOT, this.filter);
     const numMatchingPilots = state.numMatchingPilots ?? 0;
 
-    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
-      <link
+    return html` <link
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
       />
 
-      <div class="panel is-warning" style="margin-top: 1em;">
-        <div class="panel-heading">
-          <p>State Explorer</p>
-        </div>
-        <div class="panel-block">
-          <div class="buttons" style="margin-top: .5em">
-            <button
-              class=${`button is-success is-small ${when(this.isLoading, () => 'is-loading')}`}
-              @click=${async () => this.fetchState()}
-            >
-              <i class="la la-cloud-download-alt la-2x"></i> Fetch
-            </button>
-          </div>
-          ${when(
-            this.fetcherState,
-            () => html`<div class="field">
-                <label class="label">Filter</label>
-                <div class="control has-icons-left">
-                  <input class="input" type="text" .value="${this.filter}" @input="${this.onFilterInput}" />
-                  <span class="icon is-left">
-                    <i class="la la-filter la-2x"></i>
-                  </span>
-                </div>
-                <p class="help">
-                  ${numMatchingPilots} pilots.
-                  ${when(numMatchingPilots > STATE_MAX_PILOT, () => `Only first ${STATE_MAX_PILOT} shown.`)}
-                </p>
-              </div>
-              <json-viewer .data=${state}>{}</json-viewer>
-              <ul style="padding-top: .5em">
-                <li class="has-text-grey">State age: ${relativeTime(Date.now() / 1000, this.fetchSec)}</li>
-              </ul> `,
-          )}
-        </div>
-      </div>`;
+      <ion-card>
+        <ion-card-header color="secondary">
+          <ion-card-title><i class="las la-table"></i> State Explorer</ion-card-title>
+        </ion-card-header>
+        <ion-item lines="none">
+          <ion-button .disabled=${this.isLoading} @click=${async () => await this.fetchState()}
+            ><i class="la la-sync"></i> Sync</ion-button
+          >
+        </ion-item>
+        ${when(
+          this.fetcherState,
+          () => html`<ion-item lines="none">
+              <ion-label position="floating">Filter</ion-label>
+              <ion-input @input=${this.onFilterInput} type="text" .value=${this.filter} .clearInput=${true}></ion-input>
+            </ion-item>
+            ${item(
+              `${numMatchingPilots} pilots. ${
+                numMatchingPilots > STATE_MAX_PILOT ? `Only first ${STATE_MAX_PILOT} shown.` : ``
+              }`,
+            )}
+            <json-viewer .data=${state}>{}</json-viewer>
+            ${singleLineItem('State age', relativeTime(Date.now() / 1000, this.fetchSec))}`,
+        )}
+      </ion-card>`;
   }
 
   private onFilterInput(e: InputEvent) {
@@ -600,6 +500,32 @@ export class StateExplorer extends LitElement {
       }
     }, 10 * 1000);
   }
+
+  createRenderRoot(): HTMLElement {
+    return this;
+  }
+}
+
+function singleLineItem(key: string, value: any, valueLink?: string) {
+  return html`<ion-item lines="none">
+    <ion-text color="medium">${unsafeHTML(key)}</ion-text>
+    <ion-text class="value" color="dark"
+      >${when(
+        valueLink,
+        () => html`<a href=${valueLink} target="_blank">${unsafeHTML(value)}</a>`,
+        () => unsafeHTML(value),
+      )}</ion-text
+    >
+  </ion-item>`;
+}
+
+function item(key: string, value?: any) {
+  return html`<ion-item lines="none">
+    <ion-label>
+      <p>${unsafeHTML(key)}</p>
+      ${when(value, () => html`<h3>${unsafeHTML(value)}</h3>`)}
+    </ion-label>
+  </ion-item>`;
 }
 
 // Returns readable relative time.

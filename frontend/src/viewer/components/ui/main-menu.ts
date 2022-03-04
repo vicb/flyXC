@@ -16,7 +16,7 @@ import { uploadTracks } from '../../logic/track';
 import { DistanceUnit, formatUnit } from '../../logic/units';
 import * as airspaces from '../../redux/airspace-slice';
 import * as airways from '../../redux/airways-slice';
-import { setView3d } from '../../redux/app-slice';
+import { setApiLoading } from '../../redux/app-slice';
 import { setAltitudeMultiplier } from '../../redux/arcgis-slice';
 import {
   getLivePilots,
@@ -291,16 +291,16 @@ export class ViewItems extends connect(store)(LitElement) {
   }
 
   render(): TemplateResult {
+    const href = `${this.view3d ? '/' : '/3d'}${location.search}`;
     const icon = this.view3d ? 'la-map' : 'la-globe';
-    return html`<ion-item button @click=${this.handleSwitch} lines="full">
+    return html`<ion-item button href=${href} @click=${this.handleSwitch} lines="full">
       <i class=${`las la-2x ${icon}`}></i>
       Switch to ${this.view3d ? '2d' : '3d'}
     </ion-item>`;
   }
 
   private handleSwitch() {
-    pushCurrentState();
-    store.dispatch(setView3d(!this.view3d));
+    store.dispatch(setApiLoading(true));
   }
 
   protected createRenderRoot(): Element {

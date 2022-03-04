@@ -7,6 +7,7 @@ import fileUpload from 'express-fileupload';
 import session from 'express-session';
 import { SecretKeys } from 'flyxc/common/src/keys';
 import { getRedisClient } from 'flyxc/common/src/redis';
+import path from 'path';
 
 import { getAdminRouter } from './routes/admin';
 import { getTrackerRouter } from './routes/live-track';
@@ -105,4 +106,7 @@ app.get('/logout', async (req: Request, res: Response) => {
 const port = process.env.PORT || 8080;
 app
   .use(express.static('frontend/static', { lastModified: false }))
+  .get('*', (req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, '../frontend/static', 'index.html'));
+  })
   .listen(port, () => console.info(`Started server on port ${port}.`));

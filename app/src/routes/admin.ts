@@ -21,30 +21,6 @@ const REDIS_CACHE_HOURS = 5;
 // Initial offset for the number of tracks
 const NUM_TRACKS_OFFSET = 120000;
 
-const EDITOR_HTML = `<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-150271266-1"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'UA-150271266-1');
-  </script>
-  <meta charset="utf-8" />
-  <meta http-equiv="x-ua-compatible" content="ie=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>FlyXc Account Editor</title>
-</head>
-
-<body style="margin: 0; padding: 0;">
-  <account-editor id="{{id}}"></account-editor>
-  <script type="module" src="/js/editor.js"></script>
-</body>
-
-</html>`;
-
 export function getAdminRouter(redis: Redis): Router {
   const router = express.Router();
 
@@ -94,11 +70,6 @@ export function getAdminRouter(redis: Redis): Router {
     }
 
     return res.sendStatus(204);
-  });
-
-  router.get(`/account/:id`, async (req: Request, res: Response) => {
-    res.set('Content-Type', 'text/html');
-    res.send(EDITOR_HTML.replace('{{id}}', req.params.id));
   });
 
   router.get(`/_account/:id`, csrfProtection, async (req: Request, res: Response) => {

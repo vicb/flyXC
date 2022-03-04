@@ -81,7 +81,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       {
         type: 'object',
         width: MSG_MARKER_HEIGHT,
-        resource: { href: '3d/msg/scene.gltf' },
+        resource: { href: '/models/msg/scene.gltf' },
         material: { color: [50, 50, 50, 0.6] },
         anchor: 'relative',
         anchorPosition: { x: 0.1, y: -0.45, z: 0 },
@@ -96,7 +96,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       {
         type: 'object',
         width: MSG_MARKER_HEIGHT,
-        resource: { href: '3d/santa.glb' },
+        resource: { href: '/models/santa.glb' },
         material: { color: [50, 50, 50, 0.6] },
         anchor: 'relative',
         tilt: 0,

@@ -12,19 +12,11 @@ fly-xc {
   position: relative;
 }
 
-map-element,
-map3d-element {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-map-element.has-tracks,
-map3d-element.has-tracks {
+ion-router-outlet.has-tracks {
   height: 80%;
 }
 
-#map {
+#map, #map3d {
   width: 100%;
   height: 100%;
 }

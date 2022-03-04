@@ -1,7 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { addUrlParamValue, deleteUrlParam, getSearchParams, ParamNames } from '../logic/history';
-
 // Y axis of the chart.
 export const enum ChartYAxis {
   Altitude,
@@ -19,9 +17,9 @@ type AppState = {
 
 const initialState: AppState = {
   chartYAxis: ChartYAxis.Altitude,
-  loadingApi: false,
+  loadingApi: true,
   timeSec: 0,
-  view3d: getSearchParams().has(ParamNames.view3d),
+  view3d: false,
 };
 
 const appSlice = createSlice({
@@ -38,11 +36,6 @@ const appSlice = createSlice({
       state.chartYAxis = action.payload;
     },
     setView3d: (state, action: PayloadAction<boolean>) => {
-      if (action.payload) {
-        addUrlParamValue(ParamNames.view3d, '');
-      } else {
-        deleteUrlParam(ParamNames.view3d);
-      }
       state.view3d = action.payload;
     },
   },

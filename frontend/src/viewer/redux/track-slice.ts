@@ -132,7 +132,7 @@ export const fetchTrack = createAsyncThunk('track/fetch', async (params: FetchTr
     groupIds.add(groupId);
     addUrlParamValue(ParamNames.groupId, String(groupId));
     // Trigger the worker post-processing.
-    getTrackWorker(api.dispatch).postMessage(track);
+    getTrackWorker(api.dispatch as any).postMessage(track);
     if (!track.isPostProcessed) {
       api.dispatch(trackSlice.actions.addPendingServerMetadata(groupId));
     }

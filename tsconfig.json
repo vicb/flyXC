@@ -40,9 +40,9 @@
     "run/index.js",
     "airspaces/**/*",
     "fetcher/dist/**/*",
+    "frontend/scripts/**/*",
     "frontend/static/**/*",
     "**/node_modules/**/*",
-    "scripts/**/*",
     ".rollup.cache/**/*"
   ]
 }

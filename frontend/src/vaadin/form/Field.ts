@@ -117,6 +117,10 @@ export function getDefaultFieldStrategy(elm: any): FieldStrategy {
     case 'vaadin-rich-text-editor':
       return new GenericFieldStrategy(elm);
     default:
+      // Addition for flyxc.
+      if (elm.constructor.strategy) {
+        return new elm.constructor.strategy(elm);
+      }
       if (elm.localName === 'input' && /^(checkbox|radio)$/.test(elm.type)) {
         return new CheckedFieldStrategy(elm);
       }

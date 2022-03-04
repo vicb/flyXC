@@ -7,13 +7,21 @@
 .vscode/
 /airspaces
 /app/src/
+
 /common
 /docs
 /ds
+
 /frontend/src
+/frontend/static/js/chunks/dev
+/frontend/scripts
+
 /run
 /tracks
 /fetcher
+/scripts
+
+
 test/
 # /node_modules is required for external modules
 node_modules
