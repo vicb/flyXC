@@ -64,6 +64,12 @@ handlers:
   secure: always
   redirect_http_response_code: 301
 
+- url: /archives.html$
+  static_files: frontend/static/archives.html
+  upload: frontend/static/archives.html
+  secure: always
+  redirect_http_response_code: 301
+
 - url: /.*
   secure: always
   redirect_http_response_code: 301

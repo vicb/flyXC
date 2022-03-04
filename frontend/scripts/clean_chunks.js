@@ -24,5 +24,5 @@ const delDirectories = [
 
 for (const dir of delDirectories) {
   console.log(`- deleting ${dir}`);
-  fs.rmdirSync(dir, { recursive: true });
+  fs.rmSync(dir, { recursive: true, force: true });
 }

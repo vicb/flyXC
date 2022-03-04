@@ -17,7 +17,7 @@ describe('Test server configuration', () => {
     for (const handler of app.handlers) {
       if (handler.static_dir) {
         folders.push(handler.static_dir);
-      } else {
+      } else if (handler.static_files) {
         files.push({
           url: handler.url,
           file: handler.static_files,
@@ -32,6 +32,9 @@ describe('Test server configuration', () => {
       } else {
         const url = `/${entry.name}`;
         const file = path.join(staticDir, entry.name);
+        if (file == 'frontend/static/index.html') {
+          return;
+        }
         let found = false;
         for (const rule of files) {
           const matches = url.match(rule.url);
