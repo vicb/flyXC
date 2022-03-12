@@ -67,6 +67,8 @@ export class TrackingElement extends connect(store)(LitElement) {
   private currentId?: number;
   @state()
   private numTracks = 0;
+  @state()
+  plannerEnabled = false;
 
   private units?: Units;
   private info?: google.maps.InfoWindow;
@@ -93,7 +95,12 @@ export class TrackingElement extends connect(store)(LitElement) {
       changedProps.delete('geojson');
     }
     // Update the style when related props change.
-    if (changedProps.has('displayLabels') || changedProps.has('currentId') || changedProps.has('numTracks')) {
+    if (
+      changedProps.has('displayLabels') ||
+      changedProps.has('currentId') ||
+      changedProps.has('numTracks') ||
+      changedProps.has('plannerEnabled')
+    ) {
       this.setMapStyle(this.map);
     }
     return super.shouldUpdate(changedProps);
@@ -105,6 +112,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     this.geojson = state.liveTrack.geojson;
     this.currentId = state.liveTrack.currentLiveId;
     this.numTracks = sel.numTracks(state);
+    this.plannerEnabled = state.planner.enabled;
   }
 
   private setupInfoWindow(map: google.maps.Map): void {
@@ -266,7 +274,7 @@ export class TrackingElement extends connect(store)(LitElement) {
       // Dashed lines for old tracks.
       icons = dashedLineIcons;
       strokeOpacity = 0;
-    } else if (ageMin < RECENT_TIMEOUT_MIN && this.numTracks == 0) {
+    } else if (ageMin < RECENT_TIMEOUT_MIN && this.numTracks == 0 && !this.plannerEnabled) {
       // Make the recent tracks more visible when there are no non-live tracks.
       strokeWeight = 2;
       zIndex = 15;
