@@ -13,10 +13,10 @@
   "dependencies": {
     "@alenaksu/json-viewer": "^1.0.0",
     "@arcgis/core": "4.19",
-    "@googlemaps/js-api-loader": "^1.13.7",
-    "@ionic/core": "^6.0.10",
+    "@googlemaps/js-api-loader": "^1.13.8",
+    "@ionic/core": "^6.0.11",
     "@reduxjs/toolkit": "^1.8.0",
-    "@stencil/core": "^2.14.0",
+    "@stencil/core": "^2.14.2",
     "d3-array": "^3.1.1",
     "esri-loader": "^3.4.0",
     "lit": "^2.2.0",
