@@ -164,7 +164,7 @@ export function validateInreachAccount(url: string): string | false {
   }
 
   // Check url validity.
-  const m = url.match(/^(https?:\/\/[\w.-]*?garmin.com)(\/Feed\/Share\/\w+$)/i);
+  const m = url.match(/^(https?:\/\/[\w.-]*?garmin\.com)(\/Feed\/Share\/\w+$)/i);
   if (m) {
     return `${m[1].toLowerCase()}${m[2]}`;
   }

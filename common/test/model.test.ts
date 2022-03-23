@@ -67,6 +67,7 @@ describe('Validate Inreach account', () => {
   test('Invalid urls', () => {
     expect(validateInreachAccount('user')).toEqual(false);
     expect(validateInreachAccount('https://share.gmin.com/user')).toEqual(false);
+    expect(validateInreachAccount('https://share.garmin/com/user')).toEqual(false);
   });
 });
 
