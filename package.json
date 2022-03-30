@@ -14,7 +14,7 @@
     "emulator:unenv": "gcloud beta emulators datastore env-unset --data-dir=ds",
     "test": "jest",
     "chunks:clean": "node frontend/scripts/clean_chunks.js",
-    "deploy": "npm run test && npm run chunks:clean && npm run build && gcloud app deploy"
+    "deploy": "npm run test && npm run build && npm run chunks:clean && gcloud app deploy"
   },
   "keywords": [],
   "author": "",

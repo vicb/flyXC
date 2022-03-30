@@ -42,9 +42,10 @@ export class TopoFrance extends WMTSMapTypeElement {
     url: 'http://www.ign.fr/',
   };
   get url(): string {
-    return 'https://wxs.ign.fr/{API_KEY}/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER={layer}&STYLE=normal&FORMAT=image/jpeg&TILEMATRIXSET=PM&TILEMATRIX={zoom}&TILEROW={y}&TILECOL={x}'
+    return 'https://wxs.ign.fr/{API_KEY}/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER={layer}&STYLE=normal&FORMAT={FORMAT}&TILEMATRIXSET=PM&TILEMATRIX={zoom}&TILEROW={y}&TILECOL={x}'
       .replace('{layer}', this.layerName)
-      .replace('{API_KEY}', getApiKey('ignfr'));
+      .replace('{API_KEY}', this.layerName == 'GEOGRAPHICALGRIDSYSTEMS.MAPS' ? getApiKey('ignfr') : 'essentiels')
+      .replace('{FORMAT}', this.layerName == 'GEOGRAPHICALGRIDSYSTEMS.MAPS' ? 'image/jpeg' : 'image/png');
   }
   zoom = [6, 17];
   bounds = [
@@ -67,7 +68,7 @@ export class TopoFrance extends WMTSMapTypeElement {
     [-14.6, -178.5, -12.8, -175.8], // WLF
   ];
 
-  layerName = 'GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN-EXPRESS.CLASSIQUE';
+  layerName = 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2';
 
   protected getScanMapType(): google.maps.ImageMapType {
     return new google.maps.ImageMapType({
@@ -88,7 +89,7 @@ export class TopoFrance extends WMTSMapTypeElement {
   protected visibilityHandler(mapTypeId: string): void {
     if (this.copyrightEl) {
       if (mapTypeId === TopoFrance.mapTypeId) {
-        this.layerName = 'GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN-EXPRESS.CLASSIQUE';
+        this.layerName = 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2';
         this.copyrightEl.hidden = false;
       } else if (mapTypeId === TopoFrance.mapTypeIdScan) {
         this.layerName = 'GEOGRAPHICALGRIDSYSTEMS.MAPS';
