@@ -318,6 +318,73 @@
       <Placemark>
         <name>Victor Berchet</name>
         <visibility>true</visibility>
+        <description />
+        <TimeStamp>
+          <when>2019-10-19T18:58:45Z</when>
+        </TimeStamp>
+        <styleUrl>#style_1093938</styleUrl>
+        <ExtendedData>
+          <Data name="Id">
+            <value>45958176</value>
+          </Data>
+          <Data name="Time UTC">
+            <value>10/19/2019 6:58:45 PM</value>
+          </Data>
+          <Data name="Time">
+            <value>10/19/2019 11:58:45 AM</value>
+          </Data>
+          <Data name="Name">
+            <value>Victor Berchet</value>
+          </Data>
+          <Data name="Map Display Name">
+            <value>Victor Berchet</value>
+          </Data>
+          <Data name="Device Type">
+            <value>inReach Mini</value>
+          </Data>
+          <Data name="IMEI">
+            <value>300434030271890</value>
+          </Data>
+          <Data name="Incident Id">
+            <value />
+          </Data>
+          <Data name="Latitude">
+            <value>37.385058</value>
+          </Data>
+          <Data name="Longitude">
+            <value>-122.027765</value>
+          </Data>
+          <Data name="Elevation">
+            <value>10.46 m from MSL</value>
+          </Data>
+          <Data name="Velocity">
+            <value>0.0 km/h</value>
+          </Data>
+          <Data name="Course">
+            <value>337.50 ° True</value>
+          </Data>
+          <Data name="Valid GPS Fix">
+            <value>True</value>
+          </Data>
+          <Data name="In Emergency">
+            <value>False</value>
+          </Data>
+          <Data name="Text">
+            <value />
+          </Data>
+          <Data name="Event">
+            <value>Reference Point message received.</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <extrude>false</extrude>
+          <altitudeMode>absolute</altitudeMode>
+          <coordinates>-122.027765,37.385058,10.46</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Victor Berchet</name>
+        <visibility>true</visibility>
         <description>Victor Berchet's track log</description>
         <styleUrl>#linestyle_1093938</styleUrl>
         <LineString>

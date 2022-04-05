@@ -119,6 +119,11 @@ export function parse(kmlFeed: string): LivePoint[] {
     const message = getChildNode(placemark.childNodes, 'description')?.firstChild?.nodeValue;
 
     if (coordinates && time && extendedData) {
+      if (extendedData['Event'] === 'Reference Point message received.') {
+        // The coordinates correspond to a waypoint received by the device.
+        continue;
+      }
+
       const [lon, lat, alt] = coordinates
         .trim()
         .split(',')
