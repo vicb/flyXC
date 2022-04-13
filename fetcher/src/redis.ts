@@ -1,7 +1,7 @@
 import { FetcherState, Tracker } from 'flyxc/common/protos/fetcher-state';
 import { trackerPropNames } from 'flyxc/common/src/live-track';
 import { Keys, pushListCap } from 'flyxc/common/src/redis';
-import { Pipeline, Redis } from 'ioredis';
+import { ChainableCommander, Redis } from 'ioredis';
 import nos from 'node-os-utils';
 import zlib from 'zlib';
 
@@ -12,7 +12,7 @@ import { syncFromDatastore, SyncStatus } from './state/sync';
 import { TrackerUpdates } from './trackers/tracker';
 
 // Logs for syncs.
-export function addSyncLogs(pipeline: Pipeline, status: SyncStatus, timeSec: number) {
+export function addSyncLogs(pipeline: ChainableCommander, status: SyncStatus, timeSec: number) {
   const type = status.full ? 'full' : 'inc';
 
   if (status.errors.length) {
@@ -23,12 +23,12 @@ export function addSyncLogs(pipeline: Pipeline, status: SyncStatus, timeSec: num
 }
 
 // Logs for export to datastore.
-export function addExportLogs(pipeline: Pipeline, success: boolean, timeSec: number) {
+export function addExportLogs(pipeline: ChainableCommander, success: boolean, timeSec: number) {
   pushListCap(pipeline, Keys.stateExportStatus, [`[${timeSec}] ${success ? 'ok' : 'ko'}`], 5);
 }
 
 // Logs the elevation updates.
-export function addElevationLogs(pipeline: Pipeline, updates: ElevationUpdates, timeSec: number): void {
+export function addElevationLogs(pipeline: ChainableCommander, updates: ElevationUpdates, timeSec: number): void {
   pushListCap(
     pipeline,
     Keys.elevationErrors,
@@ -40,7 +40,7 @@ export function addElevationLogs(pipeline: Pipeline, updates: ElevationUpdates, 
 }
 
 // Logs updates for a tracker type.
-export function addTrackerLogs(pipeline: Pipeline, updates: TrackerUpdates, state: FetcherState): void {
+export function addTrackerLogs(pipeline: ChainableCommander, updates: TrackerUpdates, state: FetcherState): void {
   const name = trackerPropNames[updates.trackerId];
   const time = updates.startFetchSec;
 
@@ -92,7 +92,7 @@ let cpuUsage = 0;
 let cpuUsagePromise: Promise<number> | null = null;
 
 // Logs host info.
-export async function addHostInfo(pipeline: Pipeline): Promise<void> {
+export async function addHostInfo(pipeline: ChainableCommander): Promise<void> {
   // CPU usage over 5min.
   if (cpuUsagePromise == null) {
     cpuUsagePromise = nos.cpu
@@ -111,7 +111,7 @@ export async function addHostInfo(pipeline: Pipeline): Promise<void> {
 }
 
 // Logs state variables.
-export function addStateLogs(pipeline: Pipeline, state: FetcherState): void {
+export function addStateLogs(pipeline: ChainableCommander, state: FetcherState): void {
   pipeline
     .set(Keys.fetcherMemoryHeapMb, state.memHeapMb)
     .set(Keys.fetcherMemoryRssMb, state.memRssMb)
@@ -152,13 +152,13 @@ export function addStateLogs(pipeline: Pipeline, state: FetcherState): void {
 // Handle the commands received via REDIS.
 export async function HandleCommand(redis: Redis, state: FetcherState): Promise<void> {
   try {
-    const [[, cmdCapture], [, cmdExport], [, cmdSyncCount], [, cmdSyncFull]] = await redis
+    const [[, cmdCapture], [, cmdExport], [, cmdSyncCount], [, cmdSyncFull]] = (await redis
       .pipeline()
       .get(Keys.fetcherCmdCaptureState)
       .get(Keys.fetcherCmdExportFile)
       .get(Keys.fetcherCmdSyncIncCount)
       .get(Keys.fetcherCmdSyncFull)
-      .exec();
+      .exec()) as [error: Error | null, result: unknown][];
 
     if (cmdCapture != null) {
       const snapshot = Buffer.from(FetcherState.toBinary(state));

@@ -105,8 +105,8 @@ export function getAdminRouter(redis: Redis): Router {
 async function getDashboardValues(redis: Redis): Promise<unknown> {
   const redisOut = await redis.pipeline().get(Keys.dsLastRequestSec).get(Keys.trackNum).exec();
 
-  const cacheTimeSec = Number(redisOut[0][1] ?? 0);
-  const trackOffset = Number(redisOut[1][1] ?? NUM_TRACKS_OFFSET) - 100;
+  const cacheTimeSec = Number(redisOut![0][1] ?? 0);
+  const trackOffset = Number(redisOut![1][1] ?? NUM_TRACKS_OFFSET) - 100;
 
   const nowSec = Math.round(Date.now() / 1000);
 
@@ -194,7 +194,7 @@ async function getDashboardValues(redis: Redis): Promise<unknown> {
   const values: { [key: string]: string | string[] } = {};
 
   Object.keys(typeByKey).forEach((key, i) => {
-    values[key] = result[i][1];
+    values[key] = result![i][1] as string | string[];
   });
 
   return values;

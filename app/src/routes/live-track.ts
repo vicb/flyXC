@@ -44,7 +44,7 @@ export function getTrackerRouter(redis: Redis): Router {
         case SecretKeys.FLYME_TOKEN:
           const groupProto = await redis.getBuffer(Keys.fetcherExportFlymeProto);
           if (req.header('accept') == 'application/json') {
-            const track = LiveDifferentialTrackGroup.fromBinary(groupProto);
+            const track = LiveDifferentialTrackGroup.fromBinary(groupProto!);
             res.json(LiveDifferentialTrackGroup.toJson(track));
           } else {
             res.set('Content-Type', 'application/x-protobuf');

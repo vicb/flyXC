@@ -1,4 +1,4 @@
-import IORedis from 'ioredis';
+import Redis, { ChainableCommander } from 'ioredis';
 
 import { SecretKeys } from './keys';
 
@@ -109,12 +109,12 @@ export const enum Keys {
 }
 
 // lazily created client.
-let redis: IORedis.Redis | undefined;
+let redis: Redis | undefined;
 
-export function getRedisClient(): IORedis.Redis {
+export function getRedisClient(): Redis {
   if (!redis) {
     const keyPrefix = process.env.NODE_ENV == 'development' ? 'dev:' : undefined;
-    redis = new IORedis(SecretKeys.REDIS_URL, { keyPrefix });
+    redis = new Redis(SecretKeys.REDIS_URL, { keyPrefix });
   }
   return redis;
 }
@@ -127,7 +127,7 @@ export function getRedisClient(): IORedis.Redis {
 // - each value is limited to maxLength chars,
 // - most recent list elements should be last (tail is dropped first).
 export function pushListCap(
-  pipeline: IORedis.Pipeline,
+  pipeline: ChainableCommander,
   key: string,
   list: Array<string | number>,
   capacity: number,

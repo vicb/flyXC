@@ -18,7 +18,7 @@ import {
   TrackerIds,
 } from 'flyxc/common/src/live-track';
 import { getRedisClient, Keys } from 'flyxc/common/src/redis';
-import { Pipeline } from 'ioredis';
+import { ChainableCommander } from 'ioredis';
 import process from 'process';
 
 import { patchLastFixAGL as patchLastFixElevation } from './elevation/elevation';
@@ -156,7 +156,7 @@ async function tick(state: FetcherState) {
 }
 
 // Update every tick.
-async function updateTrackers(pipeline: Pipeline, state: FetcherState) {
+async function updateTrackers(pipeline: ChainableCommander, state: FetcherState) {
   try {
     const fetchers = [
       new InreachFetcher(state),
