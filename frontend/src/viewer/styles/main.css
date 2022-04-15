@@ -16,7 +16,8 @@ ion-router-outlet.has-tracks {
   height: 80%;
 }
 
-#map, #map3d {
+#map,
+#map3d {
   width: 100%;
   height: 100%;
 }
@@ -28,6 +29,7 @@ chart-element {
   display: block;
   width: 100%;
   height: 0%;
+  overflow: hidden;
 }
 
 chart-element.has-tracks {
@@ -69,4 +71,6 @@ chart-element.has-tracks {
   inset: 5px 5px 20px !important;
 }
 
-.nobr { white-space: nowrap }
+.nobr {
+  white-space: nowrap
+}
