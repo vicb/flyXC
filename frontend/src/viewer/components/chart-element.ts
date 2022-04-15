@@ -604,6 +604,7 @@ export class ChartElement extends connect(store)(LitElement) {
   private handleMouseWheel(e: WheelEvent): void {
     const { timeSec } = this.getCoordinatesFromEvent(e);
     this.dispatchEvent(new CustomEvent('zoom', { detail: { timeSec, deltaY: e.deltaY } }));
+    e.preventDefault();
   }
 
   private handlePointerMove(e: MouseEvent): void {
