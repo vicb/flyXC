@@ -14,7 +14,7 @@
     "@alenaksu/json-viewer": "^1.0.0",
     "@arcgis/core": "4.23",
     "@googlemaps/js-api-loader": "^1.14.0",
-    "@ionic/core": "^6.0",
+    "@ionic/core": "^6.1",
     "@reduxjs/toolkit": "^1.8.1",
     "@stencil/core": "^2.15.0",
     "d3-array": "^3.1.6",

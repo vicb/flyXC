@@ -11,9 +11,9 @@
       "dependencies": {
         "@babel/runtime": "^7.17.9",
         "@google-cloud/datastore": "^6.6.2",
-        "@google-cloud/logging": "^9.8.2",
+        "@google-cloud/logging": "^9.8.3",
         "@google-cloud/pubsub": "^2.19.0",
-        "@google-cloud/storage": "^5.19.1",
+        "@google-cloud/storage": "^5.19.2",
         "@mapbox/sphericalmercator": "^1.2.0",
         "@protobuf-ts/runtime": "^2.4.0",
         "@tmcw/togeojson": "^4.7.0",
@@ -52,12 +52,12 @@
         "@babel/preset-env": "^7.16.11",
         "@protobuf-ts/plugin": "^2.4.0",
         "@rollup/plugin-alias": "^3.1.9",
-        "@rollup/plugin-commonjs": "^21.0.3",
+        "@rollup/plugin-commonjs": "^21.1.0",
         "@rollup/plugin-json": "^4.1.0",
-        "@rollup/plugin-node-resolve": "^13.2.0",
+        "@rollup/plugin-node-resolve": "^13.2.1",
         "@rollup/plugin-replace": "^4.0.0",
         "@rollup/plugin-run": "^2.1.0",
-        "@rollup/plugin-typescript": "^8.3.1",
+        "@rollup/plugin-typescript": "^8.3.2",
         "@rollup/plugin-url": "^6.1.0",
         "@types/compression": "^1.7.2",
         "@types/connect-redis": "0.0.18",
@@ -92,7 +92,7 @@
         "postcss": "^8.4.12",
         "prettier": "^2.6.2",
         "request-logs": "^2.1.4",
-        "rollup": "^2.70.1",
+        "rollup": "^2.70.2",
         "rollup-plugin-minify-html-literals": "^1.2.6",
         "rollup-plugin-postcss": "^4.0.2",
         "rollup-plugin-strip-code": "^0.2.7",
@@ -1950,9 +1950,9 @@
       }
     },
     "node_modules/@google-cloud/logging": {
-      "version": "9.8.2",
-      "resolved": "https://registry.npmjs.org/@google-cloud/logging/-/logging-9.8.2.tgz",
-      "integrity": "sha512-kzodBAGaqkAN/ayVa0xFqmEYOKICJZdp9knt/c+tbGaOw6I7SPWrLh8x5oxpjmDL6kYEVcEjeoIgBn/QNnMy/A==",
+      "version": "9.8.3",
+      "resolved": "https://registry.npmjs.org/@google-cloud/logging/-/logging-9.8.3.tgz",
+      "integrity": "sha512-6+0UiGQK/6/9q1m0brdMHa/1h3WiEK8A3ibgAjnmjDqbnG0CjePHynVlkbphn0FmJvAp12veYgKxhmP2ShAsVA==",
       "dependencies": {
         "@google-cloud/common": "^3.4.1",
         "@google-cloud/paginator": "^3.0.0",
@@ -2050,9 +2050,9 @@
       }
     },
     "node_modules/@google-cloud/storage": {
-      "version": "5.19.1",
-      "resolved": "https://registry.npmjs.org/@google-cloud/storage/-/storage-5.19.1.tgz",
-      "integrity": "sha512-bRTf/AD00+lPTamJdpihXC3AFtAnJFWNh/zQAor972VpuATF7u4V1anwWp0V6rKuKE3BwNM+xWxuuW/nAwEgTA==",
+      "version": "5.19.2",
+      "resolved": "https://registry.npmjs.org/@google-cloud/storage/-/storage-5.19.2.tgz",
+      "integrity": "sha512-0saiMeQkDALf9pvDD1rDZGV5aktUbnIWjm9jYiFKlxiMROJhODzaaltvyKg5oY6ujHv7Fzc5pzQVFo3R8vENpw==",
       "dependencies": {
         "@google-cloud/paginator": "^3.0.7",
         "@google-cloud/projectify": "^2.0.0",
@@ -2815,9 +2815,9 @@
       }
     },
     "node_modules/@rollup/plugin-commonjs": {
-      "version": "21.0.3",
-      "resolved": "https://registry.npmjs.org/@rollup/plugin-commonjs/-/plugin-commonjs-21.0.3.tgz",
-      "integrity": "sha512-ThGfwyvcLc6cfP/MWxA5ACF+LZCvsuhUq7V5134Az1oQWsiC7lNpLT4mJI86WQunK7BYmpUiHmMk2Op6OAHs0g==",
+      "version": "21.1.0",
+      "resolved": "https://registry.npmjs.org/@rollup/plugin-commonjs/-/plugin-commonjs-21.1.0.tgz",
+      "integrity": "sha512-6ZtHx3VHIp2ReNNDxHjuUml6ur+WcQ28N1yHgCQwsbNkQg2suhxGMDQGJOn/KuDxKtd1xuZP5xSTwBA4GQ8hbA==",
       "dev": true,
       "dependencies": {
         "@rollup/pluginutils": "^3.1.0",
@@ -2877,9 +2877,9 @@
       }
     },
     "node_modules/@rollup/plugin-node-resolve": {
-      "version": "13.2.0",
-      "resolved": "https://registry.npmjs.org/@rollup/plugin-node-resolve/-/plugin-node-resolve-13.2.0.tgz",
-      "integrity": "sha512-GuUIUyIKq7EjQxB51XSn6zPHYo+cILQQBYOGYvFFNxws2OVOqCBShAoof2hFrV8bAZzZGDBDQ8m2iUt8SLOUkg==",
+      "version": "13.2.1",
+      "resolved": "https://registry.npmjs.org/@rollup/plugin-node-resolve/-/plugin-node-resolve-13.2.1.tgz",
+      "integrity": "sha512-btX7kzGvp1JwShQI9V6IM841YKNPYjKCvUbNrQ2EcVYbULtUd/GH6wZ/qdqH13j9pOHBER+EZXNN2L8RSJhVRA==",
       "dev": true,
       "dependencies": {
         "@rollup/pluginutils": "^3.1.0",
@@ -2977,9 +2977,9 @@
       "dev": true
     },
     "node_modules/@rollup/plugin-typescript": {
-      "version": "8.3.1",
-      "resolved": "https://registry.npmjs.org/@rollup/plugin-typescript/-/plugin-typescript-8.3.1.tgz",
-      "integrity": "sha512-84rExe3ICUBXzqNX48WZV2Jp3OddjTMX97O2Py6D1KJaGSwWp0mDHXj+bCGNJqWHIEKDIT2U0sDjhP4czKi6cA==",
+      "version": "8.3.2",
+      "resolved": "https://registry.npmjs.org/@rollup/plugin-typescript/-/plugin-typescript-8.3.2.tgz",
+      "integrity": "sha512-MtgyR5LNHZr3GyN0tM7gNO9D0CS+Y+vflS4v/PHmrX17JCkHUYKvQ5jN5o3cz1YKllM3duXUqu3yOHwMPUxhDg==",
       "dev": true,
       "dependencies": {
         "@rollup/pluginutils": "^3.1.0",
@@ -12181,9 +12181,9 @@
       "integrity": "sha1-8z/pz7Urv9UgqhgyO8ZdsRCht2w="
     },
     "node_modules/rollup": {
-      "version": "2.70.1",
-      "resolved": "https://registry.npmjs.org/rollup/-/rollup-2.70.1.tgz",
-      "integrity": "sha512-CRYsI5EuzLbXdxC6RnYhOuRdtz4bhejPMSWjsFLfVM/7w/85n2szZv6yExqUXsBdz5KT8eoubeyDUDjhLHEslA==",
+      "version": "2.70.2",
+      "resolved": "https://registry.npmjs.org/rollup/-/rollup-2.70.2.tgz",
+      "integrity": "sha512-EitogNZnfku65I1DD5Mxe8JYRUCy0hkK5X84IlDtUs+O6JRMpRciXTzyCUuX11b5L5pvjH+OmFXiQ3XjabcXgg==",
       "dev": true,
       "bin": {
         "rollup": "dist/bin/rollup"
@@ -15571,9 +15571,9 @@
       }
     },
     "@google-cloud/logging": {
-      "version": "9.8.2",
-      "resolved": "https://registry.npmjs.org/@google-cloud/logging/-/logging-9.8.2.tgz",
-      "integrity": "sha512-kzodBAGaqkAN/ayVa0xFqmEYOKICJZdp9knt/c+tbGaOw6I7SPWrLh8x5oxpjmDL6kYEVcEjeoIgBn/QNnMy/A==",
+      "version": "9.8.3",
+      "resolved": "https://registry.npmjs.org/@google-cloud/logging/-/logging-9.8.3.tgz",
+      "integrity": "sha512-6+0UiGQK/6/9q1m0brdMHa/1h3WiEK8A3ibgAjnmjDqbnG0CjePHynVlkbphn0FmJvAp12veYgKxhmP2ShAsVA==",
       "requires": {
         "@google-cloud/common": "^3.4.1",
         "@google-cloud/paginator": "^3.0.0",
@@ -15649,9 +15649,9 @@
       }
     },
     "@google-cloud/storage": {
-      "version": "5.19.1",
-      "resolved": "https://registry.npmjs.org/@google-cloud/storage/-/storage-5.19.1.tgz",
-      "integrity": "sha512-bRTf/AD00+lPTamJdpihXC3AFtAnJFWNh/zQAor972VpuATF7u4V1anwWp0V6rKuKE3BwNM+xWxuuW/nAwEgTA==",
+      "version": "5.19.2",
+      "resolved": "https://registry.npmjs.org/@google-cloud/storage/-/storage-5.19.2.tgz",
+      "integrity": "sha512-0saiMeQkDALf9pvDD1rDZGV5aktUbnIWjm9jYiFKlxiMROJhODzaaltvyKg5oY6ujHv7Fzc5pzQVFo3R8vENpw==",
       "requires": {
         "@google-cloud/paginator": "^3.0.7",
         "@google-cloud/projectify": "^2.0.0",
@@ -16254,9 +16254,9 @@
       }
     },
     "@rollup/plugin-commonjs": {
-      "version": "21.0.3",
-      "resolved": "https://registry.npmjs.org/@rollup/plugin-commonjs/-/plugin-commonjs-21.0.3.tgz",
-      "integrity": "sha512-ThGfwyvcLc6cfP/MWxA5ACF+LZCvsuhUq7V5134Az1oQWsiC7lNpLT4mJI86WQunK7BYmpUiHmMk2Op6OAHs0g==",
+      "version": "21.1.0",
+      "resolved": "https://registry.npmjs.org/@rollup/plugin-commonjs/-/plugin-commonjs-21.1.0.tgz",
+      "integrity": "sha512-6ZtHx3VHIp2ReNNDxHjuUml6ur+WcQ28N1yHgCQwsbNkQg2suhxGMDQGJOn/KuDxKtd1xuZP5xSTwBA4GQ8hbA==",
       "dev": true,
       "requires": {
         "@rollup/pluginutils": "^3.1.0",
@@ -16305,9 +16305,9 @@
       }
     },
     "@rollup/plugin-node-resolve": {
-      "version": "13.2.0",
-      "resolved": "https://registry.npmjs.org/@rollup/plugin-node-resolve/-/plugin-node-resolve-13.2.0.tgz",
-      "integrity": "sha512-GuUIUyIKq7EjQxB51XSn6zPHYo+cILQQBYOGYvFFNxws2OVOqCBShAoof2hFrV8bAZzZGDBDQ8m2iUt8SLOUkg==",
+      "version": "13.2.1",
+      "resolved": "https://registry.npmjs.org/@rollup/plugin-node-resolve/-/plugin-node-resolve-13.2.1.tgz",
+      "integrity": "sha512-btX7kzGvp1JwShQI9V6IM841YKNPYjKCvUbNrQ2EcVYbULtUd/GH6wZ/qdqH13j9pOHBER+EZXNN2L8RSJhVRA==",
       "dev": true,
       "requires": {
         "@rollup/pluginutils": "^3.1.0",
@@ -16384,9 +16384,9 @@
       }
     },
     "@rollup/plugin-typescript": {
-      "version": "8.3.1",
-      "resolved": "https://registry.npmjs.org/@rollup/plugin-typescript/-/plugin-typescript-8.3.1.tgz",
-      "integrity": "sha512-84rExe3ICUBXzqNX48WZV2Jp3OddjTMX97O2Py6D1KJaGSwWp0mDHXj+bCGNJqWHIEKDIT2U0sDjhP4czKi6cA==",
+      "version": "8.3.2",
+      "resolved": "https://registry.npmjs.org/@rollup/plugin-typescript/-/plugin-typescript-8.3.2.tgz",
+      "integrity": "sha512-MtgyR5LNHZr3GyN0tM7gNO9D0CS+Y+vflS4v/PHmrX17JCkHUYKvQ5jN5o3cz1YKllM3duXUqu3yOHwMPUxhDg==",
       "dev": true,
       "requires": {
         "@rollup/pluginutils": "^3.1.0",
@@ -23427,9 +23427,9 @@
       "integrity": "sha1-8z/pz7Urv9UgqhgyO8ZdsRCht2w="
     },
     "rollup": {
-      "version": "2.70.1",
-      "resolved": "https://registry.npmjs.org/rollup/-/rollup-2.70.1.tgz",
-      "integrity": "sha512-CRYsI5EuzLbXdxC6RnYhOuRdtz4bhejPMSWjsFLfVM/7w/85n2szZv6yExqUXsBdz5KT8eoubeyDUDjhLHEslA==",
+      "version": "2.70.2",
+      "resolved": "https://registry.npmjs.org/rollup/-/rollup-2.70.2.tgz",
+      "integrity": "sha512-EitogNZnfku65I1DD5Mxe8JYRUCy0hkK5X84IlDtUs+O6JRMpRciXTzyCUuX11b5L5pvjH+OmFXiQ3XjabcXgg==",
       "dev": true,
       "requires": {
         "fsevents": "~2.3.2"
