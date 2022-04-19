@@ -100,7 +100,7 @@ function encodeWPT(points: LatLonZ[], prefix: string): { mime?: string; file?: s
         const { d: latD, m: latM, s: latS, h: latH } = dmsh(p.lat, 'NS');
         const { d: lonD, m: lonM, s: lonS, h: lonH } = dmsh(p.lon, 'EW');
         return printf(
-          '%-6s    %c %02d %02d %05.2f    %c %03d %02d %05.2f  %4d',
+          '%-6s    %c %02d %02d %05.2f    %c %03d %02d %05.2f  %4d  ',
           prefix + String(i + 1).padStart(3, '0'),
           latH,
           latD,

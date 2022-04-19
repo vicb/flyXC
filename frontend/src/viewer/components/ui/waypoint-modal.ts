@@ -9,7 +9,7 @@ const WAYPOINT_FORMATS: { [id: string]: string } = {
   gpx: 'GPX',
   kml: 'KML (Google Earth)',
   tsk: 'XCSoar',
-  wpt: 'FormatGEO (GpsDump)',
+  wpt: 'FormatGEO (GpsDump wpt)',
 };
 
 @customElement('waypoint-modal')
