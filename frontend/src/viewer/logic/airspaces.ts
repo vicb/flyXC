@@ -9,6 +9,13 @@ export const MAX_ASP_TILE_ZOOM = 12;
 
 // id -> layer
 const aspLayerByTileId = new Map();
+// id -> number of tiles created.
+// When changing the fractional zoom level the new tiles are requested before
+// the old tiles are released. If the integer zoom level stays the same then
+// we might release tiles that we just requested (i.e. 11 -> 10.7985). Then we
+// maintain a count and only delete the data when the tiles have been released
+// as many times as they have been requested.
+const tileCountById = new Map();
 
 // Returns html describing airspaces at the given point.
 // altitude is expressed in meters.
@@ -65,13 +72,19 @@ export class AspMapType {
     aspLayerByTileId.clear();
   }
 
-  getTile(coord: google.maps.Point, zoom: number, doc: HTMLDocument): HTMLElement {
+  getTile(coord: google.maps.Point, zoom: number, doc: Document): HTMLElement {
     return getTile(coord, zoom, zoom, doc, this.altitude, this.showRestricted, this.active);
   }
 
   releaseTile(el: HTMLElement): void {
     const id = Number(el.getAttribute('tile-id'));
-    aspLayerByTileId.delete(id);
+    const count = tileCountById.get(id) ?? 1;
+    if (count == 1) {
+      tileCountById.delete(id);
+      aspLayerByTileId.delete(id);
+    } else {
+      tileCountById.set(id, count - 1);
+    }
   }
 
   setAltitude(altitude: number): void {
@@ -105,7 +118,7 @@ export class AspZoomMapType extends AspMapType {
     this.tileSize = new google.maps.Size(tileSize, tileSize);
   }
 
-  getTile(coord: google.maps.Point, zoom: number, doc: HTMLDocument): HTMLElement {
+  getTile(coord: google.maps.Point, zoom: number, doc: Document): HTMLElement {
     return getTile(coord, this.mapZoom, this.aspTileZoom, doc, this.altitude, this.showRestricted, this.active);
   }
 }
@@ -116,7 +129,7 @@ function getTile(
   coord: Point,
   zoom: number,
   aspTileZoom: number,
-  doc: HTMLDocument,
+  doc: Document,
   altitude: number,
   showRestricted: boolean,
   active: boolean,
@@ -154,6 +167,7 @@ function getTile(
         }
 
         aspLayerByTileId.set(id, vTile.layers.asp);
+        tileCountById.set(id, (tileCountById.get(id) ?? 0) + 1);
 
         for (let i = 0; i < vTile.layers.asp.length; i++) {
           const f = vTile.layers.asp.feature(i);

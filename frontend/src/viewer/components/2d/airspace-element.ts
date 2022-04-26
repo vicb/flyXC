@@ -79,8 +79,8 @@ export class AirspaceElement extends connect(store)(LitElement) {
     if (changedProperties.has('show')) {
       if (this.show) {
         this.addOverlays();
-        this.clickListener = this.map?.addListener('click', (e): void => this.handleMapClick(e.latLng));
-        this.zoomListener = this.map?.addListener('zoom_changed', () => this.setOverlaysZoom());
+        this.clickListener = this.map.addListener('click', (e): void => this.handleMapClick(e.latLng));
+        this.zoomListener = this.map.addListener('zoom_changed', () => this.setOverlaysZoom());
       } else {
         this.removeOverlays();
         this.info?.close();
@@ -96,7 +96,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
     if (this.show) {
       this.info?.close();
       const html = AspAt(
-        this.map?.getZoom() ?? 10,
+        Math.round(this.map.getZoom() ?? 10),
         { lat: latLng.lat(), lon: latLng.lng() },
         this.maxAltitude,
         this.showRestricted,
@@ -111,7 +111,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
 
   private addOverlays(): void {
     this.overlays.forEach((o) => {
-      if (this.map?.overlayMapTypes) {
+      if (this.map.overlayMapTypes) {
         o.setAltitude(this.maxAltitude);
         o.setShowRestricted(this.showRestricted);
         this.map.overlayMapTypes.push(o);
@@ -120,9 +120,6 @@ export class AirspaceElement extends connect(store)(LitElement) {
   }
 
   private removeOverlays(): void {
-    if (!this.map) {
-      return;
-    }
     for (let i = this.map.overlayMapTypes.getLength() - 1; i >= 0; i--) {
       const o = this.map.overlayMapTypes.getAt(i);
       if (o instanceof AspMapType || o instanceof AspZoomMapType) {
@@ -133,7 +130,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
 
   // Broadcast the current zoom level to the overlays so that they know when they are active.
   private setOverlaysZoom(): void {
-    const zoom = this.map?.getZoom() ?? 10;
+    const zoom = Math.round(this.map.getZoom() ?? 10);
     this.overlays.forEach((overlay) => overlay.setCurrentZoom(zoom));
   }
 
