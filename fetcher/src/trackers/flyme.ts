@@ -3,14 +3,13 @@
 // http://xcglobe.com/flyme/
 
 import { Tracker } from 'flyxc/common/protos/fetcher-state';
+import { fetchResponse } from 'flyxc/common/src/fetch-timeout';
 import { SecretKeys } from 'flyxc/common/src/keys';
 import { TrackerIds } from 'flyxc/common/src/live-track';
 import { TrackerEntity } from 'flyxc/common/src/live-track-entity';
 import { TrackerModel, validateFlymeAccount } from 'flyxc/common/src/models';
-import { getTextRetry } from 'flyxc/common/src/superagent';
 import { formatReqError } from 'flyxc/common/src/util';
 import { Validator } from 'flyxc/common/src/vaadin/form/Validation';
-import request from 'superagent';
 
 import { LivePoint, makeLiveTrack } from './live-track';
 import { TrackerFetcher, TrackerUpdates } from './tracker';
@@ -35,10 +34,10 @@ export class FlymeFetcher extends TrackerFetcher {
     devices.forEach((id) => updates.fetchedTracker.add(id));
 
     try {
-      const response = await getTextRetry(url);
+      const response = await fetchResponse(url);
       if (response.ok) {
         try {
-          const fixes = JSON.parse(response.body);
+          const fixes = await response.json();
           fixes.forEach((fix: [number, number, number, number, number, string]) => {
             const id = fix[0];
             flymeIdToFix.set(id, fix);
@@ -88,16 +87,16 @@ export async function getFlyMeId(username: string): Promise<string | undefined> 
     SecretKeys.FLYME_TOKEN
   }`;
 
-  let response: request.Response | undefined;
+  let response: Response;
 
   try {
-    response = await getTextRetry(url);
+    response = await fetchResponse(url);
   } catch (e) {
     throw new Error(`Flyme server error`);
   }
 
   if (response.ok) {
-    const matches = response.body.match(/^ok:\s*(\d+)$/);
+    const matches = (await response.text()).match(/^ok:\s*(\d+)$/);
     if (matches == null) {
       throw new Error(`The FlyMe account can not be found`);
     }

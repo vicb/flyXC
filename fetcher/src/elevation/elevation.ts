@@ -4,8 +4,8 @@
 
 import { FetcherState } from 'flyxc/common/protos/fetcher-state';
 import { LiveTrack } from 'flyxc/common/protos/live-track';
+import { fetchResponse } from 'flyxc/common/src/fetch-timeout';
 import { LatLon } from 'flyxc/common/src/runtime-track';
-import { getTextRetry } from 'flyxc/common/src/superagent';
 import { formatReqError } from 'flyxc/common/src/util';
 
 import { getElevationUrl, parseElevationResponse } from './arcgis';
@@ -54,9 +54,9 @@ export async function patchLastFixAGL(state: FetcherState): Promise<ElevationUpd
 
   try {
     const url = getElevationUrl(points);
-    const response = await getTextRetry(url, { timeoutSec: 8 });
+    const response = await fetchResponse(url, { timeoutS: 10 });
     if (response.ok) {
-      const elevations = parseElevationResponse(JSON.parse(response.body), points);
+      const elevations = parseElevationResponse(await response.json(), points);
       updates.numRetrieved = elevations.length;
       let elevationIndex = 0;
       tracks = tracks.slice(0, elevations.length);

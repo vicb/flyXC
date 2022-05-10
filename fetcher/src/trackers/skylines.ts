@@ -3,6 +3,7 @@
 // See https://github.com/skylines-project/skylines.
 
 import { Tracker } from 'flyxc/common/protos/fetcher-state';
+import { fetchResponse } from 'flyxc/common/src/fetch-timeout';
 import {
   LIVE_MINIMAL_INTERVAL_SEC,
   removeBeforeFromLiveTrack,
@@ -11,7 +12,6 @@ import {
 } from 'flyxc/common/src/live-track';
 import { TrackerEntity } from 'flyxc/common/src/live-track-entity';
 import { TrackerModel, validateSkylinesAccount } from 'flyxc/common/src/models';
-import { getTextRetry } from 'flyxc/common/src/superagent';
 import { formatReqError } from 'flyxc/common/src/util';
 import { Validator } from 'flyxc/common/src/vaadin/form/Validation';
 import { decodeDeltas } from 'ol/format/Polyline';
@@ -51,10 +51,10 @@ export class SkylinesFetcher extends TrackerFetcher {
 
       const url = `https://skylines.aero/api/live/${[...sklIdToDsId.keys()].join(',')}`;
       try {
-        const response = await getTextRetry(url);
+        const response = await fetchResponse(url);
         if (response.ok) {
           try {
-            JSON.parse(response.body).flights.forEach((flight: any) => {
+            (await response.json()).flights.forEach((flight: any) => {
               const sklId = Number(flight.sfid);
               const dsId = sklIdToDsId.get(sklId) as number;
               // Get an extra 10min of data that might not have been received (when no network coverage).
@@ -151,13 +151,12 @@ export class SkylinesValidator implements Validator<TrackerModel> {
       if (id !== false) {
         const url = `https://skylines.aero/api/users/${id}`;
         try {
-          await getTextRetry(url, { timeoutSec: 10 });
-        } catch (e: any) {
-          if (e?.status === 404) {
+          const response = await fetchResponse(url, { timeoutS: 10 });
+          if (response.status == 404) {
             this.message = `This skylines account does not exist.`;
             return { property: 'account' };
           }
-        }
+        } catch (e: any) {}
       }
     }
 

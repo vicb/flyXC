@@ -3,9 +3,9 @@
 // See https://www.findmespot.com/en-us/support/spot-trace/get-help/general/spot-api-support.
 
 import { Tracker } from 'flyxc/common/protos/fetcher-state';
+import { fetchResponse } from 'flyxc/common/src/fetch-timeout';
 import { LIVE_MINIMAL_INTERVAL_SEC, simplifyLiveTrack, TrackerIds } from 'flyxc/common/src/live-track';
 import { validateSpotAccount } from 'flyxc/common/src/models';
-import { getTextRetry } from 'flyxc/common/src/superagent';
 import { formatReqError } from 'flyxc/common/src/util';
 
 import { LivePoint, makeLiveTrack } from './live-track';
@@ -33,10 +33,10 @@ export class SpotFetcher extends TrackerFetcher {
       const url = `https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed/${tracker.account}/message.json?startDate=${fetchDate}`;
       try {
         updates.fetchedTracker.add(id);
-        const response = await getTextRetry(url);
+        const response = await fetchResponse(url);
         if (response.ok) {
           try {
-            const points = parse(response.body);
+            const points = parse(await response.text());
             const track = makeLiveTrack(points);
             simplifyLiveTrack(track, LIVE_MINIMAL_INTERVAL_SEC);
             if (track.timeSec.length > 0) {

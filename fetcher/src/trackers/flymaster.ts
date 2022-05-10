@@ -1,6 +1,7 @@
 // Flymaster.
 
 import { Tracker } from 'flyxc/common/protos/fetcher-state';
+import { fetchResponse } from 'flyxc/common/src/fetch-timeout';
 import {
   LIVE_MINIMAL_INTERVAL_SEC,
   removeBeforeFromLiveTrack,
@@ -8,7 +9,6 @@ import {
   TrackerIds,
 } from 'flyxc/common/src/live-track';
 import { validateFlymasterAccount } from 'flyxc/common/src/models';
-import { getTextRetry } from 'flyxc/common/src/superagent';
 import { formatReqError } from 'flyxc/common/src/util';
 
 import { LivePoint, makeLiveTrack } from './live-track';
@@ -51,10 +51,10 @@ export class FlymasterFetcher extends TrackerFetcher {
       const url = `https://lt.flymaster.net/wlb/getLiveData.php?trackers=${JSON.stringify(trackersParam)}`;
 
       try {
-        const response = await getTextRetry(url);
+        const response = await fetchResponse(url);
         if (response.ok) {
           try {
-            flights = JSON.parse(response.body);
+            flights = await response.json();
             [...flmIdToDsId.values()].forEach((id) => updates.fetchedTracker.add(id));
           } catch (e) {
             updates.errors.push(`Error parsing the json for ${url}\n${e}`);

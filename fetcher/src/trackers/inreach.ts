@@ -3,10 +3,10 @@
 // See https://support.garmin.com/en-US/?faq=tdlDCyo1fJ5UxjUbA9rMY8.
 
 import { Tracker } from 'flyxc/common/protos/fetcher-state';
+import { fetchResponse } from 'flyxc/common/src/fetch-timeout';
 import { LIVE_MINIMAL_INTERVAL_SEC, simplifyLiveTrack, TrackerIds } from 'flyxc/common/src/live-track';
 import { TrackerEntity } from 'flyxc/common/src/live-track-entity';
 import { TrackerModel, validateInreachAccount } from 'flyxc/common/src/models';
-import { getTextRetry } from 'flyxc/common/src/superagent';
 import { formatReqError, parallelTasksWithTimeout } from 'flyxc/common/src/util';
 import { Validator } from 'flyxc/common/src/vaadin/form/Validation';
 import { DOMParser } from 'xmldom';
@@ -35,10 +35,10 @@ export class InreachFetcher extends TrackerFetcher {
 
       try {
         updates.fetchedTracker.add(id);
-        const response = await getTextRetry(url);
+        const response = await fetchResponse(url, { timeoutS: 7 });
         if (response.ok) {
           try {
-            const points = parse(response.body);
+            const points = parse(await response.text());
             const track = makeLiveTrack(points);
             simplifyLiveTrack(track, LIVE_MINIMAL_INTERVAL_SEC);
             if (track.timeSec.length > 0) {
@@ -201,16 +201,15 @@ export class InreachValidator implements Validator<TrackerModel> {
       const url = validateInreachAccount(tracker.account);
       if (url !== false) {
         try {
-          await getTextRetry(url, { timeoutSec: 10 });
-        } catch (e: any) {
-          if (e?.status === 401) {
+          const response = await fetchResponse(url, { timeoutS: 10 });
+          if (response.status == 401) {
             this.message =
               'Please remove the MapShare password on ' +
               '<a href="https://explore.garmin.com/Social" target="_blank" class="has-text-link">explore.garmin.com/Social</a>' +
               ' before enabling your InReach.';
             return { property: 'account' };
           }
-        }
+        } catch (e: any) {}
       }
     }
 

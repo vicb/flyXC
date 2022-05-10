@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import * as protos from 'flyxc/common/protos/track';
+import { fetchResponse } from 'flyxc/common/src/fetch-timeout';
 import { diffEncodeTrack } from 'flyxc/common/src/runtime-track';
-import { getTextRetry } from 'flyxc/common/src/superagent';
 import {
   retrieveMetaTrackGroupByHash,
   retrieveMetaTrackGroupByUrl,
@@ -30,9 +30,9 @@ export async function parseFromUrl(url: string): Promise<protos.MetaTrackGroup> 
   console.log(`Cache miss (url = ${url})`);
 
   try {
-    const response = await getTextRetry(url);
+    const response = await fetchResponse(url);
     if (response.ok) {
-      return await parse(response.body, url);
+      return await parse(await response.text(), url);
     }
   } catch (e) {}
   return { id: -1, numPostprocess: 0 };
