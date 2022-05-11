@@ -13,7 +13,7 @@
   "dependencies": {
     "@alenaksu/json-viewer": "^1.0.0",
     "@arcgis/core": "4.23",
-    "@googlemaps/js-api-loader": "^1.14.1",
+    "@googlemaps/js-api-loader": "^1.14.2",
     "@ionic/core": "^6.1",
     "@reduxjs/toolkit": "^1.8.1",
     "@stencil/core": "^2.15.2",
