@@ -95,7 +95,6 @@
     "eslint-plugin-json": "^3.1.0",
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "^28.1.0",
-    "jest-raw-loader": "^1.0.1",
     "js-yaml": "^4.1.0",
     "node-sass": "^7.0.1",
     "postcss": "^8.4.13",

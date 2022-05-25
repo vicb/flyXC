@@ -14,8 +14,8 @@ config = {
   // registers babel.config.js with jest
   transform: {
     '^.+\\.js$': 'babel-jest',
-    '\\.kml$': 'jest-raw-loader',
-    '\\.txt$': 'jest-raw-loader',
+    '\\.kml$': './jest.transformer.js',
+    '\\.txt$': './jest.transformer.js',
   },
   // explicitly include any node libs using ESM modules
   transformIgnorePatterns: ['node_modules/?!(ol)'],
