@@ -35,7 +35,7 @@ export class InreachFetcher extends TrackerFetcher {
 
       try {
         updates.fetchedTracker.add(id);
-        const response = await fetchResponse(url, { timeoutS: 7 });
+        const response = await fetchResponse(url, { timeoutS: 2, retryOnTimeout: true });
         if (response.ok) {
           try {
             const points = parse(await response.text());
