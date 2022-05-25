@@ -25,6 +25,7 @@ import { requestCurrentPosition } from './logic/geolocation';
 import {
   addUrlParamValues,
   deleteUrlParam,
+  getCurrentUrl,
   getSearchParams,
   getUrlParamValues,
   ParamNames,
@@ -129,7 +130,7 @@ export class FlyXc extends connect(store)(LitElement) {
     }
     // Load all the tracks that have been added.
     downloadTracksByGroupIds([...nextGroupIds].filter((id) => !currentGroupIds.has(id)));
-    store.dispatch(setView3d(getSearchParams().has(ParamNames.view3d)));
+    store.dispatch(setView3d(getCurrentUrl().pathname == '/3d'));
 
     // Update the route and speed.
     store.dispatch(setRoute(getUrlParamValues(ParamNames.route)[0] ?? ''));
