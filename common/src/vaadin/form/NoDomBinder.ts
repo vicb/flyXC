@@ -28,11 +28,11 @@ const _validationRequestSymbol = Symbol('validationRequest');
  * @param <M> is the type of the model that describes the structure of the value
  */
 export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M> {
-  private [_defaultValue]: T;
+  private [_defaultValue]!: T;
 
-  private [_value]: T;
+  private [_value]!: T;
 
-  private [_emptyValue]: T;
+  private [_emptyValue]!: T;
 
   private [_submitting] = false;
 
@@ -40,9 +40,9 @@ export class NoDomBinder<T, M extends AbstractModel<T>> extends BinderNode<T, M>
 
   private [_validationRequestSymbol]: Promise<void> | undefined = undefined;
 
-  private [_onChange]: (oldValue?: T) => void;
+  private [_onChange]!: (oldValue?: T) => void;
 
-  private [_onSubmit]: (value: T) => Promise<any>;
+  private [_onSubmit]!: (value: T) => Promise<any>;
 
   private [_validations]: Map<AbstractModel<any>, Map<Validator<any>, Promise<ReadonlyArray<ValueError<any>>>>> =
     new Map();
