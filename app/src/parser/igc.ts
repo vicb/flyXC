@@ -1,8 +1,6 @@
 import { Track } from 'flyxc/common/protos/track';
 import IGCParser from 'igc-parser';
 
-const MAX_PRESSURE_OFFSET_METER = 100;
-
 export function parse(content: string): Track[] {
   let igc: IGCParser.IGCFile;
   try {
@@ -16,17 +14,10 @@ export function parse(content: string): Track[] {
   const alt: number[] = [];
   const timeSec: number[] = [];
 
-  // The pressure altitude is smoother.
-  // We use it when it exists and is close enough to the GPS altitude at start.
-  const { gpsAltitude, pressureAltitude } = igc.fixes[0];
-  const usePressureAltitude =
-    pressureAltitude != null && Math.abs((gpsAltitude ?? 0) - pressureAltitude) < MAX_PRESSURE_OFFSET_METER;
-
   igc.fixes.forEach((fix) => {
     lat.push(fix.latitude);
     lon.push(fix.longitude);
-    // The pressure altitude has
-    alt.push((usePressureAltitude ? fix.pressureAltitude : fix.gpsAltitude) || 0);
+    alt.push(fix.gpsAltitude || 0);
     timeSec.push(Math.round(fix.timestamp / 1000));
   });
 
