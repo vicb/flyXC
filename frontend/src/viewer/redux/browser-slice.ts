@@ -14,8 +14,11 @@ type BrowserState = {
 export const isMobile = () =>
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobi/i.test(navigator.userAgent);
 
+const doc = document as any;
+const isFullscreen = ('webkitFullscreenElement' in doc ? doc.webkitFullscreenElement : doc.fullscreenElement) != null;
+
 const initialState: BrowserState = {
-  isFullscreen: document.fullscreenElement != null,
+  isFullscreen,
   isVisible: document.visibilityState == 'visible',
   isInIframe: window.parent !== window,
   isMobile: isMobile(),
@@ -37,9 +40,12 @@ const browserSlice = createSlice({
 
 export const reducer = browserSlice.reducer;
 
+// Handle when full screen is exited by pressing the ESC key.
 window.addEventListener('fullscreenchange', () => {
-  // Handle when full screen is exited by pressing the ESC key.
   store.dispatch(browserSlice.actions.setIsFullscreen(document.fullscreenElement != null));
+});
+window.addEventListener('webkitfullscreenchange', () => {
+  store.dispatch(browserSlice.actions.setIsFullscreen(doc.webkitFullscreenElement != null));
 });
 
 document.addEventListener('visibilitychange', () => {

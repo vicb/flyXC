@@ -330,9 +330,19 @@ export class FullScreenItems extends connect(store)(LitElement) {
     const element = document.querySelector('.fs-enabled');
     if (element) {
       if (!this.fullscreen) {
-        element.requestFullscreen();
+        const el = element as any;
+        if (el.webkitRequestFullscreen) {
+          el.webkitRequestFullscreen();
+        } else {
+          element.requestFullscreen();
+        }
       } else {
-        document.exitFullscreen();
+        const doc = document as any;
+        if (doc.webkitExitFullscreen) {
+          doc.webkitExitFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
       }
     }
   }
