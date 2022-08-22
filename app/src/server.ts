@@ -36,7 +36,7 @@ const app = express()
   .set('trust proxy', USE_APP_ENGINE)
   .use(express.json())
   .use(express.urlencoded({ extended: true }))
-  .use(fileUpload({ limits: { fileSize: 32 * 1024 * 1024 } }))
+  .use(fileUpload({ headers: { 'content-type': 'application/octet-stream' }, limits: { fileSize: 32 * 1024 * 1024 } }))
   .use(
     session({
       secret: SecretKeys.SESSION_SECRET,
