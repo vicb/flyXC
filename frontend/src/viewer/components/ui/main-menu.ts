@@ -330,9 +330,11 @@ export class FullScreenItems extends connect(store)(LitElement) {
     const element = document.querySelector('.fs-enabled');
     if (element) {
       if (!this.fullscreen) {
-        element.requestFullscreen();
+        var method = element.requestFullscreen || element.webkitRequestFullscreen;
+        method.call(element);
       } else {
-        document.exitFullscreen();
+        var method = element.exitFullscreen || element.webkitExitFullscreen;
+        method.call(element);
       }
     }
   }
