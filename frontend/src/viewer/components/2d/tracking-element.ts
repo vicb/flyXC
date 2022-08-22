@@ -9,7 +9,7 @@ import { formatDurationMin, Units } from '../../logic/units';
 import { liveTrackSelectors, setCurrentLiveId } from '../../redux/live-track-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
-import { getUniqueColor } from '../../styles/track';
+import { getUniqueContrastColor } from '../../styles/track';
 
 // Anchors and label origins for markers.
 let ANCHOR_POSITION: google.maps.Point | undefined;
@@ -180,7 +180,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     const ageMin = Math.round((nowSec - track.timeSec[index]) / 60);
 
     let opacity = ageMin > RECENT_TIMEOUT_MIN ? 0.3 : 0.9;
-    const color = getUniqueColor(Math.round(id / 1000));
+    const color = getUniqueContrastColor(Math.round(id / 1000));
     let labelColor = 'black';
     let svg: string | undefined;
     let labelOrigin: google.maps.Point | undefined;
@@ -253,7 +253,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     const endIdx = feature.getProperty('endIndex');
     const ageMin = (nowSec - track.timeSec[endIdx]) / 60;
 
-    const strokeColor = getUniqueColor(Math.round(id / 1000));
+    const strokeColor = getUniqueContrastColor(Math.round(id / 1000));
     let strokeWeight = 1;
     let strokeOpacity = 1;
     let zIndex = 10;

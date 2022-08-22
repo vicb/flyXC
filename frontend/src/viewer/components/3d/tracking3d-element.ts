@@ -18,7 +18,7 @@ import { formatDurationMin, Units } from '../../logic/units';
 import { liveTrackSelectors, setCurrentLiveId } from '../../redux/live-track-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
-import { getUniqueColor } from '../../styles/track';
+import { getUniqueContrastColor } from '../../styles/track';
 
 // A track is considered recent if ended less than timeout ago.
 const RECENT_TIMEOUT_MIN = 2 * 60;
@@ -189,7 +189,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       graphic.set('geometry', this.line);
       shadowGraphic.set('geometry', this.line);
 
-      const color = new Color(getUniqueColor(Math.round(id / 1000)));
+      const color = new Color(getUniqueContrastColor(Math.round(id / 1000)));
       color.a = isEmergency || hasRecentStyle || hasSelectedStyle ? 1 : 0.8;
       const rgba = color.toRgba();
       this.trackSymbol.symbolLayers[0].material.color = rgba;
@@ -246,7 +246,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         symbol = this.msgSymbol;
       } else if (heading != null) {
         // Pilot marker.
-        const color = new Color(getUniqueColor(Math.round(id / 1000)));
+        const color = new Color(getUniqueContrastColor(Math.round(id / 1000)));
         color.a = isActive || isRecentTrack ? 1 : 0.7;
         const rgba = color.toRgba();
         this.santaSymbol.symbolLayers[0].material.color = rgba;
