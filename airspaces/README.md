@@ -3,6 +3,7 @@
 Install [tippecanoe](https://github.com/mapbox/tippecanoe).
 
 - npm run download
+- npm run stats (quick check of the airspaces)
 - npm run geojson
 - npm run tiles
 
@@ -22,13 +23,15 @@ $ gsutil cors set cors.json gs://airspaces
 $ gsutil iam ch allUsers:objectViewer gs://airspaces
 
 *url*
-https://airspaces.storage.googleapis.com/${z}/${x}/${y}.pbf
+https://airsp.storage.googleapis.com/${z}/${x}/${y}.pbf
 
 # Using the unzip script on a Compute VM
 
 $ zip -r -9 tiles.zip tiles
 
-$ gcloud compute scp tiles.zip unzip-airspaces:~/tiles/ --zone "us-central1-a"
+$ gcloud compute scp tiles.zip unzip-airspaces:/tiles/ --zone "us-central1-a"
+
+$ gcloud compute scp tiles-info-diff.json unzip-airspaces:~/tiles/ --zone "us-central1-a"
 
 $ gcloud compute ssh --zone "us-central1-a" "unzip-airspaces" --project "fly-xc"
 
@@ -36,7 +39,9 @@ $ docker container ps
 
 $ docker exec -it <NAME> bash
 
-$ node unzip.js -i /tiles/tiles.zip
+$ cd /tiles
+
+$ node /usr/src/app/unzip.js -i tiles.zip
 
 # Update the Docker image
 

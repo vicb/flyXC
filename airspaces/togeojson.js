@@ -26,10 +26,31 @@ const AIRSPACE_OTHER = 1 << 3;
 const BOTTOM_REF_GND = 1 << 4;
 const TOP_REF_GND = 1 << 5;
 
+const CLASS_A = 0;
+const CLASS_B = 1;
+const CLASS_C = 2;
+const CLASS_D = 3;
+const CLASS_E = 4;
+const CLASS_F = 5;
+const CLASS_G = 6;
+
+const TYPE_RESTRICTED = 1;
+const TYPE_DANGER = 2;
+const TYPE_PROHIBITED = 3;
+const TYPE_CTR = 4;
+const TYPE_TMZ = 5;
+const TYPE_RMZ = 6;
+const TYPE_TMA = 7;
+const TYPE_FIR = 10;
+const TYPE_ATZ = 13;
+const TYPE_AIRWAY = 15;
+const TYPE_GLIDING = 21;
+const TYPE_LOW_ALT_RESTRICTION = 29;
+
 let airspaces = [];
 
-// openaip.net files (AIP format).
-const aipFiles = glob.sync(prog.opts().input + '/**/*_asp.aip');
+// openaip.net file.
+const aipFiles = glob.sync(prog.opts().input + '/airspaces.json');
 for (const file of aipFiles) {
   const asp = decodeAipFile(file);
   airspaces.push(...asp);
@@ -60,46 +81,53 @@ fs.writeFileSync(`${prog.opts().output}.geojson`, JSON.stringify(geoJson));
 
 // Decodes AIP format (i.e. from openaip.net).
 function decodeAipFile(filename) {
-  const xml = fs.readFileSync(filename);
-  if (xml.length) {
-    const json = JSON.parse(convert.xml2json(xml, { compact: true }));
-    if (json.OPENAIP && json.OPENAIP.AIRSPACES && json.OPENAIP.AIRSPACES.ASP) {
-      console.log(`\n# ${path.basename(filename)}`);
-      const total = json.OPENAIP.AIRSPACES.ASP.length;
-      console.log(` - ${total} airspaces`);
-      const airspaces = json.OPENAIP.AIRSPACES.ASP.map((aip) => decodeAipAirspace(aip)).filter(
-        (airspace) => airspace != null,
-      );
-      if (airspaces.length < total) {
-        console.log(` - dropped ${total - airspaces.length} airspaces`);
-      }
-      return airspaces;
+  const json = fs.readFileSync(filename);
+  if (json.length) {
+    const inAirspaces = JSON.parse(json);
+    console.log(`\n# ${path.basename(filename)}`);
+    const total = inAirspaces.length;
+    console.log(` - ${total} airspaces`);
+    const airspaces = inAirspaces.map((aip) => decodeAipAirspace(aip)).filter((asp) => asp != null);
+    if (airspaces.length < total) {
+      console.log(` - dropped ${total - airspaces.length} airspaces`);
     }
+    return airspaces;
   }
   return [];
 }
 
 // Returns the altitude in meter for an AIP limit.
 function aipAltLimitMeter(limit) {
-  switch (limit.ALT._attributes.UNIT) {
-    case 'FL':
-      return Math.round(100 * 0.3048 * limit.ALT._text);
-    case 'F':
-      return Math.round(0.3048 * limit.ALT._text);
+  switch (limit.unit) {
+    case 6:
+      return Math.round(100 * 0.3048 * limit.value);
+    case 1:
+      return Math.round(0.3048 * limit.value);
     default:
-      return limit.ALT._text;
+      return limit.value;
   }
 }
 
 // Returns the label for an AIP limit.
 function aipAltLimitLabel(limit) {
-  if (limit._attributes.REFERENCE === 'GND' && limit.ALT._text == 0) {
+  if (limit.referenceDatum == 0 && limit.value == 0) {
     return 'GND';
   }
-  if (limit.ALT._attributes.UNIT == 'FL') {
-    return `FL ${Math.round(limit.ALT._text)}`;
+  if (limit.unit == 6) {
+    return `FL ${Math.round(limit.value)}`;
   }
-  return `${Math.round(limit.ALT._text)}${limit.ALT._attributes.UNIT} ${limit._attributes.REFERENCE}`;
+
+  const unit = limit.unit == 0 ? 'm' : 'ft';
+  let ref;
+  if (limit.referenceDatum == 0) {
+    ref = 'GND';
+  } else if (limit.referenceDatum == 1) {
+    ref = 'MSL';
+  } else {
+    ref = 'STD';
+  }
+
+  return `${Math.round(limit.value)}${unit} ${ref}`;
 }
 
 // Decodes Open Air format.
@@ -317,47 +345,76 @@ function openAirReferenceFlags(bottomLabel, topLabel) {
   return flags;
 }
 
-// Decodes an airspace in Open Air format.
 function decodeAipAirspace(asp) {
-  const category = asp._attributes.CATEGORY;
-  const name = asp.NAME._text;
-  if (Array.isArray(asp.GEOMETRY.POLYGON)) {
-    throw new Error('nested polygons');
+  let category;
+  if (asp.type == TYPE_RESTRICTED || asp.type == TYPE_LOW_ALT_RESTRICTION) {
+    category = 'RESTRICTED';
+  } else if (asp.type == TYPE_DANGER) {
+    category = 'DANGER';
+  } else if (asp.type == TYPE_PROHIBITED) {
+    category = 'PROHIBITED';
+  } else if (asp.type == TYPE_CTR) {
+    category = 'CTR';
+  } else if (asp.type == TYPE_TMZ) {
+    category = 'TMZ';
+  } else if (asp.type == TYPE_RMZ) {
+    category = 'RMZ';
+  } else if (asp.type == TYPE_TMA) {
+    category = 'TMA';
+  } else if (asp.type == TYPE_FIR) {
+    category = 'FIR';
+  } else if (asp.type == TYPE_ATZ) {
+    category = 'ATZ';
+  } else if (asp.type == TYPE_AIRWAY) {
+    category = 'AIRWAY';
+  } else if (asp.type == TYPE_GLIDING) {
+    category = 'GLIDING';
+  } else if (asp.icaoClass == CLASS_A) {
+    category = 'A';
+  } else if (asp.icaoClass == CLASS_B) {
+    category = 'B';
+  } else if (asp.icaoClass == CLASS_C) {
+    category = 'C';
+  } else if (asp.icaoClass == CLASS_D) {
+    category = 'D';
+  } else if (asp.icaoClass == CLASS_E) {
+    category = 'E';
+  } else if (asp.icaoClass == CLASS_F) {
+    category = 'F';
+  } else if (asp.icaoClass == CLASS_G) {
+    category = 'G';
+  } else {
+    category = `type ${asp.type}`;
   }
 
-  if (!asp.GEOMETRY.POLYGON._text) {
+  const name = asp.name;
+  if (asp.geometry.type != 'Polygon') {
+    throw new Error('not a polygon');
+  }
+
+  if (asp.geometry.coordinates[0].length == 0) {
     // Some airspaces have no geometry.
-    console.error(` - INVALID Airspace: ${name} (${asp.COUNTRY._text})`);
+    console.error(` - INVALID Airspace: ${name} (${asp.country})`);
     return;
   }
 
-  const geometry = asp.GEOMETRY.POLYGON._text
-    .replace(/,/g, '')
-    .replace(/-?[\d\.]+/g, (d) => Math.round(d * 10000) / 10000)
-    .split(' ')
-    .map((s) => Number(s));
-
-  if (geometry.length < 4) {
-    return;
-  }
-
-  const coords = [];
-  for (let i = 0; i < geometry.length; i += 2) {
-    coords.push([geometry[i], geometry[i + 1]]);
-  }
+  const coords = asp.geometry.coordinates[0].map(([c1, c2]) => [
+    Math.round(c1 * 10000) / 10000,
+    Math.round(c2 * 10000) / 10000,
+  ]);
 
   const a = {
     name,
     category: category,
-    bottom_lbl: aipAltLimitLabel(asp.ALTLIMIT_BOTTOM),
-    top_lbl: aipAltLimitLabel(asp.ALTLIMIT_TOP),
-    bottom: Math.round(aipAltLimitMeter(asp.ALTLIMIT_BOTTOM)),
-    top: Math.round(aipAltLimitMeter(asp.ALTLIMIT_TOP)),
+    bottom_lbl: aipAltLimitLabel(asp.lowerLimit),
+    top_lbl: aipAltLimitLabel(asp.upperLimit),
+    bottom: Math.round(aipAltLimitMeter(asp.lowerLimit)),
+    top: Math.round(aipAltLimitMeter(asp.upperLimit)),
     polygon: [coords],
     flags: 0,
   };
 
-  a.flags = airspaceTypeFlags(a, asp.COUNTRY._text);
+  a.flags = airspaceTypeFlags(a, asp.country);
 
   if (a.flags != AIRSPACE_IGNORED) {
     a.flags |= openAipReferenceFlags(asp);
@@ -368,10 +425,10 @@ function decodeAipAirspace(asp) {
 // Returns the GND reference flags for an AIP airspace.
 function openAipReferenceFlags(asp) {
   let flags = 0;
-  if (asp.ALTLIMIT_BOTTOM._attributes.REFERENCE === 'GND') {
+  if (asp.lowerLimit.referenceDatum == 0) {
     flags |= BOTTOM_REF_GND;
   }
-  if (asp.ALTLIMIT_TOP._attributes.REFERENCE === 'GND') {
+  if (asp.upperLimit.referenceDatum == 0) {
     flags |= TOP_REF_GND;
   }
   return flags;
@@ -416,14 +473,14 @@ function airspaceTypeFlags(airspace, country = '') {
     case 'C':
     case 'CTR':
     case 'D':
-    case 'RMZ': // Radio Mandatory Zone
     case 'TMA':
-    case 'TMZ':
     case 'PROHIBITED':
       return AIRSPACE_PROHIBITED;
     case 'E':
     case 'F':
     case 'G':
+    case 'RMZ': // Radio Mandatory Zone
+    case 'TMZ':
     case 'GLIDING':
     case 'RESTRICTED':
     case 'R':
@@ -435,6 +492,7 @@ function airspaceTypeFlags(airspace, country = '') {
       return AIRSPACE_OTHER;
     case 'FIR':
     case 'WAVE':
+    case 'AIRWAY':
     case 'TRANING': // Ukraine
     case 'UNKNOWN': // Ukraine
     case 'ATZ': // Ukraine
@@ -443,6 +501,7 @@ function airspaceTypeFlags(airspace, country = '') {
     case 'Q5': // Reunion
     case 'Q6': // Reunion
     case 'Q7': // Reunion
+      console.info(`Ignored airspace (category "${airspace.category}") "${airspace.name}"`);
       return AIRSPACE_IGNORED;
     default:
       console.info(`Ignored airspace (category "${airspace.category}") "${airspace.name}"`);

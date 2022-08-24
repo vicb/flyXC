@@ -9,7 +9,7 @@ const { Storage } = require('@google-cloud/storage');
 
 prog
   .option('-i, --input <file>', 'zip file', 'tiles.zip')
-  .option('-b, --bucket <file>', 'bucket name', 'airspaces')
+  .option('-b, --bucket <file>', 'bucket name', 'airsp')
   .option('-d, --diff <file>', 'Diff to apply')
   .parse(process.argv);
 
