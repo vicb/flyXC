@@ -5,7 +5,6 @@
 // Open air docs: http://www.winpilot.com/UsersGuide/UserAirspace.asp
 
 /* eslint-disable @typescript-eslint/no-var-requires */
-const convert = require('xml-js');
 const fs = require('fs');
 const prog = require('commander');
 const glob = require('glob');
@@ -45,6 +44,7 @@ const TYPE_FIR = 10;
 const TYPE_ATZ = 13;
 const TYPE_AIRWAY = 15;
 const TYPE_GLIDING = 21;
+const TYPE_CTA = 26;
 const TYPE_LOW_ALT_RESTRICTION = 29;
 
 let airspaces = [];
@@ -369,6 +369,8 @@ function decodeAipAirspace(asp) {
     category = 'AIRWAY';
   } else if (asp.type == TYPE_GLIDING) {
     category = 'GLIDING';
+  } else if (asp.type == TYPE_CTA) {
+    category = 'CTA';
   } else if (asp.icaoClass == CLASS_A) {
     category = 'A';
   } else if (asp.icaoClass == CLASS_B) {
@@ -475,6 +477,8 @@ function airspaceTypeFlags(airspace, country = '') {
     case 'D':
     case 'TMA':
     case 'PROHIBITED':
+    case 'ATZ':
+    case 'CTA':
       return AIRSPACE_PROHIBITED;
     case 'E':
     case 'F':
@@ -495,7 +499,6 @@ function airspaceTypeFlags(airspace, country = '') {
     case 'AIRWAY':
     case 'TRANING': // Ukraine
     case 'UNKNOWN': // Ukraine
-    case 'ATZ': // Ukraine
     case 'Q': // Reunion
     case 'Q2': // Reunion
     case 'Q5': // Reunion
