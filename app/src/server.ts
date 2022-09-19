@@ -86,12 +86,12 @@ app.post('/_waypoints', (req: Request, res: Response) => {
   }
   // points elevations format prefix
   const { format, points, prefix } = JSON.parse(req.body.request);
-  const { mime, file, ext, error } = encode(format, points, prefix);
+  const { mime, file, filename, error } = encode(format, points, prefix);
 
   if (error) {
     res.redirect('back');
   } else {
-    res.attachment(`waypoints.${ext}`).set('Content-Type', mime).send(file);
+    res.attachment(`${filename}`).set('Content-Type', mime).send(file);
   }
 });
 

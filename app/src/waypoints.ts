@@ -9,10 +9,12 @@ export function encode(
   format: string,
   points: LatLonZ[],
   prefix: string,
-): { mime?: string; file?: string; ext?: string; error?: string } {
+): { mime?: string; file?: string; filename?: string; error?: string } {
   switch (format) {
     case 'gpx':
-      return encodeGPX(points, prefix);
+      return encodeGPXWaypoints(points, prefix);
+    case 'gpxRoute':
+      return encodeGPXRoute(points, prefix);
     case 'kml':
       return encodeKML(points, prefix);
     case 'tsk':
@@ -27,7 +29,10 @@ export function encode(
   }
 }
 
-function encodeGPX(points: LatLonZ[], prefix: string): { mime?: string; file?: string; ext?: string; error?: string } {
+function encodeGPXWaypoints(
+  points: LatLonZ[],
+  prefix: string,
+): { mime?: string; file?: string; filename?: string; error?: string } {
   const Point = BaseBuilder.MODELS.Point;
   const waypoints = points.map((p: any, i: number) => {
     const attributes: { [k: string]: string } = {
@@ -38,10 +43,33 @@ function encodeGPX(points: LatLonZ[], prefix: string): { mime?: string; file?: s
   });
   const gpxData = new BaseBuilder();
   gpxData.setWayPoints(waypoints);
-  return { file: buildGPX(gpxData), mime: 'application/gpx+xml', ext: 'gpx' };
+  return { file: buildGPX(gpxData), mime: 'application/gpx+xml', filename: 'waypoints.gpx' };
 }
 
-function encodeKML(points: LatLonZ[], prefix: string): { mime?: string; file?: string; ext?: string; error?: string } {
+function encodeGPXRoute(
+  points: LatLonZ[],
+  prefix: string,
+): { mime?: string; file?: string; filename?: string; error?: string } {
+  const Point = BaseBuilder.MODELS.Point;
+  const Route = BaseBuilder.MODELS.Route;
+
+  const rtept = points.map((p: any, i: number) => {
+    const attributes: { [k: string]: string } = {
+      name: prefix + String(i + 1).padStart(3, '0'),
+    };
+    attributes.ele = p.alt.toString();
+    return new Point(p.lat.toFixed(6), p.lon.toFixed(6), attributes);
+  });
+  const route = new Route({ rtept });
+  const gpxData = new BaseBuilder();
+  gpxData.setRoutes([route]);
+  return { file: buildGPX(gpxData), mime: 'application/gpx+xml', filename: 'route.gpx' };
+}
+
+function encodeKML(
+  points: LatLonZ[],
+  prefix: string,
+): { mime?: string; file?: string; filename?: string; error?: string } {
   const coordinates = points.map((p) => `${p.lon.toFixed(6)},${p.lat.toFixed(6)},${p.alt}`);
 
   const kml = builder.begin().ele('kml', { xmlns: 'http://www.opengis.net/kml/2.2' });
@@ -65,10 +93,13 @@ function encodeKML(points: LatLonZ[], prefix: string): { mime?: string; file?: s
   });
   kml.end({ pretty: true });
 
-  return { mime: 'application/vnd.google-earth.kml+xml', file: kml.toString(), ext: 'kml' };
+  return { mime: 'application/vnd.google-earth.kml+xml', file: kml.toString(), filename: 'waypoints.kml' };
 }
 
-function encodeTSK(points: LatLonZ[], prefix: string): { mime?: string; file?: string; ext?: string; error?: string } {
+function encodeTSK(
+  points: LatLonZ[],
+  prefix: string,
+): { mime?: string; file?: string; filename?: string; error?: string } {
   // See https://github.com/XCSoar/XCSoar/issues/542
   const task = builder.begin().ele('Task', { type: 'RT' });
   points.forEach((p, i) => {
@@ -89,10 +120,13 @@ function encodeTSK(points: LatLonZ[], prefix: string): { mime?: string; file?: s
   });
   task.end({ pretty: true });
 
-  return { mime: 'application/tsk+xml', file: task.toString(), ext: 'tsk' };
+  return { mime: 'application/tsk+xml', file: task.toString(), filename: 'waypoints.tsk' };
 }
 
-function encodeWPT(points: LatLonZ[], prefix: string): { mime?: string; file?: string; ext?: string; error?: string } {
+function encodeWPT(
+  points: LatLonZ[],
+  prefix: string,
+): { mime?: string; file?: string; filename?: string; error?: string } {
   const file =
     '$FormatGEO\r\n' +
     points
@@ -115,11 +149,14 @@ function encodeWPT(points: LatLonZ[], prefix: string): { mime?: string; file?: s
       })
       .join('\r\n');
 
-  return { mime: 'application/x-wpt', file, ext: 'wpt' };
+  return { mime: 'application/x-wpt', file, filename: 'waypoints.wpt' };
 }
 
 // http://download.naviter.com/docs/CUP-file-format-description.pdf
-function encodeCUP(points: LatLonZ[], prefix: string): { mime?: string; file?: string; ext?: string; error?: string } {
+function encodeCUP(
+  points: LatLonZ[],
+  prefix: string,
+): { mime?: string; file?: string; filename?: string; error?: string } {
   let file = 'name,code,country,lat,lon,elev,style,rwdir,rwlen,freq,desc\r\n';
   file += points
     .map((p, i) => {
@@ -144,7 +181,7 @@ function encodeCUP(points: LatLonZ[], prefix: string): { mime?: string; file?: s
   file += points.map((p, i) => `"${prefix + String(i + 1).padStart(3, '0')}"`).join(',');
   file += ',"???"\r\n';
 
-  return { mime: 'application/x-cup', file, ext: 'cup' };
+  return { mime: 'application/x-cup', file, filename: 'waypoints.cup' };
 }
 
 function dmsh(coordinates: number, hs: string): { d: number; m: number; s: number; h: string } {

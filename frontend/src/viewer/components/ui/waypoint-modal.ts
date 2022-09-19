@@ -6,7 +6,8 @@ import { modalController } from '@ionic/core/components';
 
 const WAYPOINT_FORMATS: { [id: string]: string } = {
   cup: 'See You (cup)',
-  gpx: 'GPX',
+  gpx: 'GPX waypoints',
+  gpxRoute: 'GPX route',
   kml: 'KML (Google Earth)',
   tsk: 'XCSoar',
   wpt: 'FormatGEO (GpsDump wpt)',
