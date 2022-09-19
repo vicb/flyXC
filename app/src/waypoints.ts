@@ -23,10 +23,38 @@ export function encode(
       return encodeWPT(points, prefix);
     case 'cup':
       return encodeCUP(points, prefix);
+    case 'xctsk':
+      return encodeXCTSK(points, prefix);
 
     default:
       return { error: 'Unsupported format' };
   }
+}
+
+function encodeXCTSK(
+  points: LatLonZ[],
+  prefix: string,
+): { mime?: string; file?: string; filename?: string; error?: string } {
+
+  const turnpoints = points.map((p: any, i: number) => ({
+      radius: 400,
+      waypoint: {
+        name: prefix + String(i + 1).padStart(3, '0'),
+        lat: p.lat.toFixed(6),
+        lon: p.lon.toFixed(6),
+        altSmoothed: p.alt,
+      },
+    });
+
+
+  // https://xctrack.org/Competition_Interfaces.html
+  const file = {
+    taskType: 'CLASSIC',
+    version: 1,
+    turnpoints,
+  };
+
+  return { file: JSON.stringify(file), mime: 'application/xctsk', filename: 'route.xctsk' };
 }
 
 function encodeGPXWaypoints(

@@ -11,6 +11,7 @@ const WAYPOINT_FORMATS: { [id: string]: string } = {
   kml: 'KML (Google Earth)',
   tsk: 'XCSoar',
   wpt: 'FormatGEO (GpsDump wpt)',
+  xctsk: 'XCTrack',
 };
 
 @customElement('waypoint-modal')
