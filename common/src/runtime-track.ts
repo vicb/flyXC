@@ -148,12 +148,8 @@ export function addAirspaces(track: RuntimeTrack, airspaces: protos.Airspaces): 
   track.airspaces = diffDecodeAirspaces(airspaces);
 }
 
-// Creates tracks from a MetaTracks protocol buffer.
-export function createRuntimeTracks(metaTracks: ArrayBuffer): RuntimeTrack[] {
-  const metaGroups: protos.MetaTrackGroup[] = protos.MetaTracks.fromBinary(
-    new Uint8Array(metaTracks),
-  ).metaTrackGroupsBin.map((metaGroupBin) => protos.MetaTrackGroup.fromBinary(metaGroupBin));
-
+// Creates tracks.
+export function createRuntimeTracks(metaGroups: protos.MetaTrackGroup[]): RuntimeTrack[] {
   const runtimeTracks: RuntimeTrack[] = [];
 
   metaGroups.forEach((metaGroup: protos.MetaTrackGroup) => {

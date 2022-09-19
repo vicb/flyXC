@@ -11,7 +11,7 @@ import {
 
 import { Datastore } from '@google-cloud/datastore';
 
-import { parse, parseFromUrl } from '../parser/parser';
+import { parse, parseFromUrl, parseRoute } from '../parser/parser';
 
 export function getTrackRouter(): Router {
   const router = express.Router();
@@ -49,10 +49,21 @@ export function getTrackRouter(): Router {
   // Upload tracks to the database.
   router.post('/_upload', async (req: Request, res: Response) => {
     if (req.files?.track) {
+      // Parse files as track.
       const fileObjects: UploadedFile[] = [].concat(req.files.track as any);
       const files: string[] = fileObjects.map((file) => file.data.toString());
       const tracks: protos.MetaTrackGroup[] = await Promise.all(files.map((file) => parse(file)));
-      sendTracks(res, tracks);
+
+      // Parses files as route.
+      let route;
+      for (const file of files) {
+        route = parseRoute(file);
+        if (route != null) {
+          break;
+        }
+      }
+
+      sendTracks(res, tracks, route);
       return;
     }
     res.sendStatus(400);
@@ -104,12 +115,9 @@ export function getTrackRouter(): Router {
 }
 
 // Sends the tracks as an encoded protocol buffer.
-function sendTracks(res: Response, metaGroups: protos.MetaTrackGroup[]): void {
-  if (metaGroups.length == 0) {
-    res.sendStatus(400);
-    return;
-  }
-  const metaTrackGroupsBin = metaGroups.map((group) => protos.MetaTrackGroup.toBinary(group));
+function sendTracks(res: Response, metaGroups: protos.MetaTrackGroup[], route?: protos.Route | null): void {
   res.set('Content-Type', 'application/x-protobuf');
-  res.send(Buffer.from(protos.MetaTracks.toBinary({ metaTrackGroupsBin })));
+  res.send(
+    Buffer.from(protos.MetaTrackGroupsAndRoute.toBinary({ metaTrackGroups: metaGroups, route: route ?? undefined })),
+  );
 }

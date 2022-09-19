@@ -14,6 +14,7 @@ import { addUrlParamValue, deleteUrlParamValue, ParamNames } from '../logic/hist
 import * as msg from '../logic/messages';
 import * as TrackWorker from '../workers/track';
 import { setTimeSec } from './app-slice';
+import { setEnabled, setRoute } from './planner-slice';
 import { AppDispatch, AppThunk, RootState } from './store';
 
 const FETCH_EVERY_SECONDS = 15;
@@ -114,7 +115,7 @@ type FetchTrackParams = {
   options?: RequestInit;
 };
 
-// Fetches a track group.
+// Fetches a track group and an optional route.
 //
 // Triggers:
 // - the track worker,
@@ -123,9 +124,20 @@ type FetchTrackParams = {
 // Returns the tracks.
 export const fetchTrack = createAsyncThunk('track/fetch', async (params: FetchTrackParams, api) => {
   const response = await fetch(params.url, params.options);
-  const metaTracks = await response.arrayBuffer();
+  const metaTracksAndRoute = await response.arrayBuffer();
   const groupIds = new Set<number>();
-  const tracks = createRuntimeTracks(metaTracks);
+  const { metaTrackGroups, route } = protos.MetaTrackGroupsAndRoute.fromBinary(new Uint8Array(metaTracksAndRoute));
+  const tracks = createRuntimeTracks(metaTrackGroups);
+
+  if (route && route.alt.length > 0) {
+    const coords = [];
+    for (let i = 0; i < route.alt.length; i++) {
+      coords.push(new google.maps.LatLng(route.lat[i], route.lon[i]));
+    }
+    console.log('setting route from fetch');
+    api.dispatch(setRoute(google.maps.geometry.encoding.encodePath(coords)));
+    api.dispatch(setEnabled(true));
+  }
 
   tracks.forEach((track) => {
     const groupId = extractGroupId(track.id);

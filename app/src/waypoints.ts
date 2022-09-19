@@ -2,6 +2,7 @@
 const { buildGPX, BaseBuilder } = require('gpx-builder');
 const builder = require('xmlbuilder');
 
+import { round } from 'flyxc/common/src/math';
 import { LatLonZ } from 'flyxc/common/src/runtime-track';
 import printf from 'printf';
 
@@ -35,17 +36,15 @@ function encodeXCTSK(
   points: LatLonZ[],
   prefix: string,
 ): { mime?: string; file?: string; filename?: string; error?: string } {
-
   const turnpoints = points.map((p: any, i: number) => ({
-      radius: 400,
-      waypoint: {
-        name: prefix + String(i + 1).padStart(3, '0'),
-        lat: p.lat.toFixed(6),
-        lon: p.lon.toFixed(6),
-        altSmoothed: p.alt,
-      },
-    });
-
+    radius: 400,
+    waypoint: {
+      name: prefix + String(i + 1).padStart(3, '0'),
+      lat: round(p.lat, 6),
+      lon: round(p.lon, 6),
+      altSmoothed: p.alt,
+    },
+  }));
 
   // https://xctrack.org/Competition_Interfaces.html
   const file = {

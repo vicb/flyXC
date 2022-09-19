@@ -15,6 +15,7 @@ import { parse as parseGpx } from './gpx';
 import { parse as parseIgc } from './igc';
 import { parse as parseKml } from './kml';
 import { parse as parseTrk } from './trk';
+import { parse as parseXctsk } from './xctsk';
 
 // Returns a track given its url.
 // The track is either retrieved from the DB or parsed.
@@ -93,4 +94,8 @@ export async function parse(content: string, srcUrl: string | null = null): Prom
     numPostprocess: 0,
     trackGroupBin,
   };
+}
+
+export function parseRoute(content: string): protos.Route | null {
+  return parseXctsk(content);
 }
