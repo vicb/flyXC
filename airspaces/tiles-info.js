@@ -28,7 +28,7 @@ for (const tile of tiles) {
     const g = m.groups;
     info.fingerprint[`${g.level}-${g.x}-${g.y}`] = hasha
       .fromFileSync(tile, { algorithm: 'md5', encoding: 'base64' })
-      .substr(0, 6);
+      .substring(0, 6);
     size += fs.statSync(tile).size;
     info.number++;
   }

@@ -9,7 +9,8 @@ import { TrackerEntity } from 'flyxc/common/src/live-track-entity';
 import { TrackerModel, validateInreachAccount } from 'flyxc/common/src/models';
 import { formatReqError, parallelTasksWithTimeout } from 'flyxc/common/src/util';
 import { Validator } from 'flyxc/common/src/vaadin/form/Validation';
-import { DOMParser } from 'xmldom';
+
+import { DOMParser } from '@xmldom/xmldom';
 
 import { LivePoint, makeLiveTrack } from './live-track';
 import { TrackerFetcher, TrackerUpdates } from './tracker';
@@ -155,7 +156,7 @@ function getChildNode(nodeList: NodeListOf<ChildNode>, tagPath: string): ChildNo
       if (tagName == tagPath) {
         return el;
       }
-      return getChildNode(nodeList[i].childNodes, tagPath.substr(tagName.length + 1));
+      return getChildNode(nodeList[i].childNodes, tagPath.substring(tagName.length + 1));
     }
   }
   return null;

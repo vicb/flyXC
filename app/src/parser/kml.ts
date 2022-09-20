@@ -1,7 +1,7 @@
 import { Track } from 'flyxc/common/protos/track';
-import { DOMParser } from 'xmldom';
 
 import * as toGeoJSON from '@tmcw/togeojson';
+import { DOMParser } from '@xmldom/xmldom';
 
 import { parseGeoJson } from './geojson';
 

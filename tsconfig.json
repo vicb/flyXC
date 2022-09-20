@@ -43,6 +43,7 @@
     "frontend/scripts/**/*",
     "frontend/static/**/*",
     "**/node_modules/**/*",
+    "**/*.test.ts",
     ".rollup.cache/**/*"
   ]
 }

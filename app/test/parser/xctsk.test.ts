@@ -1,5 +1,5 @@
 import { parse } from 'flyxc/app/src/parser/xctsk';
-import { Track } from 'flyxc/common/protos/track';
+import { Route } from 'flyxc/common/protos/track';
 
 describe('Parse XCTSk files', () => {
   describe('Invalid', () => {
@@ -99,7 +99,7 @@ describe('Parse XCTSk files', () => {
         ]
       }`),
       ).toEqual(
-        Track.create({
+        Route.create({
           lat: [1.1, 2.2],
           lon: [-1.1, -2.2],
           alt: [3, 0],

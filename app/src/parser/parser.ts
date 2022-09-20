@@ -11,7 +11,7 @@ import {
 
 import PubSub from '@google-cloud/pubsub';
 
-import { parse as parseGpx } from './gpx';
+import { parse as parseGpx, parseRoute as parseGpxRoute } from './gpx';
 import { parse as parseIgc } from './igc';
 import { parse as parseKml } from './kml';
 import { parse as parseTrk } from './trk';
@@ -97,5 +97,5 @@ export async function parse(content: string, srcUrl: string | null = null): Prom
 }
 
 export function parseRoute(content: string): protos.Route | null {
-  return parseXctsk(content);
+  return parseXctsk(content) || parseGpxRoute(content);
 }

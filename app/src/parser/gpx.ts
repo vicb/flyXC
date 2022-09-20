@@ -1,7 +1,7 @@
-import { Track } from 'flyxc/common/protos/track';
-import { DOMParser } from 'xmldom';
+import { Route, Track } from 'flyxc/common/protos/track';
 
 import * as toGeoJSON from '@tmcw/togeojson';
+import { DOMParser } from '@xmldom/xmldom';
 
 import { parseGeoJson } from './geojson';
 
@@ -17,4 +17,28 @@ export function parse(content: string): Track[] {
   );
 
   return parseGeoJson(geojson);
+}
+
+export function parseRoute(content: string): Route | null {
+  const routes = new DOMParser().parseFromString(content).getElementsByTagName('rte');
+
+  if (routes.length < 1) {
+    return null;
+  }
+
+  const points = routes[0].getElementsByTagName('rtept');
+
+  if (points.length < 2) {
+    return null;
+  }
+
+  const route = Route.create();
+
+  for (let i = 0; i < points.length; i++) {
+    route.lat.push(Number(points[i].getAttribute('lat') ?? 0));
+    route.lon.push(Number(points[i].getAttribute('lon') ?? 0));
+    route.alt.push(0);
+  }
+
+  return route;
 }
