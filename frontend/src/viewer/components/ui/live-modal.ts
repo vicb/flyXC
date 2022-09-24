@@ -12,7 +12,7 @@ import { formatDistance, formatDurationMin, formatUnit, Units } from '../../logi
 import { getLivePilots, LivePilot, setCenterOnLocation, setCurrentLiveId } from '../../redux/live-track-slice';
 import { setCurrentLocation } from '../../redux/location-slice';
 import { RootState, store } from '../../redux/store';
-import { getUniqueColor } from '../../styles/track';
+import { getUniqueContrastColor } from '../../styles/track';
 
 // Maximum number of pilots to list.
 const MAX_PILOTS = 40;
@@ -227,7 +227,7 @@ export class LiveModal extends connect(store)(LitElement) {
       <i
         slot="start"
         class="las la-user-astronaut la-2x"
-        style=${`color: ${getUniqueColor(Math.round(pilot.id / 1000))}`}
+        style=${`color: ${getUniqueContrastColor(Math.round(pilot.id / 1000))}`}
       ></i>
       <ion-label class="ion-text-wrap">
         <h2>${pilot.name}</h2>
