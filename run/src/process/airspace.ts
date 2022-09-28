@@ -4,7 +4,7 @@ import { Flags, getAspTileUrl, isInFeature } from 'flyxc/common/src/airspaces';
 import { pixelCoordinates } from 'flyxc/common/src/proj';
 import { Point } from 'flyxc/common/src/runtime-track';
 import { VectorTile } from 'mapbox-vector-tile';
-import lru, { Lru } from 'tiny-lru';
+import { LRU, lru } from 'tiny-lru';
 
 import { httpsGet } from './request';
 
@@ -21,7 +21,7 @@ const DEFAULT_ASP_LRU_SIZE_MB = 80;
 const ASP_SIZE_MB = 1000 / (1000 * 1000);
 
 // null is used when there is no tile at the given location.
-let aspCache: Lru<Buffer | null> | null = null;
+let aspCache: LRU<Buffer | null> | null = null;
 
 // Retrieves the airspaces for the given track.
 export async function fetchAirspaces(track: protos.Track, altitude: protos.GroundAltitude): Promise<protos.Airspaces> {
@@ -177,7 +177,7 @@ function getAspFeatureKey(feature: any): string {
 
 // Returns a lazily instantiated LRU for airspace buffers.
 // Use the `ASP_LRU_SIZE_MB` environment variable to override the capacity.
-function getAspCache(): Lru<Buffer | null> {
+function getAspCache(): LRU<Buffer | null> {
   if (aspCache == null) {
     const mb = Number(process.env.ASP_LRU_SIZE_MB || DEFAULT_ASP_LRU_SIZE_MB);
     const capacity = Math.floor(mb / ASP_SIZE_MB);

@@ -10,7 +10,7 @@
 import async from 'async';
 import * as protos from 'flyxc/common/protos/track';
 import { pixelCoordinates } from 'flyxc/common/src/proj';
-import lru, { Lru } from 'tiny-lru';
+import { LRU, lru } from 'tiny-lru';
 
 import { decode } from '@vivaxy/png';
 
@@ -23,7 +23,7 @@ const ZOOM_LEVEL = 10;
 const TILE_PX_SIZE = 256;
 
 // Cache for RGBA pixels.
-let rgbaCache: Lru<number[]> | null = null;
+let rgbaCache: LRU<number[]> | null = null;
 
 // Default size of the RGBA LRU in MB.
 // Use the `RGBA_LRU_SIZE_MB` environment variable to override the capacity.
@@ -89,7 +89,7 @@ function getPngUrl(x: number, y: number, zoom: number): string {
 
 // Returns a lazily instantiated LRU for RGBA pixels.
 // Use the `RGBA_LRU_SIZE_MB` environment variable to override the capacity.
-function getRgbaCache(): Lru<number[]> {
+function getRgbaCache(): LRU<number[]> {
   if (rgbaCache == null) {
     const mb = Number(process.env.RGBA_LRU_SIZE_MB || DEFAULT_RGBA_LRU_SIZE_MB);
     const capacity = Math.floor(mb / IMAGE_SIZE_MB);
