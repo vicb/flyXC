@@ -25,6 +25,7 @@ export function createInitState(): FetcherState {
 
   return {
     version: 1,
+    nodeVersion: '',
 
     startedSec: nowSec,
     reStartedSec: nowSec,

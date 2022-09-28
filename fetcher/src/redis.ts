@@ -124,7 +124,8 @@ export function addStateLogs(pipeline: ChainableCommander, state: FetcherState):
     .set(Keys.fetcherLastDeviceUpdatedMs, state.lastUpdatedMs)
     .set(Keys.fetcherNextPartialSyncSec, state.nextPartialSyncSec)
     .set(Keys.fetcherNextFullSyncSec, state.nextFullSyncSec)
-    .set(Keys.fetcherNextExportSec, state.nextExportSec);
+    .set(Keys.fetcherNextExportSec, state.nextExportSec)
+    .set(Keys.hostNode, state.nodeVersion);
 
   pushListCap(pipeline, Keys.fetcherLastTicksSec, [state.lastTickSec], 10);
 

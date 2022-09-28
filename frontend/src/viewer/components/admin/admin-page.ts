@@ -197,6 +197,7 @@ export class DashSummary extends LitElement {
           `${Math.round(this.values[Keys.hostMemoryUsedMb])}/${Math.round(this.values[Keys.hostMemoryTotalMb])}MB`,
         )}
         ${singleLineItem('Host CPU', `${Math.round(this.values[Keys.hostCpuUsage])}%`)}
+        ${singleLineItem('Node', `${this.values[Keys.hostNode]}`)}
         ${singleLineItem('Uptime', relativeTime(this.values[Keys.hostUptimeSec], 0))}
         ${singleLineItem('Uploaded tracks', this.values[Keys.trackNum])}
         ${singleLineItem('Data age', relativeTime(lastFetchMs / 1000))}

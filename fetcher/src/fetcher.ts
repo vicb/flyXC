@@ -73,6 +73,7 @@ async function start(): Promise<void> {
     console.log(`Initial sync from the datastore`, status);
   }
 
+  state.nodeVersion = process.version;
   state.numStarts++;
   state.inTick = false;
   state.numTicks = 0;

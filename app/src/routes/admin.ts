@@ -19,7 +19,7 @@ const csrfProtection = csurf();
 // Cache the counter for hours.
 const REDIS_CACHE_HOURS = 5;
 // Initial offset for the number of tracks
-const NUM_TRACKS_OFFSET = 120000;
+const NUM_TRACKS_OFFSET = 250000;
 
 export function getAdminRouter(redis: Redis): Router {
   const router = express.Router();
@@ -141,6 +141,7 @@ async function getDashboardValues(redis: Redis): Promise<unknown> {
     [Keys.hostUptimeSec]: 'S',
     [Keys.hostMemoryUsedMb]: 'S',
     [Keys.hostMemoryTotalMb]: 'S',
+    [Keys.hostNode]: 'S',
     [Keys.fetcherFullNumTracks]: 'S',
     [Keys.fetcherIncrementalNumTracks]: 'S',
     [Keys.trackerNum]: 'S',

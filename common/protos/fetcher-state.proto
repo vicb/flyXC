@@ -9,6 +9,7 @@ import "live-track.proto";
 // State of the fetcher
 message FetcherState {
   int64 version = 1;
+  string node_version = 18;
 
   int64 started_sec = 2;
   int64 re_started_sec = 3;
