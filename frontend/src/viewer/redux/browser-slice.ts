@@ -48,7 +48,20 @@ window.addEventListener('webkitfullscreenchange', () => {
   store.dispatch(browserSlice.actions.setIsFullscreen(doc.webkitFullscreenElement != null));
 });
 
-document.addEventListener('visibilitychange', () => {
+document.addEventListener('visibilitychange', async () => {
   const visible = document.visibilityState == 'visible';
   store.dispatch(browserSlice.actions.setIsVisible(visible));
+  if (visible) {
+    await getScreenWakeLock();
+  }
 });
+
+async function getScreenWakeLock(): Promise<void> {
+  if ('wakeLock' in navigator) {
+    try {
+      await (navigator as any).wakeLock.request();
+    } catch (err) {}
+  }
+}
+
+getScreenWakeLock();
