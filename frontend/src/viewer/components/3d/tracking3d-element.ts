@@ -69,6 +69,10 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         material: { color: [50, 50, 50, 0.6] },
         cap: 'round',
         join: 'round',
+        pattern: {
+          type: 'style',
+          style: 'dash',
+        },
       },
     ],
   };
@@ -194,6 +198,8 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       const rgba = color.toRgba();
       this.trackSymbol.symbolLayers[0].material.color = rgba;
       this.trackSymbol.symbolLayers[0].size = isEmergency ? 5 : hasSelectedStyle ? 3 : hasRecentStyle ? 2 : 1;
+      this.trackSymbol.symbolLayers[0].pattern.style =
+        isEmergency || hasSelectedStyle || hasRecentStyle ? 'solid' : 'dash';
       graphic.set('symbol', this.trackSymbol);
       graphic.set('attributes', { liveTrackId: id });
       tracks.push(graphic);
@@ -272,6 +278,10 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       });
       if (this.sampler) {
         point = this.sampler.queryElevation(point) as Point;
+      }
+      // The sampler sometimes return incorrect values (i.e. 3.40...e+37).
+      if (point.z > 20000) {
+        point.z = 0;
       }
       point.z = Math.max(point.z, feature.geometry.coordinates[2] * this.multiplier);
       graphic.set('geometry', point);
