@@ -16,6 +16,7 @@ import ElevationLayer from '@arcgis/core/layers/ElevationLayer';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
 import Map from '@arcgis/core/Map';
+import * as externalRenderers from '@arcgis/core/views/3d/externalRenderers';
 import SceneView from '@arcgis/core/views/SceneView';
 import NavigationToggle from '@arcgis/core/widgets/NavigationToggle';
 import { alertController } from '@ionic/core/components';
@@ -27,6 +28,9 @@ import { setCurrentLocation, setCurrentZoom } from '../../redux/location-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
+
+// https://community.esri.com/t5/arcgis-api-for-javascript-questions/3d-scene-view-slow-with-es-modules-from-4-21/m-p/1218085
+externalRenderers.forceWebGLContext(1);
 
 @customElement('map3d-element')
 export class Map3dElement extends connect(store)(LitElement) {
@@ -230,7 +234,7 @@ export class Map3dElement extends connect(store)(LitElement) {
 
     // Set the active track when clicking on a track, marker, label.
     view.on('click', (e) => {
-      view.hitTest(e).then(({ results }) => {
+      view.hitTest(e).then(({ results }: { results: any[] }) => {
         if (results.length > 0) {
           // Sort hits by their distance to the camera.
           results.sort((r1, r2) => r1.distance - r2.distance);

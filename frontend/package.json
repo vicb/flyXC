@@ -12,7 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "@alenaksu/json-viewer": "^1.0.1",
-    "@arcgis/core": "4.19",
+    "@arcgis/core": "4.24",
     "@googlemaps/js-api-loader": "^1.14.3",
     "@ionic/core": "^6.2",
     "@reduxjs/toolkit": "^1.8.5",
