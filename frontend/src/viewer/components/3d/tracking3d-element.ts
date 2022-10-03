@@ -173,7 +173,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
     const trackShadows: Graphic[] = [];
 
     for (const feature of this.geojson.features) {
-      if (feature.geometry.type != 'LineString' || feature.properties.last !== true) {
+      if (feature.geometry.type != 'LineString') {
         continue;
       }
       const id = feature.properties.id;
@@ -198,8 +198,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       const rgba = color.toRgba();
       this.trackSymbol.symbolLayers[0].material.color = rgba;
       this.trackSymbol.symbolLayers[0].size = isEmergency ? 5 : hasSelectedStyle ? 3 : hasRecentStyle ? 2 : 1;
-      this.trackSymbol.symbolLayers[0].pattern.style =
-        isEmergency || hasSelectedStyle || hasRecentStyle ? 'solid' : 'dash';
+      this.trackSymbol.symbolLayers[0].pattern.style = feature.properties.last ? 'solid' : 'dash';
       graphic.set('symbol', this.trackSymbol);
       graphic.set('attributes', { liveTrackId: id });
       tracks.push(graphic);
