@@ -1,6 +1,6 @@
 ## Docker
 
-docker run -it gcr.io/fly-xc/fetch bash
+docker run -it gcr.io/fly-xc/fetcher bash
 
 ## Update the image
 

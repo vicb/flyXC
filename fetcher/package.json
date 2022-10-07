@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "docker:build": "docker build . --tag gcr.io/fly-xc/fetcher",
+    "docker:build": "docker pull node:current-slim && docker build . --tag gcr.io/fly-xc/fetcher",
     "docker:push": "docker push gcr.io/fly-xc/fetcher",
     "deploy": "npm run docker:build && npm run docker:push"
   },
