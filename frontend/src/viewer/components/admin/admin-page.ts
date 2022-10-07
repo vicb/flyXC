@@ -335,7 +335,7 @@ export class DashSync extends LitElement {
         <ion-card-title><i class="las la-sync"></i> Sync and Export</ion-card-title>
       </ion-card-header>
 
-      <ion-item-divider>
+      <ion-item-divider color="light">
         <ion-label>Full sync</ion-label>
       </ion-item-divider>
 
@@ -349,7 +349,7 @@ export class DashSync extends LitElement {
         this.values[Keys.stateSyncErrors.replace('{type}', 'full')].map((e: string) => formatLogEntry(e)).join(', '),
       )}
 
-      <ion-item-divider>
+      <ion-item-divider color="light">
         <ion-label>Partial sync</ion-label>
       </ion-item-divider>
 
@@ -363,12 +363,12 @@ export class DashSync extends LitElement {
         this.values[Keys.stateSyncErrors.replace('{type}', 'inc')].map((e: string) => formatLogEntry(e)).join(', '),
       )}
 
-      <ion-item-divider>
+      <ion-item-divider color="light">
         <ion-label>Export</ion-label>
       </ion-item-divider>
 
       ${singleLineItem('Next', relativeTime(this.values[Keys.fetcherNextExportSec]))}
-      ${this.values[Keys.stateExportStatus].map((e: string) => item(e))}
+      ${this.values[Keys.stateExportStatus].map((e: string) => item(formatLogEntry(e)))}
 
       <ion-item lines="none">
         <ion-button
