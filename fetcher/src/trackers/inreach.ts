@@ -7,7 +7,7 @@ import { fetchResponse } from 'flyxc/common/src/fetch-timeout';
 import { LIVE_MINIMAL_INTERVAL_SEC, simplifyLiveTrack, TrackerIds } from 'flyxc/common/src/live-track';
 import { TrackerEntity } from 'flyxc/common/src/live-track-entity';
 import { TrackerModel, validateInreachAccount } from 'flyxc/common/src/models';
-import { formatReqError, parallelTasksWithTimeout } from 'flyxc/common/src/util';
+import { formatReqError } from 'flyxc/common/src/util';
 import { Validator } from 'flyxc/common/src/vaadin/form/Validation';
 
 import { DOMParser } from '@xmldom/xmldom';
@@ -21,7 +21,9 @@ export class InreachFetcher extends TrackerFetcher {
   }
 
   protected async fetch(devices: number[], updates: TrackerUpdates, timeoutSec: number): Promise<void> {
-    const fetchSingle = async (id: number) => {
+    const deadlineMs = Date.now() + timeoutSec * 1000;
+
+    for (const id of devices) {
       const tracker = this.getTracker(id);
       if (tracker == null) {
         return;
@@ -36,7 +38,12 @@ export class InreachFetcher extends TrackerFetcher {
 
       try {
         updates.fetchedTracker.add(id);
-        const response = await fetchResponse(url, { timeoutS: 2, retryOnTimeout: true });
+        const response = await fetchResponse(url, {
+          retry: 3,
+          timeoutS: 5,
+          retryOnTimeout: true,
+          log: process.env.NODE_ENV != 'production',
+        });
         if (response.ok) {
           try {
             const points = parse(await response.text());
@@ -54,12 +61,11 @@ export class InreachFetcher extends TrackerFetcher {
       } catch (e) {
         updates.trackerErrors.set(id, `Error ${formatReqError(e)} for url ${url}`);
       }
-    };
 
-    const { isTimeout } = await parallelTasksWithTimeout(4, devices, fetchSingle, timeoutSec * 1000);
-
-    if (isTimeout) {
-      updates.errors.push(`Fetch timeout`);
+      if (Date.now() >= deadlineMs) {
+        updates.errors.push(`Fetch timeout`);
+        break;
+      }
     }
   }
 
@@ -80,15 +86,15 @@ export class InreachFetcher extends TrackerFetcher {
     }
     const lastFixAgeSec = Math.round(Date.now() / 1000) - tracker.lastFixSec;
     if (lastFixAgeSec > 3 * 30 * 24 * 3600) {
-      return 20 * 60;
+      return 40 * 60;
     }
     if (lastFixAgeSec > 3 * 3600) {
-      return Math.floor(9 + Math.random() * 3) * 60;
+      return Math.floor(15 + Math.random() * 3) * 60;
     }
     if (lastFixAgeSec > 1800) {
-      return Math.floor(3 + Math.random() * 3) * 60;
+      return Math.floor(8 + Math.random() * 3) * 60;
     }
-    return 60;
+    return 60 * 3;
   }
 }
 

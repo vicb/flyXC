@@ -5,6 +5,7 @@
   "scripts": {
     "docker:build": "docker pull node:current-slim && docker build . --tag gcr.io/fly-xc/fetcher",
     "docker:push": "docker push gcr.io/fly-xc/fetcher",
+    "docker:update": "gcloud compute instances update-container fetcher3 --container-image=gcr.io/fly-xc/fetcher:latest",
     "deploy": "npm run docker:build && npm run docker:push"
   },
   "keywords": [],

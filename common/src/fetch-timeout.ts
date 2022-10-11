@@ -9,7 +9,7 @@ const retryOnErrorCode = new Set([
   'EAI_AGAIN',
 ]);
 
-const retryOnStatus = new Set([408, 413, 429, 500, 502, 503, 504, 521, 522, 524]);
+const retryOnStatus = new Set([408, 413, 500, 502, 503, 504, 521, 522, 524]);
 
 /**
  * Fetches an URL
@@ -19,24 +19,37 @@ const retryOnStatus = new Set([408, 413, 429, 500, 502, 503, 504, 521, 522, 524]
  */
 export async function fetchResponse(
   url: string,
-  options?: { retry?: number; timeoutS?: number; retryOnTimeout?: boolean },
+  options?: { retry?: number; timeoutS?: number; retryOnTimeout?: boolean; log?: boolean },
 ): Promise<Response> {
-  const { retry = 3, timeoutS = 5, retryOnTimeout = false } = options ?? {};
+  const { retry = 3, timeoutS = 5, retryOnTimeout = false, log = false } = options ?? {};
   let signal = (AbortSignal as any).timeout(timeoutS * 1000);
   let error = new Error(`Retried ${retry} times`);
+
+  const start = Date.now() / 1000;
+
+  log && console.log(`Start fetch, timeout = ${timeoutS}`);
 
   for (let numRetry = 0; numRetry < retry; numRetry++) {
     try {
       const response = await fetch(url, { signal });
+      log && console.log(`got response ${(Date.now() / 1000 - start).toFixed(1)}s`);
       if (response.ok) {
+        log && console.log(`return response ${(Date.now() / 1000 - start).toFixed(1)}s`);
         return response;
       }
       if (retryOnStatus.has(response.status)) {
+        log && console.log(`retry on status ${response.status} ${(Date.now() / 1000 - start).toFixed(1)}s`);
+        error = Error(`Status = ${response.status}`);
         continue;
+      }
+      if (response.status == 429) {
+        log && console.log(`status = 429`, response.headers);
+        await new Promise((r) => setTimeout(r, 2000));
       }
       return response;
     } catch (e: any) {
       if (e?.name == 'AbortError' || e?.name == 'TimeoutError') {
+        log && console.log(`timeout ${(Date.now() / 1000 - start).toFixed(1)}s`);
         error = Error(`Timeout ${timeoutS}s`);
         if (retryOnTimeout) {
           signal = (AbortSignal as any).timeout(timeoutS * 1000);
@@ -45,6 +58,7 @@ export async function fetchResponse(
         throw error;
       }
       if (retryOnErrorCode.has(e?.code)) {
+        log && console.log(`retry on error code ${e?.code} ${(Date.now() / 1000 - start).toFixed(1)}s`);
         error = e as Error;
         continue;
       }
@@ -52,5 +66,6 @@ export async function fetchResponse(
     }
   }
 
+  log && console.log(`throw ${Date.now() / 1000 - start}s`);
   throw error;
 }
