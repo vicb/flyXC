@@ -5,7 +5,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { popupContent } from '../../logic/live-track-popup';
-import { formatDurationMin, Units } from '../../logic/units';
+import { formatDurationMin, formatUnit, Units } from '../../logic/units';
 import { liveTrackSelectors, setCurrentLiveId } from '../../redux/live-track-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
@@ -176,8 +176,13 @@ export class TrackingElement extends connect(store)(LitElement) {
     const isEmergency = isEmergencyFix(track.flags[index]);
     const heading = feature.getProperty('heading');
     const isActive = id === this.currentId;
-
+    const alt = track.alt[index];
+    const gndAlt = track.extra[index]?.gndAlt;
     const ageMin = Math.round((nowSec - track.timeSec[index]) / 60);
+
+    const title = `↕ ${formatUnit(alt, this.units!.altitude)} ${
+      gndAlt == null ? '' : `(${formatUnit(Math.max(0, alt - gndAlt), this.units!.altitude)} AGL)`
+    }`;
 
     let opacity = ageMin > RECENT_TIMEOUT_MIN ? 0.3 : 0.9;
     const color = getUniqueContrastColor(Math.round(id / 1000));
@@ -242,6 +247,7 @@ export class TrackingElement extends connect(store)(LitElement) {
         anchor,
         labelOrigin,
       },
+      title,
     } as google.maps.Data.StyleOptions;
   }
 
