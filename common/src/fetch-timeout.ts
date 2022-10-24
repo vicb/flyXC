@@ -19,9 +19,25 @@ const retryOnStatus = new Set([408, 413, 500, 502, 503, 504, 521, 522, 524]);
  */
 export async function fetchResponse(
   url: string,
-  options?: { retry?: number; timeoutS?: number; retryOnTimeout?: boolean; log?: boolean },
+  options?: {
+    retry?: number;
+    timeoutS?: number;
+    retryOnTimeout?: boolean;
+    log?: boolean;
+    method?: string;
+    headers?: HeadersInit;
+    body?: BodyInit;
+  },
 ): Promise<Response> {
-  const { retry = 3, timeoutS = 5, retryOnTimeout = false, log = false } = options ?? {};
+  const {
+    retry = 3,
+    timeoutS = 5,
+    retryOnTimeout = false,
+    log = false,
+    method = undefined,
+    headers = undefined,
+    body = undefined,
+  } = options ?? {};
   let signal = (AbortSignal as any).timeout(timeoutS * 1000);
   let error = new Error(`Retried ${retry} times`);
 
@@ -31,7 +47,7 @@ export async function fetchResponse(
 
   for (let numRetry = 0; numRetry < retry; numRetry++) {
     try {
-      const response = await fetch(url, { signal });
+      const response = await fetch(url, { signal, method, headers, body });
       log && console.log(`got response ${(Date.now() / 1000 - start).toFixed(1)}s`);
       if (response.ok) {
         log && console.log(`return response ${(Date.now() / 1000 - start).toFixed(1)}s`);
@@ -44,7 +60,6 @@ export async function fetchResponse(
       }
       if (response.status == 429) {
         log && console.log(`status = 429`, response.headers);
-        await new Promise((r) => setTimeout(r, 2000));
       }
       return response;
     } catch (e: any) {

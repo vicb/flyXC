@@ -74,3 +74,14 @@ export async function parallelTasksWithTimeout<T>(
   clearInterval(timeoutId);
   return { results, isTimeout };
 }
+
+// Parses the Retry-After header.
+// Could be either a date or a delay in seconds.
+// Returns a timestamp in seconds
+export function parseRetryAfter(header: string) {
+  if (/^\d+$/.test(header)) {
+    return Math.round(Date.now() / 1000 + Number(header));
+  }
+
+  return Math.round(new Date(header).getTime() / 1000);
+}

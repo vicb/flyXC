@@ -3,6 +3,7 @@
 import { FetcherState, Tracker } from 'flyxc/common/protos/fetcher-state';
 import { LiveTrack } from 'flyxc/common/protos/live-track';
 import { LIVE_REFRESH_SEC, LIVE_RETENTION_SEC, TrackerIds, trackerPropNames } from 'flyxc/common/src/live-track';
+import { ChainableCommander } from 'ioredis';
 
 // Updates for a tick of a tracker type (InReach, Spot, ...).
 export interface TrackerUpdates {
@@ -23,7 +24,7 @@ export interface TrackerUpdates {
 export class TrackerFetcher {
   protected propName: string;
 
-  constructor(protected state: FetcherState) {
+  constructor(protected state: FetcherState, protected pipeline: ChainableCommander) {
     this.propName = trackerPropNames[this.getTrackerId()];
   }
 

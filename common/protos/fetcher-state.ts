@@ -7,9 +7,7 @@
 // All int64 are JS_NUMBER.
 //
 import { MessageType } from '@protobuf-ts/runtime';
-
 import { LiveTrack } from './live-track';
-
 /**
  * State of the fetcher
  *

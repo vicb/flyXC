@@ -102,6 +102,9 @@ export const enum Keys {
   // [List]
   elevationNumRetrieved = 'f:elev:retrieved',
 
+  // [List]
+  proxyInreach = 'p:inreach:logs',
+
   // Last datastore request for dashboard.
   dsLastRequestSec = 'f:ds:time',
 
@@ -126,7 +129,7 @@ export function getRedisClient(): Redis {
 // - At most `capacity` elements are pushed,
 // - the list is trimmed to the capacity,
 // - each value is limited to maxLength chars,
-// - most recent list elements should be last (tail is dropped first).
+// - most recent list elements should be last (head is dropped first).
 export function pushListCap(
   pipeline: ChainableCommander,
   key: string,

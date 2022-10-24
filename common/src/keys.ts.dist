@@ -6,4 +6,5 @@ export const enum SecretKeys {
   SESSION_SECRET = '...',
   FLYME_TOKEN = '...',
   ADMINS = 'user@gmail.com,...',
+  PROXY_KEY = '...',
 }

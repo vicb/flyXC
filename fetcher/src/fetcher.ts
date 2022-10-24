@@ -160,11 +160,11 @@ async function tick(state: FetcherState) {
 async function updateTrackers(pipeline: ChainableCommander, state: FetcherState) {
   try {
     const fetchers = [
-      new InreachFetcher(state),
-      new SpotFetcher(state),
-      new SkylinesFetcher(state),
-      new FlymeFetcher(state),
-      new FlymasterFetcher(state),
+      new InreachFetcher(state, pipeline),
+      new SpotFetcher(state, pipeline),
+      new SkylinesFetcher(state, pipeline),
+      new FlymeFetcher(state, pipeline),
+      new FlymasterFetcher(state, pipeline),
     ];
 
     const updatePromises = await Promise.allSettled(fetchers.map((f) => f.refresh(LIVE_FETCH_TIMEOUT_SEC)));

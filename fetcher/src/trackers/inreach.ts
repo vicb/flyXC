@@ -7,13 +7,27 @@ import { fetchResponse } from 'flyxc/common/src/fetch-timeout';
 import { LIVE_MINIMAL_INTERVAL_SEC, simplifyLiveTrack, TrackerIds } from 'flyxc/common/src/live-track';
 import { TrackerEntity } from 'flyxc/common/src/live-track-entity';
 import { TrackerModel, validateInreachAccount } from 'flyxc/common/src/models';
-import { formatReqError } from 'flyxc/common/src/util';
+import { formatReqError, parseRetryAfter } from 'flyxc/common/src/util';
 import { Validator } from 'flyxc/common/src/vaadin/form/Validation';
 
 import { DOMParser } from '@xmldom/xmldom';
 
 import { LivePoint, makeLiveTrack } from './live-track';
 import { TrackerFetcher, TrackerUpdates } from './tracker';
+
+import { Keys, pushListCap } from 'flyxc/common/src/redis';
+import { Request as ProxyRequest } from 'flyxc/common/protos/proxy';
+import { SecretKeys } from 'flyxc/common/src/keys';
+import { Proxies } from './proxies';
+
+// Local state
+let useProxyUntilS = 0;
+let checkProxyZombiesAfterS = 0;
+// Check zombies on successful requests after a proxy started.
+// Do not check on error has we don't want proxy to release their IP
+// while we received 429.
+let proxyStarted = false;
+const proxies = new Proxies('inreach');
 
 export class InreachFetcher extends TrackerFetcher {
   protected getTrackerId(): TrackerIds {
@@ -22,15 +36,16 @@ export class InreachFetcher extends TrackerFetcher {
 
   protected async fetch(devices: number[], updates: TrackerUpdates, timeoutSec: number): Promise<void> {
     const deadlineMs = Date.now() + timeoutSec * 1000;
+    const useProxy = Date.now() / 1000 < useProxyUntilS;
 
     for (const id of devices) {
       const tracker = this.getTracker(id);
       if (tracker == null) {
-        return;
+        continue;
       }
       if (validateInreachAccount(tracker.account) === false) {
         updates.trackerErrors.set(id, `Invalid account ${tracker.account}`);
-        return;
+        continue;
       }
 
       const fetchFromSec = this.getTrackerFetchFromSec(id, updates.startFetchSec, 2 * 3600);
@@ -38,12 +53,33 @@ export class InreachFetcher extends TrackerFetcher {
 
       try {
         updates.fetchedTracker.add(id);
-        const response = await fetchResponse(url, {
-          retry: 3,
-          timeoutS: 5,
-          retryOnTimeout: true,
-          log: process.env.NODE_ENV != 'production',
-        });
+        let response: Response;
+        if (useProxy) {
+          if (!proxies.isReadyOrStart()) {
+            break;
+          }
+          response = await fetchResponse(`http://${proxies.getIp()}/get`, {
+            retry: 1,
+            timeoutS: 7,
+            method: 'POST',
+            headers: { 'Content-Type': 'application/octet-stream' },
+            body: ProxyRequest.toBinary({
+              url,
+              retry: 1,
+              timeoutS: 5,
+              retryOnTimeout: false,
+              key: SecretKeys.PROXY_KEY,
+            }),
+          });
+        } else {
+          if (proxies.detachCurrent()) {
+            checkProxyZombiesAfterS = 0;
+          }
+          response = await fetchResponse(url, {
+            retry: 1,
+            timeoutS: 5,
+          });
+        }
         if (response.ok) {
           try {
             const points = parse(await response.text());
@@ -52,11 +88,25 @@ export class InreachFetcher extends TrackerFetcher {
             if (track.timeSec.length > 0) {
               updates.trackerDeltas.set(id, track);
             }
+            if (proxyStarted) {
+              proxyStarted = false;
+              checkProxyZombiesAfterS = 0;
+            }
           } catch (e) {
             updates.trackerErrors.set(id, `Error parsing the kml for ${id}\n${e}`);
           }
         } else {
           updates.trackerErrors.set(id, `HTTP Status = ${response.status} for ${url}`);
+          if (response.status == 429) {
+            // Start another proxy when the current server is rate-limited.
+            proxies.start();
+            proxyStarted = true;
+            if (!useProxy) {
+              // Only update `proxyUntilS` for the main server.
+              useProxyUntilS = parseRetryAfter(response.headers.get('Retry-After') ?? '600');
+            }
+            break;
+          }
         }
       } catch (e) {
         updates.trackerErrors.set(id, `Error ${formatReqError(e)} for url ${url}`);
@@ -67,6 +117,15 @@ export class InreachFetcher extends TrackerFetcher {
         break;
       }
     }
+
+    if (Date.now() / 1000 > checkProxyZombiesAfterS) {
+      checkProxyZombiesAfterS = Date.now() / 1000 + 15 * 60;
+      proxies.killZombies().then((success) => {
+        checkProxyZombiesAfterS = success ? Date.now() / 1000 + 15 * 60 : 0;
+      });
+    }
+
+    pushListCap(this.pipeline, Keys.proxyInreach, proxies.flushLogs(), 20);
   }
 
   // Introduce some spread to avoid congested ticks.
@@ -85,16 +144,19 @@ export class InreachFetcher extends TrackerFetcher {
       return 60;
     }
     const lastFixAgeSec = Math.round(Date.now() / 1000) - tracker.lastFixSec;
+    if (lastFixAgeSec > 6 * 30 * 24 * 3600) {
+      return 45 * 60;
+    }
     if (lastFixAgeSec > 3 * 30 * 24 * 3600) {
-      return 40 * 60;
+      return 30 * 60;
     }
     if (lastFixAgeSec > 3 * 3600) {
       return Math.floor(15 + Math.random() * 3) * 60;
     }
-    if (lastFixAgeSec > 1800) {
+    if (lastFixAgeSec > 30 * 60) {
       return Math.floor(8 + Math.random() * 3) * 60;
     }
-    return 60 * 3;
+    return 2 * 60;
   }
 }
 

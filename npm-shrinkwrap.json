@@ -10,6 +10,7 @@
       "license": "ISC",
       "dependencies": {
         "@babel/runtime": "^7.19.0",
+        "@google-cloud/compute": "^3.5.1",
         "@google-cloud/datastore": "^7.0.0",
         "@google-cloud/logging": "^10.1.10",
         "@google-cloud/pubsub": "^3.2.0",
@@ -1985,6 +1986,17 @@
       "integrity": "sha512-91ArYvRgXWb73YvEOBMmOcJc0bDRs5yiVHnqkwoG0f3nm7nZuipllz6e7BvFESBvjkDTBC0zMD8QxedUwNLc1A==",
       "engines": {
         "node": ">=12"
+      }
+    },
+    "node_modules/@google-cloud/compute": {
+      "version": "3.5.1",
+      "resolved": "https://registry.npmjs.org/@google-cloud/compute/-/compute-3.5.1.tgz",
+      "integrity": "sha512-d8HSe8DULox4JiGDhkqqUYxWVvcJrwb47pVAbv9+ILiepJEnZHzK+HHeUKuzEiNwvgCK2NaR/0xVj5nRmio/hA==",
+      "dependencies": {
+        "google-gax": "^3.3.0"
+      },
+      "engines": {
+        "node": ">=12.0.0"
       }
     },
     "node_modules/@google-cloud/datastore": {
@@ -16068,6 +16080,14 @@
           "resolved": "https://registry.npmjs.org/@google-cloud/promisify/-/promisify-3.0.0.tgz",
           "integrity": "sha512-91ArYvRgXWb73YvEOBMmOcJc0bDRs5yiVHnqkwoG0f3nm7nZuipllz6e7BvFESBvjkDTBC0zMD8QxedUwNLc1A=="
         }
+      }
+    },
+    "@google-cloud/compute": {
+      "version": "3.5.1",
+      "resolved": "https://registry.npmjs.org/@google-cloud/compute/-/compute-3.5.1.tgz",
+      "integrity": "sha512-d8HSe8DULox4JiGDhkqqUYxWVvcJrwb47pVAbv9+ILiepJEnZHzK+HHeUKuzEiNwvgCK2NaR/0xVj5nRmio/hA==",
+      "requires": {
+        "google-gax": "^3.3.0"
       }
     },
     "@google-cloud/datastore": {

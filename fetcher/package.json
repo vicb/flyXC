@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/compute": "^3.5.1",
     "@google-cloud/datastore": "^7.0.0",
     "@google-cloud/logging": "^10.1.2",
     "@google-cloud/storage": "^6.4.1",

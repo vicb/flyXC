@@ -95,6 +95,7 @@ export class AdminPage extends LitElement {
             ${Object.values(trackerPropNames).map(
               (name) => html`<dash-tracker .values=${this.values} name=${name}></dash-tracker>`,
             )}
+            <dash-proxy .values=${this.values}></dash-proxy>
             <dash-elev .values=${this.values}></dash-elev>
             <dash-sync .values=${this.values}></dash-sync>
             <state-explorer></state-explorer>`,
@@ -310,6 +311,26 @@ export class DashElevation extends LitElement {
       ${item('Num fetched', this.values[Keys.elevationNumFetched].join(', '))}
       ${item('Num Retrieved', this.values[Keys.elevationNumRetrieved].join(', '))}
       ${this.values[Keys.elevationErrors].map((e: string) => item(formatLogEntry(e)))}
+    </ion-card>`;
+  }
+
+  createRenderRoot(): HTMLElement {
+    return this;
+  }
+}
+
+@customElement('dash-proxy')
+export class DashProxy extends LitElement {
+  @property({ attribute: false })
+  values: any;
+
+  render(): TemplateResult {
+    return html`<ion-card>
+      <ion-card-header color="secondary">
+        <ion-card-title><i class="las la-forward"></i> Proxy</ion-card-title>
+      </ion-card-header>
+
+      ${this.values[Keys.proxyInreach].map((e: string) => item(formatLogEntry(e)))}
     </ion-card>`;
   }
 

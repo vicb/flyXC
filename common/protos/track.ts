@@ -2,7 +2,6 @@
 // @generated from protobuf file "track.proto" (syntax proto3)
 // tslint:disable
 import { MessageType } from '@protobuf-ts/runtime';
-
 /**
  * A single track.
  * Fixes are differential encoded.

@@ -65,6 +65,41 @@ export default [
     external: [...builtins, /@google-cloud/],
   },
   {
+    input: 'proxy/src/proxy.ts',
+
+    output: {
+      dir: 'proxy/dist',
+      format: 'cjs',
+      sourcemap: prod ? false : 'inline',
+    },
+    plugins: [
+      replace({
+        values: {
+          'process.env.NODE_ENV': nodeEnv,
+          '<%BUILD%>': dateString,
+          // Suppress an error in formidable
+          'global.GENTLY': false,
+        },
+        preventAssignment: true,
+      }),
+      json(),
+      resolve({
+        preferBuiltins: true,
+      }),
+      cjs({
+        requireReturnsDefault: (moduleName) => {
+          // hexoid import would fail without this (used by formidable)
+          return /hexoid\/dist\/index.mjs/.test(moduleName);
+        },
+      }),
+      typescript({
+        sourceMap: !prod,
+      }),
+      prod && terser({ output: { comments: false } }),
+    ],
+    external: [...builtins, /@google-cloud/],
+  },
+  {
     input: 'app/src/server.ts',
 
     output: {

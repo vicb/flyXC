@@ -13,6 +13,7 @@ frontend/static/css/*
 stats.html
 
 fetcher/dist/*
+proxy/dist/*
 tools/dist/*
 
 /tsconfig.tsbuildinfo

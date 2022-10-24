@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+message Request {
+  string url = 1;
+  uint32 retry = 2;
+  uint32 timeout_s = 3;
+  bool retry_on_timeout = 4;
+  string key = 5;
+}

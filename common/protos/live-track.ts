@@ -2,7 +2,6 @@
 // @generated from protobuf file "live-track.proto" (syntax proto3)
 // tslint:disable
 import { MessageType } from '@protobuf-ts/runtime';
-
 /**
  * An event on a Track.
  *

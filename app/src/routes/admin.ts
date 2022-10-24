@@ -158,6 +158,7 @@ async function getDashboardValues(redis: Redis): Promise<unknown> {
     [Keys.elevationNumFetched]: 'L',
     [Keys.elevationNumRetrieved]: 'L',
     [Keys.fetcherLastTicksSec]: 'L',
+    [Keys.proxyInreach]: 'L',
   };
 
   for (const name of Object.values(trackerPropNames)) {
