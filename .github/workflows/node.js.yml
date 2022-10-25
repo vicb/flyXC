@@ -27,7 +27,10 @@ jobs:
         working-directory: run
     - uses: bahmutov/npm-install@v1
       with:
-        working-directory: fetcher        
+        working-directory: fetcher
     - run: cp frontend/src/keys.ts.dist frontend/src/keys.ts
     - run: cp common/src/keys.ts.dist common/src/keys.ts
-    - run: npm test    
+    - name: "Test"
+      env:
+        NODE_OPTIONS: "--max_old_space_size=4096"
+      run: npm test
