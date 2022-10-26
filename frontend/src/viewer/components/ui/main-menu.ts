@@ -95,7 +95,15 @@ export class MainMenu extends connect(store)(LitElement) {
               () =>
                 html`<ion-item lines="none"><i class="las la-mountain la-2x"></i>Altitude exaggeration</ion-item>
                   <ion-item @ionChange=${this.handleExaggeration}>
-                    <ion-range min="1" max="2.6" step="0.2" debounce="50" value=${this.exaggeration}>
+                    <ion-range
+                      min="1"
+                      max="2.6"
+                      step="0.2"
+                      debounce="50"
+                      value=${this.exaggeration}
+                      pin="true"
+                      .pinFormatter=${this.formatTimes}
+                    >
                       <ion-label slot="start">1.0x</ion-label>
                       <ion-label slot="end">2.6x</ion-label>
                     </ion-range>
@@ -125,6 +133,10 @@ export class MainMenu extends connect(store)(LitElement) {
 
   protected createRenderRoot(): Element {
     return this;
+  }
+
+  private formatTimes(value: number) {
+    return `${value.toFixed(1)}x`;
   }
 
   private handleSounding() {
@@ -262,7 +274,15 @@ export class SkywaysItems extends connect(store)(LitElement) {
         <ion-toggle slot="end" .checked=${this.show}></ion-toggle>
       </ion-item>
       <ion-item .disabled=${!this.show} @ionChange=${this.handleOpacity}>
-        <ion-range min="20" max="100" step="5" debounce="50" value=${this.opacity}>
+        <ion-range
+          min="20"
+          max="100"
+          step="5"
+          debounce="50"
+          value=${this.opacity}
+          pin="true"
+          .pinFormatter=${this.formatPercent}
+        >
           <ion-label slot="start"><i class="las la-adjust"></i></ion-label>
           <ion-label slot="end"><i class="las la-adjust la-2x"></i></ion-label>
         </ion-range>
@@ -275,6 +295,10 @@ export class SkywaysItems extends connect(store)(LitElement) {
 
   private handleOpacity(event: CustomEvent) {
     store.dispatch(airways.setOpacity(event.detail.value));
+  }
+
+  private formatPercent(value: number) {
+    return `${value}%`;
   }
 
   protected createRenderRoot(): Element {
