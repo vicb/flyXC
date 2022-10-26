@@ -222,7 +222,8 @@ function buildFrontEnd(input, options = {}) {
         extract: cssFile,
         plugins: [cssnano()],
       }),
-      minifyHTML(),
+      // https://github.com/asyncLiz/rollup-plugin-minify-html-literals/issues/25
+      // minifyHTML(),
       alias({
         entries: [
           {
