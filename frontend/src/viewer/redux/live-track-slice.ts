@@ -126,7 +126,8 @@ export function handleVisibility(): void {
 document.addEventListener('visibilitychange', handleVisibility);
 
 export const reducer = trackSlice.reducer;
-export const { setReturnUrl, setCurrentLiveId, setDisplayLabels, setCenterOnLocation } = trackSlice.actions;
+export const { setReturnUrl, setCurrentLiveId, setDisplayLabels, setCenterOnLocation, setFetchMillis } =
+  trackSlice.actions;
 
 export type LivePilot = {
   id: number;

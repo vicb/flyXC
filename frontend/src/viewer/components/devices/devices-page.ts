@@ -7,6 +7,7 @@ import { AccountFormModel } from 'flyxc/common/src/models';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, queryAll, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
+import { setFetchMillis } from '../../redux/live-track-slice';
 
 import { alertController } from '@ionic/core/components';
 import { Binder } from '@vaadin/form/Binder';
@@ -286,6 +287,9 @@ export class DevicesPage extends LitElement {
         if (status.error) {
           error = status.error;
           throw { validationErrorData: status.validationErrorData };
+        } else {
+          // Reload the whole state after a device update.
+          setFetchMillis(0);
         }
       });
     } catch (e) {}
