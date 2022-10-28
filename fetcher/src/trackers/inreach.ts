@@ -7,7 +7,7 @@ import { fetchResponse } from 'flyxc/common/src/fetch-timeout';
 import { LIVE_MINIMAL_INTERVAL_SEC, simplifyLiveTrack, TrackerIds } from 'flyxc/common/src/live-track';
 import { TrackerEntity } from 'flyxc/common/src/live-track-entity';
 import { TrackerModel, validateInreachAccount } from 'flyxc/common/src/models';
-import { formatReqError, parseRetryAfter } from 'flyxc/common/src/util';
+import { formatReqError, parseRetryAfterS } from 'flyxc/common/src/util';
 import { Validator } from 'flyxc/common/src/vaadin/form/Validation';
 
 import { DOMParser } from '@xmldom/xmldom';
@@ -103,7 +103,7 @@ export class InreachFetcher extends TrackerFetcher {
             proxyStarted = true;
             if (!useProxy) {
               // Only update `proxyUntilS` for the main server.
-              useProxyUntilS = parseRetryAfter(response.headers.get('Retry-After') ?? '600');
+              useProxyUntilS = parseRetryAfterS(response.headers.get('Retry-After') ?? '600');
             }
             break;
           }

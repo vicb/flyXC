@@ -78,10 +78,11 @@ export async function parallelTasksWithTimeout<T>(
 // Parses the Retry-After header.
 // Could be either a date or a delay in seconds.
 // Returns a timestamp in seconds
-export function parseRetryAfter(header: string) {
+export function parseRetryAfterS(header: string, orS = 3600): number {
   if (/^\d+$/.test(header)) {
     return Math.round(Date.now() / 1000 + Number(header));
   }
 
-  return Math.round(new Date(header).getTime() / 1000);
+  const ms = Date.parse(header);
+  return isNaN(ms) ? orS : Math.round(ms / 1000);
 }
