@@ -16,7 +16,12 @@ export function addSyncLogs(pipeline: ChainableCommander, status: SyncStatus, ti
   const type = status.full ? 'full' : 'inc';
 
   if (status.errors.length) {
-    pushListCap(pipeline, Keys.stateSyncErrors.replace('{type}', type), [`[${timeSec}] status.errors.join(', ')`], 5);
+    pushListCap(
+      pipeline,
+      Keys.stateSyncErrors.replace('{type}', type),
+      [`[${timeSec}] ${status.errors.join(', ')}`],
+      5,
+    );
   } else {
     pushListCap(pipeline, Keys.stateSyncNum.replace('{type}', type), [`[${timeSec}] ${status.numSync}`], 20);
   }
