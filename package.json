@@ -5,8 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node app/server.js",
-    "build": "node --max-old-space-size=10240 node_modules/rollup/dist/bin/rollup -c --environment NODE_ENV:'production'",
-    "debug": "node --max-old-space-size=10240 node_modules/rollup/dist/bin/rollup -wc",
+    "build": "node --max-old-space-size=12240 node_modules/rollup/dist/bin/rollup -c --environment NODE_ENV:'production'",
+    "debug": "node --max-old-space-size=12240 node_modules/rollup/dist/bin/rollup -wc",
     "lint": "eslint 'frontend/src/**/*.ts' --quiet --fix && eslint 'app/src/**/*.ts' --quiet --fix && eslint 'run/src/**/*.ts' --quiet --fix",
     "proto": "protoc --ts_out common/protos  --ts_opt long_type_number --ts_opt force_optimize_code_size --proto_path common/protos --experimental_allow_proto3_optional track.proto live-track.proto fetcher-state.proto proxy.proto",
     "emulator:start": "gcloud beta emulators datastore start --data-dir=ds",

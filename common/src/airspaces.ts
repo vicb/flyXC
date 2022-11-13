@@ -12,25 +12,26 @@ export const enum Flags {
   TopRefGnd = 1 << 5,
 }
 
-// Returns a unique tile id for a given (x, y, zoom).
-export function tileId(zoom: number, point: Point): number {
-  return ((1 << zoom) * point.y + point.x) * 32 + zoom;
-}
+export const ASP_TILE_URL = 'https://airsp.storage.googleapis.com/tiles/{z}/{x}/{y}.pbf';
+export const ASP_COLOR_PROHIBITED = '#bf4040';
+export const ASP_COLOR_RESTRICTED = '#bfbf40';
+export const ASP_COLOR_DANGER = '#bf8040';
+export const ASP_COLOR_OTHER = '#808080';
 
 // Returns the color of an airspace given the flags property.
 // `alpha` should be in the range 00-ff
 export function airspaceColor(flags: number, alpha: number): string {
   const alphaStr = String(alpha).padStart(2, '0');
   if (flags & Flags.AirspaceProhibited) {
-    return `#bf4040${alphaStr}`;
+    return `${ASP_COLOR_PROHIBITED}${alphaStr}`;
   }
   if (flags & Flags.AirspaceRestricted) {
-    return `#bfbf40${alphaStr}`;
+    return `${ASP_COLOR_RESTRICTED}${alphaStr}`;
   }
   if (flags & Flags.AirspaceDanger) {
-    return `#bf8040${alphaStr}`;
+    return `${ASP_COLOR_DANGER}${alphaStr}`;
   }
-  return `#808080${alphaStr}`;
+  return `${ASP_COLOR_OTHER}${alphaStr}`;
 }
 
 // Returns the category of the airspace.
@@ -69,7 +70,7 @@ export function isInFeature(point: Point, feature: Feature): boolean {
 }
 
 export function getAspTileUrl(x: number, y: number, z: number): string {
-  return `https://airsp.storage.googleapis.com/tiles/${z}/${x}/${y}.pbf`;
+  return ASP_TILE_URL.replace('{x}', String(x)).replace('{y}', String(y)).replace('{z}', String(z));
 }
 
 // Returns whether the point is in the polygon.

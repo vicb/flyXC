@@ -1,4 +1,4 @@
-import { airspaceColor, Flags, getAspTileUrl, isInFeature, tileId } from 'flyxc/common/src/airspaces';
+import { airspaceColor, Flags, getAspTileUrl, isInFeature } from 'flyxc/common/src/airspaces';
 import { pixelCoordinates } from 'flyxc/common/src/proj';
 import { LatLon, Point } from 'flyxc/common/src/runtime-track';
 import { VectorTile } from 'mapbox-vector-tile';
@@ -7,35 +7,40 @@ const TILE_SIZE = 256;
 
 export const MAX_ASP_TILE_ZOOM = 12;
 
-// id -> layer
-const aspLayerByTileId = new Map();
-// id -> number of tiles created.
-// When changing the fractional zoom level the new tiles are requested before
-// the old tiles are released. If the integer zoom level stays the same then
-// we might release tiles that we just requested (i.e. 11 -> 10.7985). Then we
-// maintain a count and only delete the data when the tiles have been released
-// as many times as they have been requested.
-const tileCountById = new Map();
-
 // Returns html describing airspaces at the given point.
 // altitude is expressed in meters.
-export function AspAt(zoom: number, latLon: LatLon, altitude: number, includeRestricted: boolean): string | null {
+export async function getAirspaceList(
+  zoom: number,
+  latLon: LatLon,
+  altitude: number,
+  includeRestricted: boolean,
+): Promise<string> {
   const tileZoom = Math.min(zoom, MAX_ASP_TILE_ZOOM);
-  const { tile, px } = pixelCoordinates(latLon, tileZoom);
+  const { tile: tileCoords, px } = pixelCoordinates(latLon, tileZoom);
 
-  // Retrieve the tile.
-  const id = tileId(zoom, tile);
-  const layer = aspLayerByTileId.get(id);
+  const response = await fetch(getAspTileUrl(tileCoords.x, tileCoords.y, zoom));
+  if (!response.ok) {
+    return '';
+  }
+
+  const pbf = await response.arrayBuffer();
+  if (!pbf) {
+    return '';
+  }
+
+  const layer = new VectorTile(new Uint8Array(pbf)).layers.asp;
+
   if (layer == null) {
-    return null;
+    return '';
   }
 
   const info: string[] = [];
   for (let i = 0; i < layer.length; i++) {
     const f = layer.feature(i);
+    const p = f.properties;
     if (
-      f.properties.bottom < altitude &&
-      !(f.properties.flags & Flags.AirspaceRestricted && !includeRestricted) &&
+      (p.bottom ?? 0) < altitude &&
+      !(Number(p.flags ?? 0) & Flags.AirspaceRestricted && !includeRestricted) &&
       isInFeature(px, f)
     ) {
       if (info.push(getAirspaceDescription(f)) == 5) {
@@ -69,23 +74,13 @@ export class AspMapType {
     this.minZoom = 2;
     this.maxZoom = maxZoom;
     this.tileSize = new google.maps.Size(TILE_SIZE, TILE_SIZE);
-    aspLayerByTileId.clear();
   }
 
   getTile(coord: google.maps.Point, zoom: number, doc: Document): HTMLElement {
     return getTile(coord, zoom, zoom, doc, this.altitude, this.showRestricted, this.active);
   }
 
-  releaseTile(el: HTMLElement): void {
-    const id = Number(el.getAttribute('tile-id'));
-    const count = tileCountById.get(id) ?? 1;
-    if (count == 1) {
-      tileCountById.delete(id);
-      aspLayerByTileId.delete(id);
-    } else {
-      tileCountById.set(id, count - 1);
-    }
-  }
+  releaseTile(el: HTMLElement): void {}
 
   setAltitude(altitude: number): void {
     this.altitude = altitude;
@@ -139,9 +134,6 @@ function getTile(
   }
 
   const canvas = doc.createElement('canvas');
-  const id = tileId(zoom, coord);
-  canvas.setAttribute('tile-id', String(id));
-
   const mapTileSize = TILE_SIZE << (zoom - aspTileZoom);
 
   fetch(getAspTileUrl(coord.x, coord.y, aspTileZoom))
@@ -165,9 +157,6 @@ function getTile(
           canvas.height *= 2;
           ctx.scale(2, 2);
         }
-
-        aspLayerByTileId.set(id, vTile.layers.asp);
-        tileCountById.set(id, (tileCountById.get(id) ?? 0) + 1);
 
         for (let i = 0; i < vTile.layers.asp.length; i++) {
           const f = vTile.layers.asp.feature(i);

@@ -88,8 +88,8 @@ export class MainMenu extends connect(store)(LitElement) {
                   <ion-toggle slot="end" .checked=${this.plannerEnabled}></ion-toggle>
                 </ion-item>`,
             )}
-            ${when(!this.view3d, () => html`<airspace-items></airspace-items>`)}
             <airways-items></airways-items>
+            <airspace-items></airspace-items>
             ${when(
               this.view3d,
               () =>

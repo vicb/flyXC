@@ -3,7 +3,7 @@ import { LitElement, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
-import { AspAt, AspMapType, AspZoomMapType, MAX_ASP_TILE_ZOOM } from '../../logic/airspaces';
+import { getAirspaceList, AspMapType, AspZoomMapType, MAX_ASP_TILE_ZOOM } from '../../logic/airspaces';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 
@@ -79,7 +79,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
     if (changedProperties.has('show')) {
       if (this.show) {
         this.addOverlays();
-        this.clickListener = this.map.addListener('click', (e): void => this.handleMapClick(e.latLng));
+        this.clickListener = this.map.addListener('click', async (e) => this.handleMapClick(e.latLng));
         this.zoomListener = this.map.addListener('zoom_changed', () => this.setOverlaysZoom());
       } else {
         this.removeOverlays();
@@ -92,16 +92,16 @@ export class AirspaceElement extends connect(store)(LitElement) {
     return false;
   }
 
-  private handleMapClick(latLng: google.maps.LatLng): void {
+  private async handleMapClick(latLng: google.maps.LatLng): Promise<void> {
     if (this.show) {
       this.info?.close();
-      const html = AspAt(
+      const html = await getAirspaceList(
         Math.round(this.map.getZoom() ?? 10),
         { lat: latLng.lat(), lon: latLng.lng() },
         this.maxAltitude,
         this.showRestricted,
       );
-      if (html) {
+      if (html !== '') {
         this.info?.setContent(html);
         this.info?.setPosition(latLng);
         this.info?.open(this.map);

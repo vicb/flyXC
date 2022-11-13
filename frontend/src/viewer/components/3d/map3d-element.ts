@@ -2,6 +2,7 @@ import './line3d-element';
 import './marker3d-element';
 import './controls3d-element';
 import './airways3d-element';
+import './airspace3d-element';
 
 import { LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
@@ -30,6 +31,8 @@ import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
 import { Airways3dElement } from './airways3d-element';
+import { Airspace3dElement } from './airspace3d-element';
+import { setCurrentLiveId } from '../../redux/live-track-slice';
 
 // https://community.esri.com/t5/arcgis-api-for-javascript-questions/3d-scene-view-slow-with-es-modules-from-4-21/m-p/1218085
 externalRenderers.forceWebGLContext(1);
@@ -52,6 +55,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   private gndGraphicsLayer?: GraphicsLayer;
   // Elevation layer with exaggeration.
   private elevationLayer?: BaseElevationLayer;
+  private airspace?: Airspace3dElement;
   private basemaps: Record<string, string | Basemap | null> = {
     Satellite: 'satellite',
     OpenTopoMap: null,
@@ -156,6 +160,7 @@ export class Map3dElement extends connect(store)(LitElement) {
       },
     });
     this.view = view;
+    this.configurePopup(view);
 
     store.dispatch(setGraphicsLayer(this.graphicsLayer));
     store.dispatch(setGndGraphicsLayer(this.gndGraphicsLayer));
@@ -181,6 +186,10 @@ export class Map3dElement extends connect(store)(LitElement) {
     const airways = document.createElement('airways3d-element') as Airways3dElement;
     airways.map = this.map;
     view.ui.add(airways, 'top-right');
+
+    this.airspace = document.createElement('airspace3d-element') as Airspace3dElement;
+    this.airspace.map = this.map;
+    view.ui.add(this.airspace, 'top-right');
 
     this.originalQuality = view.qualityProfile;
 
@@ -251,6 +260,8 @@ export class Map3dElement extends connect(store)(LitElement) {
           if (trackId != null) {
             store.dispatch(setCurrentTrackId(trackId));
           }
+        } else {
+          this.airspace?.handleClick({ lat: e.mapPoint.latitude, lon: e.mapPoint.longitude }, view);
         }
       });
     });
@@ -374,6 +385,19 @@ export class Map3dElement extends connect(store)(LitElement) {
 
   createRenderRoot(): Element {
     return this;
+  }
+
+  private configurePopup(view: SceneView): void {
+    view.popup.autoOpenEnabled = false;
+    view.popup.actions.removeAll();
+    view.popup.dockOptions = { buttonEnabled: false };
+    view.popup.collapseEnabled = false;
+    view.popup.viewModel.includeDefaultActions = false;
+    view.watch('popup.visible', (visible) => {
+      if (visible == false) {
+        store.dispatch(setCurrentLiveId(undefined));
+      }
+    });
   }
 }
 

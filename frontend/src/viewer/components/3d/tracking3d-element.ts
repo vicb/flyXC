@@ -52,7 +52,6 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   private markers: Graphic[] = [];
   private subscriptions: UnsubscribeHandle[] = [];
   private units?: Units;
-  private popupConfigured = false;
 
   private line = {
     type: 'polyline',
@@ -139,7 +138,6 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   connectedCallback(): void {
     super.connectedCallback();
     this.subscriptions.push(msg.clickSceneView.subscribe((graphic, view) => this.handleClick(graphic, view)));
-    this.popupConfigured = false;
   }
 
   stateChanged(state: RootState): void {
@@ -320,7 +318,6 @@ export class Tracking3DElement extends connect(store)(LitElement) {
 
         const track = liveTrackSelectors.selectById(store.getState(), attr.liveTrackId) as LiveTrack;
 
-        this.configurePopup(view);
         view.popup.open({
           location: {
             latitude: track.lat[index],
@@ -332,22 +329,5 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         });
       }
     }
-  }
-
-  private configurePopup(view: SceneView): void {
-    if (this.popupConfigured) {
-      return;
-    }
-    this.popupConfigured = true;
-    view.popup.autoOpenEnabled = false;
-    view.popup.actions.removeAll();
-    view.popup.dockOptions = { buttonEnabled: false };
-    view.popup.collapseEnabled = false;
-    view.popup.viewModel.includeDefaultActions = false;
-    view.watch('popup.visible', (visible) => {
-      if (visible == false) {
-        store.dispatch(setCurrentLiveId(undefined));
-      }
-    });
   }
 }
