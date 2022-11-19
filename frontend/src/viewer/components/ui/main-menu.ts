@@ -89,7 +89,7 @@ export class MainMenu extends connect(store)(LitElement) {
                 </ion-item>`,
             )}
             ${when(!this.view3d, () => html`<airspace-items></airspace-items>`)}
-            ${when(!this.view3d, () => html`<airways-items></airways-items>`)}
+            <airways-items></airways-items>
             ${when(
               this.view3d,
               () =>

@@ -1,6 +1,7 @@
 import './line3d-element';
 import './marker3d-element';
 import './controls3d-element';
+import './airways3d-element';
 
 import { LatLon, LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
@@ -28,6 +29,7 @@ import { setCurrentLocation, setCurrentZoom } from '../../redux/location-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
+import { Airways3dElement } from './airways3d-element';
 
 // https://community.esri.com/t5/arcgis-api-for-javascript-questions/3d-scene-view-slow-with-es-modules-from-4-21/m-p/1218085
 externalRenderers.forceWebGLContext(1);
@@ -175,6 +177,10 @@ export class Map3dElement extends connect(store)(LitElement) {
     const layerSwitcher = this.renderRoot.querySelector('#layers') as HTMLSelectElement;
     view.ui.add(layerSwitcher, 'top-left');
     view.ui.move([layerSwitcher, 'compass', 'navigation-toggle'], 'top-left');
+
+    const airways = document.createElement('airways3d-element') as Airways3dElement;
+    airways.map = this.map;
+    view.ui.add(airways, 'top-right');
 
     this.originalQuality = view.qualityProfile;
 
