@@ -1,12 +1,11 @@
 import alias from '@rollup/plugin-alias';
 import cjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
-import minifyHTML from 'rollup-plugin-minify-html-literals';
 import replace from '@rollup/plugin-replace';
 import resolve from '@rollup/plugin-node-resolve';
 import run from '@rollup/plugin-run';
 import stripCode from 'rollup-plugin-strip-code';
-import { terser } from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import builtins from 'builtin-modules';
 import visualizer from 'rollup-plugin-visualizer';

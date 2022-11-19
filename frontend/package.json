@@ -12,21 +12,20 @@
   "license": "ISC",
   "dependencies": {
     "@alenaksu/json-viewer": "^2.0.0",
-    "@arcgis/core": "4.24",
-    "@googlemaps/js-api-loader": "^1.14.3",
+    "@arcgis/core": "4.25",
+    "@googlemaps/js-api-loader": "^1.15.1",
     "@ionic/core": "^6.3",
-    "@reduxjs/toolkit": "^1.8.6",
-    "@stencil/core": "^2.19.1",
+    "@reduxjs/toolkit": "^1.9.0",
+    "@stencil/core": "^2.19.3",
     "d3-array": "^3.2.0",
-    "esri-loader": "^3.6.0",
-    "lit": "^2.4.0",
+    "lit": "^2.4.1",
     "micro-typed-events": "^1.0.2",
     "moving-median": "^1.0.0",
     "pwa-helpers": "^0.9.1",
     "qrcode": "^1.5.1"
   },
   "devDependencies": {
-    "@types/arcgis-js-api": "^4.24.0",
+    "@types/arcgis-js-api": "^4.25.0",
     "@types/d3-array": "^3.0.3",
     "@types/googlemaps": "^3.43.3"
   }
