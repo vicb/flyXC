@@ -60,19 +60,22 @@ export class Proxies {
               ? instance.networkInterfaces[0].accessConfigs[0].natIP
               : instance.networkInterfaces[0].networkIP;
         } else {
+          console.error(`Proxies ${this.label}: can not retrieve IP`);
           this.name = null;
         }
       } else {
+        console.error(`Proxies ${this.label}: op error ${operation.error}`);
         this.name = null;
       }
     } catch (e) {
+      console.error(`Proxies ${this.label}: ${e}`);
       this.name = null;
     }
 
     if (this.name != null) {
-      this.log(`Started proxy ${this.name}`);
+      this.log(`Started ${this.label} ${this.name}`);
     } else {
-      this.log(`Failed to start proxy`);
+      this.log(`Failed to start ${this.label}`);
     }
   }
 
@@ -115,16 +118,16 @@ export class Proxies {
             }
 
             if (operation.error == null) {
-              this.log(`Stopped proxy ${instance.name}`);
+              this.log(`Stopped ${this.label} ${instance.name}`);
             } else {
-              this.log(`Failed to stop proxy ${instance.name}`);
+              this.log(`Failed to stop ${this.label} ${instance.name}`);
               success = false;
             }
           }
         }
       }
     } catch (e) {
-      this.log(`Failed to stop proxies`);
+      this.log(`Failed to stop ${this.label}`);
       success = false;
     }
 
