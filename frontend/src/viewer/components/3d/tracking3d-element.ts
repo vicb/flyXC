@@ -328,7 +328,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
             z: track.alt[index] * this.multiplier + MSG_MARKER_HEIGHT,
           } as any,
           title: popup.title,
-          content: popup.content,
+          content: `<div style="display: block;">${popup.content}</div>`,
         });
       }
     }
