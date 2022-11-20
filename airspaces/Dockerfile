@@ -12,7 +12,7 @@ COPY package*.json ./
 COPY unzip.js ./
 
 # Install production dependencies.
-RUN npm install --only=production
+RUN npm install --omit=dev
 
 # Copy local code to the container image.
 COPY . ./

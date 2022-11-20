@@ -12,7 +12,7 @@ RUN npm install -g npm@latest
 
 # Copy local code to the container image.
 COPY package*.json ./
-RUN npm install --only=production
+RUN npm install --omit=dev
 
 COPY dist/fetcher.js ./
 

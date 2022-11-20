@@ -14,7 +14,7 @@ COPY package*.json ./
 
 # Install production dependencies.
 RUN npm install -g npm@latest
-RUN npm install --only=production
+RUN npm install --omit=dev
 
 # Copy local code to the container image.
 COPY . ./
