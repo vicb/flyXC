@@ -73,7 +73,7 @@ export class Proxies {
     }
 
     if (this.name != null) {
-      this.log(`Started ${this.label} ${this.name}`);
+      this.log(`Started ${this.label}, ${this.name}, ${this.ip}`);
     } else {
       this.log(`Failed to start ${this.label}`);
     }

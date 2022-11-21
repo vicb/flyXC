@@ -7,7 +7,7 @@ import { fetchResponse } from 'flyxc/common/src/fetch-timeout';
 import { LIVE_MINIMAL_INTERVAL_SEC, simplifyLiveTrack, TrackerIds } from 'flyxc/common/src/live-track';
 import { TrackerEntity } from 'flyxc/common/src/live-track-entity';
 import { TrackerModel, validateInreachAccount } from 'flyxc/common/src/models';
-import { formatReqError, parseRetryAfterS } from 'flyxc/common/src/util';
+import { formatReqError, parallelTasksWithTimeout, parseRetryAfterS } from 'flyxc/common/src/util';
 import { Validator } from 'flyxc/common/src/vaadin/form/Validation';
 
 import { DOMParser } from '@xmldom/xmldom';
@@ -23,6 +23,7 @@ import { Proxies } from './proxies';
 // Local state
 let useProxyUntilS = 0;
 let checkProxyZombiesAfterS = 0;
+const CHECK_ZOMBIES_EVERY_MIN = 20;
 // Check zombies on successful requests after a proxy started.
 // Do not check on error has we don't want proxy to release their IP
 // while we received 429.
@@ -35,17 +36,24 @@ export class InreachFetcher extends TrackerFetcher {
   }
 
   protected async fetch(devices: number[], updates: TrackerUpdates, timeoutSec: number): Promise<void> {
-    const deadlineMs = Date.now() + timeoutSec * 1000;
     const useProxy = Date.now() / 1000 < useProxyUntilS;
+    let isRateLimited = false;
 
-    for (const id of devices) {
+    const fetchSingle = async (id: number): Promise<void> => {
+      if (isRateLimited) {
+        return;
+      }
+      if (useProxy && !proxies.isReadyOrStart()) {
+        return;
+      }
+
       const tracker = this.getTracker(id);
       if (tracker == null) {
-        continue;
+        return;
       }
       if (validateInreachAccount(tracker.account) === false) {
         updates.trackerErrors.set(id, `Invalid account ${tracker.account}`);
-        continue;
+        return;
       }
 
       const fetchFromSec = this.getTrackerFetchFromSec(id, updates.startFetchSec, 2 * 3600);
@@ -55,12 +63,9 @@ export class InreachFetcher extends TrackerFetcher {
         updates.fetchedTracker.add(id);
         let response: Response;
         if (useProxy) {
-          if (!proxies.isReadyOrStart()) {
-            break;
-          }
           response = await fetchResponse(`http://${proxies.getIp()}/get`, {
             retry: 1,
-            timeoutS: 7,
+            timeoutS: 6,
             method: 'POST',
             headers: { 'Content-Type': 'application/octet-stream' },
             body: ProxyRequest.toBinary({
@@ -98,30 +103,38 @@ export class InreachFetcher extends TrackerFetcher {
         } else {
           updates.trackerErrors.set(id, `HTTP Status = ${response.status} for ${url}`);
           if (response.status == 429) {
-            // Start another proxy when the current server is rate-limited.
-            proxies.start();
-            proxyStarted = true;
-            if (!useProxy) {
+            if (!isRateLimited && !useProxy) {
               // Only update `proxyUntilS` for the main server.
               useProxyUntilS = parseRetryAfterS(response.headers.get('Retry-After') ?? '600');
             }
-            break;
+            isRateLimited = true;
+            return;
           }
         }
       } catch (e) {
         updates.trackerErrors.set(id, `Error ${formatReqError(e)} for url ${url}`);
       }
+    };
 
-      if (Date.now() >= deadlineMs) {
-        updates.errors.push(`Fetch timeout`);
-        break;
-      }
+    const { isTimeout } = await parallelTasksWithTimeout(4, devices, fetchSingle, timeoutSec * 1000);
+
+    if (isTimeout) {
+      updates.errors.push(`Fetch timeout`);
+    }
+
+    if (isRateLimited) {
+      // Start another proxy when the current server is rate-limited.
+      proxies.start();
+      proxyStarted = true;
+      checkProxyZombiesAfterS = Date.now() / 1000 + CHECK_ZOMBIES_EVERY_MIN * 60;
     }
 
     if (Date.now() / 1000 > checkProxyZombiesAfterS) {
-      checkProxyZombiesAfterS = Date.now() / 1000 + 15 * 60;
+      checkProxyZombiesAfterS = Date.now() / 1000 + CHECK_ZOMBIES_EVERY_MIN * 60;
       proxies.killZombies().then((success) => {
-        checkProxyZombiesAfterS = success ? Date.now() / 1000 + 15 * 60 : 0;
+        if (!success) {
+          checkProxyZombiesAfterS = 0;
+        }
       });
     }
 
