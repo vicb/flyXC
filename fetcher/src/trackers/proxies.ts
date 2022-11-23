@@ -1,9 +1,12 @@
 import { format } from 'date-fns';
-import { InstancesClient, ZoneOperationsClient } from '@google-cloud/compute';
+import { InstancesClient, InstanceTemplatesClient, ZoneOperationsClient } from '@google-cloud/compute';
 
-const ZONE = 'us-central1-a';
+// Zones with N1 machines
+// See https://cloud.google.com/compute/docs/regions-zones
+const ZONES = ['us-central1-a', 'us-west1-a', 'us-east1-b', 'us-west2-a', 'us-east4-a', 'us-west4-a'];
 const PROJECT = 'fly-xc';
-const TEMPLATE = 'https://www.googleapis.com/compute/v1/projects/fly-xc/global/instanceTemplates/proxy-tmpl';
+const TEMPLATE = 'proxy-tmpl';
+const SUBNETORK = 'https://www.googleapis.com/compute/v1/projects/fly-xc/regions/{region}/subnetworks/default';
 
 export class Proxies {
   // Instance name.
@@ -13,6 +16,9 @@ export class Proxies {
   private logs: string[] = [];
   // Instance label.
   private label: string;
+  // Zone index.
+  private zoneIndex = 0;
+  private killingZombies = false;
 
   constructor(label: string) {
     this.label = `${process.env.NODE_ENV == 'development' ? 'dev-' : ''}${label}`;
@@ -22,18 +28,33 @@ export class Proxies {
   public async start() {
     this.name = format(new Date(), "'proxy-'yyyyMMdd-HHmmss");
     this.ip = null;
+    const zone = this.getNextZone();
 
     try {
+      const instanceTemplatesClient = new InstanceTemplatesClient();
+
+      const [instanceTemplate] = await instanceTemplatesClient.get({
+        project: PROJECT,
+        instanceTemplate: TEMPLATE,
+      });
+
+      const networkInterfaces = instanceTemplate.properties?.networkInterfaces;
+
+      if (networkInterfaces && Array.isArray(networkInterfaces)) {
+        networkInterfaces[0].subnetwork = SUBNETORK.replace('{region}', zone.slice(0, -2));
+      }
+
       const instancesClient = new InstancesClient();
 
       const [response] = await instancesClient.insert({
         project: PROJECT,
-        zone: ZONE,
+        zone,
         instanceResource: {
           name: this.name,
           labels: { proxy: this.label },
+          networkInterfaces,
         },
-        sourceInstanceTemplate: TEMPLATE,
+        sourceInstanceTemplate: instanceTemplate.selfLink,
       });
 
       let operation = response.latestResponse as any;
@@ -43,14 +64,14 @@ export class Proxies {
         [operation] = await operationsClient.wait({
           operation: operation.name,
           project: PROJECT,
-          zone: ZONE,
+          zone,
         });
       }
 
       if (operation.error == null) {
         const [instance] = await instancesClient.get({
           project: PROJECT,
-          zone: ZONE,
+          zone,
           instance: this.name,
         });
         if (Array.isArray(instance?.networkInterfaces) && Array.isArray(instance.networkInterfaces[0]?.accessConfigs)) {
@@ -64,7 +85,7 @@ export class Proxies {
           this.name = null;
         }
       } else {
-        console.error(`Proxies ${this.label}: op error ${operation.error}`);
+        console.error(`Proxies ${this.label}: op error ${JSON.stringify(operation.error)}`);
         this.name = null;
       }
     } catch (e) {
@@ -73,14 +94,18 @@ export class Proxies {
     }
 
     if (this.name != null) {
-      this.log(`Started ${this.label}, ${this.name}, ${this.ip}`);
+      this.log(`Started ${this.label} ${this.name} in ${zone} (${this.ip})`);
     } else {
-      this.log(`Failed to start ${this.label}`);
+      this.log(`Failed to start ${this.label} in ${zone}`);
     }
   }
 
   // Kills unused proxy servers.
   public async killZombies(): Promise<boolean> {
+    if (this.killingZombies) {
+      return true;
+    }
+    this.killingZombies = true;
     let success = true;
     try {
       const instancesClient = new InstancesClient();
@@ -100,9 +125,16 @@ export class Proxies {
               // Do not kill the active proxy.
               continue;
             }
+
+            // instance.zone is returned as
+            // https://www.googleapis.com/compute/v1/projects/fly-xc/zones/us-west1
+            let zone = instance.zone ?? ZONES[0];
+            const index = zone.lastIndexOf('/');
+            zone = index > -1 ? zone.substring(index + 1) : zone;
+
             const [response] = await instancesClient.delete({
               project: PROJECT,
-              zone: ZONE,
+              zone,
               instance: instance.name,
             });
 
@@ -113,22 +145,26 @@ export class Proxies {
               [operation] = await operationsClient.wait({
                 operation: operation.name,
                 project: PROJECT,
-                zone: ZONE,
+                zone,
               });
             }
 
             if (operation.error == null) {
               this.log(`Stopped ${this.label} ${instance.name}`);
             } else {
-              this.log(`Failed to stop ${this.label} ${instance.name}`);
+              console.error(`Failed to stop ${this.label} ${instance.name} ${JSON.stringify(operation.error)}`);
+              this.log(`Failed to stop ${this.label} ${instance.name} in ${zone}`);
               success = false;
             }
           }
         }
       }
     } catch (e) {
-      this.log(`Failed to stop ${this.label}`);
+      this.log(`Failed to stop ${this.label} ${e}`);
+      console.error(`Failed to stop ${this.label} ${e}`);
       success = false;
+    } finally {
+      this.killingZombies = false;
     }
 
     return success;
@@ -166,5 +202,11 @@ export class Proxies {
 
   private log(msg: string) {
     this.logs.push(`[${Math.round(Date.now() / 1000)}] ${msg}`);
+  }
+
+  private getNextZone() {
+    const zone = ZONES[this.zoneIndex];
+    this.zoneIndex = (this.zoneIndex + 1) % ZONES.length;
+    return zone;
   }
 }

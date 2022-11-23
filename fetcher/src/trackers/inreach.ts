@@ -24,10 +24,6 @@ import { Proxies } from './proxies';
 let useProxyUntilS = 0;
 let checkProxyZombiesAfterS = 0;
 const CHECK_ZOMBIES_EVERY_MIN = 20;
-// Check zombies on successful requests after a proxy started.
-// Do not check on error has we don't want proxy to release their IP
-// while we received 429.
-let proxyStarted = false;
 const proxies = new Proxies('inreach');
 
 export class InreachFetcher extends TrackerFetcher {
@@ -93,10 +89,6 @@ export class InreachFetcher extends TrackerFetcher {
             if (track.timeSec.length > 0) {
               updates.trackerDeltas.set(id, track);
             }
-            if (proxyStarted) {
-              proxyStarted = false;
-              checkProxyZombiesAfterS = 0;
-            }
           } catch (e) {
             updates.trackerErrors.set(id, `Error parsing the kml for ${id}\n${e}`);
           }
@@ -125,8 +117,7 @@ export class InreachFetcher extends TrackerFetcher {
     if (isRateLimited) {
       // Start another proxy when the current server is rate-limited.
       proxies.start();
-      proxyStarted = true;
-      checkProxyZombiesAfterS = Date.now() / 1000 + CHECK_ZOMBIES_EVERY_MIN * 60;
+      checkProxyZombiesAfterS = 0;
     }
 
     if (Date.now() / 1000 > checkProxyZombiesAfterS) {
