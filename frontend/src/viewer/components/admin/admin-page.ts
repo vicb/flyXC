@@ -583,13 +583,13 @@ function relativeTime(timeSec: number, relativeToSec = Math.round(Date.now() / 1
 // - "[timeSec] id=<> message",
 // - "[timeSec] message".
 function formatLogEntry(entry: string): string {
-  const mId = entry.match(/\[(\d+)\] id=(\d+) (.*)/i);
+  const mId = entry.match(/\[(\d+)\] id=(\d+) ([\s\S]*)/i);
   if (mId) {
     const timeSec = Number(mId[1]);
     const id = mId[2];
     return `[${relativeTime(timeSec)}] <a href=${entityHref(id)} target="_blank">${id}</a> ${mId[3]}`;
   }
-  const m = entry.match(/\[(\d+)\] (.*)/i);
+  const m = entry.match(/\[(\d+)\] ([\s\S]*)/i);
   if (m) {
     const timeSec = Number(m[1]);
     return `[${relativeTime(timeSec)}] ${m[2]}`;
@@ -599,7 +599,7 @@ function formatLogEntry(entry: string): string {
 
 // Returns the timestamp from a log entry or now.
 function getLogDateSec(entry: string): number {
-  const m = entry.match(/\[(\d+)\] (.*)/i);
+  const m = entry.match(/\[(\d+)\] ([\s\S]*)/i);
   if (m) {
     const timeSec = Number(m[1]);
     return timeSec;
