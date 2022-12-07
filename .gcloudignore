@@ -5,7 +5,10 @@
 .gitignore
 
 .vscode/
-/airspaces
+.github/
+.rollup.cache/
+
+
 /app/src/
 
 /common
@@ -20,8 +23,8 @@
 /tracks
 /fetcher
 /scripts
-
+/proxy
+/airspaces
 
 test/
-# /node_modules is required for external modules
 node_modules
