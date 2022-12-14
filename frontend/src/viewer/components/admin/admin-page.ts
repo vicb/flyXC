@@ -107,7 +107,7 @@ export class AdminPage extends LitElement {
             <ion-button @click=${this.fetch}>Refresh</ion-button>
           </ion-buttons>
           <ion-buttons slot="secondary">
-            <ion-button href="/logout">Logout</ion-button>
+            <ion-button href="/live/logout">Logout</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-footer>`;
@@ -116,7 +116,7 @@ export class AdminPage extends LitElement {
   private fetch() {
     this.isLoading = true;
     lastFetchMs = Date.now();
-    fetch(`/admin/_admin.json`).then(async (response) => {
+    fetch(`/admin/admin.json`).then(async (response) => {
       this.isLoading = false;
       this.connected = response.ok;
       if (response.ok) {
@@ -416,7 +416,7 @@ export class DashSync extends LitElement {
       return;
     }
     this.btnLoading = { ...this.btnLoading, [command]: true };
-    await fetch(`/admin/_state/cmd/${command}`, { method: 'POST', credentials: 'include' });
+    await fetch(`/admin/state/cmd/${command}`, { method: 'POST', credentials: 'include' });
     setInterval(() => {
       this.btnLoading = { ...this.btnLoading, [command]: false };
     }, 5000);
@@ -506,10 +506,10 @@ export class StateExplorer extends LitElement {
     }
     this.fetcherState = undefined;
     this.isLoading = true;
-    await fetch(`/admin/_state/cmd/${Keys.fetcherCmdCaptureState}`, { method: 'POST', credentials: 'include' });
+    await fetch(`/admin/state/cmd/${Keys.fetcherCmdCaptureState}`, { method: 'POST', credentials: 'include' });
     const deadline = Date.now() + 2 * 60 * 1000;
     this.fetchTimer = setInterval(async () => {
-      const response = await fetch('/admin/_state.json', { credentials: 'include' });
+      const response = await fetch('/admin/state.json', { credentials: 'include' });
       if (response.status == 200) {
         const buffer = new Uint8Array(await response.arrayBuffer());
         this.fetcherState = FetcherState.fromBinary(buffer);

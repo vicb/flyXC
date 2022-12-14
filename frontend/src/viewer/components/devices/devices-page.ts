@@ -241,7 +241,7 @@ export class DevicesPage extends LitElement {
   private async close(): Promise<void> {
     if (this.accountId == null) {
       try {
-        await fetch('/logout');
+        await fetch('/live/logout');
       } catch (e) {}
       const url = localStorage.getItem('url.tracking.return');
       document.location.assign(url ?? '/');
@@ -366,7 +366,7 @@ export class DevicesPage extends LitElement {
   }
 
   private getAction(): string {
-    return this.accountId == null ? `/_account` : `/admin/_account/${this.accountId}`;
+    return this.accountId == null ? `/live/account.json` : `/admin/account/${this.accountId}.json`;
   }
 
   private getCallback(): string {

@@ -20,7 +20,7 @@ import { Redis } from 'ioredis';
 import { Datastore } from '@google-cloud/datastore';
 import { NoDomBinder } from '@vaadin/form/NoDomBinder';
 
-import { getUserInfo, isLoggedIn } from './session';
+import { getUserInfo, isLoggedIn, logout } from './session';
 
 const datastore = new Datastore();
 const csrfProtection = csurf();
@@ -29,7 +29,7 @@ export function getTrackerRouter(redis: Redis): Router {
   const router = express.Router();
 
   // Get the geojson for the currently active trackers.
-  router.get('/_livetracks', async (req: Request, res: Response) => {
+  router.get('/tracks.pbf', async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
     const token = req.header('token');
     if (!token) {
@@ -58,7 +58,7 @@ export function getTrackerRouter(redis: Redis): Router {
   });
 
   // Get the account information.
-  router.get('/_account', csrfProtection, async (req: Request, res: Response) => {
+  router.get('/account.json', csrfProtection, async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
     if (!isLoggedIn(req)) {
       res.sendStatus(403);
@@ -91,7 +91,7 @@ export function getTrackerRouter(redis: Redis): Router {
   });
 
   // Updates the tracker information.
-  router.post('/_account', csrfProtection, async (req: Request, res: Response) => {
+  router.post('/account.json', csrfProtection, async (req: Request, res: Response) => {
     if (!isLoggedIn(req)) {
       return res.sendStatus(403);
     }
@@ -103,6 +103,12 @@ export function getTrackerRouter(redis: Redis): Router {
     const { email, token } = userInfo;
     const entity = await retrieveLiveTrackByGoogleId(token);
     return createOrUpdateEntity(entity, req, res, email, token, redis);
+  });
+
+  // Logout.
+  router.get('/live/logout', async (req: Request, res: Response) => {
+    await logout(req);
+    res.redirect('/');
   });
 
   return router;

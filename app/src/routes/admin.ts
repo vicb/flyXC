@@ -32,12 +32,12 @@ export function getAdminRouter(redis: Redis): Router {
     return next();
   });
 
-  router.get('/_admin.json', async (req: Request, res: Response) => {
+  router.get('/admin.json', async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
     res.json(await getDashboardValues(redis));
   });
 
-  router.get('/_state.json', async (req: Request, res: Response) => {
+  router.get('/state.json', async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
 
     try {
@@ -52,7 +52,7 @@ export function getAdminRouter(redis: Redis): Router {
     }
   });
 
-  router.post('/_state/cmd/:cmd', async (req: Request, res: Response) => {
+  router.post('/state/cmd/:cmd', async (req: Request, res: Response) => {
     switch (req.params.cmd) {
       case Keys.fetcherCmdCaptureState:
         await redis.del(Keys.fetcherStateBrotli);
@@ -72,7 +72,7 @@ export function getAdminRouter(redis: Redis): Router {
     return res.sendStatus(204);
   });
 
-  router.get(`/_account/:id`, csrfProtection, async (req: Request, res: Response) => {
+  router.get(`/account/:id.json`, csrfProtection, async (req: Request, res: Response) => {
     try {
       const entity = await retrieveLiveTrackById(req.params.id);
       if (entity) {
@@ -86,7 +86,7 @@ export function getAdminRouter(redis: Redis): Router {
     return res.sendStatus(400);
   });
 
-  router.post(`/_account/:id`, csrfProtection, async (req: Request, res: Response) => {
+  router.post(`/account/:id.json`, csrfProtection, async (req: Request, res: Response) => {
     try {
       const entity = await retrieveLiveTrackById(req.params.id);
       if (entity) {

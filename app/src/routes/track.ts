@@ -17,14 +17,14 @@ export function getTrackRouter(): Router {
   const router = express.Router();
 
   // Retrieves tracks by url.
-  router.get('/_download', async (req: Request, res: Response) => {
+  router.get('/byurl.pbf', async (req: Request, res: Response) => {
     const urls = [].concat(req.query.track as any);
     const trackGroups: protos.MetaTrackGroup[] = await Promise.all(urls.map(parseFromUrl));
     sendTracks(res, trackGroups);
   });
 
   // Retrieves tracks by datastore ids.
-  router.get('/_history', async (req: Request, res: Response) => {
+  router.get('/byid.pbf', async (req: Request, res: Response) => {
     const ids = [].concat(req.query.id as any);
     const trackGroups: protos.MetaTrackGroup[] = await retrieveMetaTrackGroupsByIds(ids);
     sendTracks(res, trackGroups);
@@ -32,8 +32,9 @@ export function getTrackRouter(): Router {
 
   // Retrieves the list of tracks.
   // The `tracks` query parameter set the number of tracks to retrieve.
-  router.get('/_archives', async (req: Request, res: Response) => {
-    const tracks: TrackEntity[] = await retrieveRecentTracks((req.query.tracks as any) || 10);
+  router.get('/archives.pbf', async (req: Request, res: Response) => {
+    const numTracks = Math.min((req.query.tracks as any) ?? 10, 50);
+    const tracks: TrackEntity[] = await retrieveRecentTracks(numTracks);
 
     res.json(
       tracks.map((track) => ({
@@ -47,7 +48,7 @@ export function getTrackRouter(): Router {
   });
 
   // Upload tracks to the database.
-  router.post('/_upload', async (req: Request, res: Response) => {
+  router.post('/upload.pbf', async (req: Request, res: Response) => {
     if (req.files?.track) {
       // Parse files as track.
       const fileObjects: UploadedFile[] = [].concat(req.files.track as any);
@@ -70,7 +71,7 @@ export function getTrackRouter(): Router {
   });
 
   // Retrieves track metadata by datastore ids.
-  router.get('/_metadata', async (req: Request, res: Response) => {
+  router.get('/metadata.pbf', async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
     if (req.query.ids == null || typeof req.query.ids != 'string') {
       res.sendStatus(204);
@@ -95,7 +96,7 @@ export function getTrackRouter(): Router {
 
   // Returns the airspaces info for the first track in the group as JSON.
   // Returns 404 if the info are not available (/not ready yet).
-  router.get('/_airspaces', async (req: Request, res: Response) => {
+  router.get('/airspaces.json', async (req: Request, res: Response) => {
     res.set('Access-Control-Allow-Origin', '*');
     const url = req.query.track;
     if (typeof url === 'string') {

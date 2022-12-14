@@ -107,7 +107,7 @@ export class ArchivesElement extends LitElement {
   }
 
   connectedCallback(): void {
-    fetch(`/_archives?tracks=${this.numtracks}`)
+    fetch(`/track/archives.pbf?tracks=${this.numtracks}`)
       .then((r) => (r.ok ? r.json() : []))
       .then((tracks) => (this.tracks = tracks));
     super.connectedCallback();

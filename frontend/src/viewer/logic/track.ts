@@ -12,7 +12,7 @@ export async function uploadTracks(files: File[]): Promise<number[]> {
   }
   const formData = new FormData();
   files.forEach((track) => formData.append('track', track));
-  return await fetchAndReturnGroupIds('/_upload', { method: 'POST', body: formData });
+  return await fetchAndReturnGroupIds('/track/upload.pbf', { method: 'POST', body: formData });
 }
 
 // Download tracks given their urls.
@@ -22,7 +22,7 @@ export async function downloadTracksByUrls(urls: string[]): Promise<number[]> {
   }
   const params = new URLSearchParams();
   urls.forEach((track) => params.append('track', track));
-  return await fetchAndReturnGroupIds(`/_download?${params}`);
+  return await fetchAndReturnGroupIds(`/track/byurl.pbf?${params}`);
 }
 
 // Download tracks given then datastore ids.
@@ -32,7 +32,7 @@ export async function downloadTracksByGroupIds(ids: Array<number | string>): Pro
   }
   const params = new URLSearchParams();
   ids.forEach((id) => params.append('id', String(id)));
-  return await fetchAndReturnGroupIds(`/_history?${params}`);
+  return await fetchAndReturnGroupIds(`track/byid.pbf?${params}`);
 }
 
 // Fetch tracks and return their group ids.

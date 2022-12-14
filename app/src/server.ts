@@ -11,13 +11,31 @@ import path from 'path';
 
 import { getAdminRouter } from './routes/admin';
 import { getTrackerRouter } from './routes/live-track';
-import { logout } from './routes/session';
 import { getTrackRouter } from './routes/track';
-import { encode } from './waypoints';
+import { getWaypointRouter } from './routes/waypoints';
 
 const USE_APP_ENGINE = process.env.NODE_ENV == 'production';
 const USE_SECURE_COOKIES = USE_APP_ENGINE;
 const redis = getRedisClient();
+
+// Old route -> new route
+const redirects = {
+  get: {
+    '/_livetracks': '/live/tracks.pbf',
+    '/_account': '/live/account.json',
+    '/logout': '/live/logout',
+    '/_download': '/track/byurl.pbf',
+    '/_history': '/track/byid.pbf',
+    '/_archives': '/track/archives.pbf',
+    '/_metadata': '/track/metadata.pbf',
+    '/_airspaces': '/track/airspaces.json',
+  },
+  post: {
+    '/_account': '/live/account.json',
+    '/_upload': '/track/upload.pbf',
+    '/_waypoints': `/waypoint/download`,
+  },
+};
 
 const app = express()
   .disable('x-powered-by')
@@ -76,30 +94,28 @@ const app = express()
     }),
   );
 
+// redirects
+for (const [from, to] of Object.entries(redirects.get)) {
+  app.get(from, (req: Request, res: Response) => {
+    const index = req.originalUrl.indexOf('?');
+    const search = index > -1 ? req.originalUrl.substring(index) : ``;
+    res.redirect(301, `${to}${search}`);
+  });
+}
+for (const [from, to] of Object.entries(redirects.post)) {
+  app.post(from, (req: Request, res: Response) => {
+    const index = req.originalUrl.indexOf('?');
+    const search = index > -1 ? req.originalUrl.substring(index) : ``;
+    res.redirect(308, `${to}${search}`);
+  });
+}
+
 // mount extra routes.
-app.use('/admin', getAdminRouter(redis)).use(getTrackerRouter(redis)).use(getTrackRouter());
-
-// Generates a waypoint file.
-app.post('/_waypoints', (req: Request, res: Response) => {
-  if (!req.body.request) {
-    res.sendStatus(400);
-  }
-  // points elevations format prefix
-  const { format, points, prefix } = JSON.parse(req.body.request);
-  const { mime, file, filename, error } = encode(format, points, prefix);
-
-  if (error) {
-    res.redirect('back');
-  } else {
-    res.attachment(`${filename}`).set('Content-Type', mime).send(file);
-  }
-});
-
-// Logout.
-app.get('/logout', async (req: Request, res: Response) => {
-  await logout(req);
-  res.redirect('/');
-});
+app
+  .use('/admin', getAdminRouter(redis))
+  .use('/live', getTrackerRouter(redis))
+  .use('/track', getTrackRouter())
+  .use('/waypoint', getWaypointRouter());
 
 const port = process.env.PORT || 8080;
 app

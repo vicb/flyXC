@@ -98,7 +98,7 @@ const updateTrackers = createAsyncThunk('liveTrack/fetch', async (_: undefined, 
   const fetchTimestamp = Date.now();
   try {
     const timeSec = Math.round(((api.getState() as RootState).liveTrack.fecthMillis ?? 0) / 1000);
-    const response = await fetch(`/_livetracks?s=${timeSec}`);
+    const response = await fetch(`/live/tracks.pbf?s=${timeSec}`);
     if (response.status == 200) {
       const tracks = (api.getState() as RootState).liveTrack.tracks.entities;
       trackWorker.postMessage({
