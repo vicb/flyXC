@@ -165,13 +165,15 @@ export class MapElement extends connect(store)(LitElement) {
       controls.map = this.map;
       this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controls);
 
-      const ad = document.createElement('a');
-      ad.setAttribute('href', 'https://www.flyozone.com/');
-      ad.setAttribute('target', '_blank');
-      ad.innerHTML = `<img width="${Math.round(210 * this.adRatio)}" height="${Math.round(
-        35 * this.adRatio,
-      )}" src="/img/ozone.svg">`;
-      this.map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(ad);
+      if (!store.getState().browser.isFromFfvl) {
+        const ad = document.createElement('a');
+        ad.setAttribute('href', 'https://www.flyozone.com/');
+        ad.setAttribute('target', '_blank');
+        ad.innerHTML = `<img width="${Math.round(210 * this.adRatio)}" height="${Math.round(
+          35 * this.adRatio,
+        )}" src="/img/ozone.svg">`;
+        this.map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(ad);
+      }
 
       this.map.addListener('click', (e: google.maps.MapMouseEvent) => {
         const latLng = e.latLng;

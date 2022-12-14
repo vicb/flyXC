@@ -6,6 +6,7 @@ type BrowserState = {
   isFullscreen: boolean;
   isVisible: boolean;
   readonly isInIframe: boolean;
+  readonly isFromFfvl: boolean;
   readonly isMobile: boolean;
   readonly isSmallScreen: boolean;
 };
@@ -21,6 +22,7 @@ const initialState: BrowserState = {
   isFullscreen,
   isVisible: document.visibilityState == 'visible',
   isInIframe: window.parent !== window,
+  isFromFfvl: window.parent !== window && document.referrer.endsWith('ffvl.fr/'),
   isMobile: isMobile(),
   isSmallScreen: !window.matchMedia('(min-width: 640px)').matches,
 };

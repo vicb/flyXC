@@ -1,10 +1,20 @@
 import { css, CSSResult, html, LitElement, PropertyValues, TemplateResult } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
+import { connect } from 'pwa-helpers';
+import { RootState, store } from '../redux/store';
+import { when } from 'lit/directives/when.js';
 
 @customElement('loader-element')
-export class LoaderElement extends LitElement {
+export class LoaderElement extends connect(store)(LitElement) {
   @property()
   show = true;
+
+  @state()
+  showSponsor = true;
+
+  stateChanged(state: RootState): void {
+    this.showSponsor = !state.browser.isFromFfvl;
+  }
 
   static get styles(): CSSResult {
     return css`
@@ -52,30 +62,39 @@ export class LoaderElement extends LitElement {
             <animate attributeName="r" dur="0.8s" values="15;9;15" repeatCount="indefinite" />
             <animate attributeName="fill-opacity" dur="0.8s" values="1;.5;1" repeatCount="indefinite" />
           </circle>
-          <filter id="a" width="140%" height="140%" x="-20%" y="-20%">
-            <feGaussianBlur in="SourceAlpha" result="blur" stdDeviation="4" />
-            <feOffset dx="4" dy="4" in="blur" result="offsetBlur" />
-            <feSpecularLighting in="blur" lighting-color="#fff" result="specOut" specularExponent="10" surfaceScale="5">
-              <fePointLight x="-5000" y="-10000" z="-20000" />
-            </feSpecularLighting>
-            <feComposite in="specOut" in2="SourceAlpha" operator="in" result="specOut" />
-            <feComposite in="SourceGraphic" in2="specOut" k2="1" k3="1" operator="arithmetic" result="litPaint" />
-            <feMerge>
-              <feMergeNode in="offsetBlur" />
-              <feMergeNode in="litPaint" />
-            </feMerge>
-          </filter>
-          <g filter="url(#a)" transform="matrix(.34471 0 0 .41558 130.07 203.62)">
-            <path
-              fill="#fff"
-              d="M170.6 92.13c-5-5-12-7-21-7h-57l-7 18h57c2 0 3 0 5 2l1 4-13 29c0 2-2 3-4 5l-6 1h-59c-2 0-3 0-5-2l-1-4 12-27h-25l-12 27c-2 7-1 12 3 17 5 5 12 7 21 7h58c9 0 18-2 27-7 8-5 13-10 16-17l13-29c2-7 1-12-3-17m420 52c-1 0-3 0-4-2-2-1-2-2-1-4l2-6h71l7-17h-70l2-6 4-5 7-1h65l8-18h-66c-9 0-18 2-26 7-9 5-14 10-17 17l-12 29c-3 7-2 12 2 17 5 5 12 7 21 7h67l7-18h-67zm-301-30l12-6c4-2 6-5 7-8 2-4 1-8-2-11-2-3-7-4-12-4h-103l-8 18h87l-89 31-11 5-6 8c-2 4-1 8 1 11 3 3 8 4 13 4h105l8-18h-90l88-30zm147-22c-5-5-11-7-20-7h-59c-9 0-18 2-26 7-9 5-14 10-17 17l-12 29c-3 7-2 12 3 17 4 5 11 7 20 7h58c10 0 18-2 27-7 8-4 14-10 16-17l13-29c3-7 2-12-3-17zm-22 17l-13 29c0 2-2 3-4 5l-6 1h-59c-2 0-3 0-4-2-2-1-2-2-1-4l12-29c1-2 2-3 5-4 2-2 4-2 6-2h58c2 0 4 0 5 2 1 1 2 2 1 4zm147-17c-5-5-12-7-21-7h-50c-9 0-18 2-26 7-9 5-14 10-17 17l-22 53h25l22-53 4-5 7-1h50c2 0 4 0 5 2l1 4-23 53h25l23-53c2-7 1-12-3-17"
-              class="st4"
-            />
-            <path
-              fill="#dd1407"
-              d="M72.6 111.13l1-2c0-2 2-3 5-4 2-2 4-2 5-2h2l7-18h-1c-9 0-18 2-26 7-9 5-15 10-17 17l-1 2h25z"
-            />
-          </g>
+          ${when(
+            this.showSponsor,
+            () => html` <filter id="a" width="140%" height="140%" x="-20%" y="-20%">
+                <feGaussianBlur in="SourceAlpha" result="blur" stdDeviation="4" />
+                <feOffset dx="4" dy="4" in="blur" result="offsetBlur" />
+                <feSpecularLighting
+                  in="blur"
+                  lighting-color="#fff"
+                  result="specOut"
+                  specularExponent="10"
+                  surfaceScale="5"
+                >
+                  <fePointLight x="-5000" y="-10000" z="-20000" />
+                </feSpecularLighting>
+                <feComposite in="specOut" in2="SourceAlpha" operator="in" result="specOut" />
+                <feComposite in="SourceGraphic" in2="specOut" k2="1" k3="1" operator="arithmetic" result="litPaint" />
+                <feMerge>
+                  <feMergeNode in="offsetBlur" />
+                  <feMergeNode in="litPaint" />
+                </feMerge>
+              </filter>
+              <g filter="url(#a)" transform="matrix(.34471 0 0 .41558 130.07 203.62)">
+                <path
+                  fill="#fff"
+                  d="M170.6 92.13c-5-5-12-7-21-7h-57l-7 18h57c2 0 3 0 5 2l1 4-13 29c0 2-2 3-4 5l-6 1h-59c-2 0-3 0-5-2l-1-4 12-27h-25l-12 27c-2 7-1 12 3 17 5 5 12 7 21 7h58c9 0 18-2 27-7 8-5 13-10 16-17l13-29c2-7 1-12-3-17m420 52c-1 0-3 0-4-2-2-1-2-2-1-4l2-6h71l7-17h-70l2-6 4-5 7-1h65l8-18h-66c-9 0-18 2-26 7-9 5-14 10-17 17l-12 29c-3 7-2 12 2 17 5 5 12 7 21 7h67l7-18h-67zm-301-30l12-6c4-2 6-5 7-8 2-4 1-8-2-11-2-3-7-4-12-4h-103l-8 18h87l-89 31-11 5-6 8c-2 4-1 8 1 11 3 3 8 4 13 4h105l8-18h-90l88-30zm147-22c-5-5-11-7-20-7h-59c-9 0-18 2-26 7-9 5-14 10-17 17l-12 29c-3 7-2 12 3 17 4 5 11 7 20 7h58c10 0 18-2 27-7 8-4 14-10 16-17l13-29c3-7 2-12-3-17zm-22 17l-13 29c0 2-2 3-4 5l-6 1h-59c-2 0-3 0-4-2-2-1-2-2-1-4l12-29c1-2 2-3 5-4 2-2 4-2 6-2h58c2 0 4 0 5 2 1 1 2 2 1 4zm147-17c-5-5-12-7-21-7h-50c-9 0-18 2-26 7-9 5-14 10-17 17l-22 53h25l22-53 4-5 7-1h50c2 0 4 0 5 2l1 4-23 53h25l23-53c2-7 1-12-3-17"
+                  class="st4"
+                />
+                <path
+                  fill="#dd1407"
+                  d="M72.6 111.13l1-2c0-2 2-3 5-4 2-2 4-2 5-2h2l7-18h-1c-9 0-18 2-26 7-9 5-15 10-17 17l-1 2h25z"
+                />
+              </g>`,
+          )}
         </svg>
       </div>
     `;

@@ -170,14 +170,16 @@ export class Map3dElement extends connect(store)(LitElement) {
     const controls = document.createElement('controls3d-element');
     view.ui.add(controls, 'top-right');
 
-    const ad = document.createElement('a');
-    ad.setAttribute('href', 'https://www.flyozone.com/');
-    ad.setAttribute('target', '_blank');
-    ad.className = 'ad';
-    ad.innerHTML = `<img width="${Math.round(210 * this.adRatio)}" height="${Math.round(
-      35 * this.adRatio,
-    )}" src="/img/ozone.svg">`;
-    view.ui.add(ad);
+    if (!store.getState().browser.isFromFfvl) {
+      const ad = document.createElement('a');
+      ad.setAttribute('href', 'https://www.flyozone.com/');
+      ad.setAttribute('target', '_blank');
+      ad.className = 'ad';
+      ad.innerHTML = `<img width="${Math.round(210 * this.adRatio)}" height="${Math.round(
+        35 * this.adRatio,
+      )}" src="/img/ozone.svg">`;
+      view.ui.add(ad);
+    }
 
     const layerSwitcher = this.renderRoot.querySelector('#layers') as HTMLSelectElement;
     view.ui.add(layerSwitcher, 'top-left');
