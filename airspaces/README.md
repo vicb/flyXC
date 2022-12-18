@@ -51,7 +51,7 @@ $ npm run docker:push
 
 # Diff update
 
-- Delete the `asp` and `tiles` folders,
+- Delete the `asp` and `tiles` folders, `tiles.zip`,
 - Create the tiles - See above,
 - Execute `zip -r tiles.zip tiles` to create the zip file,
 - Rename `tiles-info.json` to `tiles-info.ref.json`

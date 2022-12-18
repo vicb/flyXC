@@ -13,7 +13,7 @@ async function downloadAirspaces() {
       console.log(`fetching page ${page}/${totalPages}`);
       const response = await fetch(url);
       // Delay to avoid too many requests.
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       if (response.ok) {
         let info = await response.json();
         totalPages = info.totalPages;
