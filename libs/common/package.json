@@ -1,0 +1,8 @@
+{
+  "name": "@flyxc/common",
+  "version": "0.0.1",
+  "type": "commonjs",
+  "scripts": {
+    "protos": "protoc --ts_out src/protos  --ts_opt long_type_number --ts_opt force_optimize_code_size --proto_path src/protos --experimental_allow_proto3_optional track.proto live-track.proto fetcher-state.proto proxy.proto"
+  }
+}

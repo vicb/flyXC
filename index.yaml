@@ -1,8 +1,0 @@
-# Update with:
-#
-# $ gcloud datastore indexes create index.yaml
-#
-# To delete unused indexes, use:
-# $ gcloud datastore indexes cleanup index.yaml
-
-indexes:            

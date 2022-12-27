@@ -1,0 +1,265 @@
+import {
+  differentialEncodeLiveTrack,
+  EXPORT_UPDATE_SEC,
+  INCREMENTAL_UPDATE_SEC,
+  Keys,
+  LIVE_AGE_OLD_SEC,
+  LIVE_FETCH_TIMEOUT_SEC,
+  LIVE_MINIMAL_INTERVAL_SEC,
+  LIVE_OLD_INTERVAL_SEC,
+  LIVE_REFRESH_SEC,
+  LIVE_RETENTION_SEC,
+  mergeLiveTracks,
+  protos,
+  removeBeforeFromLiveTrack,
+  removeDeviceFromLiveTrack,
+  simplifyLiveTrack,
+  TrackerIds,
+} from '@flyxc/common';
+import { getRedisClient } from '@flyxc/common-node';
+import { program } from 'commander';
+import { ChainableCommander } from 'ioredis';
+import process from 'process';
+import { patchLastFixAGL as patchLastFixElevation } from './app/elevation/elevation';
+import {
+  addElevationLogs,
+  addExportLogs,
+  addHostInfo,
+  addStateLogs,
+  addSyncLogs,
+  addTrackerLogs,
+  HandleCommand,
+} from './app/redis';
+import { createStateArchive, exportToStorage } from './app/state/serialize';
+import {
+  ARCHIVE_STATE_FILE,
+  ARCHIVE_STATE_FOLDER,
+  BUCKET_NAME,
+  createInitState,
+  EXPORT_ARCHIVE_SEC,
+  EXPORT_FILE_SEC,
+  PERIODIC_STATE_PATH,
+  restoreState,
+  SHUTDOWN_STATE_PATH,
+} from './app/state/state';
+import { syncFromDatastore } from './app/state/sync';
+import { FlymasterFetcher } from './app/trackers/flymaster';
+import { FlymeFetcher } from './app/trackers/flyme';
+import { InreachFetcher } from './app/trackers/inreach';
+import { SkylinesFetcher } from './app/trackers/skylines';
+import { SpotFetcher } from './app/trackers/spot';
+import { TrackerUpdates } from './app/trackers/tracker';
+
+const redis = getRedisClient();
+
+program.option('-e, --exit_hours <hours>', 'restart after', '0').parse();
+
+const exitAfterHour = parseFloat(program.opts().exit_hours);
+const exitAfterSec = isNaN(exitAfterHour) ? 0 : Math.round(exitAfterHour * 3600);
+
+let state = createInitState();
+
+(async () => {
+  await start();
+})();
+
+// Loads the state from storage and start ticking.
+async function start(): Promise<void> {
+  state = await restoreState(state);
+
+  if (state.numStarts == 0) {
+    const status = await syncFromDatastore(state, { full: true });
+    console.log(`Initial sync from the datastore`, status);
+  }
+
+  state.nodeVersion = process.version;
+  state.numStarts++;
+  state.inTick = false;
+  state.numTicks = 0;
+  state.reStartedSec = Math.round(Date.now() / 1000);
+  state.nextStopSec = exitAfterSec == 0 ? 0 : exitAfterSec + Math.round(Date.now() / 1000);
+
+  console.log(`State last tick ${new Date(state.lastTickSec * 1000)}`);
+
+  tick(state);
+  const ticker = setInterval(() => tick(state), LIVE_REFRESH_SEC * 1000);
+
+  for (const signal of ['SIGTERM', 'SIGINT', 'SIGHUP']) {
+    process.on(signal, async () => {
+      clearInterval(ticker);
+      await shutdown(state);
+    });
+  }
+}
+
+// Main loop.
+async function tick(state: protos.FetcherState) {
+  if (state.inTick) {
+    return;
+  }
+
+  if (state.numTicks % 100 == 0) {
+    console.log(`tick #${state.numTicks}`);
+  }
+
+  state.inTick = true;
+  state.numTicks++;
+  state.lastTickSec = Math.round(Date.now() / 1000);
+
+  try {
+    const memory = process.memoryUsage();
+    state.memHeapMb = Math.round(memory.heapTotal / 1e6);
+    state.memRssMb = Math.round(memory.rss / 1e6);
+
+    const pipeline = redis.pipeline();
+
+    await updateTrackers(pipeline, state);
+
+    addStateLogs(pipeline, state);
+    await addHostInfo(pipeline);
+
+    if (state.nextStopSec > 0 && state.lastTickSec > state.nextStopSec) {
+      // We do not need to sync on shutdown as there will be a sync on startup.
+      await pipeline.exec();
+      state.nextStopSec = state.lastTickSec + exitAfterSec;
+      await shutdown(state);
+    } else {
+      // Sync from Datastore.
+      if (state.lastTickSec > state.nextFullSyncSec) {
+        const status = await syncFromDatastore(state, { full: true });
+        addSyncLogs(pipeline, status, state.lastTickSec);
+      } else if (state.lastTickSec > state.nextPartialSyncSec) {
+        const status = await syncFromDatastore(state, { full: false });
+        addSyncLogs(pipeline, status, state.lastTickSec);
+      }
+
+      // Export to storage.
+      if (state.lastTickSec > state.nextArchiveExportSec) {
+        await createStateArchive(state, BUCKET_NAME, ARCHIVE_STATE_FOLDER, ARCHIVE_STATE_FILE);
+        state.nextArchiveExportSec = state.lastTickSec + EXPORT_ARCHIVE_SEC;
+      } else if (state.lastTickSec > state.nextExportSec) {
+        const success = await exportToStorage(state, BUCKET_NAME, PERIODIC_STATE_PATH);
+        state.nextExportSec = state.lastTickSec + EXPORT_FILE_SEC;
+        addExportLogs(pipeline, success, state.lastTickSec);
+      }
+
+      await pipeline.exec();
+    }
+
+    // Handle commands received via Redis
+    await HandleCommand(redis, state);
+  } catch (e) {
+    console.error(`tick: ${e}`);
+  } finally {
+    state.inTick = false;
+  }
+}
+
+// Update every tick.
+async function updateTrackers(pipeline: ChainableCommander, state: protos.FetcherState) {
+  try {
+    const fetchers = [
+      new InreachFetcher(state, pipeline),
+      new SpotFetcher(state, pipeline),
+      new SkylinesFetcher(state, pipeline),
+      new FlymeFetcher(state, pipeline),
+      new FlymasterFetcher(state, pipeline),
+    ];
+
+    const updatePromises = await Promise.allSettled(fetchers.map((f) => f.refresh(LIVE_FETCH_TIMEOUT_SEC)));
+
+    const trackerUpdates: TrackerUpdates[] = [];
+
+    for (const p of updatePromises) {
+      if (p.status === 'fulfilled') {
+        const updates = p.value;
+        trackerUpdates.push(updates);
+        addTrackerLogs(pipeline, updates, state);
+      } else {
+        console.error(`Tracker update error: ${p.reason}`);
+      }
+    }
+
+    const nowSec = Math.round(Date.now() / 1000);
+    const fullStartSec = nowSec - LIVE_RETENTION_SEC;
+    const incrementalStartSec = nowSec - INCREMENTAL_UPDATE_SEC;
+    const exportStartSec = nowSec - EXPORT_UPDATE_SEC;
+
+    // Apply the updates.
+    for (const [idStr, pilot] of Object.entries(state.pilots)) {
+      const id = Number(idStr);
+      // Merge updates
+      for (const updates of trackerUpdates) {
+        if (updates.trackerDeltas.has(id)) {
+          pilot.track = mergeLiveTracks(pilot.track!, updates.trackerDeltas.get(id)!);
+        }
+      }
+
+      // Trim and simplify
+      pilot.track = removeBeforeFromLiveTrack(pilot.track!, fullStartSec);
+      simplifyLiveTrack(pilot.track, LIVE_MINIMAL_INTERVAL_SEC);
+      // Reduce precision for old point.
+      simplifyLiveTrack(pilot.track, LIVE_OLD_INTERVAL_SEC, { toSec: nowSec - LIVE_AGE_OLD_SEC });
+    }
+
+    // Add the elevation for the last fix of every tracks when not present.
+    const elevationUpdates = await patchLastFixElevation(state);
+    addElevationLogs(pipeline, elevationUpdates, state.lastTickSec);
+
+    // Create the binary proto output.
+    // TODO: share with flyme
+    const fullTracks = protos.LiveDifferentialTrackGroup.create();
+    const incTracks = protos.LiveDifferentialTrackGroup.create({ incremental: true });
+    const flymeTracks = protos.LiveDifferentialTrackGroup.create();
+
+    for (const [idStr, pilot] of Object.entries(state.pilots)) {
+      const id = Number(idStr);
+      // Add to group
+      const name = pilot.name || 'unknown';
+      if (pilot.track!.timeSec.length > 0) {
+        fullTracks.tracks.push(differentialEncodeLiveTrack(pilot.track!, id, name));
+
+        const incTrack = removeBeforeFromLiveTrack(pilot.track!, incrementalStartSec);
+        if (incTrack.timeSec.length > 0) {
+          incTracks.tracks.push(differentialEncodeLiveTrack(incTrack, id, name));
+        }
+
+        if (pilot.share) {
+          const exportTrack = removeBeforeFromLiveTrack(incTrack, exportStartSec);
+          if (exportTrack.timeSec.length > 0) {
+            const flymeTrack = removeDeviceFromLiveTrack(exportTrack, TrackerIds.Flyme);
+            if (flymeTrack.timeSec.length > 0) {
+              flymeTracks.tracks.push(differentialEncodeLiveTrack(flymeTrack, id, name));
+              flymeTracks.remoteId.push(pilot.flyme?.account ?? '');
+            }
+          }
+        }
+      }
+    }
+
+    pipeline
+      .set(Keys.fetcherFullProto, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(fullTracks)))
+      .set(Keys.fetcherFullNumTracks, fullTracks.tracks.length)
+      .set(Keys.fetcherIncrementalProto, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(incTracks)))
+      .set(Keys.fetcherIncrementalNumTracks, incTracks.tracks.length)
+      .set(Keys.fetcherExportFlymeProto, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(flymeTracks)));
+  } catch (e) {
+    console.log(`tick error ${e}`);
+  } finally {
+    state.inTick = false;
+  }
+}
+
+// Export the state on shutdown.
+async function shutdown(state: protos.FetcherState) {
+  try {
+    console.log('Shutdown');
+    state.stoppedSec = state.lastTickSec;
+    await exportToStorage(state, BUCKET_NAME, SHUTDOWN_STATE_PATH);
+  } catch (e) {
+    console.error(`storage error: ${e}`);
+  }
+  await redis.quit();
+  console.log('Exit...');
+  process.exit();
+}

@@ -1,0 +1,70 @@
+{
+  "name": "fxc-server",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/fxc-server/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/apps/fxc-server",
+        "main": "apps/fxc-server/src/main.ts",
+        "tsConfig": "apps/fxc-server/tsconfig.app.json"
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "extractLicenses": true,
+          "inspect": false,
+          "generatePackageJson": true,
+          "fileReplacements": [
+            {
+              "replace": "apps/fxc-server/src/environments/environment.ts",
+              "with": "apps/fxc-server/src/environments/environment.prod.ts"
+            }
+          ],
+          "assets": [
+            "apps/fxc-server/src/app.yaml",
+            "apps/fxc-server/src/.gcloudignore",
+            {
+              "glob": "**/*",
+              "input": "dist/apps/fxc-front",
+              "output": ""
+            }
+          ]
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nrwl/js:node",
+      "options": {
+        "buildTarget": "fxc-server:build"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "fxc-server:build:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/fxc-server/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/fxc-server/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": [],
+  "implicitDependencies": ["fxc-front"]
+}

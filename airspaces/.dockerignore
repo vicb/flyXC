@@ -1,8 +1,0 @@
-Dockerfile
-node_modules
-asp
-tiles*/
-tiles-info.json
-airspaces.geojson
-tiles.zip
-README.md

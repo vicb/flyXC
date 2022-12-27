@@ -1,0 +1,24 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2020",
+    "module": "ES2020",
+    "lib": ["ES2020", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@flyxc/common": ["libs/common/src/index.ts"],
+      "@flyxc/common-node": ["libs/common-node/src/index.ts"],
+      "@vaadin/nodom": ["libs/vaadin-nodom/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

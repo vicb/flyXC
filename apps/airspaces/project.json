@@ -1,0 +1,82 @@
+{
+  "name": "airspaces",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/airspaces/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/apps/airspaces",
+        "outputFileName": "unzip.js",
+        "main": "apps/airspaces/src/app/unzip.ts",
+        "generatePackageJson": true,
+        "additionalEntryPoints": [
+          {
+            "entryName": "togeojson",
+            "entryPath": "apps/airspaces/src/app/togeojson.ts"
+          },
+          {
+            "entryName": "download",
+            "entryPath": "apps/airspaces/src/app/download.ts"
+          },
+          {
+            "entryName": "tiles-info",
+            "entryPath": "apps/airspaces/src/app/tiles-info.ts"
+          },
+          {
+            "entryName": "stats",
+            "entryPath": "apps/airspaces/src/app/stats.ts"
+          },
+          {
+            "entryName": "tiles-info-diff",
+            "entryPath": "apps/airspaces/src/app/tiles-info-diff.ts"
+          }
+        ],
+        "tsConfig": "apps/airspaces/tsconfig.app.json",
+        "assets": [
+          { "glob": "*", "input": "apps/airspaces/src/assets/fixedasp", "output": "assets/fixedasp" },
+          { "glob": "download.sh", "input": "apps/airspaces/src/assets/", "output": "" },
+          { "glob": "tiles-info.json", "input": "apps/airspaces/src/assets/", "output": "assets/ref" },
+          { "glob": "cors.json", "input": "apps/airspaces/src/assets/", "output": "assets" }
+        ]
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "extractLicenses": true,
+          "inspect": false
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/airspaces/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/airspaces/jest.config.ts",
+        "passWithNoTests": true
+      }
+    },
+    "container": {
+      "executor": "@nx-tools/nx-container:build",
+      "dependsOn": ["build"],
+      "options": {
+        "engine": "docker",
+        "pull": true,
+        "push": true,
+        "tags": ["gcr.io/fly-xc/unzip"]
+      }
+    }
+  },
+  "tags": []
+}

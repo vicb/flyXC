@@ -5,21 +5,29 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Fetcher",
-      "program": "${workspaceFolder}/fetcher/dist/fetcher.js",
-      "request": "launch",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "type": "pwa-node"
+      "name": "Attach",
+      "port": 9229,
+      "request": "attach",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "node"
     },
     {
       "type": "node",
-      "request": "attach",
-      "name": "Attach Server",
-      "outFiles": [
-        "${workspaceFolder}/**/*.js"
-      ],
+      "request": "launch",
+      "name": "Serve fxc-front",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/node_modules/@nrwl/cli/bin/nx",
+      "args": ["serve", "fxc-front"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test run",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/node_modules/@nrwl/cli/bin/nx",
+      "args": ["test", "run", "--skip-nx-cache", "--cache=false", "--runInBand"],
+      "cwd": "${workspaceFolder}"
     }
   ]
 }

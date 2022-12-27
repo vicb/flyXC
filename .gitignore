@@ -1,20 +1,41 @@
-node_modules/
-.gitallowed
-/frontend/src/keys.ts
-/common/src/keys.ts
-/app/server.js
-/run/index.js
-/ds
-srtm/
-frontend/static/ionic/*
-frontend/static/esri/*
-frontend/static/js/*
-frontend/static/css/*
-stats.html
+# See http://help.github.com/ignore-files/ for more about ignoring files.
 
-fetcher/dist/*
-proxy/dist/*
-tools/dist/*
+# compiled output
+dist
+tmp
+/out-tsc
 
-/tsconfig.tsbuildinfo
-/.rollup.cache
+# dependencies
+node_modules
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# misc
+/.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+npm-debug.log
+yarn-error.log
+testem.log
+/typings
+/.nx-container
+/stats.html
+
+# System Files
+.DS_Store
+Thumbs.db

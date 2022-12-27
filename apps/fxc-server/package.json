@@ -1,0 +1,9 @@
+{
+  "name": "fxc-server",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "private": true
+}

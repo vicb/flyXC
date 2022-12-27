@@ -1,0 +1,69 @@
+runtime: nodejs18
+
+instance_class: F1
+
+automatic_scaling:
+  max_instances: 3
+  max_concurrent_requests: 80
+  target_throughput_utilization: 0.95
+  target_cpu_utilization: 0.95
+  max_pending_latency: 500ms
+  min_pending_latency: 400ms
+
+handlers:
+  - url: /static/esri
+    static_dir: static/esri
+    secure: always
+    redirect_http_response_code: 301
+
+  - url: /static/models
+    static_dir: static/models
+    expiration: '2d'
+    secure: always
+    redirect_http_response_code: 301
+
+  - url: /static/img
+    static_dir: static/img
+    expiration: '2d'
+    secure: always
+    redirect_http_response_code: 301
+
+  - url: /static/js
+    static_dir: static/js
+    secure: always
+    redirect_http_response_code: 301
+
+  - url: /static/css
+    static_dir: static/css
+    secure: always
+    redirect_http_response_code: 301
+
+  - url: /robots\.txt$
+    static_files: static/robots.txt
+    upload: static/robots.txt
+    expiration: '2d'
+    secure: always
+    redirect_http_response_code: 301
+
+  - url: /favicon\.ico$
+    static_files: static/favicon.ico
+    upload: static/favicon.ico
+    expiration: '2d'
+    secure: always
+    redirect_http_response_code: 301
+
+  - url: /api/.*
+    script: auto
+    secure: always
+    redirect_http_response_code: 301
+
+  - url: /oauth/.*
+    script: auto
+    secure: always
+    redirect_http_response_code: 301
+
+  - url: /.*$
+    static_files: index.html
+    upload: index.html
+    secure: always
+    redirect_http_response_code: 301
