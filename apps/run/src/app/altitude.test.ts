@@ -27,6 +27,11 @@ describe('Altitude', () => {
       expect(getUrlList(track)).toHaveLength(127);
     });
 
+    it('Number of urls for another huge track', () => {
+      const track = readTrack('5157934597144576.pbf');
+      expect(getUrlList(track)).toHaveLength(80);
+    });
+
     it('Should support a upper bound of tiles', () => {
       const track = readTrack('570kms.pbf');
       expect(getUrlList(track, 5)).toHaveLength(5);

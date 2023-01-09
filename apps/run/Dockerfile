@@ -4,7 +4,8 @@ ENV NODE_ENV production
 
 ARG DEBIAN_FRONTEND="noninteractive"
 RUN apt-get update -y \
-	&& apt-get install -y tini
+	&& apt-get install -y tini \
+	&& apt-get install -y make g++ python3
 
 WORKDIR /usr/src/app
 RUN npm install -g npm@latest

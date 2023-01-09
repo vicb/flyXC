@@ -8,8 +8,8 @@
 // - https://www.mapzen.com/blog/terrain-tile-service/
 
 import { fetchResponse, pixelCoordinates, protos } from '@flyxc/common';
-import { decode } from '@vivaxy/png';
 import async from 'async';
+import lodepng from 'lodepng';
 import { LRU, lru } from 'tiny-lru';
 
 // Zoom level for the altitude tiles.
@@ -19,7 +19,7 @@ const ZOOM_LEVEL = 10;
 const TILE_PX_SIZE = 256;
 
 // Cache for RGBA pixels.
-let rgbaCache: LRU<number[]> | null = null;
+let rgbaCache: LRU<Uint8ClampedArray> | null = null;
 
 // Default size of the RGBA LRU in MB.
 const RGBA_LRU_SIZE_MB = 80;
@@ -44,7 +44,7 @@ export function getUrlList(track: protos.Track, maxNumUrls = Number.MAX_SAFE_INT
 export async function fetchGroundAltitude(track: protos.Track): Promise<protos.GroundAltitude> {
   // Retrieve the list of urls to download.
   const cache = getRgbaCache();
-  const urls = getUrlList(track, cache.max);
+  const urls = getUrlList(track, 150);
 
   // Download the tiles.
   let hasErrors = false;
@@ -60,7 +60,7 @@ export async function fetchGroundAltitude(track: protos.Track): Promise<protos.G
         });
         if (response.ok) {
           const buffer = await response.arrayBuffer();
-          const img = decode(buffer);
+          const img = await lodepng.decode(Buffer.from(buffer));
           if (img.width == TILE_PX_SIZE && img.height == TILE_PX_SIZE) {
             rgba = img.data;
           }
@@ -104,10 +104,10 @@ function getPngUrl(x: number, y: number, zoom: number): string {
 }
 
 // Returns a lazily instantiated LRU for RGBA pixels.
-function getRgbaCache(): LRU<number[]> {
+function getRgbaCache(): LRU<Uint8ClampedArray> {
   if (rgbaCache == null) {
     console.log(`RGBA LRU Capacity = ${RGBA_LRU_CAPACITY} - ${RGBA_LRU_SIZE_MB}MB`);
-    rgbaCache = lru<number[]>(RGBA_LRU_CAPACITY);
+    rgbaCache = lru<Uint8ClampedArray>(RGBA_LRU_CAPACITY);
   }
   return rgbaCache;
 }

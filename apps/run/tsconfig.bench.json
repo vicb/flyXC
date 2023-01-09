@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/out-tsc",
+    "module": "commonjs",
+    "types": ["jest", "jest-bench", "node"]
+  },
+  "include": ["jest-bench.config.ts", "src/**/*.bench.ts"]
+}

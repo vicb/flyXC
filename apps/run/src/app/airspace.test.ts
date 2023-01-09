@@ -32,6 +32,13 @@ describe('Airspaces', () => {
       expect(pxInTiles).toHaveLength(6236);
     });
 
+    it('Number of tiles for another huge track', () => {
+      const track = readTrack('5157934597144576.pbf');
+      const { indexesByTileUrl, pxInTiles } = getIndicesByUrlAndPx(track);
+      expect(indexesByTileUrl.size).toEqual(343);
+      expect(pxInTiles).toHaveLength(6676);
+    });
+
     it('Should support a upper bound of tiles', () => {
       const track = readTrack('570kms.pbf');
       const { indexesByTileUrl, pxInTiles } = getIndicesByUrlAndPx(track, 5);

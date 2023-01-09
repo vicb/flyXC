@@ -55,6 +55,14 @@
         "passWithNoTests": true
       }
     },
+    "benchmark": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/run/jest-bench.config.ts",
+        "passWithNoTests": true
+      }
+    },
     "container": {
       "executor": "@nx-tools/nx-container:build",
       "dependsOn": ["build"],

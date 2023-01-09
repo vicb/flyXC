@@ -12,9 +12,7 @@ const MARGIN_METER = 200;
 // Average airspace tile size.
 // The average size is ~250 bytes at level 12 (395MB	for 1649364 tiles).
 // The maximum size is ~2.2KB.
-const ASP_LRU_SIZE_MB = 80;
-const ASP_SIZE_B = 1000;
-const ASLP_LRU_CAPACITY = Math.round((ASP_LRU_SIZE_MB * 1000 * 1000) / ASP_SIZE_B);
+const ASLP_LRU_CAPACITY = 10000;
 
 // null is used when there is no tile at the given location.
 let aspCache: LRU<ArrayBuffer | null> | null = null;
@@ -50,7 +48,7 @@ export function getIndicesByUrlAndPx(
 // Retrieves the airspaces for the given track.
 export async function fetchAirspaces(track: protos.Track, altitude: protos.GroundAltitude): Promise<protos.Airspaces> {
   const cache = getAspCache();
-  const { indexesByTileUrl, pxInTiles } = getIndicesByUrlAndPx(track, cache.max);
+  const { indexesByTileUrl, pxInTiles } = getIndicesByUrlAndPx(track, 500);
 
   // Downloading tiles might return 404 if there is not airspace.
   // We then can not rely on 404 to detect errors.
@@ -192,7 +190,7 @@ function getAspFeatureKey(feature: any): string {
 // Returns a lazily instantiated LRU for airspace buffers.
 function getAspCache(): LRU<ArrayBuffer | null> {
   if (aspCache == null) {
-    console.log(`ASP LRU Capacity = ${ASLP_LRU_CAPACITY} - ${ASP_LRU_SIZE_MB}MB`);
+    console.log(`ASP LRU Capacity = ${ASLP_LRU_CAPACITY}`);
     aspCache = lru<Buffer | null>(ASLP_LRU_CAPACITY);
   }
   return aspCache;
