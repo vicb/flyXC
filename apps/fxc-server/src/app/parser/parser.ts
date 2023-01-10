@@ -65,6 +65,12 @@ export async function parse(content: string, srcUrl: string | null = null): Prom
   }
 
   let id = -1;
+
+  // The time is encoded as int32 in protos.
+  for (let track of tracks) {
+    track.timeSec = track.timeSec.map((t) => Math.min(t, 2 ** 31 - 1));
+  }
+
   const trackGroupBin = protos.TrackGroup.toBinary({ tracks: tracks.map(diffEncodeTrack) });
 
   // Save the entity in cache

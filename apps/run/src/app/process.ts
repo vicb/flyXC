@@ -25,6 +25,10 @@ export async function postProcessTrack(trackId: number | string): Promise<TrackE
       const trackGroup: protos.TrackGroup = protos.TrackGroup.fromBinary(new Uint8Array(trackGroupBin));
       const tracks: protos.Track[] = trackGroup.tracks.map((t) => diffDecodeTrack(t));
 
+      tracks.forEach((track) => {
+        track.timeSec = track.timeSec.map((t) => Math.min(t, 2 ** 31 - 1));
+      });
+
       // Add ground altitude.
       const groundAltitudes: protos.GroundAltitude[] = await async.mapSeries(tracks, fetchGroundAltitude);
       hasErrors = hasErrors || groundAltitudes.some((proto) => proto.hasErrors);
