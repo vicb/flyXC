@@ -1,6 +1,6 @@
 const grant = require('grant').express(); // eslint-disable-line @typescript-eslint/no-var-requires
 import { SecretKeys } from '@flyxc/common';
-import { getRedisClient } from '@flyxc/common-node';
+import { getDatastore, getRedisClient } from '@flyxc/common-node';
 import compression from 'compression';
 import redisStore from 'connect-redis';
 import express from 'express';
@@ -13,6 +13,8 @@ import { getWaypointRouter } from './app/routes/waypoints';
 import { environment } from './environments/environment';
 
 const redis = getRedisClient();
+
+const datastore = getDatastore();
 
 const app = express()
   .disable('x-powered-by')
@@ -73,9 +75,9 @@ const app = express()
 
 // mount extra routes.
 app
-  .use('/api/admin', getAdminRouter(redis))
-  .use('/api/live', getTrackerRouter(redis))
-  .use('/api/track', getTrackRouter())
+  .use('/api/admin', getAdminRouter(redis, datastore))
+  .use('/api/live', getTrackerRouter(redis, datastore))
+  .use('/api/track', getTrackRouter(datastore))
   .use('/api/waypoint', getWaypointRouter());
 
 const port = process.env.PORT || 8080;

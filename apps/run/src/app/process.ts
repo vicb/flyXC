@@ -7,6 +7,7 @@ import {
   SecretKeys,
 } from '@flyxc/common';
 import { retrieveTrackById, saveTrack, TrackEntity } from '@flyxc/common-node';
+import { Datastore } from '@google-cloud/datastore';
 import async from 'async';
 import * as polyline from 'google-polyline';
 import simplify from 'simplify-path';
@@ -14,8 +15,8 @@ import { fetchAirspaces } from './airspace';
 import { fetchGroundAltitude } from './altitude';
 
 // Post process a track adding metadata to it.
-export async function postProcessTrack(trackId: number | string): Promise<TrackEntity | null> {
-  const trackEntity = await retrieveTrackById(trackId);
+export async function postProcessTrack(datastore: Datastore, trackId: number | string): Promise<TrackEntity | null> {
+  const trackEntity = await retrieveTrackById(datastore, trackId);
   let hasErrors = false;
   if (trackEntity) {
     const trackGroupBin = trackEntity.track_group;
@@ -66,7 +67,7 @@ export async function postProcessTrack(trackId: number | string): Promise<TrackE
       // Update the track
       trackEntity.num_postprocess = (trackEntity.num_postprocess ?? 0) + 1;
       trackEntity.has_postprocess_errors = hasErrors;
-      await saveTrack(trackEntity);
+      await saveTrack(datastore, trackEntity);
     }
   }
 

@@ -10,7 +10,6 @@ import { Datastore } from '@google-cloud/datastore';
 import { createOrUpdateEntity } from './live-track';
 import { isAdmin } from './session';
 
-const datastore = new Datastore();
 const csrfProtection = csurf();
 
 // Cache the counter for hours.
@@ -18,7 +17,7 @@ const REDIS_CACHE_HOURS = 5;
 // Initial offset for the number of tracks
 const NUM_TRACKS_OFFSET = 250000;
 
-export function getAdminRouter(redis: Redis): Router {
+export function getAdminRouter(redis: Redis, datastore: Datastore): Router {
   const router = Router();
 
   // Restrict routes to admin users.
@@ -31,7 +30,7 @@ export function getAdminRouter(redis: Redis): Router {
 
   router.get('/admin.json', async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
-    res.json(await getDashboardValues(redis));
+    res.json(await getDashboardValues(redis, datastore));
   });
 
   router.get('/state.json', async (req: Request, res: Response) => {
@@ -71,7 +70,7 @@ export function getAdminRouter(redis: Redis): Router {
 
   router.get(`/account/:id.json`, csrfProtection, async (req: Request, res: Response) => {
     try {
-      const entity = await retrieveLiveTrackById(req.params.id);
+      const entity = await retrieveLiveTrackById(datastore, req.params.id);
       if (entity) {
         const account = AccountFormModel.createFromEntity(entity);
         res.set('xsrf-token', req.csrfToken());
@@ -85,9 +84,9 @@ export function getAdminRouter(redis: Redis): Router {
 
   router.post(`/account/:id.json`, csrfProtection, async (req: Request, res: Response) => {
     try {
-      const entity = await retrieveLiveTrackById(req.params.id);
+      const entity = await retrieveLiveTrackById(datastore, req.params.id);
       if (entity) {
-        return createOrUpdateEntity(entity, req, res, entity.email, entity.google_id, redis);
+        return createOrUpdateEntity(datastore, entity, req, res, entity.email, entity.google_id, redis);
       }
     } catch (e) {
       console.error(e);
@@ -99,7 +98,7 @@ export function getAdminRouter(redis: Redis): Router {
   // The `tracks` query parameter set the number of tracks to retrieve.
   router.get('/archives.json', async (req: Request, res: Response) => {
     const numTracks = Math.min((req.query.tracks as any) ?? 10, 50);
-    const tracks: TrackEntity[] = await retrieveRecentTracks(numTracks);
+    const tracks: TrackEntity[] = await retrieveRecentTracks(datastore, numTracks);
 
     res.json(
       tracks.map((track) => ({
@@ -116,7 +115,7 @@ export function getAdminRouter(redis: Redis): Router {
 }
 
 // Returns all the values needed for the dashboard (from REDIS).
-async function getDashboardValues(redis: Redis): Promise<unknown> {
+async function getDashboardValues(redis: Redis, datastore: Datastore): Promise<unknown> {
   const redisOut = await redis.pipeline().get(Keys.dsLastRequestSec).get(Keys.trackNum).exec();
 
   const cacheTimeSec = Number(redisOut![0][1] ?? 0);

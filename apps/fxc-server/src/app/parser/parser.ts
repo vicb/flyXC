@@ -4,6 +4,7 @@ import * as crypto from 'crypto';
 
 import { PubSub } from '@google-cloud/pubsub';
 
+import { Datastore } from '@google-cloud/datastore';
 import { parse as parseGpx, parseRoute as parseGpxRoute } from './gpx';
 import { parse as parseIgc } from './igc';
 import { parse as parseKml } from './kml';
@@ -14,9 +15,9 @@ import { parse as parseXctsk } from './xctsk';
 // The track is either retrieved from the DB or parsed.
 //
 // Returns am encoded ProtoTrackGroup.
-export async function parseFromUrl(url: string): Promise<protos.MetaTrackGroup> {
+export async function parseFromUrl(datastore: Datastore, url: string): Promise<protos.MetaTrackGroup> {
   // First check the cache.
-  const metaGroup = await retrieveMetaTrackGroupByUrl(url);
+  const metaGroup = await retrieveMetaTrackGroupByUrl(datastore, url);
   if (metaGroup) {
     console.log(`Cache hit (url = ${url})`);
     return metaGroup;
@@ -26,7 +27,7 @@ export async function parseFromUrl(url: string): Promise<protos.MetaTrackGroup> 
   try {
     const response = await fetchResponse(url, { timeoutS: 5 });
     if (response.ok) {
-      return await parse(await response.text(), url);
+      return await parse(datastore, await response.text(), url);
     }
   } catch (e) {
     // empty
@@ -38,10 +39,14 @@ export async function parseFromUrl(url: string): Promise<protos.MetaTrackGroup> 
 //
 // When the cache is enabled, already processed content is returned immediately.
 // Otherwise we try to parse the content as any of the supported formats.
-export async function parse(content: string, srcUrl: string | null = null): Promise<protos.MetaTrackGroup> {
+export async function parse(
+  datastore: Datastore,
+  content: string,
+  srcUrl: string | null = null,
+): Promise<protos.MetaTrackGroup> {
   // First check the cache
   const hash = crypto.createHash('md5').update(content).digest('hex');
-  const metaGroup = await retrieveMetaTrackGroupByHash(hash);
+  const metaGroup = await retrieveMetaTrackGroupByHash(datastore, hash);
   if (metaGroup) {
     console.log(`Cache hit (hash = ${hash})`);
     return metaGroup;
@@ -67,7 +72,7 @@ export async function parse(content: string, srcUrl: string | null = null): Prom
   let id = -1;
 
   // The time is encoded as int32 in protos.
-  for (let track of tracks) {
+  for (const track of tracks) {
     track.timeSec = track.timeSec.map((t) => Math.min(t, 2 ** 31 - 1));
   }
 
@@ -84,7 +89,7 @@ export async function parse(content: string, srcUrl: string | null = null): Prom
       has_postprocess_errors: false,
       url: srcUrl || undefined,
     };
-    id = await saveTrack(trackEntity);
+    id = await saveTrack(datastore, trackEntity);
     // Publish the created track to PubSub for further processing.
     const client = new PubSub();
     await client.topic('projects/fly-xc/topics/track.upload').publishMessage({ json: { id } });

@@ -16,7 +16,8 @@ import {
   simplifyLiveTrack,
   TrackerIds,
 } from '@flyxc/common';
-import { getRedisClient } from '@flyxc/common-node';
+import { getDatastore, getRedisClient } from '@flyxc/common-node';
+import { Datastore } from '@google-cloud/datastore';
 import { program } from 'commander';
 import { ChainableCommander } from 'ioredis';
 import process from 'process';
@@ -60,15 +61,17 @@ const exitAfterSec = isNaN(exitAfterHour) ? 0 : Math.round(exitAfterHour * 3600)
 let state = createInitState();
 
 (async () => {
-  await start();
+  const datastore = getDatastore();
+  await start(datastore);
 })();
 
 // Loads the state from storage and start ticking.
-async function start(): Promise<void> {
+async function start(datastore: Datastore): Promise<void> {
   state = await restoreState(state);
 
   if (state.numStarts == 0) {
-    const status = await syncFromDatastore(state, { full: true });
+    const datastore = getDatastore();
+    const status = await syncFromDatastore(datastore, state, { full: true });
     console.log(`Initial sync from the datastore`, status);
   }
 
@@ -81,8 +84,8 @@ async function start(): Promise<void> {
 
   console.log(`State last tick ${new Date(state.lastTickSec * 1000)}`);
 
-  tick(state);
-  const ticker = setInterval(() => tick(state), LIVE_REFRESH_SEC * 1000);
+  tick(state, datastore);
+  const ticker = setInterval(() => tick(state, datastore), LIVE_REFRESH_SEC * 1000);
 
   for (const signal of ['SIGTERM', 'SIGINT', 'SIGHUP']) {
     process.on(signal, async () => {
@@ -93,7 +96,7 @@ async function start(): Promise<void> {
 }
 
 // Main loop.
-async function tick(state: protos.FetcherState) {
+async function tick(state: protos.FetcherState, datastore: Datastore) {
   if (state.inTick) {
     return;
   }
@@ -126,10 +129,10 @@ async function tick(state: protos.FetcherState) {
     } else {
       // Sync from Datastore.
       if (state.lastTickSec > state.nextFullSyncSec) {
-        const status = await syncFromDatastore(state, { full: true });
+        const status = await syncFromDatastore(datastore, state, { full: true });
         addSyncLogs(pipeline, status, state.lastTickSec);
       } else if (state.lastTickSec > state.nextPartialSyncSec) {
-        const status = await syncFromDatastore(state, { full: false });
+        const status = await syncFromDatastore(datastore, state, { full: false });
         addSyncLogs(pipeline, status, state.lastTickSec);
       }
 
@@ -147,7 +150,7 @@ async function tick(state: protos.FetcherState) {
     }
 
     // Handle commands received via Redis
-    await HandleCommand(redis, state);
+    await HandleCommand(redis, state, datastore);
   } catch (e) {
     console.error(`tick: ${e}`);
   } finally {

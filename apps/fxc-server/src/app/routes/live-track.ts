@@ -22,10 +22,9 @@ import { Request, Response, Router } from 'express';
 import { Redis } from 'ioredis';
 import { getUserInfo, isLoggedIn, logout } from './session';
 
-const datastore = new Datastore();
 const csrfProtection = csurf();
 
-export function getTrackerRouter(redis: Redis): Router {
+export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
   const router = Router();
 
   // Get the geojson for the currently active trackers.
@@ -75,7 +74,7 @@ export function getTrackerRouter(redis: Redis): Router {
 
       const { name, token } = userInfo;
       let account: AccountModel;
-      const entity = await retrieveLiveTrackByGoogleId(token);
+      const entity = await retrieveLiveTrackByGoogleId(datastore, token);
 
       if (!entity) {
         account = AccountFormModel.createEmptyValue();
@@ -102,8 +101,8 @@ export function getTrackerRouter(redis: Redis): Router {
       return res.sendStatus(500);
     }
     const { email, token } = userInfo;
-    const entity = await retrieveLiveTrackByGoogleId(token);
-    return createOrUpdateEntity(entity, req, res, email, token, redis);
+    const entity = await retrieveLiveTrackByGoogleId(datastore, token);
+    return createOrUpdateEntity(datastore, entity, req, res, email, token, redis);
   });
 
   // Logout.
@@ -117,6 +116,7 @@ export function getTrackerRouter(redis: Redis): Router {
 
 // Create or update a LiveTrack entity from the form POST data.
 export async function createOrUpdateEntity(
+  datastore: Datastore,
   entity: LiveTrackEntity | undefined,
   req: Request,
   res: Response,

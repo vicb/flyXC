@@ -1,24 +1,25 @@
 import { diffDecodeAirspaces, protos } from '@flyxc/common';
 import { retrieveMetaTrackGroupByUrl, retrieveMetaTrackGroupsByIds } from '@flyxc/common-node';
+import { Datastore } from '@google-cloud/datastore';
 import { Request, Response, Router } from 'express';
 import { UploadedFile } from 'express-fileupload';
 
 import { parse, parseFromUrl, parseRoute } from '../parser/parser';
 
-export function getTrackRouter(): Router {
+export function getTrackRouter(datastore: Datastore): Router {
   const router = Router();
 
   // Retrieves tracks by url.
   router.get('/byurl.pbf', async (req: Request, res: Response) => {
     const urls = [].concat(req.query.track as any);
-    const trackGroups: protos.MetaTrackGroup[] = await Promise.all(urls.map(parseFromUrl));
+    const trackGroups: protos.MetaTrackGroup[] = await Promise.all(urls.map((url) => parseFromUrl(datastore, url)));
     sendTracks(res, trackGroups);
   });
 
   // Retrieves tracks by datastore ids.
   router.get('/byid.pbf', async (req: Request, res: Response) => {
     const ids = [].concat(req.query.id as any);
-    const trackGroups: protos.MetaTrackGroup[] = await retrieveMetaTrackGroupsByIds(ids);
+    const trackGroups: protos.MetaTrackGroup[] = await retrieveMetaTrackGroupsByIds(datastore, ids);
     sendTracks(res, trackGroups);
   });
 
@@ -28,7 +29,7 @@ export function getTrackRouter(): Router {
       // Parse files as track.
       const fileObjects: UploadedFile[] = [].concat(req.files.track as any);
       const files: string[] = fileObjects.map((file) => file.data.toString());
-      const tracks: protos.MetaTrackGroup[] = await Promise.all(files.map((file) => parse(file)));
+      const tracks: protos.MetaTrackGroup[] = await Promise.all(files.map((file) => parse(datastore, file)));
 
       // Parses files as route.
       let route;
@@ -53,7 +54,7 @@ export function getTrackRouter(): Router {
       return;
     }
     const ids = req.query.ids.split(',');
-    const trackGroups: protos.MetaTrackGroup[] = await retrieveMetaTrackGroupsByIds(ids);
+    const trackGroups: protos.MetaTrackGroup[] = await retrieveMetaTrackGroupsByIds(datastore, ids);
     const processedGroups: protos.MetaTrackGroup[] = [];
     trackGroups.forEach((group) => {
       if (group != null && group.numPostprocess > 0) {
@@ -75,7 +76,7 @@ export function getTrackRouter(): Router {
     res.set('Access-Control-Allow-Origin', '*');
     const url = req.query.track;
     if (typeof url === 'string') {
-      const metaGroup = await retrieveMetaTrackGroupByUrl(url);
+      const metaGroup = await retrieveMetaTrackGroupByUrl(datastore, url);
       if (metaGroup?.airspacesGroupBin) {
         const aspGroup = protos.AirspacesGroup.fromBinary(new Uint8Array(metaGroup.airspacesGroupBin));
         if (aspGroup?.airspaces) {

@@ -1,5 +1,6 @@
 import { Keys, protos, trackerPropNames } from '@flyxc/common';
 import { pushListCap } from '@flyxc/common-node';
+import { Datastore } from '@google-cloud/datastore';
 import { ChainableCommander, Redis } from 'ioredis';
 import * as nos from 'node-os-utils';
 import * as zlib from 'zlib';
@@ -158,7 +159,7 @@ export function addStateLogs(pipeline: ChainableCommander, state: protos.Fetcher
 }
 
 // Handle the commands received via REDIS.
-export async function HandleCommand(redis: Redis, state: protos.FetcherState): Promise<void> {
+export async function HandleCommand(redis: Redis, state: protos.FetcherState, datastore: Datastore): Promise<void> {
   try {
     const [[, cmdCapture], [, cmdExport], [, cmdSyncCount], [, cmdSyncFull]] = (await redis
       .pipeline()
@@ -193,7 +194,7 @@ export async function HandleCommand(redis: Redis, state: protos.FetcherState): P
       if (isNaN(count) || count < 0) {
         pipeline.del(Keys.fetcherCmdSyncIncCount);
       } else if (count > 0) {
-        const status = await syncFromDatastore(state, { full: false });
+        const status = await syncFromDatastore(datastore, state, { full: false });
         pipeline.decrby(Keys.fetcherCmdSyncIncCount, count);
         addSyncLogs(pipeline, status, state.lastTickSec);
       }
@@ -201,7 +202,7 @@ export async function HandleCommand(redis: Redis, state: protos.FetcherState): P
     }
 
     if (cmdSyncFull != null) {
-      const status = await syncFromDatastore(state, { full: true });
+      const status = await syncFromDatastore(datastore, state, { full: true });
       const pipeline = redis.pipeline();
       pipeline.del(Keys.fetcherCmdSyncFull);
       addSyncLogs(pipeline, status, state.lastTickSec);

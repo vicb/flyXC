@@ -1,3 +1,4 @@
+import { getDatastore } from '@flyxc/common-node';
 import express, { Request, Response } from 'express';
 import { migrateToFetcher } from './app/migrate';
 import { postProcessTrack } from './app/process';
@@ -11,7 +12,7 @@ app.post('/process', async (req: Request, res: Response) => {
     try {
       id = JSON.parse(Buffer.from(req.body.message.data, 'base64').toString()).id;
       console.log(`Post processing id = ${id}`);
-      await postProcessTrack(id);
+      await postProcessTrack(getDatastore(), id);
       return res.sendStatus(200);
     } catch (e) {
       console.error(`Error processing id = ${id}`, e);

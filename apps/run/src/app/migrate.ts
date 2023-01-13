@@ -6,12 +6,12 @@ import {
   protos,
   trackerPropNames,
 } from '@flyxc/common';
-import { retrieveTrackById, TrackEntity, updateUnzippedTracks } from '@flyxc/common-node';
+import { getDatastore, retrieveTrackById, TrackEntity, updateUnzippedTracks } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import { RunQueryResponse } from '@google-cloud/datastore/build/src/query';
 import { fetchAirspaces } from './airspace';
 
-const datastore = new Datastore();
+const datastore = getDatastore();
 
 export async function migrate(): Promise<void> {
   let start: string | undefined;
@@ -41,14 +41,14 @@ export async function migrate(): Promise<void> {
       }
     }
 
-    await updateUnzippedTracks(entities);
+    await updateUnzippedTracks(datastore, entities);
 
     start = res[1].endCursor;
   } while (res[1].moreResults != datastore.NO_MORE_RESULTS);
 }
 
 export async function migrateTrack(id: number): Promise<TrackEntity | undefined> {
-  const entity = await retrieveTrackById(id);
+  const entity = await retrieveTrackById(datastore, id);
 
   if (!entity) {
     console.error(`No entity`);

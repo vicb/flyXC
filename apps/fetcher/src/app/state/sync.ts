@@ -29,6 +29,7 @@ export interface SyncStatus {
 // - true: full sync, everything is synced,
 // - false: only sync entity updated since last sync.
 export async function syncFromDatastore(
+  datastore: Datastore,
   state: protos.FetcherState,
   { full }: { full: boolean } = { full: false },
 ): Promise<SyncStatus> {
@@ -39,7 +40,6 @@ export async function syncFromDatastore(
     errors: [],
   };
   try {
-    const datastore = new Datastore();
     const query = datastore.createQuery(LIVE_TRACK_TABLE).limit(BATCH_SIZE);
 
     if (!full) {
