@@ -17,6 +17,7 @@
     "paths": {
       "@flyxc/common": ["libs/common/src/index.ts"],
       "@flyxc/common-node": ["libs/common-node/src/index.ts"],
+      "@vaadin/dom": ["libs/vaadin-dom/src/index.ts"],
       "@vaadin/nodom": ["libs/vaadin-nodom/src/index.ts"]
     }
   },

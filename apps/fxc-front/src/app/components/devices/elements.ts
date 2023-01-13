@@ -1,11 +1,9 @@
 import { AccountFormModel, AccountModel, trackerDisplayNames, TrackerIds, trackerPropNames } from '@flyxc/common';
+import { Binder, CheckedFieldStrategy, field, VaadinFieldStrategy } from '@vaadin/dom';
 import * as lit from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
-
-import { Binder } from '../../../vaadin/form/Binder';
-import { CheckedFieldStrategy, field, VaadinFieldStrategy } from '../../../vaadin/form/Field';
 
 // Card for a single tracker.
 @customElement('device-card')

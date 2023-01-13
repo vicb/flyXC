@@ -1,16 +1,13 @@
 // Live tracker configuration.
-import '../ui/google-btn';
-import './elements';
-
 import { AccountFormModel, TrackerIds } from '@flyxc/common';
+import { alertController } from '@ionic/core/components';
+import { Binder, field } from '@vaadin/dom';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, queryAll, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { setFetchMillis } from '../../redux/live-track-slice';
-
-import { alertController } from '@ionic/core/components';
-import { Binder } from '../../../vaadin/form/Binder';
-import { field } from '../../../vaadin/form/Field';
+import '../ui/google-btn';
+import './elements';
 
 @customElement('devices-page')
 export class DevicesPage extends LitElement {
