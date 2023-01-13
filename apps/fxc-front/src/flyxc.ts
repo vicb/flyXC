@@ -78,10 +78,11 @@ export class FlyXc extends connect(store)(LitElement) {
           ></ion-route>
           <ion-route url="/adm" component="admin-page" .beforeEnter=${this.beforeAdmin}></ion-route>
           <ion-route
-            url="/admin/account/:accountId"
+            url="/adm/account/:accountId"
             component="devices-page"
             .beforeEnter=${this.beforeDevices}
           ></ion-route>
+          <ion-route url="/arc" component="archives-page" .beforeEnter=${this.beforeArchives}></ion-route>
           <ion-route url="*" .beforeEnter=${() => ({ redirect: '/' })} component="x-301"></ion-route>
         </ion-router>
         <ion-router-outlet .animated=${false}></ion-router-outlet>
@@ -91,6 +92,11 @@ export class FlyXc extends connect(store)(LitElement) {
 
   private async beforeAdmin(): Promise<NavigationHookResult> {
     await import('./app/components/admin/admin-page');
+    return true;
+  }
+
+  private async beforeArchives(): Promise<NavigationHookResult> {
+    await import('./app/components/archives/archives-page');
     return true;
   }
 

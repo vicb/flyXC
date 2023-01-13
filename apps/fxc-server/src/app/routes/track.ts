@@ -1,14 +1,7 @@
 import { diffDecodeAirspaces, protos } from '@flyxc/common';
-import {
-  retrieveMetaTrackGroupByUrl,
-  retrieveMetaTrackGroupsByIds,
-  retrieveRecentTracks,
-  TrackEntity,
-} from '@flyxc/common-node';
+import { retrieveMetaTrackGroupByUrl, retrieveMetaTrackGroupsByIds } from '@flyxc/common-node';
 import { Request, Response, Router } from 'express';
 import { UploadedFile } from 'express-fileupload';
-
-import { Datastore } from '@google-cloud/datastore';
 
 import { parse, parseFromUrl, parseRoute } from '../parser/parser';
 
@@ -27,23 +20,6 @@ export function getTrackRouter(): Router {
     const ids = [].concat(req.query.id as any);
     const trackGroups: protos.MetaTrackGroup[] = await retrieveMetaTrackGroupsByIds(ids);
     sendTracks(res, trackGroups);
-  });
-
-  // Retrieves the list of tracks.
-  // The `tracks` query parameter set the number of tracks to retrieve.
-  router.get('/archives.pbf', async (req: Request, res: Response) => {
-    const numTracks = Math.min((req.query.tracks as any) ?? 10, 50);
-    const tracks: TrackEntity[] = await retrieveRecentTracks(numTracks);
-
-    res.json(
-      tracks.map((track) => ({
-        id: track[Datastore.KEY]?.id,
-        city: track.city,
-        country: track.country,
-        path: track.path,
-        created: track.created,
-      })),
-    );
   });
 
   // Upload tracks to the database.

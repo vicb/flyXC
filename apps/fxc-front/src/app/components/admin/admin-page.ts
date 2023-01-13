@@ -1,11 +1,10 @@
 import '@alenaksu/json-viewer';
-import '../ui/google-btn';
-
 import { Keys, protos, round, trackerPropNames } from '@flyxc/common';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
+import '../ui/google-btn';
 
 const REFRESH_MIN = 10;
 
