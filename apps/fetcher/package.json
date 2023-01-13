@@ -1,8 +1,5 @@
 {
   "name": "fetcher",
   "version": "1.0.0",
-  "description": "Fetch live tracking data",
-  "scripts": {
-    "deploy": "gcloud compute instances update-container fetcher3 --container-image=gcr.io/fly-xc/fetcher:latest"
-  }
+  "description": "Fetch live tracking data"
 }

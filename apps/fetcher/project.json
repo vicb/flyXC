@@ -64,6 +64,13 @@
         "pull": true,
         "tags": ["gcr.io/fly-xc/fetcher"]
       }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["container"],
+      "options": {
+        "command": "gcloud compute instances update-container fetcher3 --container-image=gcr.io/fly-xc/fetcher:latest"
+      }
     }
   },
   "tags": []

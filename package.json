@@ -3,7 +3,13 @@
   "version": "2.0.0",
   "license": "MIT",
   "scripts": {
+    "deploy": "nx build fxc-server --prod --skip-nx-cache && rm dist/apps/fxc-server/package-lock.json && gcloud app deploy dist/apps/fxc-server/app.yaml",
     "postinstall": "node tools/scripts/copy_arcgis.js"
+  },
+  "nx": {
+    "includedScripts": [
+      "deploy"
+    ]
   },
   "private": true,
   "devDependencies": {
@@ -116,4 +122,3 @@
     "xmlbuilder": "^15.1.1"
   }
 }
-

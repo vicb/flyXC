@@ -2,8 +2,5 @@
   "name": "run",
   "version": "1.0.0",
   "description": "Run post-processing on google cloud",
-  "main": "index.js",
-  "scripts": {
-    "deploy": "gcloud run deploy trackers --image gcr.io/fly-xc/trackers --platform managed"
-  }
+  "main": "index.js"
 }
