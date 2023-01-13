@@ -22,7 +22,7 @@ const TILE_PX_SIZE = 256;
 let rgbaCache: LRU<Uint8ClampedArray> | null = null;
 
 // Default size of the RGBA LRU in MB.
-const RGBA_LRU_SIZE_MB = 80;
+const RGBA_LRU_SIZE_MB = 160;
 const RGBA_SIZE_B = TILE_PX_SIZE * TILE_PX_SIZE * 4;
 const RGBA_LRU_CAPACITY = Math.round((RGBA_LRU_SIZE_MB * 1000 * 1000) / RGBA_SIZE_B);
 
