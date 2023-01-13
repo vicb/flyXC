@@ -73,6 +73,7 @@ export class TrackingElement extends connect(store)(LitElement) {
   private info?: google.maps.InfoWindow;
 
   private features: google.maps.Data.Feature[] = [];
+  private clearCurrentPilotListener?: google.maps.MapsEventListener;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -84,6 +85,15 @@ export class TrackingElement extends connect(store)(LitElement) {
     ORIGIN_MSG = new google.maps.Point(0, 22);
     this.setMapStyle(this.map);
     this.setupInfoWindow(this.map);
+    this.clearCurrentPilotListener = this.map.addListener('click', () => {
+      this.currentId = undefined;
+    });
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.clearCurrentPilotListener?.remove();
+    this.clearCurrentPilotListener = undefined;
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
@@ -283,6 +293,12 @@ export class TrackingElement extends connect(store)(LitElement) {
       // Make the recent tracks more visible when there are no non-live tracks.
       strokeWeight = 2;
       zIndex = 15;
+    }
+
+    // Fade the non selected tracks.
+    // Helpful when there are many tracks (i.e. a comp).
+    if (this.currentId != null && id != this.currentId) {
+      strokeOpacity *= 0.5;
     }
 
     return {
