@@ -141,6 +141,7 @@ export class TrackingElement extends connect(store)(LitElement) {
       const type = feature.getGeometry()?.getType();
       if (type === 'LineString') {
         const id = Number(feature.getProperty('id') ?? 0);
+        this.info?.close();
         store.dispatch(setCurrentLiveId(id));
         this.setMapStyle(this.map);
       } else if (type === 'Point' && this.units) {
