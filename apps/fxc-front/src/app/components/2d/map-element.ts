@@ -102,7 +102,7 @@ export class MapElement extends connect(store)(LitElement) {
       }
       if (this.tracks.length && this.lockOnPilot && changedProps.has('timeSec') && now > this.lockPanBefore) {
         this.lockPanBefore = now + 50;
-        const zoom = this.map.getZoom();
+        const zoom = this.map.getZoom() as number;
         const currentPosition = sel.getTrackLatLonAlt(store.getState())(this.timeSec) as LatLonZ;
         const { x, y } = pixelCoordinates(currentPosition, zoom).world;
         const bounds = this.map.getBounds() as google.maps.LatLngBounds;
@@ -157,7 +157,7 @@ export class MapElement extends connect(store)(LitElement) {
         (options as any).useStaticMap = true;
       }
 
-      this.map = new google.maps.Map(this.querySelector('#map') as Element, options);
+      this.map = new google.maps.Map(this.querySelector('#map') as HTMLElement, options);
 
       const controls = document.createElement('controls-element') as ControlsElement;
       controls.map = this.map;
@@ -174,7 +174,7 @@ export class MapElement extends connect(store)(LitElement) {
       }
 
       this.map.addListener('click', (e: google.maps.MapMouseEvent) => {
-        const latLng = e.latLng;
+        const latLng = e.latLng as google.maps.LatLng;
         const found = findClosestFix(this.tracks, latLng.lat(), latLng.lng());
         if (found != null) {
           store.dispatch(setTimeSec(found.timeSec));
@@ -317,13 +317,13 @@ export class MapElement extends connect(store)(LitElement) {
       if (points.length >= 2 && this.map) {
         const proj = this.map.getProjection() as google.maps.Projection;
         const bounds = this.map.getBounds() as google.maps.LatLngBounds;
-        const topRight = proj.fromLatLngToPoint(bounds.getNorthEast());
-        const bottomLeft = proj.fromLatLngToPoint(bounds.getSouthWest());
-        const scale = Math.pow(2, this.map.getZoom());
+        const topRight = proj.fromLatLngToPoint(bounds.getNorthEast()) as google.maps.Point;
+        const bottomLeft = proj.fromLatLngToPoint(bounds.getSouthWest()) as google.maps.Point;
+        const scale = Math.pow(2, this.map.getZoom() as number);
         encodedRoute = google.maps.geometry.encoding.encodePath(
           points.map(([x, y]) => {
             const worldPoint = new google.maps.Point(x / scale + bottomLeft.x, y / scale + topRight.y);
-            return proj.fromPointToLatLng(worldPoint);
+            return proj.fromPointToLatLng(worldPoint) as google.maps.LatLng;
           }),
         );
       }
@@ -341,7 +341,7 @@ export class MapElement extends connect(store)(LitElement) {
   // - or if the request was initiated by them (i.e. from the menu).
   private geolocation({ lat, lon }: LatLon, userInitiated: boolean): void {
     if (this.map) {
-      const center = this.map.getCenter();
+      const center = this.map.getCenter() as google.maps.LatLng;
       const start = store.getState().location.start;
       if (userInitiated || (center.lat() == start.lat && center.lng() == start.lon)) {
         this.center(lat, lon);
@@ -356,7 +356,7 @@ export class MapElement extends connect(store)(LitElement) {
   private zoom(delta: number): void {
     const map = this.map;
     if (map) {
-      map.setZoom(map.getZoom() + (delta < 0 ? 1 : -1));
+      map.setZoom((map.getZoom() as number) + (delta < 0 ? 1 : -1));
     }
   }
 
@@ -385,9 +385,9 @@ export class MapElement extends connect(store)(LitElement) {
 
   private handleLocation(): void {
     if (this.map) {
-      const center = this.map.getCenter();
+      const center = this.map.getCenter() as google.maps.LatLng;
       store.dispatch(setCurrentLocation({ lat: center.lat(), lon: center.lng() }));
-      store.dispatch(setCurrentZoom(this.map.getZoom()));
+      store.dispatch(setCurrentZoom(this.map.getZoom() as number));
     }
   }
 

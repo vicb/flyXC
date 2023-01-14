@@ -86,7 +86,8 @@ export class TrackingElement extends connect(store)(LitElement) {
     this.setMapStyle(this.map);
     this.setupInfoWindow(this.map);
     this.clearCurrentPilotListener = this.map.addListener('click', () => {
-      this.currentId = undefined;
+      store.dispatch(setCurrentLiveId(undefined));
+      this.info?.close();
     });
   }
 
@@ -132,12 +133,12 @@ export class TrackingElement extends connect(store)(LitElement) {
       this.setMapStyle(this.map);
     });
 
-    map.data.addListener('click', (event) => {
+    map.data.addListener('click', (event: any) => {
       const feature: google.maps.Data.Feature | undefined = event.feature;
       if (!feature) {
         return;
       }
-      const type = feature.getGeometry().getType();
+      const type = feature.getGeometry()?.getType();
       if (type === 'LineString') {
         const id = Number(feature.getProperty('id') ?? 0);
         store.dispatch(setCurrentLiveId(id));
@@ -164,7 +165,7 @@ export class TrackingElement extends connect(store)(LitElement) {
 
   private setMapStyle(map: google.maps.Map): void {
     map.data.setStyle((feature: google.maps.Data.Feature): google.maps.Data.StyleOptions => {
-      switch (feature.getGeometry().getType()) {
+      switch (feature.getGeometry()?.getType()) {
         case 'Point':
           return this.getPointStyle(feature);
         case 'LineString':

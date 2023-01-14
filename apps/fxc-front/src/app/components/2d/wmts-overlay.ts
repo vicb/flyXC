@@ -107,7 +107,7 @@ export abstract class WMTSMapTypeElement extends WMTSOverlayElement {
     super.init(map);
     this.registerMapType((this.constructor as any).mapTypeId);
     map.addListener('maptypeid_changed', () => {
-      this.visibilityHandler(map.getMapTypeId());
+      this.visibilityHandler(map.getMapTypeId() as string);
     });
   }
 

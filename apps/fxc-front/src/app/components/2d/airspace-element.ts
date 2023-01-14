@@ -79,7 +79,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
     if (changedProperties.has('show')) {
       if (this.show) {
         this.addOverlays();
-        this.clickListener = this.map.addListener('click', async (e) => this.handleMapClick(e.latLng));
+        this.clickListener = this.map.addListener('click', async (e: any) => this.handleMapClick(e.latLng));
         this.zoomListener = this.map.addListener('zoom_changed', () => this.setOverlaysZoom());
       } else {
         this.removeOverlays();
@@ -114,7 +114,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
       if (this.map.overlayMapTypes) {
         o.setAltitude(this.maxAltitude);
         o.setShowRestricted(this.showRestricted);
-        this.map.overlayMapTypes.push(o);
+        this.map.overlayMapTypes.push(o as any);
       }
     });
   }

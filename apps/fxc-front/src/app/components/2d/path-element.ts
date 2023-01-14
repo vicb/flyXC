@@ -124,7 +124,7 @@ export class PathElement extends connect(store)(LitElement) {
     if (this.line) {
       const path = this.line.getPath();
       path.clear();
-      const center = this.map.getCenter();
+      const center = this.map.getCenter() as google.maps.LatLng;
       const mapViewSpan = (this.map.getBounds() as google.maps.LatLngBounds).toSpan();
       path.push(new google.maps.LatLng(center.lat(), center.lng() + mapViewSpan.lng() / 5));
       path.push(new google.maps.LatLng(center.lat(), center.lng() - mapViewSpan.lng() / 5));
@@ -168,7 +168,7 @@ export class PathElement extends connect(store)(LitElement) {
       }
     });
     this.onPointAddeded = google.maps.event.addListener(this.map, 'rightclick', (e: google.maps.MapMouseEvent) =>
-      this.appendToPath(e.latLng),
+      this.appendToPath(e.latLng as google.maps.LatLng),
     );
     this.onBoundsChanged = google.maps.event.addListener(this.map, 'bounds_changed', () => {
       if (this.enabled && this.encodedRoute.length == 0) {
