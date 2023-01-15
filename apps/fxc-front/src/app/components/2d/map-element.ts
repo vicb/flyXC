@@ -49,7 +49,6 @@ function loadApi(): Promise<typeof google> {
       apiKey: getApiKey('gmaps', tracks[0]),
       version: 'weekly',
       libraries: ['geometry'],
-      mapIds: ['997ff70df48844a5'],
     }).load();
   }
   return apiPromise;
@@ -149,13 +148,8 @@ export class MapElement extends connect(store)(LitElement) {
           ],
           style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
         },
+        mapId: '997ff70df48844a5',
       };
-
-      // Do not enable the webgl renderer on mobile devices as it is slow to load.
-      if (!store.getState().browser.isMobile) {
-        (options as any).mapId = '997ff70df48844a5';
-        (options as any).useStaticMap = true;
-      }
 
       this.map = new google.maps.Map(this.querySelector('#map') as HTMLElement, options);
 
