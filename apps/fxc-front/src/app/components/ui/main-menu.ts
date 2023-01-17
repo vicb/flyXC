@@ -24,7 +24,10 @@ import {
   getLivePilots,
   LivePilot,
   setDisplayLabels as setDisplayLiveLabels,
+  setFetchMillis,
+  setFlightMode,
   setReturnUrl,
+  updateTrackers,
 } from '../../redux/live-track-slice';
 import { setEnabled } from '../../redux/planner-slice';
 import * as sel from '../../redux/selectors';
@@ -101,7 +104,7 @@ export class MainMenu extends connect(store)(LitElement) {
                       step="0.2"
                       debounce="50"
                       value=${this.exaggeration}
-                      pin="true"
+                      .pin=${true}
                       .pinFormatter=${this.formatTimes}
                     >
                       <ion-label slot="start">1.0x</ion-label>
@@ -280,7 +283,7 @@ export class SkywaysItems extends connect(store)(LitElement) {
           step="5"
           debounce="50"
           value=${this.opacity}
-          pin="true"
+          .pin=${true}
           .pinFormatter=${this.formatPercent}
         >
           <ion-label slot="start"><i class="las la-adjust"></i></ion-label>
@@ -469,10 +472,13 @@ export class LiveTrackItems extends connect(store)(LitElement) {
   private displayLabels = true;
   @state()
   private pilots: LivePilot[] = [];
+  @state()
+  private flightMode = false;
 
   stateChanged(state: RootState): void {
     this.displayLabels = state.liveTrack.displayLabels;
     this.pilots = getLivePilots(state);
+    this.flightMode = state.liveTrack.flightMode;
   }
 
   render(): TemplateResult {
@@ -490,9 +496,13 @@ export class LiveTrackItems extends connect(store)(LitElement) {
       <ion-item button detail lines="none" @click=${this.handleConfig}>
         <ion-label>Setup</ion-label>
       </ion-item>
-      <ion-item lines="full" button @click=${this.handleDisplayNames}>
+      <ion-item lines="none" button @click=${this.handleDisplayNames}>
         <ion-label>Labels</ion-label>
         <ion-toggle slot="end" .checked=${this.displayLabels}></ion-toggle>
+      </ion-item>
+      <ion-item lines="full" button @click=${this.handleFlightMode}>
+        <ion-label>Flight mode</ion-label>
+        <ion-toggle slot="end" .checked=${this.flightMode}></ion-toggle>
       </ion-item>`;
   }
 
@@ -508,6 +518,12 @@ export class LiveTrackItems extends connect(store)(LitElement) {
   // Shows/Hides pilot names next to the marker.
   private handleDisplayNames(): void {
     store.dispatch(setDisplayLiveLabels(!this.displayLabels));
+  }
+
+  private handleFlightMode(): void {
+    store.dispatch(setFlightMode(!this.flightMode));
+    store.dispatch(setFetchMillis(0));
+    store.dispatch(updateTrackers());
   }
 
   private handleConfig() {

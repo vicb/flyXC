@@ -29,7 +29,7 @@ export const liveTrackSelectors = trackAdapter.getSelectors((state: RootState) =
 export type TrackState = {
   tracks: EntityState<protos.LiveTrack>;
   // Fetch timestamp of the current data.
-  fecthMillis: number;
+  fetchMillis: number;
   geojson: any;
   refreshTimer: any;
   currentLiveId?: number;
@@ -37,15 +37,17 @@ export type TrackState = {
   // Whether the map should be centered on the current location.
   // Only used when the live modal is opened.
   centerOnLocation: boolean;
+  flightMode: boolean;
 };
 
 const initialState: TrackState = {
-  fecthMillis: 0,
+  fetchMillis: 0,
   tracks: trackAdapter.getInitialState(),
   geojson: { type: 'FeatureCollection', features: [] },
   refreshTimer: undefined,
   displayLabels: true,
   centerOnLocation: false,
+  flightMode: false,
 };
 
 const trackSlice = createSlice({
@@ -65,7 +67,7 @@ const trackSlice = createSlice({
       state.geojson = action.payload;
     },
     setFetchMillis: (state, action: PayloadAction<number>) => {
-      state.fecthMillis = action.payload;
+      state.fetchMillis = action.payload;
     },
     startRefreshTimer: (state) => {
       if (!state.refreshTimer) {
@@ -85,6 +87,9 @@ const trackSlice = createSlice({
     setCurrentLiveId: (state, action: PayloadAction<number | undefined>) => {
       state.currentLiveId = action.payload;
     },
+    setFlightMode: (state, action: PayloadAction<boolean>) => {
+      state.flightMode = action.payload;
+    },
   },
 });
 
@@ -94,15 +99,17 @@ trackWorker.onmessage = (msg: MessageEvent<LiveTrackWorker.Response>) => {
   store.dispatch(trackSlice.actions.setGeojson(msg.data.geojson));
 };
 
-const updateTrackers = createAsyncThunk('liveTrack/fetch', async (_: undefined, api) => {
+export const updateTrackers = createAsyncThunk('liveTrack/fetch', async (_: undefined, api) => {
   const fetchTimestamp = Date.now();
   try {
-    const timeSec = Math.round(((api.getState() as RootState).liveTrack.fecthMillis ?? 0) / 1000);
+    const state = (api.getState() as RootState).liveTrack;
+    const timeSec = Math.round((state.fetchMillis ?? 0) / 1000);
     const response = await fetch(`/api/live/tracks.pbf?s=${timeSec}`);
     if (response.status == 200) {
-      const tracks = (api.getState() as RootState).liveTrack.tracks.entities;
+      const tracks = state.tracks.entities;
       trackWorker.postMessage({
         buffer: await response.arrayBuffer(),
+        flightMode: state.flightMode,
         tracks,
       });
       api.dispatch(trackSlice.actions.setFetchMillis(fetchTimestamp));
@@ -126,7 +133,7 @@ export function handleVisibility(): void {
 document.addEventListener('visibilitychange', handleVisibility);
 
 export const reducer = trackSlice.reducer;
-export const { setReturnUrl, setCurrentLiveId, setDisplayLabels, setCenterOnLocation, setFetchMillis } =
+export const { setReturnUrl, setCurrentLiveId, setDisplayLabels, setCenterOnLocation, setFetchMillis, setFlightMode } =
   trackSlice.actions;
 
 export type LivePilot = {

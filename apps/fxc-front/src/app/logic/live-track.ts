@@ -124,14 +124,13 @@ function addPoint(pointsByIndex: Map<number, any>, track: protos.LiveTrack, inde
 export function updateLiveTracks(
   tracks: { [id: string]: protos.LiveTrack },
   updates: protos.LiveDifferentialTrackGroup,
-  dropBeforeSec = Date.now(),
+  dropBeforeSec: number,
 ): protos.LiveTrack[] {
   // Tracks received from the server (either full or incremental).
-  const serverTracks: { [id: string]: protos.LiveTrack } = {};
-  const mergedTracks: { [id: string]: protos.LiveTrack } = {};
+  const updatedTracks: { [id: string]: protos.LiveTrack } = {};
 
   updates.tracks.forEach((diffTrack) => {
-    serverTracks[diffTrack.id] = differentialDecodeLiveTrack(diffTrack);
+    updatedTracks[diffTrack.id] = differentialDecodeLiveTrack(diffTrack);
   });
 
   if (updates.incremental) {
@@ -144,17 +143,22 @@ export function updateLiveTracks(
       if (!track) {
         continue;
       }
-      if (id in serverTracks) {
-        track = mergeLiveTracks(track, serverTracks[id]);
+      if (id in updatedTracks) {
+        track = mergeLiveTracks(track, updatedTracks[id]);
         simplifyLiveTrack(track, LIVE_MINIMAL_INTERVAL_SEC);
-        delete serverTracks[id];
       }
-      track = removeBeforeFromLiveTrack(track, dropBeforeSec);
-      if (track.timeSec.length) {
-        mergedTracks[id] = track;
-      }
+      updatedTracks[id] = track;
     }
   }
 
-  return Object.values({ ...mergedTracks, ...serverTracks });
+  const finalTracks: protos.LiveTrack[] = [];
+
+  for (const updatedTrack of Object.values(updatedTracks)) {
+    const track = removeBeforeFromLiveTrack(updatedTrack, dropBeforeSec);
+    if (track.timeSec.length) {
+      finalTracks.push(track);
+    }
+  }
+
+  return finalTracks;
 }

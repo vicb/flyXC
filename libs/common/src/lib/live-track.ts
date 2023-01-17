@@ -4,6 +4,7 @@ import { deepCopy } from './util';
 
 // How long to retain live tracking positions.
 export const LIVE_RETENTION_SEC = 24 * 3600;
+export const LIVE_RETENTION_FLIGHT_MODE_SEC = 1 * 3600;
 
 // Age for a point to be considered old.
 export const LIVE_AGE_OLD_SEC = 6 * 3600;

@@ -2,7 +2,6 @@ import { getFixMessage, isEmergencyFix, isEmergencyTrack, protos } from '@flyxc/
 import { LitElement, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
-
 import { popupContent } from '../../logic/live-track-popup';
 import { formatDurationMin, formatUnit, Units } from '../../logic/units';
 import { liveTrackSelectors, setCurrentLiveId } from '../../redux/live-track-slice';
@@ -82,7 +81,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     ANCHOR_ARROW = new google.maps.Point(9, 9);
     ORIGIN_ARROW = new google.maps.Point(9, 36);
     ANCHOR_MSG = new google.maps.Point(7, 9);
-    ORIGIN_MSG = new google.maps.Point(0, 22);
+    ORIGIN_MSG = new google.maps.Point(0, 35);
     this.setMapStyle(this.map);
     this.setupInfoWindow(this.map);
     this.clearCurrentPilotListener = this.map.addListener('click', () => {
@@ -191,9 +190,8 @@ export class TrackingElement extends connect(store)(LitElement) {
     const gndAlt = track.extra[index]?.gndAlt;
     const ageMin = Math.round((nowSec - track.timeSec[index]) / 60);
 
-    const title = `↕ ${formatUnit(alt, this.units!.altitude)} ${
-      gndAlt == null ? '' : `(${formatUnit(Math.max(0, alt - gndAlt), this.units!.altitude)} AGL)`
-    }`;
+    const elevationStr = formatUnit(alt, this.units!.altitude);
+    const title = gndAlt == null ? undefined : `${formatUnit(Math.max(0, alt - gndAlt), this.units!.altitude)} AGL`;
 
     let opacity = ageMin > RECENT_TIMEOUT_MIN ? 0.3 : 0.9;
     const color = getUniqueContrastColor(Math.round(id / 1000));
@@ -221,7 +219,7 @@ export class TrackingElement extends connect(store)(LitElement) {
       if (this.displayLabels && (isActive || ageMin < 12 * 60)) {
         label = {
           color: labelColor,
-          text: track.name + '\n-' + formatDurationMin(ageMin),
+          text: `${track.name}\n${elevationStr} · -${formatDurationMin(ageMin)}`,
           className: 'gm-label-outline',
           fontWeight,
         };
