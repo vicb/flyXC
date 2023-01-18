@@ -116,24 +116,10 @@ export function getAdminRouter(redis: Redis, datastore: Datastore): Router {
 
 // Returns all the values needed for the dashboard (from REDIS).
 async function getDashboardValues(redis: Redis, datastore: Datastore): Promise<unknown> {
-  const redisOut = await redis.pipeline().get(Keys.dsLastRequestSec).get(Keys.trackNum).exec();
-
-  const cacheTimeSec = Number(redisOut![0][1] ?? 0);
-  const trackOffset = Number(redisOut![1][1] ?? NUM_TRACKS_OFFSET) - 100;
-
-  const nowSec = Math.round(Date.now() / 1000);
-
-  // Query the datastore when the cache is outdated.
-  if (nowSec - cacheTimeSec > REDIS_CACHE_HOURS * 3600) {
-    const [tracks] = await datastore.createQuery(TRACK_TABLE).offset(trackOffset).select('__key__').run();
-
-    const pipeline = redis
-      .pipeline()
-      .set(Keys.dsLastRequestSec, nowSec)
-      .set(Keys.trackNum, trackOffset + tracks.length);
-
-    await pipeline.exec();
-  }
+  const query = datastore.createQuery(TRACK_TABLE);
+  const countQuery = datastore.createAggregationQuery(query).count('numTracks');
+  const [[countEntity]]: any = await datastore.runAggregationQuery(countQuery);
+  await redis.set(Keys.trackNum, countEntity.numTracks);
 
   // Retrieves all values from Redis (Scalar or List).
   const typeByKey: { [key: string]: 'S' | 'L' } = {
@@ -158,7 +144,6 @@ async function getDashboardValues(redis: Redis, datastore: Datastore): Promise<u
     [Keys.fetcherFullNumTracks]: 'S',
     [Keys.fetcherIncrementalNumTracks]: 'S',
     [Keys.trackerNum]: 'S',
-    [Keys.dsLastRequestSec]: 'S',
     [Keys.trackNum]: 'S',
 
     // Lists

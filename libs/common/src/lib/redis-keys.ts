@@ -101,9 +101,6 @@ export enum Keys {
   // [List]
   proxyInreach = 'p:inreach:logs',
 
-  // Last datastore request for dashboard.
-  dsLastRequestSec = 'f:ds:time',
-
   // Number of tracks.
   trackNum = 'f:tracks',
 }
