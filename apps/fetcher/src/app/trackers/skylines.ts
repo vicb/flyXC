@@ -10,7 +10,7 @@ import {
   protos,
   removeBeforeFromLiveTrack,
   simplifyLiveTrack,
-  TrackerIds,
+  TrackerNames,
   validateSkylinesAccount,
 } from '@flyxc/common';
 import { LivePoint, makeLiveTrack } from './live-track';
@@ -19,8 +19,8 @@ import { TrackerFetcher, TrackerUpdates } from './tracker';
 const SECONDS_IN_DAY = 60 * 60 * 24;
 
 export class SkylinesFetcher extends TrackerFetcher {
-  protected getTrackerId(): TrackerIds {
-    return TrackerIds.Skylines;
+  protected getTrackerName(): TrackerNames {
+    return 'skylines';
   }
 
   protected async fetch(devices: number[], updates: TrackerUpdates, timeoutSec: number): Promise<void> {
@@ -114,7 +114,7 @@ export function parse(flight: any, nowMillis = Date.now()): LivePoint[] {
   return time.map((seconds: number, i: number): LivePoint => {
     const tsSeconds = startTimestampSeconds + seconds - startSeconds;
     return {
-      device: TrackerIds.Skylines,
+      trackerName: 'skylines',
       lat: lonlat[i * 2],
       lon: lonlat[i * 2 + 1],
       alt: alt[i] - (flight.geoid ?? 0),

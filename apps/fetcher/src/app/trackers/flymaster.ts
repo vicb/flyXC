@@ -7,7 +7,7 @@ import {
   protos,
   removeBeforeFromLiveTrack,
   simplifyLiveTrack,
-  TrackerIds,
+  TrackerNames,
   validateFlymasterAccount,
 } from '@flyxc/common';
 import { LivePoint, makeLiveTrack } from './live-track';
@@ -17,8 +17,8 @@ import { TrackerFetcher, TrackerUpdates } from './tracker';
 const FLYMASTER_LATENCY_SEC = 5 * 60;
 
 export class FlymasterFetcher extends TrackerFetcher {
-  protected getTrackerId(): TrackerIds {
-    return TrackerIds.Flymaster;
+  protected getTrackerName(): TrackerNames {
+    return 'flymaster';
   }
 
   protected async fetch(devices: number[], updates: TrackerUpdates, timeoutSec: number): Promise<void> {
@@ -96,7 +96,7 @@ export class FlymasterFetcher extends TrackerFetcher {
 export function parse(flight: any): LivePoint[] {
   return flight.map(
     (fix: any): LivePoint => ({
-      device: TrackerIds.Flymaster,
+      trackerName: 'flymaster',
       lat: fix.ai / 60000,
       lon: fix.oi / 60000,
       alt: fix.h,

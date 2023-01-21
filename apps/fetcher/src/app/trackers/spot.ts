@@ -8,15 +8,15 @@ import {
   LIVE_MINIMAL_INTERVAL_SEC,
   protos,
   simplifyLiveTrack,
-  TrackerIds,
+  TrackerNames,
   validateSpotAccount,
 } from '@flyxc/common';
 import { LivePoint, makeLiveTrack } from './live-track';
 import { TrackerFetcher, TrackerUpdates } from './tracker';
 
 export class SpotFetcher extends TrackerFetcher {
-  protected getTrackerId(): TrackerIds {
-    return TrackerIds.Spot;
+  protected getTrackerName(): TrackerNames {
+    return 'spot';
   }
 
   protected async fetch(devices: number[], updates: TrackerUpdates, timeoutSec: number): Promise<void> {
@@ -121,7 +121,7 @@ export function parse(jsonFeed: string): LivePoint[] {
   if (Array.isArray(fixes)) {
     fixes.forEach((fix: any) => {
       points.push({
-        device: TrackerIds.Spot,
+        trackerName: 'spot',
         lon: fix.longitude,
         lat: fix.latitude,
         alt: fix.altitude,

@@ -14,7 +14,6 @@ import {
   removeBeforeFromLiveTrack,
   removeDeviceFromLiveTrack,
   simplifyLiveTrack,
-  TrackerIds,
 } from '@flyxc/common';
 import { getDatastore, getRedisClient } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
@@ -210,7 +209,6 @@ async function updateTrackers(pipeline: ChainableCommander, state: protos.Fetche
     addElevationLogs(pipeline, elevationUpdates, state.lastTickSec);
 
     // Create the binary proto output.
-    // TODO: share with flyme
     const fullTracks = protos.LiveDifferentialTrackGroup.create();
     const incTracks = protos.LiveDifferentialTrackGroup.create({ incremental: true });
     const flymeTracks = protos.LiveDifferentialTrackGroup.create();
@@ -230,7 +228,7 @@ async function updateTrackers(pipeline: ChainableCommander, state: protos.Fetche
         if (pilot.share) {
           const exportTrack = removeBeforeFromLiveTrack(incTrack, exportStartSec);
           if (exportTrack.timeSec.length > 0) {
-            const flymeTrack = removeDeviceFromLiveTrack(exportTrack, TrackerIds.Flyme);
+            const flymeTrack = removeDeviceFromLiveTrack(exportTrack, 'flyme');
             if (flymeTrack.timeSec.length > 0) {
               flymeTracks.tracks.push(differentialEncodeLiveTrack(flymeTrack, id, name));
               flymeTracks.remoteId.push(pilot.flyme?.account ?? '');

@@ -11,7 +11,7 @@ import {
   Validator,
   _getPropertyModel,
 } from '@vaadin/nodom';
-import { TrackerIds, trackerPropNames } from './live-track';
+import { trackerNames, TrackerNames } from './live-track';
 import type { LiveTrackEntity, TrackerEntity } from './live-track-entity';
 
 // Client side model for an account.
@@ -44,8 +44,8 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
   static createFromEntity(entity: LiveTrackEntity): AccountModel {
     const trackerModels: Record<string, TrackerModel> = {};
 
-    for (const prop of Object.values(trackerPropNames)) {
-      const trackerEntity: TrackerEntity = (entity as any)[prop] ?? { enabled: false, account: '' };
+    for (const prop of trackerNames) {
+      const trackerEntity: TrackerEntity = entity[prop] ?? { enabled: false, account: '' };
       trackerModels[prop] = {
         enabled: trackerEntity.enabled,
         account: trackerEntity.account,
@@ -72,15 +72,15 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
   readonly enabled: BooleanModel = this[_getPropertyModel]('enabled', BooleanModel, [false, new NotNull()]);
   readonly share: BooleanModel = this[_getPropertyModel]('share', BooleanModel, [false, new NotNull()]);
 
-  readonly inreach = this.createTrackerModel(TrackerIds.Inreach);
-  readonly spot = this.createTrackerModel(TrackerIds.Spot);
-  readonly skylines = this.createTrackerModel(TrackerIds.Skylines);
-  readonly flyme = this.createTrackerModel(TrackerIds.Flyme);
-  readonly flymaster = this.createTrackerModel(TrackerIds.Flymaster);
+  readonly inreach = this.createTrackerModel('inreach');
+  readonly spot = this.createTrackerModel('spot');
+  readonly skylines = this.createTrackerModel('skylines');
+  readonly flyme = this.createTrackerModel('flyme');
+  readonly flymaster = this.createTrackerModel('flymaster');
 
-  private createTrackerModel(tracker: TrackerIds): TrackerFormModel {
+  private createTrackerModel(tracker: TrackerNames): TrackerFormModel {
     const validators = trackerValidators[tracker];
-    return this[_getPropertyModel](trackerPropNames[tracker] as any, TrackerFormModel, [false, ...validators]);
+    return this[_getPropertyModel](tracker, TrackerFormModel, [false, ...validators]);
   }
 }
 
@@ -120,12 +120,12 @@ class AccountSyncValidator implements Validator<TrackerModel> {
 }
 
 // Validators used on both the client and server sides.
-export const trackerValidators: Readonly<Record<TrackerIds, Validator<TrackerModel>[]>> = {
-  [TrackerIds.Inreach]: [new AccountSyncValidator('This InReach URL is invalid', validateInreachAccount)],
-  [TrackerIds.Spot]: [new AccountSyncValidator('This Spot ID is invalid', validateSpotAccount)],
-  [TrackerIds.Skylines]: [new AccountSyncValidator('This Skylines ID is invalid', validateSkylinesAccount)],
-  [TrackerIds.Flyme]: [],
-  [TrackerIds.Flymaster]: [new AccountSyncValidator('This Flymaster ID is invalid', validateFlymasterAccount)],
+export const trackerValidators: Readonly<Record<TrackerNames, Validator<TrackerModel>[]>> = {
+  inreach: [new AccountSyncValidator('This InReach URL is invalid', validateInreachAccount)],
+  spot: [new AccountSyncValidator('This Spot ID is invalid', validateSpotAccount)],
+  skylines: [new AccountSyncValidator('This Skylines ID is invalid', validateSkylinesAccount)],
+  flyme: [],
+  flymaster: [new AccountSyncValidator('This Flymaster ID is invalid', validateFlymasterAccount)],
 };
 
 // Validates a Spot Id.

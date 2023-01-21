@@ -12,7 +12,7 @@ import {
   protos,
   SecretKeys,
   simplifyLiveTrack,
-  TrackerIds,
+  TrackerNames,
   validateInreachAccount,
 } from '@flyxc/common';
 import { pushListCap } from '@flyxc/common-node';
@@ -28,8 +28,8 @@ const CHECK_ZOMBIES_EVERY_MIN = 20;
 const proxies = new Proxies('inreach');
 
 export class InreachFetcher extends TrackerFetcher {
-  protected getTrackerId(): TrackerIds {
-    return TrackerIds.Inreach;
+  protected getTrackerName(): TrackerNames {
+    return 'inreach';
   }
 
   protected async fetch(devices: number[], updates: TrackerUpdates, timeoutSec: number): Promise<void> {
@@ -204,7 +204,7 @@ export function parse(kmlFeed: string): LivePoint[] {
         .map((v: string) => Number(v));
 
       points.push({
-        device: TrackerIds.Inreach,
+        trackerName: 'inreach',
         lon,
         lat,
         alt: Math.round(alt),

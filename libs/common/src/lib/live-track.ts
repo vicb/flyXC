@@ -26,32 +26,27 @@ export const INCREMENTAL_UPDATE_SEC = 3600;
 // Export to partners.
 export const EXPORT_UPDATE_SEC = 5 * 60;
 
-// ID for the tracking devices.
-export enum TrackerIds {
-  Inreach = 1,
-  Spot = 2,
-  Skylines = 3,
-  Flyme = 4,
-  Flymaster = 5,
-}
+export const trackerNames = ['inreach', 'spot', 'skylines', 'flyme', 'flymaster'] as const;
 
-// The property names should be in sync with LiveTrackEntity.
-export const trackerPropNames: Readonly<Record<TrackerIds, string>> = {
-  [TrackerIds.Inreach]: 'inreach',
-  [TrackerIds.Spot]: 'spot',
-  [TrackerIds.Skylines]: 'skylines',
-  [TrackerIds.Flyme]: 'flyme',
-  [TrackerIds.Flymaster]: 'flymaster',
-};
+// ID for the tracking devices.
+export type TrackerNames = (typeof trackerNames)[number];
 
 // How to display the tracker name.
-export const trackerDisplayNames: Readonly<Record<TrackerIds, string>> = {
-  [TrackerIds.Inreach]: 'InReach',
-  [TrackerIds.Spot]: 'Spot',
-  [TrackerIds.Skylines]: 'Skylines',
-  [TrackerIds.Flyme]: 'FlyMe (XCGlobe)',
-  [TrackerIds.Flymaster]: 'Flymaster',
+export const trackerDisplayNames: Readonly<Record<TrackerNames, string>> = {
+  inreach: 'InReach',
+  spot: 'Spot',
+  skylines: 'Skylines',
+  flyme: 'FlyMe (XCGlobe)',
+  flymaster: 'Flymaster',
 };
+
+export const trackerIdByName: Record<TrackerNames, number> = {} as any;
+export const trackerNameById: Record<number, TrackerNames> = {} as any;
+
+trackerNames.forEach((name, index) => {
+  trackerNameById[index + 1] = name;
+  trackerIdByName[name] = index + 1;
+});
 
 export enum LiveTrackFlag {
   // Reserve 5 bits for the device.
@@ -77,8 +72,8 @@ export function isLowBatFix(flags: number): boolean {
   return (flags & LiveTrackFlag.LowBat) != 0;
 }
 
-export function getFixDevice(flags: number): TrackerIds {
-  return flags & LiveTrackFlag.DeviceTypeMask;
+export function getTrackerName(flags: number): TrackerNames {
+  return trackerNameById[flags & LiveTrackFlag.DeviceTypeMask];
 }
 
 export function getFixMessage(track: LiveTrack, index: number): string | undefined {
@@ -104,7 +99,7 @@ export function getTrackerFlags(value: {
   valid: boolean;
   emergency?: boolean | null;
   lowBat?: boolean | null;
-  device: TrackerIds;
+  device: TrackerNames;
 }): number {
   let flags = 0;
   if (value.valid === true) {
@@ -116,10 +111,7 @@ export function getTrackerFlags(value: {
   if (value.lowBat === true) {
     flags |= LiveTrackFlag.LowBat;
   }
-  if ((value.device & LiveTrackFlag.DeviceTypeMask) !== value.device) {
-    throw new Error(`device out of range`);
-  }
-  flags |= value.device;
+  flags |= trackerIdByName[value.device];
   return flags;
 }
 
@@ -158,13 +150,13 @@ export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): Li
 }
 
 // Delete all the fixes from the specified device.
-export function removeDeviceFromLiveTrack(track: LiveTrack, device: TrackerIds): LiveTrack {
+export function removeDeviceFromLiveTrack(track: LiveTrack, device: TrackerNames): LiveTrack {
   const outTrack = LiveTrack.create();
 
   let dstIdx = 0;
   for (let srcIdx = 0; srcIdx < track.timeSec.length; srcIdx++) {
     const flags = track.flags[srcIdx];
-    if (getFixDevice(flags) != device) {
+    if (getTrackerName(flags) != device) {
       copyFix(track, srcIdx, outTrack, dstIdx++);
     }
   }
@@ -298,11 +290,11 @@ export function mergeLiveTracks(track1: LiveTrack, track2: LiveTrack): LiveTrack
       const flags1 = toTrack.flags[toIndex];
       const flags2 = track2.flags[index2];
       let valid = isValidFix(flags1);
-      let device = getFixDevice(flags1);
+      let device = getTrackerName(flags1);
       // Try to find a valid source for coordinates.
       if (!valid && isValidFix(flags2)) {
         valid = true;
-        device = getFixDevice(flags2);
+        device = getTrackerName(flags2);
         toTrack.lat[toIndex] = track2.lat[index2];
         toTrack.lon[toIndex] = track2.lon[index2];
         toTrack.alt[toIndex] = track2.alt[index2];

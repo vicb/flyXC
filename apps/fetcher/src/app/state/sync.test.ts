@@ -1,4 +1,4 @@
-import { LiveTrackEntity, protos, TrackerEntity } from '@flyxc/common';
+import { LiveTrackEntity, protos, TrackerEntity, TrackerNames } from '@flyxc/common';
 import { Datastore, Key } from '@google-cloud/datastore';
 import { createInitState } from './state';
 import { syncLiveTrack } from './sync';
@@ -48,7 +48,7 @@ describe('sync', () => {
         share: true,
       });
 
-      const trackerAccounts = {
+      const trackerAccounts: Record<TrackerNames, string> = {
         inreach: INREACH,
         spot: SPOT,
         flyme: FLYME,
@@ -57,7 +57,7 @@ describe('sync', () => {
       };
 
       for (const [p, a] of Object.entries(trackerAccounts)) {
-        const tracker = (state.pilots['1978'] as any)[p];
+        const tracker = state.pilots['1978'][p];
         expect(tracker).toMatchObject({
           account: a,
           enabled: true,

@@ -8,7 +8,7 @@ import {
   removeBeforeFromLiveTrack,
   removeDeviceFromLiveTrack,
   simplifyLiveTrack,
-  TrackerIds,
+  trackerIdByName,
 } from './live-track';
 
 import { LiveTrack } from '../protos/live-track';
@@ -99,43 +99,43 @@ describe('removeDeviceFromLiveTrack', () => {
       lat: [11, 21, 31, 41],
       lon: [12, 22, 32, 42],
       alt: [13, 23, 33, 43],
-      flags: [TrackerIds.Inreach, TrackerIds.Inreach, TrackerIds.Flyme, TrackerIds.Flyme],
+      flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.flyme, trackerIdByName.flyme],
       extra: { 1: { speed: 10 }, 2: { message: 'hello' } },
     };
   });
 
   it('should accept an empty track', () => {
     const emptyTrack = LiveTrack.create({});
-    expect(removeDeviceFromLiveTrack(emptyTrack, TrackerIds.Flyme)).toEqual(emptyTrack);
+    expect(removeDeviceFromLiveTrack(emptyTrack, 'flyme')).toEqual(emptyTrack);
   });
 
   it('should remove the passed device', () => {
-    expect(removeDeviceFromLiveTrack(track, TrackerIds.Flyme)).toEqual({
+    expect(removeDeviceFromLiveTrack(track, 'flyme')).toEqual({
       timeSec: [10, 20],
       lat: [11, 21],
       lon: [12, 22],
       alt: [13, 23],
-      flags: [TrackerIds.Inreach, TrackerIds.Inreach],
+      flags: [trackerIdByName['inreach'], trackerIdByName.inreach],
       extra: { 1: { speed: 10 } },
     });
 
-    expect(removeDeviceFromLiveTrack(track, TrackerIds.Inreach)).toEqual({
+    expect(removeDeviceFromLiveTrack(track, 'inreach')).toEqual({
       timeSec: [30, 40],
       lat: [31, 41],
       lon: [32, 42],
       alt: [33, 43],
-      flags: [TrackerIds.Flyme, TrackerIds.Flyme],
+      flags: [trackerIdByName['flyme'], trackerIdByName.flyme],
       extra: { 0: { message: 'hello' } },
     });
   });
 
   it('should leave the track unchanged if devices is not used', () => {
-    expect(removeDeviceFromLiveTrack(track, TrackerIds.Spot)).toEqual({
+    expect(removeDeviceFromLiveTrack(track, 'spot')).toEqual({
       timeSec: [10, 20, 30, 40],
       lat: [11, 21, 31, 41],
       lon: [12, 22, 32, 42],
       alt: [13, 23, 33, 43],
-      flags: [TrackerIds.Inreach, TrackerIds.Inreach, TrackerIds.Flyme, TrackerIds.Flyme],
+      flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.flyme, trackerIdByName.flyme],
       extra: { 1: { speed: 10 }, 2: { message: 'hello' } },
     });
   });
@@ -540,7 +540,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13],
         lon: [21, 22, 23],
         alt: [31, 32, 33],
-        flags: [TrackerIds.Inreach, TrackerIds.Inreach, TrackerIds.Inreach],
+        flags: [trackerIdByName['inreach'], trackerIdByName.inreach, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
           2: { speed: 10 },
@@ -552,7 +552,7 @@ describe('mergeLiveTracks', () => {
         lat: [0],
         lon: [0],
         alt: [0],
-        flags: [TrackerIds.Spot | LiveTrackFlag.Emergency],
+        flags: [trackerIdByName['spot'] | LiveTrackFlag.Emergency],
         extra: {
           0: { message: 'world' },
         },
@@ -563,7 +563,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13],
         lon: [21, 22, 23],
         alt: [31, 32, 33],
-        flags: [TrackerIds.Inreach, TrackerIds.Inreach | LiveTrackFlag.Emergency, TrackerIds.Inreach],
+        flags: [trackerIdByName.inreach, trackerIdByName.inreach | LiveTrackFlag.Emergency, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
           2: { speed: 10 },
@@ -578,7 +578,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13],
         lon: [21, 22, 23],
         alt: [31, 32, 33],
-        flags: [TrackerIds.Inreach, TrackerIds.Inreach, TrackerIds.Inreach],
+        flags: [trackerIdByName['inreach'], trackerIdByName.inreach, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
           2: { speed: 10 },
@@ -590,7 +590,7 @@ describe('mergeLiveTracks', () => {
         lat: [0],
         lon: [0],
         alt: [0],
-        flags: [TrackerIds.Spot | LiveTrackFlag.LowBat],
+        flags: [trackerIdByName['spot'] | LiveTrackFlag.LowBat],
         extra: {
           0: { message: 'world' },
         },
@@ -601,7 +601,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13],
         lon: [21, 22, 23],
         alt: [31, 32, 33],
-        flags: [TrackerIds.Inreach, TrackerIds.Inreach | LiveTrackFlag.LowBat, TrackerIds.Inreach],
+        flags: [trackerIdByName.inreach, trackerIdByName.inreach | LiveTrackFlag.LowBat, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
           2: { speed: 10 },
@@ -616,7 +616,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 0, 13],
         lon: [21, 0, 23],
         alt: [31, 0, 33],
-        flags: [TrackerIds.Inreach, TrackerIds.Inreach, TrackerIds.Inreach],
+        flags: [trackerIdByName['inreach'], trackerIdByName.inreach, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
           2: { speed: 10 },
@@ -628,7 +628,7 @@ describe('mergeLiveTracks', () => {
         lat: [12],
         lon: [22],
         alt: [32],
-        flags: [TrackerIds.Spot | LiveTrackFlag.Valid],
+        flags: [trackerIdByName['spot'] | LiveTrackFlag.Valid],
         extra: {
           0: { message: 'world' },
         },
@@ -639,7 +639,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13],
         lon: [21, 22, 23],
         alt: [31, 32, 33],
-        flags: [TrackerIds.Inreach, TrackerIds.Spot | LiveTrackFlag.Valid, TrackerIds.Inreach],
+        flags: [trackerIdByName['inreach'], trackerIdByName.spot | LiveTrackFlag.Valid, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
           2: { speed: 10 },
@@ -655,11 +655,11 @@ describe('mergeLiveTracks', () => {
         lon: [21, 22, 23, 24, 25],
         alt: [31, 32, 33, 34, 35],
         flags: [
-          TrackerIds.Spot | LiveTrackFlag.Valid,
-          TrackerIds.Spot | LiveTrackFlag.Valid,
-          TrackerIds.Spot | LiveTrackFlag.Valid,
-          TrackerIds.Spot | LiveTrackFlag.Valid,
-          TrackerIds.Spot | LiveTrackFlag.Valid,
+          trackerIdByName.spot | LiveTrackFlag.Valid,
+          trackerIdByName.spot | LiveTrackFlag.Valid,
+          trackerIdByName.spot | LiveTrackFlag.Valid,
+          trackerIdByName.spot | LiveTrackFlag.Valid,
+          trackerIdByName.spot | LiveTrackFlag.Valid,
         ],
         extra: {
           0: { message: 'hello' },
@@ -674,10 +674,10 @@ describe('mergeLiveTracks', () => {
         lon: [21, 22, 23, 24],
         alt: [31, 32, 33, 34],
         flags: [
-          TrackerIds.Spot | LiveTrackFlag.Valid,
-          TrackerIds.Spot | LiveTrackFlag.Valid,
-          TrackerIds.Spot | LiveTrackFlag.Valid,
-          TrackerIds.Spot | LiveTrackFlag.Valid,
+          trackerIdByName.spot | LiveTrackFlag.Valid,
+          trackerIdByName.spot | LiveTrackFlag.Valid,
+          trackerIdByName.spot | LiveTrackFlag.Valid,
+          trackerIdByName.spot | LiveTrackFlag.Valid,
         ],
         extra: {
           0: { speed: 2 },
@@ -692,11 +692,11 @@ describe('mergeLiveTracks', () => {
         lon: [21, 22, 23, 24, 25],
         alt: [31, 32, 33, 34, 35],
         flags: [
-          TrackerIds.Spot | LiveTrackFlag.Valid,
-          TrackerIds.Spot | LiveTrackFlag.Valid,
-          TrackerIds.Spot | LiveTrackFlag.Valid,
-          TrackerIds.Spot | LiveTrackFlag.Valid,
-          TrackerIds.Spot | LiveTrackFlag.Valid,
+          trackerIdByName.spot | LiveTrackFlag.Valid,
+          trackerIdByName.spot | LiveTrackFlag.Valid,
+          trackerIdByName.spot | LiveTrackFlag.Valid,
+          trackerIdByName.spot | LiveTrackFlag.Valid,
+          trackerIdByName.spot | LiveTrackFlag.Valid,
         ],
         extra: {
           0: { message: 'hello', speed: 2 },
@@ -804,7 +804,7 @@ describe('isEmergencyTrack', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
-      flags: [TrackerIds.Inreach, TrackerIds.Inreach | LiveTrackFlag.Emergency, TrackerIds.Inreach],
+      flags: [trackerIdByName.inreach, trackerIdByName.inreach | LiveTrackFlag.Emergency, trackerIdByName.inreach],
       extra: {
         0: { message: 'hello' },
         2: { speed: 10 },
@@ -820,7 +820,7 @@ describe('isEmergencyTrack', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
-      flags: [TrackerIds.Inreach, TrackerIds.Inreach, TrackerIds.Inreach],
+      flags: [trackerIdByName['inreach'], trackerIdByName.inreach, trackerIdByName.inreach],
       extra: {
         0: { message: 'hello' },
         2: { speed: 10 },
@@ -838,7 +838,7 @@ describe('getLastMessage', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
-      flags: [TrackerIds.Inreach, TrackerIds.Inreach, TrackerIds.Inreach],
+      flags: [trackerIdByName['inreach'], trackerIdByName.inreach, trackerIdByName.inreach],
       extra: {
         0: { speed: 5 },
         2: { speed: 10 },
@@ -854,7 +854,7 @@ describe('getLastMessage', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
-      flags: [TrackerIds.Inreach, TrackerIds.Inreach, TrackerIds.Inreach],
+      flags: [trackerIdByName['inreach'], trackerIdByName.inreach, trackerIdByName.inreach],
       extra: {
         0: { message: 'hello' },
         2: { speed: 10 },
@@ -870,7 +870,7 @@ describe('getLastMessage', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
-      flags: [TrackerIds.Inreach, TrackerIds.Inreach, TrackerIds.Inreach],
+      flags: [trackerIdByName['inreach'], trackerIdByName.inreach, trackerIdByName.inreach],
       extra: {
         0: { message: 'first' },
         2: { speed: 10, message: 'last' },

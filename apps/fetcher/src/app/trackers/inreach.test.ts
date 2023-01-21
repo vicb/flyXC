@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const feed = require('./fixtures/inreach-feed.kml');
 
-import { TrackerIds } from '@flyxc/common';
 import { parse } from './inreach';
 
 describe('Parse kml feed', () => {
@@ -9,7 +8,7 @@ describe('Parse kml feed', () => {
     const points = parse(feed);
     expect(points).toEqual([
       {
-        device: TrackerIds.Inreach,
+        trackerName: 'inreach',
         alt: 8,
         emergency: false,
         lat: 37.385005,
@@ -20,7 +19,7 @@ describe('Parse kml feed', () => {
         valid: true,
       },
       {
-        device: TrackerIds.Inreach,
+        trackerName: 'inreach',
         alt: 8,
         emergency: true,
         lat: 37.385015,
@@ -31,7 +30,7 @@ describe('Parse kml feed', () => {
         valid: true,
       },
       {
-        device: TrackerIds.Inreach,
+        trackerName: 'inreach',
         alt: 19,
         emergency: false,
         lat: 37.384993,
@@ -42,7 +41,7 @@ describe('Parse kml feed', () => {
         valid: false,
       },
       {
-        device: TrackerIds.Inreach,
+        trackerName: 'inreach',
         alt: 10,
         emergency: false,
         lat: 37.385058,

@@ -1,4 +1,4 @@
-import { AccountModel, LiveTrackEntity, TrackerModel, trackerPropNames } from '@flyxc/common';
+import { AccountModel, LiveTrackEntity, TrackerModel, trackerNames } from '@flyxc/common';
 import { Datastore } from '@google-cloud/datastore';
 
 export const LIVE_TRACK_TABLE = 'LiveTrack';
@@ -42,14 +42,14 @@ export function UpdateLiveTrackEntityFromModel(
   liveTrack.enabled = account.enabled;
   liveTrack.updated = new Date();
 
-  for (const prop of Object.values(trackerPropNames)) {
-    const model: TrackerModel = (account as any)[prop];
-    (liveTrack as any)[prop] = {
+  for (const prop of trackerNames) {
+    const model: TrackerModel = account[prop];
+    liveTrack[prop] = {
       enabled: model.enabled,
       account: model.account,
     };
     if (model.account_resolved != null) {
-      (liveTrack as any)[prop].account_resolved = model.account_resolved;
+      liveTrack[prop].account_resolved = model.account_resolved;
     }
   }
 

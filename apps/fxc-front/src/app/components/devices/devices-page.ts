@@ -1,5 +1,5 @@
 // Live tracker configuration.
-import { AccountFormModel, TrackerIds } from '@flyxc/common';
+import { AccountFormModel } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
 import { Binder, field } from '@vaadin/dom';
 import { html, LitElement, TemplateResult } from 'lit';
@@ -128,7 +128,7 @@ export class DevicesPage extends LitElement {
               model.enabled.valueOf(),
               () => html` <ion-col size="12" size-lg="6">
                 <device-card
-                  .tracker=${TrackerIds.Inreach}
+                  .tracker=${'inreach'}
                   .binder=${this.binder}
                   .hint=${html`<ion-text class="ion-padding-horizontal ion-padding-top block">
                     Visit
@@ -150,7 +150,7 @@ export class DevicesPage extends LitElement {
             <ion-row>
               <ion-col size=12 size-lg=6>
                 <device-card
-                  .tracker=${TrackerIds.Spot}
+                  .tracker=${'spot'}
                   .binder=${this.binder}
                   label="Feed Id"
                   .hint=${html`<ion-text class="ion-padding-horizontal ion-padding-top block">
@@ -169,7 +169,7 @@ export class DevicesPage extends LitElement {
               </ion-col>
               <ion-col size=12 size-lg=6>
                 <device-card
-                  .tracker=${TrackerIds.Skylines}
+                  .tracker=${'skylines'}
                   .binder=${this.binder}
                   label="Pilot Id"
                   inputmode="numeric"
@@ -185,7 +185,7 @@ export class DevicesPage extends LitElement {
             <ion-row>
               <ion-col size=12 size-lg=6>
                 <device-card
-                  .tracker=${TrackerIds.Flyme}
+                  .tracker=${'flyme'}
                   .binder=${this.binder}
                   label="Username"
                   inputmode="email"
@@ -197,7 +197,7 @@ export class DevicesPage extends LitElement {
               </ion-col>
               <ion-col size=12 size-lg=6>
                 <device-card
-                  .tracker=${TrackerIds.Flymaster}
+                  .tracker=${'flymaster'}
                   .binder=${this.binder}
                   label="Device Id"
                   .hint=${html`<ion-text class="ion-padding-horizontal ion-padding-top block">

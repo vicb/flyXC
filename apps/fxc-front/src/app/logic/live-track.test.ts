@@ -1,4 +1,4 @@
-import { differentialEncodeLiveTrack, LiveTrackFlag, protos, TrackerIds } from '@flyxc/common';
+import { differentialEncodeLiveTrack, LiveTrackFlag, protos, trackerIdByName } from '@flyxc/common';
 import { trackToFeatures, updateLiveTracks } from './live-track';
 
 describe('Create GeoJSON features', () => {
@@ -14,7 +14,7 @@ describe('Create GeoJSON features', () => {
         lon: [11],
         lat: [21],
         alt: [31],
-        flags: [TrackerIds.Flyme],
+        flags: [trackerIdByName['flyme']],
         extra: {},
       };
 
@@ -43,13 +43,13 @@ describe('Create GeoJSON features', () => {
         lat: [21, 210, 220, 230, 240, 250, 260],
         alt: [31, 310, 320, 330, 340, 350, 360],
         flags: [
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
         ],
         extra: {},
       };
@@ -111,13 +111,13 @@ describe('Create GeoJSON features', () => {
         lat: [21, 210, 220, 230, 240, 250, 260],
         alt: [31, 310, 320, 330, 340, 350, 360],
         flags: [
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
         ],
         extra: {},
       };
@@ -169,13 +169,13 @@ describe('Create GeoJSON features', () => {
         lat: [21, 210, 220, 230, 240, 250, 260],
         alt: [31, 310, 320, 330, 340, 350, 360],
         flags: [
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
         ],
         extra: {
           1: { message: 'test' },
@@ -204,13 +204,13 @@ describe('Create GeoJSON features', () => {
         lat: [21, 210, 220, 230, 240, 250, 260],
         alt: [31, 310, 320, 330, 340, 350, 360],
         flags: [
-          TrackerIds.Flyme,
-          TrackerIds.Flyme | LiveTrackFlag.Emergency,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme | LiveTrackFlag.Emergency,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
         ],
         extra: {},
       };
@@ -238,13 +238,13 @@ describe('Create GeoJSON features', () => {
         lat: [21, 210, 220, 230, 240, 250, 260],
         alt: [31, 310, 320, 330, 340, 350, 360],
         flags: [
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
-          TrackerIds.Flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
+          trackerIdByName.flyme,
         ],
         extra: {},
       };

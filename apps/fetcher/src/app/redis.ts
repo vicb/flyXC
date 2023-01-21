@@ -1,4 +1,4 @@
-import { Keys, protos, trackerPropNames } from '@flyxc/common';
+import { Keys, protos, trackerNames } from '@flyxc/common';
 import { pushListCap } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import { ChainableCommander, Redis } from 'ioredis';
@@ -49,7 +49,7 @@ export function addTrackerLogs(
   updates: TrackerUpdates,
   state: protos.FetcherState,
 ): void {
-  const name = trackerPropNames[updates.trackerId];
+  const name = updates.trackerName;
   const time = updates.startFetchSec;
 
   pushListCap(
@@ -75,7 +75,7 @@ export function addTrackerLogs(
 
   // Consecutive errors.
   for (const [id, error] of updates.trackerErrors.entries()) {
-    const numConsErrors = ((state.pilots[id] as any)[name] as protos.Tracker).numConsecutiveErrors;
+    const numConsErrors = state.pilots[id][name].numConsecutiveErrors;
     if (numConsErrors > 10) {
       pushListCap(
         pipeline,
@@ -84,7 +84,7 @@ export function addTrackerLogs(
         20,
       );
     }
-    const numErrors = ((state.pilots[id] as any)[name] as protos.Tracker).numErrors;
+    const numErrors = state.pilots[id][name].numErrors;
     if (numErrors > 300) {
       pushListCap(
         pipeline,
@@ -144,8 +144,8 @@ export function addStateLogs(pipeline: ChainableCommander, state: protos.Fetcher
   for (const pilot of Object.values(state.pilots)) {
     if (pilot.enabled) {
       total++;
-      for (const name of Object.values(trackerPropNames)) {
-        if ((pilot as any)[name].enabled) {
+      for (const name of trackerNames) {
+        if (pilot[name].enabled) {
           byName[name] = (byName[name] ?? 0) + 1;
         }
       }
@@ -153,7 +153,7 @@ export function addStateLogs(pipeline: ChainableCommander, state: protos.Fetcher
   }
 
   pipeline.set(Keys.trackerNum, total);
-  for (const name of Object.values(trackerPropNames)) {
+  for (const name of trackerNames) {
     pipeline.set(Keys.trackerNumByType.replace('{name}', name), byName[name] ?? 0);
   }
 }

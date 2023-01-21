@@ -2,7 +2,7 @@ import {
   LiveTrackEntity,
   LIVE_REFRESH_SEC,
   protos,
-  trackerPropNames,
+  trackerNames,
   validateFlymasterAccount,
   validateFlymeAccount,
   validateInreachAccount,
@@ -112,16 +112,16 @@ export function syncLiveTrack(state: protos.FetcherState, liveTrack: LiveTrackEn
     // Preserve the track only when no configs have changed.
     let preserveTrack = pilot.enabled == state.pilots[id].enabled;
 
-    for (const propName of Object.values(trackerPropNames)) {
-      const tracker = (pilot as any)[propName] as protos.Tracker;
-      const stateTracker = (statePilot as any)[propName] as protos.Tracker;
+    for (const propName of trackerNames) {
+      const tracker = pilot[propName];
+      const stateTracker = statePilot[propName];
       const updated = tracker.enabled !== stateTracker.enabled || tracker.account !== stateTracker.account;
       if (updated) {
         // Invalidate the track when the settings have been updated.
         preserveTrack = false;
       } else {
         // The settings have not changed, re-use the other properties (last fix, next fetch, ...).
-        (pilot as any)[propName] = stateTracker;
+        pilot[propName] = stateTracker;
       }
     }
 

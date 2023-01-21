@@ -4,7 +4,7 @@ import {
   diffEncodeAirspaces,
   LiveTrackEntity,
   protos,
-  trackerPropNames,
+  trackerNames,
 } from '@flyxc/common';
 import { getDatastore, retrieveTrackById, TrackEntity, updateUnzippedTracks } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
@@ -230,8 +230,8 @@ export async function migrateToFetcher(): Promise<void> {
       try {
         delete entity.track;
         delete entity.last_fix_sec;
-        for (const prop of Object.values(trackerPropNames)) {
-          const tracker = entity[prop];
+        for (const trackerName of trackerNames) {
+          const tracker = entity[trackerName];
           if (!tracker) {
             continue;
           }

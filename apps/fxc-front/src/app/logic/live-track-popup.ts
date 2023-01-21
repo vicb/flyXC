@@ -1,6 +1,6 @@
 import {
-  getFixDevice,
   getFixMessage,
+  getTrackerName,
   isEmergencyFix,
   isLowBatFix,
   isValidFix,
@@ -58,7 +58,7 @@ export function popupContent(
       'The actual location might be different.',
     );
   }
-  content.push(`<i class="las la-satellite-dish"></i> ${trackerDisplayNames[getFixDevice(flags)]}`);
+  content.push(`<i class="las la-satellite-dish"></i> ${trackerDisplayNames[getTrackerName(flags)]}`);
 
   return {
     title: track.name ?? 'unknown',

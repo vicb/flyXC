@@ -1,4 +1,4 @@
-import { AccountFormModel, AccountModel, trackerDisplayNames, TrackerIds, trackerPropNames } from '@flyxc/common';
+import * as common from '@flyxc/common';
 import { Binder, CheckedFieldStrategy, field, VaadinFieldStrategy } from '@vaadin/dom';
 import * as lit from 'lit';
 import { customElement, property } from 'lit/decorators.js';
@@ -18,15 +18,14 @@ export class TrackerPanel extends lit.LitElement {
   inputMode = 'text';
 
   @property({ attribute: false })
-  binder!: Binder<AccountModel, AccountFormModel>;
+  binder!: Binder<common.AccountModel, common.AccountFormModel>;
 
   @property({ attribute: false })
-  tracker!: TrackerIds;
+  tracker!: common.TrackerNames;
 
   protected render(): lit.TemplateResult {
-    const trackerName = trackerDisplayNames[this.tracker];
-    const property = trackerPropNames[this.tracker];
-    const model = (this.binder.model as any)[property];
+    const trackerName = common.trackerDisplayNames[this.tracker];
+    const model = (this.binder.model as any)[this.tracker];
 
     return lit.html`
       <link

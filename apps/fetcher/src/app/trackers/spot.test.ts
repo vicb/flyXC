@@ -2,7 +2,6 @@
 const spot2Feed = require('./fixtures/spot2.txt');
 const spot3Feed = require('./fixtures/spot3.txt');
 
-import { TrackerIds } from '@flyxc/common';
 import { LivePoint } from './live-track';
 import { parse } from './spot';
 
@@ -18,7 +17,7 @@ describe('Parse JSON feed', () => {
     expect(spot2).toEqual([
       {
         alt: 0,
-        device: TrackerIds.Spot,
+        trackerName: 'spot',
         emergency: false,
         lat: 44.06871,
         lon: 7.20849,
@@ -28,7 +27,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 0,
-        device: TrackerIds.Spot,
+        trackerName: 'spot',
         emergency: false,
         lat: 44.06923,
         lon: 7.20879,
@@ -38,7 +37,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 0,
-        device: TrackerIds.Spot,
+        trackerName: 'spot',
         emergency: true,
         lat: 44.07498,
         lon: 7.20351,
@@ -48,7 +47,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 0,
-        device: TrackerIds.Spot,
+        trackerName: 'spot',
         emergency: false,
         lat: 44.04253,
         lon: 7.20452,
@@ -58,7 +57,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 0,
-        device: TrackerIds.Spot,
+        trackerName: 'spot',
         emergency: false,
         lat: 44.01246,
         lon: 7.22531,
@@ -73,7 +72,7 @@ describe('Parse JSON feed', () => {
     expect(spot3).toEqual([
       {
         alt: 123,
-        device: TrackerIds.Spot,
+        trackerName: 'spot',
         emergency: false,
         lat: 44.06871,
         lon: 7.20849,
@@ -83,7 +82,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 456,
-        device: TrackerIds.Spot,
+        trackerName: 'spot',
         emergency: false,
         lat: 44.06923,
         lon: 7.20879,
@@ -93,7 +92,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 789,
-        device: TrackerIds.Spot,
+        trackerName: 'spot',
         emergency: true,
         lat: 44.07498,
         lon: 7.20351,
@@ -103,7 +102,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 123,
-        device: TrackerIds.Spot,
+        trackerName: 'spot',
         emergency: false,
         lat: 44.04253,
         lon: 7.20452,
@@ -113,7 +112,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 456,
-        device: TrackerIds.Spot,
+        trackerName: 'spot',
         emergency: false,
         lat: 44.01246,
         lon: 7.22531,

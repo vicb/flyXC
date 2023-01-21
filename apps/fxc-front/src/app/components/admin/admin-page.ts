@@ -1,5 +1,5 @@
 import '@alenaksu/json-viewer';
-import { Keys, protos, round, trackerPropNames } from '@flyxc/common';
+import { Keys, protos, round, trackerNames } from '@flyxc/common';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
@@ -88,9 +88,7 @@ export class AdminPage extends LitElement {
         ${when(
           this.values,
           () => html`<dash-summary .values=${this.values} @sync=${this.fetch}></dash-summary>
-            ${Object.values(trackerPropNames).map(
-              (name) => html`<dash-tracker .values=${this.values} name=${name}></dash-tracker>`,
-            )}
+            ${trackerNames.map((name) => html`<dash-tracker .values=${this.values} name=${name}></dash-tracker>`)}
             <dash-proxy .values=${this.values}></dash-proxy>
             <dash-elev .values=${this.values}></dash-elev>
             <dash-sync .values=${this.values}></dash-sync>
@@ -669,8 +667,8 @@ function filterState(state: protos.FetcherState | undefined, maxPilots: number, 
 
     let lastFixSec = 0;
 
-    for (const tId of Object.values(trackerPropNames)) {
-      const tracker: protos.Tracker | undefined = (pilot as any)[tId];
+    for (const tId of trackerNames) {
+      const tracker: protos.Tracker | undefined = pilot[tId];
       if (tracker == null || tracker.enabled == false) {
         outPilot[tId] = 'Tracker disabled';
         continue;
@@ -725,8 +723,8 @@ function pilotMatches(pilot: protos.Pilot, filter: string): boolean {
 
   let match = regexp.test(pilot.name);
 
-  for (const tId of Object.values(trackerPropNames)) {
-    match ||= regexp.test((pilot as any)[tId].account);
+  for (const tracker of trackerNames) {
+    match ||= regexp.test(pilot[tracker]?.account ?? '');
   }
 
   return match;

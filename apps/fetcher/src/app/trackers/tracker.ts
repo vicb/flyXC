@@ -1,11 +1,11 @@
 // Base class for fetching tracker updates.
 
-import { LIVE_REFRESH_SEC, LIVE_RETENTION_SEC, protos, TrackerIds, trackerPropNames } from '@flyxc/common';
+import { LIVE_REFRESH_SEC, LIVE_RETENTION_SEC, protos, TrackerNames } from '@flyxc/common';
 import { ChainableCommander } from 'ioredis';
 
 // Updates for a tick of a tracker type (InReach, Spot, ...).
 export interface TrackerUpdates {
-  trackerId: TrackerIds;
+  trackerName: TrackerNames;
   // Global.
   errors: string[];
   // Per device delta (only required if there is a delta).
@@ -20,11 +20,7 @@ export interface TrackerUpdates {
 }
 
 export class TrackerFetcher {
-  protected propName: string;
-
-  constructor(protected state: protos.FetcherState, protected pipeline: ChainableCommander) {
-    this.propName = trackerPropNames[this.getTrackerId()];
-  }
+  constructor(protected state: protos.FetcherState, protected pipeline: ChainableCommander) {}
 
   // Fetches the delta and update tracker properties:
   // - requests and errors,
@@ -32,7 +28,7 @@ export class TrackerFetcher {
   // - next fetch time.
   async refresh(fetchTimeoutSec: number): Promise<TrackerUpdates> {
     const updates: TrackerUpdates = {
-      trackerId: this.getTrackerId(),
+      trackerName: this.getTrackerName(),
       errors: [],
       trackerDeltas: new Map<number, protos.LiveTrack>(),
       trackerErrors: new Map<number, string>(),
@@ -41,7 +37,7 @@ export class TrackerFetcher {
       endFetchSec: 0,
     };
 
-    const devices = this.getDevicesToFetch();
+    const devices = this.getDeviceIdsToFetch();
     updates.startFetchSec = Math.round(Date.now() / 1000);
     await this.fetch(devices, updates, fetchTimeoutSec);
     updates.endFetchSec = Math.round(Date.now() / 1000);
@@ -72,7 +68,7 @@ export class TrackerFetcher {
     return updates;
   }
 
-  protected getTrackerId(): TrackerIds {
+  protected getTrackerName(): TrackerNames {
     throw new Error('not implemented');
   }
 
@@ -116,10 +112,7 @@ export class TrackerFetcher {
   // Returns the tracker given its id.
   protected getTracker(id: number): protos.Tracker | undefined {
     const pilot = this.state.pilots[String(id)];
-    if (!pilot) {
-      return undefined;
-    }
-    return (pilot as any)[this.propName] as protos.Tracker | undefined;
+    return pilot ? pilot[this.getTrackerName()] : undefined;
   }
 
   // Computes the start time for a fetch.
@@ -150,15 +143,15 @@ export class TrackerFetcher {
   }
 
   // Returns a list of devices to fetch ordered by ascending fetch time.
-  private getDevicesToFetch(): number[] {
-    const propName = trackerPropNames[this.getTrackerId()];
+  private getDeviceIdsToFetch(): number[] {
+    const propName = this.getTrackerName();
     const devices: { id: number; nextFetchSec: number }[] = [];
 
     // Get all the trackers that are enabled and need to be fetched.
     for (const [idStr, pilot] of Object.entries(this.state.pilots)) {
       const id = Number(idStr);
       if (pilot.enabled) {
-        const tracker = (pilot as any)[propName] as protos.Tracker | undefined;
+        const tracker = pilot[propName];
         if (tracker?.enabled && this.shouldFetch(tracker)) {
           devices.push({ id, nextFetchSec: tracker.nextFetchSec });
         }

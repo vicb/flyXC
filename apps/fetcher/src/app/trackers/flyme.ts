@@ -2,13 +2,13 @@
 //
 // http://xcglobe.com/flyme/
 
-import { fetchResponse, formatReqError, protos, SecretKeys, TrackerIds, validateFlymeAccount } from '@flyxc/common';
+import { fetchResponse, formatReqError, protos, SecretKeys, TrackerNames, validateFlymeAccount } from '@flyxc/common';
 import { LivePoint, makeLiveTrack } from './live-track';
 import { TrackerFetcher, TrackerUpdates } from './tracker';
 
 export class FlymeFetcher extends TrackerFetcher {
-  protected getTrackerId(): TrackerIds {
-    return TrackerIds.Flyme;
+  protected getTrackerName(): TrackerNames {
+    return 'flyme';
   }
 
   // All trackers are retrieved at once anyway.
@@ -57,7 +57,7 @@ export class FlymeFetcher extends TrackerFetcher {
       if (fix) {
         const livePoints: LivePoint[] = [
           {
-            device: this.getTrackerId(),
+            trackerName: 'flyme',
             lat: fix[1],
             lon: fix[2],
             alt: fix[3],
