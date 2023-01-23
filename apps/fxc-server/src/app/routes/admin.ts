@@ -33,7 +33,7 @@ export function getAdminRouter(redis: Redis, datastore: Datastore): Router {
     res.json(await getDashboardValues(redis, datastore));
   });
 
-  router.get('/state.json', async (req: Request, res: Response) => {
+  router.get('/state.pbf', async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
 
     try {

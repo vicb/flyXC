@@ -503,7 +503,7 @@ export class StateExplorer extends LitElement {
     await fetch(`/api/admin/state/cmd/${Keys.fetcherCmdCaptureState}`, { method: 'POST', credentials: 'include' });
     const deadline = Date.now() + 2 * 60 * 1000;
     this.fetchTimer = setInterval(async () => {
-      const response = await fetch('/admin/state.json', { credentials: 'include' });
+      const response = await fetch('/api/admin/state.pbf', { credentials: 'include' });
       if (response.status == 200) {
         const buffer = new Uint8Array(await response.arrayBuffer());
         this.fetcherState = protos.FetcherState.fromBinary(buffer);
