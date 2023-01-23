@@ -153,7 +153,7 @@ export const getLookAtLatLonAlt = createSelector(
 export const trackColors = createSelector(trackAdapterSelector.selectIds, (ids) => {
   const colors: { [id: string]: string } = {};
   ids.forEach((id, i) => {
-    colors[id] = getUniqueColor(i);
+    colors[id] = getUniqueColor(String(i), 1);
   });
   return colors;
 });

@@ -36,7 +36,28 @@ message FetcherState {
   // Tick ongoing ?
   bool in_tick = 15;
 
+  // Pilots by datastore Id
   map<int64, Pilot> pilots = 16;
+
+  // Fleet by name
+  map<string, UfoFleet> ufo_fleets = 19;
+}
+
+// UFO = Unregistered Flying Object.
+// That is they are a not in the DB as opposite to pilots.
+message UfoFleet {
+  // UFO tracks by id
+  map <string, LiveTrack> ufos = 1;
+
+  // Last time the tracker was fetched (whether ok or not).
+  int64 last_fetch_sec = 2;
+  // Next time the tracker should be fetcher.
+  int64 next_fetch_sec = 4;
+
+  // Requests and errors.
+  int64 num_errors = 5;
+  int64 num_requests = 6;
+  int64 num_consecutive_errors = 7;
 }
 
 message Pilot {

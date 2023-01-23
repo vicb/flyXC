@@ -121,7 +121,7 @@ export function parse(jsonFeed: string): LivePoint[] {
   if (Array.isArray(fixes)) {
     fixes.forEach((fix: any) => {
       points.push({
-        trackerName: 'spot',
+        name: 'spot',
         lon: fix.longitude,
         lat: fix.latitude,
         alt: fix.altitude,

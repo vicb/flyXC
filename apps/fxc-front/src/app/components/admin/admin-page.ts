@@ -1,6 +1,6 @@
 import '@alenaksu/json-viewer';
-import { Keys, protos, round, trackerNames } from '@flyxc/common';
-import { html, LitElement, TemplateResult } from 'lit';
+import * as common from '@flyxc/common';
+import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
@@ -88,7 +88,10 @@ export class AdminPage extends LitElement {
         ${when(
           this.values,
           () => html`<dash-summary .values=${this.values} @sync=${this.fetch}></dash-summary>
-            ${trackerNames.map((name) => html`<dash-tracker .values=${this.values} name=${name}></dash-tracker>`)}
+            ${common.trackerNames.map(
+              (name) => html`<dash-tracker .values=${this.values} .name=${name}></dash-tracker>`,
+            )}
+            ${common.ufoFleetNames.map((name) => html`<dash-fleet .values=${this.values} .name=${name}></dash-fleet>`)}
             <dash-proxy .values=${this.values}></dash-proxy>
             <dash-elev .values=${this.values}></dash-elev>
             <dash-sync .values=${this.values}></dash-sync>
@@ -155,9 +158,9 @@ export class DashSummary extends LitElement {
   }
 
   render(): TemplateResult {
-    const trackerH1 = this.values[Keys.fetcherIncrementalNumTracks];
-    const nextStopSec = this.values[Keys.fetcherNextStopSec];
-    const lastStopSec = this.values[Keys.fetcherStoppedSec];
+    const trackerH1 = this.values[common.Keys.fetcherIncrementalNumTracks];
+    const nextStopSec = this.values[common.Keys.fetcherNextStopSec];
+    const lastStopSec = this.values[common.Keys.fetcherStoppedSec];
 
     if (this.link) {
       this.link.href = `data:image/svg+xml;base64,${btoa(FAVICON_SVG(trackerH1))}`;
@@ -172,29 +175,37 @@ export class DashSummary extends LitElement {
         </ion-card-header>
         ${singleLineItem(
           'Trackers',
-          this.values[Keys.trackerNum],
+          this.values[common.Keys.trackerNum],
           'https://console.cloud.google.com/datastore/entities;kind=LiveTrack;ns=__$DEFAULT$__;sortCol=created;sortDir=DESCENDING/query/kind?project=fly-xc',
         )}
-        ${singleLineItem('Trackers h24', this.values[Keys.fetcherFullNumTracks])}
+        ${singleLineItem('Trackers h24', this.values[common.Keys.fetcherFullNumTracks])}
         ${singleLineItem('Trackers h1', trackerH1)}
-        ${singleLineItem('Last device updated', relativeTime(this.values[Keys.fetcherLastDeviceUpdatedMs] / 1000))}
-        ${singleLineItem('Ticks since start', this.values[Keys.fetcherNumTicks])}
-        ${singleLineItem('Ticks', this.values[Keys.fetcherLastTicksSec].map((t: number) => relativeTime(t)).join(', '))}
-        ${singleLineItem('Fetcher first started', relativeTime(this.values[Keys.fetcherStartedSec]))}
-        ${singleLineItem('Fetcher last started', relativeTime(this.values[Keys.fetcherReStartedSec]))}
-        ${singleLineItem('Fetcher num starts', this.values[Keys.fetcherNumStarts])}
+        ${singleLineItem(
+          'Last device updated',
+          relativeTime(this.values[common.Keys.fetcherLastDeviceUpdatedMs] / 1000),
+        )}
+        ${singleLineItem('Ticks since start', this.values[common.Keys.fetcherNumTicks])}
+        ${singleLineItem(
+          'Ticks',
+          this.values[common.Keys.fetcherLastTicksSec].map((t: number) => relativeTime(t)).join(', '),
+        )}
+        ${singleLineItem('Fetcher first started', relativeTime(this.values[common.Keys.fetcherStartedSec]))}
+        ${singleLineItem('Fetcher last started', relativeTime(this.values[common.Keys.fetcherReStartedSec]))}
+        ${singleLineItem('Fetcher num starts', this.values[common.Keys.fetcherNumStarts])}
         ${singleLineItem('Fetcher last stopped', lastStopSec == 0 ? '-' : relativeTime(lastStopSec))}
         ${singleLineItem('Fetcher next stop', nextStopSec == 0 ? '-' : relativeTime(nextStopSec))}
-        ${singleLineItem('Memory RSS', `${this.values[Keys.fetcherMemoryRssMb]}MB`)}
-        ${singleLineItem('Memory Heap', `${this.values[Keys.fetcherMemoryHeapMb]}MB`)}
+        ${singleLineItem('Memory RSS', `${this.values[common.Keys.fetcherMemoryRssMb]}MB`)}
+        ${singleLineItem('Memory Heap', `${this.values[common.Keys.fetcherMemoryHeapMb]}MB`)}
         ${singleLineItem(
           'Host memory',
-          `${Math.round(this.values[Keys.hostMemoryUsedMb])}/${Math.round(this.values[Keys.hostMemoryTotalMb])}MB`,
+          `${Math.round(this.values[common.Keys.hostMemoryUsedMb])}/${Math.round(
+            this.values[common.Keys.hostMemoryTotalMb],
+          )}MB`,
         )}
-        ${singleLineItem('Host CPU', `${Math.round(this.values[Keys.hostCpuUsage])}%`)}
-        ${singleLineItem('Node', `${this.values[Keys.hostNode]}`)}
-        ${singleLineItem('Uptime', relativeTime(this.values[Keys.hostUptimeSec], 0))}
-        ${singleLineItem('Uploaded tracks', this.values[Keys.trackNum])}
+        ${singleLineItem('Host CPU', `${Math.round(this.values[common.Keys.hostCpuUsage])}%`)}
+        ${singleLineItem('Node', `${this.values[common.Keys.hostNode]}`)}
+        ${singleLineItem('Uptime', relativeTime(this.values[common.Keys.hostUptimeSec], 0))}
+        ${singleLineItem('Uploaded tracks', this.values[common.Keys.trackNum])}
         ${singleLineItem('Data age', relativeTime(lastFetchMs / 1000))}
       </ion-card>`;
   }
@@ -209,32 +220,40 @@ export class DashTracker extends LitElement {
   @property({ attribute: false })
   values: any;
 
-  @property()
-  name = '';
+  @property({ attribute: false })
+  name!: common.TrackerNames;
+
+  private label = '';
+
+  willUpdate(changedProperties: PropertyValues<this>) {
+    if (changedProperties.has('name')) {
+      this.label = common.trackerDisplayNames[this.name];
+    }
+  }
 
   render(): TemplateResult {
     const oldAfterSec = 24 * 3 * 3600;
-    const number = this.values[Keys.trackerNumByType.replace('{name}', this.name)];
-    const durations = this.values[Keys.trackerFetchDuration.replace('{name}', this.name)];
-    const numDevices = this.values[Keys.trackerNumFetches.replace('{name}', this.name)];
-    const numUpdates = this.values[Keys.trackerNumUpdates.replace('{name}', this.name)];
+    const number = this.values[common.Keys.trackerNumByType.replace('{name}', this.name)];
+    const durations = this.values[common.Keys.trackerFetchDuration.replace('{name}', this.name)];
+    const numDevices = this.values[common.Keys.trackerNumFetches.replace('{name}', this.name)];
+    const numUpdates = this.values[common.Keys.trackerNumUpdates.replace('{name}', this.name)];
 
-    const topErrors = this.values[Keys.trackerManyErrorsById.replace('{name}', this.name)];
+    const topErrors = this.values[common.Keys.trackerManyErrorsById.replace('{name}', this.name)];
     const { recent: topRecentErrorsById, old: topOldErrorsById } = splitByDate(topErrors, oldAfterSec);
 
-    const consErrors = this.values[Keys.trackerConsecutiveErrorsById.replace('{name}', this.name)];
+    const consErrors = this.values[common.Keys.trackerConsecutiveErrorsById.replace('{name}', this.name)];
     const { recent: consRecentErrorsById, old: consOldErrorsById } = splitByDate(consErrors, oldAfterSec);
 
-    const errorsById = this.values[Keys.trackerErrorsById.replace('{name}', this.name)];
+    const errorsById = this.values[common.Keys.trackerErrorsById.replace('{name}', this.name)];
     const { recent: recentErrorsById, old: oldErrorsById } = splitByDate(errorsById, oldAfterSec);
 
-    const errors = this.values[Keys.trackerErrorsByType.replace('{name}', this.name)];
+    const errors = this.values[common.Keys.trackerErrorsByType.replace('{name}', this.name)];
     const { recent: recentErrors, old: oldErrors } = splitByDate(errors, oldAfterSec);
 
     return html`
       <ion-card>
         <ion-card-header color="secondary">
-          <ion-card-title><i class="las la-calculator"></i> ${this.name}</ion-card-title>
+          <ion-card-title><i class="las la-calculator"></i> ${this.label}</ion-card-title>
         </ion-card-header>
 
         ${singleLineItem('Trackers', number, GQL_URL.replace('{name}', this.name))}
@@ -248,6 +267,49 @@ export class DashTracker extends LitElement {
           ${errorMarkup('Consecutive errors', consRecentErrorsById, consOldErrorsById)}
           ${errorMarkup('Device errors', recentErrorsById, oldErrorsById)}
           ${errorMarkup('Tracker level errors', recentErrors, oldErrors)}
+        </ion-accordion-group>
+      </ion-card>
+    `;
+  }
+
+  createRenderRoot(): HTMLElement {
+    return this;
+  }
+}
+
+@customElement('dash-fleet')
+export class DashFleet extends LitElement {
+  @property({ attribute: false })
+  values: any;
+
+  @property({ attribute: false })
+  name!: common.UfoFleetNames;
+
+  private label = '';
+
+  willUpdate(changedProperties: PropertyValues<this>) {
+    if (changedProperties.has('name')) {
+      this.label = common.ufoFleetDisplayNames[this.name];
+    }
+  }
+
+  render(): TemplateResult {
+    const oldAfterSec = 24 * 3 * 3600;
+    const durations = this.values[common.Keys.trackerFetchDuration.replace('{name}', this.name)];
+    const numUpdates = this.values[common.Keys.trackerNumUpdates.replace('{name}', this.name)];
+
+    const errors = this.values[common.Keys.trackerErrorsByType.replace('{name}', this.name)];
+    const { recent: recentErrors, old: oldErrors } = splitByDate(errors, oldAfterSec);
+
+    return html`
+      <ion-card>
+        <ion-card-header color="secondary">
+          <ion-card-title><i class="las la-plane"></i> ${this.label}</ion-card-title>
+        </ion-card-header>
+
+        ${item('Duration (sec)', durations.join(', '))} ${item('Devices updated', numUpdates.join(', '))}
+        <ion-accordion-group .multiple=${true} .value=${['Errors']}>
+          ${errorMarkup('Errors', recentErrors, oldErrors)}
         </ion-accordion-group>
       </ion-card>
     `;
@@ -302,9 +364,9 @@ export class DashElevation extends LitElement {
         <ion-card-title><i class="las la-mountain"></i> Elevation</ion-card-title>
       </ion-card-header>
 
-      ${item('Num fetched', this.values[Keys.elevationNumFetched].join(', '))}
-      ${item('Num Retrieved', this.values[Keys.elevationNumRetrieved].join(', '))}
-      ${this.values[Keys.elevationErrors].map((e: string) => item(formatLogEntry(e)))}
+      ${item('Num fetched', this.values[common.Keys.elevationNumFetched].join(', '))}
+      ${item('Num Retrieved', this.values[common.Keys.elevationNumRetrieved].join(', '))}
+      ${this.values[common.Keys.elevationErrors].map((e: string) => item(formatLogEntry(e)))}
     </ion-card>`;
   }
 
@@ -324,7 +386,7 @@ export class DashProxy extends LitElement {
         <ion-card-title><i class="las la-forward"></i> Proxy</ion-card-title>
       </ion-card-header>
 
-      ${this.values[Keys.proxyInreach].map((e: string) => item(formatLogEntry(e)))}
+      ${this.values[common.Keys.proxyInreach].map((e: string) => item(formatLogEntry(e)))}
     </ion-card>`;
   }
 
@@ -340,8 +402,8 @@ export class DashSync extends LitElement {
 
   @state()
   private btnLoading = {
-    [Keys.fetcherCmdExportFile]: false,
-    [Keys.fetcherCmdSyncFull]: false,
+    [common.Keys.fetcherCmdExportFile]: false,
+    [common.Keys.fetcherCmdSyncFull]: false,
   };
 
   render(): TemplateResult {
@@ -354,49 +416,58 @@ export class DashSync extends LitElement {
         <ion-label>Full sync</ion-label>
       </ion-item-divider>
 
-      ${singleLineItem('Next', relativeTime(this.values[Keys.fetcherNextFullSyncSec]))}
+      ${singleLineItem('Next', relativeTime(this.values[common.Keys.fetcherNextFullSyncSec]))}
       ${item(
         'Last num sync',
-        this.values[Keys.stateSyncNum.replace('{type}', 'full')].map((e: string) => formatLogEntry(e)).join(', '),
+        this.values[common.Keys.stateSyncNum.replace('{type}', 'full')]
+          .map((e: string) => formatLogEntry(e))
+          .join(', '),
       )}
       ${item(
         'Last errors',
-        this.values[Keys.stateSyncErrors.replace('{type}', 'full')].map((e: string) => formatLogEntry(e)).join(', '),
+        this.values[common.Keys.stateSyncErrors.replace('{type}', 'full')]
+          .map((e: string) => formatLogEntry(e))
+          .join(', '),
       )}
 
       <ion-item-divider color="light">
         <ion-label>Partial sync</ion-label>
       </ion-item-divider>
 
-      ${singleLineItem('Next', relativeTime(this.values[Keys.fetcherNextPartialSyncSec]))}
+      ${singleLineItem('Next', relativeTime(this.values[common.Keys.fetcherNextPartialSyncSec]))}
       ${item(
         'Last num sync',
-        this.values[Keys.stateSyncNum.replace('{type}', 'inc')].map((e: string) => formatLogEntry(e)).join(', '),
+        this.values[common.Keys.stateSyncNum.replace('{type}', 'inc')].map((e: string) => formatLogEntry(e)).join(', '),
       )}
       ${item(
         'Last errors',
-        this.values[Keys.stateSyncErrors.replace('{type}', 'inc')].map((e: string) => formatLogEntry(e)).join(', '),
+        this.values[common.Keys.stateSyncErrors.replace('{type}', 'inc')]
+          .map((e: string) => formatLogEntry(e))
+          .join(', '),
       )}
 
       <ion-item-divider color="light">
         <ion-label>Export</ion-label>
       </ion-item-divider>
 
-      ${singleLineItem('Next', relativeTime(this.values[Keys.fetcherNextExportSec]))}
-      ${this.values[Keys.stateExportStatus].map((e: string) => item(formatLogEntry(e)))}
+      ${singleLineItem('Next', relativeTime(this.values[common.Keys.fetcherNextExportSec]))}
+      ${this.values[common.Keys.stateExportStatus].map((e: string) => item(formatLogEntry(e)))}
 
       <ion-item lines="none">
         <ion-button
-          .disabled=${this.btnLoading[Keys.fetcherCmdSyncFull]}
-          @click=${async () => await this.sendCommand(Keys.fetcherCmdSyncFull)}
-          ><i class=${`la la-sync ${when(this.btnLoading[Keys.fetcherCmdSyncFull], () => 'la-spin')}`}></i>
+          .disabled=${this.btnLoading[common.Keys.fetcherCmdSyncFull]}
+          @click=${async () => await this.sendCommand(common.Keys.fetcherCmdSyncFull)}
+          ><i class=${`la la-sync ${when(this.btnLoading[common.Keys.fetcherCmdSyncFull], () => 'la-spin')}`}></i>
           Sync</ion-button
         >
         <ion-button
-          .disabled=${this.btnLoading[Keys.fetcherCmdExportFile]}
-          @click=${async () => await this.sendCommand(Keys.fetcherCmdExportFile)}
+          .disabled=${this.btnLoading[common.Keys.fetcherCmdExportFile]}
+          @click=${async () => await this.sendCommand(common.Keys.fetcherCmdExportFile)}
           ><i
-            class=${`la la-cloud-upload-alt ${when(this.btnLoading[Keys.fetcherCmdExportFile], () => 'la-spin')}`}
+            class=${`la la-cloud-upload-alt ${when(
+              this.btnLoading[common.Keys.fetcherCmdExportFile],
+              () => 'la-spin',
+            )}`}
           ></i>
           Export</ion-button
         >
@@ -405,7 +476,7 @@ export class DashSync extends LitElement {
   }
 
   // Send a state command.
-  private async sendCommand(command: Keys.fetcherCmdSyncFull | Keys.fetcherCmdExportFile) {
+  private async sendCommand(command: common.Keys.fetcherCmdSyncFull | common.Keys.fetcherCmdExportFile) {
     if (this.btnLoading[command]) {
       return;
     }
@@ -432,7 +503,7 @@ export class StateExplorer extends LitElement {
   private filter = '';
 
   @state()
-  private fetcherState?: protos.FetcherState;
+  private fetcherState?: common.protos.FetcherState;
 
   private fetchTimer: any;
   private refreshTimer: any;
@@ -500,13 +571,16 @@ export class StateExplorer extends LitElement {
     }
     this.fetcherState = undefined;
     this.isLoading = true;
-    await fetch(`/api/admin/state/cmd/${Keys.fetcherCmdCaptureState}`, { method: 'POST', credentials: 'include' });
+    await fetch(`/api/admin/state/cmd/${common.Keys.fetcherCmdCaptureState}`, {
+      method: 'POST',
+      credentials: 'include',
+    });
     const deadline = Date.now() + 2 * 60 * 1000;
     this.fetchTimer = setInterval(async () => {
       const response = await fetch('/api/admin/state.pbf', { credentials: 'include' });
       if (response.status == 200) {
         const buffer = new Uint8Array(await response.arrayBuffer());
-        this.fetcherState = protos.FetcherState.fromBinary(buffer);
+        this.fetcherState = common.protos.FetcherState.fromBinary(buffer);
         this.isLoading = false;
         clearInterval(this.fetchTimer);
         this.fetchTimer = null;
@@ -533,7 +607,7 @@ function singleLineItem(key: string, value: any, valueLink?: string) {
     <ion-text class="value" color="dark"
       >${when(
         valueLink,
-        () => html`<a href=${valueLink} target="_blank">${unsafeHTML(value)}</a>`,
+        () => html`<a href=${valueLink ?? ''} target="_blank">${unsafeHTML(value)}</a>`,
         () => unsafeHTML(value),
       )}</ion-text
     >
@@ -553,24 +627,24 @@ function item(key: string, value?: any) {
 function relativeTime(timeSec: number, relativeToSec = Math.round(Date.now() / 1000)): string {
   const delta = timeSec - relativeToSec;
   if (Math.abs(delta) >= 24 * 3600 * 365) {
-    return `${round(delta / (24 * 3600 * 365), 1)}y`;
+    return `${common.round(delta / (24 * 3600 * 365), 1)}y`;
   }
   if (Math.abs(delta) >= 24 * 3600 * 30) {
-    return `${round(delta / (24 * 3600 * 30), 1)}month`;
+    return `${common.round(delta / (24 * 3600 * 30), 1)}month`;
   }
   if (Math.abs(delta) >= 24 * 3600 * 7) {
-    return `${round(delta / (24 * 3600 * 7), 1)}w`;
+    return `${common.round(delta / (24 * 3600 * 7), 1)}w`;
   }
   if (Math.abs(delta) >= 24 * 3600) {
-    return `${round(delta / (24 * 3600), 1)}d`;
+    return `${common.round(delta / (24 * 3600), 1)}d`;
   }
   if (Math.abs(delta) >= 3600) {
-    return `${round(delta / 3600, 1)}h`;
+    return `${common.round(delta / 3600, 1)}h`;
   }
   if (Math.abs(delta) >= 60) {
-    return `${round(delta / 60, 0)}min`;
+    return `${common.round(delta / 60, 0)}min`;
   }
-  return `${round(delta, 0)}s`;
+  return `${common.round(delta, 0)}s`;
 }
 
 // Formats logs entry of the shape:
@@ -622,7 +696,7 @@ function entityHref(id: string) {
 }
 
 // Format the app state to a shorter and more understandable form for display.
-function filterState(state: protos.FetcherState | undefined, maxPilots: number, filter: string): unknown {
+function filterState(state: common.protos.FetcherState | undefined, maxPilots: number, filter: string): unknown {
   if (state == null) {
     return {};
   }
@@ -642,6 +716,7 @@ function filterState(state: protos.FetcherState | undefined, maxPilots: number, 
     nextExportSec: relativeTime(state.nextExportSec, tickSec),
     numMatchingPilots: 0,
     pilots: [],
+    fleet: [],
   };
 
   let numMatchingPilots = 0;
@@ -667,8 +742,8 @@ function filterState(state: protos.FetcherState | undefined, maxPilots: number, 
 
     let lastFixSec = 0;
 
-    for (const tId of trackerNames) {
-      const tracker: protos.Tracker | undefined = pilot[tId];
+    for (const tId of common.trackerNames) {
+      const tracker: common.protos.Tracker | undefined = pilot[tId];
       if (tracker == null || tracker.enabled == false) {
         outPilot[tId] = 'Tracker disabled';
         continue;
@@ -711,11 +786,13 @@ function filterState(state: protos.FetcherState | undefined, maxPilots: number, 
 
   output.numMatchingPilots = numMatchingPilots;
 
+  output.fleet = state.ufoFleets;
+
   return output;
 }
 
 // Returns whether a pilot matches the filter.
-function pilotMatches(pilot: protos.Pilot, filter: string): boolean {
+function pilotMatches(pilot: common.protos.Pilot, filter: string): boolean {
   if (filter.length == 0) {
     return true;
   }
@@ -723,7 +800,7 @@ function pilotMatches(pilot: protos.Pilot, filter: string): boolean {
 
   let match = regexp.test(pilot.name);
 
-  for (const tracker of trackerNames) {
+  for (const tracker of common.trackerNames) {
     match ||= regexp.test(pilot[tracker]?.account ?? '');
   }
 

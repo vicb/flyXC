@@ -1,10 +1,10 @@
 import {
   differentialDecodeLiveTrack,
   IsSimplifiableFix,
+  isUfo,
   LIVE_MINIMAL_INTERVAL_SEC,
   mergeLiveTracks,
   protos,
-  removeBeforeFromLiveTrack,
   simplifyLiveTrack,
 } from '@flyxc/common';
 import { getRhumbLineBearing } from 'geolib';
@@ -53,7 +53,12 @@ export function trackToFeatures(track: protos.LiveTrack, gapMin: number): any[] 
         line.push([track.lon[i], track.lat[i], track.alt[i]]);
       }
       if (line.length > 1) {
-        const properties: { [k: string]: unknown } = { id: track.id, startIndex: start, endIndex: end };
+        const properties: { [k: string]: unknown } = {
+          id: String(track.id ?? track.idStr),
+          startIndex: start,
+          endIndex: end,
+          isUfo: isUfo(track.flags[start]),
+        };
         if (index == segments.length - 1) {
           properties.last = true;
         }
@@ -68,11 +73,12 @@ export function trackToFeatures(track: protos.LiveTrack, gapMin: number): any[] 
       }
     });
 
-    // Add 3 last points of the last segment.
+    // Add 3 last points of the last segment (at least 2mn apart) - unless ufo
     if (segments.length > 0) {
       const { start, end } = segments[segments.length - 1];
       let previousSec = track.timeSec[end];
-      for (let i = end - 1, extraPoints = 3; i >= start && extraPoints > 0; --i) {
+      let extraPoints = isUfo(track.flags[start]) ? 1 : 3;
+      for (let i = end - 1; i >= start && extraPoints > 0; --i) {
         const currentSec = track.timeSec[i];
         if (previousSec - currentSec >= 2 * 60) {
           previousSec = currentSec;
@@ -90,8 +96,8 @@ export function trackToFeatures(track: protos.LiveTrack, gapMin: number): any[] 
 
 function addPoint(pointsByIndex: Map<number, any>, track: protos.LiveTrack, index: number, props: any = {}): void {
   const len = track.timeSec.length;
+  // Compute the heading for the last fix of last segment.
   if (index == len - 1) {
-    // Compute the heading for the last fix of last segment.
     if (len > 1) {
       const previous = { lat: track.lat[len - 2], lon: track.lon[len - 2] };
       const current = { lat: track.lat[len - 1], lon: track.lon[len - 1] };
@@ -109,8 +115,9 @@ function addPoint(pointsByIndex: Map<number, any>, track: protos.LiveTrack, inde
     },
     properties: {
       ...props,
-      id: track.id,
+      id: String(track.id ?? track.idStr),
       index,
+      isUfo: isUfo(track.flags[index]),
     },
   });
 }
@@ -124,13 +131,15 @@ function addPoint(pointsByIndex: Map<number, any>, track: protos.LiveTrack, inde
 export function updateLiveTracks(
   tracks: { [id: string]: protos.LiveTrack },
   updates: protos.LiveDifferentialTrackGroup,
-  dropBeforeSec: number,
 ): protos.LiveTrack[] {
   // Tracks received from the server (either full or incremental).
   const updatedTracks: { [id: string]: protos.LiveTrack } = {};
 
   updates.tracks.forEach((diffTrack) => {
-    updatedTracks[diffTrack.id] = differentialDecodeLiveTrack(diffTrack);
+    const id = String(diffTrack.id ?? diffTrack.idStr);
+    if (id != null) {
+      updatedTracks[id] = differentialDecodeLiveTrack(diffTrack);
+    }
   });
 
   if (updates.incremental) {
@@ -139,7 +148,7 @@ export function updateLiveTracks(
     // - removing old points,
     // - deleting processed tracks from the server tracks.
     for (const id of Object.keys(tracks)) {
-      let track = tracks[id] as protos.LiveTrack;
+      let track = tracks[id];
       if (!track) {
         continue;
       }
@@ -151,14 +160,5 @@ export function updateLiveTracks(
     }
   }
 
-  const finalTracks: protos.LiveTrack[] = [];
-
-  for (const updatedTrack of Object.values(updatedTracks)) {
-    const track = removeBeforeFromLiveTrack(updatedTrack, dropBeforeSec);
-    if (track.timeSec.length) {
-      finalTracks.push(track);
-    }
-  }
-
-  return finalTracks;
+  return Object.values(updatedTracks);
 }

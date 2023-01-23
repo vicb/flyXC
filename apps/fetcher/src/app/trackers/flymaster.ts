@@ -96,7 +96,7 @@ export class FlymasterFetcher extends TrackerFetcher {
 export function parse(flight: any): LivePoint[] {
   return flight.map(
     (fix: any): LivePoint => ({
-      trackerName: 'flymaster',
+      name: 'flymaster',
       lat: fix.ai / 60000,
       lon: fix.oi / 60000,
       alt: fix.h,

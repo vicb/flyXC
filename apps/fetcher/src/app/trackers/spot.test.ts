@@ -17,7 +17,7 @@ describe('Parse JSON feed', () => {
     expect(spot2).toEqual([
       {
         alt: 0,
-        trackerName: 'spot',
+        name: 'spot',
         emergency: false,
         lat: 44.06871,
         lon: 7.20849,
@@ -27,7 +27,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 0,
-        trackerName: 'spot',
+        name: 'spot',
         emergency: false,
         lat: 44.06923,
         lon: 7.20879,
@@ -37,7 +37,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 0,
-        trackerName: 'spot',
+        name: 'spot',
         emergency: true,
         lat: 44.07498,
         lon: 7.20351,
@@ -47,7 +47,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 0,
-        trackerName: 'spot',
+        name: 'spot',
         emergency: false,
         lat: 44.04253,
         lon: 7.20452,
@@ -57,7 +57,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 0,
-        trackerName: 'spot',
+        name: 'spot',
         emergency: false,
         lat: 44.01246,
         lon: 7.22531,
@@ -72,7 +72,7 @@ describe('Parse JSON feed', () => {
     expect(spot3).toEqual([
       {
         alt: 123,
-        trackerName: 'spot',
+        name: 'spot',
         emergency: false,
         lat: 44.06871,
         lon: 7.20849,
@@ -82,7 +82,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 456,
-        trackerName: 'spot',
+        name: 'spot',
         emergency: false,
         lat: 44.06923,
         lon: 7.20879,
@@ -92,7 +92,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 789,
-        trackerName: 'spot',
+        name: 'spot',
         emergency: true,
         lat: 44.07498,
         lon: 7.20351,
@@ -102,7 +102,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 123,
-        trackerName: 'spot',
+        name: 'spot',
         emergency: false,
         lat: 44.04253,
         lon: 7.20452,
@@ -112,7 +112,7 @@ describe('Parse JSON feed', () => {
       },
       {
         alt: 456,
-        trackerName: 'spot',
+        name: 'spot',
         emergency: false,
         lat: 44.01246,
         lon: 7.22531,

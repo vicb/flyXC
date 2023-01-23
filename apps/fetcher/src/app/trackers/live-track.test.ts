@@ -6,7 +6,7 @@ describe('makeLiveTrack', () => {
   it('should order the points in chronological order', () => {
     const points: LivePoint[] = [
       {
-        trackerName: 'inreach',
+        name: 'inreach',
         lat: 10.123456,
         lon: -12.123456,
         alt: 100.123,
@@ -14,7 +14,7 @@ describe('makeLiveTrack', () => {
         valid: false,
       },
       {
-        trackerName: 'skylines',
+        name: 'skylines',
         lat: 11.123456,
         lon: -13.123456,
         alt: 200.123,
@@ -36,7 +36,7 @@ describe('makeLiveTrack', () => {
   it('should keep 5 digits for lat and lon', () => {
     const track = makeLiveTrack([
       {
-        trackerName: 'inreach',
+        name: 'inreach',
         lat: 10.123456,
         lon: -12.123456,
         alt: 100.123,
@@ -52,7 +52,7 @@ describe('makeLiveTrack', () => {
   it('should round the altitude', () => {
     const track = makeLiveTrack([
       {
-        trackerName: 'inreach',
+        name: 'inreach',
         lat: 10.123456,
         lon: -12.123456,
         alt: 100.123,
@@ -67,7 +67,7 @@ describe('makeLiveTrack', () => {
   it('should round the ground altitude', () => {
     const track = makeLiveTrack([
       {
-        trackerName: 'inreach',
+        name: 'inreach',
         lat: 10.123456,
         lon: -12.123456,
         alt: 100.123,
@@ -83,7 +83,7 @@ describe('makeLiveTrack', () => {
   it('should convert the timestamp to seconds', () => {
     const track = makeLiveTrack([
       {
-        trackerName: 'inreach',
+        name: 'inreach',
         lat: 10.123456,
         lon: -12.123456,
         alt: 100.123,
@@ -98,7 +98,7 @@ describe('makeLiveTrack', () => {
   it('should not add extra when not required', () => {
     const track = makeLiveTrack([
       {
-        trackerName: 'inreach',
+        name: 'inreach',
         lat: 10.123456,
         lon: -12.123456,
         alt: 100.123,
@@ -112,8 +112,8 @@ describe('makeLiveTrack', () => {
 
   it('should add extra for speed as uint32', () => {
     const track = makeLiveTrack([
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 1000000, valid: false },
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000000, valid: false, speed: 10.123 },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 1000000, valid: false },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000000, valid: false, speed: 10.123 },
     ]);
 
     expect(track.extra).toEqual({ 1: { speed: 10 } });
@@ -121,9 +121,9 @@ describe('makeLiveTrack', () => {
 
   it('should add extra for messages', () => {
     const track = makeLiveTrack([
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 1000000, valid: false },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 1000000, valid: false },
       {
-        trackerName: 'inreach',
+        name: 'inreach',
         lat: 10,
         lon: -12,
         alt: 100,
@@ -138,8 +138,8 @@ describe('makeLiveTrack', () => {
 
   it('should add extra for ground altitude', () => {
     const track = makeLiveTrack([
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 1000000, valid: false },
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000000, valid: false, gndAlt: 32 },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 1000000, valid: false },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000000, valid: false, gndAlt: 32 },
     ]);
 
     expect(track.extra).toEqual({ 1: { gndAlt: 32 } });
@@ -150,9 +150,9 @@ describe('makeLiveTrack', () => {
     const end = computeDestinationPoint(start, 1000, 0);
 
     const track = makeLiveTrack([
-      { trackerName: 'inreach', lat: start.lat, lon: start.lon, alt: 100, timestamp: 1000000, valid: false },
+      { name: 'inreach', lat: start.lat, lon: start.lon, alt: 100, timestamp: 1000000, valid: false },
       {
-        trackerName: 'inreach',
+        name: 'inreach',
         lat: end.latitude,
         lon: end.longitude,
         alt: 100,
@@ -169,10 +169,10 @@ describe('makeLiveTrack', () => {
 
   it('should encode valid', () => {
     const track = makeLiveTrack([
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 1000, valid: false },
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000, valid: true },
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000, valid: null },
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000 },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 1000, valid: false },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000, valid: true },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000, valid: null },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000 },
     ]);
 
     expect(track.flags.map((flags) => isValidFix(flags))).toEqual([false, true, true, true]);
@@ -180,10 +180,10 @@ describe('makeLiveTrack', () => {
 
   it('should encode emergency', () => {
     const track = makeLiveTrack([
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 1000, emergency: true },
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000, emergency: false },
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000, emergency: null },
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000 },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 1000, emergency: true },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000, emergency: false },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000, emergency: null },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000 },
     ]);
 
     expect(track.flags.map((flags) => isEmergencyFix(flags))).toEqual([true, false, false, false]);
@@ -191,10 +191,10 @@ describe('makeLiveTrack', () => {
 
   it('should encode low battery', () => {
     const track = makeLiveTrack([
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 1000, lowBattery: true },
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000, lowBattery: false },
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000, lowBattery: null },
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000 },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 1000, lowBattery: true },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000, lowBattery: false },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000, lowBattery: null },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 2000 },
     ]);
 
     expect(track.flags.map((flags) => isLowBatFix(flags))).toEqual([true, false, false, false]);
@@ -202,11 +202,11 @@ describe('makeLiveTrack', () => {
 
   it('should encode the device', () => {
     const track = makeLiveTrack([
-      { trackerName: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 1000 },
-      { trackerName: 'spot', lat: 10, lon: -12, alt: 100, timestamp: 2000 },
-      { trackerName: 'skylines', lat: 10, lon: -12, alt: 100, timestamp: 2000 },
-      { trackerName: 'flyme', lat: 10, lon: -12, alt: 100, timestamp: 2000 },
-      { trackerName: 'flymaster', lat: 10, lon: -12, alt: 100, timestamp: 2000 },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timestamp: 1000 },
+      { name: 'spot', lat: 10, lon: -12, alt: 100, timestamp: 2000 },
+      { name: 'skylines', lat: 10, lon: -12, alt: 100, timestamp: 2000 },
+      { name: 'flyme', lat: 10, lon: -12, alt: 100, timestamp: 2000 },
+      { name: 'flymaster', lat: 10, lon: -12, alt: 100, timestamp: 2000 },
     ]);
 
     expect(track.flags.map((flags) => getTrackerName(flags))).toEqual([

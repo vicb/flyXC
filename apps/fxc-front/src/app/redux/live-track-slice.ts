@@ -21,7 +21,7 @@ const REFRESH_INTERVAL_SEC = isMobile() ? 2 * 60 : 60;
 const RETURN_URL_KEY = 'url.tracking.return';
 
 const trackAdapter = createEntityAdapter<protos.LiveTrack>({
-  selectId: (track) => track.id as number,
+  selectId: (track) => String(track.id ?? track.idStr),
 });
 
 export const liveTrackSelectors = trackAdapter.getSelectors((state: RootState) => state.liveTrack.tracks);
@@ -32,7 +32,7 @@ export type TrackState = {
   fetchMillis: number;
   geojson: any;
   refreshTimer: any;
-  currentLiveId?: number;
+  currentLiveId?: string;
   displayLabels: boolean;
   // Whether the map should be centered on the current location.
   // Only used when the live modal is opened.
@@ -84,7 +84,7 @@ const trackSlice = createSlice({
     setReturnUrl: (state, action: PayloadAction<string>) => {
       localStorage.setItem(RETURN_URL_KEY, action.payload);
     },
-    setCurrentLiveId: (state, action: PayloadAction<number | undefined>) => {
+    setCurrentLiveId: (state, action: PayloadAction<string | undefined>) => {
       state.currentLiveId = action.payload;
     },
     setFlightMode: (state, action: PayloadAction<boolean>) => {
@@ -137,7 +137,7 @@ export const { setReturnUrl, setCurrentLiveId, setDisplayLabels, setCenterOnLoca
   trackSlice.actions;
 
 export type LivePilot = {
-  id: number;
+  id: string;
   name: string;
   position: LatLonZ;
   gndAlt?: number;
@@ -157,7 +157,7 @@ export const getLivePilots = createSelector(liveTrackSelectors.selectAll, (track
     const lastIndex = track.timeSec.length - 1;
     const extra = track.extra[lastIndex];
     return {
-      id: track.id as number,
+      id: String(track.id ?? track.idStr),
       name: track.name as string,
       position: {
         lat: track.lat[lastIndex],

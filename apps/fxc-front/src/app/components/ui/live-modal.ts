@@ -38,7 +38,7 @@ export class LiveModal extends connect(store)(LitElement) {
   @state()
   private location!: common.LatLon;
   @state()
-  private currentLiveId?: number;
+  private currentLiveId?: string;
 
   private watchLocationId = 0;
 
@@ -156,7 +156,7 @@ export class LiveModal extends connect(store)(LitElement) {
   private getPilotItems(): TemplateResult[] {
     const nowSec = Date.now() / 1000;
     let pilots = [...this.pilots];
-    const distances = new Map<number, number>();
+    const distances = new Map<string, number>();
 
     pilots.forEach((pilot) => {
       const distance = Math.round(getDistance(this.location, pilot.position));
@@ -224,11 +224,7 @@ export class LiveModal extends connect(store)(LitElement) {
       lines="full"
       color=${pilot.isEmergency ? 'warning' : pilot.id == this.currentLiveId ? 'primary' : ''}
     >
-      <i
-        slot="start"
-        class="las la-user-astronaut la-2x"
-        style=${`color: ${getUniqueContrastColor(Math.round(pilot.id / 1000))}`}
-      ></i>
+      <i slot="start" class="las la-user-astronaut la-2x" style=${`color: ${getUniqueContrastColor(pilot.id)}`}></i>
       <ion-label class="ion-text-wrap">
         <h2>${pilot.name}</h2>
         <p>

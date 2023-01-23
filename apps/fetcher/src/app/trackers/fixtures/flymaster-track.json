@@ -1,6 +1,6 @@
 [
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.5079,
     "lon": -121.99716666666667,
     "alt": "846",
@@ -9,7 +9,7 @@
     "timestamp": 1615411121000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50795,
     "lon": -121.9971,
     "alt": "847",
@@ -18,7 +18,7 @@
     "timestamp": 1615411122000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50801666666667,
     "lon": -121.99706666666667,
     "alt": "848",
@@ -27,7 +27,7 @@
     "timestamp": 1615411123000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.508066666666664,
     "lon": -121.99703333333333,
     "alt": "848",
@@ -36,7 +36,7 @@
     "timestamp": 1615411124000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50813333333333,
     "lon": -121.997,
     "alt": "848",
@@ -45,7 +45,7 @@
     "timestamp": 1615411125000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.5082,
     "lon": -121.99698333333333,
     "alt": "848",
@@ -54,7 +54,7 @@
     "timestamp": 1615411126000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.508266666666664,
     "lon": -121.99695,
     "alt": "848",
@@ -63,7 +63,7 @@
     "timestamp": 1615411127000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.508316666666666,
     "lon": -121.99691666666666,
     "alt": "849",
@@ -72,7 +72,7 @@
     "timestamp": 1615411128000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.508383333333335,
     "lon": -121.9969,
     "alt": "849",
@@ -81,7 +81,7 @@
     "timestamp": 1615411129000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50845,
     "lon": -121.99688333333333,
     "alt": "848",
@@ -90,7 +90,7 @@
     "timestamp": 1615411130000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.508516666666665,
     "lon": -121.99685,
     "alt": "847",
@@ -99,7 +99,7 @@
     "timestamp": 1615411131000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.508583333333334,
     "lon": -121.99683333333333,
     "alt": "847",
@@ -108,7 +108,7 @@
     "timestamp": 1615411132000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50866666666667,
     "lon": -121.99681666666666,
     "alt": "847",
@@ -117,7 +117,7 @@
     "timestamp": 1615411133000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50873333333333,
     "lon": -121.99678333333334,
     "alt": "848",
@@ -126,7 +126,7 @@
     "timestamp": 1615411134000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.5088,
     "lon": -121.99678333333334,
     "alt": "850",
@@ -135,7 +135,7 @@
     "timestamp": 1615411135000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50886666666667,
     "lon": -121.99676666666667,
     "alt": "851",
@@ -144,7 +144,7 @@
     "timestamp": 1615411136000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.5089,
     "lon": -121.99675,
     "alt": "852",
@@ -153,7 +153,7 @@
     "timestamp": 1615411137000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50895,
     "lon": -121.99673333333334,
     "alt": "852",
@@ -162,7 +162,7 @@
     "timestamp": 1615411138000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.509,
     "lon": -121.9967,
     "alt": "850",
@@ -171,7 +171,7 @@
     "timestamp": 1615411139000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50905,
     "lon": -121.99668333333334,
     "alt": "849",
@@ -180,7 +180,7 @@
     "timestamp": 1615411140000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.509116666666664,
     "lon": -121.99666666666667,
     "alt": "848",
@@ -189,7 +189,7 @@
     "timestamp": 1615411141000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.5092,
     "lon": -121.99663333333334,
     "alt": "848",
@@ -198,7 +198,7 @@
     "timestamp": 1615411142000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50926666666667,
     "lon": -121.99661666666667,
     "alt": "849",
@@ -207,7 +207,7 @@
     "timestamp": 1615411143000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50933333333333,
     "lon": -121.9966,
     "alt": "850",
@@ -216,7 +216,7 @@
     "timestamp": 1615411144000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50938333333333,
     "lon": -121.9966,
     "alt": "850",
@@ -225,7 +225,7 @@
     "timestamp": 1615411145000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.509433333333334,
     "lon": -121.99658333333333,
     "alt": "849",
@@ -234,7 +234,7 @@
     "timestamp": 1615411146000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.5095,
     "lon": -121.99656666666667,
     "alt": "848",
@@ -243,7 +243,7 @@
     "timestamp": 1615411147000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.509566666666665,
     "lon": -121.99655,
     "alt": "847",
@@ -252,7 +252,7 @@
     "timestamp": 1615411148000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50965,
     "lon": -121.99651666666666,
     "alt": "847",
@@ -261,7 +261,7 @@
     "timestamp": 1615411149000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50971666666667,
     "lon": -121.99648333333333,
     "alt": "849",
@@ -270,7 +270,7 @@
     "timestamp": 1615411150000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.509766666666664,
     "lon": -121.99643333333333,
     "alt": "850",
@@ -279,7 +279,7 @@
     "timestamp": 1615411151000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.5098,
     "lon": -121.99636666666666,
     "alt": "850",
@@ -288,7 +288,7 @@
     "timestamp": 1615411152000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50983333333333,
     "lon": -121.9963,
     "alt": "849",
@@ -297,7 +297,7 @@
     "timestamp": 1615411153000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.509883333333335,
     "lon": -121.99625,
     "alt": "847",
@@ -306,7 +306,7 @@
     "timestamp": 1615411154000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.50995,
     "lon": -121.99621666666667,
     "alt": "846",
@@ -315,7 +315,7 @@
     "timestamp": 1615411155000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.510016666666665,
     "lon": -121.99616666666667,
     "alt": "845",
@@ -324,7 +324,7 @@
     "timestamp": 1615411156000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51006666666667,
     "lon": -121.99613333333333,
     "alt": "845",
@@ -333,7 +333,7 @@
     "timestamp": 1615411157000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51011666666667,
     "lon": -121.99611666666667,
     "alt": "845",
@@ -342,7 +342,7 @@
     "timestamp": 1615411158000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51016666666667,
     "lon": -121.99608333333333,
     "alt": "845",
@@ -351,7 +351,7 @@
     "timestamp": 1615411159000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.510216666666665,
     "lon": -121.99606666666666,
     "alt": "843",
@@ -360,7 +360,7 @@
     "timestamp": 1615411160000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.510266666666666,
     "lon": -121.99605,
     "alt": "842",
@@ -369,7 +369,7 @@
     "timestamp": 1615411161000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51031666666667,
     "lon": -121.99601666666666,
     "alt": "841",
@@ -378,7 +378,7 @@
     "timestamp": 1615411162000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51036666666667,
     "lon": -121.99598333333333,
     "alt": "840",
@@ -387,7 +387,7 @@
     "timestamp": 1615411163000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.510416666666664,
     "lon": -121.99595,
     "alt": "839",
@@ -396,7 +396,7 @@
     "timestamp": 1615411164000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51048333333333,
     "lon": -121.99591666666667,
     "alt": "839",
@@ -405,7 +405,7 @@
     "timestamp": 1615411165000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51055,
     "lon": -121.99588333333334,
     "alt": "839",
@@ -414,7 +414,7 @@
     "timestamp": 1615411166000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.510616666666664,
     "lon": -121.99585,
     "alt": "839",
@@ -423,7 +423,7 @@
     "timestamp": 1615411167000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.510666666666665,
     "lon": -121.99581666666667,
     "alt": "839",
@@ -432,7 +432,7 @@
     "timestamp": 1615411168000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51071666666667,
     "lon": -121.99578333333334,
     "alt": "838",
@@ -441,7 +441,7 @@
     "timestamp": 1615411169000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.510783333333336,
     "lon": -121.99573333333333,
     "alt": "837",
@@ -450,7 +450,7 @@
     "timestamp": 1615411170000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51085,
     "lon": -121.9957,
     "alt": "835",
@@ -459,7 +459,7 @@
     "timestamp": 1615411171000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51091666666667,
     "lon": -121.99568333333333,
     "alt": "834",
@@ -468,7 +468,7 @@
     "timestamp": 1615411172000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.511,
     "lon": -121.99566666666666,
     "alt": "834",
@@ -477,7 +477,7 @@
     "timestamp": 1615411173000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.511066666666665,
     "lon": -121.99563333333333,
     "alt": "834",
@@ -486,7 +486,7 @@
     "timestamp": 1615411174000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51113333333333,
     "lon": -121.9956,
     "alt": "833",
@@ -495,7 +495,7 @@
     "timestamp": 1615411175000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.511183333333335,
     "lon": -121.99555,
     "alt": "833",
@@ -504,7 +504,7 @@
     "timestamp": 1615411176000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51125,
     "lon": -121.99551666666666,
     "alt": "832",
@@ -513,7 +513,7 @@
     "timestamp": 1615411177000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.5113,
     "lon": -121.99548333333334,
     "alt": "831",
@@ -522,7 +522,7 @@
     "timestamp": 1615411178000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51135,
     "lon": -121.99543333333334,
     "alt": "830",
@@ -531,7 +531,7 @@
     "timestamp": 1615411179000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51141666666667,
     "lon": -121.9954,
     "alt": "828",
@@ -540,7 +540,7 @@
     "timestamp": 1615411180000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.511466666666664,
     "lon": -121.99536666666667,
     "alt": "827",
@@ -549,7 +549,7 @@
     "timestamp": 1615411181000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51153333333333,
     "lon": -121.99531666666667,
     "alt": "827",
@@ -558,7 +558,7 @@
     "timestamp": 1615411182000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.511583333333334,
     "lon": -121.99528333333333,
     "alt": "826",
@@ -567,7 +567,7 @@
     "timestamp": 1615411183000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51161666666667,
     "lon": -121.99526666666667,
     "alt": "826",
@@ -576,7 +576,7 @@
     "timestamp": 1615411184000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51166666666666,
     "lon": -121.99523333333333,
     "alt": "826",
@@ -585,7 +585,7 @@
     "timestamp": 1615411185000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.511716666666665,
     "lon": -121.9952,
     "alt": "824",
@@ -594,7 +594,7 @@
     "timestamp": 1615411186000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51175,
     "lon": -121.99516666666666,
     "alt": "823",
@@ -603,7 +603,7 @@
     "timestamp": 1615411187000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.5118,
     "lon": -121.99513333333333,
     "alt": "822",
@@ -612,7 +612,7 @@
     "timestamp": 1615411188000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51185,
     "lon": -121.99511666666666,
     "alt": "821",
@@ -621,7 +621,7 @@
     "timestamp": 1615411189000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.5119,
     "lon": -121.99508333333333,
     "alt": "820",
@@ -630,7 +630,7 @@
     "timestamp": 1615411190000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51195,
     "lon": -121.99505,
     "alt": "820",
@@ -639,7 +639,7 @@
     "timestamp": 1615411191000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51201666666667,
     "lon": -121.99503333333334,
     "alt": "819",
@@ -648,7 +648,7 @@
     "timestamp": 1615411192000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51206666666667,
     "lon": -121.99501666666667,
     "alt": "818",
@@ -657,7 +657,7 @@
     "timestamp": 1615411193000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.512116666666664,
     "lon": -121.995,
     "alt": "818",
@@ -666,7 +666,7 @@
     "timestamp": 1615411194000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.512166666666666,
     "lon": -121.99498333333334,
     "alt": "818",
@@ -675,7 +675,7 @@
     "timestamp": 1615411195000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.512233333333334,
     "lon": -121.99496666666667,
     "alt": "819",
@@ -684,7 +684,7 @@
     "timestamp": 1615411196000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.512283333333336,
     "lon": -121.99495,
     "alt": "819",
@@ -693,7 +693,7 @@
     "timestamp": 1615411197000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51235,
     "lon": -121.99493333333334,
     "alt": "820",
@@ -702,7 +702,7 @@
     "timestamp": 1615411198000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.5124,
     "lon": -121.99488333333333,
     "alt": "821",
@@ -711,7 +711,7 @@
     "timestamp": 1615411199000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51246666666667,
     "lon": -121.99483333333333,
     "alt": "821",
@@ -720,7 +720,7 @@
     "timestamp": 1615411200000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51251666666667,
     "lon": -121.99475,
     "alt": "822",
@@ -729,7 +729,7 @@
     "timestamp": 1615411201000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51255,
     "lon": -121.99468333333333,
     "alt": "822",
@@ -738,7 +738,7 @@
     "timestamp": 1615411202000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51258333333333,
     "lon": -121.9946,
     "alt": "822",
@@ -747,7 +747,7 @@
     "timestamp": 1615411203000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51263333333333,
     "lon": -121.99453333333334,
     "alt": "822",
@@ -756,7 +756,7 @@
     "timestamp": 1615411204000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.512683333333335,
     "lon": -121.99448333333333,
     "alt": "821",
@@ -765,7 +765,7 @@
     "timestamp": 1615411205000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51273333333334,
     "lon": -121.99445,
     "alt": "822",
@@ -774,7 +774,7 @@
     "timestamp": 1615411206000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.5128,
     "lon": -121.99441666666667,
     "alt": "824",
@@ -783,7 +783,7 @@
     "timestamp": 1615411207000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51283333333333,
     "lon": -121.99436666666666,
     "alt": "826",
@@ -792,7 +792,7 @@
     "timestamp": 1615411208000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51286666666667,
     "lon": -121.99431666666666,
     "alt": "828",
@@ -801,7 +801,7 @@
     "timestamp": 1615411209000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.5129,
     "lon": -121.99426666666666,
     "alt": "830",
@@ -810,7 +810,7 @@
     "timestamp": 1615411210000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.512933333333336,
     "lon": -121.9942,
     "alt": "831",
@@ -819,7 +819,7 @@
     "timestamp": 1615411211000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.512966666666664,
     "lon": -121.99415,
     "alt": "831",
@@ -828,7 +828,7 @@
     "timestamp": 1615411212000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.513,
     "lon": -121.99413333333334,
     "alt": "832",
@@ -837,7 +837,7 @@
     "timestamp": 1615411213000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51305,
     "lon": -121.99411666666667,
     "alt": "833",
@@ -846,7 +846,7 @@
     "timestamp": 1615411214000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.513083333333334,
     "lon": -121.99411666666667,
     "alt": "835",
@@ -855,7 +855,7 @@
     "timestamp": 1615411215000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51311666666667,
     "lon": -121.99411666666667,
     "alt": "836",
@@ -864,7 +864,7 @@
     "timestamp": 1615411216000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51316666666666,
     "lon": -121.99411666666667,
     "alt": "837",
@@ -873,7 +873,7 @@
     "timestamp": 1615411217000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.5132,
     "lon": -121.99411666666667,
     "alt": "838",
@@ -882,7 +882,7 @@
     "timestamp": 1615411218000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51323333333333,
     "lon": -121.99415,
     "alt": "838",
@@ -891,7 +891,7 @@
     "timestamp": 1615411219000
   },
   {
-    "trackerName": "flymaster",
+    "name": "flymaster",
     "lat": 47.51326666666667,
     "lon": -121.99418333333334,
     "alt": "838",

@@ -3,33 +3,17 @@ import {
   EXPORT_UPDATE_SEC,
   INCREMENTAL_UPDATE_SEC,
   Keys,
-  LIVE_AGE_OLD_SEC,
-  LIVE_FETCH_TIMEOUT_SEC,
-  LIVE_MINIMAL_INTERVAL_SEC,
-  LIVE_OLD_INTERVAL_SEC,
   LIVE_REFRESH_SEC,
-  LIVE_RETENTION_SEC,
-  mergeLiveTracks,
   protos,
   removeBeforeFromLiveTrack,
   removeDeviceFromLiveTrack,
-  simplifyLiveTrack,
 } from '@flyxc/common';
 import { getDatastore, getRedisClient } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import { program } from 'commander';
 import { ChainableCommander } from 'ioredis';
 import process from 'process';
-import { patchLastFixAGL as patchLastFixElevation } from './app/elevation/elevation';
-import {
-  addElevationLogs,
-  addExportLogs,
-  addHostInfo,
-  addStateLogs,
-  addSyncLogs,
-  addTrackerLogs,
-  HandleCommand,
-} from './app/redis';
+import { addExportLogs, addHostInfo, addStateLogs, addSyncLogs, HandleCommand } from './app/redis';
 import { createStateArchive, exportToStorage } from './app/state/serialize';
 import {
   ARCHIVE_STATE_FILE,
@@ -43,12 +27,8 @@ import {
   SHUTDOWN_STATE_PATH,
 } from './app/state/state';
 import { syncFromDatastore } from './app/state/sync';
-import { FlymasterFetcher } from './app/trackers/flymaster';
-import { FlymeFetcher } from './app/trackers/flyme';
-import { InreachFetcher } from './app/trackers/inreach';
-import { SkylinesFetcher } from './app/trackers/skylines';
-import { SpotFetcher } from './app/trackers/spot';
-import { TrackerUpdates } from './app/trackers/tracker';
+import { resfreshTrackers } from './app/trackers/refresh';
+import { resfreshUfoFleets } from './app/ufos/refresh';
 
 const redis = getRedisClient();
 
@@ -115,7 +95,7 @@ async function tick(state: protos.FetcherState, datastore: Datastore) {
 
     const pipeline = redis.pipeline();
 
-    await updateTrackers(pipeline, state);
+    await updateAll(pipeline, state);
 
     addStateLogs(pipeline, state);
     await addHostInfo(pipeline);
@@ -158,55 +138,13 @@ async function tick(state: protos.FetcherState, datastore: Datastore) {
 }
 
 // Update every tick.
-async function updateTrackers(pipeline: ChainableCommander, state: protos.FetcherState) {
+async function updateAll(pipeline: ChainableCommander, state: protos.FetcherState) {
   try {
-    const fetchers = [
-      new InreachFetcher(state, pipeline),
-      new SpotFetcher(state, pipeline),
-      new SkylinesFetcher(state, pipeline),
-      new FlymeFetcher(state, pipeline),
-      new FlymasterFetcher(state, pipeline),
-    ];
-
-    const updatePromises = await Promise.allSettled(fetchers.map((f) => f.refresh(LIVE_FETCH_TIMEOUT_SEC)));
-
-    const trackerUpdates: TrackerUpdates[] = [];
-
-    for (const p of updatePromises) {
-      if (p.status === 'fulfilled') {
-        const updates = p.value;
-        trackerUpdates.push(updates);
-        addTrackerLogs(pipeline, updates, state);
-      } else {
-        console.error(`Tracker update error: ${p.reason}`);
-      }
-    }
+    await Promise.allSettled([resfreshTrackers(pipeline, state), resfreshUfoFleets(pipeline, state)]);
 
     const nowSec = Math.round(Date.now() / 1000);
-    const fullStartSec = nowSec - LIVE_RETENTION_SEC;
     const incrementalStartSec = nowSec - INCREMENTAL_UPDATE_SEC;
     const exportStartSec = nowSec - EXPORT_UPDATE_SEC;
-
-    // Apply the updates.
-    for (const [idStr, pilot] of Object.entries(state.pilots)) {
-      const id = Number(idStr);
-      // Merge updates
-      for (const updates of trackerUpdates) {
-        if (updates.trackerDeltas.has(id)) {
-          pilot.track = mergeLiveTracks(pilot.track!, updates.trackerDeltas.get(id)!);
-        }
-      }
-
-      // Trim and simplify
-      pilot.track = removeBeforeFromLiveTrack(pilot.track!, fullStartSec);
-      simplifyLiveTrack(pilot.track, LIVE_MINIMAL_INTERVAL_SEC);
-      // Reduce precision for old point.
-      simplifyLiveTrack(pilot.track, LIVE_OLD_INTERVAL_SEC, { toSec: nowSec - LIVE_AGE_OLD_SEC });
-    }
-
-    // Add the elevation for the last fix of every tracks when not present.
-    const elevationUpdates = await patchLastFixElevation(state);
-    addElevationLogs(pipeline, elevationUpdates, state.lastTickSec);
 
     // Create the binary proto output.
     const fullTracks = protos.LiveDifferentialTrackGroup.create();
@@ -234,6 +172,17 @@ async function updateTrackers(pipeline: ChainableCommander, state: protos.Fetche
               flymeTracks.remoteId.push(pilot.flyme?.account ?? '');
             }
           }
+        }
+      }
+    }
+
+    for (const [name, fleet] of Object.entries(state.ufoFleets)) {
+      for (const [idStr, track] of Object.entries(fleet.ufos)) {
+        const id = `${name}-${idStr}`;
+        fullTracks.tracks.push(differentialEncodeLiveTrack(track, id));
+        const incTrack = removeBeforeFromLiveTrack(track, incrementalStartSec);
+        if (incTrack.timeSec.length > 0) {
+          incTracks.tracks.push(differentialEncodeLiveTrack(incTrack, id));
         }
       }
     }

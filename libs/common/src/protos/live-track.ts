@@ -29,14 +29,16 @@ export interface LiveExtra {
  */
 export interface LiveTrack {
   /**
-   * Only available client side, not stored in the DB.
+   * Only one of id/idStr is populated
    *
    * @generated from protobuf field: optional int64 id = 1;
    */
   id?: number;
   /**
-   * Only available client side, not stored in the DB.
-   *
+   * @generated from protobuf field: optional string idStr = 9;
+   */
+  idStr?: string;
+  /**
    * @generated from protobuf field: optional string name = 2;
    */
   name?: string;
@@ -78,9 +80,13 @@ export interface LiveTrack {
  */
 export interface LiveDifferentialTrack {
   /**
-   * @generated from protobuf field: int64 id = 1;
+   * @generated from protobuf field: optional int64 id = 1;
    */
-  id: number;
+  id?: number;
+  /**
+   * @generated from protobuf field: optional string idStr = 9;
+   */
+  idStr?: string;
   /**
    * @generated from protobuf field: string name = 2;
    */
@@ -156,6 +162,7 @@ class LiveTrack$Type extends MessageType<LiveTrack> {
   constructor() {
     super('LiveTrack', [
       { no: 1, name: 'id', kind: 'scalar', opt: true, T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
+      { no: 9, name: 'idStr', kind: 'scalar', opt: true, T: 9 /*ScalarType.STRING*/ },
       { no: 2, name: 'name', kind: 'scalar', opt: true, T: 9 /*ScalarType.STRING*/ },
       { no: 3, name: 'lat', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 2 /*ScalarType.FLOAT*/ },
       { no: 4, name: 'lon', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 2 /*ScalarType.FLOAT*/ },
@@ -174,7 +181,8 @@ export const LiveTrack = new LiveTrack$Type();
 class LiveDifferentialTrack$Type extends MessageType<LiveDifferentialTrack> {
   constructor() {
     super('LiveDifferentialTrack', [
-      { no: 1, name: 'id', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
+      { no: 1, name: 'id', kind: 'scalar', opt: true, T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
+      { no: 9, name: 'idStr', kind: 'scalar', opt: true, T: 9 /*ScalarType.STRING*/ },
       { no: 2, name: 'name', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 3, name: 'lat', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
       { no: 4, name: 'lon', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },

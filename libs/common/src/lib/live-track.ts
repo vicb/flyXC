@@ -3,7 +3,8 @@ import { diffDecodeArray, diffEncodeArray, findIndexes } from './math';
 import { deepCopy } from './util';
 
 // How long to retain live tracking positions.
-export const LIVE_RETENTION_SEC = 24 * 3600;
+export const LIVE_TRACKER_RETENTION_SEC = 24 * 3600;
+export const LIVE_UFO_RETENTION_SEC = 24 * 3600;
 export const LIVE_RETENTION_FLIGHT_MODE_SEC = 1 * 3600;
 
 // Age for a point to be considered old.
@@ -48,12 +49,32 @@ trackerNames.forEach((name, index) => {
   trackerIdByName[name] = index + 1;
 });
 
+export const ufoFleetNames = ['aviant'] as const;
+
+export type UfoFleetNames = (typeof ufoFleetNames)[number];
+
+export const ufoFleetDisplayNames: Readonly<Record<UfoFleetNames, string>> = {
+  aviant: 'Aviant drone',
+};
+
+export const ufoFleetIdByName: Record<UfoFleetNames, number> = {} as any;
+export const ufoFleetNameById: Record<number, UfoFleetNames> = {} as any;
+
+ufoFleetNames.forEach((name, index) => {
+  if (name in trackerIdByName) {
+    throw new Error(`${name} is a tracker`);
+  }
+  ufoFleetNameById[index + 1] = name;
+  ufoFleetIdByName[name] = index + 1;
+});
+
 export enum LiveTrackFlag {
   // Reserve 5 bits for the device.
   DeviceTypeMask = (1 << 6) - 1,
   Valid = 1 << 6,
   Emergency = 1 << 7,
   LowBat = 1 << 8,
+  IsUfo = 1 << 9,
 }
 
 export function isValidFix(flags: number): boolean {
@@ -72,8 +93,20 @@ export function isLowBatFix(flags: number): boolean {
   return (flags & LiveTrackFlag.LowBat) != 0;
 }
 
-export function getTrackerName(flags: number): TrackerNames {
-  return trackerNameById[flags & LiveTrackFlag.DeviceTypeMask];
+export function isUfo(flags: number): boolean {
+  return (flags & LiveTrackFlag.IsUfo) != 0;
+}
+
+export function getTrackerName(flags: number): TrackerNames | UfoFleetNames {
+  return flags & LiveTrackFlag.IsUfo
+    ? ufoFleetNameById[flags & LiveTrackFlag.DeviceTypeMask]
+    : trackerNameById[flags & LiveTrackFlag.DeviceTypeMask];
+}
+
+export function getTrackerDisplayName(flags: number): string {
+  return flags & LiveTrackFlag.IsUfo
+    ? ufoFleetDisplayNames[getTrackerName(flags) as UfoFleetNames]
+    : trackerDisplayNames[getTrackerName(flags) as TrackerNames];
 }
 
 export function getFixMessage(track: LiveTrack, index: number): string | undefined {
@@ -99,7 +132,7 @@ export function getTrackerFlags(value: {
   valid: boolean;
   emergency?: boolean | null;
   lowBat?: boolean | null;
-  device: TrackerNames;
+  device: TrackerNames | UfoFleetNames;
 }): number {
   let flags = 0;
   if (value.valid === true) {
@@ -111,7 +144,11 @@ export function getTrackerFlags(value: {
   if (value.lowBat === true) {
     flags |= LiveTrackFlag.LowBat;
   }
-  flags |= trackerIdByName[value.device];
+  if (value.device in ufoFleetIdByName) {
+    flags |= LiveTrackFlag.IsUfo | ufoFleetIdByName[value.device as UfoFleetNames];
+  } else {
+    flags |= trackerIdByName[value.device as TrackerNames];
+  }
   return flags;
 }
 
@@ -150,7 +187,7 @@ export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): Li
 }
 
 // Delete all the fixes from the specified device.
-export function removeDeviceFromLiveTrack(track: LiveTrack, device: TrackerNames): LiveTrack {
+export function removeDeviceFromLiveTrack(track: LiveTrack, device: TrackerNames | UfoFleetNames): LiveTrack {
   const outTrack = LiveTrack.create();
 
   let dstIdx = 0;
@@ -165,13 +202,14 @@ export function removeDeviceFromLiveTrack(track: LiveTrack, device: TrackerNames
 }
 
 // Some points should never be removed:
-// - The first and last point of a track,
+// - The first and last point of a track - unless an UFO,
 // - Emergency,
 // - Points with messages
 //
 // `start` and `end` indexes could be passed to operate on a portion of the track only.
 export function IsSimplifiableFix(track: LiveTrack, index: number, start = 0, end = track.timeSec.length - 1): boolean {
-  if (index == start || index == end) {
+  const ufo = isUfo(track.flags[index]);
+  if ((!ufo && index == start) || index == end) {
     return false;
   }
   const flags = track.flags[index];
@@ -326,21 +364,31 @@ export function mergeLiveTracks(track1: LiveTrack, track2: LiveTrack): LiveTrack
 }
 
 // The name and id are required to send over the wire.
-export function differentialEncodeLiveTrack(track: LiveTrack, id: number, name: string): LiveDifferentialTrack {
+export function differentialEncodeLiveTrack(
+  track: LiveTrack,
+  id: number | string,
+  name?: string,
+): LiveDifferentialTrack {
   const lon = diffEncodeArray(track.lon, 1e5);
   const lat = diffEncodeArray(track.lat, 1e5);
   const timeSec = diffEncodeArray(track.timeSec, 1, false);
   const alt = diffEncodeArray(track.alt);
 
-  return { ...track, lat, lon, timeSec, alt, id, name };
+  const diffTrack = { ...track, lat, lon, timeSec, alt, name: track.name ?? name ?? '' };
+  if (typeof id === 'string') {
+    diffTrack.idStr = id;
+  } else {
+    diffTrack.id = id;
+  }
+  return diffTrack;
 }
 
 // id and name are populated from the differential track.
-export function differentialDecodeLiveTrack(track: LiveDifferentialTrack): LiveTrack {
-  const lon = diffDecodeArray(track.lon, 1e5);
-  const lat = diffDecodeArray(track.lat, 1e5);
-  const timeSec = diffDecodeArray(track.timeSec);
-  const alt = diffDecodeArray(track.alt);
+export function differentialDecodeLiveTrack(diffTrack: LiveDifferentialTrack): LiveTrack {
+  const lon = diffDecodeArray(diffTrack.lon, 1e5);
+  const lat = diffDecodeArray(diffTrack.lat, 1e5);
+  const timeSec = diffDecodeArray(diffTrack.timeSec);
+  const alt = diffDecodeArray(diffTrack.alt);
 
-  return { ...track, lat, lon, timeSec, alt, id: track.id, name: track.name };
+  return { ...diffTrack, lat, lon, timeSec, alt };
 }

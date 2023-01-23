@@ -39,7 +39,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   private sampler?: ElevationSampler;
   // Id of the selected pilot.
   @state()
-  private currentId?: number;
+  private currentId?: string;
   @state()
   private numTracks = 0;
 
@@ -81,7 +81,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       {
         type: 'object',
         width: MSG_MARKER_HEIGHT,
-        resource: { href: '/static/models/msg/scene.gltf' },
+        resource: { href: '/static/models/msg.glb' },
         material: { color: [50, 50, 50, 0.6] },
         anchor: 'relative',
         anchorPosition: { x: 0.1, y: -0.45, z: 0 },
@@ -98,6 +98,20 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         width: MSG_MARKER_HEIGHT,
         resource: { href: '/static/models/santa.glb' },
         material: { color: [50, 50, 50, 0.6] },
+        anchor: 'relative',
+        tilt: 0,
+        heading: 0,
+      },
+    ],
+  };
+
+  private ufoSymbol = {
+    type: 'point-3d',
+    symbolLayers: [
+      {
+        type: 'object',
+        width: MSG_MARKER_HEIGHT,
+        resource: { href: '/static/models/ufo.glb' },
         anchor: 'relative',
         tilt: 0,
         heading: 0,
@@ -190,7 +204,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       graphic.set('geometry', this.line);
       shadowGraphic.set('geometry', this.line);
 
-      const color = new Color(getUniqueContrastColor(Math.round(id / 1000)));
+      const color = new Color(feature.properties.isUfo === true ? '#aaa' : getUniqueContrastColor(id));
       color.a = isEmergency || hasRecentStyle || hasSelectedStyle ? 1 : 0.8;
       const rgba = color.toRgba();
       this.trackSymbol.symbolLayers[0].material.color = rgba;
@@ -248,12 +262,17 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         symbol = this.msgSymbol;
       } else if (heading != null) {
         // Pilot marker.
-        const color = new Color(getUniqueContrastColor(Math.round(id / 1000)));
-        color.a = isActive || isRecentTrack ? 1 : 0.7;
-        const rgba = color.toRgba();
-        this.santaSymbol.symbolLayers[0].material.color = rgba;
-        this.santaSymbol.symbolLayers[0].heading = heading + 180;
-        symbol = this.santaSymbol;
+        if (feature.properties.isUfo == true) {
+          this.ufoSymbol.symbolLayers[0].heading = heading + 180;
+          symbol = this.ufoSymbol;
+        } else {
+          const color = new Color(getUniqueContrastColor(id));
+          color.a = isActive || isRecentTrack ? 1 : 0.7;
+          const rgba = color.toRgba();
+          this.santaSymbol.symbolLayers[0].material.color = rgba;
+          this.santaSymbol.symbolLayers[0].heading = heading + 180;
+          symbol = this.santaSymbol;
+        }
         // Text.
         if (this.displayLabels && (isActive || ageMin < 12 * 60)) {
           label = track.name + ' -' + formatDurationMin(ageMin);

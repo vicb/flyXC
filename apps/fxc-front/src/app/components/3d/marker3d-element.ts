@@ -45,7 +45,7 @@ export class Marker3dElement extends connect(store)(LitElement) {
       {
         type: 'object',
         height: MARKER_HEIGHT,
-        resource: { href: '/static/models/angry/scene.gltf' },
+        resource: { href: '/static/models/angry.glb' },
         material: { color: 'red' },
         anchor: 'relative',
         anchorPosition: { x: 0, y: 0, z: -0.3 },

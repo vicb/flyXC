@@ -8,7 +8,7 @@ describe('Parse kml feed', () => {
     const points = parse(feed);
     expect(points).toEqual([
       {
-        trackerName: 'inreach',
+        name: 'inreach',
         alt: 8,
         emergency: false,
         lat: 37.385005,
@@ -19,7 +19,7 @@ describe('Parse kml feed', () => {
         valid: true,
       },
       {
-        trackerName: 'inreach',
+        name: 'inreach',
         alt: 8,
         emergency: true,
         lat: 37.385015,
@@ -30,7 +30,7 @@ describe('Parse kml feed', () => {
         valid: true,
       },
       {
-        trackerName: 'inreach',
+        name: 'inreach',
         alt: 19,
         emergency: false,
         lat: 37.384993,
@@ -41,7 +41,7 @@ describe('Parse kml feed', () => {
         valid: false,
       },
       {
-        trackerName: 'inreach',
+        name: 'inreach',
         alt: 10,
         emergency: false,
         lat: 37.385058,

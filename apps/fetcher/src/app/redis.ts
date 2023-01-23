@@ -8,7 +8,6 @@ import { ElevationUpdates } from './elevation/elevation';
 import { exportToStorage } from './state/serialize';
 import { BUCKET_NAME, EXPORT_FILE_SEC, PERIODIC_STATE_PATH } from './state/state';
 import { syncFromDatastore, SyncStatus } from './state/sync';
-import { TrackerUpdates } from './trackers/tracker';
 
 // Logs for syncs.
 export function addSyncLogs(pipeline: ChainableCommander, status: SyncStatus, timeSec: number) {
@@ -41,59 +40,6 @@ export function addElevationLogs(pipeline: ChainableCommander, updates: Elevatio
   );
   pushListCap(pipeline, Keys.elevationNumFetched, [updates.numFetched], 5);
   pushListCap(pipeline, Keys.elevationNumRetrieved, [updates.numRetrieved], 5);
-}
-
-// Logs updates for a tracker type.
-export function addTrackerLogs(
-  pipeline: ChainableCommander,
-  updates: TrackerUpdates,
-  state: protos.FetcherState,
-): void {
-  const name = updates.trackerName;
-  const time = updates.startFetchSec;
-
-  pushListCap(
-    pipeline,
-    Keys.trackerErrorsByType.replace('{name}', name),
-    updates.errors.map((e) => `[${time}] ${e}`),
-    20,
-  );
-  pushListCap(
-    pipeline,
-    Keys.trackerErrorsById.replace('{name}', name),
-    [...updates.trackerErrors.entries()].map(([id, e]) => `[${time}] id=${id} ${e}`),
-    20,
-  );
-  pushListCap(pipeline, Keys.trackerNumFetches.replace('{name}', name), [updates.fetchedTracker.size], 20);
-  pushListCap(pipeline, Keys.trackerNumUpdates.replace('{name}', name), [updates.trackerDeltas.size], 20);
-  pushListCap(
-    pipeline,
-    Keys.trackerFetchDuration.replace('{name}', name),
-    [updates.endFetchSec - updates.startFetchSec],
-    20,
-  );
-
-  // Consecutive errors.
-  for (const [id, error] of updates.trackerErrors.entries()) {
-    const numConsErrors = state.pilots[id][name].numConsecutiveErrors;
-    if (numConsErrors > 10) {
-      pushListCap(
-        pipeline,
-        Keys.trackerConsecutiveErrorsById.replace('{name}', name),
-        [`[${time}] id=${id} ${error}`],
-        20,
-      );
-    }
-    const numErrors = state.pilots[id][name].numErrors;
-    if (numErrors > 300) {
-      pushListCap(
-        pipeline,
-        Keys.trackerManyErrorsById.replace('{name}', name),
-        [`[${time}] id=${id} ${numErrors} errors`],
-        20,
-      );
-    }
-  }
 }
 
 let cpuUsage = 0;

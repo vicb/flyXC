@@ -13,6 +13,8 @@ import { getUniqueContrastColor } from '../../styles/track';
 let ANCHOR_POSITION: google.maps.Point | undefined;
 let ANCHOR_ARROW: google.maps.Point | undefined;
 let ORIGIN_ARROW: google.maps.Point | undefined;
+let ANCHOR_UFO: google.maps.Point | undefined;
+let ORIGIN_UFO: google.maps.Point | undefined;
 let ANCHOR_MSG: google.maps.Point | undefined;
 let ORIGIN_MSG: google.maps.Point | undefined;
 
@@ -34,22 +36,36 @@ const dashedLineIcons: google.maps.IconSequence[] = [
   },
 ];
 
-const positionSvg = (color: string, opacity: number): string =>
-  `<svg xmlns="http://www.w3.org/2000/svg" height="9" width="9">` +
-  `<circle r="3" cx="4" cy="4" fill="${color}" stroke="black" stroke-width="1" opacity="${opacity}"/>` +
-  `</svg>`;
+const positionSvg = (
+  color: string,
+  opacity: number,
+): string => `<svg xmlns="http://www.w3.org/2000/svg" height="9" width="9">
+<circle r="3" cx="4" cy="4" fill="${color}" stroke="black" stroke-width="1" opacity="${opacity}"/>
+</svg>`;
 
-const arrowSvg = (angle: number, color: string, opacity: number) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" height="19" width="19">` +
-  `<path d='M9 3 l-5 13 l5 -3 l5 3z' fill="${color}" stroke="black" stroke-width="1"` +
-  ` transform="rotate(${angle}, 9, 9)"  opacity="${opacity}"/>` +
-  `</svg>`;
+const arrowSvg = (
+  angle: number,
+  color: string,
+  opacity: number,
+) => `<svg xmlns="http://www.w3.org/2000/svg" height="19" width="19">
+<path d='M9 3 l-5 13 l5 -3 l5 3z' fill="${color}" stroke="black" stroke-width="1" transform="rotate(${angle}, 9, 9)"  opacity="${opacity}"/>
+</svg>`;
 
-const msgSvg = (color: string, opacity: number): string =>
-  `<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">` +
-  `<path fill="${color}" stroke="black" stroke-width="1" opacity="${opacity}"` +
-  ` d="M2.5 2C1.7 2 1 2.7 1 3.5 l 0 8 c0 .8.7 1.5 1.5 1.5 H4 l 0 2.4 L 7.7 13 l 4.8 0 c.8 0 1.5 -.7 1.5 -1.5 l 0 -8 c 0 -.8 -.7 -1.5 -1.5 -1.5 z"/>` +
-  `</svg>`;
+const msgSvg = (
+  color: string,
+  opacity: number,
+): string => `<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16">
+<path fill="${color}" stroke="black" stroke-width="1" opacity="${opacity}" d="M2.5 2C1.7 2 1 2.7 1 3.5 l 0 8 c0 .8.7 1.5 1.5 1.5 H4 l 0 2.4 L 7.7 13 l 4.8 0 c.8 0 1.5 -.7 1.5 -1.5 l 0 -8 c 0 -.8 -.7 -1.5 -1.5 -1.5 z"/>
+</svg>`;
+
+// https://www.svgrepo.com/svg/23593/old-plane
+const ufoSvg = (
+  angle: number,
+  color: string,
+  opacity: number,
+): string => `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 183 183">
+<path fill="${color}" stroke="black" stroke-width="1" opacity="${opacity}" transform="rotate(${angle}, 91, 91)" d="M170 58h-56V29c0-9-4-14-13-16-2-7-5-13-9-13-5 0-8 6-10 13-8 2-13 7-13 16v29H13c-4 0-8 4-8 8v14c0 4 3 8 7 9l19 4 10 1h31a314 314 0 0 1 3 33l6 21-20 5c-3 1-5 4-5 7v5c0 3 3 5 6 5h22c2 9 4 13 8 13 3 0 5-4 7-13h22c3 0 6-2 6-5v-5c0-3-2-6-5-7l-20-5 7-23 1-8 2-23h29l10-1 20-4c3-1 6-5 6-9V66c0-4-3-8-7-8z"/>
+</svg>`;
 
 @customElement('tracking-element')
 export class TrackingElement extends connect(store)(LitElement) {
@@ -62,7 +78,7 @@ export class TrackingElement extends connect(store)(LitElement) {
   private geojson: any;
   // Id of the selected pilot.
   @state()
-  private currentId?: number;
+  private currentId?: string;
   @state()
   private numTracks = 0;
   @state()
@@ -80,6 +96,8 @@ export class TrackingElement extends connect(store)(LitElement) {
     ANCHOR_POSITION = new google.maps.Point(4, 4);
     ANCHOR_ARROW = new google.maps.Point(9, 9);
     ORIGIN_ARROW = new google.maps.Point(9, 36);
+    ANCHOR_UFO = new google.maps.Point(8, 8);
+    ORIGIN_UFO = new google.maps.Point(8, 36);
     ANCHOR_MSG = new google.maps.Point(7, 9);
     ORIGIN_MSG = new google.maps.Point(0, 35);
     this.setMapStyle(this.map);
@@ -139,12 +157,12 @@ export class TrackingElement extends connect(store)(LitElement) {
       }
       const type = feature.getGeometry()?.getType();
       if (type === 'LineString') {
-        const id = Number(feature.getProperty('id') ?? 0);
+        const id: string = feature.getProperty('id');
         this.info?.close();
         store.dispatch(setCurrentLiveId(id));
         this.setMapStyle(this.map);
       } else if (type === 'Point' && this.units) {
-        const id = Number(feature.getProperty('id') ?? 0);
+        const id: string = feature.getProperty('id');
         const index = Number(feature.getProperty('index') ?? 0);
         const popup = popupContent(id, index, this.units);
 
@@ -179,7 +197,7 @@ export class TrackingElement extends connect(store)(LitElement) {
   // Using data-url with icon is much faster than using symbols.
   private getPointStyle(feature: google.maps.Data.Feature): google.maps.Data.StyleOptions {
     const nowSec = Date.now() / 1000;
-    const id = Number(feature.getProperty('id') ?? 0);
+    const id: string = feature.getProperty('id');
     const track = liveTrackSelectors.selectById(store.getState(), id) as protos.LiveTrack;
     const index = feature.getProperty('index') ?? 0;
     const message = getFixMessage(track, index);
@@ -194,7 +212,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     const title = gndAlt == null ? undefined : `${formatUnit(Math.max(0, alt - gndAlt), this.units!.altitude)} AGL`;
 
     let opacity = ageMin > RECENT_TIMEOUT_MIN ? 0.3 : 0.9;
-    const color = getUniqueContrastColor(Math.round(id / 1000));
+    const color = getUniqueContrastColor(id);
     let labelColor = 'black';
     let svg: string | undefined;
     let labelOrigin: google.maps.Point | undefined;
@@ -212,9 +230,16 @@ export class TrackingElement extends connect(store)(LitElement) {
     let label: google.maps.MarkerLabel | undefined;
     // Display an arrow when we have a bearing (most recent point).
     if (heading != null) {
-      anchor = ANCHOR_ARROW;
-      labelOrigin = ORIGIN_ARROW;
-      svg = arrowSvg(heading, color, opacity);
+      if (feature.getProperty('isUfo') === true) {
+        anchor = ANCHOR_UFO;
+        labelOrigin = ORIGIN_UFO;
+        svg = ufoSvg(heading, color, opacity);
+      } else {
+        anchor = ANCHOR_ARROW;
+        labelOrigin = ORIGIN_ARROW;
+        svg = arrowSvg(heading, color, opacity);
+      }
+
       // Display the pilot name.
       if (this.displayLabels && (isActive || ageMin < 12 * 60)) {
         label = {
@@ -262,13 +287,13 @@ export class TrackingElement extends connect(store)(LitElement) {
 
   private getTrackStyle(feature: google.maps.Data.Feature): google.maps.Data.StyleOptions {
     const nowSec = Date.now() / 1000;
-    const id = feature.getProperty('id') as number;
+    const id: string = feature.getProperty('id');
     const track = liveTrackSelectors.selectById(store.getState(), id) as protos.LiveTrack;
     const isEmergency = isEmergencyTrack(track);
     const endIdx = feature.getProperty('endIndex');
     const ageMin = (nowSec - track.timeSec[endIdx]) / 60;
 
-    const strokeColor = getUniqueContrastColor(Math.round(id / 1000));
+    const strokeColor = feature.getProperty('isUfo') === true ? '#aaa' : getUniqueContrastColor(id);
     let strokeWeight = 1;
     let strokeOpacity = 1;
     let zIndex = 10;

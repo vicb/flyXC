@@ -1,4 +1,4 @@
-import { getTrackerFlags as getLiveTrackFlags, protos, round, TrackerNames } from '@flyxc/common';
+import { getTrackerFlags as getLiveTrackFlags, protos, round, TrackerNames, UfoFleetNames } from '@flyxc/common';
 import { getDistance } from 'geolib';
 
 export interface LivePoint {
@@ -7,7 +7,7 @@ export interface LivePoint {
   alt: number;
   // Timestamps in milliseconds.
   timestamp: number;
-  trackerName: TrackerNames;
+  name: TrackerNames | UfoFleetNames;
   // Whether the gps fix is invalid.
   // undefined or null is considered valid (only false is invalid).
   valid?: boolean | null;
@@ -38,7 +38,7 @@ export function makeLiveTrack(points: LivePoint[]): protos.LiveTrack {
         valid: point.valid !== false,
         emergency: point.emergency === true,
         lowBat: point.lowBattery === true,
-        device: point.trackerName,
+        device: point.name,
       }),
     );
     let hasExtra = false;

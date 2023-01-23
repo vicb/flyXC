@@ -1,11 +1,4 @@
-import {
-  getFixMessage,
-  getTrackerName,
-  isEmergencyFix,
-  isLowBatFix,
-  isValidFix,
-  trackerDisplayNames,
-} from '@flyxc/common';
+import { getFixMessage, getTrackerDisplayName, isEmergencyFix, isLowBatFix, isValidFix } from '@flyxc/common';
 
 import { liveTrackSelectors } from '../redux/live-track-slice';
 import { store } from '../redux/store';
@@ -13,7 +6,7 @@ import { formatUnit, Units } from './units';
 
 // Generates the content of the live tracking popup.
 export function popupContent(
-  trackId: number,
+  trackId: string,
   index: number,
   units: Units,
 ): { title: string; content: string } | undefined {
@@ -58,7 +51,7 @@ export function popupContent(
       'The actual location might be different.',
     );
   }
-  content.push(`<i class="las la-satellite-dish"></i> ${trackerDisplayNames[getTrackerName(flags)]}`);
+  content.push(`<i class="las la-satellite-dish"></i> ${getTrackerDisplayName(flags)}`);
 
   return {
     title: track.name ?? 'unknown',

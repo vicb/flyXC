@@ -57,7 +57,7 @@ export class FlymeFetcher extends TrackerFetcher {
       if (fix) {
         const livePoints: LivePoint[] = [
           {
-            trackerName: 'flyme',
+            name: 'flyme',
             lat: fix[1],
             lon: fix[2],
             alt: fix[3],

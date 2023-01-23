@@ -47,6 +47,7 @@ export function createInitState(): protos.FetcherState {
 
     inTick: false,
     pilots: {},
+    ufoFleets: {},
   };
 }
 

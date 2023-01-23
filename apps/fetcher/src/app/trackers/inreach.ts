@@ -204,7 +204,7 @@ export function parse(kmlFeed: string): LivePoint[] {
         .map((v: string) => Number(v));
 
       points.push({
-        trackerName: 'inreach',
+        name: 'inreach',
         lon,
         lat,
         alt: Math.round(alt),

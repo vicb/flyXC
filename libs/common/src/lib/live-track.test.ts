@@ -37,7 +37,7 @@ describe('removeBeforeFromLiveTrack', () => {
     });
   });
 
-  it('should keep the track unchanged if deleting form the first fix time', () => {
+  it('should keep the track unchanged if deleting the first fix time', () => {
     expect(removeBeforeFromLiveTrack(track, 10)).toEqual({
       timeSec: [10, 20, 30, 40],
       lat: [11, 21, 31, 41],
@@ -251,6 +251,7 @@ describe('simplifyLiveTrack', () => {
       timeSec: [10, 12, 14, 20],
     });
   });
+
   it('simplify lowbat and speed', () => {
     const track: LiveTrack = {
       timeSec: [10, 12, 14, 20, 25],

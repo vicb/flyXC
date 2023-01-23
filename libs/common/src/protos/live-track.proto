@@ -10,9 +10,9 @@ message LiveExtra {
 // All the points for a tracker.
 // This message is stored in the DB.
 message LiveTrack {
-  // Only available client side, not stored in the DB.
+  // Only one of id/idStr is populated
   optional int64 id = 1;
-  // Only available client side, not stored in the DB.
+  optional string idStr = 9;
   optional string name = 2;
   repeated float lat = 3;
   repeated float lon = 4;
@@ -27,7 +27,8 @@ message LiveTrack {
 // Differential encoded to transmit over the wire.
 // See `differentialDecodeLiveTrack(...)` for decoding the values.
 message LiveDifferentialTrack {
-  int64 id = 1;
+  optional int64 id = 1;
+  optional string idStr = 9;
   string name = 2;
   repeated sint32 lat = 3;
   repeated sint32 lon = 4;

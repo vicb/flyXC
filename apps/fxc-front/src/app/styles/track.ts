@@ -1,5 +1,6 @@
-export function getUniqueColor(uid: number): string {
-  return distinctColors[uid % distinctColors.length];
+export function getUniqueColor(uid: string, div = 1000): string {
+  const id = Number(uid);
+  return distinctColors[isNaN(id) ? 0 : Math.round(id / div) % distinctColors.length];
 }
 
 // From http://phrogz.net/tmp/24colors.html.
@@ -30,8 +31,9 @@ const distinctColors = [
   '#CCCCCC',
 ];
 
-export function getUniqueContrastColor(uid: number): string {
-  return distinctContrastColors[uid % distinctColors.length];
+export function getUniqueContrastColor(uid: string, div = 100): string {
+  const id = Number(uid);
+  return distinctContrastColors[isNaN(id) ? 0 : Math.round(id / div) % distinctContrastColors.length];
 }
 
 // http://phrogz.net/css/distinct-colors.html

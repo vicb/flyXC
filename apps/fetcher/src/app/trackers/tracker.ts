@@ -1,11 +1,11 @@
 // Base class for fetching tracker updates.
 
-import { LIVE_REFRESH_SEC, LIVE_RETENTION_SEC, protos, TrackerNames } from '@flyxc/common';
+import { LIVE_REFRESH_SEC, LIVE_TRACKER_RETENTION_SEC, protos, TrackerNames } from '@flyxc/common';
 import { ChainableCommander } from 'ioredis';
 
 // Updates for a tick of a tracker type (InReach, Spot, ...).
 export interface TrackerUpdates {
-  trackerName: TrackerNames;
+  name: TrackerNames;
   // Global.
   errors: string[];
   // Per device delta (only required if there is a delta).
@@ -28,7 +28,7 @@ export class TrackerFetcher {
   // - next fetch time.
   async refresh(fetchTimeoutSec: number): Promise<TrackerUpdates> {
     const updates: TrackerUpdates = {
-      trackerName: this.getTrackerName(),
+      name: this.getTrackerName(),
       errors: [],
       trackerDeltas: new Map<number, protos.LiveTrack>(),
       trackerErrors: new Map<number, string>(),
@@ -122,7 +122,7 @@ export class TrackerFetcher {
     const tracker = this.getTracker(id);
     const nowSec = Math.round(Date.now() / 1000);
     const lastFetchSec = tracker ? tracker.lastFetchSec : nowSec;
-    return Math.max(startSec - LIVE_RETENTION_SEC, lastFetchSec - paddingSec);
+    return Math.max(startSec - LIVE_TRACKER_RETENTION_SEC, lastFetchSec - paddingSec);
   }
 
   // Counts the number of requests and errors.

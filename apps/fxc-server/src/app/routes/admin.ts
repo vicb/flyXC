@@ -1,4 +1,4 @@
-import { AccountFormModel, Keys, trackerNames } from '@flyxc/common';
+import { AccountFormModel, Keys, trackerNames, ufoFleetNames } from '@flyxc/common';
 import { retrieveLiveTrackById, retrieveRecentTracks, TrackEntity, TRACK_TABLE } from '@flyxc/common-node';
 import csurf from 'csurf';
 import { NextFunction, Request, Response, Router } from 'express';
@@ -159,23 +159,32 @@ async function getDashboardValues(redis: Redis, datastore: Datastore): Promise<u
     [Keys.proxyInreach]: 'L',
   };
 
-  for (const trackerNamer of trackerNames) {
+  for (const name of trackerNames) {
     // Number of enabled trackers per type.
-    typeByKey[Keys.trackerNumByType.replace('{name}', trackerNamer)] = 'S';
+    typeByKey[Keys.trackerNumByType.replace('{name}', name)] = 'S';
     // [List] Global errors.
-    typeByKey[Keys.trackerErrorsByType.replace('{name}', trackerNamer)] = 'L';
+    typeByKey[Keys.trackerErrorsByType.replace('{name}', name)] = 'L';
     // [List] Errors per account.
-    typeByKey[Keys.trackerErrorsById.replace('{name}', trackerNamer)] = 'L';
+    typeByKey[Keys.trackerErrorsById.replace('{name}', name)] = 'L';
     // [List] Devices with high consecutive errors.
-    typeByKey[Keys.trackerConsecutiveErrorsById.replace('{name}', trackerNamer)] = 'L';
+    typeByKey[Keys.trackerConsecutiveErrorsById.replace('{name}', name)] = 'L';
     // [List] Devices with high consecutive errors.
-    typeByKey[Keys.trackerManyErrorsById.replace('{name}', trackerNamer)] = 'L';
+    typeByKey[Keys.trackerManyErrorsById.replace('{name}', name)] = 'L';
     // [List] Number of fetch devices.
-    typeByKey[Keys.trackerNumFetches.replace('{name}', trackerNamer)] = 'L';
+    typeByKey[Keys.trackerNumFetches.replace('{name}', name)] = 'L';
     // [List] Number of fetch devices.
-    typeByKey[Keys.trackerNumUpdates.replace('{name}', trackerNamer)] = 'L';
+    typeByKey[Keys.trackerNumUpdates.replace('{name}', name)] = 'L';
     // [List] Fetch duration in seconds.
-    typeByKey[Keys.trackerFetchDuration.replace('{name}', trackerNamer)] = 'L';
+    typeByKey[Keys.trackerFetchDuration.replace('{name}', name)] = 'L';
+  }
+
+  for (const name of ufoFleetNames) {
+    // [List] Global errors.
+    typeByKey[Keys.trackerErrorsByType.replace('{name}', name)] = 'L';
+    // [List] Errors per account.
+    typeByKey[Keys.trackerNumUpdates.replace('{name}', name)] = 'L';
+    // [List] Fetch duration in seconds.
+    typeByKey[Keys.trackerFetchDuration.replace('{name}', name)] = 'L';
   }
 
   const pipeline = redis.pipeline();

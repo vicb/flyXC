@@ -114,7 +114,7 @@ export function parse(flight: any, nowMillis = Date.now()): LivePoint[] {
   return time.map((seconds: number, i: number): LivePoint => {
     const tsSeconds = startTimestampSeconds + seconds - startSeconds;
     return {
-      trackerName: 'skylines',
+      name: 'skylines',
       lat: lonlat[i * 2],
       lon: lonlat[i * 2 + 1],
       alt: alt[i] - (flight.geoid ?? 0),

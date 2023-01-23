@@ -93,11 +93,63 @@ export interface FetcherState {
    */
   inTick: boolean;
   /**
+   * Pilots by datastore Id
+   *
    * @generated from protobuf field: map<int64, Pilot> pilots = 16;
    */
   pilots: {
     [key: string]: Pilot;
   };
+  /**
+   * Fleet by name
+   *
+   * @generated from protobuf field: map<string, UfoFleet> ufo_fleets = 19;
+   */
+  ufoFleets: {
+    [key: string]: UfoFleet;
+  };
+}
+/**
+ * UFO = Unregistered Flying Object.
+ * That is they are a not in the DB as opposite to pilots.
+ *
+ * @generated from protobuf message UfoFleet
+ */
+export interface UfoFleet {
+  /**
+   * UFO tracks by id
+   *
+   * @generated from protobuf field: map<string, LiveTrack> ufos = 1;
+   */
+  ufos: {
+    [key: string]: LiveTrack;
+  };
+  /**
+   * Last time the tracker was fetched (whether ok or not).
+   *
+   * @generated from protobuf field: int64 last_fetch_sec = 2;
+   */
+  lastFetchSec: number;
+  /**
+   * Next time the tracker should be fetcher.
+   *
+   * @generated from protobuf field: int64 next_fetch_sec = 4;
+   */
+  nextFetchSec: number;
+  /**
+   * Requests and errors.
+   *
+   * @generated from protobuf field: int64 num_errors = 5;
+   */
+  numErrors: number;
+  /**
+   * @generated from protobuf field: int64 num_requests = 6;
+   */
+  numRequests: number;
+  /**
+   * @generated from protobuf field: int64 num_consecutive_errors = 7;
+   */
+  numConsecutiveErrors: number;
 }
 /**
  * @generated from protobuf message Pilot
@@ -214,6 +266,13 @@ class FetcherState$Type extends MessageType<FetcherState> {
       { no: 14, name: 'mem_heap_mb', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
       { no: 15, name: 'in_tick', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 16, name: 'pilots', kind: 'map', K: 3 /*ScalarType.INT64*/, V: { kind: 'message', T: () => Pilot } },
+      {
+        no: 19,
+        name: 'ufo_fleets',
+        kind: 'map',
+        K: 9 /*ScalarType.STRING*/,
+        V: { kind: 'message', T: () => UfoFleet },
+      },
     ]);
   }
 }
@@ -221,6 +280,23 @@ class FetcherState$Type extends MessageType<FetcherState> {
  * @generated MessageType for protobuf message FetcherState
  */
 export const FetcherState = new FetcherState$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UfoFleet$Type extends MessageType<UfoFleet> {
+  constructor() {
+    super('UfoFleet', [
+      { no: 1, name: 'ufos', kind: 'map', K: 9 /*ScalarType.STRING*/, V: { kind: 'message', T: () => LiveTrack } },
+      { no: 2, name: 'last_fetch_sec', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
+      { no: 4, name: 'next_fetch_sec', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
+      { no: 5, name: 'num_errors', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
+      { no: 6, name: 'num_requests', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
+      { no: 7, name: 'num_consecutive_errors', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message UfoFleet
+ */
+export const UfoFleet = new UfoFleet$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Pilot$Type extends MessageType<Pilot> {
   constructor() {
