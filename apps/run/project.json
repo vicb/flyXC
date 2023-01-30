@@ -70,14 +70,14 @@
         "engine": "docker",
         "push": true,
         "pull": true,
-        "tags": ["gcr.io/fly-xc/trackers"]
+        "tags": ["us-docker.pkg.dev/fly-xc/docker/run"]
       }
     },
     "deploy": {
       "executor": "nx:run-commands",
       "dependsOn": ["container"],
       "options": {
-        "command": "gcloud run deploy trackers --image gcr.io/fly-xc/trackers --platform managed"
+        "command": "gcloud run deploy trackers --image us-docker.pkg.dev/fly-xc/docker/run --platform managed"
       }
     }
   },

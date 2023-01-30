@@ -56,7 +56,7 @@
         "engine": "docker",
         "push": true,
         "pull": true,
-        "tags": ["gcr.io/fly-xc/proxy"]
+        "tags": ["us-docker.pkg.dev/fly-xc/docker/proxy"]
       }
     }
   },

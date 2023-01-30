@@ -62,14 +62,14 @@
         "engine": "docker",
         "push": true,
         "pull": true,
-        "tags": ["gcr.io/fly-xc/fetcher"]
+        "tags": ["us-docker.pkg.dev/fly-xc/docker/fetcher"]
       }
     },
     "deploy": {
       "executor": "nx:run-commands",
       "dependsOn": ["container"],
       "options": {
-        "command": "gcloud compute instances update-container fetcher3 --container-image=gcr.io/fly-xc/fetcher:latest"
+        "command": "gcloud compute instances update-container fetcher --container-image=us-docker.pkg.dev/fly-xc/docker/fetcher"
       }
     }
   },
