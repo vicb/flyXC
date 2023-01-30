@@ -103,7 +103,7 @@
     "grant": "^5.4.21",
     "hasha": "^5.2.2",
     "igc-parser": "^1.1.0",
-    "ioredis": "^5.2.5",
+    "ioredis": "5.2.5",
     "lit": "^2.6.1",
     "lodepng": "^2.1.0",
     "mapbox-vector-tile": "^0.3.0",
