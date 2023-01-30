@@ -692,7 +692,7 @@ function splitByDate(entries: string[], splitSec: number) {
 
 // Link to the account editor.
 function entityHref(id: string) {
-  return `/admin/account/${id}`;
+  return `/adm/account/${id}`;
 }
 
 // Format the app state to a shorter and more understandable form for display.
