@@ -1,4 +1,4 @@
-import { getLastMessage, isEmergencyTrack, LatLonZ, protos } from '@flyxc/common';
+import { getLastMessage, isEmergencyTrack, LatLonAlt, protos } from '@flyxc/common';
 
 import {
   createAsyncThunk,
@@ -139,7 +139,7 @@ export const { setReturnUrl, setCurrentLiveId, setDisplayLabels, setCenterOnLoca
 export type LivePilot = {
   id: string;
   name: string;
-  position: LatLonZ;
+  position: LatLonAlt;
   gndAlt?: number;
   speed?: number;
   timeSec: number;

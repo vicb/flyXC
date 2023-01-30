@@ -1,4 +1,4 @@
-import { findClosestFix, LatLon, LatLonZ, pixelCoordinates, RuntimeTrack } from '@flyxc/common';
+import { findClosestFix, LatLon, LatLonAlt, pixelCoordinates, RuntimeTrack } from '@flyxc/common';
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
@@ -102,7 +102,7 @@ export class MapElement extends connect(store)(LitElement) {
       if (this.tracks.length && this.lockOnPilot && changedProps.has('timeSec') && now > this.lockPanBefore) {
         this.lockPanBefore = now + 50;
         const zoom = this.map.getZoom() as number;
-        const currentPosition = sel.getTrackLatLonAlt(store.getState())(this.timeSec) as LatLonZ;
+        const currentPosition = sel.getTrackLatLonAlt(store.getState())(this.timeSec) as LatLonAlt;
         const { x, y } = pixelCoordinates(currentPosition, zoom).world;
         const bounds = this.map.getBounds() as google.maps.LatLngBounds;
         const sw = bounds.getSouthWest();

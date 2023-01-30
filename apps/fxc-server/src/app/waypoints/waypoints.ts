@@ -2,12 +2,12 @@
 const { buildGPX, BaseBuilder } = require('gpx-builder');
 const builder = require('xmlbuilder');
 
-import { LatLonZ, round } from '@flyxc/common';
+import { LatLonAlt, round } from '@flyxc/common';
 const printf = require('printf');
 
 export function encode(
   format: string,
-  points: LatLonZ[],
+  points: LatLonAlt[],
   prefix: string,
 ): { mime?: string; file?: string; filename?: string; error?: string } {
   switch (format) {
@@ -32,7 +32,7 @@ export function encode(
 }
 
 function encodeXCTSK(
-  points: LatLonZ[],
+  points: LatLonAlt[],
   prefix: string,
 ): { mime?: string; file?: string; filename?: string; error?: string } {
   const turnpoints = points.map((p: any, i: number) => ({
@@ -56,7 +56,7 @@ function encodeXCTSK(
 }
 
 function encodeGPXWaypoints(
-  points: LatLonZ[],
+  points: LatLonAlt[],
   prefix: string,
 ): { mime?: string; file?: string; filename?: string; error?: string } {
   const Point = BaseBuilder.MODELS.Point;
@@ -73,7 +73,7 @@ function encodeGPXWaypoints(
 }
 
 function encodeGPXRoute(
-  points: LatLonZ[],
+  points: LatLonAlt[],
   prefix: string,
 ): { mime?: string; file?: string; filename?: string; error?: string } {
   const Point = BaseBuilder.MODELS.Point;
@@ -93,7 +93,7 @@ function encodeGPXRoute(
 }
 
 function encodeKML(
-  points: LatLonZ[],
+  points: LatLonAlt[],
   prefix: string,
 ): { mime?: string; file?: string; filename?: string; error?: string } {
   const coordinates = points.map((p) => `${p.lon.toFixed(6)},${p.lat.toFixed(6)},${p.alt}`);
@@ -123,7 +123,7 @@ function encodeKML(
 }
 
 function encodeTSK(
-  points: LatLonZ[],
+  points: LatLonAlt[],
   prefix: string,
 ): { mime?: string; file?: string; filename?: string; error?: string } {
   // See https://github.com/XCSoar/XCSoar/issues/542
@@ -150,7 +150,7 @@ function encodeTSK(
 }
 
 function encodeWPT(
-  points: LatLonZ[],
+  points: LatLonAlt[],
   prefix: string,
 ): { mime?: string; file?: string; filename?: string; error?: string } {
   const file =
@@ -180,7 +180,7 @@ function encodeWPT(
 
 // http://download.naviter.com/docs/CUP-file-format-description.pdf
 function encodeCUP(
-  points: LatLonZ[],
+  points: LatLonAlt[],
   prefix: string,
 ): { mime?: string; file?: string; filename?: string; error?: string } {
   let file = 'name,code,country,lat,lon,elev,style,rwdir,rwlen,freq,desc\r\n';

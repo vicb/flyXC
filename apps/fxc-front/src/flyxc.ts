@@ -12,7 +12,7 @@ import './app/components/chart-element';
 import './app/components/loader-element';
 import './app/components/ui/main-menu';
 
-import { LatLonZ } from '@flyxc/common';
+import { LatLonAlt } from '@flyxc/common';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -204,8 +204,8 @@ export class MapsElement extends connect(store)(LitElement) {
   }
 
   // Returns the coordinates of the active track at the given timestamp.
-  private coordinatesAt(timeSec: number): LatLonZ {
-    return sel.getTrackLatLonAlt(store.getState())(timeSec) as LatLonZ;
+  private coordinatesAt(timeSec: number): LatLonAlt {
+    return sel.getTrackLatLonAlt(store.getState())(timeSec) as LatLonAlt;
   }
 
   createRenderRoot(): HTMLElement {

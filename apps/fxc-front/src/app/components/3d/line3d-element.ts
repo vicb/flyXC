@@ -93,7 +93,7 @@ export class Line3dElement extends connect(store)(LitElement) {
       const end = Math.max(common.findIndexes(timeSecs, timeSec).beforeIndex + 1, 4);
       const path = this.path3d.slice(start, end);
       // The last point must match the marker position and needs to be interpolated.
-      const pos = sel.getTrackLatLonAlt(store.getState())(timeSec, this.track) as common.LatLonZ;
+      const pos = sel.getTrackLatLonAlt(store.getState())(timeSec, this.track) as common.LatLonAlt;
       path.push([pos.lon, pos.lat, this.multiplier * pos.alt]);
       this.line.paths[0] = path;
 

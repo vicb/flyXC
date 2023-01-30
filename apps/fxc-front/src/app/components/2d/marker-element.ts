@@ -65,7 +65,7 @@ export class MarkerElement extends connect(store)(LitElement) {
     }
     if (this.marker && this.icon && this.track) {
       const timeSec = this.timeSec + this.offsetSeconds;
-      const { lat, lon, alt } = sel.getTrackLatLonAlt(store.getState())(timeSec, this.track) as common.LatLonZ;
+      const { lat, lon, alt } = sel.getTrackLatLonAlt(store.getState())(timeSec, this.track) as common.LatLonAlt;
       const scale = (50 * ((alt ?? 0) - this.track.minAlt)) / (this.track.maxAlt - this.track.minAlt) + 20;
       this.marker.setPosition({ lat, lng: lon });
       const icon = this.icon as google.maps.Symbol;

@@ -8,13 +8,13 @@ export type Point = {
   y: number;
 };
 
-export type LatLonZ = {
+export type LatLonAlt = {
   alt: number;
   lat: number;
   lon: number;
 };
 
-export type LatLon = Omit<LatLonZ, 'alt'>;
+export type LatLon = Omit<LatLonAlt, 'alt'>;
 
 // A track used by the runtime.
 export type RuntimeTrack = {

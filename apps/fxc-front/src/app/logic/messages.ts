@@ -1,16 +1,16 @@
 import type Graphic from '@arcgis/core/Graphic';
 import type SceneView from '@arcgis/core/views/SceneView';
-import { LatLon, LatLonZ } from '@flyxc/common';
+import { LatLon, LatLonAlt } from '@flyxc/common';
 import { createEvents } from 'micro-typed-events';
 
 // Zoom the map in the given direction (typically mouse wheel).
 export const zoomMap = createEvents<number>();
 
 // Center the map on the passed position.
-export const centerMap = createEvents<LatLonZ>();
+export const centerMap = createEvents<LatLonAlt>();
 
 // Center and zoom the map.
-export const centerZoomMap = createEvents<LatLonZ, number>();
+export const centerZoomMap = createEvents<LatLonAlt, number>();
 
 // Emit the group id of the added tracks.
 export const trackGroupsAdded = createEvents<number[]>();

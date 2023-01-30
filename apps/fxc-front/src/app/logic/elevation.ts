@@ -1,9 +1,9 @@
-import { LatLon, LatLonZ } from '@flyxc/common';
+import { LatLon, LatLonAlt } from '@flyxc/common';
 
 // Adds the ground elevation to the list of points.
 //
 // The function use the google maps elevation service.
-export async function addAltitude(points: LatLon[]): Promise<LatLonZ[]> {
+export async function addAltitude(points: LatLon[]): Promise<LatLonAlt[]> {
   const withZ = points.map((p) => ({ ...p, alt: 0 }));
 
   const locations = points.map((p) => new google.maps.LatLng(p.lat, p.lon));

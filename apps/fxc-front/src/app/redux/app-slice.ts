@@ -27,7 +27,7 @@ const appSlice = createSlice({
   initialState,
   reducers: {
     setTimeSec: (state, action: PayloadAction<number>) => {
-      state.timeSec = action.payload;
+      state.timeSec = Math.round(action.payload);
     },
     setApiLoading: (state, action: PayloadAction<boolean>) => {
       state.loadingApi = action.payload;

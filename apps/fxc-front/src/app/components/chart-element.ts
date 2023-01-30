@@ -1,11 +1,10 @@
 import { airspaceCategory, Flags, RuntimeTrack, sampleAt } from '@flyxc/common';
 import { ticks } from 'd3-array';
 import { css, CSSResult, html, LitElement, PropertyValues, svg, SVGTemplateResult, TemplateResult } from 'lit';
-import { customElement, query, queryAll, state } from 'lit/decorators.js';
+import { customElement, query, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import * as units from '../logic/units';
-import { setAirspacesOnGraph } from '../redux/airspace-slice';
 import { ChartYAxis, setChartYAxis } from '../redux/app-slice';
 import * as sel from '../redux/selectors';
 import { RootState, store } from '../redux/store';
@@ -41,12 +40,6 @@ export class ChartElement extends connect(store)(LitElement) {
 
   private lastPlayTimestamp = 0;
 
-  @queryAll('path.asp')
-  private aspPathElements?: NodeList;
-
-  @query('svg#chart')
-  private svgContainer?: SVGSVGElement;
-
   @query('#thumb')
   private thumbElement?: SVGLineElement;
 
@@ -55,7 +48,6 @@ export class ChartElement extends connect(store)(LitElement) {
   private maxTimeSec = 1;
   private offsetSeconds: { [id: string]: number } = {};
   // Throttle timestamp and airspace updates.
-  private nextAspUpdate = 0;
   private nextTimestampUpdate = 0;
   private sizeListener = () => this.updateSize();
 
@@ -436,9 +428,9 @@ export class ChartElement extends connect(store)(LitElement) {
         })
         .join('L');
       paths.push(
-        svg`<path data-start=${startSec} data-end=${endSec} title=${`[${asp.category[i]}] ${asp.name[i]}`}  class=${`asp ${airspaceCategory(
-          flags,
-        )}`} d=${'M' + path}></path>`,
+        svg`<path data-start=${startSec} data-end=${endSec} class=${`asp ${airspaceCategory(flags)}`} d=${
+          'M' + path
+        }></path>`,
       );
     }
 
@@ -608,13 +600,9 @@ export class ChartElement extends connect(store)(LitElement) {
     if (this.playTimer == null) {
       const now = Date.now();
       if (now > this.nextTimestampUpdate) {
-        const { x, y, timeSec } = this.getCoordinatesFromEvent(e);
+        const { timeSec } = this.getCoordinatesFromEvent(e);
         this.dispatchEvent(new CustomEvent('move', { detail: { timeSec } }));
-        this.nextTimestampUpdate = now + 20;
-        if (now > this.nextAspUpdate) {
-          this.updateAirspaces(x, y, timeSec);
-          this.nextAspUpdate = now + 40;
-        }
+        this.nextTimestampUpdate = now + 50;
       }
     }
   }
@@ -625,23 +613,5 @@ export class ChartElement extends connect(store)(LitElement) {
     const x = e.clientX - left;
     const y = e.clientY - top;
     return { x, y, timeSec: this.getTimeSecAtX(x) };
-  }
-
-  private updateAirspaces(x: number, y: number, timeSec: number): void {
-    const airspaces: string[] = [];
-    if (this.svgContainer && this.aspPathElements) {
-      const point = this.svgContainer.createSVGPoint();
-      point.x = x;
-      point.y = y;
-      this.aspPathElements?.forEach((node: Node) => {
-        const geometry = node as SVGGeometryElement;
-        const startSec = Number(geometry.getAttribute('data-start'));
-        const endSec = Number(geometry.getAttribute('data-end'));
-        if (timeSec >= startSec && timeSec <= endSec && geometry.isPointInFill(point)) {
-          airspaces.push(geometry.getAttribute('title') as string);
-        }
-      });
-    }
-    store.dispatch(setAirspacesOnGraph(airspaces));
   }
 }

@@ -57,7 +57,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     if (!this.showAirspace) {
       return;
     }
-    const html = await getAirspaceList(MAX_ASP_TILE_ZOOM, latLon, this.maxAltitude, this.showRestricted);
+    const html = await getAirspaceList(MAX_ASP_TILE_ZOOM, latLon, this.maxAltitude, 0, this.showRestricted);
     if (html) {
       view.popup.open({
         location: {

@@ -1,4 +1,4 @@
-import { extractGroupId, LatLon, LatLonZ, RuntimeTrack, sampleAt } from '@flyxc/common';
+import { extractGroupId, LatLon, LatLonAlt, RuntimeTrack, sampleAt } from '@flyxc/common';
 import { createSelector } from 'reselect';
 
 import { DistanceUnit, Units } from '../logic/units';
@@ -119,7 +119,7 @@ export const airspaceAltitudeStops = createSelector(altitudeUnits, (units) => {
 export const getTrackLatLonAlt = createSelector(
   currentTrack,
   (currentTrack) =>
-    (timeSec: number, track?: RuntimeTrack): LatLonZ | undefined => {
+    (timeSec: number, track?: RuntimeTrack): LatLonAlt | undefined => {
       track ??= currentTrack;
       if (track == null) {
         return;
@@ -131,11 +131,21 @@ export const getTrackLatLonAlt = createSelector(
     },
 );
 
+// Returns a function that compute the gnd altitude at the given time in seconds.
+export const getGndAlt = createSelector(
+  currentTrack,
+  (currentTrack) =>
+    (timeSec: number, track?: RuntimeTrack): number => {
+      track ??= currentTrack;
+      return track == null ? 0 : sampleAt(track.timeSec, track.gndAlt, timeSec);
+    },
+);
+
 // Returns a function that compute the lookAt coordinates at the given time in seconds.
 export const getLookAtLatLonAlt = createSelector(
   currentTrack,
   (currentTrack) =>
-    (timeSec: number, track?: RuntimeTrack): LatLonZ | undefined => {
+    (timeSec: number, track?: RuntimeTrack): LatLonAlt | undefined => {
       track ??= currentTrack;
       if (track == null) {
         return;

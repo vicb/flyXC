@@ -102,7 +102,7 @@ export class Marker3dElement extends connect(store)(LitElement) {
     if (this.graphic && this.track) {
       const track = this.track;
       const timeSec = this.timeSec + this.offsetSeconds;
-      const { lat, lon, alt } = sel.getTrackLatLonAlt(store.getState())(timeSec, this.track) as common.LatLonZ;
+      const { lat, lon, alt } = sel.getTrackLatLonAlt(store.getState())(timeSec, this.track) as common.LatLonAlt;
 
       this.point.latitude = lat;
       this.point.longitude = lon;

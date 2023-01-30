@@ -1,4 +1,4 @@
-import { encodeFloats, encodeSignedIntegers, LatLonZ } from '@flyxc/common';
+import { encodeFloats, encodeSignedIntegers, LatLonAlt } from '@flyxc/common';
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { toDataURL } from 'qrcode/lib/browser';
@@ -12,7 +12,7 @@ export class ShareModal extends LitElement {
   link = '';
 
   @property({ attribute: false })
-  points: LatLonZ[] = [];
+  points: LatLonAlt[] = [];
 
   @state()
   private type: 'task' | 'link' = 'task';

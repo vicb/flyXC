@@ -1,4 +1,5 @@
 import * as common from '@flyxc/common';
+import { LatLonAlt } from '@flyxc/common';
 import { LitElement, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
@@ -15,20 +16,24 @@ export class AirspaceElement extends connect(store)(LitElement) {
   @state()
   private show = false;
   @state()
-  private airspacesOnGraph: string[] = [];
-  @state()
   private maxAltitude = 1000;
   // Whether to display restricted airspaces.
   @state()
   private showRestricted = true;
   @state()
   private track?: common.RuntimeTrack;
+  @state()
+  private timeSec = 0;
 
   private overlays: AspMapType[] = [];
   private info?: google.maps.InfoWindow;
   private zoomListener?: google.maps.MapsEventListener;
   private clickListener?: google.maps.MapsEventListener;
-  private timeSec = 0;
+
+  // We want to display the airspaces at the click location.
+  // However clicking the map also results in a timeSec update (for the closest fix).
+  // isMapClick is used as a flag to discriminate the source of the timeSec update.
+  private isMapClick = false;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -54,7 +59,6 @@ export class AirspaceElement extends connect(store)(LitElement) {
     this.maxAltitude = state.airspace.maxAltitude;
     this.track = sel.currentTrack(state);
     this.timeSec = state.app.timeSec;
-    this.airspacesOnGraph = state.airspace.onGraph;
   }
 
   protected shouldUpdate(changedProperties: PropertyValues): boolean {
@@ -64,16 +68,10 @@ export class AirspaceElement extends connect(store)(LitElement) {
         this.removeOverlays();
         this.addOverlays();
       }
-      // The airspacesOnGraph property gets updated from the graph each time the cursor moves.
-      if (this.track && changedProperties.has('airspacesOnGraph')) {
-        if (this.airspacesOnGraph.length) {
-          const { lat, lon } = sel.getTrackLatLonAlt(store.getState())(this.timeSec) as common.LatLonZ;
-          this.info?.setContent(this.airspacesOnGraph.map((t) => `<b>${t}</b>`).join('<br>'));
-          this.info?.setPosition({ lat, lng: lon });
-          this.info?.open(this.map);
-        } else {
-          this.info?.close();
-        }
+      if (this.track && changedProperties.has('timeSec') && !this.isMapClick) {
+        const point = sel.getTrackLatLonAlt(store.getState())(this.timeSec) as LatLonAlt;
+        const gndAlt = sel.getGndAlt(store.getState())(this.timeSec);
+        this.showAirspaceInfo(point, gndAlt);
       }
     }
     if (changedProperties.has('show')) {
@@ -88,23 +86,31 @@ export class AirspaceElement extends connect(store)(LitElement) {
         this.zoomListener?.remove();
       }
     }
+    this.isMapClick = false;
     // Nothing to render.
     return false;
   }
 
   private async handleMapClick(latLng: google.maps.LatLng): Promise<void> {
+    this.isMapClick = true;
+    this.showAirspaceInfo({ lat: latLng.lat(), lon: latLng.lng(), alt: this.maxAltitude });
+  }
+
+  private async showAirspaceInfo(point: LatLonAlt, gndAlt = 0) {
     if (this.show) {
-      this.info?.close();
       const html = await getAirspaceList(
         Math.round(this.map.getZoom() ?? 10),
-        { lat: latLng.lat(), lon: latLng.lng() },
-        this.maxAltitude,
+        point,
+        point.alt,
+        gndAlt,
         this.showRestricted,
       );
       if (html !== '') {
         this.info?.setContent(html);
-        this.info?.setPosition(latLng);
+        this.info?.setPosition({ lat: point.lat, lng: point.lon });
         this.info?.open(this.map);
+      } else {
+        this.info?.close();
       }
     }
   }

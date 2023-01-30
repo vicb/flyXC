@@ -4,7 +4,7 @@ import './controls3d-element';
 import './line3d-element';
 import './marker3d-element';
 
-import { LatLon, LatLonZ, RuntimeTrack } from '@flyxc/common';
+import { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
@@ -63,7 +63,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   };
 
   private subscriptions: UnsubscribeHandle[] = [];
-  private previousLookAt?: LatLonZ;
+  private previousLookAt?: LatLonAlt;
   private updateCamera = false;
   private originalQuality = 'medium';
   private qualityTimer?: number;
@@ -302,7 +302,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   }
 
   // Center the map on the position and optionally set the zoom.
-  private center(latLon: LatLonZ, zoom?: number): void {
+  private center(latLon: LatLonAlt, zoom?: number): void {
     this.previousLookAt = latLon;
     if (this.view?.center) {
       const { lat, lon, alt } = latLon;
@@ -313,7 +313,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     }
   }
 
-  private centerZoom(ll: LatLonZ, delta: number): void {
+  private centerZoom(ll: LatLonAlt, delta: number): void {
     if (this.view) {
       this.center(ll, this.view.zoom + (delta < 0 ? 0.3 : -0.3));
     }

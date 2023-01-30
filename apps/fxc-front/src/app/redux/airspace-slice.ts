@@ -4,14 +4,12 @@ type AirspaceState = {
   maxAltitude: number;
   show: boolean;
   showRestricted: boolean;
-  onGraph: string[];
 };
 
 const initialState: AirspaceState = {
   maxAltitude: 3000,
   show: false,
   showRestricted: true,
-  onGraph: [],
 };
 
 const airspaceSlice = createSlice({
@@ -24,9 +22,6 @@ const airspaceSlice = createSlice({
     setShowRestricted: (state, action: PayloadAction<boolean>) => {
       state.showRestricted = action.payload;
     },
-    setAirspacesOnGraph: (state, action: PayloadAction<string[]>) => {
-      state.onGraph = action.payload;
-    },
     setMaxAltitude: (state, action: PayloadAction<number>) => {
       state.maxAltitude = action.payload;
     },
@@ -34,4 +29,4 @@ const airspaceSlice = createSlice({
 });
 
 export const reducer = airspaceSlice.reducer;
-export const { setMaxAltitude, setShow, setShowRestricted, setAirspacesOnGraph } = airspaceSlice.actions;
+export const { setMaxAltitude, setShow, setShowRestricted } = airspaceSlice.actions;

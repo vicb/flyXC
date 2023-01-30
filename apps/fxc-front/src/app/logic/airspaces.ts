@@ -7,16 +7,20 @@ export const MAX_ASP_TILE_ZOOM = 12;
 
 // Returns html describing airspaces at the given point.
 // altitude is expressed in meters.
+// When the gndAltitude is != 0 we assume that we want the airspaces along a track,
+// and we return only the airspaces where altitude is in [floor .. top].
+// Otherwise we return any airspaces where altitude >= floor (i.e. clicking on a map w/o track).
 export async function getAirspaceList(
   zoom: number,
   latLon: LatLon,
   altitude: number,
+  gndAltitude: number,
   includeRestricted: boolean,
 ): Promise<string> {
   const tileZoom = Math.min(zoom, MAX_ASP_TILE_ZOOM);
   const { tile: tileCoords, px } = pixelCoordinates(latLon, tileZoom);
 
-  const response = await fetch(getAspTileUrl(tileCoords.x, tileCoords.y, zoom));
+  const response = await fetch(getAspTileUrl(tileCoords.x, tileCoords.y, tileZoom));
   if (!response.ok) {
     return '';
   }
@@ -36,8 +40,13 @@ export async function getAirspaceList(
   for (let i = 0; i < layer.length; i++) {
     const f = layer.feature(i);
     const p = f.properties;
+    const flags = Number(p.flags);
+    const floor = Number(p.bottom) + (flags & Flags.FloorRefGnd ? gndAltitude : 0);
+    const top = Number(p.top) + (flags & Flags.TopRefGnd ? gndAltitude : 0);
+    const onlyConsiderFloor = gndAltitude == 0;
+    const isInsideAirspace = altitude >= floor && (onlyConsiderFloor || altitude <= top);
     if (
-      (p.bottom ?? 0) < altitude &&
+      isInsideAirspace &&
       !(Number(p.flags ?? 0) & Flags.AirspaceRestricted && !includeRestricted) &&
       isInFeature(px, f)
     ) {
@@ -165,10 +174,10 @@ function getTile(
           const f = vTile.layers.asp.feature(i);
           const props = f.properties;
           const ratio = mapTileSize / f.extent;
-          const flags = props.flags as number;
+          const flags = Number(props.flags);
           if (
             f.type === 3 &&
-            (props.bottom as number) < altitude &&
+            Number(props.bottom) < altitude &&
             !(flags & Flags.AirspaceRestricted && !showRestricted)
           ) {
             const polygons = f.asPolygons() ?? [];

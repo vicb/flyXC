@@ -1,4 +1,4 @@
-import { LatLonZ } from '@flyxc/common';
+import { LatLonAlt } from '@flyxc/common';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
@@ -17,7 +17,7 @@ const WAYPOINT_FORMATS: { [id: string]: string } = {
 @customElement('waypoint-modal')
 export class WaypointModal extends LitElement {
   @property()
-  points: LatLonZ[] = [];
+  points: LatLonAlt[] = [];
 
   @state()
   fileType = 'cup';
