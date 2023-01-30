@@ -1,12 +1,10 @@
 import * as common from '@flyxc/common';
+import { menuController, modalController, toastController } from '@ionic/core/components';
 import { getDistance } from 'geolib';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
-
-import { menuController, modalController, toastController } from '@ionic/core/components';
-
 import * as msg from '../../logic/messages';
 import * as units from '../../logic/units';
 import { getLivePilots, LivePilot, setCenterOnLocation, setCurrentLiveId } from '../../redux/live-track-slice';
@@ -15,7 +13,7 @@ import { RootState, store } from '../../redux/store';
 import { getUniqueContrastColor } from '../../styles/track';
 
 // Maximum number of pilots to list.
-const MAX_PILOTS = 40;
+const MAX_PILOTS = 100;
 
 // How long tracks are considered recent.
 const RECENT_PILOTS_HOUR = 3;
