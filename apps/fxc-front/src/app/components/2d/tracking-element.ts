@@ -25,11 +25,11 @@ const OLD_TIMEOUT_MIN = 12 * 60;
 
 // Only the last track uses a solid line.
 // Former tracks use a dashed line.
-const dashedLineIcons: google.maps.IconSequence[] = [
+const dashedLineIconsFactory: (opacity: number) => google.maps.IconSequence[] = (opacity: number) => [
   {
     icon: {
       path: 'M 0,-1 0,1',
-      strokeOpacity: 1,
+      strokeOpacity: opacity,
     },
     offset: '0',
     repeat: '5px',
@@ -297,23 +297,21 @@ export class TrackingElement extends connect(store)(LitElement) {
     let strokeWeight = 1;
     let strokeOpacity = 1;
     let zIndex = 10;
-    let icons: google.maps.IconSequence[] | undefined;
+    let iconsFactory: ((opacity: number) => google.maps.IconSequence[]) | undefined;
 
     if (isEmergency) {
       strokeWeight = 6;
       zIndex = 30;
     } else if (feature.getProperty('last') !== true) {
       // Dashed lines for previous tracks.
-      icons = dashedLineIcons;
-      strokeOpacity = 0;
+      iconsFactory = dashedLineIconsFactory;
     } else if (id == this.currentId) {
       // Make the selected track very visible.
       strokeWeight = 4;
       zIndex = 20;
     } else if (ageMin > OLD_TIMEOUT_MIN) {
       // Dashed lines for old tracks.
-      icons = dashedLineIcons;
-      strokeOpacity = 0;
+      iconsFactory = dashedLineIconsFactory;
     } else if (ageMin < RECENT_TIMEOUT_MIN && this.numTracks == 0 && !this.plannerEnabled) {
       // Make the recent tracks more visible when there are no non-live tracks.
       strokeWeight = 2;
@@ -328,10 +326,10 @@ export class TrackingElement extends connect(store)(LitElement) {
 
     return {
       strokeColor,
-      strokeOpacity,
+      strokeOpacity: iconsFactory ? 0 : strokeOpacity,
       strokeWeight,
       zIndex,
-      icons,
+      icons: iconsFactory ? iconsFactory(strokeOpacity) : undefined,
     } as google.maps.Data.StyleOptions;
   }
 }
