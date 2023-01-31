@@ -1,4 +1,4 @@
-import { diffEncodeTrack, fetchResponse, protos } from '@flyxc/common';
+import { diffEncodeTrack, fetchResponse, formatReqError, protos } from '@flyxc/common';
 import { retrieveMetaTrackGroupByHash, retrieveMetaTrackGroupByUrl, saveTrack, TrackEntity } from '@flyxc/common-node';
 import * as crypto from 'crypto';
 
@@ -28,9 +28,11 @@ export async function parseFromUrl(datastore: Datastore, url: string): Promise<p
     const response = await fetchResponse(url, { timeoutS: 5 });
     if (response.ok) {
       return await parse(datastore, await response.text(), url);
+    } else {
+      console.error(`HTTP Status ${response.status}`);
     }
   } catch (e) {
-    // empty
+    console.error(`fetch error ${formatReqError(e)}`);
   }
   return { id: -1, numPostprocess: 0 };
 }
