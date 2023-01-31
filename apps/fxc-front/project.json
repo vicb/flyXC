@@ -45,6 +45,22 @@
         }
       }
     },
+    "preview": {
+      "executor": "@nrwl/vite:preview-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "fxc-front:build",
+        "proxyConfig": "apps/fxc-front/proxy.conf.json"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "fxc-front:build:development"
+        },
+        "production": {
+          "buildTarget": "fxc-front:build:production"
+        }
+      }
+    },
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "outputs": ["{options.outputFile}"],

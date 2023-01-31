@@ -25,6 +25,11 @@ export default defineConfig({
     host: '0.0.0.0',
   },
 
+  preview: {
+    port: 8080,
+    host: '0.0.0.0',
+  },
+
   build: {
     rollupOptions: {
       output: {
