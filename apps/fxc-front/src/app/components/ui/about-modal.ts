@@ -18,7 +18,8 @@ export class AboutModal extends LitElement {
         <p>
           FlyXC by <a href="https://github.com/vicb" target="_blank">Victor Berchet</a>,
           <a href="https://github.com/mmomtchev" target="_blank">Momtchil Momtchev</a>,
-          <a href="https://github.com/osmeras" target="_blank">Stanislav Ošmera</a>
+          <a href="https://github.com/osmeras" target="_blank">Stanislav Ošmera</a>,
+          <a href="https://github.com/tris" target="_blank">Tristan Horn</a>
         </p>
 
         <p>

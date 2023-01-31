@@ -9,7 +9,8 @@
 ## Contributors
 
 - [Momtchil Momtchev](https://github.com/mmomtchev),
-- [Stanislav Ošmera](https://github.com/osmeras)
+- [Stanislav Ošmera](https://github.com/osmeras),
+- [Tristan Horn](https://github.com/tris)
 
 ## Credits
 
