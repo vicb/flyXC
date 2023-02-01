@@ -2,7 +2,7 @@
 
 import {
   isUfo,
-  LIVE_RETENTION_FLIGHT_MODE_SEC,
+  LIVE_FLIGHT_MODE_RETENTION_SEC,
   LIVE_TRACKER_RETENTION_SEC,
   LIVE_UFO_RETENTION_SEC,
   protos,
@@ -29,21 +29,21 @@ w.addEventListener('message', (message: MessageEvent<Request>) => {
   const request = message.data;
   const updates = protos.LiveDifferentialTrackGroup.fromBinary(new Uint8Array(request.buffer));
 
-  const tracks: protos.LiveTrack[] = updateLiveTracks(request.tracks, updates);
+  const updatedTracks = updateLiveTracks(request.tracks, updates);
+  const tracks: protos.LiveTrack[] = [];
   const features: any[] = [];
 
-  for (let track of tracks) {
-    if (track.timeSec.length == 0) {
-      continue;
-    }
-    let dropBeforeSec = LIVE_TRACKER_RETENTION_SEC;
-    if (request.flightMode) {
-      dropBeforeSec = LIVE_RETENTION_FLIGHT_MODE_SEC;
-    } else if (isUfo(track.flags[0])) {
-      dropBeforeSec = LIVE_UFO_RETENTION_SEC;
-    }
+  const retentionSec = request.flightMode ? LIVE_FLIGHT_MODE_RETENTION_SEC : LIVE_TRACKER_RETENTION_SEC;
+  const now = Math.round(Date.now() / 1000);
+
+  for (let track of updatedTracks) {
+    const dropBeforeSec = now - (isUfo(track.flags[0]) ? LIVE_UFO_RETENTION_SEC : retentionSec);
     track = removeBeforeFromLiveTrack(track, dropBeforeSec);
-    if (track.timeSec.length) {
+
+    console.log(track, track.timeSec.length);
+
+    if (track.timeSec.length > 0) {
+      tracks.push(track);
       features.push(...trackToFeatures(track, TRACK_GAP_MIN));
     }
   }
