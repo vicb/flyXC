@@ -9,7 +9,6 @@ import {
 import { getDatastore, retrieveTrackById, TrackEntity, updateUnzippedTracks } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import { RunQueryResponse } from '@google-cloud/datastore/build/src/query';
-import { fetchAirspaces } from './airspace';
 
 const datastore = getDatastore();
 
@@ -74,8 +73,8 @@ export async function migrateTrack(id: number): Promise<TrackEntity | undefined>
   for (let i = 0; i < numTracks; i++) {
     const track = diffDecodeTrack(trackGroup.tracks[i]);
     altGroup.groundAltitudes[i].altitudes = diffDecodeArray(altGroup.groundAltitudes[i].altitudes, 1);
-    const asp = await fetchAirspaces(track, altGroup.groundAltitudes[i]);
-    airspaces.push(asp);
+    //const asp = await fetchAirspaces(track, altGroup.groundAltitudes[i]);
+    //airspaces.push(asp);
   }
 
   entity.airspaces_group = Buffer.from(

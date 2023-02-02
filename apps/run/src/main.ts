@@ -1,8 +1,6 @@
 import { getDatastore } from '@flyxc/common-node';
 import express, { Request, Response } from 'express';
-import { migrateToFetcher } from './app/migrate';
 import { postProcessTrack } from './app/process';
-import { environment } from './environments/environment';
 
 const app = express().use(express.json());
 
@@ -21,13 +19,6 @@ app.post('/process', async (req: Request, res: Response) => {
 
   return res.sendStatus(400);
 });
-
-if (!environment.production) {
-  app.get('/migrate-fetcher', async (req: Request, res: Response) => {
-    await migrateToFetcher();
-    return res.send('Migrated');
-  });
-}
 
 const port = process.env.PORT || 8080;
 const server = app.listen(port, () => console.info(`Started server on port ${port}.`));

@@ -1,0 +1,7 @@
+indexes:
+  - kind: Track
+    properties:
+      - name: created
+      - name: hash
+      - name: url
+      - name: valid

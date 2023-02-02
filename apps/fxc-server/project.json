@@ -28,6 +28,7 @@
           ],
           "assets": [
             "apps/fxc-server/src/app.yaml",
+            "apps/fxc-server/src/index.yaml",
             "apps/fxc-server/src/.gcloudignore",
             {
               "glob": "**/*",
