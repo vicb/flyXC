@@ -137,7 +137,6 @@ export const fetchTrack = createAsyncThunk('track/fetch', async (params: FetchTr
     for (let i = 0; i < route.alt.length; i++) {
       coords.push(new google.maps.LatLng(route.lat[i], route.lon[i]));
     }
-    console.log('setting route from fetch');
     api.dispatch(setRoute(google.maps.geometry.encoding.encodePath(coords)));
     api.dispatch(setEnabled(true));
   }

@@ -40,8 +40,6 @@ w.addEventListener('message', (message: MessageEvent<Request>) => {
     const dropBeforeSec = now - (isUfo(track.flags[0]) ? LIVE_UFO_RETENTION_SEC : retentionSec);
     track = removeBeforeFromLiveTrack(track, dropBeforeSec);
 
-    console.log(track, track.timeSec.length);
-
     if (track.timeSec.length > 0) {
       tracks.push(track);
       features.push(...trackToFeatures(track, TRACK_GAP_MIN));
