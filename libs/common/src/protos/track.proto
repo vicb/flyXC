@@ -57,6 +57,9 @@ message MetaTrackGroup {
   // were retrieved correctly.
   optional bytes ground_altitude_group_bin = 4;
   optional bytes airspaces_group_bin = 5;
+  // Domain of the track
+  // This is moslty usefull when the track is loaded by id as we still want to to use the API credentials of the originating domain.
+  optional string domain = 6;
 }
 
 message MetaTracks {

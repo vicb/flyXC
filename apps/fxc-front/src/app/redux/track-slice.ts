@@ -7,9 +7,7 @@ import {
   protos,
   RuntimeTrack,
 } from '@flyxc/common';
-
 import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
-
 import { addUrlParamValue, deleteUrlParamValue, ParamNames } from '../logic/history';
 import * as msg from '../logic/messages';
 // @ts-ignore
@@ -40,6 +38,10 @@ export type TrackState = {
   displayLabels: boolean;
   // Whether to move the map to see the pilot.
   lockOnPilot: boolean;
+  // Domain of the loaded tracks
+  domain: string;
+  // Whether we are done loading tracks
+  loaded: boolean;
 };
 
 const initialState: TrackState = {
@@ -52,6 +54,8 @@ const initialState: TrackState = {
   tracks: trackAdapter.getInitialState(),
   displayLabels: false,
   lockOnPilot: localStorage.getItem('track.lock-pilot') !== 'false',
+  domain: '',
+  loaded: false,
 };
 
 // Thunk to set the timestamp and current id when the first track is loaded.
@@ -132,6 +136,13 @@ export const fetchTrack = createAsyncThunk('track/fetch', async (params: FetchTr
   const { metaTrackGroups, route } = protos.MetaTrackGroupsAndRoute.fromBinary(new Uint8Array(metaTracksAndRoute));
   const tracks = createRuntimeTracks(metaTrackGroups);
 
+  for (const group of metaTrackGroups) {
+    if (group.domain != null && group.domain != '') {
+      api.dispatch(setTrackDomain(group.domain));
+      break;
+    }
+  }
+
   if (route && route.alt.length > 0) {
     const coords = [];
     for (let i = 0; i < route.alt.length; i++) {
@@ -183,6 +194,12 @@ const trackSlice = createSlice({
     },
     setCurrentTrackId: (state, action: PayloadAction<string | undefined>) => {
       state.currentTrackId = action.payload;
+    },
+    setTrackLoaded: (state, action: PayloadAction<boolean>) => {
+      state.loaded = action.payload;
+    },
+    setTrackDomain: (state, action: PayloadAction<string>) => {
+      state.domain = action.payload;
     },
     selectNextTrack: (state) => {
       if (state.currentTrackId != null && state.tracks.ids.length > 0) {
@@ -282,6 +299,13 @@ const trackSlice = createSlice({
 });
 
 export const reducer = trackSlice.reducer;
-export const { removeTracksByGroupIds, setCurrentTrackId, selectNextTrack, setDisplayLabels, setLockOnPilot } =
-  trackSlice.actions;
+export const {
+  removeTracksByGroupIds,
+  setCurrentTrackId,
+  selectNextTrack,
+  setDisplayLabels,
+  setLockOnPilot,
+  setTrackDomain,
+  setTrackLoaded,
+} = trackSlice.actions;
 export const trackAdapterSelector = trackAdapter.getSelectors((state: RootState) => state.track.tracks);

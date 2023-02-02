@@ -39,7 +39,7 @@ import { setTimeSec, setView3d } from './app/redux/app-slice';
 import { setRoute, setSpeed } from './app/redux/planner-slice';
 import * as sel from './app/redux/selectors';
 import { RootState, store } from './app/redux/store';
-import { removeTracksByGroupIds, setDisplayLabels } from './app/redux/track-slice';
+import { removeTracksByGroupIds, setDisplayLabels, setTrackLoaded } from './app/redux/track-slice';
 
 @customElement('fly-xc')
 export class FlyXc extends connect(store)(LitElement) {
@@ -52,10 +52,11 @@ export class FlyXc extends connect(store)(LitElement) {
     document.body.ondragover = (e: DragEvent): void => e.preventDefault();
 
     // Download initial tracks.
-    Promise.all([
+    Promise.allSettled([
       downloadTracksByGroupIds(getUrlParamValues(ParamNames.groupId)),
       downloadTracksByUrls(getUrlParamValues(ParamNames.trackUrl)),
     ]).then(() => {
+      store.dispatch(setTrackLoaded(true));
       store.dispatch(setDisplayLabels(sel.numTracks(store.getState()) > 1));
       // Remove the track urls as they will be replaced with ids.
       deleteUrlParam(ParamNames.trackUrl);

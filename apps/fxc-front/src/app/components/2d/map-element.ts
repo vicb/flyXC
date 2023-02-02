@@ -1,15 +1,12 @@
 import { findClosestFix, LatLon, LatLonAlt, pixelCoordinates, RuntimeTrack } from '@flyxc/common';
+import { Loader } from '@googlemaps/js-api-loader';
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 import simplify from 'simplify-path';
-
-import { Loader } from '@googlemaps/js-api-loader';
-
 import { getApiKey } from '../../apikey';
-import { getUrlParamValues, ParamNames } from '../../logic/history';
 import * as msg from '../../logic/messages';
 import { setApiLoading, setTimeSec } from '../../redux/app-slice';
 import { setCurrentLocation, setCurrentZoom } from '../../redux/location-slice';
@@ -39,19 +36,36 @@ export {
   TrackingElement,
 };
 
-let apiPromise: Promise<typeof google> | undefined;
+let gMapsApiLoading: Promise<void> | undefined;
 
-// Load google maps
-function loadApi(): Promise<typeof google> {
-  if (!apiPromise) {
-    const tracks = getUrlParamValues(ParamNames.trackUrl);
-    apiPromise = new Loader({
-      apiKey: getApiKey('gmaps', tracks[0]),
-      version: 'weekly',
-      libraries: ['geometry'],
-    }).load();
+// Load the google maps API
+function loadGMaps(): Promise<void> {
+  if (!gMapsApiLoading) {
+    const load = (resolve: () => void) => {
+      new Loader({
+        apiKey: getApiKey('gmaps', store.getState().track.domain),
+        version: 'weekly',
+        libraries: ['geometry'],
+      })
+        .load()
+        .then(resolve);
+    };
+    let resolve: () => void = () => null;
+    gMapsApiLoading = new Promise((r) => (resolve = r));
+    // Wait for the track to be loaded before loading the Google Maps API.
+    // That way we know which API key to use (from the domain).
+    if (store.getState().track.loaded) {
+      load(resolve);
+    } else {
+      const unsubscribeState = store.subscribe(() => {
+        if (store.getState().track.loaded) {
+          unsubscribeState();
+          load(resolve);
+        }
+      });
+    }
   }
-  return apiPromise;
+  return gMapsApiLoading;
 }
 
 @customElement('map-element')
@@ -125,7 +139,7 @@ export class MapElement extends connect(store)(LitElement) {
   connectedCallback(): void {
     super.connectedCallback();
     store.dispatch(setApiLoading(true));
-    loadApi().then((): void => {
+    loadGMaps().then((): void => {
       const options: google.maps.MapOptions = {
         zoom: 11,
         minZoom: 3,

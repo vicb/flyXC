@@ -1,5 +1,5 @@
+import { getHostName } from '@flyxc/common';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
 import { store } from './store';
 
 type BrowserState = {
@@ -18,11 +18,14 @@ export const isMobile = () =>
 const doc = document as any;
 const isFullscreen = ('webkitFullscreenElement' in doc ? doc.webkitFullscreenElement : doc.fullscreenElement) != null;
 
+const isInIframe = window.parent !== window;
+const isFromFfvl = isInIframe && (getHostName(document.referrer) ?? '').endsWith('ffvl.fr');
+
 const initialState: BrowserState = {
   isFullscreen,
   isVisible: document.visibilityState == 'visible',
-  isInIframe: window.parent !== window,
-  isFromFfvl: window.parent !== window && document.referrer.endsWith('ffvl.fr/'),
+  isInIframe,
+  isFromFfvl,
   isMobile: isMobile(),
   isSmallScreen: !window.matchMedia('(min-width: 640px)').matches,
 };

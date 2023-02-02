@@ -108,3 +108,11 @@ export const deepCopy = <T>(source: T): T => {
   }
   return source;
 };
+
+export function getHostName(url: string): string | null {
+  try {
+    return new URL(url).hostname;
+  } catch (e) {
+    return null;
+  }
+}

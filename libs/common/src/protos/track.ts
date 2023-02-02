@@ -155,6 +155,13 @@ export interface MetaTrackGroup {
    * @generated from protobuf field: optional bytes airspaces_group_bin = 5;
    */
   airspacesGroupBin?: Uint8Array;
+  /**
+   * Domain of the track
+   * This is moslty usefull when the track is loaded by id as we still want to to use the API credentials of the originating domain.
+   *
+   * @generated from protobuf field: optional string domain = 6;
+   */
+  domain?: string;
 }
 /**
  * @generated from protobuf message MetaTracks
@@ -287,6 +294,7 @@ class MetaTrackGroup$Type extends MessageType<MetaTrackGroup> {
       { no: 3, name: 'track_group_bin', kind: 'scalar', opt: true, T: 12 /*ScalarType.BYTES*/ },
       { no: 4, name: 'ground_altitude_group_bin', kind: 'scalar', opt: true, T: 12 /*ScalarType.BYTES*/ },
       { no: 5, name: 'airspaces_group_bin', kind: 'scalar', opt: true, T: 12 /*ScalarType.BYTES*/ },
+      { no: 6, name: 'domain', kind: 'scalar', opt: true, T: 9 /*ScalarType.STRING*/ },
     ]);
   }
 }

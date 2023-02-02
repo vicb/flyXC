@@ -1,4 +1,4 @@
-import { protos } from '@flyxc/common';
+import { getHostName, protos } from '@flyxc/common';
 import { Datastore, Key } from '@google-cloud/datastore';
 import * as zlib from 'zlib';
 
@@ -147,6 +147,7 @@ function entityToMetaTrackGroup(entity: TrackEntity): protos.MetaTrackGroup {
     trackGroupBin: entity.track_group ? new Uint8Array(entity.track_group) : undefined,
     groundAltitudeGroupBin: entity.ground_altitude_group ? new Uint8Array(entity.ground_altitude_group) : undefined,
     airspacesGroupBin: entity.airspaces_group ? new Uint8Array(entity.airspaces_group) : undefined,
+    domain: getHostName(entity.url) ?? undefined,
   };
 }
 

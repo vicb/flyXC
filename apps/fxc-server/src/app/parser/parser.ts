@@ -1,10 +1,8 @@
 import { diffEncodeTrack, fetchResponse, formatReqError, protos } from '@flyxc/common';
 import { retrieveMetaTrackGroupByHash, retrieveMetaTrackGroupByUrl, saveTrack, TrackEntity } from '@flyxc/common-node';
-import * as crypto from 'crypto';
-
-import { PubSub } from '@google-cloud/pubsub';
-
 import { Datastore } from '@google-cloud/datastore';
+import { PubSub } from '@google-cloud/pubsub';
+import * as crypto from 'crypto';
 import { parse as parseGpx, parseRoute as parseGpxRoute } from './gpx';
 import { parse as parseIgc } from './igc';
 import { parse as parseKml } from './kml';
@@ -89,7 +87,7 @@ export async function parse(
       track_group: Buffer.from(trackGroupBin),
       num_postprocess: 0,
       has_postprocess_errors: false,
-      url: srcUrl || undefined,
+      url: srcUrl ?? undefined,
     };
     id = await saveTrack(datastore, trackEntity);
     // Publish the created track to PubSub for further processing.

@@ -1,30 +1,40 @@
+import { getHostName } from '@flyxc/common';
+import { environment } from '../environments/environment';
 import { keys } from './keys';
 
 // Returns the api key.
-export function getApiKey(apiName: string, extraUrl?: string | null): string {
-  const allKeys = keys[apiName];
-  let key: string | null = null;
+export function getApiKey(apiName: string, urlOrHostname = ''): string {
+  const apiKeys = keys[apiName] ?? {};
 
-  if (allKeys != null) {
-    const location = window.top == window ? window.location.href : document.referrer;
-    key = findKey(allKeys, location);
-    if (extraUrl != null && key == null) {
-      key = findKey(allKeys, extraUrl);
+  if (window.parent !== window) {
+    // Embedded in an iframe
+    const key = findKey(apiKeys, document.referrer);
+    if (key != null) {
+      return key;
     }
   }
 
-  return key || 'no-api-key';
+  if (environment.production) {
+    // Load anything in dev.
+    if (urlOrHostname != null) {
+      // Consider the url from the track
+      const key = findKey(apiKeys, urlOrHostname);
+      if (key != null) {
+        return key;
+      }
+    }
+  }
+
+  // Returns the key matching the hostname of the current window
+  return findKey(apiKeys, window.location.href) ?? 'no-api-key';
 }
 
-function findKey(keys: { [k: string]: string }, url: string): string | null {
-  const a = document.createElement('a');
-  a.href = url;
-  const hostname = a.hostname;
-  if (hostname in keys) {
-    return keys[hostname];
+function findKey(keys: { [k: string]: string }, urlOrHostname: string): string | null {
+  const hostname = getHostName(urlOrHostname) ?? urlOrHostname;
+  for (const [host, key] of Object.entries(keys)) {
+    if (hostname.endsWith(host)) {
+      return key;
+    }
   }
-  if ('*' in keys) {
-    return keys['*'];
-  }
-  return null;
+  return keys['*'] ?? null;
 }
