@@ -35,6 +35,7 @@ testem.log
 /typings
 /.nx-container
 /stats.html
+migrations.json
 
 # System Files
 .DS_Store
