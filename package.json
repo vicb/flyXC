@@ -80,6 +80,7 @@
     "@googlemaps/js-api-loader": "^1.15.1",
     "@ionic/core": "^6.5.1",
     "@mapbox/sphericalmercator": "^1.2.0",
+    "@popperjs/core": "^2.11.6",
     "@protobuf-ts/runtime": "^2.8.2",
     "@reduxjs/toolkit": "^1.9.2",
     "@stencil/core": "^2.21.0",

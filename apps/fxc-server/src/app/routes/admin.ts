@@ -1,5 +1,5 @@
 import { AccountFormModel, Keys, trackerNames, ufoFleetNames } from '@flyxc/common';
-import { retrieveLiveTrackById, retrieveRecentTracks, TrackEntity, TRACK_TABLE } from '@flyxc/common-node';
+import { retrieveLiveTrackById, retrieveRecentTracks, TRACK_TABLE } from '@flyxc/common-node';
 import csurf from 'csurf';
 import { NextFunction, Request, Response, Router } from 'express';
 import { Redis } from 'ioredis';
@@ -97,18 +97,24 @@ export function getAdminRouter(redis: Redis, datastore: Datastore): Router {
   // Retrieves the list of tracks.
   // The `tracks` query parameter set the number of tracks to retrieve.
   router.get('/archives.json', async (req: Request, res: Response) => {
-    const numTracks = Math.min((req.query.tracks as any) ?? 10, 50);
-    const tracks: TrackEntity[] = await retrieveRecentTracks(datastore, numTracks);
+    let numTracks = Number(req.query.tracks);
+    numTracks = Math.min(isNaN(numTracks) ? 50 : numTracks, 50);
+    let startCursor = req.query.cursor ? String(req.query.cursor) : null;
+    if (startCursor == 'null') {
+      startCursor = null;
+    }
+    const { cursor, tracks } = await retrieveRecentTracks(datastore, numTracks, startCursor);
 
-    res.json(
-      tracks.map((track) => ({
+    res.json({
+      tracks: tracks.map((track) => ({
         id: track[Datastore.KEY]?.id,
         city: track.city,
         country: track.country,
         path: track.path,
         created: track.created,
       })),
-    );
+      cursor,
+    });
   });
 
   return router;

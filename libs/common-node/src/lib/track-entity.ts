@@ -124,11 +124,20 @@ export async function retrieveTrackById(datastore: Datastore, id: number | strin
 }
 
 // Returns the latest submitted track from the Data Store.
-export async function retrieveRecentTracks(datastore: Datastore, maxTracks: number): Promise<TrackEntity[]> {
+export async function retrieveRecentTracks(
+  datastore: Datastore,
+  maxTracks: number,
+  cursor: string | null,
+): Promise<{ cursor: string | null; tracks: TrackEntity[] }> {
   maxTracks = Math.min(maxTracks, 100);
   const query = datastore.createQuery(TRACK_TABLE).order('created', { descending: true }).limit(maxTracks);
-  const [items] = await datastore.runQuery(query);
-  return items.filter((entity: TrackEntity) => entity.hash != null);
+  if (cursor != null) {
+    query.start(cursor);
+  }
+  const res = await datastore.runQuery(query);
+  const tracks = res[0].filter((entity: TrackEntity) => entity.hash != null);
+  const endCursor = res[1].moreResults != datastore.NO_MORE_RESULTS ? res[1].endCursor : null;
+  return { cursor: endCursor, tracks };
 }
 
 // Converts a gzipped entity to a Meta Track Group.
