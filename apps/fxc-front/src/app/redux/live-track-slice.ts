@@ -37,7 +37,7 @@ export type TrackState = {
   // Whether the map should be centered on the current location.
   // Only used when the live modal is opened.
   centerOnLocation: boolean;
-  flightMode: boolean;
+  historyMin: number;
 };
 
 const initialState: TrackState = {
@@ -47,7 +47,7 @@ const initialState: TrackState = {
   refreshTimer: undefined,
   displayLabels: true,
   centerOnLocation: false,
-  flightMode: false,
+  historyMin: 12 * 60,
 };
 
 const trackSlice = createSlice({
@@ -87,8 +87,8 @@ const trackSlice = createSlice({
     setCurrentLiveId: (state, action: PayloadAction<string | undefined>) => {
       state.currentLiveId = action.payload;
     },
-    setFlightMode: (state, action: PayloadAction<boolean>) => {
-      state.flightMode = action.payload;
+    setHistoryMin: (state, action: PayloadAction<number>) => {
+      state.historyMin = action.payload;
     },
   },
 });
@@ -109,7 +109,7 @@ export const updateTrackers = createAsyncThunk('liveTrack/fetch', async (_: unde
       const tracks = state.tracks.entities;
       trackWorker.postMessage({
         buffer: await response.arrayBuffer(),
-        flightMode: state.flightMode,
+        historyMin: state.historyMin,
         tracks,
       });
       api.dispatch(trackSlice.actions.setFetchMillis(fetchTimestamp));
@@ -133,7 +133,7 @@ export function handleVisibility(): void {
 document.addEventListener('visibilitychange', handleVisibility);
 
 export const reducer = trackSlice.reducer;
-export const { setReturnUrl, setCurrentLiveId, setDisplayLabels, setCenterOnLocation, setFetchMillis, setFlightMode } =
+export const { setReturnUrl, setCurrentLiveId, setDisplayLabels, setCenterOnLocation, setFetchMillis, setHistoryMin } =
   trackSlice.actions;
 
 export type LivePilot = {

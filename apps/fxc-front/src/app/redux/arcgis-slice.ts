@@ -15,7 +15,7 @@ type ArcgisState = {
 };
 
 const initialState: ArcgisState = {
-  altMultiplier: 1,
+  altMultiplier: 1.3,
 };
 
 const arcgisSlice = createSlice({
