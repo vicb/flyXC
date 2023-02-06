@@ -173,11 +173,11 @@ export class MapElement extends connect(store)(LitElement) {
 
       if (!store.getState().browser.isFromFfvl) {
         const ad = document.createElement('a');
-        ad.setAttribute('href', 'https://www.flyozone.com/');
+        ad.setAttribute('href', 'https://www.niviuk.com/');
         ad.setAttribute('target', '_blank');
-        ad.innerHTML = `<img width="${Math.round(210 * this.adRatio)}" height="${Math.round(
-          35 * this.adRatio,
-        )}" src="/static/img/ozone.svg">`;
+        ad.innerHTML = `<img width="${Math.round(175 * this.adRatio)}" height="${Math.round(
+          32 * this.adRatio,
+        )}" src="/static/img/niviuk.svg">`;
         this.map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(ad);
       }
 

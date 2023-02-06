@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="11 16 186 32">
+  <defs>
+    <filter id="a">
+      <feMorphology in="SourceAlpha" operator="dilate" radius=".5" result="thicken"/>
+      <feGaussianBlur in="thicken" result="blurred" stdDeviation="2"/>
+      <feFlood flood-color="#fff" result="glow"/>
+      <feComposite in="glow" in2="blurred" operator="in" result="glowCol"/>
+      <feMerge>
+        <feMergeNode in="glowCol"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <path d="M68.2 46h8.4l4.6-27.6h-8.4zm38.6-27.6L96.4 38.5l-4.2-20.1h-8.5l6 27.6h10.9l15.2-27.6zm6.9 27.6h8.4l4.6-27.6h-8.4zm44.9-27.6h-8.4l-.8 4.8-1.9 11.5c-.1.9-.4 1.7-.7 2.4-.3.7-.7 1.3-1.2 1.8s-1.1.8-1.7 1.1c-.7.2-1.5.4-2.4.4-1 0-1.8-.1-2.4-.4-.6-.2-1.1-.6-1.4-1.1-.3-.5-.6-1.1-.6-1.8-.1-.7 0-1.5.1-2.4l1.9-11.5.8-4.8h-8.4l-.8 4.8-1.9 11.5c-.3 2-.3 3.7.1 5.2s1.1 2.8 2.1 3.8 2.4 1.8 4.1 2.3c1.7.5 3.7.8 6 .8s4.3-.2 6-.7a12 12 0 0 0 4.4-2.1c1.2-1 2.2-2.2 2.9-3.7.7-1.5 1.3-3.4 1.6-5.5l1.9-11.5.7-4.9zm33.5 0h-10.5L170 29.2l1.8-10.8h-8.4L158.8 46h8.4l1.7-10.6 8 10.6h10.2L177 32.3zm-142.8 0H48c-14.7.7-28.5 12.8-31.1 27.6h8.4c.1-.7.3-1.3.5-1.9 2.7-9.1 11.3-16.3 20.7-17.2.6-.1 1.2-.1 1.9-.1h8.9L54 46h8.4L67 18.4H49.3z" filter="url(#a)"/>
+</svg>
