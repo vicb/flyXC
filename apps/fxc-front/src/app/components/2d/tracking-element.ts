@@ -1,10 +1,10 @@
-import { getFixMessage, isEmergencyFix, isEmergencyTrack, protos } from '@flyxc/common';
 import { LitElement, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
+import { FixType } from '../../logic/live-track';
 import { popupContent } from '../../logic/live-track-popup';
 import { formatDurationMin, formatUnit, Units } from '../../logic/units';
-import { liveTrackSelectors, setCurrentLiveId } from '../../redux/live-track-slice';
+import { setCurrentLiveId } from '../../redux/live-track-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { getUniqueContrastColor } from '../../styles/track';
@@ -157,14 +157,14 @@ export class TrackingElement extends connect(store)(LitElement) {
       }
       const type = feature.getGeometry()?.getType();
       if (type === 'LineString') {
-        const id: string = feature.getProperty('id');
+        const pilotId: string = feature.getProperty('id');
         this.info?.close();
-        store.dispatch(setCurrentLiveId(id));
+        store.dispatch(setCurrentLiveId(pilotId));
         this.setMapStyle(this.map);
       } else if (type === 'Point' && this.units) {
-        const id: string = feature.getProperty('id');
+        const pilotId: string = feature.getProperty('pilotId');
         const index = Number(feature.getProperty('index') ?? 0);
-        const popup = popupContent(id, index, this.units);
+        const popup = popupContent(pilotId, index, this.units);
 
         if (!popup) {
           return;
@@ -174,7 +174,7 @@ export class TrackingElement extends connect(store)(LitElement) {
           this.info.setContent(`<strong>${popup.title}</strong><br>${popup.content}`);
           this.info.setPosition(event.latLng);
           this.info.open(map);
-          store.dispatch(setCurrentLiveId(id));
+          store.dispatch(setCurrentLiveId(pilotId));
           this.setMapStyle(this.map);
         }
       }
@@ -197,28 +197,25 @@ export class TrackingElement extends connect(store)(LitElement) {
   // Using data-url with icon is much faster than using symbols.
   private getPointStyle(feature: google.maps.Data.Feature): google.maps.Data.StyleOptions {
     const nowSec = Date.now() / 1000;
-    const id: string = feature.getProperty('id');
-    const track = liveTrackSelectors.selectById(store.getState(), id) as protos.LiveTrack;
-    const index = feature.getProperty('index') ?? 0;
-    const message = getFixMessage(track, index);
-    const isEmergency = isEmergencyFix(track.flags[index]);
-    const heading = feature.getProperty('heading');
-    const isActive = id === this.currentId;
-    const alt = track.alt[index];
-    const gndAlt = track.extra[index]?.gndAlt;
-    const ageMin = Math.round((nowSec - track.timeSec[index]) / 60);
+    const pilotId: string = feature.getProperty('pilotId');
+    const alt = feature.getProperty('alt');
+    const gndAlt = feature.getProperty('gndAlt');
+    const ageMin = Math.round((nowSec - feature.getProperty('timeSec')) / 60);
+    const fixType: FixType = feature.getProperty('fixType');
+    const isActive = pilotId === this.currentId;
 
     const elevationStr = formatUnit(alt, this.units!.altitude);
     const title = gndAlt == null ? undefined : `${formatUnit(Math.max(0, alt - gndAlt), this.units!.altitude)} AGL`;
 
     let opacity = ageMin > RECENT_TIMEOUT_MIN ? 0.3 : 0.9;
-    const color = getUniqueContrastColor(id);
+    const color = getUniqueContrastColor(pilotId);
     let labelColor = 'black';
-    let svg: string | undefined;
+    let svg = positionSvg(color, opacity);
     let labelOrigin: google.maps.Point | undefined;
-    let anchor: google.maps.Point | undefined;
+    let anchor = ANCHOR_POSITION;
     let zIndex = 10;
     let fontWeight: string | undefined;
+    let label: google.maps.MarkerLabel | undefined;
 
     if (isActive) {
       opacity = 0.9;
@@ -227,49 +224,44 @@ export class TrackingElement extends connect(store)(LitElement) {
       fontWeight = '500';
     }
 
-    let label: google.maps.MarkerLabel | undefined;
-    // Display an arrow when we have a bearing (most recent point).
-    if (heading != null) {
-      if (feature.getProperty('isUfo') === true) {
-        anchor = ANCHOR_UFO;
-        labelOrigin = ORIGIN_UFO;
-        svg = ufoSvg(heading, color, opacity);
-      } else {
-        anchor = ANCHOR_ARROW;
-        labelOrigin = ORIGIN_ARROW;
-        svg = arrowSvg(heading, color, opacity);
-      }
+    switch (fixType) {
+      case FixType.pilot:
+        {
+          const heading = feature.getProperty('heading');
+          if (feature.getProperty('isUfo') === true) {
+            anchor = ANCHOR_UFO;
+            labelOrigin = ORIGIN_UFO;
+            svg = ufoSvg(heading, color, opacity);
+          } else {
+            anchor = ANCHOR_ARROW;
+            labelOrigin = ORIGIN_ARROW;
+            svg = arrowSvg(heading, color, opacity);
+          }
 
-      // Display the pilot name.
-      if (this.displayLabels && (isActive || ageMin < 12 * 60)) {
-        label = {
-          color: labelColor,
-          text: `${track.name}\n${elevationStr} · -${formatDurationMin(ageMin)}`,
-          className: 'gm-label-outline',
-          fontWeight,
-        };
-      }
-    }
+          if (this.displayLabels && (isActive || ageMin < 6 * 60)) {
+            label = {
+              color: labelColor,
+              text: `${feature.getProperty('name')}\n${elevationStr} · -${formatDurationMin(ageMin)}`,
+              className: 'gm-label-outline',
+              fontWeight,
+            };
+          }
+        }
+        break;
 
-    // Display speech bubble for messages and emergency.
-    if (message) {
-      anchor = ANCHOR_MSG;
-      labelOrigin = ORIGIN_MSG;
-      svg = msgSvg('yellow', opacity);
-      zIndex = 50;
-    }
+      case FixType.message:
+        anchor = ANCHOR_MSG;
+        labelOrigin = ORIGIN_MSG;
+        svg = msgSvg('yellow', opacity);
+        zIndex = 50;
+        break;
 
-    if (isEmergency) {
-      anchor = ANCHOR_MSG;
-      labelOrigin = ORIGIN_MSG;
-      svg = msgSvg('red', 1);
-      zIndex = 60;
-    }
-
-    // Simple dots for every other positions.
-    if (svg == null) {
-      svg = positionSvg(color, opacity);
-      anchor = ANCHOR_POSITION;
+      case FixType.emergency:
+        anchor = ANCHOR_MSG;
+        labelOrigin = ORIGIN_MSG;
+        svg = msgSvg('red', 1);
+        zIndex = 60;
+        break;
     }
 
     return {
@@ -282,16 +274,14 @@ export class TrackingElement extends connect(store)(LitElement) {
         labelOrigin,
       },
       title,
-    } as google.maps.Data.StyleOptions;
+    };
   }
 
   private getTrackStyle(feature: google.maps.Data.Feature): google.maps.Data.StyleOptions {
     const nowSec = Date.now() / 1000;
     const id: string = feature.getProperty('id');
-    const track = liveTrackSelectors.selectById(store.getState(), id) as protos.LiveTrack;
-    const isEmergency = isEmergencyTrack(track);
-    const endIdx = feature.getProperty('endIndex');
-    const ageMin = (nowSec - track.timeSec[endIdx]) / 60;
+    const isEmergency = feature.getProperty('isEmergency');
+    const ageMin = (nowSec - feature.getProperty('lastTimeSec')) / 60;
 
     const strokeColor = feature.getProperty('isUfo') === true ? '#aaa' : getUniqueContrastColor(id);
     let strokeWeight = 1;
@@ -330,6 +320,6 @@ export class TrackingElement extends connect(store)(LitElement) {
       strokeWeight,
       zIndex,
       icons: iconsFactory ? iconsFactory(strokeOpacity) : undefined,
-    } as google.maps.Data.StyleOptions;
+    };
   }
 }

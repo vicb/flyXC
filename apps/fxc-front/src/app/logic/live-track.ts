@@ -1,5 +1,8 @@
 import {
   differentialDecodeLiveTrack,
+  getFixMessage,
+  isEmergencyFix,
+  isEmergencyTrack,
   IsSimplifiableFix,
   isUfo,
   LIVE_MINIMAL_INTERVAL_SEC,
@@ -8,6 +11,13 @@ import {
   simplifyLiveTrack,
 } from '@flyxc/common';
 import { getRhumbLineBearing } from 'geolib';
+
+export enum FixType {
+  dot,
+  pilot,
+  message,
+  emergency,
+}
 
 // Creates GeoJSON features from a live track.
 //
@@ -24,30 +34,30 @@ export function trackToFeatures(track: protos.LiveTrack, gapMin: number): any[] 
 
   if (track.timeSec.length > 0) {
     // A segment start at [start] and ends at [end].
-    const segments: { start: number; end: number }[] = [];
-    let start = 0;
+    const segments: { firstIndex: number; lastIndex: number }[] = [];
+    let firstIndex = 0;
 
     // Compute segments.
     let currentTime = track.timeSec[0];
     for (let i = 1; i < track.timeSec.length; i++) {
       const nextTime = track.timeSec[i];
       if (nextTime - currentTime > 60 * gapMin) {
-        segments.push({ start, end: i - 1 });
-        start = i;
+        segments.push({ firstIndex, lastIndex: i - 1 });
+        firstIndex = i;
       }
       currentTime = nextTime;
     }
-    segments.push({ start, end: track.timeSec.length - 1 });
+    segments.push({ firstIndex, lastIndex: track.timeSec.length - 1 });
 
     const pointsByIndex = new Map<number, any>();
 
     // Create:
     // - a line for each segment.
     // - points for non simplifiable fixes.
-    segments.forEach(({ start, end }, index) => {
+    segments.forEach(({ firstIndex, lastIndex }, index) => {
       const line: [number, number, number][] = [];
-      for (let i = start; i <= end; i++) {
-        if (!IsSimplifiableFix(track, i, start, end)) {
+      for (let i = firstIndex; i <= lastIndex; i++) {
+        if (!IsSimplifiableFix(track, i, firstIndex, lastIndex)) {
           addPoint(pointsByIndex, track, i);
         }
         line.push([track.lon[i], track.lat[i], track.alt[i]]);
@@ -55,9 +65,11 @@ export function trackToFeatures(track: protos.LiveTrack, gapMin: number): any[] 
       if (line.length > 1) {
         const properties: { [k: string]: unknown } = {
           id: String(track.id ?? track.idStr),
-          startIndex: start,
-          endIndex: end,
-          isUfo: isUfo(track.flags[start]),
+          firstIndex,
+          lastIndex,
+          lastTimeSec: track.timeSec[lastIndex],
+          isUfo: isUfo(track.flags[firstIndex]),
+          isEmergency: isEmergencyTrack(track),
         };
         if (index == segments.length - 1) {
           properties.last = true;
@@ -75,10 +87,10 @@ export function trackToFeatures(track: protos.LiveTrack, gapMin: number): any[] 
 
     // Add 3 last points of the last segment (at least 2mn apart) - unless ufo
     if (segments.length > 0) {
-      const { start, end } = segments[segments.length - 1];
-      let previousSec = track.timeSec[end];
-      let extraPoints = isUfo(track.flags[start]) ? 1 : 3;
-      for (let i = end - 1; i >= start && extraPoints > 0; --i) {
+      const { firstIndex, lastIndex } = segments[segments.length - 1];
+      let previousSec = track.timeSec[lastIndex];
+      let extraPoints = isUfo(track.flags[firstIndex]) ? 1 : 3;
+      for (let i = lastIndex - 1; i >= firstIndex && extraPoints > 0; --i) {
         const currentSec = track.timeSec[i];
         if (previousSec - currentSec >= 2 * 60) {
           previousSec = currentSec;
@@ -94,10 +106,17 @@ export function trackToFeatures(track: protos.LiveTrack, gapMin: number): any[] 
   return features;
 }
 
-function addPoint(pointsByIndex: Map<number, any>, track: protos.LiveTrack, index: number, props: any = {}): void {
+function addPoint(
+  pointsByIndex: Map<number, any>,
+  track: protos.LiveTrack,
+  index: number,
+  props: { [key: string]: any } = {},
+): void {
   const len = track.timeSec.length;
   // Compute the heading for the last fix of last segment.
+  let fixType: FixType = FixType.dot;
   if (index == len - 1) {
+    fixType = FixType.pilot;
     if (len > 1) {
       const previous = { lat: track.lat[len - 2], lon: track.lon[len - 2] };
       const current = { lat: track.lat[len - 1], lon: track.lon[len - 1] };
@@ -105,8 +124,16 @@ function addPoint(pointsByIndex: Map<number, any>, track: protos.LiveTrack, inde
     } else {
       props.heading = 0;
     }
-    props.isLast = true;
   }
+  const message = getFixMessage(track, index);
+  if (message != null) {
+    fixType = FixType.message;
+    props.msg = message;
+  }
+  if (isEmergencyFix(track.flags[index])) {
+    fixType = FixType.emergency;
+  }
+  const pilotId = String(track.id ?? track.idStr);
   pointsByIndex.set(index, {
     type: 'Feature',
     geometry: {
@@ -115,9 +142,15 @@ function addPoint(pointsByIndex: Map<number, any>, track: protos.LiveTrack, inde
     },
     properties: {
       ...props,
-      id: String(track.id ?? track.idStr),
+      id: `${pilotId}-${index}`,
+      pilotId,
       index,
+      fixType,
       isUfo: isUfo(track.flags[index]),
+      alt: track.alt[index],
+      gndAlt: track.extra[index]?.gndAlt,
+      timeSec: track.timeSec[index],
+      name: track.name,
     },
   });
 }

@@ -1,5 +1,5 @@
 import { differentialEncodeLiveTrack, LiveTrackFlag, protos, trackerIdByName } from '@flyxc/common';
-import { trackToFeatures, updateLiveTracks } from './live-track';
+import { FixType, trackToFeatures, updateLiveTracks } from './live-track';
 
 describe('Create GeoJSON features', () => {
   it('should support an empty track', () => {
@@ -18,22 +18,33 @@ describe('Create GeoJSON features', () => {
         extra: {},
       };
 
-      expect(trackToFeatures(track, 10)).toEqual([
-        {
-          geometry: {
-            coordinates: [11, 21, 31],
-            type: 'Point',
+      expect(trackToFeatures(track, 10)).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "geometry": Object {
+              "coordinates": Array [
+                11,
+                21,
+                31,
+              ],
+              "type": "Point",
+            },
+            "properties": Object {
+              "alt": 31,
+              "fixType": 1,
+              "gndAlt": undefined,
+              "heading": 0,
+              "id": "123-0",
+              "index": 0,
+              "isUfo": false,
+              "name": undefined,
+              "pilotId": "123",
+              "timeSec": 10,
+            },
+            "type": "Feature",
           },
-          properties: {
-            heading: 0,
-            id: '123',
-            index: 0,
-            isLast: true,
-            isUfo: false,
-          },
-          type: 'Feature',
-        },
-      ]);
+        ]
+      `);
     });
 
     it('should add points for start, end', () => {
@@ -55,56 +66,107 @@ describe('Create GeoJSON features', () => {
         extra: {},
       };
 
-      expect(trackToFeatures(track, 10)).toEqual([
-        {
-          geometry: {
-            coordinates: [
-              [11, 21, 31],
-              [110, 210, 310],
-              [120, 220, 320],
-              [130, 230, 330],
-              [140, 240, 340],
-              [150, 250, 350],
-              [160, 260, 360],
-            ],
-            type: 'LineString',
+      expect(trackToFeatures(track, 10)).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "geometry": Object {
+              "coordinates": Array [
+                Array [
+                  11,
+                  21,
+                  31,
+                ],
+                Array [
+                  110,
+                  210,
+                  310,
+                ],
+                Array [
+                  120,
+                  220,
+                  320,
+                ],
+                Array [
+                  130,
+                  230,
+                  330,
+                ],
+                Array [
+                  140,
+                  240,
+                  340,
+                ],
+                Array [
+                  150,
+                  250,
+                  350,
+                ],
+                Array [
+                  160,
+                  260,
+                  360,
+                ],
+              ],
+              "type": "LineString",
+            },
+            "properties": Object {
+              "firstIndex": 0,
+              "id": "123",
+              "isEmergency": false,
+              "isUfo": false,
+              "last": true,
+              "lastIndex": 6,
+              "lastTimeSec": 60,
+            },
+            "type": "Feature",
           },
-          properties: {
-            endIndex: 6,
-            id: '123',
-            startIndex: 0,
-            last: true,
-            isUfo: false,
+          Object {
+            "geometry": Object {
+              "coordinates": Array [
+                11,
+                21,
+                31,
+              ],
+              "type": "Point",
+            },
+            "properties": Object {
+              "alt": 31,
+              "fixType": 0,
+              "gndAlt": undefined,
+              "id": "123-0",
+              "index": 0,
+              "isUfo": false,
+              "name": undefined,
+              "pilotId": "123",
+              "timeSec": 1,
+            },
+            "type": "Feature",
           },
-          type: 'Feature',
-        },
-        {
-          geometry: {
-            coordinates: [11, 21, 31],
-            type: 'Point',
+          Object {
+            "geometry": Object {
+              "coordinates": Array [
+                160,
+                260,
+                360,
+              ],
+              "type": "Point",
+            },
+            "properties": Object {
+              "alt": 360,
+              "fixType": 1,
+              "gndAlt": undefined,
+              "heading": 166,
+              "id": "123-6",
+              "index": 6,
+              "isUfo": false,
+              "name": undefined,
+              "pilotId": "123",
+              "timeSec": 60,
+            },
+            "type": "Feature",
           },
-          properties: {
-            id: '123',
-            index: 0,
-            isUfo: false,
-          },
-          type: 'Feature',
-        },
-        {
-          geometry: {
-            coordinates: [160, 260, 360],
-            type: 'Point',
-          },
-          properties: {
-            heading: 166,
-            id: '123',
-            index: 6,
-            isLast: true,
-            isUfo: false,
-          },
-          type: 'Feature',
-        },
-      ]);
+        ]
+      `);
     });
 
     it('should add points for the last few points', () => {
@@ -134,9 +196,15 @@ describe('Create GeoJSON features', () => {
           type: 'Point',
         },
         properties: {
-          id: 'str-123',
+          alt: 350,
+          fixType: FixType.dot,
+          gndAlt: undefined,
+          id: 'str-123-5',
           index: 5,
           isUfo: false,
+          name: undefined,
+          pilotId: 'str-123',
+          timeSec: 5000,
         },
         type: 'Feature',
       });
@@ -147,9 +215,15 @@ describe('Create GeoJSON features', () => {
           type: 'Point',
         },
         properties: {
-          id: 'str-123',
+          alt: 340,
+          fixType: FixType.dot,
+          gndAlt: undefined,
+          id: 'str-123-4',
           index: 4,
           isUfo: false,
+          name: undefined,
+          pilotId: 'str-123',
+          timeSec: 4000,
         },
         type: 'Feature',
       });
@@ -160,9 +234,15 @@ describe('Create GeoJSON features', () => {
           type: 'Point',
         },
         properties: {
-          id: 'str-123',
+          alt: 330,
+          fixType: FixType.dot,
+          gndAlt: undefined,
+          id: 'str-123-3',
           index: 3,
           isUfo: false,
+          name: undefined,
+          pilotId: 'str-123',
+          timeSec: 3000,
         },
         type: 'Feature',
       });
@@ -196,9 +276,16 @@ describe('Create GeoJSON features', () => {
           type: 'Point',
         },
         properties: {
-          id: '123',
+          alt: 310,
+          fixType: FixType.message,
+          gndAlt: undefined,
+          id: '123-1',
           index: 1,
           isUfo: false,
+          msg: 'test',
+          name: undefined,
+          pilotId: '123',
+          timeSec: 10,
         },
         type: 'Feature',
       });
@@ -229,9 +316,15 @@ describe('Create GeoJSON features', () => {
           type: 'Point',
         },
         properties: {
-          id: '123',
+          alt: 310,
+          fixType: FixType.emergency,
+          gndAlt: undefined,
+          id: '123-1',
           index: 1,
           isUfo: false,
+          name: undefined,
+          pilotId: '123',
+          timeSec: 10,
         },
         type: 'Feature',
       });
@@ -258,94 +351,167 @@ describe('Create GeoJSON features', () => {
         extra: {},
       };
 
-      expect(trackToFeatures(track, 1)).toEqual([
-        {
-          geometry: {
-            coordinates: [
-              [11, 21, 31],
-              [110, 210, 310],
-              [120, 220, 320],
-            ],
-            type: 'LineString',
+      expect(trackToFeatures(track, 1)).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "geometry": Object {
+              "coordinates": Array [
+                Array [
+                  11,
+                  21,
+                  31,
+                ],
+                Array [
+                  110,
+                  210,
+                  310,
+                ],
+                Array [
+                  120,
+                  220,
+                  320,
+                ],
+              ],
+              "type": "LineString",
+            },
+            "properties": Object {
+              "firstIndex": 0,
+              "id": "123",
+              "isEmergency": false,
+              "isUfo": false,
+              "lastIndex": 2,
+              "lastTimeSec": 20,
+            },
+            "type": "Feature",
           },
-          properties: {
-            endIndex: 2,
-            id: '123',
-            isUfo: false,
-            startIndex: 0,
+          Object {
+            "geometry": Object {
+              "coordinates": Array [
+                Array [
+                  130,
+                  230,
+                  330,
+                ],
+                Array [
+                  140,
+                  240,
+                  340,
+                ],
+                Array [
+                  150,
+                  250,
+                  350,
+                ],
+                Array [
+                  160,
+                  260,
+                  360,
+                ],
+              ],
+              "type": "LineString",
+            },
+            "properties": Object {
+              "firstIndex": 3,
+              "id": "123",
+              "isEmergency": false,
+              "isUfo": false,
+              "last": true,
+              "lastIndex": 6,
+              "lastTimeSec": 160,
+            },
+            "type": "Feature",
           },
-          type: 'Feature',
-        },
-        {
-          geometry: {
-            coordinates: [
-              [130, 230, 330],
-              [140, 240, 340],
-              [150, 250, 350],
-              [160, 260, 360],
-            ],
-            type: 'LineString',
+          Object {
+            "geometry": Object {
+              "coordinates": Array [
+                11,
+                21,
+                31,
+              ],
+              "type": "Point",
+            },
+            "properties": Object {
+              "alt": 31,
+              "fixType": 0,
+              "gndAlt": undefined,
+              "id": "123-0",
+              "index": 0,
+              "isUfo": false,
+              "name": undefined,
+              "pilotId": "123",
+              "timeSec": 1,
+            },
+            "type": "Feature",
           },
-          properties: {
-            endIndex: 6,
-            id: '123',
-            startIndex: 3,
-            isUfo: false,
-            last: true,
+          Object {
+            "geometry": Object {
+              "coordinates": Array [
+                120,
+                220,
+                320,
+              ],
+              "type": "Point",
+            },
+            "properties": Object {
+              "alt": 320,
+              "fixType": 0,
+              "gndAlt": undefined,
+              "id": "123-2",
+              "index": 2,
+              "isUfo": false,
+              "name": undefined,
+              "pilotId": "123",
+              "timeSec": 20,
+            },
+            "type": "Feature",
           },
-          type: 'Feature',
-        },
-        {
-          geometry: {
-            coordinates: [11, 21, 31],
-            type: 'Point',
+          Object {
+            "geometry": Object {
+              "coordinates": Array [
+                130,
+                230,
+                330,
+              ],
+              "type": "Point",
+            },
+            "properties": Object {
+              "alt": 330,
+              "fixType": 0,
+              "gndAlt": undefined,
+              "id": "123-3",
+              "index": 3,
+              "isUfo": false,
+              "name": undefined,
+              "pilotId": "123",
+              "timeSec": 100,
+            },
+            "type": "Feature",
           },
-          properties: {
-            id: '123',
-            isUfo: false,
-            index: 0,
+          Object {
+            "geometry": Object {
+              "coordinates": Array [
+                160,
+                260,
+                360,
+              ],
+              "type": "Point",
+            },
+            "properties": Object {
+              "alt": 360,
+              "fixType": 1,
+              "gndAlt": undefined,
+              "heading": 166,
+              "id": "123-6",
+              "index": 6,
+              "isUfo": false,
+              "name": undefined,
+              "pilotId": "123",
+              "timeSec": 160,
+            },
+            "type": "Feature",
           },
-          type: 'Feature',
-        },
-        {
-          geometry: {
-            coordinates: [120, 220, 320],
-            type: 'Point',
-          },
-          properties: {
-            id: '123',
-            isUfo: false,
-            index: 2,
-          },
-          type: 'Feature',
-        },
-        {
-          geometry: {
-            coordinates: [130, 230, 330],
-            type: 'Point',
-          },
-          properties: {
-            id: '123',
-            isUfo: false,
-            index: 3,
-          },
-          type: 'Feature',
-        },
-        {
-          geometry: {
-            coordinates: [160, 260, 360],
-            type: 'Point',
-          },
-          properties: {
-            heading: 166,
-            id: '123',
-            index: 6,
-            isUfo: false,
-            isLast: true,
-          },
-          type: 'Feature',
-        },
-      ]);
+        ]
+      `);
     });
   });
 });

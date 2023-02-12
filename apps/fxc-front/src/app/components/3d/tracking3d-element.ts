@@ -1,4 +1,4 @@
-import { getFixMessage, isEmergencyFix, isEmergencyTrack, protos } from '@flyxc/common';
+import { protos } from '@flyxc/common';
 import { LitElement, PropertyValues } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
@@ -11,6 +11,7 @@ import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import ElevationSampler from '@arcgis/core/layers/support/ElevationSampler';
 import SceneView from '@arcgis/core/views/SceneView';
 
+import { FixType } from '../../logic/live-track';
 import { popupContent } from '../../logic/live-track-popup';
 import * as msg from '../../logic/messages';
 import { formatDurationMin, Units } from '../../logic/units';
@@ -188,10 +189,8 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         continue;
       }
       const id = feature.properties.id;
-      const endIdx = feature.properties.endIndex;
-      const track = liveTrackSelectors.selectById(store.getState(), id) as protos.LiveTrack;
-      const isEmergency = isEmergencyTrack(track);
-      const ageMin = (nowSec - track.timeSec[endIdx]) / 60;
+      const isEmergency = feature.properties.isEmergency;
+      const ageMin = (nowSec - feature.properties.lastTimeSec) / 60;
       // Recent tracks should be more visible unless there are non-live tracks.
       const hasRecentStyle = ageMin < RECENT_TIMEOUT_MIN && this.numTracks == 0;
       const hasSelectedStyle = id === this.currentId;
@@ -240,47 +239,47 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         continue;
       }
 
-      const id = feature.properties.id;
-      const track = liveTrackSelectors.selectById(store.getState(), id) as protos.LiveTrack;
-      const index = feature.properties.index;
-      const message = getFixMessage(track, index);
-      const isEmergency = isEmergencyFix(track.flags[index]);
+      const pilotId = feature.properties.pilotId;
+      const fixType: FixType = feature.properties.fixType;
       // heading is set for the last point only (i.e. the pilot position).
-      const heading = feature.properties.heading;
-      const ageMin = Math.round((nowSec - track.timeSec[index]) / 60);
+      const ageMin = Math.round((nowSec - feature.properties.timeSec) / 60);
       const isRecentTrack = ageMin < RECENT_TIMEOUT_MIN;
-      const isActive = id === this.currentId;
+      const isActive = pilotId === this.currentId;
 
       let symbol: any;
       let label: string | undefined;
 
-      if (isEmergency) {
-        this.msgSymbol.symbolLayers[0].material.color = [255, 0, 0, 1.0];
-        symbol = this.msgSymbol;
-      } else if (message) {
-        this.msgSymbol.symbolLayers[0].material.color = [255, 255, 0, isActive || isRecentTrack ? 1 : 0.7];
-        symbol = this.msgSymbol;
-      } else if (heading != null) {
-        // Pilot marker.
-        if (feature.properties.isUfo == true) {
-          this.ufoSymbol.symbolLayers[0].heading = heading + 180;
-          symbol = this.ufoSymbol;
-        } else {
-          const color = new Color(getUniqueContrastColor(id));
-          color.a = isActive || isRecentTrack ? 1 : 0.7;
-          const rgba = color.toRgba();
-          this.santaSymbol.symbolLayers[0].material.color = rgba;
-          this.santaSymbol.symbolLayers[0].heading = heading + 180;
-          symbol = this.santaSymbol;
-        }
-        // Text.
-        if (this.displayLabels && (isActive || ageMin < 12 * 60)) {
-          label = track.name + ' -' + formatDurationMin(ageMin);
-        }
-      }
-
-      if (!symbol) {
-        continue;
+      switch (fixType) {
+        case FixType.emergency:
+          this.msgSymbol.symbolLayers[0].material.color = [255, 0, 0, 1.0];
+          symbol = this.msgSymbol;
+          break;
+        case FixType.message:
+          this.msgSymbol.symbolLayers[0].material.color = [255, 255, 0, isActive || isRecentTrack ? 1 : 0.7];
+          symbol = this.msgSymbol;
+          break;
+        case FixType.pilot:
+          {
+            const heading = feature.properties.heading;
+            if (feature.properties.isUfo == true) {
+              this.ufoSymbol.symbolLayers[0].heading = heading + 180;
+              symbol = this.ufoSymbol;
+            } else {
+              const color = new Color(getUniqueContrastColor(pilotId));
+              color.a = isActive || isRecentTrack ? 1 : 0.7;
+              const rgba = color.toRgba();
+              this.santaSymbol.symbolLayers[0].material.color = rgba;
+              this.santaSymbol.symbolLayers[0].heading = heading + 180;
+              symbol = this.santaSymbol;
+            }
+            // Text.
+            if (this.displayLabels && (isActive || ageMin < 12 * 60)) {
+              label = feature.properties.name + ' -' + formatDurationMin(ageMin);
+            }
+          }
+          break;
+        default:
+          continue;
       }
 
       const graphic = new Graphic();
@@ -300,7 +299,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       }
       point.z = Math.max(point.z, feature.geometry.coordinates[2] * this.multiplier);
       graphic.set('geometry', point);
-      graphic.set('attributes', { liveTrackId: id, liveTrackIndex: index });
+      graphic.set('attributes', { liveTrackId: pilotId, liveTrackIndex: feature.properties.index });
       markers.push(graphic);
 
       if (label) {
@@ -311,7 +310,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         this.txtSymbol.symbolLayers[0].text = label;
         this.txtSymbol.symbolLayers[0].material.color = isActive ? '#BF1515' : 'black';
         graphic.set('symbol', this.txtSymbol);
-        graphic.set('attributes', { liveTrackId: id, liveTrackIndex: index });
+        graphic.set('attributes', { liveTrackId: pilotId, liveTrackIndex: feature.properties.index });
         markers.push(graphic);
       }
     }
