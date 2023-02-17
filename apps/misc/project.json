@@ -23,6 +23,10 @@
           {
             "entryName": "stat_tracks",
             "entryPath": "apps/misc/src/app/stat_tracks.ts"
+          },
+          {
+            "entryName": "delete_old_storage",
+            "entryPath": "apps/misc/src/app/delete_old_storage.ts"
           }
         ]
       },
