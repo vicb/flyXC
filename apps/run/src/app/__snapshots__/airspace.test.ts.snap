@@ -1,51 +1,51 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Airspaces fetchAirspaces should find the airspaces 1`] = `
-Object {
-  "bottom": Array [
+{
+  "bottom": [
     1067,
     0,
     1829,
     0,
   ],
-  "category": Array [
+  "category": [
     "C",
     "F",
     "F",
     "G",
   ],
-  "endSec": Array [
+  "endSec": [
     1666952265,
     1666956673,
     1666956657,
     1666979201,
   ],
-  "flags": Array [
+  "flags": [
     1,
     18,
     2,
     34,
   ],
   "hasErrors": false,
-  "into": Array [
+  "into": [
     false,
     true,
     false,
     false,
   ],
-  "name": Array [
+  "name": [
     "TMA-NATAL",
     "SBR223- WHISKY_DOIS",
     "SBR224- WISKY100",
     "G - SBR266-QUIXADA",
   ],
-  "startSec": Array [
+  "startSec": [
     1666949217,
     1666952377,
     1666952377,
     1666978953,
   ],
-  "top": Array [
+  "top": [
     4420,
     8839,
     4572,

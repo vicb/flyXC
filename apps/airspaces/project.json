@@ -38,11 +38,28 @@
         ],
         "tsConfig": "apps/airspaces/tsconfig.app.json",
         "assets": [
-          { "glob": "*", "input": "apps/airspaces/src/assets/fixedasp", "output": "assets/fixedasp" },
-          { "glob": "download.sh", "input": "apps/airspaces/src/assets/", "output": "" },
-          { "glob": "tiles-info.json", "input": "apps/airspaces/src/assets/", "output": "assets/ref" },
-          { "glob": "cors.json", "input": "apps/airspaces/src/assets/", "output": "assets" }
-        ]
+          {
+            "glob": "*",
+            "input": "apps/airspaces/src/assets/fixedasp",
+            "output": "assets/fixedasp"
+          },
+          {
+            "glob": "download.sh",
+            "input": "apps/airspaces/src/assets/",
+            "output": ""
+          },
+          {
+            "glob": "tiles-info.json",
+            "input": "apps/airspaces/src/assets/",
+            "output": "assets/ref"
+          },
+          {
+            "glob": "cors.json",
+            "input": "apps/airspaces/src/assets/",
+            "output": "assets"
+          }
+        ],
+        "babelUpwardRootMode": true
       },
       "configurations": {
         "production": {

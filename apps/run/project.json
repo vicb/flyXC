@@ -13,7 +13,8 @@
         "outputPath": "dist/apps/run",
         "main": "apps/run/src/main.ts",
         "tsConfig": "apps/run/tsconfig.app.json",
-        "generatePackageJson": true
+        "generatePackageJson": true,
+        "babelUpwardRootMode": true
       },
       "configurations": {
         "production": {

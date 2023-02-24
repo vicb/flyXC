@@ -18,7 +18,6 @@ import ElevationLayer from '@arcgis/core/layers/ElevationLayer';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
 import Map from '@arcgis/core/Map';
-import * as externalRenderers from '@arcgis/core/views/3d/externalRenderers';
 import SceneView from '@arcgis/core/views/SceneView';
 import NavigationToggle from '@arcgis/core/widgets/NavigationToggle';
 import { alertController } from '@ionic/core/components';
@@ -33,9 +32,6 @@ import { RootState, store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
 import { Airspace3dElement } from './airspace3d-element';
 import { Airways3dElement } from './airways3d-element';
-
-// https://community.esri.com/t5/arcgis-api-for-javascript-questions/3d-scene-view-slow-with-es-modules-from-4-21/m-p/1218085
-externalRenderers.forceWebGLContext(1);
 
 @customElement('map3d-element')
 export class Map3dElement extends connect(store)(LitElement) {

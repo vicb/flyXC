@@ -13,7 +13,8 @@
         "outputPath": "dist/apps/fetcher",
         "main": "apps/fetcher/src/fetcher.ts",
         "tsConfig": "apps/fetcher/tsconfig.app.json",
-        "generatePackageJson": true
+        "generatePackageJson": true,
+        "babelUpwardRootMode": true
       },
       "configurations": {
         "production": {

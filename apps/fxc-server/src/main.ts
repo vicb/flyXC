@@ -2,7 +2,7 @@ const grant = require('grant').express(); // eslint-disable-line @typescript-esl
 import { SecretKeys } from '@flyxc/common';
 import { getDatastore, getRedisClient } from '@flyxc/common-node';
 import compression from 'compression';
-import redisStore from 'connect-redis';
+import RedisStore from 'connect-redis';
 import express from 'express';
 import fileUpload from 'express-fileupload';
 import session from 'express-session';
@@ -46,7 +46,7 @@ const app = express()
       },
       name: 'session',
       resave: false,
-      store: new (redisStore(session))({ client: redis }),
+      store: new RedisStore({ client: redis }),
       unset: 'destroy',
       saveUninitialized: false,
     }),

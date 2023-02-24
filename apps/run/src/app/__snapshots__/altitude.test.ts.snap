@@ -1,8 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Altitude should retrieve a track gnd altitude 1`] = `
-Object {
-  "altitudes": Array [
+{
+  "altitudes": [
     326,
     326,
     326,

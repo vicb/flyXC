@@ -19,17 +19,17 @@ describe('Create GeoJSON features', () => {
       };
 
       expect(trackToFeatures(track, 10)).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            "geometry": Object {
-              "coordinates": Array [
+        [
+          {
+            "geometry": {
+              "coordinates": [
                 11,
                 21,
                 31,
               ],
               "type": "Point",
             },
-            "properties": Object {
+            "properties": {
               "alt": 31,
               "fixType": 1,
               "gndAlt": undefined,
@@ -67,41 +67,41 @@ describe('Create GeoJSON features', () => {
       };
 
       expect(trackToFeatures(track, 10)).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            "geometry": Object {
-              "coordinates": Array [
-                Array [
+        [
+          {
+            "geometry": {
+              "coordinates": [
+                [
                   11,
                   21,
                   31,
                 ],
-                Array [
+                [
                   110,
                   210,
                   310,
                 ],
-                Array [
+                [
                   120,
                   220,
                   320,
                 ],
-                Array [
+                [
                   130,
                   230,
                   330,
                 ],
-                Array [
+                [
                   140,
                   240,
                   340,
                 ],
-                Array [
+                [
                   150,
                   250,
                   350,
                 ],
-                Array [
+                [
                   160,
                   260,
                   360,
@@ -109,7 +109,7 @@ describe('Create GeoJSON features', () => {
               ],
               "type": "LineString",
             },
-            "properties": Object {
+            "properties": {
               "firstIndex": 0,
               "id": "123",
               "isEmergency": false,
@@ -120,16 +120,16 @@ describe('Create GeoJSON features', () => {
             },
             "type": "Feature",
           },
-          Object {
-            "geometry": Object {
-              "coordinates": Array [
+          {
+            "geometry": {
+              "coordinates": [
                 11,
                 21,
                 31,
               ],
               "type": "Point",
             },
-            "properties": Object {
+            "properties": {
               "alt": 31,
               "fixType": 0,
               "gndAlt": undefined,
@@ -142,16 +142,16 @@ describe('Create GeoJSON features', () => {
             },
             "type": "Feature",
           },
-          Object {
-            "geometry": Object {
-              "coordinates": Array [
+          {
+            "geometry": {
+              "coordinates": [
                 160,
                 260,
                 360,
               ],
               "type": "Point",
             },
-            "properties": Object {
+            "properties": {
               "alt": 360,
               "fixType": 1,
               "gndAlt": undefined,
@@ -352,21 +352,21 @@ describe('Create GeoJSON features', () => {
       };
 
       expect(trackToFeatures(track, 1)).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            "geometry": Object {
-              "coordinates": Array [
-                Array [
+        [
+          {
+            "geometry": {
+              "coordinates": [
+                [
                   11,
                   21,
                   31,
                 ],
-                Array [
+                [
                   110,
                   210,
                   310,
                 ],
-                Array [
+                [
                   120,
                   220,
                   320,
@@ -374,7 +374,7 @@ describe('Create GeoJSON features', () => {
               ],
               "type": "LineString",
             },
-            "properties": Object {
+            "properties": {
               "firstIndex": 0,
               "id": "123",
               "isEmergency": false,
@@ -384,25 +384,25 @@ describe('Create GeoJSON features', () => {
             },
             "type": "Feature",
           },
-          Object {
-            "geometry": Object {
-              "coordinates": Array [
-                Array [
+          {
+            "geometry": {
+              "coordinates": [
+                [
                   130,
                   230,
                   330,
                 ],
-                Array [
+                [
                   140,
                   240,
                   340,
                 ],
-                Array [
+                [
                   150,
                   250,
                   350,
                 ],
-                Array [
+                [
                   160,
                   260,
                   360,
@@ -410,7 +410,7 @@ describe('Create GeoJSON features', () => {
               ],
               "type": "LineString",
             },
-            "properties": Object {
+            "properties": {
               "firstIndex": 3,
               "id": "123",
               "isEmergency": false,
@@ -421,16 +421,16 @@ describe('Create GeoJSON features', () => {
             },
             "type": "Feature",
           },
-          Object {
-            "geometry": Object {
-              "coordinates": Array [
+          {
+            "geometry": {
+              "coordinates": [
                 11,
                 21,
                 31,
               ],
               "type": "Point",
             },
-            "properties": Object {
+            "properties": {
               "alt": 31,
               "fixType": 0,
               "gndAlt": undefined,
@@ -443,16 +443,16 @@ describe('Create GeoJSON features', () => {
             },
             "type": "Feature",
           },
-          Object {
-            "geometry": Object {
-              "coordinates": Array [
+          {
+            "geometry": {
+              "coordinates": [
                 120,
                 220,
                 320,
               ],
               "type": "Point",
             },
-            "properties": Object {
+            "properties": {
               "alt": 320,
               "fixType": 0,
               "gndAlt": undefined,
@@ -465,16 +465,16 @@ describe('Create GeoJSON features', () => {
             },
             "type": "Feature",
           },
-          Object {
-            "geometry": Object {
-              "coordinates": Array [
+          {
+            "geometry": {
+              "coordinates": [
                 130,
                 230,
                 330,
               ],
               "type": "Point",
             },
-            "properties": Object {
+            "properties": {
               "alt": 330,
               "fixType": 0,
               "gndAlt": undefined,
@@ -487,16 +487,16 @@ describe('Create GeoJSON features', () => {
             },
             "type": "Feature",
           },
-          Object {
-            "geometry": Object {
-              "coordinates": Array [
+          {
+            "geometry": {
+              "coordinates": [
                 160,
                 260,
                 360,
               ],
               "type": "Point",
             },
-            "properties": Object {
+            "properties": {
               "alt": 360,
               "fixType": 1,
               "gndAlt": undefined,

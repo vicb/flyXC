@@ -13,7 +13,8 @@
         "outputPath": "dist/apps/proxy",
         "main": "apps/proxy/src/main.ts",
         "tsConfig": "apps/proxy/tsconfig.app.json",
-        "generatePackageJson": true
+        "generatePackageJson": true,
+        "babelUpwardRootMode": true
       },
       "configurations": {
         "production": {

@@ -12,7 +12,8 @@
         "compiler": "tsc",
         "outputPath": "dist/apps/fxc-server",
         "main": "apps/fxc-server/src/main.ts",
-        "tsConfig": "apps/fxc-server/tsconfig.app.json"
+        "tsConfig": "apps/fxc-server/tsconfig.app.json",
+        "babelUpwardRootMode": true
       },
       "configurations": {
         "production": {

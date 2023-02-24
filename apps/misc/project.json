@@ -28,7 +28,8 @@
             "entryName": "delete_old_storage",
             "entryPath": "apps/misc/src/app/delete_old_storage.ts"
           }
-        ]
+        ],
+        "babelUpwardRootMode": true
       },
       "configurations": {
         "production": {
