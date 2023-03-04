@@ -387,10 +387,11 @@ export class Map3dElement extends connect(store)(LitElement) {
 
   private configurePopup(view: SceneView): void {
     view.popup.autoOpenEnabled = false;
+    view.popup.dockEnabled = false;
+    view.popup.viewModel.includeDefaultActions = false;
     view.popup.actions.removeAll();
     view.popup.dockOptions = { buttonEnabled: false };
     view.popup.collapseEnabled = false;
-    view.popup.viewModel.includeDefaultActions = false;
     view.watch('popup.visible', (visible) => {
       if (visible == false) {
         store.dispatch(setCurrentLiveId(undefined));

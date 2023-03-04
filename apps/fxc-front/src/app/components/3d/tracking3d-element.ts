@@ -336,11 +336,12 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         const track = liveTrackSelectors.selectById(store.getState(), attr.liveTrackId) as protos.LiveTrack;
 
         view.popup.open({
-          location: {
+          location: new Point({
             latitude: track.lat[index],
             longitude: track.lon[index],
             z: track.alt[index] * this.multiplier + MSG_MARKER_HEIGHT,
-          } as any,
+            hasZ: true,
+          }),
           title: popup.title,
           content: `<div style="display: block;">${popup.content}</div>`,
         });

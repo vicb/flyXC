@@ -2,12 +2,19 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const srcDir = path.resolve(__dirname, '../../node_modules/@arcgis/core/assets/esri');
-const dstDir = path.resolve(__dirname, '../../apps/fxc-front/public/static/esri');
 
 console.log('## Install arcgis');
-// Creates or empties the destination folder.
-console.log('  - Empty dest folder');
-fs.emptyDirSync(dstDir);
-console.log('  - Copy files');
-fs.copySync(srcDir, dstDir);
+
+copy('../../node_modules/@arcgis/core/assets/esri', '../../apps/fxc-front/public/static/esri');
+copy('../../node_modules/@arcgis/core/assets/components', '../../apps/fxc-front/public/static/components');
+
+function copy(srcDir, dstDir) {
+  srcDir = path.resolve(__dirname, srcDir);
+  dstDir = path.resolve(__dirname, dstDir);
+
+  // Creates or empties the destination folder.
+  console.log(`  - Empty dest folder ${dstDir}`);
+  fs.emptyDirSync(dstDir);
+  console.log(`  - Copy files from ${srcDir}`);
+  fs.copySync(srcDir, dstDir);
+}
