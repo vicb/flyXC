@@ -19,7 +19,6 @@ import { classMap } from 'lit/directives/class-map.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
-import esriConfig from '@arcgis/core/config';
 import { NavigationHookResult } from '@ionic/core/dist/types/components/route/route-interface';
 
 import { ionicInit } from './app/components/ui/ionic';
@@ -217,5 +216,3 @@ export class MapsElement extends connect(store)(LitElement) {
 requestCurrentPosition(false);
 
 ionicInit();
-// Set the esri assets parent folder.
-esriConfig.assetsPath = '/static';

@@ -6,7 +6,6 @@ const path = require('path');
 console.log('## Install arcgis');
 
 copy('../../node_modules/@arcgis/core/assets/esri', '../../apps/fxc-front/public/static/esri');
-copy('../../node_modules/@arcgis/core/assets/components', '../../apps/fxc-front/public/static/components');
 
 function copy(srcDir, dstDir) {
   srcDir = path.resolve(__dirname, srcDir);
