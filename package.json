@@ -4,8 +4,7 @@
   "license": "MIT",
   "scripts": {
     "deploy": "nx build fxc-server --prod --skip-nx-cache && rm dist/apps/fxc-server/package-lock.json && gcloud app deploy dist/apps/fxc-server/app.yaml",
-    "dev": "nx run-many --target=serve --projects=fxc-front,fxc-server --configuration=development",
-    "postinstall": "node tools/scripts/copy_arcgis.js"
+    "dev": "nx run-many --target=serve --projects=fxc-front,fxc-server --configuration=development"
   },
   "nx": {
     "includedScripts": [

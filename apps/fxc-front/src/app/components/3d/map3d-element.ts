@@ -4,14 +4,8 @@ import './controls3d-element';
 import './line3d-element';
 import './marker3d-element';
 
-import { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
-import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
-import { repeat } from 'lit/directives/repeat.js';
-import { UnsubscribeHandle } from 'micro-typed-events';
-import { connect } from 'pwa-helpers';
-
 import Basemap from '@arcgis/core/Basemap';
+import esriConfig from '@arcgis/core/config';
 import Point from '@arcgis/core/geometry/Point';
 import BaseElevationLayer from '@arcgis/core/layers/BaseElevationLayer';
 import ElevationLayer from '@arcgis/core/layers/ElevationLayer';
@@ -20,8 +14,13 @@ import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
 import Map from '@arcgis/core/Map';
 import SceneView from '@arcgis/core/views/SceneView';
 import NavigationToggle from '@arcgis/core/widgets/NavigationToggle';
+import { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
-
+import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { repeat } from 'lit/directives/repeat.js';
+import { UnsubscribeHandle } from 'micro-typed-events';
+import { connect } from 'pwa-helpers';
 import * as msg from '../../logic/messages';
 import { setApiLoading, setTimeSec, setView3d } from '../../redux/app-slice';
 import { setElevationSampler, setGndGraphicsLayer, setGraphicsLayer } from '../../redux/arcgis-slice';
@@ -131,6 +130,14 @@ export class Map3dElement extends connect(store)(LitElement) {
   connectedCallback(): void {
     super.connectedCallback();
     store.dispatch(setApiLoading(true));
+    // Add Arcgis CSS
+    const linkHref = `${esriConfig.assetsPath}/esri/themes/light/main.css`;
+    if (document.querySelector(`link[href*="${linkHref}"]`) == null) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = linkHref;
+      document.head.appendChild(link);
+    }
   }
 
   firstUpdated(): void {
