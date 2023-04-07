@@ -86,3 +86,8 @@ chart-element.has-tracks {
 .nobr {
   white-space: nowrap;
 }
+
+ul.credits {
+  list-style-type: none;
+  padding-left: 1em;
+}
