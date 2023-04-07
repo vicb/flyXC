@@ -1,11 +1,11 @@
 import { menuController, modalController } from '@ionic/core/components';
-import { html, LitElement, TemplateResult } from 'lit';
+import { LitElement, TemplateResult, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 import { requestCurrentPosition } from '../../logic/geolocation';
-import { addUrlParamValues, ParamNames, pushCurrentState } from '../../logic/history';
+import { ParamNames, addUrlParamValues, pushCurrentState } from '../../logic/history';
 import * as msg from '../../logic/messages';
 import { uploadTracks } from '../../logic/track';
 import { DistanceUnit, formatUnit } from '../../logic/units';
@@ -14,8 +14,8 @@ import * as airways from '../../redux/airways-slice';
 import { setApiLoading } from '../../redux/app-slice';
 import { setAltitudeMultiplier } from '../../redux/arcgis-slice';
 import {
-  getLivePilots,
   LivePilot,
+  getLivePilots,
   setDisplayLabels,
   setDisplayLabels as setDisplayLiveLabels,
   setFetchMillis,
@@ -86,7 +86,7 @@ export class MainMenu extends connect(store)(LitElement) {
               () =>
                 html`<ion-item button lines="full" @click=${this.handlePlanner} .detail=${false}>
                   <i class="las la-drafting-compass la-2x"></i>XC planning
-                  <ion-toggle slot="end" .checked=${this.plannerEnabled}></ion-toggle>
+                  <ion-toggle slot="end" .checked=${this.plannerEnabled} aria-label="XC Planning"></ion-toggle>
                 </ion-item>`,
             )}
             <airways-items></airways-items>
@@ -214,17 +214,21 @@ export class AirspaceItems extends connect(store)(LitElement) {
   render(): TemplateResult {
     return html`<ion-item lines=${this.show ? 'none' : 'full'} button @click=${this.handleShow} .detail=${false}>
         <i class="las la-fighter-jet la-2x"></i>Airspaces
-        <ion-toggle slot="end" .checked=${this.show}></ion-toggle>
+        <ion-toggle slot="end" .checked=${this.show} aria-label="Airspaces"></ion-toggle>
       </ion-item>
       ${when(
         this.show,
         () => html`<ion-item button lines="none" @click=${this.handleShowRestricted}>
             <ion-label>E, F, G, restricted</ion-label>
-            <ion-toggle slot="end" .checked=${this.showRestricted}></ion-toggle>
+            <ion-toggle slot="end" .checked=${this.showRestricted} aria-label="E, F, G, restricted"></ion-toggle>
           </ion-item>
           <ion-item>
-            <ion-label position="floating">Floor below</ion-label>
-            <ion-select @ionChange=${this.handleMaxAltitude} .value=${this.maxAltitude} interface="popover">
+            <ion-select
+              label="Floor below"
+              @ionChange=${this.handleMaxAltitude}
+              .value=${this.maxAltitude}
+              interface="popover"
+            >
               ${this.altitudeStops.map(
                 (altitude: number) =>
                   html`<ion-select-option .value=${altitude}> ${formatUnit(altitude, this.unit)}</ion-select-option> `,
@@ -278,7 +282,7 @@ export class SkywaysItems extends connect(store)(LitElement) {
   render(): TemplateResult {
     return html`<ion-item lines=${this.show ? 'none' : 'full'} button @click=${this.handleShow} .detail=${false}>
         <i class="las la-road la-2x"></i>Airways
-        <ion-toggle slot="end" .checked=${this.show}></ion-toggle>
+        <ion-toggle slot="end" .checked=${this.show} aria-label="Airways"></ion-toggle>
       </ion-item>
       ${when(
         this.show,
@@ -423,11 +427,11 @@ export class TrackItems extends connect(store)(LitElement) {
         hasTracks,
         () => html` <ion-item lines="none" button @click=${this.handleDisplayNames} .detail=${false}>
             <ion-label>Labels</ion-label>
-            <ion-toggle slot="end" .checked=${this.displayLabels}></ion-toggle>
+            <ion-toggle slot="end" .checked=${this.displayLabels} aria-label="Labels"></ion-toggle>
           </ion-item>
           <ion-item lines="full" button @click=${this.handleLock} .detail=${false}>
             Lock on pilot
-            <ion-toggle slot="end" .checked=${this.lockOnPilot}></ion-toggle>
+            <ion-toggle slot="end" .checked=${this.lockOnPilot} aria-label="Lock on pilot"></ion-toggle>
           </ion-item>`,
       )}`;
   }
@@ -509,11 +513,12 @@ export class LiveTrackItems extends connect(store)(LitElement) {
       </ion-item>
       <ion-item lines="none" button @click=${this.handleDisplayNames} .detail=${false}>
         <ion-label>Labels</ion-label>
-        <ion-toggle slot="end" .checked=${this.displayLabels}></ion-toggle>
+        <ion-toggle slot="end" .checked=${this.displayLabels} aria-label="Labels"></ion-toggle>
       </ion-item>
       <ion-item lines="full" button .detail=${false}>
         <ion-label position="floating">History</ion-label>
         <ion-select
+          aria-label="History"
           id="history-select"
           placeholder="length"
           interface="popover"

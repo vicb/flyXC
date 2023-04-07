@@ -34,8 +34,7 @@ export class WaypointModal extends LitElement {
       </ion-header>
       <ion-content>
         <ion-item lines="full">
-          <ion-label position="floating">File type</ion-label>
-          <ion-select value=${this.fileType} interface="popover" @ionChange=${this.handleFormat}>
+          <ion-select label="File type" value=${this.fileType} interface="popover" @ionChange=${this.handleFormat}>
             ${Object.getOwnPropertyNames(WAYPOINT_FORMATS).map(
               (fmt) => html`<ion-select-option value=${fmt}>${WAYPOINT_FORMATS[fmt]}</ion-select-option> `,
             )}

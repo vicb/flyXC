@@ -121,7 +121,7 @@ export class FlowIonCheck extends lit.LitElement {
     return lit.html`
       <ion-item button lines="full" @click=${this.handleClick}>
         <ion-label>${this.checked ? this.label : this.labelOff ?? this.label}</ion-label>
-        <ion-toggle @change=${this.handleClick} slot="end" .checked=${this.checked}></ion-toggle>
+        <ion-toggle @change=${this.handleClick} slot="end" .checked=${this.checked} aria-label="enabled"></ion-toggle>
       </ion-item>
     `;
   }
