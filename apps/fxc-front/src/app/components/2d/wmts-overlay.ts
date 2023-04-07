@@ -17,11 +17,29 @@ export abstract class WMTSOverlayElement extends LitElement {
   abstract get zoom(): number[];
   abstract get bounds(): number[][] | null;
 
+  disconnectedCallback(): void {
+    const els = this.map.controls[google.maps.ControlPosition.BOTTOM_RIGHT];
+    for (let i = 0; i < els.getLength(); i++) {
+      if (els.getAt(i) == this.copyrightEl) {
+        els.removeAt(i);
+        break;
+      }
+    }
+    this.copyrightEl = undefined;
+  }
+
   shouldUpdate(): boolean {
     if (this.map && !this.registered) {
       this.init(this.map);
       this.registered = true;
-      this.dispatchEvent(new CustomEvent('overlayready', { detail: { mapType: () => this.getMapType() } }));
+      this.dispatchEvent(
+        new CustomEvent('overlayready', {
+          detail: {
+            mapType: () => this.getMapType(),
+            copyrightEl: this.copyrightEl,
+          },
+        }),
+      );
     }
     return false;
   }

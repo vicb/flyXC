@@ -39,6 +39,7 @@ export class AirwaysElement extends connect(store)(LitElement) {
 
   private overlay?: google.maps.ImageMapType;
   private overlayAddedToMap = false;
+  private copyrightEl?: HTMLElement;
 
   stateChanged(state: RootState): void {
     this.show = state.airways.show;
@@ -62,6 +63,7 @@ export class AirwaysElement extends connect(store)(LitElement) {
 
   private overlayReady(e: CustomEvent): void {
     this.overlay = e.detail.mapType();
+    this.copyrightEl = e.detail.copyrightEl;
     this.setupOverlay();
   }
 
@@ -70,12 +72,15 @@ export class AirwaysElement extends connect(store)(LitElement) {
       return;
     }
     if (this.show) {
+      this.copyrightEl!.hidden = false;
       if (!this.overlayAddedToMap) {
         this.map.overlayMapTypes.push(this.overlay!);
         this.overlayAddedToMap = true;
       }
       this.overlay?.setOpacity(this.opacity / 100);
     } else {
+      this.copyrightEl!.hidden = true;
+
       this.removeOverlay();
     }
   }
