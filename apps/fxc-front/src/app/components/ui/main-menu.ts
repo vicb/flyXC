@@ -516,8 +516,8 @@ export class LiveTrackItems extends connect(store)(LitElement) {
         <ion-toggle slot="end" .checked=${this.displayLabels} aria-label="Labels"></ion-toggle>
       </ion-item>
       <ion-item lines="full" button .detail=${false}>
-        <ion-label position="floating">History</ion-label>
         <ion-select
+          label="History"
           aria-label="History"
           id="history-select"
           placeholder="length"
