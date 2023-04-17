@@ -34,6 +34,10 @@
           {
             "entryName": "tiles-info-diff",
             "entryPath": "apps/airspaces/src/app/tiles-info-diff.ts"
+          },
+          {
+            "entryName": "sync",
+            "entryPath": "apps/airspaces/src/app/sync.ts"
           }
         ],
         "tsConfig": "apps/airspaces/tsconfig.app.json",

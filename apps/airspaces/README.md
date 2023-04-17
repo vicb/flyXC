@@ -2,11 +2,12 @@
 
 Install [tippecanoe](https://github.com/mapbox/tippecanoe).
 
+- nx build airspaces
 - cd dist/apps/airspaces
 - chmod +x download.sh
 - npm run download
-- npm run stats (quick check of the airspaces)
 - npm run geojson
+- npm run stats (quick check of the airspaces)
 - npm run tiles
 
 # Diff update
@@ -14,8 +15,11 @@ Install [tippecanoe](https://github.com/mapbox/tippecanoe).
 - Create the tiles - See above,
 - Execute `node tiles-info.js` to generate the info,
 - Execute `node tiles-info-diff.js` to generate the diff,
-- Execute `zip -r tiles.zip tiles` to create the zip file,
-- GCE (See Below) or execute `node unzip.js -d tiles-info-diff.json` to apply the diffs,
+- Use either direct updates:
+  - Execute `node sync.js`
+- Or ZIP updates
+  - Execute `zip -r tiles.zip tiles` to create the zip file,
+  - GCE (See Below) or execute `node unzip.js -d tiles-info-diff.json` to apply the diffs,
 - Commit `tiles-info.json` in the application.
 
 # Using the unzip script on a Compute VM

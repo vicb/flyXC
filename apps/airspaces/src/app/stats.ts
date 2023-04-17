@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-const airspaces = JSON.parse(readFileSync('asp/airspaces.geojson', 'utf-8'));
+const airspaces = JSON.parse(readFileSync('asp/airspaces.json', 'utf-8'));
 
 const classes = new Map([
   [0, 'A'],

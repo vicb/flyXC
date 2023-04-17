@@ -120,7 +120,7 @@ async function deleteFiles(files, bucketName, retries) {
   }
 
   if (retries > 0 && errorFiles.length > 0) {
-    await deleteFiles(errorFiles, bucketName, retries--);
+    await deleteFiles(errorFiles, bucketName, --retries);
   }
 }
 
