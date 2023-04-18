@@ -1,11 +1,13 @@
 // Unzip tiles to Google Cloud Storage.
 
+import { parallelTasksWithTimeout } from '@flyxc/common';
 import { Storage } from '@google-cloud/storage';
 import { program } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
 
 const LOG_EVERY_N_TILES = 1000;
+const NUM_SLOTS = 100;
 
 program
   .option('-i, --input <folder>', 'input folder', 'tiles')
@@ -38,7 +40,6 @@ async function getBucket(bucketName) {
 
 async function addFiles(inputDir: string, fileIds: string[], bucketName: string, retries: number) {
   const bucket = await getBucket(bucketName);
-  const errorIds: string[] = [];
 
   const options = {
     resumable: false,
@@ -47,61 +48,53 @@ async function addFiles(inputDir: string, fileIds: string[], bucketName: string,
     contentType: 'application/x-protobuf',
   };
 
-  let count = 0;
+  const uploadOne = async (id: string, index: number) => {
+    if (index % LOG_EVERY_N_TILES == 0) {
+      console.log(`  added ${index} files`);
+    }
 
-  for (const id of fileIds) {
     const filename = idToFilename(id);
     const srcPath = path.join(inputDir, filename);
     const dstPath = `tiles/${filename}`;
 
-    try {
-      const buffer = fs.readFileSync(srcPath);
-      await bucket.file(dstPath).save(buffer, options);
-    } catch (e) {
-      console.error(`Error ${e} adding ${dstPath}`);
-      errorIds.push(id);
+    for (let i = 0; i <= retries; i++) {
+      try {
+        const buffer = fs.readFileSync(srcPath);
+        await bucket.file(dstPath).save(buffer, options);
+      } catch (e) {
+        console.error(`Error ${e} adding ${dstPath}`);
+      }
     }
+  };
 
-    if (++count % LOG_EVERY_N_TILES == 0) {
-      console.log(`  added ${count} files`);
-    }
-  }
-
-  if (retries > 0 && errorIds.length > 0) {
-    console.log(`${errorIds.length} error, retrying...`);
-    addFiles(inputDir, errorIds, bucketName, --retries);
-  }
+  await parallelTasksWithTimeout(NUM_SLOTS, fileIds, uploadOne);
 }
 
 async function deleteFiles(fileIds: string[], bucketName: string, retries: number) {
   const bucket = await getBucket(bucketName);
-  const errorIds: string[] = [];
 
-  let count = 0;
+  const deleteOne = async (id: string, index: number) => {
+    if (index % LOG_EVERY_N_TILES == 0) {
+      console.log(`  deleted ${index} files`);
+    }
 
-  for (const id of fileIds) {
     const filename = idToFilename(id);
     const path = `tiles/${filename}`;
 
-    const [response] = await bucket.file(path).delete({ ignoreNotFound: true });
+    for (let i = 0; i <= retries; i++) {
+      const [response] = await bucket.file(path).delete({ ignoreNotFound: true });
+      // https://github.com/googleapis/nodejs-storage/issues/2182
+      const statusCode = response?.statusCode ?? 200;
 
-    // https://github.com/googleapis/nodejs-storage/issues/2182
-    const statusCode = response?.statusCode ?? 200;
+      if (statusCode >= 200 && statusCode <= 299) {
+        return;
+      }
 
-    if (statusCode < 200 && statusCode > 299) {
       console.error(`  Error ${statusCode} deleting ${path}`);
-      errorIds.push(id);
     }
+  };
 
-    if (++count % LOG_EVERY_N_TILES == 0) {
-      console.log(`  deleted ${count} files`);
-    }
-  }
-
-  if (retries > 0 && errorIds.length > 0) {
-    console.log(`${errorIds.length} error, retrying...`);
-    await deleteFiles(errorIds, bucketName, --retries);
-  }
+  await parallelTasksWithTimeout(NUM_SLOTS, fileIds, deleteOne);
 }
 
 function idToFilename(id: string): string {
