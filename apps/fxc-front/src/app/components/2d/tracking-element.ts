@@ -3,7 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 import { FixType } from '../../logic/live-track';
 import { popupContent } from '../../logic/live-track-popup';
-import { formatDurationMin, formatUnit, Units } from '../../logic/units';
+import { Units, formatDurationMin, formatUnit } from '../../logic/units';
 import { setCurrentLiveId } from '../../redux/live-track-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
@@ -224,6 +224,15 @@ export class TrackingElement extends connect(store)(LitElement) {
       fontWeight = '500';
     }
 
+    if (this.displayLabels && (isActive || ageMin < 6 * 60)) {
+      label = {
+        color: labelColor,
+        text: `${feature.getProperty('name')}\n${elevationStr} · -${formatDurationMin(ageMin)}`,
+        className: 'gm-label-outline',
+        fontWeight,
+      };
+    }
+
     switch (fixType) {
       case FixType.pilot:
         {
@@ -236,15 +245,6 @@ export class TrackingElement extends connect(store)(LitElement) {
             anchor = ANCHOR_ARROW;
             labelOrigin = ORIGIN_ARROW;
             svg = arrowSvg(heading, color, opacity);
-          }
-
-          if (this.displayLabels && (isActive || ageMin < 6 * 60)) {
-            label = {
-              color: labelColor,
-              text: `${feature.getProperty('name')}\n${elevationStr} · -${formatDurationMin(ageMin)}`,
-              className: 'gm-label-outline',
-              fontWeight,
-            };
           }
         }
         break;
@@ -262,6 +262,9 @@ export class TrackingElement extends connect(store)(LitElement) {
         svg = msgSvg('red', 1);
         zIndex = 60;
         break;
+
+      default:
+        label = undefined;
     }
 
     return {
