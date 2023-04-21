@@ -2,7 +2,7 @@
 import { AccountFormModel } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
 import { Binder, field } from '@vaadin/dom';
-import { html, LitElement, TemplateResult } from 'lit';
+import { LitElement, TemplateResult, html } from 'lit';
 import { customElement, queryAll, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { setFetchMillis } from '../../redux/live-track-slice';
@@ -299,7 +299,7 @@ export class DevicesPage extends LitElement {
     if (error) {
       const alert = await alertController.create({
         header: 'Settings error',
-        message: `<p>An error has occurred:</p><p>${error}</p>`,
+        message: `An error has occurred: ${error}`,
         buttons: [
           {
             text: 'Ok',
@@ -312,7 +312,7 @@ export class DevicesPage extends LitElement {
     } else {
       const alert = await alertController.create({
         header: 'Settings updated',
-        message: `<p>Your settings have been updated. Please allow up to 15 minutes for changes to take effect.</p>`,
+        message: `Your settings have been updated. Please allow up to 15 minutes for changes to take effect.`,
         buttons: [
           {
             text: 'Ok',
