@@ -28,7 +28,7 @@ export const INCREMENTAL_UPDATE_SEC = 3600;
 // Export to partners.
 export const EXPORT_UPDATE_SEC = 5 * 60;
 
-export const trackerNames = ['inreach', 'spot', 'skylines', 'flyme', 'flymaster'] as const;
+export const trackerNames = ['inreach', 'spot', 'skylines', 'flyme', 'flymaster', 'ogn'] as const;
 
 // ID for the tracking devices.
 export type TrackerNames = (typeof trackerNames)[number];
@@ -40,6 +40,7 @@ export const trackerDisplayNames: Readonly<Record<TrackerNames, string>> = {
   skylines: 'Skylines',
   flyme: 'FlyMe (XCGlobe)',
   flymaster: 'Flymaster',
+  ogn: 'OGN',
 };
 
 export const trackerIdByName: Record<TrackerNames, number> = {} as any;
@@ -112,6 +113,10 @@ export function getTrackerDisplayName(flags: number): string {
 
 export function getFixMessage(track: LiveTrack, index: number): string | undefined {
   return track.extra[index]?.message;
+}
+
+export function getFixSpeed(track: LiveTrack, index: number): number {
+  return track.extra[index]?.speed ?? 0;
 }
 
 export function getLastMessage(track: LiveTrack): { timeSec: number; text: string } | undefined {

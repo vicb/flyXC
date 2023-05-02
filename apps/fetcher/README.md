@@ -1,3 +1,7 @@
+## Deploy
+
+nx deploy fetcher --prod
+
 ## Docker
 
 docker run -it gcr.io/fly-xc/fetcher bash

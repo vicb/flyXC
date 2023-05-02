@@ -27,4 +27,5 @@ export interface LiveTrackEntity {
   skylines: TrackerEntity;
   flyme: TrackerEntity;
   flymaster: TrackerEntity;
+  ogn: TrackerEntity;
 }

@@ -7,7 +7,7 @@ import * as zlib from 'zlib';
 import { ElevationUpdates } from './elevation/elevation';
 import { exportToStorage } from './state/serialize';
 import { BUCKET_NAME, EXPORT_FILE_SEC, PERIODIC_STATE_PATH } from './state/state';
-import { syncFromDatastore, SyncStatus } from './state/sync';
+import { SyncStatus, syncFromDatastore } from './state/sync';
 
 // Logs for syncs.
 export function addSyncLogs(pipeline: ChainableCommander, status: SyncStatus, timeSec: number) {
@@ -91,7 +91,7 @@ export function addStateLogs(pipeline: ChainableCommander, state: protos.Fetcher
     if (pilot.enabled) {
       total++;
       for (const name of trackerNames) {
-        if (pilot[name].enabled) {
+        if (pilot[name]?.enabled) {
           byName[name] = (byName[name] ?? 0) + 1;
         }
       }

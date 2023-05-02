@@ -1,6 +1,7 @@
 import {
   validateFlymasterAccount,
   validateInreachAccount,
+  validateOgnAccount,
   validateSkylinesAccount,
   validateSpotAccount,
 } from './models';
@@ -114,5 +115,21 @@ describe('Validate Flymaster accounts', () => {
     expect(validateFlymasterAccount('0a')).toEqual(false);
     expect(validateFlymasterAccount('a123')).toEqual(false);
     expect(validateFlymasterAccount('random')).toEqual(false);
+  });
+});
+
+describe('Validate OGN accounts', () => {
+  test('Valid ids', () => {
+    expect(validateOgnAccount('123456')).toBe('123456');
+    expect(validateOgnAccount('abcdef')).toBe('ABCDEF');
+    expect(validateOgnAccount('ABCDEF')).toBe('ABCDEF');
+    expect(validateOgnAccount('  123ABC  ')).toBe('123ABC');
+  });
+
+  test('Invalid ids', () => {
+    expect(validateOgnAccount('')).toEqual(false);
+    expect(validateOgnAccount('12345')).toEqual(false);
+    expect(validateOgnAccount('1234567')).toEqual(false);
+    expect(validateOgnAccount('random')).toEqual(false);
   });
 });

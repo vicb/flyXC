@@ -76,6 +76,7 @@ message Pilot {
   Tracker skylines = 7;
   Tracker flyme = 8;
   Tracker flymaster = 9;
+  Tracker ogn = 10;
 }
 
 message Tracker {

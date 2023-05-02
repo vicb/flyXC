@@ -11,7 +11,7 @@ import {
   Validator,
   _getPropertyModel,
 } from '@vaadin/nodom';
-import { trackerNames, TrackerNames } from './live-track';
+import { TrackerNames, trackerNames } from './live-track';
 import type { LiveTrackEntity, TrackerEntity } from './live-track-entity';
 
 // Client side model for an account.
@@ -24,6 +24,7 @@ export interface AccountModel {
   skylines: TrackerModel;
   flyme: TrackerModel;
   flymaster: TrackerModel;
+  ogn: TrackerModel;
 }
 
 // Form model for a client side account.
@@ -38,6 +39,7 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
       skylines: TrackerFormModel.createEmptyValue(),
       flyme: TrackerFormModel.createEmptyValue(),
       flymaster: TrackerFormModel.createEmptyValue(),
+      ogn: TrackerFormModel.createEmptyValue(),
     };
   }
 
@@ -77,6 +79,7 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
   readonly skylines = this.createTrackerModel('skylines');
   readonly flyme = this.createTrackerModel('flyme');
   readonly flymaster = this.createTrackerModel('flymaster');
+  readonly ogn = this.createTrackerModel('ogn');
 
   private createTrackerModel(tracker: TrackerNames): TrackerFormModel {
     const validators = trackerValidators[tracker];
@@ -120,12 +123,13 @@ class AccountSyncValidator implements Validator<TrackerModel> {
 }
 
 // Validators used on both the client and server sides.
-export const trackerValidators: Readonly<Record<TrackerNames, Validator<TrackerModel>[]>> = {
+export const trackerValidators: Readonly<Record<TrackerNames, AccountSyncValidator[]>> = {
   inreach: [new AccountSyncValidator('This InReach URL is invalid', validateInreachAccount)],
   spot: [new AccountSyncValidator('This Spot ID is invalid', validateSpotAccount)],
   skylines: [new AccountSyncValidator('This Skylines ID is invalid', validateSkylinesAccount)],
   flyme: [],
   flymaster: [new AccountSyncValidator('This Flymaster ID is invalid', validateFlymasterAccount)],
+  ogn: [new AccountSyncValidator('This OGN ID is invalid', validateOgnAccount)],
 };
 
 // Validates a Spot Id.
@@ -193,4 +197,12 @@ export function validateFlymasterAccount(id: string): string | false {
 export function validateFlymeAccount(id: string): string | false {
   id = id.trim();
   return /^\d+$/.test(id) ? id : false;
+}
+
+// Validates an OGN Id.
+//
+// 6 hexadecimal digits
+export function validateOgnAccount(id: string): string | false {
+  id = id.trim();
+  return /^[0-9a-f]{6}$/i.test(id) ? id.toUpperCase() : false;
 }

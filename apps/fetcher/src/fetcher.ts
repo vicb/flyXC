@@ -27,7 +27,7 @@ import {
   SHUTDOWN_STATE_PATH,
 } from './app/state/state';
 import { syncFromDatastore } from './app/state/sync';
-import { resfreshTrackers } from './app/trackers/refresh';
+import { disconnectOgnClient, resfreshTrackers } from './app/trackers/refresh';
 import { resfreshUfoFleets } from './app/ufos/refresh';
 
 const redis = getRedisClient();
@@ -49,7 +49,6 @@ async function start(datastore: Datastore): Promise<void> {
   state = await restoreState(state);
 
   if (state.numStarts == 0) {
-    const datastore = getDatastore();
     const status = await syncFromDatastore(datastore, state, { full: true });
     console.log(`Initial sync from the datastore`, status);
   }
@@ -132,6 +131,7 @@ async function tick(state: protos.FetcherState, datastore: Datastore) {
     await HandleCommand(redis, state, datastore);
   } catch (e) {
     console.error(`tick: ${e}`);
+    console.log(e);
   } finally {
     state.inTick = false;
   }
@@ -210,6 +210,7 @@ async function shutdown(state: protos.FetcherState) {
     console.error(`storage error: ${e}`);
   }
   await redis.quit();
+  disconnectOgnClient();
   console.log('Exit...');
   process.exit();
 }

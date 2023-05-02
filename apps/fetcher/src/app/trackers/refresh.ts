@@ -5,6 +5,7 @@ import {
   LIVE_MINIMAL_INTERVAL_SEC,
   LIVE_OLD_INTERVAL_SEC,
   LIVE_TRACKER_RETENTION_SEC,
+  SecretKeys,
   mergeLiveTracks,
   protos,
   removeBeforeFromLiveTrack,
@@ -17,9 +18,17 @@ import { addElevationLogs } from '../redis';
 import { FlymasterFetcher } from './flymaster';
 import { FlymeFetcher } from './flyme';
 import { InreachFetcher } from './inreach';
+import { OgnFetcher } from './ogn';
+import { OGN_HOST, OGN_PORT, OgnClient } from './ogn-client';
 import { SkylinesFetcher } from './skylines';
 import { SpotFetcher } from './spot';
 import { TrackerUpdates } from './tracker';
+
+const ognClient = new OgnClient(OGN_HOST, OGN_PORT, SecretKeys.APRS_USER, SecretKeys.APRS_PASSWORD);
+
+export function disconnectOgnClient() {
+  ognClient.disconnect();
+}
 
 export async function resfreshTrackers(pipeline: ChainableCommander, state: protos.FetcherState) {
   const fetchers = [
@@ -28,6 +37,7 @@ export async function resfreshTrackers(pipeline: ChainableCommander, state: prot
     new SkylinesFetcher(state, pipeline),
     new FlymeFetcher(state, pipeline),
     new FlymasterFetcher(state, pipeline),
+    new OgnFetcher(ognClient, state, pipeline),
   ];
 
   const updatePromises = await Promise.allSettled(fetchers.map((f) => f.refresh(LIVE_FETCH_TIMEOUT_SEC)));

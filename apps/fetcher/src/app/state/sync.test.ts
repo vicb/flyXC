@@ -11,6 +11,7 @@ const SPOT = '012345678901234567890123456789spot';
 const FLYME = '001';
 const SKYLINES = '002';
 const FLYMASTER = '003';
+const OGN = `123456`;
 
 describe('sync', () => {
   let nowFn: any;
@@ -54,6 +55,7 @@ describe('sync', () => {
         flyme: FLYME,
         skylines: SKYLINES,
         flymaster: FLYMASTER,
+        ogn: OGN,
       };
 
       for (const [p, a] of Object.entries(trackerAccounts)) {
@@ -250,6 +252,7 @@ function createLiveTrackEntity(id: string, liveTrack: Partial<LiveTrackEntity> =
     skylines: createTrackerEntity(SKYLINES),
     flyme: createTrackerEntity(FLYME, { flyme: true }),
     flymaster: createTrackerEntity(FLYMASTER),
+    ogn: createTrackerEntity(OGN),
   };
 
   return { ...entity, ...liveTrack };

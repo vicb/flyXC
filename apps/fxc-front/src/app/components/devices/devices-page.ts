@@ -158,7 +158,6 @@ export class DevicesPage extends LitElement {
                     <a
                       href="https://www.findmespot.com/en-us/support/spot-trace/get-help/general/spot-api-support"
                       target="_blank"
-                      class="has-text-link"
                       >page</a
                     >
                     and copy the feed id into the field below (it should look like
@@ -204,6 +203,22 @@ export class DevicesPage extends LitElement {
                     Login to
                     <a href="https://lt.flymaster.net" target="_blank">lt.flymaster.net</a> and click on "My account",
                     followed by "My Instruments". Paste the numerical id of the instrument in the field below.
+                  </ion-text>`}
+                >
+                </device-card>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col size=12 size-lg=6>
+                <device-card
+                  .tracker=${'ogn'}
+                  .binder=${this.binder}
+                  label="Id"
+                  .hint=${html`<ion-text class="ion-padding-horizontal ion-padding-top block">
+                    Enter your OGN Device ID. It is a 6 hexadecimal digits (0-9, a-f) value from
+                    <a href="http://ddb.glidernet.org/" target="_blank">the device database</a>. FlyXC will retrieve
+                    your position when you have a device setup to push to OGN (XCTracer, SeeYou navigator, ...).
+                    Otherwise FlyXC will publish your position from other enabled tracking devices to OGN.
                   </ion-text>`}
                 >
                 </device-card>
@@ -343,17 +358,18 @@ export class DevicesPage extends LitElement {
         <p>Supported platforms:</p>
         <ul>
           <li>
-            <a href="https://www.garmin.com/en-US/inreach/personal/" target="_blank" class="has-text-link">InReach</a>
+            <a href="https://www.garmin.com/en-US/inreach/personal/" target="_blank">InReach</a>
           </li>
-          <li><a href="https://www.findmespot.com/" target="_blank" class="has-text-link">Spot</a></li>
-          <li><a href="https://skylines.aero/tracking/info" target="_blank" class="has-text-link">SkyLines</a></li>
-          <li><a href="http://xcglobe.com/flyme" target="_blank" class="has-text-link">XCGlobe FlyMe</a></li>
-          <li><a href="https://www.flymaster.net/" target="_blank" class="has-text-link">Flymaster</a></li>
+          <li><a href="https://www.findmespot.com/" target="_blank">Spot</a></li>
+          <li><a href="https://skylines.aero/tracking/info" target="_blank">SkyLines</a></li>
+          <li><a href="http://xcglobe.com/flyme" target="_blank">XCGlobe FlyMe</a></li>
+          <li><a href="https://www.flymaster.net/" target="_blank">Flymaster</a></li>
+          <li>
+            <a href="https://www.glidernet.org/" target="_blank">OGN (Open Glider Network)</a>
+          </li>
         </ul>
         <p>
-          <a href="mailto:help@flyxc.app?subject=FlyXC%20registration%20error" class="has-text-link" target="_blank">
-            Contact us by email
-          </a>
+          <a href="mailto:help@flyxc.app?subject=FlyXC%20registration%20error" target="_blank"> Contact us by email </a>
           if you have any trouble registering your device.
         </p>
         <google-btn callback=${this.getCallback()}></google-btn>

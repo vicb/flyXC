@@ -1,13 +1,11 @@
 import {
-  LiveTrackEntity,
   LIVE_REFRESH_SEC,
+  LiveTrackEntity,
+  TrackerNames,
   protos,
   trackerNames,
-  validateFlymasterAccount,
+  trackerValidators,
   validateFlymeAccount,
-  validateInreachAccount,
-  validateSkylinesAccount,
-  validateSpotAccount,
 } from '@flyxc/common';
 import { LIVE_TRACK_TABLE } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
@@ -115,6 +113,9 @@ export function syncLiveTrack(state: protos.FetcherState, liveTrack: LiveTrackEn
     for (const propName of trackerNames) {
       const tracker = pilot[propName];
       const stateTracker = statePilot[propName];
+      if (stateTracker == null || tracker == null) {
+        continue;
+      }
       const updated = tracker.enabled !== stateTracker.enabled || tracker.account !== stateTracker.account;
       if (updated) {
         // Invalidate the track when the settings have been updated.
@@ -137,64 +138,49 @@ export function syncLiveTrack(state: protos.FetcherState, liveTrack: LiveTrackEn
 
 // Creates a pilot from a Live Track datastore entity.
 function createPilotFromEntity(liveTrack: LiveTrackEntity): protos.Pilot {
-  const e = liveTrack;
-
-  const inreach = createDefaultTracker();
-  if (e.inreach) {
-    const account = validateInreachAccount(e.inreach.account);
-    if (account != false) {
-      inreach.enabled = e.inreach.enabled;
-      inreach.account = account;
-    }
-  }
-
-  const spot = createDefaultTracker();
-  if (e.spot) {
-    const account = validateSpotAccount(e.spot.account);
-    if (account != false) {
-      spot.enabled = e.spot.enabled;
-      spot.account = account;
-    }
-  }
-
-  const skylines = createDefaultTracker();
-  if (e.skylines) {
-    const account = validateSkylinesAccount(e.skylines.account);
-    if (account != false) {
-      skylines.enabled = e.skylines.enabled;
-      skylines.account = account;
-    }
-  }
-
-  const flymaster = createDefaultTracker();
-  if (e.flymaster) {
-    const account = validateFlymasterAccount(e.flymaster.account);
-    if (account != false) {
-      flymaster.enabled = e.flymaster.enabled;
-      flymaster.account = account;
-    }
-  }
-
+  // flyme is different as we validate account_resolved.
   const flyme = createDefaultTracker();
-  if (e.flyme) {
-    const id = validateFlymeAccount(e.flyme.account_resolved ?? '');
+  if (liveTrack.flyme) {
+    const id = validateFlymeAccount(liveTrack.flyme.account_resolved ?? '');
     if (id != false) {
-      flyme.enabled = e.flyme.enabled;
+      flyme.enabled = liveTrack.flyme.enabled;
       flyme.account = id;
     }
   }
 
   return {
-    name: e.name,
+    name: liveTrack.name,
     track: protos.LiveTrack.create(),
-    share: e.share,
-    enabled: e.enabled,
-    inreach,
-    spot,
+    share: liveTrack.share,
+    enabled: liveTrack.enabled,
     flyme,
-    skylines,
-    flymaster,
+    ...createAccountEnabledTracker('inreach', liveTrack),
+    ...createAccountEnabledTracker('spot', liveTrack),
+    ...createAccountEnabledTracker('skylines', liveTrack),
+    ...createAccountEnabledTracker('flymaster', liveTrack),
+    ...createAccountEnabledTracker('ogn', liveTrack),
   };
+}
+
+// Create a tracker that has both account and enabled properties.
+function createAccountEnabledTracker<T extends TrackerNames>(
+  name: T,
+  liveTrack: LiveTrackEntity,
+): { [k in T]: protos.Tracker } {
+  const tracker = createDefaultTracker();
+  if (liveTrack[name] != null) {
+    const validators = trackerValidators[name];
+    if (validators.length != 1) {
+      throw new Error(`Invalid validator`);
+    }
+    const validator = validators[0].callback;
+    const id = validator(liveTrack[name].account);
+    if (id != false) {
+      tracker.enabled = liveTrack[name].enabled;
+      tracker.account = id;
+    }
+  }
+  return { [name]: tracker } as any;
 }
 
 // Creates a tracker.

@@ -33,7 +33,7 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
     const token = req.header('token');
     if (!token) {
       // Pick the incremental proto if last request was recent.
-      const timeSec = req.query.s ?? 0;
+      const timeSec = Number(req.query.s ?? 0);
       const incrementalAfter = Date.now() / 1000 - INCREMENTAL_UPDATE_SEC + 60;
       const key = timeSec > incrementalAfter ? Keys.fetcherIncrementalProto : Keys.fetcherFullProto;
       res.set('Content-Type', 'application/x-protobuf');
