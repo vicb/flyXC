@@ -39,13 +39,13 @@
     "sharedGlobals": ["{workspaceRoot}/babel.config.json"]
   },
   "generators": {
-    "@nrwl/web:application": {
+    "@nx/web:application": {
       "style": "css",
       "linter": "eslint",
       "unitTestRunner": "vitest",
       "e2eTestRunner": "none"
     },
-    "@nrwl/web:library": {
+    "@nx/web:library": {
       "style": "css",
       "linter": "eslint",
       "unitTestRunner": "vitest"
