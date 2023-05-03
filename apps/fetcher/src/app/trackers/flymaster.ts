@@ -102,7 +102,7 @@ export function parse(flight: any): LivePoint[] {
       alt: fix.h,
       gndAlt: fix.s,
       speed: fix.v,
-      timestamp: fix.d * 1000,
+      timeMs: fix.d * 1000,
     }),
   );
 }

@@ -61,7 +61,7 @@ export class FlymeFetcher extends TrackerFetcher {
             lat: fix[1],
             lon: fix[2],
             alt: fix[3],
-            timestamp: fix[4] * 1000,
+            timeMs: fix[4] * 1000,
           },
         ];
         updates.trackerDeltas.set(id, makeLiveTrack(livePoints));

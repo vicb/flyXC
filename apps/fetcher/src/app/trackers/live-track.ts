@@ -5,8 +5,7 @@ export interface LivePoint {
   lat: number;
   lon: number;
   alt: number;
-  // Timestamps in milliseconds.
-  timestamp: number;
+  timeMs: number;
   name: TrackerNames | UfoFleetNames;
   // Whether the gps fix is invalid.
   // undefined or null is considered valid (only false is invalid).
@@ -24,7 +23,7 @@ export interface LivePoint {
 // Makes a track for a list of points.
 // The track is in chronological order (oldest point first).
 export function makeLiveTrack(points: LivePoint[]): protos.LiveTrack {
-  points.sort((a, b) => a.timestamp - b.timestamp);
+  points.sort((a, b) => a.timeMs - b.timeMs);
 
   const track = protos.LiveTrack.create();
 
@@ -32,7 +31,7 @@ export function makeLiveTrack(points: LivePoint[]): protos.LiveTrack {
     track.lat.push(round(point.lat, 5));
     track.lon.push(round(point.lon, 5));
     track.alt.push(Math.round(point.alt));
-    track.timeSec.push(Math.round(point.timestamp / 1000));
+    track.timeSec.push(Math.round(point.timeMs / 1000));
     track.flags.push(
       getLiveTrackFlags({
         valid: point.valid !== false,

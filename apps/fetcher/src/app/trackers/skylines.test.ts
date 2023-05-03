@@ -20,15 +20,15 @@ describe('Parse Skylines json', () => {
     const beforeMidnightSecs = 1602719400;
     let points = parse(skyline.flights[0], beforeMidnightSecs * 1000);
     expect(points).toHaveLength(374);
-    expect(points[0].timestamp).toBe(firstTimestamp);
-    expect(points[points.length - 1].timestamp).toBe(lastTimestamp);
+    expect(points[0].timeMs).toBe(firstTimestamp);
+    expect(points[points.length - 1].timeMs).toBe(lastTimestamp);
 
     // October 14, 2020 5:50:00 PM GMT-07:00
     // October 15, 2020 12:50:00 AM (GMT)
     const afterMidnightSecs = 1602723000;
     points = parse(skyline.flights[0], afterMidnightSecs * 1000);
     expect(points).toHaveLength(374);
-    expect(points[0].timestamp).toBe(firstTimestamp);
-    expect(points[points.length - 1].timestamp).toBe(lastTimestamp);
+    expect(points[0].timeMs).toBe(firstTimestamp);
+    expect(points[points.length - 1].timeMs).toBe(lastTimestamp);
   });
 });

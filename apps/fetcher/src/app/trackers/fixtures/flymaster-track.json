@@ -6,7 +6,7 @@
     "alt": "846",
     "gndAlt": "493",
     "speed": "31",
-    "timestamp": 1615411121000
+    "timeMs": 1615411121000
   },
   {
     "name": "flymaster",
@@ -15,7 +15,7 @@
     "alt": "847",
     "gndAlt": "531",
     "speed": "27",
-    "timestamp": 1615411122000
+    "timeMs": 1615411122000
   },
   {
     "name": "flymaster",
@@ -24,7 +24,7 @@
     "alt": "848",
     "gndAlt": "531",
     "speed": "24",
-    "timestamp": 1615411123000
+    "timeMs": 1615411123000
   },
   {
     "name": "flymaster",
@@ -33,7 +33,7 @@
     "alt": "848",
     "gndAlt": "531",
     "speed": "23",
-    "timestamp": 1615411124000
+    "timeMs": 1615411124000
   },
   {
     "name": "flymaster",
@@ -42,7 +42,7 @@
     "alt": "848",
     "gndAlt": "531",
     "speed": "25",
-    "timestamp": 1615411125000
+    "timeMs": 1615411125000
   },
   {
     "name": "flymaster",
@@ -51,7 +51,7 @@
     "alt": "848",
     "gndAlt": "531",
     "speed": "27",
-    "timestamp": 1615411126000
+    "timeMs": 1615411126000
   },
   {
     "name": "flymaster",
@@ -60,7 +60,7 @@
     "alt": "848",
     "gndAlt": "531",
     "speed": "27",
-    "timestamp": 1615411127000
+    "timeMs": 1615411127000
   },
   {
     "name": "flymaster",
@@ -69,7 +69,7 @@
     "alt": "849",
     "gndAlt": "531",
     "speed": "27",
-    "timestamp": 1615411128000
+    "timeMs": 1615411128000
   },
   {
     "name": "flymaster",
@@ -78,7 +78,7 @@
     "alt": "849",
     "gndAlt": "531",
     "speed": "24",
-    "timestamp": 1615411129000
+    "timeMs": 1615411129000
   },
   {
     "name": "flymaster",
@@ -87,7 +87,7 @@
     "alt": "848",
     "gndAlt": "531",
     "speed": "24",
-    "timestamp": 1615411130000
+    "timeMs": 1615411130000
   },
   {
     "name": "flymaster",
@@ -96,7 +96,7 @@
     "alt": "847",
     "gndAlt": "531",
     "speed": "26",
-    "timestamp": 1615411131000
+    "timeMs": 1615411131000
   },
   {
     "name": "flymaster",
@@ -105,7 +105,7 @@
     "alt": "847",
     "gndAlt": "531",
     "speed": "30",
-    "timestamp": 1615411132000
+    "timeMs": 1615411132000
   },
   {
     "name": "flymaster",
@@ -114,7 +114,7 @@
     "alt": "847",
     "gndAlt": "531",
     "speed": "32",
-    "timestamp": 1615411133000
+    "timeMs": 1615411133000
   },
   {
     "name": "flymaster",
@@ -123,7 +123,7 @@
     "alt": "848",
     "gndAlt": "531",
     "speed": "31",
-    "timestamp": 1615411134000
+    "timeMs": 1615411134000
   },
   {
     "name": "flymaster",
@@ -132,7 +132,7 @@
     "alt": "850",
     "gndAlt": "559",
     "speed": "27",
-    "timestamp": 1615411135000
+    "timeMs": 1615411135000
   },
   {
     "name": "flymaster",
@@ -141,7 +141,7 @@
     "alt": "851",
     "gndAlt": "559",
     "speed": "22",
-    "timestamp": 1615411136000
+    "timeMs": 1615411136000
   },
   {
     "name": "flymaster",
@@ -150,7 +150,7 @@
     "alt": "852",
     "gndAlt": "559",
     "speed": "18",
-    "timestamp": 1615411137000
+    "timeMs": 1615411137000
   },
   {
     "name": "flymaster",
@@ -159,7 +159,7 @@
     "alt": "852",
     "gndAlt": "559",
     "speed": "17",
-    "timestamp": 1615411138000
+    "timeMs": 1615411138000
   },
   {
     "name": "flymaster",
@@ -168,7 +168,7 @@
     "alt": "850",
     "gndAlt": "559",
     "speed": "20",
-    "timestamp": 1615411139000
+    "timeMs": 1615411139000
   },
   {
     "name": "flymaster",
@@ -177,7 +177,7 @@
     "alt": "849",
     "gndAlt": "559",
     "speed": "24",
-    "timestamp": 1615411140000
+    "timeMs": 1615411140000
   },
   {
     "name": "flymaster",
@@ -186,7 +186,7 @@
     "alt": "848",
     "gndAlt": "586",
     "speed": "27",
-    "timestamp": 1615411141000
+    "timeMs": 1615411141000
   },
   {
     "name": "flymaster",
@@ -195,7 +195,7 @@
     "alt": "848",
     "gndAlt": "586",
     "speed": "29",
-    "timestamp": 1615411142000
+    "timeMs": 1615411142000
   },
   {
     "name": "flymaster",
@@ -204,7 +204,7 @@
     "alt": "849",
     "gndAlt": "586",
     "speed": "28",
-    "timestamp": 1615411143000
+    "timeMs": 1615411143000
   },
   {
     "name": "flymaster",
@@ -213,7 +213,7 @@
     "alt": "850",
     "gndAlt": "586",
     "speed": "24",
-    "timestamp": 1615411144000
+    "timeMs": 1615411144000
   },
   {
     "name": "flymaster",
@@ -222,7 +222,7 @@
     "alt": "850",
     "gndAlt": "586",
     "speed": "21",
-    "timestamp": 1615411145000
+    "timeMs": 1615411145000
   },
   {
     "name": "flymaster",
@@ -231,7 +231,7 @@
     "alt": "849",
     "gndAlt": "586",
     "speed": "21",
-    "timestamp": 1615411146000
+    "timeMs": 1615411146000
   },
   {
     "name": "flymaster",
@@ -240,7 +240,7 @@
     "alt": "848",
     "gndAlt": "586",
     "speed": "25",
-    "timestamp": 1615411147000
+    "timeMs": 1615411147000
   },
   {
     "name": "flymaster",
@@ -249,7 +249,7 @@
     "alt": "847",
     "gndAlt": "586",
     "speed": "28",
-    "timestamp": 1615411148000
+    "timeMs": 1615411148000
   },
   {
     "name": "flymaster",
@@ -258,7 +258,7 @@
     "alt": "847",
     "gndAlt": "596",
     "speed": "30",
-    "timestamp": 1615411149000
+    "timeMs": 1615411149000
   },
   {
     "name": "flymaster",
@@ -267,7 +267,7 @@
     "alt": "849",
     "gndAlt": "596",
     "speed": "28",
-    "timestamp": 1615411150000
+    "timeMs": 1615411150000
   },
   {
     "name": "flymaster",
@@ -276,7 +276,7 @@
     "alt": "850",
     "gndAlt": "596",
     "speed": "24",
-    "timestamp": 1615411151000
+    "timeMs": 1615411151000
   },
   {
     "name": "flymaster",
@@ -285,7 +285,7 @@
     "alt": "850",
     "gndAlt": "596",
     "speed": "22",
-    "timestamp": 1615411152000
+    "timeMs": 1615411152000
   },
   {
     "name": "flymaster",
@@ -294,7 +294,7 @@
     "alt": "849",
     "gndAlt": "596",
     "speed": "22",
-    "timestamp": 1615411153000
+    "timeMs": 1615411153000
   },
   {
     "name": "flymaster",
@@ -303,7 +303,7 @@
     "alt": "847",
     "gndAlt": "596",
     "speed": "25",
-    "timestamp": 1615411154000
+    "timeMs": 1615411154000
   },
   {
     "name": "flymaster",
@@ -312,7 +312,7 @@
     "alt": "846",
     "gndAlt": "596",
     "speed": "27",
-    "timestamp": 1615411155000
+    "timeMs": 1615411155000
   },
   {
     "name": "flymaster",
@@ -321,7 +321,7 @@
     "alt": "845",
     "gndAlt": "596",
     "speed": "27",
-    "timestamp": 1615411156000
+    "timeMs": 1615411156000
   },
   {
     "name": "flymaster",
@@ -330,7 +330,7 @@
     "alt": "845",
     "gndAlt": "596",
     "speed": "24",
-    "timestamp": 1615411157000
+    "timeMs": 1615411157000
   },
   {
     "name": "flymaster",
@@ -339,7 +339,7 @@
     "alt": "845",
     "gndAlt": "596",
     "speed": "21",
-    "timestamp": 1615411158000
+    "timeMs": 1615411158000
   },
   {
     "name": "flymaster",
@@ -348,7 +348,7 @@
     "alt": "845",
     "gndAlt": "596",
     "speed": "20",
-    "timestamp": 1615411159000
+    "timeMs": 1615411159000
   },
   {
     "name": "flymaster",
@@ -357,7 +357,7 @@
     "alt": "843",
     "gndAlt": "596",
     "speed": "20",
-    "timestamp": 1615411160000
+    "timeMs": 1615411160000
   },
   {
     "name": "flymaster",
@@ -366,7 +366,7 @@
     "alt": "842",
     "gndAlt": "596",
     "speed": "20",
-    "timestamp": 1615411161000
+    "timeMs": 1615411161000
   },
   {
     "name": "flymaster",
@@ -375,7 +375,7 @@
     "alt": "841",
     "gndAlt": "596",
     "speed": "20",
-    "timestamp": 1615411162000
+    "timeMs": 1615411162000
   },
   {
     "name": "flymaster",
@@ -384,7 +384,7 @@
     "alt": "840",
     "gndAlt": "596",
     "speed": "22",
-    "timestamp": 1615411163000
+    "timeMs": 1615411163000
   },
   {
     "name": "flymaster",
@@ -393,7 +393,7 @@
     "alt": "839",
     "gndAlt": "584",
     "speed": "25",
-    "timestamp": 1615411164000
+    "timeMs": 1615411164000
   },
   {
     "name": "flymaster",
@@ -402,7 +402,7 @@
     "alt": "839",
     "gndAlt": "584",
     "speed": "27",
-    "timestamp": 1615411165000
+    "timeMs": 1615411165000
   },
   {
     "name": "flymaster",
@@ -411,7 +411,7 @@
     "alt": "839",
     "gndAlt": "584",
     "speed": "27",
-    "timestamp": 1615411166000
+    "timeMs": 1615411166000
   },
   {
     "name": "flymaster",
@@ -420,7 +420,7 @@
     "alt": "839",
     "gndAlt": "584",
     "speed": "25",
-    "timestamp": 1615411167000
+    "timeMs": 1615411167000
   },
   {
     "name": "flymaster",
@@ -429,7 +429,7 @@
     "alt": "839",
     "gndAlt": "599",
     "speed": "23",
-    "timestamp": 1615411168000
+    "timeMs": 1615411168000
   },
   {
     "name": "flymaster",
@@ -438,7 +438,7 @@
     "alt": "838",
     "gndAlt": "599",
     "speed": "23",
-    "timestamp": 1615411169000
+    "timeMs": 1615411169000
   },
   {
     "name": "flymaster",
@@ -447,7 +447,7 @@
     "alt": "837",
     "gndAlt": "599",
     "speed": "26",
-    "timestamp": 1615411170000
+    "timeMs": 1615411170000
   },
   {
     "name": "flymaster",
@@ -456,7 +456,7 @@
     "alt": "835",
     "gndAlt": "599",
     "speed": "29",
-    "timestamp": 1615411171000
+    "timeMs": 1615411171000
   },
   {
     "name": "flymaster",
@@ -465,7 +465,7 @@
     "alt": "834",
     "gndAlt": "599",
     "speed": "31",
-    "timestamp": 1615411172000
+    "timeMs": 1615411172000
   },
   {
     "name": "flymaster",
@@ -474,7 +474,7 @@
     "alt": "834",
     "gndAlt": "599",
     "speed": "29",
-    "timestamp": 1615411173000
+    "timeMs": 1615411173000
   },
   {
     "name": "flymaster",
@@ -483,7 +483,7 @@
     "alt": "834",
     "gndAlt": "599",
     "speed": "28",
-    "timestamp": 1615411174000
+    "timeMs": 1615411174000
   },
   {
     "name": "flymaster",
@@ -492,7 +492,7 @@
     "alt": "833",
     "gndAlt": "599",
     "speed": "27",
-    "timestamp": 1615411175000
+    "timeMs": 1615411175000
   },
   {
     "name": "flymaster",
@@ -501,7 +501,7 @@
     "alt": "833",
     "gndAlt": "599",
     "speed": "25",
-    "timestamp": 1615411176000
+    "timeMs": 1615411176000
   },
   {
     "name": "flymaster",
@@ -510,7 +510,7 @@
     "alt": "832",
     "gndAlt": "603",
     "speed": "24",
-    "timestamp": 1615411177000
+    "timeMs": 1615411177000
   },
   {
     "name": "flymaster",
@@ -519,7 +519,7 @@
     "alt": "831",
     "gndAlt": "603",
     "speed": "24",
-    "timestamp": 1615411178000
+    "timeMs": 1615411178000
   },
   {
     "name": "flymaster",
@@ -528,7 +528,7 @@
     "alt": "830",
     "gndAlt": "603",
     "speed": "24",
-    "timestamp": 1615411179000
+    "timeMs": 1615411179000
   },
   {
     "name": "flymaster",
@@ -537,7 +537,7 @@
     "alt": "828",
     "gndAlt": "603",
     "speed": "24",
-    "timestamp": 1615411180000
+    "timeMs": 1615411180000
   },
   {
     "name": "flymaster",
@@ -546,7 +546,7 @@
     "alt": "827",
     "gndAlt": "603",
     "speed": "25",
-    "timestamp": 1615411181000
+    "timeMs": 1615411181000
   },
   {
     "name": "flymaster",
@@ -555,7 +555,7 @@
     "alt": "827",
     "gndAlt": "603",
     "speed": "25",
-    "timestamp": 1615411182000
+    "timeMs": 1615411182000
   },
   {
     "name": "flymaster",
@@ -564,7 +564,7 @@
     "alt": "826",
     "gndAlt": "603",
     "speed": "22",
-    "timestamp": 1615411183000
+    "timeMs": 1615411183000
   },
   {
     "name": "flymaster",
@@ -573,7 +573,7 @@
     "alt": "826",
     "gndAlt": "603",
     "speed": "19",
-    "timestamp": 1615411184000
+    "timeMs": 1615411184000
   },
   {
     "name": "flymaster",
@@ -582,7 +582,7 @@
     "alt": "826",
     "gndAlt": "603",
     "speed": "19",
-    "timestamp": 1615411185000
+    "timeMs": 1615411185000
   },
   {
     "name": "flymaster",
@@ -591,7 +591,7 @@
     "alt": "824",
     "gndAlt": "603",
     "speed": "19",
-    "timestamp": 1615411186000
+    "timeMs": 1615411186000
   },
   {
     "name": "flymaster",
@@ -600,7 +600,7 @@
     "alt": "823",
     "gndAlt": "603",
     "speed": "18",
-    "timestamp": 1615411187000
+    "timeMs": 1615411187000
   },
   {
     "name": "flymaster",
@@ -609,7 +609,7 @@
     "alt": "822",
     "gndAlt": "603",
     "speed": "19",
-    "timestamp": 1615411188000
+    "timeMs": 1615411188000
   },
   {
     "name": "flymaster",
@@ -618,7 +618,7 @@
     "alt": "821",
     "gndAlt": "603",
     "speed": "22",
-    "timestamp": 1615411189000
+    "timeMs": 1615411189000
   },
   {
     "name": "flymaster",
@@ -627,7 +627,7 @@
     "alt": "820",
     "gndAlt": "603",
     "speed": "23",
-    "timestamp": 1615411190000
+    "timeMs": 1615411190000
   },
   {
     "name": "flymaster",
@@ -636,7 +636,7 @@
     "alt": "820",
     "gndAlt": "603",
     "speed": "22",
-    "timestamp": 1615411191000
+    "timeMs": 1615411191000
   },
   {
     "name": "flymaster",
@@ -645,7 +645,7 @@
     "alt": "819",
     "gndAlt": "603",
     "speed": "20",
-    "timestamp": 1615411192000
+    "timeMs": 1615411192000
   },
   {
     "name": "flymaster",
@@ -654,7 +654,7 @@
     "alt": "818",
     "gndAlt": "603",
     "speed": "21",
-    "timestamp": 1615411193000
+    "timeMs": 1615411193000
   },
   {
     "name": "flymaster",
@@ -663,7 +663,7 @@
     "alt": "818",
     "gndAlt": "633",
     "speed": "22",
-    "timestamp": 1615411194000
+    "timeMs": 1615411194000
   },
   {
     "name": "flymaster",
@@ -672,7 +672,7 @@
     "alt": "818",
     "gndAlt": "633",
     "speed": "22",
-    "timestamp": 1615411195000
+    "timeMs": 1615411195000
   },
   {
     "name": "flymaster",
@@ -681,7 +681,7 @@
     "alt": "819",
     "gndAlt": "633",
     "speed": "22",
-    "timestamp": 1615411196000
+    "timeMs": 1615411196000
   },
   {
     "name": "flymaster",
@@ -690,7 +690,7 @@
     "alt": "819",
     "gndAlt": "633",
     "speed": "22",
-    "timestamp": 1615411197000
+    "timeMs": 1615411197000
   },
   {
     "name": "flymaster",
@@ -699,7 +699,7 @@
     "alt": "820",
     "gndAlt": "633",
     "speed": "24",
-    "timestamp": 1615411198000
+    "timeMs": 1615411198000
   },
   {
     "name": "flymaster",
@@ -708,7 +708,7 @@
     "alt": "821",
     "gndAlt": "633",
     "speed": "27",
-    "timestamp": 1615411199000
+    "timeMs": 1615411199000
   },
   {
     "name": "flymaster",
@@ -717,7 +717,7 @@
     "alt": "821",
     "gndAlt": "633",
     "speed": "29",
-    "timestamp": 1615411200000
+    "timeMs": 1615411200000
   },
   {
     "name": "flymaster",
@@ -726,7 +726,7 @@
     "alt": "822",
     "gndAlt": "633",
     "speed": "27",
-    "timestamp": 1615411201000
+    "timeMs": 1615411201000
   },
   {
     "name": "flymaster",
@@ -735,7 +735,7 @@
     "alt": "822",
     "gndAlt": "633",
     "speed": "25",
-    "timestamp": 1615411202000
+    "timeMs": 1615411202000
   },
   {
     "name": "flymaster",
@@ -744,7 +744,7 @@
     "alt": "822",
     "gndAlt": "633",
     "speed": "24",
-    "timestamp": 1615411203000
+    "timeMs": 1615411203000
   },
   {
     "name": "flymaster",
@@ -753,7 +753,7 @@
     "alt": "822",
     "gndAlt": "633",
     "speed": "24",
-    "timestamp": 1615411204000
+    "timeMs": 1615411204000
   },
   {
     "name": "flymaster",
@@ -762,7 +762,7 @@
     "alt": "821",
     "gndAlt": "633",
     "speed": "24",
-    "timestamp": 1615411205000
+    "timeMs": 1615411205000
   },
   {
     "name": "flymaster",
@@ -771,7 +771,7 @@
     "alt": "822",
     "gndAlt": "633",
     "speed": "25",
-    "timestamp": 1615411206000
+    "timeMs": 1615411206000
   },
   {
     "name": "flymaster",
@@ -780,7 +780,7 @@
     "alt": "824",
     "gndAlt": "633",
     "speed": "24",
-    "timestamp": 1615411207000
+    "timeMs": 1615411207000
   },
   {
     "name": "flymaster",
@@ -789,7 +789,7 @@
     "alt": "826",
     "gndAlt": "633",
     "speed": "21",
-    "timestamp": 1615411208000
+    "timeMs": 1615411208000
   },
   {
     "name": "flymaster",
@@ -798,7 +798,7 @@
     "alt": "828",
     "gndAlt": "633",
     "speed": "18",
-    "timestamp": 1615411209000
+    "timeMs": 1615411209000
   },
   {
     "name": "flymaster",
@@ -807,7 +807,7 @@
     "alt": "830",
     "gndAlt": "633",
     "speed": "19",
-    "timestamp": 1615411210000
+    "timeMs": 1615411210000
   },
   {
     "name": "flymaster",
@@ -816,7 +816,7 @@
     "alt": "831",
     "gndAlt": "623",
     "speed": "21",
-    "timestamp": 1615411211000
+    "timeMs": 1615411211000
   },
   {
     "name": "flymaster",
@@ -825,7 +825,7 @@
     "alt": "831",
     "gndAlt": "649",
     "speed": "19",
-    "timestamp": 1615411212000
+    "timeMs": 1615411212000
   },
   {
     "name": "flymaster",
@@ -834,7 +834,7 @@
     "alt": "832",
     "gndAlt": "649",
     "speed": "16",
-    "timestamp": 1615411213000
+    "timeMs": 1615411213000
   },
   {
     "name": "flymaster",
@@ -843,7 +843,7 @@
     "alt": "833",
     "gndAlt": "649",
     "speed": "16",
-    "timestamp": 1615411214000
+    "timeMs": 1615411214000
   },
   {
     "name": "flymaster",
@@ -852,7 +852,7 @@
     "alt": "835",
     "gndAlt": "649",
     "speed": "15",
-    "timestamp": 1615411215000
+    "timeMs": 1615411215000
   },
   {
     "name": "flymaster",
@@ -861,7 +861,7 @@
     "alt": "836",
     "gndAlt": "649",
     "speed": "15",
-    "timestamp": 1615411216000
+    "timeMs": 1615411216000
   },
   {
     "name": "flymaster",
@@ -870,7 +870,7 @@
     "alt": "837",
     "gndAlt": "649",
     "speed": "14",
-    "timestamp": 1615411217000
+    "timeMs": 1615411217000
   },
   {
     "name": "flymaster",
@@ -879,7 +879,7 @@
     "alt": "838",
     "gndAlt": "649",
     "speed": "14",
-    "timestamp": 1615411218000
+    "timeMs": 1615411218000
   },
   {
     "name": "flymaster",
@@ -888,7 +888,7 @@
     "alt": "838",
     "gndAlt": "649",
     "speed": "16",
-    "timestamp": 1615411219000
+    "timeMs": 1615411219000
   },
   {
     "name": "flymaster",
@@ -897,6 +897,6 @@
     "alt": "838",
     "gndAlt": "623",
     "speed": "18",
-    "timestamp": 1615411220000
+    "timeMs": 1615411220000
   }
 ]

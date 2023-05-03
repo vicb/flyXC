@@ -44,7 +44,7 @@ export function parse(position: any, fleetName: UfoFleetNames): LivePoint[] {
     lat,
     lon,
     alt: Math.round(alt),
-    timestamp: Date.parse(timestamp),
+    timeMs: Date.parse(timestamp),
     name: fleetName,
     speed: Math.round(vel * 3.6),
   };

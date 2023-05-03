@@ -112,14 +112,14 @@ export function parse(flight: any, nowMillis = Date.now()): LivePoint[] {
     startOfCurrentDayInSeconds - (startedOnPreviousDay ? SECONDS_IN_DAY : 0) + startDaySeconds;
 
   return time.map((seconds: number, i: number): LivePoint => {
-    const tsSeconds = startTimestampSeconds + seconds - startSeconds;
+    const timeSec = startTimestampSeconds + seconds - startSeconds;
     return {
       name: 'skylines',
       lat: lonlat[i * 2],
       lon: lonlat[i * 2 + 1],
       alt: alt[i] - (flight.geoid ?? 0),
       gndAlt: gndAlt[i],
-      timestamp: tsSeconds * 1000,
+      timeMs: timeSec * 1000,
     };
   });
 }

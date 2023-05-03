@@ -23,7 +23,7 @@ describe('Parse JSON feed', () => {
         lon: 7.20849,
         lowBattery: false,
         message: undefined,
-        timestamp: 1571231455000,
+        timeMs: 1571231455000,
       },
       {
         alt: 0,
@@ -33,7 +33,7 @@ describe('Parse JSON feed', () => {
         lon: 7.20879,
         lowBattery: false,
         message: 'msg ok',
-        timestamp: 1571230698000,
+        timeMs: 1571230698000,
       },
       {
         alt: 0,
@@ -43,7 +43,7 @@ describe('Parse JSON feed', () => {
         lon: 7.20351,
         lowBattery: false,
         message: 'msg help',
-        timestamp: 1571230128000,
+        timeMs: 1571230128000,
       },
       {
         alt: 0,
@@ -53,7 +53,7 @@ describe('Parse JSON feed', () => {
         lon: 7.20452,
         lowBattery: true,
         message: undefined,
-        timestamp: 1571229492000,
+        timeMs: 1571229492000,
       },
       {
         alt: 0,
@@ -63,7 +63,7 @@ describe('Parse JSON feed', () => {
         lon: 7.22531,
         lowBattery: false,
         message: undefined,
-        timestamp: 1571228890000,
+        timeMs: 1571228890000,
       },
     ]);
   });
@@ -78,7 +78,7 @@ describe('Parse JSON feed', () => {
         lon: 7.20849,
         lowBattery: false,
         message: undefined,
-        timestamp: 1571231455000,
+        timeMs: 1571231455000,
       },
       {
         alt: 456,
@@ -88,7 +88,7 @@ describe('Parse JSON feed', () => {
         lon: 7.20879,
         lowBattery: false,
         message: 'msg ok',
-        timestamp: 1571230698000,
+        timeMs: 1571230698000,
       },
       {
         alt: 789,
@@ -98,7 +98,7 @@ describe('Parse JSON feed', () => {
         lon: 7.20351,
         lowBattery: false,
         message: 'msg help',
-        timestamp: 1571230128000,
+        timeMs: 1571230128000,
       },
       {
         alt: 123,
@@ -108,7 +108,7 @@ describe('Parse JSON feed', () => {
         lon: 7.20452,
         lowBattery: true,
         message: undefined,
-        timestamp: 1571229492000,
+        timeMs: 1571229492000,
       },
       {
         alt: 456,
@@ -118,7 +118,7 @@ describe('Parse JSON feed', () => {
         lon: 7.22531,
         lowBattery: false,
         message: undefined,
-        timestamp: 1571228890000,
+        timeMs: 1571228890000,
       },
     ]);
   });
