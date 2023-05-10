@@ -2,6 +2,12 @@ import { LiveDifferentialTrack, LiveExtra, LiveTrack } from '../protos/live-trac
 import { diffDecodeArray, diffEncodeArray, findIndexes } from './math';
 import { deepCopy } from './util';
 
+// Number of bits reserved for device names.
+const DEVICE_TYPE_NUM_BITS = 5;
+// 0 is unused
+const MAX_NUM_DEVICES = 2 ** DEVICE_TYPE_NUM_BITS - 1;
+const DEVICE_TYPE_BITMASK = 2 ** DEVICE_TYPE_NUM_BITS - 1;
+
 // How long to retain live tracking positions.
 export const LIVE_TRACKER_RETENTION_SEC = 24 * 3600;
 export const LIVE_FLIGHT_MODE_RETENTION_SEC = 40 * 60;
@@ -30,6 +36,10 @@ export const EXPORT_UPDATE_SEC = 5 * 60;
 
 export const trackerNames = ['inreach', 'spot', 'skylines', 'flyme', 'flymaster', 'ogn'] as const;
 
+if (trackerNames.length > MAX_NUM_DEVICES - 1) {
+  throw new Error('Too many devices');
+}
+
 // ID for the tracking devices.
 export type TrackerNames = (typeof trackerNames)[number];
 
@@ -55,6 +65,10 @@ export const ufoFleetNames = ['aviant'] as const;
 
 export type UfoFleetNames = (typeof ufoFleetNames)[number];
 
+if (ufoFleetNames.length > MAX_NUM_DEVICES - 1) {
+  throw new Error('Too many devices');
+}
+
 export const ufoFleetDisplayNames: Readonly<Record<UfoFleetNames, string>> = {
   aviant: 'Aviant drone',
 };
@@ -71,8 +85,7 @@ ufoFleetNames.forEach((name, index) => {
 });
 
 export enum LiveTrackFlag {
-  // Reserve 5 bits for the device.
-  DeviceTypeMask = (1 << 6) - 1,
+  DeviceTypeMask = DEVICE_TYPE_BITMASK,
   Valid = 1 << 6,
   Emergency = 1 << 7,
   LowBat = 1 << 8,
