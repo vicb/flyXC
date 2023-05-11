@@ -11,7 +11,7 @@ WORKDIR /usr/src/app
 RUN npm install -g npm@latest
 
 COPY dist/apps/run/package*.json ./
-RUN npm install --omit=dev
+RUN npm ci --no-audit
 
 COPY dist/apps/run/main.js ./
 
