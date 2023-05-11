@@ -5,7 +5,8 @@ import { Socket } from 'node:net';
 import readline, { Interface } from 'node:readline';
 
 const VERSION = '1.0';
-const OGN_POS_REGEXP = /^(?<src>.+?)>.*?:\/(?<position>.*?id[0-9a-z]{2}(?<id>[0-9a-z]{6}).*)$/i;
+const OGN_FAST_ID_REGEXP = /\bid[0-9a-z]{2}(?<id>[0-9a-z]{6})\b/i;
+const OGN_POSITION_REGEXP = /^(?<src>.+?)>.*?:\/(?<position>.*)$/i;
 const MAX_NUM_POSITIONS = 100000;
 const TX_KEEP_ALIVE_MIN = 10;
 const MAX_LOG_ENTRIES = 50;
@@ -100,13 +101,18 @@ export class OgnClient {
   }
 
   protected onLine(line: string) {
-    const match = line.match(OGN_POS_REGEXP);
-    if (match) {
-      const id = match.groups['id'].toUpperCase();
+    // Start by doing a fast check on the id.
+    const matchId = line.match(OGN_FAST_ID_REGEXP);
+    if (matchId) {
+      const id = matchId.groups['id'].toUpperCase();
+      // Skip the more expensive regexp if the id should not be tracked.
       if (this.trackingIds.has(id)) {
-        const position = parseAprsPosition(match.groups['position']);
-        if (position != null && this.positions.size < MAX_NUM_POSITIONS) {
-          this.positions.set(id, position);
+        const match = line.match(OGN_POSITION_REGEXP);
+        if (match) {
+          const position = parseAprsPosition(match.groups['position']);
+          if (position != null && this.positions.size < MAX_NUM_POSITIONS) {
+            this.positions.set(id, position);
+          }
         }
       }
     }
