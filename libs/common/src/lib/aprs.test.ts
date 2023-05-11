@@ -231,6 +231,10 @@ describe('generateAprsPosition', () => {
     expect(generateAprsPosition(position, '123ABC')).toEqual(
       'FXC123ABC>FXCAPP:/000000h0000.00N/00000.00Eg123/000/A=000000 !W00! id1E123ABC',
     );
+    position.course = 123.456;
+    expect(generateAprsPosition(position, '123ABC')).toEqual(
+      'FXC123ABC>FXCAPP:/000000h0000.00N/00000.00Eg123/000/A=000000 !W00! id1E123ABC',
+    );
     position.course = 362;
     expect(generateAprsPosition(position, '123ABC')).toEqual(
       'FXC123ABC>FXCAPP:/000000h0000.00N/00000.00Eg002/000/A=000000 !W00! id1E123ABC',
@@ -243,6 +247,10 @@ describe('generateAprsPosition', () => {
       'FXC123ABC>FXCAPP:/000000h0000.00N/00000.00Eg000/000/A=000000 !W00! id1E123ABC',
     );
     position.speed = 185;
+    expect(generateAprsPosition(position, '123ABC')).toEqual(
+      'FXC123ABC>FXCAPP:/000000h0000.00N/00000.00Eg000/100/A=000000 !W00! id1E123ABC',
+    );
+    position.speed = 185.123;
     expect(generateAprsPosition(position, '123ABC')).toEqual(
       'FXC123ABC>FXCAPP:/000000h0000.00N/00000.00Eg000/100/A=000000 !W00! id1E123ABC',
     );
@@ -262,6 +270,10 @@ describe('generateAprsPosition', () => {
       'FXC123ABC>FXCAPP:/000000h0000.00N/00000.00Eg000/000/A=000000 !W00! id1E123ABC',
     );
     position.alt = 91;
+    expect(generateAprsPosition(position, '123ABC')).toEqual(
+      'FXC123ABC>FXCAPP:/000000h0000.00N/00000.00Eg000/000/A=000299 !W00! id1E123ABC',
+    );
+    position.alt = 91.123;
     expect(generateAprsPosition(position, '123ABC')).toEqual(
       'FXC123ABC>FXCAPP:/000000h0000.00N/00000.00Eg000/000/A=000299 !W00! id1E123ABC',
     );

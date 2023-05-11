@@ -1,4 +1,5 @@
 import { AprsPosition, findIndexes, generateAprsPosition, getFixSpeed, getTrackerName, protos } from '@flyxc/common';
+import { getRhumbLineBearing } from 'geolib';
 import { OgnClient } from './ogn-client';
 
 // Don't push obsolete fixes.
@@ -57,13 +58,21 @@ export class OgnPusher {
         continue;
       }
       const ognId = this.state.pilots[dsId].ogn.account;
+      // glidertracker.org displays faded icons for course = 0.
+      let course = 1;
+      if (track.timeSec.length >= 2) {
+        course = getRhumbLineBearing(
+          { lat: track.lat.at(-2), lon: track.lon.at(-2) },
+          { lat: track.lat.at(-1), lon: track.lon.at(-1) },
+        );
+      }
       const position: AprsPosition = {
         lat: track.lat.at(-1),
         lon: track.lon.at(-1),
         timeSec: lastFixSec,
         alt: track.alt.at(-1),
         speed: getFixSpeed(track, track.timeSec.length - 1),
-        course: 0,
+        course,
       };
       this.ognClient.write(generateAprsPosition(position, ognId));
       this.lastPushSecByDsId.set(dsId, lastFixSec);
