@@ -1,12 +1,13 @@
 import { LitElement, PropertyValues } from 'lit';
-import { customElement, state, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
-import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
 import Map from '@arcgis/core/Map';
+import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
+import TileInfo from '@arcgis/core/layers/support/TileInfo';
 
-import { RootState, store } from '../../redux/store';
 import { AIRWAYS_TILE_MAX_ZOOM, AIRWAYS_TILE_MIN_ZOOM, AIRWAYS_TILE_URL } from '../../logic/airways';
+import { RootState, store } from '../../redux/store';
 
 @customElement('airways3d-element')
 export class Airways3dElement extends connect(store)(LitElement) {
@@ -66,6 +67,7 @@ export class Airways3dElement extends connect(store)(LitElement) {
       minScale: AIRWAYS_TILE_MIN_ZOOM,
       copyright: 'Skyways &copy; <a href="https://thermal.kk7.ch/">kk7.ch</a>',
       title: 'thermals',
+      tileInfo: TileInfo.create({ numLODs: AIRWAYS_TILE_MAX_ZOOM + 1 }),
     });
     this.map.add(this.layer!);
   }

@@ -6,4 +6,4 @@ export const AIRWAYS_TILE_URL = 'https://thermal.kk7.ch/tiles/skyways_all/{z}/{x
 );
 
 export const AIRWAYS_TILE_MIN_ZOOM = 0;
-export const AIRWAYS_TILE_MAX_ZOOM = 0;
+export const AIRWAYS_TILE_MAX_ZOOM = 13;
