@@ -36,6 +36,9 @@ export {
   TrackingElement,
 };
 
+// Google maps terrain is only available up to zoom level 17.
+export const GMAP_MAX_ZOOM_LEVEL = 17;
+
 let gMapsApiLoading: Promise<void> | undefined;
 
 // Load the google maps API
@@ -143,8 +146,7 @@ export class MapElement extends connect(store)(LitElement) {
       const options: google.maps.MapOptions = {
         zoom: 11,
         minZoom: 3,
-        // Google maps terrain is only available up to zoom level 17.
-        maxZoom: 17,
+        maxZoom: GMAP_MAX_ZOOM_LEVEL,
         mapTypeId: google.maps.MapTypeId.TERRAIN,
         scaleControl: true,
         fullscreenControl: false,

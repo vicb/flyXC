@@ -1,20 +1,21 @@
 import { html, LitElement, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { html as baseHtml, TemplateResult } from 'lit/html.js';
+import { TemplateResult } from 'lit/html.js';
 import { connect } from 'pwa-helpers';
 import { AIRWAYS_TILE_MAX_ZOOM, AIRWAYS_TILE_MIN_ZOOM, AIRWAYS_TILE_URL } from '../../logic/airways';
-
 import { RootState, store } from '../../redux/store';
-import { WMTSOverlayElement } from './wmts-overlay';
+import { GMAP_MAX_ZOOM_LEVEL } from './map-element';
+import { WMTSInterpolatingOverlayElement } from './wmts-overlay';
 
 @customElement('airways-overlay')
-export class AirwaysOverlay extends WMTSOverlayElement {
+export class AirwaysOverlay extends WMTSInterpolatingOverlayElement {
   mapName = 'Thermals';
   copyright = {
-    html: baseHtml`thermal.kk7.ch`,
+    html: `thermal.kk7.ch`,
     url: 'https://thermal.kk7.ch',
   };
-  zoom = [AIRWAYS_TILE_MIN_ZOOM, AIRWAYS_TILE_MAX_ZOOM];
+  zoom = [AIRWAYS_TILE_MIN_ZOOM, GMAP_MAX_ZOOM_LEVEL];
+  maxTileZoom = AIRWAYS_TILE_MAX_ZOOM;
   bounds = null;
   url = AIRWAYS_TILE_URL;
 

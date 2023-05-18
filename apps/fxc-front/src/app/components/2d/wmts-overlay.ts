@@ -1,7 +1,6 @@
 import { LitElement } from 'lit';
 import { property } from 'lit/decorators.js';
 // Warning: those are not the same at lit-element ones.
-import { html as litHtml, render as litRender, TemplateResult } from 'lit/html.js';
 
 export abstract class WMTSOverlayElement extends LitElement {
   @property({ attribute: false })
@@ -12,7 +11,7 @@ export abstract class WMTSOverlayElement extends LitElement {
   protected registered = false;
 
   abstract get mapName(): string;
-  abstract get copyright(): { html: TemplateResult; url: string };
+  abstract get copyright(): { html: string; url: string };
   abstract get url(): string;
   abstract get zoom(): number[];
   abstract get bounds(): number[][] | null;
@@ -63,7 +62,7 @@ export abstract class WMTSOverlayElement extends LitElement {
       .replace('{y}', coord.y.toString());
   }
 
-  protected getMapType(): google.maps.ImageMapType {
+  protected getMapType(): google.maps.MapType {
     const [minZoom, maxZoom] = this.zoom;
     return new google.maps.ImageMapType({
       getTileUrl: (...args): string => this.getTileUrl(...args),
@@ -92,12 +91,12 @@ export abstract class WMTSOverlayElement extends LitElement {
   protected createCopyrightElement(): void {
     const { html, url } = this.copyright;
     this.copyrightEl = document.createElement('div');
-    litRender(
-      litHtml`
-          <a href=${url} target="_blank" class="attribution">${html}</a>
-        `,
-      this.copyrightEl,
-    );
+    const a = document.createElement('a');
+    a.setAttribute('href', url);
+    a.setAttribute('target', '_blank');
+    a.className = 'attribution';
+    a.innerHTML = html;
+    this.copyrightEl.appendChild(a);
     this.copyrightEl.hidden = true;
     this.map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(this.copyrightEl);
   }
@@ -129,10 +128,7 @@ export abstract class WMTSMapTypeElement extends WMTSOverlayElement {
     });
   }
 
-  protected registerMapType(
-    name = (this.constructor as any).mapTypeId,
-    mapType: google.maps.ImageMapType = this.getMapType(),
-  ): void {
+  protected registerMapType(name = (this.constructor as any).mapTypeId, mapType = this.getMapType()): void {
     this.map.mapTypes.set(name, mapType);
   }
 
@@ -144,5 +140,94 @@ export abstract class WMTSMapTypeElement extends WMTSOverlayElement {
 
   protected createRenderRoot(): Element {
     return this;
+  }
+}
+
+// Interpolate tiles when the layer zoom level is greater than the highest available tile zoom.
+export abstract class WMTSInterpolatingOverlayElement extends WMTSOverlayElement {
+  protected tileSet = new Set<HTMLElement>();
+  protected opacity = 1;
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.tileSet.clear();
+  }
+
+  // Highest available zoom level
+  abstract get maxTileZoom(): number;
+
+  protected getTile(coord: google.maps.Point | null, zoom: number, ownerDocument: Document | null): HTMLElement {
+    if (coord == null || ownerDocument == null) {
+      return null as any;
+    }
+
+    const div = ownerDocument.createElement('div') as HTMLDivElement;
+    const img = ownerDocument.createElement('img') as HTMLImageElement;
+    div.classList.add('fxc-tile');
+    img.classList.add('fxc-tile');
+    div.appendChild(img);
+    img.setAttribute('referrerpolicy', 'no-referrer');
+    img.onload = () => {
+      img.style.opacity = String(this.opacity);
+    };
+    img.onerror = () => {
+      div.removeChild(img);
+    };
+
+    div.style.opacity = String(this.opacity);
+
+    if (zoom <= this.maxTileZoom) {
+      img.width = 256;
+      img.height = 256;
+      img.src = this.getTileUrl(coord, zoom);
+    } else {
+      const scale = Math.pow(2, zoom - this.maxTileZoom);
+      img.width = 256 * scale;
+      img.height = 256 * scale;
+      img.style.top = `-${(coord.y % scale) * 256}px`;
+      img.style.left = `-${(coord.x % scale) * 256}px`;
+      img.src = this.getTileUrl(
+        new google.maps.Point(Math.floor(coord.x / scale), Math.floor(coord.y / scale)),
+        this.maxTileZoom,
+      );
+    }
+
+    this.tileSet.add(div);
+
+    return div;
+  }
+
+  protected releaseTile(tile: Element | null): void {
+    if (tile == null) {
+      return;
+    }
+    this.tileSet.delete(tile as HTMLElement);
+    const img = tile.childNodes[0] as HTMLImageElement;
+    if (img && img.tagName == 'IMG') {
+      img.onload = null;
+      img.setAttribute('src', '');
+    }
+  }
+
+  protected getMapType(): google.maps.MapType {
+    const [minZoom, maxZoom] = this.zoom;
+    return {
+      getTile: (...args): HTMLElement => this.getTile(...args),
+      tileSize: new google.maps.Size(256, 256),
+      minZoom,
+      maxZoom,
+      name: this.mapName,
+      releaseTile: (...args): void => this.releaseTile(...args),
+      alt: this.mapName,
+      projection: null,
+      radius: 6378137,
+      setOpacity: (v: number) => {
+        for (const tile of this.tileSet) {
+          tile.style.opacity = String(v);
+        }
+        this.opacity = v;
+      },
+      getOpacity: () => this.opacity,
+    } as google.maps.MapType;
   }
 }
