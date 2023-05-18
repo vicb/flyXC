@@ -84,4 +84,20 @@ const AirwaysLayer = (WebTileLayer as any).createSubclass({
       .replace('{x}', String(x))
       .replace('{y}', String((1 << zoom) - y - 1));
   },
+  fetchTile(zoom: number, y: number, x: number): Promise<HTMLImageElement> {
+    let resolveFn: (v: HTMLImageElement) => void;
+    let rejectFn: () => void;
+    const promise = new Promise<HTMLImageElement>((resolve, reject) => {
+      resolveFn = resolve;
+      rejectFn = reject;
+    });
+    const img = document.createElement('img') as HTMLImageElement;
+    img.setAttribute('referrerpolicy', 'no-referrer');
+    img.setAttribute('crossorigin', 'anonymous');
+    img.onload = () => resolveFn(img);
+    img.onerror = () => rejectFn();
+    img.src = this.getTileUrl(zoom, y, x);
+
+    return promise;
+  },
 });
