@@ -10,7 +10,6 @@ import * as msg from '../../logic/messages';
 import { uploadTracks } from '../../logic/track';
 import { DistanceUnit, formatUnit } from '../../logic/units';
 import * as airspaces from '../../redux/airspace-slice';
-import * as airways from '../../redux/airways-slice';
 import { setApiLoading } from '../../redux/app-slice';
 import { setAltitudeMultiplier } from '../../redux/arcgis-slice';
 import {
@@ -25,6 +24,7 @@ import {
 } from '../../redux/live-track-slice';
 import { setEnabled } from '../../redux/planner-slice';
 import * as sel from '../../redux/selectors';
+import * as skyways from '../../redux/skyways-slice';
 import { RootState, store } from '../../redux/store';
 import { setLockOnPilot } from '../../redux/track-slice';
 import './about-modal';
@@ -89,7 +89,7 @@ export class MainMenu extends connect(store)(LitElement) {
                   <ion-toggle slot="end" .checked=${this.plannerEnabled} aria-label="XC Planning"></ion-toggle>
                 </ion-item>`,
             )}
-            <airways-items></airways-items>
+            <skyways-items></skyways-items>
             <airspace-items></airspace-items>
             ${when(
               this.view3d,
@@ -218,7 +218,7 @@ export class AirspaceItems extends connect(store)(LitElement) {
       </ion-item>
       ${when(
         this.show,
-        () => html`<ion-item button lines="none" @click=${this.handleShowRestricted}>
+        () => html`<ion-item button lines="none" @click=${this.handleShowRestricted} .detail=${false}>
             <ion-label>E, F, G, restricted</ion-label>
             <ion-toggle slot="end" .checked=${this.showRestricted} aria-label="E, F, G, restricted"></ion-toggle>
           </ion-item>
@@ -267,48 +267,93 @@ export class AirspaceItems extends connect(store)(LitElement) {
   }
 }
 
-@customElement('airways-items')
+@customElement('skyways-items')
 export class SkywaysItems extends connect(store)(LitElement) {
   @state()
   private opacity = 100;
   @state()
   private show = false;
+  @state()
+  private layer: skyways.Layer = 'skyways';
+  @state()
+  private month: skyways.Month = 'all';
+  @state()
+  private timeOfDay: skyways.TimeOfDay = 'all';
 
   stateChanged(state: RootState): void {
-    this.opacity = state.airways.opacity;
-    this.show = state.airways.show;
+    this.opacity = state.skyways.opacity;
+    this.show = state.skyways.show;
+    this.layer = state.skyways.layer;
+    this.month = state.skyways.month;
+    this.timeOfDay = state.skyways.timeOfDay;
   }
 
   render(): TemplateResult {
     return html`<ion-item lines=${this.show ? 'none' : 'full'} button @click=${this.handleShow} .detail=${false}>
-        <i class="las la-road la-2x"></i>Airways
-        <ion-toggle slot="end" .checked=${this.show} aria-label="Airways"></ion-toggle>
+        <i class="las la-road la-2x"></i>Skyways
+        <ion-toggle slot="end" .checked=${this.show} aria-label="Skyways"></ion-toggle>
       </ion-item>
       ${when(
         this.show,
-        () => html`<ion-item @ionChange=${this.handleOpacity}>
-          <ion-range
-            min="20"
-            max="100"
-            step="5"
-            debounce="50"
-            value=${this.opacity}
-            .pin=${true}
-            .pinFormatter=${this.formatPercent}
-          >
-            <ion-label slot="start"><i class="las la-adjust"></i></ion-label>
-            <ion-label slot="end"><i class="las la-adjust la-2x"></i></ion-label>
-          </ion-range>
-        </ion-item>`,
+        () => html`<ion-item lines="none" .detail=${false}>
+            <ion-select label="Type" @ionChange=${this.handleLayer} .value=${this.layer} interface="popover">
+              ${Object.entries(skyways.layerMap).map(
+                ([value, label]: [string, string]) =>
+                  html`<ion-select-option .value=${value}>${label}</ion-select-option> `,
+              )}
+            </ion-select>
+          </ion-item>
+          <ion-item lines="none" .detail=${false}>
+            <ion-select label="Month" @ionChange=${this.handleMonth} .value=${this.month} interface="popover">
+              ${Object.entries(skyways.monthMap).map(
+                ([value, label]: [string, string]) =>
+                  html`<ion-select-option .value=${value}>${label}</ion-select-option> `,
+              )}
+            </ion-select>
+          </ion-item>
+          <ion-item lines="none" .detail=${false}>
+            <ion-select label="Time" @ionChange=${this.handleTimeOfDay} .value=${this.timeOfDay} interface="popover">
+              ${skyways.timeOfDayList.map(
+                (value: skyways.TimeOfDay) =>
+                  html`<ion-select-option .value=${value}>${skyways.timeOfDayMap[value]}</ion-select-option> `,
+              )}
+            </ion-select>
+          </ion-item>
+          <ion-item @ionChange=${this.handleOpacity} .detail=${false} class="dense">
+            <ion-range
+              min="20"
+              max="100"
+              step="5"
+              debounce="50"
+              value=${this.opacity}
+              .pin=${true}
+              .pinFormatter=${this.formatPercent}
+            >
+              <ion-label slot="start"><i class="las la-adjust"></i></ion-label>
+              <ion-label slot="end"><i class="las la-adjust la-2x"></i></ion-label>
+            </ion-range>
+          </ion-item>`,
       )}`;
   }
 
+  private handleLayer(event: CustomEvent) {
+    store.dispatch(skyways.setLayer(event.detail.value));
+  }
+
+  private handleMonth(event: CustomEvent) {
+    store.dispatch(skyways.setMonth(event.detail.value));
+  }
+
+  private handleTimeOfDay(event: CustomEvent) {
+    store.dispatch(skyways.setTimeOfDay(event.detail.value));
+  }
+
   private handleShow() {
-    store.dispatch(airways.setShow(!this.show));
+    store.dispatch(skyways.setShow(!this.show));
   }
 
   private handleOpacity(event: CustomEvent) {
-    store.dispatch(airways.setOpacity(event.detail.value));
+    store.dispatch(skyways.setOpacity(event.detail.value));
   }
 
   private formatPercent(value: number) {

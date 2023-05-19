@@ -6,11 +6,11 @@ import Map from '@arcgis/core/Map';
 import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
 import TileInfo from '@arcgis/core/layers/support/TileInfo';
 
-import { AIRWAYS_TILE_MAX_ZOOM, AIRWAYS_TILE_MIN_ZOOM, AIRWAYS_TILE_URL } from '../../logic/airways';
+import * as skyways from '../../redux/skyways-slice';
 import { RootState, store } from '../../redux/store';
 
-@customElement('airways3d-element')
-export class Airways3dElement extends connect(store)(LitElement) {
+@customElement('skyways3d-element')
+export class Skyways3dElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   map!: Map;
 
@@ -18,12 +18,18 @@ export class Airways3dElement extends connect(store)(LitElement) {
   opacity = 0.5;
   @state()
   show = false;
+  @state()
+  maxZoom = 13;
+  @state()
+  tileUrl = skyways.getTileUrl(store.getState());
 
   private layer?: WebTileLayer;
 
   stateChanged(state: RootState): void {
-    this.show = state.airways.show;
-    this.opacity = state.airways.opacity;
+    this.show = state.skyways.show;
+    this.opacity = state.skyways.opacity;
+    this.tileUrl = skyways.getTileUrl(state);
+    this.maxZoom = skyways.getTileMaxZoom(state.skyways.layer);
   }
 
   protected shouldUpdate(changedProperties: PropertyValues): boolean {
@@ -36,6 +42,13 @@ export class Airways3dElement extends connect(store)(LitElement) {
       if (changedProperties.has('opacity')) {
         changedProperties.delete('opacity');
         this.layer.opacity = this.opacity / 100;
+      }
+
+      if (changedProperties.has('tileUrl') || changedProperties.has('maxZoom')) {
+        this.removeLayer();
+        this.setupLayer();
+        changedProperties.delete('titleUrl');
+        changedProperties.delete('maxZoom');
       }
     }
 
@@ -61,13 +74,11 @@ export class Airways3dElement extends connect(store)(LitElement) {
   }
 
   private setupLayer() {
-    this.layer = new AirwaysLayer({
-      urlTemplate: AIRWAYS_TILE_URL,
-      maxScale: AIRWAYS_TILE_MAX_ZOOM,
-      minScale: AIRWAYS_TILE_MIN_ZOOM,
+    this.layer = new SkywaysLayer({
+      urlTemplate: this.tileUrl,
       copyright: 'Skyways &copy; <a href="https://thermal.kk7.ch/">kk7.ch</a>',
       title: 'thermals',
-      tileInfo: TileInfo.create({ numLODs: AIRWAYS_TILE_MAX_ZOOM + 1 }),
+      tileInfo: TileInfo.create({ numLODs: this.maxZoom + 1 }),
     });
     this.map.add(this.layer!);
   }
@@ -77,7 +88,7 @@ export class Airways3dElement extends connect(store)(LitElement) {
   }
 }
 
-const AirwaysLayer = (WebTileLayer as any).createSubclass({
+const SkywaysLayer = (WebTileLayer as any).createSubclass({
   getTileUrl(zoom: number, y: number, x: number) {
     return this.urlTemplate
       .replace('{z}', String(zoom))

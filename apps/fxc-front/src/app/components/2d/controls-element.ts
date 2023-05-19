@@ -2,8 +2,8 @@ import '../dashboard-element';
 import '../menu-element';
 import '../name-element';
 import './airspace-element';
-import './airways-element';
 import './path-element';
+import './skyways-element';
 import './tracking-element';
 
 import * as common from '@flyxc/common';
@@ -53,7 +53,7 @@ export class ControlsElement extends connect(store)(LitElement) {
     return html`<div id="ct">
       <menu-ctrl-element></menu-ctrl-element>
       <airspace-element .map=${this.map}></airspace-element>
-      <airways-element .map=${this.map}></airways-element>
+      <skyways-element .map=${this.map}></skyways-element>
       <path-element .map=${this.map}></path-element>
       <tracking-element .map=${this.map}></tracking-element>
       ${when(

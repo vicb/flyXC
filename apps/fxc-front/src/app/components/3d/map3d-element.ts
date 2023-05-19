@@ -1,22 +1,22 @@
 import './airspace3d-element';
-import './airways3d-element';
 import './controls3d-element';
 import './line3d-element';
 import './marker3d-element';
+import './skyways3d-element';
 
 import Basemap from '@arcgis/core/Basemap';
+import Map from '@arcgis/core/Map';
 import esriConfig from '@arcgis/core/config';
 import Point from '@arcgis/core/geometry/Point';
 import BaseElevationLayer from '@arcgis/core/layers/BaseElevationLayer';
 import ElevationLayer from '@arcgis/core/layers/ElevationLayer';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
-import Map from '@arcgis/core/Map';
 import SceneView from '@arcgis/core/views/SceneView';
 import NavigationToggle from '@arcgis/core/widgets/NavigationToggle';
 import { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
-import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
+import { LitElement, PropertyValues, TemplateResult, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
@@ -30,7 +30,7 @@ import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
 import { Airspace3dElement } from './airspace3d-element';
-import { Airways3dElement } from './airways3d-element';
+import { Skyways3dElement } from './skyways3d-element';
 
 @customElement('map3d-element')
 export class Map3dElement extends connect(store)(LitElement) {
@@ -188,9 +188,9 @@ export class Map3dElement extends connect(store)(LitElement) {
     view.ui.add(layerSwitcher, 'top-left');
     view.ui.move([layerSwitcher, 'compass', 'navigation-toggle'], 'top-left');
 
-    const airways = document.createElement('airways3d-element') as Airways3dElement;
-    airways.map = this.map;
-    view.ui.add(airways, 'top-right');
+    const skyways = document.createElement('skyways3d-element') as Skyways3dElement;
+    skyways.map = this.map;
+    view.ui.add(skyways, 'top-right');
 
     this.airspace = document.createElement('airspace3d-element') as Airspace3dElement;
     this.airspace.map = this.map;

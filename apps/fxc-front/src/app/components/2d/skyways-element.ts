@@ -2,22 +2,24 @@ import { html, LitElement, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { TemplateResult } from 'lit/html.js';
 import { connect } from 'pwa-helpers';
-import { AIRWAYS_TILE_MAX_ZOOM, AIRWAYS_TILE_MIN_ZOOM, AIRWAYS_TILE_URL } from '../../logic/airways';
+import * as skyways from '../../redux/skyways-slice';
 import { RootState, store } from '../../redux/store';
 import { GMAP_MAX_ZOOM_LEVEL } from './map-element';
 import { WMTSInterpolatingOverlayElement } from './wmts-overlay';
 
-@customElement('airways-overlay')
-export class AirwaysOverlay extends WMTSInterpolatingOverlayElement {
+@customElement('skyways-overlay')
+export class SkywaysOverlay extends WMTSInterpolatingOverlayElement {
   mapName = 'Thermals';
   copyright = {
     html: `thermal.kk7.ch`,
     url: 'https://thermal.kk7.ch',
   };
-  zoom = [AIRWAYS_TILE_MIN_ZOOM, GMAP_MAX_ZOOM_LEVEL];
-  maxTileZoom = AIRWAYS_TILE_MAX_ZOOM;
+  zoom = [skyways.TILE_MIN_ZOOM, GMAP_MAX_ZOOM_LEVEL];
   bounds = null;
-  url = AIRWAYS_TILE_URL;
+  @property()
+  url = '';
+  @property()
+  maxTileZoom = 12;
 
   getTileUrl(coord: google.maps.Point, zoom: number): string {
     const numTiles = Math.pow(2, zoom);
@@ -28,8 +30,8 @@ export class AirwaysOverlay extends WMTSInterpolatingOverlayElement {
   }
 }
 
-@customElement('airways-element')
-export class AirwaysElement extends connect(store)(LitElement) {
+@customElement('skyways-element')
+export class SkywaysElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   map!: google.maps.Map;
 
@@ -37,14 +39,17 @@ export class AirwaysElement extends connect(store)(LitElement) {
   opacity = 100;
   @state()
   show = false;
+  @state()
+  tileUrl = '';
 
   private overlay?: google.maps.ImageMapType;
   private overlayAddedToMap = false;
   private copyrightEl?: HTMLElement;
 
   stateChanged(state: RootState): void {
-    this.show = state.airways.show;
-    this.opacity = state.airways.opacity;
+    this.show = state.skyways.show;
+    this.opacity = state.skyways.opacity;
+    this.tileUrl = skyways.getTileUrl(state);
   }
 
   disconnectedCallback(): void {
@@ -54,26 +59,35 @@ export class AirwaysElement extends connect(store)(LitElement) {
   }
 
   protected shouldUpdate(changedProperties: PropertyValues): boolean {
-    this.setupOverlay();
+    this.setupOverlay(changedProperties.has('tileUrl'));
     return super.shouldUpdate(changedProperties);
   }
 
   protected render(): TemplateResult {
-    return html`<airways-overlay @overlayready=${this.overlayReady} .map=${this.map}></airways-overlay>`;
+    return html`<skyways-overlay
+      url=${this.tileUrl}
+      @overlayready=${this.overlayReady}
+      .map=${this.map}
+    ></skyways-overlay>`;
   }
 
   private overlayReady(e: CustomEvent): void {
     this.overlay = e.detail.mapType();
     this.copyrightEl = e.detail.copyrightEl;
-    this.setupOverlay();
+    this.setupOverlay(false);
   }
 
-  private setupOverlay() {
+  // `force` will force remove an existing overlay.
+  // Used to refresh the tiles when the url changes.
+  private setupOverlay(force: boolean) {
     if (!this.overlay) {
       return;
     }
     if (this.show) {
       this.copyrightEl!.hidden = false;
+      if (force) {
+        this.removeOverlay();
+      }
       if (!this.overlayAddedToMap) {
         this.map.overlayMapTypes.push(this.overlay!);
         this.overlayAddedToMap = true;
