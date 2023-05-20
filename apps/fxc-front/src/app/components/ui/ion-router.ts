@@ -6,7 +6,7 @@ import { c as componentOnReady, o as debounce } from '@ionic/core/components/hel
 /*!
  * (C) Ionic http://ionicframework.com - MIT License
  */
-import { createEvent, HTMLElement, proxyCustomElement } from '@stencil/core/internal/client';
+import { HTMLElement, createEvent, proxyCustomElement } from '@stencil/core/internal/client';
 
 const ROUTER_INTENT_NONE = 'root';
 const ROUTER_INTENT_FORWARD = 'forward';
@@ -372,244 +372,227 @@ const resolveNavigation = async (fromPath, toPath, tree, numRedirects = 0) => {
   return parsedTo;
 };
 
-let Router = class extends HTMLElement {
-  constructor() {
-    super();
-    this.__registerHost();
-    this.ionRouteWillChange = createEvent(this, 'ionRouteWillChange', 7);
-    this.ionRouteDidChange = createEvent(this, 'ionRouteDidChange', 7);
-    this.previousPath = null;
-    this.busy = false;
-    /** State for the next push */
-    this.state = 0;
-    /** Current state we are in */
-    this.lastState = 0;
-    /**
-     * The root path to use when matching URLs. By default, this is set to "/", but you can specify
-     * an alternate prefix for all URL paths.
-     */
-    this.root = '/';
-    /**
-     * The router can work in two "modes":
-     * - With hash: `/index.html#/path/to/page`
-     * - Without hash: `/path/to/page`
-     *
-     * Using one or another might depend in the requirements of your app and/or where it's deployed.
-     *
-     * Usually "hash-less" navigation works better for SEO and it's more user friendly too, but it might
-     * requires additional server-side configuration in order to properly work.
-     *
-     * On the other side hash-navigation is much easier to deploy, it even works over the file protocol.
-     *
-     * By default, this property is `true`, change to `false` to allow hash-less URLs.
-     */
-    this.useHash = true;
-  }
-  async componentWillLoad() {
-    await waitUntilNavNode();
-    const parsedRoute = this.getParsedRoute();
-    const tree = readRouteTree(this.el);
-    const resolvedRoute = await resolveNavigation(
-      null,
-      generatePath(parsedRoute.segments, parsedRoute.queryString),
-      tree,
-    );
-    if (resolvedRoute === false) {
-      return;
+const Router = /*@__PURE__*/ proxyCustomElement(
+  class Router extends HTMLElement {
+    constructor() {
+      super();
+      this.__registerHost();
+      this.ionRouteWillChange = createEvent(this, 'ionRouteWillChange', 7);
+      this.ionRouteDidChange = createEvent(this, 'ionRouteDidChange', 7);
+      this.previousPath = null;
+      this.busy = false;
+      /** State for the next push */
+      this.state = 0;
+      /** Current state we are in */
+      this.lastState = 0;
+      this.root = '/';
+      this.useHash = true;
     }
-    this.setSegments(resolvedRoute.segments, ROUTER_INTENT_NONE, resolvedRoute.queryString);
-    await this.writeNavStateRoot(resolvedRoute.segments, ROUTER_INTENT_NONE);
-  }
-  componentDidLoad() {
-    window.addEventListener('ionRouteDataChanged', debounce(this.onRoutesChanged.bind(this), 100));
-  }
-  async onPopState() {
-    let direction = this.historyDirection();
-    const parsedRoute = this.getParsedRoute();
-    const tree = readRouteTree(this.el);
-    const resolvedRoute = await resolveNavigation(
-      this.previousPath,
-      generatePath(parsedRoute.segments, parsedRoute.queryString),
-      tree,
-    );
-    if (resolvedRoute === false) {
-      const path = parsePath(this.previousPath);
-      this.setSegments(path.segments, ROUTER_INTENT_FORWARD, path.queryString);
-      this.writeNavStateRoot(path.segments, ROUTER_INTENT_FORWARD);
-    } else {
-      if (generatePath(parsedRoute.segments) !== generatePath(resolvedRoute.segments)) {
-        this.setSegments(resolvedRoute.segments, ROUTER_INTENT_FORWARD, resolvedRoute.queryString);
-        direction = ROUTER_INTENT_FORWARD;
-      }
-      this.writeNavStateRoot(resolvedRoute.segments, direction);
-    }
-  }
-  onBackButton(ev) {
-    ev.detail.register(0, (processNextHandler) => {
-      this.back();
-      processNextHandler();
-    });
-  }
-  async canTransition() {
-    return false;
-  }
-  /**
-   * Navigate to the specified path.
-   *
-   * @param path The path to navigate to.
-   * @param direction The direction of the animation. Defaults to `"forward"`.
-   */
-  async push(path, direction = 'forward', animation) {
-    let _a;
-    if (path.startsWith('.')) {
-      const currentPath = (_a = this.previousPath) !== null && _a !== void 0 ? _a : '/';
-      // Convert currentPath to an URL by pre-pending a protocol and a host to resolve the relative path.
-      const url = new URL(path, `https://host/${currentPath}`);
-      path = url.pathname + url.search;
-    }
-    const fromRoute = this.getParsedRoute();
-    const toRoute = parsePath(path);
-    const tree = readRouteTree(this.el);
-    const resolvedRoute = await resolveNavigation(
-      generatePath(fromRoute.segments, fromRoute.queryString),
-      generatePath(toRoute.segments, toRoute.queryString),
-      tree,
-    );
-    if (resolvedRoute === false) {
-      return false;
-    }
-    this.setSegments(resolvedRoute.segments, direction, resolvedRoute.queryString);
-    return this.writeNavStateRoot(resolvedRoute.segments, direction, animation);
-  }
-  /** Go back to previous page in the window.history. */
-  back() {
-    window.history.back();
-    return Promise.resolve(this.waitPromise);
-  }
-  /** @internal */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async navChanged(_) {
-    return false;
-  }
-  /** This handler gets called when a `ion-route` component is added to the DOM or if the from or to property of such node changes. */
-  onRoutesChanged() {
-    const parsedRoute = this.getParsedRoute();
-    return this.writeNavStateRoot(parsedRoute.segments, ROUTER_INTENT_NONE);
-  }
-  historyDirection() {
-    let _a;
-    const win = window;
-    if (win.history.state === null) {
-      this.state++;
-      win.history.replaceState(
-        this.state,
-        win.document.title,
-        (_a = win.document.location) === null || _a === void 0 ? void 0 : _a.href,
+    async componentWillLoad() {
+      await waitUntilNavNode();
+      const parsedRoute = this.getParsedRoute();
+      const tree = readRouteTree(this.el);
+      const resolvedRoute = await resolveNavigation(
+        null,
+        generatePath(parsedRoute.segments, parsedRoute.queryString),
+        tree,
       );
+      if (resolvedRoute === false) {
+        return;
+      }
+      this.setSegments(resolvedRoute.segments, ROUTER_INTENT_NONE, resolvedRoute.queryString);
+      await this.writeNavStateRoot(resolvedRoute.segments, ROUTER_INTENT_NONE);
     }
-    const state = win.history.state;
-    const lastState = this.lastState;
-    this.lastState = state;
-    if (state > lastState || (state >= lastState && lastState > 0)) {
-      return ROUTER_INTENT_FORWARD;
+    componentDidLoad() {
+      window.addEventListener('ionRouteDataChanged', debounce(this.onRoutesChanged.bind(this), 100));
     }
-    if (state < lastState) {
-      return ROUTER_INTENT_BACK;
+    async onPopState() {
+      let direction = this.historyDirection();
+      const parsedRoute = this.getParsedRoute();
+      const tree = readRouteTree(this.el);
+      const resolvedRoute = await resolveNavigation(
+        this.previousPath,
+        generatePath(parsedRoute.segments, parsedRoute.queryString),
+        tree,
+      );
+      if (resolvedRoute === false) {
+        const path = parsePath(this.previousPath);
+        this.setSegments(path.segments, ROUTER_INTENT_FORWARD, path.queryString);
+        this.writeNavStateRoot(path.segments, ROUTER_INTENT_FORWARD);
+      } else {
+        if (generatePath(parsedRoute.segments) !== generatePath(resolvedRoute.segments)) {
+          this.setSegments(resolvedRoute.segments, ROUTER_INTENT_FORWARD, resolvedRoute.queryString);
+          direction = ROUTER_INTENT_FORWARD;
+        }
+        this.writeNavStateRoot(resolvedRoute.segments, direction);
+      }
     }
-    return ROUTER_INTENT_NONE;
-  }
-  async writeNavStateRoot(segments, direction, animation) {
-    if (!segments) {
-      console.error('[ion-router] URL is not part of the routing set');
+    onBackButton(ev) {
+      ev.detail.register(0, (processNextHandler) => {
+        this.back();
+        processNextHandler();
+      });
+    }
+    async canTransition() {
       return false;
     }
-    // lookup route chain
-    const chain = findChainForSegments(segments, readRouteTree(this.el));
-    if (!chain) {
-      console.error('[ion-router] the path does not match any route');
+    /**
+     * Navigate to the specified path.
+     *
+     * @param path The path to navigate to.
+     * @param direction The direction of the animation. Defaults to `"forward"`.
+     */
+    async push(path, direction = 'forward', animation) {
+      let _a;
+      if (path.startsWith('.')) {
+        const currentPath = (_a = this.previousPath) !== null && _a !== void 0 ? _a : '/';
+        // Convert currentPath to an URL by pre-pending a protocol and a host to resolve the relative path.
+        const url = new URL(path, `https://host/${currentPath}`);
+        path = url.pathname + url.search;
+      }
+      const fromRoute = this.getParsedRoute();
+      const toRoute = parsePath(path);
+      const tree = readRouteTree(this.el);
+      const resolvedRoute = await resolveNavigation(
+        generatePath(fromRoute.segments, fromRoute.queryString),
+        generatePath(toRoute.segments, toRoute.queryString),
+        tree,
+      );
+      if (resolvedRoute === false) {
+        return false;
+      }
+      this.setSegments(resolvedRoute.segments, direction, resolvedRoute.queryString);
+      return this.writeNavStateRoot(resolvedRoute.segments, direction, animation);
+    }
+    /** Go back to previous page in the window.history. */
+    back() {
+      window.history.back();
+      return Promise.resolve(this.waitPromise);
+    }
+    /** @internal */
+    async navChanged(_) {
       return false;
     }
-    // write DOM give
-    const unlock = await this.lock();
-    let changed = false;
-    try {
-      changed = await this.writeNavState(document.body, chain, direction, segments, animation);
-    } catch (e) {
-      console.error(e);
+    /** This handler gets called when a `ion-route` component is added to the DOM or if the from or to property of such node changes. */
+    onRoutesChanged() {
+      const parsedRoute = this.getParsedRoute();
+      return this.writeNavStateRoot(parsedRoute.segments, ROUTER_INTENT_NONE);
     }
-    unlock();
-    return changed;
-  }
-  async lock() {
-    const p = this.waitPromise;
-    let resolve;
-    this.waitPromise = new Promise((r) => (resolve = r));
-    if (p !== undefined) {
-      await p;
+    historyDirection() {
+      let _a;
+      const win = window;
+      if (win.history.state === null) {
+        this.state++;
+        win.history.replaceState(
+          this.state,
+          win.document.title,
+          (_a = win.document.location) === null || _a === void 0 ? void 0 : _a.href,
+        );
+      }
+      const state = win.history.state;
+      const lastState = this.lastState;
+      this.lastState = state;
+      if (state > lastState || (state >= lastState && lastState > 0)) {
+        return ROUTER_INTENT_FORWARD;
+      }
+      if (state < lastState) {
+        return ROUTER_INTENT_BACK;
+      }
+      return ROUTER_INTENT_NONE;
     }
-    return resolve;
-  }
-  async writeNavState(node, chain, direction, segments, animation) {
-    if (this.busy) {
-      console.warn('[ion-router] router is busy, transition was cancelled');
-      return false;
+    async writeNavStateRoot(segments, direction, animation) {
+      if (!segments) {
+        console.error('[ion-router] URL is not part of the routing set');
+        return false;
+      }
+      // lookup route chain
+      const chain = findChainForSegments(segments, readRouteTree(this.el));
+      if (!chain) {
+        console.error('[ion-router] the path does not match any route');
+        return false;
+      }
+      // write DOM give
+      const unlock = await this.lock();
+      let changed = false;
+      try {
+        changed = await this.writeNavState(document.body, chain, direction, segments, animation);
+      } catch (e) {
+        console.error(e);
+      }
+      unlock();
+      return changed;
     }
-    this.busy = true;
-    // generate route event and emit will change
-    const routeEvent = this.routeChangeEvent(segments, null);
-    if (routeEvent) {
-      this.ionRouteWillChange.emit(routeEvent);
+    async lock() {
+      const p = this.waitPromise;
+      let resolve;
+      this.waitPromise = new Promise((r) => (resolve = r));
+      if (p !== undefined) {
+        await p;
+      }
+      return resolve;
     }
-    const changed = await writeNavState(node, chain, direction, 0, false, animation);
-    this.busy = false;
-    // emit did change
-    if (routeEvent) {
-      this.ionRouteDidChange.emit(routeEvent);
+    async writeNavState(node, chain, direction, segments, animation) {
+      if (this.busy) {
+        console.warn('[ion-router] router is busy, transition was cancelled');
+        return false;
+      }
+      this.busy = true;
+      // generate route event and emit will change
+      const routeEvent = this.routeChangeEvent(segments, null);
+      if (routeEvent) {
+        this.ionRouteWillChange.emit(routeEvent);
+      }
+      const changed = await writeNavState(node, chain, direction, 0, false, animation);
+      this.busy = false;
+      // emit did change
+      if (routeEvent) {
+        this.ionRouteDidChange.emit(routeEvent);
+      }
+      return changed;
     }
-    return changed;
-  }
-  setSegments(segments, direction, queryString) {
-    this.state++;
-    this.lastState = this.state;
-    writeSegments(window.history, this.root, this.useHash, segments, direction, this.state, queryString);
-  }
-  getParsedRoute() {
-    return readParsedRoute(location, this.root, this.useHash);
-  }
-  routeChangeEvent(toSegments, redirectFromSegments) {
-    const from = this.previousPath;
-    const to = generatePath(toSegments);
-    this.previousPath = to;
-    if (to === from) {
-      return null;
+    setSegments(segments, direction, queryString) {
+      this.state++;
+      this.lastState = this.state;
+      writeSegments(window.history, this.root, this.useHash, segments, direction, this.state, queryString);
     }
-    const redirectedFrom = redirectFromSegments ? generatePath(redirectFromSegments) : null;
-    return {
-      from,
-      redirectedFrom,
-      to,
-    };
-  }
-  get el() {
-    return this;
-  }
-};
-Router = /*@__PURE__*/ proxyCustomElement(Router, [
-  0,
-  'ion-router',
-  {
-    root: [1],
-    useHash: [4, 'use-hash'],
-    canTransition: [64],
-    push: [64],
-    back: [64],
-    navChanged: [64],
+    getParsedRoute() {
+      return readParsedRoute(location, this.root, this.useHash);
+    }
+    routeChangeEvent(toSegments, redirectFromSegments) {
+      const from = this.previousPath;
+      const to = generatePath(toSegments);
+      this.previousPath = to;
+      if (to === from) {
+        return null;
+      }
+      const redirectedFrom = redirectFromSegments ? generatePath(redirectFromSegments) : null;
+      return {
+        from,
+        redirectedFrom,
+        to,
+      };
+    }
+    get el() {
+      return this;
+    }
   },
   [
-    [8, 'popstate', 'onPopState'],
-    [4, 'ionBackButton', 'onBackButton'],
+    0,
+    'ion-router',
+    {
+      root: [1],
+      useHash: [4, 'use-hash'],
+      canTransition: [64],
+      push: [64],
+      back: [64],
+      navChanged: [64],
+    },
+    [
+      [8, 'popstate', 'onPopState'],
+      [4, 'ionBackButton', 'onBackButton'],
+    ],
   ],
-]);
+);
 function defineCustomElement$1() {
   if (typeof customElements === 'undefined') {
     return;
