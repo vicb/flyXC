@@ -74,13 +74,16 @@ export class Skyways3dElement extends connect(store)(LitElement) {
   }
 
   private setupLayer() {
-    this.layer = new SkywaysLayer({
+    const layer = new SkywaysLayer({
       urlTemplate: this.tileUrl,
       copyright: 'Skyways &copy; <a href="https://thermal.kk7.ch/">kk7.ch</a>',
       title: 'thermals',
       tileInfo: TileInfo.create({ numLODs: this.maxZoom + 1 }),
     });
-    this.map.add(this.layer!);
+
+    layer.visible = this.show;
+    this.map.add(layer);
+    this.layer = layer;
   }
 
   createRenderRoot(): Element {
@@ -95,7 +98,7 @@ const SkywaysLayer = (WebTileLayer as any).createSubclass({
       .replace('{x}', String(x))
       .replace('{y}', String((1 << zoom) - y - 1));
   },
-  fetchTile(zoom: number, y: number, x: number): Promise<HTMLImageElement> {
+  fetchTile(zoom: number, y: number, x: number, options: { signal?: AbortSignal }): Promise<HTMLImageElement> {
     let resolveFn: (v: HTMLImageElement) => void;
     let rejectFn: () => void;
     const promise = new Promise<HTMLImageElement>((resolve, reject) => {
@@ -105,7 +108,12 @@ const SkywaysLayer = (WebTileLayer as any).createSubclass({
     const img = document.createElement('img') as HTMLImageElement;
     img.setAttribute('referrerpolicy', 'no-referrer');
     img.setAttribute('crossorigin', 'anonymous');
-    img.onload = () => resolveFn(img);
+    img.onload = () => {
+      if (options.signal && options.signal.aborted) {
+        return;
+      }
+      resolveFn(img);
+    };
     img.onerror = () => rejectFn();
     img.src = this.getTileUrl(zoom, y, x);
 
