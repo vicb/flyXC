@@ -20,7 +20,7 @@ Install [tippecanoe](https://github.com/mapbox/tippecanoe).
 - Or ZIP updates
   - Execute `zip -r tiles.zip tiles` to create the zip file,
   - GCE (See Below) or execute `node unzip.js -d tiles-info-diff.json` to apply the diffs,
-- Commit `tiles-info.json` in the application.
+- Copy and commit `tiles-info.json` in `apps/airspaces/src/assets/`.
 
 # Using the unzip script on a Compute VM
 
