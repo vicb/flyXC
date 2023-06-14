@@ -2,10 +2,10 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 
-import { c as componentOnReady, o as debounce } from '@ionic/core/components/helpers.js';
 /*!
  * (C) Ionic http://ionicframework.com - MIT License
  */
+import { c as componentOnReady, q as debounce } from '@ionic/core/components/helpers.js';
 import { HTMLElement, createEvent, proxyCustomElement } from '@stencil/core/internal/client';
 
 const ROUTER_INTENT_NONE = 'root';
