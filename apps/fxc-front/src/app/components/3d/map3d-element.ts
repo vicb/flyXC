@@ -14,6 +14,7 @@ import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
 import SceneView from '@arcgis/core/views/SceneView';
 import NavigationToggle from '@arcgis/core/widgets/NavigationToggle';
+import Popup from '@arcgis/core/widgets/Popup';
 import { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
 import { LitElement, PropertyValues, TemplateResult, html } from 'lit';
@@ -60,8 +61,6 @@ export class Map3dElement extends connect(store)(LitElement) {
   private subscriptions: UnsubscribeHandle[] = [];
   private previousLookAt?: LatLonAlt;
   private updateCamera = false;
-  private originalQuality = 'medium';
-  private qualityTimer?: number;
   private readonly adRatio = store.getState().browser.isSmallScreen ? 0.7 : 1;
 
   stateChanged(state: RootState): void {
@@ -79,15 +78,6 @@ export class Map3dElement extends connect(store)(LitElement) {
       const lookAt = sel.getLookAtLatLonAlt(store.getState())(this.timeSec);
       if (this.updateCamera && lookAt && this.view && !this.view.interacting) {
         if (this.previousLookAt) {
-          // Lower the qualityProfile while animating.
-          if (this.qualityTimer) {
-            clearTimeout(this.qualityTimer);
-          }
-          this.qualityTimer = window.setTimeout(() => {
-            this.view?.set('qualityProfile', this.originalQuality);
-            this.qualityTimer = undefined;
-          }, 500);
-          this.view.set('qualityProfile', 'low');
           const dLat = lookAt.lat - this.previousLookAt.lat;
           const dLon = lookAt.lon - this.previousLookAt.lon;
           const dAlt = lookAt.alt - this.previousLookAt.alt;
@@ -161,6 +151,7 @@ export class Map3dElement extends connect(store)(LitElement) {
         atmosphereEnabled: true,
         atmosphere: { quality: 'high' },
       },
+      popup: new Popup(),
     });
     this.view = view;
     this.configurePopup(view);
@@ -195,8 +186,6 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.airspace = document.createElement('airspace3d-element') as Airspace3dElement;
     this.airspace.map = this.map;
     view.ui.add(this.airspace, 'top-right');
-
-    this.originalQuality = view.qualityProfile;
 
     // "Control" key sets the navigation mode to "rotate".
     const toggle = view.ui.find('navigation-toggle') as NavigationToggle;
@@ -393,7 +382,6 @@ export class Map3dElement extends connect(store)(LitElement) {
   }
 
   private configurePopup(view: SceneView): void {
-    view.popup.autoOpenEnabled = false;
     view.popup.dockEnabled = false;
     view.popup.viewModel.includeDefaultActions = false;
     view.popup.actions.removeAll();
