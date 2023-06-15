@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "license": "MIT",
   "scripts": {
-    "deploy": "nx build fxc-server --prod --skip-nx-cache && gcloud app deploy dist/apps/fxc-server/app.yaml",
+    "deploy": "nx build fxc-front --prod --skip-nx-cache && nx build fxc-server --prod --skip-nx-cache && gcloud app deploy dist/apps/fxc-server/app.yaml",
     "dev": "nx run-many --target=serve --projects=fxc-front,fxc-server --configuration=development"
   },
   "nx": {

@@ -38,6 +38,8 @@ export default defineConfig({
         entryFileNames: 'static/js/[name]-[hash].js',
       },
     },
+
+    chunkSizeWarningLimit: 3800,
   },
 
   plugins: [
