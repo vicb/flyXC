@@ -104,6 +104,7 @@ export class MainMenu extends connect(store)(LitElement) {
                       max="2.6"
                       step="0.2"
                       debounce="50"
+                      aria-label="Altitude exaggeration"
                       value=${this.exaggeration}
                       .pin=${true}
                       .pinFormatter=${this.formatTimes}
@@ -336,6 +337,7 @@ export class SkywaysItems extends connect(store)(LitElement) {
               max="100"
               step="5"
               debounce="50"
+              aria-label="Opacity"
               value=${this.opacity}
               .pin=${true}
               .pinFormatter=${this.formatPercent}
