@@ -1,6 +1,6 @@
 import { protos } from '@flyxc/common';
 import { LitElement, PropertyValues } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
@@ -26,18 +26,20 @@ const MSG_MARKER_HEIGHT = 30;
 
 @customElement('tracking3d-element')
 export class Tracking3DElement extends connect(store)(LitElement) {
+  @property({ attribute: false })
+  layer?: GraphicsLayer;
+  @property({ attribute: false })
+  gndLayer?: GraphicsLayer;
+  @property({ attribute: false })
+  sampler?: ElevationSampler;
+
   @state()
   private geojson: any;
-  @state()
-  private layer?: GraphicsLayer;
-  @state()
-  private gndLayer?: GraphicsLayer;
   @state()
   private multiplier = 1;
   @state()
   private displayLabels = true;
-  @state()
-  private sampler?: ElevationSampler;
+
   // Id of the selected pilot.
   @state()
   private currentId?: string;
@@ -157,11 +159,8 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   stateChanged(state: RootState): void {
     this.displayLabels = state.liveTrack.displayLabels;
     this.geojson = state.liveTrack.geojson;
-    this.layer = state.arcgis.graphicsLayer;
-    this.gndLayer = state.arcgis.gndGraphicsLayer;
     this.multiplier = state.arcgis.altMultiplier;
     this.units = state.units;
-    this.sampler = state.arcgis.elevationSampler;
     this.currentId = state.liveTrack.currentLiveId;
     this.numTracks = sel.numTracks(state);
   }

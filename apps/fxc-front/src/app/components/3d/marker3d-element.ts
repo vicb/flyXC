@@ -15,9 +15,9 @@ const MARKER_HEIGHT = 30;
 export class Marker3dElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   track?: common.RuntimeTrack;
+  @property({ attribute: false })
+  layer?: GraphicsLayer;
 
-  @state()
-  private layer?: GraphicsLayer;
   @state()
   private active = false;
   @state()
@@ -82,7 +82,6 @@ export class Marker3dElement extends connect(store)(LitElement) {
       this.color = sel.trackColors(state)[id];
       this.active = id == sel.currentTrackId(state);
     }
-    this.layer = state.arcgis.graphicsLayer;
     this.timeSec = state.app.timeSec;
     this.multiplier = state.arcgis.altMultiplier;
     this.displayLabels = state.track.displayLabels;

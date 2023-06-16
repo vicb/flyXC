@@ -3,6 +3,7 @@ import './controls3d-element';
 import './line3d-element';
 import './marker3d-element';
 import './skyways3d-element';
+import './tracking3d-element';
 
 import Basemap from '@arcgis/core/Basemap';
 import Map from '@arcgis/core/Map';
@@ -12,8 +13,8 @@ import BaseElevationLayer from '@arcgis/core/layers/BaseElevationLayer';
 import ElevationLayer from '@arcgis/core/layers/ElevationLayer';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
-import SunLighting from "@arcgis/core/views/3d/environment/SunLighting";
-import VirtualLighting from "@arcgis/core/views/3d/environment/VirtualLighting";
+import SunLighting from '@arcgis/core/views/3d/environment/SunLighting';
+import VirtualLighting from '@arcgis/core/views/3d/environment/VirtualLighting';
 import SceneView from '@arcgis/core/views/SceneView';
 import NavigationToggle from '@arcgis/core/widgets/NavigationToggle';
 import Popup from '@arcgis/core/widgets/Popup';
@@ -26,7 +27,6 @@ import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 import * as msg from '../../logic/messages';
 import { setApiLoading, setTimeSec, setView3d } from '../../redux/app-slice';
-import { setElevationSampler, setGndGraphicsLayer, setGraphicsLayer } from '../../redux/arcgis-slice';
 import { setCurrentLiveId } from '../../redux/live-track-slice';
 import { setCurrentLocation, setCurrentZoom } from '../../redux/location-slice';
 import * as sel from '../../redux/selectors';
@@ -47,12 +47,14 @@ export class Map3dElement extends connect(store)(LitElement) {
   private timeSec = 0;
   @state()
   private sunEnabled = true;
+  @state()
+  private graphicsLayer?: GraphicsLayer;
+  @state()
+  private gndGraphicsLayer?: GraphicsLayer;
 
   // ArcGis objects.
   private map?: Map;
   private view?: SceneView;
-  private graphicsLayer?: GraphicsLayer;
-  private gndGraphicsLayer?: GraphicsLayer;
   // Elevation layer with exaggeration.
   private elevationLayer?: BaseElevationLayer;
   private airspace?: Airspace3dElement;
@@ -124,9 +126,6 @@ export class Map3dElement extends connect(store)(LitElement) {
     super.disconnectedCallback();
     this.subscriptions.forEach((sub) => sub());
     this.subscriptions.length = 0;
-    store.dispatch(setGraphicsLayer(undefined));
-    store.dispatch(setGndGraphicsLayer(undefined));
-    store.dispatch(setElevationSampler(undefined));
     this.view?.destroy();
     this.view = undefined;
   }
@@ -169,9 +168,6 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.view = view;
     this.createLighting();
     this.configurePopup(view);
-
-    store.dispatch(setGraphicsLayer(this.graphicsLayer));
-    store.dispatch(setGndGraphicsLayer(this.gndGraphicsLayer));
 
     view.ui.remove('zoom');
 
@@ -225,7 +221,6 @@ export class Map3dElement extends connect(store)(LitElement) {
     view
       .when(() => {
         store.dispatch(setApiLoading(false));
-        store.dispatch(setElevationSampler(view.groundView.elevationSampler));
 
         if (this.tracks.length) {
           // Zoom to tracks when there are some.
@@ -384,6 +379,12 @@ export class Map3dElement extends connect(store)(LitElement) {
         }
       </style>
       <div id="map3d"></div>
+      <tracking3d-element
+        .layer=${this.graphicsLayer}
+        .gndLayer=${this.gndGraphicsLayer}
+        .sampler=${this.view?.groundView.elevationSampler}
+      >
+      </tracking3d-element>
       <select id="layers" @change=${(e: any) => this.map?.set('basemap', this.basemaps[e.target.value])}>
         ${Object.getOwnPropertyNames(this.basemaps).map((name) => html`<option value="${name}">${name}</option>`)}
       </select>
@@ -392,8 +393,12 @@ export class Map3dElement extends connect(store)(LitElement) {
         (track) => track.id,
         (track) =>
           html`
-            <line3d-element .track=${track}></line3d-element>
-            <marker3d-element .track=${track}></marker3d-element>
+            <line3d-element
+              .track=${track}
+              .layer=${this.graphicsLayer}
+              .gndLayer=${this.gndGraphicsLayer}
+            ></line3d-element>
+            <marker3d-element .track=${track} .layer=${this.graphicsLayer}></marker3d-element>
           `,
       )}
     `;

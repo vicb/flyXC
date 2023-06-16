@@ -1,7 +1,6 @@
 import '../dashboard-element';
 import '../menu-element';
 import '../name-element';
-import './tracking3d-element';
 
 import * as common from '@flyxc/common';
 import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
@@ -45,7 +44,6 @@ export class Controls3dElement extends connect(store)(LitElement) {
   protected render(): TemplateResult {
     return html`
       <menu-ctrl-element></menu-ctrl-element>
-      <tracking3d-element></tracking3d-element>
       ${when(
         this.track?.name,
         () =>

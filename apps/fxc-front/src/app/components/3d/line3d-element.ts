@@ -16,11 +16,11 @@ const INACTIVE_ALPHA = 0.7;
 export class Line3dElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   track?: common.RuntimeTrack;
+  @property({ attribute: false })
+  layer?: GraphicsLayer;
+  @property({ attribute: false })
+  gndLayer?: GraphicsLayer;
 
-  @state()
-  private layer?: GraphicsLayer;
-  @state()
-  private gndLayer?: GraphicsLayer;
   @state()
   private opacity = 1;
   @state()
@@ -67,8 +67,6 @@ export class Line3dElement extends connect(store)(LitElement) {
       this.color = sel.trackColors(state)[id];
       this.opacity = id == sel.currentTrackId(state) ? 1 : INACTIVE_ALPHA;
     }
-    this.layer = state.arcgis.graphicsLayer;
-    this.gndLayer = state.arcgis.gndGraphicsLayer;
     this.timeSec = state.app.timeSec;
     this.multiplier = state.arcgis.altMultiplier;
   }
