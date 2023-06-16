@@ -1,4 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, Store } from '@reduxjs/toolkit';
+
+export const UPDATE_APP_TIME_EVERY_MIN = 10;
 
 // Y axis of the chart.
 export enum ChartYAxis {
@@ -18,7 +20,7 @@ type AppState = {
 const initialState: AppState = {
   chartYAxis: ChartYAxis.Altitude,
   loadingApi: true,
-  timeSec: 0,
+  timeSec: Math.round(new Date().getTime() / 1000),
   view3d: false,
 };
 
@@ -43,3 +45,11 @@ const appSlice = createSlice({
 
 export const reducer = appSlice.reducer;
 export const { setTimeSec, setApiLoading, setChartYAxis, setView3d } = appSlice.actions;
+
+// Set the app time to the current time when there is no loaded track.
+// Track time is used when any track is loaded.
+export function updateAppTime(store: Store) {
+  if (store.getState().track.tracks.ids.length == 0) {
+    store.dispatch(appSlice.actions.setTimeSec(Math.round(new Date().getTime() / 1000)));
+  }
+}

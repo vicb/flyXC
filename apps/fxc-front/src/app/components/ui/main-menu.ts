@@ -11,7 +11,7 @@ import { uploadTracks } from '../../logic/track';
 import { DistanceUnit, formatUnit } from '../../logic/units';
 import * as airspaces from '../../redux/airspace-slice';
 import { setApiLoading } from '../../redux/app-slice';
-import { setAltitudeMultiplier } from '../../redux/arcgis-slice';
+import * as arcgis from '../../redux/arcgis-slice';
 import {
   LivePilot,
   getLivePilots,
@@ -42,12 +42,15 @@ export class MainMenu extends connect(store)(LitElement) {
   plannerEnabled = false;
   @state()
   requestingLocation = false;
+  @state()
+  sunEnabled = false;
 
   stateChanged(state: RootState): void {
     this.view3d = state.app.view3d;
     this.exaggeration = state.arcgis.altMultiplier;
     this.plannerEnabled = state.planner.enabled;
     this.requestingLocation = state.location.requestingLocation;
+    this.sunEnabled = state.arcgis.useSunLighting;
   }
 
   render(): TemplateResult {
@@ -108,6 +111,10 @@ export class MainMenu extends connect(store)(LitElement) {
                       <ion-label slot="start">1.0x</ion-label>
                       <ion-label slot="end">2.6x</ion-label>
                     </ion-range>
+                  </ion-item>
+                  <ion-item button lines="full" @click=${this.handleSun} .detail=${false}>
+                    <i class="las la-sun la-2x"></i>Sun lighting
+                    <ion-toggle slot="end" .checked=${this.sunEnabled} aria-label="XC Planning"></ion-toggle>
                   </ion-item>`,
             )}
             <fullscreen-items></fullscreen-items>
@@ -155,6 +162,10 @@ export class MainMenu extends connect(store)(LitElement) {
     store.dispatch(setEnabled(!this.plannerEnabled));
   }
 
+  private async handleSun() {
+    store.dispatch(arcgis.setUseSunLighting(!this.sunEnabled));
+  }
+
   private async handleAbout() {
     const modal = await modalController.create({
       component: 'about-modal',
@@ -170,7 +181,7 @@ export class MainMenu extends connect(store)(LitElement) {
   }
 
   private handleExaggeration(e: CustomEvent) {
-    store.dispatch(setAltitudeMultiplier(Number(e.detail.value ?? 1)));
+    store.dispatch(arcgis.setAltitudeMultiplier(Number(e.detail.value ?? 1)));
   }
 }
 

@@ -12,6 +12,8 @@ import BaseElevationLayer from '@arcgis/core/layers/BaseElevationLayer';
 import ElevationLayer from '@arcgis/core/layers/ElevationLayer';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
+import SunLighting from "@arcgis/core/views/3d/environment/SunLighting";
+import VirtualLighting from "@arcgis/core/views/3d/environment/VirtualLighting";
 import SceneView from '@arcgis/core/views/SceneView';
 import NavigationToggle from '@arcgis/core/widgets/NavigationToggle';
 import Popup from '@arcgis/core/widgets/Popup';
@@ -43,6 +45,8 @@ export class Map3dElement extends connect(store)(LitElement) {
   private multiplier = 1;
   @state()
   private timeSec = 0;
+  @state()
+  private sunEnabled = true;
 
   // ArcGis objects.
   private map?: Map;
@@ -55,7 +59,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   private basemaps: Record<string, string | Basemap | null> = {
     Satellite: 'satellite',
     OpenTopoMap: null,
-    Terrain: 'terrain',
+    Topo: 'topo-vector',
   };
 
   private subscriptions: UnsubscribeHandle[] = [];
@@ -69,6 +73,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.currentTrackId = state.track.currentTrackId;
     this.multiplier = state.arcgis.altMultiplier;
     this.updateCamera = state.track.lockOnPilot;
+    this.sunEnabled = state.arcgis.useSunLighting;
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
@@ -91,8 +96,14 @@ export class Map3dElement extends connect(store)(LitElement) {
       this.previousLookAt = lookAt;
     }
 
-    // timestamp updates should not cause a re-render
-    changedProps.delete('timeSec');
+    if (changedProps.has('sunEnabled')) {
+      this.createLighting();
+      changedProps.delete('sunEnabled');
+    }
+
+    if (this.sunEnabled && changedProps.has('timeSec')) {
+      (this.view?.environment?.lighting as any)?.set('date', new Date(this.timeSec * 1000));
+    }
 
     if (changedProps.has('multiplier')) {
       changedProps.delete('multiplier');
@@ -102,6 +113,9 @@ export class Map3dElement extends connect(store)(LitElement) {
         this.map?.ground.layers.add(this.elevationLayer as any);
       }
     }
+
+    // timestamp updates should not cause a re-render
+    changedProps.delete('timeSec');
 
     return super.shouldUpdate(changedProps);
   }
@@ -149,11 +163,11 @@ export class Map3dElement extends connect(store)(LitElement) {
       environment: {
         starsEnabled: false,
         atmosphereEnabled: true,
-        atmosphere: { quality: 'high' },
       },
       popup: new Popup(),
     });
     this.view = view;
+    this.createLighting();
     this.configurePopup(view);
 
     store.dispatch(setGraphicsLayer(this.graphicsLayer));
@@ -291,6 +305,19 @@ export class Map3dElement extends connect(store)(LitElement) {
       title: 'otm',
       id: 'otm',
     });
+  }
+
+  private createLighting() {
+    if (this.view?.environment) {
+      if (this.sunEnabled) {
+        this.view.environment.lighting = new SunLighting({
+          date: new Date(this.timeSec * 1000),
+          cameraTrackingEnabled: false,
+        });
+      } else {
+        this.view.environment.lighting = new VirtualLighting();
+      }
+    }
   }
 
   // Center the map on the position and optionally set the zoom.

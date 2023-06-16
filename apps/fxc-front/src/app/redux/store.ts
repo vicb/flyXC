@@ -41,3 +41,5 @@ export const store = configureStore({
 });
 
 liveTrack.handleVisibility();
+
+setInterval(() => app.updateAppTime(store), app.UPDATE_APP_TIME_EVERY_MIN * 60 * 1000);

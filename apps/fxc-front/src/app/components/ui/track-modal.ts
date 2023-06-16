@@ -7,9 +7,10 @@ import { menuController, modalController } from '@ionic/core/components';
 
 import { pushCurrentState } from '../../logic/history';
 import * as msg from '../../logic/messages';
+import * as app from '../../redux/app-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
-import { removeTracksByGroupIds, setCurrentTrackId } from '../../redux/track-slice';
+import * as trackSlice from '../../redux/track-slice';
 
 @customElement('track-modal')
 export class TrackModal extends connect(store)(LitElement) {
@@ -74,7 +75,8 @@ export class TrackModal extends connect(store)(LitElement) {
     e.stopPropagation();
     pushCurrentState();
     const groupId = extractGroupId(track.id);
-    store.dispatch(removeTracksByGroupIds([groupId]));
+    store.dispatch(trackSlice.removeTracksByGroupIds([groupId]));
+    app.updateAppTime(store);
     msg.trackGroupsRemoved.emit([groupId]);
     // Closes the modal and the menu when all tracks are closed.
     if (sel.numTracks(store.getState()) == 0) {
@@ -84,7 +86,7 @@ export class TrackModal extends connect(store)(LitElement) {
   }
 
   private async handleSelect(track: RuntimeTrack) {
-    store.dispatch(setCurrentTrackId(track.id));
+    store.dispatch(trackSlice.setCurrentTrackId(track.id));
     await this.dismiss();
     await menuController.close();
   }

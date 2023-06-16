@@ -34,11 +34,11 @@ import {
 } from './app/logic/history';
 import * as msg from './app/logic/messages';
 import { downloadTracksByGroupIds, downloadTracksByUrls, uploadTracks } from './app/logic/track';
-import { setTimeSec, setView3d } from './app/redux/app-slice';
-import { setRoute, setSpeed } from './app/redux/planner-slice';
+import * as app from './app/redux/app-slice';
+import * as planner from './app/redux/planner-slice';
 import * as sel from './app/redux/selectors';
 import { RootState, store } from './app/redux/store';
-import { removeTracksByGroupIds, setDisplayLabels, setTrackLoaded } from './app/redux/track-slice';
+import * as track from './app/redux/track-slice';
 
 @customElement('fly-xc')
 export class FlyXc extends connect(store)(LitElement) {
@@ -55,8 +55,8 @@ export class FlyXc extends connect(store)(LitElement) {
       downloadTracksByGroupIds(getUrlParamValues(ParamNames.groupId)),
       downloadTracksByUrls(getUrlParamValues(ParamNames.trackUrl)),
     ]).then(() => {
-      store.dispatch(setTrackLoaded(true));
-      store.dispatch(setDisplayLabels(sel.numTracks(store.getState()) > 1));
+      store.dispatch(track.setTrackLoaded(true));
+      store.dispatch(track.setDisplayLabels(sel.numTracks(store.getState()) > 1));
       // Remove the track urls as they will be replaced with ids.
       deleteUrlParam(ParamNames.trackUrl);
     });
@@ -112,13 +112,13 @@ export class FlyXc extends connect(store)(LitElement) {
       return { redirect: `/3d?${params.toString()}` };
     }
     await import('./app/components/2d/map-element');
-    store.dispatch(setView3d(false));
+    store.dispatch(app.setView3d(false));
     return true;
   }
 
   private async before3d(): Promise<NavigationHookResult> {
     await import('./app/components/3d/map3d-element');
-    store.dispatch(setView3d(true));
+    store.dispatch(app.setView3d(true));
     return true;
   }
 
@@ -133,16 +133,17 @@ export class FlyXc extends connect(store)(LitElement) {
     // Close all the tracks that have been removed.
     const removedTrackGroups = [...currentGroupIds].filter((id) => !nextGroupIds.has(id));
     if (removedTrackGroups.length) {
-      store.dispatch(removeTracksByGroupIds(removedTrackGroups));
+      store.dispatch(track.removeTracksByGroupIds(removedTrackGroups));
+      app.updateAppTime(store);
       msg.trackGroupsRemoved.emit(removedTrackGroups);
     }
     // Load all the tracks that have been added.
     downloadTracksByGroupIds([...nextGroupIds].filter((id) => !currentGroupIds.has(id)));
-    store.dispatch(setView3d(getCurrentUrl().pathname == '/3d'));
+    store.dispatch(app.setView3d(getCurrentUrl().pathname == '/3d'));
 
     // Update the route and speed.
-    store.dispatch(setRoute(getUrlParamValues(ParamNames.route)[0] ?? ''));
-    store.dispatch(setSpeed(Number(getUrlParamValues(ParamNames.speed)[0] ?? 20)));
+    store.dispatch(planner.setRoute(getUrlParamValues(ParamNames.route)[0] ?? ''));
+    store.dispatch(planner.setSpeed(Number(getUrlParamValues(ParamNames.speed)[0] ?? 20)));
   }
 
   // Load tracks dropped on the map.
@@ -193,7 +194,7 @@ export class MapsElement extends connect(store)(LitElement) {
           this.hasTrack,
           () => html`<chart-element
             class=${clMap}
-            @move=${(e: CustomEvent) => store.dispatch(setTimeSec(e.detail.timeSec))}
+            @move=${(e: CustomEvent) => store.dispatch(app.setTimeSec(e.detail.timeSec))}
             @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.timeSec))}
             @zoom=${(e: CustomEvent) => msg.centerZoomMap.emit(this.coordinatesAt(e.detail.timeSec), e.detail.deltaY)}
           ></chart-element>`,

@@ -12,10 +12,12 @@ type ArcgisState = {
   gndGraphicsLayer?: GraphicsLayer;
   // Sample ground elevation in the SceneView (takes the exaggeration into account).
   elevationSampler?: ElevationSampler;
+  useSunLighting: boolean;
 };
 
 const initialState: ArcgisState = {
   altMultiplier: 1.3,
+  useSunLighting: true,
 };
 
 const arcgisSlice = createSlice({
@@ -34,9 +36,12 @@ const arcgisSlice = createSlice({
     setElevationSampler: (state, action: PayloadAction<ElevationSampler | undefined>) => {
       state.elevationSampler = action.payload;
     },
+    setUseSunLighting: (state, action: PayloadAction<boolean>) => {
+      state.useSunLighting = action.payload;
+    },
   },
 });
 
 export const reducer = arcgisSlice.reducer;
-export const { setAltitudeMultiplier, setElevationSampler, setGraphicsLayer, setGndGraphicsLayer } =
+export const { setAltitudeMultiplier, setElevationSampler, setGraphicsLayer, setGndGraphicsLayer, setUseSunLighting } =
   arcgisSlice.actions;
