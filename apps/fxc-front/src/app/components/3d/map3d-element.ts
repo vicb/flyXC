@@ -163,12 +163,24 @@ export class Map3dElement extends connect(store)(LitElement) {
         starsEnabled: false,
         atmosphereEnabled: true,
       },
-      popup: new Popup(),
+      popup: new Popup({
+        dockEnabled: false,
+        actions: [],
+        dockOptions: { buttonEnabled: false },
+        collapseEnabled: false,
+      }),
+      // Surprising, but true (I mean false).
+      popupEnabled: false,
     });
     this.view = view;
     this.createLighting();
-    this.configurePopup(view);
 
+    view.watch('popup.visible', (visible) => {
+      if (visible == false) {
+        store.dispatch(setCurrentLiveId(undefined));
+      }
+    });
+    view.popup.viewModel.includeDefaultActions = false;
     view.ui.remove('zoom');
 
     const controls = document.createElement('controls3d-element');
@@ -379,15 +391,15 @@ export class Map3dElement extends connect(store)(LitElement) {
         }
       </style>
       <div id="map3d"></div>
+      <select id="layers" @change=${(e: any) => this.map?.set('basemap', this.basemaps[e.target.value])}>
+        ${Object.getOwnPropertyNames(this.basemaps).map((name) => html`<option value="${name}">${name}</option>`)}
+      </select>
       <tracking3d-element
         .layer=${this.graphicsLayer}
         .gndLayer=${this.gndGraphicsLayer}
         .sampler=${this.view?.groundView.elevationSampler}
       >
       </tracking3d-element>
-      <select id="layers" @change=${(e: any) => this.map?.set('basemap', this.basemaps[e.target.value])}>
-        ${Object.getOwnPropertyNames(this.basemaps).map((name) => html`<option value="${name}">${name}</option>`)}
-      </select>
       ${repeat(
         this.tracks,
         (track) => track.id,
@@ -411,19 +423,6 @@ export class Map3dElement extends connect(store)(LitElement) {
 
   createRenderRoot(): Element {
     return this;
-  }
-
-  private configurePopup(view: SceneView): void {
-    view.popup.dockEnabled = false;
-    view.popup.viewModel.includeDefaultActions = false;
-    view.popup.actions.removeAll();
-    view.popup.dockOptions = { buttonEnabled: false };
-    view.popup.collapseEnabled = false;
-    view.watch('popup.visible', (visible) => {
-      if (visible == false) {
-        store.dispatch(setCurrentLiveId(undefined));
-      }
-    });
   }
 }
 
