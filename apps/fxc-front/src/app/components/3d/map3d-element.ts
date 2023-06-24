@@ -23,6 +23,7 @@ import { alertController } from '@ionic/core/components';
 import { LitElement, PropertyValues, TemplateResult, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
+import { when } from 'lit/directives/when.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 import * as msg from '../../logic/messages';
@@ -394,24 +395,27 @@ export class Map3dElement extends connect(store)(LitElement) {
       <select id="layers" @change=${(e: any) => this.map?.set('basemap', this.basemaps[e.target.value])}>
         ${Object.getOwnPropertyNames(this.basemaps).map((name) => html`<option value="${name}">${name}</option>`)}
       </select>
-      <tracking3d-element
-        .layer=${this.graphicsLayer}
-        .gndLayer=${this.gndGraphicsLayer}
-        .sampler=${this.view?.groundView.elevationSampler}
-      >
-      </tracking3d-element>
-      ${repeat(
-        this.tracks,
-        (track) => track.id,
-        (track) =>
-          html`
-            <line3d-element
-              .track=${track}
-              .layer=${this.graphicsLayer}
-              .gndLayer=${this.gndGraphicsLayer}
-            ></line3d-element>
-            <marker3d-element .track=${track} .layer=${this.graphicsLayer}></marker3d-element>
-          `,
+      ${when(
+        this.graphicsLayer != null,
+        () => html`<tracking3d-element
+            .layer=${this.graphicsLayer}
+            .gndLayer=${this.gndGraphicsLayer}
+            .sampler=${this.view?.groundView.elevationSampler}
+          >
+          </tracking3d-element>
+          ${repeat(
+            this.tracks,
+            (track) => track.id,
+            (track) =>
+              html`
+                <line3d-element
+                  .track=${track}
+                  .layer=${this.graphicsLayer}
+                  .gndLayer=${this.gndGraphicsLayer}
+                ></line3d-element>
+                <marker3d-element .track=${track} .layer=${this.graphicsLayer}></marker3d-element>
+              `,
+          )} `,
       )}
     `;
   }
