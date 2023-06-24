@@ -547,8 +547,14 @@ export class StateExplorer extends LitElement {
         ${when(
           this.fetcherState,
           () => html`<ion-item lines="none">
-              <ion-label position="floating">Filter</ion-label>
-              <ion-input @input=${this.onFilterInput} type="text" .value=${this.filter} .clearInput=${true}></ion-input>
+              <ion-input
+                label="Filter..."
+                label-placement="floating"
+                @input=${this.onFilterInput}
+                type="text"
+                .value=${this.filter}
+                .clearInput=${true}
+              ></ion-input>
             </ion-item>
             ${item(
               `${numMatchingPilots} pilots. ${

@@ -74,8 +74,9 @@ export class FlowIonInput extends lit.LitElement {
 
   protected render(): lit.TemplateResult {
     return lit.html`<ion-item lines="full">
-      <ion-label position="floating">${this.label}</ion-label>
       <ion-input
+        label=${this.label}
+        label-placement="floating"
         @input=${this.handleInput}
         type="text"
         value=${this.value}
