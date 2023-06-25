@@ -21,5 +21,5 @@ ENTRYPOINT ["/usr/bin/tini", "--"]
 RUN chown -R node:node .
 USER node
 
-# Restart the fetcher every 24h for memory leaks.
-CMD [ "node", "main.js", "-e", "24" ]
+# Restart the fetcher periodically to mitigate memory leaks.
+CMD [ "node", "main.js", "-e", "120" ]
