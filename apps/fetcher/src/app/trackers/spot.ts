@@ -78,13 +78,13 @@ export class SpotFetcher extends TrackerFetcher {
     }
     const lastFixAgeSec = Math.round(Date.now() / 1000) - tracker.lastFixSec;
     if (lastFixAgeSec > 3 * 30 * 24 * 3600) {
-      return 20 * 60;
+      return Math.floor(20 + Math.random() * 4) * 60;
     }
     if (lastFixAgeSec > 3 * 3600) {
-      return Math.floor(9 + Math.random() * 3) * 60;
+      return Math.floor(9 + Math.random() * 4) * 60;
     }
     if (lastFixAgeSec > 1800) {
-      return Math.floor(3 + Math.random() * 3) * 60;
+      return Math.floor(3 + Math.random() * 4) * 60;
     }
     return 60;
   }
