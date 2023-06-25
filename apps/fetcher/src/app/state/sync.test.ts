@@ -12,6 +12,7 @@ const FLYME = '001';
 const SKYLINES = '002';
 const FLYMASTER = '003';
 const OGN = `123456`;
+const ZOLEO = `012345678912345`;
 
 describe('sync', () => {
   let nowFn: any;
@@ -56,12 +57,13 @@ describe('sync', () => {
         skylines: SKYLINES,
         flymaster: FLYMASTER,
         ogn: OGN,
+        zoleo: ZOLEO,
       };
 
-      for (const [p, a] of Object.entries(trackerAccounts)) {
-        const tracker = state.pilots['1978'][p];
+      for (const [name, account] of Object.entries(trackerAccounts)) {
+        const tracker = state.pilots['1978'][name];
         expect(tracker).toMatchObject({
-          account: a,
+          account,
           enabled: true,
           lastFetchSec: 0,
           lastFixSec: NOW - 24 * 3600,
@@ -198,7 +200,7 @@ describe('sync', () => {
         inreach: createTrackerEntity(INREACH),
         spot: createTrackerEntity(SPOT),
         skylines: createTrackerEntity(SKYLINES),
-        flyme: createTrackerEntity(FLYME, { flyme: true }),
+        flyme: createTrackerEntity(FLYME, { type: 'flyme' }),
         flymaster: createTrackerEntity(FLYMASTER),
       });
       syncLiveTrack(state, lt);
@@ -218,7 +220,7 @@ describe('sync', () => {
         inreach: createTrackerEntity('invalid'),
         spot: createTrackerEntity('invalid'),
         skylines: createTrackerEntity('invalid'),
-        flyme: createTrackerEntity('invalid', { flyme: true }),
+        flyme: createTrackerEntity('invalid', { type: 'flyme' }),
         flymaster: createTrackerEntity('invalid'),
       });
       syncLiveTrack(state, lt);
@@ -250,9 +252,10 @@ function createLiveTrackEntity(id: string, liveTrack: Partial<LiveTrackEntity> =
     inreach: createTrackerEntity(INREACH),
     spot: createTrackerEntity(SPOT),
     skylines: createTrackerEntity(SKYLINES),
-    flyme: createTrackerEntity(FLYME, { flyme: true }),
+    flyme: createTrackerEntity(FLYME, { type: 'flyme' }),
     flymaster: createTrackerEntity(FLYMASTER),
     ogn: createTrackerEntity(OGN),
+    zoleo: createTrackerEntity(ZOLEO, { type: 'zoleo' }),
   };
 
   return { ...entity, ...liveTrack };
@@ -260,16 +263,21 @@ function createLiveTrackEntity(id: string, liveTrack: Partial<LiveTrackEntity> =
 
 function createTrackerEntity(
   account: string,
-  { enabled, flyme }: { enabled?: boolean; flyme?: boolean } = { enabled: true, flyme: false },
+  { enabled, type }: { enabled?: boolean; type?: TrackerNames } = { enabled: true },
 ): TrackerEntity {
   enabled ??= true;
-  flyme ??= false;
   const entity: TrackerEntity = {
     enabled,
-    account: flyme ? 'account@flyme.com' : account,
+    account,
   };
-  if (flyme ?? true) {
-    entity.account_resolved = account;
+  switch (type) {
+    case 'flyme':
+      entity.account = 'account@flyme.com';
+      entity.account_resolved = account;
+      break;
+    case 'zoleo':
+      entity.account = 'deviceId';
+      entity.imei = account;
   }
   return entity;
 }

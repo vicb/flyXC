@@ -1,5 +1,5 @@
 // Live tracker configuration.
-import { AccountFormModel } from '@flyxc/common';
+import { AccountFormModel, fetchResponse } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
 import { Binder, field } from '@vaadin/dom';
 import { LitElement, TemplateResult, html } from 'lit';
@@ -13,14 +13,17 @@ import './elements';
 export class DevicesPage extends LitElement {
   @state()
   private isLoading = true;
-
   @state()
   private isSubmitting = false;
-
   @state()
   private loggedIn = false;
 
   private xsrfToken = '';
+
+  // Remove the zoleo event listener.
+  private zoleoEventAbortController?: AbortController;
+  // Zoleo alert dialog.
+  private zoleoAlert?: HTMLIonAlertElement;
 
   @queryAll('device-card')
   private trackerPanels: any;
@@ -223,6 +226,31 @@ export class DevicesPage extends LitElement {
                 >
                 </device-card>
               </ion-col>
+              <ion-col size=12 size-lg=6>
+                <ion-card class="ion-padding-bottom">
+                  <ion-card-header color="secondary">
+                    <ion-card-title><i class="las la-calculator"></i> zoleo</ion-card-title>
+                  </ion-card-header>
+                  <flow-ion-check label="Enabled" labelOff="Disabled" ...=${field(
+                    this.binder.model.zoleo.enabled,
+                  )}></flow-ion-check>
+                  ${when(this.binder.model.zoleo.enabled.valueOf(), () =>
+                    when(
+                      this.binder.model.zoleo.account.valueOf().length == 0,
+                      () => html`<ion-item lines="full">
+                        <ion-button size="default" @click=${async () => await this.startZoleoShareFlow()}
+                          ><i class="las la-link la-lg"></i> Link a device</ion-button
+                        >
+                      </ion-item>`,
+                      () => html`<ion-item lines="full">
+                        <ion-button size="default" @click=${async () => await this.unlinkZoleo()}
+                          ><i class="las la-unlink la-lg"></i>Unlink your device</ion-button
+                        >
+                      </ion-item>`,
+                    ),
+                  )}
+                </ion-card>
+              </ion-col>
             </ion-row>`,
           )}
         </ion-grid>
@@ -244,6 +272,77 @@ export class DevicesPage extends LitElement {
         </ion-toolbar>
       </ion-footer>
     `;
+  }
+
+  private async unlinkZoleo() {
+    const binderNode = this.binder.for(this.binder.model.zoleo.account);
+    binderNode.value = '';
+    binderNode.visited = true;
+    await fetchResponse('/api/zoleo/unlink', { method: 'POST' });
+  }
+
+  private async startZoleoShareFlow() {
+    // Add event listener
+    this.zoleoEventAbortController = new AbortController();
+    const signal = this.zoleoEventAbortController.signal;
+    window.addEventListener('message', async (e: MessageEvent) => await this.zoleoMessageListener(e), { signal });
+
+    // Open the zoleo page
+    const params = new URLSearchParams({
+      partnerID: 'fa7b8762-0166-42dd-b2df-f3c958153570',
+      username: this.binder.model.name.valueOf(),
+      partnerURL: 'https://flyxc.app',
+    });
+
+    window.open(`https://www.link.zoleo.com?${params.toString()}`, '_blank');
+
+    // Display dialog (with cancel)
+    this.zoleoAlert = await alertController.create({
+      header: 'zoleo',
+      message: 'Waiting for confirmation from zoleo...',
+      buttons: [
+        {
+          text: 'Cancel',
+          handler: () => {
+            this.zoleoEventAbortController?.abort();
+          },
+        },
+      ],
+      backdropDismiss: false,
+    });
+    await this.zoleoAlert.present();
+  }
+
+  private async zoleoMessageListener(event: MessageEvent) {
+    this.zoleoEventAbortController?.abort();
+    if (event.origin !== 'https://www.link.zoleo.com') {
+      console.error('Invalid event origin.');
+      return;
+    }
+
+    if (event.data.status !== 200) {
+      console.error(`Zoleo error status ${event.data.status}`);
+      return;
+    }
+
+    const partnerDeviceID = event.data.partnerDeviceID;
+    if (partnerDeviceID) {
+      const zoleoModel = this.binder.model.zoleo;
+      const binderNode = this.binder.for(zoleoModel.account);
+      binderNode.value = partnerDeviceID;
+      binderNode.visited = true;
+      const payload = {
+        name: this.binder.model.name.valueOf(),
+        account: partnerDeviceID,
+        enabled: zoleoModel.enabled.valueOf(),
+      };
+      await fetchResponse('/api/zoleo/link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      await this.zoleoAlert?.dismiss();
+    }
   }
 
   // Navigates back to the application or the admin page.
@@ -306,10 +405,8 @@ export class DevicesPage extends LitElement {
         }
       });
     } catch (e) {
-      // empty
+      console.error(e);
     }
-
-    console.log(error);
 
     if (error) {
       const alert = await alertController.create({
@@ -364,6 +461,7 @@ export class DevicesPage extends LitElement {
           <li><a href="https://skylines.aero/tracking/info" target="_blank">SkyLines</a></li>
           <li><a href="http://xcglobe.com/flyme" target="_blank">XCGlobe FlyMe</a></li>
           <li><a href="https://www.flymaster.net/" target="_blank">Flymaster</a></li>
+          <li><a href="https://www.zoleo.com/" target="_blank">zoleo</a></li>
           <li>
             <a href="https://www.glidernet.org/" target="_blank">OGN (Open Glider Network)</a>
           </li>

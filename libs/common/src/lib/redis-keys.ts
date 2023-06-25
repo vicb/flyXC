@@ -2,6 +2,10 @@
 //
 // `[List]` prefix denotes REDIS lists.
 export enum Keys {
+  // # Devices
+  // [List]
+  zoleoMsgQueue = 'zoleo:msg:queue',
+
   // # Commands
 
   // Export the periodic file.

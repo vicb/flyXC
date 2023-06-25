@@ -94,7 +94,7 @@ async function tick(state: protos.FetcherState, datastore: Datastore) {
 
     const pipeline = redis.pipeline();
 
-    await updateAll(pipeline, state);
+    await updateAll(pipeline, state, datastore);
 
     addStateLogs(pipeline, state);
     await addHostInfo(pipeline);
@@ -138,9 +138,9 @@ async function tick(state: protos.FetcherState, datastore: Datastore) {
 }
 
 // Update every tick.
-async function updateAll(pipeline: ChainableCommander, state: protos.FetcherState) {
+async function updateAll(pipeline: ChainableCommander, state: protos.FetcherState, datastore: Datastore) {
   try {
-    await Promise.allSettled([resfreshTrackers(pipeline, state), resfreshUfoFleets(pipeline, state)]);
+    await Promise.allSettled([resfreshTrackers(pipeline, state, redis, datastore), resfreshUfoFleets(pipeline, state)]);
 
     const nowSec = Math.round(Date.now() / 1000);
     const incrementalStartSec = nowSec - INCREMENTAL_UPDATE_SEC;

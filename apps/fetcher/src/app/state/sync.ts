@@ -6,6 +6,7 @@ import {
   trackerNames,
   trackerValidators,
   validateFlymeAccount,
+  validateZoleoAccount,
 } from '@flyxc/common';
 import { LIVE_TRACK_TABLE } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
@@ -70,7 +71,7 @@ export async function syncFromDatastore(
     status.numSync = syncedId.size;
 
     // Delete unseen ids on full sync.
-    if (full == true) {
+    if (full) {
       for (const id of Object.keys(state.pilots)) {
         if (!syncedId.has(id)) {
           status.numDeleted++;
@@ -99,39 +100,42 @@ export function syncLiveTrack(state: protos.FetcherState, liveTrack: LiveTrackEn
   const id = liveTrack[Datastore.KEY].id;
 
   if (id == null) {
-    console.error(`syncToState: entity has no id`);
+    console.error(`syncLiveTrack: entity has no id`);
     return;
   }
 
-  const pilot = createPilotFromEntity(liveTrack);
-  const statePilot = state.pilots[id];
+  const updatedPilot = createPilotFromEntity(liveTrack);
+  const existingPilot = state.pilots[id];
 
-  if (statePilot != null) {
+  if (existingPilot != null) {
     // Preserve the track only when no configs have changed.
-    let preserveTrack = pilot.enabled == state.pilots[id].enabled;
+    let preserveTrack = updatedPilot.enabled == existingPilot.enabled;
 
-    for (const propName of trackerNames) {
-      const tracker = pilot[propName];
-      const stateTracker = statePilot[propName];
-      if (stateTracker == null || tracker == null) {
+    for (const tracker of trackerNames) {
+      const updatedTracker = updatedPilot[tracker];
+      const existingTracker = existingPilot[tracker];
+      if (existingTracker == null || updatedTracker == null) {
+        // When the existing tracker is null we want to use the updatedPilot.
+        // When the updated pilot is null we want to use it.
         continue;
       }
-      const updated = tracker.enabled !== stateTracker.enabled || tracker.account !== stateTracker.account;
+      const updated =
+        updatedTracker.enabled !== existingTracker.enabled || updatedTracker.account !== existingTracker.account;
       if (updated) {
         // Invalidate the track when the settings have been updated.
         preserveTrack = false;
       } else {
         // The settings have not changed, re-use the other properties (last fix, next fetch, ...).
-        pilot[propName] = stateTracker;
+        updatedPilot[tracker] = existingTracker;
       }
     }
 
     if (preserveTrack) {
-      pilot.track = statePilot.track;
+      updatedPilot.track = existingPilot.track;
     }
   }
 
-  state.pilots[id] = pilot;
+  state.pilots[id] = updatedPilot;
   const pilotUpdatedMs = Math.round(liveTrack.updated.getTime());
   state.lastUpdatedMs = Math.max(state.lastUpdatedMs, pilotUpdatedMs);
 }
@@ -148,6 +152,15 @@ function createPilotFromEntity(liveTrack: LiveTrackEntity): protos.Pilot {
     }
   }
 
+  const zoleo = createDefaultTracker();
+  if (liveTrack.zoleo) {
+    const imei = validateZoleoAccount(liveTrack.zoleo.imei ?? '');
+    if (imei != false) {
+      zoleo.enabled = liveTrack.zoleo.enabled;
+      zoleo.account = liveTrack.zoleo.imei;
+    }
+  }
+
   return {
     name: liveTrack.name,
     track: protos.LiveTrack.create(),
@@ -159,6 +172,7 @@ function createPilotFromEntity(liveTrack: LiveTrackEntity): protos.Pilot {
     ...createAccountEnabledTracker('skylines', liveTrack),
     ...createAccountEnabledTracker('flymaster', liveTrack),
     ...createAccountEnabledTracker('ogn', liveTrack),
+    zoleo,
   };
 }
 

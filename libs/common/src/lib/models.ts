@@ -4,7 +4,6 @@ import {
   BooleanModel,
   NotBlank,
   NotNull,
-  Null,
   ObjectModel,
   Size,
   StringModel,
@@ -25,6 +24,7 @@ export interface AccountModel {
   flyme: TrackerModel;
   flymaster: TrackerModel;
   ogn: TrackerModel;
+  zoleo: TrackerModel;
 }
 
 // Form model for a client side account.
@@ -40,6 +40,7 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
       flyme: TrackerFormModel.createEmptyValue(),
       flymaster: TrackerFormModel.createEmptyValue(),
       ogn: TrackerFormModel.createEmptyValue(),
+      zoleo: TrackerFormModel.createEmptyValue(),
     };
   }
 
@@ -52,7 +53,7 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
         enabled: trackerEntity.enabled,
         account: trackerEntity.account,
       };
-      // Copy the optional account_resolved property.
+      // Copy the optional account_resolved property (flyme).
       if (trackerEntity.account_resolved != null) {
         trackerModels[prop].account_resolved = trackerEntity.account_resolved;
       }
@@ -80,6 +81,7 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
   readonly flyme = this.createTrackerModel('flyme');
   readonly flymaster = this.createTrackerModel('flymaster');
   readonly ogn = this.createTrackerModel('ogn');
+  readonly zoleo = this.createTrackerModel('zoleo');
 
   private createTrackerModel(tracker: TrackerNames): TrackerFormModel {
     const validators = trackerValidators[tracker];
@@ -91,9 +93,9 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
 export interface TrackerModel {
   // Account as entered by the user.
   account: string;
-  // Account resolved on entity persisted.
-  account_resolved?: string;
   enabled: boolean;
+  // Account resolved on entity persisted (flyme).
+  account_resolved?: string;
 }
 
 // Form model for a client side tracker.
@@ -107,7 +109,7 @@ export class TrackerFormModel extends ObjectModel<TrackerModel> {
 
   readonly enabled: BooleanModel = this[_getPropertyModel]('enabled', BooleanModel, [false, new NotNull()]);
   readonly account: StringModel = this[_getPropertyModel]('account', StringModel, [false, new Size({ max: 150 })]);
-  readonly account_enabled: StringModel = this[_getPropertyModel]('account_resolved', StringModel, [true, new Null()]);
+  readonly account_resolved: StringModel = this[_getPropertyModel]('account_resolved', StringModel, [true]);
 }
 
 // Validates a TrackerModel using a callback.
@@ -130,6 +132,7 @@ export const trackerValidators: Readonly<Record<TrackerNames, AccountSyncValidat
   flyme: [],
   flymaster: [new AccountSyncValidator('This Flymaster ID is invalid', validateFlymasterAccount)],
   ogn: [new AccountSyncValidator('This OGN ID is invalid', validateOgnAccount)],
+  zoleo: [],
 };
 
 // Validates a Spot Id.
@@ -205,4 +208,10 @@ export function validateFlymeAccount(id: string): string | false {
 export function validateOgnAccount(id: string): string | false {
   id = id.trim();
   return /^[0-9a-f]{6}$/i.test(id) ? id.toUpperCase() : false;
+}
+
+// Validates a zoleo IMEI.
+export function validateZoleoAccount(imei: string): string | false {
+  imei = imei.trim();
+  return /^\d{15}$/i.test(imei) ? imei : false;
 }

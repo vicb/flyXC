@@ -12,7 +12,8 @@ import {
   simplifyLiveTrack,
 } from '@flyxc/common';
 import { pushListCap } from '@flyxc/common-node';
-import { ChainableCommander } from 'ioredis';
+import { Datastore } from '@google-cloud/datastore';
+import { ChainableCommander, Redis } from 'ioredis';
 import { patchLastFixAGL } from '../elevation/elevation';
 import { addElevationLogs } from '../redis';
 import { FlymasterFetcher } from './flymaster';
@@ -23,6 +24,7 @@ import { OGN_HOST, OGN_PORT, OgnClient } from './ogn-client';
 import { SkylinesFetcher } from './skylines';
 import { SpotFetcher } from './spot';
 import { TrackerUpdates } from './tracker';
+import { ZoleoFetcher } from './zoleo';
 
 const ognClient = new OgnClient(OGN_HOST, OGN_PORT, SecretKeys.APRS_USER, SecretKeys.APRS_PASSWORD);
 
@@ -30,7 +32,12 @@ export function disconnectOgnClient() {
   ognClient.disconnect();
 }
 
-export async function resfreshTrackers(pipeline: ChainableCommander, state: protos.FetcherState) {
+export async function resfreshTrackers(
+  pipeline: ChainableCommander,
+  state: protos.FetcherState,
+  redis: Redis,
+  datastore: Datastore,
+) {
   const fetchers = [
     new InreachFetcher(state, pipeline),
     new SpotFetcher(state, pipeline),
@@ -38,6 +45,7 @@ export async function resfreshTrackers(pipeline: ChainableCommander, state: prot
     new FlymeFetcher(state, pipeline),
     new FlymasterFetcher(state, pipeline),
     new OgnFetcher(ognClient, state, pipeline),
+    new ZoleoFetcher(state, pipeline, redis, datastore),
   ];
 
   const updatePromises = await Promise.allSettled(fetchers.map((f) => f.refresh(LIVE_FETCH_TIMEOUT_SEC)));

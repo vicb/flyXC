@@ -1,5 +1,5 @@
 import { AccountFormModel, Keys, trackerNames, ufoFleetNames } from '@flyxc/common';
-import { retrieveLiveTrackById, retrieveRecentTracks, TRACK_TABLE } from '@flyxc/common-node';
+import { TRACK_TABLE, retrieveLiveTrackById, retrieveRecentTracks } from '@flyxc/common-node';
 import csurf from 'csurf';
 import { NextFunction, Request, Response, Router } from 'express';
 import { Redis } from 'ioredis';
@@ -7,15 +7,10 @@ import zlib from 'zlib';
 
 import { Datastore } from '@google-cloud/datastore';
 
-import { createOrUpdateEntity } from './live-track';
+import { createOrUpdateLiveTrack } from './live-track';
 import { isAdmin } from './session';
 
 const csrfProtection = csurf();
-
-// Cache the counter for hours.
-const REDIS_CACHE_HOURS = 5;
-// Initial offset for the number of tracks
-const NUM_TRACKS_OFFSET = 250000;
 
 export function getAdminRouter(redis: Redis, datastore: Datastore): Router {
   const router = Router();
@@ -86,7 +81,7 @@ export function getAdminRouter(redis: Redis, datastore: Datastore): Router {
     try {
       const entity = await retrieveLiveTrackById(datastore, req.params.id);
       if (entity) {
-        return createOrUpdateEntity(datastore, entity, req, res, entity.email, entity.google_id, redis);
+        return createOrUpdateLiveTrack(datastore, entity, req, res, entity.email, entity.google_id, redis);
       }
     } catch (e) {
       console.error(e);

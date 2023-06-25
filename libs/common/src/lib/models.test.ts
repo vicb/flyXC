@@ -4,6 +4,7 @@ import {
   validateOgnAccount,
   validateSkylinesAccount,
   validateSpotAccount,
+  validateZoleoAccount,
 } from './models';
 
 describe('Validate Inreach account', () => {
@@ -131,5 +132,19 @@ describe('Validate OGN accounts', () => {
     expect(validateOgnAccount('12345')).toEqual(false);
     expect(validateOgnAccount('1234567')).toEqual(false);
     expect(validateOgnAccount('random')).toEqual(false);
+  });
+});
+
+describe('Validate zoleo accounts', () => {
+  test('Valid ids', () => {
+    expect(validateZoleoAccount('012345678912345')).toBe('012345678912345');
+    expect(validateZoleoAccount('  012345678912345  ')).toBe('012345678912345');
+  });
+
+  test('Invalid ids', () => {
+    expect(validateZoleoAccount('')).toEqual(false);
+    expect(validateZoleoAccount('01234567891234')).toEqual(false);
+    expect(validateZoleoAccount('0123456789123456')).toEqual(false);
+    expect(validateZoleoAccount('random')).toEqual(false);
   });
 });

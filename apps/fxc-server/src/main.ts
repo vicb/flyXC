@@ -10,6 +10,7 @@ import { getAdminRouter } from './app/routes/admin';
 import { getTrackerRouter } from './app/routes/live-track';
 import { getTrackRouter } from './app/routes/track';
 import { getWaypointRouter } from './app/routes/waypoints';
+import { getZoleoRouter } from './app/routes/zoleo';
 import { environment } from './environments/environment';
 
 const redis = getRedisClient();
@@ -78,7 +79,8 @@ app
   .use('/api/admin', getAdminRouter(redis, datastore))
   .use('/api/live', getTrackerRouter(redis, datastore))
   .use('/api/track', getTrackRouter(datastore))
-  .use('/api/waypoint', getWaypointRouter());
+  .use('/api/waypoint', getWaypointRouter())
+  .use('/api/zoleo', getZoleoRouter(redis));
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => console.info(`Started server on port ${port}.`));

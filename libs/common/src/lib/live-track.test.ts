@@ -115,7 +115,7 @@ describe('removeDeviceFromLiveTrack', () => {
       lat: [11, 21],
       lon: [12, 22],
       alt: [13, 23],
-      flags: [trackerIdByName['inreach'], trackerIdByName.inreach],
+      flags: [trackerIdByName.inreach, trackerIdByName.inreach],
       extra: { 1: { speed: 10 } },
     });
 
@@ -124,7 +124,7 @@ describe('removeDeviceFromLiveTrack', () => {
       lat: [31, 41],
       lon: [32, 42],
       alt: [33, 43],
-      flags: [trackerIdByName['flyme'], trackerIdByName.flyme],
+      flags: [trackerIdByName.flyme, trackerIdByName.flyme],
       extra: { 0: { message: 'hello' } },
     });
   });
@@ -541,7 +541,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13],
         lon: [21, 22, 23],
         alt: [31, 32, 33],
-        flags: [trackerIdByName['inreach'], trackerIdByName.inreach, trackerIdByName.inreach],
+        flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
           2: { speed: 10 },
@@ -553,7 +553,7 @@ describe('mergeLiveTracks', () => {
         lat: [0],
         lon: [0],
         alt: [0],
-        flags: [trackerIdByName['spot'] | LiveTrackFlag.Emergency],
+        flags: [trackerIdByName.spot | LiveTrackFlag.Emergency],
         extra: {
           0: { message: 'world' },
         },
@@ -579,7 +579,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13],
         lon: [21, 22, 23],
         alt: [31, 32, 33],
-        flags: [trackerIdByName['inreach'], trackerIdByName.inreach, trackerIdByName.inreach],
+        flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
           2: { speed: 10 },
@@ -591,7 +591,7 @@ describe('mergeLiveTracks', () => {
         lat: [0],
         lon: [0],
         alt: [0],
-        flags: [trackerIdByName['spot'] | LiveTrackFlag.LowBat],
+        flags: [trackerIdByName.spot | LiveTrackFlag.LowBat],
         extra: {
           0: { message: 'world' },
         },
@@ -617,7 +617,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 0, 13],
         lon: [21, 0, 23],
         alt: [31, 0, 33],
-        flags: [trackerIdByName['inreach'], trackerIdByName.inreach, trackerIdByName.inreach],
+        flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
           2: { speed: 10 },
@@ -629,7 +629,7 @@ describe('mergeLiveTracks', () => {
         lat: [12],
         lon: [22],
         alt: [32],
-        flags: [trackerIdByName['spot'] | LiveTrackFlag.Valid],
+        flags: [trackerIdByName.spot | LiveTrackFlag.Valid],
         extra: {
           0: { message: 'world' },
         },
@@ -640,7 +640,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13],
         lon: [21, 22, 23],
         alt: [31, 32, 33],
-        flags: [trackerIdByName['inreach'], trackerIdByName.spot | LiveTrackFlag.Valid, trackerIdByName.inreach],
+        flags: [trackerIdByName.inreach, trackerIdByName.spot | LiveTrackFlag.Valid, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
           2: { speed: 10 },
@@ -821,7 +821,7 @@ describe('isEmergencyTrack', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
-      flags: [trackerIdByName['inreach'], trackerIdByName.inreach, trackerIdByName.inreach],
+      flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.inreach],
       extra: {
         0: { message: 'hello' },
         2: { speed: 10 },
@@ -839,7 +839,7 @@ describe('getLastMessage', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
-      flags: [trackerIdByName['inreach'], trackerIdByName.inreach, trackerIdByName.inreach],
+      flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.inreach],
       extra: {
         0: { speed: 5 },
         2: { speed: 10 },
@@ -855,7 +855,7 @@ describe('getLastMessage', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
-      flags: [trackerIdByName['inreach'], trackerIdByName.inreach, trackerIdByName.inreach],
+      flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.inreach],
       extra: {
         0: { message: 'hello' },
         2: { speed: 10 },
@@ -871,7 +871,7 @@ describe('getLastMessage', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
-      flags: [trackerIdByName['inreach'], trackerIdByName.inreach, trackerIdByName.inreach],
+      flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.inreach],
       extra: {
         0: { message: 'first' },
         2: { speed: 10, message: 'last' },

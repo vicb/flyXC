@@ -14,7 +14,7 @@ describe('Create GeoJSON features', () => {
         lon: [11],
         lat: [21],
         alt: [31],
-        flags: [trackerIdByName['flyme']],
+        flags: [trackerIdByName.flyme],
         extra: {},
       };
 

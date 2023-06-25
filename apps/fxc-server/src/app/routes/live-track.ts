@@ -13,7 +13,7 @@ import {
   LIVE_TRACK_TABLE,
   retrieveLiveTrackByGoogleId,
   SkylinesValidator,
-  UpdateLiveTrackEntityFromModel,
+  updateLiveTrackEntityFromModel,
 } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import { NoDomBinder } from '@vaadin/nodom';
@@ -102,7 +102,7 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
     }
     const { email, token } = userInfo;
     const entity = await retrieveLiveTrackByGoogleId(datastore, token);
-    return createOrUpdateEntity(datastore, entity, req, res, email, token, redis);
+    return createOrUpdateLiveTrack(datastore, entity, req, res, email, token, redis);
   });
 
   // Logout.
@@ -115,7 +115,7 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
 }
 
 // Create or update a LiveTrack entity from the form POST data.
-export async function createOrUpdateEntity(
+export async function createOrUpdateLiveTrack(
   datastore: Datastore,
   entity: LiveTrackEntity | undefined,
   req: Request,
@@ -148,7 +148,7 @@ export async function createOrUpdateEntity(
       });
     }
 
-    entity = UpdateLiveTrackEntityFromModel(entity, account, email, token);
+    entity = updateLiveTrackEntityFromModel(entity, account, email, token);
 
     try {
       await datastore.save({

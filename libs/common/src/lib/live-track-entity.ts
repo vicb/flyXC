@@ -6,6 +6,8 @@ export interface TrackerEntity {
   account: string;
   // Resolved account (i.e. the id retrieved from the account for flyme).
   account_resolved?: string;
+  // IMEI (zoleo).
+  imei?: string;
 }
 
 // A tracker user in the DataStore.
@@ -22,10 +24,11 @@ export interface LiveTrackEntity {
   enabled: boolean;
   // Trackers.
   // The name must be in sync with TrackerProps.
-  inreach: TrackerEntity;
-  spot: TrackerEntity;
-  skylines: TrackerEntity;
-  flyme: TrackerEntity;
-  flymaster: TrackerEntity;
-  ogn: TrackerEntity;
+  inreach?: TrackerEntity;
+  spot?: TrackerEntity;
+  skylines?: TrackerEntity;
+  flyme?: TrackerEntity;
+  flymaster?: TrackerEntity;
+  ogn?: TrackerEntity;
+  zoleo?: TrackerEntity;
 }

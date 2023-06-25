@@ -34,7 +34,7 @@ export const INCREMENTAL_UPDATE_SEC = 3600;
 // Export to partners.
 export const EXPORT_UPDATE_SEC = 5 * 60;
 
-export const trackerNames = ['inreach', 'spot', 'skylines', 'flyme', 'flymaster', 'ogn'] as const;
+export const trackerNames = ['inreach', 'spot', 'skylines', 'flyme', 'flymaster', 'ogn', 'zoleo'] as const;
 
 if (trackerNames.length > MAX_NUM_DEVICES - 1) {
   throw new Error('Too many devices');
@@ -51,6 +51,7 @@ export const trackerDisplayNames: Readonly<Record<TrackerNames, string>> = {
   flyme: 'FlyMe (XCGlobe)',
   flymaster: 'Flymaster',
   ogn: 'OGN',
+  zoleo: 'zoleo',
 };
 
 export const trackerIdByName: Record<TrackerNames, number> = {} as any;

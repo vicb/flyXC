@@ -1,4 +1,4 @@
-import { AccountModel, LiveTrackEntity, TrackerModel, trackerNames } from '@flyxc/common';
+import { AccountModel, LiveTrackEntity, trackerNames } from '@flyxc/common';
 import { Datastore } from '@google-cloud/datastore';
 
 export const LIVE_TRACK_TABLE = 'LiveTrack';
@@ -23,7 +23,7 @@ export async function retrieveLiveTrackById(datastore: Datastore, id: string): P
 }
 
 // Updates a live track entity with user edits.
-export function UpdateLiveTrackEntityFromModel(
+export function updateLiveTrackEntityFromModel(
   entity: LiveTrackEntity | undefined,
   account: AccountModel,
   email: string,
@@ -33,7 +33,6 @@ export function UpdateLiveTrackEntityFromModel(
     email,
     google_id: googleId,
     created: new Date(),
-    updated: new Date(),
   };
 
   // Update the entity.
@@ -42,14 +41,22 @@ export function UpdateLiveTrackEntityFromModel(
   liveTrack.enabled = account.enabled;
   liveTrack.updated = new Date();
 
-  for (const prop of trackerNames) {
-    const model: TrackerModel = account[prop];
-    liveTrack[prop] = {
+  for (const tracker of trackerNames) {
+    const model = account[tracker];
+    // Preserve the current zoleo IMEI.
+    let imei: string | undefined;
+    if (tracker == 'zoleo') {
+      imei = liveTrack[tracker]?.imei ?? '';
+    }
+    liveTrack[tracker] = {
       enabled: model.enabled,
       account: model.account,
     };
     if (model.account_resolved != null) {
-      liveTrack[prop].account_resolved = model.account_resolved;
+      liveTrack[tracker].account_resolved = model.account_resolved;
+    }
+    if (imei != null) {
+      liveTrack[tracker].imei = imei ?? '';
     }
   }
 

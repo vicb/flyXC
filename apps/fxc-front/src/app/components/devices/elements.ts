@@ -25,7 +25,7 @@ export class TrackerPanel extends lit.LitElement {
 
   protected render(): lit.TemplateResult {
     const trackerName = common.trackerDisplayNames[this.tracker];
-    const model = (this.binder.model as any)[this.tracker];
+    const model = this.binder.model[this.tracker];
 
     return lit.html`
       <link
