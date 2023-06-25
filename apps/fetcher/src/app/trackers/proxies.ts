@@ -2,9 +2,18 @@ import { InstancesClient, InstanceTemplatesClient, ZoneOperationsClient } from '
 import { format } from 'date-fns';
 import { environment } from '../../environments/environment';
 
-// Zones with N1 machines
+// Zones with N1 machines (proxy are f1-micro)
 // See https://cloud.google.com/compute/docs/regions-zones
-const ZONES = ['us-central1-a', 'us-west1-a', 'us-east1-b', 'us-west2-a', 'us-east4-a', 'us-west4-a'];
+const ZONES = [
+  'us-central1-a',
+  'europe-west1-c',
+  'us-west1-a',
+  'us-east1-b',
+  'us-west2-a', // Fails 2023-06
+  'europe-north1-a',
+  'us-east4-a', // Fails 2023-06
+  'us-west4-a', // Fails 2023-06
+];
 const PROJECT = 'fly-xc';
 const TEMPLATE = 'proxy-tmpl';
 const SUBNETORK = 'https://www.googleapis.com/compute/v1/projects/fly-xc/regions/{region}/subnetworks/default';
