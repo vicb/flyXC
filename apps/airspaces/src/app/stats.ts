@@ -75,24 +75,28 @@ for (const airspace of airspaces) {
 
   switch (airspace.type) {
     case 4:
-      CTR.add(airspace.icaoClass);
+      CTR.add(getClassLabel(airspace.icaoClass));
       break;
     case 6:
-      RMZ.add(airspace.icaoClass);
+      RMZ.add(getClassLabel(airspace.icaoClass));
       break;
     case 7:
-      TMA.add(airspace.icaoClass);
+      TMA.add(getClassLabel(airspace.icaoClass));
       break;
     case 5:
-      TMZ.add(airspace.icaoClass);
+      TMZ.add(getClassLabel(airspace.icaoClass));
       break;
     case 13:
-      ATZ.add(airspace.icaoClass);
+      ATZ.add(getClassLabel(airspace.icaoClass));
       break;
     case 10:
-      FIR.add(airspace.icaoClass);
+      FIR.add(getClassLabel(airspace.icaoClass));
       break;
   }
+}
+
+function getClassLabel(id: number): string {
+  return classes.has(id) ? `${classes.get(id)} (${id})` : String(id);
 }
 
 console.log(`Total airspaces: ${airspaces.length}`);
