@@ -17,8 +17,8 @@ const FAVICON_SVG = (
 <path fill="#4e525d" stroke="#000" d="M19.86 16.86h0l-.07.06a5.72 5.72 0 01-5.43 1.5h0v-4.7L12 15.28 9.64 13.7v4.72h0a5.72 5.72 0 01-5.43-1.5l-.07-.07h0A7.86 7.86 0 001 23.14h0a3.41 3.41 0 013.93 3.93h0a5.4 5.4 0 016.67 3l.4.93.4-.93a5.4 5.4 0 016.67-3h0A3.41 3.41 0 0123 23.14h0a7.86 7.86 0 00-3.14-6.28z"/>
 ${
   count > 0
-    ? `<text x="19" y="10" font-size="20px" font-family="sans-serif" alignment-baseline="middle" font-weight="bolder" fill="#f60" stroke="none">${
-        count > 9 ? '+' : count
+    ? `<text x="30" y="10" font-size="20px" font-family="sans-serif" alignment-baseline="middle" font-weight="bolder" fill="#f60" stroke="none" text-anchor="end">${
+        count > 99 ? '+' : count
       }</text>`
     : `<circle cx="25" cy="7" r="4" fill="#f23c50" stroke="#000" />
 <path fill="none" stroke="#000" d="M29 7h2M19 7h2M27.83 4.17l1.41-1.41M20.76 11.24l1.41-1.41M25 3V1M25 13v-2M22.17 4.17l-1.41-1.41M29.24 11.24l-1.41-1.41"/>`
@@ -547,14 +547,8 @@ export class StateExplorer extends LitElement {
         ${when(
           this.fetcherState,
           () => html`<ion-item lines="none">
-              <ion-input
-                label="Filter..."
-                label-placement="floating"
-                @input=${this.onFilterInput}
-                type="text"
-                .value=${this.filter}
-                .clearInput=${true}
-              ></ion-input>
+              <ion-label position="floating">Filter</ion-label>
+              <ion-input @input=${this.onFilterInput} type="text" .value=${this.filter} .clearInput=${true}></ion-input>
             </ion-item>
             ${item(
               `${numMatchingPilots} pilots. ${
