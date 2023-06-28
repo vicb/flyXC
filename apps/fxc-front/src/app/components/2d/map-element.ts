@@ -1,8 +1,9 @@
 import { findClosestFix, LatLon, LatLonAlt, pixelCoordinates, RuntimeTrack } from '@flyxc/common';
 import { Loader } from '@googlemaps/js-api-loader';
-import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
+import { html, LitElement, PropertyValues, svg, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
+import { when } from 'lit/directives/when.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 import simplify from 'simplify-path';
@@ -25,14 +26,14 @@ import { TrackingElement } from './tracking-element';
 // Prevent tree-shaking components by exporting them
 export {
   ControlsElement,
-  LineElement,
   MarkerElement as GmMarkerElement,
+  LineElement,
   PlannerElement,
   SegmentsElement,
   TopoEu,
-  TopoSpain,
   TopoFrance,
   TopoOtm,
+  TopoSpain,
   TrackingElement,
 };
 
@@ -89,6 +90,7 @@ export class MapElement extends connect(store)(LitElement) {
   @state()
   private freeDrawPath = '';
 
+  private pathPoints: [number, number][] = [];
   private pointerEventId?: number;
   private lockOnPilot = false;
   private lockPanBefore = 0;
@@ -262,8 +264,14 @@ export class MapElement extends connect(store)(LitElement) {
       </style>
       <div id="drw-container" style=${`display:${this.isFreeDrawing ? 'block' : 'none'}`}>
         <svg width="100%" height="100%">
-          <path d=${this.freeDrawPath}></path>
-          <rect width="100%" height="100%"></rect>
+          ${when(this.pathPoints.length > 1, () => svg`<path d=${this.freeDrawPath}></path>`)}
+          <rect
+            @pointerdown=${this.svgPointerDown}
+            @pointerup=${this.svgPointerUp}
+            @pointermove=${this.svgPointerMove}
+            width="100%"
+            height="100%"
+          ></rect>
         </svg>
       </div>
       <div id="map"></div>
@@ -284,62 +292,57 @@ export class MapElement extends connect(store)(LitElement) {
     `;
   }
 
-  firstUpdated(): void {
-    const rect = this.querySelector('rect') as SVGRectElement;
-    let points: [number, number][] = [];
+  private svgPointerDown(e: PointerEvent) {
+    e.stopPropagation();
+    if (this.pointerEventId != null) {
+      return;
+    }
+    this.pointerEventId = e.pointerId;
+    (e.currentTarget as SVGRectElement).setPointerCapture(e.pointerId);
+    this.freeDrawPath = '';
+    this.pathPoints.length = 0;
+  }
 
-    rect.addEventListener(
-      'pointerdown',
-      (e) => {
-        e.stopPropagation();
-        if (this.pointerEventId != null) {
-          return;
-        }
-        this.pointerEventId = e.pointerId;
-        rect.setPointerCapture(e.pointerId);
-        this.freeDrawPath = '';
-        points.length = 0;
-      },
-      true,
-    );
+  private svgPointerMove(e: PointerEvent) {
+    e.stopPropagation();
+    if (this.pointerEventId == null) {
+      return;
+    }
+    const x = e.offsetX;
+    const y = e.offsetY;
+    this.pathPoints.push([x, y]);
+    if (this.freeDrawPath.length == 0) {
+      this.freeDrawPath = `M${x},${y}`;
+    } else {
+      this.freeDrawPath += ` L${x},${y}`;
+    }
+  }
 
-    rect.addEventListener('pointermove', (e) => {
-      e.stopPropagation();
-      if (this.pointerEventId == null) {
-        return;
-      }
-      points.push([e.offsetX, e.offsetY]);
-      if (points.length > 1) {
-        this.freeDrawPath = points.map(([x, y], i) => `${i == 0 ? 'M' : 'L'}${x},${y}`).join(' ');
-      }
-    });
-
-    rect.addEventListener('pointerup', () => {
-      if (this.pointerEventId == null) {
-        return;
-      }
-      rect.releasePointerCapture(this.pointerEventId);
-      this.pointerEventId = undefined;
-      this.freeDrawPath = '';
-      store.dispatch(setIsFreeDrawing(false));
-      points = simplify(points, 30);
-      let encodedRoute = '';
-      if (points.length >= 2 && this.map) {
-        const proj = this.map.getProjection() as google.maps.Projection;
-        const bounds = this.map.getBounds() as google.maps.LatLngBounds;
-        const topRight = proj.fromLatLngToPoint(bounds.getNorthEast()) as google.maps.Point;
-        const bottomLeft = proj.fromLatLngToPoint(bounds.getSouthWest()) as google.maps.Point;
-        const scale = Math.pow(2, this.map.getZoom() as number);
-        encodedRoute = google.maps.geometry.encoding.encodePath(
-          points.map(([x, y]) => {
-            const worldPoint = new google.maps.Point(x / scale + bottomLeft.x, y / scale + topRight.y);
-            return proj.fromPointToLatLng(worldPoint) as google.maps.LatLng;
-          }),
-        );
-      }
-      store.dispatch(setRoute(encodedRoute));
-      points.length = 0;
-    });
+  private svgPointerUp(e: PointerEvent) {
+    if (this.pointerEventId == null) {
+      return;
+    }
+    (e.currentTarget as SVGRectElement).releasePointerCapture(this.pointerEventId);
+    this.pointerEventId = undefined;
+    this.freeDrawPath = '';
+    store.dispatch(setIsFreeDrawing(false));
+    this.pathPoints = simplify(this.pathPoints, 30);
+    let encodedRoute = '';
+    if (this.pathPoints.length >= 2 && this.map) {
+      const proj = this.map.getProjection() as google.maps.Projection;
+      const bounds = this.map.getBounds() as google.maps.LatLngBounds;
+      const topRight = proj.fromLatLngToPoint(bounds.getNorthEast()) as google.maps.Point;
+      const bottomLeft = proj.fromLatLngToPoint(bounds.getSouthWest()) as google.maps.Point;
+      const scale = Math.pow(2, this.map.getZoom() as number);
+      encodedRoute = google.maps.geometry.encoding.encodePath(
+        this.pathPoints.map(([x, y]) => {
+          const worldPoint = new google.maps.Point(x / scale + bottomLeft.x, y / scale + topRight.y);
+          return proj.fromPointToLatLng(worldPoint) as google.maps.LatLng;
+        }),
+      );
+    }
+    store.dispatch(setRoute(encodedRoute));
+    this.pathPoints.length = 0;
   }
 
   private handleDrawing() {
