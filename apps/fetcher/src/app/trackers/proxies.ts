@@ -7,12 +7,16 @@ import { environment } from '../../environments/environment';
 const ZONES = [
   'us-central1-a',
   'europe-west1-c',
+  'southamerica-east1-c',
   'us-west1-a',
+  'asia-northeast1-a',
   'us-east1-b',
+  'asia-southeast2-c',
   'us-west2-a', // Fails 2023-06
   'europe-north1-a',
   'us-east4-a', // Fails 2023-06
   'us-west4-a', // Fails 2023-06
+  'asia-east1-a',
 ];
 const PROJECT = 'fly-xc';
 const TEMPLATE = 'proxy-tmpl';
