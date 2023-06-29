@@ -22,4 +22,4 @@ RUN chown -R node:node .
 USER node
 
 # Restart the fetcher periodically to mitigate memory leaks.
-CMD [ "node", "main.js", "-e", "120" ]
+CMD [ "node", "main.js", "-e", "240" ]
