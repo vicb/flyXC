@@ -13,7 +13,9 @@
         "outputPath": "dist/apps/fxc-server",
         "main": "apps/fxc-server/src/main.ts",
         "tsConfig": "apps/fxc-server/tsconfig.app.json",
-        "babelUpwardRootMode": true
+        "babelUpwardRootMode": true,
+        "isolatedConfig": true,
+        "webpackConfig": "apps/fxc-server/webpack.config.js"
       },
       "configurations": {
         "production": {
