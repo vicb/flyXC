@@ -2,10 +2,10 @@
   "extends": "../../tsconfig.base.json",
   "files": [],
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES2020",
     "useDefineForClassFields": false,
-    "module": "ESNext",
-    "lib": ["ESNext", "DOM"],
+    "module": "ES2020",
+    "lib": ["ES2020", "DOM"],
     "moduleResolution": "Node",
     "strict": true,
     "resolveJsonModule": true,

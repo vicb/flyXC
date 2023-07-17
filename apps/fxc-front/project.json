@@ -10,7 +10,8 @@
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "outputPath": "dist/apps/fxc-front"
+        "outputPath": "dist/apps/fxc-front",
+        "target": "es2020"
       },
       "configurations": {
         "development": {
