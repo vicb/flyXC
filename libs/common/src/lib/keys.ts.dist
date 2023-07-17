@@ -8,4 +8,12 @@ export enum SecretKeys {
   ADMINS = 'user@gmail.com,...',
   PROXY_KEY = '...',
   OPENAIP_KEY = '...',
+  AVIANT_URL = '...',
+  // https://www.george-smart.co.uk/aprs/aprs_callpass/
+  APRS_USER = '...',
+  APRS_PASSWORD = '...',
+  ZOLEO_UNLINK_URL = `...`,
+  ZOLEO_UNLINK_API_KEY = `...`,
+  ZOLEO_PUSH_USER = `...`,
+  ZOLEO_PUSH_PWD = `...`,
 }
