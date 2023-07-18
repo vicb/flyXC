@@ -21,8 +21,11 @@ export function parseGeoJson(geojson: any): protos.Track[] {
           ? feature.geometry.coordinates
           : [].concat(...feature.geometry.coordinates);
       let times: number[];
-      if (feature.properties.coordTimes) {
-        times = [].concat(feature.properties.coordTimes).map((t) => Math.round(new Date(t).getTime() / 1000));
+      // https://github.com/placemark/togeojson/pull/47
+      if (feature.properties.coordinateProperties?.times) {
+        times = []
+          .concat(feature.properties.coordinateProperties.times)
+          .map((t) => Math.round(new Date(t).getTime() / 1000));
       } else {
         times = fakeTime(coords.length);
       }
