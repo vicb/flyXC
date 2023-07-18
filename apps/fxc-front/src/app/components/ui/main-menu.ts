@@ -15,7 +15,6 @@ import * as arcgis from '../../redux/arcgis-slice';
 import {
   LivePilot,
   getLivePilots,
-  setDisplayLabels,
   setDisplayLabels as setDisplayLiveLabels,
   setFetchMillis,
   setHistoryMin,
@@ -26,7 +25,7 @@ import { setEnabled } from '../../redux/planner-slice';
 import * as sel from '../../redux/selectors';
 import * as skyways from '../../redux/skyways-slice';
 import { RootState, store } from '../../redux/store';
-import { setLockOnPilot } from '../../redux/track-slice';
+import { setDisplayLabels, setLockOnPilot } from '../../redux/track-slice';
 import './about-modal';
 import './live-modal';
 import './pref-modal';
