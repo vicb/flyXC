@@ -46,7 +46,7 @@ export function parseGeoJson(geojson: any): protos.Track[] {
 // The series starts on 2000-01-01 and each fix is separated by 10s.
 function fakeTime(length: number): number[] {
   const fakeTimes: number[] = [];
-  let timeSec = Math.round(new Date(2000, 0, 1).getTime() / 1000);
+  let timeSec = Math.round(new Date('2000-01-01T00:00:00Z').getTime() / 1000);
   for (let i = 0; i < length; i++) {
     fakeTimes.push(timeSec);
     timeSec += 10;
