@@ -46,12 +46,13 @@ export class PrefModal extends connect(store)(LitElement) {
       <ion-content>
         <ion-list>
           <ion-item>
-            <ion-label position="floating">League</ion-label>
             <ion-select
               @ionChange=${this.handleLeague}
               value=${this.league}
               interface="popover"
               .interfaceOptions=${{ cssClass: 'league' }}
+              label="League"
+              label-placement="floating"
             >
               ${this.leagues.map(
                 (league) => html` <ion-select-option value=${league.value}>${league.name}</ion-select-option> `,

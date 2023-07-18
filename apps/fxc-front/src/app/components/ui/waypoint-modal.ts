@@ -16,7 +16,7 @@ const WAYPOINT_FORMATS: { [id: string]: string } = {
 
 @customElement('waypoint-modal')
 export class WaypointModal extends LitElement {
-  @property()
+  @property({ attribute: false })
   points: LatLonAlt[] = [];
 
   @state()
@@ -42,8 +42,12 @@ export class WaypointModal extends LitElement {
         </ion-item>
 
         <ion-item lines="full">
-          <ion-label position="floating">Waypoint prefix</ion-label>
-          <ion-input value=${this.prefix} @ionChange=${this.handlePrefix}></ion-input>
+          <ion-input
+            value=${this.prefix}
+            @ionChange=${this.handlePrefix}
+            label="Waypoint prefix"
+            label-placement="floating"
+          ></ion-input>
         </ion-item>
       </ion-content>
       <ion-footer>
