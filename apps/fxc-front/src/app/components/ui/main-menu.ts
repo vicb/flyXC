@@ -114,7 +114,7 @@ export class MainMenu extends connect(store)(LitElement) {
                   </ion-item>
                   <ion-item button lines="full" @click=${this.handleSun} .detail=${false}>
                     <i class="las la-sun la-2x"></i>Sun lighting
-                    <ion-toggle slot="end" .checked=${this.sunEnabled} aria-label="XC Planning"></ion-toggle>
+                    <ion-toggle slot="end" .checked=${this.sunEnabled} aria-label="Sun lighting"></ion-toggle>
                   </ion-item>`,
             )}
             <fullscreen-items></fullscreen-items>
