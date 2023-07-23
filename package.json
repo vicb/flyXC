@@ -71,6 +71,7 @@
   "dependencies": {
     "@alenaksu/json-viewer": "^2.0.1",
     "@arcgis/core": "^4.27.6",
+    "@dr.pogodin/csurf": "^1.13.0",
     "@google-cloud/compute": "^3.10.0",
     "@google-cloud/datastore": "^7.5.1",
     "@google-cloud/pubsub": "^3.7.1",
@@ -90,7 +91,6 @@
     "compression": "^1.7.4",
     "connect-redis": "^7.1.0",
     "core-js": "^3.29.1",
-    "csurf": "^1.11.0",
     "d3-array": "^3.2.4",
     "date-fns": "^2.30.0",
     "express": "^4.18.2",
@@ -127,4 +127,3 @@
     "xmlbuilder": "^15.1.1"
   }
 }
-

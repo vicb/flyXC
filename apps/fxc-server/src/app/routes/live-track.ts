@@ -1,3 +1,4 @@
+import csurf from '@dr.pogodin/csurf';
 import {
   AccountFormModel,
   AccountModel,
@@ -17,12 +18,12 @@ import {
 } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import { NoDomBinder } from '@vaadin/nodom';
-import csurf from 'csurf';
 import { Request, Response, Router } from 'express';
 import { Redis } from 'ioredis';
 import { getUserInfo, isLoggedIn, logout } from './session';
 
-const csrfProtection = csurf();
+// Store the token in the session.
+const csrfProtection = csurf({ cookie: false });
 
 export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
   const router = Router();
@@ -83,7 +84,7 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
         account = AccountFormModel.createFromEntity(entity);
       }
 
-      res.set('xsrf-token', req.csrfToken());
+      res.set('xsrf-token', (req as any).csrfToken());
       res.json(account);
     } catch (e) {
       res.sendStatus(400);

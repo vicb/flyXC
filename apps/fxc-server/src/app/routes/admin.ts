@@ -1,6 +1,6 @@
+import csurf from '@dr.pogodin/csurf';
 import { AccountFormModel, Keys, trackerNames, ufoFleetNames } from '@flyxc/common';
 import { TRACK_TABLE, retrieveLiveTrackById, retrieveRecentTracks } from '@flyxc/common-node';
-import csurf from 'csurf';
 import { NextFunction, Request, Response, Router } from 'express';
 import { Redis } from 'ioredis';
 import zlib from 'zlib';
@@ -10,7 +10,8 @@ import { Datastore } from '@google-cloud/datastore';
 import { createOrUpdateLiveTrack } from './live-track';
 import { isAdmin } from './session';
 
-const csrfProtection = csurf();
+// Store the token in the session.
+const csrfProtection = csurf({ cookie: false });
 
 export function getAdminRouter(redis: Redis, datastore: Datastore): Router {
   const router = Router();
@@ -68,7 +69,7 @@ export function getAdminRouter(redis: Redis, datastore: Datastore): Router {
       const entity = await retrieveLiveTrackById(datastore, req.params.id);
       if (entity) {
         const account = AccountFormModel.createFromEntity(entity);
-        res.set('xsrf-token', req.csrfToken());
+        res.set('xsrf-token', (req as any).csrfToken());
         return res.json(account);
       }
     } catch (e) {
