@@ -7,6 +7,9 @@ export type ZoleoMessage =
       type: 'msg';
       lat: number;
       lon: number;
+      speedKph: number;
+      altitudeM: number;
+      batteryPercent: number;
       timeMs: number;
       imei: string;
       // default to false

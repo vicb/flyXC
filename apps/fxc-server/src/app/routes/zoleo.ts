@@ -160,8 +160,11 @@ export function parseMessage(message: any): ZoleoMessage | null {
 
   const lat = pathGet(message, 'Location.Latitude');
   const lon = pathGet(message, 'Location.Longitude');
+  const speedKph = pathGet(message, 'Location.Speed') ?? 0;
+  const altitudeM = pathGet(message, 'Location.Altitude') ?? 0;
   const imei = message.DeviceIMEI;
   const timeMs = pathGet(message, 'Properties.EpochMiliseconds');
+  const batteryPercent = Number(pathGet(message, 'Properties.Battery') ?? 100);
 
   if (lat == null || lon == null || timeMs == null || imei == null) {
     return null;
@@ -171,6 +174,9 @@ export function parseMessage(message: any): ZoleoMessage | null {
     type: 'msg',
     lat: round(lat, 5),
     lon: round(lon, 5),
+    speedKph: round(speedKph, 0),
+    altitudeM: round(altitudeM, 0),
+    batteryPercent: round(batteryPercent, 0),
     timeMs: Number(timeMs),
     imei,
   };

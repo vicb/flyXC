@@ -70,16 +70,21 @@ export function parse(messages: ZoleoMessage[]): Map<string, LivePoint[]> {
     if (msg.type != 'msg') {
       continue;
     }
-    const points = pointsByImei.get(msg.imei) ?? [];
-    points.push({
+    const point: LivePoint = {
       lat: msg.lat,
       lon: msg.lon,
-      alt: 0,
+      alt: msg.altitudeM,
+      speed: msg.speedKph,
       timeMs: msg.timeMs,
       name: 'zoleo',
       emergency: msg.emergency,
       message: msg.message,
-    });
+    };
+    if (msg.batteryPercent < 20) {
+      point.lowBattery = true;
+    }
+    const points = pointsByImei.get(msg.imei) ?? [];
+    points.push(point);
     pointsByImei.set(msg.imei, points);
   }
   return pointsByImei;

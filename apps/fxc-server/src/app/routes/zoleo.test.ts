@@ -29,10 +29,44 @@ describe('Valid messages', () => {
       }),
     ).toMatchInlineSnapshot(`
       {
+        "altitudeM": 0,
+        "batteryPercent": 100,
         "imei": "123456789012345",
         "lat": 12.34568,
         "lon": -23.45679,
         "message": "Check-In",
+        "speedKph": 0,
+        "timeMs": 1687633329628,
+        "type": "msg",
+      }
+    `);
+  });
+
+  it('should parse check-in with location with Speed, Altitude, and Battery', () => {
+    expect(
+      parseMessage({
+        MessageId: '2517146674703719999',
+        MessageType: 'CheckIn',
+        DeviceIMEI: '123456789012345',
+        ReceivedAtServer: '2023-06-24T19:02:40Z',
+        SentFromDevice: '2023-06-24T19:02:09.628Z',
+        Location: { Latitude: 12.3456789, Longitude: -23.456789, Speed: 12.34, Altitude: 123 },
+        Properties: {
+          EpochMiliseconds: '1687633329628',
+          TimeZoneId: 'Pacific Standard Time',
+          Source: 'Satellite',
+          Battery: '96',
+        },
+      }),
+    ).toMatchInlineSnapshot(`
+      {
+        "altitudeM": 123,
+        "batteryPercent": 96,
+        "imei": "123456789012345",
+        "lat": 12.34568,
+        "lon": -23.45679,
+        "message": "Check-In",
+        "speedKph": 12,
         "timeMs": 1687633329628,
         "type": "msg",
       }
@@ -65,9 +99,12 @@ describe('Valid messages', () => {
       }),
     ).toMatchInlineSnapshot(`
       {
+        "altitudeM": 0,
+        "batteryPercent": 100,
         "imei": "123456789012345",
         "lat": 37.38762,
         "lon": -122.02716,
+        "speedKph": 0,
         "timeMs": 1687633443207,
         "type": "msg",
       }
@@ -87,9 +124,12 @@ describe('Valid messages', () => {
       }),
     ).toMatchInlineSnapshot(`
       {
+        "altitudeM": 0,
+        "batteryPercent": 100,
         "imei": "123456789012345",
         "lat": 37.38831,
         "lon": -122.0293,
+        "speedKph": 0,
         "timeMs": 1687633832016,
         "type": "msg",
       }
@@ -109,9 +149,12 @@ describe('Valid messages', () => {
       }),
     ).toMatchInlineSnapshot(`
       {
+        "altitudeM": 0,
+        "batteryPercent": 100,
         "imei": "123456789012345",
         "lat": 37.38532,
         "lon": -122.02787,
+        "speedKph": 0,
         "timeMs": 1687634449094,
         "type": "msg",
       }
@@ -138,11 +181,14 @@ describe('Valid messages', () => {
       }),
     ).toMatchInlineSnapshot(`
       {
+        "altitudeM": 0,
+        "batteryPercent": 100,
         "emergency": true,
         "imei": "123456789012345",
         "lat": 43.62469,
         "lon": -79.50503,
         "message": "SOS",
+        "speedKph": 0,
         "timeMs": 1660875540343,
         "type": "msg",
       }
