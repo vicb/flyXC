@@ -1,5 +1,5 @@
 import { program } from 'commander';
-import fs from 'fs-extra';
+import fs from 'node:fs';
 
 program
   .option('-n, --new <file>', 'new fingerprints', 'tiles-info.json')
@@ -18,26 +18,40 @@ const diff = {
 };
 
 const newTiles = JSON.parse(fs.readFileSync(program.opts().new, 'utf8'));
-const refTiles = JSON.parse(fs.readFileSync(program.opts().ref, 'utf8'));
 
-for (const [name, fp] of Object.entries(newTiles.fingerprint)) {
-  if (name in refTiles.fingerprint) {
-    if (fp === refTiles.fingerprint[name]) {
-      diff.numSame++;
-    } else {
-      diff.numUpdated++;
-      diff.updated.push(name);
-    }
-  } else {
-    diff.numAdded++;
-    diff.added.push(name);
-  }
+let refTiles = null;
+if (fs.existsSync(program.opts().ref)) {
+  console.log(`Using a reference file: ${program.opts().ref}`);
+  refTiles = JSON.parse(fs.readFileSync(program.opts().ref, 'utf8'));
+} else {
+  console.log(`No reference file top use`);
 }
 
-for (const name of Object.keys(refTiles.fingerprint)) {
-  if (!(name in newTiles.fingerprint)) {
-    diff.numDeleted++;
-    diff.deleted.push(name);
+if (refTiles != null) {
+  for (const [name, fp] of Object.entries(newTiles.fingerprint)) {
+    if (name in refTiles.fingerprint) {
+      if (fp === refTiles.fingerprint[name]) {
+        diff.numSame++;
+      } else {
+        diff.numUpdated++;
+        diff.updated.push(name);
+      }
+    } else {
+      diff.numAdded++;
+      diff.added.push(name);
+    }
+  }
+
+  for (const name of Object.keys(refTiles.fingerprint)) {
+    if (!(name in newTiles.fingerprint)) {
+      diff.numDeleted++;
+      diff.deleted.push(name);
+    }
+  }
+} else {
+  for (const name of Object.keys(newTiles.fingerprint)) {
+    diff.numAdded++;
+    diff.added.push(name);
   }
 }
 

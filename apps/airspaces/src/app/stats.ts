@@ -10,8 +10,8 @@ const classes = new Map([
   [4, 'E'],
   [5, 'F'],
   [6, 'G'],
-  [7, 'Special Use Airspace (SUA)'],
-  [8, 'Unclassified'],
+  [7, 'n/a'],
+  [8, 'Unclassified / Special Use Airspace (SUA)'],
 ]);
 
 const types = new Map([
@@ -45,6 +45,9 @@ const types = new Map([
   [27, 'ACC Sector (ACC)'],
   [28, 'Aerial Sporting Or Recreational Activity'],
   [29, 'Low Altitude Overflight Restriction'],
+  [30, 'Military Route (MRT)'],
+  [31, 'TSA/TRA Feeding Route (TFR)'],
+  [32, 'VFR Sector'],
 ]);
 
 const geoType = new Set();
@@ -54,6 +57,8 @@ const limitUnit = new Set();
 const limitDatum = new Set();
 const country = new Set();
 const classTypes = new Set();
+const classCount = new Map();
+const typeCount = new Map();
 
 const CTR = new Set();
 const RMZ = new Set();
@@ -63,6 +68,8 @@ const ATZ = new Set();
 const FIR = new Set();
 
 for (const airspace of airspaces) {
+  typeCount.set(airspace.type, (typeCount.get(airspace.type) ?? 0) + 1);
+  classCount.set(airspace.icaoClass, (classCount.get(airspace.icaoClass) ?? 0) + 1);
   type.add(airspace.type);
   icaoClass.add(airspace.icaoClass);
   geoType.add(airspace.geometry.type);
@@ -96,7 +103,11 @@ for (const airspace of airspaces) {
 }
 
 function getClassLabel(id: number): string {
-  return classes.has(id) ? `${classes.get(id)} (${id})` : String(id);
+  return classes.has(id) ? `${classes.get(id)} (${id})` : `Unknown (${id})`;
+}
+
+function getTypeLabel(id: number): string {
+  return types.has(id) ? `${types.get(id)} (${id})` : `Unknown (${id})`;
 }
 
 console.log(`Total airspaces: ${airspaces.length}`);
@@ -115,37 +126,12 @@ console.log('TMZ icao classes: ', TMZ);
 console.log('ATZ icao classes: ', ATZ);
 console.log('FIR icao classes: ', FIR);
 
-// Total airspaces: 19006
-// type Set(15) { 2, 1, 21, 0, 4, 6, 3, 18, 5, 13, 10, 26, 23, 24, 8 }
-// icaoClass Set(8) { 7, 4, 1, 3, 6, 2, 0, 5 }
-// geoType Set(1) { 'Polygon' }
-// limitUnit Set(2) { 6, 1 }
-// limitDatum Set(3) { 2, 0, 1 }
+console.log('* types');
+for (const [type, count] of typeCount.entries()) {
+  console.log(` - ${getTypeLabel(type)}: ${count}`);
+}
 
-// classTypes [
-//   'A - Other',
-//   'B - Other',
-//   'C - Controlled Area (CTA)  ',
-//   'C - Controlled Tower Region (CTR)',
-//   'C - Other',
-//   'D - Controlled Tower Region (CTR)',
-//   'D - Other',
-//   'E - Other',
-//   'F - Other',
-//   'G - Airport Traffic Zone (ATZ)',
-//   'G - Other',
-//   'G - Traffic Information Area (TIA)',
-//   'G - Traffic Information Zone (TIZ)',
-//   'Special Use Airspace (SUA) - Airport Traffic Zone (ATZ)',
-//   'Special Use Airspace (SUA) - Controlled Tower Region (CTR)',
-//   'Special Use Airspace (SUA) - Danger',
-//   'Special Use Airspace (SUA) - Flight Information Region (FIR)',
-//   'Special Use Airspace (SUA) - Gliding Sector',
-//   'Special Use Airspace (SUA) - Other',
-//   'Special Use Airspace (SUA) - Prohibited',
-//   'Special Use Airspace (SUA) - Radio Mandatory Zone (RMZ)',
-//   'Special Use Airspace (SUA) - Restricted',
-//   'Special Use Airspace (SUA) - Temporary Reserved Area (TRA)',
-//   'Special Use Airspace (SUA) - Transponder Mandatory Zone (TMZ)',
-//   'Special Use Airspace (SUA) - Warning Area'
-// ]
+console.log('* classes');
+for (const [cl, count] of classCount.entries()) {
+  console.log(` - ${getClassLabel(cl)}: ${count}`);
+}
