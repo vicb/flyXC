@@ -17,6 +17,8 @@ export class FaiSectors {
           strokeOpacity: 0.5,
           strokeWeight: 1,
           zIndex: 10,
+          // Allow clicking through to get i.e. airspace info.
+          clickable: false,
         }),
       );
     }
