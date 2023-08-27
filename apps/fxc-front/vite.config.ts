@@ -3,7 +3,7 @@ import minifyHTML from 'rollup-plugin-minify-html-literals';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 import { checker } from 'vite-plugin-checker';
-import viteTsConfigPaths from 'vite-tsconfig-paths';
+import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 
 const assetFileNames = (assetInfo: any) => {
   if (!assetInfo.name) {
@@ -54,16 +54,12 @@ export default defineConfig({
         tsconfigPath: 'apps/fxc-front/tsconfig.app.json',
       },
     }),
-    viteTsConfigPaths({
-      root: '../../',
-    }),
+    nxViteTsPaths(),
   ],
 
   worker: {
     plugins: [
-      viteTsConfigPaths({
-        root: '../../',
-      }),
+      nxViteTsPaths(),
     ],
     rollupOptions: {
       output: {
