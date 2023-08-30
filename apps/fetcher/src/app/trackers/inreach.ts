@@ -62,7 +62,7 @@ export class InreachFetcher extends TrackerFetcher {
         if (useProxy) {
           response = await fetchResponse(`http://${proxies.getIp()}/get`, {
             retry: 1,
-            timeoutS: 6,
+            timeoutS: 8,
             method: 'POST',
             headers: { 'Content-Type': 'application/octet-stream' },
             body: protos.Request.toBinary({
@@ -79,7 +79,7 @@ export class InreachFetcher extends TrackerFetcher {
           }
           response = await fetchResponse(url, {
             retry: 1,
-            timeoutS: 5,
+            timeoutS: 7,
           });
         }
         if (response.ok) {

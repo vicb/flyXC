@@ -251,7 +251,22 @@ export class DevicesPage extends LitElement {
                   )}
                 </ion-card>
               </ion-col>
-            </ion-row>`,
+            </ion-row>
+            <ion-row>
+              <ion-col size=12 size-lg=6>
+                <device-card
+                  .tracker=${'xcontest'}
+                  .binder=${this.binder}
+                  label="UUID"
+                  .hint=${html`<ion-text class="ion-padding-horizontal ion-padding-top block">
+                    Enter your XContest UUID. It is a 28 letter/number value from
+                    <a href="https://www.xcontest.org/world/en/my-groups:flyxc" target="_blank">your groups</a>. Make
+                    sure to join the flyxc.app group first.
+                  </ion-text>`}
+                >
+                </device-card>
+              </ion-col>
+            </ion-row>            `,
           )}
         </ion-grid>
       </ion-content>
@@ -465,6 +480,7 @@ export class DevicesPage extends LitElement {
           <li>
             <a href="https://www.glidernet.org/" target="_blank">OGN (Open Glider Network)</a>
           </li>
+          <li><a href="https://live.xcontest.org/" target="_blank">XCTrack (XContest live)</a></li>
         </ul>
         <p>
           <a href="mailto:help@flyxc.app?subject=FlyXC%20registration%20error" target="_blank"> Contact us by email </a>

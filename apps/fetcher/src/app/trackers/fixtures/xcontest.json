@@ -1,0 +1,28 @@
+{
+	"users": {
+		"kUgsHrVb3TSwVp23o9P1LsEaIWPZ": {
+			"username": "XContest-user",
+			"fullname": "John von XContest",
+			"lastLoc": {
+				"type": "Feature",
+				"geometry": {
+					"type": "Point",
+					"coordinates": [
+						7.602978,
+						46.154038,
+						210,
+						{
+							"t": "2022-04-04T16:30:40Z",
+							"b": 201
+						}
+					]
+				},
+				"properties": {
+					"source": "live",
+					"landed": true
+				}
+			},
+			"flights": []
+		}
+	}
+}

@@ -23,10 +23,8 @@ export class FlymeFetcher extends TrackerFetcher {
     const flymeIdToFix = new Map<number, [number, number, number, number, number, string]>();
     const url = `https://xcglobe.com/livetrack/flyxcPositions?token=${SecretKeys.FLYME_TOKEN}`;
 
-    devices.forEach((id) => updates.fetchedTracker.add(id));
-
     try {
-      const response = await fetchResponse(url);
+      const response = await fetchResponse(url, { timeoutS: 10 });
       if (response.ok) {
         try {
           const fixes = await response.json();
@@ -34,6 +32,7 @@ export class FlymeFetcher extends TrackerFetcher {
             const id = fix[0];
             flymeIdToFix.set(id, fix);
           });
+          devices.forEach((id) => updates.fetchedTracker.add(id));
         } catch (e) {
           updates.errors.push(`Error parsing JSON ${response.body}\n${e}`);
         }

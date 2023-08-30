@@ -16,4 +16,5 @@ export enum SecretKeys {
   ZOLEO_UNLINK_API_KEY = `...`,
   ZOLEO_PUSH_USER = `...`,
   ZOLEO_PUSH_PWD = `...`,
+  XCONTEXT_JWT = `...`,
 }

@@ -13,6 +13,7 @@ const SKYLINES = '002';
 const FLYMASTER = '003';
 const OGN = `123456`;
 const ZOLEO = `012345678912345`;
+const XCONTEST = `a123456789012345678901234567`;
 
 describe('sync', () => {
   let nowFn: any;
@@ -58,6 +59,7 @@ describe('sync', () => {
         flymaster: FLYMASTER,
         ogn: OGN,
         zoleo: ZOLEO,
+        xcontest: XCONTEST,
       };
 
       for (const [name, account] of Object.entries(trackerAccounts)) {
@@ -163,7 +165,7 @@ describe('sync', () => {
 
       const lt = createLiveTrackEntity('1978', { inreach: createTrackerEntity(INREACH, { enabled: true }) });
       syncLiveTrack(state, lt);
-      state.pilots[1978].inreach!.numErrors = 10;
+      state.pilots[1978].inreach.numErrors = 10;
 
       syncLiveTrack(state, lt);
       expect(state.pilots[1978].inreach?.numErrors).toEqual(10);
@@ -174,7 +176,7 @@ describe('sync', () => {
 
       let lt = createLiveTrackEntity('1978', { inreach: createTrackerEntity(INREACH, { enabled: true }) });
       syncLiveTrack(state, lt);
-      state.pilots[1978].inreach!.numErrors = 10;
+      state.pilots[1978].inreach.numErrors = 10;
 
       lt = createLiveTrackEntity('1978', { inreach: createTrackerEntity(INREACH, { enabled: false }) });
       syncLiveTrack(state, lt);
@@ -186,7 +188,7 @@ describe('sync', () => {
 
       let lt = createLiveTrackEntity('1978', { inreach: createTrackerEntity(INREACH, { enabled: true }) });
       syncLiveTrack(state, lt);
-      state.pilots[1978].inreach!.numErrors = 10;
+      state.pilots[1978].inreach.numErrors = 10;
 
       lt = createLiveTrackEntity('1978', { inreach: createTrackerEntity(INREACH_2, { enabled: true }) });
       syncLiveTrack(state, lt);
@@ -202,19 +204,29 @@ describe('sync', () => {
         skylines: createTrackerEntity(SKYLINES),
         flyme: createTrackerEntity(FLYME, { type: 'flyme' }),
         flymaster: createTrackerEntity(FLYMASTER),
+        ogn: createTrackerEntity(OGN),
+        zoleo: createTrackerEntity(ZOLEO, { type: 'zoleo' }),
+        xcontest: createTrackerEntity(XCONTEST),
       });
       syncLiveTrack(state, lt);
 
-      expect(state.pilots[1978].inreach!.enabled).toEqual(true);
-      expect(state.pilots[1978].spot!.enabled).toEqual(true);
-      expect(state.pilots[1978].skylines!.enabled).toEqual(true);
-      expect(state.pilots[1978].flyme!.enabled).toEqual(true);
-      expect(state.pilots[1978].flymaster!.enabled).toEqual(true);
-      expect(state.pilots[1978].inreach!.account).toEqual(INREACH);
-      expect(state.pilots[1978].spot!.account).toEqual(SPOT);
-      expect(state.pilots[1978].skylines!.account).toEqual(SKYLINES);
-      expect(state.pilots[1978].flyme!.account).toEqual(FLYME);
-      expect(state.pilots[1978].flymaster!.account).toEqual(FLYMASTER);
+      expect(state.pilots[1978].inreach.enabled).toEqual(true);
+      expect(state.pilots[1978].spot.enabled).toEqual(true);
+      expect(state.pilots[1978].skylines.enabled).toEqual(true);
+      expect(state.pilots[1978].flyme.enabled).toEqual(true);
+      expect(state.pilots[1978].flymaster.enabled).toEqual(true);
+      expect(state.pilots[1978].ogn.enabled).toEqual(true);
+      expect(state.pilots[1978].zoleo.enabled).toEqual(true);
+      expect(state.pilots[1978].xcontest.enabled).toEqual(true);
+
+      expect(state.pilots[1978].inreach.account).toEqual(INREACH);
+      expect(state.pilots[1978].spot.account).toEqual(SPOT);
+      expect(state.pilots[1978].skylines.account).toEqual(SKYLINES);
+      expect(state.pilots[1978].flyme.account).toEqual(FLYME);
+      expect(state.pilots[1978].flymaster.account).toEqual(FLYMASTER);
+      expect(state.pilots[1978].ogn.account).toEqual(OGN);
+      expect(state.pilots[1978].zoleo.account).toEqual(ZOLEO);
+      expect(state.pilots[1978].xcontest.account).toEqual(XCONTEST);
 
       lt = createLiveTrackEntity('1978', {
         inreach: createTrackerEntity('invalid'),
@@ -222,19 +234,29 @@ describe('sync', () => {
         skylines: createTrackerEntity('invalid'),
         flyme: createTrackerEntity('invalid', { type: 'flyme' }),
         flymaster: createTrackerEntity('invalid'),
+        ogn: createTrackerEntity('invalid'),
+        zoleo: createTrackerEntity('invalid', { type: 'zoleo' }),
+        xcontest: createTrackerEntity('invalid'),
       });
       syncLiveTrack(state, lt);
 
-      expect(state.pilots[1978].inreach!.enabled).toEqual(false);
-      expect(state.pilots[1978].spot!.enabled).toEqual(false);
-      expect(state.pilots[1978].skylines!.enabled).toEqual(false);
-      expect(state.pilots[1978].flyme!.enabled).toEqual(false);
-      expect(state.pilots[1978].flymaster!.enabled).toEqual(false);
-      expect(state.pilots[1978].inreach!.account).toEqual('');
-      expect(state.pilots[1978].spot!.account).toEqual('');
-      expect(state.pilots[1978].skylines!.account).toEqual('');
-      expect(state.pilots[1978].flyme!.account).toEqual('');
-      expect(state.pilots[1978].flymaster!.account).toEqual('');
+      expect(state.pilots[1978].inreach.enabled).toEqual(false);
+      expect(state.pilots[1978].spot.enabled).toEqual(false);
+      expect(state.pilots[1978].skylines.enabled).toEqual(false);
+      expect(state.pilots[1978].flyme.enabled).toEqual(false);
+      expect(state.pilots[1978].flymaster.enabled).toEqual(false);
+      expect(state.pilots[1978].ogn.enabled).toEqual(false);
+      expect(state.pilots[1978].zoleo.enabled).toEqual(false);
+      expect(state.pilots[1978].xcontest.enabled).toEqual(false);
+
+      expect(state.pilots[1978].inreach.account).toEqual('');
+      expect(state.pilots[1978].spot.account).toEqual('');
+      expect(state.pilots[1978].skylines.account).toEqual('');
+      expect(state.pilots[1978].flyme.account).toEqual('');
+      expect(state.pilots[1978].flymaster.account).toEqual('');
+      expect(state.pilots[1978].ogn.account).toEqual('');
+      expect(state.pilots[1978].zoleo.account).toEqual('');
+      expect(state.pilots[1978].xcontest.account).toEqual('');
     });
   });
 });
@@ -256,6 +278,7 @@ function createLiveTrackEntity(id: string, liveTrack: Partial<LiveTrackEntity> =
     flymaster: createTrackerEntity(FLYMASTER),
     ogn: createTrackerEntity(OGN),
     zoleo: createTrackerEntity(ZOLEO, { type: 'zoleo' }),
+    xcontest: createTrackerEntity(XCONTEST),
   };
 
   return { ...entity, ...liveTrack };

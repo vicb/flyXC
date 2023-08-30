@@ -48,7 +48,7 @@ export class SkylinesFetcher extends TrackerFetcher {
 
       const url = `https://skylines.aero/api/live/${[...sklIdToDsId.keys()].join(',')}`;
       try {
-        const response = await fetchResponse(url);
+        const response = await fetchResponse(url, { timeoutS: 10 });
         if (response.ok) {
           try {
             (await response.json()).flights.forEach((flight: any) => {

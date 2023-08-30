@@ -78,6 +78,7 @@ message Pilot {
   Tracker flymaster = 9;
   Tracker ogn = 10;
   Tracker zoleo = 11;
+  Tracker xcontest = 12;
 }
 
 message Tracker {

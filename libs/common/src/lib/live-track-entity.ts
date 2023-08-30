@@ -31,4 +31,5 @@ export interface LiveTrackEntity {
   flymaster?: TrackerEntity;
   ogn?: TrackerEntity;
   zoleo?: TrackerEntity;
+  xcontest?: TrackerEntity;
 }

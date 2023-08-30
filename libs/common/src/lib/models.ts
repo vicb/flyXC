@@ -25,6 +25,7 @@ export interface AccountModel {
   flymaster: TrackerModel;
   ogn: TrackerModel;
   zoleo: TrackerModel;
+  xcontest: TrackerModel;
 }
 
 // Form model for a client side account.
@@ -41,6 +42,7 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
       flymaster: TrackerFormModel.createEmptyValue(),
       ogn: TrackerFormModel.createEmptyValue(),
       zoleo: TrackerFormModel.createEmptyValue(),
+      xcontest: TrackerFormModel.createEmptyValue(),
     };
   }
 
@@ -82,6 +84,7 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
   readonly flymaster = this.createTrackerModel('flymaster');
   readonly ogn = this.createTrackerModel('ogn');
   readonly zoleo = this.createTrackerModel('zoleo');
+  readonly xcontest = this.createTrackerModel('xcontest');
 
   private createTrackerModel(tracker: TrackerNames): TrackerFormModel {
     const validators = trackerValidators[tracker];
@@ -133,6 +136,7 @@ export const trackerValidators: Readonly<Record<TrackerNames, AccountSyncValidat
   flymaster: [new AccountSyncValidator('This Flymaster ID is invalid', validateFlymasterAccount)],
   ogn: [new AccountSyncValidator('This OGN ID is invalid', validateOgnAccount)],
   zoleo: [],
+  xcontest: [new AccountSyncValidator('This XContest UUID is invalid', validateXContestAccount)],
 };
 
 // Validates a Spot Id.
@@ -214,4 +218,12 @@ export function validateOgnAccount(id: string): string | false {
 export function validateZoleoAccount(imei: string): string | false {
   imei = imei.trim();
   return /^\d{15}$/i.test(imei) ? imei : false;
+}
+
+// Validates a XContest UUID.
+//
+// 28 letters/numbers (first char is always a letter).
+export function validateXContestAccount(id: string): string | false {
+  id = id.trim();
+  return /^[a-z][a-z0-9]{27}$/i.test(id) ? id : false;
 }

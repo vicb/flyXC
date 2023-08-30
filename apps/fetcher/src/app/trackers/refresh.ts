@@ -24,6 +24,7 @@ import { OGN_HOST, OGN_PORT, OgnClient } from './ogn-client';
 import { SkylinesFetcher } from './skylines';
 import { SpotFetcher } from './spot';
 import { TrackerUpdates } from './tracker';
+import { XcontestFetcher } from './xcontest';
 import { ZoleoFetcher } from './zoleo';
 
 const ognClient = new OgnClient(OGN_HOST, OGN_PORT, SecretKeys.APRS_USER, SecretKeys.APRS_PASSWORD);
@@ -46,6 +47,7 @@ export async function resfreshTrackers(
     new FlymasterFetcher(state, pipeline),
     new OgnFetcher(ognClient, state, pipeline),
     new ZoleoFetcher(state, pipeline, redis, datastore),
+    new XcontestFetcher(state, pipeline),
   ];
 
   const updatePromises = await Promise.allSettled(fetchers.map((f) => f.refresh(LIVE_FETCH_TIMEOUT_SEC)));

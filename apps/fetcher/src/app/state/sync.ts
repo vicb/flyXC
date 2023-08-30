@@ -173,6 +173,7 @@ function createPilotFromEntity(liveTrack: LiveTrackEntity): protos.Pilot {
     ...createAccountEnabledTracker('flymaster', liveTrack),
     ...createAccountEnabledTracker('ogn', liveTrack),
     zoleo,
+    ...createAccountEnabledTracker('xcontest', liveTrack),
   };
 }
 

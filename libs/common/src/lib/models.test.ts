@@ -4,6 +4,7 @@ import {
   validateOgnAccount,
   validateSkylinesAccount,
   validateSpotAccount,
+  validateXContestAccount,
   validateZoleoAccount,
 } from './models';
 
@@ -146,5 +147,20 @@ describe('Validate zoleo accounts', () => {
     expect(validateZoleoAccount('01234567891234')).toEqual(false);
     expect(validateZoleoAccount('0123456789123456')).toEqual(false);
     expect(validateZoleoAccount('random')).toEqual(false);
+  });
+});
+
+describe('Validate xcontest accounts', () => {
+  test('Valid ids', () => {
+    expect(validateXContestAccount('a123456789012345678901234567')).toBe('a123456789012345678901234567');
+    expect(validateXContestAccount('kUgsHrVb3TSwVp23o9P1LsEaIWPZ')).toBe('kUgsHrVb3TSwVp23o9P1LsEaIWPZ');
+    expect(validateXContestAccount('  kUgsHrVb3TSwVp23o9P1LsEaIWPZ  ')).toBe('kUgsHrVb3TSwVp23o9P1LsEaIWPZ');
+  });
+
+  test('Invalid ids', () => {
+    expect(validateXContestAccount('')).toEqual(false);
+    expect(validateXContestAccount('0123456789012345678901234567')).toEqual(false);
+    expect(validateXContestAccount('UgsHrVb3TSwVp23o9P1LsEaIWPZ')).toEqual(false);
+    expect(validateXContestAccount(' UgsHrVb3TSwVp23o9P1LsEaIWPZ ')).toEqual(false);
   });
 });
