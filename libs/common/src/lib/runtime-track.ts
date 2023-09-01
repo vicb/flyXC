@@ -2,6 +2,7 @@ import { getDistance } from 'geolib';
 
 import * as protos from '../protos/track';
 import { diffDecodeArray, diffEncodeArray32bit } from './math';
+import { ScoreResult } from '../../../../apps/fxc-front/src/app/redux/track-slice';
 
 export type Point = {
   x: number;
@@ -52,6 +53,7 @@ export type RuntimeTrack = {
   // maximum distance between two consecutive points.
   maxDistance: number;
   airspaces?: protos.Airspaces;
+  score?: ScoreResult;
 };
 
 // Creates a runtime track id from the datastore id and the group index.

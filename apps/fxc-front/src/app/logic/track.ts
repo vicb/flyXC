@@ -1,9 +1,12 @@
-import { extractGroupId } from '@flyxc/common';
+import {extractGroupId, RuntimeTrack} from '@flyxc/common';
 
 import { unwrapResult } from '@reduxjs/toolkit';
 
-import { store } from '../redux/store';
-import { fetchTrack } from '../redux/track-slice';
+import {AppDispatch, store} from '../redux/store';
+import {fetchTrack, RuntimeTrackId, setScore} from '../redux/track-slice';
+// @ts-ignore
+import ScoreWorker from '../workers/score-track?worker';
+import {Request as ScoreRequest, Response as ScoreResponse} from '../workers/score-track'
 
 // Uploads files to the server and adds the tracks.
 export async function uploadTracks(files: File[]): Promise<number[]> {
@@ -45,4 +48,21 @@ async function fetchAndReturnGroupIds(url: string, options?: RequestInit): Promi
     //empty
   }
   return Array.from(groupIds);
+}
+
+export function scoreTrack(track: RuntimeTrack){
+	const request: ScoreRequest = {track: track}
+	getScoreWorker(store.dispatch).postMessage(request)
+}
+
+let scoreWorker: Worker | undefined;
+
+function getScoreWorker(dispatch: AppDispatch): Worker {
+  if (!scoreWorker){
+    scoreWorker = new ScoreWorker() as Worker;
+    scoreWorker.onmessage = (msg: MessageEvent<ScoreResponse & RuntimeTrackId>) => {
+      dispatch(setScore({...msg.data, id: msg.data.trackId}));
+    }
+  }
+  return scoreWorker
 }
