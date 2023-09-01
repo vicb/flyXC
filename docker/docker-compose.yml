@@ -1,0 +1,18 @@
+services:
+
+  redis:
+    image: redis:latest
+    ports:
+      - 6378:6379
+
+  pubsub:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:latest
+    ports:
+      - 8085:8085
+    command: gcloud beta emulators pubsub start
+
+  datastore:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:latest
+    command: gcloud beta emulators datastore start --project flyxc
+    ports:
+      - 8081:8081
