@@ -11,6 +11,7 @@ import * as app from '../../redux/app-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import * as trackSlice from '../../redux/track-slice';
+import { scoreTrack } from "../../logic/track";
 
 @customElement('track-modal')
 export class TrackModal extends connect(store)(LitElement) {
@@ -47,6 +48,11 @@ export class TrackModal extends connect(store)(LitElement) {
                 >${track.name}
                 <i
                   slot="end"
+                  class="las la-star la-1x"
+                  @click=${() => this.handleScore(track)}
+                >score</i>
+                <i
+                  slot="end"
                   title="close"
                   class="la la-times-circle la-2x"
                   style="cursor:pointer"
@@ -68,6 +74,12 @@ export class TrackModal extends connect(store)(LitElement) {
 
   protected createRenderRoot(): HTMLElement {
     return this;
+  }
+
+  private async handleScore(track: RuntimeTrack) {
+    scoreTrack(track)
+    await this.dismiss();
+    await menuController.close();
   }
 
   private async handleClose(e: Event, track: RuntimeTrack) {
