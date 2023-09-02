@@ -46,11 +46,14 @@ export class TrackModal extends connect(store)(LitElement) {
               >
                 <i class="las la-user-astronaut la-2x" style=${`color: ${sel.trackColors(this.state)[track.id]}`}></i
                 >${track.name}
-                <i
-                  slot="end"
-                  class="las la-star la-1x"
-                  @click=${() => this.handleScore(track)}
-                >score</i>
+                <span slot="end" @click=${() => this.handleScore(track)}>
+                  <i slot="end" class="la-1x">score</i>
+                  <!-- also suggest la-tachometer-alt, la-award icons-->
+                  <i
+                    slot="end"
+                    class="las la-trophy la-2x"
+                    ></i>
+                </span>
                 <i
                   slot="end"
                   title="close"

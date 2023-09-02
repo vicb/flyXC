@@ -16,6 +16,7 @@ import { setTimeSec } from './app-slice';
 import { setEnabled, setRoute } from './planner-slice';
 import { AppDispatch, AppThunk, RootState } from './store';
 import {Response as ScoreResponse } from "../workers/score-track";
+import { Score } from "../logic/score/scorer";
 
 const FETCH_EVERY_SECONDS = 15;
 export const FETCH_FOR_MINUTES = 3;
@@ -237,7 +238,7 @@ const trackSlice = createSlice({
         }
       }
     },
-    setScore:(state, action:PayloadAction<ScoreResult & RuntimeTrackId>)=>{
+    setScore:(state, action:PayloadAction<Score & RuntimeTrackId>)=>{
       doPatchTrack(state,{score: action.payload, id: action.payload.id})
     }
   },
@@ -305,7 +306,6 @@ const trackSlice = createSlice({
 });
 
 function doPatchTrack(state: TrackState , update: Partial<RuntimeTrack> & RuntimeTrackId){
-  console.info("update track with", update)
   trackAdapter.updateOne(state.tracks, {
     id: update.id,
     changes: update,

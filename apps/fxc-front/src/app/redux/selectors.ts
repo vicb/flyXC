@@ -7,6 +7,7 @@ import { RootState } from './store';
 import { trackAdapterSelector } from './track-slice';
 
 export const units = (state: RootState): Units => state.units;
+export const currentLeague = (state: RootState):string => state.planner.league
 export const altitudeUnits = createSelector(units, (units) => units.altitude);
 export const tracks = trackAdapterSelector.selectAll;
 export const currentTrack = (state: RootState): RuntimeTrack | undefined =>
