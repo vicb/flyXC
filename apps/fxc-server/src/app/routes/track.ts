@@ -29,25 +29,25 @@ export function getTrackRouter(datastore: Datastore): Router {
 
   // Upload tracks to the database.
   router.post('/upload.pbf', async (req: Request, res: Response) => {
-    if (req.files?.track) {
-      // Parse files as track.
-      const fileObjects: UploadedFile[] = [].concat(req.files.track as any);
-      const files: string[] = fileObjects.map((file) => file.data.toString());
-      const tracks: protos.MetaTrackGroup[] = await Promise.all(files.map((file) => parse(datastore, file)));
+      if (req.files?.track) {
+        // Parse files as track.
+        const fileObjects: UploadedFile[] = [].concat(req.files.track as any);
+        const files: string[] = fileObjects.map((file) => file.data.toString());
+        const tracks: protos.MetaTrackGroup[] = await Promise.all(files.map((file) => parse(datastore, file)));
 
-      // Parses files as route.
-      let route;
-      for (const file of files) {
-        route = parseRoute(file);
-        if (route != null) {
-          break;
+        // Parses files as route.
+        let route;
+        for (const file of files) {
+          route = parseRoute(file);
+          if (route != null) {
+            break;
+          }
         }
-      }
 
-      await sendTracks(res, tracks, route);
-      return;
-    }
-    res.sendStatus(400);
+        awaitsendTracks(res, tracks, route);
+        return;
+      }
+      res.sendStatus(400);
   });
 
   // Retrieves track metadata by datastore ids.
