@@ -1,6 +1,6 @@
-import {BRecord, IGCFile} from 'igc-parser';
-import {ScoreInfo, Scoring, scoringRules, solver} from 'igc-xc-score';
+import {ScoreInfo, Scoring} from 'igc-xc-score';
 import {RuntimeTrack} from "@flyxc/common";
+import {scoreTrack} from "../logic/score/improvedScorer";
 
 export interface Request {
 	track: RuntimeTrack;
@@ -20,56 +20,18 @@ w.onmessage = (message: MessageEvent<Request>) => {
 	console.info('scoring: received', message);
 	try {
 		const request = message.data;
-		const flight = igcFile(request.track);
-		const solutions = solver(flight, getScoringRules(request), request.config);
-		let solution = solutions.next();
-		if (solution.value.scoreInfo){
-			let response: Response = {
-				scoreInfo: solution.value.scoreInfo,
-				scoring: {name:solution.value.opt.scoring.name, code: solution.value.opt.scoring.code, multiplier: solution.value.opt.scoring.multiplier},
-				trackId: message.data.track.id
+		if (request.league) {
+			const solution = scoreTrack(request.track, request.league);
+			if (solution && solution.scoreInfo) {
+				const scoreInfo = solution.scoreInfo;
+				const scoring = solution.opt.scoring;
+				const trackId = message.data.track.id;
+				let response: Response = {scoreInfo, scoring, trackId}
+				console.info("scoring: computed", response.scoreInfo.score, response)
+				w.postMessage(response, {});
 			}
-			console.info("scoring: computed", response.scoreInfo.score, response)
-			w.postMessage(response, {});
 		}
 	} catch (e) {
 		console.error('solver failed', e);
-	}
-};
-
-function getScoringRules(request:Request) {
-	let scoringRule;
-	switch (request.league) {
-		case "France (CFD)":
-			scoringRule = scoringRules.FFVL;
-			break;
-		case "XContest":
-			scoringRule = scoringRules.XContest;
-			break;
-		// TODO: others...
-		default :
-			scoringRule =  scoringRules.FFVL;
-	}
-	return scoringRule
-}
-
-
-// build a fake igc file from a track
-function igcFile(track: RuntimeTrack): IGCFile {
-	let fixes: BRecord[] = []
-	for (let i = 0; i < track.lon.length; i++) {
-		// @ts-ignore
-		const record: BRecord = {
-			timestamp: track.timeSec[i],
-			latitude: track.lat[i],
-			longitude: track.lon[i],
-			valid: true,
-		}
-		fixes.push(record)
-	}
-	// @ts-ignore
-	return {
-		date: new Date(track.minTimeSec).toISOString(),
-		fixes: fixes,
 	}
 }
