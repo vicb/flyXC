@@ -11,7 +11,7 @@ import * as app from '../../redux/app-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import * as trackSlice from '../../redux/track-slice';
-import { scoreTrack } from "../../logic/track";
+import { scoreTrack } from '../../logic/track';
 
 @customElement('track-modal')
 export class TrackModal extends connect(store)(LitElement) {
@@ -38,7 +38,7 @@ export class TrackModal extends connect(store)(LitElement) {
         <ion-list>
           ${this.tracks.map(
             (track: RuntimeTrack) =>
-              html`<ion-item
+              html` <ion-item
                 button
                 lines="full"
                 color=${track.id == this.currentTrackId ? 'primary' : ''}
@@ -49,10 +49,7 @@ export class TrackModal extends connect(store)(LitElement) {
                 <span slot="end" @click=${() => this.handleScore(track)}>
                   <i slot="end" class="la-1x">score</i>
                   <!-- also suggest la-tachometer-alt, la-award icons-->
-                  <i
-                    slot="end"
-                    class="las la-trophy la-2x"
-                    ></i>
+                  <i slot="end" class="las la-trophy la-2x"></i>
                 </span>
                 <i
                   slot="end"
@@ -80,7 +77,7 @@ export class TrackModal extends connect(store)(LitElement) {
   }
 
   private async handleScore(track: RuntimeTrack) {
-    scoreTrack(track)
+    scoreTrack(track);
     await this.dismiss();
     await menuController.close();
   }

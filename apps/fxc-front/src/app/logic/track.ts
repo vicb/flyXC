@@ -1,9 +1,9 @@
 import { extractGroupId, Point, RuntimeTrack } from '@flyxc/common';
 
-import { unwrapResult } from '@reduxjs/toolkit';
+import {unwrapResult} from '@reduxjs/toolkit';
 
-import { AppDispatch, store } from '../redux/store';
-import { fetchTrack } from '../redux/track-slice';
+import {AppDispatch, store} from '../redux/store';
+import {fetchTrack } from '../redux/track-slice';
 // @ts-ignore
 import ScoreWorker from '../workers/score-track?worker';
 import { setPlannerEnabled, setPlannerIsFreeDrawing, setPlannerRoute, setPlannerScore } from '../redux/planner-slice';

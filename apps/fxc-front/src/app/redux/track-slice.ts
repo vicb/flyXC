@@ -15,8 +15,7 @@ import TrackWorker from '../workers/track?worker';
 import { setTimeSec } from './app-slice';
 import { setPlannerEnabled, setPlannerRoute } from './planner-slice';
 import { AppDispatch, AppThunk, RootState } from './store';
-import {Response as ScoreResponse } from "../workers/score-track";
-import { Score } from "../logic/score/scorer";
+import { Score } from '../logic/score/scorer';
 
 const FETCH_EVERY_SECONDS = 15;
 export const FETCH_FOR_MINUTES = 3;
@@ -45,10 +44,7 @@ export type TrackState = {
   loaded: boolean;
 };
 
-export type RuntimeTrackId = Pick<RuntimeTrack, 'id'>
-
-// TODO: define ScoreResult in commons and improve the definition (do not depend on igc-xc-score library types)
-export type ScoreResult = ScoreResponse
+export type RuntimeTrackId = Pick<RuntimeTrack, 'id'>;
 
 const initialState: TrackState = {
   currentTrackId: undefined,
@@ -216,7 +212,7 @@ const trackSlice = createSlice({
       }
     },
     patchTrack: (state, action: PayloadAction<Partial<RuntimeTrack> & RuntimeTrackId>) => {
-      doPatchTrack(state, action.payload)
+      doPatchTrack(state, action.payload);
     },
     setFetchingMetadata: (state, action: PayloadAction<boolean>) => {
       state.metadata.fetchPending = action.payload;
@@ -238,9 +234,9 @@ const trackSlice = createSlice({
         }
       }
     },
-    setScore:(state, action:PayloadAction<Score & RuntimeTrackId>)=>{
-      doPatchTrack(state,{score: action.payload, id: action.payload.id})
-    }
+    setScore: (state, action: PayloadAction<Score & RuntimeTrackId>) => {
+      doPatchTrack(state, { score: action.payload, id: action.payload.id });
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -305,7 +301,7 @@ const trackSlice = createSlice({
   },
 });
 
-function doPatchTrack(state: TrackState , update: Partial<RuntimeTrack> & RuntimeTrackId){
+function doPatchTrack(state: TrackState, update: Partial<RuntimeTrack> & RuntimeTrackId) {
   trackAdapter.updateOne(state.tracks, {
     id: update.id,
     changes: update,
