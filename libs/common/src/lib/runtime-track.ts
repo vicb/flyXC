@@ -2,7 +2,7 @@ import { getDistance } from 'geolib';
 
 import * as protos from '../protos/track';
 import { diffDecodeArray, diffEncodeArray32bit } from './math';
-import { Score } from "../../../../apps/fxc-front/src/app/logic/score/scorer";
+import { Score } from '../../../../apps/fxc-front/src/app/logic/score/scorer';
 
 export type Point = {
   x: number;
