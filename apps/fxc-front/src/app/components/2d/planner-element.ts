@@ -8,6 +8,10 @@ import { Score } from '../../logic/score/scorer';
 import * as units from '../../logic/units';
 import { decrementSpeed, incrementSpeed, setSpeed } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
+import { scoreTrack } from '../../logic/track';
+import * as common from "@flyxc/common";
+import { currentTrack } from "../../redux/selectors";
+import { LEAGUES } from "../../logic/score/league/leagues";
 
 const ICON_MINUS =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJAQMAAADaX5RTAAAABlBMVEX///9xe4e/5menAAAAE0lEQVQImWP438DQAEP7kNj/GwCK4wo9HA2mvgAAAABJRU5ErkJggg==';
@@ -32,6 +36,10 @@ export class PlannerElement extends connect(store)(LitElement) {
   private hideDetails = store.getState().browser.isSmallScreen;
   @state()
   private isFreeDrawing = false;
+  @state()
+  private track?: common.RuntimeTrack;
+  @state()
+  private league?: string;
 
   private duration?: number;
   private readonly closeHandler = () => this.dispatchEvent(new CustomEvent('close'));
@@ -48,6 +56,8 @@ export class PlannerElement extends connect(store)(LitElement) {
     this.units = state.units;
     this.duration = ((this.distance / this.speed) * 60) / 1000;
     this.isFreeDrawing = state.planner.isFreeDrawing;
+    this.track = currentTrack(state);
+    this.league = LEAGUES[state.planner.league].name ;
   }
 
   static get styles(): CSSResult {
@@ -136,6 +146,13 @@ export class PlannerElement extends connect(store)(LitElement) {
         <div @click=${this.closeHandler} class="hoverable">
           <div><i class="las la-times-circle"></i> Close</div>
         </div>
+        ${when(
+          this.track,
+          () => html `
+            <div @click="${this.computeScore}">
+              <div><b>🆕<i class="las la-trophy"></i> Compute score 🆕</b></div>
+            </div>`
+        )}
         <div>
           <div>${this.score.circuit}</div>
           <div class="large">
@@ -143,7 +160,7 @@ export class PlannerElement extends connect(store)(LitElement) {
           </div>
         </div>
         <div class="collapsible">
-          <div>Points = ${this.getMultiplier()}</div>
+          <div>Points = ${this.getMultiplier()} <br/>${this.league}</div>
           <div class="large">${this.score.points.toFixed(1)}</div>
         </div>
         <div class="collapsible">
@@ -258,5 +275,11 @@ export class PlannerElement extends connect(store)(LitElement) {
 
   private wheelSpeed(e: WheelEvent): void {
     store.dispatch(e.deltaY > 0 ? incrementSpeed() : decrementSpeed());
+  }
+
+  private computeScore() {
+    if (this.track) {
+      scoreTrack(this.track);
+    }
   }
 }

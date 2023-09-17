@@ -11,7 +11,6 @@ import * as app from '../../redux/app-slice';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import * as trackSlice from '../../redux/track-slice';
-import { scoreTrack } from '../../logic/track';
 
 @customElement('track-modal')
 export class TrackModal extends connect(store)(LitElement) {
@@ -46,11 +45,6 @@ export class TrackModal extends connect(store)(LitElement) {
               >
                 <i class="las la-user-astronaut la-2x" style=${`color: ${sel.trackColors(this.state)[track.id]}`}></i
                 >${track.name}
-                <span slot="end" @click=${() => this.handleScore(track)}>
-                  <i slot="end" class="la-1x">score</i>
-                  <!-- also suggest la-tachometer-alt, la-award icons-->
-                  <i slot="end" class="las la-trophy la-2x"></i>
-                </span>
                 <i
                   slot="end"
                   title="close"
@@ -74,12 +68,6 @@ export class TrackModal extends connect(store)(LitElement) {
 
   protected createRenderRoot(): HTMLElement {
     return this;
-  }
-
-  private async handleScore(track: RuntimeTrack) {
-    scoreTrack(track);
-    await this.dismiss();
-    await menuController.close();
   }
 
   private async handleClose(e: Event, track: RuntimeTrack) {

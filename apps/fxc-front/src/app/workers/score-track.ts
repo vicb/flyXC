@@ -16,18 +16,20 @@ export interface Response {
 
 const w: Worker = self as any;
 
-w.onmessage = (message: MessageEvent<Request>) => {
+w.onmessage = async (message: MessageEvent<Request>) => {
   console.info('scoring: received', message);
   try {
     const request = message.data;
     if (request.league) {
-      const solution = scoreTrack(request.track, request.league);
-      if (solution && solution.scoreInfo) {
-        const scoreInfo = solution.scoreInfo;
-        const scoring = solution.opt.scoring;
-        const trackId = message.data.track.id;
-        let response: Response = { scoreInfo, scoring, trackId };
-        console.info('scoring: computed', response.scoreInfo.score, response);
+      const solution = await scoreTrack(request.track, request.league);
+			if (solution && solution.scoreInfo) {
+				const {name, code, multiplier} = solution.opt.scoring;
+				let response: Response = {
+					scoreInfo: solution.scoreInfo,
+					scoring: {name, code, multiplier},
+					trackId: message.data.track.id
+				}
+				console.info("scoring: computed", response.scoreInfo.score, response)
         w.postMessage(response, {});
       }
     }

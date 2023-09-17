@@ -1,21 +1,21 @@
-import {extractGroupId, RuntimeTrack} from '@flyxc/common';
+import { extractGroupId, RuntimeTrack } from '@flyxc/common';
 
-import {unwrapResult} from '@reduxjs/toolkit';
+import { unwrapResult } from '@reduxjs/toolkit';
 
-import {AppDispatch, store} from '../redux/store';
-import {currentLeague} from '../redux/selectors';
-import {fetchTrack, RuntimeTrackId, setScore as setTrackStore} from '../redux/track-slice';
+import { AppDispatch, store } from '../redux/store';
+import { currentLeague } from '../redux/selectors';
+import { fetchTrack, RuntimeTrackId, setScore as setTrackStore } from '../redux/track-slice';
 // @ts-ignore
 import ScoreWorker from '../workers/score-track?worker';
-import {Request as ScoreRequest, Response as ScoreResponse} from '../workers/score-track'
+import { Request as ScoreRequest, Response as ScoreResponse } from '../workers/score-track'
 import {
   setEnabled as setPlannerEnabled,
   setIsFreeDrawing as setPlannerIsFreeDrawing,
   setRoute as setPlannerRoute,
   setScore as setPlannerScore
 } from '../redux/planner-slice';
-import {Point, ScoreInfo} from 'igc-xc-score';
-import {CircuitType, Score} from "./score/scorer";
+import { Point, ScoreInfo } from 'igc-xc-score';
+import { CircuitType, Score } from "./score/scorer";
 
 // Uploads files to the server and adds the tracks.
 export async function uploadTracks(files: File[]): Promise<number[]> {
@@ -24,6 +24,8 @@ export async function uploadTracks(files: File[]): Promise<number[]> {
   }
   const formData = new FormData();
   files.forEach((track) => formData.append('track', track));
+  store.dispatch(setPlannerEnabled(true));
+  store.dispatch(setPlannerIsFreeDrawing(false))
   return await fetchAndReturnGroupIds('/api/track/upload.pbf', { method: 'POST', body: formData });
 }
 

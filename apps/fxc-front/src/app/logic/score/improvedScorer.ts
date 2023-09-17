@@ -1,10 +1,25 @@
 import { RuntimeTrack } from '@flyxc/common';
-import { scoringRules, Solution, solver } from 'igc-xc-score';
+import { Point, scoringRules, Solution } from 'igc-xc-score';
 import { BRecord, IGCFile } from 'igc-parser';
 
-export function scoreTrack(track: RuntimeTrack, leagueIdentifier: string): Solution | undefined {
+async function lazyLoadedSolver(): Promise<typeof _solver> {
+  if (!_solver) {
+    const { solver } = await import('igc-xc-score');
+    _solver = solver;
+  }
+  return _solver;
+}
+
+let _solver: (
+  flight: IGCFile,
+  scoringRules: object,
+  config?: { [key: string]: any } | undefined,
+) => Iterator<Solution, Solution>;
+
+export async function scoreTrack(track: RuntimeTrack, leagueIdentifier: string): Promise<Solution | undefined> {
   const scoringRules = getScoringRules(leagueIdentifier);
   if (scoringRules) {
+    const solver = await lazyLoadedSolver();
     const solutions = solver(igcFile(track), scoringRules, undefined);
     return solutions.next().value;
   }
@@ -119,6 +134,7 @@ const leaguesScoringRules: Map<string, object> = new Map()
   .set('czl', czlScoringRule)
   .set('cze', czeScoringRule)
   .set('czo', czoScoringRule)
+  .set('fr', scoringRules['FFVL'])
   .set('leo', leoScoringRule)
   .set('nor', norScoringRule)
   .set('ukc', ukcScoringRule)
