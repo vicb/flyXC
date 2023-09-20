@@ -1,9 +1,11 @@
 import { Measure } from '../measure';
 import { Score, scoreCircuits, ScoreFunction, scoreOpenDistance, scoreTriangles } from '../scorer';
+import { League, LeagueCode } from '../league';
 
 // https://www.xcontest.org/world/en/rules/
-export class XContest {
+export class XContest extends League {
   name = 'XContest';
+  code: LeagueCode = 'xc';
 
   score(measure: Measure): Score[] {
     return [
@@ -25,8 +27,9 @@ export class XContest {
 }
 
 // https://paramotors.xcontest.org/world/en/rules/
-export class XContestPPG {
+export class XContestPPG extends League {
   name = 'XContest PPG';
+  code: LeagueCode = 'xcppg';
 
   score(measure: Measure): Score[] {
     return [
@@ -43,8 +46,9 @@ export class XContestPPG {
   }
 }
 
-export class NorwayLeague {
+export class NorwayLeague extends League {
   name = 'Norway (Distanseligaen)';
+  code: LeagueCode = 'nor';
 
   score(measure: Measure): Score[] {
     return [

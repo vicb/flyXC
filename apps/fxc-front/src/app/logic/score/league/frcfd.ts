@@ -1,9 +1,10 @@
-import { League } from '../league';
+import { League, LeagueCode } from '../league';
 import { Measure } from '../measure';
 import { Score, scoreCircuits, scoreOpenDistance, scoreTriangles } from '../scorer';
 
 export class FrCfd extends League {
   name = 'France (CFD)';
+  code: LeagueCode = 'fr';
 
   score(measure: Measure): Score[] {
     return [

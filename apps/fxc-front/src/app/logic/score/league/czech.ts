@@ -1,7 +1,8 @@
 import { Measure } from '../measure';
 import { Score, scoreCircuits, scoreOpenDistance, scoreTriangles } from '../scorer';
+import { League, LeagueCode } from '../league';
 
-abstract class CZXCBase {
+abstract class CZXCBase extends League {
   score(measure: Measure): Score[] {
     return [
       ...scoreOpenDistance(measure, 3, this.openDistanceMultiplier),
@@ -27,6 +28,7 @@ abstract class CZXCBase {
 
 export class CzechLocal extends CZXCBase {
   name = 'Czech (ČPP local)';
+  code: LeagueCode = 'czl';
 
   protected faiTriangleMultiplier(): number {
     return 2.2;
@@ -41,6 +43,7 @@ export class CzechLocal extends CZXCBase {
 
 export class CzechEurope extends CZXCBase {
   name = 'Czech (ČPP Europe)';
+  code: LeagueCode = 'cze';
 
   protected faiTriangleMultiplier(): number {
     return 1.4;
@@ -55,6 +58,7 @@ export class CzechEurope extends CZXCBase {
 
 export class CzechOutEurope extends CZXCBase {
   name = 'Czech (ČPP outside Europe)';
+  code: LeagueCode = 'czo';
 
   protected faiTriangleMultiplier(): number {
     return 1.4;

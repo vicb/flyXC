@@ -1,8 +1,10 @@
 import { Measure } from '../measure';
 import { Score, scoreCircuits, scoreOpenDistance, scoreTriangles } from '../scorer';
+import { League, LeagueCode } from '../league';
 
-export class WXC {
+export class WXC extends League {
   name = 'World XC Online Contest';
+  code: LeagueCode = 'wxc';
 
   score(measure: Measure): Score[] {
     return [

@@ -1,5 +1,6 @@
 import { Measure } from '../measure';
 import { CircuitType, Score, scoreCircuits, scoreOpenDistance } from '../scorer';
+import { League, LeagueCode } from '../league';
 
 function scoreOutAndReturn(multiplierFn: (d: number) => number, measure: Measure): Score[] {
   let maxIndexes;
@@ -85,7 +86,7 @@ function scoreTriangles(
       ];
 }
 
-abstract class UKXCLBase {
+abstract class UKXCLBase extends League {
   score(measure: Measure): Score[] {
     return [
       ...scoreOpenDistance(measure, 3, this.openDistanceMultiplier),
@@ -106,6 +107,7 @@ abstract class UKXCLBase {
 
 export class UKXCLClub extends UKXCLBase {
   name = 'UK (XC League, Club)';
+  code: LeagueCode = 'ukc';
 
   protected outAndReturnFlatTriangleMultiplier(distance: number): number {
     return distance < 5000 ? 0 : distance < 15000 ? 1.2 : distance < 35000 ? 1.3 : 1.7;
@@ -122,6 +124,7 @@ export class UKXCLClub extends UKXCLBase {
 
 export class UKXCLInternational extends UKXCLBase {
   name = 'UK (XC League, International)';
+  code: LeagueCode = 'uki';
 
   protected outAndReturnFlatTriangleMultiplier(distance: number): number {
     return distance < 35000 ? 0 : 1.2;
@@ -138,6 +141,7 @@ export class UKXCLInternational extends UKXCLBase {
 
 export class UKXCLNational extends UKXCLBase {
   name = 'UK (XC League, National)';
+  code: LeagueCode = 'ukn';
 
   protected outAndReturnFlatTriangleMultiplier(distance: number): number {
     return distance < 15000 ? 0 : distance < 35000 ? 1.3 : 1.7;

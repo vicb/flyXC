@@ -1,9 +1,10 @@
-import { League } from '../league';
+import { League, LeagueCode } from '../league';
 import { Measure } from '../measure';
 import { Score, scoreCircuits, scoreOpenDistance, scoreTriangles } from '../scorer';
 
 export class Leonardo extends League {
   name = 'Leonardo';
+  code: LeagueCode = 'leo';
 
   score(measure: Measure): Score[] {
     return [
