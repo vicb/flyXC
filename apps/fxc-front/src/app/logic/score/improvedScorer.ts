@@ -144,7 +144,7 @@ function createIgcFile(track: ScoringTrack): IGCFile {
       latitude: track.lat[i],
       longitude: track.lon[i],
       valid: true,
-    pressureAltitude: null,
+      pressureAltitude: null,
       gpsAltitude: track.alt[i],
       extensions: {},
       fixAccuracy: null,
@@ -153,7 +153,7 @@ function createIgcFile(track: ScoringTrack): IGCFile {
     fixes.push(record);
   }
   // we ignore some properties of the igc-file, as they are not required for the computation
-  //@ts-ignore
+  // @ts-ignore
   return {
     date: new Date(track.minTimeSec*1000).toISOString(),
     fixes: fixes,

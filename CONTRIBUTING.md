@@ -32,16 +32,10 @@ For the moment, it does not work with docker compose. But if you install the clo
 ***Installation***
 - `gcloud components install cloud-datastore-emulator`
 
-***run:***
-- `gcloud beta emulators datastore start`
+***run the data store:***
+- `gcloud beta emulators datastore start --data-dir=MY_DATA_DIR`
 
-**before npm run dev:**
-
-define the required env variables:
-```
-export DATASTORE_DATASET=flyxc
-export DATASTORE_EMULATOR_HOST=localhost:8081
-export DATASTORE_EMULATOR_HOST_PATH=localhost:8081/datastore
-export DATASTORE_HOST=http://localhost:8081
-export DATASTORE_PROJECT_ID=flyxc
-```
+***before npm run dev:***
+- open another shell.
+- define the required environment variables:`eval $(gcloud beta emulators datastore --data-dir=MY_DATA_DIR env-init)`
+- you can then run the application locally in this shell with `npm run dev`
