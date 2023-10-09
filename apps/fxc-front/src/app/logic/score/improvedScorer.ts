@@ -1,9 +1,11 @@
-import { Point } from '@flyxc/common';
+import { Point, RuntimeTrack } from '@flyxc/common';
 import { Point as XcScorePoint, scoringRules, Solution } from 'igc-xc-score';
 import { BRecord, IGCFile } from 'igc-parser';
 import { CircuitType, Score } from './scorer';
 import { LeagueCode } from './league';
 
+// use a lazy loading mechanism to avoid loading this library when not needed, because it is quite heavy and not
+// required by every user.
 async function lazyLoadedSolver(): Promise<typeof _solver> {
   if (!_solver) {
     const { solver } = await import('igc-xc-score');
@@ -18,14 +20,18 @@ let _solver: (
   config?: { [key: string]: any } | undefined,
 ) => Iterator<Solution, Solution>;
 
+// ScoreAndWaypoints could be more appropriate here?
 export type ScoreAndRoute = { score: Score; route: Point[] };
-export type ScoringTrack = { lat: number[]; lon: number[]; timeSec: number[]; minTimeSec: number };
+
+// ScoringTrack is a subset of RuntimeTrack
+// we define it for the sake of clarity and define the minimal information required to invoke the scoreTrack function
+export type ScoringTrack = Pick<RuntimeTrack, 'lat' | 'lon' |'alt' | 'timeSec' | 'minTimeSec'>
 
 export async function scoreTrack(track: ScoringTrack, leagueCode: LeagueCode): Promise<ScoreAndRoute | undefined> {
   const scoringRules = getScoringRules(leagueCode);
   if (scoringRules) {
     const solver = await lazyLoadedSolver();
-    const solutions = solver(igcFile(track), scoringRules, undefined);
+    const solutions = solver(createIgcFile(track), scoringRules, undefined);
     const solution = solutions.next().value;
     return { score: toScore(solution), route: toRoute(solution) };
   }
@@ -43,7 +49,6 @@ function toScore(solution: Solution): Score {
   });
 }
 
-// duplicated code from apps/fxc-front/src/app/logic/track.ts
 type CircuitTypeCode = 'od' | 'tri' | 'fai' | 'oar';
 
 function toCircuitType(code: CircuitTypeCode) {
@@ -59,36 +64,46 @@ function toCircuitType(code: CircuitTypeCode) {
   }
 }
 
-// end duplication
-
+// return indices of solution points
+// Pay attention to the high coupling between getIndexes and toRoute function.
+// They HAVE TO use the same points in the same order
+// May be a visitor pattern would be valuable here.
 function getIndexes(solution: Solution) {
   let currentIndex = -1;
   const entryPointsStart = getEntryPointsStart(solution);
   const result = entryPointsStart ? [currentIndex++] : [];
   const closingPointsIn = getClosingPointsIn(solution);
-  if (closingPointsIn) result.push(currentIndex++);
+  if (closingPointsIn) {
+    result.push(currentIndex++);
+  }
   solution.scoreInfo?.legs?.map((leg) => leg.start.r).forEach(() => result.push(currentIndex++));
   const closingPointsOut = getClosingPointsOut(solution);
-  if (closingPointsOut) result.push(currentIndex++);
+  if (closingPointsOut) {
+    result.push(currentIndex++);
+  }
   const entryPointsFinish = getEntryPointsFinish(solution);
-  if (entryPointsFinish) result.push(currentIndex++);
+  if (entryPointsFinish) {
+    result.push(currentIndex++);
+  }
   return result;
-}
-
-function push(point: XcScorePoint | undefined, route: Point[]) {
-  if (point) route.push(getPoint(point));
 }
 
 function toRoute(solution: Solution): Point[] {
   const route: Point[] = [];
   push(getEntryPointsStart(solution), route);
   const closingPointsIn = getClosingPointsIn(solution);
-  if (closingPointsIn) route.push(getPoint(closingPointsIn));
+  if (closingPointsIn) {
+    route.push(getPoint(closingPointsIn));
+  }
   solution.scoreInfo?.legs?.map((leg) => leg.start).forEach((it) => route.push(getPoint(it)));
   const closingPointsOut = getClosingPointsOut(solution);
-  if (closingPointsOut) route.push(getPoint(closingPointsOut));
+  if (closingPointsOut) {
+    route.push(getPoint(closingPointsOut));
+  }
   const entryPointsFinish = getEntryPointsFinish(solution);
-  if (entryPointsFinish) route.push(getPoint(entryPointsFinish));
+  if (entryPointsFinish) {
+    route.push(getPoint(entryPointsFinish));
+  }
   return route;
 }
 
@@ -112,22 +127,35 @@ function getPoint(point: XcScorePoint): Point {
   return { ...point };
 }
 
-// build a fake igc file from a track
-function igcFile(track: ScoringTrack): IGCFile {
+function push(point: XcScorePoint | undefined, route: Point[]) {
+  if (point) {
+    route.push(getPoint(point));
+  }
+}
+
+// build a fake igc file from a track, so that the solver can use it.
+function createIgcFile(track: ScoringTrack): IGCFile {
   const fixes: BRecord[] = [];
   for (let i = 0; i < track.lon.length; i++) {
-    // @ts-ignore
+    const timeMilliseconds = track.timeSec[i]*1000;
     const record: BRecord = {
-      timestamp: track.timeSec[i],
+      timestamp: timeMilliseconds,
+      time: new Date(timeMilliseconds).toISOString(),
       latitude: track.lat[i],
       longitude: track.lon[i],
       valid: true,
+      pressureAltitude: null,
+      gpsAltitude: track.alt[i],
+      extensions: {},
+      fixAccuracy: null,
+      enl: null,
     };
     fixes.push(record);
   }
+  // we ignore some properties of the igc-file, as they are not required for the computation
   // @ts-ignore
   return {
-    date: new Date(track.minTimeSec).toISOString(),
+    date: new Date(track.minTimeSec*1000).toISOString(),
     fixes: fixes,
   };
 }
@@ -136,6 +164,9 @@ function getScoringRules(leagueCode: LeagueCode): object | undefined {
   return leaguesScoringRules.get(leagueCode);
 }
 
+// scoring rules could have been defined individually in each League subclass, but as the definition of rules is
+// tedious and error-prone, it seems more practical to define all rules here.
+// The downside is that we have to define a "coupling key" (LeagueCode) in each League
 const scoringBaseModel = scoringRules['XContest'];
 const openDistanceBase = scoringBaseModel[0];
 const freeTriangleBase = scoringBaseModel[1];
@@ -216,16 +247,17 @@ const wxcScoringRule = [
   { ...faiTriangleBase, multiplier: 2, closingDistanceFixed: 0.2 },
 ];
 
-const leaguesScoringRules: Map<LeagueCode, object> = new Map()
-  .set('czl', czlScoringRule)
-  .set('cze', czeScoringRule)
-  .set('czo', czoScoringRule)
-  .set('fr', scoringRules['FFVL'])
-  .set('leo', leoScoringRule)
-  .set('nor', norScoringRule)
-  .set('ukc', ukcScoringRule)
-  .set('uki', ukiScoringRule)
-  .set('ukn', uknScoringRule)
-  .set('xc', scoringRules.XContest)
-  .set('xcppg', xcppgScoringRule)
-  .set('wxc', wxcScoringRule);
+const leaguesScoringRules: Map<LeagueCode, object> = new Map([
+  ['czl', czlScoringRule],
+  ['cze', czeScoringRule],
+  ['czo', czoScoringRule],
+  ['fr', scoringRules['FFVL']],
+  ['leo', leoScoringRule],
+  ['nor', norScoringRule],
+  ['ukc', ukcScoringRule],
+  ['uki', ukiScoringRule],
+  ['ukn', uknScoringRule],
+  ['xc', scoringRules.XContest],
+  ['xcppg', xcppgScoringRule],
+  ['wxc', wxcScoringRule],
+]);

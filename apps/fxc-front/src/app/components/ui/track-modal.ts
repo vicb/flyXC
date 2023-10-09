@@ -37,7 +37,7 @@ export class TrackModal extends connect(store)(LitElement) {
         <ion-list>
           ${this.tracks.map(
             (track: RuntimeTrack) =>
-              html` <ion-item
+              html`<ion-item
                 button
                 lines="full"
                 color=${track.id == this.currentTrackId ? 'primary' : ''}

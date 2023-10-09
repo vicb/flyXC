@@ -22,9 +22,7 @@ export class Score {
     this.indexes = score.indexes || [];
     this.multiplier = score.multiplier || 1;
     this.circuit = score.circuit || CircuitType.OpenDistance;
-    // when score.closingRadius = 0
-    // 'score.closingRadius || null' expression is ... null, because "0 is false", WTF!
-    this.closingRadius = score.closingRadius != null ? score.closingRadius : null;
+    this.closingRadius = score.closingRadius ?? null;
     this.points = score.points ? score.points : (this.distance * this.multiplier) / 1000;
   }
 }

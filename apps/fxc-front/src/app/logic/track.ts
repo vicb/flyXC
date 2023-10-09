@@ -3,20 +3,16 @@ import { extractGroupId, Point, RuntimeTrack } from '@flyxc/common';
 import { unwrapResult } from '@reduxjs/toolkit';
 
 import { AppDispatch, store } from '../redux/store';
-import { currentLeague } from '../redux/selectors';
 import { fetchTrack } from '../redux/track-slice';
 // @ts-ignore
 import ScoreWorker from '../workers/score-track?worker';
-import { Request as ScoreRequest } from '../workers/score-track';
-import {
-  setEnabled as setPlannerEnabled,
-  setIsFreeDrawing as setPlannerIsFreeDrawing,
-  setRoute as setPlannerRoute,
-  setScore as setPlannerScore,
-} from '../redux/planner-slice';
+import { setPlannerEnabled, setPlannerIsFreeDrawing, setPlannerRoute, setPlannerScore } from '../redux/planner-slice';
 import { ScoreAndRoute } from './score/improvedScorer';
+import { LeagueCode } from "./score/league";
 
 // Uploads files to the server and adds the tracks.
+// after loading, the planner menu is displayed to permit
+// score computation on loaded tracks
 export async function uploadTracks(files: File[]): Promise<number[]> {
   if (files.length == 0) {
     return [];
@@ -60,9 +56,8 @@ async function fetchAndReturnGroupIds(url: string, options?: RequestInit): Promi
   return Array.from(groupIds);
 }
 
-export function scoreTrack(track: RuntimeTrack) {
-  const request: ScoreRequest = { track: track, leagueCode: currentLeague(store.getState()) };
-  getScoreWorker(store.dispatch).postMessage(request);
+export function scoreTrack(track: RuntimeTrack, leagueCode: LeagueCode) {
+  getScoreWorker(store.dispatch).postMessage({ track, leagueCode });
 }
 
 let scoreWorker: Worker | undefined;

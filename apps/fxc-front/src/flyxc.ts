@@ -141,7 +141,7 @@ export class FlyXc extends connect(store)(LitElement) {
     store.dispatch(app.setView3d(getCurrentUrl().pathname == '/3d'));
 
     // Update the route and speed.
-    store.dispatch(planner.setRoute(getUrlParamValues(ParamNames.route)[0] ?? ''));
+    store.dispatch(planner.setPlannerRoute(getUrlParamValues(ParamNames.route)[0] ?? ''));
     store.dispatch(planner.setSpeed(Number(getUrlParamValues(ParamNames.speed)[0] ?? 20)));
   }
 

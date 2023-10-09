@@ -17,7 +17,6 @@ export interface Response {
 const w: Worker = self as any;
 
 w.onmessage = async (message: MessageEvent<Request>) => {
-  console.info('scoring: received', message);
   try {
     const request = message.data;
     if (request.leagueCode) {

@@ -16,7 +16,7 @@ import { drawRoute } from '../../logic/messages';
 import { LEAGUES } from '../../logic/score/league/leagues';
 import { Measure } from '../../logic/score/measure';
 import { CircuitType, Score } from '../../logic/score/scorer';
-import { setDistance, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
+import { setDistance, setPlannerEnabled, setPlannerRoute, setPlannerScore } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
 import { PlannerElement } from './planner-element';
 
@@ -203,7 +203,7 @@ export class PathElement extends connect(store)(LitElement) {
 
     scores.sort((score1, score2) => score2.points - score1.points);
     const score = scores[0];
-    store.dispatch(setScore(score));
+    store.dispatch(setPlannerScore(score));
 
     let optimizedPath = score.indexes.map((index) => new google.maps.LatLng(points[index].lat, points[index].lon));
     if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {
@@ -288,7 +288,7 @@ export class PathElement extends connect(store)(LitElement) {
   private handlePathUpdates(): void {
     if (this.line && !this.doNotSyncState) {
       pushCurrentState();
-      store.dispatch(setRoute(google.maps.geometry.encoding.encodePath(this.line.getPath())));
+      store.dispatch(setPlannerRoute(google.maps.geometry.encoding.encodePath(this.line.getPath())));
     }
     this.optimize();
   }
@@ -323,12 +323,12 @@ export class PathElement extends connect(store)(LitElement) {
       el.addEventListener('download', async () => {
         await this.openDownloadModal();
       });
-      el.addEventListener('reset', () => store.dispatch(setRoute('')));
+      el.addEventListener('reset', () => store.dispatch(setPlannerRoute('')));
       el.addEventListener('draw-route', () => {
         drawRoute.emit();
-        store.dispatch(setRoute(''));
+        store.dispatch(setPlannerRoute(''));
       });
-      el.addEventListener('close', () => store.dispatch(setEnabled(false)));
+      el.addEventListener('close', () => store.dispatch(setPlannerEnabled(false)));
     }
   }
 
