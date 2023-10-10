@@ -40,7 +40,7 @@ export async function scoreTrack(track: ScoringTrack, leagueCode: LeagueCode): P
 
 function toScore(solution: Solution): Score {
   return new Score({
-    distance: solution.scoreInfo?.distance,
+    distance: (solution.scoreInfo?.distance || 0) * 1000,
     points: solution.score,
     multiplier: solution.opt.scoring.multiplier,
     circuit: toCircuitType(solution.opt.scoring.code as CircuitTypeCode),
