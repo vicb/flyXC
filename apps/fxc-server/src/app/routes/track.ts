@@ -44,7 +44,7 @@ export function getTrackRouter(datastore: Datastore): Router {
         }
       }
 
-      awaitsendTracks(res, tracks, route);
+      await sendTracks(res, tracks, route);
       return;
     }
     res.sendStatus(400);
