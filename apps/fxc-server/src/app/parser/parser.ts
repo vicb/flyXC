@@ -1,7 +1,12 @@
 import { diffEncodeTrack, fetchResponse, formatReqError, protos } from '@flyxc/common';
-import { retrieveMetaTrackGroupByHash, retrieveMetaTrackGroupByUrl, saveTrack, TrackEntity } from '@flyxc/common-node';
+import {
+  retrieveMetaTrackGroupByHash,
+  retrieveMetaTrackGroupByUrl,
+  saveTrack,
+  TrackEntity,
+  queueTrackPostProcessing,
+} from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
-import { PubSub } from '@google-cloud/pubsub';
 import * as crypto from 'crypto';
 import { parse as parseGpx, parseRoute as parseGpxRoute } from './gpx';
 import { parse as parseIgc } from './igc';
@@ -26,9 +31,8 @@ export async function parseFromUrl(datastore: Datastore, url: string): Promise<p
     const response = await fetchResponse(url, { timeoutS: 5 });
     if (response.ok) {
       return await parse(datastore, await response.text(), url);
-    } else {
-      console.error(`HTTP Status ${response.status}`);
     }
+    console.error(`HTTP Status ${response.status}`);
   } catch (e) {
     console.error(`fetch error ${formatReqError(e)}`);
   }
@@ -90,9 +94,7 @@ export async function parse(
       url: srcUrl ?? undefined,
     };
     id = await saveTrack(datastore, trackEntity);
-    // Publish the created track to PubSub for further processing.
-    const client = new PubSub();
-    await client.topic('projects/fly-xc/topics/track.upload').publishMessage({ json: { id } });
+    await queueTrackPostProcessing(id);
   }
 
   return {

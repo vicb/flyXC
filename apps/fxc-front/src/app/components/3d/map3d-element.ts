@@ -425,7 +425,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     store.dispatch(setCurrentZoom(this.view?.zoom ?? 10));
   }
 
-  createRenderRoot(): Element {
+  createRenderRoot(): HTMLElement {
     return this;
   }
 }

@@ -138,7 +138,7 @@ export abstract class WMTSMapTypeElement extends WMTSOverlayElement {
     }
   }
 
-  protected createRenderRoot(): Element {
+  protected createRenderRoot(): HTMLElement {
     return this;
   }
 }

@@ -24,30 +24,41 @@ message GroundAltitude {
   bool has_errors = 2;
 }
 
-// Ground altitude for a Track group.
+// Ground altitude for a TrackGroup.
 // Stored in the database.
 message GroundAltitudeGroup {
   repeated GroundAltitude ground_altitudes = 1;
 }
 
-// Airspaces along a track.
+// Airspaces along a single track.
 message Airspaces {
   // Start and end in seconds.
   repeated sint32 start_sec = 1;
   repeated sint32 end_sec = 2;
   repeated string name = 3;
+  // Unused after 2023-10.
+  // Might still be used on older tracks from DB.
   repeated string category = 4;
   repeated sint32 top = 5;
   repeated sint32 bottom = 6;
   repeated uint32 flags = 7;
   repeated bool into = 9;
+  // openaip icao class (added 2023-10).
+  repeated uint32 icao_class = 10;
+  // openaip type (added 2023-10).
+  repeated uint32 type = 11;
+  // openaip activity (added 2023-10).
+  repeated uint32 activity = 12;
   bool has_errors = 8;
+
 }
 
+// Airspaces for a TrackGroup.
 message AirspacesGroup {
   repeated Airspaces airspaces = 1;
 }
 
+// Metadata for a TrackGroup.
 message MetaTrackGroup {
   int64 id = 1;
   uint32 num_postprocess = 2;

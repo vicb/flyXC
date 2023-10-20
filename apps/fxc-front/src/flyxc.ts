@@ -6,6 +6,7 @@ import '@ionic/core/css/core.css';
 import '@ionic/core/css/normalize.css';
 import '@ionic/core/css/padding.css';
 import '@ionic/core/css/structure.css';
+import '@ionic/core/css/text-alignment.css';
 import '@ionic/core/css/typography.css';
 
 import './app/components/chart-element';
@@ -122,7 +123,7 @@ export class FlyXc extends connect(store)(LitElement) {
     return true;
   }
 
-  createRenderRoot(): Element {
+  createRenderRoot(): HTMLElement {
     return this;
   }
 

@@ -108,7 +108,7 @@ export class PrefModal extends connect(store)(LitElement) {
       </ion-footer> `;
   }
 
-  protected createRenderRoot(): Element {
+  protected createRenderRoot(): HTMLElement {
     return this;
   }
 

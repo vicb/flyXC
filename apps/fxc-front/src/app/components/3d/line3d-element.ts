@@ -136,7 +136,7 @@ export class Line3dElement extends connect(store)(LitElement) {
   }
 
   // There is not content - no need to create a shadow root.
-  createRenderRoot(): Element {
+  createRenderRoot(): HTMLElement {
     return this;
   }
 }

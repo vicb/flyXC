@@ -31,7 +31,7 @@ export function getUrlList(track: protos.Track, maxNumUrls = Number.MAX_SAFE_INT
   for (let i = 0; i < track.lat.length; i++) {
     const lon = track.lon[i];
     const lat = track.lat[i];
-    const { tile } = pixelCoordinates({ lat, lon }, ZOOM_LEVEL);
+    const { tile } = pixelCoordinates({ lat, lon }, ZOOM_LEVEL, TILE_PX_SIZE);
     urls.add(getPngUrl(tile.x, tile.y, ZOOM_LEVEL));
     if (urls.size >= maxNumUrls) {
       break;
@@ -78,7 +78,7 @@ export async function fetchGroundAltitude(track: protos.Track): Promise<protos.G
   // Retrieve the fixes altitude.
   const altitudes = track.lat.map((lat: number, i: number) => {
     const lon = track.lon[i];
-    const { tile, px } = pixelCoordinates({ lat, lon }, ZOOM_LEVEL);
+    const { tile, px } = pixelCoordinates({ lat, lon }, ZOOM_LEVEL, TILE_PX_SIZE);
     const url = getPngUrl(tile.x, tile.y, ZOOM_LEVEL);
     const rgba = cache.get(url);
     let gndAlt = 0;

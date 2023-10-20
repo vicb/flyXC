@@ -1,15 +1,18 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Class, Type } from '@flyxc/common';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 
 type AirspaceState = {
   maxAltitude: number;
   show: boolean;
-  showRestricted: boolean;
+  showClasses: Class[];
+  showTypes: Type[];
 };
 
 const initialState: AirspaceState = {
   maxAltitude: 3000,
   show: false,
-  showRestricted: true,
+  showClasses: [Class.A, Class.B, Class.C, Class.D, Class.E],
+  showTypes: [Type.Prohibited, Type.Restricted, Type.Danger],
 };
 
 const airspaceSlice = createSlice({
@@ -19,8 +22,11 @@ const airspaceSlice = createSlice({
     setShow: (state, action: PayloadAction<boolean>) => {
       state.show = action.payload;
     },
-    setShowRestricted: (state, action: PayloadAction<boolean>) => {
-      state.showRestricted = action.payload;
+    showClasses: (state, action: PayloadAction<Class[]>) => {
+      state.showClasses = action.payload;
+    },
+    showTypes: (state, action: PayloadAction<Type[]>) => {
+      state.showTypes = action.payload;
     },
     setMaxAltitude: (state, action: PayloadAction<number>) => {
       state.maxAltitude = action.payload;
@@ -29,4 +35,4 @@ const airspaceSlice = createSlice({
 });
 
 export const reducer = airspaceSlice.reducer;
-export const { setMaxAltitude, setShow, setShowRestricted } = airspaceSlice.actions;
+export const { setMaxAltitude, setShow, showClasses, showTypes } = airspaceSlice.actions;

@@ -86,7 +86,7 @@ export class Skyways3dElement extends connect(store)(LitElement) {
     this.layer = layer;
   }
 
-  createRenderRoot(): Element {
+  createRenderRoot(): HTMLElement {
     return this;
   }
 }

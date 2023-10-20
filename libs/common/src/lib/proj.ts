@@ -1,24 +1,32 @@
 import SphericalMercator from '@mapbox/sphericalmercator';
 import { LatLon, Point } from './runtime-track';
 
-const TILE_SIZE = 256;
-const mercator = new SphericalMercator({ size: TILE_SIZE });
+const mercatorBySize = new Map<number, SphericalMercator>();
 
 // Returns:
 // - tile =  coordinates of the tile,
 // - px = pixel coordinates in the tile,
 // - world = world coordinates.
-export function pixelCoordinates(latLon: LatLon, zoom: number): { tile: Point; px: Point; world: Point } {
+export function pixelCoordinates(
+  latLon: LatLon,
+  zoom: number,
+  tileSize: number,
+): { tile: Point; px: Point; world: Point } {
+  if (!mercatorBySize.has(tileSize)) {
+    mercatorBySize.set(tileSize, new SphericalMercator({ size: tileSize }));
+  }
+  const mercator = mercatorBySize.get(tileSize)!;
+
   const [x, y] = mercator.px([latLon.lon, latLon.lat], zoom);
 
   const tile = {
-    x: Math.floor(x / TILE_SIZE),
-    y: Math.floor(y / TILE_SIZE),
+    x: Math.floor(x / tileSize),
+    y: Math.floor(y / tileSize),
   };
 
   const px = {
-    x: x % TILE_SIZE,
-    y: y % TILE_SIZE,
+    x: x % tileSize,
+    y: y % tileSize,
   };
 
   return {

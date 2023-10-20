@@ -1,25 +1,25 @@
 # Generate the vector tiles
 
-Install [tippecanoe](https://github.com/mapbox/tippecanoe).
+Install [tippecanoe](https://github.com/felt/tippecanoe) - note that the the mapbox repo is unmaintained.
 
 - nx build airspaces
 - cd dist/apps/airspaces
-- chmod +x download.sh
 - npm run download
-- npm run geojson
-- npm run stats (quick check of the airspaces)
-- npm run tiles
+- Display stats with `node dist/apps/airspaces/stats.js` (quick check of the airspaces)
+- Create the geojson with `node dist/apps/airspaces/create-geojson.js`
+- Create the vector tiles with `node dist/apps/airspaces/create-tiles.js`
 
 # Diff update
 
 - Create the tiles - See above,
-- Execute `node tiles-info.js` to generate the info,
-- Execute `node tiles-info-diff.js` to generate the diff,
-- Use either direct updates:
-  - Execute `node sync.js`
-- Or ZIP updates
-  - Execute `zip -r tiles.zip tiles` to create the zip file,
-  - GCE (See Below) or execute `node unzip.js -d tiles-info-diff.json` to apply the diffs,
+- Create the tile info with `node dist/apps/airspaces/create-tiles-info.js`
+- Create the info diff with `node dist/apps/airspaces/create-tiles-info-diff.js`
+- Sync the diff with `node dist/apps/airspaces/upload-tiles-diff.js`
+
+# ZIP update (outdated, probably not needed with the diff update)
+
+- Execute `zip -r tiles.zip tiles` to create the zip file,
+- GCE (See Below) or execute `node unzip.js -d tiles-info-diff.json` to apply the diffs,
 - Copy and commit `tiles-info.json` in `apps/airspaces/src/assets/`.
 
 # Using the unzip script on a Compute VM

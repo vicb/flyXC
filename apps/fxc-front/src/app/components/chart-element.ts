@@ -1,7 +1,8 @@
-import { airspaceCategory, Flags, RuntimeTrack, sampleAt } from '@flyxc/common';
+import { Class, Flags, isAirspaceVisible, RuntimeTrack, sampleAt, Type } from '@flyxc/common';
 import { ticks } from 'd3-array';
 import { css, CSSResult, html, LitElement, PropertyValues, svg, SVGTemplateResult, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
+import { guard } from 'lit/directives/guard.js';
 import { connect } from 'pwa-helpers';
 
 import * as units from '../logic/units';
@@ -12,6 +13,19 @@ import { RootState, store } from '../redux/store';
 const MIN_SPEED_FACTOR = 16;
 const MAX_SPEED_FACTOR = 4096;
 const PLAY_INTERVAL_MILLIS = 50;
+
+function getAirspaceCssClass(flags: number): string {
+  if (flags & Flags.AirspaceProhibited) {
+    return `prohibited`;
+  }
+  if (flags & Flags.AirspaceRestricted) {
+    return `restricted`;
+  }
+  if (flags & Flags.AirspaceDanger) {
+    return `danger`;
+  }
+  return `other`;
+}
 
 @customElement('chart-element')
 export class ChartElement extends connect(store)(LitElement) {
@@ -28,7 +42,9 @@ export class ChartElement extends connect(store)(LitElement) {
   @state()
   private units?: units.Units;
   @state()
-  private showRestricted = false;
+  private showClasses: Class[] = [];
+  @state()
+  private showTypes: Type[] = [];
   @state()
   private currentTrackId?: string;
   @state()
@@ -59,7 +75,8 @@ export class ChartElement extends connect(store)(LitElement) {
     this.maxTimeSec = sel.maxTimeSec(state);
     this.units = state.units;
     this.offsetSeconds = sel.offsetSeconds(state);
-    this.showRestricted = state.airspace.showRestricted;
+    this.showClasses = state.airspace.showClasses;
+    this.showTypes = state.airspace.showTypes;
     this.currentTrackId = state.track.currentTrackId;
     this.trackColors = sel.trackColors(state);
   }
@@ -280,10 +297,16 @@ export class ChartElement extends connect(store)(LitElement) {
           </filter>
         </defs>
         <rect width="100%" height="100%" fill="white" />
-        <g class="paths">${this.paths()}</g>
-        <g class="axis">${this.axis()}</g>
+        ${guard(
+          [this.tracks, this.showClasses, this.showTypes, this.width, this.height, this.chartYAxis],
+          () => svg`<g class="paths">${this.paths()}</g>`,
+        )}
+        ${guard(
+          [this.tracks, this.width, this.height, this.chartYAxis],
+          () => svg`<g class="axis">${this.axis()}</g>
         <g class="ticks">${this.yTexts()}</g>
-        <g class="ticks">${this.xTexts()}</g>
+        <g class="ticks">${this.xTexts()}</g>`,
+        )}
         <line id="thumb" x1="0" x2="0" y2="100%"></line>
       </svg>
       <div id="ct">
@@ -388,32 +411,33 @@ export class ChartElement extends connect(store)(LitElement) {
 
   // Compute the SVG paths for the airspaces.
   private airspacePaths(track: RuntimeTrack): SVGTemplateResult[] {
-    const asp = track.airspaces;
-    if (asp == null) {
+    const airspaces = track.airspaces;
+    if (airspaces == null) {
       return [];
     }
     const paths: SVGTemplateResult[] = [];
 
-    for (let i = 0; i < asp.startSec.length; i++) {
-      const flags = asp.flags[i];
-      if (!this.showRestricted && flags & Flags.AirspaceRestricted) {
+    for (let i = 0; i < airspaces.startSec.length; i++) {
+      if (!isAirspaceVisible(airspaces.icaoClass[i], this.showClasses, airspaces.type[i], this.showTypes)) {
         continue;
       }
-      const startSec = asp.startSec[i];
-      const endSec = asp.endSec[i];
-      const top = asp.top[i];
-      const bottom = asp.bottom[i];
+      const startSec = airspaces.startSec[i];
+      const endSec = airspaces.endSec[i];
+      const top = airspaces.top[i];
+      const bottom = airspaces.bottom[i];
+      const flags = airspaces.flags[i];
       const topRefGnd = flags & Flags.TopRefGnd;
       const bottomRefGnd = flags & Flags.FloorRefGnd;
-      const clampTo: { minAlt?: number; maxAlt?: number } = {};
-      if (bottomRefGnd && !topRefGnd) {
-        clampTo.maxAlt = top;
-      }
-      if (topRefGnd && !bottomRefGnd) {
-        clampTo.minAlt = bottom;
-      }
+      // When the bottom references the ground, it could be above the top at high elevations.
+      // So we need to clamp it to the top. Same thing for the top
+      const clampTo = {
+        minAlt: bottomRefGnd ? Number.MIN_SAFE_INTEGER : bottom,
+        maxAlt: topRefGnd ? Number.MAX_SAFE_INTEGER : top,
+      };
       const coords = [
+        // Bottom line
         ...this.aspLine(track, startSec, endSec, bottom, bottomRefGnd, clampTo),
+        // Top line
         ...this.aspLine(track, endSec, startSec, top, topRefGnd, clampTo),
       ];
       if (coords.length < 4) {
@@ -428,7 +452,7 @@ export class ChartElement extends connect(store)(LitElement) {
         })
         .join('L');
       paths.push(
-        svg`<path data-start=${startSec} data-end=${endSec} class=${`asp ${airspaceCategory(flags)}`} d=${
+        svg`<path data-start=${startSec} data-end=${endSec} class=${`asp ${getAirspaceCssClass(flags)}`} d=${
           'M' + path
         }></path>`,
       );
@@ -443,7 +467,7 @@ export class ChartElement extends connect(store)(LitElement) {
     endSec: number,
     alt: number,
     refGnd: number,
-    clampTo: { minAlt?: number; maxAlt?: number },
+    clampTo: { minAlt: number; maxAlt: number },
   ): Array<[number, number]> {
     if (!refGnd || !track.gndAlt) {
       return [
@@ -459,17 +483,13 @@ export class ChartElement extends connect(store)(LitElement) {
     const startX = this.getXAtTimeSec(startSec);
     const endX = this.getXAtTimeSec(endSec);
     const points: Array<[number, number]> = [];
-    const { minAlt, maxAlt } = clampTo;
+
     for (let x = startX; x < endX; x++) {
       const timeSec = this.getTimeSecAtX(x);
       const gndAlt = sampleAt(track.timeSec, track.gndAlt, timeSec);
       let altitude = alt + gndAlt;
-      if (maxAlt != null) {
-        altitude = Math.min(maxAlt, altitude);
-      }
-      if (minAlt != null) {
-        altitude = Math.max(minAlt, altitude);
-      }
+      altitude = Math.min(clampTo.maxAlt, altitude);
+      altitude = Math.max(clampTo.minAlt, altitude);
       points.push([timeSec, altitude]);
     }
     return reverse ? points.reverse() : points;

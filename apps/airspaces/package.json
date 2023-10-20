@@ -3,10 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "download": "./download.sh",
-    "stats": "node stats.js",
-    "geojson": "node togeojson",
-    "tiles": "tippecanoe -e tiles -z 12 -l asp -f -S 3 -pS -ab -pi -pt -pC -- airspaces.geojson"
+    "download": "chmod +x download.sh && ./download.sh"
   },
   "nx": {
     "includedScripts": []

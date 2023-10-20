@@ -1,6 +1,8 @@
-import { menuController, modalController } from '@ionic/core/components';
+import { Class, Type, getClassName, getTypeName } from '@flyxc/common';
+import { ToggleCustomEvent, menuController, modalController } from '@ionic/core/components';
 import { LitElement, TemplateResult, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
+import { map } from 'lit/directives/map.js';
 import { when } from 'lit/directives/when.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
@@ -142,7 +144,7 @@ export class MainMenu extends connect(store)(LitElement) {
       </ion-menu>`;
   }
 
-  protected createRenderRoot(): Element {
+  protected createRenderRoot(): HTMLElement {
     return this;
   }
 
@@ -194,9 +196,11 @@ export class AirspaceItems extends connect(store)(LitElement) {
   @state()
   private altitudeStops: number[] = [];
   @state()
-  private showRestricted = true;
-  @state()
   private show = false;
+  @state()
+  private showClasses: Class[] = [];
+  @state()
+  private showTypes: Type[] = [];
 
   private subscriptions: UnsubscribeHandle[] = [];
 
@@ -204,8 +208,9 @@ export class AirspaceItems extends connect(store)(LitElement) {
     this.unit = state.units.altitude;
     this.maxAltitude = state.airspace.maxAltitude;
     this.altitudeStops = sel.airspaceAltitudeStops(state);
-    this.showRestricted = state.airspace.showRestricted;
     this.show = state.airspace.show;
+    this.showClasses = state.airspace.showClasses;
+    this.showTypes = state.airspace.showTypes;
   }
 
   connectedCallback(): void {
@@ -229,9 +234,49 @@ export class AirspaceItems extends connect(store)(LitElement) {
       </ion-item>
       ${when(
         this.show,
-        () => html`<ion-item button lines="none" @click=${this.handleShowRestricted} .detail=${false}>
-            <ion-label>E, F, G, restricted</ion-label>
-            <ion-toggle slot="end" .checked=${this.showRestricted} aria-label="E, F, G, restricted"></ion-toggle>
+        () => html`<ion-item button lines="none" .detail="${false}">
+            <ion-select
+              label-placement="floating"
+              label="Classes"
+              .value=${this.showClasses}
+              .multiple=${true}
+              @ionChange=${this.onClassesChange}
+              class="ion-text-wrap small-text"
+            >
+              ${map(
+                [Class.A, Class.B, Class.C, Class.D, Class.E, Class.F, Class.G],
+                (icaoClass) =>
+                  html`<ion-select-option .value=${icaoClass}>${getClassName(icaoClass)}</ion-select-option>`,
+              )}
+            </ion-select>
+          </ion-item>
+          <ion-item button lines="none" .detail="${false}">
+            <ion-select
+              label-placement="floating"
+              label="Types"
+              .value=${this.showTypes}
+              .multiple=${true}
+              @ionChange=${this.onTypesChange}
+              class="ion-text-wrap small-text"
+            >
+              ${map(
+                [
+                  Type.Prohibited,
+                  Type.Restricted,
+                  Type.Danger,
+                  Type.CTR,
+                  Type.TMA,
+                  Type.RMZ,
+                  Type.TMZ,
+                  Type.GlidingSector,
+                  Type.Other,
+                ],
+                (type) =>
+                  html`<ion-select-option .value=${type}
+                    >${type == Type.Other ? 'Other' : getTypeName(type)}</ion-select-option
+                  >`,
+              )}
+            </ion-select>
           </ion-item>
           <ion-item>
             <ion-select
@@ -247,6 +292,14 @@ export class AirspaceItems extends connect(store)(LitElement) {
             </ion-select>
           </ion-item>`,
       )}`;
+  }
+
+  private onClassesChange(e: ToggleCustomEvent) {
+    store.dispatch(airspaces.showClasses(e.detail.value));
+  }
+
+  private onTypesChange(e: ToggleCustomEvent) {
+    store.dispatch(airspaces.showTypes(e.detail.value));
   }
 
   // Updates the altitude select with the max altitude across tracks.
@@ -265,15 +318,11 @@ export class AirspaceItems extends connect(store)(LitElement) {
     store.dispatch(airspaces.setShow(!this.show));
   }
 
-  private handleShowRestricted() {
-    store.dispatch(airspaces.setShowRestricted(!this.showRestricted));
-  }
-
   private handleMaxAltitude(event: CustomEvent) {
     store.dispatch(airspaces.setMaxAltitude(event.detail.value));
   }
 
-  protected createRenderRoot(): Element {
+  protected createRenderRoot(): HTMLElement {
     return this;
   }
 }
@@ -372,7 +421,7 @@ export class SkywaysItems extends connect(store)(LitElement) {
     return `${value}%`;
   }
 
-  protected createRenderRoot(): Element {
+  protected createRenderRoot(): HTMLElement {
     return this;
   }
 }
@@ -400,7 +449,7 @@ export class ViewItems extends connect(store)(LitElement) {
     menuController.close();
   }
 
-  protected createRenderRoot(): Element {
+  protected createRenderRoot(): HTMLElement {
     return this;
   }
 }
@@ -443,7 +492,7 @@ export class FullScreenItems extends connect(store)(LitElement) {
     }
   }
 
-  protected createRenderRoot(): Element {
+  protected createRenderRoot(): HTMLElement {
     return this;
   }
 }
@@ -533,7 +582,7 @@ export class TrackItems extends connect(store)(LitElement) {
     await modal.present();
   }
 
-  protected createRenderRoot(): Element {
+  protected createRenderRoot(): HTMLElement {
     return this;
   }
 }
@@ -614,7 +663,7 @@ export class LiveTrackItems extends connect(store)(LitElement) {
     document.location.href = '/devices';
   }
 
-  protected createRenderRoot(): Element {
+  protected createRenderRoot(): HTMLElement {
     return this;
   }
 }

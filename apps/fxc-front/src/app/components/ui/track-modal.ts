@@ -66,7 +66,7 @@ export class TrackModal extends connect(store)(LitElement) {
     `;
   }
 
-  protected createRenderRoot(): Element {
+  protected createRenderRoot(): HTMLElement {
     return this;
   }
 

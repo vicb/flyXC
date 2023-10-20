@@ -62,7 +62,7 @@ export interface GroundAltitude {
   hasErrors: boolean;
 }
 /**
- * Ground altitude for a Track group.
+ * Ground altitude for a TrackGroup.
  * Stored in the database.
  *
  * @generated from protobuf message GroundAltitudeGroup
@@ -74,7 +74,7 @@ export interface GroundAltitudeGroup {
   groundAltitudes: GroundAltitude[];
 }
 /**
- * Airspaces along a track.
+ * Airspaces along a single track.
  *
  * @generated from protobuf message Airspaces
  */
@@ -94,6 +94,9 @@ export interface Airspaces {
    */
   name: string[];
   /**
+   * Unused after 2023-10.
+   * Might still be used on older tracks from DB.
+   *
    * @generated from protobuf field: repeated string category = 4;
    */
   category: string[];
@@ -114,11 +117,31 @@ export interface Airspaces {
    */
   into: boolean[];
   /**
+   * openaip icao class (added 2023-10).
+   *
+   * @generated from protobuf field: repeated uint32 icao_class = 10;
+   */
+  icaoClass: number[];
+  /**
+   * openaip type (added 2023-10).
+   *
+   * @generated from protobuf field: repeated uint32 type = 11;
+   */
+  type: number[];
+  /**
+   * openaip activity (added 2023-10).
+   *
+   * @generated from protobuf field: repeated uint32 activity = 12;
+   */
+  activity: number[];
+  /**
    * @generated from protobuf field: bool has_errors = 8;
    */
   hasErrors: boolean;
 }
 /**
+ * Airspaces for a TrackGroup.
+ *
  * @generated from protobuf message AirspacesGroup
  */
 export interface AirspacesGroup {
@@ -128,6 +151,8 @@ export interface AirspacesGroup {
   airspaces: Airspaces[];
 }
 /**
+ * Metadata for a TrackGroup.
+ *
  * @generated from protobuf message MetaTrackGroup
  */
 export interface MetaTrackGroup {
@@ -265,6 +290,9 @@ class Airspaces$Type extends MessageType<Airspaces> {
       { no: 6, name: 'bottom', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
       { no: 7, name: 'flags', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 13 /*ScalarType.UINT32*/ },
       { no: 9, name: 'into', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 8 /*ScalarType.BOOL*/ },
+      { no: 10, name: 'icao_class', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 13 /*ScalarType.UINT32*/ },
+      { no: 11, name: 'type', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 13 /*ScalarType.UINT32*/ },
+      { no: 12, name: 'activity', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 13 /*ScalarType.UINT32*/ },
       { no: 8, name: 'has_errors', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
     ]);
   }

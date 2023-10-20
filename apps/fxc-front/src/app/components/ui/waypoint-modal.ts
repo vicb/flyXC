@@ -66,7 +66,7 @@ export class WaypointModal extends LitElement {
     `;
   }
 
-  protected createRenderRoot(): Element {
+  protected createRenderRoot(): HTMLElement {
     return this;
   }
 

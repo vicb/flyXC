@@ -11,7 +11,7 @@ import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import ElevationSampler from '@arcgis/core/layers/support/ElevationSampler';
 import SceneView from '@arcgis/core/views/SceneView';
 
-import { FixType } from '../../logic/live-track';
+import { FixType, LiveLineProperties, LivePointProperties } from '../../logic/live-track';
 import { popupContent } from '../../logic/live-track-popup';
 import * as msg from '../../logic/messages';
 import { formatDurationMin, Units } from '../../logic/units';
@@ -187,9 +187,10 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       if (feature.geometry.type != 'LineString') {
         continue;
       }
-      const id = feature.properties.id;
-      const isEmergency = feature.properties.isEmergency;
-      const ageMin = (nowSec - feature.properties.lastTimeSec) / 60;
+      const lineProperties = feature.properties as LiveLineProperties;
+      const id = lineProperties.id;
+      const isEmergency = lineProperties.isEmergency;
+      const ageMin = (nowSec - lineProperties.lastTimeSec) / 60;
       // Recent tracks should be more visible unless there are non-live tracks.
       const hasRecentStyle = ageMin < RECENT_TIMEOUT_MIN && this.numTracks == 0;
       const hasSelectedStyle = id === this.currentId;
@@ -202,12 +203,12 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       graphic.set('geometry', this.line);
       shadowGraphic.set('geometry', this.line);
 
-      const color = new Color(feature.properties.isUfo === true ? '#aaa' : getUniqueContrastColor(id));
+      const color = new Color(lineProperties.isUfo ? '#aaa' : getUniqueContrastColor(id));
       color.a = isEmergency || hasRecentStyle || hasSelectedStyle ? 1 : 0.8;
       const rgba = color.toRgba();
       this.trackSymbol.symbolLayers[0].material.color = rgba;
       this.trackSymbol.symbolLayers[0].size = isEmergency ? 5 : hasSelectedStyle ? 3 : hasRecentStyle ? 2 : 1;
-      this.trackSymbol.symbolLayers[0].pattern.style = feature.properties.last ? 'solid' : 'dash';
+      this.trackSymbol.symbolLayers[0].pattern.style = lineProperties.last ? 'solid' : 'dash';
       graphic.set('symbol', this.trackSymbol);
       graphic.set('attributes', { liveTrackId: id });
       tracks.push(graphic);
@@ -238,10 +239,11 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         continue;
       }
 
-      const pilotId = feature.properties.pilotId;
-      const fixType: FixType = feature.properties.fixType;
+      const pointProperties = feature.properties as LivePointProperties;
+      const pilotId = pointProperties.pilotId;
+      const fixType = pointProperties.fixType;
       // heading is set for the last point only (i.e. the pilot position).
-      const ageMin = Math.round((nowSec - feature.properties.timeSec) / 60);
+      const ageMin = Math.round((nowSec - pointProperties.timeSec) / 60);
       const isRecentTrack = ageMin < RECENT_TIMEOUT_MIN;
       const isActive = pilotId === this.currentId;
 
@@ -259,8 +261,8 @@ export class Tracking3DElement extends connect(store)(LitElement) {
           break;
         case FixType.pilot:
           {
-            const heading = feature.properties.heading;
-            if (feature.properties.isUfo == true) {
+            const heading = pointProperties.heading ?? 0;
+            if (pointProperties.isUfo) {
               this.ufoSymbol.symbolLayers[0].heading = heading + 180;
               symbol = this.ufoSymbol;
             } else {
@@ -273,7 +275,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
             }
             // Text.
             if (this.displayLabels && (isActive || ageMin < 12 * 60)) {
-              label = feature.properties.name + ' -' + formatDurationMin(ageMin);
+              label = pointProperties.name + ' -' + formatDurationMin(ageMin);
             }
           }
           break;
@@ -298,7 +300,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       }
       point.z = Math.max(point.z, feature.geometry.coordinates[2] * this.multiplier);
       graphic.set('geometry', point);
-      graphic.set('attributes', { liveTrackId: pilotId, liveTrackIndex: feature.properties.index });
+      graphic.set('attributes', { liveTrackId: pilotId, liveTrackIndex: pointProperties.index });
       markers.push(graphic);
 
       if (label) {
@@ -309,7 +311,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         this.txtSymbol.symbolLayers[0].text = label;
         this.txtSymbol.symbolLayers[0].material.color = isActive ? '#BF1515' : 'black';
         graphic.set('symbol', this.txtSymbol);
-        graphic.set('attributes', { liveTrackId: pilotId, liveTrackIndex: feature.properties.index });
+        graphic.set('attributes', { liveTrackId: pilotId, liveTrackIndex: pointProperties.index });
         markers.push(graphic);
       }
     }

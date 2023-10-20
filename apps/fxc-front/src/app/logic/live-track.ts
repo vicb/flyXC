@@ -19,6 +19,30 @@ export enum FixType {
   emergency,
 }
 
+export type LivePointProperties = {
+  id: string;
+  pilotId: string;
+  index: number;
+  fixType: FixType;
+  isUfo: boolean;
+  alt: number;
+  gndAlt: number | undefined;
+  timeSec: number;
+  name?: string;
+  heading?: number;
+  msg?: string;
+};
+
+export type LiveLineProperties = {
+  id: string;
+  firstIndex: number;
+  lastIndex: number;
+  lastTimeSec: number;
+  isUfo: boolean;
+  isEmergency: boolean;
+  last: boolean;
+};
+
 // Creates GeoJSON features from a live track.
 //
 // - Segments are created when there is a gap larger than gapMin,
@@ -63,17 +87,15 @@ export function trackToFeatures(track: protos.LiveTrack, gapMin: number): any[] 
         line.push([track.lon[i], track.lat[i], track.alt[i]]);
       }
       if (line.length > 1) {
-        const properties: { [k: string]: unknown } = {
+        const properties: LiveLineProperties = {
           id: String(track.id ?? track.idStr),
           firstIndex,
           lastIndex,
           lastTimeSec: track.timeSec[lastIndex],
           isUfo: isUfo(track.flags[firstIndex]),
           isEmergency: isEmergencyTrack(track),
+          last: index == segments.length - 1,
         };
-        if (index == segments.length - 1) {
-          properties.last = true;
-        }
         features.push({
           type: 'Feature',
           geometry: {
@@ -106,52 +128,53 @@ export function trackToFeatures(track: protos.LiveTrack, gapMin: number): any[] 
   return features;
 }
 
-function addPoint(
-  pointsByIndex: Map<number, any>,
-  track: protos.LiveTrack,
-  index: number,
-  props: { [key: string]: any } = {},
-): void {
+function addPoint(pointsByIndex: Map<number, any>, track: protos.LiveTrack, index: number): void {
   const len = track.timeSec.length;
   // Compute the heading for the last fix of last segment.
   let fixType: FixType = FixType.dot;
+  const optProperties: {
+    heading?: number;
+    msg?: string;
+  } = {};
   if (index == len - 1) {
     fixType = FixType.pilot;
     if (len > 1) {
       const previous = { lat: track.lat[len - 2], lon: track.lon[len - 2] };
       const current = { lat: track.lat[len - 1], lon: track.lon[len - 1] };
-      props.heading = Math.round(getRhumbLineBearing(previous, current));
+      optProperties.heading = Math.round(getRhumbLineBearing(previous, current));
     } else {
-      props.heading = 0;
+      optProperties.heading = 0;
     }
   }
   const message = getFixMessage(track, index);
   if (message != null) {
     fixType = FixType.message;
-    props.msg = message;
+    optProperties.msg = message;
   }
   if (isEmergencyFix(track.flags[index])) {
     fixType = FixType.emergency;
   }
   const pilotId = String(track.id ?? track.idStr);
+  const properties: LivePointProperties = {
+    ...optProperties,
+    id: `${pilotId}-${index}`,
+    pilotId,
+    index,
+    fixType,
+    isUfo: isUfo(track.flags[index]),
+    alt: track.alt[index],
+    gndAlt: track.extra[index]?.gndAlt == null ? undefined : Number(track.extra[index]?.gndAlt),
+    timeSec: track.timeSec[index],
+    name: track.name,
+  };
+
   pointsByIndex.set(index, {
     type: 'Feature',
     geometry: {
       type: 'Point',
       coordinates: [track.lon[index], track.lat[index], track.alt[index]],
     },
-    properties: {
-      ...props,
-      id: `${pilotId}-${index}`,
-      pilotId,
-      index,
-      fixType,
-      isUfo: isUfo(track.flags[index]),
-      alt: track.alt[index],
-      gndAlt: track.extra[index]?.gndAlt,
-      timeSec: track.timeSec[index],
-      name: track.name,
-    },
+    properties,
   });
 }
 

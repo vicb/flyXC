@@ -37,7 +37,11 @@ export class AboutModal extends LitElement {
         <ion-text>
           <p>Credits:</p>
           <ul class="credits">
-            <li>Airspace data from <a href="https://www.openaip.net/" target="_blank">openaip</a></li>
+            <li>
+              Airspace data from <a href="https://www.openaip.net/" target="_blank">openaip</a>: "OpenAIP data is not
+              certified and must not be used for primary navigation or flight planning. Never rely on openAIP data!
+              OpenAIP data contains errors. Using openAIP data may result in serious injury or death."
+            </li>
             <li>Thermal data from <a href="https://thermal.kk7.ch/" target="_blank">Michael von Kanel</a></li>
             <li><a href="https://js.arcgis.com/" target="_blank">JS Arcgis API</a></li>
             <li><a href="https://ionicframework.com/" target="_blank">Ionic</a></li>
@@ -55,7 +59,7 @@ export class AboutModal extends LitElement {
       </ion-footer> `;
   }
 
-  protected createRenderRoot(): Element {
+  protected createRenderRoot(): HTMLElement {
     return this;
   }
 

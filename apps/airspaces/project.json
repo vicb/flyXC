@@ -16,46 +16,40 @@
         "generatePackageJson": true,
         "additionalEntryPoints": [
           {
-            "entryName": "togeojson",
-            "entryPath": "apps/airspaces/src/app/togeojson.ts"
+            "entryName": "create-geojson",
+            "entryPath": "apps/airspaces/src/app/create-geojson.ts"
           },
           {
-            "entryName": "download",
-            "entryPath": "apps/airspaces/src/app/download.ts"
+            "entryName": "create-tiles",
+            "entryPath": "apps/airspaces/src/app/create-tiles.ts"
           },
           {
-            "entryName": "tiles-info",
-            "entryPath": "apps/airspaces/src/app/tiles-info.ts"
+            "entryName": "download-openaip",
+            "entryPath": "apps/airspaces/src/app/download-openaip.ts"
+          },
+          {
+            "entryName": "create-tiles-info",
+            "entryPath": "apps/airspaces/src/app/create-tiles-info.ts"
           },
           {
             "entryName": "stats",
             "entryPath": "apps/airspaces/src/app/stats.ts"
           },
           {
-            "entryName": "tiles-info-diff",
-            "entryPath": "apps/airspaces/src/app/tiles-info-diff.ts"
+            "entryName": "create-tiles-info-diff",
+            "entryPath": "apps/airspaces/src/app/create-tiles-info-diff.ts"
           },
           {
-            "entryName": "sync",
-            "entryPath": "apps/airspaces/src/app/sync.ts"
+            "entryName": "upload-tiles-diff",
+            "entryPath": "apps/airspaces/src/app/upload-tiles-diff.ts"
           }
         ],
         "tsConfig": "apps/airspaces/tsconfig.app.json",
         "assets": [
           {
-            "glob": "*",
-            "input": "apps/airspaces/src/assets/fixedasp",
-            "output": "assets/fixedasp"
-          },
-          {
             "glob": "download.sh",
             "input": "apps/airspaces/src/assets/",
             "output": ""
-          },
-          {
-            "glob": "tiles-info.json",
-            "input": "apps/airspaces/src/assets/",
-            "output": "assets/ref"
           },
           {
             "glob": "cors.json",
@@ -96,6 +90,13 @@
         "pull": true,
         "push": true,
         "tags": ["gcr.io/fly-xc/unzip"]
+      }
+    },
+
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx servez -p 8084 -q apps/airspaces/src/assets/airspaces/tiles"
       }
     }
   },

@@ -11,15 +11,12 @@
         "target": "node",
         "compiler": "tsc",
         "outputPath": "dist/apps/misc",
-        "main": "apps/misc/src/app/main.ts",
+        "main": "apps/misc/src/app/list_tracks.ts",
+        "outputFileName": "list_track.js",
         "tsConfig": "apps/misc/tsconfig.app.json",
         "assets": ["apps/misc/src/assets"],
         "webpackConfig": "apps/misc/webpack.config.js",
         "additionalEntryPoints": [
-          {
-            "entryName": "list_tracks",
-            "entryPath": "apps/misc/src/app/list_tracks.ts"
-          },
           {
             "entryName": "stat_tracks",
             "entryPath": "apps/misc/src/app/stat_tracks.ts"

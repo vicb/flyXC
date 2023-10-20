@@ -379,6 +379,7 @@ describe('Create GeoJSON features', () => {
               "id": "123",
               "isEmergency": false,
               "isUfo": false,
+              "last": false,
               "lastIndex": 2,
               "lastTimeSec": 20,
             },

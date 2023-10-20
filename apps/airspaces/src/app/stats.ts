@@ -1,6 +1,9 @@
 import { readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 
-const airspaces = JSON.parse(readFileSync('asp/airspaces.json', 'utf-8'));
+const inputFolder = resolve(join(__dirname, '../../../apps/airspaces/src/assets/airspaces'));
+
+const airspaces = JSON.parse(readFileSync(join(inputFolder, 'openaip.json'), 'utf-8'));
 
 const classes = new Map([
   [0, 'A'],
@@ -10,7 +13,6 @@ const classes = new Map([
   [4, 'E'],
   [5, 'F'],
   [6, 'G'],
-  [7, 'n/a'],
   [8, 'Unclassified / Special Use Airspace (SUA)'],
 ]);
 
@@ -59,6 +61,10 @@ const country = new Set();
 const classTypes = new Set();
 const classCount = new Map();
 const typeCount = new Map();
+const typeWithClassABCDE = new Set();
+
+const typeCountWhenActivity = new Map();
+const classCountWhenActivity = new Map();
 
 const CTR = new Set();
 const RMZ = new Set();
@@ -70,6 +76,13 @@ const FIR = new Set();
 for (const airspace of airspaces) {
   typeCount.set(airspace.type, (typeCount.get(airspace.type) ?? 0) + 1);
   classCount.set(airspace.icaoClass, (classCount.get(airspace.icaoClass) ?? 0) + 1);
+  if (airspace.activity > 0) {
+    typeCountWhenActivity.set(airspace.type, (typeCountWhenActivity.get(airspace.type) ?? 0) + 1);
+    classCountWhenActivity.set(airspace.icaoClass, (classCountWhenActivity.get(airspace.icaoClass) ?? 0) + 1);
+  }
+  if (airspace.icaoClass <= 4) {
+    typeWithClassABCDE.add(airspace.type);
+  }
   type.add(airspace.type);
   icaoClass.add(airspace.icaoClass);
   geoType.add(airspace.geometry.type);
@@ -111,7 +124,14 @@ function getTypeLabel(id: number): string {
 }
 
 console.log(`Total airspaces: ${airspaces.length}`);
-console.log(`type`, type);
+console.log(
+  `type`,
+  Array.from(type).map((type: number) => getTypeLabel(type)),
+);
+console.log(
+  `type (class A, B, C, E)`,
+  Array.from(typeWithClassABCDE).map((type: number) => getTypeLabel(type)),
+);
 console.log(`icaoClass`, icaoClass);
 console.log(`geoType`, geoType);
 console.log(`limitUnit`, limitUnit);
@@ -126,12 +146,22 @@ console.log('TMZ icao classes: ', TMZ);
 console.log('ATZ icao classes: ', ATZ);
 console.log('FIR icao classes: ', FIR);
 
-console.log('* types');
+console.log('* types -> count');
 for (const [type, count] of typeCount.entries()) {
   console.log(` - ${getTypeLabel(type)}: ${count}`);
 }
 
-console.log('* classes');
+console.log('* classes -> count');
 for (const [cl, count] of classCount.entries()) {
+  console.log(` - ${getClassLabel(cl)}: ${count}`);
+}
+
+console.log('* types -> count (when activity)');
+for (const [type, count] of typeCountWhenActivity.entries()) {
+  console.log(` - ${getTypeLabel(type)}: ${count}`);
+}
+
+console.log('* classes -> count (when activity)');
+for (const [cl, count] of classCountWhenActivity.entries()) {
   console.log(` - ${getClassLabel(cl)}: ${count}`);
 }

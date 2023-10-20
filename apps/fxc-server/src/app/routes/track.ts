@@ -1,5 +1,9 @@
 import { diffDecodeAirspaces, protos } from '@flyxc/common';
-import { retrieveMetaTrackGroupByUrl, retrieveMetaTrackGroupsByIds } from '@flyxc/common-node';
+import {
+  queueTrackPostProcessing,
+  retrieveMetaTrackGroupByUrl,
+  retrieveMetaTrackGroupsByIds,
+} from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import { Request, Response, Router } from 'express';
 import { UploadedFile } from 'express-fileupload';
@@ -13,14 +17,14 @@ export function getTrackRouter(datastore: Datastore): Router {
   router.get('/byurl.pbf', async (req: Request, res: Response) => {
     const urls = [].concat(req.query.track as any);
     const trackGroups: protos.MetaTrackGroup[] = await Promise.all(urls.map((url) => parseFromUrl(datastore, url)));
-    sendTracks(res, trackGroups);
+    await sendTracks(res, trackGroups);
   });
 
   // Retrieves tracks by datastore ids.
   router.get('/byid.pbf', async (req: Request, res: Response) => {
     const ids = [].concat(req.query.id as any);
     const trackGroups: protos.MetaTrackGroup[] = await retrieveMetaTrackGroupsByIds(datastore, ids);
-    sendTracks(res, trackGroups);
+    await sendTracks(res, trackGroups);
   });
 
   // Upload tracks to the database.
@@ -40,7 +44,7 @@ export function getTrackRouter(datastore: Datastore): Router {
         }
       }
 
-      sendTracks(res, tracks, route);
+      await sendTracks(res, tracks, route);
       return;
     }
     res.sendStatus(400);
@@ -57,7 +61,8 @@ export function getTrackRouter(datastore: Datastore): Router {
     const trackGroups: protos.MetaTrackGroup[] = await retrieveMetaTrackGroupsByIds(datastore, ids);
     const processedGroups: protos.MetaTrackGroup[] = [];
     trackGroups.forEach((group) => {
-      if (group != null && group.numPostprocess > 0) {
+      // Send only metadata in the new format.
+      if (group != null && group.numPostprocess > 0 && !isOldAirspaceFormat(group)) {
         // Delete the tracks and keep only metadata.
         group.trackGroupBin = undefined;
         processedGroups.push(group);
@@ -92,9 +97,47 @@ export function getTrackRouter(datastore: Datastore): Router {
 }
 
 // Sends the tracks as an encoded protocol buffer.
-function sendTracks(res: Response, metaGroups: protos.MetaTrackGroup[], route?: protos.Route | null): void {
+async function sendTracks(
+  res: Response,
+  metaGroups: protos.MetaTrackGroup[],
+  route?: protos.Route | null,
+): Promise<void> {
   res.set('Content-Type', 'application/x-protobuf');
+  for (const metaGroup of metaGroups) {
+    if (isOldAirspaceFormat(metaGroup)) {
+      // Set numPostprocess to 0 so that the client fetch metadata.
+      metaGroup.numPostprocess = 0;
+      // Delete the metadata.
+      metaGroup.groundAltitudeGroupBin = undefined;
+      metaGroup.airspacesGroupBin = undefined;
+      // Convert to new airspace format.
+      console.info(`Old airspace format detected id=${metaGroup.id}...`);
+      await queueTrackPostProcessing(metaGroup.id);
+    }
+  }
   res.send(
     Buffer.from(protos.MetaTrackGroupsAndRoute.toBinary({ metaTrackGroups: metaGroups, route: route ?? undefined })),
   );
+}
+
+// The "new" format from 2023-10 adds:
+// - icaoClass,
+// - type,
+// - activity.
+function isOldAirspaceFormat(metaGroup?: protos.MetaTrackGroup) {
+  // No airspace info, either not processed or error.
+  if (metaGroup?.airspacesGroupBin == null) {
+    return false;
+  }
+
+  const airspaceGroup = protos.AirspacesGroup.fromBinary(new Uint8Array(metaGroup.airspacesGroupBin));
+  for (const diffAirspace of airspaceGroup.airspaces) {
+    const airspace = diffDecodeAirspaces(diffAirspace);
+    // For track with airspaces (startSec.length > 0) there should be as many icaoClass in the new format.
+    if (airspace.startSec.length > 0 && airspace.icaoClass.length == 0) {
+      return true;
+    }
+  }
+
+  return false;
 }

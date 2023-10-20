@@ -1,10 +1,9 @@
 import * as common from '@flyxc/common';
-import { LatLonAlt } from '@flyxc/common';
 import { LitElement, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
-import { AspMapType, AspZoomMapType, getAirspaceList, MAX_ASP_TILE_ZOOM } from '../../logic/airspaces';
+import { AspMapType, AspZoomMapType, getAirspaceList } from '../../logic/airspaces';
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 
@@ -17,9 +16,10 @@ export class AirspaceElement extends connect(store)(LitElement) {
   private show = false;
   @state()
   private maxAltitude = 1000;
-  // Whether to display restricted airspaces.
   @state()
-  private showRestricted = true;
+  private showClasses: common.Class[] = [];
+  @state()
+  private showTypes: common.Type[] = [];
   @state()
   private track?: common.RuntimeTrack;
   @state()
@@ -38,9 +38,9 @@ export class AirspaceElement extends connect(store)(LitElement) {
   connectedCallback(): void {
     super.connectedCallback();
     // Add the overlays for different zoom levels.
-    this.overlays = [new AspMapType(this.maxAltitude, MAX_ASP_TILE_ZOOM)];
-    for (let zoom = MAX_ASP_TILE_ZOOM + 1; zoom <= 17; zoom++) {
-      this.overlays.push(new AspZoomMapType(this.maxAltitude, MAX_ASP_TILE_ZOOM, zoom));
+    this.overlays = [new AspMapType(this.maxAltitude, common.MAX_AIRSPACE_TILE_ZOOM)];
+    for (let zoom = common.MAX_AIRSPACE_TILE_ZOOM + 1; zoom <= 17; zoom++) {
+      this.overlays.push(new AspZoomMapType(this.maxAltitude, common.MAX_AIRSPACE_TILE_ZOOM, zoom));
     }
     this.setOverlaysZoom();
     this.info = new google.maps.InfoWindow({ disableAutoPan: true });
@@ -55,7 +55,8 @@ export class AirspaceElement extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     this.show = state.airspace.show;
-    this.showRestricted = state.airspace.showRestricted;
+    this.showClasses = state.airspace.showClasses;
+    this.showTypes = state.airspace.showTypes;
     this.maxAltitude = state.airspace.maxAltitude;
     this.track = sel.currentTrack(state);
     this.timeSec = state.app.timeSec;
@@ -64,12 +65,16 @@ export class AirspaceElement extends connect(store)(LitElement) {
   protected shouldUpdate(changedProperties: PropertyValues): boolean {
     if (this.show) {
       // Need to remove and re-add the overlays to change the altitude / restricted visibility.
-      if (changedProperties.has('maxAltitude') || changedProperties.has('showRestricted')) {
+      if (
+        changedProperties.has('maxAltitude') ||
+        changedProperties.has('showClasses') ||
+        changedProperties.has('showTypes')
+      ) {
         this.removeOverlays();
         this.addOverlays();
       }
       if (this.track && changedProperties.has('timeSec') && !this.isMapClick) {
-        const point = sel.getTrackLatLonAlt(store.getState())(this.timeSec) as LatLonAlt;
+        const point = sel.getTrackLatLonAlt(store.getState())(this.timeSec) as common.LatLonAlt;
         const gndAlt = sel.getGndAlt(store.getState())(this.timeSec);
         this.showAirspaceInfo(point, gndAlt);
       }
@@ -96,14 +101,15 @@ export class AirspaceElement extends connect(store)(LitElement) {
     this.showAirspaceInfo({ lat: latLng.lat(), lon: latLng.lng(), alt: this.maxAltitude });
   }
 
-  private async showAirspaceInfo(point: LatLonAlt, gndAlt = 0) {
+  private async showAirspaceInfo(point: common.LatLonAlt, gndAlt = 0) {
     if (this.show) {
       const html = await getAirspaceList(
         Math.round(this.map.getZoom() ?? 10),
         point,
         point.alt,
         gndAlt,
-        this.showRestricted,
+        this.showClasses,
+        this.showTypes,
       );
       if (html !== '') {
         this.info?.setContent(html);
@@ -119,7 +125,8 @@ export class AirspaceElement extends connect(store)(LitElement) {
     this.overlays.forEach((o) => {
       if (this.map.overlayMapTypes) {
         o.setAltitude(this.maxAltitude);
-        o.setShowRestricted(this.showRestricted);
+        o.showClasses(this.showClasses);
+        o.showTypes(this.showTypes);
         this.map.overlayMapTypes.push(o as any);
       }
     });
@@ -140,7 +147,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
     this.overlays.forEach((overlay) => overlay.setCurrentZoom(zoom));
   }
 
-  protected createRenderRoot(): Element {
+  protected createRenderRoot(): HTMLElement {
     return this;
   }
 }

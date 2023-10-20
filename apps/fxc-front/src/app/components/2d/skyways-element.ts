@@ -18,7 +18,7 @@ export class SkywaysOverlay extends WMTSInterpolatingOverlayElement {
   bounds = null;
   @property()
   url = '';
-  @property()
+  @property({ type: Number })
   maxTileZoom = 12;
 
   getTileUrl(coord: google.maps.Point, zoom: number): string {

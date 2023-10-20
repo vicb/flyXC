@@ -99,7 +99,7 @@ export class ShareModal extends LitElement {
     return `XCTSK:${JSON.stringify({ taskType: 'CLASSIC', version: 2, t: turnpoints })}`;
   }
 
-  protected createRenderRoot(): Element {
+  protected createRenderRoot(): HTMLElement {
     return this;
   }
 

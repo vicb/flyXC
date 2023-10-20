@@ -11,11 +11,15 @@ import {
   ASP_COLOR_OTHER,
   ASP_COLOR_PROHIBITED,
   ASP_COLOR_RESTRICTED,
-  ASP_TILE_URL,
-  Flags,
+  ASP_TILE_URL_DEV,
+  ASP_TILE_URL_PROD,
+  Class,
   LatLon,
+  MAX_AIRSPACE_TILE_ZOOM,
+  Type,
 } from '@flyxc/common';
-import { getAirspaceList, MAX_ASP_TILE_ZOOM } from '../../logic/airspaces';
+import { environment } from '../../../environments/environment';
+import { getAirspaceList } from '../../logic/airspaces';
 import { RootState, store } from '../../redux/store';
 
 @customElement('airspace3d-element')
@@ -28,14 +32,17 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   @state()
   private showAirspace = false;
   @state()
-  private showRestricted = true;
+  private showClasses: Class[] = [];
+  @state()
+  private showTypes: Type[] = [];
 
   private layer?: VectorTileLayer;
 
   stateChanged(state: RootState): void {
     this.maxAltitude = state.airspace.maxAltitude;
     this.showAirspace = state.airspace.show;
-    this.showRestricted = state.airspace.showRestricted;
+    this.showClasses = state.airspace.showClasses;
+    this.showTypes = state.airspace.showTypes;
   }
 
   protected shouldUpdate(): boolean {
@@ -57,7 +64,14 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     if (!this.showAirspace) {
       return;
     }
-    const html = await getAirspaceList(MAX_ASP_TILE_ZOOM, latLon, this.maxAltitude, 0, this.showRestricted);
+    const html = await getAirspaceList(
+      MAX_AIRSPACE_TILE_ZOOM,
+      latLon,
+      this.maxAltitude,
+      0,
+      this.showClasses,
+      this.showTypes,
+    );
     if (html) {
       view.popup.open({
         location: {
@@ -85,15 +99,32 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       return;
     }
 
+    const visibilityFilters: any[] = [];
+
+    if (this.showTypes.indexOf(Type.Other) > -1) {
+      // https://community.esri.com/t5/arcgis-javascript-maps-sdk-questions/bug-in-vectortilelayer-stlyling-mapbox-styles/m-p/1334083#M82365
+      visibilityFilters.push(['boolean', true]);
+    } else {
+      for (const cl of this.showClasses) {
+        visibilityFilters.push(['==', ['get', 'icaoClass'], cl]);
+      }
+      for (const type of this.showTypes) {
+        visibilityFilters.push(['==', ['get', 'type'], type]);
+      }
+      if (this.showTypes.indexOf(Type.Restricted) > -1) {
+        visibilityFilters.push(['==', ['get', 'type'], Type.LowAltitudeOverflightRestriction]);
+      }
+    }
+
     this.layer = new VectorTileLayer({
       style: {
         version: 8,
         sources: {
           asp: {
             type: 'vector',
-            tiles: [ASP_TILE_URL],
+            tiles: [environment.production ? ASP_TILE_URL_PROD : ASP_TILE_URL_DEV],
             minzoom: 0,
-            maxzoom: MAX_ASP_TILE_ZOOM,
+            maxzoom: MAX_AIRSPACE_TILE_ZOOM,
           },
         },
         layers: [
@@ -105,24 +136,51 @@ export class Airspace3dElement extends connect(store)(LitElement) {
             paint: {
               'fill-color': [
                 'case',
-                ['>=', ['%', ['get', 'flags'], Flags.AirspaceProhibited * 2], Flags.AirspaceProhibited],
+                // Class
+                ['==', ['get', 'icaoClass'], Class.A],
                 ASP_COLOR_PROHIBITED,
-                ['>=', ['%', ['get', 'flags'], Flags.AirspaceRestricted * 2], Flags.AirspaceRestricted],
+                ['==', ['get', 'icaoClass'], Class.B],
+                ASP_COLOR_PROHIBITED,
+                ['==', ['get', 'icaoClass'], Class.C],
+                ASP_COLOR_PROHIBITED,
+                ['==', ['get', 'icaoClass'], Class.D],
+                ASP_COLOR_PROHIBITED,
+                ['==', ['get', 'icaoClass'], Class.E],
                 ASP_COLOR_RESTRICTED,
-                ['>=', ['%', ['get', 'flags'], Flags.AirspaceDanger * 2], Flags.AirspaceDanger],
+                ['==', ['get', 'icaoClass'], Class.F],
+                ASP_COLOR_RESTRICTED,
+                ['==', ['get', 'icaoClass'], Class.G],
+                ASP_COLOR_RESTRICTED,
+                // Type
+                ['==', ['get', 'type'], Type.CTR],
+                ASP_COLOR_PROHIBITED,
+                ['==', ['get', 'type'], Type.TMA],
+                ASP_COLOR_PROHIBITED,
+                ['==', ['get', 'type'], Type.ATZ],
+                ASP_COLOR_PROHIBITED,
+                ['==', ['get', 'type'], Type.CTA],
+                ASP_COLOR_PROHIBITED,
+                ['==', ['get', 'type'], Type.Prohibited],
+                ASP_COLOR_PROHIBITED,
+                ['==', ['get', 'type'], Type.RMZ],
+                ASP_COLOR_PROHIBITED,
+                ['==', ['get', 'type'], Type.TMZ],
+                ASP_COLOR_RESTRICTED,
+                ['==', ['get', 'type'], Type.GlidingSector],
+                ASP_COLOR_RESTRICTED,
+                ['==', ['get', 'type'], Type.Restricted],
+                ASP_COLOR_RESTRICTED,
+                ['==', ['get', 'type'], Type.LowAltitudeOverflightRestriction],
+                ASP_COLOR_RESTRICTED,
+                ['==', ['get', 'type'], Type.Danger],
                 ASP_COLOR_DANGER,
+                // Unmatched airspaces.
                 ASP_COLOR_OTHER,
               ],
               'fill-opacity': 0.7,
               'fill-outline-color': '#aaaaaa',
             },
-            filter: this.showRestricted
-              ? ['<=', ['get', 'bottom'], this.maxAltitude]
-              : [
-                  'all',
-                  ['<', ['%', ['get', 'flags'], Flags.AirspaceRestricted * 2], Flags.AirspaceRestricted],
-                  ['<=', ['get', 'bottom'], this.maxAltitude],
-                ],
+            filter: ['all', ['any', ...visibilityFilters], ['<=', ['get', 'floorM'], this.maxAltitude]],
           },
         ],
       },
@@ -130,7 +188,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     this.map.add(this.layer);
   }
 
-  createRenderRoot(): Element {
+  createRenderRoot(): HTMLElement {
     return this;
   }
 }

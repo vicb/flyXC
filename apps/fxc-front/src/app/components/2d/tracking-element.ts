@@ -1,7 +1,7 @@
 import { LitElement, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
-import { FixType } from '../../logic/live-track';
+import { FixType, LiveLineProperties, LivePointProperties } from '../../logic/live-track';
 import { popupContent } from '../../logic/live-track-popup';
 import { Units, formatDurationMin, formatUnit } from '../../logic/units';
 import { setCurrentLiveId } from '../../redux/live-track-slice';
@@ -35,6 +35,16 @@ const dashedLineIconsFactory: (opacity: number) => google.maps.IconSequence[] = 
     repeat: '5px',
   },
 ];
+
+// Extract properties with the correct type.
+function getPointProp<K extends keyof LivePointProperties>(feature: google.maps.Data.Feature, key: K) {
+  return feature.getProperty(key) as LivePointProperties[K];
+}
+
+// Extract properties with the correct type.
+function getLineProp<K extends keyof LiveLineProperties>(feature: google.maps.Data.Feature, key: K) {
+  return feature.getProperty(key) as LiveLineProperties[K];
+}
 
 const positionSvg = (
   color: string,
@@ -157,13 +167,13 @@ export class TrackingElement extends connect(store)(LitElement) {
       }
       const type = feature.getGeometry()?.getType();
       if (type === 'LineString') {
-        const pilotId: string = feature.getProperty('id');
+        const pilotId = getLineProp(feature, 'id');
         this.info?.close();
         store.dispatch(setCurrentLiveId(pilotId));
         this.setMapStyle(this.map);
       } else if (type === 'Point' && this.units) {
-        const pilotId: string = feature.getProperty('pilotId');
-        const index = Number(feature.getProperty('index') ?? 0);
+        const pilotId = getPointProp(feature, 'pilotId');
+        const index = getPointProp(feature, 'index');
         const popup = popupContent(pilotId, index, this.units);
 
         if (!popup) {
@@ -197,11 +207,11 @@ export class TrackingElement extends connect(store)(LitElement) {
   // Using data-url with icon is much faster than using symbols.
   private getPointStyle(feature: google.maps.Data.Feature): google.maps.Data.StyleOptions {
     const nowSec = Date.now() / 1000;
-    const pilotId: string = feature.getProperty('pilotId');
-    const alt = feature.getProperty('alt');
-    const gndAlt = feature.getProperty('gndAlt');
-    const ageMin = Math.round((nowSec - feature.getProperty('timeSec')) / 60);
-    const fixType: FixType = feature.getProperty('fixType');
+    const pilotId = getPointProp(feature, 'pilotId');
+    const alt = getPointProp(feature, 'alt');
+    const gndAlt = getPointProp(feature, 'gndAlt');
+    const ageMin = Math.round((nowSec - getPointProp(feature, 'timeSec')) / 60);
+    const fixType = getPointProp(feature, 'fixType');
     const isActive = pilotId === this.currentId;
 
     const elevationStr = formatUnit(alt, this.units!.altitude);
@@ -227,7 +237,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     if (this.displayLabels && (isActive || ageMin < 6 * 60)) {
       label = {
         color: labelColor,
-        text: `${feature.getProperty('name')}\n${elevationStr} · -${formatDurationMin(ageMin)}`,
+        text: `${getPointProp(feature, 'name')}\n${elevationStr} · -${formatDurationMin(ageMin)}`,
         className: 'gm-label-outline',
         fontWeight,
       };
@@ -236,8 +246,8 @@ export class TrackingElement extends connect(store)(LitElement) {
     switch (fixType) {
       case FixType.pilot:
         {
-          const heading = feature.getProperty('heading');
-          if (feature.getProperty('isUfo') === true) {
+          const heading = getPointProp(feature, 'heading') ?? 0;
+          if (getPointProp(feature, 'isUfo')) {
             anchor = ANCHOR_UFO;
             labelOrigin = ORIGIN_UFO;
             svg = ufoSvg(heading, color, opacity);
@@ -282,11 +292,11 @@ export class TrackingElement extends connect(store)(LitElement) {
 
   private getTrackStyle(feature: google.maps.Data.Feature): google.maps.Data.StyleOptions {
     const nowSec = Date.now() / 1000;
-    const id: string = feature.getProperty('id');
-    const isEmergency = feature.getProperty('isEmergency');
-    const ageMin = (nowSec - feature.getProperty('lastTimeSec')) / 60;
+    const id = getLineProp(feature, 'id');
+    const isEmergency = getLineProp(feature, 'isEmergency');
+    const ageMin = (nowSec - getLineProp(feature, 'lastTimeSec')) / 60;
 
-    const strokeColor = feature.getProperty('isUfo') === true ? '#aaa' : getUniqueContrastColor(id);
+    const strokeColor = getLineProp(feature, 'isUfo') ? '#aaa' : getUniqueContrastColor(id);
     let strokeWeight = 1;
     let strokeOpacity = 1;
     let zIndex = 10;
@@ -295,7 +305,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     if (isEmergency) {
       strokeWeight = 6;
       zIndex = 30;
-    } else if (feature.getProperty('last') !== true) {
+    } else if (!getLineProp(feature, 'last')) {
       // Dashed lines for previous tracks.
       iconsFactory = dashedLineIconsFactory;
     } else if (id == this.currentId) {

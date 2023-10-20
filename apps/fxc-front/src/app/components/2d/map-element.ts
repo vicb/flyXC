@@ -122,12 +122,12 @@ export class MapElement extends connect(store)(LitElement) {
         this.lockPanBefore = now + 50;
         const zoom = this.map.getZoom() as number;
         const currentPosition = sel.getTrackLatLonAlt(store.getState())(this.timeSec) as LatLonAlt;
-        const { x, y } = pixelCoordinates(currentPosition, zoom).world;
+        const { x, y } = pixelCoordinates(currentPosition, zoom, 256).world;
         const bounds = this.map.getBounds() as google.maps.LatLngBounds;
         const sw = bounds.getSouthWest();
-        const { x: minX, y: maxY } = pixelCoordinates({ lat: sw.lat(), lon: sw.lng() }, zoom).world;
+        const { x: minX, y: maxY } = pixelCoordinates({ lat: sw.lat(), lon: sw.lng() }, zoom, 256).world;
         const ne = bounds.getNorthEast();
-        const { x: maxX, y: minY } = pixelCoordinates({ lat: ne.lat(), lon: ne.lng() }, zoom).world;
+        const { x: maxX, y: minY } = pixelCoordinates({ lat: ne.lat(), lon: ne.lng() }, zoom, 256).world;
 
         if (x - minX < 100 || y - minY < 100 || maxX - x < 100 || maxY - y < 100) {
           this.map.panTo({ lat: currentPosition.lat, lng: currentPosition.lon });
@@ -404,7 +404,7 @@ export class MapElement extends connect(store)(LitElement) {
     }
   }
 
-  createRenderRoot(): Element {
+  createRenderRoot(): HTMLElement {
     return this;
   }
 }

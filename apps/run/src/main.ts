@@ -4,6 +4,10 @@ import { postProcessTrack } from './app/process';
 
 const app = express().use(express.json());
 
+// CURL request:
+//   curl -H 'content-type: application/json' \
+//     localhost:8090/process \
+//     -d "{ \"message\": {\"data\": \"$(echo -n '{"id": "<id>"}' | base64)\" }}"
 app.post('/process', async (req: Request, res: Response) => {
   if (req.body.message.data) {
     let id: string;
