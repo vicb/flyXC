@@ -89,7 +89,11 @@ chart-element.has-tracks {
 
 ul.credits {
   list-style-type: none;
-  padding-left: 1em;
+  padding-left: 0;
+}
+
+ul.credits li {
+  margin-top: 1em;
 }
 
 img.fxc-tile {
