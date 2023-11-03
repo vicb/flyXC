@@ -87,11 +87,6 @@ function createFilter(logs: Map<string, number>) {
       return false;
     }
 
-    if (airspace.type === Type.Airway) {
-      incMapKey(logs, 'Airway');
-      return false;
-    }
-
     return true;
   };
 }
