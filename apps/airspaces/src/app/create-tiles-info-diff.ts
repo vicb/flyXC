@@ -62,4 +62,9 @@ if (refTiles != null) {
   }
 }
 
+console.log(`-> Added ${diff.numAdded} tiles`);
+console.log(`-> Updated ${diff.numUpdated} tiles`);
+console.log(`-> Deleted ${diff.numDeleted} tiles`);
+console.log(`-> ${diff.numSame} unchanged tiles`);
+
 writeFileSync(program.opts().output, JSON.stringify(diff));
