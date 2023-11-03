@@ -68,7 +68,7 @@
       }
     },
     "lint": {
-      "executor": "@nx/linter:eslint",
+      "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["apps/airspaces/**/*.ts"]
@@ -92,7 +92,6 @@
         "tags": ["gcr.io/fly-xc/unzip"]
       }
     },
-
     "serve": {
       "executor": "nx:run-commands",
       "options": {
