@@ -108,3 +108,9 @@ div.fxc-tile {
 ion-select.small-text::part(text) {
   font-size: 90%;
 }
+
+/* Needed to align ion-toggle icon and text */
+.val-mid {
+  vertical-align: middle;
+}
+

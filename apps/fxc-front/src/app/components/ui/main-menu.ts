@@ -88,9 +88,11 @@ export class MainMenu extends connect(store)(LitElement) {
             ${when(
               !this.view3d,
               () =>
-                html`<ion-item button lines="full" @click=${this.handlePlanner} .detail=${false}>
-                  <i class="las la-drafting-compass la-2x"></i>XC planning
-                  <ion-toggle slot="end" .checked=${this.plannerEnabled} aria-label="XC Planning"></ion-toggle>
+                html`<ion-item button lines="full" .detail=${false}>
+                  <ion-toggle .checked=${this.plannerEnabled} @ionChange=${this.handlePlanner}
+                    ><i class="las la-drafting-compass la-2x val-mid"></i
+                    ><span class="val-mid">XC planning</span></ion-toggle
+                  >
                 </ion-item>`,
             )}
             <skyways-items></skyways-items>
@@ -114,9 +116,10 @@ export class MainMenu extends connect(store)(LitElement) {
                       <ion-label slot="end">2.6x</ion-label>
                     </ion-range>
                   </ion-item>
-                  <ion-item button lines="full" @click=${this.handleSun} .detail=${false}>
-                    <i class="las la-sun la-2x"></i>Sun lighting
-                    <ion-toggle slot="end" .checked=${this.sunEnabled} aria-label="Sun lighting"></ion-toggle>
+                  <ion-item button lines="full" .detail=${false}>
+                    <ion-toggle .checked=${this.sunEnabled} @ionChange=${this.handleSun}
+                      ><i class="las la-sun la-2x val-mid"></i><span class="val-mid">Sun lighting</span></ion-toggle
+                    >
                   </ion-item>`,
             )}
             <fullscreen-items></fullscreen-items>
@@ -228,9 +231,10 @@ export class AirspaceItems extends connect(store)(LitElement) {
   }
 
   render(): TemplateResult {
-    return html`<ion-item lines=${this.show ? 'none' : 'full'} button @click=${this.handleShow} .detail=${false}>
-        <i class="las la-fighter-jet la-2x"></i>Airspaces
-        <ion-toggle slot="end" .checked=${this.show} aria-label="Airspaces"></ion-toggle>
+    return html`<ion-item lines=${this.show ? 'none' : 'full'} button .detail=${false}>
+        <ion-toggle .checked=${this.show} @ionChange=${this.handleShow}
+          ><i class="las la-fighter-jet la-2x val-mid"></i><span class="val-mid">Airspaces</span></ion-toggle
+        >
       </ion-item>
       ${when(
         this.show,
@@ -349,9 +353,10 @@ export class SkywaysItems extends connect(store)(LitElement) {
   }
 
   render(): TemplateResult {
-    return html`<ion-item lines=${this.show ? 'none' : 'full'} button @click=${this.handleShow} .detail=${false}>
-        <i class="las la-road la-2x"></i>Skyways
-        <ion-toggle slot="end" .checked=${this.show} aria-label="Skyways"></ion-toggle>
+    return html`<ion-item lines=${this.show ? 'none' : 'full'} button .detail=${false}>
+        <ion-toggle .checked=${this.show} @ionChange=${this.handleShow}
+          ><i class="las la-road la-2x val-mid"></i><span class="val-mid">Skyways</span></ion-toggle
+        >
       </ion-item>
       ${when(
         this.show,
@@ -531,13 +536,11 @@ export class TrackItems extends connect(store)(LitElement) {
       </ion-item>
       ${when(
         hasTracks,
-        () => html` <ion-item lines="none" button @click=${this.handleDisplayNames} .detail=${false}>
-            <ion-label>Labels</ion-label>
-            <ion-toggle slot="end" .checked=${this.displayLabels} aria-label="Labels"></ion-toggle>
+        () => html` <ion-item lines="none" button .detail=${false}>
+            <ion-toggle .checked=${this.displayLabels} @ionChange=${this.handleDisplayNames}>Labels</ion-toggle>
           </ion-item>
-          <ion-item lines="full" button @click=${this.handleLock} .detail=${false}>
-            Lock on pilot
-            <ion-toggle slot="end" .checked=${this.lockOnPilot} aria-label="Lock on pilot"></ion-toggle>
+          <ion-item lines="full" button .detail=${false}>
+            <ion-toggle .checked=${this.lockOnPilot} @ionChange=${this.handleLock}>Lock on pilot</ion-toggle>
           </ion-item>`,
       )}`;
   }
@@ -617,9 +620,8 @@ export class LiveTrackItems extends connect(store)(LitElement) {
       <ion-item button detail lines="none" @click=${this.handleConfig}>
         <ion-label>Setup</ion-label>
       </ion-item>
-      <ion-item lines="none" button @click=${this.handleDisplayNames} .detail=${false}>
-        <ion-label>Labels</ion-label>
-        <ion-toggle slot="end" .checked=${this.displayLabels} aria-label="Labels"></ion-toggle>
+      <ion-item lines="none" button .detail=${false}>
+        <ion-toggle .checked=${this.displayLabels} @ionChange=${this.handleDisplayNames}>Labels</ion-toggle>
       </ion-item>
       <ion-item lines="full" button .detail=${false}>
         <ion-select
