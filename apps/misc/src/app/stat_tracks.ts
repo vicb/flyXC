@@ -16,6 +16,6 @@ for (const { url } of tracks) {
 }
 
 console.log(`- Count by host`);
-const hostCount = [...countByHost.entries()].filter(([h, c]) => c > 50);
-hostCount.sort(([h1, c1], [h2, c2]) => c2 - c1);
+const hostCount = [...countByHost.entries()].filter(([_h, c]) => c > 50);
+hostCount.sort(([_h1, c1], [_h2, c2]) => c2 - c1);
 console.log(hostCount);

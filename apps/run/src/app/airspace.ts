@@ -46,7 +46,7 @@ export function getIndicesByUrlAndPx(
     const lat = track.lat[i];
     const { tile, px } = pixelCoordinates({ lat, lon }, MAX_AIRSPACE_TILE_ZOOM, AIRSPACE_TILE_SIZE);
     pxInTiles.push(px);
-    const url = getAirspaceTileUrl(tile.x, tile.y, MAX_AIRSPACE_TILE_ZOOM, true);
+    const url = getAirspaceTileUrl(tile.x, tile.y, MAX_AIRSPACE_TILE_ZOOM, 'cloud');
     if (!indexesByTileUrl.has(url)) {
       indexesByTileUrl.set(url, []);
     }

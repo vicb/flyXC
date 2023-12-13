@@ -56,11 +56,10 @@ export async function resfreshUfoFleets(pipeline: ChainableCommander, state: pro
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function addUfoFleetLogs(
   pipeline: ChainableCommander,
   updates: UfoFleetUpdates,
-  state: protos.FetcherState,
+  _state: protos.FetcherState,
 ): void {
   const name = updates.fleetName;
   const time = updates.startFetchSec;

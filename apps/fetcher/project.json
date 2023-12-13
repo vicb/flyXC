@@ -14,7 +14,8 @@
         "main": "apps/fetcher/src/fetcher.ts",
         "tsConfig": "apps/fetcher/tsconfig.app.json",
         "generatePackageJson": true,
-        "babelUpwardRootMode": true
+        "babelUpwardRootMode": true,
+        "webpackConfig": "apps/fetcher/webpack.config.js"
       },
       "configurations": {
         "production": {
@@ -43,17 +44,13 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["apps/fetcher/**/*.ts"]
-      }
+      "outputs": ["{options.outputFile}"]
     },
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/fetcher/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "apps/fetcher/jest.config.ts"
       }
     },
     "container": {

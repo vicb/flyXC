@@ -1,9 +1,12 @@
+import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { format } from 'date-fns';
+import { existsSync } from 'fs';
+import { execSync } from 'node:child_process';
+import { join } from 'node:path';
 import minifyHTML from 'rollup-plugin-minify-html-literals';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 import { checker } from 'vite-plugin-checker';
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 
 const assetFileNames = (assetInfo: any) => {
   if (!assetInfo.name) {
@@ -20,6 +23,7 @@ const assetFileNames = (assetInfo: any) => {
 };
 
 export default defineConfig({
+  root: __dirname,
   server: {
     port: 8080,
     host: '0.0.0.0',
@@ -31,6 +35,10 @@ export default defineConfig({
   },
 
   build: {
+    outDir: '../../dist/apps/fxc-front',
+    reportCompressedSize: true,
+    commonjsOptions: { transformMixedEsModules: true },
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         assetFileNames,
@@ -58,9 +66,7 @@ export default defineConfig({
   ],
 
   worker: {
-    plugins: [
-      nxViteTsPaths(),
-    ],
+    plugins: () => [nxViteTsPaths()],
     rollupOptions: {
       output: {
         assetFileNames,
@@ -71,6 +77,11 @@ export default defineConfig({
   },
 
   test: {
+    reporters: ['default'],
+    coverage: {
+      reportsDirectory: '../../coverage/apps/fxc-front',
+      provider: 'v8',
+    },
     globals: true,
     cache: {
       dir: '../../node_modules/.vitest',
@@ -80,6 +91,21 @@ export default defineConfig({
   },
 
   define: {
-    __BUILD_TIMESTAMP__: format(new Date(), 'yyyyMMdd.HHmm'),
+    __BUILD_TIMESTAMP__: JSON.stringify(format(new Date(), 'yyyyMMdd.HHmm')),
+    __AIRSPACE_DATE__: JSON.stringify(getAirspaceDate()),
   },
 });
+
+// Get the airspace update date from the commit.
+function getAirspaceDate() {
+  const tileInfo = join(__dirname, '/..', '/airspaces/src/assets/airspaces/tiles-info.json');
+
+  if (existsSync(tileInfo)) {
+    try {
+      return String(execSync(`git log -1 --format="%cd" --date=format:"%Y-%m-%d" -- ${tileInfo}`)).trim();
+    } catch (e) {
+      return '-';
+    }
+  }
+  return '-';
+}

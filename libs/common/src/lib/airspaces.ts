@@ -336,11 +336,16 @@ export function isInFeature(point: Point, feature: Feature): boolean {
   return false;
 }
 
-export const ASP_TILE_URL_PROD = 'https://airspaces.storage.googleapis.com/tiles/{z}/{x}/{y}.pbf';
-export const ASP_TILE_URL_DEV = 'http://localhost:8084/{z}/{x}/{y}.pbf';
+export type AirspaceServer = 'local' | 'cloud';
 
-export function getAirspaceTileUrl(x: number, y: number, z: number, isProd: boolean): string {
-  const url = isProd ? ASP_TILE_URL_PROD : ASP_TILE_URL_DEV;
+export function getAirspaceTilesUrlTemplate(server: AirspaceServer): string {
+  return server == 'local'
+    ? 'http://localhost:8084/{z}/{x}/{y}.pbf'
+    : 'https://airspaces.storage.googleapis.com/tiles/{z}/{x}/{y}.pbf';
+}
+
+export function getAirspaceTileUrl(x: number, y: number, z: number, server: AirspaceServer): string {
+  const url = getAirspaceTilesUrlTemplate(server);
   return url.replace('{x}', String(x)).replace('{y}', String(y)).replace('{z}', String(z));
 }
 

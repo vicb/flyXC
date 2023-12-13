@@ -16,7 +16,6 @@ import {
   toTypedAirspace,
 } from '@flyxc/common';
 import { VectorTile } from 'mapbox-vector-tile';
-import { environment } from '../../environments/environment';
 
 const KEY_X_MULTIPLIER = 2 ** 25;
 const MAX_RENDER_TILE_SIZE = 4 * AIRSPACE_TILE_SIZE;
@@ -47,7 +46,9 @@ export async function getAirspaceList(
   const tileZoom = Math.min(zoom, MAX_AIRSPACE_TILE_ZOOM);
   const { tile: tileCoords, px } = pixelCoordinates(latLon, tileZoom, AIRSPACE_TILE_SIZE);
 
-  const response = await fetch(getAirspaceTileUrl(tileCoords.x, tileCoords.y, tileZoom, environment.production));
+  const response = await fetch(
+    getAirspaceTileUrl(tileCoords.x, tileCoords.y, tileZoom, import.meta.env.VITE_AIRSPACE_SERVER),
+  );
   if (!response.ok) {
     return '';
   }
@@ -260,7 +261,7 @@ function getTile(
     renderTo: new Map([[renderKey, canvas]]),
   });
 
-  fetch(getAirspaceTileUrl(fetchX, fetchY, tileZoom, environment.production), { signal: abort.signal })
+  fetch(getAirspaceTileUrl(fetchX, fetchY, tileZoom, import.meta.env.VITE_AIRSPACE_SERVER), { signal: abort.signal })
     .then((r) => (r.ok ? r.arrayBuffer() : null))
     .then((buffer) => {
       if (buffer == null) {

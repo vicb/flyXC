@@ -6,7 +6,7 @@
     "useDefineForClassFields": false,
     "module": "ES2020",
     "lib": ["ES2020", "DOM"],
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
     "strict": true,
     "resolveJsonModule": true,
     "isolatedModules": true,

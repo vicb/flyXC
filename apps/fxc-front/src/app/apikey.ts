@@ -1,5 +1,4 @@
 import { getHostName } from '@flyxc/common';
-import { environment } from '../environments/environment';
 import { keys } from './keys';
 
 // Returns the api key.
@@ -14,7 +13,7 @@ export function getApiKey(apiName: string, urlOrHostname = ''): string {
     }
   }
 
-  if (environment.production) {
+  if (import.meta.env.PROD) {
     // Load anything in dev.
     if (urlOrHostname != null) {
       // Consider the url from the track

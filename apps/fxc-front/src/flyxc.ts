@@ -1,5 +1,3 @@
-/// <reference types="@types/google.maps" />
-
 import './styles.css';
 // https://ionicframework.com/docs/intro/cdn
 import '@ionic/core/css/core.css';

@@ -14,7 +14,8 @@
         "main": "apps/proxy/src/main.ts",
         "tsConfig": "apps/proxy/tsconfig.app.json",
         "generatePackageJson": true,
-        "babelUpwardRootMode": true
+        "babelUpwardRootMode": true,
+        "webpackConfig": "apps/proxy/webpack.config.js"
       },
       "configurations": {
         "production": {
@@ -37,17 +38,13 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["apps/proxy/**/*.ts"]
-      }
+      "outputs": ["{options.outputFile}"]
     },
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/proxy/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "apps/proxy/jest.config.ts"
       }
     },
     "container": {

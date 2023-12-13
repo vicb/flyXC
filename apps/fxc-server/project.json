@@ -14,7 +14,6 @@
         "main": "apps/fxc-server/src/main.ts",
         "tsConfig": "apps/fxc-server/tsconfig.app.json",
         "babelUpwardRootMode": true,
-        "isolatedConfig": true,
         "webpackConfig": "apps/fxc-server/webpack.config.js"
       },
       "configurations": {
@@ -55,17 +54,13 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["apps/fxc-server/**/*.ts"]
-      }
+      "outputs": ["{options.outputFile}"]
     },
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/fxc-server/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "apps/fxc-server/jest.config.ts"
       }
     }
   },

@@ -11,14 +11,12 @@ import {
   ASP_COLOR_OTHER,
   ASP_COLOR_PROHIBITED,
   ASP_COLOR_RESTRICTED,
-  ASP_TILE_URL_DEV,
-  ASP_TILE_URL_PROD,
   Class,
+  getAirspaceTilesUrlTemplate,
   LatLon,
   MAX_AIRSPACE_TILE_ZOOM,
   Type,
 } from '@flyxc/common';
-import { environment } from '../../../environments/environment';
 import { getAirspaceList } from '../../logic/airspaces';
 import { RootState, store } from '../../redux/store';
 
@@ -122,7 +120,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         sources: {
           asp: {
             type: 'vector',
-            tiles: [environment.production ? ASP_TILE_URL_PROD : ASP_TILE_URL_DEV],
+            tiles: [getAirspaceTilesUrlTemplate(import.meta.env.VITE_AIRSPACE_SERVER)],
             minzoom: 0,
             maxzoom: MAX_AIRSPACE_TILE_ZOOM,
           },

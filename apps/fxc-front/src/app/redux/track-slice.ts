@@ -10,7 +10,7 @@ import {
 import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
 import { addUrlParamValue, deleteUrlParamValue, ParamNames } from '../logic/history';
 import * as msg from '../logic/messages';
-// @ts-ignore
+import type { Response } from '../workers/track';
 import TrackWorker from '../workers/track?worker';
 import { setTimeSec } from './app-slice';
 import { setEnabled, setRoute } from './planner-slice';
@@ -20,7 +20,6 @@ const FETCH_EVERY_SECONDS = 15;
 export const FETCH_FOR_MINUTES = 3;
 
 const trackAdapter = createEntityAdapter<RuntimeTrack>({
-  selectId: (track) => track.id,
   sortComparer: (a, b) => a.timeSec[0] - b.timeSec[0],
 });
 
@@ -34,7 +33,7 @@ export type TrackState = {
     // It is pending for FETCH_EVERY_SECONDS.
     fetchPending: boolean;
   };
-  tracks: EntityState<RuntimeTrack>;
+  tracks: EntityState<RuntimeTrack, string>;
   displayLabels: boolean;
   // Whether to move the map to see the pilot.
   lockOnPilot: boolean;
@@ -109,8 +108,8 @@ let trackWorker: Worker | undefined;
 
 function getTrackWorker(dispatch: AppDispatch): Worker {
   if (!trackWorker) {
-    trackWorker = new TrackWorker() as Worker;
-    trackWorker.onmessage = (msg: MessageEvent<TrackWorker.Response>) => {
+    trackWorker = new TrackWorker();
+    trackWorker.onmessage = (msg: MessageEvent<Response>) => {
       dispatch(trackSlice.actions.patchTrack(msg.data));
     };
   }

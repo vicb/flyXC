@@ -1,11 +1,4 @@
-import {
-  diffDecodeArray,
-  diffDecodeTrack,
-  diffEncodeAirspaces,
-  LiveTrackEntity,
-  protos,
-  trackerNames,
-} from '@flyxc/common';
+import { diffEncodeAirspaces, LiveTrackEntity, protos, trackerNames } from '@flyxc/common';
 import { getDatastore, retrieveTrackById, TrackEntity, updateUnzippedTracks } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import { RunQueryResponse } from '@google-cloud/datastore/build/src/query';
@@ -64,18 +57,18 @@ export async function migrateTrack(id: number): Promise<TrackEntity | undefined>
     return;
   }
 
-  const altGroup = protos.GroundAltitudeGroup.fromBinary(entity.ground_altitude_group);
-  const trackGroup = protos.TrackGroup.fromBinary(entity.track_group);
+  // const altGroup = protos.GroundAltitudeGroup.fromBinary(entity.ground_altitude_group);
+  // const trackGroup = protos.TrackGroup.fromBinary(entity.track_group);
 
   const airspaces: protos.Airspaces[] = [];
-  const numTracks = trackGroup.tracks.length;
+  // const numTracks = trackGroup.tracks.length;
 
-  for (let i = 0; i < numTracks; i++) {
-    const track = diffDecodeTrack(trackGroup.tracks[i]);
-    altGroup.groundAltitudes[i].altitudes = diffDecodeArray(altGroup.groundAltitudes[i].altitudes, 1);
-    //const asp = await fetchAirspaces(track, altGroup.groundAltitudes[i]);
-    //airspaces.push(asp);
-  }
+  // for (let i = 0; i < numTracks; i++) {
+  //   const track = diffDecodeTrack(trackGroup.tracks[i]);
+  //   altGroup.groundAltitudes[i].altitudes = diffDecodeArray(altGroup.groundAltitudes[i].altitudes, 1);
+  //   const asp = await fetchAirspaces(track, altGroup.groundAltitudes[i]);
+  //   airspaces.push(asp);
+  // }
 
   entity.airspaces_group = Buffer.from(
     protos.AirspacesGroup.toBinary({ airspaces: airspaces.map(diffEncodeAirspaces) }),

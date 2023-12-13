@@ -43,9 +43,7 @@ export abstract class WMTSOverlayElement extends LitElement {
     return false;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // @ts-ignore
-  protected init(map: google.maps.Map): void {
+  protected init(_map: google.maps.Map): void {
     this.createCopyrightElement();
     this.setBounds();
   }

@@ -9,7 +9,7 @@ import {
   PayloadAction,
 } from '@reduxjs/toolkit';
 
-// @ts-ignore
+import type { Response } from '../workers/live-track';
 import LiveTrackWorker from '../workers/live-track?worker';
 import { isMobile } from './browser-slice';
 import { RootState, store } from './store';
@@ -20,14 +20,14 @@ const REFRESH_INTERVAL_SEC = isMobile() ? 2 * 60 : 60;
 // Must be kept in sync with device-form.ts.
 const RETURN_URL_KEY = 'url.tracking.return';
 
-const trackAdapter = createEntityAdapter<protos.LiveTrack>({
+const trackAdapter = createEntityAdapter<protos.LiveTrack, string>({
   selectId: (track) => String(track.id ?? track.idStr),
 });
 
 export const liveTrackSelectors = trackAdapter.getSelectors((state: RootState) => state.liveTrack.tracks);
 
 export type TrackState = {
-  tracks: EntityState<protos.LiveTrack>;
+  tracks: EntityState<protos.LiveTrack, string>;
   // Fetch timestamp of the current data.
   fetchMillis: number;
   geojson: any;
@@ -94,7 +94,7 @@ const trackSlice = createSlice({
 });
 
 const trackWorker = new LiveTrackWorker();
-trackWorker.onmessage = (msg: MessageEvent<LiveTrackWorker.Response>) => {
+trackWorker.onmessage = (msg: MessageEvent<Response>) => {
   store.dispatch(trackSlice.actions.setTracks(msg.data.tracks));
   store.dispatch(trackSlice.actions.setGeojson(msg.data.geojson));
 };

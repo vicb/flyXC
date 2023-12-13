@@ -57,7 +57,8 @@
             "output": "assets"
           }
         ],
-        "babelUpwardRootMode": true
+        "babelUpwardRootMode": true,
+        "webpackConfig": "apps/airspaces/webpack.config.js"
       },
       "configurations": {
         "production": {
@@ -69,17 +70,13 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["apps/airspaces/**/*.ts"]
-      }
+      "outputs": ["{options.outputFile}"]
     },
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/airspaces/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "apps/airspaces/jest.config.ts"
       }
     },
     "container": {

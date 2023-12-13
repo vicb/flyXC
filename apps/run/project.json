@@ -14,7 +14,8 @@
         "main": "apps/run/src/main.ts",
         "tsConfig": "apps/run/tsconfig.app.json",
         "generatePackageJson": true,
-        "babelUpwardRootMode": true
+        "babelUpwardRootMode": true,
+        "webpackConfig": "apps/run/webpack.config.js"
       },
       "configurations": {
         "production": {
@@ -43,25 +44,20 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["apps/run/**/*.ts"]
-      }
+      "outputs": ["{options.outputFile}"]
     },
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/run/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "apps/run/jest.config.ts"
       }
     },
     "benchmark": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/run/jest-bench.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "apps/run/jest-bench.config.ts"
       }
     },
     "container": {
