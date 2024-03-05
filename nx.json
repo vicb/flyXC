@@ -51,5 +51,5 @@
       "linter": "eslint",
       "unitTestRunner": "vitest"
     }
-  }  
+  }
 }

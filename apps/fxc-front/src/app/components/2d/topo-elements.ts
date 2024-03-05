@@ -1,6 +1,5 @@
 import { customElement } from 'lit/decorators.js';
 
-import { getApiKey } from '../../apikey';
 import { WMTSMapTypeElement } from './wmts-overlay';
 
 @customElement('topo-eu')
@@ -30,6 +29,9 @@ export class TopoSpain extends WMTSMapTypeElement {
   bounds = [[44.0314, -21.3797, 27.141, 5.0789]];
 }
 
+const IGNFR_PLAN = 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2';
+const IGNFR_SCAN = 'GEOGRAPHICALGRIDSYSTEMS.MAPS';
+
 @customElement('topo-france')
 export class TopoFrance extends WMTSMapTypeElement {
   static mapTypeId = 'topo.france.classique';
@@ -40,10 +42,11 @@ export class TopoFrance extends WMTSMapTypeElement {
     url: 'http://www.ign.fr/',
   };
   get url(): string {
-    return 'https://wxs.ign.fr/{API_KEY}/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER={layer}&STYLE=normal&FORMAT={FORMAT}&TILEMATRIXSET=PM&TILEMATRIX={zoom}&TILEROW={y}&TILECOL={x}'
-      .replace('{layer}', this.layerName)
-      .replace('{API_KEY}', this.layerName == 'GEOGRAPHICALGRIDSYSTEMS.MAPS' ? getApiKey('ignfr') : 'essentiels')
-      .replace('{FORMAT}', this.layerName == 'GEOGRAPHICALGRIDSYSTEMS.MAPS' ? 'image/jpeg' : 'image/png');
+    // https://geoservices.ign.fr/actualites/2023-11-20-acces-donnesnonlibres-gpf
+    if (this.layerName == IGNFR_PLAN) {
+      return `https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&LAYER=${this.layerName}&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={zoom}&TILEROW={y}&TILECOL={x}`;
+    }
+    return `https://data.geopf.fr/private/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&apikey=ign_scan_ws&LAYER=${this.layerName}&STYLE=normal&FORMAT=image/jpeg&TILEMATRIXSET=PM&TILEMATRIX={zoom}&TILEROW={y}&TILECOL={x}`;
   }
   zoom = [6, 17];
   bounds = [
@@ -66,7 +69,7 @@ export class TopoFrance extends WMTSMapTypeElement {
     [-14.6, -178.5, -12.8, -175.8], // WLF
   ];
 
-  layerName = 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2';
+  layerName = IGNFR_PLAN;
 
   protected getScanMapType(): google.maps.ImageMapType {
     return new google.maps.ImageMapType({
@@ -87,10 +90,10 @@ export class TopoFrance extends WMTSMapTypeElement {
   protected visibilityHandler(mapTypeId: string): void {
     if (this.copyrightEl) {
       if (mapTypeId === TopoFrance.mapTypeId) {
-        this.layerName = 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2';
+        this.layerName = IGNFR_PLAN;
         this.copyrightEl.hidden = false;
       } else if (mapTypeId === TopoFrance.mapTypeIdScan) {
-        this.layerName = 'GEOGRAPHICALGRIDSYSTEMS.MAPS';
+        this.layerName = IGNFR_SCAN;
         this.copyrightEl.hidden = false;
       } else {
         this.copyrightEl.hidden = true;

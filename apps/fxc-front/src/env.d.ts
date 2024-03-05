@@ -11,6 +11,6 @@ interface ImportMeta {
 }
 
 declare global {
-  var __BUILD_TIMESTAMP__: string;
-  var __AIRSPACE_DATE__: string;
+  const __BUILD_TIMESTAMP__: string;
+  const __AIRSPACE_DATE__: string;
 }
