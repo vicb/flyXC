@@ -156,12 +156,12 @@ export class InreachFetcher extends TrackerFetcher {
       return Math.floor(30 + Math.random() * 3) * 60;
     }
     if (lastFixAgeSec > 3 * 3600) {
-      return Math.floor(15 + Math.random() * 3) * 60;
+      return Math.floor(20 + Math.random() * 3) * 60;
     }
     if (lastFixAgeSec > 30 * 60) {
       return Math.floor(8 + Math.random() * 3) * 60;
     }
-    return 2 * 60;
+    return 4 * 60;
   }
 }
 
