@@ -22,9 +22,10 @@ export const isMultiDay = createSelector(tracks, (tracks): boolean => {
   if (tracks.length == 0) {
     return false;
   }
-  const minTime = Math.min(...tracks.map((t) => t.minTimeSec));
-  const maxTime = Math.max(...tracks.map((t) => t.maxTimeSec));
-  return maxTime - minTime > 12 * 3600;
+  const startTimesSec = tracks.map((t) => t.minTimeSec);
+  const minTimeSec = Math.min(...startTimesSec);
+  const maxTimeSec = Math.max(...startTimesSec);
+  return maxTimeSec - minTimeSec > 12 * 3600;
 });
 
 // Offset to subtract to each track timestamp to have them started at the same time as the current one.
