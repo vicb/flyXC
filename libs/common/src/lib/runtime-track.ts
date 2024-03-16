@@ -1,7 +1,7 @@
 import { getDistance } from 'geolib';
 
 import * as protos from '../protos/track';
-import { diffDecodeArray, diffEncodeArray } from './math';
+import { diffDecodeArray, diffEncodeArray32bit } from './math';
 
 export type Point = {
   x: number;
@@ -185,17 +185,17 @@ export function diffEncodeAirspaces(asp: protos.Airspaces): protos.Airspaces {
   // Use signed values as the end times are not ordered.
   return {
     ...asp,
-    startSec: diffEncodeArray(asp.startSec),
-    endSec: diffEncodeArray(asp.endSec),
+    startSec: diffEncodeArray32bit(asp.startSec),
+    endSec: diffEncodeArray32bit(asp.endSec),
   };
 }
 
 // Differential encoding of a track.
 export function diffEncodeTrack(track: protos.Track): protos.Track {
-  const lon = diffEncodeArray(track.lon, 1e5);
-  const lat = diffEncodeArray(track.lat, 1e5);
-  const timeSec = diffEncodeArray(track.timeSec, 1, false);
-  const alt = diffEncodeArray(track.alt);
+  const lon = diffEncodeArray32bit(track.lon, 1e5);
+  const lat = diffEncodeArray32bit(track.lat, 1e5);
+  const timeSec = diffEncodeArray32bit(track.timeSec, 1, false);
+  const alt = diffEncodeArray32bit(track.alt);
 
   return { ...track, lat, lon, alt, timeSec };
 }

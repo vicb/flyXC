@@ -110,13 +110,18 @@ export function round(value: number, numDigits: number): number {
 //
 // `signed == false` makes sure the value can not be less than 0.
 // It is used to sanitize some values (i.e. time should always be increasing).
-export function diffEncodeArray(data: number[], multiplier = 1, signed = true): number[] {
+export function diffEncodeArray32bit(data: number[], multiplier = 1, signed = true): number[] {
   let previousValue: number;
   return data.map((v: number, i: number) => {
     v = Math.round(v * multiplier);
     const res = Math.round(i == 0 ? v : v - previousValue);
     previousValue = v;
-    return signed ? res : Math.max(0, res);
+    if (signed) {
+      const cappedInt32Res = Math.max(-2147483648, Math.min(2147483647, res));
+      return cappedInt32Res;
+    }
+    const cappedUIn32Res = Math.max(0, Math.min(4294967295, res));
+    return cappedUIn32Res;
   });
 }
 

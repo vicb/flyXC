@@ -1,5 +1,5 @@
 import { LiveDifferentialTrack, LiveExtra, LiveTrack } from '../protos/live-track';
-import { diffDecodeArray, diffEncodeArray, findIndexes } from './math';
+import { diffDecodeArray, diffEncodeArray32bit, findIndexes } from './math';
 import { deepCopy } from './util';
 
 // Number of bits reserved for device names.
@@ -390,10 +390,10 @@ export function differentialEncodeLiveTrack(
   id: number | string,
   name?: string,
 ): LiveDifferentialTrack {
-  const lon = diffEncodeArray(track.lon, 1e5);
-  const lat = diffEncodeArray(track.lat, 1e5);
-  const timeSec = diffEncodeArray(track.timeSec, 1, false);
-  const alt = diffEncodeArray(track.alt);
+  const lon = diffEncodeArray32bit(track.lon, 1e5);
+  const lat = diffEncodeArray32bit(track.lat, 1e5);
+  const timeSec = diffEncodeArray32bit(track.timeSec, 1, false);
+  const alt = diffEncodeArray32bit(track.alt);
 
   const diffTrack = { ...track, lat, lon, timeSec, alt, name: track.name ?? name ?? '' };
   if (typeof id === 'string') {
