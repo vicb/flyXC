@@ -118,3 +118,25 @@ ion-select.small-text::part(text) {
   vertical-align: middle;
 }
 
+.fxc-marker {
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  position: relative;
+  font-size: 14px;
+  text-shadow: 0 0 5px #fff, 2px 0 5px #fff, -2px 0 5px #fff, 0 0 5px #fff,
+    2px 0 5px #fff, -2px 0 5px #fff;  
+    font-weight: 500;
+}
+
+.fxc-marker svg {
+  display: block;
+  position: absolute;
+  overflow: visible;
+}
+
+.max-content {
+  margin: 0;
+  padding: 0;
+  width: max-content;
+}

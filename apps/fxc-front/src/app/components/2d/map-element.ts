@@ -49,7 +49,7 @@ function loadGMaps(): Promise<void> {
       new Loader({
         apiKey: getApiKey('gmaps', store.getState().track.domain),
         version: 'weekly',
-        libraries: ['geometry'],
+        libraries: ['geometry', 'marker'],
       })
         .load()
         .then(resolve);
@@ -234,8 +234,7 @@ export class MapElement extends connect(store)(LitElement) {
   }
 
   protected render(): TemplateResult {
-    return html`
-      <style>
+    return html` <style>
         #drw-container {
           width: 100%;
           height: 100%;
@@ -244,17 +243,17 @@ export class MapElement extends connect(store)(LitElement) {
           left: 0px;
           z-index: 1;
         }
-        path {
+        #drw-container path {
           stroke-width: 1px;
           stroke: black;
           fill: none;
         }
-        svg {
+        #drw-container svg {
           width: 100%;
           height: 100%;
           touch-action: none;
         }
-        rect {
+        #drw-container rect {
           width: 100%;
           height: 100%;
           opacity: 0.1;
@@ -263,7 +262,7 @@ export class MapElement extends connect(store)(LitElement) {
         }
       </style>
       <div id="drw-container" style=${`display:${this.isFreeDrawing ? 'block' : 'none'}`}>
-        <svg width="100%" height="100%">
+        <svg>
           ${when(this.pathPoints.length > 1, () => svg`<path d=${this.freeDrawPath}></path>`)}
           <rect
             @pointerdown=${this.svgPointerDown}
@@ -275,21 +274,23 @@ export class MapElement extends connect(store)(LitElement) {
         </svg>
       </div>
       <div id="map"></div>
-      <topo-eu .map=${this.map}></topo-eu>
-      <topo-spain .map=${this.map}></topo-spain>
-      <topo-france .map=${this.map}></topo-france>
-      <topo-otm .map=${this.map}></topo-otm>
-      <segments-element .map=${this.map} .query=${document.location.search}></segments-element>
-      ${repeat(
-        this.tracks,
-        (track) => track.id,
-        (track) =>
-          html`
-            <marker-element .map=${this.map} .track=${track} .timeSec=${this.timeSec}></marker-element>
-            <line-element .map=${this.map} .track=${track}></line-element>
-          `,
-      )}
-    `;
+      ${when(
+        this.map,
+        () => html` <topo-eu .map=${this.map}></topo-eu>
+          <topo-spain .map=${this.map}></topo-spain>
+          <topo-france .map=${this.map}></topo-france>
+          <topo-otm .map=${this.map}></topo-otm>
+          <segments-element .map=${this.map} .query=${document.location.search}></segments-element>
+          ${repeat(
+            this.tracks,
+            (track) => track.id,
+            (track) =>
+              html`
+                <marker-element .map=${this.map} .track=${track} .timeSec=${this.timeSec}></marker-element>
+                <line-element .map=${this.map} .track=${track}></line-element>
+              `,
+          )}`,
+      )}`;
   }
 
   private svgPointerDown(e: PointerEvent) {
