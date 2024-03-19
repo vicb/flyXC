@@ -1,7 +1,7 @@
 import {
   diffDecodeTrack,
   diffEncodeAirspaces,
-  diffEncodeArray,
+  diffEncodeArray32bit,
   fetchResponse,
   protos,
   SecretKeys,
@@ -37,7 +37,7 @@ export async function postProcessTrack(datastore: Datastore, trackId: number | s
       trackEntity.ground_altitude_group = Buffer.from(
         protos.GroundAltitudeGroup.toBinary({
           groundAltitudes: groundAltitudes.map(({ altitudes, hasErrors }) => ({
-            altitudes: diffEncodeArray(altitudes),
+            altitudes: diffEncodeArray32bit(altitudes),
             hasErrors,
           })),
         }),
