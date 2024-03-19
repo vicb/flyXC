@@ -18,6 +18,7 @@ import VirtualLighting from '@arcgis/core/views/3d/environment/VirtualLighting';
 import SceneView from '@arcgis/core/views/SceneView';
 import NavigationToggle from '@arcgis/core/widgets/NavigationToggle';
 import Popup from '@arcgis/core/widgets/Popup';
+import IntegratedMesh3DTilesLayer from '@arcgis/core/layers/IntegratedMesh3DTilesLayer.js';
 import { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
 import { LitElement, PropertyValues, TemplateResult, html } from 'lit';
@@ -35,6 +36,7 @@ import { RootState, store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
 import { Airspace3dElement } from './airspace3d-element';
 import { Skyways3dElement } from './skyways3d-element';
+import { getApiKey } from '../../apikey';
 
 @customElement('map3d-element')
 export class Map3dElement extends connect(store)(LitElement) {
@@ -61,6 +63,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   private airspace?: Airspace3dElement;
   private basemaps: Record<string, string | Basemap | null> = {
     Satellite: 'satellite',
+    Google: null,
     OpenTopoMap: null,
     Topo: 'topo-vector',
   };
@@ -312,6 +315,18 @@ export class Map3dElement extends connect(store)(LitElement) {
       ],
       title: 'otm',
       id: 'otm',
+    });
+
+    this.basemaps.Google = new Basemap({
+      baseLayers: [
+        new IntegratedMesh3DTilesLayer({
+          url: 'https://tile.googleapis.com/v1/3dtiles/root.json',
+          title: 'Google tiles',
+          customParameters: { key: getApiKey('gmaps') },
+        }),
+      ],
+      title: 'google',
+      id: 'google',
     });
   }
 
