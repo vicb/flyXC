@@ -13,7 +13,7 @@ import { RootState, store } from '../../redux/store';
 import { getUniqueContrastColor } from '../../styles/track';
 
 // Maximum number of pilots to list.
-const MAX_PILOTS = 100;
+const MAX_PILOTS = 200;
 
 // How long tracks are considered recent.
 const RECENT_PILOTS_HOUR = 3;
@@ -37,6 +37,8 @@ export class LiveModal extends connect(store)(LitElement) {
   private location!: common.LatLon;
   @state()
   private currentLiveId?: string;
+  @state()
+  private filter = '';
 
   private watchLocationId = 0;
 
@@ -83,6 +85,9 @@ export class LiveModal extends connect(store)(LitElement) {
             ></ion-fab-button>
           </ion-buttons>
         </ion-toolbar>
+        <ion-toolbar color="light">
+          <ion-searchbar placeholder="Filter" debounce="300" @ionInput=${this.filterPilots}></ion-searchbar>
+        </ion-toolbar>
       </ion-header>
       <ion-content>
         <ion-list>${this.getPilotItems()}</ion-list>
@@ -105,6 +110,10 @@ export class LiveModal extends connect(store)(LitElement) {
     const watch = !this.centerOnLocation;
     await this.watchLocation(watch);
     store.dispatch(setCenterOnLocation(watch));
+  }
+
+  private filterPilots(e: CustomEvent): void {
+    this.filter = e.detail.value;
   }
 
   private async watchLocation(watch: boolean): Promise<void> {
@@ -155,6 +164,13 @@ export class LiveModal extends connect(store)(LitElement) {
     const nowSec = Date.now() / 1000;
     let pilots = [...this.pilots];
     const distances = new Map<string, number>();
+
+    if (this.filter.length > 0) {
+      const escapedFilter = this.filter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      pilots = pilots.filter((pilot) => {
+        return pilot.isEmergency || pilot.name.match(new RegExp(escapedFilter, 'i'));
+      });
+    }
 
     pilots.forEach((pilot) => {
       const distance = Math.round(getDistance(this.location, pilot.position));

@@ -48,8 +48,9 @@ import { defineCustomElement as d44 } from '@ionic/core/components/ion-title';
 import { defineCustomElement as d45 } from '@ionic/core/components/ion-toast';
 import { defineCustomElement as d46 } from '@ionic/core/components/ion-toggle';
 import { defineCustomElement as d47 } from '@ionic/core/components/ion-toolbar';
+import { defineCustomElement as d48 } from '@ionic/core/components/ion-searchbar';
 
-import { defineCustomElement as d48 } from './ion-router';
+import { defineCustomElement as d49 } from './ion-router';
 
 export function ionicInit(): void {
   initialize();
@@ -101,4 +102,5 @@ export function ionicInit(): void {
   d46();
   d47();
   d48();
+  d49();
 }
