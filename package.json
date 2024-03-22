@@ -14,6 +14,8 @@
   },
   "private": true,
   "devDependencies": {
+    "@esri/arcgis-rest-geocoding": "^4.0.2",
+    "@esri/arcgis-rest-request": "^4.2.0",
     "@nx-tools/nx-container": "^5.2.0",
     "@nx/cypress": "18.1.2",
     "@nx/eslint": "18.1.2",

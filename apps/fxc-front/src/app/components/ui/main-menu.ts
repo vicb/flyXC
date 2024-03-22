@@ -32,6 +32,9 @@ import './about-modal';
 import './live-modal';
 import './pref-modal';
 import './track-modal';
+import { getApiKey } from '../../apikey';
+import { geocode } from '@esri/arcgis-rest-geocoding';
+import { setDefaultRequestOptions } from '@esri/arcgis-rest-request';
 
 @customElement('main-menu')
 export class MainMenu extends connect(store)(LitElement) {
@@ -88,7 +91,7 @@ export class MainMenu extends connect(store)(LitElement) {
             ${when(
               !this.view3d,
               () =>
-                html`<ion-item button lines="full" .detail=${false}>
+                html`<ion-item button lines="full" ?detail="false">
                   <ion-toggle .checked=${this.plannerEnabled} @ionChange=${this.handlePlanner}
                     ><i class="las la-drafting-compass la-2x val-mid"></i
                     ><span class="val-mid">XC planning</span></ion-toggle
@@ -116,7 +119,7 @@ export class MainMenu extends connect(store)(LitElement) {
                       <ion-label slot="end">2.6x</ion-label>
                     </ion-range>
                   </ion-item>
-                  <ion-item button lines="full" .detail=${false}>
+                  <ion-item button lines="full" ?detail="false">
                     <ion-toggle .checked=${this.sunEnabled} @ionChange=${this.handleSun}
                       ><i class="las la-sun la-2x val-mid"></i><span class="val-mid">Sun lighting</span></ion-toggle
                     >
@@ -127,19 +130,19 @@ export class MainMenu extends connect(store)(LitElement) {
               button
               @click=${() => requestCurrentPosition(true)}
               .disabled=${this.requestingLocation}
-              .detail=${false}
+              ?detail="false"
               lines="full"
             >
               <i class=${`las la-2x ${this.requestingLocation ? 'la-circle-notch spinner' : 'la-crosshairs'}`}></i
               >Center on my location
             </ion-item>
-            <ion-item button @click=${this.handleSounding} lines="full" .detail=${false}>
+            <ion-item button @click=${this.handleSounding} lines="full" ?detail="false">
               <i class="las la-chart-line la-2x" style="transform: rotate(90deg)"></i>Sounding
             </ion-item>
-            <ion-item button @click=${this.handlePreferences} lines="full" .detail=${true}>
+            <ion-item button @click=${this.handlePreferences} lines="full" ?detail="true">
               <i class="las la-cog la-2x"></i>Preferences
             </ion-item>
-            <ion-item button @click=${this.handleAbout} lines="full" .detail=${true}>
+            <ion-item button @click=${this.handleAbout} lines="full" ?detail="true">
               <i class="las la-info la-2x"></i>About</ion-item
             >
           </ion-list>
@@ -231,7 +234,7 @@ export class AirspaceItems extends connect(store)(LitElement) {
   }
 
   render(): TemplateResult {
-    return html`<ion-item lines=${this.show ? 'none' : 'full'} button .detail=${false}>
+    return html`<ion-item lines=${this.show ? 'none' : 'full'} button ?detail="false">
         <ion-toggle .checked=${this.show} @ionChange=${this.handleShow}
           ><i class="las la-fighter-jet la-2x val-mid"></i><span class="val-mid">Airspaces</span></ion-toggle
         >
@@ -353,14 +356,14 @@ export class SkywaysItems extends connect(store)(LitElement) {
   }
 
   render(): TemplateResult {
-    return html`<ion-item lines=${this.show ? 'none' : 'full'} button .detail=${false}>
+    return html`<ion-item lines=${this.show ? 'none' : 'full'} button ?detail="false">
         <ion-toggle .checked=${this.show} @ionChange=${this.handleShow}
           ><i class="las la-road la-2x val-mid"></i><span class="val-mid">Skyways</span></ion-toggle
         >
       </ion-item>
       ${when(
         this.show,
-        () => html`<ion-item lines="none" .detail=${false}>
+        () => html`<ion-item lines="none" ?detail="false">
             <ion-select label="Type" @ionChange=${this.handleLayer} .value=${this.layer} interface="popover">
               ${Object.entries(skyways.layerMap).map(
                 ([value, label]: [string, string]) =>
@@ -368,7 +371,7 @@ export class SkywaysItems extends connect(store)(LitElement) {
               )}
             </ion-select>
           </ion-item>
-          <ion-item lines="none" .detail=${false}>
+          <ion-item lines="none" ?detail="false">
             <ion-select label="Month" @ionChange=${this.handleMonth} .value=${this.month} interface="popover">
               ${Object.entries(skyways.monthMap).map(
                 ([value, label]: [string, string]) =>
@@ -376,7 +379,7 @@ export class SkywaysItems extends connect(store)(LitElement) {
               )}
             </ion-select>
           </ion-item>
-          <ion-item lines="none" .detail=${false}>
+          <ion-item lines="none" ?detail="false">
             <ion-select label="Time" @ionChange=${this.handleTimeOfDay} .value=${this.timeOfDay} interface="popover">
               ${skyways.timeOfDayList.map(
                 (value: skyways.TimeOfDay) =>
@@ -384,7 +387,7 @@ export class SkywaysItems extends connect(store)(LitElement) {
               )}
             </ion-select>
           </ion-item>
-          <ion-item @ionChange=${this.handleOpacity} .detail=${false} class="dense">
+          <ion-item @ionChange=${this.handleOpacity} ?detail="false" class="dense">
             <ion-range
               min="20"
               max="100"
@@ -443,10 +446,35 @@ export class ViewItems extends connect(store)(LitElement) {
   render(): TemplateResult {
     const href = `${this.view3d ? '/' : '/3d'}${location.search}`;
     const icon = this.view3d ? 'la-map' : 'la-globe';
-    return html`<ion-item button href=${href} @click=${this.handleSwitch} lines="full" .detail=${false}>
-      <i class=${`las la-2x ${icon}`}></i>
-      Switch to ${this.view3d ? '2d' : '3d'}
-    </ion-item>`;
+    return html`<ion-item button href=${href} @click=${this.handleSwitch} lines="none" ?detail="false">
+        <i class=${`las la-2x ${icon}`}></i>
+        Switch to ${this.view3d ? '2d' : '3d'}
+      </ion-item>
+      <ion-item>
+        <ion-searchbar
+          placeholder="Search for a place"
+          lines="full"
+          ?detail="false"
+          debounce="800"
+          @ionChange=${this.handleSearch}
+          @ionInput=${this.handleSearch}
+        >
+        </ion-searchbar>
+      </ion-item> `;
+  }
+
+  private async handleSearch(event: CustomEvent) {
+    setDefaultRequestOptions({ params: { token: getApiKey('arcgis') } });
+    const place = event.detail.value.trim();
+    if (place.length < 2) {
+      return;
+    }
+    const { candidates } = await geocode(place);
+    if (candidates.length === 0) {
+      return;
+    }
+    const { y: lat, x: lon } = candidates[0].location;
+    msg.centerZoomMap.emit({ lat, lon, alt: 0 }, 15);
   }
 
   private handleSwitch() {
@@ -470,7 +498,7 @@ export class FullScreenItems extends connect(store)(LitElement) {
 
   render(): TemplateResult {
     const icon = this.fullscreen ? 'la-compress' : 'la-expand';
-    return html`<ion-item button @click=${this.handleSwitch} lines="full" .detail=${false}>
+    return html`<ion-item button @click=${this.handleSwitch} lines="full" ?detail="false">
       <i class=${`las la-2x ${icon}`}></i>
       ${this.fullscreen ? 'Exit full screen' : 'Full screen'}
     </ion-item>`;
@@ -536,10 +564,10 @@ export class TrackItems extends connect(store)(LitElement) {
       </ion-item>
       ${when(
         hasTracks,
-        () => html` <ion-item lines="none" button .detail=${false}>
+        () => html` <ion-item lines="none" button ?detail="false">
             <ion-toggle .checked=${this.displayLabels} @ionChange=${this.handleDisplayNames}>Labels</ion-toggle>
           </ion-item>
-          <ion-item lines="full" button .detail=${false}>
+          <ion-item lines="full" button ?detail="false">
             <ion-toggle .checked=${this.lockOnPilot} @ionChange=${this.handleLock}>Lock on pilot</ion-toggle>
           </ion-item>`,
       )}`;
@@ -620,10 +648,10 @@ export class LiveTrackItems extends connect(store)(LitElement) {
       <ion-item button detail lines="none" @click=${this.handleConfig}>
         <ion-label>Setup</ion-label>
       </ion-item>
-      <ion-item lines="none" button .detail=${false}>
+      <ion-item lines="none" button ?detail="false">
         <ion-toggle .checked=${this.displayLabels} @ionChange=${this.handleDisplayNames}>Labels</ion-toggle>
       </ion-item>
-      <ion-item lines="full" button .detail=${false}>
+      <ion-item lines="full" button ?detail="false">
         <ion-select
           label="History"
           aria-label="History"
