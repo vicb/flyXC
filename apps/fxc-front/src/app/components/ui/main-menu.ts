@@ -137,13 +137,16 @@ export class MainMenu extends connect(store)(LitElement) {
               >Center on my location
             </ion-item>
             <ion-item button @click=${this.handleSounding} lines="full" ?detail="false">
-              <i class="las la-chart-line la-2x" style="transform: rotate(90deg)"></i>Sounding
-            </ion-item>
+              <i class="las la-chart-line la-2x" style="transform: rotate(90deg)"></i>Sounding</ion-item
+            >
             <ion-item button @click=${this.handlePreferences} lines="full" ?detail="true">
-              <i class="las la-cog la-2x"></i>Preferences
-            </ion-item>
-            <ion-item button @click=${this.handleAbout} lines="full" ?detail="true">
+              <i class="las la-cog la-2x"></i>Preferences</ion-item
+            >
+            <ion-item button @click=${this.handleAbout} lines="full" ?detail="false">
               <i class="las la-info la-2x"></i>About</ion-item
+            >
+            <ion-item button @click=${this.handleSupport} lines="full" ?detail="true">
+              <i class="las la-hand-holding-usd la-2x"></i>Support flyxc</ion-item
             >
           </ion-list>
         </ion-content>
@@ -161,6 +164,10 @@ export class MainMenu extends connect(store)(LitElement) {
   private handleSounding() {
     const { lat, lon } = store.getState().location.location;
     window.open(`https://www.windy.com/plugins/windy-plugin-sounding?lat=${lat}&lon=${lon}`, '_blank');
+  }
+
+  private handleSupport() {
+    window.open(`https://www.buymeacoffee.com/vic.b`, '_blank');
   }
 
   private async handlePlanner() {
