@@ -29,6 +29,7 @@ message FetcherState {
   int64 next_full_sync_sec = 10;
   int64 next_export_sec = 11;
   int64 next_archive_export_sec = 12;
+  int64 next_supporter_sync_sec = 20;
 
   int64 mem_rss_mb = 13;
   int64 mem_heap_mb = 14;

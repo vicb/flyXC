@@ -26,13 +26,13 @@ export function pushListCap(
   list: Array<string | number>,
   capacity: number,
   maxLength = 400,
-): void {
+): ChainableCommander {
   const len = list.length;
   if (len == 0 || capacity == 0) {
     return;
   }
   const elements = list.slice(len - capacity, len);
-  pipeline
+  return pipeline
     .lpush(key, ...elements.map((v) => v.toString().substring(0, maxLength)))
     .ltrim(key, 0, Math.max(0, capacity - 1));
 }

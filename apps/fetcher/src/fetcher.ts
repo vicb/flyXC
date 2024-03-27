@@ -8,7 +8,7 @@ import {
   removeBeforeFromLiveTrack,
   removeDeviceFromLiveTrack,
 } from '@flyxc/common';
-import { getDatastore, getRedisClient } from '@flyxc/common-node';
+import { getDatastore, getRedisClient, pushListCap } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import { program } from 'commander';
 import { ChainableCommander } from 'ioredis';
@@ -25,10 +25,12 @@ import {
   PERIODIC_STATE_PATH,
   restoreState,
   SHUTDOWN_STATE_PATH,
+  SUPPORTER_SYNC_SEC,
 } from './app/state/state';
 import { syncFromDatastore } from './app/state/sync';
 import { disconnectOgnClient, resfreshTrackers } from './app/trackers/refresh';
 import { resfreshUfoFleets } from './app/ufos/refresh';
+import { fetchSupporters } from './app/misc/buy-coffee';
 
 const redis = getRedisClient();
 
@@ -122,6 +124,18 @@ async function tick(state: protos.FetcherState, datastore: Datastore) {
         const success = await exportToStorage(state, BUCKET_NAME, PERIODIC_STATE_PATH);
         state.nextExportSec = state.lastTickSec + EXPORT_FILE_SEC;
         addExportLogs(pipeline, success, state.lastTickSec);
+      }
+
+      // Sync supporters.
+      if (state.lastTickSec > state.nextSupporterSyncSec) {
+        const supporters = await fetchSupporters();
+        pipeline
+          .del(Keys.supporterNames)
+          .set(Keys.supporterNum, supporters.numSupporters)
+          .set(Keys.supporterAmount, supporters.totalAmount);
+        pushListCap(pipeline, Keys.supporterNames, Array.from(supporters.names), 50, 50);
+
+        state.nextSupporterSyncSec = state.lastTickSec + SUPPORTER_SYNC_SEC;
       }
 
       await pipeline.exec();

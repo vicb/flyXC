@@ -17,4 +17,5 @@ export enum SecretKeys {
   ZOLEO_PUSH_USER = `...`,
   ZOLEO_PUSH_PWD = `...`,
   XCONTEXT_JWT = `...`,
+  BUY_ME_A_COFFE_TOKEN = `...`,
 }

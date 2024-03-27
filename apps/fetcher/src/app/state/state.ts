@@ -18,6 +18,7 @@ export const EXPORT_FILE_SEC = 4 * 3600;
 export const EXPORT_ARCHIVE_SEC = 24 * 3600;
 export const FULL_SYNC_SEC = 24 * 3600;
 export const PARTIAL_SYNC_SEC = 10 * 60;
+export const SUPPORTER_SYNC_SEC = 2 * 3600;
 
 // Create the initial empty state.
 export function createInitState(): protos.FetcherState {
@@ -41,6 +42,7 @@ export function createInitState(): protos.FetcherState {
     nextFullSyncSec: nowSec + FULL_SYNC_SEC,
     nextExportSec: nowSec + EXPORT_FILE_SEC,
     nextArchiveExportSec: nowSec + EXPORT_ARCHIVE_SEC,
+    nextSupporterSyncSec: nowSec + SUPPORTER_SYNC_SEC,
 
     memRssMb: 0,
     memHeapMb: 0,

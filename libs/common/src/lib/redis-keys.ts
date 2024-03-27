@@ -103,6 +103,11 @@ export enum Keys {
   elevationNumRetrieved = 'f:elev:retrieved',
 
   // [List]
+  supporterNames = 'f:supporters',
+  supporterNum = 'f:supporters:num',
+  supporterAmount = 'f:supporters:amount',
+
+  // [List]
   proxyInreach = 'p:inreach:logs',
 
   // Number of tracks.

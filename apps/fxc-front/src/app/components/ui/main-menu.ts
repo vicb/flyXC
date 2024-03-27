@@ -32,6 +32,7 @@ import './about-modal';
 import './live-modal';
 import './pref-modal';
 import './track-modal';
+import './supporter-modal';
 import { getApiKey } from '../../apikey';
 import { geocode } from '@esri/arcgis-rest-geocoding';
 import { setDefaultRequestOptions } from '@esri/arcgis-rest-request';
@@ -166,8 +167,11 @@ export class MainMenu extends connect(store)(LitElement) {
     window.open(`https://www.windy.com/plugins/windy-plugin-sounding?lat=${lat}&lon=${lon}`, '_blank');
   }
 
-  private handleSupport() {
-    window.open(`https://www.buymeacoffee.com/vic.b`, '_blank');
+  private async handleSupport() {
+    const modal = await modalController.create({
+      component: 'supporter-modal',
+    });
+    await modal.present();
   }
 
   private async handlePlanner() {
