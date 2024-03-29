@@ -1,5 +1,5 @@
 import { Class, Type, getClassName, getTypeName } from '@flyxc/common';
-import { ToggleCustomEvent, menuController, modalController } from '@ionic/core/components';
+import { ToggleCustomEvent, menuController, modalController, toastController } from '@ionic/core/components';
 import { LitElement, TemplateResult, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
@@ -475,17 +475,39 @@ export class ViewItems extends connect(store)(LitElement) {
   }
 
   private async handleSearch(event: CustomEvent) {
-    setDefaultRequestOptions({ params: { token: getApiKey('arcgis') } });
+    const { lat, lon } = store.getState().location.location;
     const place = event.detail.value.trim();
     if (place.length < 2) {
       return;
     }
-    const { candidates } = await geocode(place);
+    const { candidates } = await geocode({
+      singleLine: place,
+      params: {
+        token: getApiKey('arcgis'),
+        location: `${lon},${lat}`,
+        maxLocations: 1,
+      },
+    });
+    setDefaultRequestOptions({ params: {} });
     if (candidates.length === 0) {
       return;
     }
-    const { y: lat, x: lon } = candidates[0].location;
-    msg.centerZoomMap.emit({ lat, lon, alt: 0 }, 15);
+    const { address, score } = candidates[0];
+    const { y, x } = candidates[0].location;
+    if (score > 50) {
+      const toast = await toastController.create({
+        message: `Navigated to ${address}`,
+        duration: 3000,
+        buttons: [
+          {
+            text: 'Close',
+            role: 'cancel',
+          },
+        ],
+      });
+      msg.centerMap.emit({ lat: y, lon: x, alt: 0 });
+      await toast.present();
+    }
   }
 
   private handleSwitch() {

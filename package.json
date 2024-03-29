@@ -1,6 +1,6 @@
 {
   "name": "flyxc",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "license": "MIT",
   "scripts": {
     "deploy": "nx build fxc-front --prod --skip-nx-cache && nx build fxc-server --prod --skip-nx-cache && gcloud app deploy dist/apps/fxc-server/app.yaml",
