@@ -72,8 +72,7 @@ export class AdvancedMarkerElement extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     google.maps.event.clearInstanceListeners(this.marker_);
-    // setTimeout is needed otherwise the marker isn't removed.
-    setTimeout(() => (this.marker_.map = null), 0);
+    this.marker_.map = null;
   }
 
   render() {

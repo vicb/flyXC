@@ -8,6 +8,7 @@ import { RootState, store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
 
 import './adv-marker-element';
+import { round } from '@flyxc/common';
 
 const INACTIVE_OPACITY = 0.5;
 
@@ -81,10 +82,9 @@ export class MarkerElement extends connect(store)(LitElement) {
     const { lat, lon, alt } = sel.getTrackLatLonAlt(store.getState())(timeSec, this.track) as common.LatLonAlt;
     const altAboveMin = (alt ?? 0) - this.track.minAlt;
     const altDelta = this.track.maxAlt - this.track.minAlt;
-    const scale = (50 * altAboveMin) / altDelta + 20;
-    // todo
-    this.path.setAttribute('transform', `scale(${scale / 512})`);
-    this.path.setAttribute('stroke-width', `${2 / (scale / 512)}`);
+    const scale = 20 + (50 * altAboveMin) / Math.max(altDelta, 1);
+    this.path.setAttribute('transform', `scale(${round(scale / 512, 4)})`);
+    this.path.setAttribute('stroke-width', `${round(2 / (scale / 512), 4)}`);
 
     let label = '';
     if (this.displayLabels) {
