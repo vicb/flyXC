@@ -28,10 +28,10 @@ export function pushListCap(
   maxLength = 400,
 ): ChainableCommander {
   const len = list.length;
-  if (len == 0 || capacity == 0) {
+  if (len == 0 || capacity <= 0) {
     return;
   }
-  const elements = list.slice(len - capacity, len);
+  const elements = list.slice(-capacity);
   return pipeline
     .lpush(key, ...elements.map((v) => v.toString().substring(0, maxLength)))
     .ltrim(key, 0, Math.max(0, capacity - 1));

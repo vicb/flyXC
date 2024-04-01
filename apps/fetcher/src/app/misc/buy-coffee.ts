@@ -31,7 +31,7 @@ export async function fetchSupporters(): Promise<Supporters> {
         const data = await response.json();
         const users = data.data;
         for (const user of users) {
-          if (user.amount <= 0) {
+          if (user.amount <= 0 || user.is_refunded) {
             continue;
           }
           if (user.support_visibility === 1 && user.payer_name) {
