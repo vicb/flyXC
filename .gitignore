@@ -42,3 +42,4 @@ migrations.json
 Thumbs.db
 
 .nx/cache
+apps/run/benchmarks
