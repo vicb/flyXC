@@ -1,3 +1,11 @@
+## 2.2.0 - April 14, 2024
+
+### fxc-front
+
+- Make live track labels more visible
+- Add version number to the about dialog
+- Update the sounding URL for windy v42
+
 ## 2.1.1 - April 4, 2024
 
 - Update dependencies

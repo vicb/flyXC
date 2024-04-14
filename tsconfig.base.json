@@ -14,6 +14,7 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
+    "resolveJsonModule": true,
     "paths": {
       "@flyxc/common": ["libs/common/src/index.ts"],
       "@flyxc/common-node": ["libs/common-node/src/index.ts"],
