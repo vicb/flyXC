@@ -2,19 +2,6 @@ import { customElement } from 'lit/decorators.js';
 
 import { WMTSMapTypeElement } from './wmts-overlay';
 
-@customElement('topo-eu')
-export class TopoEu extends WMTSMapTypeElement {
-  static mapTypeId = 'topo.eu';
-  mapName = 'Europe';
-  copyright = {
-    html: `<img src="/static/img/topo.eu.png" />`,
-    url: 'http://www.4umaps.eu/',
-  };
-  url = 'https://tileserver.4umaps.com/{zoom}/{x}/{y}.png';
-  zoom = [6, 15];
-  bounds = [[27.06, -33.74, 61.6, 36.58]];
-}
-
 @customElement('topo-spain')
 export class TopoSpain extends WMTSMapTypeElement {
   static mapTypeId = 'topo.spain';

@@ -43,7 +43,8 @@ chart-element.has-tracks {
 }
 
 .gm-label-outline {
-  text-shadow: white -1px 0, white 0 1px, white 1px 0, white 0 -1px;
+  font-size: 14px;
+  text-shadow: 0 0 5px #fff, 2px 0 5px #fff, -2px 0 5px #fff, 0 0 5px #fff, 2px 0 5px #fff, -2px 0 5px #fff;
   filter: drop-shadow(0 0 1px lightgray);
   white-space: pre;
 }
@@ -124,9 +125,8 @@ ion-select.small-text::part(text) {
   overflow: visible;
   position: relative;
   font-size: 14px;
-  text-shadow: 0 0 5px #fff, 2px 0 5px #fff, -2px 0 5px #fff, 0 0 5px #fff,
-    2px 0 5px #fff, -2px 0 5px #fff;  
-    font-weight: 500;
+  text-shadow: 0 0 5px #fff, 2px 0 5px #fff, -2px 0 5px #fff, 0 0 5px #fff, 2px 0 5px #fff, -2px 0 5px #fff;
+  font-weight: 500;
 }
 
 .fxc-marker svg {

@@ -3,6 +3,8 @@ import { customElement } from 'lit/decorators.js';
 
 import { modalController } from '@ionic/core/components';
 
+import { version } from 'package.json';
+
 @customElement('about-modal')
 export class AboutModal extends LitElement {
   render(): TemplateResult {
@@ -28,7 +30,7 @@ export class AboutModal extends LitElement {
         <p><a href="mailto:contact@flyxc.app?subject=FlyXC" target="_blank">Contact us by email.</a></p>
 
         <ion-text color="medium">
-          <p><em>build ${__BUILD_TIMESTAMP__}</em></p>
+          <p><em>version ${version}-${__BUILD_TIMESTAMP__}</em></p>
           <p><em>airspace ${__AIRSPACE_DATE__}</em></p>
         </ion-text>
 

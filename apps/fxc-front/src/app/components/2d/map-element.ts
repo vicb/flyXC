@@ -20,7 +20,7 @@ import { LineElement } from './line-element';
 import { MarkerElement } from './marker-element';
 import { PlannerElement } from './planner-element';
 import { SegmentsElement } from './segments-element';
-import { TopoEu, TopoFrance, TopoOtm, TopoSpain } from './topo-elements';
+import { TopoFrance, TopoOtm, TopoSpain } from './topo-elements';
 import { TrackingElement } from './tracking-element';
 
 // Prevent tree-shaking components by exporting them
@@ -30,7 +30,6 @@ export {
   LineElement,
   PlannerElement,
   SegmentsElement,
-  TopoEu,
   TopoFrance,
   TopoOtm,
   TopoSpain,
@@ -161,7 +160,6 @@ export class MapElement extends connect(store)(LitElement) {
             TopoOtm.mapTypeId,
             TopoFrance.mapTypeId,
             TopoFrance.mapTypeIdScan,
-            TopoEu.mapTypeId,
             TopoSpain.mapTypeId,
           ],
           style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
@@ -276,8 +274,7 @@ export class MapElement extends connect(store)(LitElement) {
       <div id="map"></div>
       ${when(
         this.map,
-        () => html` <topo-eu .map=${this.map}></topo-eu>
-          <topo-spain .map=${this.map}></topo-spain>
+        () => html`<topo-spain .map=${this.map}></topo-spain>
           <topo-france .map=${this.map}></topo-france>
           <topo-otm .map=${this.map}></topo-otm>
           <segments-element .map=${this.map} .query=${document.location.search}></segments-element>
