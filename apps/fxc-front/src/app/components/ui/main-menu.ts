@@ -149,6 +149,24 @@ export class MainMenu extends connect(store)(LitElement) {
             <ion-item button @click=${this.handleSupport} lines="full" ?detail="true">
               <i class="las la-hand-holding-usd la-2x"></i>Support flyxc</ion-item
             >
+            <ion-item @lines="full" ?detail="false">
+              <a
+                href="https://www.facebook.com/flyxcapp"
+                target="_blank"
+                title="Find us on facebook"
+                slot="end"
+                rel="external"
+                ><i class="lab la-facebook la-2x"></i
+              ></a>
+              <a
+                href="https://github.com/vicb/flyxc"
+                target="_blank"
+                title="Find us on github"
+                slot="end"
+                rel="external"
+                ><i class="lab la-github la-2x"></i
+              ></a>
+            </ion-item>
           </ion-list>
         </ion-content>
       </ion-menu>`;

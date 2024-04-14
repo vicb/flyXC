@@ -1,3 +1,9 @@
+## next
+
+### fxc-front
+
+- Add social links to the main menu
+
 ## 2.2.0 - April 14, 2024
 
 ### fxc-front
