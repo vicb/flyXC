@@ -45,6 +45,13 @@ handlers:
     secure: always
     redirect_http_response_code: 301
 
+  - url: /sitemap\.xml$
+    static_files: static/sitemap.xml
+    upload: static/sitemap.xml
+    expiration: '2d'
+    secure: always
+    redirect_http_response_code: 301
+
   - url: /favicon\.ico$
     static_files: static/favicon.ico
     upload: static/favicon.ico
