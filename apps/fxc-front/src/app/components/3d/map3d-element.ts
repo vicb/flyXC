@@ -14,6 +14,8 @@ import ElevationLayer from '@arcgis/core/layers/ElevationLayer';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
 import SunLighting from '@arcgis/core/views/3d/environment/SunLighting';
+import SceneLayer from '@arcgis/core/layers/SceneLayer';
+import TileLayer from '@arcgis/core/layers/TileLayer';
 import VirtualLighting from '@arcgis/core/views/3d/environment/VirtualLighting';
 import SceneView from '@arcgis/core/views/SceneView';
 import NavigationToggle from '@arcgis/core/widgets/NavigationToggle';
@@ -62,10 +64,10 @@ export class Map3dElement extends connect(store)(LitElement) {
   private elevationLayer?: BaseElevationLayer;
   private airspace?: Airspace3dElement;
   private basemaps: Record<string, string | Basemap | null> = {
-    Satellite: 'satellite',
+    Satellite: null,
     Google: null,
     OpenTopoMap: null,
-    Topo: 'topo-vector',
+    Topo: 'topo-3d',
   };
 
   private subscriptions: UnsubscribeHandle[] = [];
@@ -150,8 +152,24 @@ export class Map3dElement extends connect(store)(LitElement) {
   firstUpdated(): void {
     this.elevationLayer = createElevationLayer(this.multiplier);
 
+    const labelLayer = new SceneLayer({
+      portalItem: { id: '002ce369070544f4ba55886efee41983' },
+    });
+
+    this.basemaps.Satellite = new Basemap({
+      baseLayers: [
+        new TileLayer({
+          portalItem: { id: '10df2279f9684e4a9f6a7f08febac2a9' },
+          url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer',
+        }),
+      ],
+      referenceLayers: [labelLayer],
+      title: 'sat',
+      id: 'sat',
+    });
+
     this.map = new Map({
-      basemap: 'satellite',
+      basemap: this.basemaps.Satellite,
       ground: { layers: [this.elevationLayer] },
     });
 
@@ -171,7 +189,6 @@ export class Map3dElement extends connect(store)(LitElement) {
         dockEnabled: false,
         actions: [],
         dockOptions: { buttonEnabled: false },
-        collapseEnabled: false,
       }),
       // Surprising, but true (I mean false).
       popupEnabled: false,
@@ -325,6 +342,7 @@ export class Map3dElement extends connect(store)(LitElement) {
           customParameters: { key: getApiKey('gmaps') },
         }),
       ],
+      referenceLayers: [labelLayer],
       title: 'google',
       id: 'google',
     });
