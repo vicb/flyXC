@@ -1,6 +1,5 @@
 import { LitElement } from 'lit';
 import { property } from 'lit/decorators.js';
-// Warning: those are not the same at lit-element ones.
 
 export abstract class WMTSOverlayElement extends LitElement {
   @property({ attribute: false })
