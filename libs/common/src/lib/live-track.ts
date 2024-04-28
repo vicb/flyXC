@@ -19,9 +19,9 @@ export const LIVE_AGE_OLD_SEC = 6 * 3600;
 // Minimum interval for old points points.
 export const LIVE_OLD_INTERVAL_SEC = 3 * 60;
 // Minimum interval between points.
-export const LIVE_MINIMAL_INTERVAL_SEC = 30;
-// Refresh interval (how often one update is triggered)
+export const LIVE_MINIMAL_INTERVAL_SEC = 5;
 
+// Refresh interval (how often one update is triggered)
 export const LIVE_REFRESH_SEC = 60;
 // Timeout for fetching - need time for completing the transaction.
 export const LIVE_FETCH_TIMEOUT_SEC = LIVE_REFRESH_SEC - 20;
