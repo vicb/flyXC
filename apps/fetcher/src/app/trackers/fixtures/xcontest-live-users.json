@@ -1,0 +1,71 @@
+{
+  "users": {
+    "user-id-1": {
+      "username": "XContest-user",
+      "fullname": "John von XContest",
+      "lastLoc": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            7.602978,
+            46.154038,
+            210,
+            {
+              "t": "2022-04-04T16:30:40Z",
+              "b": 201
+            }
+          ]
+        },
+        "properties": {
+          "source": "live",
+          "landed": true
+        }
+      },
+      "flights": [
+        {
+          "uuid": "flight-id-1",
+          "firstFix": [
+            7.489853,
+            46.206353,
+            2614,
+            {
+              "t": "2021-04-04T14:19:31Z",
+              "b": 2578
+            }
+          ],
+          "lastFix": [
+            7.602978,
+            46.154038,
+            210,
+            {
+              "t": "2021-04-04T16:30:40Z",
+              "b": 201
+            }
+          ]
+        },
+        {
+          "uuid": "flight-id-2",
+          "firstFix": [
+            7.489853,
+            46.206353,
+            2614,
+            {
+              "t": "2022-04-04T14:19:31Z",
+              "b": 2578
+            }
+          ],
+          "lastFix": [
+            7.602978,
+            46.154038,
+            210,
+            {
+              "t": "2022-04-04T16:30:40Z",
+              "b": 201
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

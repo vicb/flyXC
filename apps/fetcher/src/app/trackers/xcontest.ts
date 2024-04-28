@@ -5,6 +5,8 @@
 import {
   fetchResponse,
   formatReqError,
+  LIVE_TRACKER_RETENTION_SEC,
+  parallelTasksWithTimeout,
   protos,
   SecretKeys,
   TrackerNames,
@@ -13,10 +15,13 @@ import {
 import { LivePoint, makeLiveTrack } from './live-track';
 import { TrackerFetcher, TrackerUpdates } from './tracker';
 
-// opentime refers to the start of the track.
-const FETCH_TRACK_STARTED_IN_PAST_HOURS = 24;
-// but we don't want to keep stale data.
-const DISCARD_POSITION_OLDER_THAN_MIN = 30;
+// duration to fetch
+const FETCH_MS = 4 * 60 * 1000;
+
+export interface XContestFlight {
+  lastTimeMs: number;
+  uuid: string;
+}
 
 export class XcontestFetcher extends TrackerFetcher {
   protected getTrackerName(): TrackerNames {
@@ -31,26 +36,27 @@ export class XcontestFetcher extends TrackerFetcher {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async fetch(devices: number[], updates: TrackerUpdates, timeoutSec: number): Promise<void> {
-    const xcontestIdToLivePoint = new Map<string, LivePoint>();
+    const xcontestIdToLastFlight = new Map<string, XContestFlight>();
 
-    const openTimeMs = new Date().getTime() - FETCH_TRACK_STARTED_IN_PAST_HOURS * 3600 * 1000;
+    // Get all the users for the retention period
+    const openTimeMs = new Date().getTime() - LIVE_TRACKER_RETENTION_SEC * 1000;
 
-    const url = `https://api.xcontest.org/livedata/users?entity=group:flyxc&source=live&opentime={openTimeISO}`.replace(
-      '{openTimeISO}',
-      new Date(openTimeMs).toISOString(),
-    );
+    const liveUserUrl =
+      `https://api.xcontest.org/livedata/users?entity=group:flyxc&source=live&opentime={openTimeISO}`.replace(
+        '{openTimeISO}',
+        new Date(openTimeMs).toISOString(),
+      );
 
     try {
-      const response = await fetchResponse(url, {
+      const response = await fetchResponse(liveUserUrl, {
         timeoutS: 30,
         headers: { Authorization: `Bearer ${SecretKeys.XCONTEXT_JWT}` },
       });
       if (response.ok) {
         try {
           const users = await response.json();
-          const keepFromMs = new Date().getTime() - DISCARD_POSITION_OLDER_THAN_MIN * 60 * 1000;
-          parse(users, xcontestIdToLivePoint, keepFromMs);
-          devices.forEach((id) => updates.fetchedTracker.add(id));
+          const keepFromMs = new Date().getTime() - FETCH_MS * 60 * 1000;
+          parseLiveUsers(users, xcontestIdToLastFlight, keepFromMs);
         } catch (e) {
           updates.errors.push(`Error parsing JSON ${response.body}\n${e}`);
         }
@@ -61,6 +67,10 @@ export class XcontestFetcher extends TrackerFetcher {
       updates.errors.push(`Error ${formatReqError(e)}`);
     }
 
+    const fetchTimeMs = new Date().getTime();
+    const fetchFromMs = fetchTimeMs - FETCH_MS;
+    const deviceIdToXContestId = new Map<number, string>();
+
     for (const id of devices) {
       const tracker = this.getTracker(id);
       if (tracker == null) {
@@ -70,28 +80,80 @@ export class XcontestFetcher extends TrackerFetcher {
         updates.trackerErrors.set(id, `Invalid account ${tracker.account}`);
         continue;
       }
-      const livePoint = xcontestIdToLivePoint.get(tracker.account);
-      if (livePoint) {
-        updates.trackerDeltas.set(id, makeLiveTrack([livePoint]));
+      const flight = xcontestIdToLastFlight.get(tracker.account);
+      if (flight == null) {
+        continue;
+      }
+      if (flight.lastTimeMs > fetchFromMs) {
+        deviceIdToXContestId.set(id, tracker.account);
+      }
+    }
+
+    const fetchDevices = [...deviceIdToXContestId.keys()];
+    const liveTrackUrl = `https://api.xcontest.org/livedata/track?entity=group:flyxc&flight={flightUuid}&lastfixtime={lastFixISO}`;
+
+    const fetchTrack = async (deviceId: number) => {
+      try {
+        const userId = deviceIdToXContestId.get(deviceId);
+        const flightId = xcontestIdToLastFlight.get(userId).uuid;
+        const fetchFromSec = this.getTrackerFetchFromSec(deviceId, updates.startFetchSec, FETCH_MS / 1000);
+        const url = liveTrackUrl
+          .replace('{lastFixISO}', new Date(fetchFromSec * 1000).toISOString())
+          .replace('{flightUuid}', flightId);
+        const response = await fetchResponse(url, {
+          timeoutS: 10,
+          headers: { Authorization: `Bearer ${SecretKeys.XCONTEXT_JWT}` },
+        });
+        if (response.ok) {
+          try {
+            const track = await response.json();
+            const points = parseLiveTrack(track);
+            updates.fetchedTracker.add(deviceId);
+            if (points.length > 0) {
+              updates.trackerDeltas.set(deviceId, makeLiveTrack(points));
+            }
+          } catch (e) {
+            updates.trackerErrors.set(deviceId, `Error parsing JSON ${response.body}\n${e}`);
+          }
+        } else {
+          updates.trackerErrors.set(deviceId, `HTTP status ${response.status}`);
+        }
+      } catch (e) {
+        updates.trackerErrors.set(deviceId, `Error ${formatReqError(e)}`);
+      }
+    };
+
+    const { isTimeout } = await parallelTasksWithTimeout(4, fetchDevices, fetchTrack, timeoutSec * 1000);
+
+    if (isTimeout) {
+      updates.errors.push(`Fetch timeout`);
+    }
+  }
+}
+
+export function parseLiveUsers(users: any, idToLastFlight: Map<string, XContestFlight>, keepFromMs: number) {
+  for (const [userUuid, data] of Object.entries(users.users)) {
+    if (Array.isArray((data as any).flights) && (data as any).flights.length > 0) {
+      const flight = (data as any).flights.at(-1);
+      const [_lon, _lat, _alt, details] = flight.lastFix;
+      const timeMs = new Date(details.t).getTime();
+      if (timeMs > keepFromMs) {
+        idToLastFlight.set(userUuid, {
+          lastTimeMs: timeMs,
+          uuid: flight.uuid,
+        });
       }
     }
   }
 }
 
-export function parse(users: any, idToLivePoint: Map<string, LivePoint>, keepFromMs: number) {
-  for (const [uuid, data] of Object.entries(users.users)) {
-    if ((data as any).lastLoc) {
-      const [lon, lat, alt, details] = (data as any).lastLoc.geometry.coordinates;
-      const timeMs = new Date(details.t).getTime();
-      if (timeMs > keepFromMs) {
-        idToLivePoint.set(uuid, {
-          lat,
-          lon,
-          alt,
-          timeMs,
-          name: 'xcontest',
-        });
-      }
-    }
+export function parseLiveTrack(track: any) {
+  const points: LivePoint[] = [];
+  let timeMs = new Date(track.flight.properties.firstFixTime).getTime();
+  for (const fix of track.flight.geometry.coordinates) {
+    const [lon, lat, alt, details] = fix;
+    timeMs += (details?.dt ?? 1) * 1000;
+    points.push({ lat, lon, alt, timeMs, name: 'xcontest' });
   }
+  return points;
 }

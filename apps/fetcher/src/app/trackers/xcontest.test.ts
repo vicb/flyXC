@@ -1,29 +1,55 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const xcontest = require('./fixtures/xcontest.json');
+const xcontestUsers = require('./fixtures/xcontest-live-users.json');
+const xcontestTrack = require('./fixtures/xcontest-live-track.json');
 
-import { LivePoint } from './live-track';
-import { parse } from './xcontest';
+import { XContestFlight, parseLiveTrack, parseLiveUsers } from './xcontest';
 
 describe('Parse XContest json', () => {
-  test('it should parse a flight', () => {
-    const idToLivePoint = new Map<string, LivePoint>();
-    parse(xcontest, idToLivePoint, 1649089830000);
-    expect(idToLivePoint).toMatchInlineSnapshot(`
+  test('it should parse users', () => {
+    const idToLastFlight = new Map<string, XContestFlight>();
+    parseLiveUsers(xcontestUsers, idToLastFlight, 1649089830000);
+    expect(idToLastFlight).toMatchInlineSnapshot(`
       Map {
-        "kUgsHrVb3TSwVp23o9P1LsEaIWPZ" => {
-          "alt": 210,
-          "lat": 46.154038,
-          "lon": 7.602978,
-          "name": "xcontest",
-          "timeMs": 1649089840000,
+        "user-id-1" => {
+          "lastTimeMs": 1649089840000,
+          "uuid": "flight-id-2",
         },
       }
     `);
   });
 
   test('it should discard stale positions', () => {
-    const idToLivePoint = new Map<string, LivePoint>();
-    parse(xcontest, idToLivePoint, 1649089850000);
-    expect(idToLivePoint.size).toBe(0);
+    const idToLastFlight = new Map<string, XContestFlight>();
+    parseLiveUsers(xcontestUsers, idToLastFlight, 1649089850000);
+    expect(idToLastFlight.size).toBe(0);
+  });
+
+  test('it should parse tracks', () => {
+    const points = parseLiveTrack(xcontestTrack);
+    expect(points).toMatchInlineSnapshot(`
+      [
+        {
+          "alt": 210,
+          "lat": 46.154038,
+          "lon": 7.602978,
+          "name": "xcontest",
+          "timeMs": 1649081971000,
+        },
+        {
+          "alt": 211,
+          "lat": 46.154038,
+          "lon": 7.602978,
+          "name": "xcontest",
+          "timeMs": 1649081972000,
+        },
+        {
+          "alt": 212,
+          "lat": 46.154038,
+          "lon": 7.602978,
+          "name": "xcontest",
+          "timeMs": 1649081973000,
+        },
+      ]
+    `);
   });
 });
