@@ -49,19 +49,22 @@ export class OgnFetcher extends TrackerFetcher {
     this.client.registerOgnIds(new Set(ognIdToDsId.keys()));
 
     const keepFromSec = Math.round(Date.now() / 1000) - 5 * 60;
-    for (const [ognId, position] of this.client.getAndClearPositions().entries()) {
+    for (const [ognId, positions] of this.client.getAndClearPositions().entries()) {
       const dsId = ognIdToDsId.get(ognId);
 
-      if (position.timeSec > keepFromSec) {
-        const point: LivePoint = {
-          lat: position.lat,
-          lon: position.lon,
-          alt: position.alt,
-          timeMs: position.timeSec * 1000,
+      const points: LivePoint[] = positions
+        .filter((p) => p.timeSec > keepFromSec)
+        .map((p) => ({
+          lat: p.lat,
+          lon: p.lon,
+          alt: p.alt,
+          timeMs: p.timeSec * 1000,
           name: 'ogn',
-          speed: position.speed,
-        };
-        const track = makeLiveTrack([point]);
+          speed: p.speed,
+        }));
+
+      if (points.length > 0) {
+        const track = makeLiveTrack(points);
         updates.trackerDeltas.set(dsId, track);
       }
     }

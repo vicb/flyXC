@@ -19,7 +19,7 @@ export class OgnClient {
   protected socket?: Socket;
   protected readline?: Interface;
   protected trackingIds = new Set<string>();
-  protected positions = new Map<string, AprsPosition>();
+  protected positions = new Map<string, AprsPosition[]>();
   protected txKeepAliveTimer: NodeJS.Timeout | null = null;
   protected rxKeepAliveSec = 0;
   protected logs: string[] = [];
@@ -89,7 +89,7 @@ export class OgnClient {
   }
 
   // Returns the received positions since the last call.
-  getAndClearPositions(): Map<string, AprsPosition> {
+  getAndClearPositions(): Map<string, AprsPosition[]> {
     const positions = new Map(this.positions);
     this.positions.clear();
     return positions;
@@ -111,7 +111,12 @@ export class OgnClient {
         if (match) {
           const position = parseAprsPosition(match.groups['position']);
           if (position != null && this.positions.size < MAX_NUM_POSITIONS) {
-            this.positions.set(id, position);
+            const positions = this.positions.get(id);
+            if (positions == null) {
+              this.positions.set(id, [position]);
+            } else {
+              positions.push(position);
+            }
           }
         }
       }
