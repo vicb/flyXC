@@ -54,7 +54,9 @@ export class ChartElement extends connect(store)(LitElement) {
   @state()
   private trackColors: { [id: string]: string } = {};
 
-  private lastPlayTimestamp = 0;
+  // Last time the track animation was paused and corresponding timestamp
+  private lastPauseMs = 0;
+  private lastPauseTimestampSec = 0;
 
   @query('#thumb')
   private thumbElement?: SVGLineElement;
@@ -566,10 +568,14 @@ export class ChartElement extends connect(store)(LitElement) {
     if (this.playTimer) {
       clearInterval(this.playTimer);
       this.playTimer = undefined;
+      this.lastPauseMs = Date.now();
     } else {
       // Restart from the beginning if play has not been used for 30s,
-      if (this.lastPlayTimestamp < Date.now() - 30 * 1000 || this.timeSec == this.maxTimeSec) {
+      if (this.lastPauseMs < Date.now() - 30 * 1000 || this.timeSec == this.maxTimeSec) {
         this.dispatchEvent(new CustomEvent('move', { detail: { timeSec: this.minTimeSec } }));
+      } else {
+        const timeSec = Math.min(Math.max(this.lastPauseTimestampSec, this.minTimeSec), this.maxTimeSec);
+        this.dispatchEvent(new CustomEvent('move', { detail: { timeSec } }));
       }
       this.playTick();
       this.playTimer = window.setInterval(() => this.playTick(), PLAY_INTERVAL_MILLIS);
@@ -577,13 +583,14 @@ export class ChartElement extends connect(store)(LitElement) {
   }
 
   private playTick() {
-    this.lastPlayTimestamp = Date.now();
     let timeSec = this.timeSec + (PLAY_INTERVAL_MILLIS * this.playSpeed) / 1000;
     if (timeSec >= this.maxTimeSec) {
       timeSec = this.maxTimeSec;
       clearInterval(this.playTimer);
       this.playTimer = undefined;
+      this.lastPauseMs = 0;
     }
+    this.lastPauseTimestampSec = timeSec;
     this.dispatchEvent(new CustomEvent('move', { detail: { timeSec } }));
   }
 
