@@ -2,7 +2,7 @@ import { createPopper, Instance } from '@popperjs/core';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
-import { getApiKey } from '../../apikey';
+import { getApiKeyAndHost } from '../../apikey';
 import '../ui/google-btn';
 
 const NUM_TRACKS = 30;
@@ -104,7 +104,7 @@ export class ArchivesPage extends LitElement {
         'src',
         `https://maps.googleapis.com/maps/api/staticmap?path=weight:3|color:red|enc:${
           track.path
-        }&size=${IMG_SIZE}x${IMG_SIZE}&key=${getApiKey('gmaps')}`,
+        }&size=${IMG_SIZE}x${IMG_SIZE}&key=${getApiKeyAndHost('gmaps').key}`,
       );
       this.popup = createPopper(el, tooltip, {
         placement: 'right',

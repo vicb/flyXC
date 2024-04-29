@@ -38,7 +38,7 @@ import { RootState, store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
 import { Airspace3dElement } from './airspace3d-element';
 import { Skyways3dElement } from './skyways3d-element';
-import { getApiKey } from '../../apikey';
+import { getApiKeyAndHost } from '../../apikey';
 
 @customElement('map3d-element')
 export class Map3dElement extends connect(store)(LitElement) {
@@ -339,7 +339,7 @@ export class Map3dElement extends connect(store)(LitElement) {
         new IntegratedMesh3DTilesLayer({
           url: 'https://tile.googleapis.com/v1/3dtiles/root.json',
           title: 'Google tiles',
-          customParameters: { key: getApiKey('gmaps') },
+          customParameters: { key: getApiKeyAndHost('gmaps').key },
         }),
       ],
       referenceLayers: [labelLayer],

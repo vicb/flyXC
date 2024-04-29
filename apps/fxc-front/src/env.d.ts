@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="@types/gtag.js" />
 
 import { AirspaceServer } from '@flyxc/common';
 

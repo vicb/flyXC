@@ -7,7 +7,7 @@ import { when } from 'lit/directives/when.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 import simplify from 'simplify-path';
-import { getApiKey } from '../../apikey';
+import { getApiKeyAndHost } from '../../apikey';
 import * as msg from '../../logic/messages';
 import { setApiLoading, setTimeSec } from '../../redux/app-slice';
 import { setCurrentLocation, setCurrentZoom } from '../../redux/location-slice';
@@ -45,8 +45,12 @@ let gMapsApiLoading: Promise<void> | undefined;
 function loadGMaps(): Promise<void> {
   if (!gMapsApiLoading) {
     const load = (resolve: () => void) => {
+      const { key, host } = getApiKeyAndHost('gmaps', store.getState().track.domain);
+      if (typeof gtag != 'undefined') {
+        gtag('event', 'gmaps_api_key_host', { host });
+      }
       new Loader({
-        apiKey: getApiKey('gmaps', store.getState().track.domain),
+        apiKey: key,
         version: 'weekly',
         libraries: ['geometry', 'marker'],
       })

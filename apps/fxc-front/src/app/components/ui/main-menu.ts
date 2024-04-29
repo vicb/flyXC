@@ -33,7 +33,7 @@ import './live-modal';
 import './pref-modal';
 import './track-modal';
 import './supporter-modal';
-import { getApiKey } from '../../apikey';
+import { getApiKeyAndHost } from '../../apikey';
 import { geocode } from '@esri/arcgis-rest-geocoding';
 import { setDefaultRequestOptions } from '@esri/arcgis-rest-request';
 
@@ -501,7 +501,7 @@ export class ViewItems extends connect(store)(LitElement) {
     const { candidates } = await geocode({
       singleLine: place,
       params: {
-        token: getApiKey('arcgis'),
+        token: getApiKeyAndHost('arcgis').key,
         location: `${lon},${lat}`,
         maxLocations: 1,
       },
