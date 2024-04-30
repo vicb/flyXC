@@ -1,6 +1,6 @@
 # Use the official lightweight Node.js image.
 # https://hub.docker.com/_/node
-FROM docker.io/node:lts-slim
+FROM docker.io/node:current-slim
 
 ENV NODE_ENV production
 
