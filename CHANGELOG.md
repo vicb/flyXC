@@ -8,6 +8,11 @@
 ### fetcher
 
 - Increase the live track resolution (down to 5s)
+
+### airspaces
+
+- Add FIS Sectors
+- Update airspaces
  
 ## 2.2.0 - April 14, 2024
 

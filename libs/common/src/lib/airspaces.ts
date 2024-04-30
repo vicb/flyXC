@@ -60,7 +60,8 @@ export enum Type {
   MRT = 30,
   TFR = 31,
   VFRSector = 32,
-  LastValue = VFRSector,
+  FISSector = 33,
+  LastValue,
 }
 
 // https://docs.openaip.net/#/Airspaces/get_airspaces__id_
@@ -223,6 +224,10 @@ export function getTypeName(type: Type): string {
       return 'TFR';
     case Type.VFRSector:
       return 'VFR';
+    case Type.FISSector:
+      return 'FIS';
+    case Type.LastValue:
+      throw new Error('Invalid type');
   }
 }
 

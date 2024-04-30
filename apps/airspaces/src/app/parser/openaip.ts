@@ -70,7 +70,7 @@ function getLabel(limit: Limit) {
 }
 
 export function parse(openaip: any): Airspace | null {
-  if (openaip.type < 0 || openaip.type > Type.LastValue) {
+  if (openaip.type < 0 || openaip.type >= Type.LastValue) {
     throw new Error(`Invalid type (${openaip.type})`);
   }
   if (openaip.icaoClass < 0 || openaip.icaoClass > Class.LastValue) {
