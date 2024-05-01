@@ -1,3 +1,4 @@
+// Copy to key.ts and add your own keys
 export enum SecretKeys {
   GEONAMES = '<key>',
   REDIS_URL = '<url>',
@@ -10,6 +11,8 @@ export enum SecretKeys {
   OPENAIP_KEY = '...',
   AVIANT_URL = '...',
   // https://www.george-smart.co.uk/aprs/aprs_callpass/
+  // 1. Enter Username
+  // 2. Retrieve generated code
   APRS_USER = '...',
   APRS_PASSWORD = '...',
   ZOLEO_UNLINK_URL = `...`,
@@ -17,5 +20,5 @@ export enum SecretKeys {
   ZOLEO_PUSH_USER = `...`,
   ZOLEO_PUSH_PWD = `...`,
   XCONTEXT_JWT = `...`,
-  BUY_ME_A_COFFE_TOKEN = `...`,
+  BUY_ME_A_COFFEE_TOKEN = `...`,
 }
