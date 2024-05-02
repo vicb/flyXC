@@ -132,6 +132,11 @@ export class PlannerElement extends connect(store)(LitElement) {
         .collapsible {
           display: ${this.hideDetails ? 'none' : 'block'};
         }
+        @media (max-width: 767px) {
+          .hidden-on-mobile {
+            display: none;
+          }
+        }
         .active {
           background-color: lightgray;
         }
@@ -159,7 +164,7 @@ export class PlannerElement extends connect(store)(LitElement) {
         </div>
         <div class="collapsible">
           <div>Points = ${this.getMultiplier()}</div>
-          <div>${store.getState().planner.leagueName}</div>
+          <div class="hidden-on-mobile">${store.getState().planner.leagueName}</div>
           <div class="large">${this.score.points.toFixed(1)}</div>
         </div>
         <div class="collapsible">
