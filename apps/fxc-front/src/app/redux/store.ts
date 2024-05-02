@@ -1,6 +1,6 @@
 import { ThunkAction } from 'redux-thunk';
 
-import { Action, combineReducers, configureStore } from '@reduxjs/toolkit';
+import { Action, DevToolsEnhancerOptions, combineReducers, configureStore } from '@reduxjs/toolkit';
 
 import * as airspace from './airspace-slice';
 import * as app from './app-slice';
@@ -30,14 +30,20 @@ const rootReducer = combineReducers({
   skyways: skyways.reducer,
 });
 
+const devTools: DevToolsEnhancerOptions | boolean = import.meta.env.PROD
+  ? false
+  : {
+      traceLimit: 20,
+      trace: false,
+      autoPause: true,
+    };
+
+import.meta.env.PROD;
+
 export const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false, immutableCheck: false }),
-  devTools: {
-    traceLimit: 20,
-    trace: false,
-    autoPause: true,
-  },
+  devTools,
 });
 
 liveTrack.handleVisibility();
