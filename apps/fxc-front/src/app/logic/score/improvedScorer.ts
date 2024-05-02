@@ -21,11 +21,11 @@ let _solver: (
 ) => Iterator<Solution, Solution>;
 
 // ScoreAndWaypoints could be more appropriate here?
-export type ScoreAndRoute = { score: Score; route: Point[] };
+export type ScoreAndRoute = { score: Score; route: Point[]; durationMs: number };
 
 // ScoringTrack is a subset of RuntimeTrack
 // we define it for the sake of clarity and define the minimal information required to invoke the scoreTrack function
-export type ScoringTrack = Pick<RuntimeTrack, 'lat' | 'lon' |'alt' | 'timeSec' | 'minTimeSec'>
+export type ScoringTrack = Pick<RuntimeTrack, 'lat' | 'lon' | 'alt' | 'timeSec' | 'minTimeSec'>;
 
 export async function scoreTrack(track: ScoringTrack, leagueCode: LeagueCode): Promise<ScoreAndRoute | undefined> {
   const scoringRules = getScoringRules(leagueCode);
@@ -33,7 +33,7 @@ export async function scoreTrack(track: ScoringTrack, leagueCode: LeagueCode): P
     const solver = await lazyLoadedSolver();
     const solutions = solver(createIgcFile(track), scoringRules, undefined);
     const solution = solutions.next().value;
-    return { score: toScore(solution), route: toRoute(solution) };
+    return { score: toScore(solution), route: toRoute(solution), durationMs: toDuration(solution) };
   }
   return undefined;
 }
@@ -107,6 +107,16 @@ function toRoute(solution: Solution): Point[] {
   return route;
 }
 
+function toDuration(solution: Solution) {
+  // solution.opt.launch and solution.opt.landing
+  // are sadly not defined in Opt type
+  // @ts-ignore
+  const launchIndex = solution.opt.launch;
+  // @ts-ignore
+  const landingIndex = solution.opt.landing;
+  return solution.opt.flight.fixes[landingIndex].timestamp - solution.opt.flight.fixes[launchIndex].timestamp;
+}
+
 function getEntryPointsStart(solution: Solution) {
   return solution.scoreInfo?.ep?.start;
 }
@@ -137,7 +147,7 @@ function push(point: XcScorePoint | undefined, route: Point[]) {
 function createIgcFile(track: ScoringTrack): IGCFile {
   const fixes: BRecord[] = [];
   for (let i = 0; i < track.lon.length; i++) {
-    const timeMilliseconds = track.timeSec[i]*1000;
+    const timeMilliseconds = track.timeSec[i] * 1000;
     const record: BRecord = {
       timestamp: timeMilliseconds,
       time: new Date(timeMilliseconds).toISOString(),
@@ -155,7 +165,7 @@ function createIgcFile(track: ScoringTrack): IGCFile {
   // we ignore some properties of the igc-file, as they are not required for the computation
   // @ts-ignore
   return {
-    date: new Date(track.minTimeSec*1000).toISOString(),
+    date: new Date(track.minTimeSec * 1000).toISOString(),
     fixes: fixes,
   };
 }

@@ -6,9 +6,16 @@ import {AppDispatch, store} from '../redux/store';
 import {fetchTrack } from '../redux/track-slice';
 // @ts-ignore
 import ScoreWorker from '../workers/score-track?worker';
-import { setPlannerEnabled, setPlannerIsFreeDrawing, setPlannerRoute, setPlannerScore } from '../redux/planner-slice';
+import {
+  setPlannerEnabled,
+  setPlannerIsFreeDrawing,
+  setPlannerRoute,
+  setPlannerScore,
+  setSpeed,
+} from '../redux/planner-slice';
 import { ScoreAndRoute } from './score/improvedScorer';
-import { LeagueCode } from "./score/league";
+import { LeagueCode } from './score/league';
+import { Score } from './score/scorer';
 
 // Uploads files to the server and adds the tracks.
 // after loading, the planner menu is displayed to permit
@@ -20,7 +27,7 @@ export async function uploadTracks(files: File[]): Promise<number[]> {
   const formData = new FormData();
   files.forEach((track) => formData.append('track', track));
   store.dispatch(setPlannerEnabled(true));
-  store.dispatch(setPlannerIsFreeDrawing(false))
+  store.dispatch(setPlannerIsFreeDrawing(false));
   return await fetchAndReturnGroupIds('/api/track/upload.pbf', { method: 'POST', body: formData });
 }
 
@@ -66,11 +73,12 @@ function getScoreWorker(dispatch: AppDispatch): Worker {
   if (!scoreWorker) {
     scoreWorker = new ScoreWorker() as Worker;
     scoreWorker.onmessage = (msg: MessageEvent<ScoreAndRoute>) => {
-      const { score, route } = msg.data;
+      const { score, route, durationMs } = msg.data;
       dispatch(setPlannerEnabled(true));
       dispatch(setPlannerIsFreeDrawing(false));
       dispatch(setPlannerRoute(getEncodedRoute(route)));
       dispatch(setPlannerScore(score));
+      dispatch(setSpeed(computeSpeed(score, durationMs)));
     };
   }
   return scoreWorker;
@@ -81,3 +89,8 @@ function getEncodedRoute(route: Point[]) {
   return google.maps.geometry.encoding.encodePath(gRoute);
 }
 
+function computeSpeed(score: Score, durationMs: number) {
+  // score.distance unit: m, durationMs: ms
+  // so score.distance / durationMs simplifies to km/sec
+  return (score.distance / durationMs) * 3600;
+}
