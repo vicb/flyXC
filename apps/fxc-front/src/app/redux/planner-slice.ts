@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { deleteUrlParam, getUrlParamValues, ParamNames, setUrlParamValue } from '../logic/history';
 import { Score } from '../logic/score/scorer';
 import { LeagueCode } from '../logic/score/league';
-import { LEAGUES } from "../logic/score/league/leagues";
+import { LEAGUES } from '../logic/score/league/leagues';
 
 export type PlannerState = {
   score?: Score;
