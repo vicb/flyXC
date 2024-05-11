@@ -2,7 +2,8 @@ import csurf from '@dr.pogodin/csurf';
 import {
   AccountFormModel,
   AccountModel,
-  INCREMENTAL_UPDATE_SEC,
+  LONG_INCREMENTAL_UPDATE_SEC,
+  SHORT_INCREMENTAL_UPDATE_SEC,
   Keys,
   LiveTrackEntity,
   protos,
@@ -34,9 +35,15 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
     const token = req.header('token');
     if (!token) {
       // Pick the incremental proto if last request was recent.
-      const timeSec = Number(req.query.s ?? 0);
-      const incrementalAfter = Date.now() / 1000 - INCREMENTAL_UPDATE_SEC + 60;
-      const key = timeSec > incrementalAfter ? Keys.fetcherIncrementalProto : Keys.fetcherFullProto;
+      const lastUpdateSec = Number(req.query.s ?? 0);
+      const nowSec = Math.round(Date.now() / 1000);
+      const deltaSec = nowSec - lastUpdateSec;
+      let key = Keys.fetcherFullProto;
+      if (deltaSec < SHORT_INCREMENTAL_UPDATE_SEC) {
+        key = Keys.fetcherShortIncrementalProto;
+      } else if (deltaSec < LONG_INCREMENTAL_UPDATE_SEC) {
+        key = Keys.fetcherLongIncrementalProto;
+      }
       res.set('Content-Type', 'application/x-protobuf');
       res.send(await redis.getBuffer(key));
     } else {

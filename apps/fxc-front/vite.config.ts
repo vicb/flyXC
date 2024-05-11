@@ -47,7 +47,7 @@ export default defineConfig({
       },
     },
 
-    chunkSizeWarningLimit: 3800,
+    chunkSizeWarningLimit: 3900,
   },
 
   plugins: [

@@ -30,7 +30,8 @@ export const LIVE_FETCH_TIMEOUT_SEC = LIVE_REFRESH_SEC - 20;
 export const TRACK_GAP_MIN = 60;
 
 // Incremental updates.
-export const INCREMENTAL_UPDATE_SEC = 3600;
+export const LONG_INCREMENTAL_UPDATE_SEC = 20 * 60;
+export const SHORT_INCREMENTAL_UPDATE_SEC = 5 * 60;
 // Export to partners.
 export const EXPORT_UPDATE_SEC = 5 * 60;
 
