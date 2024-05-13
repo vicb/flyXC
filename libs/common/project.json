@@ -3,11 +3,8 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/common/src",
   "projectType": "library",
+  "tags": [],
   "targets": {
-    "lint": {
-      "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"]
-    },
     "protos": {
       "executor": "nx:run-script",
       "options": {
@@ -21,6 +18,5 @@
         "jestConfig": "libs/common/jest.config.ts"
       }
     }
-  },
-  "tags": []
+  }
 }
