@@ -8,6 +8,7 @@ export abstract class WMTSOverlayElement extends LitElement {
   protected mapBounds?: google.maps.LatLngBounds[];
   protected copyrightEl?: HTMLElement;
   protected registered = false;
+  protected mapType?: google.maps.ImageMapType;
 
   abstract get mapName(): string;
   abstract get copyright(): { html: string; url: string };
@@ -54,24 +55,27 @@ export abstract class WMTSOverlayElement extends LitElement {
 
     const numTiles = Math.pow(2, zoom);
     return this.url
-      .replace('{zoom}', zoom.toString())
-      .replace('{x}', (((coord.x % numTiles) + numTiles) % numTiles).toString())
-      .replace('{y}', coord.y.toString());
+      .replace('{zoom}', String(zoom))
+      .replace('{x}', String(((coord.x % numTiles) + numTiles) % numTiles))
+      .replace('{y}', String(coord.y));
   }
 
   protected getMapType(): google.maps.MapType {
-    const [minZoom, maxZoom] = this.zoom;
-    return new google.maps.ImageMapType({
-      getTileUrl: (...args): string => this.getTileUrl(...args),
-      tileSize: new google.maps.Size(256, 256),
-      minZoom,
-      maxZoom,
-      name: this.mapName,
-    });
+    if (!this.mapType) {
+      const [minZoom, maxZoom] = this.zoom;
+      this.mapType = new google.maps.ImageMapType({
+        getTileUrl: (coord: google.maps.Point, zoom: number): string => this.getTileUrl(coord, zoom),
+        tileSize: new google.maps.Size(256, 256),
+        minZoom,
+        maxZoom,
+        name: this.mapName,
+      });
+    }
+    return this.mapType;
   }
 
   protected setBounds(): void {
-    const bounds = this.bounds;
+    const { bounds } = this;
     if (bounds != null) {
       this.mapBounds = bounds.map((b) => {
         const lats = [b[0], b[2]].sort();
