@@ -1,8 +1,7 @@
 import * as common from '@flyxc/common';
 import { Binder, CheckedFieldStrategy, field, VaadinFieldStrategy } from '@vaadin/dom';
 import * as lit from 'lit';
-import { customElement, property } from 'lit/decorators.js';
-import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import { customElement, property, query } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
 // Card for a single tracker.
@@ -67,35 +66,48 @@ export class FlowIonInput extends lit.LitElement {
   invalid = false;
 
   @property({ attribute: false })
-  errorMessage = '';
+  errorMessage?: string;
 
   @property({ attribute: false })
   value = '';
+
+  @query('ion-input', true)
+  input?: HTMLIonInputElement;
+
+  protected shouldUpdate(changedProps: lit.PropertyValueMap<any>): boolean {
+    if (changedProps.has('invalid')) {
+      const cl = this.input?.classList;
+      if (cl) {
+        cl.toggle('ion-invalid', this.invalid);
+        cl.toggle('ion-valid', !this.invalid);
+      }
+    }
+
+    return super.shouldUpdate(changedProps);
+  }
 
   protected render(): lit.TemplateResult {
     return lit.html`<ion-item lines="full">
       <ion-input
         label=${this.label}
         label-placement="floating"
-        @input=${this.handleInput}
+        @ionInput=${this.handleInput}
         type="text"
         value=${this.value}
         inputmode=${this.inputMode}
-        .color=${this.errorMessage ? 'danger' : undefined}
+        .errorText=${this.errorMessage}
+        .invalid=${this.invalid} 
+        @ionBlur=${this.markedTouched}
       ></ion-input>
-      ${when(
-        this.errorMessage,
-        () =>
-          lit.html`<ion-note color="danger"
-            ><i class="las la-exclamation-circle"></i> ${unsafeHTML(this.errorMessage)}</ion-note
-          >`,
-      )}
     </ion-item>`;
   }
 
-  private handleInput(e: InputEvent) {
-    const input = e.target as HTMLInputElement;
-    this.value = input.value;
+  protected handleInput(e: CustomEvent) {
+    this.value = e.detail.value;
+  }
+
+  protected markedTouched() {
+    this.input?.classList.add('ion-touched');
   }
 
   createRenderRoot(): HTMLElement {
