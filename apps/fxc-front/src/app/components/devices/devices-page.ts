@@ -273,13 +273,7 @@ export class DevicesPage extends LitElement {
       <ion-footer>
         <ion-toolbar color="light">
           <ion-buttons slot="primary">
-            <ion-button
-              @click=${async () => await this.save()}
-              .disabled=${this.binder.invalid}
-              fill="solid"
-              color="primary"
-              >Save</ion-button
-            >
+            <ion-button @click=${async () => await this.save()} fill="solid" color="primary">Save</ion-button>
           </ion-buttons>
           <ion-buttons slot="secondary">
             <ion-button @click=${async () => await this.close()}>Cancel</ion-button>
@@ -299,7 +293,7 @@ export class DevicesPage extends LitElement {
   private async startZoleoShareFlow() {
     // Add event listener
     this.zoleoEventAbortController = new AbortController();
-    const signal = this.zoleoEventAbortController.signal;
+    const { signal } = this.zoleoEventAbortController;
     window.addEventListener('message', async (e: MessageEvent) => await this.zoleoMessageListener(e), { signal });
 
     // Open the zoleo page
@@ -340,7 +334,7 @@ export class DevicesPage extends LitElement {
       return;
     }
 
-    const partnerDeviceID = event.data.partnerDeviceID;
+    const { partnerDeviceID } = event.data;
     if (partnerDeviceID) {
       const zoleoModel = this.binder.model.zoleo;
       const binderNode = this.binder.for(zoleoModel.account);
@@ -379,7 +373,19 @@ export class DevicesPage extends LitElement {
 
   // Saves the form values.
   private async save(): Promise<void> {
-    if (this.binder.invalid) {
+    const errors = await this.binder.validate();
+    if (errors.length > 0) {
+      const alert = await alertController.create({
+        header: 'Settings error',
+        message: `Please fix the validation errors before saving.`,
+        buttons: [
+          {
+            text: 'Ok',
+            role: 'cancel',
+          },
+        ],
+      });
+      await alert.present();
       return;
     }
     this.isSubmitting = true;
