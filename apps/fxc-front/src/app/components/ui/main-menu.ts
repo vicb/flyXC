@@ -188,7 +188,7 @@ export class MainMenu extends connect(store)(LitElement) {
 
   private async handlePlanner() {
     if (!this.plannerEnabled) {
-      maybeHideSidePane();
+      await maybeHideSidePane();
     }
     store.dispatch(setEnabled(!this.plannerEnabled));
   }
@@ -523,9 +523,9 @@ export class ViewItems extends connect(store)(LitElement) {
     }
   }
 
-  private handleSwitch() {
+  private async handleSwitch() {
     store.dispatch(setApiLoading(true));
-    maybeHideSidePane();
+    await maybeHideSidePane();
   }
 
   protected createRenderRoot(): HTMLElement {

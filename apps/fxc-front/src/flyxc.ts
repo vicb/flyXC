@@ -42,9 +42,9 @@ import * as track from './app/redux/track-slice';
 export const SHOW_SPLIT_PANE_WHEN = `(min-width: 992px)`;
 
 /* Hides the side plane on small screens */
-export function maybeHideSidePane() {
+export async function maybeHideSidePane() {
   const splitPane = document.querySelector('ion-split-pane');
-  if (splitPane) {
+  if (splitPane && (await splitPane.isVisible()) !== false) {
     splitPane.when = SHOW_SPLIT_PANE_WHEN;
   }
 }

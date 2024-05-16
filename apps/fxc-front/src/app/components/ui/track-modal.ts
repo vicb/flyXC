@@ -82,14 +82,14 @@ export class TrackModal extends connect(store)(LitElement) {
     // Closes the modal and the menu when all tracks are closed.
     if (sel.numTracks(store.getState()) == 0) {
       await this.dismiss();
-      maybeHideSidePane();
+      await maybeHideSidePane();
     }
   }
 
   private async handleSelect(track: RuntimeTrack) {
     store.dispatch(trackSlice.setCurrentTrackId(track.id));
     await this.dismiss();
-    maybeHideSidePane();
+    await maybeHideSidePane();
   }
 
   private async dismiss(): Promise<void> {

@@ -157,7 +157,7 @@ export class LiveModal extends connect(store)(LitElement) {
     msg.centerMap.emit(pilot.position);
     store.dispatch(setCurrentLiveId(pilot.id));
     await this.dismiss();
-    maybeHideSidePane();
+    await maybeHideSidePane();
   }
 
   // Returns the templates for all the pilots.
