@@ -1,22 +1,50 @@
-import { League } from '../league';
-import { CzechEurope, CzechLocal, CzechOutEurope } from './czech';
-import { FrCfd } from './frcfd';
-import { Leonardo } from './leonardo';
-import { UKXCLClub, UKXCLInternational, UKXCLNational } from './ukxcl';
-import { WXC } from './wxc';
-import { NorwayLeague, XContest, XContestPPG } from './xcontest';
+import { ScoringRules } from '@flyxc/optimizer';
 
-export const LEAGUES: { [name: string]: League } = {
-  czl: new CzechLocal(),
-  cze: new CzechEurope(),
-  czo: new CzechOutEurope(),
-  fr: new FrCfd(),
-  leo: new Leonardo(),
-  nor: new NorwayLeague(),
-  ukc: new UKXCLClub(),
-  uki: new UKXCLInternational(),
-  ukn: new UKXCLNational(),
-  xc: new XContest(),
-  xcppg: new XContestPPG(),
-  wxc: new WXC(),
+// allowed league codes
+export const leagueCodes = ['czl', 'cze', 'czo', 'fr', 'leo', 'nor', 'ukc', 'uki', 'ukn', 'xc', 'xcppg', 'wxc'];
+export type LeagueCode = (typeof leagueCodes)[number];
+
+export const LEAGUES: Readonly<Record<LeagueCode, string>> = {
+  czl: 'Czech (ČPP local)',
+  cze: 'Czech (ČPP Europe)',
+  czo: 'Czech (ČPP outside Europe)',
+  fr: 'France (CFD)',
+  leo: 'Leonardo',
+  nor: 'Norway (Distanseligaen)',
+  ukc: 'UK (XC League, Club)',
+  uki: 'UK (XC League, International)',
+  ukn: 'UK (XC League, National)',
+  xc: 'XContest',
+  xcppg: 'XContest PPG',
+  wxc: 'World XC Online Contest',
 };
+
+export function getScoringRules(league: LeagueCode): ScoringRules {
+  switch (league) {
+    case 'czl':
+      return 'CzechLocal';
+    case 'cze':
+      return 'CzechEuropean';
+    case 'czo':
+      return 'CzechOutsideEurope';
+    case 'fr':
+      return 'FederationFrancaiseVolLibre';
+    case 'leo':
+      return 'Leonardo';
+    case 'nor':
+      return 'Norway';
+    case 'ukc':
+      return 'UnitedKingdomClub';
+    case 'uki':
+      return 'UnitedKingdomInternational';
+    case 'ukn':
+      return 'UnitedKingdomNational';
+    case 'xc':
+      return 'XContest';
+    case 'xcppg':
+      return 'XContestPPG';
+    case 'wxc':
+      return 'WorldXC';
+  }
+  throw Error('no corresponding rule for ' + league);
+}

@@ -22,7 +22,7 @@ export class PrefModal extends connect(store)(LitElement) {
   constructor() {
     super();
     Object.getOwnPropertyNames(LEAGUES).forEach((value) => {
-      this.leagues.push({ value, name: LEAGUES[value].name });
+      this.leagues.push({ value, name: LEAGUES[value] });
     });
     this.leagues.sort((a, b) => (a < b ? -1 : 1));
   }

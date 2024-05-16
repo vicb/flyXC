@@ -139,7 +139,7 @@ export class PlannerElement extends connect(store)(LitElement) {
         <div>
           <div>${this.score.circuit}</div>
           <div class="large">
-            ${unsafeHTML(units.formatUnit(this.score.distance / 1000, this.units.distance, undefined, 'unit'))}
+            ${unsafeHTML(units.formatUnit(this.score.distanceM / 1000, this.units.distance, undefined, 'unit'))}
           </div>
         </div>
         <div class="collapsible">

@@ -13,12 +13,12 @@ import { FaiSectors } from '../../gm/fai-sectors';
 import { addAltitude } from '../../logic/elevation';
 import { getCurrentUrl, pushCurrentState } from '../../logic/history';
 import { drawRoute } from '../../logic/messages';
-import { LEAGUES } from '../../logic/score/league/leagues';
-import { Measure } from '../../logic/score/measure';
 import { CircuitType, Score } from '../../logic/score/scorer';
 import { setDistance, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
 import { PlannerElement } from './planner-element';
+import { getOptimizer, ScoringTrack } from '@flyxc/optimizer';
+import { getScoringRules } from '../../logic/score/league/leagues';
 
 // Route color by circuit type.
 const ROUTE_STROKE_COLORS = {
@@ -191,18 +191,14 @@ export class PathElement extends connect(store)(LitElement) {
 
   // Optimize the route and draw the optimize lines and sectors.
   private optimize(): void {
-    if (!this.line || this.line.getPath().getLength() < 2) {
+    if (!this.line || this.line.getPath().getLength() < 2 || this.doNotSyncState) {
       return;
     }
     const line = this.line;
     store.dispatch(setDistance(google.maps.geometry.spherical.computeLength(line.getPath())));
 
     const points = this.getPathPoints();
-    const measure = new Measure(points);
-    const scores = LEAGUES[this.league].score(measure);
-
-    scores.sort((score1, score2) => score2.points - score1.points);
-    const score = scores[0];
+    const score = this.computeScore(points);
     store.dispatch(setScore(score));
 
     let optimizedPath = score.indexes.map((index) => new google.maps.LatLng(points[index].lat, points[index].lon));
@@ -229,10 +225,10 @@ export class PathElement extends connect(store)(LitElement) {
       this.closingSector.addListener('rightclick', (e) => this.appendToPath(e.latLng));
     }
 
-    if (score.closingRadius) {
+    if (score.closingRadiusM) {
       const center = points[score.indexes[0]];
       this.closingSector.center = center;
-      this.closingSector.radius = score.closingRadius;
+      this.closingSector.radius = score.closingRadiusM;
       this.closingSector.update();
       this.closingSector.setMap(this.map);
     } else {
@@ -254,12 +250,28 @@ export class PathElement extends connect(store)(LitElement) {
     this.postScoreToHost(score);
   }
 
+  private computeScore(points: LatLon[]): Score {
+    const track: ScoringTrack = {
+      points: points.map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 })),
+      startTimeSec: Math.round(new Date().getTime() / 1000),
+    };
+    const result = getOptimizer({ track }, getScoringRules(this.league)).next().value;
+    return new Score({
+      circuit: result.circuit,
+      distanceM: result.lengthKm * 1000,
+      multiplier: result.multiplier,
+      closingRadiusM: result.closingRadius ? result.closingRadius * 1000 : null,
+      indexes: result.solutionIndices,
+      points: result.score,
+    });
+  }
+
   // Sends a message to the iframe host with the changes.
   private postScoreToHost(score: Score) {
     let kms = '';
     let circuit = '';
-    if (score.distance && window.parent) {
-      kms = (score.distance / 1000).toFixed(1);
+    if (score.distanceM && window.parent) {
+      kms = (score.distanceM / 1000).toFixed(1);
       circuit = CIRCUIT_SHORT_NAME[score.circuit];
       if (score.circuit == CircuitType.OpenDistance) {
         circuit += score.indexes.length - 2;
