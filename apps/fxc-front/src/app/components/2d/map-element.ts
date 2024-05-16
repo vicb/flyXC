@@ -167,6 +167,7 @@ export class MapElement extends connect(store)(LitElement) {
             TopoSpain.mapTypeId,
           ],
           style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+          position: google.maps.ControlPosition.TOP_RIGHT,
         },
         mapId: '997ff70df48844a5',
       };
@@ -175,7 +176,7 @@ export class MapElement extends connect(store)(LitElement) {
 
       const controls = document.createElement('controls-element') as ControlsElement;
       controls.map = this.map;
-      this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controls);
+      this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(controls);
 
       if (!store.getState().browser.isFromFfvl) {
         const ad = document.createElement('a');

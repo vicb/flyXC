@@ -39,6 +39,15 @@ import * as sel from './app/redux/selectors';
 import { RootState, store } from './app/redux/store';
 import * as track from './app/redux/track-slice';
 
+export const SHOW_SPLIT_PANE_WHEN = `(min-width: 992px)`;
+
+/* Hides the side plane on small screens */
+export function maybeHideSidePane() {
+  const splitPane = document.querySelector('ion-split-pane');
+  if (splitPane) {
+    splitPane.when = SHOW_SPLIT_PANE_WHEN;
+  }
+}
 @customElement('fly-xc')
 export class FlyXc extends connect(store)(LitElement) {
   constructor() {
@@ -149,18 +158,10 @@ export class FlyXc extends connect(store)(LitElement) {
   private async handleDrop(e: DragEvent): Promise<void> {
     e.preventDefault();
     const files: Array<File | null> = [];
-    if (e.dataTransfer) {
-      if (e.dataTransfer.items) {
-        const items = e.dataTransfer.items;
-        for (let i = 0; i < items.length; i++) {
-          files.push(items[i].getAsFile());
-        }
-      } else if (e.dataTransfer.files) {
-        const fileList = e.dataTransfer.files;
-        for (let i = 0; i < fileList.length; i++) {
-          files.push(fileList[i]);
-        }
-      }
+    if (e.dataTransfer?.items) {
+      files.concat(Array.from(e.dataTransfer.items).map((i) => i.getAsFile()));
+    } else if (e.dataTransfer?.files) {
+      files.concat(Array.from(e.dataTransfer.files));
     }
     const actualFiles = files.filter((file) => file != null) as File[];
     if (actualFiles.length) {
@@ -187,19 +188,21 @@ export class MapsElement extends connect(store)(LitElement) {
   render(): TemplateResult {
     const clMap = classMap({ 'has-tracks': this.hasTrack });
 
-    return html`<ion-content id="main">
-        <ion-router-outlet class=${clMap}></ion-router-outlet>
-        ${when(
-          this.hasTrack,
-          () => html`<chart-element
-            class=${clMap}
-            @move=${(e: CustomEvent) => store.dispatch(app.setTimeSec(e.detail.timeSec))}
-            @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.timeSec))}
-            @zoom=${(e: CustomEvent) => msg.centerZoomMap.emit(this.coordinatesAt(e.detail.timeSec), e.detail.deltaY)}
-          ></chart-element>`,
-        )}
-      </ion-content>
-      <main-menu></main-menu>
+    return html` <ion-split-pane content-id="main" when=${SHOW_SPLIT_PANE_WHEN}>
+        <main-menu></main-menu>
+        <ion-content id="main">
+          <ion-router-outlet class=${clMap}></ion-router-outlet>
+          ${when(
+            this.hasTrack,
+            () => html`<chart-element
+              class=${clMap}
+              @move=${(e: CustomEvent) => store.dispatch(app.setTimeSec(e.detail.timeSec))}
+              @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.timeSec))}
+              @zoom=${(e: CustomEvent) => msg.centerZoomMap.emit(this.coordinatesAt(e.detail.timeSec), e.detail.deltaY)}
+            ></chart-element>`,
+          )}
+        </ion-content>
+      </ion-split-pane>
       <loader-element .show=${this.showLoader}></loader-element>`;
   }
 

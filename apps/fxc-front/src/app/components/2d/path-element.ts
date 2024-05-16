@@ -300,7 +300,7 @@ export class PathElement extends connect(store)(LitElement) {
     }
     if (!this.plannerElement) {
       const el = (this.plannerElement = document.createElement('planner-element') as PlannerElement);
-      map.controls[google.maps.ControlPosition.LEFT_TOP].push(el);
+      map.controls[google.maps.ControlPosition.RIGHT_TOP].push(el);
       el.addEventListener('close-flight', () => {
         const path = (this.line as google.maps.Polyline).getPath();
         const last = path.getAt(path.getLength() - 1);

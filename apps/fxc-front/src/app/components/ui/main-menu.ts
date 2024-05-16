@@ -1,5 +1,5 @@
 import { Class, Type, getClassName, getTypeName } from '@flyxc/common';
-import { ToggleCustomEvent, menuController, modalController, toastController } from '@ionic/core/components';
+import { SearchbarCustomEvent, ToggleCustomEvent, modalController, toastController } from '@ionic/core/components';
 import { LitElement, TemplateResult, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
@@ -36,6 +36,7 @@ import './supporter-modal';
 import { getApiKeyAndHost } from '../../apikey';
 import { geocode } from '@esri/arcgis-rest-geocoding';
 import { setDefaultRequestOptions } from '@esri/arcgis-rest-request';
+import { maybeHideSidePane } from '../../../flyxc';
 
 @customElement('main-menu')
 export class MainMenu extends connect(store)(LitElement) {
@@ -59,117 +60,110 @@ export class MainMenu extends connect(store)(LitElement) {
   }
 
   render(): TemplateResult {
-    return html`<style>
-        ion-item i.las {
-          margin-right: 5px;
-        }
-        .about-alert {
-          --max-width: 350px;
-        }
-        @keyframes spinner {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-        .spinner {
-          animation: spinner 1s linear infinite;
-        }
-      </style>
-      <ion-menu side="end" type="overlay" swipe-gesture="false" menu-id="main" content-id="main">
-        <ion-header>
-          <ion-toolbar color="light">
-            <ion-title>FlyXC.app</ion-title>
-            <ion-buttons slot="end">
-              <ion-menu-button><i class="las la-times"></i></ion-menu-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content>
-          <ion-list>
-            <view-items></view-items>
-            <track-items></track-items>
-            <live-items></live-items>
-            ${when(
-              !this.view3d,
-              () =>
-                html`<ion-item button lines="full" ?detail="false">
-                  <ion-toggle .checked=${this.plannerEnabled} @ionChange=${this.handlePlanner}
-                    ><i class="las la-drafting-compass la-2x val-mid"></i
-                    ><span class="val-mid">XC planning</span></ion-toggle
+    return html`<ion-menu swipe-gesture="false" menu-id="main" content-id="main">
+      <ion-header>
+        <ion-toolbar color="light">
+          <ion-title>FlyXC.app</ion-title>
+          <ion-buttons slot="end">
+            <ion-button @click=${this.closeSplitPane} shape="round">
+              <i class="las la-times"></i>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <ion-list>
+          <view-items></view-items>
+          <track-items></track-items>
+          <live-items></live-items>
+          ${when(
+            !this.view3d,
+            () =>
+              html`<ion-item button lines="full" ?detail="false">
+                <ion-toggle .checked=${this.plannerEnabled} @ionChange=${this.handlePlanner}
+                  ><i class="las la-drafting-compass la-2x val-mid"></i
+                  ><span class="val-mid">XC planning</span></ion-toggle
+                >
+              </ion-item>`,
+          )}
+          <skyways-items></skyways-items>
+          <airspace-items></airspace-items>
+          ${when(
+            this.view3d,
+            () =>
+              html`<ion-item lines="none"><i class="las la-mountain la-2x"></i>Altitude exaggeration</ion-item>
+                <ion-item @ionChange=${this.handleExaggeration}>
+                  <ion-range
+                    min="1"
+                    max="2.6"
+                    step="0.2"
+                    debounce="50"
+                    aria-label="Altitude exaggeration"
+                    value=${this.exaggeration}
+                    .pin=${true}
+                    .pinFormatter=${this.formatTimes}
+                  >
+                    <ion-label slot="start">1.0x</ion-label>
+                    <ion-label slot="end">2.6x</ion-label>
+                  </ion-range>
+                </ion-item>
+                <ion-item button lines="full" ?detail="false">
+                  <ion-toggle .checked=${this.sunEnabled} @ionChange=${this.handleSun}
+                    ><i class="las la-sun la-2x val-mid"></i><span class="val-mid">Sun lighting</span></ion-toggle
                   >
                 </ion-item>`,
-            )}
-            <skyways-items></skyways-items>
-            <airspace-items></airspace-items>
-            ${when(
-              this.view3d,
-              () =>
-                html`<ion-item lines="none"><i class="las la-mountain la-2x"></i>Altitude exaggeration</ion-item>
-                  <ion-item @ionChange=${this.handleExaggeration}>
-                    <ion-range
-                      min="1"
-                      max="2.6"
-                      step="0.2"
-                      debounce="50"
-                      aria-label="Altitude exaggeration"
-                      value=${this.exaggeration}
-                      .pin=${true}
-                      .pinFormatter=${this.formatTimes}
-                    >
-                      <ion-label slot="start">1.0x</ion-label>
-                      <ion-label slot="end">2.6x</ion-label>
-                    </ion-range>
-                  </ion-item>
-                  <ion-item button lines="full" ?detail="false">
-                    <ion-toggle .checked=${this.sunEnabled} @ionChange=${this.handleSun}
-                      ><i class="las la-sun la-2x val-mid"></i><span class="val-mid">Sun lighting</span></ion-toggle
-                    >
-                  </ion-item>`,
-            )}
-            <fullscreen-items></fullscreen-items>
-            <ion-item
-              button
-              @click=${() => requestCurrentPosition(true)}
-              .disabled=${this.requestingLocation}
-              ?detail="false"
-              lines="full"
-            >
-              <i class=${`las la-2x ${this.requestingLocation ? 'la-circle-notch spinner' : 'la-crosshairs'}`}></i
-              >Center on my location
-            </ion-item>
-            <ion-item button @click=${this.handleSounding} lines="full" ?detail="false">
-              <i class="las la-chart-line la-2x" style="transform: rotate(90deg)"></i>Sounding</ion-item
-            >
-            <ion-item button @click=${this.handlePreferences} lines="full" ?detail="true">
-              <i class="las la-cog la-2x"></i>Preferences</ion-item
-            >
-            <ion-item button @click=${this.handleAbout} lines="full" ?detail="false">
-              <i class="las la-info la-2x"></i>About</ion-item
-            >
-            <ion-item button @click=${this.handleSupport} lines="full" ?detail="true">
-              <i class="las la-hand-holding-usd la-2x"></i>Support flyxc</ion-item
-            >
-            <ion-item @lines="full" ?detail="false" class="social">
-              <a
-                href="https://www.facebook.com/flyxcapp"
-                target="_blank"
-                title="Find us on facebook"
-                slot="end"
-                rel="external"
-                ><i class="lab la-facebook la-2x"></i
-              ></a>
-              <a
-                href="https://github.com/vicb/flyxc"
-                target="_blank"
-                title="Find us on github"
-                slot="end"
-                rel="external"
-                ><i class="lab la-github la-2x"></i
-              ></a>
-            </ion-item>
-          </ion-list>
-        </ion-content>
-      </ion-menu>`;
+          )}
+          <fullscreen-items></fullscreen-items>
+          <ion-item
+            button
+            @click=${() => requestCurrentPosition(true)}
+            .disabled=${this.requestingLocation}
+            ?detail="false"
+            lines="full"
+          >
+            <i class=${`las la-2x ${this.requestingLocation ? 'la-circle-notch spinner' : 'la-crosshairs'}`}></i>Center
+            on my location
+          </ion-item>
+          <ion-item button @click=${this.handleSounding} lines="full" ?detail="false">
+            <i class="las la-chart-line la-2x" style="transform: rotate(90deg)"></i>Sounding</ion-item
+          >
+          <ion-item button @click=${this.handlePreferences} lines="full" ?detail="true">
+            <i class="las la-cog la-2x"></i>Preferences</ion-item
+          >
+          <ion-item button @click=${this.handleAbout} lines="full" ?detail="false">
+            <i class="las la-info la-2x"></i>About</ion-item
+          >
+          <ion-item button @click=${this.handleSupport} lines="full" ?detail="true">
+            <i class="las la-hand-holding-usd la-2x"></i>Support flyxc</ion-item
+          >
+          <ion-item @lines="full" ?detail="false" class="social">
+            <a
+              href="https://www.facebook.com/flyxcapp"
+              target="_blank"
+              title="Find us on facebook"
+              slot="start"
+              rel="external"
+              ><i class="lab la-facebook la-2x"></i
+            ></a>
+            <a
+              href="https://github.com/vicb/flyxc"
+              target="_blank"
+              title="Find us on github"
+              slot="start"
+              rel="external"
+              ><i class="lab la-github la-2x"></i
+            ></a>
+          </ion-item>
+        </ion-list>
+      </ion-content>
+    </ion-menu>`;
+  }
+
+  protected closeSplitPane() {
+    const splitPane = document.querySelector('ion-split-pane');
+    if (splitPane) {
+      splitPane.when = false;
+    }
   }
 
   protected createRenderRoot(): HTMLElement {
@@ -194,7 +188,7 @@ export class MainMenu extends connect(store)(LitElement) {
 
   private async handlePlanner() {
     if (!this.plannerEnabled) {
-      await menuController.close();
+      maybeHideSidePane();
     }
     store.dispatch(setEnabled(!this.plannerEnabled));
   }
@@ -481,21 +475,22 @@ export class ViewItems extends connect(store)(LitElement) {
       </ion-item>
       <ion-item>
         <ion-searchbar
-          placeholder="Search for a place"
+          placeholder="Go to"
           lines="full"
           ?detail="false"
           debounce="800"
-          @ionChange=${this.handleSearch}
-          @ionInput=${this.handleSearch}
+          @keydown=${(e: KeyboardEvent) =>
+            e.key === 'Enter' && this.handleSearch(e.target ? (e.target as HTMLIonSearchbarElement).value ?? '' : '')}
+          @ionChange=${(e: SearchbarCustomEvent) => this.handleSearch(e.detail.value ?? '')}
+          @ionInput=${(e: SearchbarCustomEvent) => this.handleSearch(e.detail.value ?? '')}
         >
         </ion-searchbar>
       </ion-item> `;
   }
 
-  private async handleSearch(event: CustomEvent) {
+  private async handleSearch(place: string) {
     const { lat, lon } = store.getState().location.location;
-    const place = event.detail.value.trim();
-    if (place.length < 2) {
+    if (place.trim().length < 2) {
       return;
     }
     const { candidates } = await geocode({
@@ -530,7 +525,7 @@ export class ViewItems extends connect(store)(LitElement) {
 
   private handleSwitch() {
     store.dispatch(setApiLoading(true));
-    menuController.close();
+    maybeHideSidePane();
   }
 
   protected createRenderRoot(): HTMLElement {
@@ -697,7 +692,7 @@ export class LiveTrackItems extends connect(store)(LitElement) {
         )}
       </ion-item>
       <ion-item button detail lines="none" @click=${this.handleConfig}>
-        <ion-label>Setup</ion-label>
+        <ion-label>Settings</ion-label>
       </ion-item>
       <ion-item lines="none" button ?detail="false">
         <ion-toggle .checked=${this.displayLabels} @ionChange=${this.handleDisplayNames}>Labels</ion-toggle>

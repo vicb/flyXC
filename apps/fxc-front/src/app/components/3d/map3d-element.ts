@@ -18,7 +18,6 @@ import SceneLayer from '@arcgis/core/layers/SceneLayer';
 import TileLayer from '@arcgis/core/layers/TileLayer';
 import VirtualLighting from '@arcgis/core/views/3d/environment/VirtualLighting';
 import SceneView from '@arcgis/core/views/SceneView';
-import NavigationToggle from '@arcgis/core/widgets/NavigationToggle';
 import Popup from '@arcgis/core/widgets/Popup';
 import IntegratedMesh3DTilesLayer from '@arcgis/core/layers/IntegratedMesh3DTilesLayer.js';
 import { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
@@ -205,7 +204,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     view.ui.remove('zoom');
 
     const controls = document.createElement('controls3d-element');
-    view.ui.add(controls, 'top-right');
+    view.ui.add(controls, 'top-left');
 
     if (!store.getState().browser.isFromFfvl) {
       const ad = document.createElement('a');
@@ -219,29 +218,16 @@ export class Map3dElement extends connect(store)(LitElement) {
     }
 
     const layerSwitcher = this.renderRoot.querySelector('#layers') as HTMLSelectElement;
-    view.ui.add(layerSwitcher, 'top-left');
-    view.ui.move([layerSwitcher, 'compass', 'navigation-toggle'], 'top-left');
+    view.ui.add(layerSwitcher, 'top-right');
+    view.ui.move([layerSwitcher, 'compass', 'navigation-toggle'], 'top-right');
 
     const skyways = document.createElement('skyways3d-element') as Skyways3dElement;
     skyways.map = this.map;
-    view.ui.add(skyways, 'top-right');
+    view.ui.add(skyways, 'top-left');
 
     this.airspace = document.createElement('airspace3d-element') as Airspace3dElement;
     this.airspace.map = this.map;
-    view.ui.add(this.airspace, 'top-right');
-
-    // "Control" key sets the navigation mode to "rotate".
-    const toggle = view.ui.find('navigation-toggle') as NavigationToggle;
-    view.on('key-down', (e: any) => {
-      if (e.key == 'Control' && !e.repeat) {
-        toggle.toggle();
-      }
-    });
-    view.on('key-up', (e: any) => {
-      if (e.key == 'Control') {
-        toggle.toggle();
-      }
-    });
+    view.ui.add(this.airspace, 'top-left');
 
     this.subscriptions.push(
       msg.centerMap.subscribe((ll) => this.center(ll)),

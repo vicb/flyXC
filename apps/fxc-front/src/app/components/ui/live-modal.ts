@@ -1,5 +1,5 @@
 import * as common from '@flyxc/common';
-import { menuController, modalController, toastController } from '@ionic/core/components';
+import { modalController, toastController } from '@ionic/core/components';
 import { getDistance } from 'geolib';
 import { LitElement, TemplateResult, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
@@ -11,6 +11,7 @@ import { LivePilot, getLivePilots, setCenterOnLocation, setCurrentLiveId } from 
 import { setCurrentLocation } from '../../redux/location-slice';
 import { RootState, store } from '../../redux/store';
 import { getUniqueContrastColor } from '../../styles/track';
+import { maybeHideSidePane } from '../../../flyxc';
 
 // Maximum number of pilots to list.
 const MAX_PILOTS = 200;
@@ -156,7 +157,7 @@ export class LiveModal extends connect(store)(LitElement) {
     msg.centerMap.emit(pilot.position);
     store.dispatch(setCurrentLiveId(pilot.id));
     await this.dismiss();
-    await menuController.close();
+    maybeHideSidePane();
   }
 
   // Returns the templates for all the pilots.

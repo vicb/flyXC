@@ -144,3 +144,30 @@ ion-item.social a {
   padding: 0;
   width: max-content;
 }
+
+.about-alert {
+  --max-width: 350px;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spinner 1s linear infinite;
+}
+
+main-menu ion-menu {
+  height: 100%;
+}
+
+ion-item i.las {
+  margin-right: 5px;
+}
+
+html {
+    scrollbar-color: var(--ion-color-light) transparent;
+    scrollbar-width: thin;
+}
