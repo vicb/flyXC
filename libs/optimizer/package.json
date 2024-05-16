@@ -1,0 +1,12 @@
+{
+  "name": "optimizer",
+  "version": "0.0.1",
+  "dependencies": {
+    "igc-xc-score": "^1.7.0",
+    "tslib": "^2.3.0"
+  },
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "typings": "./src/index.d.ts",
+  "private": true
+}
