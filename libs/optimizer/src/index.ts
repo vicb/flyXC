@@ -1,7 +1,6 @@
-export { getOptimizer } from './lib/optimizer';
+export { getOptimizer, CircuitType } from './lib/optimizer';
 export type {
   LatLonAltTime,
-  CircuitType,
   ScoringTrack,
   OptimizationResult,
   OptimizationOptions,

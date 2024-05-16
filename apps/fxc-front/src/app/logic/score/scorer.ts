@@ -1,15 +1,4 @@
-import { CircuitType as OptimizerCircuitType } from '@flyxc/optimizer';
-
-export enum CircuitType {
-  OpenDistance = 'Open distance',
-  FlatTriangle = 'Flat triangle',
-  FaiTriangle = 'Fai triangle',
-  OutAndReturn = 'Out and return',
-}
-
-export function getCircuitType(circuit?: OptimizerCircuitType) {
-  return circuit as unknown as CircuitType;
-}
+import { CircuitType } from '@flyxc/optimizer';
 
 export class Score {
   distanceM: number;

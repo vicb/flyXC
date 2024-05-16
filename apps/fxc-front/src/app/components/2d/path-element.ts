@@ -13,11 +13,11 @@ import { FaiSectors } from '../../gm/fai-sectors';
 import { addAltitude } from '../../logic/elevation';
 import { getCurrentUrl, pushCurrentState } from '../../logic/history';
 import { drawRoute } from '../../logic/messages';
-import { CircuitType, Score } from '../../logic/score/scorer';
+import { Score } from '../../logic/score/scorer';
 import { setDistance, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
 import { PlannerElement } from './planner-element';
-import { getOptimizer, ScoringTrack } from '@flyxc/optimizer';
+import { CircuitType, getOptimizer, ScoringTrack } from '@flyxc/optimizer';
 import { getScoringRules } from '../../logic/score/league/leagues';
 
 // Route color by circuit type.
