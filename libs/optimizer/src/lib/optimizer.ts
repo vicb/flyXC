@@ -9,18 +9,25 @@ import { LeagueCode, scoringRules } from './scoringRules';
 // we define it for the sake of clarity and define the minimal information required to invoke the scoreTrack function
 export type ScoringTrack = Pick<RuntimeTrack, 'lat' | 'lon' | 'alt' | 'timeSec' | 'minTimeSec'>;
 
+export interface OptimizationOptions {
+  maxCycle?: number;
+  maxLoop?: number;
+}
 export interface OptimizationRequest {
   track: ScoringTrack;
   league?: LeagueCode;
+  options?: OptimizationOptions;
 }
 
 // minimalistic for the moment. Will be improved in next iterations
 export interface OptimizationResult {
   score: number;
+  optimal: boolean;
 }
 
 const ZERO_SCORE: OptimizationResult = {
   score: 0,
+  optimal: true,
 };
 
 const MIN_POINTS = 5;
@@ -29,7 +36,7 @@ const MIN_POINTS = 5;
  * computes the score for the flight
  * @param request
  */
-export function optimize(request: OptimizationRequest): OptimizationResult {
+export function* optimize(request: OptimizationRequest): Iterator<OptimizationResult, OptimizationResult> {
   if (request.track.lat.length == 0) {
     console.warn('Empty track received in optimization request. Returns a 0 score');
     return ZERO_SCORE;
@@ -37,8 +44,16 @@ export function optimize(request: OptimizationRequest): OptimizationResult {
   const track = addPointsIfRequired(request.track);
   const flight = toIgcFile(track);
   const scoringRules = toScoringRules(request.league);
-  const solution = solver(flight, scoringRules).next();
-  return toResult(solution.value);
+  const options = toOptions(request.options);
+  const solutionIterator = solver(flight, scoringRules, options);
+  while (true) {
+    const solution = solutionIterator.next();
+    if (solution.done) {
+      console.debug(solution.value.processed, 'iterations');
+      return toResult(solution.value);
+    }
+    yield toResult(solution.value);
+  }
 }
 
 const NB_INTERVAL_PER_SEGMENT = 2;
@@ -75,10 +90,10 @@ function addPointsIfRequired(track: ScoringTrack) {
 
 /**
  * build a fake igc file from a track, so that the solver can use it
- * @param track: the source track
+ * @param track the source track
  */
 function toIgcFile(track: ScoringTrack): IGCFile {
-  const fixes = track.lat.map((lat, i) => {
+  const fixes = track.lat.map((_lat, i) => {
     const timeMilliseconds = track.timeSec[i] * 1000;
     return {
       timestamp: timeMilliseconds,
@@ -108,10 +123,18 @@ function toScoringRules(league: LeagueCode) {
   return scoringRules.get(LeagueCode.FFVL);
 }
 
+type SolverOptions = { maxloop?: number; maxcycle?: number };
+
+function toOptions(options?: OptimizationOptions): SolverOptions {
+  return {
+    maxcycle: options?.maxCycle,
+    maxloop: options?.maxLoop,
+  };
+}
 
 function toResult(solution: Solution): OptimizationResult {
   return {
     score: solution.score,
+    optimal: solution.optimal,
   };
 }
-

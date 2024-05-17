@@ -1,12 +1,14 @@
-import { optimize } from './optimizer';
+import { OptimizationResult, optimize } from './optimizer';
 import {
   closedFaiTriangleFixture,
+  closedFaiTriangleFixtureWithSmallCycle, closedFaiTriangleFixtureWithSmallLoop,
   closedFlatTriangleFixture,
   emptyTrackFixture,
   freeDistance1PointFixture,
   freeDistance2PointsFixture,
   freeDistance3PointsFixture,
   freeDistanceFixture,
+  OptimizerFixture,
 } from './fixtures/optimizer.fixtures';
 import { LeagueCode } from './scoringRules';
 
@@ -14,7 +16,7 @@ describe('optimizer', () => {
   describe('given an empty request', () => {
     const fixture = emptyTrackFixture();
     it('should return a 0 score', () => {
-      expect(optimize(fixture.givenRequest).score).toEqual(fixture.expectedResult.score);
+      expectOptimizationIsAsExpected(fixture);
     });
   });
   [
@@ -32,17 +34,14 @@ describe('optimizer', () => {
     LeagueCode.WXC,
     undefined,
   ].forEach((league) => {
-
     describe(LeagueCode[league] + ' rules', () => {
-
       const noSplitIntervals = 1;
       const tenSplitIntervals = 10;
       [noSplitIntervals, tenSplitIntervals].forEach((intervals) => {
-
         describe('given a free distance request (' + intervals + ' interval(s)/branch)', () => {
           const fixture = freeDistanceFixture({ lat: 45, lon: 5 }, { lat: 45, lon: 6 }, intervals, league);
           it('should return the expected score', () => {
-            expect(optimize(fixture.givenRequest).score).toBeCloseTo(fixture.expectedResult.score, 1);
+            expectOptimizationIsAsExpected(fixture);
           });
         });
 
@@ -57,7 +56,7 @@ describe('optimizer', () => {
               league,
             );
             it('should return the expected score', () => {
-              expect(optimize(fixture.givenRequest).score).toBeCloseTo(fixture.expectedResult.score, 1);
+              expectOptimizationIsAsExpected(fixture);
             });
           },
         );
@@ -74,7 +73,7 @@ describe('optimizer', () => {
               league,
             );
             it('should return the expected score (' + intervals + ' interval(s)/branch)', () => {
-              expect(optimize(fixture.givenRequest).score).toBeCloseTo(fixture.expectedResult.score, 1);
+              expectOptimizationIsAsExpected(fixture);
             });
           },
         );
@@ -92,7 +91,7 @@ describe('optimizer', () => {
               league,
             );
             it('should return the expected score', () => {
-              expect(optimize(fixture.givenRequest).score).toBeCloseTo(fixture.expectedResult.score, 1);
+              expectOptimizationIsAsExpected(fixture);
             });
           },
         );
@@ -106,17 +105,53 @@ describe('optimizer', () => {
             league,
           );
           it('should return the expected score', () => {
-            expect(optimize(fixture.givenRequest).score).toBeCloseTo(fixture.expectedResult.score, 1);
+            expectOptimizationIsAsExpected(fixture);
           });
         });
 
         describe('given a closed FAI triangle request (' + intervals + ' interval(s)/branch)', () => {
           const fixture = closedFaiTriangleFixture({ lat: 45, lon: 5 }, { lat: 45, lon: 6 }, intervals, league);
           it('should return the expected score', () => {
-            expect(optimize(fixture.givenRequest).score).toBeCloseTo(fixture.expectedResult.score, 1);
+            expectOptimizationIsAsExpected(fixture);
           });
         });
       });
     });
   });
+
+  describe('given a closed FAI triangle request (10 interval/branch) with minimal cycle allowed', () => {
+    const fixture = closedFaiTriangleFixtureWithSmallCycle(
+      { lat: 45, lon: 5 },
+      { lat: 45, lon: 6 },
+      9,
+      LeagueCode.FFVL,
+    );
+    it('should return the expected score', () => {
+      expectOptimizationIsAsExpected(fixture);
+    });
+  });
+
+
+  describe('given a closed FAI triangle request (10 interval/branch) with minimal loop allowed', () => {
+    const fixture = closedFaiTriangleFixtureWithSmallLoop(
+      { lat: 45, lon: 5 },
+      { lat: 45, lon: 6 },
+      9,
+      LeagueCode.FFVL,
+    );
+    it('should return the expected score', () => {
+      expectOptimizationIsAsExpected(fixture);
+    });
+  });
+
+  function expectOptimizationIsAsExpected(fixture: OptimizerFixture) {
+    const optimization = optimize(fixture.givenRequest);
+    let currentResult: IteratorResult<OptimizationResult, OptimizationResult>,
+      done = false;
+    while (!done) {
+      currentResult = optimization.next();
+      done = currentResult.value.optimal;
+    }
+    expect(currentResult.value.score).toBeCloseTo(fixture.expectedResult.score, 1);
+  }
 });

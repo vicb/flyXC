@@ -5,7 +5,7 @@ import { splitSegment } from '../utils/splitSegment';
 import { concatTracks } from '../utils/concatTracks';
 import { LeagueCode } from '../scoringRules';
 
-type OptimizerFixture = {
+export type OptimizerFixture = {
   givenRequest: OptimizationRequest;
   expectedResult: OptimizationResult;
 };
@@ -17,6 +17,7 @@ export function emptyTrackFixture(): OptimizerFixture {
     },
     expectedResult: {
       score: 0,
+      optimal: true,
     },
   };
 }
@@ -35,6 +36,7 @@ export function freeDistanceFixture(
     },
     expectedResult: {
       score: (getPreciseDistance(from, to) / 1000) * multiplier,
+      optimal: true,
     },
   };
 }
@@ -58,6 +60,7 @@ export function freeDistance1PointFixture(
       score:
         ((getPreciseDistance(from, intermediate) + getPreciseDistance(intermediate, to)) / 1000) *
         freeDistanceMultiplier(league),
+      optimal: true,
     },
   };
 }
@@ -90,6 +93,7 @@ export function freeDistance2PointsFixture(
           getPreciseDistance(intermediate2, to)) /
           1000) *
         freeDistanceMultiplier(league),
+      optimal: true,
     },
   };
 }
@@ -129,6 +133,7 @@ export function freeDistance3PointsFixture(
           getPreciseDistance(intermediate3, to)) /
           1000) *
         freeDistanceMultiplier(league),
+      optimal: true,
     },
   };
 }
@@ -162,6 +167,42 @@ export function closedFaiTriangleFixture(
   }
   const multiplier = faiTriangleMultiplier(league);
   return triangleFixture(start, p1, p2, nbIntervals, league, multiplier);
+}
+
+export function closedFaiTriangleFixtureWithSmallCycle(
+  start: LatLon,
+  p1: LatLon,
+  nbIntervals: number,
+  league: LeagueCode,
+):OptimizerFixture {
+  const standardFixture = closedFaiTriangleFixture(start,p1,nbIntervals,league);
+  return {
+    givenRequest: {
+      ...standardFixture.givenRequest,
+      options: {
+        maxCycle: 1,
+      },
+    },
+    expectedResult: standardFixture.expectedResult,
+  };
+}
+
+export function closedFaiTriangleFixtureWithSmallLoop(
+  start: LatLon,
+  p1: LatLon,
+  nbIntervals: number,
+  league: LeagueCode,
+):OptimizerFixture {
+  const standardFixture = closedFaiTriangleFixture(start,p1,nbIntervals,league);
+  return {
+    givenRequest: {
+      ...standardFixture.givenRequest,
+      options: {
+        maxLoop: 10,
+      },
+    },
+    expectedResult: standardFixture.expectedResult,
+  };
 }
 
 function freeDistanceMultiplier(league: LeagueCode) {
@@ -220,9 +261,9 @@ function faiTriangleMultiplier(league: LeagueCode) {
 }
 
 function isFAI(p1: LatLon, p2: LatLon, p3: LatLon) {
-  const distance1 = getPreciseDistance(p1,p2);
-  const distance2 = getPreciseDistance(p2,p3);
-  const distance3 = getPreciseDistance(p3,p1);
+  const distance1 = getPreciseDistance(p1, p2);
+  const distance2 = getPreciseDistance(p2, p3);
+  const distance3 = getPreciseDistance(p3, p1);
   const totalDistance = distance1 + distance2 + distance3;
   const minDistance = Math.min(distance1, distance2, distance3);
   const threshold = totalDistance * 0.28;
@@ -252,6 +293,7 @@ function triangleFixture(
     },
     expectedResult: {
       score: expectedScore,
+      optimal: true,
     },
   };
 }
