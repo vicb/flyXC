@@ -1,25 +1,21 @@
-import { LatLonAlt } from '@flyxc/common';
 import { ScoringTrack } from '../optimizer';
 
-export type LatLonAltTime = LatLonAlt & { timeSec: number };
+export type LatLonAltTime = { alt: number; lat: number; lon: number; timeSec: number };
 
 /**
- * Split a segment into a given number of intervals.
+ * Create segments between 2 points.
  * Added points are computed by a linear interpolation
  * @param from start point of the segment
  * @param to end point
- * @param nbIntervals number of intervals in the results. If nbIntervals <= 1 the result contains only 'from' and 'to'
+ * @param nbSegments number of segments created. If nbSegments <= 1 the result contains one segment ('from' -> 'to')
+ * @return a ScoringTrack of nbSegments
  */
-export function splitSegment(
-  from: LatLonAltTime,
-  to: LatLonAltTime,
-  nbIntervals: number,
-): ScoringTrack {
+export function createSegments(from: LatLonAltTime, to: LatLonAltTime, nbSegments: number): ScoringTrack {
   const result: ScoringTrack = { alt: [], lat: [], lon: [], minTimeSec: 0, timeSec: [] };
 
   appendToResult(from);
 
-  if (nbIntervals > 1){
+  if (nbSegments > 1) {
     appendIntermediatePoints();
   }
   appendToResult(to);
@@ -33,11 +29,11 @@ export function splitSegment(
   }
 
   function appendIntermediatePoints() {
-    const deltaLat = (to.lat - from.lat) / nbIntervals;
-    const deltaLon = (to.lon - from.lon) / nbIntervals;
-    const deltaAlt = (to.alt - from.alt) / nbIntervals;
-    const deltaTimeSec = (to.timeSec - from.timeSec) / nbIntervals;
-    for (let index = 1; index < nbIntervals; index++) {
+    const deltaLat = (to.lat - from.lat) / nbSegments;
+    const deltaLon = (to.lon - from.lon) / nbSegments;
+    const deltaAlt = (to.alt - from.alt) / nbSegments;
+    const deltaTimeSec = (to.timeSec - from.timeSec) / nbSegments;
+    for (let index = 1; index < nbSegments; index++) {
       appendToResult({
         lat: from.lat + deltaLat * index,
         lon: from.lon + deltaLon * index,

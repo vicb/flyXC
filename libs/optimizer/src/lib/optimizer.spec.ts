@@ -36,73 +36,14 @@ describe('optimizer', () => {
     undefined,
   ].forEach((league?) => {
     describe(LeagueCode[league] + ' rules', () => {
-      const noSplitIntervals = 1;
-      const tenSplitIntervals = 10;
-      [noSplitIntervals, tenSplitIntervals].forEach((intervals) => {
-        describe('given a free distance request (' + intervals + ' interval(s)/branch)', () => {
-          const fixture = createFreeDistanceFixture({ lat: 45, lon: 5 }, { lat: 45, lon: 6 }, intervals, league);
-          it('should return the expected score', () => {
-            expectOptimizationIsAsExpected(fixture);
-          });
-        });
-
-        describe(
-          'given a free distance with 1 intermediate point request (' + intervals + ' interval(s)/branch)',
-          () => {
-            const fixture = createFreeDistance1PointFixture(
-              { lat: 45, lon: 5 },
-              { lat: 45, lon: 6 },
-              { lat: 46, lon: 6 },
-              intervals,
-              league,
-            );
-            it('should return the expected score', () => {
-              expectOptimizationIsAsExpected(fixture);
-            });
-          },
-        );
-
-        describe(
-          'given a free distance with 2 intermediate points request (' + intervals + ' interval(s)/branch)',
-          () => {
-            const fixture = createFreeDistance2PointsFixture(
-              { lat: 45, lon: 5 },
-              { lat: 45, lon: 6 },
-              { lat: 46, lon: 6 },
-              { lat: 46, lon: 5 },
-              intervals,
-              league,
-            );
-            it('should return the expected score (' + intervals + ' interval(s)/branch)', () => {
-              expectOptimizationIsAsExpected(fixture);
-            });
-          },
-        );
-
-        describe(
-          'given a free distance with 3 intermediate points request (' + intervals + ' interval(s)/branch)',
-          () => {
-            const fixture = createFreeDistance3PointsFixture(
-              { lat: 45, lon: 5 },
-              { lat: 45, lon: 6 },
-              { lat: 46, lon: 6 },
-              { lat: 46, lon: 5 },
-              { lat: 47, lon: 5 },
-              intervals,
-              league,
-            );
-            it('should return the expected score', () => {
-              expectOptimizationIsAsExpected(fixture);
-            });
-          },
-        );
-
-        describe('given a closed flat triangle request (' + intervals + ' interval(s)/branch)', () => {
-          const fixture = createClosedFlatTriangleFixture(
+      const oneSegmentPerBranch = 1;
+      const tenSegmentsPerBranch = 10;
+      [oneSegmentPerBranch, tenSegmentsPerBranch].forEach((nbSegmentsPerBranch) => {
+        describe('given a free distance request (' + nbSegmentsPerBranch + ' segments(s)/branch)', () => {
+          const fixture = createFreeDistanceFixture(
             { lat: 45, lon: 5 },
             { lat: 45, lon: 6 },
-            { lat: 45.2, lon: 6 },
-            intervals,
+            nbSegmentsPerBranch,
             league,
           );
           it('should return the expected score', () => {
@@ -110,8 +51,77 @@ describe('optimizer', () => {
           });
         });
 
-        describe('given a closed FAI triangle request (' + intervals + ' interval(s)/branch)', () => {
-          const fixture = createClosedFaiTriangleFixture({ lat: 45, lon: 5 }, { lat: 45, lon: 6 }, intervals, league);
+        describe(
+          'given a free distance with 1 intermediate point request (' + nbSegmentsPerBranch + ' segment(s)/branch)',
+          () => {
+            const fixture = createFreeDistance1PointFixture(
+              { lat: 45, lon: 5 },
+              { lat: 45, lon: 6 },
+              { lat: 46, lon: 6 },
+              nbSegmentsPerBranch,
+              league,
+            );
+            it('should return the expected score', () => {
+              expectOptimizationIsAsExpected(fixture);
+            });
+          },
+        );
+
+        describe(
+          'given a free distance with 2 intermediate points request (' + nbSegmentsPerBranch + ' segment(s)/branch)',
+          () => {
+            const fixture = createFreeDistance2PointsFixture(
+              { lat: 45, lon: 5 },
+              { lat: 45, lon: 6 },
+              { lat: 46, lon: 6 },
+              { lat: 46, lon: 5 },
+              nbSegmentsPerBranch,
+              league,
+            );
+            it('should return the expected score (' + nbSegmentsPerBranch + ' segment(s)/branch)', () => {
+              expectOptimizationIsAsExpected(fixture);
+            });
+          },
+        );
+
+        describe(
+          'given a free distance with 3 intermediate points request (' + nbSegmentsPerBranch + ' segment(s)/branch)',
+          () => {
+            const fixture = createFreeDistance3PointsFixture(
+              { lat: 45, lon: 5 },
+              { lat: 45, lon: 6 },
+              { lat: 46, lon: 6 },
+              { lat: 46, lon: 5 },
+              { lat: 47, lon: 5 },
+              nbSegmentsPerBranch,
+              league,
+            );
+            it('should return the expected score', () => {
+              expectOptimizationIsAsExpected(fixture);
+            });
+          },
+        );
+
+        describe('given a closed flat triangle request (' + nbSegmentsPerBranch + ' segment(s)/branch)', () => {
+          const fixture = createClosedFlatTriangleFixture(
+            { lat: 45, lon: 5 },
+            { lat: 45, lon: 6 },
+            { lat: 45.2, lon: 6 },
+            nbSegmentsPerBranch,
+            league,
+          );
+          it('should return the expected score', () => {
+            expectOptimizationIsAsExpected(fixture);
+          });
+        });
+
+        describe('given a closed FAI triangle request (' + nbSegmentsPerBranch + ' segment(s)/branch)', () => {
+          const fixture = createClosedFaiTriangleFixture(
+            { lat: 45, lon: 5 },
+            { lat: 45, lon: 6 },
+            nbSegmentsPerBranch,
+            league,
+          );
           it('should return the expected score', () => {
             expectOptimizationIsAsExpected(fixture);
           });
@@ -120,7 +130,7 @@ describe('optimizer', () => {
     });
   });
 
-  describe('given a closed FAI triangle request (10 interval/branch) with minimal cycle allowed', () => {
+  describe('given a closed FAI triangle request (10 segments/branch) with minimal cycle allowed', () => {
     const fixture = createClosedFaiTriangleFixtureWithSmallCycle(
       { lat: 45, lon: 5 },
       { lat: 45, lon: 6 },
@@ -132,7 +142,7 @@ describe('optimizer', () => {
     });
   });
 
-  describe('given a closed FAI triangle request (10 interval/branch) with minimal loop allowed', () => {
+  describe('given a closed FAI triangle request (10 segments/branch) with minimal loop allowed', () => {
     const fixture = createClosedFaiTriangleFixtureWithSmallLoop(
       { lat: 45, lon: 5 },
       { lat: 45, lon: 6 },

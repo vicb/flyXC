@@ -1,6 +1,6 @@
 import { Solution, solver } from 'igc-xc-score';
 import { BRecord, IGCFile } from 'igc-parser';
-import { splitSegment } from './utils/splitSegment';
+import { createSegments } from './utils/createSegments';
 import { concatTracks } from './utils/concatTracks';
 import { LeagueCode, scoringRules } from './scoringRules';
 
@@ -85,7 +85,7 @@ export function* optimize(request: OptimizationRequest): Iterator<OptimizationRe
   }
 }
 
-const NB_INTERVAL_PER_SEGMENT = 2;
+const NB_SEGMENTS_BETWEEN_POINTS = 2;
 
 /**
  * the solver requires at least 5 points, so if there is not enough points,
@@ -100,7 +100,7 @@ function addPointsIfRequired(track: ScoringTrack) {
     const segments: ScoringTrack[] = [];
     for (let i = 1; i < newTrack.lat.length; i++) {
       // split each segment of the track into two segments
-      segments.push(splitSegment(getPoint(i - 1), getPoint(i), NB_INTERVAL_PER_SEGMENT));
+      segments.push(createSegments(getPoint(i - 1), getPoint(i), NB_SEGMENTS_BETWEEN_POINTS));
     }
     newTrack = concatTracks(...segments);
   }

@@ -1,6 +1,6 @@
 import { OptimizationRequest, OptimizationResult } from '../optimizer';
 import { computeDestinationPoint, getGreatCircleBearing, getPreciseDistance } from 'geolib';
-import { splitSegment } from '../utils/splitSegment';
+import { createSegments } from '../utils/createSegments';
 import { concatTracks } from '../utils/concatTracks';
 import { LeagueCode } from '../scoringRules';
 
@@ -42,19 +42,19 @@ export type LatLon = {
  * @returns a fixture for a free distance track and it's expected score
  * @param from LatLon of the starting point of the free distance
  * @param to LatLon of the ending point of the free distance
- * @param nbIntervals number of intervals to add between the two points
+ * @param nbSegments number of segments to create between the two points
  * @param league the LeagueCode for computing the score
  */
 export function createFreeDistanceFixture(
   from: LatLon,
   to: LatLon,
-  nbIntervals: number,
+  nbSegments: number,
   league?: LeagueCode,
 ): OptimizerFixture {
   const multiplier = getFreeDistanceMultiplier(league);
   return {
     givenRequest: {
-      track: splitSegment({ ...from, alt: 0, timeSec: 0 }, { ...to, alt: 0, timeSec: 60 }, nbIntervals),
+      track: createSegments({ ...from, alt: 0, timeSec: 0 }, { ...to, alt: 0, timeSec: 60 }, nbSegments),
       league,
     },
     expectedResult: {
@@ -70,21 +70,21 @@ export function createFreeDistanceFixture(
  * @param from LatLon of the starting point of the free distance
  * @param intermediate LatLon of the intermediate bypass point
  * @param to LatLon of the ending point of the free distance
- * @param nbIntervals number of intervals to add between each given points
+ * @param nbSegments number of segments to create between each given points
  * @param league the LeagueCode for computing the score
  */
 export function createFreeDistance1PointFixture(
   from: LatLon,
   intermediate: LatLon,
   to: LatLon,
-  nbIntervals: number,
+  nbSegments: number,
   league?: LeagueCode,
 ): OptimizerFixture {
   return {
     givenRequest: {
       track: concatTracks(
-        splitSegment({ ...from, alt: 0, timeSec: 0 }, { ...intermediate, alt: 0, timeSec: 60 }, nbIntervals),
-        splitSegment({ ...intermediate, alt: 0, timeSec: 60 }, { ...to, alt: 0, timeSec: 120 }, nbIntervals),
+        createSegments({ ...from, alt: 0, timeSec: 0 }, { ...intermediate, alt: 0, timeSec: 60 }, nbSegments),
+        createSegments({ ...intermediate, alt: 0, timeSec: 60 }, { ...to, alt: 0, timeSec: 120 }, nbSegments),
       ),
       league,
     },
@@ -104,7 +104,7 @@ export function createFreeDistance1PointFixture(
  * @param intermediate1 LatLon of the first intermediate bypass point
  * @param intermediate2 LatLon of the second intermediate bypass point
  * @param to LatLon of the ending point of the free distance
- * @param nbIntervals number of intervals to add between each given points
+ * @param nbSegments number of segments to create between each given points
  * @param league the LeagueCode for computing the score
  */
 export function createFreeDistance2PointsFixture(
@@ -112,19 +112,19 @@ export function createFreeDistance2PointsFixture(
   intermediate1: LatLon,
   intermediate2: LatLon,
   to: LatLon,
-  nbIntervals: number,
+  nbSegments: number,
   league?: LeagueCode,
 ): OptimizerFixture {
   return {
     givenRequest: {
       track: concatTracks(
-        splitSegment({ ...from, alt: 0, timeSec: 0 }, { ...intermediate1, alt: 0, timeSec: 60 }, nbIntervals),
-        splitSegment(
+        createSegments({ ...from, alt: 0, timeSec: 0 }, { ...intermediate1, alt: 0, timeSec: 60 }, nbSegments),
+        createSegments(
           { ...intermediate1, alt: 0, timeSec: 60 },
           { ...intermediate2, alt: 0, timeSec: 120 },
-          nbIntervals,
+          nbSegments,
         ),
-        splitSegment({ ...intermediate2, alt: 0, timeSec: 120 }, { ...to, alt: 0, timeSec: 180 }, nbIntervals),
+        createSegments({ ...intermediate2, alt: 0, timeSec: 120 }, { ...to, alt: 0, timeSec: 180 }, nbSegments),
       ),
       league,
     },
@@ -148,7 +148,7 @@ export function createFreeDistance2PointsFixture(
  * @param intermediate2 LatLon of the second intermediate bypass point
  * @param intermediate3 LatLon of the third intermediate bypass point
  * @param to LatLon of the ending point of the free distance
- * @param nbIntervals number of intervals to add between each given points
+ * @param nbSegments number of segments to create between each given points
  * @param league the LeagueCode for computing the score
  */
 export function createFreeDistance3PointsFixture(
@@ -157,24 +157,24 @@ export function createFreeDistance3PointsFixture(
   intermediate2: LatLon,
   intermediate3: LatLon,
   to: LatLon,
-  nbIntervals: number,
+  nbSegments: number,
   league?: LeagueCode,
 ): OptimizerFixture {
   return {
     givenRequest: {
       track: concatTracks(
-        splitSegment({ ...from, alt: 0, timeSec: 0 }, { ...intermediate1, alt: 0, timeSec: 60 }, nbIntervals),
-        splitSegment(
+        createSegments({ ...from, alt: 0, timeSec: 0 }, { ...intermediate1, alt: 0, timeSec: 60 }, nbSegments),
+        createSegments(
           { ...intermediate1, alt: 0, timeSec: 60 },
           { ...intermediate2, alt: 0, timeSec: 120 },
-          nbIntervals,
+          nbSegments,
         ),
-        splitSegment(
+        createSegments(
           { ...intermediate2, alt: 0, timeSec: 120 },
           { ...intermediate3, alt: 0, timeSec: 180 },
-          nbIntervals,
+          nbSegments,
         ),
-        splitSegment({ ...intermediate3, alt: 0, timeSec: 180 }, { ...to, alt: 0, timeSec: 240 }, nbIntervals),
+        createSegments({ ...intermediate3, alt: 0, timeSec: 180 }, { ...to, alt: 0, timeSec: 240 }, nbSegments),
       ),
       league,
     },
@@ -197,21 +197,21 @@ export function createFreeDistance3PointsFixture(
  * @param start LatLon of the starting point of the flat triangle (first point of the triangle)
  * @param p1 LatLon of the second point of the triangle
  * @param p2 LatLon of the third point of the triangle
- * @param nbIntervals number of intervals to add between each given points
+ * @param nbSegments number of segments to create between each given points
  * @param league the LeagueCode for computing the score
  */
 export function createClosedFlatTriangleFixture(
   start: LatLon,
   p1: LatLon,
   p2: LatLon,
-  nbIntervals: number,
+  nbSegments: number,
   league?: LeagueCode,
 ): OptimizerFixture {
   if (isFAI(start, p1, p2)) {
     throw new Error('invalid test data: not a flat triangle');
   }
   const multiplier = getFlatTriangleMultiplier(league);
-  return createTriangleFixture(start, p1, p2, nbIntervals, league, multiplier);
+  return createTriangleFixture(start, p1, p2, nbSegments, league, multiplier);
 }
 
 /**
@@ -219,7 +219,7 @@ export function createClosedFlatTriangleFixture(
  * @returns a fixture for a FAI triangle track and it's expected score
  * @param start LatLon of the starting point of the flat triangle (first point of the triangle)
  * @param p1 LatLon of the second point of the triangle
- * @param nbIntervals number of intervals to add between each given points
+ * @param nbSegments number of segments to create between each given points
  * @param league the LeagueCode for computing the score
  *
  * The third point of the triangle is computed so that the triangle is equilateral
@@ -227,7 +227,7 @@ export function createClosedFlatTriangleFixture(
 export function createClosedFaiTriangleFixture(
   start: LatLon,
   p1: LatLon,
-  nbIntervals: number,
+  nbSegments: number,
   league?: LeagueCode,
 ): OptimizerFixture {
   const distance1 = getPreciseDistance(start, p1);
@@ -239,7 +239,7 @@ export function createClosedFaiTriangleFixture(
     throw new Error('invalid test data: not a FAI triangle');
   }
   const multiplier = getFaiTriangleMultiplier(league);
-  return createTriangleFixture(start, p1, p2, nbIntervals, league, multiplier);
+  return createTriangleFixture(start, p1, p2, nbSegments, league, multiplier);
 }
 
 /**
@@ -367,7 +367,7 @@ function createTriangleFixture(
   start: LatLon,
   p1: LatLon,
   p2: { lon: number; lat: number },
-  nbIntervals: number,
+  nbSegments: number,
   league: LeagueCode,
   multiplier: number,
 ) {
@@ -378,9 +378,9 @@ function createTriangleFixture(
   return {
     givenRequest: {
       track: concatTracks(
-        splitSegment({ ...start, alt: 0, timeSec: 0 }, { ...p1, alt: 0, timeSec: 60 }, nbIntervals),
-        splitSegment({ ...p1, alt: 0, timeSec: 60 }, { ...p2, alt: 0, timeSec: 120 }, nbIntervals),
-        splitSegment({ ...p2, alt: 0, timeSec: 120 }, { ...start, alt: 0, timeSec: 180 }, nbIntervals),
+        createSegments({ ...start, alt: 0, timeSec: 0 }, { ...p1, alt: 0, timeSec: 60 }, nbSegments),
+        createSegments({ ...p1, alt: 0, timeSec: 60 }, { ...p2, alt: 0, timeSec: 120 }, nbSegments),
+        createSegments({ ...p2, alt: 0, timeSec: 120 }, { ...start, alt: 0, timeSec: 180 }, nbSegments),
       ),
       league,
     },
