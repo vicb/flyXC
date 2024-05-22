@@ -8,7 +8,7 @@ export type LatLonAltTime = LatLonAlt & { timeSec: number };
  * Added points are computed by a linear interpolation
  * @param from start point of the segment
  * @param to end point
- * @param nbIntervals number of intervals in the results. If nbIntervals <= 1
+ * @param nbIntervals number of intervals in the results. If nbIntervals <= 1 the result contains only 'from' and 'to'
  */
 export function splitSegment(
   from: LatLonAltTime,
