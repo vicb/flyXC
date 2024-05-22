@@ -15,21 +15,12 @@ export function concatTracks(...tracks: ScoringTrack[]): ScoringTrack {
     minTimeSec: 0,
   };
 
-  function concat(track: ScoringTrack) {
-    const concatLastIndex = concatenated.lat.length - 1;
-    const lastLat = concatLastIndex >= 0 ? concatenated.lat[concatLastIndex] : undefined;
-    const lastLon = concatLastIndex >= 0 ? concatenated.lon[concatLastIndex] : undefined;
-    const trackFirstLat = track.lat[0];
-    const trackFirstLon = track.lon[0];
-    const skipFirstPoint = lastLat === trackFirstLat && lastLon === trackFirstLon;
+  for (const track of tracks) {
+    const skipFirstPoint = concatenated.lat.at(-1) === track.lat[0] && concatenated.lat.at(-1) === track.lat[0];
     for (const key of ['lat', 'lon', 'alt', 'timeSec']) {
-      const arrayToConcat = skipFirstPoint ? track[key].slice(1): track[key]
+      const arrayToConcat = skipFirstPoint ? track[key].slice(1) : track[key];
       concatenated[key] = concatenated[key].concat(arrayToConcat);
     }
-  }
-
-  for (const track of tracks) {
-    concat(track);
   }
   return concatenated;
 }
