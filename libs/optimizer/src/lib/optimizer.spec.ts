@@ -1,20 +1,21 @@
 import { OptimizationResult, optimize } from './optimizer';
 import {
-  closedFaiTriangleFixture,
-  closedFaiTriangleFixtureWithSmallCycle, closedFaiTriangleFixtureWithSmallLoop,
-  closedFlatTriangleFixture,
-  emptyTrackFixture,
-  freeDistance1PointFixture,
-  freeDistance2PointsFixture,
-  freeDistance3PointsFixture,
-  freeDistanceFixture,
+  createClosedFaiTriangleFixture,
+  createClosedFaiTriangleFixtureWithSmallCycle,
+  createClosedFaiTriangleFixtureWithSmallLoop,
+  createClosedFlatTriangleFixture,
+  createEmptyTrackFixture,
+  createFreeDistance1PointFixture,
+  createFreeDistance2PointsFixture,
+  createFreeDistance3PointsFixture,
+  createFreeDistanceFixture,
   OptimizerFixture,
 } from './fixtures/optimizer.fixtures';
 import { LeagueCode } from './scoringRules';
 
 describe('optimizer', () => {
   describe('given an empty request', () => {
-    const fixture = emptyTrackFixture();
+    const fixture = createEmptyTrackFixture();
     it('should return a 0 score', () => {
       expectOptimizationIsAsExpected(fixture);
     });
@@ -33,13 +34,13 @@ describe('optimizer', () => {
     LeagueCode.XCPPG,
     LeagueCode.WXC,
     undefined,
-  ].forEach((league) => {
+  ].forEach((league?) => {
     describe(LeagueCode[league] + ' rules', () => {
       const noSplitIntervals = 1;
       const tenSplitIntervals = 10;
       [noSplitIntervals, tenSplitIntervals].forEach((intervals) => {
         describe('given a free distance request (' + intervals + ' interval(s)/branch)', () => {
-          const fixture = freeDistanceFixture({ lat: 45, lon: 5 }, { lat: 45, lon: 6 }, intervals, league);
+          const fixture = createFreeDistanceFixture({ lat: 45, lon: 5 }, { lat: 45, lon: 6 }, intervals, league);
           it('should return the expected score', () => {
             expectOptimizationIsAsExpected(fixture);
           });
@@ -48,7 +49,7 @@ describe('optimizer', () => {
         describe(
           'given a free distance with 1 intermediate point request (' + intervals + ' interval(s)/branch)',
           () => {
-            const fixture = freeDistance1PointFixture(
+            const fixture = createFreeDistance1PointFixture(
               { lat: 45, lon: 5 },
               { lat: 45, lon: 6 },
               { lat: 46, lon: 6 },
@@ -64,7 +65,7 @@ describe('optimizer', () => {
         describe(
           'given a free distance with 2 intermediate points request (' + intervals + ' interval(s)/branch)',
           () => {
-            const fixture = freeDistance2PointsFixture(
+            const fixture = createFreeDistance2PointsFixture(
               { lat: 45, lon: 5 },
               { lat: 45, lon: 6 },
               { lat: 46, lon: 6 },
@@ -81,7 +82,7 @@ describe('optimizer', () => {
         describe(
           'given a free distance with 3 intermediate points request (' + intervals + ' interval(s)/branch)',
           () => {
-            const fixture = freeDistance3PointsFixture(
+            const fixture = createFreeDistance3PointsFixture(
               { lat: 45, lon: 5 },
               { lat: 45, lon: 6 },
               { lat: 46, lon: 6 },
@@ -97,7 +98,7 @@ describe('optimizer', () => {
         );
 
         describe('given a closed flat triangle request (' + intervals + ' interval(s)/branch)', () => {
-          const fixture = closedFlatTriangleFixture(
+          const fixture = createClosedFlatTriangleFixture(
             { lat: 45, lon: 5 },
             { lat: 45, lon: 6 },
             { lat: 45.2, lon: 6 },
@@ -110,7 +111,7 @@ describe('optimizer', () => {
         });
 
         describe('given a closed FAI triangle request (' + intervals + ' interval(s)/branch)', () => {
-          const fixture = closedFaiTriangleFixture({ lat: 45, lon: 5 }, { lat: 45, lon: 6 }, intervals, league);
+          const fixture = createClosedFaiTriangleFixture({ lat: 45, lon: 5 }, { lat: 45, lon: 6 }, intervals, league);
           it('should return the expected score', () => {
             expectOptimizationIsAsExpected(fixture);
           });
@@ -120,7 +121,7 @@ describe('optimizer', () => {
   });
 
   describe('given a closed FAI triangle request (10 interval/branch) with minimal cycle allowed', () => {
-    const fixture = closedFaiTriangleFixtureWithSmallCycle(
+    const fixture = createClosedFaiTriangleFixtureWithSmallCycle(
       { lat: 45, lon: 5 },
       { lat: 45, lon: 6 },
       9,
@@ -131,9 +132,8 @@ describe('optimizer', () => {
     });
   });
 
-
   describe('given a closed FAI triangle request (10 interval/branch) with minimal loop allowed', () => {
-    const fixture = closedFaiTriangleFixtureWithSmallLoop(
+    const fixture = createClosedFaiTriangleFixtureWithSmallLoop(
       { lat: 45, lon: 5 },
       { lat: 45, lon: 6 },
       9,
@@ -150,7 +150,7 @@ describe('optimizer', () => {
       done = false;
     while (!done) {
       currentResult = optimization.next();
-      done = currentResult.value.optimal;
+      done = currentResult.done;
     }
     expect(currentResult.value.score).toBeCloseTo(fixture.expectedResult.score, 1);
   }
