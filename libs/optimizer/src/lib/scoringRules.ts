@@ -1,18 +1,18 @@
 import { scoringRules as xcScoreRules} from "igc-xc-score";
 
 export enum LeagueCode {
-  CZL,
-  CZE,
-  CZO,
-  FFVL,
-  LEO,
-  NOR,
-  UKC,
-  UKI,
-  UKN,
-  XContest,
-  XCPPG,
-  WXC
+  CZL,      // Czech league (local rule)
+  CZE,      // Czech league (european rule)
+  CZO,      // Czech league (outside europe rule)
+  FFVL,     // Federation Français de Vol Libre
+  LEO,      // Leonardo rule
+  NOR,      // norway
+  UKC,      // United Kingdom (club rule)
+  UKI,      // United Kingdom (international rule)
+  UKN,      // United Kingdom (national rule)
+  XContest, // XContest
+  XCPPG,   // XContest PPG
+  WXC,     // World XC
 }
 
 const scoringBaseModel = xcScoreRules['XContest'];

@@ -5,11 +5,23 @@ import { splitSegment } from '../utils/splitSegment';
 import { concatTracks } from '../utils/concatTracks';
 import { LeagueCode } from '../scoringRules';
 
+/**
+ * Functions to generate test fixtures for the optimizer tests
+ */
+
+/**
+ * Test fixture for the optimizer tests
+ * givenRequest: the OptimizationRequest to test the optimizer
+ * expectedResult: the expected OptimizationResult that should be returned by the optimizer
+ */
 export type OptimizerFixture = {
   givenRequest: OptimizationRequest;
   expectedResult: OptimizationResult;
 };
 
+/**
+ * returns an empty track and its expected score
+ */
 export function emptyTrackFixture(): OptimizerFixture {
   return {
     givenRequest: {
@@ -22,6 +34,13 @@ export function emptyTrackFixture(): OptimizerFixture {
   };
 }
 
+/**
+ * @returns a fixture for a free distance track and it's expected score
+ * @param from LatLon of the starting point of the free distance
+ * @param to LatLon of the ending point of the free distance
+ * @param nbIntervals number of intervals to add between the two points
+ * @param league the LeagueCode for computing the score
+ */
 export function freeDistanceFixture(
   from: LatLon,
   to: LatLon,
@@ -41,6 +60,15 @@ export function freeDistanceFixture(
   };
 }
 
+/**
+ *
+ * @returns a fixture for a free distance track with one intermediate bypass point and it's expected score
+ * @param from LatLon of the starting point of the free distance
+ * @param intermediate LatLon of the intermediate bypass point
+ * @param to LatLon of the ending point of the free distance
+ * @param nbIntervals number of intervals to add between each given points
+ * @param league the LeagueCode for computing the score
+ */
 export function freeDistance1PointFixture(
   from: LatLon,
   intermediate: LatLon,
@@ -65,6 +93,16 @@ export function freeDistance1PointFixture(
   };
 }
 
+/**
+ *
+ * @returns a fixture for a free distance track with two intermediate bypass points and it's expected score
+ * @param from LatLon of the starting point of the free distance
+ * @param intermediate1 LatLon of the first intermediate bypass point
+ * @param intermediate2 LatLon of the second intermediate bypass point
+ * @param to LatLon of the ending point of the free distance
+ * @param nbIntervals number of intervals to add between each given points
+ * @param league the LeagueCode for computing the score
+ */
 export function freeDistance2PointsFixture(
   from: LatLon,
   intermediate1: LatLon,
@@ -98,6 +136,17 @@ export function freeDistance2PointsFixture(
   };
 }
 
+/**
+ *
+ * @returns a fixture for a free distance track with three intermediate bypass points and it's expected score
+ * @param from LatLon of the starting point of the free distance
+ * @param intermediate1 LatLon of the first intermediate bypass point
+ * @param intermediate2 LatLon of the second intermediate bypass point
+ * @param intermediate3 LatLon of the third intermediate bypass point
+ * @param to LatLon of the ending point of the free distance
+ * @param nbIntervals number of intervals to add between each given points
+ * @param league the LeagueCode for computing the score
+ */
 export function freeDistance3PointsFixture(
   from: LatLon,
   intermediate1: LatLon,
@@ -138,6 +187,15 @@ export function freeDistance3PointsFixture(
   };
 }
 
+/**
+ *
+ * @returns a fixture for a flat triangle track and it's expected score
+ * @param start LatLon of the starting point of the flat triangle (first point of the triangle)
+ * @param p1 LatLon of the second point of the triangle
+ * @param p2 LatLon of the third point of the triangle
+ * @param nbIntervals number of intervals to add between each given points
+ * @param league the LeagueCode for computing the score
+ */
 export function closedFlatTriangleFixture(
   start: LatLon,
   p1: LatLon,
@@ -152,6 +210,16 @@ export function closedFlatTriangleFixture(
   return triangleFixture(start, p1, p2, nbIntervals, league, multiplier);
 }
 
+/**
+ *
+ * @returns a fixture for a FAI triangle track and it's expected score
+ * @param start LatLon of the starting point of the flat triangle (first point of the triangle)
+ * @param p1 LatLon of the second point of the triangle
+ * @param nbIntervals number of intervals to add between each given points
+ * @param league the LeagueCode for computing the score
+ *
+ * The third point of the triangle is computed so that the triangle is equilateral
+ */
 export function closedFaiTriangleFixture(
   start: LatLon,
   p1: LatLon,
@@ -160,7 +228,8 @@ export function closedFaiTriangleFixture(
 ): OptimizerFixture {
   const distance1 = getPreciseDistance(start, p1);
   const bearingStartToP1 = getGreatCircleBearing(start, p1);
-  const equilateralPoint = computeDestinationPoint(start, distance1, bearingStartToP1 - 60);
+  // The third point 'p2' is at 'distance1' from 'p1' on a line which makes a 60° angle with the line 'start'->'p1'
+  const equilateralPoint = computeDestinationPoint(start, distance1, bearingStartToP1 + 60);
   const p2 = { lat: equilateralPoint.latitude, lon: equilateralPoint.longitude };
   if (!isFAI(start, p1, p2)) {
     throw new Error('invalid test data: not a FAI triangle');
@@ -169,6 +238,9 @@ export function closedFaiTriangleFixture(
   return triangleFixture(start, p1, p2, nbIntervals, league, multiplier);
 }
 
+/**
+ * same as closedFaiTriangleFixture with a maximum allowed cycle duration of 1 ms for optimization
+ */
 export function closedFaiTriangleFixtureWithSmallCycle(
   start: LatLon,
   p1: LatLon,
@@ -187,6 +259,9 @@ export function closedFaiTriangleFixtureWithSmallCycle(
   };
 }
 
+/**
+ * same as closedFaiTriangleFixture with a only one iteration allowed for optimization
+ */
 export function closedFaiTriangleFixtureWithSmallLoop(
   start: LatLon,
   p1: LatLon,

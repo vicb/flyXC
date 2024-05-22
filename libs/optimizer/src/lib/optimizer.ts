@@ -1,18 +1,41 @@
 import { Solution, solver } from 'igc-xc-score';
-import { RuntimeTrack } from '@flyxc/common';
 import { BRecord, IGCFile } from 'igc-parser';
 import { splitSegment } from './utils/splitSegment';
 import { concatTracks } from './utils/concatTracks';
 import { LeagueCode, scoringRules } from './scoringRules';
 
-// ScoringTrack is a subset of RuntimeTrack
-// we define it for the sake of clarity and define the minimal information required to invoke the scoreTrack function
-export type ScoringTrack = Pick<RuntimeTrack, 'lat' | 'lon' | 'alt' | 'timeSec' | 'minTimeSec'>;
+/**
+ * lat: array of latitudes
+ * lon: array of longitudes
+ * alt: array of altitudes
+ * timeSec: array of time in seconds elapsed since the beginning of the track
+ * minTimeSec: beginning of the track (seconds elapsed since 01-01-1970T00:00:00.000)
+ */
+export interface ScoringTrack {
+  lat: number[];
+  lon: number[];
+  alt: number[];
+  timeSec: number[];
+  minTimeSec: number;
+}
 
+/**
+ * maxCycle: maximum duration in milliseconds for an optimization round trip. `
+ *           If undefined, calculation duration is unbounded.
+ * maxLoop: maximum number of iterations allowed for an optimization round trip.
+ *          If undefined, number of allowed iterations is unbounded
+ */
 export interface OptimizationOptions {
   maxCycle?: number;
   maxLoop?: number;
 }
+
+/**
+ * optimize function argument
+ * track: the ScoringTrack to optimize
+ * league: the LeagueCode of the leagues rules to follow. If undefined, defaults to LeagueCode.FFVL
+ * options: the OptimizationOptions for the computation
+ */
 export interface OptimizationRequest {
   track: ScoringTrack;
   league?: LeagueCode;
@@ -20,6 +43,10 @@ export interface OptimizationRequest {
 }
 
 // minimalistic for the moment. Will be improved in next iterations
+/**
+ * score: the score for the track in the given league
+ * optimal: the result is optimal (no need to get a next result of Iterator<OptimizationResult, OptimizationResult>)
+ */
 export interface OptimizationResult {
   score: number;
   optimal: boolean;
@@ -34,7 +61,9 @@ const MIN_POINTS = 5;
 
 /**
  * computes the score for the flight
- * @param request
+ * @param request the OptimizationRequest
+ * @return an Iterator over the successive OptimizationResult
+ * @see README.md
  */
 export function* optimize(request: OptimizationRequest): Iterator<OptimizationResult, OptimizationResult> {
   if (request.track.lat.length == 0) {
