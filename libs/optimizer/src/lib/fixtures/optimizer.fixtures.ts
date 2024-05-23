@@ -2,7 +2,7 @@ import { OptimizationRequest, OptimizationResult } from '../optimizer';
 import { computeDestinationPoint, getGreatCircleBearing, getPreciseDistance } from 'geolib';
 import { createSegments } from '../utils/createSegments';
 import { concatTracks } from '../utils/concatTracks';
-import { LeagueCode } from '../scoringRules';
+import { ScoringRules } from '../scoringRules';
 
 /**
  * Functions to generate test fixtures for the optimizer tests
@@ -15,7 +15,7 @@ import { LeagueCode } from '../scoringRules';
  */
 export type OptimizerFixture = {
   givenRequest: OptimizationRequest;
-  givenLeague: LeagueCode;
+  givenRules: ScoringRules;
   expectedResult: OptimizationResult;
 };
 
@@ -27,7 +27,7 @@ export function createEmptyTrackFixture(): OptimizerFixture {
     givenRequest: {
       track: { points: [], minTimeSec: 0 },
     },
-    givenLeague: LeagueCode.FFVL,
+    givenRules: ScoringRules.FederationFrancaiseVolLibre,
     expectedResult: {
       score: 0,
       optimal: true,
@@ -46,15 +46,15 @@ const START_TIME_SEC = Math.round(new Date().getTime() / 1000);
  * @param from LatLon of the starting point of the free distance
  * @param to LatLon of the ending point of the free distance
  * @param nbSegments number of segments to create between the two points
- * @param givenLeague the LeagueCode for computing the score
+ * @param givenRules the ScoringRules for computing the score
  */
 export function createFreeDistanceFixture(
   from: LatLon,
   to: LatLon,
   nbSegments: number,
-  givenLeague: LeagueCode,
+  givenRules: ScoringRules,
 ): OptimizerFixture {
-  const multiplier = getFreeDistanceMultiplier(givenLeague);
+  const multiplier = getFreeDistanceMultiplier(givenRules);
   return {
     givenRequest: {
       track: createSegments(
@@ -64,7 +64,7 @@ export function createFreeDistanceFixture(
         nbSegments,
       ),
     },
-    givenLeague,
+    givenRules,
     expectedResult: {
       score: (getPreciseDistance(from, to) / 1000) * multiplier,
       optimal: true,
@@ -79,14 +79,14 @@ export function createFreeDistanceFixture(
  * @param intermediate LatLon of the intermediate bypass point
  * @param to LatLon of the ending point of the free distance
  * @param nbSegments number of segments to create between each given points
- * @param givenLeague the LeagueCode for computing the score
+ * @param givenRules the ScoringRules for computing the score
  */
 export function createFreeDistance1PointFixture(
   from: LatLon,
   intermediate: LatLon,
   to: LatLon,
   nbSegments: number,
-  givenLeague: LeagueCode,
+  givenRules: ScoringRules,
 ): OptimizerFixture {
   return {
     givenRequest: {
@@ -105,11 +105,11 @@ export function createFreeDistance1PointFixture(
         ),
       ),
     },
-    givenLeague,
+    givenRules,
     expectedResult: {
       score:
         ((getPreciseDistance(from, intermediate) + getPreciseDistance(intermediate, to)) / 1000) *
-        getFreeDistanceMultiplier(givenLeague),
+        getFreeDistanceMultiplier(givenRules),
       optimal: true,
     },
   };
@@ -123,7 +123,7 @@ export function createFreeDistance1PointFixture(
  * @param intermediate2 LatLon of the second intermediate bypass point
  * @param to LatLon of the ending point of the free distance
  * @param nbSegments number of segments to create between each given points
- * @param givenLeague the LeagueCode for computing the score
+ * @param givenRules the ScoringRules for computing the score
  */
 export function createFreeDistance2PointsFixture(
   from: LatLon,
@@ -131,7 +131,7 @@ export function createFreeDistance2PointsFixture(
   intermediate2: LatLon,
   to: LatLon,
   nbSegments: number,
-  givenLeague: LeagueCode,
+  givenRules: ScoringRules,
 ): OptimizerFixture {
   return {
     givenRequest: {
@@ -156,14 +156,14 @@ export function createFreeDistance2PointsFixture(
         ),
       ),
     },
-    givenLeague,
+    givenRules,
     expectedResult: {
       score:
         ((getPreciseDistance(from, intermediate1) +
           getPreciseDistance(intermediate1, intermediate2) +
           getPreciseDistance(intermediate2, to)) /
           1000) *
-        getFreeDistanceMultiplier(givenLeague),
+        getFreeDistanceMultiplier(givenRules),
       optimal: true,
     },
   };
@@ -178,7 +178,7 @@ export function createFreeDistance2PointsFixture(
  * @param intermediate3 LatLon of the third intermediate bypass point
  * @param to LatLon of the ending point of the free distance
  * @param nbSegments number of segments to create between each given points
- * @param givenLeague the LeagueCode for computing the score
+ * @param givenRules the ScoringRules for computing the score
  */
 export function createFreeDistance3PointsFixture(
   from: LatLon,
@@ -187,7 +187,7 @@ export function createFreeDistance3PointsFixture(
   intermediate3: LatLon,
   to: LatLon,
   nbSegments: number,
-  givenLeague: LeagueCode,
+  givenRules: ScoringRules,
 ): OptimizerFixture {
   return {
     givenRequest: {
@@ -218,7 +218,7 @@ export function createFreeDistance3PointsFixture(
         ),
       ),
     },
-    givenLeague,
+    givenRules,
     expectedResult: {
       score:
         ((getPreciseDistance(from, intermediate1) +
@@ -226,7 +226,7 @@ export function createFreeDistance3PointsFixture(
           getPreciseDistance(intermediate2, intermediate3) +
           getPreciseDistance(intermediate3, to)) /
           1000) *
-        getFreeDistanceMultiplier(givenLeague),
+        getFreeDistanceMultiplier(givenRules),
       optimal: true,
     },
   };
@@ -239,20 +239,20 @@ export function createFreeDistance3PointsFixture(
  * @param p1 LatLon of the second point of the triangle
  * @param p2 LatLon of the third point of the triangle
  * @param nbSegments number of segments to create between each given points
- * @param givenLeague the LeagueCode for computing the score
+ * @param givenRules the ScoringRules for computing the score
  */
 export function createClosedFlatTriangleFixture(
   start: LatLon,
   p1: LatLon,
   p2: LatLon,
   nbSegments: number,
-  givenLeague: LeagueCode,
+  givenRules: ScoringRules,
 ): OptimizerFixture {
   if (isFAI(start, p1, p2)) {
     throw new Error('invalid test data: not a flat triangle');
   }
-  const multiplier = getFlatTriangleMultiplier(givenLeague);
-  return createTriangleFixture(start, p1, p2, nbSegments, givenLeague, multiplier);
+  const multiplier = getFlatTriangleMultiplier(givenRules);
+  return createTriangleFixture(start, p1, p2, nbSegments, givenRules, multiplier);
 }
 
 /**
@@ -261,7 +261,7 @@ export function createClosedFlatTriangleFixture(
  * @param start LatLon of the starting point of the flat triangle (first point of the triangle)
  * @param p1 LatLon of the second point of the triangle
  * @param nbSegments number of segments to create between each given points
- * @param givenLeague the LeagueCode for computing the score
+ * @param givenRules the ScoringRules for computing the score
  *
  * The third point of the triangle is computed so that the triangle is equilateral
  */
@@ -269,7 +269,7 @@ export function createClosedFaiTriangleFixture(
   start: LatLon,
   p1: LatLon,
   nbSegments: number,
-  givenLeague: LeagueCode,
+  givenRules: ScoringRules,
 ): OptimizerFixture {
   const distance1 = getPreciseDistance(start, p1);
   const bearingStartToP1 = getGreatCircleBearing(start, p1);
@@ -279,8 +279,8 @@ export function createClosedFaiTriangleFixture(
   if (!isFAI(start, p1, p2)) {
     throw new Error('invalid test data: not a FAI triangle');
   }
-  const multiplier = getFaiTriangleMultiplier(givenLeague);
-  return createTriangleFixture(start, p1, p2, nbSegments, givenLeague, multiplier);
+  const multiplier = getFaiTriangleMultiplier(givenRules);
+  return createTriangleFixture(start, p1, p2, nbSegments, givenRules, multiplier);
 }
 
 /**
@@ -290,9 +290,9 @@ export function createClosedFaiTriangleFixtureWithSmallCycle(
   start: LatLon,
   p1: LatLon,
   nbIntervals: number,
-  givenLeague: LeagueCode,
+  givenRules: ScoringRules,
 ): OptimizerFixture {
-  const standardFixture = createClosedFaiTriangleFixture(start, p1, nbIntervals, givenLeague);
+  const standardFixture = createClosedFaiTriangleFixture(start, p1, nbIntervals, givenRules);
   return {
     givenRequest: {
       ...standardFixture.givenRequest,
@@ -300,7 +300,7 @@ export function createClosedFaiTriangleFixtureWithSmallCycle(
         maxCycleDurationMs: 1,
       },
     },
-    givenLeague,
+    givenRules,
     expectedResult: standardFixture.expectedResult,
   };
 }
@@ -312,9 +312,9 @@ export function createClosedFaiTriangleFixtureWithSmallLoop(
   start: LatLon,
   p1: LatLon,
   nbIntervals: number,
-  givenLeague: LeagueCode,
+  givenRules: ScoringRules,
 ): OptimizerFixture {
-  const standardFixture = createClosedFaiTriangleFixture(start, p1, nbIntervals, givenLeague);
+  const standardFixture = createClosedFaiTriangleFixture(start, p1, nbIntervals, givenRules);
   return {
     givenRequest: {
       ...standardFixture.givenRequest,
@@ -322,75 +322,75 @@ export function createClosedFaiTriangleFixtureWithSmallLoop(
         maxNumCycles: 10,
       },
     },
-    givenLeague,
+    givenRules,
     expectedResult: standardFixture.expectedResult,
   };
 }
 
 
-function getFreeDistanceMultiplier(league: LeagueCode) {
-  switch (league) {
-    case LeagueCode.CZL:
-    case LeagueCode.CZE:
-    case LeagueCode.FFVL:
-    case LeagueCode.NOR:
-    case LeagueCode.UKC:
-    case LeagueCode.UKI:
-    case LeagueCode.UKN:
-    case LeagueCode.XContest:
-    case LeagueCode.XCPPG:
-    case LeagueCode.WXC:
+function getFreeDistanceMultiplier(scoringRules: ScoringRules) {
+  switch (scoringRules) {
+    case ScoringRules.CzechLocal:
+    case ScoringRules.CzechEuropean:
+    case ScoringRules.FederationFrancaiseVolLibre:
+    case ScoringRules.Norway:
+    case ScoringRules.UnitedKingdomClub:
+    case ScoringRules.UnitedKingdomInternational:
+    case ScoringRules.UnitedKingdomNational:
+    case ScoringRules.XContest:
+    case ScoringRules.XContestPPG:
+    case ScoringRules.WorldXC:
       return 1;
-    case LeagueCode.CZO:
+    case ScoringRules.CzechOutsideEurope:
       return 0.8;
-    case LeagueCode.LEO:
+    case ScoringRules.Leonardo:
       return 1.5;
   }
 }
 
-function getFlatTriangleMultiplier(league: LeagueCode) {
-  switch (league) {
-    case LeagueCode.CZE:
-    case LeagueCode.CZO:
-    case LeagueCode.FFVL:
-    case LeagueCode.UKI:
+function getFlatTriangleMultiplier(scoringRules: ScoringRules) {
+  switch (scoringRules) {
+    case ScoringRules.CzechEuropean:
+    case ScoringRules.CzechOutsideEurope:
+    case ScoringRules.FederationFrancaiseVolLibre:
+    case ScoringRules.UnitedKingdomInternational:
       return 1.2;
-    case LeagueCode.LEO:
-    case LeagueCode.WXC:
+    case ScoringRules.Leonardo:
+    case ScoringRules.WorldXC:
       return 1.75;
-    case LeagueCode.XContest:
+    case ScoringRules.XContest:
       return 1.4;
-    case LeagueCode.NOR:
-    case LeagueCode.UKC:
-    case LeagueCode.UKN:
+    case ScoringRules.Norway:
+    case ScoringRules.UnitedKingdomClub:
+    case ScoringRules.UnitedKingdomNational:
       return 1.7;
-    case LeagueCode.CZL:
+    case ScoringRules.CzechLocal:
       return 1.8;
-    case LeagueCode.XCPPG:
+    case ScoringRules.XContestPPG:
       return 2;
   }
 }
 
-function getFaiTriangleMultiplier(league: LeagueCode) {
-  switch (league) {
-    case LeagueCode.CZE:
-    case LeagueCode.CZO:
-    case LeagueCode.FFVL:
+function getFaiTriangleMultiplier(scoringRules: ScoringRules) {
+  switch (scoringRules) {
+    case ScoringRules.CzechEuropean:
+    case ScoringRules.CzechOutsideEurope:
+    case ScoringRules.FederationFrancaiseVolLibre:
       return 1.4;
-    case LeagueCode.LEO:
-    case LeagueCode.UKC:
-    case LeagueCode.UKN:
-    case LeagueCode.WXC:
+    case ScoringRules.Leonardo:
+    case ScoringRules.UnitedKingdomClub:
+    case ScoringRules.UnitedKingdomNational:
+    case ScoringRules.WorldXC:
       return 2;
-    case LeagueCode.XContest:
+    case ScoringRules.XContest:
       return 1.6;
-    case LeagueCode.CZL:
+    case ScoringRules.CzechLocal:
       return 2.2;
-    case LeagueCode.NOR:
+    case ScoringRules.Norway:
       return 2.4;
-    case LeagueCode.UKI:
+    case ScoringRules.UnitedKingdomInternational:
       return 1.5;
-    case LeagueCode.XCPPG:
+    case ScoringRules.XContestPPG:
       return 4;
   }
 }
@@ -410,7 +410,7 @@ function createTriangleFixture(
   p1: LatLon,
   p2: { lon: number; lat: number },
   nbSegments: number,
-  givenLeague: LeagueCode,
+  givenRules: ScoringRules,
   multiplier: number,
 ) {
   const distance1 = getPreciseDistance(start, p1);
@@ -425,7 +425,7 @@ function createTriangleFixture(
         createSegments({ ...p2, alt: 0, timeSec: 120 }, { ...start, alt: 0, timeSec: 180 }, START_TIME_SEC, nbSegments),
       ),
     },
-    givenLeague,
+    givenRules,
     expectedResult: {
       score: expectedScore,
       optimal: true,

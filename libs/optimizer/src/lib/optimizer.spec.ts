@@ -11,7 +11,7 @@ import {
   createFreeDistanceFixture,
   OptimizerFixture,
 } from './fixtures/optimizer.fixtures';
-import { LeagueCode } from './scoringRules';
+import { ScoringRules } from './scoringRules';
 
 describe('optimizer', () => {
   describe('given an empty request', () => {
@@ -21,20 +21,20 @@ describe('optimizer', () => {
     });
   });
   [
-    LeagueCode.CZE,
-    LeagueCode.CZL,
-    LeagueCode.CZO,
-    LeagueCode.FFVL,
-    LeagueCode.LEO,
-    LeagueCode.NOR,
-    LeagueCode.UKC,
-    LeagueCode.UKI,
-    LeagueCode.UKN,
-    LeagueCode.XContest,
-    LeagueCode.XCPPG,
-    LeagueCode.WXC,
-  ].forEach((league) => {
-    describe(LeagueCode[league] + ' rules', () => {
+    ScoringRules.CzechEuropean,
+    ScoringRules.CzechLocal,
+    ScoringRules.CzechOutsideEurope,
+    ScoringRules.FederationFrancaiseVolLibre,
+    ScoringRules.Leonardo,
+    ScoringRules.Norway,
+    ScoringRules.UnitedKingdomClub,
+    ScoringRules.UnitedKingdomInternational,
+    ScoringRules.UnitedKingdomNational,
+    ScoringRules.XContest,
+    ScoringRules.XContestPPG,
+    ScoringRules.WorldXC,
+  ].forEach((rules) => {
+    describe(ScoringRules[rules] + ' rules', () => {
       const oneSegmentPerBranch = 1;
       const tenSegmentsPerBranch = 10;
       [oneSegmentPerBranch, tenSegmentsPerBranch].forEach((nbSegmentsPerBranch) => {
@@ -43,7 +43,7 @@ describe('optimizer', () => {
             { lat: 45, lon: 5 },
             { lat: 45, lon: 6 },
             nbSegmentsPerBranch,
-            league,
+            rules,
           );
           it('should return the expected score', () => {
             expectOptimizationIsAsExpected(fixture);
@@ -58,7 +58,7 @@ describe('optimizer', () => {
               { lat: 45, lon: 6 },
               { lat: 46, lon: 6 },
               nbSegmentsPerBranch,
-              league,
+              rules,
             );
             it('should return the expected score', () => {
               expectOptimizationIsAsExpected(fixture);
@@ -75,7 +75,7 @@ describe('optimizer', () => {
               { lat: 46, lon: 6 },
               { lat: 46, lon: 5 },
               nbSegmentsPerBranch,
-              league,
+              rules,
             );
             it('should return the expected score (' + nbSegmentsPerBranch + ' segment(s)/branch)', () => {
               expectOptimizationIsAsExpected(fixture);
@@ -93,7 +93,7 @@ describe('optimizer', () => {
               { lat: 46, lon: 5 },
               { lat: 47, lon: 5 },
               nbSegmentsPerBranch,
-              league,
+              rules,
             );
             it('should return the expected score', () => {
               expectOptimizationIsAsExpected(fixture);
@@ -107,7 +107,7 @@ describe('optimizer', () => {
             { lat: 45, lon: 6 },
             { lat: 45.2, lon: 6 },
             nbSegmentsPerBranch,
-            league,
+            rules,
           );
           it('should return the expected score', () => {
             expectOptimizationIsAsExpected(fixture);
@@ -119,7 +119,7 @@ describe('optimizer', () => {
             { lat: 45, lon: 5 },
             { lat: 45, lon: 6 },
             nbSegmentsPerBranch,
-            league,
+            rules,
           );
           it('should return the expected score', () => {
             expectOptimizationIsAsExpected(fixture);
@@ -134,7 +134,7 @@ describe('optimizer', () => {
       { lat: 45, lon: 5 },
       { lat: 45, lon: 6 },
       9,
-      LeagueCode.FFVL,
+      ScoringRules.FederationFrancaiseVolLibre,
     );
     it('should return the expected score', () => {
       expectOptimizationIsAsExpected(fixture);
@@ -146,7 +146,7 @@ describe('optimizer', () => {
       { lat: 45, lon: 5 },
       { lat: 45, lon: 6 },
       9,
-      LeagueCode.FFVL,
+      ScoringRules.FederationFrancaiseVolLibre,
     );
     it('should return the expected score', () => {
       expectOptimizationIsAsExpected(fixture);
@@ -154,7 +154,7 @@ describe('optimizer', () => {
   });
 
   function expectOptimizationIsAsExpected(fixture: OptimizerFixture) {
-    const optimization = optimize(fixture.givenRequest, fixture.givenLeague);
+    const optimization = optimize(fixture.givenRequest, fixture.givenRules);
     let currentResult: IteratorResult<OptimizationResult, OptimizationResult>,
       done = false;
     while (!done) {

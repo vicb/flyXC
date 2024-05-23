@@ -1,18 +1,18 @@
 import { scoringRules as xcScoreRules} from "igc-xc-score";
 
-export enum LeagueCode {
-  CZL,      // Czech league (local rule)
-  CZE,      // Czech league (european rule)
-  CZO,      // Czech league (outside europe rule)
-  FFVL,     // Federation Français de Vol Libre
-  LEO,      // Leonardo rule
-  NOR,      // norway
-  UKC,      // United Kingdom (club rule)
-  UKI,      // United Kingdom (international rule)
-  UKN,      // United Kingdom (national rule)
-  XContest, // XContest
-  XCPPG,   // XContest PPG
-  WXC,     // World XC
+export enum ScoringRules {
+  CzechLocal,
+  CzechEuropean,
+  CzechOutsideEurope,
+  FederationFrancaiseVolLibre,
+  Leonardo,
+  Norway,
+  UnitedKingdomClub,
+  UnitedKingdomInternational,
+  UnitedKingdomNational,
+  XContest,
+  XContestPPG,
+  WorldXC,
 }
 
 const scoringBaseModel = xcScoreRules['XContest'];
@@ -95,17 +95,17 @@ const wxcRule = [
   { ...faiTriangleBase, multiplier: 2, closingDistanceFixed: 0.2 },
 ];
 
-export const scoringRules: Map<LeagueCode, object> = new Map([
-  [LeagueCode.CZE, czechEuropeRule],
-  [LeagueCode.CZL, czechLocalRule],
-  [LeagueCode.CZO, czechOutEuropeRule],
-  [LeagueCode.FFVL, xcScoreRules['FFVL']],
-  [LeagueCode.LEO, leonardoRule],
-  [LeagueCode.NOR, norwayRule],
-  [LeagueCode.UKC, ukXclClubRule],
-  [LeagueCode.UKI, ukXclInternationalRule],
-  [LeagueCode.UKN, ukXclNationalRule],
-  [LeagueCode.XContest, xcScoreRules['XContest']],
-  [LeagueCode.XCPPG, xContestPpgRule],
-  [LeagueCode.WXC, wxcRule],
+export const scoringRules: Map<ScoringRules, object> = new Map([
+  [ScoringRules.CzechEuropean, czechEuropeRule],
+  [ScoringRules.CzechLocal, czechLocalRule],
+  [ScoringRules.CzechOutsideEurope, czechOutEuropeRule],
+  [ScoringRules.FederationFrancaiseVolLibre, xcScoreRules['FFVL']],
+  [ScoringRules.Leonardo, leonardoRule],
+  [ScoringRules.Norway, norwayRule],
+  [ScoringRules.UnitedKingdomClub, ukXclClubRule],
+  [ScoringRules.UnitedKingdomInternational, ukXclInternationalRule],
+  [ScoringRules.UnitedKingdomNational, ukXclNationalRule],
+  [ScoringRules.XContest, xcScoreRules['XContest']],
+  [ScoringRules.XContestPPG, xContestPpgRule],
+  [ScoringRules.WorldXC, wxcRule],
 ]);

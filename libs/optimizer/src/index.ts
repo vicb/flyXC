@@ -6,4 +6,4 @@ export {
   OptimizationResult,
   ScoringTrack,
 } from './lib/optimizer';
-export { LeagueCode } from './lib/scoringRules';
+export { ScoringRules } from './lib/scoringRules';

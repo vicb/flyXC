@@ -2,7 +2,7 @@ import { Solution, solver } from 'igc-xc-score';
 import { BRecord, IGCFile } from 'igc-parser';
 import { createSegments } from './utils/createSegments';
 import { concatTracks } from './utils/concatTracks';
-import { LeagueCode, scoringRules } from './scoringRules';
+import { ScoringRules, scoringRules } from './scoringRules';
 import { logger } from './logger/Logger';
 
 /**
@@ -67,7 +67,7 @@ const MIN_POINTS = 5;
  * @return an Iterator over the successive OptimizationResult
  * @see README.md
  */
-export function* optimize(request: OptimizationRequest, league: LeagueCode): Iterator<OptimizationResult, OptimizationResult> {
+export function* optimize(request: OptimizationRequest, league: ScoringRules): Iterator<OptimizationResult, OptimizationResult> {
   if (request.track.points.length == 0) {
     logger.warn('Empty track received in optimization request. Returns a 0 score');
     return ZERO_SCORE;
@@ -86,8 +86,6 @@ export function* optimize(request: OptimizationRequest, league: LeagueCode): Ite
     yield toResult(solution.value);
   }
 }
-
-const NB_SEGMENTS_BETWEEN_POINTS = 2;
 
 /**
  * the solver requires at least 5 points, so if there is not enough points,
@@ -142,11 +140,8 @@ function toIgcFile(track: ScoringTrack): IGCFile {
   };
 }
 
-function toScoringRules(league: LeagueCode) {
-  if (league) {
+function toScoringRules(league: ScoringRules) {
     return scoringRules.get(league);
-  }
-  return scoringRules.get(LeagueCode.FFVL);
 }
 
 type SolverOptions = { maxloop?: number; maxcycle?: number };
