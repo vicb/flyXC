@@ -8,19 +8,15 @@ import { ScoringTrack } from '../optimizer';
  */
 export function concatTracks(...tracks: ScoringTrack[]): ScoringTrack {
   const concatenated: ScoringTrack = {
-    lat: [],
-    lon: [],
-    alt: [],
-    timeSec: [],
+    points: [],
     minTimeSec: 0,
   };
 
   for (const track of tracks) {
-    const skipFirstPoint = concatenated.lat.at(-1) === track.lat[0] && concatenated.lat.at(-1) === track.lat[0];
-    for (const key of ['lat', 'lon', 'alt', 'timeSec']) {
-      const arrayToConcat = skipFirstPoint ? track[key].slice(1) : track[key];
-      concatenated[key] = concatenated[key].concat(arrayToConcat);
-    }
+    const skipFirstPoint =
+      concatenated.points.at(-1)?.lat === track.points[0].lat && concatenated.points.at(-1)?.lon === track.points[0].lon;
+    const arrayToConcat = skipFirstPoint ? track.points.slice(1) : track.points;
+    concatenated.points = concatenated.points.concat(arrayToConcat);
   }
   return concatenated;
 }

@@ -9,13 +9,15 @@ import { LeagueCode, scoringRules } from './scoringRules';
  * lon: array of longitudes
  * alt: array of altitudes
  * timeSec: array of time in seconds elapsed since the beginning of the track
+ */
+export type LatLonAltTime = { alt: number; lat: number; lon: number; timeSec: number };
+
+/**
+ * points: the points that describe the track
  * minTimeSec: beginning of the track (seconds elapsed since 01-01-1970T00:00:00.000)
  */
 export interface ScoringTrack {
-  lat: number[];
-  lon: number[];
-  alt: number[];
-  timeSec: number[];
+  points: LatLonAltTime[];
   minTimeSec: number;
 }
 
@@ -66,7 +68,7 @@ const MIN_POINTS = 5;
  * @see README.md
  */
 export function* optimize(request: OptimizationRequest): Iterator<OptimizationResult, OptimizationResult> {
-  if (request.track.lat.length == 0) {
+  if (request.track.points.length == 0) {
     console.warn('Empty track received in optimization request. Returns a 0 score');
     return ZERO_SCORE;
   }
@@ -92,28 +94,21 @@ const NB_SEGMENTS_BETWEEN_POINTS = 2;
  * we create points between existing ones
  */
 function addPointsIfRequired(track: ScoringTrack) {
-  if (track.lat.length >= MIN_POINTS) {
+  if (track.points.length >= MIN_POINTS) {
     return track;
   }
   let newTrack: ScoringTrack = track;
-  while (newTrack.lat.length < MIN_POINTS) {
+  while (newTrack.points.length < MIN_POINTS) {
     const segments: ScoringTrack[] = [];
-    for (let i = 1; i < newTrack.lat.length; i++) {
+    for (let i = 1; i < newTrack.points.length; i++) {
       // split each segment of the track into two segments
-      segments.push(createSegments(getPoint(i - 1), getPoint(i), NB_SEGMENTS_BETWEEN_POINTS));
+      segments.push(
+        createSegments(newTrack.points[i - 1], newTrack.points[i], track.minTimeSec, NB_SEGMENTS_BETWEEN_POINTS),
+      );
     }
     newTrack = concatTracks(...segments);
   }
   return newTrack;
-
-  function getPoint(index: number) {
-    return {
-      lat: newTrack.lat[index],
-      lon: newTrack.lon[index],
-      alt: newTrack.alt[index],
-      timeSec: newTrack.timeSec[index],
-    };
-  }
 }
 
 
@@ -122,16 +117,16 @@ function addPointsIfRequired(track: ScoringTrack) {
  * @param track the source track
  */
 function toIgcFile(track: ScoringTrack): IGCFile {
-  const fixes = track.lat.map((_lat, i) => {
-    const timeMilliseconds = track.timeSec[i] * 1000;
+  const fixes = track.points.map(point => {
+    const timeMilliseconds = point.timeSec * 1000;
     return {
       timestamp: timeMilliseconds,
       time: new Date(timeMilliseconds).toISOString(),
-      latitude: track.lat[i],
-      longitude: track.lon[i],
+      latitude: point.lat,
+      longitude: point.lon,
       valid: true,
       pressureAltitude: null,
-      gpsAltitude: track.alt[i],
+      gpsAltitude: point.alt,
       extensions: {},
       fixAccuracy: null,
       enl: null,

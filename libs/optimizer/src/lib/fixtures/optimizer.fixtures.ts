@@ -24,7 +24,7 @@ export type OptimizerFixture = {
 export function createEmptyTrackFixture(): OptimizerFixture {
   return {
     givenRequest: {
-      track: { lat: [], lon: [], alt: [], timeSec: [], minTimeSec: 0 },
+      track: { points: [], minTimeSec: 0 },
     },
     expectedResult: {
       score: 0,
@@ -38,6 +38,7 @@ export type LatLon = {
   lon: number;
 };
 
+const START_TIME_SEC = Math.round(new Date().getTime() / 1000);
 /**
  * @returns a fixture for a free distance track and it's expected score
  * @param from LatLon of the starting point of the free distance
@@ -54,7 +55,12 @@ export function createFreeDistanceFixture(
   const multiplier = getFreeDistanceMultiplier(league);
   return {
     givenRequest: {
-      track: createSegments({ ...from, alt: 0, timeSec: 0 }, { ...to, alt: 0, timeSec: 60 }, nbSegments),
+      track: createSegments(
+        { ...from, alt: 0, timeSec: 0 },
+        { ...to, alt: 0, timeSec: 60 },
+        START_TIME_SEC,
+        nbSegments,
+      ),
       league,
     },
     expectedResult: {
@@ -83,8 +89,18 @@ export function createFreeDistance1PointFixture(
   return {
     givenRequest: {
       track: concatTracks(
-        createSegments({ ...from, alt: 0, timeSec: 0 }, { ...intermediate, alt: 0, timeSec: 60 }, nbSegments),
-        createSegments({ ...intermediate, alt: 0, timeSec: 60 }, { ...to, alt: 0, timeSec: 120 }, nbSegments),
+        createSegments(
+          { ...from, alt: 0, timeSec: 0 },
+          { ...intermediate, alt: 0, timeSec: 60 },
+          START_TIME_SEC,
+          nbSegments,
+        ),
+        createSegments(
+          { ...intermediate, alt: 0, timeSec: 60 },
+          { ...to, alt: 0, timeSec: 120 },
+          START_TIME_SEC,
+          nbSegments,
+        ),
       ),
       league,
     },
@@ -118,13 +134,24 @@ export function createFreeDistance2PointsFixture(
   return {
     givenRequest: {
       track: concatTracks(
-        createSegments({ ...from, alt: 0, timeSec: 0 }, { ...intermediate1, alt: 0, timeSec: 60 }, nbSegments),
+        createSegments(
+          { ...from, alt: 0, timeSec: 0 },
+          { ...intermediate1, alt: 0, timeSec: 60 },
+          START_TIME_SEC,
+          nbSegments,
+        ),
         createSegments(
           { ...intermediate1, alt: 0, timeSec: 60 },
           { ...intermediate2, alt: 0, timeSec: 120 },
+          START_TIME_SEC,
           nbSegments,
         ),
-        createSegments({ ...intermediate2, alt: 0, timeSec: 120 }, { ...to, alt: 0, timeSec: 180 }, nbSegments),
+        createSegments(
+          { ...intermediate2, alt: 0, timeSec: 120 },
+          { ...to, alt: 0, timeSec: 180 },
+          START_TIME_SEC,
+          nbSegments,
+        ),
       ),
       league,
     },
@@ -163,18 +190,30 @@ export function createFreeDistance3PointsFixture(
   return {
     givenRequest: {
       track: concatTracks(
-        createSegments({ ...from, alt: 0, timeSec: 0 }, { ...intermediate1, alt: 0, timeSec: 60 }, nbSegments),
+        createSegments(
+          { ...from, alt: 0, timeSec: 0 },
+          { ...intermediate1, alt: 0, timeSec: 60 },
+          START_TIME_SEC,
+          nbSegments,
+        ),
         createSegments(
           { ...intermediate1, alt: 0, timeSec: 60 },
           { ...intermediate2, alt: 0, timeSec: 120 },
+          START_TIME_SEC,
           nbSegments,
         ),
         createSegments(
           { ...intermediate2, alt: 0, timeSec: 120 },
           { ...intermediate3, alt: 0, timeSec: 180 },
+          START_TIME_SEC,
           nbSegments,
         ),
-        createSegments({ ...intermediate3, alt: 0, timeSec: 180 }, { ...to, alt: 0, timeSec: 240 }, nbSegments),
+        createSegments(
+          { ...intermediate3, alt: 0, timeSec: 180 },
+          { ...to, alt: 0, timeSec: 240 },
+          START_TIME_SEC,
+          nbSegments,
+        ),
       ),
       league,
     },
@@ -378,9 +417,9 @@ function createTriangleFixture(
   return {
     givenRequest: {
       track: concatTracks(
-        createSegments({ ...start, alt: 0, timeSec: 0 }, { ...p1, alt: 0, timeSec: 60 }, nbSegments),
-        createSegments({ ...p1, alt: 0, timeSec: 60 }, { ...p2, alt: 0, timeSec: 120 }, nbSegments),
-        createSegments({ ...p2, alt: 0, timeSec: 120 }, { ...start, alt: 0, timeSec: 180 }, nbSegments),
+        createSegments({ ...start, alt: 0, timeSec: 0 }, { ...p1, alt: 0, timeSec: 60 }, START_TIME_SEC, nbSegments),
+        createSegments({ ...p1, alt: 0, timeSec: 60 }, { ...p2, alt: 0, timeSec: 120 }, START_TIME_SEC, nbSegments),
+        createSegments({ ...p2, alt: 0, timeSec: 120 }, { ...start, alt: 0, timeSec: 180 }, START_TIME_SEC, nbSegments),
       ),
       league,
     },

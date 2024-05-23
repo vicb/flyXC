@@ -1,17 +1,17 @@
-import { ScoringTrack } from '../optimizer';
+import { LatLonAltTime, ScoringTrack } from '../optimizer';
 
-export type LatLonAltTime = { alt: number; lat: number; lon: number; timeSec: number };
 
 /**
  * Create segments between 2 points.
  * Added points are computed by a linear interpolation
  * @param from start point of the segment
  * @param to end point
+ * @param minTimeSec time in seconds since 1970-01-01T00:00:00.000 when the track starts
  * @param nbSegments number of segments created. If nbSegments <= 1 the result contains one segment ('from' -> 'to')
  * @return a ScoringTrack of nbSegments
  */
-export function createSegments(from: LatLonAltTime, to: LatLonAltTime, nbSegments: number): ScoringTrack {
-  const result: ScoringTrack = { alt: [], lat: [], lon: [], minTimeSec: 0, timeSec: [] };
+export function createSegments(from: LatLonAltTime, to: LatLonAltTime, minTimeSec: number, nbSegments: number): ScoringTrack {
+  const result: ScoringTrack = { points: [], minTimeSec };
 
   appendToResult(from);
 
@@ -22,10 +22,7 @@ export function createSegments(from: LatLonAltTime, to: LatLonAltTime, nbSegment
   return result;
 
   function appendToResult(p: LatLonAltTime) {
-    result.lat.push(p.lat);
-    result.lon.push(p.lon);
-    result.alt.push(p.alt);
-    result.timeSec.push(p.timeSec);
+    result.points.push(p);
   }
 
   function appendIntermediatePoints() {
