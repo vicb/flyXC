@@ -35,12 +35,10 @@ export interface OptimizationOptions {
 /**
  * optimize function argument
  * track: the ScoringTrack to optimize
- * league: the LeagueCode of the leagues rules to follow. If undefined, defaults to LeagueCode.FFVL
  * options: the OptimizationOptions for the computation
  */
 export interface OptimizationRequest {
   track: ScoringTrack;
-  league?: LeagueCode;
   options?: OptimizationOptions;
 }
 
@@ -64,17 +62,18 @@ const MIN_POINTS = 5;
 /**
  * computes the score for the flight
  * @param request the OptimizationRequest
+ * @param league the LeagueCode of the league rules to follow
  * @return an Iterator over the successive OptimizationResult
  * @see README.md
  */
-export function* optimize(request: OptimizationRequest): Iterator<OptimizationResult, OptimizationResult> {
+export function* optimize(request: OptimizationRequest, league: LeagueCode): Iterator<OptimizationResult, OptimizationResult> {
   if (request.track.points.length == 0) {
     console.warn('Empty track received in optimization request. Returns a 0 score');
     return ZERO_SCORE;
   }
   const track = addPointsIfRequired(request.track);
   const flight = toIgcFile(track);
-  const scoringRules = toScoringRules(request.league);
+  const scoringRules = toScoringRules(league);
   const options = toOptions(request.options);
   const solutionIterator = solver(flight, scoringRules, options);
   while (true) {

@@ -33,8 +33,7 @@ describe('optimizer', () => {
     LeagueCode.XContest,
     LeagueCode.XCPPG,
     LeagueCode.WXC,
-    undefined,
-  ].forEach((league?) => {
+  ].forEach((league) => {
     describe(LeagueCode[league] + ' rules', () => {
       const oneSegmentPerBranch = 1;
       const tenSegmentsPerBranch = 10;
@@ -155,7 +154,7 @@ describe('optimizer', () => {
   });
 
   function expectOptimizationIsAsExpected(fixture: OptimizerFixture) {
-    const optimization = optimize(fixture.givenRequest);
+    const optimization = optimize(fixture.givenRequest, fixture.givenLeague);
     let currentResult: IteratorResult<OptimizationResult, OptimizationResult>,
       done = false;
     while (!done) {
