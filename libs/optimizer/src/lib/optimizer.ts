@@ -3,6 +3,7 @@ import { BRecord, IGCFile } from 'igc-parser';
 import { createSegments } from './utils/createSegments';
 import { concatTracks } from './utils/concatTracks';
 import { LeagueCode, scoringRules } from './scoringRules';
+import { logger } from './logger/Logger';
 
 /**
  * lat: array of latitudes
@@ -68,7 +69,7 @@ const MIN_POINTS = 5;
  */
 export function* optimize(request: OptimizationRequest, league: LeagueCode): Iterator<OptimizationResult, OptimizationResult> {
   if (request.track.points.length == 0) {
-    console.warn('Empty track received in optimization request. Returns a 0 score');
+    logger.warn('Empty track received in optimization request. Returns a 0 score');
     return ZERO_SCORE;
   }
   const track = addPointsIfRequired(request.track);
@@ -79,7 +80,7 @@ export function* optimize(request: OptimizationRequest, league: LeagueCode): Ite
   while (true) {
     const solution = solutionIterator.next();
     if (solution.done) {
-      console.debug(solution.value.processed, 'iterations');
+      logger.debug(solution.value.processed + ' iterations');
       return toResult(solution.value);
     }
     yield toResult(solution.value);
@@ -96,6 +97,7 @@ function addPointsIfRequired(track: ScoringTrack) {
   if (track.points.length >= MIN_POINTS) {
     return track;
   }
+  logger.debug('not enough points (%s) in track. Interpolate intermediate points', track.points.length);
   let newTrack: ScoringTrack = track;
   while (newTrack.points.length < MIN_POINTS) {
     const segments: ScoringTrack[] = [];
@@ -107,6 +109,7 @@ function addPointsIfRequired(track: ScoringTrack) {
     }
     newTrack = concatTracks(...segments);
   }
+  logger.debug('new track has %s points', newTrack.points.length);
   return newTrack;
 }
 
