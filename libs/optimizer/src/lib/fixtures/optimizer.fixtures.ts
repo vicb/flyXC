@@ -295,7 +295,7 @@ export function createClosedFaiTriangleFixtureWithSmallCycle(
     givenRequest: {
       ...standardFixture.givenRequest,
       options: {
-        maxCycle: 1,
+        maxCycleDurationMs: 1,
       },
     },
     expectedResult: standardFixture.expectedResult,
@@ -303,7 +303,7 @@ export function createClosedFaiTriangleFixtureWithSmallCycle(
 }
 
 /**
- * same as closedFaiTriangleFixture with a only one iteration allowed for optimization
+ * same as closedFaiTriangleFixture with a only ten iterations allowed for optimization
  */
 export function createClosedFaiTriangleFixtureWithSmallLoop(
   start: LatLon,
@@ -316,7 +316,7 @@ export function createClosedFaiTriangleFixtureWithSmallLoop(
     givenRequest: {
       ...standardFixture.givenRequest,
       options: {
-        maxLoop: 10,
+        maxNumCycles: 10,
       },
     },
     expectedResult: standardFixture.expectedResult,

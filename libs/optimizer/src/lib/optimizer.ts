@@ -22,14 +22,14 @@ export interface ScoringTrack {
 }
 
 /**
- * maxCycle: maximum duration in milliseconds for an optimization round trip. `
- *           If undefined, calculation duration is unbounded.
- * maxLoop: maximum number of iterations allowed for an optimization round trip.
- *          If undefined, number of allowed iterations is unbounded
+ * maxCycleDurationMs: maximum duration in milliseconds for an optimization round trip. `
+ *                     If undefined, calculation duration is unbounded.
+ * maxNumCycles: maximum number of iterations allowed for an optimization round trip.
+ *               If undefined, number of allowed iterations is unbounded
  */
 export interface OptimizationOptions {
-  maxCycle?: number;
-  maxLoop?: number;
+  maxCycleDurationMs?: number;
+  maxNumCycles?: number;
 }
 
 /**
@@ -151,8 +151,8 @@ type SolverOptions = { maxloop?: number; maxcycle?: number };
 
 function toOptions(options?: OptimizationOptions): SolverOptions {
   return {
-    maxcycle: options?.maxCycle,
-    maxloop: options?.maxLoop,
+    maxcycle: options?.maxCycleDurationMs,
+    maxloop: options?.maxNumCycles,
   };
 }
 
