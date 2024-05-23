@@ -350,7 +350,6 @@ function getFreeDistanceMultiplier(league: LeagueCode) {
 
 function getFlatTriangleMultiplier(league: LeagueCode) {
   switch (league) {
-    case LeagueCode.CZL:
     case LeagueCode.CZE:
     case LeagueCode.CZO:
     case LeagueCode.FFVL:
@@ -365,6 +364,8 @@ function getFlatTriangleMultiplier(league: LeagueCode) {
     case LeagueCode.UKC:
     case LeagueCode.UKN:
       return 1.7;
+    case LeagueCode.CZL:
+      return 1.8;
     case LeagueCode.XCPPG:
       return 2;
   }
@@ -372,7 +373,6 @@ function getFlatTriangleMultiplier(league: LeagueCode) {
 
 function getFaiTriangleMultiplier(league: LeagueCode) {
   switch (league) {
-    case LeagueCode.CZL:
     case LeagueCode.CZE:
     case LeagueCode.CZO:
     case LeagueCode.FFVL:
@@ -384,6 +384,8 @@ function getFaiTriangleMultiplier(league: LeagueCode) {
       return 2;
     case LeagueCode.XContest:
       return 1.6;
+    case LeagueCode.CZL:
+      return 2.2;
     case LeagueCode.NOR:
       return 2.4;
     case LeagueCode.UKI:
