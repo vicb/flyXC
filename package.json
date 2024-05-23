@@ -114,7 +114,6 @@
     "gpx-builder": "^5.3.0",
     "grant": "^5.4.22",
     "igc-parser": "^1.1.0",
-    "igc-xc-score": "^1.7.0",
     "ioredis": "^5.4.1",
     "lit": "^3.1.3",
     "lodepng": "^2.2.0",
