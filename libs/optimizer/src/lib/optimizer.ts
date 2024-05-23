@@ -5,6 +5,10 @@ import { concatTracks } from './utils/concatTracks';
 import { ScoringRules, scoringRules } from './scoringRules';
 import { logger } from './logger/Logger';
 
+// When the track has not enough points (<5), we build a new one by adding interpolated points between existing ones.
+// This constant tunes the number of segments to build between two existing points.
+const NUM_SEGMENTS_BETWEEN_POINTS = 2;
+
 /**
  * lat: array of latitudes
  * lon: array of longitudes
@@ -43,7 +47,8 @@ export interface OptimizationRequest {
   options?: OptimizationOptions;
 }
 
-// minimalistic for the moment. Will be improved in next iterations
+// minimalistic for the moment.
+// TODO: to improve in next iterations
 /**
  * score: the score for the track in the given league
  * optimal: the result is optimal (no need to get a next result of Iterator<OptimizationResult, OptimizationResult>)
@@ -72,7 +77,7 @@ export function* optimize(request: OptimizationRequest, league: ScoringRules): I
     logger.warn('Empty track received in optimization request. Returns a 0 score');
     return ZERO_SCORE;
   }
-  const track = addPointsIfRequired(request.track);
+  const track = buildValidTrackForSolver(request.track);
   const flight = toIgcFile(track);
   const scoringRules = toScoringRules(league);
   const options = toOptions(request.options);
@@ -91,7 +96,7 @@ export function* optimize(request: OptimizationRequest, league: ScoringRules): I
  * the solver requires at least 5 points, so if there is not enough points,
  * we create points between existing ones
  */
-function addPointsIfRequired(track: ScoringTrack) {
+function buildValidTrackForSolver(track: ScoringTrack) {
   if (track.points.length >= MIN_POINTS) {
     return track;
   }
@@ -102,7 +107,7 @@ function addPointsIfRequired(track: ScoringTrack) {
     for (let i = 1; i < newTrack.points.length; i++) {
       // split each segment of the track into two segments
       segments.push(
-        createSegments(newTrack.points[i - 1], newTrack.points[i], track.minTimeSec, NB_SEGMENTS_BETWEEN_POINTS),
+        createSegments(newTrack.points[i - 1], newTrack.points[i], track.minTimeSec, NUM_SEGMENTS_BETWEEN_POINTS),
       );
     }
     newTrack = concatTracks(...segments);
