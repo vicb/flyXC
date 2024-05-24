@@ -3,7 +3,6 @@ import { BRecord, IGCFile } from 'igc-parser';
 import { createSegments } from './utils/createSegments';
 import { concatTracks } from './utils/concatTracks';
 import { ScoringRules, scoringRules } from './scoringRules';
-import { logger } from './logger/Logger';
 
 // When the track has not enough points (<5), we build a new one by adding interpolated points between existing ones.
 // This constant tunes the number of segments to build between two existing points.
@@ -74,7 +73,7 @@ const MIN_POINTS = 5;
  */
 export function* optimize(request: OptimizationRequest, league: ScoringRules): Iterator<OptimizationResult, OptimizationResult> {
   if (request.track.points.length == 0) {
-    logger.warn('Empty track received in optimization request. Returns a 0 score');
+    console.warn('Empty track received in optimization request. Returns a 0 score');
     return ZERO_SCORE;
   }
   const track = buildValidTrackForSolver(request.track);
@@ -85,7 +84,7 @@ export function* optimize(request: OptimizationRequest, league: ScoringRules): I
   while (true) {
     const solution = solutionIterator.next();
     if (solution.done) {
-      logger.debug(solution.value.processed + ' iterations');
+      console.debug(solution.value.processed, 'iterations');
       return toResult(solution.value);
     }
     yield toResult(solution.value);
@@ -100,7 +99,6 @@ function buildValidTrackForSolver(track: ScoringTrack) {
   if (track.points.length >= MIN_POINTS) {
     return track;
   }
-  logger.debug('not enough points (%s) in track. Interpolate intermediate points', track.points.length);
   let newTrack: ScoringTrack = track;
   while (newTrack.points.length < MIN_POINTS) {
     const segments: ScoringTrack[] = [];
@@ -112,7 +110,6 @@ function buildValidTrackForSolver(track: ScoringTrack) {
     }
     newTrack = concatTracks(...segments);
   }
-  logger.debug('new track has %s points', newTrack.points.length);
   return newTrack;
 }
 
