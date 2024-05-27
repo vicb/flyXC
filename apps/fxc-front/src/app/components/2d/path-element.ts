@@ -13,13 +13,11 @@ import { FaiSectors } from '../../gm/fai-sectors';
 import { addAltitude } from '../../logic/elevation';
 import { getCurrentUrl, pushCurrentState } from '../../logic/history';
 import { drawRoute } from '../../logic/messages';
-import { Score } from '../../logic/score/scorer';
+import { computeScore, Score } from '../../logic/score/scorer';
 import { setDistance, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
 import { PlannerElement } from './planner-element';
-import { CircuitType, getOptimizer } from '@flyxc/optimizer';
-import { getScoringRuleName } from '../../logic/score/league/leagues';
-import type { LeagueCode } from '../../logic/score/league/leagues';
+import { CircuitType } from '@flyxc/optimizer';
 
 // Route color by circuit type.
 const ROUTE_STROKE_COLORS = {
@@ -199,7 +197,7 @@ export class PathElement extends connect(store)(LitElement) {
     store.dispatch(setDistance(google.maps.geometry.spherical.computeLength(line.getPath())));
 
     const points = this.getPathPoints();
-    const score = this.computeScore(points);
+    const score = computeScore(points, this.league);
     store.dispatch(setScore(score));
 
     let optimizedPath = score.indexes.map((index) => new google.maps.LatLng(points[index].lat, points[index].lon));
@@ -248,22 +246,6 @@ export class PathElement extends connect(store)(LitElement) {
     }
 
     this.postScoreToHost(score);
-  }
-
-  private computeScore(points: LatLon[]): Score {
-    // TODO: limit the processing time ?
-    const result = getOptimizer(
-      { track: { points: points.map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 })) } },
-      getScoringRuleName(this.league),
-    ).next().value;
-    return new Score({
-      circuit: result.circuit,
-      distanceM: result.lengthKm * 1000,
-      multiplier: result.multiplier,
-      closingRadiusM: result.closingRadiusM ? result.closingRadiusM * 1000 : null,
-      indexes: result.solutionIndices,
-      points: result.score,
-    });
   }
 
   // Sends a message to the iframe host with the changes.

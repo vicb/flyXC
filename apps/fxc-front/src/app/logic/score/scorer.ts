@@ -1,4 +1,6 @@
-import { CircuitType } from '@flyxc/optimizer';
+import { CircuitType, getOptimizer, ScoringRuleNames, ScoringTrack } from '@flyxc/optimizer';
+import { LatLon } from '@flyxc/common';
+import { LeagueCode } from './league/leagues';
 
 export class Score {
   distanceM: number;
@@ -16,4 +18,61 @@ export class Score {
     this.closingRadiusM = score.closingRadiusM ?? null;
     this.points = score.points ?? 0;
   }
+}
+
+export type LatLonAndMaybeAltTime = LatLon & {
+  alt?: number;
+  timeSec?: number;
+};
+
+export function computeScore(points: LatLonAndMaybeAltTime[], league: string): Score {
+  const track: ScoringTrack = {
+    points: points.map((point, i) => {
+      return {
+        ...point,
+        alt: point.alt ?? 0,
+        offsetFromStartSec: point.timeSec ?? i * 60,
+      };
+    }),
+    startTimeSec: new Date().getTime() / 1000,
+  };
+  const result = getOptimizer({ track }, getScoringRule(league)).next().value;
+  return new Score({
+    circuit: result.circuit,
+    distanceM: result.lengthKm * 1000,
+    multiplier: result.multiplier,
+    closingRadiusM: result.closingRadiusM ? result.closingRadiusM * 1000 : null,
+    indexes: result.solutionIndices,
+    points: result.score,
+  });
+}
+
+function getScoringRule(league: string): ScoringRuleNames {
+  switch (league as LeagueCode) {
+    case 'czl':
+      return 'CzechLocal';
+    case 'cze':
+      return 'CzechEuropean';
+    case 'czo':
+      return 'CzechOutsideEurope';
+    case 'fr':
+      return 'FederationFrancaiseVolLibre';
+    case 'leo':
+      return 'Leonardo';
+    case 'nor':
+      return 'Norway';
+    case 'ukc':
+      return 'UnitedKingdomClub';
+    case 'uki':
+      return 'UnitedKingdomInternational';
+    case 'ukn':
+      return 'UnitedKingdomNational';
+    case 'xc':
+      return 'XContest';
+    case 'xcppg':
+      return 'XContestPPG';
+    case 'wxc':
+      return 'WorldXC';
+  }
+  throw new Error(`no Scoring Rules for league ${league}`);
 }
