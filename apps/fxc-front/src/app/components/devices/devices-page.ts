@@ -205,7 +205,8 @@ export class DevicesPage extends LitElement {
                   .hint=${html`<ion-text class="ion-padding-horizontal ion-padding-top block">
                     Login to
                     <a href="https://lt.flymaster.net" target="_blank">lt.flymaster.net</a> and click on "My account",
-                    followed by "My Instruments". Paste the numerical id of the instrument in the field below.
+                    followed by "My Instruments". Paste the numerical id of the instrument in the field below. You must
+                    also join the "flyxc.app" group (5911).
                   </ion-text>`}
                 >
                 </device-card>
