@@ -25,6 +25,10 @@
           {
             "entryName": "delete_old_storage",
             "entryPath": "apps/misc/src/app/delete_old_storage.ts"
+          },
+          {
+            "entryName": "list_trackers",
+            "entryPath": "apps/misc/src/app/list_trackers.ts"
           }
         ],
         "babelUpwardRootMode": true
