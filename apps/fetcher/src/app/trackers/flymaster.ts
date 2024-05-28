@@ -1,4 +1,6 @@
 // Flymaster.
+//
+// https://lt.flymaster.net/wlb/?
 
 import {
   fetchResponse,
@@ -9,6 +11,7 @@ import {
   simplifyLiveTrack,
   TrackerNames,
   validateFlymasterAccount,
+  SecretKeys,
 } from '@flyxc/common';
 import { LivePoint, makeLiveTrack } from './live-track';
 import { TrackerFetcher, TrackerUpdates } from './tracker';
@@ -47,7 +50,9 @@ export class FlymasterFetcher extends TrackerFetcher {
       }
 
       let flights: { [id: string]: any } = {};
-      const url = `https://lt.flymaster.net/wlb/getLiveData.php?trackers=${JSON.stringify(trackersParam)}`;
+      const url = `https://lt.flymaster.net/wlb/getLiveData.php?grp=${SecretKeys.FLYMASTER_GROUP_ID}&token=${
+        SecretKeys.FLYMASTER_GROUP_TOKEN
+      }&trackers=${JSON.stringify(trackersParam)}`;
 
       try {
         const response = await fetchResponse(url);
