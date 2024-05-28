@@ -1,7 +1,7 @@
 import { protos } from '@flyxc/common';
 import { File, Storage } from '@google-cloud/storage';
 import { isBefore, lightFormat, parse, sub } from 'date-fns';
-import * as zlib from 'zlib';
+import * as zlib from 'node:zlib';
 
 // Loads the state from the storage.
 //

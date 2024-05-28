@@ -2,7 +2,7 @@
 
 import { Storage } from '@google-cloud/storage';
 import { program } from 'commander';
-import fs from 'fs';
+import fs from 'node:fs';
 import unzipper from 'unzipper';
 
 program

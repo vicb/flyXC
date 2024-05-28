@@ -1,6 +1,6 @@
 import { getHostName, protos } from '@flyxc/common';
 import { Datastore, Key } from '@google-cloud/datastore';
-import * as zlib from 'zlib';
+import * as zlib from 'node:zlib';
 
 export const TRACK_TABLE = 'Track';
 

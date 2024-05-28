@@ -3,7 +3,7 @@ import { pushListCap } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import { ChainableCommander, Redis } from 'ioredis';
 import * as nos from 'node-os-utils';
-import * as zlib from 'zlib';
+import * as zlib from 'node:zlib';
 import { ElevationUpdates } from './elevation/elevation';
 import { exportToStorage } from './state/serialize';
 import { BUCKET_NAME, EXPORT_FILE_SEC, PERIODIC_STATE_PATH } from './state/state';

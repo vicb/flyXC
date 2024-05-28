@@ -7,7 +7,7 @@ import {
   queueTrackPostProcessing,
 } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
-import * as crypto from 'crypto';
+import * as crypto from 'node:crypto';
 import { parse as parseGpx, parseRoute as parseGpxRoute } from './gpx';
 import { parse as parseIgc } from './igc';
 import { parse as parseKml } from './kml';

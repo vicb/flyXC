@@ -3,7 +3,7 @@ import { AccountFormModel, Keys, trackerNames, ufoFleetNames } from '@flyxc/comm
 import { TRACK_TABLE, retrieveLiveTrackById, retrieveRecentTracks } from '@flyxc/common-node';
 import { NextFunction, Request, Response, Router } from 'express';
 import { Redis } from 'ioredis';
-import zlib from 'zlib';
+import zlib from 'node:zlib';
 
 import { Datastore } from '@google-cloud/datastore';
 

@@ -55,6 +55,7 @@
     "eslint": "~8.57.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-lit": "^1.11.0",
+    "eslint-plugin-require-node-import-prefix": "^0.0.2",
     "eslint-plugin-wc": "^2.0.4",
     "jest": "^29.4.1",
     "jest-bench": "^29.4",
