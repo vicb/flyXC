@@ -18,4 +18,6 @@ export enum SecretKeys {
   ZOLEO_PUSH_PWD = `...`,
   XCONTEXT_JWT = `...`,
   BUY_ME_A_COFFE_TOKEN = `...`,
+  FLYMASTER_GROUP_ID = `...`,
+  FLYMASTER_GROUP_TOKEN = `...`,
 }
