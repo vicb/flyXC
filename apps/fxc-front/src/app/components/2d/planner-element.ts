@@ -114,6 +114,12 @@ export class PlannerElement extends connect(store)(LitElement) {
         color: darkgray;
         font-size: 0.7em;
       }
+      
+      .emphasis {
+        color: orange;
+        font-weight: bold !important;
+        font-size: 14px;        
+      }
     `;
   }
 
@@ -141,14 +147,6 @@ export class PlannerElement extends connect(store)(LitElement) {
         <div @click=${this.closeHandler} class="hoverable">
           <div><i class="las la-times-circle"></i> Close</div>
         </div>
-        ${when(
-          this.track,
-          () => html` <div @click="${this.scoreCurrentTrack}">
-            <div>
-              <b>🆕<i class="las la-trophy"></i>Score🆕</b>
-            </div>
-          </div>`,
-        )}
         <div>
           <div>${this.scoringInfo.score.circuit}</div>
           <div class="large">
@@ -196,6 +194,12 @@ export class PlannerElement extends connect(store)(LitElement) {
             ${unsafeHTML(units.formatUnit(this.speed as number, this.units.speed, undefined, 'unit'))}
           </div>
         </div>
+        ${when(
+          this.track,
+          () => html` <div class="collapsible hoverable" @click="${this.scoreCurrentTrack}">
+            <span class="emphasis">🆕<i class="las la-trophy"></i>Score Track🆕</span>
+          </div>`,
+        )}
         <div
           @click=${this.drawHandler}
           class=${when(

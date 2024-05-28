@@ -14,6 +14,7 @@ import { addAltitude } from '../../logic/elevation';
 import { getCurrentUrl, pushCurrentState } from '../../logic/history';
 import { drawRoute } from '../../logic/messages';
 import { computeScore, Score } from '../../logic/score/scorer';
+import type { ScoringInfo } from '../../redux/planner-slice';
 import { setDistance, setEnabled, setRoute, setScoringInfo } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
 import { PlannerElement } from './planner-element';
@@ -48,6 +49,8 @@ export class PathElement extends connect(store)(LitElement) {
   private encodedRoute = '';
   @state()
   private isFreeDrawing = false;
+  @state()
+  private scoringInfo?: ScoringInfo;
 
   private line?: google.maps.Polyline;
   private optimizedLine?: google.maps.Polyline;
@@ -65,6 +68,7 @@ export class PathElement extends connect(store)(LitElement) {
     this.enabled = state.planner.enabled;
     this.encodedRoute = state.planner.route;
     this.isFreeDrawing = state.planner.isFreeDrawing;
+    this.scoringInfo = state.planner.scoringInfo;
   }
 
   shouldUpdate(changedProperties: PropertyValues): boolean {
@@ -90,6 +94,9 @@ export class PathElement extends connect(store)(LitElement) {
     if ((changedProperties.has('encodedRoute') || changedProperties.has('isFreeDrawing')) && this.enabled) {
       this.updateLineFromState();
     }
+    if (changedProperties.has('scoringInfo')) {
+      this.drawOptimization(this.scoringInfo);
+    }
     return super.shouldUpdate(changedProperties);
   }
 
@@ -99,24 +106,32 @@ export class PathElement extends connect(store)(LitElement) {
   }
 
   private updateLineFromState() {
-    if (!this.line) {
+    if (!this.line || this.scoringInfo?.useCurrentTrack) {
+      // when the current track is used for scoring,
+      // we should not take in account the encoded route (aka the 'state')
       return;
     }
     this.line.setVisible(!this.isFreeDrawing);
     this.optimizedLine?.setVisible(!this.isFreeDrawing);
     this.doNotSyncState = true;
-    if (this.encodedRoute.length == 0) {
+    if (this.encodedRoute.length == 0 && !this.scoringInfo?.useCurrentTrack) {
       this.setDefaultPath();
     } else {
+      const coords = google.maps.geometry.encoding.decodePath(this.encodedRoute);
+      this.replaceLinePath(coords);
+    }
+    this.doNotSyncState = false;
+    this.optimize();
+  }
+
+  private replaceLinePath(coords: google.maps.LatLng[]) {
+    if (this.line) {
       const path = this.line.getPath();
       path.clear();
-      const coords = google.maps.geometry.encoding.decodePath(this.encodedRoute);
       coords.forEach((latLon) => {
         path.push(latLon);
       });
     }
-    this.doNotSyncState = false;
-    this.optimize();
   }
 
   private setDefaultPath() {
@@ -188,7 +203,7 @@ export class PathElement extends connect(store)(LitElement) {
       : [];
   }
 
-  // Optimize the route and draw the optimize lines and sectors.
+  // Optimize the route
   private optimize(): void {
     const { line } = this;
     if (!line || line.getPath().getLength() < 2 || this.doNotSyncState) {
@@ -199,9 +214,23 @@ export class PathElement extends connect(store)(LitElement) {
     const points = this.getPathPoints();
     const score = computeScore(points, this.league);
     const useCurrentTrack = false;
-    store.dispatch(setScoringInfo({ score, points, useCurrentTrack }));
+    const scoringInfo = { score, points, useCurrentTrack };
+    store.dispatch(setScoringInfo(scoringInfo));
+  }
 
+  // draw the optimize lines and sectors.
+  private drawOptimization(scoringInfo?: ScoringInfo) {
+    if (!scoringInfo) {
+      return;
+    }
+    const { score, points, useCurrentTrack } = scoringInfo;
     let optimizedPath = score.indexes.map((index) => new google.maps.LatLng(points[index].lat, points[index].lon));
+    if (useCurrentTrack) {
+      this.doNotSyncState = true;
+      this.replaceLinePath(optimizedPath);
+      store.dispatch(setDistance(google.maps.geometry.spherical.computeLength(optimizedPath)));
+      this.doNotSyncState = false;
+    }
     if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {
       optimizedPath = [optimizedPath[1], optimizedPath[2], optimizedPath[3], optimizedPath[1]];
     } else if (score.circuit == CircuitType.OutAndReturn) {
