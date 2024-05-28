@@ -9,7 +9,7 @@ import { ScoringTrack } from '../optimizer';
 export function concatTracks(...tracks: ScoringTrack[]): ScoringTrack {
   const concatenated: ScoringTrack = {
     points: [],
-    minTimeSec: 0,
+    startTimeSec: 0,
   };
 
   for (const track of tracks) {
