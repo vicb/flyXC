@@ -29,6 +29,10 @@
           {
             "entryName": "list_trackers",
             "entryPath": "apps/misc/src/app/list_trackers.ts"
+          },
+          {
+            "entryName": "list_flymaster",
+            "entryPath": "apps/misc/src/app/list_flymaster.ts"
           }
         ],
         "babelUpwardRootMode": true
