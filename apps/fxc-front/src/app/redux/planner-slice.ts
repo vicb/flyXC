@@ -1,11 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { deleteUrlParam, getUrlParamValues, ParamNames, setUrlParamValue } from '../logic/history';
-import { Score } from '../logic/score/scorer';
+import { LatLonAndMaybeAltTime, Score } from '../logic/score/scorer';
 import { LeagueCode } from '../logic/score/league/leagues';
 
 export type PlannerState = {
-  score?: Score;
+  scoringInfo?: ScoringInfo;
   speed: number;
   distance: number;
   league: LeagueCode;
@@ -15,11 +15,17 @@ export type PlannerState = {
   isFreeDrawing: boolean;
 };
 
+export type ScoringInfo = {
+  score: Score;
+  points: LatLonAndMaybeAltTime[];
+  useCurrentTrack: boolean;
+};
+
 const route = getUrlParamValues(ParamNames.route)[0] ?? '';
 const enabled = route.length > 0;
 
 const initialState: PlannerState = {
-  score: undefined,
+  scoringInfo: undefined,
   speed: Number(getUrlParamValues(ParamNames.speed)[0] ?? 20),
   distance: 0,
   league: (getUrlParamValues(ParamNames.league)[0] ?? localStorage.getItem('league') ?? 'xc') as LeagueCode,
@@ -32,8 +38,8 @@ const plannerSlice = createSlice({
   name: 'planner',
   initialState,
   reducers: {
-    setScore: (state, action: PayloadAction<Score | undefined>) => {
-      state.score = action.payload;
+    setScoringInfo: (state, action: PayloadAction<ScoringInfo | undefined>) => {
+      state.scoringInfo = action.payload;
     },
     setDistance: (state, action: PayloadAction<number>) => {
       state.distance = action.payload;
@@ -45,7 +51,7 @@ const plannerSlice = createSlice({
     setLeague: (state, action: PayloadAction<LeagueCode>) => {
       setUrlParamValue(ParamNames.league, action.payload);
       localStorage.setItem('league', action.payload);
-      state.league = action.payload;
+      state.league = action.payload as LeagueCode;
     },
     incrementSpeed: (state) => {
       state.speed = Math.floor(state.speed + 1);
@@ -75,7 +81,7 @@ const plannerSlice = createSlice({
 
 export const reducer = plannerSlice.reducer;
 export const {
-  setScore,
+  setScoringInfo,
   setDistance,
   setSpeed,
   setLeague,

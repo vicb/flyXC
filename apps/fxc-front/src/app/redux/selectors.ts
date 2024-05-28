@@ -5,8 +5,10 @@ import { DistanceUnit, Units } from '../logic/units';
 import { getUniqueColor } from '../styles/track';
 import { RootState } from './store';
 import { trackAdapterSelector } from './track-slice';
+import { LeagueCode } from '../logic/score/league/leagues';
 
 export const units = (state: RootState): Units => state.units;
+export const currentLeague = (state: RootState): LeagueCode => state.planner.league;
 export const altitudeUnits = createSelector(units, (units) => units.altitude);
 export const tracks = trackAdapterSelector.selectAll;
 export const currentTrack = (state: RootState): RuntimeTrack | undefined =>

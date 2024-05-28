@@ -4,10 +4,12 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
-import { Score } from '../../logic/score/scorer';
+import { computeScore } from '../../logic/score/scorer';
 import * as units from '../../logic/units';
-import { decrementSpeed, incrementSpeed, setSpeed } from '../../redux/planner-slice';
+import * as planner from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
+import { RuntimeTrack } from '@flyxc/common';
+import { currentLeague, currentTrack } from '../../redux/selectors';
 
 const ICON_MINUS =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJAQMAAADaX5RTAAAABlBMVEX///9xe4e/5menAAAAE0lEQVQImWP438DQAEP7kNj/GwCK4wo9HA2mvgAAAABJRU5ErkJggg==';
@@ -21,7 +23,7 @@ const ICON_EXPAND =
 @customElement('planner-element')
 export class PlannerElement extends connect(store)(LitElement) {
   @state()
-  private score?: Score;
+  private scoringInfo?: planner.ScoringInfo;
   @state()
   private speed = 20;
   @state()
@@ -32,6 +34,8 @@ export class PlannerElement extends connect(store)(LitElement) {
   private hideDetails = store.getState().browser.isSmallScreen;
   @state()
   private isFreeDrawing = false;
+  @state()
+  private track: RuntimeTrack | undefined;
 
   private duration?: number;
   private readonly closeHandler = () => this.dispatchEvent(new CustomEvent('close'));
@@ -43,11 +47,12 @@ export class PlannerElement extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     this.distance = state.planner.distance;
-    this.score = state.planner.score;
+    this.scoringInfo = state.planner.scoringInfo;
     this.speed = state.planner.speed;
     this.units = state.units;
     this.duration = ((this.distance / this.speed) * 60) / 1000;
     this.isFreeDrawing = state.planner.isFreeDrawing;
+    this.track = currentTrack(state);
   }
 
   static get styles(): CSSResult {
@@ -113,7 +118,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   }
 
   protected render(): TemplateResult {
-    if (this.score == null || this.units == null) {
+    if (this.scoringInfo == null || this.units == null) {
       return html``;
     }
     return html`
@@ -136,15 +141,23 @@ export class PlannerElement extends connect(store)(LitElement) {
         <div @click=${this.closeHandler} class="hoverable">
           <div><i class="las la-times-circle"></i> Close</div>
         </div>
+        ${when(
+          this.track,
+          () => html` <div @click="${this.scoreCurrentTrack}">
+            <div>
+              <b>🆕<i class="las la-trophy"></i>Score🆕</b>
+            </div>
+          </div>`,
+        )}
         <div>
-          <div>${this.score.circuit}</div>
+          <div>${this.scoringInfo.score.circuit}</div>
           <div class="large">
-            ${unsafeHTML(units.formatUnit(this.score.distanceM / 1000, this.units.distance, undefined, 'unit'))}
+            ${unsafeHTML(units.formatUnit(this.scoringInfo.score.distanceM / 1000, this.units.distance, undefined, 'unit'))}
           </div>
         </div>
         <div class="collapsible">
           <div>Points = ${this.getMultiplier()}</div>
-          <div class="large">${this.score.points.toFixed(1)}</div>
+          <div class="large">${this.scoringInfo.score.points.toFixed(1)}</div>
         </div>
         <div class="collapsible">
           <div>Total distance</div>
@@ -217,7 +230,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   }
 
   private getMultiplier() {
-    return this.score?.multiplier == 1 ? 'kms' : `${this.score?.multiplier} x kms`;
+    return this.scoringInfo?.score.multiplier == 1 ? 'kms' : `${this.scoringInfo?.score.multiplier} x kms`;
   }
 
   private getDuration(): string {
@@ -240,23 +253,36 @@ export class PlannerElement extends connect(store)(LitElement) {
     const width = target.clientWidth;
     const delta = x > width / 2 ? 1 : -1;
     const duration = (Math.floor((this.duration as number) / 15) + delta) * 15;
-    store.dispatch(setSpeed(this.distance / ((1000 * Math.max(15, duration)) / 60)));
+    store.dispatch(planner.setSpeed(this.distance / ((1000 * Math.max(15, duration)) / 60)));
   }
 
   private wheelDuration(e: WheelEvent): void {
     const delta = Math.sign(e.deltaY);
     const duration = (Math.floor((this.duration as number) / 15) + delta) * 15;
-    store.dispatch(setSpeed(this.distance / ((1000 * Math.max(15, duration)) / 60)));
+    store.dispatch(planner.setSpeed(this.distance / ((1000 * Math.max(15, duration)) / 60)));
   }
 
   private changeSpeed(e: MouseEvent): void {
     const target = e.currentTarget as HTMLElement;
     const x = e.clientX - target.getBoundingClientRect().left;
     const width = target.clientWidth;
-    store.dispatch(x > width / 2 ? incrementSpeed() : decrementSpeed());
+    store.dispatch(x > width / 2 ? planner.incrementSpeed() : planner.decrementSpeed());
   }
 
   private wheelSpeed(e: WheelEvent): void {
-    store.dispatch(e.deltaY > 0 ? incrementSpeed() : decrementSpeed());
+    store.dispatch(e.deltaY > 0 ? planner.incrementSpeed() : planner.decrementSpeed());
+  }
+
+  // compute score on the current selected track
+  private scoreCurrentTrack() {
+    if (this.track) {
+      const track = this.track;
+      const points = track.lat.map((lat, index) => {
+        return { lat, lon: track.lon[index], alt: track.alt[index], timeSec: track.timeSec[index] };
+      });
+      const score = computeScore(points, currentLeague(store.getState()));
+      const scoringInfo = { score, points, useCurrentTrack: true };
+      store.dispatch(planner.setScoringInfo(scoringInfo));
+    }
   }
 }

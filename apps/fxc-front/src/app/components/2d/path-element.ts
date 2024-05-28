@@ -14,7 +14,7 @@ import { addAltitude } from '../../logic/elevation';
 import { getCurrentUrl, pushCurrentState } from '../../logic/history';
 import { drawRoute } from '../../logic/messages';
 import { computeScore, Score } from '../../logic/score/scorer';
-import { setDistance, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
+import { setDistance, setEnabled, setRoute, setScoringInfo } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
 import { PlannerElement } from './planner-element';
 import { CircuitType } from '@flyxc/optimizer';
@@ -198,7 +198,8 @@ export class PathElement extends connect(store)(LitElement) {
 
     const points = this.getPathPoints();
     const score = computeScore(points, this.league);
-    store.dispatch(setScore(score));
+    const useCurrentTrack = false;
+    store.dispatch(setScoringInfo({ score, points, useCurrentTrack }));
 
     let optimizedPath = score.indexes.map((index) => new google.maps.LatLng(points[index].lat, points[index].lon));
     if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {
