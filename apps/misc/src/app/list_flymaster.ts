@@ -1,21 +1,19 @@
 import { readFileSync } from 'node:fs';
 import { LiveTrackEntity } from '@flyxc/common';
 
-(async () => {
-  const trackers = JSON.parse(readFileSync(`${__dirname}/assets/trackers.json`, 'utf-8')) as LiveTrackEntity[];
+const trackers = JSON.parse(readFileSync(`${__dirname}/assets/trackers.json`, 'utf-8')) as LiveTrackEntity[];
 
-  const numTrackers = trackers.length;
+const numTrackers = trackers.length;
 
-  console.log(`## Found ${numTrackers} trackers\n`);
+console.log(`## Found ${numTrackers} trackers\n`);
 
-  const flymasters = await retrieveFlymasters(trackers);
+const flymasters = retrieveFlymasters(trackers);
 
-  console.log(`\n## Found ${flymasters.length} flymasters`);
+console.log(`\n## Found ${flymasters.length} flymasters`);
 
-  console.log(flymasters.map((flymaster) => `"${flymaster.id}", `).join('\n'));
-})();
+console.log(flymasters.map((flymaster) => `"${flymaster.id}", `).join('\n'));
 
-async function retrieveFlymasters(trackers: LiveTrackEntity[]) {
+function retrieveFlymasters(trackers: LiveTrackEntity[]) {
   const flymasters: { name: string; id: string }[] = [];
 
   for (const tracker of trackers) {

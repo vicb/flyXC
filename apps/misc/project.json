@@ -33,6 +33,10 @@
           {
             "entryName": "list_flymaster",
             "entryPath": "apps/misc/src/app/list_flymaster.ts"
+          },
+          {
+            "entryName": "email_inreach",
+            "entryPath": "apps/misc/src/app/email_inreach.ts"
           }
         ],
         "babelUpwardRootMode": true
