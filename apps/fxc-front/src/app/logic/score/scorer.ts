@@ -1,6 +1,7 @@
 import { CircuitType, getOptimizer, ScoringRuleNames, ScoringTrack } from '@flyxc/optimizer';
 import { LatLon } from '@flyxc/common';
 import { LeagueCode } from './league/leagues';
+import { getPathLength } from 'geolib';
 
 export class Score {
   distanceM: number;
@@ -45,6 +46,18 @@ export function computeScore(points: LatLonAndMaybeAltTime[], league: string): S
     indexes: result.solutionIndices,
     points: result.score,
   });
+}
+
+export function getSampledTrackLengthKm(points: (LatLon & { timeSec: number })[], sampleIntervalSec: number) {
+  let nextSampleTime = points[0].timeSec + sampleIntervalSec;
+  const samples = [points[0]];
+  points.forEach((point) => {
+    if (point.timeSec > nextSampleTime){
+      nextSampleTime = nextSampleTime + sampleIntervalSec;
+      samples.push(point);
+    }
+  });
+  return getPathLength(samples)/1000;
 }
 
 function getScoringRule(league: string): ScoringRuleNames {

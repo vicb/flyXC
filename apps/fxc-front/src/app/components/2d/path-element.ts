@@ -228,7 +228,6 @@ export class PathElement extends connect(store)(LitElement) {
     if (useCurrentTrack) {
       this.doNotSyncState = true;
       this.replaceLinePath(optimizedPath);
-      store.dispatch(setDistance(google.maps.geometry.spherical.computeLength(optimizedPath)));
       this.doNotSyncState = false;
     }
     if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {

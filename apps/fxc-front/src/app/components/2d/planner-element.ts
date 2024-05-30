@@ -4,7 +4,7 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
-import { computeScore } from '../../logic/score/scorer';
+import { computeScore, getSampledTrackLengthKm } from '../../logic/score/scorer';
 import * as units from '../../logic/units';
 import * as planner from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
@@ -287,6 +287,13 @@ export class PlannerElement extends connect(store)(LitElement) {
       const score = computeScore(points, currentLeague(store.getState()));
       const scoringInfo = { score, points, useCurrentTrack: true };
       store.dispatch(planner.setScoringInfo(scoringInfo));
+      const durationS = points.at(-1)!.timeSec - points[0].timeSec;
+      const durationH = durationS / 3600;
+      const trackLengthKm = getSampledTrackLengthKm(points, 5 * 60);
+      this.duration = durationS;
+      this.distance = trackLengthKm;
+      store.dispatch(planner.setSpeed(trackLengthKm/ durationH));
+      store.dispatch(planner.setDistance(trackLengthKm*1000));
     }
   }
 }
