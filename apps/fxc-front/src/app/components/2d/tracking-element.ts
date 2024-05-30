@@ -153,7 +153,7 @@ export class TrackingElement extends connect(store)(LitElement) {
   }
 
   private setupInfoWindow(map: google.maps.Map): void {
-    this.info = new google.maps.InfoWindow();
+    this.info = new google.maps.InfoWindow({ headerDisabled: false });
     this.info.close();
     this.info.addListener('closeclick', () => {
       store.dispatch(setCurrentLiveId(undefined));
@@ -181,7 +181,9 @@ export class TrackingElement extends connect(store)(LitElement) {
         }
 
         if (this.info) {
-          this.info.setContent(`<strong>${popup.title}</strong><br>${popup.content}`);
+          this.info.setContent(popup.content);
+          // TODO(vicb): Remove the cast when typings are updated
+          (this.info as any).setHeaderContent(popup.title);
           this.info.setPosition(event.latLng);
           this.info.open(map);
           store.dispatch(setCurrentLiveId(pilotId));

@@ -43,7 +43,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
       this.overlays.push(new AspZoomMapType(this.maxAltitude, common.MAX_AIRSPACE_TILE_ZOOM, zoom));
     }
     this.setOverlaysZoom();
-    this.info = new google.maps.InfoWindow({ disableAutoPan: true });
+    this.info = new google.maps.InfoWindow({ disableAutoPan: true, headerDisabled: false, headerContent: 'Airspaces' });
     this.info.close();
   }
 
