@@ -9,15 +9,17 @@ This library computes scores for flights using applicable rules of various XC le
 ## Usage
 
 The `src/lib/optimizer.ts#optimize` function computes score of a given track given by a `ScoringTrack` for a given league known by it's `LeagueCode`.
-You can specify `OptimizationOptions` to limit either the number of the iterations performed during the optimization (`OptimizationOptions.maxLoop`)
-or the maximum duration in milliseconds allowed for the optimization.
 
-The `optimize` function is a generator function. It returns an `Iterator<OptimizationResult,OptimizationResult>`. You should call the `next()`
-method of this iterator to get the current `IteratorResult<OptimizationResult, OptimizationResult>`. The `value` property of the `IteratorResult`
-gives the current `OptimizationResult` and the `done` property of the `IteratorResult` indicates if the optimization is terminated or not.
+The `optimize` function is a generator function.
 
-If the `done` property is false, you should call again the `next()` method of the iterator so that you get another result that should be a better
-optimization result. If you want to get the best optimisation, you should repeat the process until `done` is true.
+It takes an `OptimizationRequest` describing containing the track an some options.
+
+It returns an `Iterator<OptimizationResult,OptimizationResult>`.
+
+You should call the `next()` method of this iterator to get the current `IteratorResult<OptimizationResult, OptimizationResult>`.
+The `value` property of the `IteratorResult` gives the current `OptimizationResult` and the `done` property indicates whether the optimization is terminated.
+
+If the `done` property is false, you should call the `next()` method again to get a more optimal result. To get the best optimization, you should repeat the process until `done` is true.
 
 See an example in `optimizer.spec.ts#expectOptimizationIsAsExpected`
 

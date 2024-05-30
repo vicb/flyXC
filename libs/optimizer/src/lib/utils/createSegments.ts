@@ -33,13 +33,13 @@ export function createSegments(
     const deltaLat = ((to.lat - from.lat) * distributionFactor) / nbSegments;
     const deltaLon = ((to.lon - from.lon) * distributionFactor) / nbSegments;
     const deltaAlt = ((to.alt - from.alt) * distributionFactor) / nbSegments;
-    const deltaTimeSec = ((to.timeSec - from.timeSec) * distributionFactor) / nbSegments;
+    const deltaTimeSec = ((to.offsetFromStartSec - from.offsetFromStartSec) * distributionFactor) / nbSegments;
     for (let index = 1; index < nbSegments; index++) {
       result.points.push({
         lat: from.lat + deltaLat * index,
         lon: from.lon + deltaLon * index,
         alt: Math.round(from.alt + deltaAlt * index),
-        timeSec: from.timeSec + deltaTimeSec * index,
+        offsetFromStartSec: from.offsetFromStartSec + deltaTimeSec * index,
       });
     }
   }

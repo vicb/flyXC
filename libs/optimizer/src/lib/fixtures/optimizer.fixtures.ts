@@ -62,8 +62,8 @@ export function createFreeDistanceFixture(
   return {
     request: {
       track: createSegments(
-        { ...from, alt: 0, timeSec: 0 },
-        { ...to, alt: 0, timeSec: 60 },
+        { ...from, alt: 0, offsetFromStartSec: 0 },
+        { ...to, alt: 0, offsetFromStartSec: 60 },
         START_TIME_SEC,
         nbSegments,
       ),
@@ -101,14 +101,14 @@ export function createFreeDistance1PointFixture(
     request: {
       track: mergeTracks(
         createSegments(
-          { ...from, alt: 0, timeSec: 0 },
-          { ...intermediate, alt: 0, timeSec: 60 },
+          { ...from, alt: 0, offsetFromStartSec: 0 },
+          { ...intermediate, alt: 0, offsetFromStartSec: 60 },
           START_TIME_SEC,
           nbSegments,
         ),
         createSegments(
-          { ...intermediate, alt: 0, timeSec: 60 },
-          { ...to, alt: 0, timeSec: 120 },
+          { ...intermediate, alt: 0, offsetFromStartSec: 60 },
+          { ...to, alt: 0, offsetFromStartSec: 120 },
           START_TIME_SEC,
           nbSegments,
         ),
@@ -153,20 +153,20 @@ export function createFreeDistance2PointsFixture(
     request: {
       track: mergeTracks(
         createSegments(
-          { ...from, alt: 0, timeSec: 0 },
-          { ...turnPoint1, alt: 0, timeSec: 60 },
+          { ...from, alt: 0, offsetFromStartSec: 0 },
+          { ...turnPoint1, alt: 0, offsetFromStartSec: 60 },
           START_TIME_SEC,
           nbSegments,
         ),
         createSegments(
-          { ...turnPoint1, alt: 0, timeSec: 60 },
-          { ...turnPoint2, alt: 0, timeSec: 120 },
+          { ...turnPoint1, alt: 0, offsetFromStartSec: 60 },
+          { ...turnPoint2, alt: 0, offsetFromStartSec: 120 },
           START_TIME_SEC,
           nbSegments,
         ),
         createSegments(
-          { ...turnPoint2, alt: 0, timeSec: 120 },
-          { ...to, alt: 0, timeSec: 180 },
+          { ...turnPoint2, alt: 0, offsetFromStartSec: 120 },
+          { ...to, alt: 0, offsetFromStartSec: 180 },
           START_TIME_SEC,
           nbSegments,
         ),
@@ -214,26 +214,26 @@ export function createFreeDistance3PointsFixture(
     request: {
       track: mergeTracks(
         createSegments(
-          { ...from, alt: 0, timeSec: 0 },
-          { ...turnPoint1, alt: 0, timeSec: 60 },
+          { ...from, alt: 0, offsetFromStartSec: 0 },
+          { ...turnPoint1, alt: 0, offsetFromStartSec: 60 },
           START_TIME_SEC,
           nbSegments,
         ),
         createSegments(
-          { ...turnPoint1, alt: 0, timeSec: 60 },
-          { ...turnPoint2, alt: 0, timeSec: 120 },
+          { ...turnPoint1, alt: 0, offsetFromStartSec: 60 },
+          { ...turnPoint2, alt: 0, offsetFromStartSec: 120 },
           START_TIME_SEC,
           nbSegments,
         ),
         createSegments(
-          { ...turnPoint2, alt: 0, timeSec: 120 },
-          { ...turnPoint3, alt: 0, timeSec: 180 },
+          { ...turnPoint2, alt: 0, offsetFromStartSec: 120 },
+          { ...turnPoint3, alt: 0, offsetFromStartSec: 180 },
           START_TIME_SEC,
           nbSegments,
         ),
         createSegments(
-          { ...turnPoint3, alt: 0, timeSec: 180 },
-          { ...to, alt: 0, timeSec: 240 },
+          { ...turnPoint3, alt: 0, offsetFromStartSec: 180 },
+          { ...to, alt: 0, offsetFromStartSec: 240 },
           START_TIME_SEC,
           nbSegments,
         ),
@@ -270,7 +270,15 @@ export function createClosedFlatTriangleFixture(
     throw new Error('invalid test data: not a flat triangle');
   }
   const multiplier = getFlatTriangleMultiplier(givenRules);
-  return createTriangleFixture(start, turnPoint1, turnPoint2, nbSegments, givenRules, multiplier, CircuitType.FlatTriangle);
+  return createTriangleFixture(
+    start,
+    turnPoint1,
+    turnPoint2,
+    nbSegments,
+    givenRules,
+    multiplier,
+    CircuitType.FlatTriangle,
+  );
 }
 
 /**
@@ -314,9 +322,7 @@ export function createClosedFaiTriangleFixtureWithSmallCycle(
   return {
     request: {
       ...standardFixture.request,
-      options: {
-        maxCycleDurationMs: 1,
-      },
+      maxCycleDurationMs: 1,
     },
     rules: givenRules,
     expectedResult: standardFixture.expectedResult,
@@ -336,9 +342,7 @@ export function createClosedFaiTriangleFixtureWithSmallLoop(
   return {
     request: {
       ...standardFixture.request,
-      options: {
-        maxNumCycles: 10,
-      },
+      maxNumCycles: 10,
     },
     rules: givenRules,
     expectedResult: standardFixture.expectedResult,
@@ -439,9 +443,24 @@ function createTriangleFixture(
   return {
     request: {
       track: mergeTracks(
-        createSegments({ ...start, alt: 0, timeSec: 0 }, { ...p1, alt: 0, timeSec: 60 }, START_TIME_SEC, nbSegments),
-        createSegments({ ...p1, alt: 0, timeSec: 60 }, { ...p2, alt: 0, timeSec: 120 }, START_TIME_SEC, nbSegments),
-        createSegments({ ...p2, alt: 0, timeSec: 120 }, { ...start, alt: 0, timeSec: 180 }, START_TIME_SEC, nbSegments),
+        createSegments(
+          { ...start, alt: 0, offsetFromStartSec: 0 },
+          { ...p1, alt: 0, offsetFromStartSec: 60 },
+          START_TIME_SEC,
+          nbSegments,
+        ),
+        createSegments(
+          { ...p1, alt: 0, offsetFromStartSec: 60 },
+          { ...p2, alt: 0, offsetFromStartSec: 120 },
+          START_TIME_SEC,
+          nbSegments,
+        ),
+        createSegments(
+          { ...p2, alt: 0, offsetFromStartSec: 120 },
+          { ...start, alt: 0, offsetFromStartSec: 180 },
+          START_TIME_SEC,
+          nbSegments,
+        ),
       ),
     },
     rules: givenRules,

@@ -6,7 +6,7 @@ import { ScoringRules, scoringRules } from './scoringRules';
 import { getDistance } from 'geolib';
 
 // When the track has not enough points (<5), we build a new one by adding interpolated points between existing ones.
-// see this issue https://github.com/mmomtchev/igc-xc-score/issues/231
+// See this issue https://github.com/mmomtchev/igc-xc-score/issues/231
 const MIN_POINTS = 5;
 const NUM_SEGMENTS_BETWEEN_POINTS = 2;
 
@@ -22,42 +22,32 @@ export interface LatLonAltTime {
   lat: number;
   lon: number;
   /**
-   * time in seconds elapsed since the beginning of the track (see ScoringTrack.startTimeSec)
+   * TODO: make this an absolute time, remove the start time
+   * Time relative to the start of the track.
    */
-  timeSec: number;
+  offsetFromStartSec: number;
 }
 
 export interface ScoringTrack {
-  /**
-   * the points that describe the track
-   */
   points: LatLonAltTime[];
   /**
-   * Timestamp in seconds
-   * the "timeSec" values in LatLonAltTime's are offsets according to this timestamp.
+   * Timestamp of the start of the track.
    */
   startTimeSec: number;
 }
 
-export interface OptimizationOptions {
+export interface OptimizationRequest {
+  track: ScoringTrack;
   /**
-   * maximum duration in milliseconds for an optimization round trip.
+   * Maximum duration for an optimization round trip.
    * If undefined, calculation duration is unbounded.
    */
   maxCycleDurationMs?: number;
   /**
-   * maximum number of iterations allowed for an optimization round trip.
+   * Maximum number of iterations allowed for an optimization round trip.
    * If undefined, number of allowed iterations is unbounded
    */
   maxNumCycles?: number;
-}
-
-/**
- * optimize function argument
- */
-export interface OptimizationRequest {
-  track: ScoringTrack;
-  options?: OptimizationOptions;
 }
 
 export enum CircuitType {
@@ -69,50 +59,46 @@ export enum CircuitType {
 
 export interface OptimizationResult {
   /**
-   * the score for the track in the given league
+   * The score for the track in the given league
    */
   score: number;
   /**
-   * the length of the optimized track in kms
+   * The length of the optimized track in kms
    */
   lengthKm: number;
   /**
-   * multiplier for computing score. score = lengthKm * multiplier
+   * TODO: we probably do not need all 3 of score, lengthKm, and multiplier.
+   * Multiplier for computing score. score = lengthKm * multiplier
    */
   multiplier: number;
   /**
-   * type of the optimized track
+   * Type of the optimized track
    */
   circuit?: CircuitType;
   /**
-   * if applicable, distance in m for closing the circuit
+   * If applicable, Distance in m for closing the circuit
    */
-  closingRadius?: number;
+  closingRadiusM?: number;
   /**
-   * indices of solutions points in ScoringTrack.points array
+   * Indices of solutions points in the request
    */
   solutionIndices: number[];
   /**
-   * the result is optimal (no need to get a next result of Iterator<OptimizationResult, OptimizationResult>)
+   * Whether the result is optimal.
+   * If not the optimizer can be cycled again to get a more accurate solution.
    */
   optimal: boolean;
 }
 
-const ZERO_SCORE: OptimizationResult = {
-  score: 0,
-  lengthKm: 0,
-  multiplier: 0,
-  solutionIndices: [],
-  optimal: true,
-};
-
 /**
- * returns an iterative optimizer that computes iteratively the score for the flight. At each iteration, the score
- * should be a better solutions.
+ * Returns an iterative optimizer computing the score for the flight.
+ *
+ * At each iteration, the score should be a better solutions.
+ *
  * @param request the OptimizationRequest. if request.options is undefined, then there will be one iteration, and the result
  *                will be the best solution
  * @param rules the ScoringRules to apply for computation
- * @return an Iterator over the successive OptimizationResult
+ * @return an Iterator of OptimizationResult
  * @see README.md
  */
 export function* getOptimizer(
@@ -121,7 +107,13 @@ export function* getOptimizer(
 ): Iterator<OptimizationResult, OptimizationResult> {
   if (request.track.points.length == 0) {
     // console.warn('Empty track received in optimization request. Returns a 0 score');
-    return ZERO_SCORE;
+    return {
+      score: 0,
+      lengthKm: 0,
+      multiplier: 0,
+      solutionIndices: [],
+      optimal: true,
+    };
   }
   const originalTrack = request.track;
   const solverTrack = buildValidTrackForSolver(originalTrack);
@@ -175,7 +167,7 @@ function buildValidTrackForSolver(track: ScoringTrack) {
  */
 function toIgcFile(track: ScoringTrack): IGCFile {
   const fixes = track.points.map((point): BRecord => {
-    const timeMilliseconds = point.timeSec * 1000;
+    const timeMilliseconds = point.offsetFromStartSec * 1000;
     return {
       timestamp: timeMilliseconds,
       time: new Date(timeMilliseconds).toISOString(),
@@ -199,70 +191,91 @@ function toIgcFile(track: ScoringTrack): IGCFile {
 
 type SolverOptions = { maxloop?: number; maxcycle?: number };
 
-function toSolverOptions(options?: OptimizationOptions): SolverOptions {
+function toSolverOptions(request: OptimizationRequest): SolverOptions {
   return {
-    maxcycle: options?.maxCycleDurationMs,
-    maxloop: options?.maxNumCycles,
+    maxcycle: request.maxCycleDurationMs,
+    maxloop: request.maxNumCycles,
   };
 }
 
-function toOptimizationResult(solution: Solution, originalTrack: ScoringTrack, solverTrack: ScoringTrack): OptimizationResult {
+function toOptimizationResult(
+  solution: Solution,
+  originalTrack: ScoringTrack,
+  solverTrack: ScoringTrack,
+): OptimizationResult {
   return {
     score: solution.score ?? 0,
     lengthKm: solution.scoreInfo?.distance ?? 0,
     multiplier: solution.opt.scoring.multiplier,
     circuit: toCircuitType(solution.opt.scoring.code),
-    closingRadius: getClosingRadius(solution),
+    closingRadiusM: getClosingRadiusM(solution),
     solutionIndices: getIndices(solution, originalTrack, solverTrack),
     optimal: solution.optimal || false,
   };
 }
 
-function getClosingRadius(solution: Solution) {
-  // @ts-ignore : closingDistanceFixed is not exposed by library
-  const closingDistanceFixed: number | undefined = solution.opt.scoring?.closingDistanceFixed;
-  // @ts-ignore : closingDistanceRelative is not exposed by library
-  const closingDistanceRelativeRatio: number | undefined = solution.opt.scoring?.closingDistanceRelative;
-  const closingDistanceRelative =
-    solution.scoreInfo?.distance && closingDistanceRelativeRatio
-      ? closingDistanceRelativeRatio * solution.scoreInfo?.distance
-      : undefined;
+// TODO: submit a PR to igc-xc-score
+interface Scoring {
+  closingDistanceFixed?: number;
+  closingDistanceRelative?: number;
+}
+
+function getClosingRadiusM(solution: Solution): number | undefined {
   const closingDistance = solution.scoreInfo?.cp?.d;
+
   if (closingDistance == null) {
     return undefined;
   }
+
+  const closingDistanceFixed = solution.opt.scoring?.closingDistanceFixed;
+
   if (closingDistanceFixed != null && closingDistance < closingDistanceFixed) {
     return closingDistanceFixed;
-  } else if (closingDistanceRelative != null && closingDistance < closingDistanceRelative) {
+  }
+
+  const closingDistanceRelativeRatio = solution.opt.scoring?.closingDistanceRelative;
+  const closingDistanceRelative =
+    solution.scoreInfo?.distance != null && closingDistanceRelativeRatio != null
+      ? closingDistanceRelativeRatio * solution.scoreInfo.distance
+      : undefined;
+
+  if (closingDistanceRelative != null && closingDistance < closingDistanceRelative) {
     return closingDistanceRelative;
   }
+
   return undefined;
 }
 
-const circuitTypeCodes = ['od' , 'tri' , 'fai' , 'oar']
+const circuitTypeCodes = ['od', 'tri', 'fai', 'oar'];
 type CircuitTypeCode = (typeof circuitTypeCodes)[number];
 
-function toCircuitType(code: CircuitTypeCode) {
-  switch (code) {
-    case 'od':
-      return CircuitType.OpenDistance;
-    case 'fai':
-      return CircuitType.FaiTriangle;
-    case 'oar':
-      return CircuitType.OutAndReturn;
-    case 'tri':
-      return CircuitType.FlatTriangle;
+const circuitMapping = {
+  od: CircuitType.OpenDistance,
+  tri: CircuitType.FlatTriangle,
+  fai: CircuitType.FaiTriangle,
+  oar: CircuitType.OutAndReturn,
+};
+
+function toCircuitType(code: string): CircuitType {
+  const type = circuitMapping[code];
+  if (type == null) {
+    throw new Error(`Unknown type "${code}"`);
   }
-  throw new Error(`no CircuitType found for ${code}`);
+  return type;
 }
 
-// return indices of solution points. This permit to identify the solution points in the ScoringTrack.points array
-// it contains (when applicable):
-// - the starting point
-// - the 'in' closing point
-// - the turn points
-// - the 'out' closing point
-// - the finish point
+/**
+ * Return the indices of the solution points.
+ *
+ * This permit to identify the solution points in the ScoringTrack.points array
+ *
+ * It contains (when applicable):
+ * - the starting point
+ * - the 'in' closing point
+ * - the turn points
+ * - the 'out' closing point
+ * - the end point
+ * */
 function getIndices(solution: Solution, originalTrack: ScoringTrack, solverTrack: ScoringTrack) {
   const result: number[] = [];
   pushInResult(getEntryPointsStartIndex(solution, originalTrack, solverTrack));

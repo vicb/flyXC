@@ -252,15 +252,16 @@ export class PathElement extends connect(store)(LitElement) {
 
   private computeScore(points: LatLon[]): Score {
     const track: ScoringTrack = {
-      points: points.map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 })),
+      points: points.map((point, i) => ({ ...point, alt: 0, offsetFromStartSec: i * 60 })),
       startTimeSec: Math.round(new Date().getTime() / 1000),
     };
+    // TODO: limit the processing time ?
     const result = getOptimizer({ track }, getScoringRules(this.league)).next().value;
     return new Score({
       circuit: result.circuit,
       distanceM: result.lengthKm * 1000,
       multiplier: result.multiplier,
-      closingRadiusM: result.closingRadius ? result.closingRadius * 1000 : null,
+      closingRadiusM: result.closingRadiusM ? result.closingRadiusM * 1000 : null,
       indexes: result.solutionIndices,
       points: result.score,
     });
