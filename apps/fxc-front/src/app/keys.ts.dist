@@ -1,4 +1,7 @@
 // Copy to key.ts and add your own keys
+
+const isProd: boolean = import.meta.env.PROD;
+
 export const keys: { [key: string]: {[key: string] : string} } = {
   gmaps: { domain1: 'key1', domain2: 'key2', '*': 'fallback' },
   ignfr: { domain1: 'key1', domain2: 'key2', '*': 'fallback' },
