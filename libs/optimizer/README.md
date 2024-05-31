@@ -1,7 +1,5 @@
 # optimizer
 
-This library was generated with [Nx](https://nx.dev).
-
 ## Description
 
 This library computes scores for flights using applicable rules of various XC leagues.
@@ -23,10 +21,8 @@ If the `done` property is false, you should call the `next()` method again to ge
 
 See an example in `optimizer.spec.ts#expectOptimizationIsAsExpected`
 
-## Building
-
-Run `nx build optimizer` to build the library.
-
 ## Running unit tests
 
-Run `nx test optimizer` to execute the unit tests via [Jest](https://jestjs.io).
+Run `nx test optimizer`.
+
+This library was generated with [Nx](https://nx.dev).

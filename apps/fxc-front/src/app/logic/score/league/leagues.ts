@@ -1,10 +1,9 @@
-import { ScoringRules } from '@flyxc/optimizer';
+import { ScoringRuleNames } from '@flyxc/optimizer';
 
-// allowed league codes
 export const leagueCodes = ['czl', 'cze', 'czo', 'fr', 'leo', 'nor', 'ukc', 'uki', 'ukn', 'xc', 'xcppg', 'wxc'];
 export type LeagueCode = (typeof leagueCodes)[number];
 
-export const LEAGUES: Readonly<Record<LeagueCode, string>> = {
+export const LEAGUES_NAMES: Readonly<Record<LeagueCode, string>> = {
   czl: 'Czech (ČPP local)',
   cze: 'Czech (ČPP Europe)',
   czo: 'Czech (ČPP outside Europe)',
@@ -19,7 +18,7 @@ export const LEAGUES: Readonly<Record<LeagueCode, string>> = {
   wxc: 'World XC Online Contest',
 };
 
-export function getScoringRules(league: LeagueCode): ScoringRules {
+export function getScoringRules(league: LeagueCode): ScoringRuleNames {
   switch (league) {
     case 'czl':
       return 'CzechLocal';

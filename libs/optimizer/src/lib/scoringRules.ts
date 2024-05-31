@@ -1,5 +1,6 @@
-import { scoringRules as xcScoreRules } from 'igc-xc-score';
+import * as igcXcScore from 'igc-xc-score';
 
+// TODO: this should be `keyof typeof igcXcScore.scoringRules` if the types were correct
 export const scoringRulesNames = [
   'CzechLocal',
   'CzechEuropean',
@@ -13,14 +14,16 @@ export const scoringRulesNames = [
   'XContest',
   'XContestPPG',
   'WorldXC',
-];
-export type ScoringRules = (typeof scoringRulesNames)[number];
+] as const;
 
-const scoringBaseModel = xcScoreRules['XContest'];
+export type ScoringRuleNames = (typeof scoringRulesNames)[number];
+
+// TODO: Export the rules from igc-xc-score
+const scoringBaseModel = igcXcScore.scoringRules['XContest'];
 const openDistanceBase = scoringBaseModel[0];
 const freeTriangleBase = scoringBaseModel[1];
 const faiTriangleBase = scoringBaseModel[2];
-const outAndReturnBase = xcScoreRules['FAI-OAR'][0];
+const outAndReturnBase = igcXcScore.scoringRules['FAI-OAR'][0];
 
 const czechLocalRule = [
   { ...openDistanceBase, multiplier: 1 },
@@ -96,17 +99,17 @@ const wxcRule = [
   { ...faiTriangleBase, multiplier: 2, closingDistanceFixed: 0.2 },
 ];
 
-export const scoringRules: Map<ScoringRules, object> = new Map([
+export const scoringRules: Map<ScoringRuleNames, object> = new Map([
   ['CzechEuropean', czechEuropeRule],
   ['CzechLocal', czechLocalRule],
   ['CzechOutsideEurope', czechOutEuropeRule],
-  ['FederationFrancaiseVolLibre', xcScoreRules['FFVL']],
+  ['FederationFrancaiseVolLibre', igcXcScore.scoringRules['FFVL']],
   ['Leonardo', leonardoRule],
   ['Norway', norwayRule],
   ['UnitedKingdomClub', ukXclClubRule],
   ['UnitedKingdomInternational', ukXclInternationalRule],
   ['UnitedKingdomNational', ukXclNationalRule],
-  ['XContest', xcScoreRules['XContest']],
+  ['XContest', igcXcScore.scoringRules['XContest']],
   ['XContestPPG', xContestPpgRule],
   ['WorldXC', wxcRule],
 ]);

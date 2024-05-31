@@ -1,21 +1,12 @@
-import { Solution, solver } from 'igc-xc-score';
+// TODO: all console logs are commented out. In the future, we should use a logging library
+
+import { solver, Solution } from 'igc-xc-score';
 import { BRecord, IGCFile } from 'igc-parser';
-import { createSegments } from './utils/createSegments';
-import { mergeTracks } from './utils/mergeTracks';
-import { ScoringRules, scoringRules } from './scoringRules';
-import { getDistance } from 'geolib';
+import { ScoringRuleNames, scoringRules } from './scoringRules';
 
-// When the track has not enough points (<5), we build a new one by adding interpolated points between existing ones.
+// Minimum number of points in an igc-xc-score track.
 // See this issue https://github.com/mmomtchev/igc-xc-score/issues/231
-const MIN_POINTS = 5;
-const NUM_SEGMENTS_BETWEEN_POINTS = 2;
-
-// For adding interpolated points, this constant adjusts the proximity of the points to the starting point of
-// the segment. We want the added points to be very close to the starting points of the segment so that the solution
-// points returned by the solver are as close as possible (or may be equal) to one of the original points of the track.
-const DISTRIBUTION_FACTOR_FOR_ADDED_POINTS = 1e-5;
-
-// TODO: all console.xxx statements are commented. In the future, we should use a logging library
+const MIN_IGC_XC_SCORE_POINTS = 5;
 
 export interface LatLonAltTime {
   alt: number;
@@ -95,15 +86,15 @@ export interface OptimizationResult {
  *
  * At each iteration, the score should be a better solutions.
  *
- * @param request the OptimizationRequest. if request.options is undefined, then there will be one iteration, and the result
- *                will be the best solution
- * @param rules the ScoringRules to apply for computation
- * @return an Iterator of OptimizationResult
  * @see README.md
+ *
+ * @param request Contains the tracks and options.
+ * @param rules The ScoringRules to use.
+ * @return an Iterator of OptimizationResult
  */
 export function* getOptimizer(
   request: OptimizationRequest,
-  rules: ScoringRules,
+  rules: ScoringRuleNames,
 ): Iterator<OptimizationResult, OptimizationResult> {
   if (request.track.points.length == 0) {
     // console.warn('Empty track received in optimization request. Returns a 0 score');
@@ -116,46 +107,41 @@ export function* getOptimizer(
     };
   }
   const originalTrack = request.track;
-  const solverTrack = buildValidTrackForSolver(originalTrack);
+  const solverTrack = appendPointsIfNeeded(originalTrack, MIN_IGC_XC_SCORE_POINTS);
   const flight = toIgcFile(solverTrack);
   const solverScoringRules = scoringRules.get(rules);
-  const options = toSolverOptions(request.options);
+  const options = toSolverOptions(request);
   const solutionIterator = solver(flight, solverScoringRules || {}, options);
   while (true) {
     const solution = solutionIterator.next();
     if (solution.done) {
       // console.debug('solution', JSON.stringify(solution.value, undefined, 2));
-      return toOptimizationResult(solution.value, originalTrack, solverTrack);
+      return toOptimizationResult(solution.value, originalTrack);
     }
-    yield toOptimizationResult(solution.value, originalTrack, solverTrack);
+    yield toOptimizationResult(solution.value, originalTrack);
   }
 }
 
 /**
- * the solver requires at least 5 points, so if there is not enough points,
- * we create points between existing ones
+ * Append points if the track is too short for igc-xc-score.
+ *
+ * The points are close enough to the last point to not affect the score.
  */
-function buildValidTrackForSolver(track: ScoringTrack) {
-  if (track.points.length >= MIN_POINTS) {
+function appendPointsIfNeeded(track: ScoringTrack, minValidLength: number) {
+  if (track.points.length >= minValidLength) {
     return track;
   }
-  // console.debug(`not enough points (${track.points.length}) in track. Interpolate intermediate points`);
-  track = deepCopy(track);
-  while (track.points.length < MIN_POINTS) {
-    const segments: ScoringTrack[] = [];
-    for (let i = 1; i < track.points.length; i++) {
-      // split each segment of the track into two segments
-      segments.push(
-        createSegments(
-          track.points[i - 1],
-          track.points[i],
-          track.startTimeSec,
-          NUM_SEGMENTS_BETWEEN_POINTS,
-          DISTRIBUTION_FACTOR_FOR_ADDED_POINTS,
-        ),
-      );
-    }
-    track = mergeTracks(...segments);
+
+  // console.debug(`The track is too short, appending (${MIN_IGC_XC_SCORE_POINTS - track.points.length}) points`);
+
+  track = JSON.parse(JSON.stringify(track));
+  while (track.points.length < minValidLength) {
+    const lastPoint = track.points.at(-1);
+    track.points.push({
+      ...lastPoint,
+      lat: lastPoint.lat + 0.000001,
+      offsetFromStartSec: lastPoint.offsetFromStartSec + 60,
+    });
   }
   // console.debug(`new track has ${newTrack.points.length} points`);
   return track;
@@ -181,43 +167,32 @@ function toIgcFile(track: ScoringTrack): IGCFile {
       enl: null,
     };
   });
-  // we ignore some properties of the igc-file, as they are not required for the computation
-  // @ts-ignore
+
+  // Only fill out the fields required by igc-xc-score.
   return {
     date: new Date(track.startTimeSec * 1000).toISOString(),
     fixes: fixes,
-  };
+  } as any;
 }
 
-type SolverOptions = { maxloop?: number; maxcycle?: number };
-
-function toSolverOptions(request: OptimizationRequest): SolverOptions {
+function toSolverOptions(request: OptimizationRequest) {
+  // TODO: upstream the type to igc-xc-score
   return {
     maxcycle: request.maxCycleDurationMs,
     maxloop: request.maxNumCycles,
   };
 }
 
-function toOptimizationResult(
-  solution: Solution,
-  originalTrack: ScoringTrack,
-  solverTrack: ScoringTrack,
-): OptimizationResult {
+function toOptimizationResult(solution: Solution, originalTrack: ScoringTrack): OptimizationResult {
   return {
     score: solution.score ?? 0,
     lengthKm: solution.scoreInfo?.distance ?? 0,
     multiplier: solution.opt.scoring.multiplier,
     circuit: toCircuitType(solution.opt.scoring.code),
     closingRadiusM: getClosingRadiusM(solution),
-    solutionIndices: getIndices(solution, originalTrack, solverTrack),
+    solutionIndices: getSolutionIndices(solution, originalTrack),
     optimal: solution.optimal || false,
   };
-}
-
-// TODO: submit a PR to igc-xc-score
-interface Scoring {
-  closingDistanceFixed?: number;
-  closingDistanceRelative?: number;
 }
 
 function getClosingRadiusM(solution: Solution): number | undefined {
@@ -227,13 +202,15 @@ function getClosingRadiusM(solution: Solution): number | undefined {
     return undefined;
   }
 
-  const closingDistanceFixed = solution.opt.scoring?.closingDistanceFixed;
+  // TODO: remove cast when https://github.com/mmomtchev/igc-xc-score/pull/233 is merged
+  const closingDistanceFixed = (solution.opt.scoring as any)?.closingDistanceFixed;
 
   if (closingDistanceFixed != null && closingDistance < closingDistanceFixed) {
-    return closingDistanceFixed;
+    return closingDistanceFixed * 1000;
   }
 
-  const closingDistanceRelativeRatio = solution.opt.scoring?.closingDistanceRelative;
+  // TODO: remove cast when https://github.com/mmomtchev/igc-xc-score/pull/233 is merged
+  const closingDistanceRelativeRatio = (solution.opt.scoring as any)?.closingDistanceRelative;
   const closingDistanceRelative =
     solution.scoreInfo?.distance != null && closingDistanceRelativeRatio != null
       ? closingDistanceRelativeRatio * solution.scoreInfo.distance
@@ -245,9 +222,6 @@ function getClosingRadiusM(solution: Solution): number | undefined {
 
   return undefined;
 }
-
-const circuitTypeCodes = ['od', 'tri', 'fai', 'oar'];
-type CircuitTypeCode = (typeof circuitTypeCodes)[number];
 
 const circuitMapping = {
   od: CircuitType.OpenDistance,
@@ -265,9 +239,7 @@ function toCircuitType(code: string): CircuitType {
 }
 
 /**
- * Return the indices of the solution points.
- *
- * This permit to identify the solution points in the ScoringTrack.points array
+ * Return the indices of the solution in the input track.
  *
  * It contains (when applicable):
  * - the starting point
@@ -276,73 +248,17 @@ function toCircuitType(code: string): CircuitType {
  * - the 'out' closing point
  * - the end point
  * */
-function getIndices(solution: Solution, originalTrack: ScoringTrack, solverTrack: ScoringTrack) {
-  const result: number[] = [];
-  pushInResult(getEntryPointsStartIndex(solution, originalTrack, solverTrack));
-  pushInResult(getClosingPointsInIndex(solution, originalTrack, solverTrack));
-  solution.scoreInfo?.tp
-    ?.map((turnPoint) => turnPoint.r)
-    .forEach((index) => pushInResult(getPointIndex(index, originalTrack, solverTrack)));
-  pushInResult(getClosingPointsOutIndex(solution, originalTrack, solverTrack));
-  pushInResult(getEntryPointsFinishIndex(solution, originalTrack, solverTrack));
-  return result;
-
-  function pushInResult(index: number) {
-    if (index >= 0) {
-      result.push(index);
-    }
-  }
-}
-
-function getEntryPointsStartIndex(solution: Solution, originalTrack: ScoringTrack, solverTrack: ScoringTrack): number {
-  // console.debug('getEntryPointsStartIndex', solution.scoreInfo?.ep?.start.r);
-  return getPointIndex(solution.scoreInfo?.ep?.start.r, originalTrack, solverTrack);
-}
-
-function getClosingPointsInIndex(solution: Solution, originalTrack: ScoringTrack, solverTrack: ScoringTrack): number {
-  // console.debug('getClosingPointsInIndex', solution.scoreInfo?.cp?.in.r);
-  return getPointIndex(solution.scoreInfo?.cp?.in.r, originalTrack, solverTrack);
-}
-
-function getClosingPointsOutIndex(solution: Solution, originalTrack: ScoringTrack, solverTrack: ScoringTrack): number {
-  // console.debug('getClosingPointsOutIndex', solution.scoreInfo?.cp?.out.r);
-  return getPointIndex(solution.scoreInfo?.cp?.out.r, originalTrack, solverTrack);
-}
-
-function getEntryPointsFinishIndex(solution: Solution, originalTrack: ScoringTrack, solverTrack: ScoringTrack): number {
-  // console.debug('getEntryPointsFinishIndex', solution.scoreInfo?.ep?.finish.r);
-  return getPointIndex(solution.scoreInfo?.ep?.finish.r, originalTrack, solverTrack);
-}
-
-function getPointIndex(index: number | undefined, originalTrack: ScoringTrack, solverTrack: ScoringTrack): number {
-  if (index === undefined) {
-    return -1;
-  }
-  return solutionContainsValidIndices(originalTrack, solverTrack)
-    ? index
-    : getIndexInOriginalTrack(index, originalTrack, solverTrack);
-}
-
-function solutionContainsValidIndices(originalTrack: ScoringTrack, solverTrack: ScoringTrack): boolean {
-  return originalTrack.points.length === solverTrack.points.length;
-}
-
-function getIndexInOriginalTrack(index: number, originalTrack: ScoringTrack, solverTrack: ScoringTrack): number {
-  const solutionPoint = solverTrack.points[index];
-  let indexInOriginalTrack = -1;
-  let closestDistance = Number.MAX_VALUE;
-  for (let i = 0; i < originalTrack.points.length; i++) {
-    const point = originalTrack.points[i];
-    const distance = getDistance(point, solutionPoint);
-    if (distance < closestDistance) {
-      closestDistance = distance;
-      indexInOriginalTrack = i;
-    }
-  }
-  return indexInOriginalTrack;
-}
-
-// Not the most performant solution but is used only for slow dimension problems
-function deepCopy<T>(source: T): T {
-  return JSON.parse(JSON.stringify(source));
+function getSolutionIndices(solution: Solution, inputTrack: ScoringTrack): number[] {
+  return (
+    [
+      solution.scoreInfo?.ep?.start.r,
+      solution.scoreInfo?.cp?.in.r,
+      ...(solution.scoreInfo?.tp ?? []).map((turnPoint) => turnPoint.r),
+      solution.scoreInfo?.cp?.out.r,
+      solution.scoreInfo?.ep?.finish.r,
+    ]
+      .filter((index) => index != null)
+      // Map added dummy points back to the last point of the input track.
+      .map((index) => Math.min(index, inputTrack.points.length - 1))
+  );
 }

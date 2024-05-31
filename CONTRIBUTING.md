@@ -44,6 +44,8 @@ For the moment, it does not work with docker compose. But if you install the clo
 - define the required environment variables:`eval $(gcloud beta emulators datastore --data-dir=MY_DATA_DIR env-init)`
 - you can then run the application locally in this shell with `npm run dev`
 
-## Before you submit your PR:
+## Helpful commands
 
-run this command to format/lint/test: `npx nx check`
+`npx nx check` runs the build, lint, and test targets for all the projects. Nice to use before uploading a PR.
+
+`nx affected:test --all --parallel --maxParallel 10 --watch` will run the tests affected by your code changes.

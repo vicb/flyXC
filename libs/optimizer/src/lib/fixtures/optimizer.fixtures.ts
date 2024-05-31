@@ -2,7 +2,7 @@ import { OptimizationRequest, OptimizationResult, CircuitType } from '../optimiz
 import { computeDestinationPoint, getGreatCircleBearing, getPreciseDistance } from 'geolib';
 import { createSegments } from '../utils/createSegments';
 import { mergeTracks } from '../utils/mergeTracks';
-import { ScoringRules } from '../scoringRules';
+import { ScoringRuleNames } from '../scoringRules';
 
 /**
  * Functions to generate test fixtures for the optimizer tests
@@ -15,7 +15,7 @@ import { ScoringRules } from '../scoringRules';
  */
 export type OptimizerFixture = {
   request: OptimizationRequest;
-  rules: ScoringRules;
+  rules: ScoringRuleNames;
   expectedResult: Omit<OptimizationResult, 'closingRadius' | 'solutionIndices'>;
 };
 
@@ -55,7 +55,7 @@ export function createFreeDistanceFixture(
   from: LatLon,
   to: LatLon,
   nbSegments: number,
-  givenRules: ScoringRules,
+  givenRules: ScoringRuleNames,
 ): OptimizerFixture {
   const multiplier = getFreeDistanceMultiplier(givenRules);
   const distance = getPreciseDistance(from, to) / 1000;
@@ -93,7 +93,7 @@ export function createFreeDistance1PointFixture(
   intermediate: LatLon,
   to: LatLon,
   nbSegments: number,
-  givenRules: ScoringRules,
+  givenRules: ScoringRuleNames,
 ): OptimizerFixture {
   const distance = (getPreciseDistance(from, intermediate) + getPreciseDistance(intermediate, to)) / 1000;
   const multiplier = getFreeDistanceMultiplier(givenRules);
@@ -141,7 +141,7 @@ export function createFreeDistance2PointsFixture(
   turnPoint2: LatLon,
   to: LatLon,
   nbSegments: number,
-  givenRules: ScoringRules,
+  givenRules: ScoringRuleNames,
 ): OptimizerFixture {
   const distance =
     (getPreciseDistance(from, turnPoint1) +
@@ -201,7 +201,7 @@ export function createFreeDistance3PointsFixture(
   turnPoint3: LatLon,
   to: LatLon,
   nbSegments: number,
-  givenRules: ScoringRules,
+  givenRules: ScoringRuleNames,
 ): OptimizerFixture {
   const distance =
     (getPreciseDistance(from, turnPoint1) +
@@ -264,7 +264,7 @@ export function createClosedFlatTriangleFixture(
   turnPoint1: LatLon,
   turnPoint2: LatLon,
   nbSegments: number,
-  givenRules: ScoringRules,
+  givenRules: ScoringRuleNames,
 ): OptimizerFixture {
   if (isFAI(start, turnPoint1, turnPoint2)) {
     throw new Error('invalid test data: not a flat triangle');
@@ -295,7 +295,7 @@ export function createClosedFaiTriangleFixture(
   start: LatLon,
   turnPoint1: LatLon,
   nbSegments: number,
-  givenRules: ScoringRules,
+  givenRules: ScoringRuleNames,
 ): OptimizerFixture {
   const distance1 = getPreciseDistance(start, turnPoint1);
   const bearingStartToP1 = getGreatCircleBearing(start, turnPoint1);
@@ -316,7 +316,7 @@ export function createClosedFaiTriangleFixtureWithSmallCycle(
   start: LatLon,
   p1: LatLon,
   nbIntervals: number,
-  givenRules: ScoringRules,
+  givenRules: ScoringRuleNames,
 ): OptimizerFixture {
   const standardFixture = createClosedFaiTriangleFixture(start, p1, nbIntervals, givenRules);
   return {
@@ -336,7 +336,7 @@ export function createClosedFaiTriangleFixtureWithSmallLoop(
   start: LatLon,
   p1: LatLon,
   nbIntervals: number,
-  givenRules: ScoringRules,
+  givenRules: ScoringRuleNames,
 ): OptimizerFixture {
   const standardFixture = createClosedFaiTriangleFixture(start, p1, nbIntervals, givenRules);
   return {
@@ -349,7 +349,7 @@ export function createClosedFaiTriangleFixtureWithSmallLoop(
   };
 }
 
-function getFreeDistanceMultiplier(scoringRules: ScoringRules) {
+function getFreeDistanceMultiplier(scoringRules: ScoringRuleNames) {
   switch (scoringRules) {
     case 'CzechLocal':
     case 'CzechEuropean':
@@ -369,7 +369,7 @@ function getFreeDistanceMultiplier(scoringRules: ScoringRules) {
   }
 }
 
-function getFlatTriangleMultiplier(scoringRules: ScoringRules) {
+function getFlatTriangleMultiplier(scoringRules: ScoringRuleNames) {
   switch (scoringRules) {
     case 'CzechEuropean':
     case 'CzechOutsideEurope':
@@ -392,7 +392,7 @@ function getFlatTriangleMultiplier(scoringRules: ScoringRules) {
   }
 }
 
-function getFaiTriangleMultiplier(scoringRules: ScoringRules) {
+function getFaiTriangleMultiplier(scoringRules: ScoringRuleNames) {
   switch (scoringRules) {
     case 'CzechEuropean':
     case 'CzechOutsideEurope':
@@ -431,7 +431,7 @@ function createTriangleFixture(
   p1: LatLon,
   p2: { lon: number; lat: number },
   nbSegments: number,
-  givenRules: ScoringRules,
+  givenRules: ScoringRuleNames,
   multiplier: number,
   circuit: CircuitType,
 ): OptimizerFixture {

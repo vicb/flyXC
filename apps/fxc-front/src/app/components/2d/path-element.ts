@@ -194,8 +194,7 @@ export class PathElement extends connect(store)(LitElement) {
     if (!this.line || this.line.getPath().getLength() < 2 || this.doNotSyncState) {
       return;
     }
-    const line = this.line;
-    store.dispatch(setDistance(google.maps.geometry.spherical.computeLength(line.getPath())));
+    store.dispatch(setDistance(google.maps.geometry.spherical.computeLength(this.line.getPath())));
 
     const points = this.getPathPoints();
     const score = this.computeScore(points);
@@ -208,9 +207,8 @@ export class PathElement extends connect(store)(LitElement) {
       optimizedPath = [optimizedPath[1], optimizedPath[2]];
     }
 
-    if (!this.optimizedLine) {
-      this, (this.optimizedLine = new google.maps.Polyline());
-    }
+    this.optimizedLine ??= new google.maps.Polyline();
+
     this.optimizedLine.setOptions({
       map: this.map,
       path: optimizedPath,
