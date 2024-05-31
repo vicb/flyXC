@@ -4,11 +4,11 @@ import { connect } from 'pwa-helpers';
 
 import { modalController } from '@ionic/core/components';
 
-import { LEAGUES_NAMES } from '../../logic/score/league/leagues';
 import * as units from '../../logic/units';
 import { setLeague } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
 import { setAltitudeUnit, setDistanceUnit, setSpeedUnit, setVarioUnit } from '../../redux/units-slice';
+import { LEAGUE_CODES, LEAGUES } from '../../logic/score/league/leagues';
 
 @customElement('pref-modal')
 export class PrefModal extends connect(store)(LitElement) {
@@ -21,8 +21,8 @@ export class PrefModal extends connect(store)(LitElement) {
 
   constructor() {
     super();
-    Object.getOwnPropertyNames(LEAGUES_NAMES).forEach((value) => {
-      this.leagues.push({ value, name: LEAGUES_NAMES[value] });
+    LEAGUE_CODES.forEach((value) => {
+      this.leagues.push({ value, name: LEAGUES[value].name });
     });
     this.leagues.sort((a, b) => (a < b ? -1 : 1));
   }

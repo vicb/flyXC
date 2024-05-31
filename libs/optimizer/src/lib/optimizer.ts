@@ -2,7 +2,7 @@
 
 import { solver, Solution } from 'igc-xc-score';
 import { BRecord, IGCFile } from 'igc-parser';
-import { ScoringRuleNames, scoringRules } from './scoring-rules';
+import { ScoringRuleName, scoringRules } from './scoring-rules';
 
 // Minimum number of points in an igc-xc-score track.
 // See this issue https://github.com/mmomtchev/igc-xc-score/issues/231
@@ -12,22 +12,14 @@ export interface LatLonAltTime {
   alt: number;
   lat: number;
   lon: number;
-  /**
-   * TODO: make this an absolute time, remove the start time
-   * Time relative to the start of the track.
-   */
-  offsetFromStartSec: number;
+  timeSec: number;
 }
 
 export interface ScoringTrack {
   points: LatLonAltTime[];
-  /**
-   * Timestamp of the start of the track.
-   */
-  startTimeSec: number;
 }
 
-export interface OptimizationRequest {
+export interface ScoringRequest {
   track: ScoringTrack;
   /**
    * Maximum duration for an optimization round trip.
@@ -48,7 +40,7 @@ export enum CircuitType {
   OutAndReturn = 'Out and return',
 }
 
-export interface OptimizationResult {
+export interface ScoringResult {
   /**
    * The score for the track in the given league
    */
@@ -89,13 +81,13 @@ export interface OptimizationResult {
  * @see README.md
  *
  * @param request Contains the tracks and options.
- * @param rules The ScoringRules to use.
+ * @param ruleName The ScoringRules to use.
  * @return an Iterator of OptimizationResult
  */
 export function* getOptimizer(
-  request: OptimizationRequest,
-  rules: ScoringRuleNames,
-): Iterator<OptimizationResult, OptimizationResult> {
+  request: ScoringRequest,
+  ruleName: ScoringRuleName,
+): Iterator<ScoringResult, ScoringResult> {
   if (request.track.points.length == 0) {
     // console.warn('Empty track received in optimization request. Returns a 0 score');
     return {
@@ -109,7 +101,7 @@ export function* getOptimizer(
   const originalTrack = request.track;
   const solverTrack = appendPointsIfNeeded(originalTrack, MIN_IGC_XC_SCORE_POINTS);
   const flight = toIgcFile(solverTrack);
-  const solverScoringRules = scoringRules.get(rules);
+  const solverScoringRules = scoringRules.get(ruleName);
   const options = toSolverOptions(request);
   const solutionIterator = solver(flight, solverScoringRules || {}, options);
   while (true) {
@@ -140,7 +132,7 @@ function appendPointsIfNeeded(track: ScoringTrack, minValidLength: number) {
     track.points.push({
       ...lastPoint,
       lat: lastPoint.lat + 0.000001,
-      offsetFromStartSec: lastPoint.offsetFromStartSec + 60,
+      timeSec: lastPoint.timeSec + 60,
     });
   }
   // console.debug(`new track has ${newTrack.points.length} points`);
@@ -152,11 +144,15 @@ function appendPointsIfNeeded(track: ScoringTrack, minValidLength: number) {
  * @param track the source track
  */
 function toIgcFile(track: ScoringTrack): IGCFile {
+  if (track.points.length == 0) {
+    throw new Error('Empty track');
+  }
+
   const fixes = track.points.map((point): BRecord => {
-    const timeMilliseconds = point.offsetFromStartSec * 1000;
+    const timeMilliSec = point.timeSec * 1000;
     return {
-      timestamp: timeMilliseconds,
-      time: new Date(timeMilliseconds).toISOString(),
+      timestamp: timeMilliSec,
+      time: new Date(timeMilliSec).toISOString(),
       latitude: point.lat,
       longitude: point.lon,
       valid: true,
@@ -170,12 +166,12 @@ function toIgcFile(track: ScoringTrack): IGCFile {
 
   // Only fill out the fields required by igc-xc-score.
   return {
-    date: new Date(track.startTimeSec * 1000).toISOString(),
+    date: new Date(track.points[0].timeSec * 1000).toISOString(),
     fixes: fixes,
   } as any;
 }
 
-function toSolverOptions(request: OptimizationRequest) {
+function toSolverOptions(request: ScoringRequest) {
   // TODO: upstream the type to igc-xc-score
   return {
     maxcycle: request.maxCycleDurationMs,
@@ -183,7 +179,7 @@ function toSolverOptions(request: OptimizationRequest) {
   };
 }
 
-function toOptimizationResult(solution: Solution, originalTrack: ScoringTrack): OptimizationResult {
+function toOptimizationResult(solution: Solution, originalTrack: ScoringTrack): ScoringResult {
   return {
     score: solution.score ?? 0,
     lengthKm: solution.scoreInfo?.distance ?? 0,

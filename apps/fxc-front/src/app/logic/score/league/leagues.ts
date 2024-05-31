@@ -1,49 +1,46 @@
-import { ScoringRuleNames } from '@flyxc/optimizer';
+import { ScoringRuleName } from '@flyxc/optimizer';
 
-export const leagueCodes = ['czl', 'cze', 'czo', 'fr', 'leo', 'nor', 'ukc', 'uki', 'ukn', 'xc', 'xcppg', 'wxc'];
-export type LeagueCode = (typeof leagueCodes)[number];
+export const LEAGUE_CODES = [
+  'czl',
+  'cze',
+  'czo',
+  'fr',
+  'leo',
+  'nor',
+  'ukc',
+  'uki',
+  'ukn',
+  'xc',
+  'xcppg',
+  'wxc',
+] as const;
 
-export const LEAGUES_NAMES: Readonly<Record<LeagueCode, string>> = {
-  czl: 'Czech (ČPP local)',
-  cze: 'Czech (ČPP Europe)',
-  czo: 'Czech (ČPP outside Europe)',
-  fr: 'France (CFD)',
-  leo: 'Leonardo',
-  nor: 'Norway (Distanseligaen)',
-  ukc: 'UK (XC League, Club)',
-  uki: 'UK (XC League, International)',
-  ukn: 'UK (XC League, National)',
-  xc: 'XContest',
-  xcppg: 'XContest PPG',
-  wxc: 'World XC Online Contest',
+export type LeagueCode = (typeof LEAGUE_CODES)[number];
+
+interface LeagueDetails {
+  name: string;
+  ruleName: ScoringRuleName;
+}
+
+export const LEAGUES: Readonly<Record<LeagueCode, LeagueDetails>> = {
+  czl: { name: 'Czech (ČPP local)', ruleName: 'CzechLocal' },
+  cze: { name: 'Czech (ČPP Europe)', ruleName: 'CzechEurope' },
+  czo: { name: 'Czech (ČPP outside Europe)', ruleName: 'CzechOutsideEurope' },
+  fr: { name: 'France (CFD)', ruleName: 'FFVL' },
+  leo: { name: 'Leonardo', ruleName: 'Leonardo' },
+  nor: { name: 'Norway (Distanseligaen)', ruleName: 'Norway' },
+  ukc: { name: 'UK (XC League, Club)', ruleName: 'UKClub' },
+  uki: { name: 'UK (XC League, International)', ruleName: 'UKInternational' },
+  ukn: { name: 'UK (XC League, National)', ruleName: 'UKNational' },
+  xc: { name: 'XContest', ruleName: 'XContest' },
+  xcppg: { name: 'XContest PPG', ruleName: 'XContestPPG' },
+  wxc: { name: 'World XC Online Contest', ruleName: 'WorldXC' },
 };
 
-export function getScoringRules(league: LeagueCode): ScoringRuleNames {
-  switch (league) {
-    case 'czl':
-      return 'CzechLocal';
-    case 'cze':
-      return 'CzechEuropean';
-    case 'czo':
-      return 'CzechOutsideEurope';
-    case 'fr':
-      return 'FederationFrancaiseVolLibre';
-    case 'leo':
-      return 'Leonardo';
-    case 'nor':
-      return 'Norway';
-    case 'ukc':
-      return 'UnitedKingdomClub';
-    case 'uki':
-      return 'UnitedKingdomInternational';
-    case 'ukn':
-      return 'UnitedKingdomNational';
-    case 'xc':
-      return 'XContest';
-    case 'xcppg':
-      return 'XContestPPG';
-    case 'wxc':
-      return 'WorldXC';
+export function getScoringRuleName(leagueCode: LeagueCode): ScoringRuleName {
+  const ruleName = LEAGUES[leagueCode]?.ruleName;
+  if (ruleName == null) {
+    throw new Error('Unkown league code "${leagueCode}"');
   }
-  throw Error('no corresponding rule for ' + league);
+  return ruleName;
 }

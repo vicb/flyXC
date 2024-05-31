@@ -17,8 +17,9 @@ import { Score } from '../../logic/score/scorer';
 import { setDistance, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
 import { PlannerElement } from './planner-element';
-import { CircuitType, getOptimizer, ScoringTrack } from '@flyxc/optimizer';
-import { getScoringRules } from '../../logic/score/league/leagues';
+import { CircuitType, getOptimizer } from '@flyxc/optimizer';
+import { getScoringRuleName } from '../../logic/score/league/leagues';
+import type { LeagueCode } from '../../logic/score/league/leagues';
 
 // Route color by circuit type.
 const ROUTE_STROKE_COLORS = {
@@ -44,7 +45,7 @@ export class PathElement extends connect(store)(LitElement) {
   @state()
   private enabled = false;
   @state()
-  private league = 'xc';
+  private league: LeagueCode = 'xc';
   @state()
   private encodedRoute = '';
   @state()
@@ -191,10 +192,11 @@ export class PathElement extends connect(store)(LitElement) {
 
   // Optimize the route and draw the optimize lines and sectors.
   private optimize(): void {
-    if (!this.line || this.line.getPath().getLength() < 2 || this.doNotSyncState) {
+    const { line } = this;
+    if (!line || line.getPath().getLength() < 2 || this.doNotSyncState) {
       return;
     }
-    store.dispatch(setDistance(google.maps.geometry.spherical.computeLength(this.line.getPath())));
+    store.dispatch(setDistance(google.maps.geometry.spherical.computeLength(line.getPath())));
 
     const points = this.getPathPoints();
     const score = this.computeScore(points);
@@ -249,12 +251,11 @@ export class PathElement extends connect(store)(LitElement) {
   }
 
   private computeScore(points: LatLon[]): Score {
-    const track: ScoringTrack = {
-      points: points.map((point, i) => ({ ...point, alt: 0, offsetFromStartSec: i * 60 })),
-      startTimeSec: Math.round(new Date().getTime() / 1000),
-    };
     // TODO: limit the processing time ?
-    const result = getOptimizer({ track }, getScoringRules(this.league)).next().value;
+    const result = getOptimizer(
+      { track: { points: points.map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 })) } },
+      getScoringRuleName(this.league),
+    ).next().value;
     return new Score({
       circuit: result.circuit,
       distanceM: result.lengthKm * 1000,

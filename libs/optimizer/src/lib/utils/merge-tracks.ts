@@ -18,8 +18,5 @@ export function mergeTracks(...tracks: ScoringTrack[]): ScoringTrack {
     const collapse = points.at(-1)?.lat === track.points[0].lat && points.at(-1)?.lon === track.points[0].lon;
     points.push(...(collapse ? track.points.slice(1) : track.points));
   }
-  return {
-    points,
-    startTimeSec: 0,
-  };
+  return { points };
 }
