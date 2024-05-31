@@ -51,6 +51,8 @@ export class PathElement extends connect(store)(LitElement) {
   private isFreeDrawing = false;
   @state()
   private scoringInfo?: ScoringInfo;
+  @state()
+  private sampledTrack?: {lat: number; lon: number}[];
 
   private line?: google.maps.Polyline;
   private optimizedLine?: google.maps.Polyline;
@@ -69,6 +71,7 @@ export class PathElement extends connect(store)(LitElement) {
     this.encodedRoute = state.planner.route;
     this.isFreeDrawing = state.planner.isFreeDrawing;
     this.scoringInfo = state.planner.scoringInfo;
+    this.sampledTrack = state.planner.sampledTrack;
   }
 
   shouldUpdate(changedProperties: PropertyValues): boolean {
@@ -96,6 +99,9 @@ export class PathElement extends connect(store)(LitElement) {
     }
     if (changedProperties.has('scoringInfo')) {
       this.drawOptimization(this.scoringInfo);
+    }
+    if (changedProperties.has('sampledTrack')){
+      this.drawSampledTrack();
     }
     return super.shouldUpdate(changedProperties);
   }
@@ -223,13 +229,8 @@ export class PathElement extends connect(store)(LitElement) {
     if (!scoringInfo) {
       return;
     }
-    const { score, points, useCurrentTrack } = scoringInfo;
+    const { score, points/*, useCurrentTrack*/ } = scoringInfo;
     let optimizedPath = score.indexes.map((index) => new google.maps.LatLng(points[index].lat, points[index].lon));
-    if (useCurrentTrack) {
-      this.doNotSyncState = true;
-      this.replaceLinePath(optimizedPath);
-      this.doNotSyncState = false;
-    }
     if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {
       optimizedPath = [optimizedPath[1], optimizedPath[2], optimizedPath[3], optimizedPath[1]];
     } else if (score.circuit == CircuitType.OutAndReturn) {
@@ -275,6 +276,15 @@ export class PathElement extends connect(store)(LitElement) {
     }
 
     this.postScoreToHost(score);
+  }
+  
+  private drawSampledTrack(){
+    if (this.sampledTrack){
+      this.doNotSyncState = true;
+      const linePath = this.sampledTrack.map((value) => (new google.maps.LatLng(value.lat,value.lon)));
+      this.replaceLinePath(linePath!);
+      this.doNotSyncState = false;
+    }
   }
 
   // Sends a message to the iframe host with the changes.

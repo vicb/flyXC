@@ -48,16 +48,20 @@ export function computeScore(points: LatLonAndMaybeAltTime[], league: string): S
   });
 }
 
-export function getSampledTrackLengthKm(points: (LatLon & { timeSec: number })[], sampleIntervalSec: number) {
+export function getSampledTrack(points: ({ lat: number, lon: number, timeSec: number })[], sampleIntervalSec: number) {
   let nextSampleTime = points[0].timeSec + sampleIntervalSec;
   const samples = [points[0]];
   points.forEach((point) => {
-    if (point.timeSec > nextSampleTime){
+    if (point.timeSec > nextSampleTime) {
       nextSampleTime = nextSampleTime + sampleIntervalSec;
       samples.push(point);
     }
   });
-  return getPathLength(samples)/1000;
+  return samples;
+}
+
+export function getTrackLengthKm(track: (LatLon & { timeSec: number })[]) {
+  return getPathLength(track) / 1000;
 }
 
 function getScoringRule(league: string): ScoringRuleNames {

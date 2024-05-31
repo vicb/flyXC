@@ -1,10 +1,10 @@
-import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
+import { css, CSSResult, html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
-import { computeScore, getSampledTrackLengthKm } from '../../logic/score/scorer';
+import { computeScore, getSampledTrack, getTrackLengthKm } from '../../logic/score/scorer';
 import * as units from '../../logic/units';
 import * as planner from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
@@ -44,16 +44,6 @@ export class PlannerElement extends connect(store)(LitElement) {
   private readonly downloadHandler = () => this.dispatchEvent(new CustomEvent('download'));
   private readonly resetHandler = () => this.dispatchEvent(new CustomEvent('reset'));
   private readonly drawHandler = () => this.dispatchEvent(new CustomEvent('draw-route'));
-
-  stateChanged(state: RootState): void {
-    this.distance = state.planner.distance;
-    this.scoringInfo = state.planner.scoringInfo;
-    this.speed = state.planner.speed;
-    this.units = state.units;
-    this.duration = ((this.distance / this.speed) * 60) / 1000;
-    this.isFreeDrawing = state.planner.isFreeDrawing;
-    this.track = currentTrack(state);
-  }
 
   static get styles(): CSSResult {
     return css`
@@ -114,13 +104,30 @@ export class PlannerElement extends connect(store)(LitElement) {
         color: darkgray;
         font-size: 0.7em;
       }
-      
+
       .emphasis {
         color: orange;
         font-weight: bold !important;
-        font-size: 14px;        
+        font-size: 14px;
       }
     `;
+  }
+
+  stateChanged(state: RootState): void {
+    this.distance = state.planner.distance;
+    this.scoringInfo = state.planner.scoringInfo;
+    this.speed = state.planner.speed;
+    this.units = state.units;
+    this.duration = ((this.distance / this.speed) * 60) / 1000;
+    this.isFreeDrawing = state.planner.isFreeDrawing;
+    this.track = currentTrack(state);
+  }
+
+  protected shouldUpdate(changedProperties: PropertyValues): boolean {
+    if (changedProperties.has('isComputing')) {
+      this.render();
+    }
+    return super.shouldUpdate(changedProperties);
   }
 
   protected render(): TemplateResult {
@@ -150,7 +157,9 @@ export class PlannerElement extends connect(store)(LitElement) {
         <div>
           <div>${this.scoringInfo.score.circuit}</div>
           <div class="large">
-            ${unsafeHTML(units.formatUnit(this.scoringInfo.score.distanceM / 1000, this.units.distance, undefined, 'unit'))}
+            ${unsafeHTML(
+              units.formatUnit(this.scoringInfo.score.distanceM / 1000, this.units.distance, undefined, 'unit'),
+            )}
           </div>
         </div>
         <div class="collapsible">
@@ -289,11 +298,25 @@ export class PlannerElement extends connect(store)(LitElement) {
       store.dispatch(planner.setScoringInfo(scoringInfo));
       const durationS = points.at(-1)!.timeSec - points[0].timeSec;
       const durationH = durationS / 3600;
-      const trackLengthKm = getSampledTrackLengthKm(points, 5 * 60);
+      // to
+      const sampledTrack = getSampledTrack(points, 15 * 60);
+      score.indexes.forEach((index) => sampledTrack.push(points[index]));
+      // negative if a is less than b
+      sampledTrack.sort((a, b) => {
+        if (a.timeSec < b.timeSec) {
+          return -1;
+        } else if (a.timeSec > b.timeSec) {
+          return 1;
+        }
+        return 0;
+      });
+      sampledTrack.push(points.at(-1)!)
+      store.dispatch(planner.setSampledTrack(sampledTrack));
+      const sampledTrackLengthKm = getTrackLengthKm(sampledTrack);
       this.duration = durationS;
-      this.distance = trackLengthKm;
-      store.dispatch(planner.setSpeed(trackLengthKm/ durationH));
-      store.dispatch(planner.setDistance(trackLengthKm*1000));
+      this.distance = sampledTrackLengthKm;
+      store.dispatch(planner.setSpeed(sampledTrackLengthKm / durationH));
+      store.dispatch(planner.setDistance(sampledTrackLengthKm * 1000));
     }
   }
 }

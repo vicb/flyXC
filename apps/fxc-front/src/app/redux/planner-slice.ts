@@ -6,6 +6,7 @@ import { LeagueCode } from '../logic/score/league/leagues';
 
 export type PlannerState = {
   scoringInfo?: ScoringInfo;
+  sampledTrack?: {lat: number, lon: number}[];
   speed: number;
   distance: number;
   league: LeagueCode;
@@ -25,7 +26,6 @@ const route = getUrlParamValues(ParamNames.route)[0] ?? '';
 const enabled = route.length > 0;
 
 const initialState: PlannerState = {
-  scoringInfo: undefined,
   speed: Number(getUrlParamValues(ParamNames.speed)[0] ?? 20),
   distance: 0,
   league: (getUrlParamValues(ParamNames.league)[0] ?? localStorage.getItem('league') ?? 'xc') as LeagueCode,
@@ -52,6 +52,9 @@ const plannerSlice = createSlice({
       setUrlParamValue(ParamNames.league, action.payload);
       localStorage.setItem('league', action.payload);
       state.league = action.payload as LeagueCode;
+    },
+    setSampledTrack: (state, action: PayloadAction<{lat:number,lon:number}[]>)=>{
+      state.sampledTrack = action.payload;
     },
     incrementSpeed: (state) => {
       state.speed = Math.floor(state.speed + 1);
@@ -85,6 +88,7 @@ export const {
   setDistance,
   setSpeed,
   setLeague,
+  setSampledTrack ,
   incrementSpeed,
   decrementSpeed,
   setRoute,
