@@ -1,8 +1,8 @@
 import { OptimizationRequest, OptimizationResult, CircuitType } from '../optimizer';
 import { computeDestinationPoint, getGreatCircleBearing, getPreciseDistance } from 'geolib';
-import { createSegments } from '../utils/createSegments';
-import { mergeTracks } from '../utils/mergeTracks';
-import { ScoringRuleNames } from '../scoringRules';
+import { createSegments } from '../utils/create-segments';
+import { mergeTracks } from '../utils/merge-tracks';
+import { ScoringRuleNames } from '../scoring-rules';
 
 /**
  * Functions to generate test fixtures for the optimizer tests
@@ -44,6 +44,7 @@ export type LatLon = {
 };
 
 const START_TIME_SEC = Math.round(new Date().getTime() / 1000);
+
 /**
  * @param from LatLon of the starting point
  * @param to LatLon of the ending point

@@ -11,7 +11,7 @@ import {
   createFreeDistanceFixture,
   OptimizerFixture,
 } from './fixtures/optimizer.fixtures';
-import { scoringRulesNames } from './scoringRules';
+import { scoringRulesNames } from './scoring-rules';
 
 describe('optimizer', () => {
   describe('given an empty request', () => {

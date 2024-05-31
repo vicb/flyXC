@@ -2,7 +2,7 @@
 
 import { solver, Solution } from 'igc-xc-score';
 import { BRecord, IGCFile } from 'igc-parser';
-import { ScoringRuleNames, scoringRules } from './scoringRules';
+import { ScoringRuleNames, scoringRules } from './scoring-rules';
 
 // Minimum number of points in an igc-xc-score track.
 // See this issue https://github.com/mmomtchev/igc-xc-score/issues/231

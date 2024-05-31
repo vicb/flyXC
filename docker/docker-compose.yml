@@ -1,7 +1,6 @@
 # This file permits to launch docker images of services required for this app
 #
 services:
-
   # launch it with ' docker compose up -d redis'
   redis:
     image: redis:latest
