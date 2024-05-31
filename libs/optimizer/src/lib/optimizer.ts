@@ -136,7 +136,7 @@ function appendPointsIfNeeded(track: ScoringTrack, minValidLength: number) {
 
   track = JSON.parse(JSON.stringify(track));
   while (track.points.length < minValidLength) {
-    const lastPoint = track.points.at(-1);
+    const lastPoint = track.points.at(-1)!;
     track.points.push({
       ...lastPoint,
       lat: lastPoint.lat + 0.000001,
@@ -231,7 +231,7 @@ const circuitMapping = {
 };
 
 function toCircuitType(code: string): CircuitType {
-  const type = circuitMapping[code];
+  const type = circuitMapping[code as 'od' | 'tri' | 'fai' | 'oar'];
   if (type == null) {
     throw new Error(`Unknown type "${code}"`);
   }
@@ -259,6 +259,6 @@ function getSolutionIndices(solution: Solution, inputTrack: ScoringTrack): numbe
     ]
       .filter((index) => index != null)
       // Map added dummy points back to the last point of the input track.
-      .map((index) => Math.min(index, inputTrack.points.length - 1))
+      .map((index) => Math.min(index!, inputTrack.points.length - 1))
   );
 }
