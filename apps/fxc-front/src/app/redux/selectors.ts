@@ -14,6 +14,8 @@ export const currentTrack = (state: RootState): RuntimeTrack | undefined =>
 export const currentTrackId = (state: RootState): string | undefined => state.track.currentTrackId;
 export const numTracks = trackAdapterSelector.selectTotal;
 
+export const view2d = (state: RootState):boolean => !state.app.view3d;
+
 export const groupIds = (state: RootState): Set<number> =>
   new Set(state.track.tracks.ids.map((trackId) => extractGroupId(String(trackId))));
 

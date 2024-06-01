@@ -7,7 +7,7 @@ import { when } from 'lit/directives/when.js';
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 import { requestCurrentPosition } from '../../logic/geolocation';
-import { ParamNames, addUrlParamValues, pushCurrentState } from '../../logic/history';
+import { addUrlParamValues, getSearchParams, ParamNames, pushCurrentState } from '../../logic/history';
 import * as msg from '../../logic/messages';
 import { uploadTracks } from '../../logic/track';
 import { DistanceUnit, formatUnit } from '../../logic/units';
@@ -526,6 +526,9 @@ export class ViewItems extends connect(store)(LitElement) {
   private async handleSwitch() {
     store.dispatch(setApiLoading(true));
     await maybeHideSidePane();
+    if (sel.view2d(store.getState())){
+      window.open(`/3d?${getSearchParams().toString()}`, '_self');
+    }
   }
 
   protected createRenderRoot(): HTMLElement {
