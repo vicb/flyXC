@@ -298,18 +298,9 @@ export class PlannerElement extends connect(store)(LitElement) {
       store.dispatch(planner.setScoringInfo(scoringInfo));
       const durationS = points.at(-1)!.timeSec - points[0].timeSec;
       const durationH = durationS / 3600;
-      // to
       const sampledTrack = getSampledTrack(points, 15 * 60);
       score.indexes.forEach((index) => sampledTrack.push(points[index]));
-      // negative if a is less than b
-      sampledTrack.sort((a, b) => {
-        if (a.timeSec < b.timeSec) {
-          return -1;
-        } else if (a.timeSec > b.timeSec) {
-          return 1;
-        }
-        return 0;
-      });
+      sampledTrack.sort((a, b) => Math.sign(a.timeSec - b.timeSec));
       sampledTrack.push(points.at(-1)!)
       store.dispatch(planner.setSampledTrack(sampledTrack));
       const sampledTrackLengthKm = getTrackLengthKm(sampledTrack);

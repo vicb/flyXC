@@ -1,6 +1,5 @@
-import { CircuitType, getOptimizer, ScoringRuleNames, ScoringTrack } from '@flyxc/optimizer';
+import { CircuitType, getOptimizer, ScoringRuleName, ScoringTrack } from '@flyxc/optimizer';
 import { LatLon } from '@flyxc/common';
-import { LeagueCode } from './league/leagues';
 import { getPathLength } from 'geolib';
 
 export class Score {
@@ -32,10 +31,9 @@ export function computeScore(points: LatLonAndMaybeAltTime[], league: string): S
       return {
         ...point,
         alt: point.alt ?? 0,
-        offsetFromStartSec: point.timeSec ?? i * 60,
+        timeSec: point.timeSec ?? i * 60,
       };
     }),
-    startTimeSec: new Date().getTime() / 1000,
   };
   const result = getOptimizer({ track }, getScoringRule(league)).next().value;
   return new Score({
@@ -64,26 +62,26 @@ export function getTrackLengthKm(track: (LatLon & { timeSec: number })[]) {
   return getPathLength(track) / 1000;
 }
 
-function getScoringRule(league: string): ScoringRuleNames {
-  switch (league as LeagueCode) {
+function getScoringRule(league: string): ScoringRuleName {
+  switch (league) {
     case 'czl':
       return 'CzechLocal';
     case 'cze':
-      return 'CzechEuropean';
+      return 'CzechEurope';
     case 'czo':
       return 'CzechOutsideEurope';
     case 'fr':
-      return 'FederationFrancaiseVolLibre';
+      return 'FFVL';
     case 'leo':
       return 'Leonardo';
     case 'nor':
       return 'Norway';
     case 'ukc':
-      return 'UnitedKingdomClub';
+      return 'UKClub';
     case 'uki':
-      return 'UnitedKingdomInternational';
+      return 'UKInternational';
     case 'ukn':
-      return 'UnitedKingdomNational';
+      return 'UKNational';
     case 'xc':
       return 'XContest';
     case 'xcppg':

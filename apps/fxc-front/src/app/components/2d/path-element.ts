@@ -19,6 +19,7 @@ import { setDistance, setEnabled, setRoute, setScoringInfo } from '../../redux/p
 import { RootState, store } from '../../redux/store';
 import { PlannerElement } from './planner-element';
 import { CircuitType } from '@flyxc/optimizer';
+import * as leagues from '../../logic/score/league/leagues';
 
 // Route color by circuit type.
 const ROUTE_STROKE_COLORS = {
@@ -44,7 +45,7 @@ export class PathElement extends connect(store)(LitElement) {
   @state()
   private enabled = false;
   @state()
-  private league: LeagueCode = 'xc';
+  private league: leagues.LeagueCode = 'xc';
   @state()
   private encodedRoute = '';
   @state()
@@ -52,7 +53,7 @@ export class PathElement extends connect(store)(LitElement) {
   @state()
   private scoringInfo?: ScoringInfo;
   @state()
-  private sampledTrack?: {lat: number; lon: number}[];
+  private sampledTrack?: { lat: number; lon: number }[];
 
   private line?: google.maps.Polyline;
   private optimizedLine?: google.maps.Polyline;
@@ -100,7 +101,7 @@ export class PathElement extends connect(store)(LitElement) {
     if (changedProperties.has('scoringInfo')) {
       this.drawOptimization(this.scoringInfo);
     }
-    if (changedProperties.has('sampledTrack')){
+    if (changedProperties.has('sampledTrack')) {
       this.drawSampledTrack();
     }
     return super.shouldUpdate(changedProperties);
@@ -229,7 +230,7 @@ export class PathElement extends connect(store)(LitElement) {
     if (!scoringInfo) {
       return;
     }
-    const { score, points/*, useCurrentTrack*/ } = scoringInfo;
+    const { score, points /*, useCurrentTrack*/ } = scoringInfo;
     let optimizedPath = score.indexes.map((index) => new google.maps.LatLng(points[index].lat, points[index].lon));
     if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {
       optimizedPath = [optimizedPath[1], optimizedPath[2], optimizedPath[3], optimizedPath[1]];
@@ -277,11 +278,11 @@ export class PathElement extends connect(store)(LitElement) {
 
     this.postScoreToHost(score);
   }
-  
-  private drawSampledTrack(){
-    if (this.sampledTrack){
+
+  private drawSampledTrack() {
+    if (this.sampledTrack) {
       this.doNotSyncState = true;
-      const linePath = this.sampledTrack.map((value) => (new google.maps.LatLng(value.lat,value.lon)));
+      const linePath = this.sampledTrack.map((value) => new google.maps.LatLng(value.lat, value.lon));
       this.replaceLinePath(linePath!);
       this.doNotSyncState = false;
     }
