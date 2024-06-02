@@ -24,7 +24,7 @@ export class AboutModal extends LitElement {
         </p>
 
         <p>
-          You can contact us by <a href="mailto:contact@flyxc.app?subject=FlyXC" target="_blank">email</a>, or report
+          You can contact us by <a href="mailto:contact@flyxc.app?subject=flyXC" target="_blank">email</a>, or report
           any issue on <a href="https://github.com/vicb/flyxc/issues" target="_blank">github</a>
         </p>
 
@@ -59,6 +59,10 @@ export class AboutModal extends LitElement {
             <li>Icons are from <a href="https://icons8.com/" target="_blank">Line Awesome</a></li>
             <li>and many more open source libraries, projects, and artwork</li>
           </ul>
+
+          <h3>
+            <ion-text color="primary"><a href="/privacy-policy">Privacy Policy</a></ion-text>
+          </h3>
         </ion-text>
       </ion-content>
       <ion-footer>

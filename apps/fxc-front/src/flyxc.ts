@@ -84,6 +84,11 @@ export class FlyXc extends connect(store)(LitElement) {
             .beforeEnter=${this.beforeDevices}
             .componentProps=${{ accountId: null }}
           ></ion-route>
+          <ion-route
+            url="/privacy-policy"
+            component="privacy-policy-page"
+            .beforeEnter=${this.beforePrivacyPolicy}
+          ></ion-route>
           <ion-route url="/adm" component="admin-page" .beforeEnter=${this.beforeAdmin}></ion-route>
           <ion-route
             url="/adm/account/:accountId"
@@ -110,6 +115,11 @@ export class FlyXc extends connect(store)(LitElement) {
 
   private async beforeDevices(): Promise<NavigationHookResult> {
     await import('./app/components/pages/settings');
+    return true;
+  }
+
+  private async beforePrivacyPolicy(): Promise<NavigationHookResult> {
+    await import('./app/components/pages/privacy-policy');
     return true;
   }
 
