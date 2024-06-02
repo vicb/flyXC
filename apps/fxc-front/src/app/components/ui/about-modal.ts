@@ -63,6 +63,9 @@ export class AboutModal extends LitElement {
           <h3>
             <ion-text color="primary"><a href="/privacy-policy">Privacy Policy</a></ion-text>
           </h3>
+          <h3>
+            <ion-text color="primary"><a href="/terms">Terms and Conditions</a></ion-text>
+          </h3>
         </ion-text>
       </ion-content>
       <ion-footer>
