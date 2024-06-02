@@ -1,6 +1,8 @@
 // InReach tracker API.
 //
-// See https://support.garmin.com/en-US/?faq=tdlDCyo1fJ5UxjUbA9rMY8.
+// See
+// - https://support.garmin.com/en-US/?faq=tdlDCyo1fJ5UxjUbA9rMY8 (offline)
+// - https://web.archive.org/web/20230328084014/https://support.garmin.com/en-US/?faq=tdlDCyo1fJ5UxjUbA9rMY8
 
 import {
   fetchResponse,
