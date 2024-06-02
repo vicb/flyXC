@@ -7,10 +7,10 @@ import { customElement, queryAll, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { setFetchMillis } from '../../redux/live-track-slice';
 import '../ui/google-btn';
-import './elements';
+import './admin-elements';
 
-@customElement('devices-page')
-export class DevicesPage extends LitElement {
+@customElement('settings-page')
+export class SettingsPage extends LitElement {
   @state()
   private isLoading = true;
   @state()
@@ -78,12 +78,6 @@ export class DevicesPage extends LitElement {
     }
 
     return html`
-      <style>
-        devices-page {
-          width: 100%;
-          height: 100%;
-        }
-      </style>
       <ion-header>
         <ion-toolbar color="primary">
           <ion-title>Live tracking</ion-title>

@@ -598,7 +598,7 @@ export class TrackItems extends connect(store)(LitElement) {
         ${when(hasTracks, () => html`<ion-badge slot="end" color="primary">${this.numTracks}</ion-badge>`)}
       </ion-item>
       <ion-item lines=${hasTracks ? 'none' : 'full'} button @click=${this.forwardClick}>
-        Load
+        Upload tracks and routes
         <input
           type="file"
           multiple

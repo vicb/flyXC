@@ -27,10 +27,6 @@ export class ArchivesPage extends LitElement {
   render(): TemplateResult {
     return html`
       <style>
-        archives-page {
-          width: 100%;
-          height: 100%;
-        }
         #tooltip {
           padding: 0;
           margin: 0;

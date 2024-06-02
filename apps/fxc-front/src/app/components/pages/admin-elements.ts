@@ -96,7 +96,7 @@ export class FlowIonInput extends lit.LitElement {
         value=${this.value}
         inputmode=${this.inputMode}
         .errorText=${this.errorMessage}
-        .invalid=${this.invalid} 
+        .invalid=${this.invalid}
         @ionBlur=${this.markedTouched}
       ></ion-input>
     </ion-item>`;
