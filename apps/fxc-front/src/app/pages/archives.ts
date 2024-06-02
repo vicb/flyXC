@@ -2,8 +2,8 @@ import { createPopper, Instance } from '@popperjs/core';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
-import { getApiKeyAndHost } from '../../apikey';
-import '../ui/google-btn';
+import { getApiKeyAndHost } from '../apikey';
+import '../components/ui/google-btn';
 
 const NUM_TRACKS = 30;
 const IMG_SIZE = 200;

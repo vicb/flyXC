@@ -5,8 +5,8 @@ import { Binder, field } from '@vaadin/dom';
 import { LitElement, TemplateResult, html } from 'lit';
 import { customElement, queryAll, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
-import { setFetchMillis } from '../../redux/live-track-slice';
-import '../ui/google-btn';
+import { setFetchMillis } from '../redux/live-track-slice';
+import '../components/ui/google-btn';
 import './admin-elements';
 
 @customElement('settings-page')

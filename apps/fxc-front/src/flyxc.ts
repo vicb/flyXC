@@ -105,27 +105,27 @@ export class FlyXc extends connect(store)(LitElement) {
   }
 
   private async beforeAdmin(): Promise<NavigationHookResult> {
-    await import('./app/components/pages/admin');
+    await import('./app/pages/admin');
     return true;
   }
 
   private async beforeArchives(): Promise<NavigationHookResult> {
-    await import('./app/components/pages/archives');
+    await import('./app/pages/archives');
     return true;
   }
 
   private async beforeDevices(): Promise<NavigationHookResult> {
-    await import('./app/components/pages/settings');
+    await import('./app/pages/settings');
     return true;
   }
 
   private async beforePrivacyPolicy(): Promise<NavigationHookResult> {
-    await import('./app/components/pages/privacy-policy');
+    await import('./app/pages/privacy-policy');
     return true;
   }
 
   private async beforeTermsConditions(): Promise<NavigationHookResult> {
-    await import('./app/components/pages/terms');
+    await import('./app/pages/terms');
     return true;
   }
 
