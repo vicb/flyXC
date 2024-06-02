@@ -80,14 +80,20 @@ export class FlyXc extends connect(store)(LitElement) {
           </ion-route>
           <ion-route
             url="/devices"
-            component="devices-page"
+            component="settings-page"
             .beforeEnter=${this.beforeDevices}
             .componentProps=${{ accountId: null }}
           ></ion-route>
+          <ion-route
+            url="/privacy-policy"
+            component="privacy-policy-page"
+            .beforeEnter=${this.beforePrivacyPolicy}
+          ></ion-route>
+          <ion-route url="/terms" component="terms-page" .beforeEnter=${this.beforeTermsConditions}></ion-route>
           <ion-route url="/adm" component="admin-page" .beforeEnter=${this.beforeAdmin}></ion-route>
           <ion-route
             url="/adm/account/:accountId"
-            component="devices-page"
+            component="settings-page"
             .beforeEnter=${this.beforeDevices}
           ></ion-route>
           <ion-route url="/arc" component="archives-page" .beforeEnter=${this.beforeArchives}></ion-route>
@@ -99,17 +105,27 @@ export class FlyXc extends connect(store)(LitElement) {
   }
 
   private async beforeAdmin(): Promise<NavigationHookResult> {
-    await import('./app/components/admin/admin-page');
+    await import('./app/pages/admin');
     return true;
   }
 
   private async beforeArchives(): Promise<NavigationHookResult> {
-    await import('./app/components/archives/archives-page');
+    await import('./app/pages/archives');
     return true;
   }
 
   private async beforeDevices(): Promise<NavigationHookResult> {
-    await import('./app/components/devices/devices-page');
+    await import('./app/pages/settings');
+    return true;
+  }
+
+  private async beforePrivacyPolicy(): Promise<NavigationHookResult> {
+    await import('./app/pages/privacy-policy');
+    return true;
+  }
+
+  private async beforeTermsConditions(): Promise<NavigationHookResult> {
+    await import('./app/pages/terms');
     return true;
   }
 

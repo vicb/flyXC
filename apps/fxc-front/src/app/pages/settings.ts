@@ -5,12 +5,13 @@ import { Binder, field } from '@vaadin/dom';
 import { LitElement, TemplateResult, html } from 'lit';
 import { customElement, queryAll, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
-import { setFetchMillis } from '../../redux/live-track-slice';
-import '../ui/google-btn';
-import './elements';
+import { setFetchMillis } from '../redux/live-track-slice';
+import '../components/ui/google-btn';
+import './admin-elements';
+import { TrackerPanel } from './admin-elements';
 
-@customElement('devices-page')
-export class DevicesPage extends LitElement {
+@customElement('settings-page')
+export class SettingsPage extends LitElement {
   @state()
   private isLoading = true;
   @state()
@@ -26,7 +27,7 @@ export class DevicesPage extends LitElement {
   private zoleoAlert?: HTMLIonAlertElement;
 
   @queryAll('device-card')
-  private trackerPanels: any;
+  private trackerPanels?: NodeListOf<TrackerPanel>;
 
   // Make sure to refresh the components when the form data are updated.
   private binder = new Binder(this, AccountFormModel, {
@@ -78,12 +79,6 @@ export class DevicesPage extends LitElement {
     }
 
     return html`
-      <style>
-        devices-page {
-          width: 100%;
-          height: 100%;
-        }
-      </style>
       <ion-header>
         <ion-toolbar color="primary">
           <ion-title>Live tracking</ion-title>
@@ -421,10 +416,9 @@ export class DevicesPage extends LitElement {
         if (status.error) {
           error = status.error;
           throw { validationErrorData: status.validationErrorData };
-        } else {
-          // Reload the whole state after a device update.
-          setFetchMillis(0);
         }
+        // Reload the whole state after a device update.
+        setFetchMillis(0);
       });
     } catch (e) {
       console.error(e);
