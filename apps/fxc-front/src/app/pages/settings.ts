@@ -8,6 +8,7 @@ import { when } from 'lit/directives/when.js';
 import { setFetchMillis } from '../redux/live-track-slice';
 import '../components/ui/google-btn';
 import './admin-elements';
+import { TrackerPanel } from './admin-elements';
 
 @customElement('settings-page')
 export class SettingsPage extends LitElement {
@@ -26,7 +27,7 @@ export class SettingsPage extends LitElement {
   private zoleoAlert?: HTMLIonAlertElement;
 
   @queryAll('device-card')
-  private trackerPanels: any;
+  private trackerPanels?: NodeListOf<TrackerPanel>;
 
   // Make sure to refresh the components when the form data are updated.
   private binder = new Binder(this, AccountFormModel, {
@@ -415,10 +416,9 @@ export class SettingsPage extends LitElement {
         if (status.error) {
           error = status.error;
           throw { validationErrorData: status.validationErrorData };
-        } else {
-          // Reload the whole state after a device update.
-          setFetchMillis(0);
         }
+        // Reload the whole state after a device update.
+        setFetchMillis(0);
       });
     } catch (e) {
       console.error(e);

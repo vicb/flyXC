@@ -252,7 +252,9 @@ export class AirspaceItems extends connect(store)(LitElement) {
   }
 
   disconnectedCallback(): void {
-    this.subscriptions.forEach((sub) => sub());
+    for (const sub of this.subscriptions) {
+      sub();
+    }
     this.subscriptions.length = 0;
   }
 
@@ -628,9 +630,9 @@ export class TrackItems extends connect(store)(LitElement) {
     (this.renderRoot.querySelector('#track') as HTMLInputElement)?.click();
   }
 
-  private async handleUpload(e: Event): Promise<void> {
+  private async handleUpload(e: Event & { target: HTMLInputElement }): Promise<void> {
     if (e.target) {
-      const el = e.target as HTMLInputElement;
+      const el = e.target;
       if (el.files?.length) {
         const files: File[] = [];
         for (let i = 0; i < el.files.length; i++) {
