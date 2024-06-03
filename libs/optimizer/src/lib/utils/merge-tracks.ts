@@ -6,7 +6,7 @@ import { LatLonAltTime, ScoringTrack } from '../optimizer';
  * Collapse end and start point of consecutive tracks when they match.
  *
  * @param tracks the tracks to concatenate
- * @return a track
+ * @returns a track
  */
 export function mergeTracks(...tracks: ScoringTrack[]): ScoringTrack {
   const points: LatLonAltTime[] = [];

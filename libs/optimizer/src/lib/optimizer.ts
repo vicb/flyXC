@@ -82,7 +82,7 @@ export interface ScoringResult {
  *
  * @param request Contains the tracks and options.
  * @param ruleName The ScoringRules to use.
- * @return an Iterator of OptimizationResult
+ * @returns an Iterator of OptimizationResult
  */
 export function* getOptimizer(
   request: ScoringRequest,

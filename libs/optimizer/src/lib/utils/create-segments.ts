@@ -5,7 +5,7 @@ import { LatLonAltTime, ScoringTrack } from '../optimizer';
  *
  * Points are computed by a linear interpolation
  *
- * @return a ScoringTrack of nbSegments
+ * @returns a ScoringTrack of nbSegments
  */
 export function createSegments(startPoint: LatLonAltTime, endPoint: LatLonAltTime, nbSegments: number): ScoringTrack {
   const points: LatLonAltTime[] = [];
