@@ -1,11 +1,13 @@
 import * as common from '@flyxc/common';
-import { LitElement, PropertyValues } from 'lit';
+import type { PropertyValues } from 'lit';
+import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { AspMapType, AspZoomMapType, getAirspaceList } from '../../logic/airspaces';
 import * as sel from '../../redux/selectors';
-import { RootState, store } from '../../redux/store';
+import type { RootState} from '../../redux/store';
+import { store } from '../../redux/store';
 
 @customElement('airspace-element')
 export class AirspaceElement extends connect(store)(LitElement) {

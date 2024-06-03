@@ -6,8 +6,9 @@ import {
   protos,
   SecretKeys,
 } from '@flyxc/common';
-import { retrieveTrackById, saveTrack, TrackEntity } from '@flyxc/common-node';
-import { Datastore } from '@google-cloud/datastore';
+import type { TrackEntity } from '@flyxc/common-node';
+import { retrieveTrackById, saveTrack } from '@flyxc/common-node';
+import type { Datastore } from '@google-cloud/datastore';
 import async from 'async';
 import * as polyline from 'google-polyline';
 import simplify from 'simplify-path';

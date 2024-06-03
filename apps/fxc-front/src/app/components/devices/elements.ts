@@ -1,5 +1,6 @@
 import * as common from '@flyxc/common';
-import { Binder, CheckedFieldStrategy, field, VaadinFieldStrategy } from '@vaadin/dom';
+import type { Binder} from '@vaadin/dom';
+import { CheckedFieldStrategy, field, VaadinFieldStrategy } from '@vaadin/dom';
 import * as lit from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';

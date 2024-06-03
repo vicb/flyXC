@@ -1,8 +1,9 @@
 import '../ui/share-modal';
 import '../ui/waypoint-modal';
 
-import { LatLon } from '@flyxc/common';
-import { LitElement, PropertyValues } from 'lit';
+import type { LatLon } from '@flyxc/common';
+import type { PropertyValues } from 'lit';
+import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
@@ -15,8 +16,9 @@ import { getCurrentUrl, pushCurrentState } from '../../logic/history';
 import { drawRoute } from '../../logic/messages';
 import { Score } from '../../logic/score/scorer';
 import { setDistance, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
-import { RootState, store } from '../../redux/store';
-import { PlannerElement } from './planner-element';
+import type { RootState} from '../../redux/store';
+import { store } from '../../redux/store';
+import type { PlannerElement } from './planner-element';
 import { CircuitType, getOptimizer } from '@flyxc/optimizer';
 import { getScoringRuleName } from '../../logic/score/league/leagues';
 import type { LeagueCode } from '../../logic/score/league/leagues';

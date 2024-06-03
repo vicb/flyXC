@@ -1,3 +1,5 @@
+import type {
+  protos} from '@flyxc/common';
 import {
   Keys,
   LIVE_AGE_OLD_SEC,
@@ -7,13 +9,12 @@ import {
   LIVE_TRACKER_RETENTION_SEC,
   SecretKeys,
   mergeLiveTracks,
-  protos,
   removeBeforeFromLiveTrack,
   simplifyLiveTrack,
 } from '@flyxc/common';
 import { pushListCap } from '@flyxc/common-node';
-import { Datastore } from '@google-cloud/datastore';
-import { ChainableCommander, Redis } from 'ioredis';
+import type { Datastore } from '@google-cloud/datastore';
+import type { ChainableCommander, Redis } from 'ioredis';
 import { patchLastFixAGL } from '../elevation/elevation';
 import { addElevationLogs } from '../redis';
 import { FlymasterFetcher } from './flymaster';
@@ -23,7 +24,7 @@ import { OgnFetcher } from './ogn';
 import { OGN_HOST, OGN_PORT, OgnClient } from './ogn-client';
 import { SkylinesFetcher } from './skylines';
 import { SpotFetcher } from './spot';
-import { TrackerUpdates } from './tracker';
+import type { TrackerUpdates } from './tracker';
 import { XcontestFetcher } from './xcontest';
 import { ZoleoFetcher } from './zoleo';
 

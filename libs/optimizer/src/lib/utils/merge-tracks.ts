@@ -1,4 +1,4 @@
-import { LatLonAltTime, ScoringTrack } from '../optimizer';
+import type { LatLonAltTime, ScoringTrack } from '../optimizer';
 
 /**
  * Merge multiple tracks.

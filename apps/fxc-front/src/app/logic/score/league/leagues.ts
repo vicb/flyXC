@@ -1,4 +1,4 @@
-import { ScoringRuleName } from '@flyxc/optimizer';
+import type { ScoringRuleName } from '@flyxc/optimizer';
 
 export const LEAGUE_CODES = [
   'czl',

@@ -1,12 +1,13 @@
 import { diffEncodeTrack, fetchResponse, formatReqError, protos } from '@flyxc/common';
+import type {
+  TrackEntity} from '@flyxc/common-node';
 import {
   retrieveMetaTrackGroupByHash,
   retrieveMetaTrackGroupByUrl,
   saveTrack,
-  TrackEntity,
   queueTrackPostProcessing,
 } from '@flyxc/common-node';
-import { Datastore } from '@google-cloud/datastore';
+import type { Datastore } from '@google-cloud/datastore';
 import * as crypto from 'node:crypto';
 import { parse as parseGpx, parseRoute as parseGpxRoute } from './gpx';
 import { parse as parseIgc } from './igc';

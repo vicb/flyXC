@@ -6,14 +6,16 @@ import './path-element';
 import './skyways-element';
 import './tracking-element';
 
-import * as common from '@flyxc/common';
-import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
+import type * as common from '@flyxc/common';
+import type { CSSResult, TemplateResult } from 'lit';
+import { css, html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
-import * as units from '../../logic/units';
+import type * as units from '../../logic/units';
 import * as sel from '../../redux/selectors';
-import { RootState, store } from '../../redux/store';
+import type { RootState} from '../../redux/store';
+import { store } from '../../redux/store';
 
 @customElement('controls-element')
 export class ControlsElement extends connect(store)(LitElement) {

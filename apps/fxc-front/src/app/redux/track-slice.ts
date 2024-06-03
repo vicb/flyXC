@@ -1,20 +1,22 @@
+import type {
+  RuntimeTrack} from '@flyxc/common';
 import {
   addAirspaces,
   addGroundAltitude,
   createRuntimeTracks,
   createTrackId,
   extractGroupId,
-  protos,
-  RuntimeTrack,
+  protos
 } from '@flyxc/common';
-import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
+import type { EntityState, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createEntityAdapter, createSlice } from '@reduxjs/toolkit';
 import { addUrlParamValue, deleteUrlParamValue, ParamNames } from '../logic/history';
 import * as msg from '../logic/messages';
 import type { Response } from '../workers/track';
 import TrackWorker from '../workers/track?worker';
 import { setTimeSec } from './app-slice';
 import { setEnabled, setRoute } from './planner-slice';
-import { AppDispatch, AppThunk, RootState } from './store';
+import type { AppDispatch, AppThunk, RootState } from './store';
 
 const FETCH_EVERY_SECONDS = 15;
 export const FETCH_FOR_MINUTES = 3;

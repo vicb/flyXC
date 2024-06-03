@@ -1,8 +1,9 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
 import { deleteUrlParam, getUrlParamValues, ParamNames, setUrlParamValue } from '../logic/history';
-import { Score } from '../logic/score/scorer';
-import { LeagueCode } from '../logic/score/league/leagues';
+import type { Score } from '../logic/score/scorer';
+import type { LeagueCode } from '../logic/score/league/leagues';
 
 export type PlannerState = {
   score?: Score;

@@ -1,4 +1,4 @@
-import { LatLon, LatLonAlt } from '@flyxc/common';
+import type { LatLon, LatLonAlt } from '@flyxc/common';
 
 // Adds the ground elevation to the list of points.
 //

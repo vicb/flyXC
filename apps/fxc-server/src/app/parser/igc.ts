@@ -1,4 +1,4 @@
-import { protos } from '@flyxc/common';
+import type { protos } from '@flyxc/common';
 import IGCParser from 'igc-parser';
 
 export function parse(content: string): protos.Track[] {

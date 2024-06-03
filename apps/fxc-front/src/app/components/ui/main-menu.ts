@@ -1,21 +1,25 @@
 import { Class, Type, getClassName, getTypeName } from '@flyxc/common';
-import { SearchbarCustomEvent, ToggleCustomEvent, modalController, toastController } from '@ionic/core/components';
-import { LitElement, TemplateResult, html } from 'lit';
+import type { SearchbarCustomEvent, ToggleCustomEvent} from '@ionic/core/components';
+import { modalController, toastController } from '@ionic/core/components';
+import type { TemplateResult} from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 import { when } from 'lit/directives/when.js';
-import { UnsubscribeHandle } from 'micro-typed-events';
+import type { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 import { requestCurrentPosition } from '../../logic/geolocation';
 import { ParamNames, addUrlParamValues, pushCurrentState } from '../../logic/history';
 import * as msg from '../../logic/messages';
 import { uploadTracks } from '../../logic/track';
-import { DistanceUnit, formatUnit } from '../../logic/units';
+import type { DistanceUnit} from '../../logic/units';
+import { formatUnit } from '../../logic/units';
 import * as airspaces from '../../redux/airspace-slice';
 import { setApiLoading } from '../../redux/app-slice';
 import * as arcgis from '../../redux/arcgis-slice';
+import type {
+  LivePilot} from '../../redux/live-track-slice';
 import {
-  LivePilot,
   getLivePilots,
   setDisplayLabels as setDisplayLiveLabels,
   setFetchMillis,
@@ -26,7 +30,8 @@ import {
 import { setEnabled } from '../../redux/planner-slice';
 import * as sel from '../../redux/selectors';
 import * as skyways from '../../redux/skyways-slice';
-import { RootState, store } from '../../redux/store';
+import type { RootState} from '../../redux/store';
+import { store } from '../../redux/store';
 import { setDisplayLabels, setLockOnPilot } from '../../redux/track-slice';
 import './about-modal';
 import './live-modal';

@@ -1,8 +1,10 @@
 // TODO: all console logs are commented out. In the future, we should use a logging library
 
-import { solver, Solution } from 'igc-xc-score';
-import { BRecord, IGCFile } from 'igc-parser';
-import { ScoringRuleName, scoringRules } from './scoring-rules';
+import type { Solution } from 'igc-xc-score';
+import { solver } from 'igc-xc-score';
+import type { BRecord, IGCFile } from 'igc-parser';
+import type { ScoringRuleName} from './scoring-rules';
+import { scoringRules } from './scoring-rules';
 
 // Minimum number of points in an igc-xc-score track.
 // See this issue https://github.com/mmomtchev/igc-xc-score/issues/231

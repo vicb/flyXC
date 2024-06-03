@@ -1,5 +1,7 @@
-import { extractGroupId, RuntimeTrack } from '@flyxc/common';
-import { html, LitElement, TemplateResult } from 'lit';
+import type { RuntimeTrack } from '@flyxc/common';
+import { extractGroupId } from '@flyxc/common';
+import type { TemplateResult } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
@@ -9,7 +11,8 @@ import { pushCurrentState } from '../../logic/history';
 import * as msg from '../../logic/messages';
 import * as app from '../../redux/app-slice';
 import * as sel from '../../redux/selectors';
-import { RootState, store } from '../../redux/store';
+import type { RootState} from '../../redux/store';
+import { store } from '../../redux/store';
 import * as trackSlice from '../../redux/track-slice';
 import { maybeHideSidePane } from '../../../flyxc';
 

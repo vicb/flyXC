@@ -2,12 +2,15 @@
 //
 // See http://wiki.glidernet.org/.
 
-import { protos, TrackerNames, validateOgnAccount } from '@flyxc/common';
-import { ChainableCommander } from 'ioredis';
-import { LivePoint, makeLiveTrack } from './live-track';
-import { OgnClient } from './ogn-client';
+import type { protos, TrackerNames} from '@flyxc/common';
+import { validateOgnAccount } from '@flyxc/common';
+import type { ChainableCommander } from 'ioredis';
+import type { LivePoint} from './live-track';
+import { makeLiveTrack } from './live-track';
+import type { OgnClient } from './ogn-client';
 import { OgnPusher } from './ogn-push';
-import { TrackerFetcher, TrackerUpdates } from './tracker';
+import type { TrackerUpdates } from './tracker';
+import { TrackerFetcher } from './tracker';
 
 // Push positions to OGN.
 let ognPusher: OgnPusher | undefined;

@@ -1,13 +1,15 @@
-import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
+import type { CSSResult, TemplateResult } from 'lit';
+import { css, html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
-import { Score } from '../../logic/score/scorer';
+import type { Score } from '../../logic/score/scorer';
 import * as units from '../../logic/units';
 import { decrementSpeed, incrementSpeed, setSpeed } from '../../redux/planner-slice';
-import { RootState, store } from '../../redux/store';
+import type { RootState} from '../../redux/store';
+import { store } from '../../redux/store';
 
 const ICON_MINUS =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJAQMAAADaX5RTAAAABlBMVEX///9xe4e/5menAAAAE0lEQVQImWP438DQAEP7kNj/GwCK4wo9HA2mvgAAAABJRU5ErkJggg==';

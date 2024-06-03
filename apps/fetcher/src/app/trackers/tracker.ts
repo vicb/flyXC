@@ -1,7 +1,8 @@
 // Base class for fetching tracker updates.
 
-import { LIVE_REFRESH_SEC, LIVE_TRACKER_RETENTION_SEC, protos, TrackerNames } from '@flyxc/common';
-import { ChainableCommander } from 'ioredis';
+import type { protos, TrackerNames } from '@flyxc/common';
+import { LIVE_REFRESH_SEC, LIVE_TRACKER_RETENTION_SEC } from '@flyxc/common';
+import type { ChainableCommander } from 'ioredis';
 
 // Updates for a tick of a tracker type (InReach, Spot, ...).
 export interface TrackerUpdates {

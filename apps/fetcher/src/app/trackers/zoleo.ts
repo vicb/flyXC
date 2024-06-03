@@ -1,9 +1,13 @@
-import { Keys, TrackerNames, protos, validateZoleoAccount } from '@flyxc/common';
-import { LIVE_TRACK_TABLE, ZoleoMessage } from '@flyxc/common-node';
+import type { TrackerNames, protos} from '@flyxc/common';
+import { Keys, validateZoleoAccount } from '@flyxc/common';
+import type { ZoleoMessage } from '@flyxc/common-node';
+import { LIVE_TRACK_TABLE } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
-import { ChainableCommander, Redis } from 'ioredis';
-import { LivePoint, makeLiveTrack } from './live-track';
-import { TrackerFetcher, TrackerUpdates } from './tracker';
+import type { ChainableCommander, Redis } from 'ioredis';
+import type { LivePoint} from './live-track';
+import { makeLiveTrack } from './live-track';
+import type { TrackerUpdates } from './tracker';
+import { TrackerFetcher } from './tracker';
 
 export class ZoleoFetcher extends TrackerFetcher {
   constructor(

@@ -1,3 +1,5 @@
+import type {
+  protos} from '@flyxc/common';
 import {
   differentialDecodeLiveTrack,
   getFixMessage,
@@ -7,7 +9,6 @@ import {
   isUfo,
   LIVE_MINIMAL_INTERVAL_SEC,
   mergeLiveTracks,
-  protos,
   simplifyLiveTrack,
 } from '@flyxc/common';
 import { getRhumbLineBearing } from 'geolib';

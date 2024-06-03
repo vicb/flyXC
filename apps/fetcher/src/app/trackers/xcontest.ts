@@ -2,18 +2,21 @@
 //
 // https://live.xcontest.org/
 
+import type {
+  protos,
+  TrackerNames} from '@flyxc/common';
 import {
   fetchResponse,
   formatReqError,
   LIVE_TRACKER_RETENTION_SEC,
   parallelTasksWithTimeout,
-  protos,
   SecretKeys,
-  TrackerNames,
   validateXContestAccount,
 } from '@flyxc/common';
-import { LivePoint, makeLiveTrack } from './live-track';
-import { TrackerFetcher, TrackerUpdates } from './tracker';
+import type { LivePoint} from './live-track';
+import { makeLiveTrack } from './live-track';
+import type { TrackerUpdates } from './tracker';
+import { TrackerFetcher } from './tracker';
 
 // duration to fetch
 const FETCH_MS = 4 * 60 * 1000;

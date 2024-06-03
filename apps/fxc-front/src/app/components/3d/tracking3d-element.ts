@@ -1,23 +1,27 @@
-import { protos } from '@flyxc/common';
-import { LitElement, PropertyValues } from 'lit';
+import type { protos } from '@flyxc/common';
+import type { PropertyValues } from 'lit';
+import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { UnsubscribeHandle } from 'micro-typed-events';
+import type { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
 import Color from '@arcgis/core/Color';
 import Point from '@arcgis/core/geometry/Point';
 import Graphic from '@arcgis/core/Graphic';
-import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
-import ElevationSampler from '@arcgis/core/layers/support/ElevationSampler';
-import SceneView from '@arcgis/core/views/SceneView';
+import type GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import type ElevationSampler from '@arcgis/core/layers/support/ElevationSampler';
+import type SceneView from '@arcgis/core/views/SceneView';
 
-import { FixType, LiveLineProperties, LivePointProperties } from '../../logic/live-track';
+import type { LiveLineProperties, LivePointProperties } from '../../logic/live-track';
+import { FixType } from '../../logic/live-track';
 import { popupContent } from '../../logic/live-track-popup';
 import * as msg from '../../logic/messages';
-import { formatDurationMin, Units } from '../../logic/units';
+import type { Units } from '../../logic/units';
+import { formatDurationMin } from '../../logic/units';
 import { liveTrackSelectors, setCurrentLiveId } from '../../redux/live-track-slice';
 import * as sel from '../../redux/selectors';
-import { RootState, store } from '../../redux/store';
+import type { RootState} from '../../redux/store';
+import { store } from '../../redux/store';
 import { getUniqueContrastColor } from '../../styles/track';
 
 // A track is considered recent if ended less than timeout ago.

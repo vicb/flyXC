@@ -1,6 +1,7 @@
-import { TrackEntity, TRACK_TABLE } from '@flyxc/common-node';
+import type { TrackEntity} from '@flyxc/common-node';
+import { TRACK_TABLE } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
-import { RunQueryResponse } from '@google-cloud/datastore/build/src/query';
+import type { RunQueryResponse } from '@google-cloud/datastore/build/src/query';
 import { writeFileSync } from 'node:fs';
 
 const datastore = new Datastore();

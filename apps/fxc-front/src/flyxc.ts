@@ -11,14 +11,15 @@ import './app/components/chart-element';
 import './app/components/loader-element';
 import './app/components/ui/main-menu';
 
-import { LatLonAlt } from '@flyxc/common';
-import { html, LitElement, TemplateResult } from 'lit';
+import type { LatLonAlt } from '@flyxc/common';
+import type { TemplateResult } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
-import { NavigationHookResult } from '@ionic/core/dist/types/components/route/route-interface';
+import type { NavigationHookResult } from '@ionic/core/dist/types/components/route/route-interface';
 
 import { ionicInit } from './app/components/ui/ionic';
 import { requestCurrentPosition } from './app/logic/geolocation';
@@ -36,7 +37,8 @@ import { downloadTracksByGroupIds, downloadTracksByUrls, uploadTracks } from './
 import * as app from './app/redux/app-slice';
 import * as planner from './app/redux/planner-slice';
 import * as sel from './app/redux/selectors';
-import { RootState, store } from './app/redux/store';
+import type { RootState} from './app/redux/store';
+import { store } from './app/redux/store';
 import * as track from './app/redux/track-slice';
 
 export const SHOW_SPLIT_PANE_WHEN = `(min-width: 992px)`;

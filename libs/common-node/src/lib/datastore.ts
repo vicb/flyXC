@@ -1,4 +1,5 @@
-import { Datastore, Key } from '@google-cloud/datastore';
+import type { Key } from '@google-cloud/datastore';
+import { Datastore } from '@google-cloud/datastore';
 
 let datastore: Datastore;
 

@@ -1,9 +1,11 @@
-import { extractGroupId, LatLon, LatLonAlt, RuntimeTrack, sampleAt } from '@flyxc/common';
+import type { LatLon, LatLonAlt, RuntimeTrack} from '@flyxc/common';
+import { extractGroupId, sampleAt } from '@flyxc/common';
 import { createSelector } from 'reselect';
 
-import { DistanceUnit, Units } from '../logic/units';
+import type { Units } from '../logic/units';
+import { DistanceUnit } from '../logic/units';
 import { getUniqueColor } from '../styles/track';
-import { RootState } from './store';
+import type { RootState } from './store';
 import { trackAdapterSelector } from './track-slice';
 
 export const units = (state: RootState): Units => state.units;

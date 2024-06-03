@@ -1,7 +1,8 @@
+import type {
+  LiveTrackEntity,
+  TrackerNames} from '@flyxc/common';
 import {
   LIVE_REFRESH_SEC,
-  LiveTrackEntity,
-  TrackerNames,
   protos,
   trackerNames,
   trackerValidators,
@@ -10,7 +11,7 @@ import {
 } from '@flyxc/common';
 import { LIVE_TRACK_TABLE } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
-import { RunQueryResponse } from '@google-cloud/datastore/build/src/query';
+import type { RunQueryResponse } from '@google-cloud/datastore/build/src/query';
 import { FULL_SYNC_SEC, PARTIAL_SYNC_SEC } from './state';
 
 const BATCH_SIZE = 50;

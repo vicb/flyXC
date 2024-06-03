@@ -2,7 +2,8 @@
 import { AccountFormModel, fetchResponse } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
 import { Binder, field } from '@vaadin/dom';
-import { LitElement, TemplateResult, html } from 'lit';
+import type { TemplateResult} from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement, queryAll, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { setFetchMillis } from '../../redux/live-track-slice';

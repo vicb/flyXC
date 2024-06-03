@@ -2,19 +2,22 @@
 //
 // https://lt.flymaster.net/wlb/?
 
+import type {
+  protos,
+  TrackerNames} from '@flyxc/common';
 import {
   fetchResponse,
   formatReqError,
   LIVE_MINIMAL_INTERVAL_SEC,
-  protos,
   removeBeforeFromLiveTrack,
   simplifyLiveTrack,
-  TrackerNames,
   validateFlymasterAccount,
   SecretKeys,
 } from '@flyxc/common';
-import { LivePoint, makeLiveTrack } from './live-track';
-import { TrackerFetcher, TrackerUpdates } from './tracker';
+import type { LivePoint} from './live-track';
+import { makeLiveTrack } from './live-track';
+import type { TrackerUpdates } from './tracker';
+import { TrackerFetcher } from './tracker';
 
 // Latency before a fix is available (usually ~4min).
 const FLYMASTER_LATENCY_SEC = 5 * 60;

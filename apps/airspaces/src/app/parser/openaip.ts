@@ -1,5 +1,6 @@
 import { Activity, Class, Type } from '@flyxc/common';
-import { Airspace, METER_PER_FEET, roundCoords } from './parser';
+import type { Airspace} from './parser';
+import { METER_PER_FEET, roundCoords } from './parser';
 
 enum Unit {
   Meter = 0,

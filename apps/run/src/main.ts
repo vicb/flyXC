@@ -1,5 +1,6 @@
 import { getDatastore } from '@flyxc/common-node';
-import express, { Request, Response } from 'express';
+import type { Request, Response } from 'express';
+import express from 'express';
 import { postProcessTrack } from './app/process';
 
 const app = express().use(express.json());

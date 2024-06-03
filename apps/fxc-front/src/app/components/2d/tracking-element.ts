@@ -1,12 +1,16 @@
-import { LitElement, PropertyValues } from 'lit';
+import type { PropertyValues } from 'lit';
+import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
-import { FixType, LiveLineProperties, LivePointProperties } from '../../logic/live-track';
+import type { LiveLineProperties, LivePointProperties } from '../../logic/live-track';
+import { FixType } from '../../logic/live-track';
 import { popupContent } from '../../logic/live-track-popup';
-import { Units, formatDurationMin, formatUnit } from '../../logic/units';
+import type { Units} from '../../logic/units';
+import { formatDurationMin, formatUnit } from '../../logic/units';
 import { setCurrentLiveId } from '../../redux/live-track-slice';
 import * as sel from '../../redux/selectors';
-import { RootState, store } from '../../redux/store';
+import type { RootState} from '../../redux/store';
+import { store } from '../../redux/store';
 import { getUniqueContrastColor } from '../../styles/track';
 
 // Anchors and label origins for markers.

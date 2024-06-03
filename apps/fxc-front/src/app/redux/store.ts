@@ -1,6 +1,7 @@
-import { ThunkAction } from 'redux-thunk';
+import type { ThunkAction } from 'redux-thunk';
 
-import { Action, DevToolsEnhancerOptions, combineReducers, configureStore } from '@reduxjs/toolkit';
+import type { Action, DevToolsEnhancerOptions} from '@reduxjs/toolkit';
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
 
 import * as airspace from './airspace-slice';
 import * as app from './app-slice';

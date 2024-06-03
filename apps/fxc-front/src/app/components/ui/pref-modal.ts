@@ -1,4 +1,5 @@
-import { html, LitElement, TemplateResult } from 'lit';
+import type { TemplateResult } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
@@ -6,7 +7,8 @@ import { modalController } from '@ionic/core/components';
 
 import * as units from '../../logic/units';
 import { setLeague } from '../../redux/planner-slice';
-import { RootState, store } from '../../redux/store';
+import type { RootState} from '../../redux/store';
+import { store } from '../../redux/store';
 import { setAltitudeUnit, setDistanceUnit, setSpeedUnit, setVarioUnit } from '../../redux/units-slice';
 import { LEAGUE_CODES, LEAGUES } from '../../logic/score/league/leagues';
 

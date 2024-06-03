@@ -2,15 +2,17 @@ import '../dashboard-element';
 import '../menu-element';
 import '../name-element';
 
-import * as common from '@flyxc/common';
-import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
+import type * as common from '@flyxc/common';
+import type { CSSResult, TemplateResult } from 'lit';
+import { css, html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
-import * as units from '../../logic/units';
+import type * as units from '../../logic/units';
 import * as sel from '../../redux/selectors';
-import { RootState, store } from '../../redux/store';
+import type { RootState} from '../../redux/store';
+import { store } from '../../redux/store';
 
 @customElement('controls3d-element')
 export class Controls3dElement extends connect(store)(LitElement) {

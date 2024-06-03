@@ -1,7 +1,8 @@
 // Unzip tiles to Google Cloud Storage.
 
 import { parallelTasksWithTimeout } from '@flyxc/common';
-import { Bucket, Storage } from '@google-cloud/storage';
+import type { Bucket} from '@google-cloud/storage';
+import { Storage } from '@google-cloud/storage';
 import { program } from 'commander';
 import { existsSync, readFileSync } from 'node:fs';
 import path, { join, resolve } from 'node:path';

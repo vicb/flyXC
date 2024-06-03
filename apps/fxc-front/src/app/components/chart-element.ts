@@ -1,6 +1,8 @@
-import { Class, Flags, isAirspaceVisible, RuntimeTrack, sampleAt, Type } from '@flyxc/common';
+import type { Class, RuntimeTrack, Type } from '@flyxc/common';
+import { Flags, isAirspaceVisible, sampleAt } from '@flyxc/common';
 import { ticks } from 'd3-array';
-import { css, CSSResult, html, LitElement, PropertyValues, svg, SVGTemplateResult, TemplateResult } from 'lit';
+import type { CSSResult, PropertyValues, SVGTemplateResult, TemplateResult } from 'lit';
+import { css, html, LitElement, svg } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
 import { connect } from 'pwa-helpers';
@@ -8,7 +10,8 @@ import { connect } from 'pwa-helpers';
 import * as units from '../logic/units';
 import { ChartYAxis, setChartYAxis } from '../redux/app-slice';
 import * as sel from '../redux/selectors';
-import { RootState, store } from '../redux/store';
+import type { RootState} from '../redux/store';
+import { store } from '../redux/store';
 
 const MIN_SPEED_FACTOR = 16;
 const MAX_SPEED_FACTOR = 4096;

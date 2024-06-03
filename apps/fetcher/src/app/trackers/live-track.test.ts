@@ -1,6 +1,7 @@
 import { getTrackerName, isEmergencyFix, isLowBatFix, isValidFix, LiveTrackFlag, trackerIdByName } from '@flyxc/common';
 import { computeDestinationPoint } from 'geolib';
-import { LivePoint, makeLiveTrack } from './live-track';
+import type { LivePoint} from './live-track';
+import { makeLiveTrack } from './live-track';
 
 describe('makeLiveTrack', () => {
   it('should order the points in chronological order', () => {

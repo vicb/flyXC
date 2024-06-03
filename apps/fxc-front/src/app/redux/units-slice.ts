@@ -1,6 +1,8 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
-import { DistanceUnit, SpeedUnit, Units } from '../logic/units';
+import type { Units } from '../logic/units';
+import { DistanceUnit, SpeedUnit } from '../logic/units';
 
 const initialState: Units = {
   distance: (localStorage.getItem('unit.distance') ?? DistanceUnit.Kilometers) as DistanceUnit,
