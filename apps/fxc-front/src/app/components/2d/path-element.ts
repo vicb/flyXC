@@ -209,7 +209,7 @@ export class PathElement extends connect(store)(LitElement) {
       this.scoringWorker = new ScoringWorker();
       this.scoringWorker.onmessage = (msg: MessageEvent<WorkerResponse>) => {
         if (msg.data.id == this.scoringRequestId) {
-          this.optimizerCallback(this.toScore(msg.data.response));
+          this.optimizerCallback(msg.data.response);
         }
       };
     }
@@ -227,19 +227,14 @@ export class PathElement extends connect(store)(LitElement) {
     this.scoringWorker.postMessage(request);
   }
 
-  private optimizerCallback(score: Score): void {
+  private optimizerCallback(result: ScoringResult): void {
+    const score = this.toScore(result);
     store.dispatch(setDistance(score.distanceM));
     store.dispatch(setScore(score));
 
-    // TODO: add more info in the result
-    const points = this.getPathPoints();
-
-    let path = score.indexes.map((index) => new google.maps.LatLng(points[index].lat, points[index].lon));
-    if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {
-      path = [path[1], path[2], path[3], path[1]];
-    } else if (score.circuit == CircuitType.OutAndReturn) {
-      path = [path[1], path[2]];
-    }
+    let path = [result.startPoint, ...result.turnpoints, result.endPoint]
+      .filter((p) => p != null)
+      .map((p) => ({ lat: p!.lat, lng: p!.lon }));
 
     this.optimizedLine ??= new google.maps.Polyline();
 
@@ -257,9 +252,8 @@ export class PathElement extends connect(store)(LitElement) {
       this.closingSector.addListener('rightclick', (e) => this.appendToPath(e.latLng));
     }
 
-    if (score.closingRadiusM) {
-      const center = points[score.indexes[0]];
-      this.closingSector.center = center;
+    if (score.closingRadiusM && result.startPoint) {
+      this.closingSector.center = result.startPoint;
       this.closingSector.radius = score.closingRadiusM;
       this.closingSector.update();
       this.closingSector.setMap(this.map);
@@ -272,8 +266,7 @@ export class PathElement extends connect(store)(LitElement) {
       this.faiSectors.addListeners('rightclick', (e) => this.appendToPath(e.latLng));
     }
     if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {
-      const faiPoints = score.indexes.slice(1, 4).map((i) => points[i]);
-      this.faiSectors.update(faiPoints);
+      this.faiSectors.update(result.turnpoints);
       this.faiSectors.setMap(this.map);
     } else {
       this.faiSectors.setMap(null);

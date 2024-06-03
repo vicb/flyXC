@@ -332,7 +332,7 @@ export class MapElement extends connect(store)(LitElement) {
     this.pointerEventId = undefined;
     this.freeDrawPath = '';
     store.dispatch(setIsFreeDrawing(false));
-    this.pathPoints = simplify(this.pathPoints, 30);
+    this.pathPoints = simplify(this.pathPoints, 15);
     let encodedRoute = '';
     if (this.pathPoints.length >= 2 && this.map) {
       const proj = this.map.getProjection() as google.maps.Projection;

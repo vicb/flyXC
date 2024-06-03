@@ -1,6 +1,6 @@
 // TODO: all console logs are commented out. In the future, we should use a logging library
 
-import type { Solution } from 'igc-xc-score';
+import type { Point, Solution } from 'igc-xc-score';
 import { solver } from 'igc-xc-score';
 import type { BRecord, IGCFile } from 'igc-parser';
 import type { ScoringRuleName } from './scoring-rules';
@@ -10,10 +10,13 @@ import { scoringRules } from './scoring-rules';
 // See this issue https://github.com/mmomtchev/igc-xc-score/issues/231
 const MIN_IGC_XC_SCORE_POINTS = 5;
 
-export interface LatLonAltTime {
-  alt: number;
+export interface LatLon {
   lat: number;
   lon: number;
+}
+
+export interface LatLonAltTime extends LatLon {
+  alt: number;
   timeSec: number;
 }
 
@@ -37,37 +40,31 @@ export enum CircuitType {
   OutAndReturn = 'Out and return',
 }
 
-export interface ScoringResult {
-  /**
-   * The score for the track in the given league
-   */
-  score: number;
-  /**
-   * The length of the optimized track in kms
-   */
+export interface Leg {
+  name: string;
   lengthKm: number;
-  /**
-   * TODO: we probably do not need all 3 of score, lengthKm, and multiplier.
-   * Multiplier for computing score. score = lengthKm * multiplier
-   */
+  start: LatLon;
+  end: LatLon;
+}
+export interface ScoringResult {
+  // The score for the track in the given league
+  score: number;
+  // The length of the optimized track in kms
+  lengthKm: number;
+  // Multiplier for computing score. score = lengthKm * multiplier
   multiplier: number;
-  /**
-   * Type of the optimized track
-   */
   circuit?: CircuitType;
-  /**
-   * If applicable, Distance in m for closing the circuit
-   */
+  // If applicable, Distance in m for closing the circuit
   closingRadiusM?: number;
-  /**
-   * Indices of solutions points in the request
-   */
+  // Indices of solutions points in the request
   solutionIndices: number[];
-  /**
-   * Whether the result is optimal.
-   * If not the optimizer can be cycled again to get a more accurate solution.
-   */
+  // Whether the result is optimal.
+  //If not the optimizer can be cycled again to get a more accurate solution.
   optimal: boolean;
+  startPoint?: LatLon;
+  endPoint?: LatLon;
+  legs: Leg[];
+  turnpoints: LatLon[];
 }
 
 /**
@@ -90,6 +87,8 @@ export function* getOptimizer(request: ScoringRequest): Iterator<ScoringResult, 
       multiplier: 0,
       solutionIndices: [],
       optimal: true,
+      legs: [],
+      turnpoints: [],
     };
   }
   const { track } = request;
@@ -163,7 +162,7 @@ function toIgcFile(track: ScoringTrack): IGCFile {
   // Only fill out the fields required by igc-xc-score.
   return {
     date: new Date(track.points[0].timeSec * 1000).toISOString(),
-    fixes: fixes,
+    fixes,
   } as any;
 }
 
@@ -175,16 +174,29 @@ function toSolverOptions(request: ScoringRequest) {
   };
 }
 
-function toOptimizationResult(solution: Solution, originalTrack: ScoringTrack): ScoringResult {
+function toOptimizationResult(solution: Solution, track: ScoringTrack): ScoringResult {
   return {
     score: solution.score ?? 0,
     lengthKm: solution.scoreInfo?.distance ?? 0,
     multiplier: solution.opt.scoring.multiplier,
     circuit: toCircuitType(solution.opt.scoring.code),
     closingRadiusM: getClosingRadiusM(solution),
-    solutionIndices: getSolutionIndices(solution, originalTrack),
+    solutionIndices: getSolutionIndices(solution, track),
     optimal: solution.optimal || false,
+    startPoint: solution.scoreInfo?.ep?.start ? pointToLatTon(solution.scoreInfo?.ep?.start) : undefined,
+    endPoint: solution.scoreInfo?.ep?.finish ? pointToLatTon(solution.scoreInfo?.ep?.finish) : undefined,
+    legs: (solution.scoreInfo?.legs ?? []).map(({ name, d, start, finish }) => ({
+      name,
+      lengthKm: d,
+      start: pointToLatTon(start),
+      end: pointToLatTon(finish),
+    })),
+    turnpoints: (solution.scoreInfo?.tp ?? []).map((point) => pointToLatTon(point)),
   };
+}
+
+function pointToLatTon(point: Point): LatLon {
+  return { lat: point.y, lon: point.x };
 }
 
 function getClosingRadiusM(solution: Solution): number | undefined {
