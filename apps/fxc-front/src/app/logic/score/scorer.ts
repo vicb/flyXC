@@ -5,6 +5,7 @@ export class Score {
   indexes: number[];
   multiplier: number;
   circuit: CircuitType;
+  // TODO: can we use 0 instead of null
   closingRadiusM: number | null;
   points: number;
 

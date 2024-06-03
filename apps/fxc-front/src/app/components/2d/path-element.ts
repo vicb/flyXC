@@ -19,9 +19,11 @@ import { setDistance, setEnabled, setRoute, setScore } from '../../redux/planner
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import type { PlannerElement } from './planner-element';
-import { CircuitType, getOptimizer } from '@flyxc/optimizer';
+import { CircuitType, type ScoringResult } from '@flyxc/optimizer';
 import { getScoringRuleName } from '../../logic/score/league/leagues';
 import type { LeagueCode } from '../../logic/score/league/leagues';
+import ScoringWorker from '../../workers/optimizer?worker';
+import type { Request as WorkerRequest, Response as WorkerResponse } from '../../workers/optimizer';
 
 // Route color by circuit type.
 const ROUTE_STROKE_COLORS = {
@@ -63,6 +65,8 @@ export class PathElement extends connect(store)(LitElement) {
   private closingSector?: ClosingSector;
   private faiSectors?: FaiSectors;
   private plannerElement?: PlannerElement;
+  private scoringRequestId = 0;
+  private scoringWorker?: Worker;
 
   stateChanged(state: RootState): void {
     this.league = state.planner.league;
@@ -198,24 +202,50 @@ export class PathElement extends connect(store)(LitElement) {
     if (!line || line.getPath().getLength() < 2 || this.doNotSyncState) {
       return;
     }
-    store.dispatch(setDistance(google.maps.geometry.spherical.computeLength(line.getPath())));
 
     const points = this.getPathPoints();
-    const score = this.computeScore(points);
+
+    if (!this.scoringWorker) {
+      this.scoringWorker = new ScoringWorker();
+      this.scoringWorker.onmessage = (msg: MessageEvent<WorkerResponse>) => {
+        if (msg.data.id == this.scoringRequestId) {
+          this.optimizerCallback(this.toScore(msg.data.response));
+        }
+      };
+    }
+
+    const request: WorkerRequest = {
+      request: {
+        track: {
+          points: points.map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 })),
+        },
+        ruleName: getScoringRuleName(this.league),
+      },
+      id: ++this.scoringRequestId,
+    };
+
+    this.scoringWorker.postMessage(request);
+  }
+
+  private optimizerCallback(score: Score): void {
+    store.dispatch(setDistance(score.distanceM));
     store.dispatch(setScore(score));
 
-    let optimizedPath = score.indexes.map((index) => new google.maps.LatLng(points[index].lat, points[index].lon));
+    // TODO: add more info in the result
+    const points = this.getPathPoints();
+
+    let path = score.indexes.map((index) => new google.maps.LatLng(points[index].lat, points[index].lon));
     if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {
-      optimizedPath = [optimizedPath[1], optimizedPath[2], optimizedPath[3], optimizedPath[1]];
+      path = [path[1], path[2], path[3], path[1]];
     } else if (score.circuit == CircuitType.OutAndReturn) {
-      optimizedPath = [optimizedPath[1], optimizedPath[2]];
+      path = [path[1], path[2]];
     }
 
     this.optimizedLine ??= new google.maps.Polyline();
 
     this.optimizedLine.setOptions({
       map: this.map,
-      path: optimizedPath,
+      path,
       strokeColor: ROUTE_STROKE_COLORS[score.circuit],
       strokeOpacity: 0.8,
       strokeWeight: 3,
@@ -252,12 +282,7 @@ export class PathElement extends connect(store)(LitElement) {
     this.postScoreToHost(score);
   }
 
-  private computeScore(points: LatLon[]): Score {
-    // TODO: limit the processing time ?
-    const result = getOptimizer(
-      { track: { points: points.map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 })) } },
-      getScoringRuleName(this.league),
-    ).next().value;
+  private toScore(result: ScoringResult): Score {
     return new Score({
       circuit: result.circuit,
       distanceM: result.lengthKm * 1000,

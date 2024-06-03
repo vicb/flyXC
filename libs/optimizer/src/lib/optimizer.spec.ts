@@ -12,8 +12,9 @@ describe('optimizer', () => {
       it('Scores an empty request with a score of 0', () => {
         const request = {
           track: { points: [] },
+          ruleName,
         };
-        const result = optimize(request, ruleName);
+        const result = optimize(request);
         expect(result).toMatchObject({
           score: 0,
           lengthKm: 0,
@@ -29,11 +30,12 @@ describe('optimizer', () => {
 
           const request = {
             track: createSegments({ ...start, alt: 0, timeSec: 0 }, { ...end, alt: 0, timeSec: 60 }, segmentsPerBranch),
+            ruleName,
           };
 
           const multiplier = getFreeDistanceMultiplier(ruleName);
           const distanceKm = getPreciseDistance(start, end) / 1000;
-          expect(optimize(request, ruleName)).toMatchObject({
+          expect(optimize(request)).toMatchObject({
             score: expect.closeTo(distanceKm * multiplier, 1),
             lengthKm: expect.closeTo(distanceKm, 1),
             multiplier,
@@ -52,11 +54,12 @@ describe('optimizer', () => {
               createSegments({ ...start, alt: 0, timeSec: 0 }, { ...tp, alt: 0, timeSec: 60 }, segmentsPerBranch),
               createSegments({ ...tp, alt: 0, timeSec: 60 }, { ...end, alt: 0, timeSec: 120 }, segmentsPerBranch),
             ),
+            ruleName,
           };
 
           const distanceKm = (getPreciseDistance(start, tp) + getPreciseDistance(tp, end)) / 1000;
           const multiplier = getFreeDistanceMultiplier(ruleName);
-          expect(optimize(request, ruleName)).toMatchObject({
+          expect(optimize(request)).toMatchObject({
             score: expect.closeTo(distanceKm * multiplier, 1),
             lengthKm: expect.closeTo(distanceKm, 1),
             multiplier,
@@ -77,12 +80,13 @@ describe('optimizer', () => {
               createSegments({ ...tp1, alt: 0, timeSec: 60 }, { ...tp2, alt: 0, timeSec: 120 }, segmentsPerBranch),
               createSegments({ ...tp2, alt: 0, timeSec: 120 }, { ...end, alt: 0, timeSec: 180 }, segmentsPerBranch),
             ),
+            ruleName,
           };
 
           const distanceKm =
             (getPreciseDistance(start, tp1) + getPreciseDistance(tp1, tp2) + getPreciseDistance(tp2, end)) / 1000;
           const multiplier = getFreeDistanceMultiplier(ruleName);
-          expect(optimize(request, ruleName)).toMatchObject({
+          expect(optimize(request)).toMatchObject({
             score: expect.closeTo(distanceKm * multiplier, 1),
             lengthKm: expect.closeTo(distanceKm, 1),
             multiplier,
@@ -105,6 +109,7 @@ describe('optimizer', () => {
               createSegments({ ...tp2, alt: 0, timeSec: 120 }, { ...tp3, alt: 0, timeSec: 180 }, segmentsPerBranch),
               createSegments({ ...tp3, alt: 0, timeSec: 180 }, { ...end, alt: 0, timeSec: 240 }, segmentsPerBranch),
             ),
+            ruleName,
           };
 
           const distanceKm =
@@ -114,7 +119,7 @@ describe('optimizer', () => {
               getPreciseDistance(tp3, end)) /
             1000;
           const multiplier = getFreeDistanceMultiplier(ruleName);
-          expect(optimize(request, ruleName)).toMatchObject({
+          expect(optimize(request)).toMatchObject({
             score: expect.closeTo(distanceKm * multiplier, 1),
             lengthKm: expect.closeTo(distanceKm, 1),
             multiplier,
@@ -134,12 +139,13 @@ describe('optimizer', () => {
               createSegments({ ...tp2, alt: 0, timeSec: 60 }, { ...tp3, alt: 0, timeSec: 120 }, segmentsPerBranch),
               createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp1, alt: 0, timeSec: 180 }, segmentsPerBranch),
             ),
+            ruleName,
           };
 
           const distanceKm =
             (getPreciseDistance(tp1, tp2) + getPreciseDistance(tp2, tp3) + getPreciseDistance(tp3, tp1)) / 1000;
           const multiplier = getFlatTriangleMultiplier(ruleName);
-          expect(optimize(request, ruleName)).toMatchObject({
+          expect(optimize(request)).toMatchObject({
             score: expect.closeTo(distanceKm * multiplier, 1),
             lengthKm: expect.closeTo(distanceKm, 1),
             multiplier,
@@ -164,12 +170,13 @@ describe('optimizer', () => {
               createSegments({ ...tp2, alt: 0, timeSec: 60 }, { ...tp3, alt: 0, timeSec: 120 }, segmentsPerBranch),
               createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp1, alt: 0, timeSec: 180 }, segmentsPerBranch),
             ),
+            ruleName,
           };
 
           const distanceKm =
             (getPreciseDistance(tp1, tp2) + getPreciseDistance(tp2, tp3) + getPreciseDistance(tp3, tp1)) / 1000;
           const multiplier = getFaiTriangleMultiplier(ruleName);
-          expect(optimize(request, ruleName)).toMatchObject({
+          expect(optimize(request)).toMatchObject({
             score: expect.closeTo(distanceKm * multiplier, 1),
             lengthKm: expect.closeTo(distanceKm, 1),
             multiplier,
@@ -197,13 +204,14 @@ describe('optimizer', () => {
         createSegments({ ...tp2, alt: 0, timeSec: 60 }, { ...tp3, alt: 0, timeSec: 120 }, 10),
         createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp1, alt: 0, timeSec: 180 }, 10),
       ),
+      ruleName: 'FFVL',
       maxNumCycles: 1,
     };
 
     const distanceKm =
       (getPreciseDistance(tp1, tp2) + getPreciseDistance(tp2, tp3) + getPreciseDistance(tp3, tp1)) / 1000;
     const multiplier = getFaiTriangleMultiplier('FFVL');
-    expect(optimize(request, 'FFVL')).toMatchObject({
+    expect(optimize(request)).toMatchObject({
       score: expect.closeTo(distanceKm * multiplier, 1),
       lengthKm: expect.closeTo(distanceKm, 1),
       multiplier,
@@ -213,8 +221,8 @@ describe('optimizer', () => {
   });
 });
 
-function optimize(request: ScoringRequest, ruleName: ScoringRuleName): ScoringResult {
-  const optimizer = getOptimizer(request, ruleName);
+function optimize(request: ScoringRequest): ScoringResult {
+  const optimizer = getOptimizer(request);
   let result: IteratorResult<ScoringResult, ScoringResult>;
   do {
     result = optimizer.next();

@@ -23,15 +23,10 @@ export interface ScoringTrack {
 
 export interface ScoringRequest {
   track: ScoringTrack;
-  /**
-   * Maximum duration for an optimization round trip.
-   * If undefined, calculation duration is unbounded.
-   */
+  ruleName: ScoringRuleName;
+  /** Maximum cycle duration. Unbounded when not provided */
   maxCycleDurationMs?: number;
-  /**
-   * Maximum number of iterations allowed for an optimization round trip.
-   * If undefined, number of allowed iterations is unbounded
-   */
+  /** Maximum number of cycles. Unbounded when not provided */
   maxNumCycles?: number;
 }
 
@@ -86,11 +81,8 @@ export interface ScoringResult {
  * @param ruleName The ScoringRules to use.
  * @returns an Iterator of OptimizationResult
  */
-export function* getOptimizer(
-  request: ScoringRequest,
-  ruleName: ScoringRuleName,
-): Iterator<ScoringResult, ScoringResult> {
-  if (request.track.points.length == 0) {
+export function* getOptimizer(request: ScoringRequest): Iterator<ScoringResult, ScoringResult> {
+  if (request.track.points.length === 0) {
     // console.warn('Empty track received in optimization request. Returns a 0 score');
     return {
       score: 0,
@@ -100,18 +92,21 @@ export function* getOptimizer(
       optimal: true,
     };
   }
-  const originalTrack = request.track;
-  const flight = toIgcFile(appendPointsIfNeeded(originalTrack, MIN_IGC_XC_SCORE_POINTS));
-  const solverScoringRules = scoringRules.get(ruleName);
+  const { track } = request;
+  const flight = toIgcFile(appendPointsIfNeeded(track, MIN_IGC_XC_SCORE_POINTS));
+  const solverScoringRules = scoringRules.get(request.ruleName);
+  if (solverScoringRules == null) {
+    throw new Error(`Unknown scoring rule: ${request.ruleName}`);
+  }
   const options = toSolverOptions(request);
-  const solutionIterator = solver(flight, solverScoringRules || {}, options);
+  const solutionIterator = solver(flight, solverScoringRules, options);
   while (true) {
     const solution = solutionIterator.next();
     if (solution.done) {
       // console.debug('solution', JSON.stringify(solution.value, undefined, 2));
-      return toOptimizationResult(solution.value, originalTrack);
+      return toOptimizationResult(solution.value, track);
     }
-    yield toOptimizationResult(solution.value, originalTrack);
+    yield toOptimizationResult(solution.value, track);
   }
 }
 
