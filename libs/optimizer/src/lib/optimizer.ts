@@ -99,8 +99,7 @@ export function* getOptimizer(
     };
   }
   const originalTrack = request.track;
-  const solverTrack = appendPointsIfNeeded(originalTrack, MIN_IGC_XC_SCORE_POINTS);
-  const flight = toIgcFile(solverTrack);
+  const flight = toIgcFile(appendPointsIfNeeded(originalTrack, MIN_IGC_XC_SCORE_POINTS));
   const solverScoringRules = scoringRules.get(ruleName);
   const options = toSolverOptions(request);
   const solutionIterator = solver(flight, solverScoringRules || {}, options);
@@ -120,13 +119,13 @@ export function* getOptimizer(
  * The points are close enough to the last point to not affect the score.
  */
 function appendPointsIfNeeded(track: ScoringTrack, minValidLength: number) {
+  track = structuredClone(track);
+
   if (track.points.length >= minValidLength) {
     return track;
   }
 
   // console.debug(`The track is too short, appending (${MIN_IGC_XC_SCORE_POINTS - track.points.length}) points`);
-
-  track = JSON.parse(JSON.stringify(track));
   while (track.points.length < minValidLength) {
     const lastPoint = track.points.at(-1)!;
     track.points.push({
