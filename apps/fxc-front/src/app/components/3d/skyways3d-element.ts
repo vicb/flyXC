@@ -8,7 +8,7 @@ import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
 import TileInfo from '@arcgis/core/layers/support/TileInfo';
 
 import * as skyways from '../../redux/skyways-slice';
-import type { RootState} from '../../redux/store';
+import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 
 @customElement('skyways3d-element')

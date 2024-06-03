@@ -1,6 +1,5 @@
 import { diffEncodeTrack, fetchResponse, formatReqError, protos } from '@flyxc/common';
-import type {
-  TrackEntity} from '@flyxc/common-node';
+import type { TrackEntity } from '@flyxc/common-node';
 import {
   retrieveMetaTrackGroupByHash,
   retrieveMetaTrackGroupByUrl,

@@ -1,6 +1,6 @@
-import type { ScoringRequest, ScoringResult} from './optimizer';
+import type { ScoringRequest, ScoringResult } from './optimizer';
 import { CircuitType, getOptimizer } from './optimizer';
-import type { ScoringRuleName} from './scoring-rules';
+import type { ScoringRuleName } from './scoring-rules';
 import { scoringRuleNames } from './scoring-rules';
 import { computeDestinationPoint, getGreatCircleBearing, getPreciseDistance } from 'geolib';
 import { createSegments } from './utils/create-segments';

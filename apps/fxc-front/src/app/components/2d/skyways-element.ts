@@ -4,7 +4,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import type { TemplateResult } from 'lit/html.js';
 import { connect } from 'pwa-helpers';
 import * as skyways from '../../redux/skyways-slice';
-import type { RootState} from '../../redux/store';
+import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import { GMAP_MAX_ZOOM_LEVEL } from './map-element';
 import { WMTSInterpolatingOverlayElement } from './wmts-overlay';

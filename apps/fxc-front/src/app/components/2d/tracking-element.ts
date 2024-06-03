@@ -5,11 +5,11 @@ import { connect } from 'pwa-helpers';
 import type { LiveLineProperties, LivePointProperties } from '../../logic/live-track';
 import { FixType } from '../../logic/live-track';
 import { popupContent } from '../../logic/live-track-popup';
-import type { Units} from '../../logic/units';
+import type { Units } from '../../logic/units';
 import { formatDurationMin, formatUnit } from '../../logic/units';
 import { setCurrentLiveId } from '../../redux/live-track-slice';
 import * as sel from '../../redux/selectors';
-import type { RootState} from '../../redux/store';
+import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import { getUniqueContrastColor } from '../../styles/track';
 
@@ -157,7 +157,7 @@ export class TrackingElement extends connect(store)(LitElement) {
   }
 
   private setupInfoWindow(map: google.maps.Map): void {
-    this.info = new google.maps.InfoWindow();
+    this.info = new google.maps.InfoWindow({ headerDisabled: false });
     this.info.close();
     this.info.addListener('closeclick', () => {
       store.dispatch(setCurrentLiveId(undefined));
@@ -185,7 +185,9 @@ export class TrackingElement extends connect(store)(LitElement) {
         }
 
         if (this.info) {
-          this.info.setContent(`<strong>${popup.title}</strong><br>${popup.content}`);
+          this.info.setContent(popup.content);
+          // TODO(vicb): Remove the cast when typings are updated
+          (this.info as any).setHeaderContent(popup.title);
           this.info.setPosition(event.latLng);
           this.info.open(map);
           store.dispatch(setCurrentLiveId(pilotId));

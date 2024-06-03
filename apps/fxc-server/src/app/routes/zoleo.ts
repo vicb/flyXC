@@ -1,6 +1,5 @@
 import { Keys, SecretKeys, fetchResponse, round } from '@flyxc/common';
-import type {
-  ZoleoMessage} from '@flyxc/common-node';
+import type { ZoleoMessage } from '@flyxc/common-node';
 import {
   LIVE_TRACK_TABLE,
   ZOLEO_MAX_MSG,
@@ -10,7 +9,7 @@ import {
   retrieveLiveTrackByGoogleId,
 } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
-import type { Request, Response} from 'express';
+import type { Request, Response } from 'express';
 import { Router } from 'express';
 import basicAuth from 'express-basic-auth';
 import type Redis from 'ioredis';

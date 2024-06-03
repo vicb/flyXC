@@ -1,12 +1,11 @@
-import type {
-  RuntimeTrack} from '@flyxc/common';
+import type { RuntimeTrack } from '@flyxc/common';
 import {
   addAirspaces,
   addGroundAltitude,
   createRuntimeTracks,
   createTrackId,
   extractGroupId,
-  protos
+  protos,
 } from '@flyxc/common';
 import type { EntityState, PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk, createEntityAdapter, createSlice } from '@reduxjs/toolkit';

@@ -1,5 +1,5 @@
 import { Class, Type } from '@flyxc/common';
-import type { PayloadAction} from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 
 type AirspaceState = {

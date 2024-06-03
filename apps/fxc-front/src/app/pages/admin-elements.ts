@@ -1,5 +1,5 @@
 import * as common from '@flyxc/common';
-import type { Binder} from '@vaadin/dom';
+import type { Binder } from '@vaadin/dom';
 import { CheckedFieldStrategy, field, VaadinFieldStrategy } from '@vaadin/dom';
 import * as lit from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
@@ -97,7 +97,7 @@ export class FlowIonInput extends lit.LitElement {
         value=${this.value}
         inputmode=${this.inputMode}
         .errorText=${this.errorMessage}
-        .invalid=${this.invalid} 
+        .invalid=${this.invalid}
         @ionBlur=${this.markedTouched}
       ></ion-input>
     </ion-item>`;

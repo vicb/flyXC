@@ -1,10 +1,4 @@
-import type {
-  AirspaceString,
-  AirspaceTyped,
-  Class,
-  LatLon,
-  Point,
-  Type} from '@flyxc/common';
+import type { AirspaceString, AirspaceTyped, Class, LatLon, Point, Type } from '@flyxc/common';
 import {
   AIRSPACE_TILE_SIZE,
   MAX_AIRSPACE_TILE_ZOOM,

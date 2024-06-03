@@ -10,7 +10,7 @@ import { connect } from 'pwa-helpers';
 import * as units from '../logic/units';
 import { ChartYAxis, setChartYAxis } from '../redux/app-slice';
 import * as sel from '../redux/selectors';
-import type { RootState} from '../redux/store';
+import type { RootState } from '../redux/store';
 import { store } from '../redux/store';
 
 const MIN_SPEED_FACTOR = 16;

@@ -5,7 +5,7 @@ import {
   retrieveMetaTrackGroupsByIds,
 } from '@flyxc/common-node';
 import type { Datastore } from '@google-cloud/datastore';
-import type { Request, Response} from 'express';
+import type { Request, Response } from 'express';
 import { Router } from 'express';
 import type { UploadedFile } from 'express-fileupload';
 

@@ -1,5 +1,4 @@
-import type {
-  protos} from '@flyxc/common';
+import type { protos } from '@flyxc/common';
 import {
   differentialDecodeLiveTrack,
   getFixMessage,

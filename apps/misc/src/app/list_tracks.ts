@@ -1,4 +1,4 @@
-import type { TrackEntity} from '@flyxc/common-node';
+import type { TrackEntity } from '@flyxc/common-node';
 import { TRACK_TABLE } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import type { RunQueryResponse } from '@google-cloud/datastore/build/src/query';

@@ -11,7 +11,7 @@ import { pushCurrentState } from '../../logic/history';
 import * as msg from '../../logic/messages';
 import * as app from '../../redux/app-slice';
 import * as sel from '../../redux/selectors';
-import type { RootState} from '../../redux/store';
+import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import * as trackSlice from '../../redux/track-slice';
 import { maybeHideSidePane } from '../../../flyxc';

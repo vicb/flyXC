@@ -1,4 +1,4 @@
-import type { LiveDifferentialTrack, LiveExtra} from '../protos/live-track';
+import type { LiveDifferentialTrack, LiveExtra } from '../protos/live-track';
 import { LiveTrack } from '../protos/live-track';
 import { diffDecodeArray, diffEncodeArray32bit, findIndexes } from './math';
 import { deepCopy } from './util';

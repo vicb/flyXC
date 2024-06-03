@@ -5,7 +5,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import * as sel from '../../redux/selectors';
-import type { RootState} from '../../redux/store';
+import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 
 const INACTIVE_OPACITY = 0.5;

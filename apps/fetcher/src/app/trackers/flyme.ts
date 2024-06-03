@@ -2,9 +2,9 @@
 //
 // http://xcglobe.com/flyme/
 
-import type { protos, TrackerNames} from '@flyxc/common';
+import type { protos, TrackerNames } from '@flyxc/common';
 import { fetchResponse, formatReqError, SecretKeys, validateFlymeAccount } from '@flyxc/common';
-import type { LivePoint} from './live-track';
+import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';

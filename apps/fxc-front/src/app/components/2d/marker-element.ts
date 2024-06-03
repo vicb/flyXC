@@ -1,11 +1,11 @@
 import type * as common from '@flyxc/common';
-import type { PropertyValues} from 'lit';
+import type { PropertyValues } from 'lit';
 import { LitElement, html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 import * as units from '../../logic/units';
 import * as sel from '../../redux/selectors';
-import type { RootState} from '../../redux/store';
+import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
 

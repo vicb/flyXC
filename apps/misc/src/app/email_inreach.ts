@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { setTimeout } from 'node:timers/promises';
-import type { LiveTrackEntity} from '@flyxc/common';
+import type { LiveTrackEntity } from '@flyxc/common';
 import { SecretKeys, trackerNames } from '@flyxc/common';
 import { MailerSend, EmailParams, Sender, Recipient } from 'mailersend';
 

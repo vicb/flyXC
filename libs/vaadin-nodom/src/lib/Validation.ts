@@ -1,7 +1,7 @@
 // TODO: Fix dependency cycle
 
 import type { BinderNode } from './BinderNode';
-import type { AbstractModel} from './Models';
+import type { AbstractModel } from './Models';
 import { getBinderNode, NumberModel } from './Models';
 import type { NoDomBinder } from './NoDomBinder';
 import { Required } from './Validators';

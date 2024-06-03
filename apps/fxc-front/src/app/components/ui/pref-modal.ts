@@ -7,7 +7,7 @@ import { modalController } from '@ionic/core/components';
 
 import * as units from '../../logic/units';
 import { setLeague } from '../../redux/planner-slice';
-import type { RootState} from '../../redux/store';
+import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import { setAltitudeUnit, setDistanceUnit, setSpeedUnit, setVarioUnit } from '../../redux/units-slice';
 import { LEAGUE_CODES, LEAGUES } from '../../logic/score/league/leagues';

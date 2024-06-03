@@ -1,17 +1,8 @@
 // Models and validation for user data.
 
-import type {
-  Validator} from '@vaadin/nodom';
-import {
-  BooleanModel,
-  NotBlank,
-  NotNull,
-  ObjectModel,
-  Size,
-  StringModel,
-  _getPropertyModel,
-} from '@vaadin/nodom';
-import type { TrackerNames} from './live-track';
+import type { Validator } from '@vaadin/nodom';
+import { BooleanModel, NotBlank, NotNull, ObjectModel, Size, StringModel, _getPropertyModel } from '@vaadin/nodom';
+import type { TrackerNames } from './live-track';
 import { trackerNames } from './live-track';
 import type { LiveTrackEntity, TrackerEntity } from './live-track-entity';
 

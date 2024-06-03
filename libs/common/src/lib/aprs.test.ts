@@ -1,4 +1,4 @@
-import type { AprsPosition} from './aprs';
+import type { AprsPosition } from './aprs';
 import { generateAprsPosition, parseAprsPosition } from './aprs';
 
 describe('parseAprsPosition', () => {

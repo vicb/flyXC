@@ -11,7 +11,7 @@ import { connect } from 'pwa-helpers';
 
 import type * as units from '../../logic/units';
 import * as sel from '../../redux/selectors';
-import type { RootState} from '../../redux/store';
+import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 
 @customElement('controls3d-element')

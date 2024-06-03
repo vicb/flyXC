@@ -14,7 +14,7 @@ import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 import type * as units from '../../logic/units';
 import * as sel from '../../redux/selectors';
-import type { RootState} from '../../redux/store';
+import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 
 @customElement('controls-element')

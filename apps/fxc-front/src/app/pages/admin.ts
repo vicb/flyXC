@@ -5,7 +5,7 @@ import { html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
-import '../ui/google-btn';
+import '../components/ui/google-btn';
 
 const REFRESH_MIN = 10;
 

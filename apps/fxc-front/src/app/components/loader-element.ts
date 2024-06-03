@@ -2,7 +2,7 @@ import type { CSSResult, PropertyValues, TemplateResult } from 'lit';
 import { css, html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
-import type { RootState} from '../redux/store';
+import type { RootState } from '../redux/store';
 import { store } from '../redux/store';
 
 @customElement('loader-element')

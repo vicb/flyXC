@@ -4,7 +4,7 @@
 
 import { Activity, Class, Type, decodeClass } from '@flyxc/common';
 import { computeDestinationPoint, getDistance, getGreatCircleBearing, sexagesimalToDecimal } from 'geolib';
-import type { Airspace} from './parser';
+import type { Airspace } from './parser';
 import { METER_PER_FEET, roundCoords } from './parser';
 
 const enum Direction {

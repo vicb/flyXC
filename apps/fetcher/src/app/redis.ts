@@ -7,7 +7,7 @@ import * as zlib from 'node:zlib';
 import type { ElevationUpdates } from './elevation/elevation';
 import { exportToStorage } from './state/serialize';
 import { BUCKET_NAME, EXPORT_FILE_SEC, PERIODIC_STATE_PATH } from './state/state';
-import type { SyncStatus} from './state/sync';
+import type { SyncStatus } from './state/sync';
 import { syncFromDatastore } from './state/sync';
 
 // Logs for syncs.

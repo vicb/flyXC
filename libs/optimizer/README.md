@@ -6,7 +6,6 @@ This library is a thin wrapper around [igc-xc-score](https://github.com/mmomtche
 
 It is used to score flight tracks.
 
-
 ## Usage
 
 The `getOptimizer` generator function computes score of a track.

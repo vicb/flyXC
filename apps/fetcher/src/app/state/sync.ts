@@ -1,6 +1,4 @@
-import type {
-  LiveTrackEntity,
-  TrackerNames} from '@flyxc/common';
+import type { LiveTrackEntity, TrackerNames } from '@flyxc/common';
 import {
   LIVE_REFRESH_SEC,
   protos,

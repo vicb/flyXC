@@ -4,8 +4,8 @@ import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
-import { getApiKeyAndHost } from '../../apikey';
-import '../ui/google-btn';
+import { getApiKeyAndHost } from '../apikey';
+import '../components/ui/google-btn';
 
 const NUM_TRACKS = 30;
 const IMG_SIZE = 200;
@@ -29,10 +29,6 @@ export class ArchivesPage extends LitElement {
   render(): TemplateResult {
     return html`
       <style>
-        archives-page {
-          width: 100%;
-          height: 100%;
-        }
         #tooltip {
           padding: 0;
           margin: 0;

@@ -1,15 +1,8 @@
 import { BinderNode } from './BinderNode';
 import type { AbstractModel, ModelConstructor } from './Models';
 import { _parent } from './Models';
-import type {
-  InterpolateMessageCallback,
-  Validator,
-  ValueError} from './Validation';
-import {
-  runValidator,
-  ServerValidator,
-  ValidationError
-} from './Validation';
+import type { InterpolateMessageCallback, Validator, ValueError } from './Validation';
+import { runValidator, ServerValidator, ValidationError } from './Validation';
 
 const _submitting = Symbol('submitting');
 const _defaultValue = Symbol('defaultValue');

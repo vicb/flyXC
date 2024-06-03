@@ -1,4 +1,4 @@
-import type { AccountModel, LiveTrackEntity} from '@flyxc/common';
+import type { AccountModel, LiveTrackEntity } from '@flyxc/common';
 import { trackerNames } from '@flyxc/common';
 import type { Datastore } from '@google-cloud/datastore';
 

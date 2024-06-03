@@ -6,7 +6,7 @@ import { connect } from 'pwa-helpers';
 
 import { AspMapType, AspZoomMapType, getAirspaceList } from '../../logic/airspaces';
 import * as sel from '../../redux/selectors';
-import type { RootState} from '../../redux/store';
+import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 
 @customElement('airspace-element')
@@ -45,7 +45,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
       this.overlays.push(new AspZoomMapType(this.maxAltitude, common.MAX_AIRSPACE_TILE_ZOOM, zoom));
     }
     this.setOverlaysZoom();
-    this.info = new google.maps.InfoWindow({ disableAutoPan: true });
+    this.info = new google.maps.InfoWindow({ disableAutoPan: true, headerDisabled: false, headerContent: 'Airspaces' });
     this.info.close();
   }
 

@@ -1,5 +1,5 @@
 import { Keys } from '@flyxc/common';
-import type { Request, Response} from 'express';
+import type { Request, Response } from 'express';
 import { Router } from 'express';
 import type { Redis } from 'ioredis';
 

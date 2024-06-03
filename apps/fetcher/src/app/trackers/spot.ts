@@ -2,9 +2,7 @@
 //
 // See https://www.findmespot.com/en-us/support/spot-trace/get-help/general/spot-api-support.
 
-import type {
-  protos,
-  TrackerNames} from '@flyxc/common';
+import type { protos, TrackerNames } from '@flyxc/common';
 import {
   fetchResponse,
   formatReqError,
@@ -12,7 +10,7 @@ import {
   simplifyLiveTrack,
   validateSpotAccount,
 } from '@flyxc/common';
-import type { LivePoint} from './live-track';
+import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';

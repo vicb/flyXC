@@ -1,5 +1,5 @@
 import { protos } from '@flyxc/common';
-import type { File} from '@google-cloud/storage';
+import type { File } from '@google-cloud/storage';
 import { Storage } from '@google-cloud/storage';
 import { isBefore, lightFormat, parse, sub } from 'date-fns';
 import * as zlib from 'node:zlib';

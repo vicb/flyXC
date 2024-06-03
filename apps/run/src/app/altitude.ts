@@ -11,7 +11,7 @@ import type { protos } from '@flyxc/common';
 import { fetchResponse, pixelCoordinates } from '@flyxc/common';
 import async from 'async';
 import lodepng from 'lodepng';
-import type { LRU} from 'tiny-lru';
+import type { LRU } from 'tiny-lru';
 import { lru } from 'tiny-lru';
 
 // Zoom level for the altitude tiles.

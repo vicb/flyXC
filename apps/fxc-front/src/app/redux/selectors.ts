@@ -1,4 +1,4 @@
-import type { LatLon, LatLonAlt, RuntimeTrack} from '@flyxc/common';
+import type { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
 import { extractGroupId, sampleAt } from '@flyxc/common';
 import { createSelector } from 'reselect';
 

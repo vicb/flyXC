@@ -20,7 +20,7 @@ import type { Units } from '../../logic/units';
 import { formatDurationMin } from '../../logic/units';
 import { liveTrackSelectors, setCurrentLiveId } from '../../redux/live-track-slice';
 import * as sel from '../../redux/selectors';
-import type { RootState} from '../../redux/store';
+import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import { getUniqueContrastColor } from '../../styles/track';
 

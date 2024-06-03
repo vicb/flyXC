@@ -6,8 +6,7 @@ import VectorTileLayer from '@arcgis/core/layers/VectorTileLayer';
 import type Map from '@arcgis/core/Map';
 
 import type SceneView from '@arcgis/core/views/SceneView';
-import type {
-  LatLon} from '@flyxc/common';
+import type { LatLon } from '@flyxc/common';
 import {
   ASP_COLOR_DANGER,
   ASP_COLOR_OTHER,
@@ -19,7 +18,7 @@ import {
   Type,
 } from '@flyxc/common';
 import { getAirspaceList } from '../../logic/airspaces';
-import type { RootState} from '../../redux/store';
+import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 
 @customElement('airspace3d-element')

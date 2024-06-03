@@ -2,9 +2,7 @@
 //
 // See https://github.com/skylines-project/skylines.
 
-import type {
-  protos,
-  TrackerNames} from '@flyxc/common';
+import type { protos, TrackerNames } from '@flyxc/common';
 import {
   decodeDeltas,
   fetchResponse,
@@ -14,7 +12,7 @@ import {
   simplifyLiveTrack,
   validateSkylinesAccount,
 } from '@flyxc/common';
-import type { LivePoint} from './live-track';
+import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';

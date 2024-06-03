@@ -2,10 +2,10 @@
 //
 // See http://wiki.glidernet.org/.
 
-import type { protos, TrackerNames} from '@flyxc/common';
+import type { protos, TrackerNames } from '@flyxc/common';
 import { validateOgnAccount } from '@flyxc/common';
 import type { ChainableCommander } from 'ioredis';
-import type { LivePoint} from './live-track';
+import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
 import type { OgnClient } from './ogn-client';
 import { OgnPusher } from './ogn-push';

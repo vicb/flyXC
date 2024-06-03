@@ -3,7 +3,7 @@
 import type { Solution } from 'igc-xc-score';
 import { solver } from 'igc-xc-score';
 import type { BRecord, IGCFile } from 'igc-parser';
-import type { ScoringRuleName} from './scoring-rules';
+import type { ScoringRuleName } from './scoring-rules';
 import { scoringRules } from './scoring-rules';
 
 // Minimum number of points in an igc-xc-score track.

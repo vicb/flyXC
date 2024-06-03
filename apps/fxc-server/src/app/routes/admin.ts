@@ -1,7 +1,7 @@
 import csurf from '@dr.pogodin/csurf';
 import { AccountFormModel, Keys, trackerNames, ufoFleetNames } from '@flyxc/common';
 import { TRACK_TABLE, retrieveLiveTrackById, retrieveRecentTracks } from '@flyxc/common-node';
-import type { NextFunction, Request, Response} from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { Router } from 'express';
 import type { Redis } from 'ioredis';
 import zlib from 'node:zlib';

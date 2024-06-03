@@ -1,6 +1,6 @@
 // Client for the OGN APRS server
 
-import type { AprsPosition} from '@flyxc/common';
+import type { AprsPosition } from '@flyxc/common';
 import { parseAprsPosition } from '@flyxc/common';
 import { Socket } from 'node:net';
 import type { Interface } from 'node:readline';

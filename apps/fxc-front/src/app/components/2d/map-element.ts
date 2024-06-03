@@ -15,7 +15,7 @@ import { setApiLoading, setTimeSec } from '../../redux/app-slice';
 import { setCurrentLocation, setCurrentZoom } from '../../redux/location-slice';
 import { setIsFreeDrawing, setRoute } from '../../redux/planner-slice';
 import * as sel from '../../redux/selectors';
-import type { RootState} from '../../redux/store';
+import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
 import { ControlsElement } from './controls-element';
