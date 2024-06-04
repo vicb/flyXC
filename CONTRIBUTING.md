@@ -12,7 +12,7 @@
 ## Project setup
 
 - run `npm install`
-- add default keys definitions
+- add default key definitions
   - `cp apps/fxc-front/src/app/keys.ts.dist apps/fxc-front/src/app/keys.ts`
   - `cp libs/common/src/lib/keys.ts.dist libs/common/src/lib/keys.ts`
 
