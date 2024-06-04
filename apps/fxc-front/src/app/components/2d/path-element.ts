@@ -232,9 +232,13 @@ export class PathElement extends connect(store)(LitElement) {
     store.dispatch(setDistance(score.distanceM));
     store.dispatch(setScore(score));
 
-    let path = [result.startPoint, ...result.turnpoints, result.endPoint]
+    const path = [result.startPoint, ...result.turnpoints, result.endPoint]
       .filter((p) => p != null)
       .map((p) => ({ lat: p!.lat, lng: p!.lon }));
+
+    if (result.circuit != CircuitType.OpenDistance) {
+      path.push(path[0]);
+    }
 
     this.optimizedLine ??= new google.maps.Polyline();
 
@@ -252,8 +256,8 @@ export class PathElement extends connect(store)(LitElement) {
       this.closingSector.addListener('rightclick', (e) => this.appendToPath(e.latLng));
     }
 
-    if (score.closingRadiusM && result.startPoint) {
-      this.closingSector.center = result.startPoint;
+    if (result.closingPoints) {
+      this.closingSector.center = result.closingPoints.in;
       this.closingSector.radius = score.closingRadiusM;
       this.closingSector.update();
       this.closingSector.setMap(this.map);
@@ -280,7 +284,7 @@ export class PathElement extends connect(store)(LitElement) {
       circuit: result.circuit,
       distanceM: result.lengthKm * 1000,
       multiplier: result.multiplier,
-      closingRadiusM: result.closingRadiusM ? result.closingRadiusM * 1000 : null,
+      closingRadiusM: (result.closingRadiusM ?? 0) * 1000,
       indexes: result.solutionIndices,
       points: result.score,
     });

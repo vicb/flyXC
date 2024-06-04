@@ -1,5 +1,3 @@
-// TODO: all console logs are commented out. In the future, we should use a logging library
-
 import type { Point, Solution } from 'igc-xc-score';
 import { solver } from 'igc-xc-score';
 import type { BRecord, IGCFile } from 'igc-parser';
@@ -54,7 +52,6 @@ export interface ScoringResult {
   // Multiplier for computing score. score = lengthKm * multiplier
   multiplier: number;
   circuit?: CircuitType;
-  // If applicable, Distance in m for closing the circuit
   closingRadiusM?: number;
   // Indices of solutions points in the request
   solutionIndices: number[];
@@ -65,6 +62,10 @@ export interface ScoringResult {
   endPoint?: LatLon;
   legs: Leg[];
   turnpoints: LatLon[];
+  closingPoints?: {
+    in: LatLon;
+    out: LatLon;
+  };
 }
 
 /**
@@ -80,7 +81,6 @@ export interface ScoringResult {
  */
 export function* getOptimizer(request: ScoringRequest): Iterator<ScoringResult, ScoringResult> {
   if (request.track.points.length === 0) {
-    // console.warn('Empty track received in optimization request. Returns a 0 score');
     return {
       score: 0,
       lengthKm: 0,
@@ -102,7 +102,6 @@ export function* getOptimizer(request: ScoringRequest): Iterator<ScoringResult, 
   while (true) {
     const solution = solutionIterator.next();
     if (solution.done) {
-      // console.debug('solution', JSON.stringify(solution.value, undefined, 2));
       return toOptimizationResult(solution.value, track);
     }
     yield toOptimizationResult(solution.value, track);
@@ -121,7 +120,6 @@ function appendPointsIfNeeded(track: ScoringTrack, minValidLength: number) {
     return track;
   }
 
-  // console.debug(`The track is too short, appending (${MIN_IGC_XC_SCORE_POINTS - track.points.length}) points`);
   while (track.points.length < minValidLength) {
     const lastPoint = track.points.at(-1)!;
     track.points.push({
@@ -130,7 +128,7 @@ function appendPointsIfNeeded(track: ScoringTrack, minValidLength: number) {
       timeSec: lastPoint.timeSec + 60,
     });
   }
-  // console.debug(`new track has ${newTrack.points.length} points`);
+
   return track;
 }
 
@@ -192,6 +190,12 @@ function toOptimizationResult(solution: Solution, track: ScoringTrack): ScoringR
       end: pointToLatTon(finish),
     })),
     turnpoints: (solution.scoreInfo?.tp ?? []).map((point) => pointToLatTon(point)),
+    closingPoints: solution.scoreInfo?.cp
+      ? {
+          in: pointToLatTon(solution.scoreInfo.cp.in),
+          out: pointToLatTon(solution.scoreInfo.cp.out),
+        }
+      : undefined,
   };
 }
 
@@ -227,7 +231,7 @@ function getClosingRadiusM(solution: Solution): number | undefined {
   return undefined;
 }
 
-const circuitMapping = {
+const circuitMapping: Readonly<Record<string, CircuitType>> = {
   od: CircuitType.OpenDistance,
   tri: CircuitType.FlatTriangle,
   fai: CircuitType.FaiTriangle,
@@ -235,7 +239,7 @@ const circuitMapping = {
 };
 
 function toCircuitType(code: string): CircuitType {
-  const type = circuitMapping[code as 'od' | 'tri' | 'fai' | 'oar'];
+  const type = circuitMapping[code];
   if (type == null) {
     throw new Error(`Unknown type "${code}"`);
   }
