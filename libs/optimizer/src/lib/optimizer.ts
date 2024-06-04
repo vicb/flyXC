@@ -1,8 +1,9 @@
 import type { Point, Solution } from 'igc-xc-score';
 import { solver } from 'igc-xc-score';
 import type { BRecord, IGCFile } from 'igc-parser';
-import type { ScoringRuleName } from './scoring-rules';
+import type { ScoringRuleName } from './api';
 import { scoringRules } from './scoring-rules';
+import type { CircuitType } from './api';
 
 // Minimum number of points in an igc-xc-score track.
 // See this issue https://github.com/mmomtchev/igc-xc-score/issues/231
@@ -29,13 +30,6 @@ export interface ScoringRequest {
   maxCycleDurationMs?: number;
   /** Maximum number of cycles. Unbounded when not provided */
   maxNumCycles?: number;
-}
-
-export enum CircuitType {
-  OpenDistance = 'Open distance',
-  FlatTriangle = 'Flat triangle',
-  FaiTriangle = 'Fai triangle',
-  OutAndReturn = 'Out and return',
 }
 
 export interface Leg {

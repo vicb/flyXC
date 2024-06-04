@@ -1,10 +1,9 @@
 import type { ScoringRequest, ScoringResult } from './optimizer';
-import { CircuitType, getOptimizer } from './optimizer';
-import type { ScoringRuleName } from './scoring-rules';
-import { scoringRuleNames } from './scoring-rules';
+import { getOptimizer } from './optimizer';
 import { computeDestinationPoint, getGreatCircleBearing, getPreciseDistance } from 'geolib';
 import { createSegments } from './utils/create-segments';
 import { mergeTracks } from './utils/merge-tracks';
+import { CircuitType, scoringRuleNames, type ScoringRuleName } from './api';
 
 describe('optimizer', () => {
   scoringRuleNames.forEach((ruleName) => {
