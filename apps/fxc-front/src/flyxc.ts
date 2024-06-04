@@ -38,6 +38,7 @@ import * as sel from './app/redux/selectors';
 import type { RootState } from './app/redux/store';
 import { store } from './app/redux/store';
 import * as track from './app/redux/track-slice';
+import * as liveTrack from './app/redux/live-track-slice';
 
 export const SHOW_SPLIT_PANE_WHEN = `(min-width: 992px)`;
 
@@ -64,7 +65,9 @@ export class FlyXc extends connect(store)(LitElement) {
       downloadTracksByUrls(getUrlParamValues(ParamNames.trackUrl)),
     ]).then(() => {
       store.dispatch(track.setTrackLoaded(true));
-      store.dispatch(track.setDisplayLabels(sel.numTracks(store.getState()) > 1));
+      const numTracks = sel.numTracks(store.getState());
+      store.dispatch(track.setDisplayLabels(numTracks > 1));
+      store.dispatch(liveTrack.setDisplayLabels(numTracks === 0));
       // Remove the track urls as they will be replaced with ids.
       deleteUrlParam(ParamNames.trackUrl);
     });
