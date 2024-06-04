@@ -120,7 +120,7 @@ export class SettingsPage extends LitElement {
                 ></flow-ion-check>
                 <flow-ion-input label="Your name as displayed on the map" ...=${field(model.name)}> </flow-ion-input>
                 <flow-ion-check
-                  label="Share my positions across FlyXC live tracking providers (Only used by FlyMe at the moment)"
+                  label="Share my positions across flyXC live tracking providers (Only used by FlyMe at the moment)"
                   ...=${field(model.share)}
                 ></flow-ion-check>
               </ion-card>
@@ -218,9 +218,9 @@ export class SettingsPage extends LitElement {
                   label="Id"
                   .hint=${html`<ion-text class="ion-padding-horizontal ion-padding-top block">
                     Enter your OGN Device ID. It is a 6 hexadecimal digits (0-9, a-f) value from
-                    <a href="http://ddb.glidernet.org/" target="_blank">the device database</a>. FlyXC will retrieve
+                    <a href="http://ddb.glidernet.org/" target="_blank">the device database</a>. flyXC will retrieve
                     your position when you have a device setup to push to OGN (XCTracer, SeeYou navigator, ...).
-                    Otherwise FlyXC will publish your position from other enabled tracking devices to OGN.
+                    Otherwise flyXC will publish your position from other enabled tracking devices to OGN.
                   </ion-text>`}
                 >
                 </device-card>
@@ -468,8 +468,8 @@ export class SettingsPage extends LitElement {
           <strong>there is no need to manually reload</strong> the browser window.
         </p>
         <p>
-          FlyXC records your name, email address, tracker address and the position of your tracker during the last 24
-          hours only. While you need a google account to login to FlyXC, no information is ever shared with Google.
+          flyXC records your name, email address, tracker address and the position of your tracker during the last 24
+          hours only. While you need a google account to login to flyXC, no information is ever shared with Google.
         </p>
         <p>Supported platforms:</p>
         <ul>
@@ -487,7 +487,7 @@ export class SettingsPage extends LitElement {
           <li><a href="https://live.xcontest.org/" target="_blank">XCTrack (XContest live)</a></li>
         </ul>
         <p>
-          <a href="mailto:help@flyxc.app?subject=FlyXC%20registration%20error" target="_blank"> Contact us by email </a>
+          <a href="mailto:help@flyxc.app?subject=flyXC%20registration%20error" target="_blank"> Contact us by email </a>
           if you have any trouble registering your device.
         </p>
         <google-btn callback=${this.getCallback()}></google-btn>

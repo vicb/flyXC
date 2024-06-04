@@ -1,6 +1,6 @@
 [![Tests](https://github.com/vicb/flyxc/actions/workflows/node.js.yml/badge.svg)](https://github.com/vicb/flyxc/actions/workflows/node.js.yml)
 
-## FlyXC
+## flyXC
 
 - Visualize your flights,
 - Plan your flights,
@@ -25,11 +25,11 @@
 - Santa 3d model by [MDALatam Studio dyn](https://sketchfab.com/minego90),
 - Message 3d model by [bariacg](https://sketchfab.com/bariacg),
 - Ufo 3d model by [pawinc](https://sketchfab.com/demarerik),
-- the many open source libraries, projects, and data sources used by FlyXc.
+- the many open source libraries, projects, and data sources used by flyXC.
 
-## Support flyxc
+## Support flyXC
 
-You can support the development of flyxc via the Buy me a Coffee platform
+You can support the development of flyXC via the Buy me a Coffee platform
 
 <a href="https://www.buymeacoffee.com/vic.b" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 

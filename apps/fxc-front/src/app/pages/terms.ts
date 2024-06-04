@@ -28,7 +28,7 @@ export class TermsPage extends LitElement {
 
           <p>
             By using the Website, you agree to these terms and conditions (the "Terms") and acknowledge that they
-            constitute a legally binding contract between you and flyxc. If you do not agree to these Terms, please do
+            constitute a legally binding contract between you and flyXC. If you do not agree to these Terms, please do
             not use the Website. We reserve the right to modify or update these Terms at any time without prior notice.
             Your continued use of the Website after any changes indicates your acceptance of the new terms and
             conditions. Therefore, we recommend that you review these Terms regularly for any changes.
@@ -59,7 +59,7 @@ export class TermsPage extends LitElement {
 
           <h2>2. Data Collection and Use</h2>
           <p>
-            flyxc collects two types of data from its users: live tracking location data and recorded track log data.
+            flyXC collects two types of data from its users: live tracking location data and recorded track log data.
           </p>
           <p>
             The live tracking location data is used to provide real-time information about the whereabouts of pilots who
@@ -67,34 +67,34 @@ export class TermsPage extends LitElement {
             allow them to compare their performance with other pilots.
           </p>
           <p>
-            flyxc does not sell, rent, or otherwise share your personal information with any third parties, except as
-            required by law or as necessary to protect the rights, property, or safety of flyxc, its employees, users,
-            or others. flyxc may also disclose your data if it is involved in a merger, acquisition, or sale of all or
+            flyXC does not sell, rent, or otherwise share your personal information with any third parties, except as
+            required by law or as necessary to protect the rights, property, or safety of flyXC, its employees, users,
+            or others. flyXC may also disclose your data if it is involved in a merger, acquisition, or sale of all or
             part of its assets.
           </p>
 
           <h2>3. Ownership and Intellectual Property</h2>
           <p>
             Rights The Website, including but not limited to its design, layout, content, graphics, images, audio,
-            video, and code, is owned by flyxc and protected by copyright laws and international intellectual property
+            video, and code, is owned by flyXC and protected by copyright laws and international intellectual property
             rights. You may not reproduce, modify, distribute, sell, or otherwise use any part of the Website without
-            the prior written consent of flyxc.
+            the prior written consent of flyXC.
           </p>
 
           <h2>4. Disclaimer of Warranties and Liability</h2>
           <p>
-            The Website is provided "as is" and "as available". flyxc disclaims all warranties, express or implied,
+            The Website is provided "as is" and "as available". flyXC disclaims all warranties, express or implied,
             including but not limited to warranties of merchantability, fitness for a particular purpose, title,
-            non-infringement, and security. flyxc does not guarantee that the Website will be error-free, uninterrupted,
-            or accessible at all times. flyxc is not responsible for any losses, damages, or expenses arising from your
+            non-infringement, and security. flyXC does not guarantee that the Website will be error-free, uninterrupted,
+            or accessible at all times. flyXC is not responsible for any losses, damages, or expenses arising from your
             use of the Website, including but not limited to direct, indirect, special, incidental, consequential, or
-            punitive damages. flyxc also disclaims any liability for any actions taken by you or others based on the
+            punitive damages. flyXC also disclaims any liability for any actions taken by you or others based on the
             information provided by the Website, which may be inaccurate, incomplete, or outdated.
           </p>
 
           <h2>5. Indemnification</h2>
           <p>
-            You agree to indemnify and hold harmless flyxc, its officers, directors, employees, agents, licensors, and
+            You agree to indemnify and hold harmless flyXC, its officers, directors, employees, agents, licensors, and
             suppliers from any claims, actions, demands, liabilities, costs, damages, and expenses (including reasonable
             attorneys' fees) arising from your use of the Website or your violation of these Terms. 6. Applicable Law
             and Dispute Resolution These Terms shall be governed by and construed in accordance with the laws of France,

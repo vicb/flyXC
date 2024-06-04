@@ -103,7 +103,7 @@ function encodeKML(
   const document = kml.ele('Document');
   document
     .ele('Placemark')
-    .ele('name', {}, 'FlyXC route')
+    .ele('name', {}, 'flyXC route')
     .up()
     .ele('LineString')
     .ele('coordinates', {}, coordinates.join(' '))
@@ -204,7 +204,7 @@ function encodeCUP(
       );
     })
     .join('\r\n');
-  file += '\r\n-----Related Tasks-----\r\n"FlyXC Task","???",';
+  file += '\r\n-----Related Tasks-----\r\n"flyXC Task","???",';
   file += points.map((p, i) => `"${prefix + String(i + 1).padStart(3, '0')}"`).join(',');
   file += ',"???"\r\n';
 

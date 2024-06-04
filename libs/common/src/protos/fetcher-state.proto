@@ -68,7 +68,7 @@ message Pilot {
 
   // Whether to share positions with partners.
   bool share = 3;
-  // Whether to display the user on flyxc.
+  // Whether to display the user on flyXC.
   bool enabled = 4;
   // Trackers.
   // The name must be in sync with TrackerProps.

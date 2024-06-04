@@ -17,7 +17,7 @@ declare module 'express-session' {
       };
     };
 
-    // flyxc session.
+    // flyXC session.
     // name, email and token are defined if isLoggedIn === true.
     isLoggedIn: boolean;
     name: string;

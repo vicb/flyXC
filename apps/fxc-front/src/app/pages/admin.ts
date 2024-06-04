@@ -80,7 +80,7 @@ export class AdminPage extends LitElement {
 
       <ion-header>
         <ion-toolbar color="primary">
-          <ion-title>FlyXC admin</ion-title>
+          <ion-title>flyXC admin</ion-title>
           <ion-title size="small">Dashboard</ion-title>
         </ion-toolbar>
       </ion-header>

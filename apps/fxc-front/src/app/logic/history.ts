@@ -16,7 +16,7 @@ export function pushCurrentState(): void {
 
 // Returns whether the URL contains any track or route.
 //
-// When the URL contains a track or a route, flyxc would center on that.
+// When the URL contains a track or a route, flyXC would center on that.
 export function hasTrackOrRoute(): boolean {
   const params = getSearchParams();
   return params.has(ParamNames.groupId) || params.has(ParamNames.trackUrl) || params.has(ParamNames.route);
