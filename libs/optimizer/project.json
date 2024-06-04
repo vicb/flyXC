@@ -4,6 +4,18 @@
   "sourceRoot": "libs/optimizer/src",
   "projectType": "library",
   "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/optimizer",
+        "main": "./src/lib/optimizer.ts",
+        "additionalEntryPoints": ["libs/optimizer/src/lib/api.ts", "libs/optimizer/src/lib/scoring-rules.ts"],
+        "generateExportsField": true,
+        "tsConfig": "libs/optimizer/tsconfig.lib.json",
+        "assets": ["libs/optimizer/*.md"]
+      }
+    },
     "lint": {
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"]

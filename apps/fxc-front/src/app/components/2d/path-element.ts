@@ -19,11 +19,11 @@ import { setDistance, setEnabled, setRoute, setScore } from '../../redux/planner
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import type { PlannerElement } from './planner-element';
-import { CircuitType, type ScoringResult } from '@flyxc/optimizer';
 import { getScoringRuleName } from '../../logic/score/league/leagues';
 import type { LeagueCode } from '../../logic/score/league/leagues';
 import ScoringWorker from '../../workers/optimizer?worker';
 import type { Request as WorkerRequest, Response as WorkerResponse } from '../../workers/optimizer';
+import { CircuitType } from '@flyxc/optimizer/src/api';
 
 // Route color by circuit type.
 const ROUTE_STROKE_COLORS = {

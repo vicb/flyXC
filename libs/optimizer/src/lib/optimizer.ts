@@ -3,7 +3,7 @@ import { solver } from 'igc-xc-score';
 import type { BRecord, IGCFile } from 'igc-parser';
 import type { ScoringRuleName } from './api';
 import { scoringRules } from './scoring-rules';
-import type { CircuitType } from './api';
+import { CircuitType } from './api';
 
 // Minimum number of points in an igc-xc-score track.
 // See this issue https://github.com/mmomtchev/igc-xc-score/issues/231
