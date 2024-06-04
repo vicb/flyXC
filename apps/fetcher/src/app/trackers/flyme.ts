@@ -2,9 +2,12 @@
 //
 // http://xcglobe.com/flyme/
 
-import { fetchResponse, formatReqError, protos, SecretKeys, TrackerNames, validateFlymeAccount } from '@flyxc/common';
-import { LivePoint, makeLiveTrack } from './live-track';
-import { TrackerFetcher, TrackerUpdates } from './tracker';
+import type { protos, TrackerNames } from '@flyxc/common';
+import { fetchResponse, formatReqError, SecretKeys, validateFlymeAccount } from '@flyxc/common';
+import type { LivePoint } from './live-track';
+import { makeLiveTrack } from './live-track';
+import type { TrackerUpdates } from './tracker';
+import { TrackerFetcher } from './tracker';
 
 export class FlymeFetcher extends TrackerFetcher {
   protected getTrackerName(): TrackerNames {

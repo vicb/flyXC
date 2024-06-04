@@ -1,11 +1,10 @@
 import csurf from '@dr.pogodin/csurf';
+import type { AccountModel, LiveTrackEntity } from '@flyxc/common';
 import {
   AccountFormModel,
-  AccountModel,
   LONG_INCREMENTAL_UPDATE_SEC,
   SHORT_INCREMENTAL_UPDATE_SEC,
   Keys,
-  LiveTrackEntity,
   protos,
   SecretKeys,
 } from '@flyxc/common';
@@ -19,8 +18,9 @@ import {
 } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import { NoDomBinder } from '@vaadin/nodom';
-import { Request, Response, Router } from 'express';
-import { Redis } from 'ioredis';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
+import type { Redis } from 'ioredis';
 import { getUserInfo, isLoggedIn, logout } from './session';
 
 // Store the token in the session.

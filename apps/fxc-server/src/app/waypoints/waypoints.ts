@@ -2,7 +2,8 @@
 const { buildGPX, BaseBuilder } = require('gpx-builder');
 const builder = require('xmlbuilder');
 
-import { LatLonAlt, round } from '@flyxc/common';
+import type { LatLonAlt } from '@flyxc/common';
+import { round } from '@flyxc/common';
 const printf = require('printf');
 
 export function encode(

@@ -19,7 +19,8 @@
             ]
           }
         ],
-        "require-node-import-prefix/no-empty-import-prefix": "error"
+        "require-node-import-prefix/no-empty-import-prefix": "error",
+        "@typescript-eslint/consistent-type-imports": "error"
       }
     },
     {

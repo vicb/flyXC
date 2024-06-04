@@ -16,6 +16,7 @@
 // TODO: Fix dependency cycle
 
 import type { NoDomBinder } from './NoDomBinder';
+import type { ModelConstructor, ModelValue } from './Models';
 import {
   _binderNode,
   _ItemModel,
@@ -25,8 +26,6 @@ import {
   AbstractModel,
   ArrayModel,
   getBinderNode,
-  ModelConstructor,
-  ModelValue,
   ObjectModel,
 } from './Models';
 

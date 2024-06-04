@@ -2,7 +2,8 @@ import { getFixMessage, getTrackerDisplayName, isEmergencyFix, isLowBatFix, isVa
 
 import { liveTrackSelectors } from '../redux/live-track-slice';
 import { store } from '../redux/store';
-import { formatUnit, Units } from './units';
+import type { Units } from './units';
+import { formatUnit } from './units';
 
 // Generates the content of the live tracking popup.
 export function popupContent(

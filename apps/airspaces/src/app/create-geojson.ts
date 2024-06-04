@@ -6,7 +6,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import * as oaip from './parser/openaip';
 import * as oair from './parser/openair';
-import { Airspace } from './parser/parser';
+import type { Airspace } from './parser/parser';
 const GeoJSON = require('geojson'); // eslint-disable-line @typescript-eslint/no-var-requires
 
 // Filter out airspaces above:

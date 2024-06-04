@@ -2,7 +2,8 @@
 //
 // We mostly care about the AGL of the last fix.
 
-import { fetchResponse, formatReqError, LatLon, protos } from '@flyxc/common';
+import type { LatLon, protos } from '@flyxc/common';
+import { fetchResponse, formatReqError } from '@flyxc/common';
 import { getElevationUrl, parseElevationResponse } from './arcgis';
 
 export interface ElevationUpdates {

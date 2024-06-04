@@ -1,4 +1,4 @@
-import { protos } from '@flyxc/common';
+import type { protos } from '@flyxc/common';
 
 const months: { [key: string]: number } = {
   JAN: 0,

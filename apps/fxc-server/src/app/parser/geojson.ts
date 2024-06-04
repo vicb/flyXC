@@ -1,4 +1,4 @@
-import { protos } from '@flyxc/common';
+import type { protos } from '@flyxc/common';
 
 // Parse a GeoJson track to a proto message.
 export function parseGeoJson(geojson: any): protos.Track[] {

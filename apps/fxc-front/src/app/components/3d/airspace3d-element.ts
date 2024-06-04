@@ -3,9 +3,10 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import VectorTileLayer from '@arcgis/core/layers/VectorTileLayer';
-import Map from '@arcgis/core/Map';
+import type Map from '@arcgis/core/Map';
 
-import SceneView from '@arcgis/core/views/SceneView';
+import type SceneView from '@arcgis/core/views/SceneView';
+import type { LatLon } from '@flyxc/common';
 import {
   ASP_COLOR_DANGER,
   ASP_COLOR_OTHER,
@@ -13,12 +14,12 @@ import {
   ASP_COLOR_RESTRICTED,
   Class,
   getAirspaceTilesUrlTemplate,
-  LatLon,
   MAX_AIRSPACE_TILE_ZOOM,
   Type,
 } from '@flyxc/common';
 import { getAirspaceList } from '../../logic/airspaces';
-import { RootState, store } from '../../redux/store';
+import type { RootState } from '../../redux/store';
+import { store } from '../../redux/store';
 
 @customElement('airspace3d-element')
 export class Airspace3dElement extends connect(store)(LitElement) {

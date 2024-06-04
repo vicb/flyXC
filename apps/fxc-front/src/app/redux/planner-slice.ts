@@ -1,13 +1,15 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
 import { deleteUrlParam, getUrlParamValues, ParamNames, setUrlParamValue } from '../logic/history';
-import { Score } from '../logic/score/scorer';
+import type { Score } from '../logic/score/scorer';
+import type { LeagueCode } from '../logic/score/league/leagues';
 
 export type PlannerState = {
   score?: Score;
   speed: number;
   distance: number;
-  league: string;
+  league: LeagueCode;
   enabled: boolean;
   // Encoded route.
   route: string;
@@ -21,7 +23,7 @@ const initialState: PlannerState = {
   score: undefined,
   speed: Number(getUrlParamValues(ParamNames.speed)[0] ?? 20),
   distance: 0,
-  league: getUrlParamValues(ParamNames.league)[0] ?? localStorage.getItem('league') ?? 'xc',
+  league: (getUrlParamValues(ParamNames.league)[0] ?? localStorage.getItem('league') ?? 'xc') as LeagueCode,
   enabled,
   route,
   isFreeDrawing: false,
@@ -41,7 +43,7 @@ const plannerSlice = createSlice({
       state.speed = Math.max(1, action.payload);
       setUrlParamValue(ParamNames.speed, state.speed.toFixed(1));
     },
-    setLeague: (state, action: PayloadAction<string>) => {
+    setLeague: (state, action: PayloadAction<LeagueCode>) => {
       setUrlParamValue(ParamNames.league, action.payload);
       localStorage.setItem('league', action.payload);
       state.league = action.payload;

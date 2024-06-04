@@ -1,18 +1,14 @@
-import { getLastMessage, isEmergencyTrack, LatLonAlt, protos } from '@flyxc/common';
+import type { LatLonAlt, protos } from '@flyxc/common';
+import { getLastMessage, isEmergencyTrack } from '@flyxc/common';
 
-import {
-  createAsyncThunk,
-  createEntityAdapter,
-  createSelector,
-  createSlice,
-  EntityState,
-  PayloadAction,
-} from '@reduxjs/toolkit';
+import type { EntityState, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createEntityAdapter, createSelector, createSlice } from '@reduxjs/toolkit';
 
 import type { Response } from '../workers/live-track';
 import LiveTrackWorker from '../workers/live-track?worker';
 import { isMobile } from './browser-slice';
-import { RootState, store } from './store';
+import type { RootState } from './store';
+import { store } from './store';
 
 // Refresh live tracks every.
 const REFRESH_INTERVAL_SEC = isMobile() ? 2 * 60 : 60;

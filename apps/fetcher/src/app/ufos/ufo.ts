@@ -1,5 +1,6 @@
-import { LIVE_REFRESH_SEC, protos, UfoFleetNames } from '@flyxc/common';
-import { ChainableCommander } from 'ioredis';
+import type { UfoFleetNames } from '@flyxc/common';
+import { LIVE_REFRESH_SEC, protos } from '@flyxc/common';
+import type { ChainableCommander } from 'ioredis';
 
 // Updates for a tick of a tracker type (InReach, Spot, ...).
 export interface UfoFleetUpdates {

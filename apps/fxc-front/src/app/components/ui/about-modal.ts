@@ -1,4 +1,5 @@
-import { html, LitElement, TemplateResult } from 'lit';
+import type { TemplateResult } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 import { modalController } from '@ionic/core/components';
@@ -20,7 +21,8 @@ export class AboutModal extends LitElement {
           <a href="https://github.com/mmomtchev" target="_blank">Momtchil Momtchev</a>,
           <a href="https://github.com/osmeras" target="_blank">Stanislav Ošmera</a>,
           <a href="https://github.com/tris" target="_blank">Tristan Horn</a>,
-          <a href="https://github.com/spasutto" target="_blank">Sylvain Pasutto</a>
+          <a href="https://github.com/spasutto" target="_blank">Sylvain Pasutto</a>,
+          <a href="https://github.com/flyingtof" target="_blank">flyingtof</a>
         </p>
 
         <p>

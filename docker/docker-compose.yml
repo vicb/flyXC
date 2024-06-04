@@ -1,0 +1,24 @@
+# This file permits to launch docker images of services required for this app
+#
+services:
+  # launch it with ' docker compose up -d redis'
+  redis:
+    image: redis:latest
+    ports:
+      - 6378:6379
+
+  # launch it with ' docker compose up -d pubsub'
+  pubsub:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:latest
+    ports:
+      - 8085:8085
+    command: gcloud beta emulators pubsub start
+
+  # could not manage to make it work (port issue?)
+  # instead you can use the emulator on your workstation
+  # by launching "gcloud beta emulators datastore start"
+  datastore:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:latest
+    command: gcloud beta emulators datastore start --project flyxc
+    ports:
+      - 8081:8081

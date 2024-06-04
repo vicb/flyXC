@@ -1,4 +1,5 @@
-import { AprsPosition, generateAprsPosition, parseAprsPosition } from './aprs';
+import type { AprsPosition } from './aprs';
+import { generateAprsPosition, parseAprsPosition } from './aprs';
 
 describe('parseAprsPosition', () => {
   it('return null if malformed position', () => {

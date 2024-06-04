@@ -1,4 +1,4 @@
-import { ZoleoMessage } from '@flyxc/common-node';
+import type { ZoleoMessage } from '@flyxc/common-node';
 import { parse } from './zoleo';
 
 describe('parse', () => {

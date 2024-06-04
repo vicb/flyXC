@@ -1,8 +1,7 @@
+import type { AirspaceString, AirspaceTyped, Point } from '@flyxc/common';
 import {
   AIRSPACE_TILE_SIZE,
   AirspaceColorCategory,
-  AirspaceString,
-  AirspaceTyped,
   fetchResponse,
   Flags,
   getAirspaceColorCategory,
@@ -10,13 +9,13 @@ import {
   isInFeature,
   MAX_AIRSPACE_TILE_ZOOM,
   pixelCoordinates,
-  Point,
   protos,
   toTypedAirspace,
 } from '@flyxc/common';
 import async from 'async';
 import { VectorTile } from 'mapbox-vector-tile';
-import { LRU, lru } from 'tiny-lru';
+import type { LRU } from 'tiny-lru';
+import { lru } from 'tiny-lru';
 
 // Look MARGIN_METER above max altitude.
 const MARGIN_METER = 200;

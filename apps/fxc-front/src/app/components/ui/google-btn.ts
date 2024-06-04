@@ -1,4 +1,5 @@
-import { css, CSSResult, html, LitElement, TemplateResult } from 'lit';
+import type { CSSResult, TemplateResult } from 'lit';
+import { css, html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 

@@ -4,9 +4,10 @@ import {
   retrieveMetaTrackGroupByUrl,
   retrieveMetaTrackGroupsByIds,
 } from '@flyxc/common-node';
-import { Datastore } from '@google-cloud/datastore';
-import { Request, Response, Router } from 'express';
-import { UploadedFile } from 'express-fileupload';
+import type { Datastore } from '@google-cloud/datastore';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
+import type { UploadedFile } from 'express-fileupload';
 
 import { parse, parseFromUrl, parseRoute } from '../parser/parser';
 

@@ -1,5 +1,6 @@
-import { AccountModel, LiveTrackEntity, trackerNames } from '@flyxc/common';
-import { Datastore } from '@google-cloud/datastore';
+import type { AccountModel, LiveTrackEntity } from '@flyxc/common';
+import { trackerNames } from '@flyxc/common';
+import type { Datastore } from '@google-cloud/datastore';
 
 export const LIVE_TRACK_TABLE = 'LiveTrack';
 export const NAME_MAX_LENGTH = 30;

@@ -1,4 +1,4 @@
-import { Datastore, Key } from '@google-cloud/datastore';
+import type { Datastore, Key } from '@google-cloud/datastore';
 
 export interface TrackerEntity {
   enabled: boolean;

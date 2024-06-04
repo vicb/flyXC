@@ -1,4 +1,5 @@
-import Redis, { ChainableCommander } from 'ioredis';
+import type { ChainableCommander } from 'ioredis';
+import Redis from 'ioredis';
 
 import { SecretKeys } from '@flyxc/common';
 

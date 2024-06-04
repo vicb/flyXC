@@ -1,9 +1,11 @@
-import { html, LitElement, PropertyValues } from 'lit';
+import type { PropertyValues } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { TemplateResult } from 'lit/html.js';
+import type { TemplateResult } from 'lit/html.js';
 import { connect } from 'pwa-helpers';
 import * as skyways from '../../redux/skyways-slice';
-import { RootState, store } from '../../redux/store';
+import type { RootState } from '../../redux/store';
+import { store } from '../../redux/store';
 import { GMAP_MAX_ZOOM_LEVEL } from './map-element';
 import { WMTSInterpolatingOverlayElement } from './wmts-overlay';
 

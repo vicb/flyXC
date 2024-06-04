@@ -1,8 +1,11 @@
 // https://www.aviant.no/
 
-import { fetchResponse, formatReqError, SecretKeys, UfoFleetNames } from '@flyxc/common';
-import { LivePoint, makeLiveTrack } from '../trackers/live-track';
-import { UfoFleetFetcher, UfoFleetUpdates } from './ufo';
+import type { UfoFleetNames } from '@flyxc/common';
+import { fetchResponse, formatReqError, SecretKeys } from '@flyxc/common';
+import type { LivePoint } from '../trackers/live-track';
+import { makeLiveTrack } from '../trackers/live-track';
+import type { UfoFleetUpdates } from './ufo';
+import { UfoFleetFetcher } from './ufo';
 
 export class AviantFetcher extends UfoFleetFetcher {
   protected getFleetName(): UfoFleetNames {

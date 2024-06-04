@@ -1,7 +1,9 @@
-import { diffEncodeAirspaces, LiveTrackEntity, protos, trackerNames } from '@flyxc/common';
-import { getDatastore, retrieveTrackById, TrackEntity, updateUnzippedTracks } from '@flyxc/common-node';
+import type { LiveTrackEntity } from '@flyxc/common';
+import { diffEncodeAirspaces, protos, trackerNames } from '@flyxc/common';
+import type { TrackEntity } from '@flyxc/common-node';
+import { getDatastore, retrieveTrackById, updateUnzippedTracks } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
-import { RunQueryResponse } from '@google-cloud/datastore/build/src/query';
+import type { RunQueryResponse } from '@google-cloud/datastore/build/src/query';
 
 const datastore = getDatastore();
 

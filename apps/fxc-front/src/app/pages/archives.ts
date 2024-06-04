@@ -1,5 +1,7 @@
-import { createPopper, Instance } from '@popperjs/core';
-import { html, LitElement, TemplateResult } from 'lit';
+import type { Instance } from '@popperjs/core';
+import { createPopper } from '@popperjs/core';
+import type { TemplateResult } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { getApiKeyAndHost } from '../apikey';

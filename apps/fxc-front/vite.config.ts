@@ -93,6 +93,8 @@ export default defineConfig({
   define: {
     __BUILD_TIMESTAMP__: JSON.stringify(format(new Date(), 'yyyyMMdd.HHmm')),
     __AIRSPACE_DATE__: JSON.stringify(getAirspaceDate()),
+    // TODO(vicb): check how to remove this (igc-xc-score)
+    global: {},
   },
 });
 

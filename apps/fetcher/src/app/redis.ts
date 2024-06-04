@@ -1,13 +1,14 @@
 import { Keys, protos, trackerNames } from '@flyxc/common';
 import { pushListCap } from '@flyxc/common-node';
-import { Datastore } from '@google-cloud/datastore';
-import { ChainableCommander, Redis } from 'ioredis';
+import type { Datastore } from '@google-cloud/datastore';
+import type { ChainableCommander, Redis } from 'ioredis';
 import * as nos from 'node-os-utils';
 import * as zlib from 'node:zlib';
-import { ElevationUpdates } from './elevation/elevation';
+import type { ElevationUpdates } from './elevation/elevation';
 import { exportToStorage } from './state/serialize';
 import { BUCKET_NAME, EXPORT_FILE_SEC, PERIODIC_STATE_PATH } from './state/state';
-import { SyncStatus, syncFromDatastore } from './state/sync';
+import type { SyncStatus } from './state/sync';
+import { syncFromDatastore } from './state/sync';
 
 // Logs for syncs.
 export function addSyncLogs(pipeline: ChainableCommander, status: SyncStatus, timeSec: number) {

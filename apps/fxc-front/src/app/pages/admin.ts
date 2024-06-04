@@ -1,6 +1,7 @@
 import '@alenaksu/json-viewer';
 import * as common from '@flyxc/common';
-import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
+import type { PropertyValues, TemplateResult } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';

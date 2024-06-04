@@ -1,6 +1,6 @@
 import type Graphic from '@arcgis/core/Graphic';
 import type SceneView from '@arcgis/core/views/SceneView';
-import { LatLon, LatLonAlt } from '@flyxc/common';
+import type { LatLon, LatLonAlt } from '@flyxc/common';
 import { createEvents } from 'micro-typed-events';
 
 // Zoom the map in the given direction (typically mouse wheel).

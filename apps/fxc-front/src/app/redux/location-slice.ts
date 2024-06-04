@@ -1,6 +1,7 @@
-import { LatLon } from '@flyxc/common';
+import type { LatLon } from '@flyxc/common';
 
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
 type State = {
   // Current location and zoom level.

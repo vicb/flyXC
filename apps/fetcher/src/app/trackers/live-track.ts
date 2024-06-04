@@ -1,4 +1,5 @@
-import { getTrackerFlags as getLiveTrackFlags, protos, round, TrackerNames, UfoFleetNames } from '@flyxc/common';
+import type { TrackerNames, UfoFleetNames } from '@flyxc/common';
+import { getTrackerFlags as getLiveTrackFlags, protos, round } from '@flyxc/common';
 import { getDistance } from 'geolib';
 
 export interface LivePoint {

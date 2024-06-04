@@ -1,6 +1,6 @@
-import { Feature } from 'mapbox-vector-tile';
+import type { Feature } from 'mapbox-vector-tile';
 
-import { Point } from './runtime-track';
+import type { Point } from './runtime-track';
 
 // Maximium zoom level for the airspaces.
 export const MAX_AIRSPACE_TILE_ZOOM = 10;

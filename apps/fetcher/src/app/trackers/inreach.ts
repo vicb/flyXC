@@ -4,6 +4,7 @@
 // - https://support.garmin.com/en-US/?faq=tdlDCyo1fJ5UxjUbA9rMY8 (offline)
 // - https://web.archive.org/web/20230328084014/https://support.garmin.com/en-US/?faq=tdlDCyo1fJ5UxjUbA9rMY8
 
+import type { TrackerNames } from '@flyxc/common';
 import {
   fetchResponse,
   formatReqError,
@@ -14,14 +15,15 @@ import {
   protos,
   SecretKeys,
   simplifyLiveTrack,
-  TrackerNames,
   validateInreachAccount,
 } from '@flyxc/common';
 import { pushListCap } from '@flyxc/common-node';
 import { DOMParser } from '@xmldom/xmldom';
-import { LivePoint, makeLiveTrack } from './live-track';
+import type { LivePoint } from './live-track';
+import { makeLiveTrack } from './live-track';
 import { Proxies } from './proxies';
-import { TrackerFetcher, TrackerUpdates } from './tracker';
+import type { TrackerUpdates } from './tracker';
+import { TrackerFetcher } from './tracker';
 
 // Local state
 let useProxyUntilS = 0;

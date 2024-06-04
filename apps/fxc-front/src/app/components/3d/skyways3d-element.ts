@@ -1,13 +1,15 @@
-import { LitElement, PropertyValues } from 'lit';
+import type { PropertyValues } from 'lit';
+import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
-import Map from '@arcgis/core/Map';
+import type Map from '@arcgis/core/Map';
 import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
 import TileInfo from '@arcgis/core/layers/support/TileInfo';
 
 import * as skyways from '../../redux/skyways-slice';
-import { RootState, store } from '../../redux/store';
+import type { RootState } from '../../redux/store';
+import { store } from '../../redux/store';
 
 @customElement('skyways3d-element')
 export class Skyways3dElement extends connect(store)(LitElement) {

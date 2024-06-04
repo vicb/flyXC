@@ -2,7 +2,7 @@
 const spot2Feed = require('./fixtures/spot2.txt');
 const spot3Feed = require('./fixtures/spot3.txt');
 
-import { LivePoint } from './live-track';
+import type { LivePoint } from './live-track';
 import { parse } from './spot';
 
 describe('Parse JSON feed', () => {

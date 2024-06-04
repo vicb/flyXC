@@ -1,15 +1,18 @@
-import * as common from '@flyxc/common';
+import type * as common from '@flyxc/common';
 import { modalController, toastController } from '@ionic/core/components';
 import { getDistance } from 'geolib';
-import { LitElement, TemplateResult, html } from 'lit';
+import type { TemplateResult } from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 import * as msg from '../../logic/messages';
 import * as units from '../../logic/units';
-import { LivePilot, getLivePilots, setCenterOnLocation, setCurrentLiveId } from '../../redux/live-track-slice';
+import type { LivePilot } from '../../redux/live-track-slice';
+import { getLivePilots, setCenterOnLocation, setCurrentLiveId } from '../../redux/live-track-slice';
 import { setCurrentLocation } from '../../redux/location-slice';
-import { RootState, store } from '../../redux/store';
+import type { RootState } from '../../redux/store';
+import { store } from '../../redux/store';
 import { getUniqueContrastColor } from '../../styles/track';
 import { maybeHideSidePane } from '../../../flyxc';
 

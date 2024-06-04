@@ -1,5 +1,6 @@
 import { fetchResponse, protos, SecretKeys } from '@flyxc/common';
-import express, { Request, Response } from 'express';
+import type { Request, Response } from 'express';
+import express from 'express';
 
 const app = express().use(express.raw());
 

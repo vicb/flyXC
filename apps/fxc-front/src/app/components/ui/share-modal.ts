@@ -1,9 +1,11 @@
-import { encodeFloats, encodeSignedIntegers, LatLonAlt } from '@flyxc/common';
-import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
+import type { LatLonAlt } from '@flyxc/common';
+import { encodeFloats, encodeSignedIntegers } from '@flyxc/common';
+import type { PropertyValues, TemplateResult } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { toDataURL } from 'qrcode/lib/browser';
 
-import { SegmentCustomEvent } from '@ionic/core';
+import type { SegmentCustomEvent } from '@ionic/core';
 import { modalController, toastController } from '@ionic/core/components';
 
 @customElement('share-modal')

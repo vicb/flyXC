@@ -1,4 +1,5 @@
-import { createSlice, PayloadAction, Store } from '@reduxjs/toolkit';
+import type { PayloadAction, Store } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
 export const UPDATE_APP_TIME_EVERY_MIN = 10;
 

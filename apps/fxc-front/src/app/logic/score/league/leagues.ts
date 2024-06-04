@@ -1,22 +1,46 @@
-import { League } from '../league';
-import { CzechEurope, CzechLocal, CzechOutEurope } from './czech';
-import { FrCfd } from './frcfd';
-import { Leonardo } from './leonardo';
-import { UKXCLClub, UKXCLInternational, UKXCLNational } from './ukxcl';
-import { WXC } from './wxc';
-import { NorwayLeague, XContest, XContestPPG } from './xcontest';
+import type { ScoringRuleName } from '@flyxc/optimizer/lib/api';
 
-export const LEAGUES: { [name: string]: League } = {
-  czl: new CzechLocal(),
-  cze: new CzechEurope(),
-  czo: new CzechOutEurope(),
-  fr: new FrCfd(),
-  leo: new Leonardo(),
-  nor: new NorwayLeague(),
-  ukc: new UKXCLClub(),
-  uki: new UKXCLInternational(),
-  ukn: new UKXCLNational(),
-  xc: new XContest(),
-  xcppg: new XContestPPG(),
-  wxc: new WXC(),
+export const LEAGUE_CODES = [
+  'czl',
+  'cze',
+  'czo',
+  'fr',
+  'leo',
+  'nor',
+  'ukc',
+  'uki',
+  'ukn',
+  'xc',
+  'xcppg',
+  'wxc',
+] as const;
+
+export type LeagueCode = (typeof LEAGUE_CODES)[number];
+
+interface LeagueDetails {
+  name: string;
+  ruleName: ScoringRuleName;
+}
+
+export const LEAGUES: Readonly<Record<LeagueCode, LeagueDetails>> = {
+  czl: { name: 'Czech (ČPP local)', ruleName: 'CzechLocal' },
+  cze: { name: 'Czech (ČPP Europe)', ruleName: 'CzechEurope' },
+  czo: { name: 'Czech (ČPP outside Europe)', ruleName: 'CzechOutsideEurope' },
+  fr: { name: 'France (CFD)', ruleName: 'FFVL' },
+  leo: { name: 'Leonardo', ruleName: 'Leonardo' },
+  nor: { name: 'Norway (Distanseligaen)', ruleName: 'Norway' },
+  ukc: { name: 'UK (XC League, Club)', ruleName: 'UKClub' },
+  uki: { name: 'UK (XC League, International)', ruleName: 'UKInternational' },
+  ukn: { name: 'UK (XC League, National)', ruleName: 'UKNational' },
+  xc: { name: 'XContest', ruleName: 'XContest' },
+  xcppg: { name: 'XContest PPG', ruleName: 'XContestPPG' },
+  wxc: { name: 'World XC Online Contest', ruleName: 'WorldXC' },
 };
+
+export function getScoringRuleName(leagueCode: LeagueCode): ScoringRuleName {
+  const ruleName = LEAGUES[leagueCode]?.ruleName;
+  if (ruleName == null) {
+    throw new Error('Unkown league code "${leagueCode}"');
+  }
+  return ruleName;
+}

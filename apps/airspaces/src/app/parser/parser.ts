@@ -1,4 +1,5 @@
-import { AirspaceTyped, round } from '@flyxc/common';
+import type { AirspaceTyped } from '@flyxc/common';
+import { round } from '@flyxc/common';
 
 export interface Airspace extends AirspaceTyped {
   polygon: [number, number][][];

@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 /// <reference types="@types/gtag.js" />
 
-import { AirspaceServer } from '@flyxc/common';
+import type { AirspaceServer } from '@flyxc/common';
 
 interface ImportMetaEnv {
   VITE_AIRSPACE_SERVER: AirspaceServer;

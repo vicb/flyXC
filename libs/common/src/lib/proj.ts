@@ -1,5 +1,5 @@
 import SphericalMercator from '@mapbox/sphericalmercator';
-import { LatLon, Point } from './runtime-track';
+import type { LatLon, Point } from './runtime-track';
 
 const mercatorBySize = new Map<number, SphericalMercator>();
 

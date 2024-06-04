@@ -1,5 +1,5 @@
 import { SecretKeys } from '@flyxc/common';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 const adminEmails = SecretKeys.ADMINS.split(',');
 

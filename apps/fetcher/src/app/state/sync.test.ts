@@ -1,5 +1,7 @@
-import { LiveTrackEntity, protos, TrackerEntity, TrackerNames } from '@flyxc/common';
-import { Datastore, Key } from '@google-cloud/datastore';
+import type { LiveTrackEntity, TrackerEntity, TrackerNames } from '@flyxc/common';
+import { protos } from '@flyxc/common';
+import type { Key } from '@google-cloud/datastore';
+import { Datastore } from '@google-cloud/datastore';
 import { createInitState } from './state';
 import { syncLiveTrack } from './sync';
 

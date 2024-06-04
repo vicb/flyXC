@@ -10,9 +10,9 @@ import {
   removeDeviceFromLiveTrack,
 } from '@flyxc/common';
 import { getDatastore, getRedisClient, pushListCap } from '@flyxc/common-node';
-import { Datastore } from '@google-cloud/datastore';
+import type { Datastore } from '@google-cloud/datastore';
 import { program } from 'commander';
-import { ChainableCommander } from 'ioredis';
+import type { ChainableCommander } from 'ioredis';
 import process from 'node:process';
 import { addExportLogs, addHostInfo, addStateLogs, addSyncLogs, HandleCommand } from './app/redis';
 import { createStateArchive, exportToStorage } from './app/state/serialize';

@@ -1,4 +1,4 @@
-import { LatLon } from '@flyxc/common';
+import type { LatLon } from '@flyxc/common';
 
 // URL of the elevation service.
 //

@@ -1,8 +1,9 @@
 import '../ui/share-modal';
 import '../ui/waypoint-modal';
 
-import { LatLon } from '@flyxc/common';
-import { LitElement, PropertyValues } from 'lit';
+import type { LatLon } from '@flyxc/common';
+import type { PropertyValues } from 'lit';
+import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
@@ -13,12 +14,17 @@ import { FaiSectors } from '../../gm/fai-sectors';
 import { addAltitude } from '../../logic/elevation';
 import { getCurrentUrl, pushCurrentState } from '../../logic/history';
 import { drawRoute } from '../../logic/messages';
-import { LEAGUES } from '../../logic/score/league/leagues';
-import { Measure } from '../../logic/score/measure';
-import { CircuitType, Score } from '../../logic/score/scorer';
+import { Score } from '../../logic/score/scorer';
 import { setDistance, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
-import { RootState, store } from '../../redux/store';
-import { PlannerElement } from './planner-element';
+import type { RootState } from '../../redux/store';
+import { store } from '../../redux/store';
+import type { PlannerElement } from './planner-element';
+import { getScoringRuleName } from '../../logic/score/league/leagues';
+import type { LeagueCode } from '../../logic/score/league/leagues';
+import ScoringWorker from '../../workers/optimizer?worker';
+import type { Request as WorkerRequest, Response as WorkerResponse } from '../../workers/optimizer';
+import { CircuitType } from '@flyxc/optimizer/lib/api';
+import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
 
 // Route color by circuit type.
 const ROUTE_STROKE_COLORS = {
@@ -44,7 +50,7 @@ export class PathElement extends connect(store)(LitElement) {
   @state()
   private enabled = false;
   @state()
-  private league = 'xc';
+  private league: LeagueCode = 'xc';
   @state()
   private encodedRoute = '';
   @state()
@@ -60,6 +66,8 @@ export class PathElement extends connect(store)(LitElement) {
   private closingSector?: ClosingSector;
   private faiSectors?: FaiSectors;
   private plannerElement?: PlannerElement;
+  private scoringRequestId = 0;
+  private scoringWorker?: Worker;
 
   stateChanged(state: RootState): void {
     this.league = state.planner.league;
@@ -191,33 +199,53 @@ export class PathElement extends connect(store)(LitElement) {
 
   // Optimize the route and draw the optimize lines and sectors.
   private optimize(): void {
-    if (!this.line || this.line.getPath().getLength() < 2) {
+    const { line } = this;
+    if (!line || line.getPath().getLength() < 2 || this.doNotSyncState) {
       return;
     }
-    const line = this.line;
-    store.dispatch(setDistance(google.maps.geometry.spherical.computeLength(line.getPath())));
 
     const points = this.getPathPoints();
-    const measure = new Measure(points);
-    const scores = LEAGUES[this.league].score(measure);
 
-    scores.sort((score1, score2) => score2.points - score1.points);
-    const score = scores[0];
+    if (!this.scoringWorker) {
+      this.scoringWorker = new ScoringWorker();
+      this.scoringWorker.onmessage = (msg: MessageEvent<WorkerResponse>) => {
+        if (msg.data.id == this.scoringRequestId) {
+          this.optimizerCallback(msg.data.response);
+        }
+      };
+    }
+
+    const request: WorkerRequest = {
+      request: {
+        track: {
+          points: points.map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 })),
+        },
+        ruleName: getScoringRuleName(this.league),
+      },
+      id: ++this.scoringRequestId,
+    };
+
+    this.scoringWorker.postMessage(request);
+  }
+
+  private optimizerCallback(result: ScoringResult): void {
+    const score = this.toScore(result);
+    store.dispatch(setDistance(score.distanceM));
     store.dispatch(setScore(score));
 
-    let optimizedPath = score.indexes.map((index) => new google.maps.LatLng(points[index].lat, points[index].lon));
-    if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {
-      optimizedPath = [optimizedPath[1], optimizedPath[2], optimizedPath[3], optimizedPath[1]];
-    } else if (score.circuit == CircuitType.OutAndReturn) {
-      optimizedPath = [optimizedPath[1], optimizedPath[2]];
+    const path = [result.startPoint, ...result.turnpoints, result.endPoint]
+      .filter((p) => p != null)
+      .map((p) => ({ lat: p!.lat, lng: p!.lon }));
+
+    if (result.circuit != CircuitType.OpenDistance) {
+      path.push(path[0]);
     }
 
-    if (!this.optimizedLine) {
-      this, (this.optimizedLine = new google.maps.Polyline());
-    }
+    this.optimizedLine ??= new google.maps.Polyline();
+
     this.optimizedLine.setOptions({
       map: this.map,
-      path: optimizedPath,
+      path,
       strokeColor: ROUTE_STROKE_COLORS[score.circuit],
       strokeOpacity: 0.8,
       strokeWeight: 3,
@@ -229,10 +257,9 @@ export class PathElement extends connect(store)(LitElement) {
       this.closingSector.addListener('rightclick', (e) => this.appendToPath(e.latLng));
     }
 
-    if (score.closingRadius) {
-      const center = points[score.indexes[0]];
-      this.closingSector.center = center;
-      this.closingSector.radius = score.closingRadius;
+    if (result.closingPoints) {
+      this.closingSector.center = result.closingPoints.in;
+      this.closingSector.radius = score.closingRadiusM;
       this.closingSector.update();
       this.closingSector.setMap(this.map);
     } else {
@@ -244,8 +271,7 @@ export class PathElement extends connect(store)(LitElement) {
       this.faiSectors.addListeners('rightclick', (e) => this.appendToPath(e.latLng));
     }
     if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {
-      const faiPoints = score.indexes.slice(1, 4).map((i) => points[i]);
-      this.faiSectors.update(faiPoints);
+      this.faiSectors.update(result.turnpoints);
       this.faiSectors.setMap(this.map);
     } else {
       this.faiSectors.setMap(null);
@@ -254,12 +280,23 @@ export class PathElement extends connect(store)(LitElement) {
     this.postScoreToHost(score);
   }
 
+  private toScore(result: ScoringResult): Score {
+    return new Score({
+      circuit: result.circuit,
+      distanceM: result.lengthKm * 1000,
+      multiplier: result.multiplier,
+      closingRadiusM: (result.closingRadiusM ?? 0) * 1000,
+      indexes: result.solutionIndices,
+      points: result.score,
+    });
+  }
+
   // Sends a message to the iframe host with the changes.
   private postScoreToHost(score: Score) {
     let kms = '';
     let circuit = '';
-    if (score.distance && window.parent) {
-      kms = (score.distance / 1000).toFixed(1);
+    if (score.distanceM && window.parent) {
+      kms = (score.distanceM / 1000).toFixed(1);
       circuit = CIRCUIT_SHORT_NAME[score.circuit];
       if (score.circuit == CircuitType.OpenDistance) {
         circuit += score.indexes.length - 2;

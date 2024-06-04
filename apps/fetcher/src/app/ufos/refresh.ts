@@ -1,17 +1,17 @@
+import type { protos } from '@flyxc/common';
 import {
   Keys,
   LIVE_FETCH_TIMEOUT_SEC,
   LIVE_MINIMAL_INTERVAL_SEC,
   LIVE_UFO_RETENTION_SEC,
   mergeLiveTracks,
-  protos,
   removeBeforeFromLiveTrack,
   simplifyLiveTrack,
 } from '@flyxc/common';
 import { pushListCap } from '@flyxc/common-node';
-import { ChainableCommander } from 'ioredis';
+import type { ChainableCommander } from 'ioredis';
 import { AviantFetcher } from './aviant';
-import { UfoFleetUpdates } from './ufo';
+import type { UfoFleetUpdates } from './ufo';
 
 export async function resfreshUfoFleets(pipeline: ChainableCommander, state: protos.FetcherState) {
   const fetchers = [new AviantFetcher(state, pipeline)];

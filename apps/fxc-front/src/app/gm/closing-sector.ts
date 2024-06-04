@@ -1,12 +1,10 @@
-import { computeDestinationPoint } from 'geolib';
-
 export class ClosingSector {
   center: { lat: number; lon: number } | null = null;
   radius: number | null = null;
-  poly: google.maps.Polygon;
+  circle: google.maps.Circle;
 
   constructor() {
-    this.poly = new google.maps.Polygon({
+    this.circle = new google.maps.Circle({
       fillColor: '#ffff00',
       fillOpacity: 0.3,
       strokeColor: '#ffff00',
@@ -17,21 +15,18 @@ export class ClosingSector {
   }
 
   setMap(map?: google.maps.Map | null): void {
-    this.poly.setMap(map ?? null);
+    this.circle.setMap(map ?? null);
   }
 
   addListener(name: string, handler: (...args: any[]) => void): google.maps.MapsEventListener {
-    return this.poly.addListener(name, handler);
+    return this.circle.addListener(name, handler);
   }
 
   update(): void {
     if (this.center == null || this.radius == null) {
       return;
     }
-    const path: { latitude: number; longitude: number }[] = [{ latitude: this.center.lat, longitude: this.center.lon }];
-    for (let i = 0; i <= 360; i += 10) {
-      path.push(computeDestinationPoint(this.center, this.radius, i));
-    }
-    this.poly.setPath(path.map(({ latitude, longitude }) => new google.maps.LatLng(latitude, longitude)));
+    this.circle.setCenter({ lat: this.center.lat, lng: this.center.lon });
+    this.circle.setRadius(this.radius);
   }
 }

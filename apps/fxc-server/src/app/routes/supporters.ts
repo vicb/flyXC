@@ -1,6 +1,7 @@
 import { Keys } from '@flyxc/common';
-import { Request, Response, Router } from 'express';
-import { Redis } from 'ioredis';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
+import type { Redis } from 'ioredis';
 
 export function getSupportersRouter(redis: Redis): Router {
   const router = Router();
