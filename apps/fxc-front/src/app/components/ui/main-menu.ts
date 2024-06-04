@@ -69,7 +69,7 @@ export class MainMenu extends connect(store)(LitElement) {
     return html`<ion-menu swipe-gesture="false" menu-id="main" content-id="main">
       <ion-header>
         <ion-toolbar color="light">
-          <ion-title>FlyXC.app</ion-title>
+          <ion-title>flyXC.app</ion-title>
           <ion-buttons slot="end">
             <ion-button @click=${this.closeSplitPane} shape="round">
               <i class="las la-times"></i>
@@ -140,7 +140,7 @@ export class MainMenu extends connect(store)(LitElement) {
             <i class="las la-info la-2x"></i>About</ion-item
           >
           <ion-item button @click=${this.handleSupport} lines="full" .detail=${true}>
-            <i class="las la-hand-holding-usd la-2x"></i>Support flyxc</ion-item
+            <i class="las la-hand-holding-usd la-2x"></i>Support flyXC</ion-item
           >
           <ion-item @lines="full" .detail=${false} class="social">
             <a

@@ -41,7 +41,7 @@ export class PrefModal extends connect(store)(LitElement) {
       </style>
       <ion-header>
         <ion-toolbar color="light">
-          <ion-title>FlyXC preferences</ion-title>
+          <ion-title>flyXC preferences</ion-title>
         </ion-toolbar>
       </ion-header>
       <ion-content>

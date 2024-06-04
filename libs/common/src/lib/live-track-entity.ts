@@ -20,7 +20,7 @@ export interface LiveTrackEntity {
   updated: Date;
   // Whether to share positions with partners.
   share: boolean;
-  // Whether to display the user on flyxc.
+  // Whether to display the user on flyXC.
   enabled: boolean;
   // Trackers.
   // The name must be in sync with TrackerProps.

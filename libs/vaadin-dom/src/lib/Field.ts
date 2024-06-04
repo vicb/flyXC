@@ -120,7 +120,7 @@ export function getDefaultFieldStrategy(elm: any): FieldStrategy {
     case 'vaadin-rich-text-editor':
       return new GenericFieldStrategy(elm);
     default:
-      // Addition for flyxc.
+      // Addition for flyXC.
       if (elm.constructor.strategy) {
         return new elm.constructor.strategy(elm);
       }

@@ -175,7 +175,7 @@ export interface Pilot {
    */
   share: boolean;
   /**
-   * Whether to display the user on flyxc.
+   * Whether to display the user on flyXC.
    *
    * @generated from protobuf field: bool enabled = 4;
    */

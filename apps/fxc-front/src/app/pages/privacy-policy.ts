@@ -25,7 +25,7 @@ export class PrivacyPolicyPage extends LitElement {
           <p>
             At flyXC (referred to as "we", "us" or "our" in this policy), we understand the importance of protecting
             your personal data. This privacy policy explains how we collect, use, share and store information when you
-            access our website at flyxc.app, which is operated by us, and any other services provided by flyXC
+            access our website at flyXC.app, which is operated by us, and any other services provided by flyXC
             (collectively referred to as the "Services").
           </p>
           <p>

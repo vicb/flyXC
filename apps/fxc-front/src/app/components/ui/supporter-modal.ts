@@ -24,18 +24,18 @@ export class SupporterModal extends LitElement {
   render(): TemplateResult {
     return html`<ion-header>
         <ion-toolbar color="light">
-          <ion-title>Support flyxc.app</ion-title>
+          <ion-title>Support flyXC.app</ion-title>
         </ion-toolbar>
       </ion-header>
       <ion-content class="ion-padding">
         <ion-text color="dark">
           <p>
-            flyxc (formerly VisuGps) has always been
+            flyXC (formerly VisuGps) has always been
             <a href="https://github.com/vicb/visugps" target="_blank">open-source</a> and free to use since 2007.
           </p>
-          <p>The development effort represents hundreds of hours per year and hosting flyxc costs about $10 a month.</p>
+          <p>The development effort represents hundreds of hours per year and hosting flyXC costs about $10 a month.</p>
           <p>
-            If you can afford it, please consider supporting flyxc with a small donation by clicking the button below.
+            If you can afford it, please consider supporting flyXC with a small donation by clicking the button below.
             It will help keep me motivated to maintain and improve it.
           </p>
         </ion-text>
