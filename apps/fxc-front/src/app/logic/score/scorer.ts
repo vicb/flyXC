@@ -1,4 +1,4 @@
-import { CircuitType } from '@flyxc/optimizer';
+import { CircuitType } from '@flyxc/optimizer/lib/api';
 
 export class Score {
   distanceM: number;

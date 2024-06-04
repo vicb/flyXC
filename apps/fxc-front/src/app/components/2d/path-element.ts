@@ -23,7 +23,8 @@ import { getScoringRuleName } from '../../logic/score/league/leagues';
 import type { LeagueCode } from '../../logic/score/league/leagues';
 import ScoringWorker from '../../workers/optimizer?worker';
 import type { Request as WorkerRequest, Response as WorkerResponse } from '../../workers/optimizer';
-import { CircuitType } from '@flyxc/optimizer/src/api';
+import { CircuitType } from '@flyxc/optimizer/lib/api';
+import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
 
 // Route color by circuit type.
 const ROUTE_STROKE_COLORS = {

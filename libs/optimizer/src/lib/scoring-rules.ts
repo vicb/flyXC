@@ -2,7 +2,7 @@ import * as igcXcScore from 'igc-xc-score';
 import type { ScoringRuleName } from './api';
 
 // TODO: Export the rules from igc-xc-score
-const scoringBaseModel = igcXcScore.scoringRules.XContest;
+const scoringBaseModel = igcXcScore.scoringRules['XContest'];
 const openDistance = scoringBaseModel[0];
 const freeTriangle = scoringBaseModel[1];
 const faiTriangle = scoringBaseModel[2];

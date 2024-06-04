@@ -9,8 +9,12 @@
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/libs/optimizer",
-        "main": "./src/lib/optimizer.ts",
-        "additionalEntryPoints": ["libs/optimizer/src/lib/api.ts", "libs/optimizer/src/lib/scoring-rules.ts"],
+        "main": "libs/optimizer/src/index.ts",
+        "additionalEntryPoints": [
+          "libs/optimizer/src/lib/api.ts",
+          "libs/optimizer/src/lib/scoring-rules.ts",
+          "libs/optimizer/src/lib/optimizer.ts"
+        ],
         "generateExportsField": true,
         "tsConfig": "libs/optimizer/tsconfig.lib.json",
         "assets": ["libs/optimizer/*.md"]
