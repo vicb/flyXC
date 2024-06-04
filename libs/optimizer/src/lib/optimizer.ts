@@ -47,7 +47,7 @@ export interface ScoringResult {
   // Multiplier for computing score. score = lengthKm * multiplier
   multiplier: number;
   circuit?: CircuitType;
-  closingRadiusM?: number;
+  closingRadius?: number;
   // Indices of solutions points in the request
   solutionIndices: number[];
   // Whether the result is optimal.
@@ -173,7 +173,7 @@ function toOptimizationResult(solution: Solution, track: ScoringTrack): ScoringR
     lengthKm: solution.scoreInfo?.distance ?? 0,
     multiplier: solution.opt.scoring.multiplier,
     circuit: toCircuitType(solution.opt.scoring.code),
-    closingRadiusM: getClosingRadiusM(solution),
+    closingRadius: getClosingRadius(solution),
     solutionIndices: getSolutionIndices(solution, track),
     optimal: solution.optimal || false,
     startPoint: solution.scoreInfo?.ep?.start ? pointToLatTon(solution.scoreInfo?.ep?.start) : undefined,
@@ -198,7 +198,7 @@ function pointToLatTon(point: Point): LatLon {
   return { lat: point.y, lon: point.x };
 }
 
-function getClosingRadiusM(solution: Solution): number | undefined {
+function getClosingRadius(solution: Solution): number | undefined {
   const closingDistance = solution.scoreInfo?.cp?.d;
 
   if (closingDistance == null) {
@@ -209,7 +209,7 @@ function getClosingRadiusM(solution: Solution): number | undefined {
   const closingDistanceFixed = (solution.opt.scoring as any)?.closingDistanceFixed;
 
   if (closingDistanceFixed != null && closingDistance < closingDistanceFixed) {
-    return closingDistanceFixed * 1000;
+    return closingDistanceFixed;
   }
 
   // TODO: remove cast when https://github.com/mmomtchev/igc-xc-score/pull/233 is merged
