@@ -1,10 +1,11 @@
 // Client for the OGN APRS server
 
-import type { AprsPosition } from '@flyxc/common';
-import { parseAprsPosition } from '@flyxc/common';
 import { Socket } from 'node:net';
 import type { Interface } from 'node:readline';
 import readline from 'node:readline';
+
+import type { AprsPosition } from '@flyxc/common';
+import { parseAprsPosition } from '@flyxc/common';
 
 const VERSION = '1.0';
 const OGN_FAST_ID_REGEXP = /\bid[0-9a-z]{2}(?<id>[0-9a-z]{6})\b/i;

@@ -1,7 +1,7 @@
 {
   "root": true,
   "ignorePatterns": ["**/*"],
-  "plugins": ["@nx", "require-node-import-prefix"],
+  "plugins": ["@nx", "require-node-import-prefix", "simple-import-sort", "import"],
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
@@ -20,7 +20,13 @@
           }
         ],
         "require-node-import-prefix/no-empty-import-prefix": "error",
-        "@typescript-eslint/consistent-type-imports": "error"
+        "@typescript-eslint/consistent-type-imports": "error",
+        // https://github.com/lydell/eslint-plugin-simple-import-sort/?tab=readme-ov-file#example-configuration
+        "simple-import-sort/imports": "error",
+        "simple-import-sort/exports": "error",
+        "import/first": "error",
+        "import/newline-after-import": "error",
+        "import/no-duplicates": "error"
       }
     },
     {

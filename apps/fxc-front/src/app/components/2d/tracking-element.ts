@@ -2,6 +2,7 @@ import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
+
 import type { LiveLineProperties, LivePointProperties } from '../../logic/live-track';
 import { FixType } from '../../logic/live-track';
 import { popupContent } from '../../logic/live-track-popup';

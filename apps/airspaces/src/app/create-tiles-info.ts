@@ -1,9 +1,11 @@
-import { round } from '@flyxc/common';
-import { program } from 'commander';
-import { globSync } from 'glob';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+
+import { round } from '@flyxc/common';
+import { program } from 'commander';
+import { globSync } from 'glob';
+
 import { printOnCurrentLine } from './util';
 
 const defaultInputFolder = resolve(join(__dirname, '../../../apps/airspaces/src/assets/airspaces/tiles'));

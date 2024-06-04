@@ -2,29 +2,28 @@ import '../ui/share-modal';
 import '../ui/waypoint-modal';
 
 import type { LatLon } from '@flyxc/common';
+import { CircuitType } from '@flyxc/optimizer/lib/api';
+import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
+import { modalController } from '@ionic/core/components';
 import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
-
-import { modalController } from '@ionic/core/components';
 
 import { ClosingSector } from '../../gm/closing-sector';
 import { FaiSectors } from '../../gm/fai-sectors';
 import { addAltitude } from '../../logic/elevation';
 import { getCurrentUrl, pushCurrentState } from '../../logic/history';
 import { drawRoute } from '../../logic/messages';
+import type { LeagueCode } from '../../logic/score/league/leagues';
+import { getScoringRuleName } from '../../logic/score/league/leagues';
 import { Score } from '../../logic/score/scorer';
 import { setDistance, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
-import type { PlannerElement } from './planner-element';
-import { getScoringRuleName } from '../../logic/score/league/leagues';
-import type { LeagueCode } from '../../logic/score/league/leagues';
-import ScoringWorker from '../../workers/optimizer?worker';
 import type { Request as WorkerRequest, Response as WorkerResponse } from '../../workers/optimizer';
-import { CircuitType } from '@flyxc/optimizer/lib/api';
-import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
+import ScoringWorker from '../../workers/optimizer?worker';
+import type { PlannerElement } from './planner-element';
 
 // Route color by circuit type.
 const ROUTE_STROKE_COLORS = {

@@ -1,6 +1,8 @@
-import { diffDecodeTrack, protos } from '@flyxc/common';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+
+import { diffDecodeTrack, protos } from '@flyxc/common';
+
 import { fetchGroundAltitude, getUrlList } from './altitude';
 
 function readTrack(filename: string): protos.Track {

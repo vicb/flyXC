@@ -1,5 +1,6 @@
 import { getTrackerName, isEmergencyFix, isLowBatFix, isValidFix, LiveTrackFlag, trackerIdByName } from '@flyxc/common';
 import { computeDestinationPoint } from 'geolib';
+
 import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
 

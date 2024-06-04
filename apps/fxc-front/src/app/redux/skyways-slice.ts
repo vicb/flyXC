@@ -4,6 +4,7 @@
 
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSelector, createSlice } from '@reduxjs/toolkit';
+
 import type { RootState } from './store';
 
 const TILE_URL = 'https://thermal.kk7.ch/tiles/{layer}/{z}/{x}/{y}.png?src={domain}'.replace(

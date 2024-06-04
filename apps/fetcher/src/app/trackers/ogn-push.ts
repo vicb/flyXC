@@ -1,6 +1,7 @@
 import type { AprsPosition, protos } from '@flyxc/common';
 import { findIndexes, generateAprsPosition, getFixSpeed, getTrackerName } from '@flyxc/common';
 import { getRhumbLineBearing } from 'geolib';
+
 import type { OgnClient } from './ogn-client';
 
 // Don't push obsolete fixes.

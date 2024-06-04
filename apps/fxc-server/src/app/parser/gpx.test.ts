@@ -1,4 +1,5 @@
 import { protos } from '@flyxc/common';
+
 import { parse, parseRoute } from './gpx';
 
 describe('Parse GPX files', () => {

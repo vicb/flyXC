@@ -1,7 +1,8 @@
-import { SecretKeys } from '@flyxc/common';
-import { program } from 'commander';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+
+import { SecretKeys } from '@flyxc/common';
+import { program } from 'commander';
 
 const OPENAIP_AIRSPACE_ENDPOINT = `https://api.core.openaip.net/api/airspaces?limit=1000&apiKey={key}&page={page}`;
 

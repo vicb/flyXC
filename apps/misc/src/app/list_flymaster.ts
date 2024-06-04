@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+
 import type { LiveTrackEntity } from '@flyxc/common';
 
 const trackers = JSON.parse(readFileSync(`${__dirname}/assets/trackers.json`, 'utf-8')) as LiveTrackEntity[];

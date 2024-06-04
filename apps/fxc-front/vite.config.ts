@@ -1,8 +1,9 @@
+import { execSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { format } from 'date-fns';
-import { existsSync } from 'node:fs';
-import { execSync } from 'node:child_process';
-import { join } from 'node:path';
 import minifyHTML from 'rollup-plugin-minify-html-literals';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';

@@ -12,6 +12,7 @@ import type { Datastore } from '@google-cloud/datastore';
 import async from 'async';
 import * as polyline from 'google-polyline';
 import simplify from 'simplify-path';
+
 import { fetchAirspaces } from './airspace';
 import { fetchGroundAltitude } from './altitude';
 

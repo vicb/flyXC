@@ -1,5 +1,4 @@
 import { extractGroupId } from '@flyxc/common';
-
 import { unwrapResult } from '@reduxjs/toolkit';
 
 import { store } from '../redux/store';

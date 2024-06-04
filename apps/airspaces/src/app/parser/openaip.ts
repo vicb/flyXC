@@ -1,4 +1,5 @@
 import { Activity, Class, Type } from '@flyxc/common';
+
 import type { Airspace } from './parser';
 import { METER_PER_FEET, roundCoords } from './parser';
 

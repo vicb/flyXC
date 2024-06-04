@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { Router } from 'express';
+
 import { encode } from '../waypoints/waypoints';
 
 export function getWaypointRouter(): Router {

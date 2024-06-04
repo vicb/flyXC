@@ -11,6 +11,7 @@ import {
   SecretKeys,
   validateXContestAccount,
 } from '@flyxc/common';
+
 import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';

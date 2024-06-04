@@ -1,12 +1,12 @@
 import type { RuntimeTrack } from '@flyxc/common';
 import { extractGroupId } from '@flyxc/common';
+import { modalController } from '@ionic/core/components';
 import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
-import { modalController } from '@ionic/core/components';
-
+import { maybeHideSidePane } from '../../../flyxc';
 import { pushCurrentState } from '../../logic/history';
 import * as msg from '../../logic/messages';
 import * as app from '../../redux/app-slice';
@@ -14,7 +14,6 @@ import * as sel from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import * as trackSlice from '../../redux/track-slice';
-import { maybeHideSidePane } from '../../../flyxc';
 
 @customElement('track-modal')
 export class TrackModal extends connect(store)(LitElement) {

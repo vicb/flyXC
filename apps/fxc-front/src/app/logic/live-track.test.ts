@@ -1,4 +1,5 @@
 import { differentialEncodeLiveTrack, LiveTrackFlag, protos, trackerIdByName } from '@flyxc/common';
+
 import { FixType, trackToFeatures, updateLiveTracks } from './live-track';
 
 describe('Create GeoJSON features', () => {

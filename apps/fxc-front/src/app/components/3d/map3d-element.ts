@@ -6,29 +6,31 @@ import './skyways3d-element';
 import './tracking3d-element';
 
 import Basemap from '@arcgis/core/Basemap';
-import Map from '@arcgis/core/Map';
 import esriConfig from '@arcgis/core/config';
 import Point from '@arcgis/core/geometry/Point';
 import BaseElevationLayer from '@arcgis/core/layers/BaseElevationLayer';
 import ElevationLayer from '@arcgis/core/layers/ElevationLayer';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
-import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
-import SunLighting from '@arcgis/core/views/3d/environment/SunLighting';
+import IntegratedMesh3DTilesLayer from '@arcgis/core/layers/IntegratedMesh3DTilesLayer.js';
 import SceneLayer from '@arcgis/core/layers/SceneLayer';
 import TileLayer from '@arcgis/core/layers/TileLayer';
+import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
+import Map from '@arcgis/core/Map';
+import SunLighting from '@arcgis/core/views/3d/environment/SunLighting';
 import VirtualLighting from '@arcgis/core/views/3d/environment/VirtualLighting';
 import SceneView from '@arcgis/core/views/SceneView';
 import Popup from '@arcgis/core/widgets/Popup';
-import IntegratedMesh3DTilesLayer from '@arcgis/core/layers/IntegratedMesh3DTilesLayer.js';
 import type { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
 import type { PropertyValues, TemplateResult } from 'lit';
-import { LitElement, html } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { when } from 'lit/directives/when.js';
 import type { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
+
+import { getApiKeyAndHost } from '../../apikey';
 import * as msg from '../../logic/messages';
 import { setApiLoading, setTimeSec, setView3d } from '../../redux/app-slice';
 import { setCurrentLiveId } from '../../redux/live-track-slice';
@@ -39,7 +41,6 @@ import { store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
 import type { Airspace3dElement } from './airspace3d-element';
 import type { Skyways3dElement } from './skyways3d-element';
-import { getApiKeyAndHost } from '../../apikey';
 
 @customElement('map3d-element')
 export class Map3dElement extends connect(store)(LitElement) {

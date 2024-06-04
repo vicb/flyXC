@@ -1,4 +1,5 @@
 import { getHostName } from '@flyxc/common';
+
 import { keys } from './keys';
 
 // Returns the api key.

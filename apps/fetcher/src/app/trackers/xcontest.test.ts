@@ -1,9 +1,9 @@
+import type { XContestFlight } from './xcontest';
+import { parseLiveTrack, parseLiveUsers } from './xcontest';
+
 /* eslint-disable @typescript-eslint/no-var-requires */
 const xcontestUsers = require('./fixtures/xcontest-live-users.json');
 const xcontestTrack = require('./fixtures/xcontest-live-track.json');
-
-import type { XContestFlight } from './xcontest';
-import { parseLiveTrack, parseLiveUsers } from './xcontest';
 
 describe('Parse XContest json', () => {
   test('it should parse users', () => {

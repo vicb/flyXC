@@ -10,6 +10,7 @@ import {
 import { LIVE_TRACK_TABLE } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import type { RunQueryResponse } from '@google-cloud/datastore/build/src/query';
+
 import { FULL_SYNC_SEC, PARTIAL_SYNC_SEC } from './state';
 
 const BATCH_SIZE = 50;

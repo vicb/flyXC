@@ -2,6 +2,7 @@
 
 import type { UfoFleetNames } from '@flyxc/common';
 import { fetchResponse, formatReqError, SecretKeys } from '@flyxc/common';
+
 import type { LivePoint } from '../trackers/live-track';
 import { makeLiveTrack } from '../trackers/live-track';
 import type { UfoFleetUpdates } from './ufo';

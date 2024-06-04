@@ -1,6 +1,7 @@
-import { program } from 'commander';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+
+import { program } from 'commander';
 
 const newInfoFile = resolve(join(__dirname, '../../../apps/airspaces/src/assets/airspaces/tiles-info.json'));
 const refInfoFile = resolve(join(__dirname, '../../../apps/airspaces/src/assets/airspaces/tiles-info-previous.json'));

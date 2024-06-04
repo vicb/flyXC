@@ -1,12 +1,12 @@
-import { Keys, SecretKeys, fetchResponse, round } from '@flyxc/common';
+import { fetchResponse, Keys, round, SecretKeys } from '@flyxc/common';
 import type { ZoleoMessage } from '@flyxc/common-node';
 import {
-  LIVE_TRACK_TABLE,
-  ZOLEO_MAX_MSG,
-  ZOLEO_MAX_MSG_SIZE,
   getDatastore,
+  LIVE_TRACK_TABLE,
   pushListCap,
   retrieveLiveTrackByGoogleId,
+  ZOLEO_MAX_MSG,
+  ZOLEO_MAX_MSG_SIZE,
 } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import type { Request, Response } from 'express';
@@ -14,6 +14,7 @@ import { Router } from 'express';
 import basicAuth from 'express-basic-auth';
 import type Redis from 'ioredis';
 import { pathGet } from 'object-standard-path';
+
 import { getUserInfo, isLoggedIn } from './session';
 
 const auth = basicAuth({

@@ -5,8 +5,8 @@
 /*!
  * (C) Ionic http://ionicframework.com - MIT License
  */
-import { proxyCustomElement, HTMLElement, createEvent } from '@stencil/core/internal/client';
 import { c as componentOnReady, o as debounce } from '@ionic/core/components/helpers.js';
+import { createEvent, HTMLElement, proxyCustomElement } from '@stencil/core/internal/client';
 
 const ROUTER_INTENT_NONE = 'root';
 const ROUTER_INTENT_FORWARD = 'forward';
@@ -612,4 +612,4 @@ function defineCustomElement$1() {
 const IonRouter = Router;
 const defineCustomElement = defineCustomElement$1;
 
-export { IonRouter, defineCustomElement };
+export { defineCustomElement, IonRouter };

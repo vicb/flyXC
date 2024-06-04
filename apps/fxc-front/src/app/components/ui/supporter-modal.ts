@@ -1,9 +1,8 @@
+import { fetchResponse } from '@flyxc/common';
+import { modalController } from '@ionic/core/components';
 import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
-
-import { modalController } from '@ionic/core/components';
-import { fetchResponse } from '@flyxc/common';
 
 @customElement('supporter-modal')
 export class SupporterModal extends LitElement {

@@ -1,11 +1,10 @@
 import './ui/pref-modal';
 
 import * as common from '@flyxc/common';
+import { modalController } from '@ionic/core/components';
 import type { CSSResult, TemplateResult } from 'lit';
 import { css, html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-
-import { modalController } from '@ionic/core/components';
 
 import * as units from '../logic/units';
 import { controlStyle } from '../styles/control-style';

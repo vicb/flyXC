@@ -1,6 +1,5 @@
-import { getDistance, getGreatCircleBearing, toDeg, toRad } from 'geolib';
-
 import type { LatLon } from '@flyxc/common';
+import { getDistance, getGreatCircleBearing, toDeg, toRad } from 'geolib';
 
 const SECTOR_COLORS = ['#f00', '#0f0', '#00f'];
 

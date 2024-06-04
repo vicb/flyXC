@@ -1,5 +1,6 @@
-import { getHostName } from '@flyxc/common';
 import { readFileSync } from 'node:fs';
+
+import { getHostName } from '@flyxc/common';
 
 const tracks = JSON.parse(readFileSync(`${__dirname}/assets/tracks.json`, 'utf-8'));
 

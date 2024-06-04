@@ -1,16 +1,15 @@
-import type { protos } from '@flyxc/common';
-import type { PropertyValues } from 'lit';
-import { LitElement } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import type { UnsubscribeHandle } from 'micro-typed-events';
-import { connect } from 'pwa-helpers';
-
 import Color from '@arcgis/core/Color';
 import Point from '@arcgis/core/geometry/Point';
 import Graphic from '@arcgis/core/Graphic';
 import type GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import type ElevationSampler from '@arcgis/core/layers/support/ElevationSampler';
 import type SceneView from '@arcgis/core/views/SceneView';
+import type { protos } from '@flyxc/common';
+import type { PropertyValues } from 'lit';
+import { LitElement } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import type { UnsubscribeHandle } from 'micro-typed-events';
+import { connect } from 'pwa-helpers';
 
 import type { LiveLineProperties, LivePointProperties } from '../../logic/live-track';
 import { FixType } from '../../logic/live-track';

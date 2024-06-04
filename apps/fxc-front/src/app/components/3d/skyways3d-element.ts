@@ -1,11 +1,10 @@
+import TileInfo from '@arcgis/core/layers/support/TileInfo';
+import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
+import type Map from '@arcgis/core/Map';
 import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
-
-import type Map from '@arcgis/core/Map';
-import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
-import TileInfo from '@arcgis/core/layers/support/TileInfo';
 
 import * as skyways from '../../redux/skyways-slice';
 import type { RootState } from '../../redux/store';

@@ -1,4 +1,5 @@
 import * as igcXcScore from 'igc-xc-score';
+
 import type { ScoringRuleName } from './api';
 
 // TODO: Export the rules from igc-xc-score
