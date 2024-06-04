@@ -235,7 +235,7 @@ describe('optimizer', () => {
       maxNumCycles: 1,
     };
     it('should return a closing distance of 3 km', () => {
-      expect(optimize(request).closingRadius).toEqual(3);
+      expect(optimize(request).closingRadiusKm).toEqual(3);
     });
   });
 
@@ -254,7 +254,7 @@ describe('optimizer', () => {
       maxNumCycles: 1,
     };
     it('should return a closing distance greater than 3 km', () => {
-      expect(optimize(request).closingRadius).toBeGreaterThan(3);
+      expect(optimize(request).closingRadiusKm).toBeGreaterThan(3);
     });
   });
 });
