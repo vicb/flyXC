@@ -2,8 +2,9 @@
 //
 // See http://www.winpilot.com/usersguide/userairspace.asp
 
-import { Activity, Class, Type, decodeClass } from '@flyxc/common';
+import { Activity, Class, decodeClass, Type } from '@flyxc/common';
 import { computeDestinationPoint, getDistance, getGreatCircleBearing, sexagesimalToDecimal } from 'geolib';
+
 import type { Airspace } from './parser';
 import { METER_PER_FEET, roundCoords } from './parser';
 

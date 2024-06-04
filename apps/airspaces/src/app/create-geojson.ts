@@ -1,12 +1,15 @@
 // #!/usr/bin/env node
 
-import { Type } from '@flyxc/common';
-import { program } from 'commander';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+
+import { Type } from '@flyxc/common';
+import { program } from 'commander';
+
 import * as oaip from './parser/openaip';
 import * as oair from './parser/openair';
 import type { Airspace } from './parser/parser';
+
 const GeoJSON = require('geojson'); // eslint-disable-line @typescript-eslint/no-var-requires
 
 // Filter out airspaces above:

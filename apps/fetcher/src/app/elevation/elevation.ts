@@ -4,6 +4,7 @@
 
 import type { LatLon, protos } from '@flyxc/common';
 import { fetchResponse, formatReqError } from '@flyxc/common';
+
 import { getElevationUrl, parseElevationResponse } from './arcgis';
 
 export interface ElevationUpdates {

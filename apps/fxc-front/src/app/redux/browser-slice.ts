@@ -1,6 +1,7 @@
 import { getHostName } from '@flyxc/common';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
+
 import { store } from './store';
 
 type BrowserState = {

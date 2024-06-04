@@ -19,6 +19,7 @@ import {
 } from '@flyxc/common';
 import { pushListCap } from '@flyxc/common-node';
 import { DOMParser } from '@xmldom/xmldom';
+
 import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
 import { Proxies } from './proxies';

@@ -1,9 +1,9 @@
 import type { AbstractModel } from '@vaadin/nodom';
-import { getBinderNode, _fromString } from '@vaadin/nodom';
+import { _fromString, getBinderNode } from '@vaadin/nodom';
 import type { ElementPart, PropertyPart } from 'lit';
 import { noChange, nothing } from 'lit';
 import type { DirectiveParameters, PartInfo } from 'lit/directive.js';
-import { directive, Directive, PartType } from 'lit/directive.js';
+import { Directive, directive, PartType } from 'lit/directive.js';
 
 import type { Binder } from './Binder';
 

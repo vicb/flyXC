@@ -5,6 +5,7 @@
 import type { protos, TrackerNames } from '@flyxc/common';
 import { validateOgnAccount } from '@flyxc/common';
 import type { ChainableCommander } from 'ioredis';
+
 import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
 import type { OgnClient } from './ogn-client';

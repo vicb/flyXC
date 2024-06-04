@@ -2,11 +2,11 @@ import csurf from '@dr.pogodin/csurf';
 import type { AccountModel, LiveTrackEntity } from '@flyxc/common';
 import {
   AccountFormModel,
-  LONG_INCREMENTAL_UPDATE_SEC,
-  SHORT_INCREMENTAL_UPDATE_SEC,
   Keys,
+  LONG_INCREMENTAL_UPDATE_SEC,
   protos,
   SecretKeys,
+  SHORT_INCREMENTAL_UPDATE_SEC,
 } from '@flyxc/common';
 import {
   FlyMeValidator,
@@ -21,6 +21,7 @@ import { NoDomBinder } from '@vaadin/nodom';
 import type { Request, Response } from 'express';
 import { Router } from 'express';
 import type { Redis } from 'ioredis';
+
 import { getUserInfo, isLoggedIn, logout } from './session';
 
 // Store the token in the session.

@@ -1,8 +1,9 @@
-import { LIVE_TRACK_TABLE } from '@flyxc/common-node';
+import { writeFileSync } from 'node:fs';
+
 import type { LiveTrackEntity } from '@flyxc/common';
+import { LIVE_TRACK_TABLE } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import type { RunQueryResponse } from '@google-cloud/datastore/build/src/query';
-import { writeFileSync } from 'node:fs';
 
 const datastore = new Datastore();
 

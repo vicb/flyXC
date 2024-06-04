@@ -1,16 +1,15 @@
+import { modalController } from '@ionic/core/components';
 import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
-import { modalController } from '@ionic/core/components';
-
+import { LEAGUE_CODES, LEAGUES } from '../../logic/score/league/leagues';
 import * as units from '../../logic/units';
 import { setLeague } from '../../redux/planner-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import { setAltitudeUnit, setDistanceUnit, setSpeedUnit, setVarioUnit } from '../../redux/units-slice';
-import { LEAGUE_CODES, LEAGUES } from '../../logic/score/league/leagues';
 
 @customElement('pref-modal')
 export class PrefModal extends connect(store)(LitElement) {

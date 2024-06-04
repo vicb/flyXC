@@ -1,8 +1,9 @@
 // Unzip tiles to Google Cloud Storage.
 
+import fs from 'node:fs';
+
 import { Storage } from '@google-cloud/storage';
 import { program } from 'commander';
-import fs from 'node:fs';
 import unzipper from 'unzipper';
 
 program

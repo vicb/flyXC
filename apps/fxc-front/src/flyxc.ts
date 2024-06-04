@@ -6,20 +6,18 @@ import '@ionic/core/css/padding.css';
 import '@ionic/core/css/structure.css';
 import '@ionic/core/css/text-alignment.css';
 import '@ionic/core/css/typography.css';
-
 import './app/components/chart-element';
 import './app/components/loader-element';
 import './app/components/ui/main-menu';
 
 import type { LatLonAlt } from '@flyxc/common';
+import type { NavigationHookResult } from '@ionic/core/dist/types/components/route/route-interface';
 import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
-
-import type { NavigationHookResult } from '@ionic/core/dist/types/components/route/route-interface';
 
 import { ionicInit } from './app/components/ui/ionic';
 import { requestCurrentPosition } from './app/logic/geolocation';

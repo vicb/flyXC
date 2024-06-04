@@ -1,10 +1,5 @@
-import { LitElement } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { connect } from 'pwa-helpers';
-
 import VectorTileLayer from '@arcgis/core/layers/VectorTileLayer';
 import type Map from '@arcgis/core/Map';
-
 import type SceneView from '@arcgis/core/views/SceneView';
 import type { LatLon } from '@flyxc/common';
 import {
@@ -17,6 +12,10 @@ import {
   MAX_AIRSPACE_TILE_ZOOM,
   Type,
 } from '@flyxc/common';
+import { LitElement } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import { connect } from 'pwa-helpers';
+
 import { getAirspaceList } from '../../logic/airspaces';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';

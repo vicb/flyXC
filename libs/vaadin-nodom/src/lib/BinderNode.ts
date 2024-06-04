@@ -15,7 +15,6 @@
  */
 // TODO: Fix dependency cycle
 
-import type { NoDomBinder } from './NoDomBinder';
 import type { ModelConstructor, ModelValue } from './Models';
 import {
   _binderNode,
@@ -28,7 +27,7 @@ import {
   getBinderNode,
   ObjectModel,
 } from './Models';
-
+import type { NoDomBinder } from './NoDomBinder';
 import type { Validator, ValueError } from './Validation';
 
 const _ownErrors = Symbol('ownErrorsSymbol');

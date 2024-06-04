@@ -1,15 +1,26 @@
-import { Class, Type, getClassName, getTypeName } from '@flyxc/common';
+import './about-modal';
+import './live-modal';
+import './pref-modal';
+import './track-modal';
+import './supporter-modal';
+
+import { geocode } from '@esri/arcgis-rest-geocoding';
+import { setDefaultRequestOptions } from '@esri/arcgis-rest-request';
+import { Class, getClassName, getTypeName, Type } from '@flyxc/common';
 import type { SearchbarCustomEvent, ToggleCustomEvent } from '@ionic/core/components';
 import { modalController, toastController } from '@ionic/core/components';
 import type { TemplateResult } from 'lit';
-import { LitElement, html } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 import { when } from 'lit/directives/when.js';
 import type { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
+
+import { maybeHideSidePane } from '../../../flyxc';
+import { getApiKeyAndHost } from '../../apikey';
 import { requestCurrentPosition } from '../../logic/geolocation';
-import { ParamNames, addUrlParamValues, pushCurrentState } from '../../logic/history';
+import { addUrlParamValues, ParamNames, pushCurrentState } from '../../logic/history';
 import * as msg from '../../logic/messages';
 import { uploadTracks } from '../../logic/track';
 import type { DistanceUnit } from '../../logic/units';
@@ -32,15 +43,6 @@ import * as skyways from '../../redux/skyways-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import { setDisplayLabels, setLockOnPilot } from '../../redux/track-slice';
-import './about-modal';
-import './live-modal';
-import './pref-modal';
-import './track-modal';
-import './supporter-modal';
-import { getApiKeyAndHost } from '../../apikey';
-import { geocode } from '@esri/arcgis-rest-geocoding';
-import { setDefaultRequestOptions } from '@esri/arcgis-rest-request';
-import { maybeHideSidePane } from '../../../flyxc';
 
 @customElement('main-menu')
 export class MainMenu extends connect(store)(LitElement) {

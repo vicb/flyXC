@@ -10,6 +10,7 @@ import {
 } from '@flyxc/common';
 import { pushListCap } from '@flyxc/common-node';
 import type { ChainableCommander } from 'ioredis';
+
 import { AviantFetcher } from './aviant';
 import type { UfoFleetUpdates } from './ufo';
 

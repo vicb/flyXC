@@ -38,18 +38,18 @@ import { defineCustomElement as d34 } from '@ionic/core/components/ion-ripple-ef
 import { defineCustomElement as d35 } from '@ionic/core/components/ion-route';
 import { defineCustomElement as d36 } from '@ionic/core/components/ion-router-outlet';
 import { defineCustomElement as d37 } from '@ionic/core/components/ion-row';
+import { defineCustomElement as d48 } from '@ionic/core/components/ion-searchbar';
 import { defineCustomElement as d38 } from '@ionic/core/components/ion-segment';
 import { defineCustomElement as d39 } from '@ionic/core/components/ion-segment-button';
 import { defineCustomElement as d40 } from '@ionic/core/components/ion-select';
 import { defineCustomElement as d41 } from '@ionic/core/components/ion-select-option';
 import { defineCustomElement as d42 } from '@ionic/core/components/ion-select-popover';
+import { defineCustomElement as d49 } from '@ionic/core/components/ion-split-pane';
 import { defineCustomElement as d43 } from '@ionic/core/components/ion-text';
 import { defineCustomElement as d44 } from '@ionic/core/components/ion-title';
 import { defineCustomElement as d45 } from '@ionic/core/components/ion-toast';
 import { defineCustomElement as d46 } from '@ionic/core/components/ion-toggle';
 import { defineCustomElement as d47 } from '@ionic/core/components/ion-toolbar';
-import { defineCustomElement as d48 } from '@ionic/core/components/ion-searchbar';
-import { defineCustomElement as d49 } from '@ionic/core/components/ion-split-pane';
 
 import { defineCustomElement as d50 } from './ion-router';
 

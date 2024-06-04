@@ -1,3 +1,4 @@
+import { LiveTrack } from '../protos/live-track';
 import {
   differentialDecodeLiveTrack,
   differentialEncodeLiveTrack,
@@ -10,8 +11,6 @@ import {
   simplifyLiveTrack,
   trackerIdByName,
 } from './live-track';
-
-import { LiveTrack } from '../protos/live-track';
 
 describe('removeBeforeFromLiveTrack', () => {
   let track: LiveTrack;

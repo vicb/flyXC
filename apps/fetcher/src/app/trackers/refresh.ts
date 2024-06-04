@@ -6,14 +6,15 @@ import {
   LIVE_MINIMAL_INTERVAL_SEC,
   LIVE_OLD_INTERVAL_SEC,
   LIVE_TRACKER_RETENTION_SEC,
-  SecretKeys,
   mergeLiveTracks,
   removeBeforeFromLiveTrack,
+  SecretKeys,
   simplifyLiveTrack,
 } from '@flyxc/common';
 import { pushListCap } from '@flyxc/common-node';
 import type { Datastore } from '@google-cloud/datastore';
 import type { ChainableCommander, Redis } from 'ioredis';
+
 import { patchLastFixAGL } from '../elevation/elevation';
 import { addElevationLogs } from '../redis';
 import { FlymasterFetcher } from './flymaster';

@@ -1,19 +1,22 @@
+import process from 'node:process';
+
 import {
   differentialEncodeLiveTrack,
   EXPORT_UPDATE_SEC,
-  LONG_INCREMENTAL_UPDATE_SEC,
-  SHORT_INCREMENTAL_UPDATE_SEC,
   Keys,
   LIVE_REFRESH_SEC,
+  LONG_INCREMENTAL_UPDATE_SEC,
   protos,
   removeBeforeFromLiveTrack,
   removeDeviceFromLiveTrack,
+  SHORT_INCREMENTAL_UPDATE_SEC,
 } from '@flyxc/common';
 import { getDatastore, getRedisClient, pushListCap } from '@flyxc/common-node';
 import type { Datastore } from '@google-cloud/datastore';
 import { program } from 'commander';
 import type { ChainableCommander } from 'ioredis';
-import process from 'node:process';
+
+import { fetchSupporters } from './app/misc/buy-coffee';
 import { addExportLogs, addHostInfo, addStateLogs, addSyncLogs, HandleCommand } from './app/redis';
 import { createStateArchive, exportToStorage } from './app/state/serialize';
 import {
@@ -31,7 +34,6 @@ import {
 import { syncFromDatastore } from './app/state/sync';
 import { disconnectOgnClient, resfreshTrackers } from './app/trackers/refresh';
 import { resfreshUfoFleets } from './app/ufos/refresh';
-import { fetchSupporters } from './app/misc/buy-coffee';
 
 const redis = getRedisClient();
 

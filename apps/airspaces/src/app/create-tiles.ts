@@ -1,10 +1,12 @@
 // #!/usr/bin/env node
 
-import { MAX_AIRSPACE_TILE_ZOOM } from '@flyxc/common';
-import { program } from 'commander';
 import { execSync } from 'node:child_process';
 import { existsSync, readdirSync, rmSync, statSync, unlinkSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+
+import { MAX_AIRSPACE_TILE_ZOOM } from '@flyxc/common';
+import { program } from 'commander';
+
 import { printOnCurrentLine } from './util';
 
 const defaultInputFile = resolve(join(__dirname, '../../../apps/airspaces/src/assets/airspaces/airspaces.geojson'));

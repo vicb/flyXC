@@ -3,9 +3,8 @@
 import isNumeric from 'validator/lib/isNumeric';
 
 import { BinderNode } from './BinderNode';
-import { IsNumber } from './Validators';
-
 import type { Validator } from './Validation';
+import { IsNumber } from './Validators';
 
 export const _ItemModel = Symbol('ItemModel');
 export const _parent = Symbol('parent');

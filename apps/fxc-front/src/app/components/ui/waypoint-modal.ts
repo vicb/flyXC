@@ -1,9 +1,8 @@
 import type { LatLonAlt } from '@flyxc/common';
+import { modalController } from '@ionic/core/components';
 import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-
-import { modalController } from '@ionic/core/components';
 
 const WAYPOINT_FORMATS: { [id: string]: string } = {
   cup: 'See You (cup)',

@@ -1,11 +1,13 @@
+import '../components/ui/google-btn';
+
 import type { Instance } from '@popperjs/core';
 import { createPopper } from '@popperjs/core';
 import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
+
 import { getApiKeyAndHost } from '../apikey';
-import '../components/ui/google-btn';
 
 const NUM_TRACKS = 30;
 const IMG_SIZE = 200;

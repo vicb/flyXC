@@ -1,9 +1,10 @@
+import type { BRecord, IGCFile } from 'igc-parser';
 import type { Point, Solution } from 'igc-xc-score';
 import { solver } from 'igc-xc-score';
-import type { BRecord, IGCFile } from 'igc-parser';
+
 import type { ScoringRuleName } from './api';
-import { scoringRules } from './scoring-rules';
 import { CircuitType } from './api';
+import { scoringRules } from './scoring-rules';
 
 // Minimum number of points in an igc-xc-score track.
 // See this issue https://github.com/mmomtchev/igc-xc-score/issues/231

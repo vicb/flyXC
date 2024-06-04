@@ -1,6 +1,5 @@
 import type { LatLonAlt, protos } from '@flyxc/common';
 import { getLastMessage, isEmergencyTrack } from '@flyxc/common';
-
 import type { EntityState, PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk, createEntityAdapter, createSelector, createSlice } from '@reduxjs/toolkit';
 

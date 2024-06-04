@@ -1,4 +1,5 @@
 import type { protos } from '@flyxc/common';
+
 import { environment } from '../../environments/environment.prod';
 import { importFromStorage } from './serialize';
 

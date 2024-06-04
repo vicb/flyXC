@@ -1,7 +1,6 @@
+import { SecretKeys } from '@flyxc/common';
 import type { ChainableCommander } from 'ioredis';
 import Redis from 'ioredis';
-
-import { SecretKeys } from '@flyxc/common';
 
 // lazily created client.
 let redis: Redis | undefined;

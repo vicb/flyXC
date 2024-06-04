@@ -1,5 +1,4 @@
 import { protos } from '@flyxc/common';
-
 import * as toGeoJSON from '@tmcw/togeojson';
 import { DOMParser } from '@xmldom/xmldom';
 

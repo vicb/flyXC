@@ -1,4 +1,5 @@
 import { protos } from '@flyxc/common';
+
 import { parse } from './xctsk';
 
 describe('Parse XCTSk files', () => {

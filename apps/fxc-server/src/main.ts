@@ -1,4 +1,3 @@
-const grant = require('grant').express(); // eslint-disable-line @typescript-eslint/no-var-requires
 import { SecretKeys } from '@flyxc/common';
 import { getDatastore, getRedisClient } from '@flyxc/common-node';
 import compression from 'compression';
@@ -6,13 +5,17 @@ import RedisStore from 'connect-redis';
 import express from 'express';
 import fileUpload from 'express-fileupload';
 import session from 'express-session';
+
 import { getAdminRouter } from './app/routes/admin';
 import { getTrackerRouter } from './app/routes/live-track';
+import { getSupportersRouter } from './app/routes/supporters';
 import { getTrackRouter } from './app/routes/track';
 import { getWaypointRouter } from './app/routes/waypoints';
 import { getZoleoRouter } from './app/routes/zoleo';
 import { environment } from './environments/environment';
-import { getSupportersRouter } from './app/routes/supporters';
+
+// eslint-disable-next-line
+const grant = require('grant').express();
 
 const redis = getRedisClient();
 

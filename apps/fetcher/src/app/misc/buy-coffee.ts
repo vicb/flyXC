@@ -2,7 +2,7 @@
 //
 // https://developers.buymeacoffee.com/
 
-import { SecretKeys, fetchResponse } from '@flyxc/common';
+import { fetchResponse, SecretKeys } from '@flyxc/common';
 
 export type Supporters = {
   // visible supporters

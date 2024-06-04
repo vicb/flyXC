@@ -2,10 +2,12 @@ import type * as common from '@flyxc/common';
 import { modalController, toastController } from '@ionic/core/components';
 import { getDistance } from 'geolib';
 import type { TemplateResult } from 'lit';
-import { LitElement, html } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
+
+import { maybeHideSidePane } from '../../../flyxc';
 import * as msg from '../../logic/messages';
 import * as units from '../../logic/units';
 import type { LivePilot } from '../../redux/live-track-slice';
@@ -14,7 +16,6 @@ import { setCurrentLocation } from '../../redux/location-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import { getUniqueContrastColor } from '../../styles/track';
-import { maybeHideSidePane } from '../../../flyxc';
 
 // Maximum number of pilots to list.
 const MAX_PILOTS = 200;

@@ -1,11 +1,10 @@
+import Graphic from '@arcgis/core/Graphic';
+import type GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import * as common from '@flyxc/common';
 import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
-
-import Graphic from '@arcgis/core/Graphic';
-import type GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 
 import * as sel from '../../redux/selectors';
 import type { RootState } from '../../redux/store';

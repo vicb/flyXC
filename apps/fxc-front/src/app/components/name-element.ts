@@ -1,11 +1,10 @@
 import './ui/track-modal';
 
 import type * as common from '@flyxc/common';
+import { modalController } from '@ionic/core/components';
 import type { CSSResult, TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-
-import { modalController } from '@ionic/core/components';
 
 import { controlStyle } from '../styles/control-style';
 
