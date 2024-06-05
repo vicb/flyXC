@@ -17,13 +17,10 @@ import { addAltitude } from '../../logic/elevation';
 import { getCurrentUrl, pushCurrentState } from '../../logic/history';
 import { drawRoute } from '../../logic/messages';
 import type { LeagueCode } from '../../logic/score/league/leagues';
-import { getScoringRuleName } from '../../logic/score/league/leagues';
-import { Score } from '../../logic/score/scorer';
+import { Score, Scorer } from '../../logic/score/scorer';
 import { setDistanceM, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
-import type { Request as WorkerRequest, Response as WorkerResponse } from '../../workers/optimizer';
-import ScoringWorker from '../../workers/optimizer?worker';
 import type { PlannerElement } from './planner-element';
 
 // Route color by circuit type.
@@ -67,7 +64,10 @@ export class PathElement extends connect(store)(LitElement) {
   private faiSectors?: FaiSectors;
   private plannerElement?: PlannerElement;
   private scoringRequestId = 0;
-  private scoringWorker?: Worker;
+  private scorer: Scorer = new Scorer(
+    (result: ScoringResult) => this.optimizerCallback(result),
+    () => this.scoringRequestId,
+  );
 
   stateChanged(state: RootState): void {
     this.league = state.planner.league;
@@ -208,28 +208,9 @@ export class PathElement extends connect(store)(LitElement) {
       return;
     }
 
-    const points = this.getPathPoints();
+    const points = this.getPathPoints().map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 }));
 
-    if (!this.scoringWorker) {
-      this.scoringWorker = new ScoringWorker();
-      this.scoringWorker.onmessage = (msg: MessageEvent<WorkerResponse>) => {
-        if (msg.data.id == this.scoringRequestId) {
-          this.optimizerCallback(msg.data.response);
-        }
-      };
-    }
-
-    const request: WorkerRequest = {
-      request: {
-        track: {
-          points: points.map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 })),
-        },
-        ruleName: getScoringRuleName(this.league),
-      },
-      id: ++this.scoringRequestId,
-    };
-
-    this.scoringWorker.postMessage(request);
+    this.scorer.score(points, this.league, ++this.scoringRequestId);
   }
 
   private optimizerCallback(result: ScoringResult): void {
