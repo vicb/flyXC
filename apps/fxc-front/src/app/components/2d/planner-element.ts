@@ -1,3 +1,4 @@
+import type { RuntimeTrack } from '@flyxc/common';
 import type { CSSResult, TemplateResult } from 'lit';
 import { css, html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
@@ -8,6 +9,7 @@ import { connect } from 'pwa-helpers';
 import type { Score } from '../../logic/score/scorer';
 import * as units from '../../logic/units';
 import { decrementSpeed, incrementSpeed, setSpeedKmh } from '../../redux/planner-slice';
+import { currentTrack } from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 
@@ -34,6 +36,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   private hideDetails = store.getState().browser.isSmallScreen;
   @state()
   private isFreeDrawing = false;
+  private track: RuntimeTrack | undefined;
 
   private duration?: number;
   private readonly closeHandler = () => this.dispatchEvent(new CustomEvent('close'));
@@ -50,6 +53,7 @@ export class PlannerElement extends connect(store)(LitElement) {
     this.units = state.units;
     this.duration = ((this.distanceM / this.speedKmh) * 60) / 1000;
     this.isFreeDrawing = state.planner.isFreeDrawing;
+    this.track = currentTrack(state);
   }
 
   static get styles(): CSSResult {
@@ -185,6 +189,12 @@ export class PlannerElement extends connect(store)(LitElement) {
             ${unsafeHTML(units.formatUnit(this.speedKmh as number, this.units.speed, undefined, 'unit'))}
           </div>
         </div>
+        ${when(
+          this.track,
+          () => html` <div class="collapsible hoverable">
+            <span><i class="las la-trophy"></i>Score Track</span>
+          </div>`,
+        )}
         <div
           @click=${this.drawHandler}
           class=${when(
