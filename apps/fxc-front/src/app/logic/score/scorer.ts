@@ -1,27 +1,15 @@
-import { CircuitType } from '@flyxc/optimizer/lib/api';
 import type { LatLonAltTime, ScoringResult } from '@flyxc/optimizer/lib/optimizer';
 
 import { type Request as WorkerRequest, type Response as WorkerResponse } from '../../workers/optimizer';
 import ScoringWorker from '../../workers/optimizer?worker';
 import { getScoringRuleName, type LeagueCode } from './league/leagues';
 
-export class Score {
-  distanceM: number;
-  indexes: number[];
-  multiplier: number;
-  circuit: CircuitType;
-  closingRadiusKm: number;
-  points: number;
-
-  constructor(score: Partial<Score>) {
-    this.distanceM = score.distanceM ?? 0;
-    this.indexes = score.indexes ?? [];
-    this.multiplier = score.multiplier ?? 1;
-    this.circuit = score.circuit ?? CircuitType.OpenDistance;
-    this.closingRadiusKm = score.closingRadiusKm ?? 0;
-    this.points = score.points ?? 0;
-  }
+export enum ScoreOrigin {
+  INTERACTIVE = 'interactive',
+  TRACK = 'track',
 }
+
+export type Score = ScoringResult & { origin: ScoreOrigin };
 
 export type ScoringResultHandler = (result: ScoringResult) => void;
 

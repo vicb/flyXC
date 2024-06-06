@@ -1,4 +1,5 @@
 import type { RuntimeTrack } from '@flyxc/common';
+import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
 import type { CSSResult, TemplateResult } from 'lit';
 import { css, html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
@@ -6,9 +7,11 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
+import type { LeagueCode } from '../../logic/score/league/leagues';
 import type { Score } from '../../logic/score/scorer';
+import { ScoreOrigin, Scorer } from '../../logic/score/scorer';
 import * as units from '../../logic/units';
-import { decrementSpeed, incrementSpeed, setSpeedKmh } from '../../redux/planner-slice';
+import { decrementSpeed, incrementSpeed, setDistanceM, setScore, setSpeedKmh } from '../../redux/planner-slice';
 import { currentTrack } from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
@@ -39,6 +42,8 @@ export class PlannerElement extends connect(store)(LitElement) {
   private isFreeDrawing = false;
   @state()
   private track: RuntimeTrack | undefined;
+  @state()
+  private league: LeagueCode = 'xc';
 
   private duration?: number;
   private readonly closeHandler = () => this.dispatchEvent(new CustomEvent('close'));
@@ -50,6 +55,11 @@ export class PlannerElement extends connect(store)(LitElement) {
     return this.dispatchEvent(new CustomEvent('reset'));
   };
   private readonly drawHandler = () => this.dispatchEvent(new CustomEvent('draw-route'));
+  private scoringRequestId = 0;
+  private readonly scorer: Scorer = new Scorer(
+    (result) => this.handleSCoringResult(result),
+    () => this.scoringRequestId,
+  );
 
   stateChanged(state: RootState): void {
     this.distanceM = state.planner.distanceM;
@@ -59,6 +69,7 @@ export class PlannerElement extends connect(store)(LitElement) {
     this.duration = ((this.distanceM / this.speedKmh) * 60) / 1000;
     this.isFreeDrawing = state.planner.isFreeDrawing;
     this.track = currentTrack(state);
+    this.league = state.planner.league;
   }
 
   static get styles(): CSSResult {
@@ -150,12 +161,12 @@ export class PlannerElement extends connect(store)(LitElement) {
         <div>
           <div>${this.score.circuit}</div>
           <div class="large">
-            ${unsafeHTML(units.formatUnit(this.score.distanceM / 1000, this.units.distance, undefined, 'unit'))}
+            ${unsafeHTML(units.formatUnit(this.score.lengthKm, this.units.distance, undefined, 'unit'))}
           </div>
         </div>
         <div class="collapsible">
           <div>Points = ${this.getMultiplier()}</div>
-          <div class="large">${this.score.points.toFixed(1)}</div>
+          <div class="large">${this.score.score.toFixed(1)}</div>
         </div>
         <div class="collapsible">
           <div>Total distance</div>
@@ -196,7 +207,7 @@ export class PlannerElement extends connect(store)(LitElement) {
         </div>
         ${when(
           this.track,
-          () => html` <div class="collapsible hoverable">
+          () => html` <div class="collapsible hoverable" @click=${this.handleScoreAction}>
             <span><i class="las la-trophy"></i>Score Track</span>
           </div>`,
         )}
@@ -275,5 +286,30 @@ export class PlannerElement extends connect(store)(LitElement) {
 
   private wheelSpeed(e: WheelEvent): void {
     store.dispatch(e.deltaY > 0 ? incrementSpeed() : decrementSpeed());
+  }
+
+  private handleScoreAction() {
+    const track = this.track;
+    if (!track) {
+      return;
+    }
+    const points = track.lat.map((lat, index) => ({
+      lat,
+      lon: track.lon[index],
+      alt: track.alt[index],
+      timeSec: track.timeSec[index],
+    }));
+    this.scorer.score(points, this.league, ++this.scoringRequestId);
+  }
+
+  private handleSCoringResult(result: ScoringResult) {
+    store.dispatch(setScore({ ...result, origin: ScoreOrigin.TRACK }));
+    if (this.track) {
+      const lastTimeSec = this.track.timeSec.at(-1);
+      const durationS = lastTimeSec === undefined ? 0 : lastTimeSec - this.track.timeSec[0];
+      store.dispatch(setSpeedKmh((result.lengthKm / durationS) * 3600));
+      this.duration = durationS;
+    }
+    store.dispatch(setDistanceM(result.lengthKm * 1000));
   }
 }
