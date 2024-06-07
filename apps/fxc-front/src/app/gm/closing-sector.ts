@@ -1,6 +1,6 @@
 export class ClosingSector {
   center: { lat: number; lon: number } | null = null;
-  radius: number | null = null;
+  radiusM: number | null = null;
   circle: google.maps.Circle;
 
   constructor() {
@@ -23,10 +23,10 @@ export class ClosingSector {
   }
 
   update(): void {
-    if (this.center == null || this.radius == null) {
+    if (this.center == null || this.radiusM == null) {
       return;
     }
     this.circle.setCenter({ lat: this.center.lat, lng: this.center.lon });
-    this.circle.setRadius(this.radius);
+    this.circle.setRadius(this.radiusM);
   }
 }

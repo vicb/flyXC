@@ -258,7 +258,7 @@ export class PathElement extends connect(store)(LitElement) {
 
     if (result.closingPoints) {
       this.closingSector.center = result.closingPoints.in;
-      this.closingSector.radius = score.closingRadiusKm * 1000;
+      this.closingSector.radiusM = score.closingRadiusKm * 1000;
       this.closingSector.update();
       this.closingSector.setMap(this.map);
     } else {
