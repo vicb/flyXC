@@ -5,7 +5,7 @@ export class Score {
   indexes: number[];
   multiplier: number;
   circuit: CircuitType;
-  closingRadiusM: number;
+  closingRadiusKm: number;
   points: number;
 
   constructor(score: Partial<Score>) {
@@ -13,7 +13,7 @@ export class Score {
     this.indexes = score.indexes ?? [];
     this.multiplier = score.multiplier ?? 1;
     this.circuit = score.circuit ?? CircuitType.OpenDistance;
-    this.closingRadiusM = score.closingRadiusM ?? 0;
+    this.closingRadiusKm = score.closingRadiusKm ?? 0;
     this.points = score.points ?? 0;
   }
 }
