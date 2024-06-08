@@ -56,7 +56,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   };
   private readonly drawHandler = () => this.dispatchEvent(new CustomEvent('draw-route'));
   private scoringRequestId = 0;
-  private readonly scorer: Scorer = new Scorer(
+  private scorer: Scorer | undefined = new Scorer(
     (result) => this.handleSCoringResult(result),
     () => this.scoringRequestId,
   );
@@ -70,6 +70,9 @@ export class PlannerElement extends connect(store)(LitElement) {
     this.isFreeDrawing = state.planner.isFreeDrawing;
     this.track = currentTrack(state);
     this.league = state.planner.league;
+    if (!state.planner.enabled) {
+      this.destroyScorer();
+    }
   }
 
   static get styles(): CSSResult {
@@ -290,7 +293,7 @@ export class PlannerElement extends connect(store)(LitElement) {
 
   private handleScoreAction() {
     const track = this.track;
-    if (!track) {
+    if (!track || !this.scorer) {
       return;
     }
     const points = track.lat.map((lat, index) => ({
@@ -311,5 +314,14 @@ export class PlannerElement extends connect(store)(LitElement) {
       this.duration = durationS;
     }
     store.dispatch(setDistanceM(result.lengthKm * 1000));
+  }
+
+  private destroyScorer() {
+    if (!this.scorer) {
+      return;
+    }
+    const scorer = this.scorer;
+    this.scorer = undefined;
+    scorer.destroy();
   }
 }

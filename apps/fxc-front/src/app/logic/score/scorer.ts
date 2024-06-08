@@ -16,7 +16,7 @@ export type ScoringResultHandler = (result: ScoringResult) => void;
 export type ScoringRequestIdProvider = () => number;
 
 export class Scorer {
-  private scoringWorker?: Worker;
+  private scoringWorker: Worker | null = null;
   private readonly handleScoringResult: ScoringResultHandler;
   private readonly getScoringRequestId: ScoringRequestIdProvider;
 
@@ -63,8 +63,6 @@ export class Scorer {
    * @param scoringRequestId
    */
   public score(track: LatLonAltTime[], league: LeagueCode, scoringRequestId: number) {
-    // lazy building of the worker
-    const worker = this.scoringWorker ?? this.buildWorker();
     const request: WorkerRequest = {
       request: {
         track: {
@@ -74,7 +72,23 @@ export class Scorer {
       },
       id: scoringRequestId,
     };
-    worker.postMessage(request);
+    // lazy building of the worker
+    this.scoringWorker = this.scoringWorker ?? this.buildWorker();
+    this.scoringWorker.postMessage(request);
+  }
+
+  /**
+   * release resources related to the worker.
+   */
+  public destroy() {
+    if (!this.scoringWorker) {
+      return;
+    }
+    this.scoringWorker.onmessage = null;
+    this.scoringWorker.onerror = null;
+    this.scoringWorker.onmessageerror = null;
+    this.scoringWorker.terminate();
+    this.scoringWorker = null;
   }
 
   private buildWorker(): Worker {

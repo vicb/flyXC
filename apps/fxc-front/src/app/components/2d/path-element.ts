@@ -67,7 +67,7 @@ export class PathElement extends connect(store)(LitElement) {
   private faiSectors?: FaiSectors;
   private plannerElement?: PlannerElement;
   private scoringRequestId = 0;
-  private scorer: Scorer = new Scorer(
+  private scorer?: Scorer = new Scorer(
     (result: ScoringResult) => this.optimizerCallback(result),
     () => this.scoringRequestId,
   );
@@ -215,7 +215,7 @@ export class PathElement extends connect(store)(LitElement) {
   // Optimize the route and draw the optimize lines and sectors.
   private optimize(): void {
     const { line } = this;
-    if (!line || line.getPath().getLength() < 2 || this.doNotSyncState) {
+    if (!line || line.getPath().getLength() < 2 || this.doNotSyncState || !this.scorer) {
       return;
     }
 
@@ -402,5 +402,9 @@ export class PathElement extends connect(store)(LitElement) {
     this.faiSectors = undefined;
     this.plannerElement?.remove();
     this.plannerElement = undefined;
+    if (this.scorer) {
+      this.scorer.destroy();
+    }
+    this.scorer = undefined;
   }
 }
