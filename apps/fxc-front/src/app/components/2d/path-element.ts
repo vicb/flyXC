@@ -265,7 +265,7 @@ export class PathElement extends connect(store)(LitElement) {
     this.optimizedLine.setOptions({
       map: this.map,
       path: optimizationPath.filter((p) => p != null).map((p) => new google.maps.LatLng({ lat: p!.lat, lng: p!.lon })),
-      strokeColor: ROUTE_STROKE_COLORS[score.circuit || CircuitType.OpenDistance],
+      strokeColor: ROUTE_STROKE_COLORS[score.circuit],
       strokeOpacity: 0.8,
       strokeWeight: 3,
       zIndex: 1000,

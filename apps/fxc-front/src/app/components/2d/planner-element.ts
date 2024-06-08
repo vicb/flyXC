@@ -57,7 +57,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   private readonly drawHandler = () => this.dispatchEvent(new CustomEvent('draw-route'));
   private scoringRequestId = 0;
   private scorer: Scorer | undefined = new Scorer(
-    (result) => this.handleSCoringResult(result),
+    (result) => this.handleScoringResult(result),
     () => this.scoringRequestId,
   );
 
@@ -169,7 +169,7 @@ export class PlannerElement extends connect(store)(LitElement) {
         </div>
         <div class="collapsible">
           <div>Points = ${this.getMultiplier()}</div>
-          <div class="large">${this.score.score.toFixed(1)}</div>
+          <div class="large">${this.getScore()}</div>
         </div>
         <div class="collapsible">
           <div>Total distance</div>
@@ -251,6 +251,10 @@ export class PlannerElement extends connect(store)(LitElement) {
     return this.score?.multiplier == 1 ? 'kms' : `${this.score?.multiplier} x kms`;
   }
 
+  private getScore() {
+    return this.score?.score.toFixed(1) ?? '';
+  }
+
   private getDuration(): string {
     const duration = this.duration as number;
     const hour = Math.floor(duration / 60);
@@ -305,7 +309,7 @@ export class PlannerElement extends connect(store)(LitElement) {
     this.scorer.score(points, this.league, ++this.scoringRequestId);
   }
 
-  private handleSCoringResult(result: ScoringResult) {
+  private handleScoringResult(result: ScoringResult) {
     store.dispatch(setScore({ ...result, origin: ScoreOrigin.TRACK }));
     if (this.track) {
       const lastTimeSec = this.track.timeSec.at(-1);

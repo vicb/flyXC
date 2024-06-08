@@ -46,7 +46,7 @@ export interface ScoringResult {
   lengthKm: number;
   // Multiplier for computing score. score = lengthKm * multiplier
   multiplier: number;
-  circuit?: CircuitType;
+  circuit: CircuitType;
   closingRadiusKm?: number;
   // Indices of solutions points in the request
   solutionIndices: number[];
@@ -80,6 +80,7 @@ export function* getOptimizer(request: ScoringRequest): Iterator<ScoringResult, 
       score: 0,
       lengthKm: 0,
       multiplier: 0,
+      circuit: CircuitType.OpenDistance,
       solutionIndices: [],
       optimal: true,
       legs: [],
