@@ -16,15 +16,14 @@ export type ScoringResultHandler = (result: ScoringResult) => void;
 export type ScoringRequestIdProvider = () => number;
 
 export class Scorer {
-  private scoringWorker: Worker | null = null;
+  private scoringWorker?: Worker;
   private readonly handleScoringResult: ScoringResultHandler;
   private readonly getScoringRequestId: ScoringRequestIdProvider;
 
   /**
-   * Builds a new Scorer with the two required functions.
-   *
-   * Bear in mind that these function are invoked in a worker environment which means that 'this' is not what you
-   * would expect. If a function use 'this' and is sent to the constructor as a reference, it will not work.
+   * <pre>handleScoringResult</pre> and <pre>getScoringRequestId</pre> functions are invoked in a
+   * worker context which means that 'this' keyword is a reference to the worker itself.
+   * If a function body uses 'this' keyword  and is sent to the constructor as a reference, it will not work.
    * In this case, the function should be wrapped (see example bellow).<br/>
    *
    * E.g:
@@ -37,7 +36,7 @@ export class Scorer {
    *   ...
    *   }
    *   ...
-   *   // although this is a legal code, it will not work because 'this' in handleResult represents the worker and then
+   *   // although this is a valid code, it will not work because 'this' in handleResult represents the worker and then
    *   // 'this.doSomethingWithResult(result)' will fail with this.doSomethingWithResult is not a function.
    *   scorer = new Scorer(this.handleResult,...);
    *   // the correct syntax is:
@@ -56,8 +55,7 @@ export class Scorer {
   }
 
   /**
-   * Computes the score for a given track and league, in a given caller context identified by scoringRequestId.
-   * The result is handled by ScoringResultHandler, only if this result references the same scoringRequestId.
+   * The result is handled by the ScoringResultHandler, only if this result references the same scoringRequestId.
    * @param track
    * @param league
    * @param scoringRequestId
@@ -72,8 +70,8 @@ export class Scorer {
       },
       id: scoringRequestId,
     };
-    // lazy building of the worker
-    this.scoringWorker = this.scoringWorker ?? this.buildWorker();
+    // lazy creation of the worker
+    this.scoringWorker ??= this.createWorker();
     this.scoringWorker.postMessage(request);
   }
 
@@ -88,10 +86,10 @@ export class Scorer {
     this.scoringWorker.onerror = null;
     this.scoringWorker.onmessageerror = null;
     this.scoringWorker.terminate();
-    this.scoringWorker = null;
+    this.scoringWorker = undefined;
   }
 
-  private buildWorker(): Worker {
+  private createWorker(): Worker {
     const scoringWorker = new ScoringWorker();
     scoringWorker.onmessage = (msg: MessageEvent<WorkerResponse>) => {
       // Ensure that this response matches the request

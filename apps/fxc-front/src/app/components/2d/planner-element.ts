@@ -296,10 +296,10 @@ export class PlannerElement extends connect(store)(LitElement) {
   }
 
   private handleScoreAction() {
-    const track = this.track;
-    if (!track || !this.scorer) {
+    if (!this.track || !this.scorer) {
       return;
     }
+    const track = this.track;
     const points = track.lat.map((lat, index) => ({
       lat,
       lon: track.lon[index],
