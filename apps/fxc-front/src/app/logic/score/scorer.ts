@@ -97,6 +97,9 @@ export class Scorer {
         this.handleScoringResult(msg.data.response);
       }
     };
+    scoringWorker.onerror = (error) => {
+      console.error('Scoring Worker Error:', error);
+    }
     return scoringWorker;
   }
 }

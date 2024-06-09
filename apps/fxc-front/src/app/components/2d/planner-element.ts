@@ -248,7 +248,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   }
 
   private getMultiplier() {
-    return this.score?.multiplier == 1 ? 'kms' : `${this.score?.multiplier} x kms`;
+    return this.score?.multiplier === 1 ? 'kms' : `${this.score?.multiplier} x kms`;
   }
 
   private getScore() {

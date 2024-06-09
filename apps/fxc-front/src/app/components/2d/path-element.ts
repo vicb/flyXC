@@ -121,7 +121,7 @@ export class PathElement extends connect(store)(LitElement) {
     this.line.setVisible(!this.isFreeDrawing);
     this.optimizedLine?.setVisible(!this.isFreeDrawing);
     this.doNotSyncState = true;
-    if (this.encodedRoute.length == 0) {
+    if (this.encodedRoute.length === 0) {
       this.setDefaultPath();
     } else {
       const coords = google.maps.geometry.encoding.decodePath(this.encodedRoute);
@@ -175,7 +175,7 @@ export class PathElement extends connect(store)(LitElement) {
     google.maps.event.addListener(path, 'remove_at', () => this.handlePathUpdates());
     google.maps.event.addListener(path, 'insert_at', () => this.handlePathUpdates());
     google.maps.event.addListener(line, 'rightclick', (event: google.maps.PolyMouseEvent): void => {
-      if (event.vertex != null) {
+      if (event.vertex !== undefined) {
         const path = line.getPath();
         if (path.getLength() > 2) {
           path.removeAt(event.vertex);
@@ -183,7 +183,7 @@ export class PathElement extends connect(store)(LitElement) {
       }
     });
     google.maps.event.addListener(line, 'dblclick', (event: google.maps.PolyMouseEvent): void => {
-      if (event.vertex != null) {
+      if (event.vertex !== undefined) {
         const path = line.getPath();
         if (path.getLength() > 2) {
           path.removeAt(event.vertex);
@@ -194,7 +194,7 @@ export class PathElement extends connect(store)(LitElement) {
       this.appendToPath(e.latLng as google.maps.LatLng),
     );
     this.onBoundsChanged = google.maps.event.addListener(this.map, 'bounds_changed', () => {
-      if (this.enabled && this.encodedRoute.length == 0) {
+      if (this.enabled && this.encodedRoute.length === 0) {
         this.updateLineFromState();
       }
     });
@@ -255,7 +255,7 @@ export class PathElement extends connect(store)(LitElement) {
     }
 
     const optimizationPath = [score.startPoint, ...score.turnpoints, score.endPoint];
-    if (score.circuit != CircuitType.OpenDistance) {
+    if (score.circuit !== CircuitType.OpenDistance) {
       // close the path
       optimizationPath.push(optimizationPath[0]);
     }
@@ -289,7 +289,7 @@ export class PathElement extends connect(store)(LitElement) {
       this.faiSectors = new FaiSectors();
       this.faiSectors.addListeners('rightclick', (e) => this.appendToPath(e.latLng));
     }
-    if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {
+    if (score.circuit === CircuitType.FlatTriangle || score.circuit === CircuitType.FaiTriangle) {
       this.faiSectors.update(score.turnpoints);
       this.faiSectors.setMap(this.map);
     } else {
@@ -305,7 +305,7 @@ export class PathElement extends connect(store)(LitElement) {
     if (scoringResult.lengthKm && scoringResult.circuit && window.parent) {
       kms = scoringResult.lengthKm.toFixed(1);
       circuit = CIRCUIT_SHORT_NAME[scoringResult.circuit];
-      if (scoringResult.circuit == CircuitType.OpenDistance) {
+      if (scoringResult.circuit === CircuitType.OpenDistance) {
         circuit += scoringResult.solutionIndices.length - 2;
       }
       window.parent.postMessage(
