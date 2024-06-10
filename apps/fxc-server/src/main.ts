@@ -3,7 +3,7 @@ import { Secrets } from '@flyxc/secrets';
 import compression from 'compression';
 import RedisStore from 'connect-redis';
 import cors from 'cors';
-import express, { type Request } from 'express';
+import express from 'express';
 import fileUpload from 'express-fileupload';
 import session from 'express-session';
 
@@ -22,8 +22,6 @@ const redis = getRedisClient(Secrets.REDIS_URL);
 
 const datastore = getDatastore();
 
-const CORS_ALLOW_LIST = environment.corsAllowList;
-
 const app = express()
   .disable('x-powered-by')
   .use(
@@ -38,7 +36,7 @@ const app = express()
       },
     }),
   )
-  .use(cors(corsDelegate))
+  .use(cors({ origin: corsDelegate, credentials: true }))
   .set('trust proxy', environment.gae)
   .use(express.json())
   .use(express.urlencoded({ extended: true }))
@@ -95,7 +93,17 @@ app.listen(port, () => console.info(`Started server on port ${port}.`));
 type originCallback = (error: any, origin: any) => void;
 
 // Allow only whitelisted domains
-function corsDelegate(request: Request, callback: originCallback): void {
-  const origin: boolean = CORS_ALLOW_LIST.indexOf(request.header('Origin')) !== -1;
-  callback(null, { origin });
+function corsDelegate(requestOrigin: string | undefined, callback: originCallback): void {
+  try {
+    const { hostname } = new URL(requestOrigin);
+    const origin: boolean = environment.corsAllowList.some((allowedDomain) => {
+      if (allowedDomain.startsWith('.')) {
+        return hostname.endsWith(allowedDomain);
+      }
+      return hostname === allowedDomain;
+    });
+    callback(null, { origin });
+  } catch (e) {
+    console.error('CORS error', e);
+  }
 }

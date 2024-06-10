@@ -5,5 +5,6 @@ export const environment = {
   oauthOrigin: 'http://localhost:8080',
   cookieDomain: undefined,
   cookieName: 'fxc-session',
-  corsAllowList: ['http://localhost:8080'],
+  // Allowed domains.
+  corsAllowList: ['localhost'],
 };

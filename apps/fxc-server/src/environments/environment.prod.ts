@@ -5,5 +5,6 @@ export const environment = {
   oauthOrigin: 'https://api.flyxc.app',
   cookieDomain: '.flyxc.app',
   cookieName: 'fxc-session',
-  corsAllowList: ['https://flyxc.app'],
+  // Allowed domains.
+  corsAllowList: ['flyxc.app', '.flyxc.pages.dev'],
 };
