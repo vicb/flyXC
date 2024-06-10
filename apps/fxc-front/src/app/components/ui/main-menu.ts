@@ -657,7 +657,6 @@ export class TrackItems extends connect(store)(LitElement) {
         addUrlParamValues(ParamNames.groupId, ids);
         input.value = '';
       }
-      store.dispatch(planner.setEnabled(true));
     }
   }
 

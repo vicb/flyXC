@@ -19,6 +19,7 @@ describe('optimizer', () => {
           score: 0,
           lengthKm: 0,
           multiplier: 0,
+          circuit: CircuitType.OpenDistance,
           optimal: true,
         });
       });

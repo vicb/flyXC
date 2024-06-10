@@ -41,7 +41,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   @state()
   private isFreeDrawing = false;
   @state()
-  private track: RuntimeTrack | undefined;
+  private currentTrack?: RuntimeTrack;
   @state()
   private league: LeagueCode = 'xc';
 
@@ -56,7 +56,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   };
   private readonly drawHandler = () => this.dispatchEvent(new CustomEvent('draw-route'));
   private scoringRequestId = 0;
-  private scorer: Scorer | undefined = new Scorer(
+  private scorer?: Scorer = new Scorer(
     (result) => this.handleScoringResult(result),
     () => this.scoringRequestId,
   );
@@ -68,11 +68,14 @@ export class PlannerElement extends connect(store)(LitElement) {
     this.units = state.units;
     this.duration = ((this.distanceM / this.speedKmh) * 60) / 1000;
     this.isFreeDrawing = state.planner.isFreeDrawing;
-    this.track = currentTrack(state);
+    this.currentTrack = currentTrack(state);
     this.league = state.planner.league;
-    if (!state.planner.enabled) {
-      this.destroyScorer();
-    }
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.scorer?.cleanup();
+    this.scorer = undefined;
   }
 
   static get styles(): CSSResult {
@@ -209,7 +212,7 @@ export class PlannerElement extends connect(store)(LitElement) {
           </div>
         </div>
         ${when(
-          this.track,
+          this.currentTrack,
           () => html` <div class="collapsible hoverable" @click=${this.handleScoreAction}>
             <span><i class="las la-trophy"></i>Score Track</span>
           </div>`,
@@ -296,10 +299,10 @@ export class PlannerElement extends connect(store)(LitElement) {
   }
 
   private handleScoreAction() {
-    if (!this.track || !this.scorer) {
+    if (!this.currentTrack || !this.scorer) {
       return;
     }
-    const track = this.track;
+    const track = this.currentTrack;
     const points = track.lat.map((lat, index) => ({
       lat,
       lon: track.lon[index],
@@ -311,21 +314,13 @@ export class PlannerElement extends connect(store)(LitElement) {
 
   private handleScoringResult(result: ScoringResult) {
     store.dispatch(setScore({ ...result, origin: ScoreOrigin.TRACK }));
-    if (this.track) {
-      const lastTimeSec = this.track.timeSec.at(-1);
-      const durationS = lastTimeSec === undefined ? 0 : lastTimeSec - this.track.timeSec[0];
+    const lastTimeSec = this.currentTrack?.timeSec?.at(-1);
+    const firstTimeSec = this.currentTrack?.timeSec?.at(0);
+    if (lastTimeSec && firstTimeSec) {
+      const durationS = lastTimeSec - firstTimeSec;
       store.dispatch(setSpeedKmh((result.lengthKm / durationS) * 3600));
       this.duration = durationS;
     }
     store.dispatch(setDistanceM(result.lengthKm * 1000));
-  }
-
-  private destroyScorer() {
-    if (!this.scorer) {
-      return;
-    }
-    const scorer = this.scorer;
-    this.scorer = undefined;
-    scorer.destroy();
   }
 }

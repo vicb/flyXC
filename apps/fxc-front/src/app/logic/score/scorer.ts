@@ -1,6 +1,6 @@
 import type { LatLonAltTime, ScoringResult } from '@flyxc/optimizer/lib/optimizer';
 
-import { type Request as WorkerRequest, type Response as WorkerResponse } from '../../workers/optimizer';
+import { type Response as WorkerResponse } from '../../workers/optimizer';
 import ScoringWorker from '../../workers/optimizer?worker';
 import { getScoringRuleName, type LeagueCode } from './league/leagues';
 
@@ -17,14 +17,12 @@ export type ScoringRequestIdProvider = () => number;
 
 export class Scorer {
   private scoringWorker?: Worker;
-  private readonly handleScoringResult: ScoringResultHandler;
-  private readonly getScoringRequestId: ScoringRequestIdProvider;
 
   /**
-   * <pre>handleScoringResult</pre> and <pre>getScoringRequestId</pre> functions are invoked in a
+   * `handleScoringResult` and `getScoringRequestId` functions are invoked in a
    * worker context which means that 'this' keyword is a reference to the worker itself.
    * If a function body uses 'this' keyword  and is sent to the constructor as a reference, it will not work.
-   * In this case, the function should be wrapped (see example bellow).<br/>
+   * In this case, the function should be wrapped in an arrow function (see example bellow).<br/>
    *
    * E.g:
    * <pre>
@@ -36,8 +34,7 @@ export class Scorer {
    *   ...
    *   }
    *   ...
-   *   // although this is a valid code, it will not work because 'this' in handleResult represents the worker and then
-   *   // 'this.doSomethingWithResult(result)' will fail with this.doSomethingWithResult is not a function.
+   *   // although this is a valid code, it will not work because 'this' is the worker.
    *   scorer = new Scorer(this.handleResult,...);
    *   // the correct syntax is:
    *   scorer = new Scorer((result)=>this.handleResult(result),...);
@@ -49,10 +46,10 @@ export class Scorer {
    *        Get a scoring request identifier. The ScoringResultHandler is invoked only if the returned
    *        request identifier matchs the request identifier returned by the underlying optimizer.
    */
-  constructor(handleScoringResult: ScoringResultHandler, getScoringRequestId: ScoringRequestIdProvider) {
-    this.handleScoringResult = handleScoringResult;
-    this.getScoringRequestId = getScoringRequestId;
-  }
+  constructor(
+    private handleScoringResult: ScoringResultHandler,
+    private getScoringRequestId: ScoringRequestIdProvider,
+  ) {}
 
   /**
    * The result is handled by the ScoringResultHandler, only if this result references the same scoringRequestId.
@@ -61,7 +58,9 @@ export class Scorer {
    * @param scoringRequestId
    */
   public score(track: LatLonAltTime[], league: LeagueCode, scoringRequestId: number) {
-    const request: WorkerRequest = {
+    // lazy creation of the worker
+    this.scoringWorker ??= this.createWorker();
+    this.scoringWorker.postMessage({
       request: {
         track: {
           points: track,
@@ -69,16 +68,13 @@ export class Scorer {
         ruleName: getScoringRuleName(league),
       },
       id: scoringRequestId,
-    };
-    // lazy creation of the worker
-    this.scoringWorker ??= this.createWorker();
-    this.scoringWorker.postMessage(request);
+    });
   }
 
   /**
    * release resources related to the worker.
    */
-  public destroy() {
+  public cleanup() {
     if (!this.scoringWorker) {
       return;
     }
@@ -99,7 +95,7 @@ export class Scorer {
     };
     scoringWorker.onerror = (error) => {
       console.error('Scoring Worker Error:', error);
-    }
+    };
     return scoringWorker;
   }
 }

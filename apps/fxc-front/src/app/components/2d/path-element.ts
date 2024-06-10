@@ -278,7 +278,7 @@ export class PathElement extends connect(store)(LitElement) {
 
     if (score.closingPoints) {
       this.closingSector.center = score.closingPoints.in;
-      this.closingSector.radiusM = (score.closingRadiusKm || 0) * 1000;
+      this.closingSector.radiusM = (score.closingRadiusKm ?? 0) * 1000;
       this.closingSector.update();
       this.closingSector.setMap(this.map);
     } else {
@@ -302,7 +302,7 @@ export class PathElement extends connect(store)(LitElement) {
   private postScoreToHost(scoringResult: ScoringResult) {
     let kms = '';
     let circuit = '';
-    if (scoringResult.lengthKm && scoringResult.circuit && window.parent) {
+    if (scoringResult.lengthKm !== 0 && scoringResult.circuit != null && window.parent) {
       kms = scoringResult.lengthKm.toFixed(1);
       circuit = CIRCUIT_SHORT_NAME[scoringResult.circuit];
       if (scoringResult.circuit === CircuitType.OpenDistance) {
@@ -402,9 +402,7 @@ export class PathElement extends connect(store)(LitElement) {
     this.faiSectors = undefined;
     this.plannerElement?.remove();
     this.plannerElement = undefined;
-    if (this.scorer) {
-      this.scorer.destroy();
-    }
+    this.scorer?.cleanup();
     this.scorer = undefined;
   }
 }
