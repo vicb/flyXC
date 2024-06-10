@@ -1,4 +1,4 @@
-import { fetchResponse, Keys, round, SecretKeys } from '@flyxc/common';
+import { fetchResponse, Keys, round } from '@flyxc/common';
 import type { ZoleoMessage } from '@flyxc/common-node';
 import {
   getDatastore,
@@ -8,6 +8,7 @@ import {
   ZOLEO_MAX_MSG,
   ZOLEO_MAX_MSG_SIZE,
 } from '@flyxc/common-node';
+import { Secrets } from '@flyxc/secrets';
 import { Datastore } from '@google-cloud/datastore';
 import type { Request, Response } from 'express';
 import { Router } from 'express';
@@ -19,7 +20,7 @@ import { getUserInfo, isLoggedIn } from './session';
 
 const auth = basicAuth({
   users: {
-    [SecretKeys.ZOLEO_PUSH_USER]: SecretKeys.ZOLEO_PUSH_PWD,
+    [Secrets.ZOLEO_PUSH_USER]: Secrets.ZOLEO_PUSH_PWD,
   },
 });
 
@@ -106,11 +107,11 @@ export function getZoleoRouter(redis: Redis): Router {
     }
 
     try {
-      const url = SecretKeys.ZOLEO_UNLINK_URL.replace('{deviceId}', deviceId);
+      const url = Secrets.ZOLEO_UNLINK_URL.replace('{deviceId}', deviceId);
       const response = await fetchResponse(url, {
         method: 'PUT',
         headers: {
-          'x-api-key': SecretKeys.ZOLEO_UNLINK_API_KEY,
+          'x-api-key': Secrets.ZOLEO_UNLINK_API_KEY,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ status: 'inactive' }),

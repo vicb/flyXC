@@ -1,8 +1,9 @@
-import { SecretKeys } from '@flyxc/common';
 import { getDatastore, getRedisClient } from '@flyxc/common-node';
+import { Secrets } from '@flyxc/secrets';
 import compression from 'compression';
 import RedisStore from 'connect-redis';
-import express from 'express';
+import cors from 'cors';
+import express, { type Request } from 'express';
 import fileUpload from 'express-fileupload';
 import session from 'express-session';
 
@@ -17,9 +18,11 @@ import { environment } from './environments/environment';
 // eslint-disable-next-line
 const grant = require('grant').express();
 
-const redis = getRedisClient();
+const redis = getRedisClient(Secrets.REDIS_URL);
 
 const datastore = getDatastore();
+
+const CORS_ALLOW_LIST = environment.corsAllowList;
 
 const app = express()
   .disable('x-powered-by')
@@ -35,21 +38,23 @@ const app = express()
       },
     }),
   )
+  .use(cors(corsDelegate))
   .set('trust proxy', environment.gae)
   .use(express.json())
   .use(express.urlencoded({ extended: true }))
   .use(fileUpload({ headers: { 'content-type': 'application/octet-stream' }, limits: { fileSize: 32 * 1024 * 1024 } }))
   .use(
     session({
-      secret: SecretKeys.SESSION_SECRET,
+      secret: Secrets.SESSION_SECRET,
       cookie: {
         httpOnly: true,
         path: '/',
         // "strict" would not send the cookie on the redirect.
         sameSite: 'lax',
+        domain: environment.cookieDomain,
         secure: environment.https,
       },
-      name: 'session',
+      name: environment.cookieName,
       resave: false,
       store: new RedisStore({ client: redis }),
       unset: 'destroy',
@@ -60,15 +65,15 @@ const app = express()
     '/oauth',
     grant({
       defaults: {
-        origin: environment.origin,
+        origin: environment.oauthOrigin,
         transport: 'session',
         state: true,
         response: ['tokens', 'profile'],
         prefix: '/oauth',
       },
       google: {
-        key: SecretKeys.GOOGLE_OAUTH_ID,
-        secret: SecretKeys.GOOGLE_OAUTH_SECRET,
+        key: Secrets.GOOGLE_OAUTH_ID,
+        secret: Secrets.GOOGLE_OAUTH_SECRET,
         scope: ['openid', 'email', 'profile'],
         nonce: true,
         callback: '/devices.html',
@@ -76,10 +81,7 @@ const app = express()
         dynamic: ['callback'],
       },
     }),
-  );
-
-// mount extra routes.
-app
+  )
   .use('/api/admin', getAdminRouter(redis, datastore))
   .use('/api/live', getTrackerRouter(redis, datastore))
   .use('/api/track', getTrackRouter(datastore))
@@ -89,3 +91,11 @@ app
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => console.info(`Started server on port ${port}.`));
+
+type originCallback = (error: any, origin: any) => void;
+
+// Allow only whitelisted domains
+function corsDelegate(request: Request, callback: originCallback): void {
+  const origin: boolean = CORS_ALLOW_LIST.indexOf(request.header('Origin')) !== -1;
+  callback(null, { origin });
+}

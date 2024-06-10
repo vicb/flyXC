@@ -59,10 +59,14 @@ export class ArchivesPage extends LitElement {
       <ion-content>
         ${when(
           !this.connected,
-          () => html`<google-btn callback="/arc" style="margin-top: 10px"></google-btn>`,
+          () =>
+            html`<google-btn
+              callback="${import.meta.env.VITE_FRONT_SERVER}/arc"
+              style="margin-top: 10px"
+            ></google-btn>`,
           () => {
             return when(
-              this.tracks.length == 0,
+              this.tracks.length === 0,
               () => 'loading...',
               () => html`<ion-list>
                 ${this.tracks.map((track, i) => {
@@ -104,7 +108,7 @@ export class ArchivesPage extends LitElement {
         'src',
         `https://maps.googleapis.com/maps/api/staticmap?path=weight:3|color:red|enc:${
           track.path
-        }&size=${IMG_SIZE}x${IMG_SIZE}&key=${getApiKeyAndHost('gmaps').key}`,
+        }&size=${IMG_SIZE}x${IMG_SIZE}&key=${getApiKeyAndHost('GMAPS').key}`,
       );
       this.popup = createPopper(el, tooltip, {
         placement: 'right',
@@ -128,14 +132,16 @@ export class ArchivesPage extends LitElement {
   }
 
   private fetch() {
-    fetch(`/api/admin/archives.json?tracks=${NUM_TRACKS}&cursor=${this.cursor}`).then(async (response) => {
-      this.connected = response.ok;
-      if (response.ok) {
-        const { tracks, cursor } = await response.json();
-        this.tracks = tracks;
-        this.cursor = cursor;
-      }
-    });
+    fetch(`${import.meta.env.VITE_API_SERVER}/api/admin/archives.json?tracks=${NUM_TRACKS}&cursor=${this.cursor}`).then(
+      async (response) => {
+        this.connected = response.ok;
+        if (response.ok) {
+          const { tracks, cursor } = await response.json();
+          this.tracks = tracks;
+          this.cursor = cursor;
+        }
+      },
+    );
   }
 
   createRenderRoot(): HTMLElement {

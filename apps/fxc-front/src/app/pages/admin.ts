@@ -85,7 +85,14 @@ export class AdminPage extends LitElement {
         </ion-toolbar>
       </ion-header>
       <ion-content>
-        ${when(!this.connected, () => html`<google-btn callback="/adm" style="margin-top: 10px"></google-btn>`)}
+        ${when(
+          !this.connected,
+          () =>
+            html`<google-btn
+              callback=${`${import.meta.env.VITE_FRONT_SERVER}/adm`}
+              style="margin-top: 10px"
+            ></google-btn>`,
+        )}
         ${when(this.isLoading && !this.values, () => html`<ion-progress-bar type="indeterminate"></ion-progress-bar>`)}
         ${when(
           this.values,
@@ -106,7 +113,7 @@ export class AdminPage extends LitElement {
             <ion-button @click=${this.fetch}>Refresh</ion-button>
           </ion-buttons>
           <ion-buttons slot="secondary">
-            <ion-button href="/api/live/logout">Logout</ion-button>
+            <ion-button href=${`${import.meta.env.VITE_API_SERVER}/api/live/logout`}>Logout</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-footer>`;
@@ -115,7 +122,7 @@ export class AdminPage extends LitElement {
   private fetch() {
     this.isLoading = true;
     lastFetchMs = Date.now();
-    fetch(`/api/admin/admin.json`).then(async (response) => {
+    fetch(`${import.meta.env.VITE_API_SERVER}/api/admin/admin.json`).then(async (response) => {
       this.isLoading = false;
       this.connected = response.ok;
       if (response.ok) {
@@ -483,7 +490,10 @@ export class DashSync extends LitElement {
       return;
     }
     this.btnLoading = { ...this.btnLoading, [command]: true };
-    await fetch(`/api/admin/state/cmd/${command}`, { method: 'POST', credentials: 'include' });
+    await fetch(`${import.meta.env.VITE_API_SERVER}/api/admin/state/cmd/${command}`, {
+      method: 'POST',
+      credentials: 'include',
+    });
     setInterval(() => {
       this.btnLoading = { ...this.btnLoading, [command]: false };
     }, 5000);
@@ -573,13 +583,15 @@ export class StateExplorer extends LitElement {
     }
     this.fetcherState = undefined;
     this.isLoading = true;
-    await fetch(`/api/admin/state/cmd/${common.Keys.fetcherCmdCaptureState}`, {
+    await fetch(`${import.meta.env.VITE_API_SERVER}/api/admin/state/cmd/${common.Keys.fetcherCmdCaptureState}`, {
       method: 'POST',
       credentials: 'include',
     });
     const deadline = Date.now() + 2 * 60 * 1000;
     this.fetchTimer = setInterval(async () => {
-      const response = await fetch('/api/admin/state.pbf', { credentials: 'include' });
+      const response = await fetch(`${import.meta.env.VITE_API_SERVER}/api/admin/state.pbf`, {
+        credentials: 'include',
+      });
       if (response.status == 200) {
         const buffer = new Uint8Array(await response.arrayBuffer());
         this.fetcherState = common.protos.FetcherState.fromBinary(buffer);

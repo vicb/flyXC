@@ -3,7 +3,6 @@ export { generateAprsPosition, parseAprsPosition } from './aprs';
 export * from './distance';
 export * from './encode';
 export * from './fetch-timeout';
-export * from './keys';
 export * from './live-track';
 export * from './live-track-entity';
 export * from './math';

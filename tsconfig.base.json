@@ -19,6 +19,7 @@
       "@flyxc/common": ["libs/common/src/index.ts"],
       "@flyxc/common-node": ["libs/common-node/src/index.ts"],
       "@flyxc/optimizer/*": ["libs/optimizer/src/*"],
+      "@flyxc/secrets": ["dist/libs/secrets/main.js"],
       "@vaadin/dom": ["libs/vaadin-dom/src/index.ts"],
       "@vaadin/nodom": ["libs/vaadin-nodom/src/index.ts"]
     }

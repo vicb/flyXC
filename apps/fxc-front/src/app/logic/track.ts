@@ -11,7 +11,10 @@ export async function uploadTracks(files: File[]): Promise<number[]> {
   }
   const formData = new FormData();
   files.forEach((track) => formData.append('track', track));
-  return await fetchAndReturnGroupIds('/api/track/upload.pbf', { method: 'POST', body: formData });
+  return await fetchAndReturnGroupIds(`${import.meta.env.VITE_API_SERVER}/api/track/upload.pbf`, {
+    method: 'POST',
+    body: formData,
+  });
 }
 
 // Download tracks given their urls.
@@ -21,7 +24,7 @@ export async function downloadTracksByUrls(urls: string[]): Promise<number[]> {
   }
   const params = new URLSearchParams();
   urls.forEach((track) => params.append('track', track));
-  return await fetchAndReturnGroupIds(`/api/track/byurl.pbf?${params}`);
+  return await fetchAndReturnGroupIds(`${import.meta.env.VITE_API_SERVER}/api/track/byurl.pbf?${params}`);
 }
 
 // Download tracks given then datastore ids.
@@ -31,7 +34,7 @@ export async function downloadTracksByGroupIds(ids: Array<number | string>): Pro
   }
   const params = new URLSearchParams();
   ids.forEach((id) => params.append('id', String(id)));
-  return await fetchAndReturnGroupIds(`/api/track/byid.pbf?${params}`);
+  return await fetchAndReturnGroupIds(`${import.meta.env.VITE_API_SERVER}/api/track/byid.pbf?${params}`);
 }
 
 // Fetch tracks and return their group ids.

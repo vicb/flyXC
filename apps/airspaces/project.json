@@ -8,6 +8,12 @@
     "build": {
       "executor": "@nx/webpack:webpack",
       "outputs": ["{options.outputPath}"],
+      "dependsOn": [
+        {
+          "projects": ["secrets"],
+          "target": "build"
+        }
+      ],
       "options": {
         "target": "node",
         "compiler": "tsc",
@@ -72,6 +78,12 @@
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "dependsOn": [
+        {
+          "projects": ["secrets"],
+          "target": "build"
+        }
+      ],
       "options": {
         "jestConfig": "apps/airspaces/jest.config.ts"
       }

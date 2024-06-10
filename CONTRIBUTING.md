@@ -12,9 +12,6 @@
 ## Project setup
 
 - run `npm install`
-- add default key definitions
-  - `cp apps/fxc-front/src/app/keys.ts.dist apps/fxc-front/src/app/keys.ts`
-  - `cp libs/common/src/lib/keys.ts.dist libs/common/src/lib/keys.ts`
 
 ### Simplistic configuration
 
@@ -49,3 +46,5 @@ For the moment, it does not work with docker compose. But if you install the clo
 `npx nx check` runs the build, lint, and test targets for all the projects. Nice to use before uploading a PR.
 
 `nx affected:test --all --parallel --maxParallel 10 --watch` will run the tests affected by your code changes.
+
+`npm run fixlint` to fix lint errors.

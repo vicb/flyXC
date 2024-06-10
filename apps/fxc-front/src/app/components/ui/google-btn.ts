@@ -28,8 +28,7 @@ export class GoogleButton extends LitElement {
   }
 
   protected render(): TemplateResult {
-    const action = '/oauth/google';
-    return html`<form action=${action}>
+    return html`<form action=${`${import.meta.env.VITE_API_SERVER}/oauth/google`}>
       ${when(this.callback, () => html`<input type="hidden" name="callback" value=${this.callback} />`)}
       <input
         type="image"

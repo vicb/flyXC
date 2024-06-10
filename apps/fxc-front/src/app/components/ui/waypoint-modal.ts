@@ -60,7 +60,12 @@ export class WaypointModal extends LitElement {
           </ion-buttons>
         </ion-toolbar>
       </ion-footer>
-      <form id="wpt-form" style="display: none" action="/api/waypoint/download" method="POST">
+      <form
+        id="wpt-form"
+        style="display: none"
+        action=${`${import.meta.env.VITE_API_SERVER}/api/waypoint/download`}
+        method="POST"
+      >
         <input id="request" name="request" />
       </form>
     `;

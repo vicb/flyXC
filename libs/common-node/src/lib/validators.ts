@@ -1,5 +1,6 @@
 import type { TrackerEntity, TrackerModel } from '@flyxc/common';
-import { fetchResponse, SecretKeys, validateInreachAccount, validateSkylinesAccount } from '@flyxc/common';
+import { fetchResponse, validateInreachAccount, validateSkylinesAccount } from '@flyxc/common';
+import { Secrets } from '@flyxc/secrets';
 import type { Validator } from '@vaadin/nodom';
 
 // Makes sure the account is not password protected.
@@ -49,7 +50,7 @@ export class InreachValidator implements Validator<TrackerModel> {
 // Throws when there is a server error or a status code != 200.
 async function getFlyMeId(username: string): Promise<string | undefined> {
   const url = `https://xcglobe.com/livetrack/flyxcRegisterUser?username=${encodeURIComponent(username)}&token=${
-    SecretKeys.FLYME_TOKEN
+    Secrets.FLYME_TOKEN
   }`;
 
   let response: Response;

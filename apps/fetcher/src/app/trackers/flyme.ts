@@ -3,7 +3,8 @@
 // http://xcglobe.com/flyme/
 
 import type { protos, TrackerNames } from '@flyxc/common';
-import { fetchResponse, formatReqError, SecretKeys, validateFlymeAccount } from '@flyxc/common';
+import { fetchResponse, formatReqError, validateFlymeAccount } from '@flyxc/common';
+import { Secrets } from '@flyxc/secrets';
 
 import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
@@ -25,7 +26,7 @@ export class FlymeFetcher extends TrackerFetcher {
   protected async fetch(devices: number[], updates: TrackerUpdates, timeoutSec: number): Promise<void> {
     // Fixes are id, lat, lon, alt, timeSec and username.
     const flymeIdToFix = new Map<number, [number, number, number, number, number, string]>();
-    const url = `https://xcglobe.com/livetrack/flyxcPositions?token=${SecretKeys.FLYME_TOKEN}`;
+    const url = `https://xcglobe.com/livetrack/flyxcPositions?token=${Secrets.FLYME_TOKEN}`;
 
     try {
       const response = await fetchResponse(url, { timeoutS: 10 });

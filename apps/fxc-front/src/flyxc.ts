@@ -33,12 +33,12 @@ import {
 import * as msg from './app/logic/messages';
 import { downloadTracksByGroupIds, downloadTracksByUrls, uploadTracks } from './app/logic/track';
 import * as app from './app/redux/app-slice';
+import * as liveTrack from './app/redux/live-track-slice';
 import * as planner from './app/redux/planner-slice';
 import * as sel from './app/redux/selectors';
 import type { RootState } from './app/redux/store';
 import { store } from './app/redux/store';
 import * as track from './app/redux/track-slice';
-import * as liveTrack from './app/redux/live-track-slice';
 
 export const SHOW_SPLIT_PANE_WHEN = `(min-width: 992px)`;
 

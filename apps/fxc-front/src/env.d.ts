@@ -5,6 +5,11 @@ import type { AirspaceServer } from '@flyxc/common';
 
 interface ImportMetaEnv {
   VITE_AIRSPACE_SERVER: AirspaceServer;
+  VITE_API_SERVER: string;
+  VITE_FRONT_SERVER: string;
+  VITE_GMAPS_API_KEY: string;
+  VITE_IGNFR_API_KEY: string;
+  VITE_ARCGIS_API_KEY: string;
 }
 
 interface ImportMeta {
