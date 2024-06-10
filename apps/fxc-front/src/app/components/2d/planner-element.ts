@@ -56,10 +56,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   };
   private readonly drawHandler = () => this.dispatchEvent(new CustomEvent('draw-route'));
   private scoringRequestId = 0;
-  private scorer?: Scorer = new Scorer(
-    (result) => this.handleScoringResult(result),
-    () => this.scoringRequestId,
-  );
+  private scorer?: Scorer;
 
   stateChanged(state: RootState): void {
     this.distanceM = state.planner.distanceM;
@@ -299,7 +296,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   }
 
   private handleScoreAction() {
-    if (!this.currentTrack || !this.scorer) {
+    if (!this.currentTrack) {
       return;
     }
     const track = this.currentTrack;
@@ -309,15 +306,20 @@ export class PlannerElement extends connect(store)(LitElement) {
       alt: track.alt[index],
       timeSec: track.timeSec[index],
     }));
+    this.scorer =
+      this.scorer ??
+      new Scorer(
+        (result) => this.handleScoringResult(result),
+        () => this.scoringRequestId,
+      );
     this.scorer.score(points, this.league, ++this.scoringRequestId);
   }
 
   private handleScoringResult(result: ScoringResult) {
     store.dispatch(setScore({ ...result, origin: ScoreOrigin.TRACK }));
-    const lastTimeSec = this.currentTrack?.timeSec?.at(-1);
-    const firstTimeSec = this.currentTrack?.timeSec?.at(0);
-    if (lastTimeSec && firstTimeSec) {
-      const durationS = lastTimeSec - firstTimeSec;
+    if (this.currentTrack && this.currentTrack.timeSec.length > 1) {
+      const lastTimeSec = this.currentTrack.timeSec.at(-1)!;
+      const durationS = lastTimeSec - this.currentTrack.timeSec[0];
       store.dispatch(setSpeedKmh((result.lengthKm / durationS) * 3600));
       this.duration = durationS;
     }
