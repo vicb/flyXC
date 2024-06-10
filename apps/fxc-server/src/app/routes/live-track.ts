@@ -5,7 +5,6 @@ import {
   Keys,
   LONG_INCREMENTAL_UPDATE_SEC,
   protos,
-  SecretKeys,
   SHORT_INCREMENTAL_UPDATE_SEC,
 } from '@flyxc/common';
 import {
@@ -16,6 +15,7 @@ import {
   SkylinesValidator,
   updateLiveTrackEntityFromModel,
 } from '@flyxc/common-node';
+import { Secrets } from '@flyxc/secrets';
 import { Datastore } from '@google-cloud/datastore';
 import { NoDomBinder } from '@vaadin/nodom';
 import type { Request, Response } from 'express';
@@ -49,7 +49,7 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
       res.send(await redis.getBuffer(key));
     } else {
       switch (token) {
-        case SecretKeys.FLYME_TOKEN: {
+        case Secrets.FLYME_TOKEN: {
           const groupProto = await redis.getBuffer(Keys.fetcherExportFlymeProto);
           if (req.header('accept') == 'application/json') {
             const track = protos.LiveDifferentialTrackGroup.fromBinary(groupProto!);

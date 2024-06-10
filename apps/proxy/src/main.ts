@@ -1,4 +1,5 @@
-import { fetchResponse, protos, SecretKeys } from '@flyxc/common';
+import { fetchResponse, protos } from '@flyxc/common';
+import { Secrets } from '@flyxc/secrets';
 import type { Request, Response } from 'express';
 import express from 'express';
 
@@ -7,7 +8,7 @@ const app = express().use(express.raw());
 app.post('/get', async (req: Request, res: Response) => {
   const r = protos.Request.fromBinary(req.body);
 
-  if (r.key != SecretKeys.PROXY_KEY) {
+  if (r.key != Secrets.PROXY_KEY) {
     return res.status(400).send(`[proxy] Invalid key`);
   }
 

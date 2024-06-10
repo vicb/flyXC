@@ -1,7 +1,8 @@
 // https://www.aviant.no/
 
 import type { UfoFleetNames } from '@flyxc/common';
-import { fetchResponse, formatReqError, SecretKeys } from '@flyxc/common';
+import { fetchResponse, formatReqError } from '@flyxc/common';
+import { Secrets } from '@flyxc/secrets';
 
 import type { LivePoint } from '../trackers/live-track';
 import { makeLiveTrack } from '../trackers/live-track';
@@ -16,7 +17,7 @@ export class AviantFetcher extends UfoFleetFetcher {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async fetch(updates: UfoFleetUpdates, timeoutSec: number): Promise<void> {
     try {
-      const response = await fetchResponse(SecretKeys.AVIANT_URL, { retry: 3, timeoutS: 5 });
+      const response = await fetchResponse(Secrets.AVIANT_URL, { retry: 3, timeoutS: 5 });
       if (response.ok) {
         const positions = await response.json();
         for (const position of positions) {

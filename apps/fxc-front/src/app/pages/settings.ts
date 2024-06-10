@@ -286,7 +286,7 @@ export class SettingsPage extends LitElement {
     const binderNode = this.binder.for(this.binder.model.zoleo.account);
     binderNode.value = '';
     binderNode.visited = true;
-    await fetchResponse('/api/zoleo/unlink', { method: 'POST' });
+    await fetchResponse(`${import.meta.env.VITE_API_SERVER}/api/zoleo/unlink`, { method: 'POST' });
   }
 
   private async startZoleoShareFlow() {
@@ -344,7 +344,7 @@ export class SettingsPage extends LitElement {
         account: partnerDeviceID,
         enabled: zoleoModel.enabled.valueOf(),
       };
-      await fetchResponse('/api/zoleo/link', {
+      await fetchResponse(`${import.meta.env.VITE_API_SERVER}/api/zoleo/link`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -359,7 +359,7 @@ export class SettingsPage extends LitElement {
   private async close(): Promise<void> {
     if (this.accountId == null) {
       try {
-        await fetch('/api/live/logout');
+        await fetch(`${import.meta.env.VITE_API_SERVER}/api/live/logout`);
       } catch (e) {
         // empty
       }
@@ -500,10 +500,14 @@ export class SettingsPage extends LitElement {
   }
 
   private getAction(): string {
-    return this.accountId == null ? `/api/live/account.json` : `/api/admin/account/${this.accountId}.json`;
+    return this.accountId == null
+      ? `${import.meta.env.VITE_API_SERVER}/api/live/account.json`
+      : `${import.meta.env.VITE_API_SERVER}/api/admin/account/${this.accountId}.json`;
   }
 
   private getCallback(): string {
-    return this.accountId == null ? '/devices' : `/admin/account/${this.accountId}`;
+    return this.accountId == null
+      ? `${import.meta.env.VITE_FRONT_SERVER}/devices`
+      : `${import.meta.env.VITE_FRONT_SERVER}/admin/account/${this.accountId}`;
   }
 }

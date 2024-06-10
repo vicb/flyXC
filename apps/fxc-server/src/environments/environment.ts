@@ -2,5 +2,8 @@ export const environment = {
   production: false,
   gae: false,
   https: false,
-  origin: 'http://localhost:8080',
+  oauthOrigin: 'http://localhost:8080',
+  cookieDomain: undefined,
+  cookieName: 'fxc-session',
+  corsAllowList: ['http://localhost:8080'],
 };

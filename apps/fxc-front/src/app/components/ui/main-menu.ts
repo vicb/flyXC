@@ -504,7 +504,7 @@ export class ViewItems extends connect(store)(LitElement) {
     const { candidates } = await geocode({
       singleLine: place,
       params: {
-        token: getApiKeyAndHost('arcgis').key,
+        token: getApiKeyAndHost('ARCGIS').key,
         location: `${lon},${lat}`,
         maxLocations: 1,
       },

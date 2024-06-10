@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { SecretKeys } from '@flyxc/common';
+import { Secrets } from '@flyxc/secrets';
 import { program } from 'commander';
 
 const OPENAIP_AIRSPACE_ENDPOINT = `https://api.core.openaip.net/api/airspaces?limit=1000&apiKey={key}&page={page}`;
@@ -14,7 +14,7 @@ async function downloadAirspaces() {
   let page = 1;
   let totalPages = 1;
   while (page <= totalPages) {
-    const url = OPENAIP_AIRSPACE_ENDPOINT.replace(`{key}`, SecretKeys.OPENAIP_KEY).replace(`{page}`, String(page));
+    const url = OPENAIP_AIRSPACE_ENDPOINT.replace(`{key}`, Secrets.OPENAIP_KEY).replace(`{page}`, String(page));
     try {
       console.log(`fetching page ${page}/${totalPages}`);
       const response = await fetch(url);

@@ -13,11 +13,11 @@ import {
   parallelTasksWithTimeout,
   parseRetryAfterS,
   protos,
-  SecretKeys,
   simplifyLiveTrack,
   validateInreachAccount,
 } from '@flyxc/common';
 import { pushListCap } from '@flyxc/common-node';
+import { Secrets } from '@flyxc/secrets';
 import { DOMParser } from '@xmldom/xmldom';
 
 import type { LivePoint } from './live-track';
@@ -75,7 +75,7 @@ export class InreachFetcher extends TrackerFetcher {
               retry: 1,
               timeoutS: 5,
               retryOnTimeout: false,
-              key: SecretKeys.PROXY_KEY,
+              key: Secrets.PROXY_KEY,
             }),
           });
         } else {

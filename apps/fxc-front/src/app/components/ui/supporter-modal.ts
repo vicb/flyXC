@@ -11,7 +11,7 @@ export class SupporterModal extends LitElement {
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
     try {
-      const response = await fetchResponse('/api/supporters.json');
+      const response = await fetchResponse(`${import.meta.env.VITE_API_SERVER}/api/supporters.json`);
       if (response.ok) {
         this.supporters = await response.json();
         this.requestUpdate();

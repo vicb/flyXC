@@ -328,7 +328,7 @@ export class Map3dElement extends connect(store)(LitElement) {
         new IntegratedMesh3DTilesLayer({
           url: 'https://tile.googleapis.com/v1/3dtiles/root.json',
           title: 'Google tiles',
-          customParameters: { key: getApiKeyAndHost('gmaps').key },
+          customParameters: { key: getApiKeyAndHost('GMAPS').key },
         }),
       ],
       referenceLayers: [labelLayer],

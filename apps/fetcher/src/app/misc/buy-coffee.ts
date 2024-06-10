@@ -2,7 +2,8 @@
 //
 // https://developers.buymeacoffee.com/
 
-import { fetchResponse, SecretKeys } from '@flyxc/common';
+import { fetchResponse } from '@flyxc/common';
+import { Secrets } from '@flyxc/secrets';
 
 export type Supporters = {
   // visible supporters
@@ -24,7 +25,7 @@ export async function fetchSupporters(): Promise<Supporters> {
     while (url) {
       const response = await fetchResponse(url, {
         headers: {
-          Authorization: `Bearer ${SecretKeys.BUY_ME_A_COFFEE_TOKEN}`,
+          Authorization: `Bearer ${Secrets.BUY_ME_A_COFFEE_TOKEN}`,
         },
       });
       if (response.ok) {

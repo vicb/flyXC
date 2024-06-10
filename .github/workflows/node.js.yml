@@ -19,8 +19,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - uses: bahmutov/npm-install@v1
-      - run: cp apps/fxc-front/src/app/keys.ts.dist apps/fxc-front/src/app/keys.ts
-      - run: cp libs/common/src/lib/keys.ts.dist libs/common/src/lib/keys.ts
       - name: 'Test'
         env:
           NODE_OPTIONS: '--max_old_space_size=4096'

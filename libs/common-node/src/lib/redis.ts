@@ -1,14 +1,13 @@
-import { SecretKeys } from '@flyxc/common';
 import type { ChainableCommander } from 'ioredis';
 import Redis from 'ioredis';
 
 // lazily created client.
 let redis: Redis | undefined;
 
-export function getRedisClient(): Redis {
+export function getRedisClient(url: string): Redis {
   if (!redis) {
     const keyPrefix = process.env.NODE_ENV == 'development' ? 'dev:' : undefined;
-    redis = new Redis(SecretKeys.REDIS_URL, { keyPrefix });
+    redis = new Redis(url, { keyPrefix });
   }
   return redis;
 }

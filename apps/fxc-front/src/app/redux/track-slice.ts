@@ -84,9 +84,11 @@ const fetchPendingServerMetadata = createAsyncThunk(
     api.dispatch(trackSlice.actions.setFetchingMetadata(false));
     if (groupIds.length) {
       try {
-        const response = await fetch(`/api/track/metadata.pbf?ids=${groupIds.join(',')}`);
+        const response = await fetch(
+          `${import.meta.env.VITE_API_SERVER}/api/track/metadata.pbf?ids=${groupIds.join(',')}`,
+        );
         // The server returns a 204 (No content) status code when the metadata is not ready.
-        if (response.status == 200) {
+        if (response.status === 200) {
           output = await response.arrayBuffer();
         }
       } catch (e) {

@@ -49,8 +49,8 @@ let gMapsApiLoading: Promise<void> | undefined;
 function loadGMaps(): Promise<void> {
   if (!gMapsApiLoading) {
     const load = (resolve: () => void) => {
-      const { key, host } = getApiKeyAndHost('gmaps', store.getState().track.domain);
-      if (typeof gtag != 'undefined') {
+      const { key, host } = getApiKeyAndHost('GMAPS', store.getState().track.domain);
+      if (typeof gtag !== 'undefined') {
         gtag('event', 'gmaps_api_key_host', { host });
       }
       new Loader({
