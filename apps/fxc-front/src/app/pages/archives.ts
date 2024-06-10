@@ -132,16 +132,16 @@ export class ArchivesPage extends LitElement {
   }
 
   private fetch() {
-    fetch(`${import.meta.env.VITE_API_SERVER}/api/admin/archives.json?tracks=${NUM_TRACKS}&cursor=${this.cursor}`).then(
-      async (response) => {
-        this.connected = response.ok;
-        if (response.ok) {
-          const { tracks, cursor } = await response.json();
-          this.tracks = tracks;
-          this.cursor = cursor;
-        }
-      },
-    );
+    fetch(`${import.meta.env.VITE_API_SERVER}/api/admin/archives.json?tracks=${NUM_TRACKS}&cursor=${this.cursor}`, {
+      credentials: 'include',
+    }).then(async (response) => {
+      this.connected = response.ok;
+      if (response.ok) {
+        const { tracks, cursor } = await response.json();
+        this.tracks = tracks;
+        this.cursor = cursor;
+      }
+    });
   }
 
   createRenderRoot(): HTMLElement {

@@ -27,6 +27,7 @@ export async function fetchResponse(
     method?: string;
     headers?: HeadersInit;
     body?: BodyInit;
+    credentials?: RequestCredentials;
   },
 ): Promise<Response> {
   const {
@@ -37,6 +38,7 @@ export async function fetchResponse(
     method = undefined,
     headers = undefined,
     body = undefined,
+    credentials = undefined,
   } = options ?? {};
   let signal = (AbortSignal as any).timeout(timeoutS * 1000);
   let error = new Error(`Retried ${retry} times`);
@@ -47,7 +49,7 @@ export async function fetchResponse(
 
   for (let numRetry = 0; numRetry < retry; numRetry++) {
     try {
-      const response = await fetch(url, { signal, method, headers, body });
+      const response = await fetch(url, { signal, method, headers, body, credentials });
       log && console.log(`got response ${(Date.now() / 1000 - start).toFixed(1)}s`);
       if (response.ok) {
         log && console.log(`return response ${(Date.now() / 1000 - start).toFixed(1)}s`);

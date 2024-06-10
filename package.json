@@ -3,7 +3,7 @@
   "version": "2.2.0",
   "license": "MIT",
   "scripts": {
-    "deploy": "npm run check && nx build fxc-front --prod --skip-nx-cache && nx build fxc-server --prod --skip-nx-cache && gcloud app deploy dist/apps/fxc-server/app.yaml",
+    "deploy": "npm run check && nx build fxc-server --prod --skip-nx-cache && gcloud app deploy dist/apps/fxc-server/app.yaml",
     "dev": "nx run-many --target=serve --projects=fxc-front,fxc-server,airspaces --configuration=development",
     "check": "npm run fixlint && nx format && nx run-many --targets=test,lint,build --parallel 8",
     "fixlint": "nx run-many -t lint --fix --parallel 8"

@@ -122,13 +122,15 @@ export class AdminPage extends LitElement {
   private fetch() {
     this.isLoading = true;
     lastFetchMs = Date.now();
-    fetch(`${import.meta.env.VITE_API_SERVER}/api/admin/admin.json`).then(async (response) => {
-      this.isLoading = false;
-      this.connected = response.ok;
-      if (response.ok) {
-        this.values = await response.json();
-      }
-    });
+    fetch(`${import.meta.env.VITE_API_SERVER}/api/admin/admin.json`, { credentials: 'include' }).then(
+      async (response) => {
+        this.isLoading = false;
+        this.connected = response.ok;
+        if (response.ok) {
+          this.values = await response.json();
+        }
+      },
+    );
   }
 
   createRenderRoot(): HTMLElement {

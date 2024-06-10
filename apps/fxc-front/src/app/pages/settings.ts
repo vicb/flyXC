@@ -50,7 +50,7 @@ export class SettingsPage extends LitElement {
   // Wait to know what account to edit to fetch.
   set accountId(id: string | null) {
     this._accountId = id;
-    fetch(this.getAction())
+    fetch(this.getAction(), { credentials: 'include' })
       .then((response) => {
         this.isLoading = false;
         this.xsrfToken = response.headers.get('xsrf-token') ?? '';
@@ -286,7 +286,10 @@ export class SettingsPage extends LitElement {
     const binderNode = this.binder.for(this.binder.model.zoleo.account);
     binderNode.value = '';
     binderNode.visited = true;
-    await fetchResponse(`${import.meta.env.VITE_API_SERVER}/api/zoleo/unlink`, { method: 'POST' });
+    await fetchResponse(`${import.meta.env.VITE_API_SERVER}/api/zoleo/unlink`, {
+      method: 'POST',
+      credentials: 'include',
+    });
   }
 
   private async startZoleoShareFlow() {
@@ -348,6 +351,7 @@ export class SettingsPage extends LitElement {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        credentials: 'include',
       });
       await this.zoleoAlert?.dismiss();
     }
