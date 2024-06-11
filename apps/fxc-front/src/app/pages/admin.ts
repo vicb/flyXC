@@ -113,7 +113,7 @@ export class AdminPage extends LitElement {
             <ion-button @click=${this.fetch}>Refresh</ion-button>
           </ion-buttons>
           <ion-buttons slot="secondary">
-            <ion-button @click="${async () => await this.logout()})">Logout</ion-button>
+            <ion-button @click="${async () => await this.logout()}">Logout</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-footer>`;

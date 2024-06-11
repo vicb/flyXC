@@ -7,8 +7,9 @@ import type { Score } from '../logic/score/scorer';
 
 export type PlannerState = {
   score?: Score;
-  speed: number;
-  distance: number;
+  speedKmh: number;
+  // Total length of the path.
+  distanceM: number;
   league: LeagueCode;
   enabled: boolean;
   // Encoded route.
@@ -21,8 +22,8 @@ const enabled = route.length > 0;
 
 const initialState: PlannerState = {
   score: undefined,
-  speed: Number(getUrlParamValues(ParamNames.speed)[0] ?? 20),
-  distance: 0,
+  speedKmh: Number(getUrlParamValues(ParamNames.speed)[0] ?? 20),
+  distanceM: 0,
   league: (getUrlParamValues(ParamNames.league)[0] ?? localStorage.getItem('league') ?? 'xc') as LeagueCode,
   enabled,
   route,
@@ -36,12 +37,12 @@ const plannerSlice = createSlice({
     setScore: (state, action: PayloadAction<Score | undefined>) => {
       state.score = action.payload;
     },
-    setDistance: (state, action: PayloadAction<number>) => {
-      state.distance = action.payload;
+    setDistanceM: (state, action: PayloadAction<number>) => {
+      state.distanceM = action.payload;
     },
-    setSpeed: (state, action: PayloadAction<number>) => {
-      state.speed = Math.max(1, action.payload);
-      setUrlParamValue(ParamNames.speed, state.speed.toFixed(1));
+    setSpeedKmh: (state, action: PayloadAction<number>) => {
+      state.speedKmh = Math.max(1, action.payload);
+      setUrlParamValue(ParamNames.speed, state.speedKmh.toFixed(1));
     },
     setLeague: (state, action: PayloadAction<LeagueCode>) => {
       setUrlParamValue(ParamNames.league, action.payload);
@@ -49,12 +50,12 @@ const plannerSlice = createSlice({
       state.league = action.payload;
     },
     incrementSpeed: (state) => {
-      state.speed = Math.floor(state.speed + 1);
-      setUrlParamValue(ParamNames.speed, state.speed.toFixed(1));
+      state.speedKmh = Math.floor(state.speedKmh + 1);
+      setUrlParamValue(ParamNames.speed, state.speedKmh.toFixed(1));
     },
     decrementSpeed: (state) => {
-      state.speed = Math.max(1, Math.floor(state.speed - 1));
-      setUrlParamValue(ParamNames.speed, state.speed.toFixed(1));
+      state.speedKmh = Math.max(1, Math.floor(state.speedKmh - 1));
+      setUrlParamValue(ParamNames.speed, state.speedKmh.toFixed(1));
     },
     setRoute: (state, action: PayloadAction<string>) => {
       const route = action.payload;
@@ -77,8 +78,8 @@ const plannerSlice = createSlice({
 export const reducer = plannerSlice.reducer;
 export const {
   setScore,
-  setDistance,
-  setSpeed,
+  setDistanceM,
+  setSpeedKmh,
   setLeague,
   incrementSpeed,
   decrementSpeed,
