@@ -89,7 +89,7 @@ export class AdminPage extends LitElement {
           !this.connected,
           () =>
             html`<google-btn
-              callback=${`${import.meta.env.VITE_FRONT_SERVER}/adm`}
+              callback=${`${import.meta.env.VITE_APP_SERVER}/adm`}
               style="margin-top: 10px"
             ></google-btn>`,
         )}
@@ -113,10 +113,19 @@ export class AdminPage extends LitElement {
             <ion-button @click=${this.fetch}>Refresh</ion-button>
           </ion-buttons>
           <ion-buttons slot="secondary">
-            <ion-button href=${`${import.meta.env.VITE_API_SERVER}/api/live/logout`}>Logout</ion-button>
+            <ion-button @click="${async () => await this.logout()})">Logout</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-footer>`;
+  }
+
+  private async logout() {
+    try {
+      await fetch(`${import.meta.env.VITE_API_SERVER}/api/live/logout`, { method: 'POST', credentials: 'include' });
+    } catch (e) {
+      // empty
+    }
+    document.location.assign(import.meta.env.VITE_APP_SERVER);
   }
 
   private fetch() {

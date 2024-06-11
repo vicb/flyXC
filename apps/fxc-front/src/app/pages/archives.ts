@@ -60,10 +60,7 @@ export class ArchivesPage extends LitElement {
         ${when(
           !this.connected,
           () =>
-            html`<google-btn
-              callback="${import.meta.env.VITE_FRONT_SERVER}/arc"
-              style="margin-top: 10px"
-            ></google-btn>`,
+            html`<google-btn callback="${import.meta.env.VITE_APP_SERVER}/arc" style="margin-top: 10px"></google-btn>`,
           () => {
             return when(
               this.tracks.length === 0,

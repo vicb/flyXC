@@ -94,6 +94,12 @@ type originCallback = (error: any, origin: any) => void;
 
 // Allow only whitelisted domains
 function corsDelegate(requestOrigin: string | undefined, callback: originCallback): void {
+  // For GET requests...
+  if (requestOrigin == null) {
+    callback(null, { origin: true });
+    return;
+  }
+
   try {
     const { hostname } = new URL(requestOrigin);
     const origin: boolean = environment.corsAllowList.some((allowedDomain) => {

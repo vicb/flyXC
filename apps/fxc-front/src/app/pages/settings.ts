@@ -114,7 +114,7 @@ export class SettingsPage extends LitElement {
                   <ion-card-title><i class="las la-user-cog"></i> General</ion-card-title>
                 </ion-card-header>
                 <flow-ion-check
-                  label="Tracking is enabled. Your live positions will be displayed on the map for 24h."
+                  label="Tracking is enabled. Your live positions will be displayed on the map for up to 24h."
                   labelOff="Tracking is disabled. You will not appear on the map."
                   ...=${field(model.enabled)}
                 ></flow-ion-check>
@@ -363,14 +363,14 @@ export class SettingsPage extends LitElement {
   private async close(): Promise<void> {
     if (this.accountId == null) {
       try {
-        await fetch(`${import.meta.env.VITE_API_SERVER}/api/live/logout`, { credentials: 'include' });
+        await fetch(`${import.meta.env.VITE_API_SERVER}/api/live/logout`, { method: 'POST', credentials: 'include' });
       } catch (e) {
         // empty
       }
       const url = localStorage.getItem('url.tracking.return');
-      document.location.assign(url ?? '/');
+      document.location.assign(url ?? import.meta.env.VITE_APP_SERVER);
     } else {
-      document.location.assign('/adm');
+      document.location.assign(`${import.meta.env.VITE_APP_SERVER}/adm`);
     }
   }
 
@@ -511,7 +511,7 @@ export class SettingsPage extends LitElement {
 
   private getCallback(): string {
     return this.accountId == null
-      ? `${import.meta.env.VITE_FRONT_SERVER}/devices`
-      : `${import.meta.env.VITE_FRONT_SERVER}/admin/account/${this.accountId}`;
+      ? `${import.meta.env.VITE_APP_SERVER}/devices`
+      : `${import.meta.env.VITE_APP_SERVER}/adm/account/${this.accountId}`;
   }
 }
