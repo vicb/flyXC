@@ -744,7 +744,7 @@ export class LiveTrackItems extends connect(store)(LitElement) {
 
   private handleConfig() {
     store.dispatch(setReturnUrl(document.location.toString()));
-    document.location.href = '/devices';
+    document.location.href = `${import.meta.env.VITE_APP_SERVER}/devices`;
   }
 
   protected createRenderRoot(): HTMLElement {

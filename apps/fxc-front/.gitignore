@@ -1,2 +1,2 @@
 # Private dev keys
-/.env.development
+/.env.development.local

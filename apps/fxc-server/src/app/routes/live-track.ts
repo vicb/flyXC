@@ -115,9 +115,9 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
   });
 
   // Logout.
-  router.get('/logout', async (req: Request, res: Response) => {
+  router.post('/logout', async (req: Request, res: Response) => {
     await logout(req);
-    res.redirect('/');
+    return res.sendStatus(200);
   });
 
   return router;
