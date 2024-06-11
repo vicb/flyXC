@@ -363,7 +363,7 @@ export class SettingsPage extends LitElement {
   private async close(): Promise<void> {
     if (this.accountId == null) {
       try {
-        await fetch(`${import.meta.env.VITE_API_SERVER}/api/live/logout`);
+        await fetch(`${import.meta.env.VITE_API_SERVER}/api/live/logout`, { credentials: 'include' });
       } catch (e) {
         // empty
       }
