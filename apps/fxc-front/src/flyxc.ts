@@ -170,7 +170,7 @@ export class FlyXc extends connect(store)(LitElement) {
 
     // Update the route and speed.
     store.dispatch(planner.setRoute(getUrlParamValues(ParamNames.route)[0] ?? ''));
-    store.dispatch(planner.setSpeed(Number(getUrlParamValues(ParamNames.speed)[0] ?? 20)));
+    store.dispatch(planner.setSpeedKmh(Number(getUrlParamValues(ParamNames.speed)[0] ?? 20)));
   }
 
   // Load tracks dropped on the map.

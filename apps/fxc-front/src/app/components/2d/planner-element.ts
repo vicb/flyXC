@@ -7,7 +7,7 @@ import { connect } from 'pwa-helpers';
 
 import type { Score } from '../../logic/score/scorer';
 import * as units from '../../logic/units';
-import { decrementSpeed, incrementSpeed, setSpeed } from '../../redux/planner-slice';
+import { decrementSpeed, incrementSpeed, setSpeedKmh } from '../../redux/planner-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 
@@ -25,11 +25,11 @@ export class PlannerElement extends connect(store)(LitElement) {
   @state()
   private score?: Score;
   @state()
-  private speed = 20;
+  private speedKmh = 20;
   @state()
   private units?: units.Units;
   @state()
-  private distance = 0;
+  private distanceM = 0;
   @state()
   private hideDetails = store.getState().browser.isSmallScreen;
   @state()
@@ -44,11 +44,11 @@ export class PlannerElement extends connect(store)(LitElement) {
   private readonly drawHandler = () => this.dispatchEvent(new CustomEvent('draw-route'));
 
   stateChanged(state: RootState): void {
-    this.distance = state.planner.distance;
+    this.distanceM = state.planner.distanceM;
     this.score = state.planner.score;
-    this.speed = state.planner.speed;
+    this.speedKmh = state.planner.speedKmh;
     this.units = state.units;
-    this.duration = ((this.distance / this.speed) * 60) / 1000;
+    this.duration = ((this.distanceM / this.speedKmh) * 60) / 1000;
     this.isFreeDrawing = state.planner.isFreeDrawing;
   }
 
@@ -151,7 +151,7 @@ export class PlannerElement extends connect(store)(LitElement) {
         <div class="collapsible">
           <div>Total distance</div>
           <div class="large">
-            ${unsafeHTML(units.formatUnit(this.distance / 1000, this.units.distance, undefined, 'unit'))}
+            ${unsafeHTML(units.formatUnit(this.distanceM / 1000, this.units.distance, undefined, 'unit'))}
           </div>
         </div>
         <div
@@ -182,7 +182,7 @@ export class PlannerElement extends connect(store)(LitElement) {
             </div>
           </div>
           <div class="large">
-            ${unsafeHTML(units.formatUnit(this.speed as number, this.units.speed, undefined, 'unit'))}
+            ${unsafeHTML(units.formatUnit(this.speedKmh as number, this.units.speed, undefined, 'unit'))}
           </div>
         </div>
         <div
@@ -242,13 +242,13 @@ export class PlannerElement extends connect(store)(LitElement) {
     const width = target.clientWidth;
     const delta = x > width / 2 ? 1 : -1;
     const duration = (Math.floor((this.duration as number) / 15) + delta) * 15;
-    store.dispatch(setSpeed(this.distance / ((1000 * Math.max(15, duration)) / 60)));
+    store.dispatch(setSpeedKmh(this.distanceM / ((1000 * Math.max(15, duration)) / 60)));
   }
 
   private wheelDuration(e: WheelEvent): void {
     const delta = Math.sign(e.deltaY);
     const duration = (Math.floor((this.duration as number) / 15) + delta) * 15;
-    store.dispatch(setSpeed(this.distance / ((1000 * Math.max(15, duration)) / 60)));
+    store.dispatch(setSpeedKmh(this.distanceM / ((1000 * Math.max(15, duration)) / 60)));
   }
 
   private changeSpeed(e: MouseEvent): void {

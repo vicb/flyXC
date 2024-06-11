@@ -18,12 +18,13 @@ import { drawRoute } from '../../logic/messages';
 import type { LeagueCode } from '../../logic/score/league/leagues';
 import { getScoringRuleName } from '../../logic/score/league/leagues';
 import { Score } from '../../logic/score/scorer';
-import { setDistance, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
+import { setDistanceM, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import type { Request as WorkerRequest, Response as WorkerResponse } from '../../workers/optimizer';
 import ScoringWorker from '../../workers/optimizer?worker';
 import type { PlannerElement } from './planner-element';
+import { getPreciseDistance } from 'geolib';
 
 // Route color by circuit type.
 const ROUTE_STROKE_COLORS = {
@@ -165,13 +166,17 @@ export class PathElement extends connect(store)(LitElement) {
     google.maps.event.addListener(line, 'rightclick', (event: google.maps.PolyMouseEvent): void => {
       if (event.vertex != null) {
         const path = line.getPath();
-        path.getLength() > 2 && path.removeAt(event.vertex);
+        if (path.getLength() > 2) {
+          path.removeAt(event.vertex);
+        }
       }
     });
     google.maps.event.addListener(line, 'dblclick', (event: google.maps.PolyMouseEvent): void => {
       if (event.vertex != null) {
         const path = line.getPath();
-        path.getLength() > 2 && path.removeAt(event.vertex);
+        if (path.getLength() > 2) {
+          path.removeAt(event.vertex);
+        }
       }
     });
     this.onPointAddeded = google.maps.event.addListener(this.map, 'rightclick', (e: google.maps.MapMouseEvent) =>
@@ -229,7 +234,6 @@ export class PathElement extends connect(store)(LitElement) {
 
   private optimizerCallback(result: ScoringResult): void {
     const score = this.toScore(result);
-    store.dispatch(setDistance(score.distanceM));
     store.dispatch(setScore(score));
 
     const path = [result.startPoint, ...result.turnpoints, result.endPoint]
@@ -322,10 +326,20 @@ export class PathElement extends connect(store)(LitElement) {
   }
 
   private handlePathUpdates(): void {
-    if (this.line && !this.doNotSyncState) {
-      pushCurrentState();
-      store.dispatch(setRoute(google.maps.geometry.encoding.encodePath(this.line.getPath())));
+    if (!this.line) {
+      return;
     }
+    const path = this.line.getPath();
+    if (!this.doNotSyncState) {
+      pushCurrentState();
+      store.dispatch(setRoute(google.maps.geometry.encoding.encodePath(path)));
+    }
+    let distanceM = 0;
+    const latlonPath = path.getArray().map((latLng) => ({ lat: latLng.lat(), lon: latLng.lng() }));
+    for (let i = 1; i < latlonPath.length; i++) {
+      distanceM += getPreciseDistance(latlonPath[i - 1], latlonPath[i]);
+    }
+    store.dispatch(setDistanceM(distanceM));
     this.optimize();
   }
 
