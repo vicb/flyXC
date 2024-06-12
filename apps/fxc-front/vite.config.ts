@@ -8,6 +8,7 @@ import minifyHTML from 'rollup-plugin-minify-html-literals';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 import { checker } from 'vite-plugin-checker';
+import { formatInTimeZone } from 'date-fns-tz';
 
 const assetFileNames = (assetInfo: any) => {
   if (!assetInfo.name) {
@@ -92,9 +93,11 @@ export default defineConfig({
   },
 
   define: {
-    __BUILD_TIMESTAMP__: JSON.stringify(format(new Date(), 'yyyyMMdd.HHmm')),
+    __BUILD_TIMESTAMP__: JSON.stringify(formatInTimeZone(new Date(), 'Europe/Paris', 'yyyyMMdd-HHmm')),
     __AIRSPACE_DATE__: JSON.stringify(getAirspaceDate()),
-    // TODO(vicb): check how to remove this (igc-xc-score)
+    // Vite does not define global.
+    // Required for a dependency of igc-xc-score.
+    // See https://stackoverflow.com/questions/72114775/vite-global-is-not-defined/73208485#73208485
     global: {},
   },
 });
@@ -105,7 +108,7 @@ function getAirspaceDate() {
 
   if (existsSync(tileInfo)) {
     try {
-      return String(execSync(`git log -1 --format="%cd" --date=format:"%Y-%m-%d" -- ${tileInfo}`)).trim();
+      return String(execSync(`git log -1 --format="%ad" --date=format:"%Y-%m-%d" -- ${tileInfo}`)).trim();
     } catch (e) {
       return '-';
     }

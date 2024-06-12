@@ -20,7 +20,8 @@ export class AboutModal extends LitElement {
           <a href="https://github.com/osmeras" target="_blank">Stanislav Ošmera</a>,
           <a href="https://github.com/tris" target="_blank">Tristan Horn</a>,
           <a href="https://github.com/spasutto" target="_blank">Sylvain Pasutto</a>,
-          <a href="https://github.com/flyingtof" target="_blank">flyingtof</a>
+          <a href="https://github.com/flyingtof" target="_blank">flyingtof</a>, Josh Cohn,
+          <a href="https://github.com/jujumo" target="_blank">JuMo</a>
         </p>
 
         <p>
@@ -34,7 +35,7 @@ export class AboutModal extends LitElement {
 
         <ion-text color="medium">
           <ul style="list-style-type: none; padding: 0;">
-            <li><em>version ${version}-${__BUILD_TIMESTAMP__}</em></li>
+            <li><em>version ${version}.${__BUILD_TIMESTAMP__}</em></li>
             <li><em>airspace ${__AIRSPACE_DATE__}</em></li>
           </ul>
         </ion-text>
