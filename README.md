@@ -2,14 +2,19 @@
 
 ## flyXC
 
-- Visualize your flights,
-- Plan your flights,
-- Add your live trackers (inreach, spot, skylines, flyme, flymaster, ogn) to the map.
+- Visualize your flights
+- Plan your flights
+- Add your live trackers (inreach, spot, skylines, flyme, flymaster, ogn, zoleo) to the map.
 
 ## Contributors
 
-- [Momtchil Momtchev](https://github.com/mmomtchev),
+- [Momtchil Momtchev](https://github.com/mmomtchev)
 - [Stanislav Ošmera](https://github.com/osmeras)
+- [Tristan Horn](https://github.com/tris)
+- [Sylvain Pasutto](https://github.com/spasutto)
+- [flyingtof](https://github.com/flyingtof)
+- Josh Cohn
+- [JuMo](https://github.com/jujumo)
 
 ## Credits
 
