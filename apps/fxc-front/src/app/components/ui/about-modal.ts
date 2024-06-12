@@ -35,7 +35,7 @@ export class AboutModal extends LitElement {
 
         <ion-text color="medium">
           <ul style="list-style-type: none; padding: 0;">
-            <li><em>version ${version}-${__BUILD_TIMESTAMP__}</em></li>
+            <li><em>version ${version}.${__BUILD_TIMESTAMP__}</em></li>
             <li><em>airspace ${__AIRSPACE_DATE__}</em></li>
           </ul>
         </ion-text>
