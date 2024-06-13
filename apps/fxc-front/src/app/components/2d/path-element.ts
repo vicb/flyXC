@@ -54,7 +54,7 @@ export class PathElement extends connect(store)(LitElement) {
   @state()
   private isFreeDrawing = false;
   @state()
-  private score: Score | undefined;
+  private score?: Score;
 
   private line?: google.maps.Polyline;
   private optimizedLine?: google.maps.Polyline;
@@ -67,10 +67,7 @@ export class PathElement extends connect(store)(LitElement) {
   private faiSectors?: FaiSectors;
   private plannerElement?: PlannerElement;
   private scoringRequestId = 0;
-  private scorer?: Scorer = new Scorer(
-    (result: ScoringResult) => this.optimizerCallback(result),
-    () => this.scoringRequestId,
-  );
+  private scorer?: Scorer;
 
   stateChanged(state: RootState): void {
     this.league = state.planner.league;
@@ -212,15 +209,19 @@ export class PathElement extends connect(store)(LitElement) {
       : [];
   }
 
-  // Optimize the route and draw the optimize lines and sectors.
+  // Optimize the route.
   private optimize(): void {
     const { line } = this;
-    if (!line || line.getPath().getLength() < 2 || this.doNotSyncState || !this.scorer) {
+    if (!line || line.getPath().getLength() < 2 || this.doNotSyncState) {
       return;
     }
 
     const points = this.getPathPoints().map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 }));
 
+    this.scorer ??= new Scorer(
+      (result: ScoringResult) => this.optimizerCallback(result),
+      () => this.scoringRequestId,
+    );
     this.scorer.score(points, this.league, ++this.scoringRequestId);
   }
 
@@ -231,6 +232,7 @@ export class PathElement extends connect(store)(LitElement) {
     this.postScoreToHost(result);
   }
 
+  // draw the optimize lines and sectors
   private drawOptimization(score?: Score) {
     if (!score) {
       return;
