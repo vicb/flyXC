@@ -36,6 +36,8 @@ const app = express()
       },
     }),
   )
+  // Enable pre-flight
+  .options('*', cors())
   .use(cors({ origin: corsDelegate, credentials: true }))
   .set('trust proxy', environment.gae)
   .use(express.json())
@@ -94,7 +96,7 @@ type originCallback = (error: any, origin: any) => void;
 
 // Allow only whitelisted domains
 function corsDelegate(requestOrigin: string | undefined, callback: originCallback): void {
-  // For GET requests...
+  // Allow requests with no origin (like mobile apps or curl requests)
   if (requestOrigin == null) {
     callback(null, { origin: true });
     return;

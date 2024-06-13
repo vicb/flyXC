@@ -401,7 +401,7 @@ export class SettingsPage extends LitElement {
         try {
           response = await fetch(this.getAction(), {
             method: 'POST',
-            credentials: 'same-origin',
+            credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
               'xsrf-token': this.xsrfToken,
