@@ -37,8 +37,13 @@ const app = express()
     }),
   )
   // Enable pre-flight
-  .options('*', cors())
-  .use(cors({ origin: corsDelegate, credentials: true }))
+  .use(
+    cors({
+      origin: corsDelegate,
+      credentials: true,
+      exposedHeaders: ['xsrf-token'],
+    }),
+  )
   .set('trust proxy', environment.gae)
   .use(express.json())
   .use(express.urlencoded({ extended: true }))
