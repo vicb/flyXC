@@ -15,7 +15,6 @@ import { decrementSpeed, incrementSpeed, setDistanceM, setScore, setSpeedKmh } f
 import { currentTrack } from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
-import { setCurrentTrackId } from '../../redux/track-slice';
 
 const ICON_MINUS =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJAQMAAADaX5RTAAAABlBMVEX///9xe4e/5menAAAAE0lEQVQImWP438DQAEP7kNj/GwCK4wo9HA2mvgAAAABJRU5ErkJggg==';
@@ -50,10 +49,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   private readonly closeFlightHandler = () => this.dispatchEvent(new CustomEvent('close-flight'));
   private readonly shareHandler = () => this.dispatchEvent(new CustomEvent('share'));
   private readonly downloadHandler = () => this.dispatchEvent(new CustomEvent('download'));
-  private readonly resetHandler = () => {
-    store.dispatch(setCurrentTrackId(undefined));
-    return this.dispatchEvent(new CustomEvent('reset'));
-  };
+  private readonly resetHandler = () => this.dispatchEvent(new CustomEvent('reset'));
   private readonly drawHandler = () => this.dispatchEvent(new CustomEvent('draw-route'));
   private scoringRequestId = 0;
   private scorer?: Scorer;
@@ -306,12 +302,10 @@ export class PlannerElement extends connect(store)(LitElement) {
       alt: track.alt[index],
       timeSec: track.timeSec[index],
     }));
-    this.scorer =
-      this.scorer ??
-      new Scorer(
-        (result) => this.handleScoringResult(result),
-        () => this.scoringRequestId,
-      );
+    this.scorer ??= new Scorer(
+      (result) => this.handleScoringResult(result),
+      () => this.scoringRequestId,
+    );
     this.scorer.score(points, this.league, ++this.scoringRequestId);
   }
 

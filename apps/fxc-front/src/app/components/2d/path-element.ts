@@ -379,7 +379,10 @@ export class PathElement extends connect(store)(LitElement) {
       el.addEventListener('download', async () => {
         await this.openDownloadModal();
       });
-      el.addEventListener('reset', () => store.dispatch(setRoute('')));
+      el.addEventListener('reset', () => {
+        this.setDefaultPath();
+        return store.dispatch(setRoute(''));
+      });
       el.addEventListener('draw-route', () => {
         drawRoute.emit();
         store.dispatch(setRoute(''));
