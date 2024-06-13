@@ -69,7 +69,15 @@ export class MainMenu extends connect(store)(LitElement) {
     return html`<ion-menu swipe-gesture="false" menu-id="main" content-id="main">
       <ion-header>
         <ion-toolbar color="light">
-          <ion-title>flyXC.app</ion-title>
+          <ion-title
+            ><img
+              src="/static/img/jumoplane.svg"
+              alt="FlyXC"
+              style="vertical-align:middle; margin-right: 8px"
+              width="30"
+              height="30"
+            />flyXC</ion-title
+          >
           <ion-buttons slot="end">
             <ion-button @click=${this.closeSplitPane} shape="round">
               <i class="las la-times"></i>
