@@ -6,7 +6,7 @@ import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { formatInTimeZone } from 'date-fns-tz';
 import minifyHTML from 'rollup-plugin-minify-html-literals';
 import { visualizer } from 'rollup-plugin-visualizer';
-import { defineConfig } from 'vite';
+import { defineConfig, type UserConfig } from 'vite';
 import { checker } from 'vite-plugin-checker';
 
 const assetFileNames = (assetInfo: any) => {
@@ -23,83 +23,86 @@ const assetFileNames = (assetInfo: any) => {
   return `static/${extType}/[name]-[hash][extname]`;
 };
 
-export default defineConfig({
-  root: __dirname,
-  server: {
-    port: 8080,
-    host: '0.0.0.0',
-  },
+export default defineConfig(
+  ({ mode }): UserConfig => ({
+    root: __dirname,
+    server: {
+      port: 8080,
+      host: '0.0.0.0',
+    },
 
-  preview: {
-    port: 8080,
-    host: '0.0.0.0',
-  },
+    preview: {
+      port: 8080,
+      host: '0.0.0.0',
+    },
 
-  build: {
-    outDir: '../../dist/apps/fxc-front',
-    reportCompressedSize: true,
-    commonjsOptions: { transformMixedEsModules: true },
-    emptyOutDir: true,
-    rollupOptions: {
-      output: {
-        assetFileNames,
-        chunkFileNames: 'static/js/[name]-[hash].js',
-        entryFileNames: 'static/js/[name]-[hash].js',
+    build: {
+      outDir: '../../dist/apps/fxc-front',
+      reportCompressedSize: true,
+      commonjsOptions: { transformMixedEsModules: true },
+      emptyOutDir: true,
+      rollupOptions: {
+        output: {
+          assetFileNames,
+          chunkFileNames: 'static/js/[name]-[hash].js',
+          entryFileNames: 'static/js/[name]-[hash].js',
+        },
+      },
+
+      chunkSizeWarningLimit: 3900,
+    },
+
+    plugins: [
+      minifyHTML(),
+      {
+        ...visualizer(),
+        apply: 'build',
+      },
+      checker({
+        typescript: {
+          root: process.cwd(),
+          tsconfigPath: 'apps/fxc-front/tsconfig.app.json',
+        },
+      }),
+      nxViteTsPaths(),
+    ],
+
+    worker: {
+      plugins: () => [nxViteTsPaths()],
+      rollupOptions: {
+        output: {
+          assetFileNames,
+          chunkFileNames: 'static/js/[name]-[hash].js',
+          entryFileNames: 'static/js/[name]-[hash].js',
+        },
       },
     },
 
-    chunkSizeWarningLimit: 3900,
-  },
-
-  plugins: [
-    minifyHTML(),
-    {
-      ...visualizer(),
-      apply: 'build',
-    },
-    checker({
-      typescript: {
-        root: process.cwd(),
-        tsconfigPath: 'apps/fxc-front/tsconfig.app.json',
+    test: {
+      reporters: ['default'],
+      coverage: {
+        reportsDirectory: '../../coverage/apps/fxc-front',
+        provider: 'v8',
       },
-    }),
-    nxViteTsPaths(),
-  ],
-
-  worker: {
-    plugins: () => [nxViteTsPaths()],
-    rollupOptions: {
-      output: {
-        assetFileNames,
-        chunkFileNames: 'static/js/[name]-[hash].js',
-        entryFileNames: 'static/js/[name]-[hash].js',
+      globals: true,
+      cache: {
+        dir: '../../node_modules/.vitest',
       },
+      environment: 'jsdom',
+      include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     },
-  },
 
-  test: {
-    reporters: ['default'],
-    coverage: {
-      reportsDirectory: '../../coverage/apps/fxc-front',
-      provider: 'v8',
+    define: {
+      __BUILD_TIMESTAMP__: JSON.stringify(formatInTimeZone(new Date(), 'Europe/Paris', 'yyyyMMdd-HHmm')),
+      __AIRSPACE_DATE__: JSON.stringify(getAirspaceDate()),
+      'process.env.NODE_ENV': JSON.stringify(mode),
+      // Vite does not define global.
+      // Required for a dependency of igc-xc-score.
+      // See https://stackoverflow.com/questions/72114775/vite-global-is-not-defined/73208485#73208485
+      global: {},
     },
-    globals: true,
-    cache: {
-      dir: '../../node_modules/.vitest',
-    },
-    environment: 'jsdom',
-    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-  },
-
-  define: {
-    __BUILD_TIMESTAMP__: JSON.stringify(formatInTimeZone(new Date(), 'Europe/Paris', 'yyyyMMdd-HHmm')),
-    __AIRSPACE_DATE__: JSON.stringify(getAirspaceDate()),
-    // Vite does not define global.
-    // Required for a dependency of igc-xc-score.
-    // See https://stackoverflow.com/questions/72114775/vite-global-is-not-defined/73208485#73208485
-    global: {},
-  },
-});
+  }),
+);
 
 // Get the airspace update date from the commit.
 function getAirspaceDate() {
