@@ -5,6 +5,7 @@ import type { LatLon } from '@flyxc/common';
 import { CircuitType } from '@flyxc/optimizer/lib/api';
 import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
 import { modalController } from '@ionic/core/components';
+import { getPreciseDistance } from 'geolib';
 import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -24,7 +25,6 @@ import { store } from '../../redux/store';
 import type { Request as WorkerRequest, Response as WorkerResponse } from '../../workers/optimizer';
 import ScoringWorker from '../../workers/optimizer?worker';
 import type { PlannerElement } from './planner-element';
-import { getPreciseDistance } from 'geolib';
 
 // Route color by circuit type.
 const ROUTE_STROKE_COLORS = {

@@ -3,12 +3,11 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import minifyHTML from 'rollup-plugin-minify-html-literals';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 import { checker } from 'vite-plugin-checker';
-import { formatInTimeZone } from 'date-fns-tz';
 
 const assetFileNames = (assetInfo: any) => {
   if (!assetInfo.name) {
