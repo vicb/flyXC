@@ -18,7 +18,7 @@ export class Scorer {
    * In this case, the function should be wrapped in an arrow function (see example bellow).<br/>
    *
    * E.g:
-   * <pre>
+   * ```
    * class MyClass {
    * ...
    *   handleResult(result: ScoringResult){
@@ -32,7 +32,7 @@ export class Scorer {
    *   // the correct syntax is:
    *   scorer = new Scorer((result)=>this.handleResult(result),...);
    * }
-   * </pre>
+   * ```
    * @param handleScoringResult {ScoringResultHandler}
    *        Takes the ScoringResult into account
    * @param getScoringRequestId {ScoringRequestIdProvider}
