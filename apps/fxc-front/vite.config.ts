@@ -8,6 +8,7 @@ import minifyHTML from 'rollup-plugin-minify-html-literals';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig, type UserConfig } from 'vite';
 import { checker } from 'vite-plugin-checker';
+import { VitePWA } from 'vite-plugin-pwa';
 
 const assetFileNames = (assetInfo: any) => {
   if (!assetInfo.name) {
@@ -53,6 +54,52 @@ export default defineConfig(
     },
 
     plugins: [
+      VitePWA({
+        injectRegister: 'auto',
+        registerType: 'autoUpdate',
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,png,svg,jpg,woff,woff2,glb}'],
+          // ArcGIS 3D is ~3.9MB.
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+          navigateFallback: 'index.html',
+        },
+        strategies: 'injectManifest',
+        srcDir: 'src',
+        filename: 'sw.ts',
+        manifest: {
+          name: 'flyXC',
+          short_name: 'flyXC',
+          description: 'One stop shop app for paraglider pilots.',
+          background_color: '#ffffff',
+          theme_color: '#ffffff',
+          icons: [
+            {
+              src: 'pwa-64x64.png',
+              sizes: '64x64',
+              type: 'image/png',
+            },
+            {
+              src: 'pwa-192x192.png',
+              sizes: '192x192',
+              type: 'image/png',
+            },
+            {
+              src: 'pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+            },
+            {
+              src: 'maskable-icon-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable',
+            },
+          ],
+        },
+        devOptions: {
+          enabled: true,
+        },
+      }),
       minifyHTML(),
       {
         ...visualizer(),

@@ -5,7 +5,7 @@
     "target": "ES2020",
     "useDefineForClassFields": false,
     "module": "ES2020",
-    "lib": ["ES2020", "DOM"],
+    "lib": ["ES2020", "DOM", "WebWorker"],
     "moduleResolution": "Bundler",
     "strict": true,
     "resolveJsonModule": true,
@@ -16,7 +16,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "skipLibCheck": true,
-    "types": ["vite/client", "@types/gtag.js"]
+    "types": ["vite/client", "@types/gtag.js", "vite-plugin-pwa/vanillajs", "vite-plugin-pwa/info"]
   },
   "include": ["src"],
   "references": [

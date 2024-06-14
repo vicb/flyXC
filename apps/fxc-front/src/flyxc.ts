@@ -18,6 +18,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
+import { registerSW } from 'virtual:pwa-register';
 
 import { ionicInit } from './app/components/ui/ionic';
 import { requestCurrentPosition } from './app/logic/geolocation';
@@ -41,6 +42,8 @@ import { store } from './app/redux/store';
 import * as track from './app/redux/track-slice';
 
 export const SHOW_SPLIT_PANE_WHEN = `(min-width: 992px)`;
+
+const PWA_UPDATE_INTERVAL_DAYS = 2;
 
 /* Hides the side plane on small screens */
 export async function maybeHideSidePane() {
@@ -238,3 +241,37 @@ export class MapsElement extends connect(store)(LitElement) {
 requestCurrentPosition(false);
 
 ionicInit();
+
+registerSW({
+  immediate: true,
+  onRegisteredSW(swUrl: string, registration: ServiceWorkerRegistration | undefined) {
+    if (!registration) {
+      return;
+    }
+    setInterval(async () => {
+      if (!(!registration.installing && navigator)) {
+        return;
+      }
+
+      if (!navigator.onLine) {
+        return;
+      }
+
+      if ('connection' in navigator && !navigator.onLine) {
+        return;
+      }
+
+      const resp = await fetch(swUrl, {
+        cache: 'no-store',
+        headers: {
+          cache: 'no-store',
+          'cache-control': 'no-cache',
+        },
+      });
+
+      if (resp?.status === 200) {
+        await registration.update();
+      }
+    }, PWA_UPDATE_INTERVAL_DAYS * 24 * 3600 * 1000);
+  },
+});

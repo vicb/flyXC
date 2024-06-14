@@ -1,5 +1,8 @@
 /// <reference types="vite/client" />
 /// <reference types="@types/gtag.js" />
+/// <reference types="vite/client" />
+/// <reference types="vite-plugin-pwa/vanillajs" />
+/// <reference types="vite-plugin-pwa/info" />
 
 import type { AirspaceServer } from '@flyxc/common';
 
