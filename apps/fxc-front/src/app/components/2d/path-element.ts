@@ -190,7 +190,13 @@ export class PathElement extends connect(store)(LitElement) {
       this.appendToPath(e.latLng as google.maps.LatLng),
     );
     this.onBoundsChanged = google.maps.event.addListener(this.map, 'bounds_changed', () => {
-      if (this.enabled && this.encodedRoute.length === 0) {
+      if (
+        this.enabled &&
+        this.encodedRoute.length === 0 &&
+        this.score?.origin === plannerSlice.ScoreOrigin.INTERACTIVE
+      ) {
+        // when scoring a track, encoded route is empty
+        // do not redraw the default line
         this.updateLineFromState();
       }
     });
