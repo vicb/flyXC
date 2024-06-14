@@ -8,6 +8,9 @@ import minifyHTML from 'rollup-plugin-minify-html-literals';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig, type UserConfig } from 'vite';
 import { checker } from 'vite-plugin-checker';
+import { VitePWA } from 'vite-plugin-pwa';
+
+import { pwaConfig } from './pwa.config';
 
 const assetFileNames = (assetInfo: any) => {
   if (!assetInfo.name) {
@@ -53,6 +56,7 @@ export default defineConfig(
     },
 
     plugins: [
+      VitePWA(pwaConfig),
       minifyHTML(),
       {
         ...visualizer(),
