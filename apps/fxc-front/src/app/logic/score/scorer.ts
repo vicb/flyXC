@@ -53,15 +53,19 @@ export class Scorer {
   public score(track: LatLonAltTime[], league: LeagueCode, scoringRequestId: number) {
     // lazy creation of the worker
     this.scoringWorker ??= this.createWorker();
-    this.scoringWorker.postMessage({
-      request: {
-        track: {
-          points: track,
+    try {
+      this.scoringWorker.postMessage({
+        request: {
+          track: {
+            points: track,
+          },
+          ruleName: getScoringRuleName(league),
         },
-        ruleName: getScoringRuleName(league),
-      },
-      id: scoringRequestId,
-    });
+        id: scoringRequestId,
+      });
+    } catch (error) {
+      console.error('Error posting message to scoring worker:', error);
+    }
   }
 
   /**
