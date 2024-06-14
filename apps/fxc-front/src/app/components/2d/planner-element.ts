@@ -1,5 +1,6 @@
 import type { RuntimeTrack } from '@flyxc/common';
 import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
+import { toastController } from '@ionic/core/components';
 import type { CSSResult, TemplateResult } from 'lit';
 import { css, html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
@@ -52,6 +53,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   private readonly drawHandler = () => this.dispatchEvent(new CustomEvent('draw-route'));
   private scoringRequestId = 0;
   private scorer?: Scorer;
+  private scoreInProgress?: HTMLIonToastElement;
 
   stateChanged(state: RootState): void {
     this.distanceM = state.planner.distanceM;
@@ -68,6 +70,7 @@ export class PlannerElement extends connect(store)(LitElement) {
     super.disconnectedCallback();
     this.scorer?.cleanup();
     this.scorer = undefined;
+    this.scoreInProgress = undefined;
   }
 
   static get styles(): CSSResult {
@@ -292,10 +295,17 @@ export class PlannerElement extends connect(store)(LitElement) {
     store.dispatch(e.deltaY > 0 ? plannerSlice.incrementSpeed() : plannerSlice.decrementSpeed());
   }
 
-  private handleScoreAction() {
+  private async handleScoreAction() {
     if (!this.currentTrack) {
       return;
     }
+    this.scoreInProgress = await toastController.create({
+      message: 'scoring in progress',
+      position: 'middle',
+      duration: 3000,
+    });
+    await this.scoreInProgress.present();
+
     const track = this.currentTrack;
     const points = track.lat.map((lat, index) => ({
       lat,
@@ -310,7 +320,7 @@ export class PlannerElement extends connect(store)(LitElement) {
     this.scorer.score(points, this.league, ++this.scoringRequestId);
   }
 
-  private handleScoringResult(result: ScoringResult) {
+  private async handleScoringResult(result: ScoringResult) {
     store.dispatch(plannerSlice.setScore({ ...result, origin: plannerSlice.ScoreOrigin.TRACK }));
     if (this.currentTrack && this.currentTrack.timeSec.length > 1) {
       const lastTimeSec = this.currentTrack.timeSec.at(-1)!;
@@ -319,5 +329,6 @@ export class PlannerElement extends connect(store)(LitElement) {
       this.duration = durationS;
     }
     store.dispatch(plannerSlice.setDistanceM(result.lengthKm * 1000));
+    await this.scoreInProgress?.dismiss();
   }
 }
