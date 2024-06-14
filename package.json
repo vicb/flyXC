@@ -6,7 +6,7 @@
     "dev": "nx run-many --target=serve --projects=fxc-front,fxc-server,airspaces --configuration=development",
     "check": "npm run fixlint && nx format && nx run-many --targets=test,lint,build --parallel 8",
     "fixlint": "nx run-many -t lint --fix --parallel 8",
-    "generate-pwa-assets": "pwa-assets-generator --preset minimal-2023 /home/victor/code/flyxc/apps/fxc-front/public/favicon.svg"
+    "generate-pwa-assets": "pwa-assets-generator --preset minimal-2023 apps/fxc-front/public/favicon.svg"
   },
   "nx": {
     "includedScripts": [

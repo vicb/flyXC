@@ -248,30 +248,35 @@ registerSW({
     if (!registration) {
       return;
     }
-    setInterval(async () => {
-      if (!(!registration.installing && navigator)) {
-        return;
-      }
-
-      if (!navigator.onLine) {
-        return;
-      }
-
-      if ('connection' in navigator && !navigator.onLine) {
-        return;
-      }
-
-      const resp = await fetch(swUrl, {
-        cache: 'no-store',
-        headers: {
-          cache: 'no-store',
-          'cache-control': 'no-cache',
-        },
-      });
-
-      if (resp?.status === 200) {
-        await registration.update();
-      }
-    }, PWA_UPDATE_INTERVAL_DAYS * 24 * 3600 * 1000);
+    setInterval(
+      async () => await updateServiceWorker(swUrl, registration),
+      PWA_UPDATE_INTERVAL_DAYS * 24 * 3600 * 1000,
+    );
   },
 });
+
+async function updateServiceWorker(swUrl: string, registration: ServiceWorkerRegistration): Promise<void> {
+  if (registration.installing || !navigator) {
+    return;
+  }
+
+  if ('connection' in navigator && !navigator.onLine) {
+    return;
+  }
+
+  try {
+    const resp = await fetch(swUrl, {
+      cache: 'no-store',
+      headers: {
+        cache: 'no-store',
+        'cache-control': 'no-cache',
+      },
+    });
+
+    if (resp?.status === 200) {
+      await registration.update();
+    }
+  } catch (e) {
+    console.error('Failed to update service worker.', e);
+  }
+}
