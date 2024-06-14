@@ -17,9 +17,8 @@ import { addAltitude } from '../../logic/elevation';
 import { getCurrentUrl, pushCurrentState } from '../../logic/history';
 import { drawRoute } from '../../logic/messages';
 import type { LeagueCode } from '../../logic/score/league/leagues';
-import type { Score } from '../../logic/score/scorer';
-import { ScoreOrigin, Scorer } from '../../logic/score/scorer';
-import { setDistanceM, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
+import { Scorer } from '../../logic/score/scorer';
+import * as plannerSlice from '../../redux/planner-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import type { PlannerElement } from './planner-element';
@@ -54,7 +53,7 @@ export class PathElement extends connect(store)(LitElement) {
   @state()
   private isFreeDrawing = false;
   @state()
-  private score?: Score;
+  private score?: plannerSlice.Score;
 
   private line?: google.maps.Polyline;
   private optimizedLine?: google.maps.Polyline;
@@ -226,20 +225,20 @@ export class PathElement extends connect(store)(LitElement) {
   }
 
   private optimizerCallback(result: ScoringResult): void {
-    const score = { ...result, origin: ScoreOrigin.INTERACTIVE };
-    store.dispatch(setDistanceM(score.lengthKm * 1000));
-    store.dispatch(setScore(score));
+    const score = { ...result, origin: plannerSlice.ScoreOrigin.INTERACTIVE };
+    store.dispatch(plannerSlice.setDistanceM(score.lengthKm * 1000));
+    store.dispatch(plannerSlice.setScore(score));
     this.postScoreToHost(result);
   }
 
   // draw the optimize lines and sectors
-  private drawOptimization(score?: Score) {
+  private drawOptimization(score?: plannerSlice.Score) {
     if (!score) {
       return;
     }
     this.doNotSyncState = true;
 
-    if (score.origin !== ScoreOrigin.INTERACTIVE) {
+    if (score.origin !== plannerSlice.ScoreOrigin.INTERACTIVE) {
       // in 'interactive' mode, the path is already drawn by the user or is coming from the encoded path.
       // We should not override it.
       // We use only what comes from the score for drawing the path.
@@ -338,14 +337,14 @@ export class PathElement extends connect(store)(LitElement) {
     const path = this.line.getPath();
     if (!this.doNotSyncState) {
       pushCurrentState();
-      store.dispatch(setRoute(google.maps.geometry.encoding.encodePath(path)));
+      store.dispatch(plannerSlice.setRoute(google.maps.geometry.encoding.encodePath(path)));
     }
     let distanceM = 0;
     const latlonPath = path.getArray().map((latLng) => ({ lat: latLng.lat(), lon: latLng.lng() }));
     for (let i = 1; i < latlonPath.length; i++) {
       distanceM += getPreciseDistance(latlonPath[i - 1], latlonPath[i]);
     }
-    store.dispatch(setDistanceM(distanceM));
+    store.dispatch(plannerSlice.setDistanceM(distanceM));
     this.optimize();
   }
 
@@ -381,13 +380,13 @@ export class PathElement extends connect(store)(LitElement) {
       });
       el.addEventListener('reset', () => {
         this.setDefaultPath();
-        return store.dispatch(setRoute(''));
+        return store.dispatch(plannerSlice.setRoute(''));
       });
       el.addEventListener('draw-route', () => {
         drawRoute.emit();
-        store.dispatch(setRoute(''));
+        store.dispatch(plannerSlice.setRoute(''));
       });
-      el.addEventListener('close', () => store.dispatch(setEnabled(false)));
+      el.addEventListener('close', () => store.dispatch(plannerSlice.setEnabled(false)));
     }
   }
 

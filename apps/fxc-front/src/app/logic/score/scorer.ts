@@ -4,13 +4,6 @@ import { type Response as WorkerResponse } from '../../workers/optimizer';
 import ScoringWorker from '../../workers/optimizer?worker';
 import { getScoringRuleName, type LeagueCode } from './league/leagues';
 
-export enum ScoreOrigin {
-  INTERACTIVE = 'interactive',
-  TRACK = 'track',
-}
-
-export type Score = ScoringResult & { origin: ScoreOrigin };
-
 export type ScoringResultHandler = (result: ScoringResult) => void;
 
 export type ScoringRequestIdProvider = () => number;

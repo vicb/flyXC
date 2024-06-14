@@ -3,8 +3,14 @@ import { createSlice } from '@reduxjs/toolkit';
 
 import { deleteUrlParam, getUrlParamValues, ParamNames, setUrlParamValue } from '../logic/history';
 import type { LeagueCode } from '../logic/score/league/leagues';
-import type { Score } from '../logic/score/scorer';
+import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
 
+export enum ScoreOrigin {
+  INTERACTIVE = 'interactive',
+  TRACK = 'track',
+}
+
+export type Score = ScoringResult & { origin: ScoreOrigin };
 export type PlannerState = {
   score?: Score;
   speedKmh: number;
