@@ -14,6 +14,7 @@ import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import IntegratedMesh3DTilesLayer from '@arcgis/core/layers/IntegratedMesh3DTilesLayer.js';
 import SceneLayer from '@arcgis/core/layers/SceneLayer';
 import TileLayer from '@arcgis/core/layers/TileLayer';
+import VectorTileLayer from '@arcgis/core/layers/VectorTileLayer';
 import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
 import Map from '@arcgis/core/Map';
 import SunLighting from '@arcgis/core/views/3d/environment/SunLighting';
@@ -69,7 +70,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     Satellite: null,
     Google: null,
     OpenTopoMap: null,
-    IgnFr: null,
+    'IGN France': null,
     Topo: 'topo-3d',
   };
 
@@ -324,12 +325,10 @@ export class Map3dElement extends connect(store)(LitElement) {
       id: 'otm',
     });
 
-    this.basemaps.IgnFr = new Basemap({
+    this.basemaps['IGN France'] = new Basemap({
       baseLayers: [
-        new WebTileLayer({
-          urlTemplate:
-            'https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={level}&TILEROW={row}&TILECOL={col}',
-          copyright: 'Map tiles by <a href="https://ign.fr/">©IGN</a>',
+        new VectorTileLayer({
+          url: 'https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/classique.json',
         }),
       ],
       title: 'IGN',
