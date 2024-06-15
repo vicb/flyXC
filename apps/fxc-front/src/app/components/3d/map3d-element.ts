@@ -69,6 +69,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     Satellite: null,
     Google: null,
     OpenTopoMap: null,
+    IgnFr: null,
     Topo: 'topo-3d',
   };
 
@@ -321,6 +322,18 @@ export class Map3dElement extends connect(store)(LitElement) {
       ],
       title: 'otm',
       id: 'otm',
+    });
+
+    this.basemaps.IgnFr = new Basemap({
+      baseLayers: [
+        new WebTileLayer({
+          urlTemplate:
+            'https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={level}&TILEROW={row}&TILECOL={col}',
+          copyright: 'Map tiles by <a href="https://ign.fr/">©IGN</a>',
+        }),
+      ],
+      title: 'IGN',
+      id: 'ignfr',
     });
 
     this.basemaps.Google = new Basemap({
