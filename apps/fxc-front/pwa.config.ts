@@ -14,7 +14,11 @@ export const getPwaConfig: (mode?: string) => Partial<VitePWAOptions> = (mode = 
   injectManifest: {
     // ArcGIS 3D is 3.8 MB
     maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-    minify: mode == 'production',
+    minify: mode === 'production',
+  },
+  devOptions: {
+    enabled: true,
+    type: 'module',
   },
   manifest: {
     name: 'flyXC',
@@ -43,6 +47,50 @@ export const getPwaConfig: (mode?: string) => Partial<VitePWAOptions> = (mode = 
         sizes: '512x512',
         type: 'image/png',
         purpose: 'maskable',
+      },
+    ],
+    screenshots: [
+      {
+        src: 'static/screenshots/wide-2d.jpg',
+        label: '2D view',
+        form_factor: 'wide',
+        sizes: '1919x1043',
+        type: 'image/jpg',
+      },
+      {
+        src: 'static/screenshots/wide-3d.jpg',
+        label: '3D view',
+        form_factor: 'wide',
+        sizes: '1918x1046',
+        type: 'image/jpg',
+      },
+      {
+        src: 'static/screenshots/wide-planner.jpg',
+        label: 'XC planning',
+        form_factor: 'wide',
+        sizes: '1919x1043',
+        type: 'image/jpg',
+      },
+      {
+        src: 'static/screenshots/narrow-2d.jpg',
+        label: '2D view',
+        form_factor: 'narrow',
+        sizes: '334x743',
+        type: 'image/jpg',
+      },
+      {
+        src: 'static/screenshots/narrow-3d.jpg',
+        label: '3D view',
+        form_factor: 'narrow',
+        sizes: '334x743',
+        type: 'image/jpg',
+      },
+      {
+        src: 'static/screenshots/narrow-planner.jpg',
+        label: 'XC planning',
+        form_factor: 'narrow',
+        sizes: '334x743',
+        type: 'image/jpg',
       },
     ],
   },
