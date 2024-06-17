@@ -18,10 +18,12 @@ cleanupOutdatedCaches();
 // Precache all assets (injected by the build system).
 precacheAndRoute(self.__WB_MANIFEST);
 
-let allowlist: undefined | RegExp[];
-if (import.meta.env.DEV) {
-  allowlist = [/^\/$/];
-}
-
 // To allow work offline
-registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { allowlist }));
+if (process.env.NODE_ENV === 'production') {
+  let allowlist: undefined | RegExp[];
+  if (import.meta.env.DEV) {
+    allowlist = [/^\/$/];
+  }
+
+  registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { allowlist }));
+}
