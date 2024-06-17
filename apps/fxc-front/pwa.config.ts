@@ -4,7 +4,6 @@ export const getPwaConfig: (mode?: string) => Partial<VitePWAOptions> = (mode = 
   injectRegister: 'auto',
   registerType: 'autoUpdate',
   workbox: {
-    globPatterns: ['**/*.{js,css,html,png,svg,jpg,woff,woff2,glb}'],
     navigateFallback: 'index.htm',
   },
   // Most flexible strategy to implement advanced features.
@@ -15,6 +14,7 @@ export const getPwaConfig: (mode?: string) => Partial<VitePWAOptions> = (mode = 
     // ArcGIS 3D is 3.8 MB
     maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
     minify: mode === 'production',
+    globPatterns: ['**/*.{js,css,html,png,svg,jpg,woff,woff2,glb}'],
   },
   devOptions: {
     enabled: true,
@@ -28,22 +28,24 @@ export const getPwaConfig: (mode?: string) => Partial<VitePWAOptions> = (mode = 
     theme_color: '#ffffff',
     icons: [
       {
-        src: 'pwa-64x64.png',
-        sizes: '64x64',
-        type: 'image/png',
-      },
-      {
-        src: 'pwa-192x192.png',
+        src: 'static/iconx/pwa-192x192.png',
         sizes: '192x192',
         type: 'image/png',
       },
       {
-        src: 'pwa-512x512.png',
+        src: 'static/iconx/pwa-512x512.png',
         sizes: '512x512',
         type: 'image/png',
       },
       {
-        src: 'maskable-icon-512x512.png',
+        src: 'static/iconx/pwa-maskable-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+
+      {
+        src: 'static/iconx/pwa-maskable-512x512.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'maskable',
