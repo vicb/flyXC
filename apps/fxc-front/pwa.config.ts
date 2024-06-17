@@ -26,6 +26,12 @@ export const getPwaConfig: (mode?: string) => Partial<VitePWAOptions> = (mode = 
     description: 'One stop shop app for paraglider pilots.',
     background_color: '#ffffff',
     theme_color: '#ffffff',
+    shortcuts: [
+      {
+        name: '3D view',
+        url: '/3d',
+      },
+    ],
     icons: [
       {
         src: 'static/iconx/pwa-192x192.png',
