@@ -290,6 +290,9 @@ registerSW({
       PWA_UPDATE_INTERVAL_DAYS * 24 * 3600 * 1000,
     );
   },
+  onRegisterError(error) {
+    console.error(error);
+  },
 });
 
 async function updateServiceWorker(swUrl: string, registration: ServiceWorkerRegistration): Promise<void> {

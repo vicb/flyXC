@@ -12,7 +12,7 @@ export const getPwaConfig: (mode?: string) => Partial<VitePWAOptions> = (mode = 
   filename: 'sw.ts',
   injectManifest: {
     // ArcGIS 3D is 3.8 MB
-    maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+    maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
     minify: mode === 'production',
     globPatterns: ['**/*.{js,css,html,png,svg,jpg,woff,woff2,glb}'],
   },
@@ -25,7 +25,7 @@ export const getPwaConfig: (mode?: string) => Partial<VitePWAOptions> = (mode = 
     short_name: 'flyXC',
     description: 'One stop shop app for paraglider pilots.',
     background_color: '#ffffff',
-    theme_color: '#ffffff',
+    theme_color: '#0054e9',
     shortcuts: [
       {
         name: '3D view',
