@@ -130,6 +130,7 @@ export class FlyXc extends connect(store)(LitElement) {
             'Plan your routes',
             'Aggregate your live tracking positions from the major platforms',
           ]}
+          .deferredprompt=${window.deferredPrompt}
           @hide=${this.cancelInstall}
         ></pwa-install>`,
       )}
