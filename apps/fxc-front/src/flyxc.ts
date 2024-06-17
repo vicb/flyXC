@@ -124,6 +124,12 @@ export class FlyXc extends connect(store)(LitElement) {
           manifestpath="/manifest.webmanifest"
           iconpath="/static/iconx/pwa-maskable-192x192.png"
           explainer="flyXC can be installed on your PC or mobile. This will allow this web app to look and behave like any other installed app. You will benefit from a richer and faster experience."
+          .features=${[
+            'Visualize multiple tracks',
+            '2D and 3D views',
+            'Plan your routes',
+            'Aggregate your live tracking positions from the major platforms',
+          ]}
           @hide=${this.cancelInstall}
         ></pwa-install>`,
       )}
