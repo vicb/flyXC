@@ -1,18 +1,21 @@
 import type { VitePWAOptions } from 'vite-plugin-pwa';
 
-export const pwaConfig: Partial<VitePWAOptions> = {
+export const getPwaConfig: (mode?: string) => Partial<VitePWAOptions> = (mode = 'production') => ({
   injectRegister: 'auto',
   registerType: 'autoUpdate',
   workbox: {
     globPatterns: ['**/*.{js,css,html,png,svg,jpg,woff,woff2,glb}'],
-    // ArcGIS 3D is ~3.9MB.
-    maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-    navigateFallback: 'index.html',
+    navigateFallback: 'index.htm',
   },
   // Most flexible strategy to implement advanced features.
   strategies: 'injectManifest',
   srcDir: 'src',
   filename: 'sw.ts',
+  injectManifest: {
+    // ArcGIS 3D is 3.8 MB
+    maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+    minify: mode == 'production',
+  },
   manifest: {
     name: 'flyXC',
     short_name: 'flyXC',
@@ -43,7 +46,4 @@ export const pwaConfig: Partial<VitePWAOptions> = {
       },
     ],
   },
-  devOptions: {
-    enabled: true,
-  },
-};
+});
