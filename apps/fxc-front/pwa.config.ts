@@ -12,9 +12,11 @@ export const getPwaConfig: (mode?: string) => Partial<VitePWAOptions> = (mode = 
   filename: 'sw.ts',
   injectManifest: {
     // ArcGIS 3D is 3.8 MB
-    maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
+    maximumFileSizeToCacheInBytes: 50 * 1024 * 1024,
     minify: mode === 'production',
     globPatterns: ['**/*.{js,css,html,png,svg,jpg,woff,woff2,glb}'],
+    globIgnores: ['**/iconx/*.*', '**/screenshots/*.*'],
+    dontCacheBustURLsMatching: /\-\w{8}\.js/,
   },
   devOptions: {
     enabled: true,

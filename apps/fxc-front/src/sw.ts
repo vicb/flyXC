@@ -21,9 +21,20 @@ registerRoute(isIndexRoute, new NetworkFirst({ cacheName: FLYXC_ASSET_CACHE_NAME
 // Get all other assets from the cache first.
 const flyxcAssetHost = new URL(import.meta.env.VITE_APP_SERVER).host;
 const isAsset = ({ url }: { url: URL }) => {
-  // Testing for /api and /oauth is not strictly required.
-  // It can help in dev mode and as a safeguard.
-  return url.host === flyxcAssetHost && !url.pathname.startsWith('/api/') && !url.pathname.startsWith('/oauth/');
+  if (
+    // Cloudflare
+    url.pathname.startsWith('/cdn-cgi/') ||
+    url.pathname.startsWith('/static/screenshots/') ||
+    url.pathname.startsWith('/static/iconx/') ||
+    // Testing for /api and /oauth is not strictly required.
+    // It can help in dev mode and as a safeguard.
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/oauth/')
+  ) {
+    return false;
+  }
+
+  return url.host === flyxcAssetHost;
 };
 registerRoute(isAsset, new CacheFirst({ cacheName: FLYXC_ASSET_CACHE_NAME }));
 
