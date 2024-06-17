@@ -19,7 +19,7 @@ type AppState = {
   timeSec: number;
   view3d: boolean;
   loadingApi: boolean;
-  // Wether the user cancelled the PWA install.
+  // Whether the user cancelled the PWA install.
   // In that case do not show the prompt again.
   pwaInstallCancelled: boolean;
 };

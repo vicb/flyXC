@@ -2,10 +2,10 @@
  * flyXC service worker.
  */
 
+import type { ManifestEntry } from 'workbox-build';
 import { clientsClaim } from 'workbox-core';
 import { registerRoute, setDefaultHandler } from 'workbox-routing';
-import { NetworkFirst, NetworkOnly, CacheFirst } from 'workbox-strategies';
-import type { ManifestEntry } from 'workbox-build';
+import { CacheFirst, NetworkFirst, NetworkOnly } from 'workbox-strategies';
 
 declare let self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<ManifestEntry> };
 
@@ -39,29 +39,26 @@ const manifestURLs = new Set(
   }),
 );
 
+async function cleanupOldCache(name: string, debug = false): Promise<any> {
+  const cache = await caches.open(name);
+  const requests = await cache.keys();
+  for (const request of requests) {
+    if (!manifestURLs.has(request.url)) {
+      console.log(`Checking cache entry to be removed: ${request.url}`);
+      const deleted = await cache.delete(request);
+      if (debug) {
+        if (deleted) {
+          console.log(`Precached data removed: ${request.url || request}`);
+        } else {
+          console.log(`No precache found: ${request.url || request}`);
+        }
+      }
+    }
+  }
+}
+
 self.addEventListener('activate', (event: ExtendableEvent) => {
-  event.waitUntil(
-    caches.open(FLYXC_ASSET_CACHE_NAME).then((cache) => {
-      cache.keys().then((keys) => {
-        keys.forEach((request) => {
-          if (debug) {
-            console.log(`Checking cache entry to be removed: ${request.url}`);
-          }
-          if (!manifestURLs.has(request.url)) {
-            cache.delete(request).then((deleted) => {
-              if (debug) {
-                if (deleted) {
-                  console.log(`Precached data removed: ${request.url || request}`);
-                } else {
-                  console.log(`No precache found: ${request.url || request}`);
-                }
-              }
-            });
-          }
-        });
-      });
-    }),
-  );
+  event.waitUntil(cleanupOldCache(FLYXC_ASSET_CACHE_NAME, debug));
 });
 
 // The new service worker will keep on skipWaiting state

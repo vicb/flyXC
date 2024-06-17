@@ -729,18 +729,18 @@ export class PWAInstallComponent extends LitElement {
         this.dispatchEvent(new CustomEvent('hide'));
 
         return true;
-      } else {
-        console.log('User chose to not install your PWA');
-
-        await this.cancel();
-
-        // set installed to true because we dont
-        // want to show the install button to
-        // a user who chose not to install
-        this.installed = true;
-
-        this.dispatchEvent(new CustomEvent('hide'));
       }
+
+      console.log('User chose to not install your PWA');
+
+      await this.cancel();
+
+      // set installed to true because we dont
+      // want to show the install button to
+      // a user who chose not to install
+      this.installed = true;
+
+      this.dispatchEvent(new CustomEvent('hide'));
     }
 
     return false;

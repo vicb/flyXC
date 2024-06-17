@@ -4,7 +4,7 @@ export const getPwaConfig: (mode?: string) => Partial<VitePWAOptions> = (mode = 
   injectRegister: 'auto',
   registerType: 'autoUpdate',
   workbox: {
-    navigateFallback: 'index.htm',
+    navigateFallback: 'index.html',
   },
   // Most flexible strategy to implement advanced features.
   strategies: 'injectManifest',
