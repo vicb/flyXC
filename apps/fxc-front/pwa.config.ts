@@ -63,7 +63,7 @@ export const getPwaConfig: (mode?: string) => Partial<VitePWAOptions> = (mode = 
         src: 'static/screenshots/wide-3d.jpg',
         label: '3D view',
         form_factor: 'wide',
-        sizes: '1918x1046',
+        sizes: '1919x1043',
         type: 'image/jpg',
       },
       {
