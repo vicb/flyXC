@@ -49,7 +49,18 @@ export class PWAInstallComponent extends LitElement {
   @property({ type: String }) cancelbuttontext = 'Cancel';
   @property({ type: String }) iosinstallinfotext = "Tap the share button and then 'Add to Homescreen'";
 
-  @property() deferredprompt: any;
+  // type: BeforeInstallPromptEvent
+  private _deferredprompt?: any;
+
+  // Used when the event triggered before the component was instantiated.
+  @property({ attribute: false })
+  set deferredprompt(e: Event) {
+    this._deferredprompt ??= e;
+  }
+
+  get deferredprompt(): Event | undefined {
+    return this._deferredprompt;
+  }
 
   static get styles() {
     return css`
@@ -630,7 +641,7 @@ export class PWAInstallComponent extends LitElement {
   }
 
   handleInstallPromptEvent(event: Event): void {
-    this.deferredprompt = event;
+    this._deferredprompt = event;
 
     this.hasprompt = true;
 
@@ -713,12 +724,12 @@ export class PWAInstallComponent extends LitElement {
   }
 
   async install(): Promise<boolean> {
-    if (this.deferredprompt) {
-      this.deferredprompt.prompt();
+    if (this._deferredprompt) {
+      this._deferredprompt.prompt();
 
       this.dispatchEvent(new CustomEvent('show'));
 
-      const choiceResult = await this.deferredprompt.userChoice;
+      const choiceResult = await this._deferredprompt.userChoice;
 
       if (choiceResult.outcome === 'accepted') {
         console.log('Your PWA has been installed');
@@ -854,7 +865,7 @@ export class PWAInstallComponent extends LitElement {
                   () =>
                     html`<div id="buttonsContainer">
                       ${when(
-                        this.deferredprompt,
+                        this._deferredprompt,
                         () => html`<button id="installButton" @click="${this.install}">
                           ${this.installbuttontext} ${this.manifestdata.short_name}
                         </button>`,

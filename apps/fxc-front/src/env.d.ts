@@ -22,4 +22,7 @@ interface ImportMeta {
 declare global {
   const __BUILD_TIMESTAMP__: string;
   const __AIRSPACE_DATE__: string;
+  interface Window {
+    deferredPrompt: Event;
+  }
 }
