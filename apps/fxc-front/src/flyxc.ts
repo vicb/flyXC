@@ -185,9 +185,26 @@ export class FlyXc extends connect(store)(LitElement) {
 
   protected firstUpdated(props: PropertyValues): void {
     super.firstUpdated(props);
+
     if (this.pwaInstallComponent?.getInstalledStatus() === false) {
       this.pwaInstallComponent?.openPrompt();
     }
+
+    registerSW({
+      immediate: true,
+      onRegisteredSW(swUrl: string, registration: ServiceWorkerRegistration | undefined) {
+        if (!registration) {
+          return;
+        }
+        setInterval(
+          async () => await updateServiceWorker(swUrl, registration),
+          PWA_UPDATE_INTERVAL_DAYS * 24 * 3600 * 1000,
+        );
+      },
+      onRegisterError(error) {
+        console.error(error);
+      },
+    });
   }
 
   createRenderRoot(): HTMLElement {
@@ -279,22 +296,6 @@ export class MapsElement extends connect(store)(LitElement) {
 requestCurrentPosition(false);
 
 ionicInit();
-
-registerSW({
-  immediate: true,
-  onRegisteredSW(swUrl: string, registration: ServiceWorkerRegistration | undefined) {
-    if (!registration) {
-      return;
-    }
-    setInterval(
-      async () => await updateServiceWorker(swUrl, registration),
-      PWA_UPDATE_INTERVAL_DAYS * 24 * 3600 * 1000,
-    );
-  },
-  onRegisterError(error) {
-    console.error(error);
-  },
-});
 
 async function updateServiceWorker(swUrl: string, registration: ServiceWorkerRegistration): Promise<void> {
   if (registration.installing || !navigator) {
