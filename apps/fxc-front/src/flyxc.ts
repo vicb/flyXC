@@ -9,17 +9,19 @@ import '@ionic/core/css/typography.css';
 import './app/components/chart-element';
 import './app/components/loader-element';
 import './app/components/ui/main-menu';
+import './app/components/pwa-install';
 
 import type { LatLonAlt } from '@flyxc/common';
 import type { NavigationHookResult } from '@ionic/core/dist/types/components/route/route-interface';
-import type { TemplateResult } from 'lit';
+import type { PropertyValues, TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, query, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 import { registerSW } from 'virtual:pwa-register';
 
+import type { PWAInstallComponent } from './app/components/pwa-install';
 import { ionicInit } from './app/components/ui/ionic';
 import { requestCurrentPosition } from './app/logic/geolocation';
 import {
@@ -54,6 +56,15 @@ export async function maybeHideSidePane() {
 }
 @customElement('fly-xc')
 export class FlyXc extends connect(store)(LitElement) {
+  @query('pwa-install')
+  private pwaInstallComponent?: PWAInstallComponent;
+
+  private showPwaInstall = false;
+
+  stateChanged(state: RootState): void {
+    this.showPwaInstall = !state.app.pwaInstallCancelled && !state.browser.isInIframe;
+  }
+
   constructor() {
     super();
     // Add or remove tracks when the url changes.
@@ -107,7 +118,26 @@ export class FlyXc extends connect(store)(LitElement) {
         </ion-router>
         <ion-router-outlet .animated=${false}></ion-router-outlet>
       </ion-app>
+      ${when(
+        this.showPwaInstall,
+        () => html`<pwa-install
+          manifestpath="/manifest.webmanifest"
+          iconpath="/static/iconx/pwa-maskable-192x192.png"
+          explainer="flyXC can be installed on your PC or mobile. This will allow this web app to look and behave like any other installed app. You will benefit from a richer and faster experience."
+          .features=${[
+            'Visualize multiple tracks',
+            '2D and 3D views',
+            'Plan your routes',
+            'Aggregate your live tracking positions from the major platforms',
+          ]}
+          @hide=${this.cancelInstall}
+        ></pwa-install>`,
+      )}
     `;
+  }
+
+  private cancelInstall(): void {
+    store.dispatch(app.setPwaInstallCancelled(true));
   }
 
   private async beforeAdmin(): Promise<NavigationHookResult> {
@@ -150,6 +180,13 @@ export class FlyXc extends connect(store)(LitElement) {
     await import('./app/components/3d/map3d-element');
     store.dispatch(app.setView3d(true));
     return true;
+  }
+
+  protected firstUpdated(props: PropertyValues): void {
+    super.firstUpdated(props);
+    if (this.pwaInstallComponent?.getInstalledStatus() === false) {
+      this.pwaInstallComponent?.openPrompt();
+    }
   }
 
   createRenderRoot(): HTMLElement {
@@ -252,6 +289,9 @@ registerSW({
       async () => await updateServiceWorker(swUrl, registration),
       PWA_UPDATE_INTERVAL_DAYS * 24 * 3600 * 1000,
     );
+  },
+  onRegisterError(error) {
+    console.error(error);
   },
 });
 

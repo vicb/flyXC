@@ -2,26 +2,66 @@
  * flyXC service worker.
  */
 
+import type { ManifestEntry } from 'workbox-build';
 import { clientsClaim } from 'workbox-core';
-import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
-import { NavigationRoute, registerRoute } from 'workbox-routing';
+import { registerRoute, setDefaultHandler } from 'workbox-routing';
+import { CacheFirst, NetworkFirst, NetworkOnly } from 'workbox-strategies';
 
-declare let self: ServiceWorkerGlobalScope;
+declare let self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<ManifestEntry> };
 
-// Auto updates.
-self.skipWaiting();
-clientsClaim();
+const FLYXC_ASSET_CACHE_NAME = 'flyxc-cache-v1';
+const debug = process.env.NODE_ENV === 'development';
 
-// Clear outdated cache assets after updates.
-cleanupOutdatedCaches();
+// Try to get the index page from the network.
+const isIndexRoute = ({ url }: { url: URL }): boolean => {
+  return ['/', '/adm', '/arc', '/devices'].includes(url.pathname);
+};
+registerRoute(isIndexRoute, new NetworkFirst({ cacheName: FLYXC_ASSET_CACHE_NAME, networkTimeoutSeconds: 10 }));
 
-// Precache all assets (injected by the build system).
-precacheAndRoute(self.__WB_MANIFEST);
+// Get all other assets from the cache first.
+const flyxcAssetHost = new URL(import.meta.env.VITE_APP_SERVER).host;
+const isAsset = ({ url }: { url: URL }) => {
+  // Testing for /api and /oauth is not strictly required.
+  // It can help in dev mode and as a safeguard.
+  return url.host === flyxcAssetHost && !url.pathname.startsWith('/api/') && !url.pathname.startsWith('/oauth/');
+};
+registerRoute(isAsset, new CacheFirst({ cacheName: FLYXC_ASSET_CACHE_NAME }));
 
-let allowlist: undefined | RegExp[];
-if (import.meta.env.DEV) {
-  allowlist = [/^\/$/];
+// Fallback to the network.
+setDefaultHandler(new NetworkOnly());
+
+const manifest = self.__WB_MANIFEST;
+
+const manifestURLs = new Set(
+  manifest.map((entry) => {
+    const url = new URL(entry.url, String(self.location));
+    return url.href;
+  }),
+);
+
+async function cleanupOldCache(name: string, debug = false): Promise<any> {
+  const cache = await caches.open(name);
+  const requests = await cache.keys();
+  for (const request of requests) {
+    if (!manifestURLs.has(request.url)) {
+      console.log(`Checking cache entry to be removed: ${request.url}`);
+      const deleted = await cache.delete(request);
+      if (debug) {
+        if (deleted) {
+          console.log(`Precached data removed: ${request.url || request}`);
+        } else {
+          console.log(`No precache found: ${request.url || request}`);
+        }
+      }
+    }
+  }
 }
 
-// To allow work offline
-registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { allowlist }));
+self.addEventListener('activate', (event: ExtendableEvent) => {
+  event.waitUntil(cleanupOldCache(FLYXC_ASSET_CACHE_NAME, debug));
+});
+
+// The new service worker will keep on skipWaiting state
+// and then, caches will not be cleared since it is not activated
+self.skipWaiting();
+clientsClaim();

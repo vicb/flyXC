@@ -10,7 +10,7 @@ import { defineConfig, type UserConfig } from 'vite';
 import { checker } from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 
-import { pwaConfig } from './pwa.config';
+import { getPwaConfig } from './pwa.config';
 
 const assetFileNames = (assetInfo: any) => {
   if (!assetInfo.name) {
@@ -56,7 +56,7 @@ export default defineConfig(
     },
 
     plugins: [
-      VitePWA(pwaConfig),
+      VitePWA(getPwaConfig(mode)),
       minifyHTML(),
       {
         ...visualizer(),
@@ -76,8 +76,8 @@ export default defineConfig(
       rollupOptions: {
         output: {
           assetFileNames,
-          chunkFileNames: 'static/js/[name]-[hash].js',
-          entryFileNames: 'static/js/[name]-[hash].js',
+          chunkFileNames: 'static/js/worker/[name]-[hash].js',
+          entryFileNames: 'static/js/worker/[name]-[hash].js',
         },
       },
     },

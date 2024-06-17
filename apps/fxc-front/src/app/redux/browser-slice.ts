@@ -11,17 +11,21 @@ type BrowserState = {
   readonly isFromFfvl: boolean;
   readonly isMobile: boolean;
   readonly isSmallScreen: boolean;
+  // Whether the PWA is installed.
+  readonly isInstalledPwa: boolean;
 };
 
 // https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
 export const isMobile = () =>
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobi/i.test(navigator.userAgent);
 
-const doc = document as any;
+const doc = document as Document & { webkitFullscreenElement?: boolean };
 const isFullscreen = ('webkitFullscreenElement' in doc ? doc.webkitFullscreenElement : doc.fullscreenElement) != null;
 
 const isInIframe = window.parent !== window;
 const isFromFfvl = isInIframe && (getHostName(document.referrer) ?? '').endsWith('ffvl.fr');
+const isInstalledPwa =
+  (navigator as Navigator & { standalone?: boolean }).standalone || matchMedia('(display-mode: standalone)').matches;
 
 const initialState: BrowserState = {
   isFullscreen,
@@ -30,6 +34,7 @@ const initialState: BrowserState = {
   isFromFfvl,
   isMobile: isMobile(),
   isSmallScreen: !window.matchMedia('(min-width: 640px)').matches,
+  isInstalledPwa,
 };
 
 const browserSlice = createSlice({
