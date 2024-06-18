@@ -6,6 +6,7 @@ import type { ManifestEntry } from 'workbox-build';
 import { clientsClaim } from 'workbox-core';
 import { registerRoute, setDefaultHandler } from 'workbox-routing';
 import { CacheFirst, NetworkFirst, NetworkOnly } from 'workbox-strategies';
+import { googleFontsCache } from 'workbox-recipes';
 
 declare let self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<ManifestEntry> };
 
@@ -20,7 +21,7 @@ registerRoute(isIndexRoute, new NetworkFirst({ cacheName: FLYXC_ASSET_CACHE_NAME
 
 // Get all other assets from the cache first.
 const flyxcAssetHost = new URL(import.meta.env.VITE_APP_SERVER).host;
-const isAsset = ({ url }: { url: URL }) => {
+const isCacheableAsset = ({ url }: { url: URL }) => {
   if (
     // Cloudflare
     url.pathname.startsWith('/cdn-cgi/') ||
@@ -36,7 +37,10 @@ const isAsset = ({ url }: { url: URL }) => {
 
   return url.host === flyxcAssetHost;
 };
-registerRoute(isAsset, new CacheFirst({ cacheName: FLYXC_ASSET_CACHE_NAME }));
+registerRoute(isCacheableAsset, new CacheFirst({ cacheName: FLYXC_ASSET_CACHE_NAME }));
+
+// Cache Google Fonts.
+googleFontsCache();
 
 // Fallback to the network.
 setDefaultHandler(new NetworkOnly());

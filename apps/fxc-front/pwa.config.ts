@@ -32,6 +32,13 @@ export const getPwaConfig: (mode?: string) => Partial<VitePWAOptions> = (mode = 
       {
         name: '3D view',
         url: '/3d',
+        icons: [
+          {
+            src: 'static/iconx/globe-maskable-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+        ],
       },
     ],
     icons: [
