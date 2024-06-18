@@ -16,7 +16,7 @@ export const getPwaConfig: (mode?: string) => Partial<VitePWAOptions> = (mode = 
     minify: mode === 'production',
     globPatterns: ['**/*.{js,css,html,png,svg,jpg,woff,woff2,glb}'],
     globIgnores: ['**/iconx/*.*', '**/screenshots/*.*'],
-    dontCacheBustURLsMatching: /\-\w{8}\.js/,
+    dontCacheBustURLsMatching: /-\w{8}\.js/,
   },
   devOptions: {
     enabled: true,

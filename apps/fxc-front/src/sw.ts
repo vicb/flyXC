@@ -4,9 +4,9 @@
 
 import type { ManifestEntry } from 'workbox-build';
 import { clientsClaim } from 'workbox-core';
+import { googleFontsCache } from 'workbox-recipes';
 import { registerRoute, setDefaultHandler } from 'workbox-routing';
 import { CacheFirst, NetworkFirst, NetworkOnly } from 'workbox-strategies';
-import { googleFontsCache } from 'workbox-recipes';
 
 declare let self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<ManifestEntry> };
 
