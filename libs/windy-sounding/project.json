@@ -1,0 +1,64 @@
+{
+  "name": "windy-sounding",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/windy-sounding/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/vite:build",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/libs/windy-sounding"
+      },
+      "configurations": {
+        "development": {
+          "mode": "development"
+        },
+        "production": {
+          "mode": "production"
+        }
+      }
+    },
+
+    "serve": {
+      "executor": "@nx/vite:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "windy-sounding:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "windy-sounding:build:development",
+          "hmr": true
+        },
+        "production": {
+          "buildTarget": "windy-sounding:build:production",
+          "hmr": false
+        }
+      }
+    },
+
+    "prepare": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "rm -rf dist/libs/windy-sounding",
+          "npx nx build windy-sounding --configuration=production --verbose",
+          "npx nx build windy-sounding --configuration=development",
+          "node libs/windy-sounding/generate-manifest.js dist/libs/windy-sounding"
+        ],
+        "parallel": false
+      }
+    },
+
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../coverage/libs/windy-sounding"
+      }
+    }
+  }
+}
