@@ -78,7 +78,7 @@ export class AboutModal extends LitElement {
   }
 
   protected handleCookieSettings(): void {
-    (window as any).klaro?.show();
+    zaraz?.showConsentModal();
   }
 
   protected createRenderRoot(): HTMLElement {
