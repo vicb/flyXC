@@ -16,7 +16,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "skipLibCheck": true,
-    "types": ["vite/client", "@types/gtag.js", "vite-plugin-pwa/vanillajs", "vite-plugin-pwa/info"]
+    "types": ["vite/client", "vite-plugin-pwa/vanillajs", "vite-plugin-pwa/info"]
   },
   "include": ["src"],
   "references": [
