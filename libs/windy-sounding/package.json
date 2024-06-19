@@ -1,0 +1,18 @@
+{
+  "name": "windy-plugin-sounding",
+  "version": "3.0.9",
+  "type": "module",
+  "private": true,
+  "description": "Soundings for paraglider pilots",
+  "author": "Victor Berchet",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vicb/flyxc.git",
+    "directory": "libs/windy-plugin"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@sveltejs/vite-plugin-svelte": "^3.1.1",
+    "svelte": "^4.2.18"
+  }
+}

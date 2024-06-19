@@ -29,6 +29,8 @@ const assetFileNames = (assetInfo: any) => {
 export default defineConfig(
   ({ mode }): UserConfig => ({
     root: __dirname,
+    cacheDir: '../../node_modules/.vite/apps/fxc-front',
+
     server: {
       port: 8080,
       host: '0.0.0.0',
