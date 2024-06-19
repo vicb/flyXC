@@ -1,12 +1,12 @@
 [![Tests](https://github.com/vicb/flyxc/actions/workflows/node.js.yml/badge.svg)](https://github.com/vicb/flyxc/actions/workflows/node.js.yml)
 
-## flyXC
+## flyXC.app
 
 - Visualize your flights
 - Plan your flights
 - Add your live trackers (inreach, spot, skylines, flyme, flymaster, ogn, zoleo) to the map.
 
-## Contributors
+### Contributors
 
 - [Momtchil Momtchev](https://github.com/mmomtchev)
 - [Stanislav Ošmera](https://github.com/osmeras)
@@ -16,7 +16,7 @@
 - Josh Cohn
 - [JuMo](https://github.com/jujumo)
 
-## Credits
+### Credits
 
 - [ESRI](https://www.esri.com/) for their great [ArcGis API](https://developers.arcgis.com/javascript/) powering the 3D view,
 - [openaip.net](http://openaip.net/) for the airspaces,
@@ -31,6 +31,12 @@
 - Message 3d model by [bariacg](https://sketchfab.com/bariacg),
 - Ufo 3d model by [pawinc](https://sketchfab.com/demarerik),
 - the many open source libraries, projects, and data sources used by flyXC.
+
+## flyXC Soundings
+
+flyXC sounding is a plugin to display soundings customized for paraglider pilots in windy.com.
+
+See the [README](https://github.com/vicb/flyxc/libs/windy-sounding/README.md) for details.
 
 ## Support flyXC
 

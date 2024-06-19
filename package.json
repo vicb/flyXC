@@ -30,6 +30,7 @@
     "@nx/web": "19.3.0",
     "@nx/webpack": "19.3.0",
     "@nx/workspace": "19.3.0",
+    "@preact/preset-vite": "^2.8.2",
     "@protobuf-ts/plugin": "^2.9.4",
     "@sveltejs/vite-plugin-svelte": "^3.1.1",
     "@swc/helpers": "0.5.11",

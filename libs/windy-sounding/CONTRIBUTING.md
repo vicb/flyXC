@@ -8,7 +8,7 @@ Execute the following commands in the root directory:
 
 `npm i`
 
-`nx serve windy-sounding`
+`nx serve windy-sounding` or `nx preview windy-sounding`
 
 Then you can visit `windy.com/dev` and enter `https://localhost:9999/src/plugin.ts` as the url to the plugin. Hit `Install and open plugin` and the plugin will open to the right side.
 
