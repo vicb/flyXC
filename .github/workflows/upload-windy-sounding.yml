@@ -24,6 +24,6 @@ jobs:
           echo "{\"repositoryName\": \"${{ github.repository }}\", \"commitSha\": \"${{ github.sha }}\", \"repositoryOwner\": \"${{ github.repository_owner }}\"}" > /tmp/plugin-info.json
           mv dist/libs/windy-sounding/plugin.json /tmp
           jq -s '.[0] * .[1]' /tmp/plugin.json /tmp/plugin-info.json > dist/libs/windy-sounding/plugin.json
-          tar cf plugin.tar dist/libs/windy-sounding
+          tar cfv plugin.tar -C dist/libs/windy-sounding .
           echo "Publishing plugin..."
           curl -s --fail-with-body -XPOST 'https://api.windy.com/api/windy-plugins/v1.0/upload' -H "x-windy-api-key: ${WINDY_API_KEY}" -F "plugin_archive=@plugin.tar"
