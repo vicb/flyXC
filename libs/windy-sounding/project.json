@@ -14,7 +14,8 @@
       },
       "configurations": {
         "development": {
-          "mode": "development"
+          "mode": "development",
+          "watch": true
         },
         "production": {
           "mode": "production"
@@ -24,6 +25,24 @@
 
     "serve": {
       "executor": "@nx/vite:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "windy-sounding:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "windy-sounding:build:development",
+          "hmr": true
+        },
+        "production": {
+          "buildTarget": "windy-sounding:build:production",
+          "hmr": false
+        }
+      }
+    },
+
+    "preview": {
+      "executor": "@nx/vite:preview-server",
       "defaultConfiguration": "development",
       "options": {
         "buildTarget": "windy-sounding:build"

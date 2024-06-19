@@ -1,0 +1,132 @@
+#plugin-windy-plugin-sounding {
+  line-height: 2;
+}
+#plugin-windy-plugin-sounding.plugin-mobile-bottom-small {
+  padding: 5px;
+  max-height: fit-content !important;
+}
+#plugin-windy-plugin-sounding.plugin-mobile-bottom-small p.desktop-only {
+  display: none;
+}
+#plugin-windy-plugin-sounding.plugin-mobile-bottom-small .plugin__content {
+  position: initial;
+}
+#plugin-windy-plugin-sounding .plugin__content #wsp-zoom {
+  position: absolute;
+  top: 5px;
+  left: 60px;
+  font-size: 25px;
+  user-select: none;
+  color: var(--color-red);
+}
+#plugin-windy-plugin-sounding .plugin__content select {
+  font-size: 1rem;
+}
+#plugin-windy-plugin-sounding .plugin__content .axis path,
+#plugin-windy-plugin-sounding .plugin__content .axis line {
+  fill: none;
+  stroke: #000;
+}
+#plugin-windy-plugin-sounding .plugin__content .axis .light {
+  stroke-width: 0.3;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart svg {
+  touch-action: none;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart p.model {
+  margin-bottom: 1em;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart .chart .border {
+  fill: none;
+  stroke: gray;
+  stroke-width: 1;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart .cumulus {
+  stroke: #030104;
+  stroke-width: 2px;
+  fill: ivory;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart .line {
+  pointer-events: none;
+  stroke-width: 3;
+  fill: none;
+  stroke-linejoin: round;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart .line.dewpoint {
+  stroke: steelblue;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart .line.temperature {
+  stroke: red;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart .line.wind {
+  stroke: purple;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart line.boundary {
+  stroke-width: 1;
+  stroke-dasharray: 8;
+  stroke: gray;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart .moist {
+  fill: none;
+  stroke: green;
+  stroke-width: 0.4;
+  stroke-dasharray: 4 6;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart .dry {
+  fill: none;
+  stroke: green;
+  stroke-width: 0.4;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart .isohume {
+  fill: none;
+  stroke: blue;
+  stroke-width: 0.4;
+  stroke-dasharray: 4 6;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart .isotherm {
+  stroke: darkred;
+  stroke-width: 0.4;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart .isotherm.zero {
+  stroke-width: 1;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart .parcel {
+  stroke-width: 3;
+  fill: none;
+  stroke-linejoin: round;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart .parcel.trajectory {
+  stroke: #599c00;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart .parcel.isohume {
+  stroke-width: 1;
+  stroke: gray;
+  stroke-dasharray: 4;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart text.tick {
+  font-size: 12px;
+  font-family: sans-serif;
+  fill: black;
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart text.tick.temp {
+  fill: var(--color-text-primary);
+}
+#plugin-windy-plugin-sounding .plugin__content #bsounding-chart .surface {
+  fill: #8f6d4d;
+}
+#plugin-windy-plugin-sounding .plugin__content #fly-to {
+  padding: 0 1em 0 0.5em;
+}
+#plugin-windy-plugin-sounding .plugin__content #fly-to .location {
+  border: 1px solid #bbb;
+  border-radius: 12px;
+  line-height: 1em;
+  padding: 0.3em 0.6em;
+  user-select: none;
+  display: inline-block;
+  margin-right: 0.3em;
+  cursor: pointer;
+}
+#plugin-windy-plugin-sounding .plugin__content #fly-to .selected {
+  background-color: var(--color-orange);
+}

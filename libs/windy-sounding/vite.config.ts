@@ -1,5 +1,6 @@
 /// <reference types='vitest' />
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import preact from '@preact/preset-vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { certificatePEM, keyPEM } from '@windycom/plugin-devtools';
 import type { UserConfig } from 'vite';
@@ -10,7 +11,16 @@ export default defineConfig(
     root: __dirname,
     cacheDir: '../../node_modules/.vite/libs/windy-sounding',
 
-    plugins: [svelte(), nxViteTsPaths()],
+    plugins: [
+      svelte(),
+      nxViteTsPaths(),
+      preact({
+        prefreshEnabled: false,
+        babel: {
+          babelrc: true,
+        },
+      }),
+    ],
 
     server: {
       port: 9999,
@@ -24,6 +34,15 @@ export default defineConfig(
       },
     },
 
+    preview: {
+      port: 9999,
+      host: '0.0.0.0',
+      https: {
+        key: keyPEM,
+        cert: certificatePEM,
+      },
+    },
+
     // See: https://vitejs.dev/guide/build.html#library-mode
     build: {
       outDir: '../../dist/libs/windy-sounding',
@@ -32,6 +51,7 @@ export default defineConfig(
       commonjsOptions: {
         transformMixedEsModules: true,
       },
+      cssMinify: mode === 'production',
       minify: mode === 'production',
       sourcemap: true,
       lib: {

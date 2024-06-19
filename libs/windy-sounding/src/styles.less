@@ -1,0 +1,183 @@
+#wsp-icon {
+  position: relative;
+  top: -3px;
+  margin-right: 0.3em;
+  vertical-align: middle;
+}
+
+#plugin-windy-plugin-sounding {
+  line-height: 2;
+
+  &.plugin-mobile-bottom-small {
+    padding: 5px;
+    max-height: fit-content !important;
+
+    p.desktop-only {
+      display: none;
+    }
+
+    .plugin__content {
+      position: initial;
+    }
+  }
+
+  .plugin__content {
+    #wsp-zoom {
+      position: absolute;
+      top: 5px;
+      left: 60px;
+      font-size: 25px;
+      user-select: none;
+      color: var(--color-red);
+    }
+
+    select {
+      font-size: 1rem;
+    }
+
+    //=================================
+    //
+    // SVG items
+    //
+    //=================================
+
+    .axis {
+      path,
+      line {
+        fill: none;
+        stroke: #000;
+      }
+
+      .light {
+        stroke-width: 0.3;
+      }
+    }
+
+    #wsp-sounding {
+      svg {
+        touch-action: none;
+      }
+
+      p.model {
+        margin-bottom: 1em;
+      }
+
+      .chart {
+        .border {
+          fill: none;
+          stroke: gray;
+          stroke-width: 1;
+        }
+      }
+
+      .cumulus {
+        stroke: #030104;
+        stroke-width: 2px;
+        fill: ivory;
+      }
+
+      .line {
+        pointer-events: none;
+        stroke-width: 3;
+        fill: none;
+        stroke-linejoin: round;
+
+        &.dewpoint {
+          stroke: steelblue;
+        }
+
+        &.temperature {
+          stroke: red;
+        }
+
+        &.wind {
+          stroke: purple;
+        }
+      }
+
+      line.boundary {
+        stroke-width: 1;
+        stroke-dasharray: 8;
+        stroke: gray;
+      }
+
+      .moist {
+        fill: none;
+        stroke: green;
+        stroke-width: 0.4;
+        stroke-dasharray: 4 6;
+      }
+
+      .dry {
+        fill: none;
+        stroke: green;
+        stroke-width: 0.4;
+      }
+
+      .isohume {
+        fill: none;
+        stroke: blue;
+        stroke-width: 0.4;
+        stroke-dasharray: 4 6;
+      }
+
+      .isotherm {
+        stroke: darkred;
+        stroke-width: 0.4;
+      }
+
+      .isotherm.zero {
+        stroke-width: 1;
+      }
+
+      .parcel {
+        stroke-width: 3;
+        fill: none;
+        stroke-linejoin: round;
+
+        &.trajectory {
+          stroke: rgb(89, 156, 0);
+        }
+
+        &.isohume {
+          stroke-width: 1;
+          stroke: gray;
+          stroke-dasharray: 4;
+        }
+      }
+
+      text.tick {
+        font-size: 12px;
+        font-family: sans-serif;
+        fill: black;
+
+        &.temp {
+          fill: var(--color-text-primary);
+        }
+      }
+
+      .surface {
+        fill: #8f6d4d;
+      }
+    }
+
+    #fly-to {
+      padding: 0 1em 0 0.5em;
+
+      .location {
+        border: 1px solid #bbb;
+        border-radius: 12px;
+        line-height: 1em;
+        padding: 0.3em 0.6em;
+        user-select: none;
+        display: inline-block;
+        margin-right: 0.3em;
+        cursor: pointer;
+      }
+
+      .selected {
+        background-color: var(--color-orange);
+      }
+    }
+  }
+}

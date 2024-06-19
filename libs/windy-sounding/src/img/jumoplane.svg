@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512">
+  <defs>
+    <linearGradient id="a">
+      <stop offset="0" stop-color="#259f4a"/>
+      <stop offset="1" stop-color="#124c25"/>
+    </linearGradient>
+    <linearGradient xlink:href="#a" id="d" x1="74.5" x2="83.8" y1="64.3" y2="75.8" gradientTransform="matrix(4.45 0 0 4.45 -806 -26)" gradientUnits="userSpaceOnUse"/>
+    <linearGradient xlink:href="#a" id="b" x1="76.9" x2="90.2" y1="83.5" y2="101.1" gradientTransform="matrix(4.45 0 0 4.45 -806 -26)" gradientUnits="userSpaceOnUse"/>
+    <linearGradient xlink:href="#a" id="c" x1="74.5" x2="83.8" y1="64.3" y2="75.8" gradientTransform="matrix(4.45 0 0 4.45 -806 -26)" gradientUnits="userSpaceOnUse"/>
+  </defs>
+  <g paint-order="stroke markers fill">
+    <path fill="none" stroke="#ececec" stroke-linejoin="round" stroke-width="5" d="m501 62-99 28-13 4-4 1-6 2-75 21-263 73-31 45 187 55 90 99 23-34 114 93 63-42 2-49v-5l7-178 1-17z"/>
+    <path fill="#5e5e5e" d="m197 291 90 99L501 62Z"/>
+    <path fill="url(#b)" d="m292 356 8 62L527 70z" transform="matrix(.94 0 0 .94 5 -3)"/>
+    <path fill="#d8d8d8" d="m10 236 31-45L501 62 197 291Z"/>
+    <path fill="#2fcc5e" d="m41 191 217 46L501 62Z"/>
+    <path fill="#d8d8d8" d="m280 332 144 117 63-42 14-345Z"/>
+    <path fill="url(#c)" d="m269 255 46 73L527 70Z" transform="matrix(.94 0 0 .94 5 -3)"/>
+    <path fill="url(#d)" d="m328 282 2 27L527 70z" transform="matrix(.94 0 0 .94 5 -3)"/>
+    <path fill="#8d7363" d="m496 175-9 232-173-145 80-86Z"/>
+    <path fill="#2799df" d="m304 118 29 65 67-48-21-38z"/>
+    <path fill="#e4b119" d="m379 97 23-7 18 31-20 14z"/>
+    <path fill="#8d7363" d="m402 90 18 31 81-59z"/>
+    <path fill="#1b70a4" d="m333 183-34 118 3 4 14-17-3-26 75-79 12-48z"/>
+    <path fill="#a88212" d="m400 135 20-14-10 39-22 23z"/>
+    <path fill="#53443a" d="m420 121 81-59-91 98Z"/>
+    <path fill="#e4b119" d="m497 158-87 2-16 16 102-1zm-95 178 88-1-1 23-60 1z"/>
+    <path fill="#2fcc5e" d="m429 359 60-1-2 49z"/>
+    <path fill-opacity=".7" d="m41 191 217 46 44 68-3 3-41-63zm275 97-3-26 174 145-163-129z"/>
+    <path fill="#2fcc5e" d="m497 158 4-96-91 98Z"/>
+  </g>
+</svg>
