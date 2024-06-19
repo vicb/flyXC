@@ -1,6 +1,6 @@
 # windy-plugin-sounding
 
-The `windy-plugin-sounding` display sounding tailored for paraglider pilots.
+The `windy-plugin-sounding` displays soundings customized for paraglider pilots.
 
 ## Development
 
