@@ -10,6 +10,10 @@ jobs:
       WINDY_API_KEY: '${{ secrets.WINDY_API_KEY }}'
     steps:
       - uses: actions/checkout@v4
+        with:
+          # We must fetch at least the immediate parents so that if this is
+          # a pull request then we can checkout the head.
+          fetch-depth: 2
       - name: Build
         run: |
           npm install
