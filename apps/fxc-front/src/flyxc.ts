@@ -61,8 +61,9 @@ export class FlyXc extends connect(store)(LitElement) {
 
   private showPwaInstall = false;
 
-  stateChanged(state: RootState): void {
-    this.showPwaInstall = !state.app.pwaInstallCancelled && !state.browser.isInIframe;
+  stateChanged(): void {
+    // TODO(vicb): install screen is confusing
+    // this.showPwaInstall = !state.app.pwaInstallCancelled && !state.browser.isInIframe;
   }
 
   constructor() {
