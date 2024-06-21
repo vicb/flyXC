@@ -164,9 +164,13 @@ const stateToAppProps = (state: any) => {
       title: () => <p className="model">Forecast not available</p>,
       chart: () => (
         <text x="50%" y="50%" textAnchor="middle">
-          Forecast not available
+          <tspan x="50%">Forecast not available.</tspan>
+          <tspan x="50%" dy="1.5em">
+            <a href="/subscription">Windy premium users</a> have access to extend forecasts.
+          </tspan>
         </text>
       ),
+      wheelHandler: (e: MouseEvent) => e.preventDefault(),
     };
   }
 
