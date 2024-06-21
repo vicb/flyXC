@@ -30,7 +30,7 @@ export default defineConfig(
         cert: certificatePEM,
       },
       fs: {
-        allow: ['..'],
+        allow: ['../..'],
       },
     },
 
@@ -53,13 +53,19 @@ export default defineConfig(
       },
       cssMinify: mode === 'production',
       minify: mode === 'production',
-      sourcemap: true,
-      lib: {
-        entry: 'src/plugin.ts',
-        name: 'windy-sounding',
-        fileName: mode === 'production' ? 'plugin.min' : 'plugin',
-        formats: ['es'],
-      },
+      sourcemap: mode === 'production' && process.env.BUILD_PLUGIN_CONFIG !== 'true',
+      lib:
+        process.env.BUILD_PLUGIN_CONFIG === 'true'
+          ? {
+              entry: 'src/config.ts',
+              fileName: 'config',
+              formats: ['es'],
+            }
+          : {
+              entry: 'src/plugin.ts',
+              fileName: mode === 'production' ? 'plugin.min' : 'plugin',
+              formats: ['es'],
+            },
     },
 
     define: {

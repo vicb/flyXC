@@ -36,7 +36,7 @@
 
 flyXC sounding is a plugin to display soundings customized for paraglider pilots in windy.com.
 
-See the [README](https://github.com/vicb/flyxc/libs/windy-sounding/README.md) for details.
+See the [README](https://github.com/vicb/flyxc/blob/master/libs/windy-sounding/README.md) for details.
 
 ## Support flyXC
 
