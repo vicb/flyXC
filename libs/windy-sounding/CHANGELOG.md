@@ -1,3 +1,9 @@
+## 3.1.0 - June 21, 2024
+
+- Move the repo to github.com/vicb/flyxc
+- Fix an issue getting extended forecasts for premium users (following a windy API change)
+- Renamed the plugin to "flyXC Soundings"
+
 ## 3.0.6 - May 1, 2024
 
 - Added support for aromeReunion and aromeAntilles
@@ -84,4 +90,3 @@
 - Add support for changing timestamp via mouse wheel events.
 - Move inline styles to `plugin.less`.
 - Open the plugin to the left side.
-

@@ -1,6 +1,6 @@
 # windy-plugin-sounding
 
-The flyXC soundings plugin displays soundings customized for paraglider pilots on windy.com.
+The "flyXC soundings" plugin displays soundings customized for paraglider pilots on windy.com.
 
 ![Example Sounding](docs/sounding.png)
 

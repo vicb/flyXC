@@ -1,5 +1,6 @@
 import type { DataHash, MeteogramDataPayload, WeatherDataPayload } from '@windycom/plugin-devtools/types/interfaces';
 import type { Dispatch } from 'redux';
+
 import { pluginConfig } from '../config';
 
 const windyFetch = W.fetch;
