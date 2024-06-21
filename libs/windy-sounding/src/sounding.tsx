@@ -15,10 +15,10 @@ import {
   setModelName,
   setTime,
 } from './actions/sounding.js';
+import { pluginConfig } from './config';
 import { App } from './containers/containers.js';
 import { centerMap, updateTime } from './selectors/sounding.js';
 import { getStore, updateMetrics } from './util/store.js';
-import { pluginConfig } from './config';
 
 const windyStore = W.store;
 const windyUtils = W.utils;
