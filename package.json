@@ -81,8 +81,8 @@
     "svelte-check": "^3.8.1",
     "ts-jest": "^29.1.4",
     "ts-node": "^10.9.2",
-    "typescript": "5.4.5",
-    "vite": "~5.0.0",
+    "typescript": "5.5.2",
+    "vite": "~5.3.1",
     "vite-plugin-checker": "^0.6.4",
     "vite-plugin-dts": "~3.8.1",
     "vite-plugin-eslint": "^1.8.1",
@@ -90,11 +90,11 @@
     "vitest": "^1.6.0",
     "workbox-precaching": "^7.1.0",
     "workbox-routing": "^7.1.0",
-    "wrangler": "^3.60.3"
+    "wrangler": "^3.61.0"
   },
   "dependencies": {
     "@alenaksu/json-viewer": "^2.0.1",
-    "@arcgis/core": "^4.29.10",
+    "@arcgis/core": "^4.30.0",
     "@dr.pogodin/csurf": "^1.13.0",
     "@google-cloud/compute": "^4.7.0",
     "@google-cloud/datastore": "^9.0.0",
