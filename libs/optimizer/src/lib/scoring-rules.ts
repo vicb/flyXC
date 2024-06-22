@@ -9,22 +9,24 @@ const freeTriangle = scoringBaseModel[1];
 const faiTriangle = scoringBaseModel[2];
 const outAndReturn = igcXcScore.scoringRules['FAI-OAR'][0];
 
+//Czech rules see https://www.xcontest.org/cesko/pravidla/
+
 const czechLocalRule = [
   { ...openDistance, multiplier: 1 },
-  { ...freeTriangle, multiplier: 1.8 },
-  { ...faiTriangle, multiplier: 2.2 },
+  { ...freeTriangle, multiplier: 1.8, closingDistanceRelative: 0.05 },
+  { ...faiTriangle, multiplier: 2.2, closingDistanceRelative: 0.05 },
 ];
 
 const czechEuropeRule = [
   { ...openDistance, multiplier: 1 },
-  { ...freeTriangle, multiplier: 1.2 },
-  { ...faiTriangle, multiplier: 1.4 },
+  { ...freeTriangle, multiplier: 1.2, closingDistanceRelative: 0.05 },
+  { ...faiTriangle, multiplier: 1.4, closingDistanceRelative: 0.05 },
 ];
 
 const czechOutEuropeRule = [
   { ...openDistance, multiplier: 0.8 },
-  { ...freeTriangle, multiplier: 1.2 },
-  { ...faiTriangle, multiplier: 1.4 },
+  { ...freeTriangle, multiplier: 1.2, closingDistanceRelative: 0.05 },
+  { ...faiTriangle, multiplier: 1.4, closingDistanceRelative: 0.05 },
 ];
 
 const leonardoRule = [
