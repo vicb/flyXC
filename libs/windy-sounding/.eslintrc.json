@@ -1,10 +1,19 @@
 {
   "extends": ["../../.eslintrc.json"],
-  "ignorePatterns": ["!**/*", "**/node_modules/*", "generate-manifest.js"],
+  "ignorePatterns": ["!**/*", "**/node_modules/*", "generate-manifest.js", "**/vite.config.ts"],
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
-      "rules": {}
+      "rules": {
+        "import/no-extraneous-dependencies": [
+          "error",
+          {
+            "devDependencies": false,
+            "optionalDependencies": false,
+            "peerDependencies": false
+          }
+        ]
+      }
     },
     {
       "files": ["*.ts", "*.tsx"],
@@ -21,7 +30,8 @@
         "@nx/dependency-checks": [
           "error",
           {
-            "ignoredFiles": ["{projectRoot}/vite.config.{js,ts,mjs,mts}", "vite.config.{js,ts,mjs,mts}"]
+            "ignoredFiles": ["{projectRoot}/vite.config.ts", "vite.config.ts"],
+            "ignoredDependencies": ["react-redux"]
           }
         ]
       }
