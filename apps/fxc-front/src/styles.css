@@ -168,6 +168,16 @@ ion-item i.las {
 }
 
 html {
-    scrollbar-color: var(--ion-color-light) transparent;
-    scrollbar-width: thin;
+  scrollbar-color: var(--ion-color-light) transparent;
+  scrollbar-width: thin;
+}
+
+/* Reduce inner padding */
+.searchbar-input.sc-ion-searchbar-md {
+  padding-inline-start: 2.5rem;
+  padding-inline-end: 2rem;
+}
+
+.searchbar-has-value.searchbar-should-show-clear.sc-ion-searchbar-ios-h .searchbar-input.sc-ion-searchbar-ios {
+  padding-inline-end: 1.3rem;
 }
