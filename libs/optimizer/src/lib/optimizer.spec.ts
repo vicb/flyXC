@@ -257,6 +257,31 @@ describe('optimizer', () => {
       expect(optimize(request).closingRadiusKm).toBeGreaterThan(3);
     });
   });
+
+  ([
+    'CzechLocal',
+    'CzechEurope',
+    'CzechOutsideEurope',
+  ] as ScoringRuleName[]).forEach((rule) => {
+    describe(`given a 130.9 triangle with more than 3 km closing distance (${rule} rules)`, () => {
+      const tp1 = { lat: 45.20467, lon: 5.72595 };
+      const tp2 = { lat: 45.62463, lon: 6.11006 };
+      const tp3 = { lat: 45.25107, lon: 6.15041 };
+      const tp4 = { lat: 45.1902, lon: 5.78684 };
+      const request: ScoringRequest = {
+        track: mergeTracks(
+          createSegments({ ...tp1, alt: 0, timeSec: 0 }, { ...tp2, alt: 0, timeSec: 60 }, 1),
+          createSegments({ ...tp2, alt: 0, timeSec: 60 }, { ...tp3, alt: 0, timeSec: 120 }, 1),
+          createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp4, alt: 0, timeSec: 180 }, 1),
+        ),
+        ruleName: rule,
+        maxNumCycles: 1,
+      };
+      it('should return a closing distance less than 20 km', () => {
+        expect(optimize(request).closingRadiusKm).toBeLessThan(20);
+      });
+    });
+  });
 });
 
 function optimize(request: ScoringRequest): ScoringResult {

@@ -9,6 +9,8 @@ const freeTriangle = scoringBaseModel[1];
 const faiTriangle = scoringBaseModel[2];
 const outAndReturn = igcXcScore.scoringRules['FAI-OAR'][0];
 
+//Czech rules see https://www.xcontest.org/cesko/pravidla/
+
 const czechLocalRule = [
   { ...openDistance, multiplier: 1 },
   { ...freeTriangle, multiplier: 1.8, closingDistanceRelative: 0.05 },
