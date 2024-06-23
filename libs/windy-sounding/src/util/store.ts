@@ -1,6 +1,4 @@
-import type { Store } from 'redux';
-import { applyMiddleware, compose, createStore } from 'redux';
-import { thunk } from 'redux-thunk';
+import { configureStore, EnhancedStore, type DevToolsEnhancerOptions } from '@reduxjs/toolkit';
 
 import * as skewTAct from '../actions/skewt';
 import * as soundingAct from '../actions/sounding';
@@ -8,18 +6,33 @@ import { rootReducer } from '../reducers/sounding';
 
 const windyStore = W.store;
 
-let store: Store;
+export type AppStore = EnhancedStore;
+
+let store: AppStore;
 
 export function getStore(container?: HTMLDivElement) {
   if (store) {
     return store;
   }
 
-  const middlewares = [thunk];
-  const composeEnhancers =
-    (process.env.NODE_ENV == 'development' ? (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ : null) || compose;
-  // TODO: check deprecated
-  store = createStore(rootReducer, composeEnhancers(applyMiddleware(...middlewares)));
+  const devTools: DevToolsEnhancerOptions | boolean =
+    process.env.NODE_ENV === 'development'
+      ? false
+      : {
+          traceLimit: 20,
+          trace: false,
+          autoPause: true,
+        };
+
+  store = configureStore({
+    reducer: rootReducer,
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        serializableCheck: false,
+        immutableCheck: false,
+      }),
+    devTools,
+  });
 
   // TODO: mobile dimension
   const graphWith = container.clientWidth;
@@ -35,7 +48,7 @@ export function getStore(container?: HTMLDivElement) {
   return store;
 }
 
-export function updateMetrics(store: Store) {
+export function updateMetrics(store: AppStore) {
   if (store) {
     store.dispatch(soundingAct.setMetricTemp(windyStore.get('metric_temp')));
     store.dispatch(soundingAct.setMetricAltitude(windyStore.get('metric_altitude')));

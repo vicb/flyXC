@@ -3,7 +3,6 @@ import './styles.less';
 import type { LatLon } from '@windycom/plugin-devtools/types/interfaces.js';
 import { render } from 'preact';
 import { Provider } from 'react-redux';
-import type { Store } from 'redux';
 
 import {
   addSubscription,
@@ -18,7 +17,7 @@ import {
 import { pluginConfig } from './config';
 import { App } from './containers/containers.js';
 import { centerMap, updateTime } from './selectors/sounding.js';
-import { getStore, updateMetrics } from './util/store.js';
+import { getStore, updateMetrics, AppStore } from './util/store.js';
 
 const windyStore = W.store;
 const windyUtils = W.utils;
@@ -30,7 +29,7 @@ const favs = W.userFavs;
 
 declare const SwipeListener: any;
 
-let store: Store;
+let store: AppStore;
 
 export const mountPlugin = (container: HTMLDivElement) => {
   store = getStore(container);
