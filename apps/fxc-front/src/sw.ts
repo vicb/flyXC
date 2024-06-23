@@ -15,7 +15,7 @@ const debug = process.env.NODE_ENV === 'development';
 
 // Try to get the index page from the network.
 const isIndexRoute = ({ url }: { url: URL }): boolean => {
-  return ['/', '/adm', '/arc', '/devices'].includes(url.pathname);
+  return ['/', '/adm', '/arc', '/devices', '/3d'].includes(url.pathname);
 };
 registerRoute(isIndexRoute, new NetworkFirst({ cacheName: FLYXC_ASSET_CACHE_NAME, networkTimeoutSeconds: 10 }));
 
