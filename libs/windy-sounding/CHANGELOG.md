@@ -1,3 +1,11 @@
+# Release history
+
+## 4.0.0
+
+- Migrate code to RTK
+- UX improvement on both desktop and mobile layouts
+- Simplify the code
+
 ## 3.1.0 - June 21, 2024
 
 - Move the repo to github.com/vicb/flyxc

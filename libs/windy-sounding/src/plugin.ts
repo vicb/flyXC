@@ -9,10 +9,14 @@
 
 import { pluginConfig } from './config';
 import Plugin from './Plugin.svelte';
-import styles from './styles.less?inline';
-import { init, injectStyles } from './util/utils';
 
-init(pluginConfig);
-injectStyles(styles);
+// Set the build timestamp on the dev server.
+if (process.env.NODE_ENV !== 'production') {
+  (window as any).__BUILD_TIMESTAMP__ = Date.now();
+}
+
+if (!pluginConfig.name.startsWith('windy-plugin-')) {
+  throw new Error(`Plugin name "${pluginConfig.name}" should start with "windy-plugin-".`);
+}
 
 export { pluginConfig as __pluginConfig, Plugin as default };

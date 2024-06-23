@@ -1,3 +1,11 @@
+// Windy override
+#device-desktop #plugin-windy-plugin-sounding .plugin__content {
+  padding: 25px !important;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+// flyXC icon on desktop.
 #wsp-icon {
   position: relative;
   top: -3px;
@@ -5,187 +13,428 @@
   vertical-align: middle;
 }
 
-#plugin-windy-plugin-sounding {
-  line-height: 2;
+// dev badge for the icon.
+#wsp-dev {
+  position: absolute;
+  bottom: -3px;
+  left: 35px;
+}
 
+#wsp-version {
+  margin-left: 0.5em;
+}
+
+// Model details, desktop only.
+#wsp-model {
+  padding: 0 0 1em;
+
+  dl {
+    display: grid;
+    grid-gap: 4px 16px;
+    grid-template-columns: max-content;
+  }
+
+  dt {
+    font-style: italic;
+  }
+
+  dd {
+    font-weight: 500;
+    grid-column-start: 2;
+  }
+}
+
+// Favorite shortcuts, desktop only.
+#wsp-flyto {
+  .button {
+    line-height: 1em;
+    padding: 0.3em 0.6em;
+    margin: 0.1em 0.2em;
+  }
+
+  .selected {
+    background-color: var(--color-orange);
+  }
+
+  padding-top: 0.5em;
+}
+
+// Zomm in and out.
+#wsp-zoom {
+  cursor: pointer;
+  transform: scale(1.2);
+
+  rect {
+    fill: #fff;
+  }
+
+  path {
+    fill: var(--color-orange);
+  }
+}
+
+// Resize the mobile layout.
+#wsp-resize {
+  cursor: move;
+
+  rect {
+    fill: lightgray;
+    stroke: black;
+    stroke-width: 0.3px;
+  }
+
+  line {
+    stroke: darkgrey;
+    stroke-width: 2px;
+  }
+}
+
+#wsp-sounding {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  p {
+    margin: 0 0 0.3em;
+    padding: 0;
+  }
+
+  #device-desktop & {
+    display: grid;
+    justify-items: stretch;
+    // graph, favorites, sponsors
+    grid-template-rows: auto 1fr auto;
+
+    #wsp-sponsor {
+      padding: 0.5em;
+      text-align: center;
+      background-color: var(--color-gray-dark);
+    }
+  }
+
+  .wsp-message {
+    display: grid;
+    align-items: center;
+    text-align: center;
+  }
+
+  svg {
+    touch-action: none;
+
+    text {
+      fill: var(--color-text-primary);
+
+      a {
+        fill: var(--color-text-link);
+      }
+    }
+  }
+
+  p.header {
+    padding-bottom: 1em;
+  }
+
+  .graph {
+    shape-rendering: geometricprecision;
+
+    .background {
+      fill: white;
+      stroke: none;
+    }
+
+    .border {
+      fill: none;
+      stroke: gray;
+      stroke-width: 1;
+    }
+
+    text {
+      fill: black;
+      stroke: none;
+      filter: url(#outline);
+      font-size: 13px;
+    }
+
+    .cursor {
+      line {
+        stroke: darkgray;
+        stroke-dasharray: 2;
+      }
+
+      text {
+        dominant-baseline: hanging;
+
+        &.altitude,
+        &.speed {
+          text-anchor: end;
+        }
+      }
+    }
+
+    .surface {
+      fill: #8f6d4d;
+    }
+
+    .line {
+      stroke-width: 3;
+    }
+
+    path {
+      fill: none;
+      stroke-linejoin: round;
+    }
+
+    .boundary {
+      stroke: darkgray;
+      stroke-width: 0.5px;
+    }
+
+    &.skewt {
+      #wsp-watermark {
+        text {
+          text-anchor: middle;
+        }
+
+        .title {
+          fill: #ddd;
+          font-size: 30px;
+          dominant-baseline: auto;
+        }
+
+        .subtitle {
+          fill: #999;
+          font-size: 13px;
+          dominant-baseline: hanging;
+        }
+
+        #device-desktop & {
+          text {
+            fill: #eee;
+          }
+
+          .title {
+            dominant-baseline: middle;
+          }
+
+          .subtitle {
+            fill: none;
+          }
+        }
+      }
+
+      .temperature text,
+      text.temperature {
+        fill: red;
+      }
+
+      .dewpoint text,
+      text.dewpoint {
+        fill: steelblue;
+      }
+
+      .isotherm text {
+        fill: darkred;
+      }
+
+      .line {
+        .temperature {
+          stroke: red;
+        }
+
+        .dewpoint {
+          stroke: steelblue;
+        }
+      }
+
+      .axis {
+        path {
+          stroke-width: 0.3;
+        }
+
+        .dry-adiabatic {
+          stroke: green;
+        }
+
+        .wet-adiabatic {
+          stroke: green;
+          stroke-dasharray: 4 6;
+        }
+
+        .isotherm {
+          stroke: darkred;
+
+          .zero {
+            stroke-width: 1;
+            font-weight: bold;
+          }
+        }
+
+        .altitude {
+          stroke: lightgray;
+        }
+
+        .isohume {
+          stroke: blue;
+          stroke-dasharray: 4 6;
+        }
+
+        text {
+          &.temperature {
+            text-anchor: middle;
+            dominant-baseline: middle;
+          }
+        }
+      }
+
+      .cloud {
+        .cirrus {
+          filter: url(#outline);
+        }
+      }
+
+      .parcel {
+        .line {
+          stroke: green;
+        }
+
+        .isohume {
+          stroke: steelblue;
+          stroke-width: 1px;
+          stroke-dasharray: 3;
+        }
+
+        text {
+          text-anchor: end;
+          dominant-baseline: hanging;
+        }
+
+        path.cumulus {
+          stroke: #030104;
+          fill: lightyellow;
+          stroke-width: 2;
+        }
+
+        rect.cumulus {
+          opacity: 0.8;
+          fill: url(#hatch);
+        }
+      }
+    }
+
+    &.wind {
+      text.speed {
+        fill: purple;
+      }
+
+      .line {
+        &.speed {
+          stroke: purple;
+        }
+      }
+
+      .axis {
+        .speed {
+          stroke: lightgray;
+        }
+      }
+    }
+  }
+
+  .parcel {
+    stroke-width: 3;
+    fill: none;
+    stroke-linejoin: round;
+
+    &.trajectory {
+      stroke: rgb(89, 156, 0);
+    }
+
+    &.isohume {
+      stroke-width: 1;
+      stroke: gray;
+      stroke-dasharray: 4;
+    }
+  }
+}
+
+// Mobile bottom bar.
+#plugin-windy-plugin-sounding {
   &.plugin-mobile-bottom-small {
-    padding: 5px;
+    padding: 0;
     max-height: fit-content !important;
 
-    p.desktop-only {
+    .desktop-only {
       display: none;
     }
 
     .plugin__content {
       position: initial;
     }
-  }
 
-  .plugin__content {
-    #wsp-zoom {
-      position: absolute;
-      top: 5px;
-      left: 60px;
-      font-size: 25px;
-      user-select: none;
-      color: var(--color-red);
-    }
+    #wsp-favorite {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      padding: 10px 0;
+      margin: 0;
+      background-color: var(--color-red);
 
-    select {
-      font-size: 1rem;
-    }
-
-    //=================================
-    //
-    // SVG items
-    //
-    //=================================
-
-    .axis {
-      path,
-      line {
-        fill: none;
-        stroke: #000;
-      }
-
-      .light {
-        stroke-width: 0.3;
-      }
-    }
-
-    #wsp-sounding {
-      svg {
-        touch-action: none;
-
-        text {
-          fill: var(--color-text-primary);
-
-          a {
-            fill: var(--color-text-link);
-          }
-        }
-      }
-
-      p.model {
-        margin-bottom: 1em;
-      }
-
-      .chart {
-        .border {
-          fill: none;
-          stroke: gray;
-          stroke-width: 1;
-        }
-      }
-
-      .cumulus {
-        stroke: #030104;
-        stroke-width: 2px;
-        fill: ivory;
-      }
-
-      .line {
-        pointer-events: none;
-        stroke-width: 3;
-        fill: none;
-        stroke-linejoin: round;
-
-        &.dewpoint {
-          stroke: steelblue;
-        }
-
-        &.temperature {
-          stroke: red;
-        }
-
-        &.wind {
-          stroke: purple;
-        }
-      }
-
-      line.boundary {
-        stroke-width: 1;
-        stroke-dasharray: 8;
-        stroke: gray;
-      }
-
-      .moist {
-        fill: none;
-        stroke: green;
-        stroke-width: 0.4;
-        stroke-dasharray: 4 6;
-      }
-
-      .dry {
-        fill: none;
-        stroke: green;
-        stroke-width: 0.4;
-      }
-
-      .isohume {
-        fill: none;
-        stroke: blue;
-        stroke-width: 0.4;
-        stroke-dasharray: 4 6;
-      }
-
-      .isotherm {
-        stroke: darkred;
-        stroke-width: 0.4;
-      }
-
-      .isotherm.zero {
-        stroke-width: 1;
-      }
-
-      .parcel {
-        stroke-width: 3;
-        fill: none;
-        stroke-linejoin: round;
-
-        &.trajectory {
-          stroke: rgb(89, 156, 0);
-        }
-
-        &.isohume {
-          stroke-width: 1;
-          stroke: gray;
-          stroke-dasharray: 4;
-        }
-      }
-
-      text.tick {
-        font-size: 12px;
-        font-family: sans-serif;
-        fill: black;
-
-        &.temp {
-          fill: var(--color-text-primary);
-        }
-      }
-
-      .surface {
-        fill: #8f6d4d;
-      }
-    }
-
-    #fly-to {
-      padding: 0 1em 0 0.5em;
-
-      .location {
-        border: 1px solid #bbb;
-        border-radius: 12px;
-        line-height: 1em;
-        padding: 0.3em 0.6em;
-        user-select: none;
-        display: inline-block;
-        margin-right: 0.3em;
+      & > div {
         cursor: pointer;
       }
 
-      .selected {
-        background-color: var(--color-orange);
+      .select {
+        width: 100%;
+        text-align: center;
+        white-space: nowrap;
+
+        &:before {
+          display: inline-block;
+          position: relative;
+          top: -2px;
+        }
+
+        &:after {
+          display: inline-block;
+          transform-origin: center center;
+          transition: transform 0.3s;
+        }
+
+        &.active::after {
+          transform: rotate(180deg);
+        }
+
+        small {
+          padding: 0 5px;
+          display: inline-block;
+          max-width: 120px;
+          text-overflow: ellipsis;
+          overflow: hidden;
+        }
       }
+    }
+
+    .options {
+      padding: 5px;
+      width: 100%;
+      background-color: var(--color-red);
+      text-align: center;
+    }
+
+    .options > span {
+      display: inline-block;
+      border-radius: 1em;
+      padding: 2px 5px;
+      margin: 0 5px;
+    }
+
+    .options > span.selected {
+      background-color: var(--color-red-light);
+    }
+  }
+
+  .plugin__content {
+    select {
+      font-size: 1rem;
     }
   }
 }
