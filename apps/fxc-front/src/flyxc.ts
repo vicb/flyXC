@@ -282,6 +282,7 @@ requestCurrentPosition(false);
 
 ionicInit();
 
+// TODO: do we need to check if already registered?
 registerSW({
   immediate: true,
   onRegisteredSW(swUrl: string, registration: ServiceWorkerRegistration | undefined) {
