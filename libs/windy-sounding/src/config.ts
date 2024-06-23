@@ -7,7 +7,7 @@ const userConfig: PluginUserConfig = {
   icon: '⛅️',
   desktopUI: 'rhpane',
   mobileUI: 'small',
-  routerPath: '/sdg/:lat?/:lon?',
+  routerPath: '/sdg/:modelName?/:lat?/:lon?',
   desktopWidth: 600,
   addToContextmenu: true,
   listenToSingleclick: true,

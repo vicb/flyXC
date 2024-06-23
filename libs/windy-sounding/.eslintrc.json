@@ -12,7 +12,9 @@
             "optionalDependencies": false,
             "peerDependencies": false
           }
-        ]
+        ],
+        // Use the @windy alias instead
+        "no-restricted-imports": ["error", "@windycom"]
       }
     },
     {

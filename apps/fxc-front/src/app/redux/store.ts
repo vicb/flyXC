@@ -38,8 +38,6 @@ const devTools: DevToolsEnhancerOptions | boolean = import.meta.env.PROD
       autoPause: true,
     };
 
-import.meta.env.PROD;
-
 export const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false, immutableCheck: false }),

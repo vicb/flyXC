@@ -1,51 +1,63 @@
-import { lerp } from './math';
+import type { MeteogramDataHash } from '@windy/interfaces';
 
-export const hrAlt = [0, 5, 11, 16.7, 25, 33.4, 50, 58.4, 66.7, 75, 83.3, 92, 98, 100];
-const hrAltPressure = [null, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 200, 150, null];
+import { lerp, scaleLinear } from './math';
 
-const lookup = new Uint8Array(256);
+// Set to true du debug the clouds.
+export const DEBUG_CLOUDS = false;
+export let debugCloudCanvas: HTMLCanvasElement | undefined;
+export let debugCloudTimeCursor: HTMLDivElement | undefined;
+
+export type PeriodCloud = {
+  clouds: number[];
+  width: number;
+  height: number;
+};
+
+export type CloudCoverGenerator = (pressure: number, toPressure?: number) => number;
+
+const CLOUD_PRESSURE_WEIGHT = [0, 5, 11, 16.7, 25, 33.4, 50, 58.4, 66.7, 75, 83.3, 92, 98, 100].map((w) => w / 100);
+const CLOUD_LEVELS = [1000, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 200, 150, 100];
+const CLOUD_LOOKUP = new Uint8Array(256);
 
 for (let i = 0; i < 160; i++) {
-  lookup[i] = clampIndex(24 * Math.floor((i + 12) / 16), 160);
+  CLOUD_LOOKUP[i] = clampIndex(24 * Math.floor((i + 12) / 16), 160);
 }
 
 // Compute the rain clouds cover.
 // Output an object:
 // - clouds: the clouds cover,
 // - width & height: dimension of the cover data.
-export function computeClouds(airData: any) {
+export function computePeriodClouds(windyDataHash: MeteogramDataHash): PeriodCloud {
   // Compute clouds data.
-  const numX = airData['rh-1000h'].length;
-  const numY = hrAltPressure.length;
-  const rawClouds = new Array(numX * numY);
+  const timeDimension = windyDataHash['rh-1000h'].length;
+  const ghDimension = CLOUD_LEVELS.length;
+  const rawClouds = new Array(timeDimension * ghDimension).fill(0.0);
 
-  for (let y = 0, index = 0; y < numY; ++y) {
-    if (hrAltPressure[y] == null) {
-      for (let x = 0; x < numX; ++x) {
-        rawClouds[index++] = 0.0;
-      }
-    } else {
-      const weight = hrAlt[y] * 0.01;
-      const pAdd = lerp(-60, -70, weight);
-      const pMul = lerp(0.025, 0.038, weight);
-      const pPow = lerp(6, 4, weight);
-      const pMul2 = 1 - 0.8 * Math.pow(weight, 0.7);
-      const rhRow = airData[`rh-${hrAltPressure[y]}h`];
-      for (let x = 0; x < numX; ++x) {
-        const hr = Number(rhRow[x]);
-        let f = Math.max(0.0, Math.min((hr + pAdd) * pMul, 1.0));
-        f = Math.pow(f, pPow) * pMul2;
-        rawClouds[index++] = f;
-      }
+  for (let ghIndex = 1, index = timeDimension; ghIndex < ghDimension - 1; ++ghIndex) {
+    const weight = CLOUD_PRESSURE_WEIGHT[ghIndex];
+    const pAdd = lerp(-60, -70, weight);
+    const pMul = lerp(0.025, 0.038, weight);
+    const pPow = lerp(6, 4, weight);
+    const pMul2 = 1 - 0.8 * Math.pow(weight, 0.7);
+    const rhKey = `rh-${CLOUD_LEVELS[ghIndex]}h`;
+    if (!(rhKey in windyDataHash)) {
+      throw Error(`Missing ${rhKey}`);
+    }
+    // as `rh-500h` is to please TypeScript strict mode
+    const rhByTime = windyDataHash[`rh-${CLOUD_LEVELS[ghIndex]}h` as `rh-500h`];
+    for (let timeIndex = 0; timeIndex < timeDimension; ++timeIndex) {
+      const rh = rhByTime[timeIndex];
+      const cappedV = Math.max(0.0, Math.min((rh + pAdd) * pMul, 1.0));
+      rawClouds[index++] = cappedV ** pPow * pMul2;
     }
   }
 
   // Interpolate raw clouds.
-  const sliceWidth = 10;
-  const width = sliceWidth * numX;
+  const sliceWidth = 4;
+  const width = sliceWidth * timeDimension;
   const height = 300;
   const clouds = new Array(width * height);
-  const kh = (height - 1) * 0.01;
+  const kh = height - 1;
   const dx2 = (sliceWidth + 1) >> 1;
   let heightLookupIndex = 2 * height;
   const heightLookup = new Array(heightLookupIndex);
@@ -53,30 +65,28 @@ export function computeClouds(airData: any) {
   let previousY;
   let currentY = height;
 
-  for (let j = 0; j < numY - 1; ++j) {
+  for (let ghIndex = 0; ghIndex < ghDimension - 1; ++ghIndex) {
     previousY = currentY;
-    currentY = Math.round(height - 1 - hrAlt[j + 1] * kh);
-    const j0 = numX * clampIndex(j + 2, numY);
-    const j1 = numX * clampIndex(j + 1, numY);
-    const j2 = numX * clampIndex(j + 0, numY);
-    const j3 = numX * clampIndex(j - 1, numY);
+    currentY = Math.round(height - 1 - CLOUD_PRESSURE_WEIGHT[ghIndex + 1] * kh);
+    const j0 = timeDimension * clampIndex(ghIndex + 2, ghDimension);
+    const j1 = timeDimension * clampIndex(ghIndex + 1, ghDimension);
+    const j2 = timeDimension * clampIndex(ghIndex + 0, ghDimension);
+    const j3 = timeDimension * clampIndex(ghIndex - 1, ghDimension);
     let previousX = 0;
     let currentX = dx2;
     const deltaY = previousY - currentY;
-    const invDeltaY = 1.0 / deltaY;
 
-    for (let i = 0; i < numX + 1; ++i) {
-      if (i == 0 && deltaY > 0) {
-        const ry = 1.0 / deltaY;
+    for (let timeIndex = 0; timeIndex < timeDimension + 1; ++timeIndex) {
+      if (timeIndex == 0 && deltaY > 0) {
         for (let l = 0; l < deltaY; l++) {
-          heightLookup[--heightLookupIndex] = j;
-          heightLookup[--heightLookupIndex] = Math.round(10000 * ry * l);
+          heightLookup[--heightLookupIndex] = ghIndex;
+          heightLookup[--heightLookupIndex] = Math.round((10000 / deltaY) * l);
         }
       }
-      const i0 = clampIndex(i - 2, numX);
-      const i1 = clampIndex(i - 1, numX);
-      const i2 = clampIndex(i + 0, numX);
-      const i3 = clampIndex(i + 1, numX);
+      const i0 = clampIndex(timeIndex - 2, timeDimension);
+      const i1 = clampIndex(timeIndex - 1, timeDimension);
+      const i2 = clampIndex(timeIndex + 0, timeDimension);
+      const i3 = clampIndex(timeIndex + 1, timeDimension);
       buffer[0] = rawClouds[j0 + i0];
       buffer[1] = rawClouds[j0 + i1];
       buffer[2] = rawClouds[j0 + i2];
@@ -95,13 +105,12 @@ export function computeClouds(airData: any) {
       buffer[15] = rawClouds[j3 + i3];
 
       const topLeft = currentY * width + previousX;
-      const dx = currentX - previousX;
-      const fx = 1.0 / dx;
+      const deltaX = currentX - previousX;
 
       for (let y = 0; y < deltaY; ++y) {
         let offset = topLeft + y * width;
-        for (let x = 0; x < dx; ++x) {
-          const black = step(bicubicFiltering(buffer, fx * x, invDeltaY * y) * 160.0);
+        for (let x = 0; x < deltaX; ++x) {
+          const black = step(bicubicFiltering(buffer, x / deltaX, y / deltaY) * 160.0);
           clouds[offset++] = 255 - black;
         }
       }
@@ -113,25 +122,76 @@ export function computeClouds(airData: any) {
     }
   }
 
+  if (DEBUG_CLOUDS) {
+    cloudsToCanvas({ clouds, width, height });
+  }
+
   return { clouds, width, height };
 }
 
-function clampIndex(index: any, size: any) {
+export function getCloudCoverGenerator(cloudCover: number[]): CloudCoverGenerator {
+  const coverLength = cloudCover.length;
+  const weightedIndexes = CLOUD_PRESSURE_WEIGHT.map((w) => w * (coverLength - 1));
+  const pressureToIndexScale = scaleLinear(CLOUD_LEVELS, weightedIndexes);
+  return (pressure: number, toPressure: number | undefined): number => {
+    const startIdx = Math.max(0, Math.round(pressureToIndexScale(pressure)));
+    if (toPressure == undefined) {
+      return cloudCover[startIdx];
+    }
+    const endIdx = Math.max(startIdx, Math.round(pressureToIndexScale(toPressure)));
+    const slice = cloudCover.slice(startIdx, endIdx);
+    return slice.length ? Math.min(...slice) : 255;
+  };
+}
+
+/**
+ * Clamps an index to the range [0, size - 1].
+ *
+ * @param index - The index to clamp.
+ * @param size - The size of the range.
+ * @returns The clamped index.
+ */
+function clampIndex(index: number, size: number): number {
   return index < 0 ? 0 : index > size - 1 ? size - 1 : index;
 }
 
-function step(x: any) {
-  return lookup[Math.floor(clampIndex(x, 160))];
+/**
+ * Applies a step function to a value.
+ *
+ * @param x - The value to apply the step function to.
+ * @returns The stepped value.
+ */
+
+function step(x: number): number {
+  return CLOUD_LOOKUP[Math.floor(clampIndex(x, 160))];
 }
 
-function cubicInterpolate(y0: any, y1: any, y2: any, y3: any, m: any) {
+/**
+ * Performs cubic interpolation.
+ *
+ * @param y0 - The value at x = 0.
+ * @param y1 - The value at x = 1.
+ * @param y2 - The value at x = 2.
+ * @param y3 - The value at x = 3.
+ * @param m - The interpolation parameter.
+ * @returns The interpolated value.
+ */
+function cubicInterpolate(y0: number, y1: number, y2: number, y3: number, m: number): number {
   const a0 = -y0 * 0.5 + 3.0 * y1 * 0.5 - 3.0 * y2 * 0.5 + y3 * 0.5;
   const a1 = y0 - 5.0 * y1 * 0.5 + 2.0 * y2 - y3 * 0.5;
   const a2 = -y0 * 0.5 + y2 * 0.5;
   return a0 * m ** 3 + a1 * m ** 2 + a2 * m + y1;
 }
 
-function bicubicFiltering(m: any, s: any, t: any) {
+/**
+ * Performs bicubic filtering.
+ *
+ * @param m - The 4x4 matrix of values.
+ * @param s - The interpolation parameter in the x direction.
+ * @param t - The interpolation parameter in the y direction.
+ * @returns The filtered value.
+ */
+function bicubicFiltering(m: number[], s: number, t: number) {
   return cubicInterpolate(
     cubicInterpolate(m[0], m[1], m[2], m[3], s),
     cubicInterpolate(m[4], m[5], m[6], m[7], s),
@@ -141,15 +201,48 @@ function bicubicFiltering(m: any, s: any, t: any) {
   );
 }
 
-// Draw the clouds on a canvas.
-// This function is useful for debugging.
-export function cloudsToCanvas({ clouds, width, height, canvas }: any) {
-  if (canvas == null) {
-    canvas = document.createElement('canvas');
+/**
+ * Draws the clouds on a canvas.
+ *
+ * This function is useful for debugging.
+ *
+ * @param clouds - The clouds data.
+ * @param width - The width of the canvas.
+ * @param height - The height of the canvas.
+ * @param canvas - The canvas to draw on.
+ * @returns The canvas.
+ */
+export function cloudsToCanvas({ clouds, width, height }: PeriodCloud) {
+  if (!debugCloudCanvas) {
+    const style = document.createElement('style');
+    style.appendChild(
+      document.createTextNode(`.wsp-cloud-debug {
+        position: fixed;
+        bottom: 500px;
+        left: 0;
+      }
+      canvas.wsp-cloud-debug {
+        background-color: white;
+      }
+      div.wsp-cloud-debug {
+        border-right: 1px solid red;
+        backround-color: transparent;
+      }
+    `),
+    );
+    document.head.append(style);
+    debugCloudCanvas = document.createElement('canvas');
+    debugCloudCanvas.className = 'wsp-cloud-debug';
+    debugCloudCanvas.width = width;
+    debugCloudCanvas.height = height;
+    document.body.append(debugCloudCanvas);
+    debugCloudTimeCursor = document.createElement('div');
+    debugCloudTimeCursor.className = 'wsp-cloud-debug';
+    debugCloudTimeCursor.style.height = `${height}px`;
+    document.body.append(debugCloudTimeCursor);
   }
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
+
+  const ctx: CanvasRenderingContext2D = debugCloudCanvas.getContext('2d')!;
   const imageData = ctx.getImageData(0, 0, width, height);
   const imgData = imageData.data;
 
@@ -161,12 +254,9 @@ export function cloudsToCanvas({ clouds, width, height, canvas }: any) {
       imgData[dstOffset++] = color;
       imgData[dstOffset++] = color;
       imgData[dstOffset++] = color;
-      imgData[dstOffset++] = color < 245 ? 255 : 0;
+      imgData[dstOffset++] = color < 250 ? 255 : 0;
     }
   }
-
   ctx.putImageData(imageData, 0, 0);
-  ctx.drawImage(canvas, 0, 0, width, height);
-
-  return canvas;
+  ctx.drawImage(debugCloudCanvas, 0, 0, width, height);
 }

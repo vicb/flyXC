@@ -1,6 +1,6 @@
 {
   "name": "windy-plugin-sounding",
-  "version": "3.1.0",
+  "version": "4.0.0-alpha.1",
   "type": "module",
   "private": true,
   "description": "Soundings for paraglider pilots",
@@ -12,14 +12,12 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@reduxjs/toolkit": "^2.2.5",
+    "@reduxjs/toolkit": "^2.2.6",
     "@sveltejs/vite-plugin-svelte": "^3.1.1",
-    "@windycom/plugin-devtools": "^2.0.0",
-    "preact": "10.22.0",
+    "date-fns": "^3.6.0",
+    "geojson": "^0.5.0",
+    "preact": "10.22.1",
     "react-redux": "^9.1.2",
-    "redux": "^5.0.1",
-    "redux-thunk": "^3.1.0",
-    "reselect": "5.1.1",
     "svelte": "^4.2.18"
   }
 }

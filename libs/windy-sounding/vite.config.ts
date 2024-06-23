@@ -48,12 +48,13 @@ export default defineConfig(
       outDir: '../../dist/libs/windy-sounding',
       emptyOutDir: false,
       reportCompressedSize: true,
+      target: 'esnext',
       commonjsOptions: {
         transformMixedEsModules: true,
       },
       cssMinify: mode === 'production',
       minify: mode === 'production',
-      sourcemap: mode === 'production' && process.env.BUILD_PLUGIN_CONFIG !== 'true',
+      sourcemap: process.env.BUILD_PLUGIN_CONFIG !== 'true',
       lib:
         process.env.BUILD_PLUGIN_CONFIG === 'true'
           ? {
@@ -77,10 +78,8 @@ export default defineConfig(
     test: {
       watch: false,
       globals: true,
-      passWithNoTests: true,
       environment: 'node',
       include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-
       reporters: ['default'],
       coverage: {
         reportsDirectory: '../../coverage/libs/windy-sounding',

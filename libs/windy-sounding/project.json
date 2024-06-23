@@ -14,7 +14,8 @@
       },
       "configurations": {
         "development": {
-          "mode": "development"        },
+          "mode": "development"
+        },
         "production": {
           "mode": "production"
         }
@@ -72,10 +73,10 @@
     },
 
     "test": {
-      "executor": "@nx/vite:test",
-      "outputs": ["{options.reportsDirectory}"],
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "reportsDirectory": "../../coverage/libs/windy-sounding"
+        "jestConfig": "libs/windy-sounding/jest.config.ts"
       }
     }
   }

@@ -6,17 +6,22 @@ The `windy-plugin-sounding` displays soundings customized for paraglider pilots.
 
 Execute the following commands in the root directory:
 
-`npm i`
-`npm --prefix libs/windy-sounding i`
+```bash
+npm i
+npm --prefix libs/windy-sounding i
+```
 
 Then run either:
 
-- `nx serve windy-sounding --build.watch=true` and visit `windy.com/dev` and enter `https://localhost:9999/plugin.js` as the url to the plugin.
+- `nx serve windy-sounding --build.watch=true` and visit `windy.com/dev` and enter `https://localhost:9999/plugin.js` as the url to the plugin
 - or `nx preview windy-sounding` and visit `windy.com/dev` and enter `https://localhost:9999/src/plugin.ts` as the url to the plugin
 
 Then press `Install and open plugin` and the plugin will open to the right side.
 
 You can then update the code and hit `Reload plugin` to load your changes.
+
+> [!TIP]
+> Use the `Launch Windy Plugin` launch configuration to debug the plugin in Chrome.
 
 ## Release
 

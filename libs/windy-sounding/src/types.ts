@@ -1,4 +1,4 @@
-import type { ExternalPluginConfig } from '@windycom/plugin-devtools/types/interfaces';
+import type { ExternalPluginConfig } from '@windy/interfaces';
 
 // Configuration derived mostly from package.json.
 export interface PluginDerivedConfig {
