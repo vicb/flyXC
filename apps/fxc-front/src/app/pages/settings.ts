@@ -157,7 +157,7 @@ export class SettingsPage extends LitElement {
                   .hint=${html`<ion-text class="ion-padding-horizontal ion-padding-top block">
                     Create an XML feed by following the instructions on this
                     <a
-                      href="https://www.findmespot.com/en-us/support/spot-trace/get-help/general/spot-api-support"
+                      href="https://www.findmespot.com/en-us/support/spot-gen4/get-help/general/public-api-and-xml-feed"
                       target="_blank"
                       >page</a
                     >
