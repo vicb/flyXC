@@ -89,9 +89,15 @@ export function SkewT(props: SkewTProps) {
 
   let tempAtCursor = 0;
   let dewPointAtCursor = 0;
+  let yOffsetCursor = 4;
+  let cursorClass = 'top';
   if (yPointer !== undefined) {
     tempAtCursor = math.sampleAt(levels, temps, pressureToPxScale.invert(yPointer));
     dewPointAtCursor = math.sampleAt(levels, dewpoints, pressureToPxScale.invert(yPointer));
+    if (yPointer > height / 2) {
+      yOffsetCursor = -4;
+      cursorClass = 'bottom';
+    }
   }
 
   return (
@@ -164,28 +170,28 @@ export function SkewT(props: SkewTProps) {
           <path className="dewpoint" d={pathGenerator(math.zip(dewpoints, levels))} />
         </g>
         <rect className="surface" y={surfacePx} width={width} height={height - surfacePx + 1} />
-        {yPointer !== undefined && yPointer < surfacePx ? (
-          <g className="cursor">
-            <text class="altitude" x={width - 7} y={yPointer + 4}>
+        {yPointer < surfacePx && (
+          <g className={`cursor ${cursorClass}`}>
+            <text class="altitude" x={width - 7} y={yPointer + yOffsetCursor}>
               {formatAltitude(ghMeterToPxScale.invert(yPointer))}
             </text>
             <text
               class="temperature"
               x={tempToPxScale(tempAtCursor) + skew * (height - yPointer) + 10}
-              y={yPointer + 4}
+              y={yPointer + yOffsetCursor}
             >
               {formatTemp(tempAtCursor)}
             </text>
             <text
               class="dewpoint"
               x={tempToPxScale(dewPointAtCursor) + skew * (height - yPointer) + 10}
-              y={yPointer + 4}
+              y={yPointer + yOffsetCursor}
             >
               {formatTemp(dewPointAtCursor)}
             </text>
             <line y1={yPointer} y2={yPointer} x2={width} />
           </g>
-        ) : null}
+        )}
         <rect width={width} height={height} className="border" />
       </g>
     </svg>
