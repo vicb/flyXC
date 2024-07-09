@@ -1,6 +1,10 @@
 # Release history
 
-## 4.0.0
+## 4.0.0-alpha.2
+
+- Fix elevation steps in ft (3000ft)
+
+## 4.0.0-alpha.1 - July 9, 2024
 
 - Migrate code to RTK
 - UX improvement on both desktop and mobile layouts
