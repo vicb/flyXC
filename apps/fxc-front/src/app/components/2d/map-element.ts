@@ -148,86 +148,94 @@ export class MapElement extends connect(store)(LitElement) {
   connectedCallback(): void {
     super.connectedCallback();
     store.dispatch(setApiLoading(true));
-    loadGMaps().then((): void => {
-      const options: google.maps.MapOptions = {
-        zoom: 11,
-        minZoom: 3,
-        maxZoom: GMAP_MAX_ZOOM_LEVEL,
-        mapTypeId: google.maps.MapTypeId.TERRAIN,
-        scaleControl: true,
-        fullscreenControl: false,
-        streetViewControl: false,
-        clickableIcons: false,
-        mapTypeControlOptions: {
-          mapTypeIds: [
-            'terrain',
-            'satellite',
-            TopoOtm.mapTypeId,
-            TopoFrance.mapTypeId,
-            TopoFrance.mapTypeIdScan,
-            TopoSpain.mapTypeId,
-          ],
-          style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-          position: google.maps.ControlPosition.TOP_RIGHT,
-        },
-        mapId: '997ff70df48844a5',
-      };
 
-      this.map = new google.maps.Map(this.querySelector('#map') as HTMLElement, options);
+    loadGMaps()
+      .then(() => {
+        return new Promise<void>((resolve) => {
+          const throttle = store.getState().browser.isFromFfvl;
+          setTimeout(() => resolve(), throttle ? 20 * 1000 : 0);
+        });
+      })
+      .then((): void => {
+        const options: google.maps.MapOptions = {
+          zoom: 11,
+          minZoom: 3,
+          maxZoom: GMAP_MAX_ZOOM_LEVEL,
+          mapTypeId: google.maps.MapTypeId.TERRAIN,
+          scaleControl: true,
+          fullscreenControl: false,
+          streetViewControl: false,
+          clickableIcons: false,
+          mapTypeControlOptions: {
+            mapTypeIds: [
+              'terrain',
+              'satellite',
+              TopoOtm.mapTypeId,
+              TopoFrance.mapTypeId,
+              TopoFrance.mapTypeIdScan,
+              TopoSpain.mapTypeId,
+            ],
+            style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+            position: google.maps.ControlPosition.TOP_RIGHT,
+          },
+          mapId: '997ff70df48844a5',
+        };
 
-      const controls = document.createElement('controls-element') as ControlsElement;
-      controls.map = this.map;
-      this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(controls);
+        this.map = new google.maps.Map(this.querySelector('#map') as HTMLElement, options);
 
-      if (!store.getState().browser.isFromFfvl) {
-        const ad = document.createElement('a');
-        ad.setAttribute('href', 'https://www.niviuk.com/');
-        ad.setAttribute('target', '_blank');
-        ad.innerHTML = `<img width="${Math.round(175 * this.adRatio)}" height="${Math.round(
-          32 * this.adRatio,
-        )}" src="/static/img/niviuk.svg">`;
-        this.map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(ad);
-      }
+        const controls = document.createElement('controls-element') as ControlsElement;
+        controls.map = this.map;
+        this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(controls);
 
-      this.map.addListener('click', (e: google.maps.MapMouseEvent) => {
-        const latLng = e.latLng as google.maps.LatLng;
-        const found = findClosestFix(this.tracks, latLng.lat(), latLng.lng());
-        if (found != null) {
-          store.dispatch(setTimeSec(found.timeSec));
-          store.dispatch(setCurrentTrackId(found.track.id));
+        if (!store.getState().browser.isFromFfvl) {
+          const ad = document.createElement('a');
+          ad.setAttribute('href', 'https://www.niviuk.com/');
+          ad.setAttribute('target', '_blank');
+          ad.innerHTML = `<img width="${Math.round(175 * this.adRatio)}" height="${Math.round(
+            32 * this.adRatio,
+          )}" src="/static/img/niviuk.svg">`;
+          this.map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(ad);
         }
+
+        this.map.addListener('click', (e: google.maps.MapMouseEvent) => {
+          const latLng = e.latLng as google.maps.LatLng;
+          const found = findClosestFix(this.tracks, latLng.lat(), latLng.lng());
+          if (found != null) {
+            store.dispatch(setTimeSec(found.timeSec));
+            store.dispatch(setCurrentTrackId(found.track.id));
+          }
+        });
+
+        this.subscriptions.push(
+          msg.centerMap.subscribe(({ lat, lon }) => this.center(lat, lon)),
+          msg.centerZoomMap.subscribe(({ lat, lon }, delta) => {
+            this.center(lat, lon);
+            this.zoom(delta);
+          }),
+          msg.trackGroupsAdded.subscribe(() => this.zoomToTracks()),
+          msg.trackGroupsRemoved.subscribe(() => this.zoomToTracks()),
+          msg.geoLocation.subscribe((latLon, userInitiated) => this.geolocation(latLon, userInitiated)),
+          msg.drawRoute.subscribe(() => this.handleDrawing()),
+        );
+
+        if (this.tracks.length) {
+          // Zoom to tracks when there are some.
+          this.zoomToTracks();
+        } else {
+          const { location, zoom } = store.getState().location;
+          this.map.setCenter({ lat: location.lat, lng: location.lon });
+          this.map.setZoom(zoom);
+        }
+
+        this.map.addListener('center_changed', () => this.handleLocation());
+
+        // Zoom to the track the first time the document becomes visible.
+        if (document.visibilityState != 'visible') {
+          document.addEventListener('visibilitychange', () => this.zoomToTracks(), { once: true });
+        }
+
+        store.dispatch(setApiLoading(false));
       });
-
-      this.subscriptions.push(
-        msg.centerMap.subscribe(({ lat, lon }) => this.center(lat, lon)),
-        msg.centerZoomMap.subscribe(({ lat, lon }, delta) => {
-          this.center(lat, lon);
-          this.zoom(delta);
-        }),
-        msg.trackGroupsAdded.subscribe(() => this.zoomToTracks()),
-        msg.trackGroupsRemoved.subscribe(() => this.zoomToTracks()),
-        msg.geoLocation.subscribe((latLon, userInitiated) => this.geolocation(latLon, userInitiated)),
-        msg.drawRoute.subscribe(() => this.handleDrawing()),
-      );
-
-      if (this.tracks.length) {
-        // Zoom to tracks when there are some.
-        this.zoomToTracks();
-      } else {
-        const { location, zoom } = store.getState().location;
-        this.map.setCenter({ lat: location.lat, lng: location.lon });
-        this.map.setZoom(zoom);
-      }
-
-      this.map.addListener('center_changed', () => this.handleLocation());
-
-      // Zoom to the track the first time the document becomes visible.
-      if (document.visibilityState != 'visible') {
-        document.addEventListener('visibilitychange', () => this.zoomToTracks(), { once: true });
-      }
-
-      store.dispatch(setApiLoading(false));
-    });
   }
 
   disconnectedCallback(): void {
