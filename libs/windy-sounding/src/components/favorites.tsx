@@ -2,6 +2,7 @@ import type { Fav, LatLon } from '@windy/interfaces';
 import { useState } from 'preact/hooks';
 
 import { SUPPORTED_MODEL_PREFIXES } from '../redux/plugin-slice';
+import { round } from '../util/math';
 import { getFavLabel } from '../util/utils';
 
 const windyUtils = W.utils;
@@ -42,7 +43,11 @@ export function Favorites({ favorites, location, isMobile, onSelected, modelName
       .filter((model: string) => SUPPORTED_MODEL_PREFIXES.some((prefix) => model.startsWith(prefix)))
       .sort();
 
-    let currentFavorite = '';
+    const { lat, lon } = location;
+
+    let currentFavorite = `${round(Math.abs(lat), 1)}${lat >= 0 ? 'N' : 'S'} ${round(Math.abs(lon), 1)}${
+      lon >= 0 ? 'E' : 'W'
+    }`;
     for (const favorite of favorites) {
       const favLocationStr = windyUtils.latLon2str(favorite);
       if (favLocationStr === locationStr) {
@@ -87,14 +92,18 @@ export function Favorites({ favorites, location, isMobile, onSelected, modelName
 
         {isLocationExpanded && (
           <div class="options">
-            {favorites.map((favorite: Fav) => (
-              <span
-                className={windyUtils.latLon2str(favorite) == locationStr ? 'selected' : ''}
-                onClick={() => onSelected({ lat: favorite.lat, lon: favorite.lon })}
-              >
-                {getFavLabel(favorite)}
-              </span>
-            ))}
+            {favorites.length === 0 ? (
+              <p>You do not have any favorites</p>
+            ) : (
+              favorites.map((favorite: Fav) => (
+                <span
+                  className={windyUtils.latLon2str(favorite) == locationStr ? 'selected' : ''}
+                  onClick={() => onSelected({ lat: favorite.lat, lon: favorite.lon })}
+                >
+                  {getFavLabel(favorite)}
+                </span>
+              ))
+            )}
           </div>
         )}
       </>
