@@ -3,6 +3,7 @@
 ## 4.0.0-alpha.2
 
 - Fix elevation steps in ft (3000ft)
+- Change cursor values based on the cursor position
 
 ## 4.0.0-alpha.1 - July 9, 2024
 

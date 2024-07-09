@@ -68,7 +68,16 @@ export function WindProfile(props: WindProfileProps) {
   const surfacePx = Math.round(ghToPxScale(surfaceElevation));
   const surfacePressure = pressureToGhScale.invert(surfaceElevation);
 
-  const windAtCursor = yPointer === undefined ? 0 : sampleAt(levels, speedByLevel, pressureToPxScale.invert(yPointer));
+  let yOffsetCursor = 4;
+  let cursorClass = 'top';
+  let windAtCursor = 0;
+  if (yPointer !== undefined) {
+    windAtCursor = sampleAt(levels, speedByLevel, pressureToPxScale.invert(yPointer));
+    if (yPointer > height / 2) {
+      yOffsetCursor = -4;
+      cursorClass = 'bottom';
+    }
+  }
 
   return (
     <g className="graph wind">
@@ -84,14 +93,14 @@ export function WindProfile(props: WindProfileProps) {
         })}
       </g>
       <rect className="surface" y={surfacePx} width={width} height={height - surfacePx + 1} />
-      {yPointer !== undefined && yPointer < surfacePx ? (
-        <g className="cursor">
-          <text class="speed" x={width - 5} y={yPointer + 4}>
+      {yPointer < surfacePx && (
+        <g className={`cursor ${cursorClass}`}>
+          <text class="speed" x={width - 5} y={yPointer + yOffsetCursor}>
             {format(windAtCursor)}
           </text>
           <line y1={yPointer} y2={yPointer} x2={width} />
         </g>
-      ) : undefined}
+      )}
       <rect width={width} height={height} className="border" />
     </g>
   );
