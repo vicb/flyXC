@@ -230,7 +230,7 @@ export class MapElement extends connect(store)(LitElement) {
         this.map.addListener('center_changed', () => this.handleLocation());
 
         // Zoom to the track the first time the document becomes visible.
-        if (document.visibilityState != 'visible') {
+        if (document.visibilityState !== 'visible') {
           document.addEventListener('visibilitychange', () => this.zoomToTracks(), { once: true });
         }
 
