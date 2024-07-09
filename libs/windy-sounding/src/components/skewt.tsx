@@ -59,6 +59,7 @@ export function SkewT(props: SkewTProps) {
     formatTemp,
     tempUnit,
     ghUnit,
+    // Elevation step in windy unit.
     ghAxisStep,
     showUpperClouds,
     yPointer,
@@ -67,8 +68,13 @@ export function SkewT(props: SkewTProps) {
   // The full height include the ticks at the bottom.
 
   const pressureToGhScale = atm.getPressureToGhScale(levels, ghs, seaLevelPressure);
-  const ghToPxScale = math.scaleLinear([pressureToGhScale(minPressure), pressureToGhScale(maxPressure)], [0, height]);
-  const pressureToPxScale = math.composeScales(pressureToGhScale, ghToPxScale);
+  const ghMeterToPxScale = math.scaleLinear(
+    [pressureToGhScale(minPressure), pressureToGhScale(maxPressure)],
+    [0, height],
+  );
+  const ghAxisToPxScale =
+    ghUnit === 'm' ? ghMeterToPxScale : math.composeScales(math.scaleLinear([0, 1], [0, 0.3048]), ghMeterToPxScale);
+  const pressureToPxScale = math.composeScales(pressureToGhScale, ghMeterToPxScale);
 
   const tempToPxScale = math.scaleLinear([minTemp, maxTemp], [0, width]);
 
@@ -79,7 +85,7 @@ export function SkewT(props: SkewTProps) {
     (point: [x: number, y: number]): number => pressureToPxScale(point[1]),
   );
 
-  const surfacePx = Math.round(ghToPxScale(surfaceElevation));
+  const surfacePx = Math.round(ghMeterToPxScale(surfaceElevation));
 
   let tempAtCursor = 0;
   let dewPointAtCursor = 0;
@@ -133,7 +139,12 @@ export function SkewT(props: SkewTProps) {
             ))}
           </g>
           <AltitudeAxis
-            {...{ width, ghToPxScale: ghToPxScale, step: ghAxisStep, unit: ghUnit, format: formatAltitude }}
+            {...{
+              width,
+              ghToPxScale: ghAxisToPxScale,
+              step: ghAxisStep,
+              unit: ghUnit,
+            }}
           />
         </g>
         <g className="cloud">
@@ -156,7 +167,7 @@ export function SkewT(props: SkewTProps) {
         {yPointer !== undefined && yPointer < surfacePx ? (
           <g className="cursor">
             <text class="altitude" x={width - 7} y={yPointer + 4}>
-              {formatAltitude(ghToPxScale.invert(yPointer))}
+              {formatAltitude(ghMeterToPxScale.invert(yPointer))}
             </text>
             <text
               class="temperature"
@@ -304,13 +315,11 @@ function AltitudeAxis({
   width,
   unit,
   step,
-  format,
 }: {
   ghToPxScale: Scale;
   width: number;
   unit: string;
   step: number;
-  format: (altitude: number) => number;
 }) {
   const children = [];
   let y = Math.round(ghToPxScale(step));
@@ -320,7 +329,7 @@ function AltitudeAxis({
     isLast = yNext < 20;
     children.push(
       <line y1={y} x2={width} y2={y} />,
-      <text y={y - 5} x={5}>{`${format(elevation)}${isLast ? ` ${unit}` : ''}`}</text>,
+      <text y={y - 5} x={5}>{`${elevation}${isLast ? ` ${unit}` : ''}`}</text>,
     );
     y = yNext;
   }
