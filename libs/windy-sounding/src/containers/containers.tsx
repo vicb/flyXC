@@ -266,6 +266,17 @@ export const Graph = connect(
     e.stopImmediatePropagation();
   }
 
+  function moveCursor(y: number | undefined) {
+    if (y === undefined) {
+      // Do not remove the pointer on mobile.
+      if (!W.rootScope.isMobileOrTablet) {
+        setYpointer(undefined);
+      }
+    } else {
+      setYpointer(y);
+    }
+  }
+
   return (
     <>
       <Details />
@@ -289,7 +300,11 @@ export const Graph = connect(
             </feMerge>
           </filter>
         </defs>
-        <g onPointerMove={(e: PointerEvent) => setYpointer(e.offsetY)} onPointerLeave={() => setYpointer(undefined)}>
+        <g
+          onPointerMove={(e) => moveCursor(e.offsetY)}
+          onPointerDown={(e) => moveCursor(e.offsetY)}
+          onPointerLeave={() => moveCursor(undefined)}
+        >
           <ConnectedSkewT {...{ width: skewTWidth, height, yPointer, minPressure, maxPressure }} />
           <g transform={`translate(${width - windWidth}, 0)`}>
             <ConnectedWind {...{ width: windWidth, height, yPointer, minPressure, maxPressure }} />
@@ -307,10 +322,10 @@ export const Graph = connect(
           {W.rootScope.isMobileOrTablet && (
             <g
               id="wsp-resize"
-              onpointerdown={(e) => dragStart(e)}
-              onpointerup={(e) => dragEnd(e)}
-              onpointerleave={(e) => dragEnd(e)}
-              onpointermove={(e) => drag(e)}
+              onPointerDown={(e) => dragStart(e)}
+              onPointerUp={(e) => dragEnd(e)}
+              onPointerLeave={(e) => dragEnd(e)}
+              onPointerMove={(e) => drag(e)}
             >
               <rect width="50" height="20" x={Math.round((width - 50) / 2)} y="-5" rx="5" ry="5" />
               <line x1="-18" x2="18" y1="5" y2="5" transform={`translate(${Math.round(width / 2)} 0)`} />
@@ -417,8 +432,8 @@ export const App = connect(
       <div
         id="wsp-title"
         class="plugin__title plugin__title--chevron-back desktop-only"
-        onclick={openMenu}
-        onkeydown={openMenu}
+        onClick={openMenu}
+        onKeydown={openMenu}
         role="button"
         tabindex="0"
       >
