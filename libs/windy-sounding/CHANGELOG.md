@@ -1,12 +1,12 @@
 # Release history
 
-## 4.0.0-alpha.2
+## 4.0.0-alpha.2 - July 10, 2024
 
 - Fix elevation steps in ft (3000ft)
 - Change cursor values based on the cursor position
 - Do not remove the cursor on mobiles
 - Display coordinates for unknown places
-- Show a message when there are no favorites on mobile
+- Show a message when there are no favorites on mobiles
 
 ## 4.0.0-alpha.1 - July 9, 2024
 
