@@ -10,6 +10,9 @@ if [ -z "$WINDY_API_KEY" ]; then
 fi
 
 echo "# Creating plugin archive..."
+echo "repository=${GH_REPO}"
+echo "sha=${GH_SHA}"
+echo "owner=${GH_OWNER}"
 
 GH_INFO_FILE=$(mktemp)
 echo "{\"repositoryName\": \"${GH_REPO}\", \"commitSha\": \"${GH_SHA}\", \"repositoryOwner\": \"${GH_OWNER}\"}" > $GH_INFO_FILE
