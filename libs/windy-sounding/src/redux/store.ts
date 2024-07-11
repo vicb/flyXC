@@ -1,7 +1,9 @@
 import type { DevToolsEnhancerOptions, GetThunkAPI } from '@reduxjs/toolkit';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 
+import * as forecastSlice from '../redux/forecast-slice';
 import * as pluginSlice from '../redux/plugin-slice';
+import * as unitsSlice from '../redux/units-slice';
 
 export type AppGetState = typeof store.getState;
 export type AppDispatch = typeof store.dispatch;
@@ -19,6 +21,8 @@ const devTools: DevToolsEnhancerOptions | boolean =
 export const store = configureStore({
   reducer: combineReducers({
     [pluginSlice.slice.name]: pluginSlice.reducer,
+    [unitsSlice.slice.name]: unitsSlice.reducer,
+    [forecastSlice.slice.name]: forecastSlice.reducer,
   }),
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

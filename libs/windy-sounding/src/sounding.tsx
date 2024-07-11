@@ -54,7 +54,7 @@ export const mountPlugin = (container: HTMLElement) => {
           (e: CustomEvent) => {
             const { right, left } = e.detail.directions;
             const direction = left ? -1 : right ? 1 : 0;
-            pluginSlice.selectors.selUpdateTime(store.getState())({ direction, stepIsDay: true });
+            pluginSlice.slice.selectors.selUpdateTime(store.getState())({ direction, stepIsDay: true });
           },
           { signal: controller.signal },
         );
@@ -68,7 +68,7 @@ export const mountPlugin = (container: HTMLElement) => {
         setSizeFrom(appContainer);
       });
       resizeObserver.observe(container);
-      addSubscription(() => resizeObserver.unobserve(container));
+      addSubscription(() => resizeObserver?.unobserve(container));
     }
   }
 
