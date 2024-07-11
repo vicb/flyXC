@@ -22,6 +22,8 @@ declare const W: {
   userFavs: typeof import('@windy/client/userFavs').default;
   picker: typeof import('@windy/client/picker');
   broadcast: typeof import('@windy/client/broadcast').default;
+  http: typeof import('@windy/client/http');
+  user: typeof import('@windy/client/user');
 };
 /* eslint-enable */
 

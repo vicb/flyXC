@@ -65,7 +65,7 @@ export function Favorites({ favorites, location, isMobile, onSelected, modelName
             data-icon-after="g"
             onClick={toggleModelSelect}
           >
-            <small class="size-m">{modelName}</small>
+            <small className="size-m">{modelName}</small>
           </div>
           <div
             className={`select ${isLocationExpanded ? 'active' : ''}`}
@@ -73,15 +73,15 @@ export function Favorites({ favorites, location, isMobile, onSelected, modelName
             data-icon-after="g"
             onClick={toggleLocationSelect}
           >
-            <small class="size-m">{currentFavorite}</small>
+            <small className="size-m">{currentFavorite}</small>
           </div>
-          <a style="margin: 0 10px 3px 5px" href="https://buymeacoffee.com/vic.b" target="_blank">
+          <a style={{ margin: '0 10px 3px 5px' }} href="https://buymeacoffee.com/vic.b" target="_blank">
             ☕️
           </a>
         </section>
 
         {isModelExpanded && (
-          <div class="options">
+          <div className="options">
             {models.map((model: string) => (
               <span className={model == modelName ? 'selected' : ''} onClick={() => W.store.set('product', model)}>
                 {model}
@@ -91,7 +91,7 @@ export function Favorites({ favorites, location, isMobile, onSelected, modelName
         )}
 
         {isLocationExpanded && (
-          <div class="options">
+          <div className="options">
             {favorites.length === 0 ? (
               <p>You do not have any favorites</p>
             ) : (
@@ -113,7 +113,7 @@ export function Favorites({ favorites, location, isMobile, onSelected, modelName
   if (favorites.length == 0) {
     return (
       <div id="wsp-flyto" className="size-m">
-        <span data-icon="m" class="fg-icons"></span> Add favorites to windy to quickly check different locations.
+        <span data-icon="m" className="fg-icons"></span> Add favorites to windy to quickly check different locations.
       </div>
     );
   }
