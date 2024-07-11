@@ -112,6 +112,7 @@
     "@tmcw/togeojson": "^5.8.1",
     "@types/mapbox__sphericalmercator": "^1.2.3",
     "@vivaxy/png": "^1.3.0",
+
     "@xmldom/xmldom": "^0.8.10",
     "axios": "1.7.2",
     "commander": "^12.1.0",

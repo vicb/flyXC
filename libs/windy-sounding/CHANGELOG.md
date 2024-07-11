@@ -1,5 +1,9 @@
 # Release history
 
+## 4.0.0-alpha.3
+
+- Split the state into multiple slices
+
 ## 4.0.0-alpha.2 - July 10, 2024
 
 - Fix elevation steps in ft (3000ft)

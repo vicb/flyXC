@@ -9,28 +9,36 @@ import { SkewT, type SkewTProps } from '../components/skewt.js';
 import { WindProfile, type WindProfileProps } from '../components/wind-profile.jsx';
 import { pluginConfig } from '../config';
 import flyxcIcon from '../img/jumoplane.svg';
+import * as forecastSlice from '../redux/forecast-slice';
 import { centerMap, changeLocation } from '../redux/meta';
 import * as pluginSlice from '../redux/plugin-slice';
 import { type RootState } from '../redux/store';
+import * as unitsSlice from '../redux/units-slice';
 import { formatTimestamp } from '../util/utils.js';
 
 function stateToSkewTProp(state: RootState, ownProps: SkewTProps) {
-  const S = pluginSlice.selectors;
+  const pluginSel = pluginSlice.slice.selectors;
+  const unitsSel = unitsSlice.slice.selectors;
+  const forecastSel = forecastSlice.slice.selectors;
 
-  if (S.selWindyDataIsLoading(state)) {
+  const modelName = pluginSel.selModelName(state);
+  const location = pluginSel.selLocation(state);
+  const timeMs = pluginSel.selTimeMs(state);
+
+  if (forecastSel.selWindyDataIsLoading(state, modelName, location)) {
     return { isLoading: true };
   }
 
   const { width, height, yPointer, minPressure, maxPressure } = ownProps as SkewTProps & { isLoading: false };
 
-  const periodValues = S.selPeriodValues(state);
-  const timeValues = S.selValuesAtCurrentTime(state);
-  const isZoomedIn = S.selIsZoomedIn(state);
+  const periodValues = forecastSel.selPeriodValues(state, modelName, location);
+  const timeValues = forecastSel.selValuesAt(state, modelName, location, timeMs);
+  const isZoomedIn = pluginSel.selIsZoomedIn(state);
 
-  const periodMaxTemp = S.selMaxPeriodTemp(state);
+  const periodMaxTemp = forecastSel.selMaxPeriodTemp(state, modelName, location);
   const maxTemp = periodMaxTemp + 8;
   const minTemp = periodMaxTemp - 60;
-  const formatTemp = S.selTempFormatter(state);
+  const formatTemp = unitsSel.selTempFormatter(state);
 
   return {
     width,
@@ -45,30 +53,38 @@ function stateToSkewTProp(state: RootState, ownProps: SkewTProps) {
     seaLevelPressure: timeValues.seaLevelPressure,
     minTemp,
     maxTemp,
-    surfaceElevation: S.selElevation(state),
-    parcel: S.selDisplayParcel(state) ? S.selParcel(state) : undefined,
-    formatAltitude: S.selAltitudeFormatter(state),
+    surfaceElevation: forecastSel.selElevation(state, modelName, location),
+    parcel: forecastSel.selDisplayParcel(state, modelName, location, timeMs)
+      ? forecastSel.selParcel(state, modelName, location, timeMs)
+      : undefined,
+    formatAltitude: unitsSel.selAltitudeFormatter(state),
     formatTemp,
-    tempUnit: S.selTempUnit(state),
-    tempAxisStep: S.selTempUnit(state) === '°C' ? 10 : 20,
-    ghUnit: S.selAltitudeUnit(state),
-    ghAxisStep: S.selAltitudeUnit(state) === 'm' ? 1000 : 3000,
+    tempUnit: unitsSel.selTempUnit(state),
+    tempAxisStep: unitsSel.selTempUnit(state) === '°C' ? 10 : 20,
+    ghUnit: unitsSel.selAltitudeUnit(state),
+    ghAxisStep: unitsSel.selAltitudeUnit(state) === 'm' ? 1000 : 3000,
     showUpperClouds: isZoomedIn,
-    cloudCover: S.selGetCloudCoverGenerator(state),
+    cloudCover: forecastSel.selGetCloudCoverGenerator(state, modelName, location, timeMs),
   };
 }
 
 const ConnectedSkewT = connect(stateToSkewTProp)(SkewT);
 
 const stateToWindProp = (state: RootState, ownProps: WindProfileProps): WindProfileProps => {
-  const S = pluginSlice.selectors;
+  const pluginSel = pluginSlice.slice.selectors;
+  const unitsSel = unitsSlice.slice.selectors;
+  const forecastSel = forecastSlice.slice.selectors;
 
-  if (S.selWindyDataIsLoading(state)) {
+  const modelName = pluginSel.selModelName(state);
+  const location = pluginSel.selLocation(state);
+  const timeMs = pluginSel.selTimeMs(state);
+
+  if (forecastSel.selWindyDataIsLoading(state, modelName, location)) {
     return { isLoading: true };
   }
 
-  const periodValues = S.selPeriodValues(state);
-  const timeValues = S.selValuesAtCurrentTime(state);
+  const periodValues = forecastSel.selPeriodValues(state, modelName, location);
+  const timeValues = forecastSel.selValuesAt(state, modelName, location, timeMs);
 
   const { width, height, minPressure, maxPressure, yPointer } = ownProps as WindProfileProps & { isLoading: false };
   return {
@@ -79,11 +95,11 @@ const stateToWindProp = (state: RootState, ownProps: WindProfileProps): WindProf
     seaLevelPressure: timeValues.seaLevelPressure,
     levels: periodValues.levels,
     ghs: timeValues.gh,
-    windByLevel: S.selWindDetailsByLevel(state),
-    format: S.selWindSpeedFormatter(state),
-    unit: S.selWindSpeedUnit(state),
-    surfaceElevation: S.selElevation(state),
-    isFixedRange: S.selIsZoomedIn(state),
+    windByLevel: forecastSel.selWindDetailsByLevel(state, modelName, location, timeMs),
+    format: unitsSel.selWindSpeedFormatter(state),
+    unit: unitsSel.selWindSpeedUnit(state),
+    surfaceElevation: forecastSel.selElevation(state, modelName, location),
+    isFixedRange: pluginSel.selIsZoomedIn(state),
     yPointer,
   };
 };
@@ -91,7 +107,7 @@ const stateToWindProp = (state: RootState, ownProps: WindProfileProps): WindProf
 const ConnectedWind = connect(stateToWindProp)(WindProfile);
 
 const stateToFavProp = (state: RootState) => {
-  const S = pluginSlice.selectors;
+  const S = pluginSlice.slice.selectors;
   return {
     favorites: S.selFavorites(state),
     location: S.selLocation(state),
@@ -133,10 +149,15 @@ type GraphProps = {
 );
 
 function stateToGraphProps(state: RootState, ownProps: GraphProps) {
-  const S = pluginSlice.selectors;
+  const pluginSel = pluginSlice.slice.selectors;
+  const forecastSel = forecastSlice.slice.selectors;
 
-  const width = S.selWidth(state);
-  const height = S.selHeight(state);
+  const width = pluginSel.selWidth(state);
+  const height = pluginSel.selHeight(state);
+
+  const modelName = pluginSel.selModelName(state);
+  const location = pluginSel.selLocation(state);
+  const timeMs = pluginSel.selTimeMs(state);
 
   const props = {
     status: AppStatus.Loading,
@@ -146,30 +167,30 @@ function stateToGraphProps(state: RootState, ownProps: GraphProps) {
     onWheel: (e: WheelEvent) => e.preventDefault(),
   };
 
-  if (S.selWindyDataIsLoading(state)) {
+  if (forecastSel.selWindyDataIsLoading(state, modelName, location)) {
     return props;
   }
 
-  props.onWheel = S.selWheelEventHandler(state);
+  props.onWheel = forecastSel.selWheelEventHandler(state, modelName, location);
 
-  if (S.selIsOutOfModelBounds(state)) {
+  if (forecastSel.selIsOutOfModelBounds(state, modelName, location)) {
     return {
       ...props,
       status: AppStatus.OutOfBounds,
     };
   }
 
-  if (!S.selAreValuesAvailableAtCurrentTime(state)) {
+  if (!forecastSel.selAreValuesAvailableAt(state, modelName, location, timeMs)) {
     return {
       ...props,
       status: AppStatus.DataNotAvailable,
     };
   }
 
-  const elevation = S.selElevation(state);
-  const minModelPressure = S.selMinModelPressure(state);
-  const pressureToGhScale = S.selPressureToGhScale(state);
-  const minPressure = S.selIsZoomedIn(state)
+  const elevation = forecastSel.selElevation(state, modelName, location);
+  const minModelPressure = forecastSel.selMinModelPressure(state, modelName, location);
+  const pressureToGhScale = forecastSel.selPressureToGhScale(state, modelName, location, timeMs);
+  const minPressure = pluginSel.selIsZoomedIn(state)
     ? Math.round(Math.max(pressureToGhScale.invert(6500 + (elevation * 2) / 5), minModelPressure))
     : minModelPressure;
   const maxPressure = Math.min(1000, Math.round(pressureToGhScale.invert((elevation * 4) / 5)));
@@ -179,7 +200,7 @@ function stateToGraphProps(state: RootState, ownProps: GraphProps) {
     status: AppStatus.Ready,
     minPressure,
     maxPressure,
-    isZoomedIn: S.selIsZoomedIn(state),
+    isZoomedIn: pluginSel.selIsZoomedIn(state),
   };
 }
 
@@ -339,13 +360,18 @@ export const Graph = connect(
 });
 
 const stateToDetailsProps = (state: RootState) => {
-  const S = pluginSlice.selectors;
+  const pluginSel = pluginSlice.slice.selectors;
+  const forecastSel = forecastSlice.slice.selectors;
+
+  const modelName = pluginSel.selModelName(state);
+  const location = pluginSel.selLocation(state);
+  const timeMs = pluginSel.selTimeMs(state);
 
   return {
-    modelName: S.selModelName(state),
-    updateMs: S.selModelUpdateTimeMs(state),
-    nextUpdateMs: S.selModelNextUpdateTimeMs(state),
-    timeMs: S.selTimeMs(state),
+    modelName: pluginSel.selModelName(state),
+    updateMs: forecastSel.selModelUpdateTimeMs(state, modelName, location),
+    nextUpdateMs: forecastSel.selModelNextUpdateTimeMs(state, modelName, location),
+    timeMs,
   };
 };
 
@@ -385,12 +411,17 @@ type WatermarkProps = {
 };
 
 const stateToWatermarkProps = (state: RootState) => {
-  const S = pluginSlice.selectors;
+  const pluginSel = pluginSlice.slice.selectors;
+  const forecastSel = forecastSlice.slice.selectors;
+
+  const modelName = pluginSel.selModelName(state);
+  const location = pluginSel.selLocation(state);
+  const timeMs = pluginSel.selTimeMs(state);
 
   return {
-    updateMs: S.selModelUpdateTimeMs(state),
-    nextUpdateMs: S.selModelNextUpdateTimeMs(state),
-    timeMs: S.selTimeMs(state),
+    updateMs: forecastSel.selModelUpdateTimeMs(state, modelName, location),
+    nextUpdateMs: forecastSel.selModelNextUpdateTimeMs(state, modelName, location),
+    timeMs,
   };
 };
 

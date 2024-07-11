@@ -1,11 +1,14 @@
 import type { LatLon } from '@windy/interfaces';
 
 import { pluginConfig } from '../config';
+import * as forecastSlice from './forecast-slice';
 import * as pluginSlice from './plugin-slice';
 import type { AppDispatch, RootState } from './store';
 
 const { map: windyMap, markers } = W.map;
 const windyRootScope = W.rootScope;
+
+// Subscription
 
 type Subscription = () => void;
 
@@ -30,9 +33,9 @@ export function cancelAllSubscriptions() {
  * - Fetch the forecast
  */
 export const changeLocation = (location: LatLon) => (dispatch: AppDispatch, getState: () => RootState) => {
-  const modelName = pluginSlice.selectors.selModelName(getState());
+  const modelName = pluginSlice.slice.selectors.selModelName(getState());
   dispatch(pluginSlice.setLocation(location));
-  dispatch(pluginSlice.fetchForecast({ modelName, location }));
+  dispatch(forecastSlice.fetchForecast({ modelName, location }));
 
   changeMarkerLocation(location);
 
@@ -40,15 +43,15 @@ export const changeLocation = (location: LatLon) => (dispatch: AppDispatch, getS
 };
 
 export const changeModel = (modelName: string) => (dispatch: AppDispatch, getState: () => RootState) => {
-  const location = pluginSlice.selectors.selLocation(getState());
+  const location = pluginSlice.slice.selectors.selLocation(getState());
   dispatch(pluginSlice.setModelName(modelName));
-  dispatch(pluginSlice.fetchForecast({ modelName, location }));
+  dispatch(forecastSlice.fetchForecast({ modelName, location }));
   updateUrl(getState());
 };
 
 function updateUrl(state: RootState) {
-  const location = pluginSlice.selectors.selLocation(state);
-  const modelName = pluginSlice.selectors.selModelName(state);
+  const location = pluginSlice.slice.selectors.selLocation(state);
+  const modelName = pluginSlice.slice.selectors.selModelName(state);
   W.location.setUrl(pluginConfig.name, { modelName, ...location });
 }
 
