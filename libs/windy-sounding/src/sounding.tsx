@@ -5,16 +5,18 @@ import { render } from 'preact';
 import { Provider } from 'react-redux';
 
 import { pluginConfig } from './config.js';
-import { App } from './containers/containers';
+import { Plugin } from './containers/containers';
 import {
   addSubscription,
   cancelAllSubscriptions,
   centerMap,
   changeLocation,
   changeModel,
-  removeMarker,
+  maybeRemoveMarker,
+  updateTime,
 } from './redux/meta';
 import * as pluginSlice from './redux/plugin-slice';
+import * as forecastSlice from './redux/forecast-slice';
 import { store } from './redux/store';
 import styles from './styles.less?inline';
 import { injectStyles } from './util/utils';
@@ -36,7 +38,7 @@ export const mountPlugin = (container: HTMLElement) => {
   injectStyles(styles);
   render(
     <Provider store={store}>
-      <App />
+      <Plugin />
     </Provider>,
     container,
   );
@@ -53,8 +55,13 @@ export const mountPlugin = (container: HTMLElement) => {
           'swipe',
           (e: CustomEvent) => {
             const { right, left } = e.detail.directions;
-            const direction = left ? -1 : right ? 1 : 0;
-            pluginSlice.slice.selectors.selUpdateTime(store.getState())({ direction, stepIsDay: true });
+            const direction = left ? 'backward' : right ? 'forward' : undefined;
+            const state = store.getState();
+            const model = pluginSlice.slice.selectors.selModelName(state);
+            const location = pluginSlice.slice.selectors.selLocation(state);
+            if (direction !== undefined) {
+              store.dispatch(updateTime({ direction, size: 'day' }));
+            }
           },
           { signal: controller.signal },
         );
@@ -83,19 +90,19 @@ export const mountPlugin = (container: HTMLElement) => {
   addSubscription(() => windyStore.off(productChangedEventId));
 
   const singleClickIdEventId = singleclick.on(pluginConfig.name, (location: LatLon) => {
-    dispatch(changeLocation(location));
+    dispatch(changeLocation(location, true));
   });
   addSubscription(() => singleclick.off(singleClickIdEventId));
 
   // Use the picker events on desktop.
   if (!windyRootScope.isMobileOrTablet) {
     const pickerOpenedEventId = windyPicker.on('pickerOpened', (location: LatLon) => {
-      dispatch(changeLocation(location));
+      dispatch(changeLocation(location, true));
     });
     addSubscription(() => windyPicker.off(pickerOpenedEventId));
 
     const pickerMovedEventId = windyPicker.on('pickerMoved', (location: LatLon) => {
-      dispatch(changeLocation(location));
+      dispatch(changeLocation(location, true));
     });
     addSubscription(() => windyPicker.off(pickerMovedEventId));
   }
@@ -119,18 +126,21 @@ export const openPlugin = ({ lat, lon, modelName }: { lat: number; lon: number; 
   dispatch(pluginSlice.setFavorites(favs.getArray()));
   dispatch(pluginSlice.setModelName(modelName));
   dispatch(pluginSlice.setTimeMs(windyStore.get('timestamp')));
-  dispatch(changeLocation(location));
-
+  dispatch(changeLocation(location, false));
   setSizeFrom(appContainer);
+
+  if (pluginSlice.slice.selectors.selStatus(store.getState()) === pluginSlice.PluginStatus.Idle) {
+    dispatch(pluginSlice.fetchPluginConfig(pluginConfig));
+  }
 };
 
 // Called when closed
 export const destroyPlugin = () => {
   cancelAllSubscriptions();
-  removeMarker();
+  maybeRemoveMarker();
 };
 
-function setSizeFrom(container) {
+function setSizeFrom(container: HTMLElement) {
   const padding = W.rootScope.isMobileOrTablet ? 0 : 50;
   const width = container.clientWidth - padding;
   const height = Math.min(width, window.innerHeight * 0.7);

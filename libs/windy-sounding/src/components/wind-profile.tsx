@@ -2,32 +2,23 @@ import { getPressureToGhScale } from '../util/atmosphere';
 import * as math from '../util/math';
 import { sampleAt } from '../util/math';
 
-export type WindProfileProps =
-  | {
-      isLoading?: true;
-    }
-  | {
-      isLoading?: false;
-      width: number;
-      height: number;
-      levels: number[];
-      ghs: number[];
-      minPressure: number;
-      maxPressure: number;
-      seaLevelPressure: number;
-      windByLevel: { speed: number; direction: number }[];
-      unit: string;
-      format: (windSpeed: number) => number;
-      surfaceElevation: number;
-      isFixedRange: boolean;
-      yPointer: number | undefined;
-    };
+export type WindProfileProps = {
+  width: number;
+  height: number;
+  levels: number[];
+  ghs: number[];
+  minPressure: number;
+  maxPressure: number;
+  seaLevelPressure: number;
+  windByLevel: { speed: number; direction: number }[];
+  unit: string;
+  format: (windSpeed: number) => number;
+  surfaceElevation: number;
+  isFixedRange: boolean;
+  yPointer: number | undefined;
+};
 
 export function WindProfile(props: WindProfileProps) {
-  if (props.isLoading === true) {
-    return;
-  }
-
   const {
     width,
     height,
@@ -42,7 +33,7 @@ export function WindProfile(props: WindProfileProps) {
     surfaceElevation,
     isFixedRange,
     yPointer,
-  } = props as WindProfileProps & { isLoading: false };
+  } = props;
 
   const maxLevelIndex = levels.findIndex((level) => level < minPressure);
   const keepToIndex = maxLevelIndex == -1 ? levels.length - 1 : maxLevelIndex;
@@ -93,9 +84,9 @@ export function WindProfile(props: WindProfileProps) {
         })}
       </g>
       <rect className="surface" y={surfacePx} width={width} height={height - surfacePx + 1} />
-      {yPointer < surfacePx && (
+      {yPointer !== undefined && yPointer < surfacePx && (
         <g className={`cursor ${cursorClass}`}>
-          <text class="speed" x={width - 5} y={yPointer + yOffsetCursor}>
+          <text className="speed" x={width - 5} y={yPointer + yOffsetCursor}>
             {format(windAtCursor)}
           </text>
           <line y1={yPointer} y2={yPointer} x2={width} />

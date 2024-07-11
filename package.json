@@ -48,6 +48,8 @@
     "@types/node": "20.12.11",
     "@types/node-os-utils": "^1.3.4",
     "@types/pbf": "^3.0.5",
+    "@types/react": "^18.3.3",
+    "@types/react-redux": "^7.1.33",
     "@types/validator": "^13.11.9",
     "@types/xmldom": "^0.1.34",
     "@typescript-eslint/eslint-plugin": "^7.3.0",
@@ -112,7 +114,6 @@
     "@tmcw/togeojson": "^5.8.1",
     "@types/mapbox__sphericalmercator": "^1.2.3",
     "@vivaxy/png": "^1.3.0",
-
     "@xmldom/xmldom": "^0.8.10",
     "axios": "1.7.2",
     "commander": "^12.1.0",

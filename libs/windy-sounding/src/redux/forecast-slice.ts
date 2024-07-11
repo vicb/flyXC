@@ -124,27 +124,17 @@ export const slice = createSlice({
     });
   },
   selectors: {
-    // Computed
     selWindyDataUnsafe: (state: ForecastState, modelName: string, location: LatLon): Forecast | undefined => {
       const key = windyDataKey(modelName, location);
       return isDataCached(state, key) ? (state.data[key] as Forecast & { fetchStatus: FetchStatus.Loaded }) : undefined;
     },
-    selIsOutOfModelBounds: (state: ForecastState, modelName: string, location: LatLon): boolean => {
+    selIsWindyDataAvailable: (state: ForecastState, modelName: string, location: LatLon): boolean => {
       const windyData = slice.getSelectors().selWindyDataUnsafe(state, modelName, location);
-      return windyData?.fetchStatus === FetchStatus.ErrorOutOfBounds;
+      return windyData?.fetchStatus === FetchStatus.Loaded;
     },
-
-    selWindyDataIsLoading: (state: ForecastState, modelName: string, location: LatLon): boolean => {
+    selFetchStatus: (state: ForecastState, modelName: string, location: LatLon): FetchStatus => {
       const windyData = slice.getSelectors().selWindyDataUnsafe(state, modelName, location);
-      return (
-        windyData === undefined ||
-        windyData.fetchStatus === FetchStatus.Loading ||
-        windyData.fetchStatus === FetchStatus.Idle
-      );
-    },
-    selWindyDataIsLoaded(state: ForecastState, modelName: string, location: LatLon): boolean {
-      const windyData = slice.getSelectors().selWindyDataUnsafe(state, modelName, location);
-      return windyData !== undefined && windyData.fetchStatus === FetchStatus.Loaded;
+      return windyData === undefined ? FetchStatus.Error : windyData.fetchStatus;
     },
     selModelUpdateTimeMs(state: ForecastState, modelName: string, location: LatLon): number {
       const windyData = getWindyDataOrThrow(state, modelName, location);
@@ -230,7 +220,7 @@ export const slice = createSlice({
       const periodValues = slice.getSelectors().selPeriodValues(state, modelName, location);
       return periodValues.maxSeaLevelPressure;
     },
-    selAreValuesAvailableAt(state: ForecastState, modelName: string, location: LatLon, timeMs: number): boolean {
+    selIsWindyDataAvailableAt(state: ForecastState, modelName: string, location: LatLon, timeMs: number): boolean {
       const windyData = getWindyDataOrThrow(state, modelName, location);
       const maxTimeMs = Math.min(
         ...[windyData.meteogram.data.hours.at(-1), windyData.weather.data.ts.at(-1)].filter((v) => v !== undefined),
@@ -302,48 +292,6 @@ export const slice = createSlice({
         40,
       );
     },
-    selUpdateTime(
-      state,
-      modelName: string,
-      location: LatLon,
-    ): ({ direction, stepIsDay }: { direction: number; stepIsDay: boolean }) => void {
-      const tzOffset = slice.getSelectors().selTzOffsetH(state, modelName, location);
-      return ({ direction, stepIsDay }: { direction: number; stepIsDay: boolean }) => {
-        let timeMs = windyStore.get('timestamp');
-        if (stepIsDay) {
-          const date = new Date(timeMs);
-          const utcHours = date.getUTCHours();
-          date.setUTCMinutes(0);
-          timeMs = date.getTime();
-          // Jump to previous/next day at 13h.
-          const refTime = (13 - tzOffset + 24) % 24;
-          const deltaHours = (refTime - utcHours) * direction;
-          if (deltaHours <= 0) {
-            timeMs += direction * (24 + deltaHours) * 3600 * 1000;
-          } else {
-            timeMs += direction * deltaHours * 3600 * 1000;
-          }
-        } else {
-          timeMs += direction * 3600 * 1000;
-        }
-
-        windyStore.set('timestamp', timeMs);
-      };
-    },
-    selWheelEventHandler(state: ForecastState, modelName: string, location: LatLon): (e: WheelEvent) => void {
-      let nextWheelMove = 0;
-      return (e: WheelEvent) => {
-        const updateTime = slice.getSelectors().selUpdateTime(state, modelName, location);
-        if (Date.now() > nextWheelMove) {
-          const stepIsDay: boolean = e.shiftKey || e.ctrlKey;
-          const direction: number = Math.sign(e.deltaY);
-          updateTime({ direction, stepIsDay });
-          nextWheelMove = Date.now() + (stepIsDay ? 800 : 20);
-        }
-        e.stopImmediatePropagation();
-        e.preventDefault();
-      };
-    },
   },
 });
 
@@ -372,17 +320,12 @@ class OutOfBoundsError extends Error {
 }
 
 export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { state: RootState }>(
-  'plugin/fetchForecast',
+  'forecast/fetch',
   async (modelAndLocation: ModelAndLocation, api: { getState: () => RootState }) => {
     const { modelName, location } = modelAndLocation;
-    const key = windyDataKey(modelName, location);
-
-    if (isDataCached(slice.selectSlice(api.getState()), key)) {
-      return slice.selectSlice(api.getState()).data[key];
-    }
 
     const [meteogram, forecast] = await Promise.allSettled([
-      // extended is required to get fulml length forecast for pro windy users
+      // extended is required to get full length forecast for pro windy users
       windyFetch.getMeteogramForecastData(modelName, { ...location, step: 1 }, { extended: 'true' }),
       windyFetch.getPointForecastData(modelName, { ...location }),
     ]);
@@ -411,7 +354,7 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
       : product.interval;
 
     return {
-      forecastKey: key,
+      forecastKey: windyDataKey(modelName, location),
       modelName,
       location,
       loadedMs: Date.now(),
@@ -425,9 +368,12 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
   {
     condition: (modelAndLocation, api: AppThunkAPI) => {
       // Prevent fetching again while loading.
-      const key = windyDataKey(modelAndLocation.modelName, modelAndLocation.location);
-      const data = slice.selectSlice(api.getState()).data[key];
-      return data?.fetchStatus != FetchStatus.Loading;
+      const { modelName, location } = modelAndLocation;
+      const windyData = slice.selectors.selWindyDataUnsafe(api.getState(), modelName, location);
+      return (
+        windyData === undefined ||
+        !(windyData.fetchStatus == FetchStatus.Loading || windyData.fetchStatus === FetchStatus.ErrorOutOfBounds)
+      );
     },
   },
 );
@@ -436,8 +382,15 @@ function windyDataKey(modelName: string, location: LatLon): string {
   return `${modelName}-${windyUtils.latLon2str(location)}`;
 }
 
+/**
+ * Checks if the data for a specific key is cached and up-to-date.
+ *
+ * Note that data are still cached when they are out of bounds.
+ *
+ * @param state - The state object containing forecast data.
+ * @param key - The key to identify the forecast data.
+ * */
 function isDataCached(state: ForecastState, key: string) {
-  const nowMs = Date.now();
   const forecast = state.data[key];
   if (forecast == null) {
     return false;
@@ -448,6 +401,7 @@ function isDataCached(state: ForecastState, key: string) {
   }
 
   if (forecast.fetchStatus === FetchStatus.Loaded) {
+    const nowMs = Date.now();
     const requestMs = forecast.loadedMs;
     const dataAgeMin = (nowMs - requestMs) / (60 * 1000);
     return nowMs < forecast.nextUpdateMs || dataAgeMin < STALE_WINDY_DATA_CACHE_MIN;

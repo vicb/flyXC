@@ -5,41 +5,32 @@ import type { Scale } from '../util/math.js';
 import * as math from '../util/math.js';
 import { Parcel } from './parcel.jsx';
 
-export type SkewTProps =
-  | {
-      isLoading?: true;
-    }
-  | {
-      isLoading?: false;
-      width: number;
-      height: number;
-      yPointer: number | undefined;
-      levels: number[];
-      temps: number[];
-      dewpoints: number[];
-      ghs: number[];
-      seaLevelPressure: number;
-      minPressure: number;
-      maxPressure: number;
-      minTemp: number;
-      maxTemp: number;
-      cloudCover: CloudCoverGenerator;
-      surfaceElevation: number;
-      parcel: atm.ParcelData | undefined;
-      formatAltitude: (altitude: number) => number;
-      formatTemp: (temp: number) => number;
-      tempUnit: string;
-      tempAxisStep: number;
-      ghUnit: string;
-      ghAxisStep: number;
-      showUpperClouds: boolean;
-    };
+export type SkewTProps = {
+  width: number;
+  height: number;
+  yPointer: number | undefined;
+  levels: number[];
+  temps: number[];
+  dewpoints: number[];
+  ghs: number[];
+  seaLevelPressure: number;
+  minPressure: number;
+  maxPressure: number;
+  minTemp: number;
+  maxTemp: number;
+  cloudCover: CloudCoverGenerator;
+  surfaceElevation: number;
+  parcel: atm.ParcelData | undefined;
+  formatAltitude: (altitude: number) => number;
+  formatTemp: (temp: number) => number;
+  tempUnit: string;
+  tempAxisStep: number;
+  ghUnit: string;
+  ghAxisStep: number;
+  showUpperClouds: boolean;
+};
 
 export function SkewT(props: SkewTProps) {
-  if (props.isLoading === true) {
-    return;
-  }
-
   const {
     width,
     height,
@@ -63,7 +54,7 @@ export function SkewT(props: SkewTProps) {
     ghAxisStep,
     showUpperClouds,
     yPointer,
-  } = props as SkewTProps & { isLoading: false };
+  } = props;
 
   // The full height include the ticks at the bottom.
 
@@ -170,20 +161,20 @@ export function SkewT(props: SkewTProps) {
           <path className="dewpoint" d={pathGenerator(math.zip(dewpoints, levels))} />
         </g>
         <rect className="surface" y={surfacePx} width={width} height={height - surfacePx + 1} />
-        {yPointer < surfacePx && (
+        {yPointer !== undefined && yPointer < surfacePx && (
           <g className={`cursor ${cursorClass}`}>
-            <text class="altitude" x={width - 7} y={yPointer + yOffsetCursor}>
+            <text className="altitude" x={width - 7} y={yPointer + yOffsetCursor}>
               {formatAltitude(ghMeterToPxScale.invert(yPointer))}
             </text>
             <text
-              class="temperature"
+              className="temperature"
               x={tempToPxScale(tempAtCursor) + skew * (height - yPointer) + 10}
               y={yPointer + yOffsetCursor}
             >
               {formatTemp(tempAtCursor)}
             </text>
             <text
-              class="dewpoint"
+              className="dewpoint"
               x={tempToPxScale(dewPointAtCursor) + skew * (height - yPointer) + 10}
               y={yPointer + yOffsetCursor}
             >
@@ -211,7 +202,7 @@ function DryAdiabatic({
   pressureToPxScale: Scale;
   pathGenerator: (points: [x: number, y: number][]) => string;
 }) {
-  const points = [];
+  const points: [x: number, y: number][] = [];
   const stepPx = height / 15;
   for (let y = height; y > -stepPx; y -= stepPx) {
     const p = pressureToPxScale.invert(y);
@@ -235,7 +226,7 @@ function WetAdiabatic({
   pressureToPxScale: Scale;
   pathGenerator: (points: [x: number, y: number][]) => string;
 }) {
-  const points = [];
+  const points: [x: number, y: number][] = [];
   let previousPressure = pressure;
   const stepPx = height / 15;
   for (let y = height; y > -stepPx; y -= stepPx) {
@@ -261,7 +252,7 @@ function IsoHume({
   pressureToPxScale: Scale;
   pathGenerator: (points: [x: number, y: number][]) => string;
 }) {
-  const points = [];
+  const points: [x: number, y: number][] = [];
   const mixingRatio = atm.mixingRatio(atm.saturationVaporPressure(temp), pressure);
   const stepPx = height;
   for (let y = height; y > -stepPx; y -= stepPx) {
@@ -340,7 +331,7 @@ function AltitudeAxis({
     y = yNext;
   }
 
-  return <g class="altitude">{children}</g>;
+  return <g className="altitude">{children}</g>;
 }
 
 export type CloudsProp = {
