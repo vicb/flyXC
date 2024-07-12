@@ -153,7 +153,7 @@ export class MapElement extends connect(store)(LitElement) {
       .then(() => {
         return new Promise<void>((resolve) => {
           const throttle = store.getState().browser.isFromFfvl;
-          setTimeout(() => resolve(), throttle ? 20 * 1000 : 0);
+          setTimeout(() => resolve(), throttle ? 50 * 1000 : 0);
         });
       })
       .then((): void => {
