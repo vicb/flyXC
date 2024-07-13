@@ -34,8 +34,9 @@ export function Plugin() {
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
     const timeMs = pluginSlice.selTimeMs(state);
+    const fetchStatus = forecastSlice.selFetchStatus(state, modelName, location);
     const isWindyDataAvailable =
-      forecastSlice.selIsWindyDataAvailable(state, modelName, location) &&
+      fetchStatus == forecastSlice.FetchStatus.Loaded &&
       forecastSlice.selIsWindyDataAvailableAt(state, modelName, location, timeMs);
     return {
       width: pluginSlice.selWidth(state),
@@ -43,7 +44,7 @@ export function Plugin() {
       status: pluginSlice.selStatus(state),
       updateAvailable: pluginSlice.selUpdateAvailable(state),
       updateRequired: pluginSlice.selUpdateRequired(state),
-      fetchStatus: forecastSlice.selFetchStatus(state, modelName, location),
+      fetchStatus,
       availableVersion: pluginSlice.selAvailableVersion(state),
       modelName,
       location,
