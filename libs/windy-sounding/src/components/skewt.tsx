@@ -76,7 +76,7 @@ export function SkewT(props: SkewTProps) {
     (point: [x: number, y: number]): number => pressureToPxScale(point[1]),
   );
 
-  const surfacePx = Math.round(ghMeterToPxScale(surfaceElevation));
+  const ySurface = Math.min(height, Math.round(ghMeterToPxScale(surfaceElevation)));
 
   let tempAtCursor = 0;
   let dewPointAtCursor = 0;
@@ -129,7 +129,7 @@ export function SkewT(props: SkewTProps) {
                   tempToPxScale,
                   unit: tempUnit,
                   skew,
-                  surfacePx,
+                  surfacePx: ySurface,
                   format: formatTemp,
                 }}
               />
@@ -160,8 +160,8 @@ export function SkewT(props: SkewTProps) {
           <path className="temperature" d={pathGenerator(math.zip(temps, levels))} />
           <path className="dewpoint" d={pathGenerator(math.zip(dewpoints, levels))} />
         </g>
-        <rect className="surface" y={surfacePx} width={width} height={height - surfacePx + 1} />
-        {yPointer !== undefined && yPointer < surfacePx && (
+        <rect className="surface" y={ySurface} width={width} height={height - ySurface + 1} />
+        {yPointer !== undefined && yPointer < ySurface && (
           <g className={`cursor ${cursorClass}`}>
             <text className="altitude" x={width - 7} y={yPointer + yOffsetCursor}>
               {formatAltitude(ghMeterToPxScale.invert(yPointer))}
