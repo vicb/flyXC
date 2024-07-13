@@ -108,7 +108,7 @@ export function Plugin() {
         size,
       };
       dispatch(updateTime(step));
-      ignoreWheelEventUntilMs = Date.now() + (size === 'day' ? 800 : 20);
+      ignoreWheelEventUntilMs = Date.now() + (size === 'day' ? 500 : 10);
     }
     e.stopImmediatePropagation();
     e.preventDefault();
@@ -338,7 +338,6 @@ type ChildGraphProps = {
 function ConnectedSkewT(props: ChildGraphProps) {
   const stateProps: Omit<SkewTProps, keyof ChildGraphProps> = useSelector((state: RootState) => {
     const pluginSel = pluginSlice.slice.selectors;
-    const unitsSel = unitsSlice.slice.selectors;
     const forecastSel = forecastSlice.slice.selectors;
 
     const modelName = pluginSel.selModelName(state);
@@ -352,7 +351,7 @@ function ConnectedSkewT(props: ChildGraphProps) {
     const periodMaxTemp = forecastSel.selMaxPeriodTemp(state, modelName, location);
     const maxTemp = periodMaxTemp + 8;
     const minTemp = periodMaxTemp - 60;
-    const formatTemp = unitsSel.selTempFormatter(state);
+    const formatTemp = unitsSlice.selTempFormatter(state);
 
     return {
       levels: periodValues.levels,
@@ -366,12 +365,12 @@ function ConnectedSkewT(props: ChildGraphProps) {
       parcel: forecastSel.selDisplayParcel(state, modelName, location, timeMs)
         ? forecastSel.selParcel(state, modelName, location, timeMs)
         : undefined,
-      formatAltitude: unitsSel.selAltitudeFormatter(state),
+      formatAltitude: unitsSlice.selAltitudeFormatter(state),
       formatTemp,
-      tempUnit: unitsSel.selTempUnit(state),
-      tempAxisStep: unitsSel.selTempUnit(state) === '°C' ? 10 : 20,
-      ghUnit: unitsSel.selAltitudeUnit(state),
-      ghAxisStep: unitsSel.selAltitudeUnit(state) === 'm' ? 1000 : 3000,
+      tempUnit: unitsSlice.selTempUnit(state),
+      tempAxisStep: unitsSlice.selTempUnit(state) === '°C' ? 10 : 20,
+      ghUnit: unitsSlice.selAltitudeUnit(state),
+      ghAxisStep: unitsSlice.selAltitudeUnit(state) === 'm' ? 1000 : 3000,
       showUpperClouds: isZoomedIn,
       cloudCover: forecastSel.selGetCloudCoverGenerator(state, modelName, location, timeMs),
     };
@@ -398,7 +397,6 @@ function ConnectedWind(props: ChildGraphProps) {
 
   const stateProps = useSelector((state: RootState) => {
     const pluginSel = pluginSlice.slice.selectors;
-    const unitsSel = unitsSlice.slice.selectors;
     const forecastSel = forecastSlice.slice.selectors;
 
     const modelName = pluginSel.selModelName(state);
@@ -417,8 +415,8 @@ function ConnectedWind(props: ChildGraphProps) {
       levels: periodValues.levels,
       ghs: timeValues.gh,
       windByLevel: forecastSel.selWindDetailsByLevel(state, modelName, location, timeMs),
-      format: unitsSel.selWindSpeedFormatter(state),
-      unit: unitsSel.selWindSpeedUnit(state),
+      format: unitsSlice.selWindSpeedFormatter(state),
+      unit: unitsSlice.selWindSpeedUnit(state),
       surfaceElevation: forecastSel.selElevation(state, modelName, location),
       isFixedRange: pluginSel.selIsZoomedIn(state),
     };

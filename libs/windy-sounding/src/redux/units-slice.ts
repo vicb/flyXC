@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 
 import type { RootState } from './store';
 
@@ -28,35 +28,33 @@ export const slice = createSlice({
   name: 'units',
   initialState,
   reducers: {},
-  selectors: {
-    // Values
-    selTempUnit: (state): TempUnit => state.tempUnit,
-    selAltitudeUnit: (state): AltitudeUnit => state.altitudeUnit,
-    selWindSpeedUnit: (state): SpeedUnit => state.windSpeedUnit,
-    selPressureUnit: (state): PressureUnit => state.pressureUnit,
-    // Formatters
-    selTempFormatter:
-      (state): ((temp: number) => number) =>
-      (temp: number) =>
-        Math.round(windyMetrics.temp.conv[slice.getSelectors().selTempUnit(state)].conversion(temp)),
-    selAltitudeFormatter:
-      (state): ((altitude: number) => number) =>
-      (altitude: number) =>
-        Math.round(
-          windyMetrics.altitude.conv[slice.getSelectors().selAltitudeUnit(state)].conversion(
-            Math.round(altitude / 100) * 100,
-          ),
-        ),
-    selPressureFormatter:
-      (state): ((pressure: number) => number) =>
-      (pressure: number) =>
-        Math.round(windyMetrics.pressure.conv[slice.getSelectors().selPressureUnit(state)].conversion(pressure)),
-    selWindSpeedFormatter:
-      (state): ((windSpeed: number) => number) =>
-      (windSpeed: number) =>
-        Math.round(windyMetrics.wind.conv[slice.getSelectors().selWindSpeedUnit(state)].conversion(windSpeed)),
-  },
 });
+
+export const selTempUnit = (state: RootState): TempUnit => state[slice.name].tempUnit;
+export const selAltitudeUnit = (state: RootState): AltitudeUnit => state[slice.name].altitudeUnit;
+export const selWindSpeedUnit = (state: RootState): SpeedUnit => state[slice.name].windSpeedUnit;
+export const selPressureUnit = (state: RootState): PressureUnit => state[slice.name].pressureUnit;
+
+export const selTempFormatter = createSelector(
+  selTempUnit,
+  (unit) => (temp: number) => Math.round(windyMetrics.temp.conv[unit].conversion(temp)),
+);
+
+export const selAltitudeFormatter = createSelector(
+  selAltitudeUnit,
+  (unit) => (altitude: number) =>
+    Math.round(windyMetrics.altitude.conv[unit].conversion(Math.round(altitude / 100) * 100)),
+);
+
+export const selPressureFormatter = createSelector(
+  selPressureUnit,
+  (unit) => (pressure: number) => Math.round(windyMetrics.pressure.conv[unit].conversion(pressure)),
+);
+
+export const selWindSpeedFormatter = createSelector(
+  selWindSpeedUnit,
+  (unit) => (windSpeed: number) => Math.round(windyMetrics.wind.conv[unit].conversion(windSpeed)),
+);
 
 export const { reducer } = slice;
 
