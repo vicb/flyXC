@@ -124,16 +124,24 @@ export const slice = createSlice({
     });
   },
   selectors: {
-    selWindyDataUnsafe: (state: ForecastState, modelName: string, location: LatLon): Forecast | undefined => {
+    /**
+     * Note: returned data could be loading, loaded, errored.
+     *
+     * @returns windy data or undefined.
+     */
+    selMaybeWindyData: (state: ForecastState, modelName: string, location: LatLon): Forecast | undefined => {
+      return state.data[windyDataKey(modelName, location)];
+    },
+    selMaybeLoadedWindyData: (state: ForecastState, modelName: string, location: LatLon): Forecast | undefined => {
       const key = windyDataKey(modelName, location);
-      return isDataCached(state, key) ? (state.data[key] as Forecast & { fetchStatus: FetchStatus.Loaded }) : undefined;
+      return isDataCached(state, key) ? state.data[key] : undefined;
     },
     selIsWindyDataAvailable: (state: ForecastState, modelName: string, location: LatLon): boolean => {
-      const windyData = slice.getSelectors().selWindyDataUnsafe(state, modelName, location);
-      return windyData?.fetchStatus === FetchStatus.Loaded;
+      const windyData = slice.getSelectors().selMaybeLoadedWindyData(state, modelName, location);
+      return windyData !== undefined;
     },
     selFetchStatus: (state: ForecastState, modelName: string, location: LatLon): FetchStatus => {
-      const windyData = slice.getSelectors().selWindyDataUnsafe(state, modelName, location);
+      const windyData = slice.getSelectors().selMaybeWindyData(state, modelName, location);
       return windyData === undefined ? FetchStatus.Error : windyData.fetchStatus;
     },
     selModelUpdateTimeMs(state: ForecastState, modelName: string, location: LatLon): number {
@@ -305,7 +313,7 @@ function getWindyDataOrThrow(
   modelName: string,
   location: LatLon,
 ): Forecast & { fetchStatus: FetchStatus.Loaded } {
-  const windyData = slice.getSelectors().selWindyDataUnsafe(state, modelName, location);
+  const windyData = slice.getSelectors().selMaybeLoadedWindyData(state, modelName, location);
   if (windyData === undefined || windyData.fetchStatus !== FetchStatus.Loaded) {
     throw new Error('Data not loaded');
   }
@@ -323,7 +331,7 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
   'forecast/fetch',
   async (modelAndLocation: ModelAndLocation) => {
     const { modelName, location } = modelAndLocation;
-
+    const forecastKey = windyDataKey(modelName, location);
     const [meteogram, forecast] = await Promise.allSettled([
       // extended is required to get full length forecast for pro windy users
       windyFetch.getMeteogramForecastData(modelName, { ...location, step: 1 }, { extended: 'true' }),
@@ -354,7 +362,7 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
       : product.interval;
 
     return {
-      forecastKey: windyDataKey(modelName, location),
+      forecastKey,
       modelName,
       location,
       loadedMs: Date.now(),
@@ -371,7 +379,7 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
       const { modelName, location } = modelAndLocation;
       const state = api.getState();
       const pluginStatus = pluginSlice.slice.selectors.selStatus(state);
-      const windyData = slice.selectors.selWindyDataUnsafe(state, modelName, location);
+      const windyData = slice.selectors.selMaybeLoadedWindyData(state, modelName, location);
       return (
         pluginStatus === pluginSlice.PluginStatus.Ready &&
         (windyData === undefined ||

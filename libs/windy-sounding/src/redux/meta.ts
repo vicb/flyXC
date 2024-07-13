@@ -64,8 +64,8 @@ export const changeLocation =
   (location: LatLon): ThunkAction<void, RootState, unknown, UnknownAction> =>
   (dispatch, getState) => {
     const modelName = pluginSlice.slice.selectors.selModelName(getState());
-    dispatch(pluginSlice.setLocation(location));
     dispatch(forecastSlice.fetchForecast({ modelName, location }));
+    dispatch(pluginSlice.setLocation(location));
 
     maybeCreateAndMoveMarker(location);
 
@@ -76,8 +76,8 @@ export const changeModel =
   (modelName: string): ThunkAction<void, RootState, unknown, UnknownAction> =>
   (dispatch, getState) => {
     const location = pluginSlice.slice.selectors.selLocation(getState());
-    dispatch(pluginSlice.setModelName(modelName));
     dispatch(forecastSlice.fetchForecast({ modelName, location }));
+    dispatch(pluginSlice.setModelName(modelName));
     updateUrl(getState());
   };
 

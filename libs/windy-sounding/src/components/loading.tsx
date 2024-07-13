@@ -1,8 +1,9 @@
-export function LoadingIndicator({ x, y }: { x: number; y: number }) {
+export function LoadingIndicator({ width, height }: { width: number; height: number }) {
   return (
-    <svg width="100" height="100" viewBox="-25 -25 50 50" x={x - 50} y={y - 50}>
-      <g fill="none">
-        <circle r="18" stroke="#ddd" stroke-width="2" stroke-dasharray="90 20">
+    <svg {...{ width, height }}>
+      <rect {...{ width, height }} fill="#ddd" />
+      <g transform={`translate(${width / 2 - 9} ${height / 2 - 9}) scale(3)`}>
+        <circle r="18" stroke="black" fill="none" stroke-width="2" stroke-dasharray="90 20">
           <animateTransform
             attributeName="transform"
             type="rotate"
