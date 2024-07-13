@@ -123,9 +123,10 @@ export function Plugin() {
       errorMessage = (
         <>
           <p>Update to v{availableVersion} required.</p>
-          <p>
-            You first need to uninstall the current version and then install v{availableVersion} from the plugin menu.
-          </p>
+          <p>Uninstall the current version first to install v{availableVersion}</p>
+          <div className="button" onClick={openPluginMenu}>
+            Update
+          </div>
         </>
       );
       break;
@@ -174,7 +175,9 @@ export function Plugin() {
         <section onWheel={handleWheelEvent as any}>
           {updateAvailable && (
             <div id="wsp-update">
-              <p>Plugin update v{availableVersion} available!</p>
+              <p>
+                New plugin <a onClick={openPluginMenu}>version {availableVersion}</a> available!
+              </p>
             </div>
           )}
           {showDetails && <Details />}
@@ -524,4 +527,8 @@ function openMenu(e: KeyboardEvent | MouseEvent) {
   if (!('key' in e) || e.key == 'Enter') {
     W.broadcast.emit('rqstOpen', 'menu');
   }
+}
+
+function openPluginMenu() {
+  W.broadcast.emit('rqstOpen', 'external-plugins');
 }
