@@ -52,7 +52,7 @@ export const mountPlugin = (container: HTMLElement) => {
         // Make minHorizontal big enough to avoid false positives.
         SwipeListener(appContainer, { minHorizontal: appContainer.offsetWidth / 6, mouse: false });
         appContainer.addEventListener(
-          'swipe',
+          'swipe' as any,
           (e: CustomEvent) => {
             const { right, left } = e.detail.directions;
             const direction = left ? 'backward' : right ? 'forward' : undefined;
