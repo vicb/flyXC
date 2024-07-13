@@ -118,7 +118,7 @@ export function Plugin() {
 
   const showDetails = !updateRequired && fetchStatus === forecastSlice.FetchStatus.Loaded;
 
-  const showLoading =
+  const isLoading =
     status !== pluginSlice.PluginStatus.Ready ||
     fetchStatus === forecastSlice.FetchStatus.Idle ||
     fetchStatus === forecastSlice.FetchStatus.Loading;
@@ -188,7 +188,7 @@ export function Plugin() {
             </div>
           )}
           {showDetails && <Details />}
-          {errorMessage ? (
+          {errorMessage && !isLoading ? (
             <Message {...{ width, height, message: errorMessage }} />
           ) : (
             <svg {...{ height, width }}>
@@ -217,8 +217,8 @@ export function Plugin() {
                   </feMerge>
                 </filter>
               </defs>
-              {showLoading ? (
-                <LoadingIndicator x={width / 2} y={height / 2} />
+              {isLoading ? (
+                <LoadingIndicator {...{ width, height }} />
               ) : (
                 <>
                   <Graph {...{ width, height, skewTWidthPercent: 80 }} />
@@ -240,7 +240,9 @@ export function Plugin() {
             </svg>
           )}
         </section>
-        <section>{showDetails && <ConnectedFavorites onSelected={selectFavorite} />}</section>
+        <section>
+          <ConnectedFavorites onSelected={selectFavorite} />
+        </section>
         <div id="wsp-sponsor" className="bg-red desktop-only">
           <p>Please consider sponsoring the development of this plugin</p>
           <a href="https://www.buymeacoffee.com/vic.b" target="_blank">
@@ -334,19 +336,6 @@ type ChildGraphProps = {
 };
 
 function ConnectedSkewT(props: ChildGraphProps) {
-  const fetchStatus = useSelector((state: RootState) => {
-    const pluginSel = pluginSlice.slice.selectors;
-    const forecastSel = forecastSlice.slice.selectors;
-
-    const modelName = pluginSel.selModelName(state);
-    const location = pluginSel.selLocation(state);
-    return forecastSel.selFetchStatus(state, modelName, location);
-  });
-
-  if (fetchStatus !== forecastSlice.FetchStatus.Loaded) {
-    return;
-  }
-
   const stateProps: Omit<SkewTProps, keyof ChildGraphProps> = useSelector((state: RootState) => {
     const pluginSel = pluginSlice.slice.selectors;
     const unitsSel = unitsSlice.slice.selectors;
