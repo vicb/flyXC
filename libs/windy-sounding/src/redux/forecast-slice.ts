@@ -378,7 +378,7 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
       // Prevent fetching again while loading.
       const { modelName, location } = modelAndLocation;
       const state = api.getState();
-      const pluginStatus = pluginSlice.slice.selectors.selStatus(state);
+      const pluginStatus = pluginSlice.selStatus(state);
       const windyData = slice.selectors.selMaybeLoadedWindyData(state, modelName, location);
       return (
         pluginStatus === pluginSlice.PluginStatus.Ready &&
