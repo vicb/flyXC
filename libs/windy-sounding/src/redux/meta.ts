@@ -27,17 +27,16 @@ export const updateTime =
 
     if (stepDays) {
       const state = getState();
-      const forecastSel = forecastSlice.slice.selectors;
       const modelName = pluginSlice.selModelName(state);
       const location = pluginSlice.selLocation(state);
-      const isWindyDataAvailable = forecastSlice.slice.selectors.selIsWindyDataAvailable(state, modelName, location);
+      const isWindyDataAvailable = forecastSlice.selIsWindyDataAvailable(state, modelName, location);
 
       if (isWindyDataAvailable) {
         // Step to the next/previous at 13h when we know the local TZ offset.
         const date = new Date(timeMs);
         date.setUTCMinutes(0);
         timeMs = date.getTime();
-        const utcOffset = forecastSel.selTzOffsetH(state, modelName, location);
+        const utcOffset = forecastSlice.selTzOffsetH(state, modelName, location);
         const currentHour = (date.getUTCHours() + utcOffset) % 24;
         const deltaHours = (13 - currentHour) * (step.direction === 'forward' ? 1 : -1);
         timeMs += stepHour * (deltaHours > 0 ? deltaHours : 24 + deltaHours);

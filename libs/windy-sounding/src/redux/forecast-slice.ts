@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSelector, createSlice } from '@reduxjs/toolkit';
 import type { DataHash, LatLon, MeteogramDataPayload, WeatherDataPayload } from '@windy/interfaces';
 import type { MeteogramLayers } from '@windy/types';
 
@@ -10,9 +10,8 @@ import {
   debugCloudCanvas,
   debugCloudTimeCursor,
   getCloudCoverGenerator,
-  type PeriodCloud,
 } from '../util/clouds';
-import { sampleAt, type Scale, scaleLog } from '../util/math';
+import { sampleAt, scaleLinear } from '../util/math';
 import * as pluginSlice from './plugin-slice';
 import type { AppThunkAPI, RootState } from './store';
 
@@ -43,7 +42,7 @@ const sfcProps = ['rainMm', 'seaLevelPressure'] as const;
 type SfcProps = (typeof sfcProps)[number];
 type SfcPropsByTime = `${SfcProps}ByTime`;
 
-type TimeValue = Record<LevelProp, number[]> & Record<SfcProps, number>;
+type _TimeValue = Record<LevelProp, number[]> & Record<SfcProps, number>;
 
 export type PeriodValue = {
   maxTemp: number;
@@ -123,202 +122,7 @@ export const slice = createSlice({
       };
     });
   },
-  selectors: {
-    /**
-     * Note: returned data could be loading, loaded, errored.
-     *
-     * @returns windy data or undefined.
-     */
-    selMaybeWindyData: (state: ForecastState, modelName: string, location: LatLon): Forecast | undefined => {
-      return state.data[windyDataKey(modelName, location)];
-    },
-    selMaybeLoadedWindyData: (state: ForecastState, modelName: string, location: LatLon): Forecast | undefined => {
-      const key = windyDataKey(modelName, location);
-      return isDataCached(state, key) ? state.data[key] : undefined;
-    },
-    selIsWindyDataAvailable: (state: ForecastState, modelName: string, location: LatLon): boolean => {
-      const windyData = slice.getSelectors().selMaybeLoadedWindyData(state, modelName, location);
-      return windyData !== undefined;
-    },
-    selFetchStatus: (state: ForecastState, modelName: string, location: LatLon): FetchStatus => {
-      const windyData = slice.getSelectors().selMaybeWindyData(state, modelName, location);
-      return windyData === undefined ? FetchStatus.Error : windyData.fetchStatus;
-    },
-    selModelUpdateTimeMs(state: ForecastState, modelName: string, location: LatLon): number {
-      const windyData = getWindyDataOrThrow(state, modelName, location);
-      return windyData.updateMs;
-    },
-    selModelNextUpdateTimeMs(state: ForecastState, modelName: string, location: LatLon): number {
-      const windyData = getWindyDataOrThrow(state, modelName, location);
-      return windyData.nextUpdateMs;
-    },
-    selTzOffsetH(state: ForecastState, modelName: string, location: LatLon): number {
-      const windyData = getWindyDataOrThrow(state, modelName, location);
-      return windyData.weather.celestial.TZoffset;
-    },
-    selSunriseMs(state: ForecastState, modelName: string, location: LatLon): number {
-      const windyData = getWindyDataOrThrow(state, modelName, location);
-      return windyData.weather.celestial.sunriseTs;
-    },
-    selSunsetMs(state: ForecastState, modelName: string, location: LatLon): number {
-      const windyData = getWindyDataOrThrow(state, modelName, location);
-      return windyData.weather.celestial.sunsetTs;
-    },
-    // Levels in descending order
-    selLevels: (state: ForecastState, modelName: string, location: LatLon): number[] => {
-      const windyData = getWindyDataOrThrow(state, modelName, location);
-      return Object.keys(windyData.meteogram.data)
-        .filter((key: string) => key.startsWith('temp-') && key.endsWith('h'))
-        .map((key: string) => parseInt(key.slice(5, -1)))
-        .sort((a: number, b: number) => b - a);
-    },
-    selMaxModelPressure: (state: ForecastState, modelName: string, location: LatLon): number => {
-      getWindyDataOrThrow(state, modelName, location);
-      const levels = slice.getSelectors().selLevels(state, modelName, location);
-      return Math.max(...levels);
-    },
-    selMinModelPressure: (state: ForecastState, modelName: string, location: LatLon): number => {
-      getWindyDataOrThrow(state, modelName, location);
-      const levels = slice.getSelectors().selLevels(state, modelName, location);
-      return Math.min(...levels);
-    },
-    selPeriodValues(state: ForecastState, modelName: string, location: LatLon): PeriodValue {
-      const windyData = getWindyDataOrThrow(state, modelName, location);
-      const levels = slice.getSelectors().selLevels(state, modelName, location);
-      return computePeriodValues(windyData, levels);
-    },
-    selMaxPeriodTemp(state: ForecastState, modelName: string, location: LatLon): number {
-      getWindyDataOrThrow(state, modelName, location);
-      const periodValues = slice.getSelectors().selPeriodValues(state, modelName, location);
-      return periodValues.maxTemp;
-    },
-    selMinPeriodTemp(state: ForecastState, modelName: string, location: LatLon): number {
-      getWindyDataOrThrow(state, modelName, location);
-      const periodValues = slice.getSelectors().selPeriodValues(state, modelName, location);
-      return periodValues.minTemp;
-    },
-    selPeriodClouds(state: ForecastState, modelName: string, location: LatLon): PeriodCloud {
-      const windyData = getWindyDataOrThrow(state, modelName, location);
-      return computePeriodClouds(windyData.meteogram.data);
-    },
-    selGetCloudCoverGenerator(state: ForecastState, modelName: string, location: LatLon, timeMs): CloudCoverGenerator {
-      const windyData = getWindyDataOrThrow(state, modelName, location);
-      const timesMs = windyData.meteogram.data.hours;
-      const { width, height, clouds } = slice.getSelectors().selPeriodClouds(state, modelName, location);
-      const timesIndex = Math.max(
-        1,
-        timesMs.findIndex((ms) => ms > timeMs),
-      );
-      const startMs = timesMs[timesIndex - 1];
-      const endMs = timesMs[timesIndex];
-      const timeRatio = Math.max(0, Math.min(1, (endMs - timeMs) / (endMs - startMs)));
-      const indexRatio = (timesIndex - timeRatio) / timesMs.length;
-      const x = Math.round(Math.round((width - 1) * indexRatio));
-      if (DEBUG_CLOUDS && debugCloudCanvas && debugCloudTimeCursor) {
-        debugCloudTimeCursor.style.width = `${Math.round(debugCloudCanvas.width * indexRatio)}px`;
-      }
-      const cloudSliceAtMs: number[] = [];
-      for (let y = height - 1; y >= 0; y--) {
-        cloudSliceAtMs.push(clouds[x + y * width]);
-      }
-      return getCloudCoverGenerator(cloudSliceAtMs);
-    },
-    selMaxSeaLevelPressure(state: ForecastState, modelName: string, location: LatLon): number {
-      getWindyDataOrThrow(state, modelName, location);
-      const periodValues = slice.getSelectors().selPeriodValues(state, modelName, location);
-      return periodValues.maxSeaLevelPressure;
-    },
-    selIsWindyDataAvailableAt(state: ForecastState, modelName: string, location: LatLon, timeMs: number): boolean {
-      const windyData = getWindyDataOrThrow(state, modelName, location);
-      const maxTimeMs = Math.min(
-        ...[windyData.meteogram.data.hours.at(-1), windyData.weather.data.ts.at(-1)].filter((v) => v !== undefined),
-      );
-      return timeMs <= maxTimeMs;
-    },
-    selValuesAt(state: ForecastState, modelName: string, location: LatLon, timeMs: number): TimeValue {
-      const windyData = getWindyDataOrThrow(state, modelName, location);
-      const periodValues = slice.getSelectors().selPeriodValues(state, modelName, location);
-      const { timesMs } = periodValues;
-      timeMs = Math.max(timeMs, windyData.meteogram.data.hours[0], windyData.weather.data.ts[0]);
-      return {
-        temp: sampleAt(timesMs, periodValues.tempByTime, timeMs),
-        dewpoint: sampleAt(timesMs, periodValues.dewpointByTime, timeMs),
-        gh: sampleAt(timesMs, periodValues.ghByTime, timeMs),
-        rh: sampleAt(timesMs, periodValues.rhByTime, timeMs),
-        windU: sampleAt(timesMs, periodValues.windUByTime, timeMs),
-        windV: sampleAt(timesMs, periodValues.windVByTime, timeMs),
-        rainMm: sampleAt(timesMs, periodValues.rainMmByTime, timeMs),
-        seaLevelPressure: sampleAt(timesMs, periodValues.seaLevelPressureByTime, timeMs),
-      };
-    },
-    selWindDetailsByLevel(
-      state,
-      modelName: string,
-      location: LatLon,
-      timeMs: number,
-    ): { speed: number; direction: number }[] {
-      getWindyDataOrThrow(state, modelName, location);
-      const { windU, windV } = slice.getSelectors().selValuesAt(state, modelName, location, timeMs);
-      const details = [];
-      for (let i = 0; i < windU.length; i++) {
-        const { wind: speed, dir: direction } = windyUtils.wind2obj([windU[i], windV[i]]);
-        details.push({ speed, direction });
-      }
-      return details;
-    },
-    selElevation(state: ForecastState, modelName: string, location: LatLon): number {
-      const windyData = getWindyDataOrThrow(state, modelName, location);
-      const { weather, meteogram } = windyData;
-      return meteogram.header.elevation ?? weather.header.elevation ?? meteogram.header.modelElevation;
-    },
-    selPressureToGhScale(state: ForecastState, modelName: string, location: LatLon, timeMs: number): Scale {
-      getWindyDataOrThrow(state, modelName, location);
-      const levels = slice.getSelectors().selLevels(state, modelName, location);
-      const { gh, seaLevelPressure } = slice.getSelectors().selValuesAt(state, modelName, location, timeMs);
-      return atm.getPressureToGhScale(levels, gh, seaLevelPressure);
-    },
-    selDisplayParcel(state: ForecastState, modelName: string, location: LatLon, timeMs: number): boolean {
-      const startMs = slice.getSelectors().selSunriseMs(state, modelName, location) + 2 * 3600 * 1000;
-      const endMs = slice.getSelectors().selSunsetMs(state, modelName, location) - 3600 * 1000;
-      const durationMs = endMs - startMs;
-      return timeMs > startMs && (timeMs - startMs) % (24 * 3600 * 1000) < durationMs;
-    },
-    selParcel(state: ForecastState, modelName: string, location: LatLon, timeMs: number): atm.ParcelData {
-      const timeValues = slice.getSelectors().selValuesAt(state, modelName, location, timeMs);
-      const periodValues = slice.getSelectors().selPeriodValues(state, modelName, location);
-      const pressureToGhScale = slice.getSelectors().selPressureToGhScale(state, modelName, location, timeMs);
-      const elevation = slice.getSelectors().selElevation(state, modelName, location);
-      const pressureToDewpointScale = scaleLog(periodValues.levels, timeValues.dewpoint);
-
-      return atm.parcelTrajectory(
-        periodValues.levels,
-        timeValues.gh,
-        timeValues.temp,
-        3,
-        elevation,
-        pressureToDewpointScale(pressureToGhScale.invert(elevation)),
-        40,
-      );
-    },
-  },
 });
-
-/**
- * Throws when accessing data that are not loaded yet.
- *
- * @param state
- */
-function getWindyDataOrThrow(
-  state: ForecastState,
-  modelName: string,
-  location: LatLon,
-): Forecast & { fetchStatus: FetchStatus.Loaded } {
-  const windyData = slice.getSelectors().selMaybeLoadedWindyData(state, modelName, location);
-  if (windyData === undefined || windyData.fetchStatus !== FetchStatus.Loaded) {
-    throw new Error('Data not loaded');
-  }
-  return windyData;
-}
 
 class OutOfBoundsError extends Error {
   constructor(message: string) {
@@ -379,7 +183,7 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
       const { modelName, location } = modelAndLocation;
       const state = api.getState();
       const pluginStatus = pluginSlice.selStatus(state);
-      const windyData = slice.selectors.selMaybeLoadedWindyData(state, modelName, location);
+      const windyData = selMaybeLoadedWindyData(state, modelName, location);
       return (
         pluginStatus === pluginSlice.PluginStatus.Ready &&
         (windyData === undefined ||
@@ -407,6 +211,7 @@ function isDataCached(state: ForecastState, key: string) {
     return false;
   }
 
+  // Do not reload out of bounds locations.
   if (forecast.fetchStatus === FetchStatus.ErrorOutOfBounds) {
     return true;
   }
@@ -491,5 +296,209 @@ function computePeriodValues(
     ...values,
   };
 }
+
+// Selectors
+const selTimeMs = (state: RootState, modelName: string, location: LatLon, timeMs: number) => timeMs;
+/**
+ * Note: returned data could be loading, loaded, errored.
+ *
+ * @returns windy data or undefined.
+ */
+export const selMaybeWindyData = (state: RootState, modelName: string, location: LatLon): Forecast | undefined =>
+  state[slice.name].data[windyDataKey(modelName, location)];
+
+export const selMaybeLoadedWindyData = (
+  state: RootState,
+  modelName: string,
+  location: LatLon,
+): Forecast | undefined => {
+  const key = windyDataKey(modelName, location);
+  return isDataCached(state[slice.name], key) ? state[slice.name].data[key] : undefined;
+};
+
+/**
+ * Throws when accessing data that are not loaded yet.
+ *
+ * @param state
+ */
+const selLoadedWindyDataOrThrow = (
+  state: RootState,
+  modelName: string,
+  location: LatLon,
+): Forecast & { fetchStatus: FetchStatus.Loaded } => {
+  const windyData = selMaybeLoadedWindyData(state, modelName, location);
+  if (windyData === undefined || windyData.fetchStatus !== FetchStatus.Loaded) {
+    throw new Error('Data not loaded');
+  }
+  return windyData;
+};
+
+export const selIsWindyDataAvailable = (state: RootState, modelName: string, location: LatLon): boolean => {
+  const windyData = selMaybeLoadedWindyData(state, modelName, location);
+  return windyData !== undefined;
+};
+
+export const selFetchStatus = (state: RootState, modelName: string, location: LatLon): FetchStatus => {
+  const windyData = selMaybeWindyData(state, modelName, location);
+  return windyData === undefined ? FetchStatus.Error : windyData.fetchStatus;
+};
+
+export const selModelUpdateTimeMs = (state: RootState, modelName: string, location: LatLon): number => {
+  const windyData = selLoadedWindyDataOrThrow(state, modelName, location);
+  return windyData.updateMs;
+};
+
+export const selModelNextUpdateTimeMs = (state: RootState, modelName: string, location: LatLon): number => {
+  const windyData = selLoadedWindyDataOrThrow(state, modelName, location);
+  return windyData.nextUpdateMs;
+};
+
+export const selTzOffsetH = (state: RootState, modelName: string, location: LatLon): number => {
+  const windyData = selLoadedWindyDataOrThrow(state, modelName, location);
+  return windyData.weather.celestial.TZoffset;
+};
+
+export const selSunriseMs = (state: RootState, modelName: string, location: LatLon): number => {
+  const windyData = selLoadedWindyDataOrThrow(state, modelName, location);
+  return windyData.weather.celestial.sunriseTs;
+};
+
+export const selSunsetMs = (state: RootState, modelName: string, location: LatLon): number => {
+  const windyData = selLoadedWindyDataOrThrow(state, modelName, location);
+  return windyData.weather.celestial.sunsetTs;
+};
+
+export const selDescendingLevels = createSelector(selLoadedWindyDataOrThrow, (windyData) =>
+  Object.keys(windyData.meteogram.data)
+    .filter((key: string) => key.startsWith('temp-') && key.endsWith('h'))
+    .map((key: string) => parseInt(key.slice(5, -1)))
+    .sort((a: number, b: number) => b - a),
+);
+
+export const selMaxModelPressure = createSelector(selDescendingLevels, (descendingLevels) => descendingLevels[0]);
+
+export const selMinModelPressure = createSelector(selDescendingLevels, (descendingLevels) => descendingLevels.at(-1));
+
+export const selPeriodValues = createSelector(selLoadedWindyDataOrThrow, selDescendingLevels, (windyData, levels) =>
+  computePeriodValues(windyData, levels),
+);
+
+export const selMaxPeriodTemp = createSelector(selPeriodValues, (periodValues) => periodValues.maxTemp);
+
+export const selMinPeriodTemp = createSelector(selPeriodValues, (periodValues) => periodValues.minTemp);
+
+export const selPeriodClouds = createSelector(selLoadedWindyDataOrThrow, (windyData) =>
+  computePeriodClouds(windyData.meteogram.data),
+);
+
+export const selGetCloudCoverGenerator = createSelector(
+  selLoadedWindyDataOrThrow,
+  selPeriodClouds,
+  selTimeMs,
+  (windyData, periodClouds, timeMs): CloudCoverGenerator => {
+    const timesMs = windyData.meteogram.data.hours;
+    const { width, height, clouds } = periodClouds;
+    const timesIndex = Math.max(
+      1,
+      timesMs.findIndex((ms) => ms > timeMs),
+    );
+    const startMs = timesMs[timesIndex - 1];
+    const endMs = timesMs[timesIndex];
+    const timeRatio = Math.max(0, Math.min(1, (endMs - timeMs) / (endMs - startMs)));
+    const indexRatio = (timesIndex - timeRatio) / timesMs.length;
+    const x = Math.round(Math.round((width - 1) * indexRatio));
+    if (DEBUG_CLOUDS && debugCloudCanvas && debugCloudTimeCursor) {
+      debugCloudTimeCursor.style.width = `${Math.round(debugCloudCanvas.width * indexRatio)}px`;
+    }
+    const cloudSliceAtMs: number[] = [];
+    for (let y = height - 1; y >= 0; y--) {
+      cloudSliceAtMs.push(clouds[x + y * width]);
+    }
+    return getCloudCoverGenerator(cloudSliceAtMs);
+  },
+);
+
+export const selMaxSeaLevelPressure = createSelector(
+  selPeriodValues,
+  (periodValues) => periodValues.maxSeaLevelPressure,
+);
+
+export const selIsWindyDataAvailableAt = (
+  state: RootState,
+  modelName: string,
+  location: LatLon,
+  timeMs: number,
+): boolean => {
+  const windyData = selLoadedWindyDataOrThrow(state, modelName, location);
+  const maxTimeMs = Math.min(
+    ...[windyData.meteogram.data.hours.at(-1), windyData.weather.data.ts.at(-1)].filter((v) => v !== undefined),
+  );
+  return timeMs <= maxTimeMs;
+};
+
+export const selValuesAt = createSelector(
+  selLoadedWindyDataOrThrow,
+  selPeriodValues,
+  selTimeMs,
+  (windyData, periodValues, timeMs) => {
+    const { timesMs } = periodValues;
+    timeMs = Math.max(timeMs, windyData.meteogram.data.hours[0], windyData.weather.data.ts[0]);
+    return {
+      temp: sampleAt(timesMs, periodValues.tempByTime, timeMs),
+      dewpoint: sampleAt(timesMs, periodValues.dewpointByTime, timeMs),
+      gh: sampleAt(timesMs, periodValues.ghByTime, timeMs),
+      rh: sampleAt(timesMs, periodValues.rhByTime, timeMs),
+      windU: sampleAt(timesMs, periodValues.windUByTime, timeMs),
+      windV: sampleAt(timesMs, periodValues.windVByTime, timeMs),
+      rainMm: sampleAt(timesMs, periodValues.rainMmByTime, timeMs),
+      seaLevelPressure: sampleAt(timesMs, periodValues.seaLevelPressureByTime, timeMs),
+    };
+  },
+);
+
+export const selWindDetailsByLevel = createSelector(selValuesAt, ({ windU, windV }) => {
+  const details = [];
+  for (let i = 0; i < windU.length; i++) {
+    const { wind: speed, dir: direction } = windyUtils.wind2obj([windU[i], windV[i]]);
+    details.push({ speed, direction });
+  }
+  return details;
+});
+
+export const selElevation = (state: RootState, modelName: string, location: LatLon): number => {
+  const windyData = selLoadedWindyDataOrThrow(state, modelName, location);
+  const { weather, meteogram } = windyData;
+  return meteogram.header.elevation ?? weather.header.elevation ?? meteogram.header.modelElevation;
+};
+
+export const selPressureToGhScale = createSelector(selDescendingLevels, selValuesAt, (levels, values) =>
+  atm.getPressureToGhScale(levels, values.gh, values.seaLevelPressure),
+);
+
+export const selDisplayParcel = createSelector(selSunriseMs, selSunsetMs, selTimeMs, (sunriseMs, sunsetMs, timeMs) => {
+  const startMs = sunriseMs + 2 * 3600 * 1000;
+  const endMs = sunsetMs - 3600 * 1000;
+  const durationMs = endMs - startMs;
+  return timeMs > startMs && (timeMs - startMs) % (24 * 3600 * 1000) < durationMs;
+});
+
+export const selParcel = createSelector(
+  selValuesAt,
+  selPeriodValues,
+  selPressureToGhScale,
+  selElevation,
+  (timeValues, periodValues, pressureToGhScale, elevation) => {
+    const pressureToDewpointScale = scaleLinear(periodValues.levels, timeValues.dewpoint);
+    return atm.parcelTrajectory(
+      periodValues.levels,
+      timeValues.gh,
+      timeValues.temp,
+      3,
+      elevation,
+      pressureToDewpointScale(pressureToGhScale.invert(elevation)),
+      40,
+    );
+  },
+);
 
 export const { reducer } = slice;
