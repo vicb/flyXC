@@ -6,7 +6,6 @@ import { Provider } from 'react-redux';
 
 import { pluginConfig } from './config.js';
 import { Plugin } from './containers/containers';
-import * as forecastSlice from './redux/forecast-slice';
 import {
   addSubscription,
   cancelAllSubscriptions,

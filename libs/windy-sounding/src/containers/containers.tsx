@@ -115,8 +115,6 @@ export function Plugin() {
 
   const isDev = process.env.NODE_ENV === 'development';
 
-  const showDetails = !updateRequired && fetchStatus === forecastSlice.FetchStatus.Loaded;
-
   const isLoading =
     status !== pluginSlice.PluginStatus.Ready ||
     fetchStatus === forecastSlice.FetchStatus.Idle ||
@@ -130,7 +128,7 @@ export function Plugin() {
         <>
           <p>Update to v{availableVersion} required.</p>
           <p>Uninstall the current version first to install v{availableVersion}</p>
-          <div className="button" onClick={openPluginMenu}>
+          <div className="button" role="button" tabIndex={0} onClick={openPluginMenu}>
             Update
           </div>
         </>
@@ -186,7 +184,7 @@ export function Plugin() {
               </p>
             </div>
           )}
-          {showDetails && <Details />}
+          {updateRequired || <Details />}
           {errorMessage && !isLoading ? (
             <Message {...{ width, height, message: errorMessage }} />
           ) : (
@@ -438,21 +436,23 @@ function ConnectedFavorites({ onSelected }: { onSelected: (location: LatLon) => 
  * - Current time
  */
 function Details() {
-  const { modelName, updateMs, nextUpdateMs, timeMs } = useSelector((state: RootState) => {
+  const { modelName, updateMs, nextUpdateMs, timeMs, runInfoAvailable } = useSelector((state: RootState) => {
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
     const timeMs = pluginSlice.selTimeMs(state);
+    const runInfoAvailable = forecastSlice.selIsWindyDataAvailable(state, modelName, location);
 
     return {
       modelName: pluginSlice.selModelName(state),
-      updateMs: forecastSlice.selModelUpdateTimeMs(state, modelName, location),
-      nextUpdateMs: forecastSlice.selModelNextUpdateTimeMs(state, modelName, location),
+      updateMs: runInfoAvailable ? forecastSlice.selModelUpdateTimeMs(state, modelName, location) : 0,
+      nextUpdateMs: runInfoAvailable ? forecastSlice.selModelNextUpdateTimeMs(state, modelName, location) : 0,
       timeMs,
+      runInfoAvailable,
     };
   }, shallowEqual);
 
   const nowMs = Date.now();
-  const distanceString = intlFormatDistance(nextUpdateMs, nowMs);
+  const distanceString = runInfoAvailable ? intlFormatDistance(nextUpdateMs, nowMs) : '';
 
   return (
     <div id="wsp-model" className="desktop-only">
@@ -461,7 +461,11 @@ function Details() {
         <dd>{modelName}</dd>
         <dt>Run</dt>
         <dd>
-          {formatTimestamp(updateMs)}, next {nextUpdateMs > nowMs ? `${distanceString}` : `overdue (${distanceString})`}
+          {runInfoAvailable
+            ? `${formatTimestamp(updateMs)}, next ${
+                nextUpdateMs > nowMs ? distanceString : `overdue (${distanceString})`
+              }`
+            : `...`}
         </dd>
         <dt>Sounding time</dt>
         <dd>{formatTimestamp(timeMs)}</dd>{' '}
