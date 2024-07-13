@@ -56,7 +56,8 @@ export function WindProfile(props: WindProfileProps) {
     (v: [x: number, y: number]) => pressureToPxScale(v[1]),
   );
 
-  const surfacePx = Math.round(ghToPxScale(surfaceElevation));
+  const ySurface = Math.min(height, Math.round(ghToPxScale(surfaceElevation)));
+
   const surfacePressure = pressureToGhScale.invert(surfaceElevation);
 
   let yOffsetCursor = 4;
@@ -83,8 +84,8 @@ export function WindProfile(props: WindProfileProps) {
           return <WindSymbol direction={directionByLevel[i]} speed={speedByLevel[i]} y={pressureToPxScale(level)} />;
         })}
       </g>
-      <rect className="surface" y={surfacePx} width={width} height={height - surfacePx + 1} />
-      {yPointer !== undefined && yPointer < surfacePx && (
+      <rect className="surface" y={ySurface} width={width} height={height - ySurface + 1} />
+      {yPointer !== undefined && yPointer < ySurface && (
         <g className={`cursor ${cursorClass}`}>
           <text className="speed" x={width - 5} y={yPointer + yOffsetCursor}>
             {format(windAtCursor)}
