@@ -66,25 +66,31 @@ export function Plugin() {
     centerMap(location);
   }, []);
 
-  const startResize = useCallback((e: PointerEvent) => {
-    isDragging = true;
-    yOnStartDrag = e.screenY;
-    heightOnStartDrag = height;
-    e.preventDefault();
-    e.stopImmediatePropagation();
-  }, []);
+  const startResize = useCallback(
+    (e: PointerEvent) => {
+      isDragging = true;
+      yOnStartDrag = e.screenY;
+      heightOnStartDrag = height;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    },
+    [height],
+  );
 
-  const resize = useCallback((e: PointerEvent) => {
-    if (isDragging) {
-      const height = Math.min(
-        Math.max(heightOnStartDrag + yOnStartDrag - e.screenY, startHeight / 3),
-        startHeight * 1.2,
-      );
-      setMobileHeight(Math.round(height));
-    }
-    e.preventDefault();
-    e.stopImmediatePropagation();
-  }, []);
+  const resize = useCallback(
+    (e: PointerEvent) => {
+      if (isDragging) {
+        const height = Math.min(
+          Math.max(heightOnStartDrag + yOnStartDrag - e.screenY, startHeight / 3),
+          startHeight * 1.2,
+        );
+        setMobileHeight(Math.round(height));
+      }
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    },
+    [startHeight],
+  );
 
   const endResize = useCallback((e: PointerEvent) => {
     isDragging = false;
