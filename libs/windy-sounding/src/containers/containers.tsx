@@ -31,20 +31,19 @@ export function Plugin() {
     availableVersion,
     isWindyDataAvailable,
   } = useSelector((state: RootState) => {
-    const forecastSel = forecastSlice.slice.selectors;
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
     const timeMs = pluginSlice.selTimeMs(state);
     const isWindyDataAvailable =
-      forecastSel.selIsWindyDataAvailable(state, modelName, location) &&
-      forecastSel.selIsWindyDataAvailableAt(state, modelName, location, timeMs);
+      forecastSlice.selIsWindyDataAvailable(state, modelName, location) &&
+      forecastSlice.selIsWindyDataAvailableAt(state, modelName, location, timeMs);
     return {
       width: pluginSlice.selWidth(state),
       startHeight: pluginSlice.selHeight(state),
       status: pluginSlice.selStatus(state),
       updateAvailable: pluginSlice.selUpdateAvailable(state),
       updateRequired: pluginSlice.selUpdateRequired(state),
-      fetchStatus: forecastSel.selFetchStatus(state, modelName, location),
+      fetchStatus: forecastSlice.selFetchStatus(state, modelName, location),
       availableVersion: pluginSlice.selAvailableVersion(state),
       modelName,
       location,
@@ -268,15 +267,13 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
   const setIsZoomedIn = useCallback((expanded: boolean) => dispatch(pluginSlice.setIsZoomedIn(expanded)), []);
 
   const { minPressure, maxPressure, isZoomedIn } = useSelector((state: RootState) => {
-    const forecastSel = forecastSlice.slice.selectors;
-
     const timeMs = pluginSlice.selTimeMs(state);
     const isZoomedIn = pluginSlice.selIsZoomedIn(state);
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
-    const elevation = forecastSel.selElevation(state, modelName, location);
-    const minModelPressure = forecastSel.selMinModelPressure(state, modelName, location);
-    const pressureToGhScale = forecastSel.selPressureToGhScale(state, modelName, location, timeMs);
+    const elevation = forecastSlice.selElevation(state, modelName, location);
+    const minModelPressure = forecastSlice.selMinModelPressure(state, modelName, location);
+    const pressureToGhScale = forecastSlice.selPressureToGhScale(state, modelName, location, timeMs);
     const minPressure = isZoomedIn
       ? Math.round(Math.max(pressureToGhScale.invert(6500 + (elevation * 2) / 5), minModelPressure))
       : minModelPressure;
@@ -335,17 +332,15 @@ type ChildGraphProps = {
 
 function ConnectedSkewT(props: ChildGraphProps) {
   const stateProps: Omit<SkewTProps, keyof ChildGraphProps> = useSelector((state: RootState) => {
-    const forecastSel = forecastSlice.slice.selectors;
-
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
     const timeMs = pluginSlice.selTimeMs(state);
 
-    const periodValues = forecastSel.selPeriodValues(state, modelName, location);
-    const timeValues = forecastSel.selValuesAt(state, modelName, location, timeMs);
+    const periodValues = forecastSlice.selPeriodValues(state, modelName, location);
+    const timeValues = forecastSlice.selValuesAt(state, modelName, location, timeMs);
     const isZoomedIn = pluginSlice.selIsZoomedIn(state);
 
-    const periodMaxTemp = forecastSel.selMaxPeriodTemp(state, modelName, location);
+    const periodMaxTemp = forecastSlice.selMaxPeriodTemp(state, modelName, location);
     const maxTemp = periodMaxTemp + 8;
     const minTemp = periodMaxTemp - 60;
     const formatTemp = unitsSlice.selTempFormatter(state);
@@ -358,9 +353,9 @@ function ConnectedSkewT(props: ChildGraphProps) {
       seaLevelPressure: timeValues.seaLevelPressure,
       minTemp,
       maxTemp,
-      surfaceElevation: forecastSel.selElevation(state, modelName, location),
-      parcel: forecastSel.selDisplayParcel(state, modelName, location, timeMs)
-        ? forecastSel.selParcel(state, modelName, location, timeMs)
+      surfaceElevation: forecastSlice.selElevation(state, modelName, location),
+      parcel: forecastSlice.selDisplayParcel(state, modelName, location, timeMs)
+        ? forecastSlice.selParcel(state, modelName, location, timeMs)
         : undefined,
       formatAltitude: unitsSlice.selAltitudeFormatter(state),
       formatTemp,
@@ -369,7 +364,7 @@ function ConnectedSkewT(props: ChildGraphProps) {
       ghUnit: unitsSlice.selAltitudeUnit(state),
       ghAxisStep: unitsSlice.selAltitudeUnit(state) === 'm' ? 1000 : 3000,
       showUpperClouds: isZoomedIn,
-      cloudCover: forecastSel.selGetCloudCoverGenerator(state, modelName, location, timeMs),
+      cloudCover: forecastSlice.selGetCloudCoverGenerator(state, modelName, location, timeMs),
     };
   }, shallowEqual);
 
@@ -380,11 +375,9 @@ function ConnectedSkewT(props: ChildGraphProps) {
 
 function ConnectedWind(props: ChildGraphProps) {
   const fetchStatus = useSelector((state: RootState) => {
-    const forecastSel = forecastSlice.slice.selectors;
-
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
-    return forecastSel.selFetchStatus(state, modelName, location);
+    return forecastSlice.selFetchStatus(state, modelName, location);
   });
 
   if (fetchStatus !== forecastSlice.FetchStatus.Loaded) {
@@ -392,27 +385,25 @@ function ConnectedWind(props: ChildGraphProps) {
   }
 
   const stateProps = useSelector((state: RootState) => {
-    const forecastSel = forecastSlice.slice.selectors;
-
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
     const timeMs = pluginSlice.selTimeMs(state);
 
-    if (forecastSel.selFetchStatus(state, modelName, location) === forecastSlice.FetchStatus.Loading) {
+    if (forecastSlice.selFetchStatus(state, modelName, location) === forecastSlice.FetchStatus.Loading) {
       return { isLoading: true };
     }
 
-    const periodValues = forecastSel.selPeriodValues(state, modelName, location);
-    const timeValues = forecastSel.selValuesAt(state, modelName, location, timeMs);
+    const periodValues = forecastSlice.selPeriodValues(state, modelName, location);
+    const timeValues = forecastSlice.selValuesAt(state, modelName, location, timeMs);
 
     return {
       seaLevelPressure: timeValues.seaLevelPressure,
       levels: periodValues.levels,
       ghs: timeValues.gh,
-      windByLevel: forecastSel.selWindDetailsByLevel(state, modelName, location, timeMs),
+      windByLevel: forecastSlice.selWindDetailsByLevel(state, modelName, location, timeMs),
       format: unitsSlice.selWindSpeedFormatter(state),
       unit: unitsSlice.selWindSpeedUnit(state),
-      surfaceElevation: forecastSel.selElevation(state, modelName, location),
+      surfaceElevation: forecastSlice.selElevation(state, modelName, location),
       isFixedRange: pluginSlice.selIsZoomedIn(state),
     };
   }, shallowEqual);
@@ -447,16 +438,14 @@ function ConnectedFavorites({ onSelected }: { onSelected: (location: LatLon) => 
  */
 function Details() {
   const { modelName, updateMs, nextUpdateMs, timeMs } = useSelector((state: RootState) => {
-    const forecastSel = forecastSlice.slice.selectors;
-
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
     const timeMs = pluginSlice.selTimeMs(state);
 
     return {
       modelName: pluginSlice.selModelName(state),
-      updateMs: forecastSel.selModelUpdateTimeMs(state, modelName, location),
-      nextUpdateMs: forecastSel.selModelNextUpdateTimeMs(state, modelName, location),
+      updateMs: forecastSlice.selModelUpdateTimeMs(state, modelName, location),
+      nextUpdateMs: forecastSlice.selModelNextUpdateTimeMs(state, modelName, location),
       timeMs,
     };
   }, shallowEqual);
@@ -486,14 +475,12 @@ export function Watermark({ x, y }: { x: number; y: number }) {
   const nowMs = Date.now();
 
   const { updateMs, nextUpdateMs } = useSelector((state: RootState) => {
-    const forecastSel = forecastSlice.slice.selectors;
-
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
 
     return {
-      updateMs: forecastSel.selModelUpdateTimeMs(state, modelName, location),
-      nextUpdateMs: forecastSel.selModelNextUpdateTimeMs(state, modelName, location),
+      updateMs: forecastSlice.selModelUpdateTimeMs(state, modelName, location),
+      nextUpdateMs: forecastSlice.selModelNextUpdateTimeMs(state, modelName, location),
     };
   }, shallowEqual);
 
