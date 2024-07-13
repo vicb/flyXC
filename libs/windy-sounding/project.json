@@ -63,10 +63,21 @@
       "options": {
         "commands": [
           "rm -rf dist/libs/windy-sounding",
-          "npx nx build windy-sounding --configuration=production",
-          "npx nx build windy-sounding --configuration=development",
+          "npx nx build windy-sounding --configuration=production --skip-nx-cache",
+          "npx nx build windy-sounding --configuration=development --skip-nx-cache",
           "BUILD_PLUGIN_CONFIG=true npx nx build windy-sounding --configuration production --skip-nx-cache",
           "node libs/windy-sounding/generate-manifest.js dist/libs/windy-sounding"
+        ],
+        "parallel": false
+      }
+    },
+
+    "upload": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["prepare"],
+      "options": {
+        "commands": [
+          "libs/windy-sounding/upload.sh"
         ],
         "parallel": false
       }

@@ -2,15 +2,17 @@ import { createAsyncThunk, createSelector, createSlice } from '@reduxjs/toolkit'
 import type { DataHash, LatLon, MeteogramDataPayload, WeatherDataPayload } from '@windy/interfaces';
 import type { MeteogramLayers } from '@windy/types';
 
-import * as atm from '../util/atmosphere';
+import type { ParcelData } from '../util/atmosphere';
+import { getElevation, getPressureToGhScale, parcelTrajectory } from '../util/atmosphere';
+import type { CloudCoverGenerator, PeriodCloud } from '../util/clouds';
 import {
-  type CloudCoverGenerator,
   computePeriodClouds,
   DEBUG_CLOUDS,
   debugCloudCanvas,
   debugCloudTimeCursor,
   getCloudCoverGenerator,
 } from '../util/clouds';
+import type { Scale } from '../util/math';
 import { sampleAt, scaleLinear } from '../util/math';
 import * as pluginSlice from './plugin-slice';
 import type { AppThunkAPI, RootState } from './store';
@@ -42,7 +44,7 @@ const sfcProps = ['rainMm', 'seaLevelPressure'] as const;
 type SfcProps = (typeof sfcProps)[number];
 type SfcPropsByTime = `${SfcProps}ByTime`;
 
-type _TimeValue = Record<LevelProp, number[]> & Record<SfcProps, number>;
+type TimeValue = Record<LevelProp, number[]> & Record<SfcProps, number>;
 
 export type PeriodValue = {
   maxTemp: number;
@@ -238,7 +240,7 @@ function extractMeteogramParamByLevel(
     if (value == null) {
       if (paramName === 'gh') {
         // Approximate gh when not provided by the model
-        return Math.round(atm.getElevation(level));
+        return Math.round(getElevation(level));
       }
       throw new Error('Unexpected null value');
     }
@@ -368,27 +370,36 @@ export const selSunsetMs = (state: RootState, modelName: string, location: LatLo
   return windyData.weather.celestial.sunsetTs;
 };
 
-export const selDescendingLevels = createSelector(selLoadedWindyDataOrThrow, (windyData) =>
+export const selDescendingLevels = createSelector(selLoadedWindyDataOrThrow, (windyData): number[] =>
   Object.keys(windyData.meteogram.data)
     .filter((key: string) => key.startsWith('temp-') && key.endsWith('h'))
     .map((key: string) => parseInt(key.slice(5, -1)))
     .sort((a: number, b: number) => b - a),
 );
 
-export const selMaxModelPressure = createSelector(selDescendingLevels, (descendingLevels) => descendingLevels[0]);
-
-export const selMinModelPressure = createSelector(selDescendingLevels, (descendingLevels) => descendingLevels.at(-1));
-
-export const selPeriodValues = createSelector(selLoadedWindyDataOrThrow, selDescendingLevels, (windyData, levels) =>
-  computePeriodValues(windyData, levels),
+export const selMaxModelPressure = createSelector(
+  selDescendingLevels,
+  (descendingLevels): number => descendingLevels[0],
 );
 
-export const selMaxPeriodTemp = createSelector(selPeriodValues, (periodValues) => periodValues.maxTemp);
+export const selMinModelPressure = createSelector(
+  selDescendingLevels,
+  (descendingLevels): number => descendingLevels.at(-1) ?? 150,
+);
 
-export const selMinPeriodTemp = createSelector(selPeriodValues, (periodValues) => periodValues.minTemp);
+export const selPeriodValues = createSelector(
+  selLoadedWindyDataOrThrow,
+  selDescendingLevels,
+  (windyData, levels): PeriodValue => computePeriodValues(windyData, levels),
+);
 
-export const selPeriodClouds = createSelector(selLoadedWindyDataOrThrow, (windyData) =>
-  computePeriodClouds(windyData.meteogram.data),
+export const selMaxPeriodTemp = createSelector(selPeriodValues, (periodValues): number => periodValues.maxTemp);
+
+export const selMinPeriodTemp = createSelector(selPeriodValues, (periodValues): number => periodValues.minTemp);
+
+export const selPeriodClouds = createSelector(
+  selLoadedWindyDataOrThrow,
+  (windyData): PeriodCloud => computePeriodClouds(windyData.meteogram.data),
 );
 
 export const selGetCloudCoverGenerator = createSelector(
@@ -420,7 +431,7 @@ export const selGetCloudCoverGenerator = createSelector(
 
 export const selMaxSeaLevelPressure = createSelector(
   selPeriodValues,
-  (periodValues) => periodValues.maxSeaLevelPressure,
+  (periodValues): number => periodValues.maxSeaLevelPressure,
 );
 
 export const selIsWindyDataAvailableAt = (
@@ -440,7 +451,7 @@ export const selValuesAt = createSelector(
   selLoadedWindyDataOrThrow,
   selPeriodValues,
   selTimeMs,
-  (windyData, periodValues, timeMs) => {
+  (windyData, periodValues, timeMs): TimeValue => {
     const { timesMs } = periodValues;
     timeMs = Math.max(timeMs, windyData.meteogram.data.hours[0], windyData.weather.data.ts[0]);
     return {
@@ -456,14 +467,17 @@ export const selValuesAt = createSelector(
   },
 );
 
-export const selWindDetailsByLevel = createSelector(selValuesAt, ({ windU, windV }) => {
-  const details = [];
-  for (let i = 0; i < windU.length; i++) {
-    const { wind: speed, dir: direction } = windyUtils.wind2obj([windU[i], windV[i]]);
-    details.push({ speed, direction });
-  }
-  return details;
-});
+export const selWindDetailsByLevel = createSelector(
+  selValuesAt,
+  ({ windU, windV }): { speed: number; direction: number }[] => {
+    const details = [];
+    for (let i = 0; i < windU.length; i++) {
+      const { wind: speed, dir: direction } = windyUtils.wind2obj([windU[i], windV[i]]);
+      details.push({ speed, direction });
+    }
+    return details;
+  },
+);
 
 export const selElevation = (state: RootState, modelName: string, location: LatLon): number => {
   const windyData = selLoadedWindyDataOrThrow(state, modelName, location);
@@ -471,25 +485,32 @@ export const selElevation = (state: RootState, modelName: string, location: LatL
   return meteogram.header.elevation ?? weather.header.elevation ?? meteogram.header.modelElevation;
 };
 
-export const selPressureToGhScale = createSelector(selDescendingLevels, selValuesAt, (levels, values) =>
-  atm.getPressureToGhScale(levels, values.gh, values.seaLevelPressure),
+export const selPressureToGhScale = createSelector(
+  selDescendingLevels,
+  selValuesAt,
+  (levels, values): Scale => getPressureToGhScale(levels, values.gh, values.seaLevelPressure),
 );
 
-export const selDisplayParcel = createSelector(selSunriseMs, selSunsetMs, selTimeMs, (sunriseMs, sunsetMs, timeMs) => {
-  const startMs = sunriseMs + 2 * 3600 * 1000;
-  const endMs = sunsetMs - 3600 * 1000;
-  const durationMs = endMs - startMs;
-  return timeMs > startMs && (timeMs - startMs) % (24 * 3600 * 1000) < durationMs;
-});
+export const selDisplayParcel = createSelector(
+  selSunriseMs,
+  selSunsetMs,
+  selTimeMs,
+  (sunriseMs, sunsetMs, timeMs): boolean => {
+    const startMs = sunriseMs + 2 * 3600 * 1000;
+    const endMs = sunsetMs - 3600 * 1000;
+    const durationMs = endMs - startMs;
+    return timeMs > startMs && (timeMs - startMs) % (24 * 3600 * 1000) < durationMs;
+  },
+);
 
 export const selParcel = createSelector(
   selValuesAt,
   selPeriodValues,
   selPressureToGhScale,
   selElevation,
-  (timeValues, periodValues, pressureToGhScale, elevation) => {
+  (timeValues, periodValues, pressureToGhScale, elevation): ParcelData => {
     const pressureToDewpointScale = scaleLinear(periodValues.levels, timeValues.dewpoint);
-    return atm.parcelTrajectory(
+    return parcelTrajectory(
       periodValues.levels,
       timeValues.gh,
       timeValues.temp,

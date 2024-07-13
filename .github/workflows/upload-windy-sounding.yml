@@ -19,7 +19,7 @@ jobs:
         run: |
           npm ci --no-audit
           npm --prefix libs/windy-sounding ci --no-audit
-          npx nx prepare windy-sounding
+          npx nx build windy-sounding
       - name: Publish Plugin
         run: |
           npx nx upload windy-sounding
