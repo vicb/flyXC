@@ -13,9 +13,9 @@ import {
   type PeriodCloud,
 } from '../util/clouds';
 import { sampleAt, type Scale, scaleLog } from '../util/math';
+import * as pluginSlice from './plugin-slice';
 import type { AppThunkAPI, RootState } from './store';
 
-const windyStore = W.store;
 const windyUtils = W.utils;
 const windyFetch = W.fetch;
 const windySubscription = W.subscription;
@@ -321,7 +321,7 @@ class OutOfBoundsError extends Error {
 
 export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { state: RootState }>(
   'forecast/fetch',
-  async (modelAndLocation: ModelAndLocation, api: { getState: () => RootState }) => {
+  async (modelAndLocation: ModelAndLocation) => {
     const { modelName, location } = modelAndLocation;
 
     const [meteogram, forecast] = await Promise.allSettled([
@@ -369,10 +369,13 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
     condition: (modelAndLocation, api: AppThunkAPI) => {
       // Prevent fetching again while loading.
       const { modelName, location } = modelAndLocation;
-      const windyData = slice.selectors.selWindyDataUnsafe(api.getState(), modelName, location);
+      const state = api.getState();
+      const pluginStatus = pluginSlice.slice.selectors.selStatus(state);
+      const windyData = slice.selectors.selWindyDataUnsafe(state, modelName, location);
       return (
-        windyData === undefined ||
-        !(windyData.fetchStatus == FetchStatus.Loading || windyData.fetchStatus === FetchStatus.ErrorOutOfBounds)
+        pluginStatus === pluginSlice.PluginStatus.Ready &&
+        (windyData === undefined ||
+          !(windyData.fetchStatus == FetchStatus.Loading || windyData.fetchStatus === FetchStatus.ErrorOutOfBounds))
       );
     },
   },

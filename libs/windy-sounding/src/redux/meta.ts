@@ -61,14 +61,11 @@ export const updateTime =
  * - Fetch the forecast
  */
 export const changeLocation =
-  (location: LatLon, fetchData: boolean): ThunkAction<void, RootState, unknown, UnknownAction> =>
+  (location: LatLon): ThunkAction<void, RootState, unknown, UnknownAction> =>
   (dispatch, getState) => {
     const modelName = pluginSlice.slice.selectors.selModelName(getState());
     dispatch(pluginSlice.setLocation(location));
-
-    if (fetchData) {
-      dispatch(forecastSlice.fetchForecast({ modelName, location }));
-    }
+    dispatch(forecastSlice.fetchForecast({ modelName, location }));
 
     maybeCreateAndMoveMarker(location);
 

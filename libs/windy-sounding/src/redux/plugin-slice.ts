@@ -1,12 +1,12 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import type { CompiledExternalPluginConfig, Fav, LatLon } from '@windy/interfaces';
-
-import { getFavLabel } from '../util/utils';
-import type { RootState } from './store';
 import type { HttpPayload } from '@windy/http';
-import type { PluginConfig } from '../types';
+import type { CompiledExternalPluginConfig, Fav, LatLon } from '@windy/interfaces';
 import { SemVer } from 'semver';
+
+import type { PluginConfig } from '../types';
+import { getFavLabel } from '../util/utils';
 import { changeLocation } from './meta';
+import type { RootState } from './store';
 
 const windyStore = W.store;
 
@@ -93,15 +93,6 @@ export const slice = createSlice({
       state.availableVersion = action.payload;
     },
   },
-  extraReducers: (builder) => {
-    builder.addCase(fetchPluginConfig.fulfilled, (state, action) => {
-      state.status = PluginStatus.Ready;
-    });
-
-    builder.addCase(fetchPluginConfig.pending, (state, action) => {
-      state.status = PluginStatus.Booting;
-    });
-  },
   selectors: {
     // Values
     selWidth: (state): number => state.width,
@@ -135,7 +126,8 @@ export const fetchPluginConfig = createAsyncThunk<void, PluginConfig, { state: R
       api.dispatch(slice.actions.setUpdateRequired(updateRequired));
     }
     api.dispatch(slice.actions.setAvailableVersion(remoteConfig.version));
-    api.dispatch(changeLocation(api.getState().plugin.location, true));
+    api.dispatch(slice.actions.setStatus(PluginStatus.Ready));
+    api.dispatch(changeLocation(api.getState().plugin.location));
   },
 );
 
