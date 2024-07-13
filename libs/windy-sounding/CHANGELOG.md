@@ -1,9 +1,10 @@
 # Release history
 
-## 4.0.0-alpha.3
+## 4.0.0-beta.1 - July 13, 2024
 
 - Split the state into multiple slices
 - Check for update
+- Perf improvements
 
 ## 4.0.0-alpha.2 - July 10, 2024
 
