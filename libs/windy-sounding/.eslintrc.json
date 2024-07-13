@@ -1,6 +1,6 @@
 {
   "extends": ["../../.eslintrc.json"],
-  "ignorePatterns": ["!**/*", "**/node_modules/*", "generate-manifest.js", "**/vite.config.ts"],
+  "ignorePatterns": ["!**/*", "/node_modules", "/generate-manifest.js", "/vite.config.ts", "/types"],
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],

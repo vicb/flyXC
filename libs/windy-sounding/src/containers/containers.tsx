@@ -1,7 +1,7 @@
 import type { LatLon } from '@windy/interfaces';
 import { intlFormatDistance } from 'date-fns/intlFormatDistance';
 import { useCallback, useState } from 'preact/hooks';
-import { useDispatch, useSelector, shallowEqual } from 'react-redux';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
 import { Favorites } from '../components/favorites.js';
 import { LoadingIndicator } from '../components/loading.js';
@@ -11,7 +11,8 @@ import { WindProfile } from '../components/wind-profile.jsx';
 import { pluginConfig } from '../config';
 import flyxcIcon from '../img/jumoplane.svg';
 import * as forecastSlice from '../redux/forecast-slice';
-import { centerMap, changeLocation, TimeStep, updateTime } from '../redux/meta';
+import type { TimeStep } from '../redux/meta';
+import { centerMap, changeLocation, updateTime } from '../redux/meta';
 import * as pluginSlice from '../redux/plugin-slice';
 import { type AppDispatch, type RootState } from '../redux/store';
 import * as unitsSlice from '../redux/units-slice';
@@ -61,7 +62,7 @@ export function Plugin() {
 
   const dispatch: AppDispatch = useDispatch();
   const selectFavorite = useCallback((location: LatLon) => {
-    dispatch(changeLocation(location, true));
+    dispatch(changeLocation(location));
     centerMap(location);
   }, []);
 
