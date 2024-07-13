@@ -27,10 +27,9 @@ export const updateTime =
 
     if (stepDays) {
       const state = getState();
-      const pluginSel = pluginSlice.slice.selectors;
       const forecastSel = forecastSlice.slice.selectors;
-      const modelName = pluginSel.selModelName(state);
-      const location = pluginSel.selLocation(state);
+      const modelName = pluginSlice.selModelName(state);
+      const location = pluginSlice.selLocation(state);
       const isWindyDataAvailable = forecastSlice.slice.selectors.selIsWindyDataAvailable(state, modelName, location);
 
       if (isWindyDataAvailable) {
@@ -63,7 +62,7 @@ export const updateTime =
 export const changeLocation =
   (location: LatLon): ThunkAction<void, RootState, unknown, UnknownAction> =>
   (dispatch, getState) => {
-    const modelName = pluginSlice.slice.selectors.selModelName(getState());
+    const modelName = pluginSlice.selModelName(getState());
     dispatch(forecastSlice.fetchForecast({ modelName, location }));
     dispatch(pluginSlice.setLocation(location));
 
@@ -75,15 +74,15 @@ export const changeLocation =
 export const changeModel =
   (modelName: string): ThunkAction<void, RootState, unknown, UnknownAction> =>
   (dispatch, getState) => {
-    const location = pluginSlice.slice.selectors.selLocation(getState());
+    const location = pluginSlice.selLocation(getState());
     dispatch(forecastSlice.fetchForecast({ modelName, location }));
     dispatch(pluginSlice.setModelName(modelName));
     updateUrl(getState());
   };
 
 function updateUrl(state: RootState) {
-  const location = pluginSlice.slice.selectors.selLocation(state);
-  const modelName = pluginSlice.slice.selectors.selModelName(state);
+  const location = pluginSlice.selLocation(state);
+  const modelName = pluginSlice.selModelName(state);
   W.location.setUrl(pluginConfig.name, { modelName, ...location });
 }
 

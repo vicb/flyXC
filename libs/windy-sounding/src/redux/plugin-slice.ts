@@ -93,20 +93,6 @@ export const slice = createSlice({
       state.availableVersion = action.payload;
     },
   },
-  selectors: {
-    // Values
-    selWidth: (state): number => state.width,
-    selHeight: (state): number => state.height,
-    selModelName: (state): string => state.modelName,
-    selTimeMs: (state): number => state.timeMs,
-    selIsZoomedIn: (state): boolean => state.isZoomedIn,
-    selLocation: (state): LatLon => state.location,
-    selFavorites: (state): Fav[] => state.favorites,
-    selStatus: (state): PluginStatus => state.status,
-    selUpdateAvailable: (state): boolean => state.updateAvailable,
-    selUpdateRequired: (state): boolean => state.updateRequired,
-    selAvailableVersion: (state): string => state.availableVersion,
-  },
 });
 
 export const fetchPluginConfig = createAsyncThunk<void, PluginConfig, { state: RootState }>(
@@ -149,6 +135,18 @@ function findConfig(
   }
   return;
 }
+
+export const selWidth = (state: RootState): number => state[slice.name].width;
+export const selHeight = (state: RootState): number => state[slice.name].height;
+export const selModelName = (state: RootState): string => state[slice.name].modelName;
+export const selTimeMs = (state: RootState): number => state[slice.name].timeMs;
+export const selIsZoomedIn = (state: RootState): boolean => state[slice.name].isZoomedIn;
+export const selLocation = (state: RootState): LatLon => state[slice.name].location;
+export const selFavorites = (state: RootState): Fav[] => state[slice.name].favorites;
+export const selStatus = (state: RootState): PluginStatus => state[slice.name].status;
+export const selUpdateAvailable = (state: RootState): boolean => state[slice.name].updateAvailable;
+export const selUpdateRequired = (state: RootState): boolean => state[slice.name].updateRequired;
+export const selAvailableVersion = (state: RootState): string => state[slice.name].availableVersion;
 
 export const { setIsZoomedIn, setFavorites, setModelName, setTimeMs, setWidth, setHeight, setLocation, setStatus } =
   slice.actions;

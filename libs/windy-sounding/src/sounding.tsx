@@ -56,9 +56,6 @@ export const mountPlugin = (container: HTMLElement) => {
           (e: CustomEvent) => {
             const { right, left } = e.detail.directions;
             const direction = left ? 'backward' : right ? 'forward' : undefined;
-            const state = store.getState();
-            const model = pluginSlice.slice.selectors.selModelName(state);
-            const location = pluginSlice.slice.selectors.selLocation(state);
             if (direction !== undefined) {
               store.dispatch(updateTime({ direction, size: 'day' }));
             }
@@ -129,7 +126,7 @@ export const openPlugin = ({ lat, lon, modelName }: { lat: number; lon: number; 
   dispatch(changeLocation(location));
   setSizeFrom(appContainer);
 
-  if (pluginSlice.slice.selectors.selStatus(store.getState()) === pluginSlice.PluginStatus.Idle) {
+  if (pluginSlice.selStatus(store.getState()) === pluginSlice.PluginStatus.Idle) {
     dispatch(pluginSlice.fetchPluginConfig(pluginConfig));
   }
 };

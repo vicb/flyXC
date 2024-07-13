@@ -31,22 +31,21 @@ export function Plugin() {
     availableVersion,
     isWindyDataAvailable,
   } = useSelector((state: RootState) => {
-    const pluginSel = pluginSlice.slice.selectors;
     const forecastSel = forecastSlice.slice.selectors;
-    const modelName = pluginSel.selModelName(state);
-    const location = pluginSel.selLocation(state);
-    const timeMs = pluginSel.selTimeMs(state);
+    const modelName = pluginSlice.selModelName(state);
+    const location = pluginSlice.selLocation(state);
+    const timeMs = pluginSlice.selTimeMs(state);
     const isWindyDataAvailable =
       forecastSel.selIsWindyDataAvailable(state, modelName, location) &&
       forecastSel.selIsWindyDataAvailableAt(state, modelName, location, timeMs);
     return {
-      width: pluginSel.selWidth(state),
-      startHeight: pluginSel.selHeight(state),
-      status: pluginSel.selStatus(state),
-      updateAvailable: pluginSel.selUpdateAvailable(state),
-      updateRequired: pluginSel.selUpdateRequired(state),
+      width: pluginSlice.selWidth(state),
+      startHeight: pluginSlice.selHeight(state),
+      status: pluginSlice.selStatus(state),
+      updateAvailable: pluginSlice.selUpdateAvailable(state),
+      updateRequired: pluginSlice.selUpdateRequired(state),
       fetchStatus: forecastSel.selFetchStatus(state, modelName, location),
-      availableVersion: pluginSel.selAvailableVersion(state),
+      availableVersion: pluginSlice.selAvailableVersion(state),
       modelName,
       location,
       isWindyDataAvailable,
@@ -269,13 +268,12 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
   const setIsZoomedIn = useCallback((expanded: boolean) => dispatch(pluginSlice.setIsZoomedIn(expanded)), []);
 
   const { minPressure, maxPressure, isZoomedIn } = useSelector((state: RootState) => {
-    const pluginSel = pluginSlice.slice.selectors;
     const forecastSel = forecastSlice.slice.selectors;
 
-    const timeMs = pluginSel.selTimeMs(state);
-    const isZoomedIn = pluginSel.selIsZoomedIn(state);
-    const modelName = pluginSel.selModelName(state);
-    const location = pluginSel.selLocation(state);
+    const timeMs = pluginSlice.selTimeMs(state);
+    const isZoomedIn = pluginSlice.selIsZoomedIn(state);
+    const modelName = pluginSlice.selModelName(state);
+    const location = pluginSlice.selLocation(state);
     const elevation = forecastSel.selElevation(state, modelName, location);
     const minModelPressure = forecastSel.selMinModelPressure(state, modelName, location);
     const pressureToGhScale = forecastSel.selPressureToGhScale(state, modelName, location, timeMs);
@@ -337,16 +335,15 @@ type ChildGraphProps = {
 
 function ConnectedSkewT(props: ChildGraphProps) {
   const stateProps: Omit<SkewTProps, keyof ChildGraphProps> = useSelector((state: RootState) => {
-    const pluginSel = pluginSlice.slice.selectors;
     const forecastSel = forecastSlice.slice.selectors;
 
-    const modelName = pluginSel.selModelName(state);
-    const location = pluginSel.selLocation(state);
-    const timeMs = pluginSel.selTimeMs(state);
+    const modelName = pluginSlice.selModelName(state);
+    const location = pluginSlice.selLocation(state);
+    const timeMs = pluginSlice.selTimeMs(state);
 
     const periodValues = forecastSel.selPeriodValues(state, modelName, location);
     const timeValues = forecastSel.selValuesAt(state, modelName, location, timeMs);
-    const isZoomedIn = pluginSel.selIsZoomedIn(state);
+    const isZoomedIn = pluginSlice.selIsZoomedIn(state);
 
     const periodMaxTemp = forecastSel.selMaxPeriodTemp(state, modelName, location);
     const maxTemp = periodMaxTemp + 8;
@@ -383,11 +380,10 @@ function ConnectedSkewT(props: ChildGraphProps) {
 
 function ConnectedWind(props: ChildGraphProps) {
   const fetchStatus = useSelector((state: RootState) => {
-    const pluginSel = pluginSlice.slice.selectors;
     const forecastSel = forecastSlice.slice.selectors;
 
-    const modelName = pluginSel.selModelName(state);
-    const location = pluginSel.selLocation(state);
+    const modelName = pluginSlice.selModelName(state);
+    const location = pluginSlice.selLocation(state);
     return forecastSel.selFetchStatus(state, modelName, location);
   });
 
@@ -396,12 +392,11 @@ function ConnectedWind(props: ChildGraphProps) {
   }
 
   const stateProps = useSelector((state: RootState) => {
-    const pluginSel = pluginSlice.slice.selectors;
     const forecastSel = forecastSlice.slice.selectors;
 
-    const modelName = pluginSel.selModelName(state);
-    const location = pluginSel.selLocation(state);
-    const timeMs = pluginSel.selTimeMs(state);
+    const modelName = pluginSlice.selModelName(state);
+    const location = pluginSlice.selLocation(state);
+    const timeMs = pluginSlice.selTimeMs(state);
 
     if (forecastSel.selFetchStatus(state, modelName, location) === forecastSlice.FetchStatus.Loading) {
       return { isLoading: true };
@@ -418,7 +413,7 @@ function ConnectedWind(props: ChildGraphProps) {
       format: unitsSlice.selWindSpeedFormatter(state),
       unit: unitsSlice.selWindSpeedUnit(state),
       surfaceElevation: forecastSel.selElevation(state, modelName, location),
-      isFixedRange: pluginSel.selIsZoomedIn(state),
+      isFixedRange: pluginSlice.selIsZoomedIn(state),
     };
   }, shallowEqual);
 
@@ -429,7 +424,7 @@ function ConnectedWind(props: ChildGraphProps) {
 
 function ConnectedFavorites({ onSelected }: { onSelected: (location: LatLon) => void }) {
   const props = useSelector((state: RootState) => {
-    const S = pluginSlice.slice.selectors;
+    const S = pluginSlice;
     return {
       favorites: S.selFavorites(state),
       location: S.selLocation(state),
@@ -452,15 +447,14 @@ function ConnectedFavorites({ onSelected }: { onSelected: (location: LatLon) => 
  */
 function Details() {
   const { modelName, updateMs, nextUpdateMs, timeMs } = useSelector((state: RootState) => {
-    const pluginSel = pluginSlice.slice.selectors;
     const forecastSel = forecastSlice.slice.selectors;
 
-    const modelName = pluginSel.selModelName(state);
-    const location = pluginSel.selLocation(state);
-    const timeMs = pluginSel.selTimeMs(state);
+    const modelName = pluginSlice.selModelName(state);
+    const location = pluginSlice.selLocation(state);
+    const timeMs = pluginSlice.selTimeMs(state);
 
     return {
-      modelName: pluginSel.selModelName(state),
+      modelName: pluginSlice.selModelName(state),
       updateMs: forecastSel.selModelUpdateTimeMs(state, modelName, location),
       nextUpdateMs: forecastSel.selModelNextUpdateTimeMs(state, modelName, location),
       timeMs,
@@ -492,11 +486,10 @@ export function Watermark({ x, y }: { x: number; y: number }) {
   const nowMs = Date.now();
 
   const { updateMs, nextUpdateMs } = useSelector((state: RootState) => {
-    const pluginSel = pluginSlice.slice.selectors;
     const forecastSel = forecastSlice.slice.selectors;
 
-    const modelName = pluginSel.selModelName(state);
-    const location = pluginSel.selLocation(state);
+    const modelName = pluginSlice.selModelName(state);
+    const location = pluginSlice.selLocation(state);
 
     return {
       updateMs: forecastSel.selModelUpdateTimeMs(state, modelName, location),
