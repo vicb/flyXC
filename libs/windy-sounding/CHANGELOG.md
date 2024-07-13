@@ -3,6 +3,7 @@
 ## 4.0.0-alpha.3
 
 - Split the state into multiple slices
+- Check for update
 
 ## 4.0.0-alpha.2 - July 10, 2024
 
