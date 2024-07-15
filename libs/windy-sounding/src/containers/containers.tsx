@@ -29,15 +29,18 @@ export function Plugin() {
     updateRequired,
     fetchStatus,
     availableVersion,
-    isWindyDataAvailable,
+    isWindyDataAvailableAtCurrentTime,
   } = useSelector((state: RootState) => {
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
     const timeMs = pluginSlice.selTimeMs(state);
     const fetchStatus = forecastSlice.selFetchStatus(state, modelName, location);
-    const isWindyDataAvailable =
-      fetchStatus == forecastSlice.FetchStatus.Loaded &&
-      forecastSlice.selIsWindyDataAvailableAt(state, modelName, location, timeMs);
+    let isWindyDataAvailableAtCurrentTime;
+    try {
+      isWindyDataAvailableAtCurrentTime = forecastSlice.selIsWindyDataAvailableAt(state, modelName, location, timeMs);
+    } catch (e) {
+      isWindyDataAvailableAtCurrentTime = false;
+    }
     return {
       width: pluginSlice.selWidth(state),
       startHeight: pluginSlice.selHeight(state),
@@ -48,7 +51,7 @@ export function Plugin() {
       availableVersion: pluginSlice.selAvailableVersion(state),
       modelName,
       location,
-      isWindyDataAvailable,
+      isWindyDataAvailableAtCurrentTime,
     };
   }, shallowEqual);
 
@@ -143,11 +146,13 @@ export function Plugin() {
       break;
     }
 
-    case !isWindyDataAvailable:
+    case !isWindyDataAvailableAtCurrentTime:
       errorMessage = (
         <>
           <p>Weather data not available.</p>
-          <p>Windy premium users have access to extended forecasts.</p>
+          <p>
+            Windy <a href="/subscription">premium users</a> have access to extended forecasts.
+          </p>
         </>
       );
       break;
@@ -373,16 +378,6 @@ function ConnectedSkewT(props: ChildGraphProps) {
 // Wind Profile
 
 function ConnectedWind(props: ChildGraphProps) {
-  const fetchStatus = useSelector((state: RootState) => {
-    const modelName = pluginSlice.selModelName(state);
-    const location = pluginSlice.selLocation(state);
-    return forecastSlice.selFetchStatus(state, modelName, location);
-  });
-
-  if (fetchStatus !== forecastSlice.FetchStatus.Loaded) {
-    return;
-  }
-
   const stateProps = useSelector((state: RootState) => {
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
