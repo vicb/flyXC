@@ -61,7 +61,7 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
             break;
 
           case 48 * 60:
-            key = Keys.fetcherFullNumTracksH48;
+            key = Keys.fetcherFullProtoH48;
             break;
 
           default:
