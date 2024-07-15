@@ -2,8 +2,8 @@ import type { protos } from '@flyxc/common';
 import {
   Keys,
   LIVE_FETCH_TIMEOUT_SEC,
-  LIVE_MINIMAL_INTERVAL_SEC,
-  LIVE_UFO_RETENTION_SEC,
+  LiveDataIntervalSec,
+  LiveDataRetentionSec,
   mergeLiveTracks,
   removeBeforeFromLiveTrack,
   simplifyLiveTrack,
@@ -32,23 +32,23 @@ export async function resfreshUfoFleets(pipeline: ChainableCommander, state: pro
   }
 
   const nowSec = Math.round(Date.now() / 1000);
-  const ufoStartSec = nowSec - LIVE_UFO_RETENTION_SEC;
+  const ufoStartSec = nowSec - LiveDataRetentionSec.Ufo;
 
   for (const fleetUpdate of fleetUpdates) {
-    const fleetName = fleetUpdate.fleetName;
+    const { fleetName } = fleetUpdate;
     const ufoTracks = state.ufoFleets[fleetName].ufos ?? {};
 
-    for (const [id, livetrack] of fleetUpdate.deltas.entries()) {
+    for (const [id, track] of fleetUpdate.deltas.entries()) {
       if (ufoTracks[id] != null) {
-        ufoTracks[id] = mergeLiveTracks(ufoTracks[id], livetrack);
+        ufoTracks[id] = mergeLiveTracks(ufoTracks[id], track);
       } else {
-        ufoTracks[id] = livetrack;
+        ufoTracks[id] = track;
       }
     }
 
     // eslint-disable-next-line prefer-const
     for (let [id, track] of Object.entries(ufoTracks)) {
-      simplifyLiveTrack(track, LIVE_MINIMAL_INTERVAL_SEC);
+      simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
       track = removeBeforeFromLiveTrack(track, ufoStartSec);
       if (track.timeSec.length == 0) {
         delete ufoTracks[id];

@@ -144,8 +144,8 @@ async function getDashboardValues(redis: Redis, datastore: Datastore): Promise<u
     [Keys.hostMemoryUsedMb]: 'S',
     [Keys.hostMemoryTotalMb]: 'S',
     [Keys.hostNode]: 'S',
-    [Keys.fetcherFullNumTracks]: 'S',
-    [Keys.fetcherLongIncrementalNumTracks]: 'S',
+    [Keys.fetcherFullNumTracksH24]: 'S',
+    [Keys.fetcherIncrementalNumTracksLong]: 'S',
     [Keys.trackerNum]: 'S',
     [Keys.trackNum]: 'S',
 

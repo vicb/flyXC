@@ -9,18 +9,35 @@ const DEVICE_TYPE_NUM_BITS = 5;
 const MAX_NUM_DEVICES = 2 ** DEVICE_TYPE_NUM_BITS - 1;
 const DEVICE_TYPE_BITMASK = 2 ** DEVICE_TYPE_NUM_BITS - 1;
 
-// How long to retain live tracking positions.
-export const LIVE_TRACKER_RETENTION_SEC = 24 * 3600;
-export const LIVE_FLIGHT_MODE_RETENTION_SEC = 40 * 60;
-// How long to keep ufo positions
-export const LIVE_UFO_RETENTION_SEC = 1 * 3600;
+export enum LiveDataRetentionSec {
+  // Incremental updates
+  IncrementalShort = 5 * 60,
+  IncrementalLong = 20 * 60,
+  // Full updates
+  FullH12 = 12 * 3600,
+  FullH24 = 24 * 3600,
+  FullH48 = 48 * 3600,
+  Max = FullH48,
+  // UFO updates
+  Ufo = 3600,
+  // Export to partners (max H12)
+  ExportToPartners = 5 * 60,
+}
+
+// Minium track point intervals.
+export enum LiveDataIntervalSec {
+  Recent = 5,
+  H6ToH12 = 60,
+  H12ToH24 = 3 * 60,
+  AfterH24 = 6 * 60,
+}
+
+export const TRACKERS_MAX_FETCH_DURATION_SEC = 24 * 3600;
 
 // Age for a point to be considered old.
 export const LIVE_AGE_OLD_SEC = 6 * 3600;
 // Minimum interval for old points points.
 export const LIVE_OLD_INTERVAL_SEC = 3 * 60;
-// Minimum interval between points.
-export const LIVE_MINIMAL_INTERVAL_SEC = 5;
 
 // Refresh interval (how often one update is triggered)
 export const LIVE_REFRESH_SEC = 60;
@@ -30,9 +47,6 @@ export const LIVE_FETCH_TIMEOUT_SEC = LIVE_REFRESH_SEC - 20;
 // Break tracks if gap is more than.
 export const TRACK_GAP_MIN = 60;
 
-// Incremental updates.
-export const LONG_INCREMENTAL_UPDATE_SEC = 20 * 60;
-export const SHORT_INCREMENTAL_UPDATE_SEC = 5 * 60;
 // Export to partners.
 export const EXPORT_UPDATE_SEC = 5 * 60;
 

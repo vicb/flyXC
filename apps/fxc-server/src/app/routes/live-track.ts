@@ -1,12 +1,6 @@
 import csurf from '@dr.pogodin/csurf';
 import type { AccountModel, LiveTrackEntity } from '@flyxc/common';
-import {
-  AccountFormModel,
-  Keys,
-  LONG_INCREMENTAL_UPDATE_SEC,
-  protos,
-  SHORT_INCREMENTAL_UPDATE_SEC,
-} from '@flyxc/common';
+import { AccountFormModel, Keys, LiveDataRetentionSec, protos } from '@flyxc/common';
 import {
   FlyMeValidator,
   InreachValidator,
@@ -34,20 +28,7 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
   router.get('/tracks.pbf', async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
     const token = req.header('token');
-    if (!token) {
-      // Pick the incremental proto if last request was recent.
-      const lastUpdateSec = Number(req.query.s ?? 0);
-      const nowSec = Math.round(Date.now() / 1000);
-      const deltaSec = nowSec - lastUpdateSec;
-      let key = Keys.fetcherFullProto;
-      if (deltaSec < SHORT_INCREMENTAL_UPDATE_SEC) {
-        key = Keys.fetcherShortIncrementalProto;
-      } else if (deltaSec < LONG_INCREMENTAL_UPDATE_SEC) {
-        key = Keys.fetcherLongIncrementalProto;
-      }
-      res.set('Content-Type', 'application/x-protobuf');
-      res.send(await redis.getBuffer(key));
-    } else {
+    if (token) {
       switch (token) {
         case Secrets.FLYME_TOKEN: {
           const groupProto = await redis.getBuffer(Keys.fetcherExportFlymeProto);
@@ -63,6 +44,32 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
         default:
           res.sendStatus(400);
       }
+    } else {
+      let key: Keys;
+      const lastUpdateSec = Number(req.query.s ?? 0);
+      const nowSec = Math.round(Date.now() / 1000);
+      const deltaSec = nowSec - lastUpdateSec;
+      // Pick the incremental proto if last request was recent.
+      if (deltaSec < LiveDataRetentionSec.IncrementalShort) {
+        key = Keys.fetcherShortIncrementalProto;
+      } else if (deltaSec < LiveDataRetentionSec.IncrementalLong) {
+        key = Keys.fetcherLongIncrementalProto;
+      } else {
+        switch (Number(req.query.fm ?? 0)) {
+          case 24 * 60:
+            key = Keys.fetcherFullProtoH24;
+            break;
+
+          case 48 * 60:
+            key = Keys.fetcherFullNumTracksH48;
+            break;
+
+          default:
+            key = Keys.fetcherFullProtoH12;
+        }
+      }
+      res.set('Content-Type', 'application/x-protobuf');
+      res.send(await redis.getBuffer(key));
     }
   });
 

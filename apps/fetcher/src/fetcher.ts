@@ -2,14 +2,12 @@ import process from 'node:process';
 
 import {
   differentialEncodeLiveTrack,
-  EXPORT_UPDATE_SEC,
   Keys,
   LIVE_REFRESH_SEC,
-  LONG_INCREMENTAL_UPDATE_SEC,
+  LiveDataRetentionSec,
   protos,
   removeBeforeFromLiveTrack,
   removeDeviceFromLiveTrack,
-  SHORT_INCREMENTAL_UPDATE_SEC,
 } from '@flyxc/common';
 import { getDatastore, getRedisClient, pushListCap } from '@flyxc/common-node';
 import { Secrets } from '@flyxc/secrets';
@@ -161,66 +159,65 @@ async function updateAll(pipeline: ChainableCommander, state: protos.FetcherStat
     await Promise.allSettled([resfreshTrackers(pipeline, state, redis, datastore), resfreshUfoFleets(pipeline, state)]);
 
     const nowSec = Math.round(Date.now() / 1000);
-    const longIncrementalStartSec = nowSec - LONG_INCREMENTAL_UPDATE_SEC;
-    const shortIncrementalStartSec = nowSec - SHORT_INCREMENTAL_UPDATE_SEC;
-    const exportStartSec = nowSec - EXPORT_UPDATE_SEC;
 
     // Create the binary proto output.
-    const fullTracks = protos.LiveDifferentialTrackGroup.create();
+    const fullTracksH12 = protos.LiveDifferentialTrackGroup.create();
+    const fullTracksH24 = protos.LiveDifferentialTrackGroup.create();
+    const fullTracksH48 = protos.LiveDifferentialTrackGroup.create();
     const longIncTracks = protos.LiveDifferentialTrackGroup.create({ incremental: true });
     const shortIncTracks = protos.LiveDifferentialTrackGroup.create({ incremental: true });
     const flymeTracks = protos.LiveDifferentialTrackGroup.create();
 
+    // Add pilots.
     for (const [idStr, pilot] of Object.entries(state.pilots)) {
       const id = Number(idStr);
       // Add to group
       const name = pilot.name || 'unknown';
-      if (pilot.track!.timeSec.length > 0) {
-        fullTracks.tracks.push(differentialEncodeLiveTrack(pilot.track!, id, name));
+      if (pilot.track.timeSec.length > 0) {
+        fullTracksH48.tracks.push(differentialEncodeLiveTrack(pilot.track, id, name));
+        const fullH24 = maybePushTrack(fullTracksH24, pilot.track, nowSec - LiveDataRetentionSec.FullH24, idStr, name);
+        const fullH12 = maybePushTrack(fullTracksH12, fullH24, nowSec - LiveDataRetentionSec.FullH12, idStr, name);
 
-        const longIncTrack = removeBeforeFromLiveTrack(pilot.track!, longIncrementalStartSec);
-        if (longIncTrack.timeSec.length > 0) {
-          longIncTracks.tracks.push(differentialEncodeLiveTrack(longIncTrack, id, name));
-          const shortIncTrack = removeBeforeFromLiveTrack(longIncTrack, shortIncrementalStartSec);
-          if (shortIncTrack.timeSec.length > 0) {
-            shortIncTracks.tracks.push(differentialEncodeLiveTrack(shortIncTrack, id, name));
-          }
-        }
+        const longInc = maybePushTrack(
+          longIncTracks,
+          fullH12,
+          nowSec - LiveDataRetentionSec.IncrementalLong,
+          idStr,
+          name,
+        );
+        maybePushTrack(shortIncTracks, longInc, nowSec - LiveDataRetentionSec.IncrementalShort, idStr, name);
 
         if (pilot.share) {
-          const exportTrack = removeBeforeFromLiveTrack(longIncTrack, exportStartSec);
-          if (exportTrack.timeSec.length > 0) {
-            const flymeTrack = removeDeviceFromLiveTrack(exportTrack, 'flyme');
-            if (flymeTrack.timeSec.length > 0) {
-              flymeTracks.tracks.push(differentialEncodeLiveTrack(flymeTrack, id, name));
-              flymeTracks.remoteId.push(pilot.flyme?.account ?? '');
-            }
-          }
+          const flymeTrack = removeDeviceFromLiveTrack(fullH12, 'flyme');
+          maybePushTrack(flymeTracks, flymeTrack, nowSec - LiveDataRetentionSec.ExportToPartners, idStr, name);
         }
       }
     }
 
+    // Add UFOs.
     for (const [name, fleet] of Object.entries(state.ufoFleets)) {
       for (const [idStr, track] of Object.entries(fleet.ufos)) {
         const id = `${name}-${idStr}`;
-        fullTracks.tracks.push(differentialEncodeLiveTrack(track, id));
-        const longIncTrack = removeBeforeFromLiveTrack(track, longIncrementalStartSec);
-        if (longIncTrack.timeSec.length > 0) {
-          longIncTracks.tracks.push(differentialEncodeLiveTrack(longIncTrack, id));
-          const shortIncTrack = removeBeforeFromLiveTrack(longIncTrack, shortIncrementalStartSec);
-          if (shortIncTrack.timeSec.length > 0) {
-            shortIncTracks.tracks.push(differentialEncodeLiveTrack(shortIncTrack, id));
-          }
-        }
+        fullTracksH48.tracks.push(differentialEncodeLiveTrack(track, id));
+
+        const fullH24 = maybePushTrack(fullTracksH24, track, nowSec - LiveDataRetentionSec.FullH24, id);
+        const fullH12 = maybePushTrack(fullTracksH12, fullH24, nowSec - LiveDataRetentionSec.FullH12, id);
+
+        const longInc = maybePushTrack(longIncTracks, fullH12, nowSec - LiveDataRetentionSec.IncrementalLong, id);
+        maybePushTrack(shortIncTracks, longInc, nowSec - LiveDataRetentionSec.IncrementalShort, id);
       }
     }
 
     pipeline
-      .set(Keys.fetcherFullProto, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(fullTracks)))
-      .set(Keys.fetcherFullNumTracks, fullTracks.tracks.length)
+      .set(Keys.fetcherFullProtoH12, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH12)))
+      .set(Keys.fetcherFullProtoH24, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH24)))
+      .set(Keys.fetcherFullProtoH48, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH48)))
+      .set(Keys.fetcherFullNumTracksH12, fullTracksH12.tracks.length)
+      .set(Keys.fetcherFullNumTracksH24, fullTracksH24.tracks.length)
+      .set(Keys.fetcherFullNumTracksH48, fullTracksH48.tracks.length)
       .set(Keys.fetcherLongIncrementalProto, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(longIncTracks)))
       .set(Keys.fetcherShortIncrementalProto, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(shortIncTracks)))
-      .set(Keys.fetcherLongIncrementalNumTracks, longIncTracks.tracks.length)
+      .set(Keys.fetcherIncrementalNumTracksLong, longIncTracks.tracks.length)
       .set(Keys.fetcherExportFlymeProto, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(flymeTracks)));
   } catch (e) {
     console.log(`tick error ${e}`);
@@ -242,4 +239,28 @@ async function shutdown(state: protos.FetcherState) {
   disconnectOgnClient();
   console.log('Exit...');
   process.exit();
+}
+
+/**
+ * Conditionally adds a live track to a track group after removing outdated points.
+ *
+ * @param dstTracks - The destination track group to potentially add the track to.
+ * @param track - The live track to be processed and potentially added.
+ * @param dropBeforeSec - The timestamp in seconds to drop points before.
+ * @param id - The identifier for the track.
+ * @param name - The name associated with the track.
+ * @returns The processed live track after removing outdated points.
+ */
+function maybePushTrack(
+  dstTracks: protos.LiveDifferentialTrackGroup,
+  track: protos.LiveTrack,
+  dropBeforeSec: number,
+  id: string,
+  name?: string,
+) {
+  track = removeBeforeFromLiveTrack(track, dropBeforeSec);
+  if (track.timeSec.length > 0) {
+    dstTracks.tracks.push(differentialEncodeLiveTrack(track, id, name));
+  }
+  return track;
 }

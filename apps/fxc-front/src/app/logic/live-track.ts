@@ -6,7 +6,7 @@ import {
   isEmergencyTrack,
   IsSimplifiableFix,
   isUfo,
-  LIVE_MINIMAL_INTERVAL_SEC,
+  LiveDataIntervalSec,
   mergeLiveTracks,
   simplifyLiveTrack,
 } from '@flyxc/common';
@@ -210,7 +210,7 @@ export function updateLiveTracks(
       }
       if (id in updatedTracks) {
         track = mergeLiveTracks(track, updatedTracks[id]);
-        simplifyLiveTrack(track, LIVE_MINIMAL_INTERVAL_SEC);
+        simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
       }
       updatedTracks[id] = track;
     }

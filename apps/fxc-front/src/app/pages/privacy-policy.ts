@@ -72,7 +72,7 @@ export class PrivacyPolicyPage extends LitElement {
           </p>
           <p>
             We collect your registered tracker positions continuously and use that to display your position on the map
-            for up to 24 hours. By signing up for flyXC and registering your tracker devices, you acknowledge and agree
+            for up to 48 hours. By signing up for flyXC and registering your tracker devices, you acknowledge and agree
             that your tracker devices location will be displayed and viewable via our services.
           </p>
           <p>

@@ -99,7 +99,8 @@ export const updateTrackers = createAsyncThunk('liveTrack/fetch', async (_: unde
   try {
     const state = (api.getState() as RootState).liveTrack;
     const timeSec = Math.round((state.fetchMillis ?? 0) / 1000);
-    const response = await fetch(`${import.meta.env.VITE_API_SERVER}/api/live/tracks.pbf?s=${timeSec}`);
+    const fetchMin = Math.round(state.historyMin);
+    const response = await fetch(`${import.meta.env.VITE_API_SERVER}/api/live/tracks.pbf?s=${timeSec}&fm=${fetchMin}`);
     if (response.status === 200) {
       const tracks = state.tracks.entities;
       trackWorker.postMessage({

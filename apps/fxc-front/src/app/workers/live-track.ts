@@ -1,6 +1,6 @@
 // Process the live tracking info from the server.
 
-import { isUfo, LIVE_UFO_RETENTION_SEC, protos, removeBeforeFromLiveTrack, TRACK_GAP_MIN } from '@flyxc/common';
+import { isUfo, LiveDataRetentionSec, protos, removeBeforeFromLiveTrack, TRACK_GAP_MIN } from '@flyxc/common';
 
 import { trackToFeatures, updateLiveTracks } from '../logic/live-track';
 
@@ -29,7 +29,7 @@ w.addEventListener('message', (message: MessageEvent<Request>) => {
   const now = Math.round(Date.now() / 1000);
 
   for (let track of updatedTracks) {
-    const dropBeforeSec = now - (isUfo(track.flags[0]) ? LIVE_UFO_RETENTION_SEC : historySec);
+    const dropBeforeSec = now - (isUfo(track.flags[0]) ? LiveDataRetentionSec.Ufo : historySec);
     track = removeBeforeFromLiveTrack(track, dropBeforeSec);
 
     if (track.timeSec.length > 0) {
