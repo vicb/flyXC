@@ -1,9 +1,9 @@
 {
   "name": "windy-plugin-sounding",
-  "version": "4.0.0-beta.1",
+  "version": "4.0.0",
   "type": "module",
   "private": true,
-  "description": "Soundings for paraglider pilots",
+  "description": "Alternative sounding graphs with a free flight mode for pilots.",
   "author": "Victor Berchet",
   "repository": {
     "type": "git",

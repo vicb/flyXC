@@ -1,5 +1,9 @@
 # Release history
 
+## 4.0.0 - July 15, 2024
+
+- Fix an error when data is not loaded
+
 ## 4.0.0-beta.1 - July 13, 2024
 
 - Split the state into multiple slices
