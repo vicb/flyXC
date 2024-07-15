@@ -33,7 +33,9 @@ export class SupporterModal extends LitElement {
             flyXC (formerly VisuGps) has always been
             <a href="https://github.com/vicb/visugps" target="_blank">open-source</a> and free to use since 2007.
           </p>
-          <p>The development effort represents hundreds of hours per year and hosting flyXC costs about $10 a month.</p>
+          <p>
+            The development effort represents hundreds of hours per year and hosting flyXC costs around $10 a month.
+          </p>
           <p>
             If you can afford it, please consider supporting flyXC with a small donation by clicking the button below.
             It will help keep me motivated to maintain and improve it.

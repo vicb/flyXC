@@ -723,9 +723,10 @@ export class LiveTrackItems extends connect(store)(LitElement) {
           value=${this.historyMin}
           @ionChange=${this.handleHistory}
         >
-          <ion-select-option value=${40}>40mn</ion-select-option>
+          <ion-select-option value=${40}>40min</ion-select-option>
           <ion-select-option value=${12 * 60}>12h</ion-select-option>
           <ion-select-option value=${24 * 60}>24h</ion-select-option>
+          <ion-select-option value=${48 * 60}>48h</ion-select-option>
         </ion-select>
       </ion-item> `;
   }

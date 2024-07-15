@@ -1,11 +1,9 @@
 import type { protos } from '@flyxc/common';
 import {
   Keys,
-  LIVE_AGE_OLD_SEC,
   LIVE_FETCH_TIMEOUT_SEC,
-  LIVE_MINIMAL_INTERVAL_SEC,
-  LIVE_OLD_INTERVAL_SEC,
-  LIVE_TRACKER_RETENTION_SEC,
+  LiveDataIntervalSec,
+  LiveDataRetentionSec,
   mergeLiveTracks,
   removeBeforeFromLiveTrack,
   simplifyLiveTrack,
@@ -34,6 +32,19 @@ export function disconnectOgnClient() {
   ognClient.disconnect();
 }
 
+/**
+ * Refreshes all the trackers.
+ *
+ * Process:
+ * - fetch live data
+ * - update tracks (remove outdated point, decimates point according to their age),
+ * - add elevation information.
+ *
+ * @param pipeline - The ChainableCommander instance for executing commands.
+ * @param state - The FetcherState object containing current state information.
+ * @param redis - The Redis client for caching data.
+ * @param datastore - The Datastore instance for storing data.
+ */
 export async function resfreshTrackers(
   pipeline: ChainableCommander,
   state: protos.FetcherState,
@@ -51,22 +62,23 @@ export async function resfreshTrackers(
     new XcontestFetcher(state, pipeline),
   ];
 
-  const updatePromises = await Promise.allSettled(fetchers.map((f) => f.refresh(LIVE_FETCH_TIMEOUT_SEC)));
+  const fetchResults = await Promise.allSettled(fetchers.map((f) => f.refresh(LIVE_FETCH_TIMEOUT_SEC)));
 
   const trackerUpdates: TrackerUpdates[] = [];
 
-  for (const p of updatePromises) {
-    if (p.status === 'fulfilled') {
-      const updates = p.value;
+  for (const result of fetchResults) {
+    if (result.status === 'fulfilled') {
+      const updates = result.value;
       trackerUpdates.push(updates);
       addTrackerLogs(pipeline, updates, state);
     } else {
-      console.error(`Tracker update error: ${p.reason}`);
+      console.error(`Tracker update error: ${result.reason}`);
     }
   }
 
+  // Drop points older than the max retention.
   const nowSec = Math.round(Date.now() / 1000);
-  const fullStartSec = nowSec - LIVE_TRACKER_RETENTION_SEC;
+  const dropBeforeSec = nowSec - LiveDataRetentionSec.Max;
 
   // Apply the updates.
   for (const [idStr, pilot] of Object.entries(state.pilots)) {
@@ -74,15 +86,28 @@ export async function resfreshTrackers(
     // Merge updates
     for (const updates of trackerUpdates) {
       if (updates.trackerDeltas.has(id)) {
-        pilot.track = mergeLiveTracks(pilot.track!, updates.trackerDeltas.get(id)!);
+        pilot.track = mergeLiveTracks(pilot.track, updates.trackerDeltas.get(id));
       }
     }
 
-    // Trim and simplify
-    pilot.track = removeBeforeFromLiveTrack(pilot.track!, fullStartSec);
-    simplifyLiveTrack(pilot.track, LIVE_MINIMAL_INTERVAL_SEC);
-    // Reduce precision for old point.
-    simplifyLiveTrack(pilot.track, LIVE_OLD_INTERVAL_SEC, { toSec: nowSec - LIVE_AGE_OLD_SEC });
+    // Remove outdated points
+    pilot.track = removeBeforeFromLiveTrack(pilot.track, dropBeforeSec);
+
+    // Decimates points according to their age.
+    simplifyLiveTrack(pilot.track, LiveDataIntervalSec.AfterH24, {
+      toSec: nowSec - 24 * 3600,
+    });
+    simplifyLiveTrack(pilot.track, LiveDataIntervalSec.H12ToH24, {
+      fromSec: nowSec - 24 * 3600,
+      toSec: nowSec - 12 * 3600,
+    });
+    simplifyLiveTrack(pilot.track, LiveDataIntervalSec.H6ToH12, {
+      fromSec: nowSec - 12 * 3600,
+      toSec: nowSec - 6 * 3600,
+    });
+    simplifyLiveTrack(pilot.track, LiveDataIntervalSec.Recent, {
+      fromSec: nowSec - 6 * 3600,
+    });
   }
 
   // Add the elevation for the last fix of every tracks when not present.
@@ -96,19 +121,18 @@ export function addTrackerLogs(
   updates: TrackerUpdates,
   state: protos.FetcherState,
 ): void {
-  const name = updates.name;
-  const time = updates.startFetchSec;
+  const { name, startFetchSec } = updates;
 
   pushListCap(
     pipeline,
     Keys.trackerErrorsByType.replace('{name}', name),
-    updates.errors.map((e) => `[${time}] ${e}`),
+    updates.errors.map((e) => `[${startFetchSec}] ${e}`),
     20,
   );
   pushListCap(
     pipeline,
     Keys.trackerErrorsById.replace('{name}', name),
-    [...updates.trackerErrors.entries()].map(([id, e]) => `[${time}] id=${id} ${e}`),
+    [...updates.trackerErrors.entries()].map(([id, e]) => `[${startFetchSec}] id=${id} ${e}`),
     20,
   );
   pushListCap(pipeline, Keys.trackerNumFetches.replace('{name}', name), [updates.fetchedTracker.size], 20);
@@ -127,16 +151,16 @@ export function addTrackerLogs(
       pushListCap(
         pipeline,
         Keys.trackerConsecutiveErrorsById.replace('{name}', name),
-        [`[${time}] id=${id} ${error}`],
+        [`[${startFetchSec}] id=${id} ${error}`],
         20,
       );
     }
-    const numErrors = state.pilots[id][name].numErrors;
+    const { numErrors } = state.pilots[id][name];
     if (numErrors > 300) {
       pushListCap(
         pipeline,
         Keys.trackerManyErrorsById.replace('{name}', name),
-        [`[${time}] id=${id} ${numErrors} errors`],
+        [`[${startFetchSec}] id=${id} ${numErrors} errors`],
         20,
       );
     }

@@ -9,7 +9,7 @@ import {
   fetchResponse,
   formatReqError,
   Keys,
-  LIVE_MINIMAL_INTERVAL_SEC,
+  LiveDataIntervalSec,
   parallelTasksWithTimeout,
   parseRetryAfterS,
   protos,
@@ -91,7 +91,7 @@ export class InreachFetcher extends TrackerFetcher {
           try {
             const points = parse(await response.text());
             const track = makeLiveTrack(points);
-            simplifyLiveTrack(track, LIVE_MINIMAL_INTERVAL_SEC);
+            simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
             if (track.timeSec.length > 0) {
               updates.trackerDeltas.set(id, track);
             }

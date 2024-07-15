@@ -7,7 +7,7 @@ import {
   decodeDeltas,
   fetchResponse,
   formatReqError,
-  LIVE_MINIMAL_INTERVAL_SEC,
+  LiveDataIntervalSec,
   removeBeforeFromLiveTrack,
   simplifyLiveTrack,
   validateSkylinesAccount,
@@ -61,7 +61,7 @@ export class SkylinesFetcher extends TrackerFetcher {
               const points = parse(flight);
               let track = makeLiveTrack(points);
               track = removeBeforeFromLiveTrack(track, keepFromSec);
-              simplifyLiveTrack(track, LIVE_MINIMAL_INTERVAL_SEC);
+              simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
               updates.trackerDeltas.set(dsId, track);
             });
             [...sklIdToDsId.values()].forEach((id) => updates.fetchedTracker.add(id));

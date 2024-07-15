@@ -52,15 +52,21 @@ export enum Keys {
 
   // # Live Tracks
 
-  // Full tracks.
-  fetcherFullProto = 'f:live:full:proto',
-  // Number of full tracks.
-  fetcherFullNumTracks = 'f:live:full:size',
+  // Full tracks
+  fetcherFullProtoH12 = 'f:live:full:proto:h12',
+  fetcherFullProtoH24 = 'f:live:full:proto',
+  fetcherFullProtoH48 = 'f:live:full:proto:48',
+  // Number of pilots in full live tracks
+  fetcherFullNumTracksH12 = 'f:live:full:size:h12',
+  fetcherFullNumTracksH24 = 'f:live:full:size',
+  fetcherFullNumTracksH48 = 'f:live:full:size:h48',
+
   // Incremental tracks.
   fetcherLongIncrementalProto = 'f:live:inc:long:proto',
   fetcherShortIncrementalProto = 'f:live:inc:short:proto',
-  // Number of incremental tracks.
-  fetcherLongIncrementalNumTracks = 'f:live:inc:size',
+  // Number of pilots in incremental tracks.
+  fetcherIncrementalNumTracksLong = 'f:live:inc:size',
+
   // Tracks exported to FlyMe.
   fetcherExportFlymeProto = 'f:live:export:flyme',
 

@@ -1,7 +1,7 @@
 // Base class for fetching tracker updates.
 
 import type { protos, TrackerNames } from '@flyxc/common';
-import { LIVE_REFRESH_SEC, LIVE_TRACKER_RETENTION_SEC } from '@flyxc/common';
+import { LIVE_REFRESH_SEC, TRACKERS_MAX_FETCH_DURATION_SEC } from '@flyxc/common';
 import type { ChainableCommander } from 'ioredis';
 
 // Updates for a tick of a tracker type (InReach, Spot, ...).
@@ -123,7 +123,7 @@ export class TrackerFetcher {
     const tracker = this.getTracker(id);
     const nowSec = Math.round(Date.now() / 1000);
     const lastFetchSec = tracker ? tracker.lastFetchSec : nowSec;
-    return Math.max(startSec - LIVE_TRACKER_RETENTION_SEC, lastFetchSec - paddingSec);
+    return Math.max(startSec - TRACKERS_MAX_FETCH_DURATION_SEC, lastFetchSec - paddingSec);
   }
 
   // Counts the number of requests and errors.

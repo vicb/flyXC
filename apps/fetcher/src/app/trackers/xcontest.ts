@@ -6,8 +6,8 @@ import type { protos, TrackerNames } from '@flyxc/common';
 import {
   fetchResponse,
   formatReqError,
-  LIVE_TRACKER_RETENTION_SEC,
   parallelTasksWithTimeout,
+  TRACKERS_MAX_FETCH_DURATION_SEC,
   validateXContestAccount,
 } from '@flyxc/common';
 import { Secrets } from '@flyxc/secrets';
@@ -41,7 +41,7 @@ export class XcontestFetcher extends TrackerFetcher {
     const xcontestIdToLastFlight = new Map<string, XContestFlight>();
 
     // Get all the users for the retention period
-    const openTimeMs = new Date().getTime() - LIVE_TRACKER_RETENTION_SEC * 1000;
+    const openTimeMs = new Date().getTime() - TRACKERS_MAX_FETCH_DURATION_SEC * 1000;
 
     const liveUserUrl =
       `https://api.xcontest.org/livedata/users?entity=group:flyxc&source=live&opentime={openTimeISO}`.replace(
