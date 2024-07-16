@@ -1,0 +1,11 @@
+{
+  "name": "fxc-tiles",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "download-airspaces": "chmod +x airspaces/download.sh && airspaces/download.sh"
+  },
+  "nx": {
+    "includedScripts": []
+  }
+}
