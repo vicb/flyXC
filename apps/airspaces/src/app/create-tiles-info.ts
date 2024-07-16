@@ -29,7 +29,7 @@ if (existsSync(program.opts().output)) {
 }
 
 const tileFiles = globSync(program.opts().input + '/*/*/*.pbf');
-console.log(`# Generating tile fingerprints (${Math.round(tileFiles.length / 1000)}k tiles})`);
+console.log(`# Generating tile fingerprints (${Math.round(tileFiles.length / 1000)}k tiles)`);
 
 const info = {
   // tileKey (level-x-y) to fingerprint.
