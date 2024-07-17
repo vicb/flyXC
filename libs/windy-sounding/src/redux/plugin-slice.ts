@@ -4,7 +4,7 @@ import type { CompiledExternalPluginConfig, Fav, LatLon } from '@windy/interface
 import { SemVer } from 'semver';
 
 import type { PluginConfig } from '../types';
-import { getFavLabel } from '../util/utils';
+import { getFavLabel, getSupportedModelName } from '../util/utils';
 import { changeLocation } from './meta';
 import type { RootState } from './store';
 
@@ -17,10 +17,6 @@ export enum PluginStatus {
   Booting = 'booting',
   Ready = 'ready',
 }
-
-// Some models do not have the required parameters for soundings (i.e. surface only)
-export const SUPPORTED_MODEL_PREFIXES = ['ecmwf', 'gfs', 'nam', 'icon', 'hrrr', 'ukv', 'arome'];
-const DEFAULT_MODEL = 'ecmwf';
 
 type PluginState = {
   favorites: Fav[];
@@ -43,7 +39,7 @@ const initialState: PluginState = {
   width: 0,
   height: 0,
   location: { lat: 0, lon: 0 },
-  modelName: windyStore.get('product'),
+  modelName: 'ecmwf',
   timeMs: windyStore.get('timestamp'),
   status: PluginStatus.Idle,
   updateAvailable: false,
@@ -63,10 +59,7 @@ export const slice = createSlice({
       state.favorites = action.payload;
     },
     setModelName: (state, action: { payload: string }) => {
-      const modelName = SUPPORTED_MODEL_PREFIXES.some((prefix) => action.payload.startsWith(prefix))
-        ? action.payload
-        : DEFAULT_MODEL;
-      state.modelName = modelName;
+      state.modelName = getSupportedModelName(action.payload);
     },
     setTimeMs: (state, action: { payload: number }) => {
       state.timeMs = Math.round(action.payload);

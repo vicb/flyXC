@@ -2,6 +2,7 @@ import type { ThunkAction, UnknownAction } from '@reduxjs/toolkit';
 import type { LatLon } from '@windy/interfaces';
 
 import { pluginConfig } from '../config';
+import { getSupportedModelName } from '../util/utils';
 import * as forecastSlice from './forecast-slice';
 import * as pluginSlice from './plugin-slice';
 import type { RootState } from './store';
@@ -75,7 +76,7 @@ export const changeModel =
   (dispatch, getState) => {
     const location = pluginSlice.selLocation(getState());
     dispatch(forecastSlice.fetchForecast({ modelName, location }));
-    dispatch(pluginSlice.setModelName(modelName));
+    dispatch(pluginSlice.setModelName(getSupportedModelName(modelName)));
     updateUrl(getState());
   };
 
