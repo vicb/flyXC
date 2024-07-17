@@ -306,14 +306,10 @@ const selTimeMs = (state: RootState, modelName: string, location: LatLon, timeMs
  *
  * @returns windy data or undefined.
  */
-export const selMaybeWindyData = (state: RootState, modelName: string, location: LatLon): Forecast | undefined =>
+const selMaybeWindyData = (state: RootState, modelName: string, location: LatLon): Forecast | undefined =>
   state[slice.name].data[windyDataKey(modelName, location)];
 
-export const selMaybeLoadedWindyData = (
-  state: RootState,
-  modelName: string,
-  location: LatLon,
-): Forecast | undefined => {
+const selMaybeLoadedWindyData = (state: RootState, modelName: string, location: LatLon): Forecast | undefined => {
   const key = windyDataKey(modelName, location);
   return isDataCached(state[slice.name], key) ? state[slice.name].data[key] : undefined;
 };
@@ -323,7 +319,7 @@ export const selMaybeLoadedWindyData = (
  *
  * @param state
  */
-const selLoadedWindyDataOrThrow = (
+export const selLoadedWindyDataOrThrow = (
   state: RootState,
   modelName: string,
   location: LatLon,
@@ -335,6 +331,9 @@ const selLoadedWindyDataOrThrow = (
   return windyData;
 };
 
+/**
+ * Note: The data can be available but in error state.
+ */
 export const selIsWindyDataAvailable = (state: RootState, modelName: string, location: LatLon): boolean => {
   const windyData = selMaybeLoadedWindyData(state, modelName, location);
   return windyData !== undefined;
