@@ -93,9 +93,6 @@ export const fetchPluginConfig = createAsyncThunk<void, PluginConfig, { state: R
   async (localPluginConfig: PluginConfig, api) => {
     const payload: HttpPayload<CompiledExternalPluginConfig[]> = await W.http.get('/articles/plugins/list');
     const remoteConfig = findConfig(payload.data, localPluginConfig.name);
-    if (!remoteConfig && process.env.NODE_ENV === 'production') {
-      throw new Error(`plugin "${localPluginConfig.name}" not found`);
-    }
 
     if (remoteConfig) {
       if (new SemVer(localPluginConfig.version).compare(remoteConfig.version) == -1) {
@@ -107,6 +104,7 @@ export const fetchPluginConfig = createAsyncThunk<void, PluginConfig, { state: R
       }
       api.dispatch(slice.actions.setAvailableVersion(remoteConfig.version));
     } else {
+      console.error('Can not load remote plugin config.');
       // The plugin might not have been upload yet when in dev mode.
       api.dispatch(slice.actions.setUpdateAvailable(false));
       api.dispatch(slice.actions.setUpdateRequired(false));
