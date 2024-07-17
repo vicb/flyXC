@@ -1,5 +1,11 @@
 # Release history
 
+## 4.1.0 - July 17, 2024
+
+- Fix startup location and model
+- Change plugin internal name (top `windy-plugin-fxc-soundings`)
+- Fix a crash when data loaded in error
+
 ## 4.0.0 - July 15, 2024
 
 - Fix an error when data is not loaded
