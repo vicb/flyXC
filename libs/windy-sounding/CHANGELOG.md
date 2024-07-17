@@ -1,5 +1,9 @@
 # Release history
 
+## 4.1.1 - July 17, 2024
+
+- Do not throw when remote config can not be loaded
+
 ## 4.1.0 - July 17, 2024
 
 - Fix startup location and model
