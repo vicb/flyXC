@@ -65,7 +65,7 @@ export const mountPlugin = (container: HTMLElement) => {
       })
       .catch((e: any) => console.error(e));
   } else {
-    const container = document.querySelector('#plugin-windy-plugin-sounding');
+    const container = document.querySelector(`#plugin-${pluginConfig.name}`);
     if (container) {
       resizeObserver = new ResizeObserver(() => {
         setSizeFrom(appContainer);
