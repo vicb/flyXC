@@ -1,9 +1,9 @@
 {
-  "name": "windy-plugin-sounding",
+  "name": "windy-plugin-fxc-soundings",
   "version": "4.0.0",
   "type": "module",
   "private": true,
-  "description": "Alternative sounding graphs with a free flight mode for pilots.",
+  "description": "Alternative sounding graphs with custom features for PG/HG pilots.",
   "author": "Victor Berchet",
   "repository": {
     "type": "git",

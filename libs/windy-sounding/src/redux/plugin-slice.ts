@@ -93,18 +93,25 @@ export const fetchPluginConfig = createAsyncThunk<void, PluginConfig, { state: R
   async (localPluginConfig: PluginConfig, api) => {
     const payload: HttpPayload<CompiledExternalPluginConfig[]> = await W.http.get('/articles/plugins/list');
     const remoteConfig = findConfig(payload.data, localPluginConfig.name);
-    if (!remoteConfig) {
+    if (!remoteConfig && process.env.NODE_ENV === 'production') {
       throw new Error(`plugin "${localPluginConfig.name}" not found`);
     }
 
-    if (new SemVer(localPluginConfig.version).compare(remoteConfig.version) == -1) {
-      const updateRequired =
-        new Date(remoteConfig.builtReadable).getTime() - localPluginConfig.built >
-        UPDATE_REQUIRED_AFTER_DAYS * 24 * 3600 * 1000;
-      api.dispatch(slice.actions.setUpdateAvailable(true));
-      api.dispatch(slice.actions.setUpdateRequired(updateRequired));
+    if (remoteConfig) {
+      if (new SemVer(localPluginConfig.version).compare(remoteConfig.version) == -1) {
+        const updateRequired =
+          new Date(remoteConfig.builtReadable).getTime() - localPluginConfig.built >
+          UPDATE_REQUIRED_AFTER_DAYS * 24 * 3600 * 1000;
+        api.dispatch(slice.actions.setUpdateAvailable(true));
+        api.dispatch(slice.actions.setUpdateRequired(updateRequired));
+      }
+      api.dispatch(slice.actions.setAvailableVersion(remoteConfig.version));
+    } else {
+      // The plugin might not have been upload yet when in dev mode.
+      api.dispatch(slice.actions.setUpdateAvailable(false));
+      api.dispatch(slice.actions.setUpdateRequired(false));
     }
-    api.dispatch(slice.actions.setAvailableVersion(remoteConfig.version));
+
     api.dispatch(slice.actions.setStatus(PluginStatus.Ready));
     api.dispatch(changeLocation(api.getState().plugin.location));
   },

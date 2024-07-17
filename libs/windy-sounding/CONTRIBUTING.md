@@ -1,6 +1,6 @@
-# windy-plugin-sounding
+# windy-plugin-fxc-soundings
 
-The `windy-plugin-sounding` displays soundings customized for paraglider pilots.
+The `windy-plugin-fxc-soundings` displays soundings customized for paraglider pilots.
 
 ## Development
 
