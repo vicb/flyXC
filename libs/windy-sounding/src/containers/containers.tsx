@@ -431,23 +431,29 @@ function ConnectedFavorites({ onSelected }: { onSelected: (location: LatLon) => 
  * - Current time
  */
 function Details() {
-  const { modelName, updateMs, nextUpdateMs, timeMs, runInfoAvailable } = useSelector((state: RootState) => {
+  const { modelName, updateMs, nextUpdateMs, timeMs, isWindyDataAvailable } = useSelector((state: RootState) => {
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
     const timeMs = pluginSlice.selTimeMs(state);
-    const runInfoAvailable = forecastSlice.selIsWindyDataAvailable(state, modelName, location);
+
+    let isWindyDataAvailable;
+    try {
+      isWindyDataAvailable = forecastSlice.selLoadedWindyDataOrThrow(state, modelName, location);
+    } catch (e) {
+      isWindyDataAvailable = false;
+    }
 
     return {
       modelName: pluginSlice.selModelName(state),
-      updateMs: runInfoAvailable ? forecastSlice.selModelUpdateTimeMs(state, modelName, location) : 0,
-      nextUpdateMs: runInfoAvailable ? forecastSlice.selModelNextUpdateTimeMs(state, modelName, location) : 0,
+      updateMs: isWindyDataAvailable ? forecastSlice.selModelUpdateTimeMs(state, modelName, location) : 0,
+      nextUpdateMs: isWindyDataAvailable ? forecastSlice.selModelNextUpdateTimeMs(state, modelName, location) : 0,
       timeMs,
-      runInfoAvailable,
+      isWindyDataAvailable,
     };
   }, shallowEqual);
 
   const nowMs = Date.now();
-  const distanceString = runInfoAvailable ? intlFormatDistance(nextUpdateMs, nowMs) : '';
+  const distanceString = isWindyDataAvailable ? intlFormatDistance(nextUpdateMs, nowMs) : '';
 
   return (
     <div id="wsp-model" className="desktop-only">
@@ -456,7 +462,7 @@ function Details() {
         <dd>{modelName}</dd>
         <dt>Run</dt>
         <dd>
-          {runInfoAvailable
+          {isWindyDataAvailable
             ? `${formatTimestamp(updateMs)}, next ${
                 nextUpdateMs > nowMs ? distanceString : `overdue (${distanceString})`
               }`
