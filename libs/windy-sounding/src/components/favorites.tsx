@@ -1,9 +1,8 @@
 import type { Fav, LatLon } from '@windy/interfaces';
 import { useState } from 'preact/hooks';
 
-import { SUPPORTED_MODEL_PREFIXES } from '../redux/plugin-slice';
 import { round } from '../util/math';
-import { getFavLabel } from '../util/utils';
+import { getFavLabel, SUPPORTED_MODEL_PREFIXES } from '../util/utils';
 
 const windyUtils = W.utils;
 const windyModels = W.models;

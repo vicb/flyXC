@@ -120,7 +120,8 @@ export const openPlugin = ({ lat, lon, modelName }: { lat: number; lon: number; 
   centerMap(location);
 
   dispatch(pluginSlice.setFavorites(favs.getArray()));
-  dispatch(pluginSlice.setModelName(modelName));
+  // Force change to always trigger the state sync.
+  windyStore.set('product', modelName, { forceChange: true });
   dispatch(pluginSlice.setTimeMs(windyStore.get('timestamp')));
   dispatch(changeLocation(location));
   setSizeFrom(appContainer);
