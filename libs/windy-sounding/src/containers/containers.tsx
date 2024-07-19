@@ -114,7 +114,10 @@ export function Plugin() {
         size,
       };
       dispatch(updateTime(step));
-      ignoreWheelEventUntilMs = Date.now() + (size === 'day' ? 500 : 10);
+      ignoreWheelEventUntilMs = timeMs + (size === 'day' ? 600 : 50);
+    } else if (ignoreWheelEventUntilMs < timeMs + 50) {
+      // Ignore bursts of events (windows/mac).
+      ignoreWheelEventUntilMs += 10;
     }
     e.stopImmediatePropagation();
     e.preventDefault();

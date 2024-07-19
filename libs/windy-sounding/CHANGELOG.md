@@ -3,6 +3,7 @@
 ## 4.1.2
 
 - Prevent an infinite loop when height === 0
+- Better handling of burst of wheel events
 
 ## 4.1.1 - July 17, 2024
 
