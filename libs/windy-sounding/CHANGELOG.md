@@ -1,6 +1,6 @@
 # Release history
 
-## 4.1.2
+## 4.1.2 - Jul 19, 2024
 
 - Prevent an infinite loop when height === 0
 - Better handling of burst of wheel events
