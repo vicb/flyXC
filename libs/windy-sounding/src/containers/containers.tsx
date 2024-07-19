@@ -55,6 +55,10 @@ export function Plugin() {
     };
   }, shallowEqual);
 
+  if (startHeight === 0) {
+    return;
+  }
+
   // Resizable height on mobile.
   const [mobileHeight, setMobileHeight] = useState<number | undefined>();
   const height = mobileHeight ?? startHeight;
