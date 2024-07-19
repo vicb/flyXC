@@ -36,8 +36,8 @@ type PluginState = {
 const initialState: PluginState = {
   favorites: [],
   isZoomedIn: true,
-  width: 0,
-  height: 0,
+  width: 100,
+  height: 100,
   location: { lat: 0, lon: 0 },
   modelName: 'ecmwf',
   timeMs: windyStore.get('timestamp'),

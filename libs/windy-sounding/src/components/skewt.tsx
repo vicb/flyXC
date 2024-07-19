@@ -202,8 +202,12 @@ function DryAdiabatic({
   pressureToPxScale: Scale;
   pathGenerator: (points: [x: number, y: number][]) => string;
 }) {
+  if (height === 0) {
+    // prevent an infinite loop when height === 0.
+    return;
+  }
   const points: [x: number, y: number][] = [];
-  const stepPx = height / 15;
+  const stepPx = height / 20;
   for (let y = height; y > -stepPx; y -= stepPx) {
     const p = pressureToPxScale.invert(y);
     const t = atm.dryLapse(p, temp, pressure);
@@ -226,9 +230,13 @@ function WetAdiabatic({
   pressureToPxScale: Scale;
   pathGenerator: (points: [x: number, y: number][]) => string;
 }) {
+  if (height === 0) {
+    // prevent an infinite loop when height === 0.
+    return;
+  }
   const points: [x: number, y: number][] = [];
   let previousPressure = pressure;
-  const stepPx = height / 15;
+  const stepPx = height / 20;
   for (let y = height; y > -stepPx; y -= stepPx) {
     const p = pressureToPxScale.invert(y);
     temp += (p - previousPressure) * atm.wetTempGradient(p, temp);
@@ -252,6 +260,10 @@ function IsoHume({
   pressureToPxScale: Scale;
   pathGenerator: (points: [x: number, y: number][]) => string;
 }) {
+  if (height === 0) {
+    // prevent an infinite loop when height === 0.
+    return;
+  }
   const points: [x: number, y: number][] = [];
   const mixingRatio = atm.mixingRatio(atm.saturationVaporPressure(temp), pressure);
   const stepPx = height;
