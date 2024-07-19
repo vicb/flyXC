@@ -487,7 +487,7 @@ export class ViewItems extends connect(store)(LitElement) {
     const icon = this.view3d ? 'la-map' : 'la-globe';
     return html`<ion-item button href=${href} @click=${this.handleSwitch} lines="none" .detail=${false}>
         <i class=${`las la-2x ${icon}`}></i>
-        Switch to ${this.view3d ? '2d' : '3d'}
+        View in ${this.view3d ? '2d' : '3d'}
       </ion-item>
       <ion-item>
         <ion-searchbar
