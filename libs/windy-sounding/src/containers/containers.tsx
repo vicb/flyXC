@@ -30,6 +30,8 @@ export function Plugin() {
     fetchStatus,
     availableVersion,
     isWindyDataAvailableAtCurrentTime,
+    modelName,
+    location,
   } = useSelector((state: RootState) => {
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
@@ -67,6 +69,8 @@ export function Plugin() {
   let heightOnStartDrag = 0;
 
   const dispatch: AppDispatch = useDispatch();
+  // Fetch data when the cache has expired.
+  dispatch(forecastSlice.fetchForecast({ modelName, location }));
   const selectFavorite = useCallback((location: LatLon) => {
     dispatch(changeLocation(location));
     centerMap(location);

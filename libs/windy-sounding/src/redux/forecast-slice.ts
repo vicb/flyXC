@@ -181,7 +181,7 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
   },
   {
     condition: (modelAndLocation, api: AppThunkAPI) => {
-      // Prevent fetching again while loading.
+      // Prevent fetching again while loading or when data is already cached.
       const { modelName, location } = modelAndLocation;
       const state = api.getState();
       const pluginStatus = pluginSlice.selStatus(state);
@@ -189,7 +189,11 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
       return (
         pluginStatus === pluginSlice.PluginStatus.Ready &&
         (windyData === undefined ||
-          !(windyData.fetchStatus == FetchStatus.Loading || windyData.fetchStatus === FetchStatus.ErrorOutOfBounds))
+          !(
+            windyData.fetchStatus == FetchStatus.Loaded ||
+            windyData.fetchStatus == FetchStatus.Loading ||
+            windyData.fetchStatus === FetchStatus.ErrorOutOfBounds
+          ))
       );
     },
   },
@@ -207,7 +211,7 @@ function windyDataKey(modelName: string, location: LatLon): string {
  * @param state - The state object containing forecast data.
  * @param key - The key to identify the forecast data.
  * */
-function isDataCached(state: ForecastState, key: string) {
+function isWindyDataCached(state: ForecastState, key: string) {
   const forecast = state.data[key];
   if (forecast == null) {
     return false;
@@ -311,7 +315,7 @@ const selMaybeWindyData = (state: RootState, modelName: string, location: LatLon
 
 const selMaybeLoadedWindyData = (state: RootState, modelName: string, location: LatLon): Forecast | undefined => {
   const key = windyDataKey(modelName, location);
-  return isDataCached(state[slice.name], key) ? state[slice.name].data[key] : undefined;
+  return isWindyDataCached(state[slice.name], key) ? state[slice.name].data[key] : undefined;
 };
 
 /**

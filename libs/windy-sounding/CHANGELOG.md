@@ -4,6 +4,7 @@
 
 - Prevent an infinite loop when height === 0
 - Better handling of burst of wheel events
+- Refresh windy data cache on re-render
 
 ## 4.1.1 - July 17, 2024
 
