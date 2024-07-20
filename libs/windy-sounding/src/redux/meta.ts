@@ -117,7 +117,7 @@ export function maybeRemoveMarker() {
  */
 export function centerMap(location: LatLon) {
   if (windyRootScope.isMobileOrTablet) {
-    const pluginContent = document.querySelector('#plugin-windy-plugin-sounding') as HTMLDivElement;
+    const pluginContent = document.querySelector(`#plugin-${pluginConfig.name}`) as HTMLDivElement;
     if (!pluginContent) {
       return;
     }

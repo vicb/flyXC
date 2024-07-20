@@ -1,5 +1,9 @@
 # Release history
 
+## 4.1.3
+
+- Fix center map when a favorite is selected on mobile
+
 ## 4.1.2 - Jul 19, 2024
 
 - Prevent an infinite loop when height === 0
