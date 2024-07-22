@@ -32,3 +32,13 @@ export function formatTimestamp(ts: number) {
 export function getSupportedModelName(windyModelName: string): string {
   return SUPPORTED_MODEL_PREFIXES.some((prefix) => windyModelName.startsWith(prefix)) ? windyModelName : DEFAULT_MODEL;
 }
+
+/**
+ * Returns a code from a location (lat, lon).
+ *
+ * There is a bug in windy when lat or lon are strings (infinite loop).
+ * And sometimes favorites location are strings.
+ */
+export function latLon2Str({ lat, lon }: { lat: string | number; lon: string | number }): string {
+  return W.utils.latLon2str({ lat: Number(lat), lon: Number(lon) });
+}
