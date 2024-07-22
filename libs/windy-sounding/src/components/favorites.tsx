@@ -2,9 +2,8 @@ import type { Fav, LatLon } from '@windy/interfaces';
 import { useState } from 'preact/hooks';
 
 import { round } from '../util/math';
-import { getFavLabel, SUPPORTED_MODEL_PREFIXES } from '../util/utils';
+import { getFavLabel, latLon2Str, SUPPORTED_MODEL_PREFIXES } from '../util/utils';
 
-const windyUtils = W.utils;
 const windyModels = W.models;
 
 export type FavoriteProps = {
@@ -16,7 +15,7 @@ export type FavoriteProps = {
 };
 
 export function Favorites({ favorites, location, isMobile, onSelected, modelName }: FavoriteProps) {
-  const locationStr = windyUtils.latLon2str(location);
+  const locationStr = latLon2Str(location);
   const [isModelExpanded, setIsModelExpanded] = useState(false);
   const [isLocationExpanded, setIsLocationExpanded] = useState(false);
 
@@ -48,7 +47,7 @@ export function Favorites({ favorites, location, isMobile, onSelected, modelName
       lon >= 0 ? 'E' : 'W'
     }`;
     for (const favorite of favorites) {
-      const favLocationStr = windyUtils.latLon2str(favorite);
+      const favLocationStr = latLon2Str(favorite);
       if (favLocationStr === locationStr) {
         currentFavorite = getFavLabel(favorite);
         break;
@@ -96,7 +95,7 @@ export function Favorites({ favorites, location, isMobile, onSelected, modelName
             ) : (
               favorites.map((favorite: Fav) => (
                 <span
-                  className={windyUtils.latLon2str(favorite) == locationStr ? 'selected' : ''}
+                  className={latLon2Str(favorite) == locationStr ? 'selected' : ''}
                   onClick={() => onSelected({ lat: favorite.lat, lon: favorite.lon })}
                 >
                   {getFavLabel(favorite)}
@@ -123,9 +122,7 @@ export function Favorites({ favorites, location, isMobile, onSelected, modelName
         return (
           <>
             <div
-              className={`button button--transparent ${
-                windyUtils.latLon2str(favorite) == locationStr ? 'selected' : ''
-              }`}
+              className={`button button--transparent ${latLon2Str(favorite) == locationStr ? 'selected' : ''}`}
               onClick={() => onSelected({ lat: favorite.lat, lon: favorite.lon })}
             >
               {getFavLabel(favorite)}

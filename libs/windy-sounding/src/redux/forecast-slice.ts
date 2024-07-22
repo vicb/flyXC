@@ -14,6 +14,7 @@ import {
 } from '../util/clouds';
 import type { Scale } from '../util/math';
 import { sampleAt, scaleLinear } from '../util/math';
+import { latLon2Str } from '../util/utils';
 import * as pluginSlice from './plugin-slice';
 import type { AppThunkAPI, RootState } from './store';
 
@@ -200,7 +201,7 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
 );
 
 function windyDataKey(modelName: string, location: LatLon): string {
-  return `${modelName}-${windyUtils.latLon2str(location)}`;
+  return `${modelName}-${latLon2Str(location)}`;
 }
 
 /**
