@@ -1,6 +1,6 @@
 # Release history
 
-## 4.1.3
+## 4.1.3 - July 22, 2024
 
 - Fix center map when a favorite is selected on mobile
 
