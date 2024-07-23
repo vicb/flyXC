@@ -93,6 +93,7 @@ You have to manually delete the plugin and re-install it to update to the latest
 ## Contributors
 
 - [John Mark](https://github.com/johnmarkredding)
+- Mark Millar
 
 ## Support the development
 
