@@ -1,5 +1,9 @@
 # Release history
 
+## 4.1.4 - Aug 01, 2024
+
+- Keep the current model when opening the plugin
+
 ## 4.1.3 - July 22, 2024
 
 - Fix center map when a favorite is selected on mobile
