@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
   import { openPlugin, mountPlugin, destroyPlugin } from './sounding';
-  import { DEFAULT_MODEL } from './util/utils';
 
   let pluginElement: HTMLElement;
 
@@ -17,7 +16,7 @@
     const mapCenter = W.map.map.getCenter();
     const lat = Number(parameters?.lat ?? mapCenter.lat);
     const lon = Number(parameters?.lon ?? mapCenter.lng);
-    const modelName = parameters?.modelName ?? DEFAULT_MODEL;
+    const modelName = parameters?.modelName ?? W.store.get('product');
     openPlugin({ lat, lon, modelName });
   };
 
