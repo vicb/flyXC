@@ -158,8 +158,6 @@ async function updateAll(pipeline: ChainableCommander, state: protos.FetcherStat
   try {
     await Promise.allSettled([resfreshTrackers(pipeline, state, redis, datastore), resfreshUfoFleets(pipeline, state)]);
 
-    const nowSec = Math.round(Date.now() / 1000);
-
     // Create the binary proto output.
     const fullTracksH12 = protos.LiveDifferentialTrackGroup.create();
     const fullTracksH24 = protos.LiveDifferentialTrackGroup.create();
@@ -169,42 +167,36 @@ async function updateAll(pipeline: ChainableCommander, state: protos.FetcherStat
     const flymeTracks = protos.LiveDifferentialTrackGroup.create();
 
     // Add pilots.
-    for (const [idStr, pilot] of Object.entries(state.pilots)) {
-      const id = Number(idStr);
+    for (const [pilotId, pilot] of Object.entries(state.pilots)) {
+      // Pilots use numerical ids, UFOs use string ids.
+      const pilotIdNum = Number(pilotId);
       // Add to group
       const name = pilot.name || 'unknown';
       if (pilot.track.timeSec.length > 0) {
-        fullTracksH48.tracks.push(differentialEncodeLiveTrack(pilot.track, id, name));
-        const fullH24 = maybePushTrack(fullTracksH24, pilot.track, nowSec - LiveDataRetentionSec.FullH24, idStr, name);
-        const fullH12 = maybePushTrack(fullTracksH12, fullH24, nowSec - LiveDataRetentionSec.FullH12, idStr, name);
-
-        const longInc = maybePushTrack(
-          longIncTracks,
-          fullH12,
-          nowSec - LiveDataRetentionSec.IncrementalLong,
-          idStr,
-          name,
-        );
-        maybePushTrack(shortIncTracks, longInc, nowSec - LiveDataRetentionSec.IncrementalShort, idStr, name);
+        fullTracksH48.tracks.push(differentialEncodeLiveTrack(pilot.track, pilotIdNum, name));
+        const fullH24 = maybePushTrack(fullTracksH24, pilot.track, LiveDataRetentionSec.FullH24, pilotIdNum, name);
+        const fullH12 = maybePushTrack(fullTracksH12, fullH24, LiveDataRetentionSec.FullH12, pilotIdNum, name);
+        const longInc = maybePushTrack(longIncTracks, fullH12, LiveDataRetentionSec.IncrementalLong, pilotIdNum, name);
+        maybePushTrack(shortIncTracks, longInc, LiveDataRetentionSec.IncrementalShort, pilotIdNum, name);
 
         if (pilot.share) {
           const flymeTrack = removeDeviceFromLiveTrack(fullH12, 'flyme');
-          maybePushTrack(flymeTracks, flymeTrack, nowSec - LiveDataRetentionSec.ExportToPartners, idStr, name);
+          maybePushTrack(flymeTracks, flymeTrack, LiveDataRetentionSec.ExportToPartners, pilotIdNum, name);
         }
       }
     }
 
     // Add UFOs.
     for (const [name, fleet] of Object.entries(state.ufoFleets)) {
-      for (const [idStr, track] of Object.entries(fleet.ufos)) {
-        const id = `${name}-${idStr}`;
-        fullTracksH48.tracks.push(differentialEncodeLiveTrack(track, id));
+      for (const [ufoId, track] of Object.entries(fleet.ufos)) {
+        const ufoIdStr = `${name}-${ufoId}`;
+        fullTracksH48.tracks.push(differentialEncodeLiveTrack(track, ufoIdStr));
 
-        const fullH24 = maybePushTrack(fullTracksH24, track, nowSec - LiveDataRetentionSec.FullH24, id);
-        const fullH12 = maybePushTrack(fullTracksH12, fullH24, nowSec - LiveDataRetentionSec.FullH12, id);
+        const fullH24 = maybePushTrack(fullTracksH24, track, LiveDataRetentionSec.FullH24, ufoIdStr);
+        const fullH12 = maybePushTrack(fullTracksH12, fullH24, LiveDataRetentionSec.FullH12, ufoIdStr);
 
-        const longInc = maybePushTrack(longIncTracks, fullH12, nowSec - LiveDataRetentionSec.IncrementalLong, id);
-        maybePushTrack(shortIncTracks, longInc, nowSec - LiveDataRetentionSec.IncrementalShort, id);
+        const longInc = maybePushTrack(longIncTracks, fullH12, LiveDataRetentionSec.IncrementalLong, ufoIdStr);
+        maybePushTrack(shortIncTracks, longInc, LiveDataRetentionSec.IncrementalShort, ufoIdStr);
       }
     }
 
@@ -244,9 +236,11 @@ async function shutdown(state: protos.FetcherState) {
 /**
  * Conditionally adds a live track to a track group after removing outdated points.
  *
+ * NOTE: pilots use numerical ids while UFOs use string ids.
+ *
  * @param dstTracks - The destination track group to potentially add the track to.
  * @param track - The live track to be processed and potentially added.
- * @param dropBeforeSec - The timestamp in seconds to drop points before.
+ * @param historySec - The number of seconds of history to keep.
  * @param id - The identifier for the track.
  * @param name - The name associated with the track.
  * @returns The processed live track after removing outdated points.
@@ -254,10 +248,12 @@ async function shutdown(state: protos.FetcherState) {
 function maybePushTrack(
   dstTracks: protos.LiveDifferentialTrackGroup,
   track: protos.LiveTrack,
-  dropBeforeSec: number,
-  id: string,
+  historySec: number,
+  id: number | string,
   name?: string,
 ) {
+  const nowSec = Math.round(Date.now() / 1000);
+  const dropBeforeSec = nowSec - historySec;
   track = removeBeforeFromLiveTrack(track, dropBeforeSec);
   if (track.timeSec.length > 0) {
     dstTracks.tracks.push(differentialEncodeLiveTrack(track, id, name));
