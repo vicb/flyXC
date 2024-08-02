@@ -49,11 +49,11 @@ For the moment, it does not work with docker compose. But if you install the clo
 
 `npm run fixlint` to fix lint errors.
 
-#### Architecture Diagram
+### Architecture Diagram
 
 - The PlantUML architectural diagram is located in doc/flyxc_arch.puml
 - The doc/flyxc_arch.puml diagram depicts a visual representation of the different components of the flyxc app and the logical connections among components.
 - PlantUML requires Java to be installed on your machine.
 - Then download the plantuml.jar file and execute it to access PlantUML’s graphical user interface.
-- https://plantuml.com/starting
-- On VS Code, install the PlantUML extension. To preview diagrams: Press Alt + D to start PlantUML preview (option + D on MacOS).
+- [PlantUML Starting Guide](https://plantuml.com/starting)
+- On VS Code, install the PlantUML extension. To preview diagrams: Press Alt + D to start PlantUML preview (option + D on macOS).
