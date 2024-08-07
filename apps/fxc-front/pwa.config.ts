@@ -43,6 +43,11 @@ export const getPwaConfig: (mode?: string) => Partial<VitePWAOptions> = (mode = 
     ],
     icons: [
       {
+        src: 'static/iconx/pwa-64x64.png',
+        sizes: '64x64',
+        type: 'image/png',
+      },
+      {
         src: 'static/iconx/pwa-192x192.png',
         sizes: '192x192',
         type: 'image/png',

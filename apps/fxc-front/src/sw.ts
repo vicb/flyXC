@@ -1,5 +1,8 @@
 /**
  * flyXC service worker.
+ *
+ * IMPORTANT:
+ * Do not rename/move this file, it is referenced in apps/fxc-front/pwa.config.ts
  */
 
 import type { ManifestEntry } from 'workbox-build';
