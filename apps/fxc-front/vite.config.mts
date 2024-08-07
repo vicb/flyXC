@@ -2,9 +2,9 @@ import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { literalsHtmlCssMinifier } from '@literals/rollup-plugin-html-css-minifier';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { formatInTimeZone } from 'date-fns-tz';
-import minifyHTML from 'rollup-plugin-minify-html-literals';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig, type UserConfig } from 'vite';
 import { checker } from 'vite-plugin-checker';
@@ -59,7 +59,7 @@ export default defineConfig(
 
     plugins: [
       VitePWA(getPwaConfig(mode)),
-      minifyHTML(),
+      literalsHtmlCssMinifier(),
       {
         ...visualizer(),
         apply: 'build',
