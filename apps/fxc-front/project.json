@@ -55,7 +55,8 @@
         "production": {
           "buildTarget": "fxc-front:build:production"
         }
-      }
+      },
+      "dependsOn": ["build"]
     },
     "test": {
       "executor": "@nx/jest:jest",
