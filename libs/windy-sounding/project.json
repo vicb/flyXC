@@ -21,7 +21,6 @@
         }
       }
     },
-
     "serve": {
       "executor": "@nx/vite:dev-server",
       "defaultConfiguration": "development",
@@ -39,7 +38,6 @@
         }
       }
     },
-
     "preview": {
       "executor": "@nx/vite:preview-server",
       "defaultConfiguration": "development",
@@ -55,9 +53,9 @@
           "buildTarget": "windy-sounding:build:production",
           "hmr": false
         }
-      }
+      },
+      "dependsOn": ["build"]
     },
-
     "prepare": {
       "executor": "nx:run-commands",
       "options": {
@@ -71,18 +69,14 @@
         "parallel": false
       }
     },
-
     "upload": {
       "executor": "nx:run-commands",
       "dependsOn": ["prepare"],
       "options": {
-        "commands": [
-          "libs/windy-sounding/upload.sh"
-        ],
+        "commands": ["libs/windy-sounding/upload.sh"],
         "parallel": false
       }
     },
-
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
