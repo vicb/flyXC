@@ -18,10 +18,11 @@ export class MenuElement extends LitElement {
     this.eventController = new AbortController();
     this.addEventListener(
       'click',
-      async () => {
+      async (event: Event) => {
         if (this.splitPane) {
           this.splitPane.when = true;
         }
+        event.stopImmediatePropagation();
       },
       { signal: this.eventController.signal },
     );

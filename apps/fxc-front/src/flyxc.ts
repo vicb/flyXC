@@ -252,7 +252,7 @@ export class MapsElement extends connect(store)(LitElement) {
 
     return html` <ion-split-pane content-id="main" when=${SHOW_SPLIT_PANE_WHEN}>
         <main-menu></main-menu>
-        <ion-content id="main">
+        <ion-content id="main" @click=${this.contentClicked}>
           <ion-router-outlet class=${clMap}></ion-router-outlet>
           ${when(
             this.hasTrack,
@@ -266,6 +266,10 @@ export class MapsElement extends connect(store)(LitElement) {
         </ion-content>
       </ion-split-pane>
       <loader-element .show=${this.showLoader}></loader-element>`;
+  }
+
+  private contentClicked() {
+    maybeHideSidePane();
   }
 
   // Returns the coordinates of the active track at the given timestamp.
