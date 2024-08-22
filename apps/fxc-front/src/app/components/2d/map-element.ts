@@ -156,8 +156,9 @@ export class MapElement extends connect(store)(LitElement) {
         maxZoom: GMAP_MAX_ZOOM_LEVEL,
         mapTypeId: google.maps.MapTypeId.TERRAIN,
         scaleControl: true,
-        fullscreenControl: false,
-        streetViewControl: false,
+        disableDefaultUI: true,
+        zoomControl: true,
+        mapTypeControl: true,
         clickableIcons: false,
         mapTypeControlOptions: {
           mapTypeIds: [
