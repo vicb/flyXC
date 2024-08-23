@@ -1,5 +1,9 @@
 # Release history
 
+## 4.1.5 - Aug 22, 2024
+
+- Add support for the ALADIN model
+
 ## 4.1.4 - Aug 01, 2024
 
 - Keep the current model when opening the plugin
