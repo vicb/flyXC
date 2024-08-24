@@ -84,20 +84,6 @@ export default defineConfig(
       },
     },
 
-    test: {
-      reporters: ['default'],
-      coverage: {
-        reportsDirectory: '../../coverage/apps/fxc-front',
-        provider: 'v8',
-      },
-      globals: true,
-      cache: {
-        dir: '../../node_modules/.vitest',
-      },
-      environment: 'jsdom',
-      include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    },
-
     define: {
       __BUILD_TIMESTAMP__: JSON.stringify(formatInTimeZone(new Date(), 'Europe/Paris', 'yyyyMMdd-HHmm')),
       __AIRSPACE_DATE__: JSON.stringify(getAirspaceDate()),
