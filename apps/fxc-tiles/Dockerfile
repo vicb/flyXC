@@ -1,6 +1,6 @@
 FROM docker.io/node:lts-slim
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 WORKDIR /usr/src/app
 RUN npm install -g npm@latest
