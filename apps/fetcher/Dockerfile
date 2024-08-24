@@ -2,7 +2,7 @@
 # https://hub.docker.com/_/node
 FROM docker.io/node:current-slim
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 ARG DEBIAN_FRONTEND="noninteractive"
 RUN apt-get update -y \
