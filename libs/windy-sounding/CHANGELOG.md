@@ -1,5 +1,9 @@
 # Release history
 
+## next
+
+- Fix the required update check
+
 ## 4.1.5 - Aug 22, 2024
 
 - Add support for the ALADIN model
