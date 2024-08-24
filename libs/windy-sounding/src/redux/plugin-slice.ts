@@ -97,8 +97,7 @@ export const fetchPluginConfig = createAsyncThunk<void, PluginConfig, { state: R
     if (remoteConfig) {
       if (new SemVer(localPluginConfig.version).compare(remoteConfig.version) == -1) {
         const updateRequired =
-          new Date(remoteConfig.builtReadable).getTime() - localPluginConfig.built >
-          UPDATE_REQUIRED_AFTER_DAYS * 24 * 3600 * 1000;
+          Date.now() - new Date(remoteConfig.builtReadable).getTime() > UPDATE_REQUIRED_AFTER_DAYS * 24 * 3600 * 1000;
         api.dispatch(slice.actions.setUpdateAvailable(true));
         api.dispatch(slice.actions.setUpdateRequired(updateRequired));
       }
