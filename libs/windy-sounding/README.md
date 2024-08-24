@@ -48,7 +48,8 @@ Installed plugins persist across visits so you only have to install them once pe
 
 First open "<https://www.windy.com/plugins>" from **a browser** on your phone.
 
-**Clicking on a link does not work, you have to type or copy paste the URL in a browser**
+> [!IMPORTANT]
+> Clicking on a link does not work, you have to type or copy paste the URL in a browser
 
 Find the "flyXC Soundings" plugin and click on "Install" and "Open"
 

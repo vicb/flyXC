@@ -11,10 +11,7 @@ npm i
 npm --prefix libs/windy-sounding i
 ```
 
-Then run either:
-
-- `nx serve windy-sounding --build.watch=true` and visit `windy.com/dev` and enter `https://localhost:9999/plugin.js` as the url to the plugin
-- or `nx preview windy-sounding` and visit `windy.com/dev` and enter `https://localhost:9999/src/plugin.ts` as the url to the plugin
+Then run `nx preview windy-sounding --build.watch` and visit `windy.com/dev` and enter `https://localhost:9999/plugin.js` as the url to the plugin
 
 Then press `Install and open plugin` and the plugin will open to the right side.
 
