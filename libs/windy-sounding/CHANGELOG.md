@@ -1,8 +1,10 @@
 # Release history
 
-## next
+## 4.1.6 - Aug 26, 2024
 
 - Fix the required update check
+- Add the HDPRS model
+- Display actual model name
 
 ## 4.1.5 - Aug 22, 2024
 
