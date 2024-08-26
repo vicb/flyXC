@@ -470,7 +470,7 @@ function Details() {
     <div id="wsp-model" className="desktop-only">
       <dl>
         <dt>Model</dt>
-        <dd>{modelName}</dd>
+        <dd>{W.products[modelName].modelName}</dd>
         <dt>Run</dt>
         <dd>
           {isWindyDataAvailable
