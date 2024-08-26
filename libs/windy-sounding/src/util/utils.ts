@@ -1,7 +1,17 @@
 import type { Fav } from '@windy/interfaces';
 
 // Some models do not have the required parameters for soundings (i.e. surface only)
-export const SUPPORTED_MODEL_PREFIXES = ['ecmwf', 'gfs', 'nam', 'icon', 'hrrr', 'ukv', 'arome', 'czeAladin'];
+export const SUPPORTED_MODEL_PREFIXES = [
+  'ecmwf',
+  'gfs',
+  'nam',
+  'icon',
+  'hrrr',
+  'ukv',
+  'arome',
+  'czeAladin',
+  'canHrdps',
+];
 export const DEFAULT_MODEL = 'ecmwf';
 
 export function injectStyles(styles: string) {
