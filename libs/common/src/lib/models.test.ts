@@ -1,6 +1,7 @@
 import {
   validateFlymasterAccount,
   validateInreachAccount,
+  validateMeshBirAccount,
   validateOgnAccount,
   validateSkylinesAccount,
   validateSpotAccount,
@@ -162,5 +163,22 @@ describe('Validate xcontest accounts', () => {
     expect(validateXContestAccount('0123456789012345678901234567')).toEqual(false);
     expect(validateXContestAccount('UgsHrVb3TSwVp23o9P1LsEaIWPZ')).toEqual(false);
     expect(validateXContestAccount(' UgsHrVb3TSwVp23o9P1LsEaIWPZ ')).toEqual(false);
+  });
+});
+
+describe('Validate meshbir accounts', () => {
+  test('Valid ids', () => {
+    expect(validateMeshBirAccount('aa752cea-8222-5bc8-acd9-123b090c0ccb')).toBe('AA752CEA-8222-5BC8-ACD9-123B090C0CCB');
+    expect(validateMeshBirAccount('aa752cEa-8222-5Bc8-acd9-123B090c0ccb')).toBe('AA752CEA-8222-5BC8-ACD9-123B090C0CCB');
+    expect(validateMeshBirAccount('  aa752cea-8222-5bc8-acd9-123b090c0ccb  ')).toBe(
+      'AA752CEA-8222-5BC8-ACD9-123B090C0CCB',
+    );
+  });
+
+  test('Invalid ids', () => {
+    expect(validateMeshBirAccount('')).toEqual(false);
+    expect(validateMeshBirAccount('0123456789012345678901234567')).toEqual(false);
+    expect(validateMeshBirAccount('UgsHrVb3TSwVp23o9P1LsEaIWPZ')).toEqual(false);
+    expect(validateMeshBirAccount(' UgsHrVb3TSwVp23o9P1LsEaIWPZ ')).toEqual(false);
   });
 });

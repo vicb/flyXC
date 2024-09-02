@@ -215,6 +215,10 @@ export interface Pilot {
    * @generated from protobuf field: Tracker xcontest = 12;
    */
   xcontest?: Tracker;
+  /**
+   * @generated from protobuf field: Tracker meshbir = 13;
+   */
+  meshbir?: Tracker;
 }
 /**
  * @generated from protobuf message Tracker
@@ -331,6 +335,7 @@ class Pilot$Type extends MessageType<Pilot> {
       { no: 10, name: 'ogn', kind: 'message', T: () => Tracker },
       { no: 11, name: 'zoleo', kind: 'message', T: () => Tracker },
       { no: 12, name: 'xcontest', kind: 'message', T: () => Tracker },
+      { no: 13, name: 'meshbir', kind: 'message', T: () => Tracker },
     ]);
   }
 }

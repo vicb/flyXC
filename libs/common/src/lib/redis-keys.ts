@@ -5,6 +5,7 @@ export enum Keys {
   // # Devices
   // [List]
   zoleoMsgQueue = 'zoleo:msg:queue',
+  meshBirMsgQueue = 'meshbir:msg:queue',
 
   // # Commands
 

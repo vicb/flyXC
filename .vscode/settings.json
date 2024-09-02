@@ -37,5 +37,17 @@
     "statusBarItem.remoteForeground": "#e7e7e7"
   },
   "peacock.color": "#557c9b",
-  "git.ignoreLimitWarning": true
+  "git.ignoreLimitWarning": true,
+  "cSpell.words": [
+    "aprs",
+    "bircom",
+    "Flymaster",
+    "flyme",
+    "imei",
+    "inreach",
+    "meshbir",
+    "Meshtastic",
+    "xcontest",
+    "Zoleo"
+  ]
 }

@@ -127,7 +127,7 @@ async function addNewDevices(datastore: Datastore, messages: ZoleoMessage[]): Pr
   return addedDevices;
 }
 
-// Reand and empty the message queue.
+// Returns and empty the message queue.
 async function flushMessageQueue(redis: Redis): Promise<(ZoleoMessage | null)[]> {
   try {
     const [[_, messages]] = await redis
