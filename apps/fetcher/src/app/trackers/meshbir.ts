@@ -1,3 +1,6 @@
+// https://bircom.in/
+// https://github.com/vicb/flyXC/issues/301
+
 import type { protos, TrackerNames } from '@flyxc/common';
 import { Keys, removeBeforeFromLiveTrack, validateMeshBirAccount } from '@flyxc/common';
 import type { MeshBirMessage } from '@flyxc/common-node';
