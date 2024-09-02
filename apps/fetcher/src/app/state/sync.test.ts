@@ -17,6 +17,7 @@ const FLYMASTER = '003';
 const OGN = `123456`;
 const ZOLEO = `012345678912345`;
 const XCONTEST = `a123456789012345678901234567`;
+const MESHBIR = `12345678-1234-1234-1234-123456789012`;
 
 describe('sync', () => {
   let nowFn: any;
@@ -63,6 +64,7 @@ describe('sync', () => {
         ogn: OGN,
         zoleo: ZOLEO,
         xcontest: XCONTEST,
+        meshbir: MESHBIR,
       };
 
       for (const [name, account] of Object.entries(trackerAccounts)) {
@@ -210,6 +212,7 @@ describe('sync', () => {
         ogn: createTrackerEntity(OGN),
         zoleo: createTrackerEntity(ZOLEO, { type: 'zoleo' }),
         xcontest: createTrackerEntity(XCONTEST),
+        meshbir: createTrackerEntity(MESHBIR),
       });
       syncLiveTrack(state, lt);
 
@@ -221,6 +224,7 @@ describe('sync', () => {
       expect(state.pilots[1978].ogn.enabled).toEqual(true);
       expect(state.pilots[1978].zoleo.enabled).toEqual(true);
       expect(state.pilots[1978].xcontest.enabled).toEqual(true);
+      expect(state.pilots[1978].meshbir.enabled).toEqual(true);
 
       expect(state.pilots[1978].inreach.account).toEqual(INREACH);
       expect(state.pilots[1978].spot.account).toEqual(SPOT);
@@ -230,6 +234,7 @@ describe('sync', () => {
       expect(state.pilots[1978].ogn.account).toEqual(OGN);
       expect(state.pilots[1978].zoleo.account).toEqual(ZOLEO);
       expect(state.pilots[1978].xcontest.account).toEqual(XCONTEST);
+      expect(state.pilots[1978].meshbir.account).toEqual(MESHBIR);
 
       lt = createLiveTrackEntity('1978', {
         inreach: createTrackerEntity('invalid'),
@@ -240,6 +245,7 @@ describe('sync', () => {
         ogn: createTrackerEntity('invalid'),
         zoleo: createTrackerEntity('invalid', { type: 'zoleo' }),
         xcontest: createTrackerEntity('invalid'),
+        meshbir: createTrackerEntity('invalid'),
       });
       syncLiveTrack(state, lt);
 
@@ -251,6 +257,7 @@ describe('sync', () => {
       expect(state.pilots[1978].ogn.enabled).toEqual(false);
       expect(state.pilots[1978].zoleo.enabled).toEqual(false);
       expect(state.pilots[1978].xcontest.enabled).toEqual(false);
+      expect(state.pilots[1978].meshbir.enabled).toEqual(false);
 
       expect(state.pilots[1978].inreach.account).toEqual('');
       expect(state.pilots[1978].spot.account).toEqual('');
@@ -260,6 +267,7 @@ describe('sync', () => {
       expect(state.pilots[1978].ogn.account).toEqual('');
       expect(state.pilots[1978].zoleo.account).toEqual('');
       expect(state.pilots[1978].xcontest.account).toEqual('');
+      expect(state.pilots[1978].meshbir.account).toEqual('');
     });
   });
 });
@@ -282,6 +290,7 @@ function createLiveTrackEntity(id: string, liveTrack: Partial<LiveTrackEntity> =
     ogn: createTrackerEntity(OGN),
     zoleo: createTrackerEntity(ZOLEO, { type: 'zoleo' }),
     xcontest: createTrackerEntity(XCONTEST),
+    meshbir: createTrackerEntity(MESHBIR),
   };
 
   return { ...entity, ...liveTrack };

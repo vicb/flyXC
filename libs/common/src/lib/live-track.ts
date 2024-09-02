@@ -50,7 +50,17 @@ export const TRACK_GAP_MIN = 60;
 // Export to partners.
 export const EXPORT_UPDATE_SEC = 5 * 60;
 
-export const trackerNames = ['inreach', 'spot', 'skylines', 'flyme', 'flymaster', 'ogn', 'zoleo', 'xcontest'] as const;
+export const trackerNames = [
+  'inreach',
+  'spot',
+  'skylines',
+  'flyme',
+  'flymaster',
+  'ogn',
+  'zoleo',
+  'xcontest',
+  'meshbir',
+] as const;
 
 if (trackerNames.length > MAX_NUM_DEVICES - 1) {
   throw new Error('Too many devices');
@@ -69,6 +79,7 @@ export const trackerDisplayNames: Readonly<Record<TrackerNames, string>> = {
   ogn: 'OGN',
   zoleo: 'zoleo',
   xcontest: 'XContest',
+  meshbir: 'Meshtastic',
 };
 
 export const trackerIdByName: Record<TrackerNames, number> = {} as any;

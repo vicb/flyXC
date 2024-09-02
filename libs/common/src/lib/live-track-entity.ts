@@ -32,4 +32,5 @@ export interface LiveTrackEntity {
   ogn?: TrackerEntity;
   zoleo?: TrackerEntity;
   xcontest?: TrackerEntity;
+  meshbir?: TrackerEntity;
 }

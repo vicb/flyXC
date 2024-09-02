@@ -18,6 +18,7 @@ import { addElevationLogs } from '../redis';
 import { FlymasterFetcher } from './flymaster';
 import { FlymeFetcher } from './flyme';
 import { InreachFetcher } from './inreach';
+import { MeshBirFetcher } from './meshbir';
 import { OgnFetcher } from './ogn';
 import { OGN_HOST, OGN_PORT, OgnClient } from './ogn-client';
 import { SkylinesFetcher } from './skylines';
@@ -60,6 +61,7 @@ export async function resfreshTrackers(
     new OgnFetcher(ognClient, state, pipeline),
     new ZoleoFetcher(state, pipeline, redis, datastore),
     new XcontestFetcher(state, pipeline),
+    new MeshBirFetcher(state, pipeline, redis),
   ];
 
   const fetchResults = await Promise.allSettled(fetchers.map((f) => f.refresh(LIVE_FETCH_TIMEOUT_SEC)));

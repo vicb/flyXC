@@ -20,6 +20,7 @@ export interface AccountModel {
   ogn: TrackerModel;
   zoleo: TrackerModel;
   xcontest: TrackerModel;
+  meshbir: TrackerModel;
 }
 
 // Form model for a client side account.
@@ -37,6 +38,7 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
       ogn: TrackerFormModel.createEmptyValue(),
       zoleo: TrackerFormModel.createEmptyValue(),
       xcontest: TrackerFormModel.createEmptyValue(),
+      meshbir: TrackerFormModel.createEmptyValue(),
     };
   }
 
@@ -79,6 +81,7 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
   readonly ogn = this.createTrackerModel('ogn');
   readonly zoleo = this.createTrackerModel('zoleo');
   readonly xcontest = this.createTrackerModel('xcontest');
+  readonly meshbir = this.createTrackerModel('meshbir');
 
   private createTrackerModel(tracker: TrackerNames): TrackerFormModel {
     const validators = trackerValidators[tracker];
@@ -131,6 +134,7 @@ export const trackerValidators: Readonly<Record<TrackerNames, AccountSyncValidat
   ogn: [new AccountSyncValidator('This OGN ID is invalid', validateOgnAccount)],
   zoleo: [],
   xcontest: [new AccountSyncValidator('This XContest UUID is invalid', validateXContestAccount)],
+  meshbir: [new AccountSyncValidator('This Meshtastic ID is invalid', validateMeshBirAccount)],
 };
 
 // Validates a Spot Id.
@@ -220,4 +224,10 @@ export function validateZoleoAccount(imei: string): string | false {
 export function validateXContestAccount(id: string): string | false {
   id = id.trim();
   return /^[a-z][a-z0-9]{27}$/i.test(id) ? id : false;
+}
+
+// Validates a Meshtastic ID.
+export function validateMeshBirAccount(id: string): string | false {
+  id = id.trim();
+  return /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(id) ? id.toUpperCase() : false;
 }

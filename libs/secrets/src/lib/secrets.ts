@@ -22,4 +22,5 @@ export const Secrets = {
   FLYMASTER_GROUP_ID: String(process.env['FLYMASTER_GROUP_ID']),
   FLYMASTER_GROUP_TOKEN: String(process.env['FLYMASTER_GROUP_TOKEN']),
   MAILERSEND_TOKEN: String(process.env['MAILERSEND_TOKEN']),
+  MESHBIR_AUTH_TOKEN: String(process.env['MESHBIR_AUTH_TOKEN']),
 };

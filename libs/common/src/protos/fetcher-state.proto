@@ -80,6 +80,7 @@ message Pilot {
   Tracker ogn = 10;
   Tracker zoleo = 11;
   Tracker xcontest = 12;
+  Tracker meshbir = 13;
 }
 
 message Tracker {
