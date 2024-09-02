@@ -1,4 +1,4 @@
-FROM docker.io/node:current-slim
+FROM docker.io/node:lts-slim
 
 ENV NODE_ENV=production
 
