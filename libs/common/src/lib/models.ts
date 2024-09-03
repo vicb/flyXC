@@ -227,6 +227,8 @@ export function validateXContestAccount(id: string): string | false {
 }
 
 // Validates a Meshtastic ID.
+//
+// The format is UUID, with groups of hex digits: "8-4-4-4-12"
 export function validateMeshBirAccount(id: string): string | false {
   id = id.trim();
   return /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(id) ? id.toUpperCase() : false;

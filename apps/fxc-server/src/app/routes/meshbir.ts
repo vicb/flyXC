@@ -5,6 +5,7 @@ import { Secrets } from '@flyxc/secrets';
 import type { Request, Response } from 'express';
 import { Router } from 'express';
 import type Redis from 'ioredis';
+import { ZodError } from 'zod';
 
 export function getMeshBirRouter(redis: Redis): Router {
   const router = Router();
@@ -34,5 +35,12 @@ export function getMeshBirRouter(redis: Redis): Router {
 // Parses meshbir messages.
 // Throws when the message is invalid.
 export function parseMessage(message: unknown): MeshBirMessage | undefined {
-  return textSchema.or(positionSchema).parse(message);
+  try {
+    return textSchema.or(positionSchema).parse(message);
+  } catch (e) {
+    if (e instanceof ZodError) {
+      throw new Error(`Invalid message format`);
+    }
+    throw new Error(`ZOD error`);
+  }
 }

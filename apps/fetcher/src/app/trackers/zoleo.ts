@@ -44,7 +44,7 @@ export class ZoleoFetcher extends TrackerFetcher {
     for (const dsId of devices) {
       const tracker = this.getTracker(dsId);
       if (tracker == null) {
-        updates.trackerErrors.set(dsId, `Not found ${tracker.account}`);
+        updates.trackerErrors.set(dsId, `Not found`);
         continue;
       }
       if (validateZoleoAccount(tracker.account) === false) {
