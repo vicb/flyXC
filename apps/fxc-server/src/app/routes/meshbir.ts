@@ -41,6 +41,6 @@ export function parseMessage(message: unknown): MeshBirMessage | undefined {
     if (e instanceof ZodError) {
       throw new Error(`Invalid message format`);
     }
-    throw new Error(`ZOD error`);
+    throw new Error(`Unexpected error during message parsing`);
   }
 }
