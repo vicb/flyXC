@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+// Maximum size of a single message in bytes
 export const MESHBIR_MAX_MSG_SIZE = 250;
 // Consume at max 1MB of memory
 export const MESHBIR_MAX_MSG = Math.floor(1e6 / MESHBIR_MAX_MSG_SIZE);
