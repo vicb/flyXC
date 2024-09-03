@@ -26,6 +26,14 @@ describe('findIndexes', () => {
     expect(findIndexes([5, 10, 15], 15)).toEqual({ beforeAll: false, beforeIndex: 2, afterAll: false, afterIndex: 2 });
   });
 
+  test('before all', () => {
+    expect(findIndexes([5, 10, 15], 3)).toEqual({ beforeAll: true, beforeIndex: 0, afterAll: false, afterIndex: 0 });
+  });
+
+  test('after all', () => {
+    expect(findIndexes([5, 10, 15], 20)).toEqual({ beforeAll: false, beforeIndex: 2, afterAll: true, afterIndex: 2 });
+  });
+
   test('repeated values', () => {
     expect(findIndexes([5, 5, 10, 10, 15, 15], 9)).toEqual({
       beforeAll: false,

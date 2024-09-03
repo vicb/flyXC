@@ -2,7 +2,7 @@
 // https://github.com/vicb/flyXC/issues/301
 
 import type { protos, TrackerNames } from '@flyxc/common';
-import { Keys, removeBeforeFromLiveTrack, validateMeshBirAccount } from '@flyxc/common';
+import { findIndexes, Keys, removeBeforeFromLiveTrack, validateMeshBirAccount } from '@flyxc/common';
 import type { MeshBirMessage } from '@flyxc/common-node';
 import type { ChainableCommander, Redis } from 'ioredis';
 
@@ -11,7 +11,10 @@ import { makeLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';
 
+// Discard fixes older than
 const KEEP_HISTORY_MIN = 20;
+// Message affinity
+const MESSAGE_AFFINITY_MIN = 10;
 
 export class MeshBirFetcher extends TrackerFetcher {
   constructor(state: protos.FetcherState, pipeline: ChainableCommander, protected redis: Redis) {
@@ -45,7 +48,7 @@ export class MeshBirFetcher extends TrackerFetcher {
       meshIdToDsId.set(tracker.account, dsId);
     }
 
-    const pointsByMeshId = parse(messages);
+    const pointsByMeshId = parse(messages, meshIdToDsId, this.state.pilots, MESSAGE_AFFINITY_MIN);
 
     for (const [meshId, points] of pointsByMeshId.entries()) {
       const dsId = meshIdToDsId.get(meshId);
@@ -67,8 +70,14 @@ export class MeshBirFetcher extends TrackerFetcher {
   }
 }
 
-export function parse(messages: MeshBirMessage[]): Map<string, LivePoint[]> {
+export function parse(
+  messages: MeshBirMessage[],
+  meshIdToDsId: Map<string, number>,
+  pilots: Record<string, protos.Pilot>,
+  messageAffinityMin: number,
+): Map<string, LivePoint[]> {
   const pointsByMeshId = new Map<string, LivePoint[]>();
+  // Parse locations
   for (const msg of messages) {
     if (msg.type == 'position') {
       const point: LivePoint = {
@@ -87,6 +96,52 @@ export function parse(messages: MeshBirMessage[]): Map<string, LivePoint[]> {
       }
     }
   }
+
+  // Parse messages
+  for (const msg of messages) {
+    if (msg.type === 'message') {
+      const text = msg.message.trim();
+      if (text.length === 0) {
+        return;
+      }
+      const meshId = validateMeshBirAccount(msg.user_id);
+      if (meshId === false) {
+        continue;
+      }
+      // Add the message on a position retrieved in the current cycle
+      const points = pointsByMeshId.get(meshId) ?? [];
+      if (points.length > 0) {
+        const timesMs = points.map((p) => p.timeMs);
+        const index = findIndexes(timesMs, msg.time).beforeIndex;
+        points[index].message = text;
+        continue;
+      }
+      // Get the position from the latest known location
+      const dsId = meshIdToDsId.get(meshId);
+      if (dsId === undefined) {
+        continue;
+      }
+      const track = pilots[dsId]?.track;
+      if (track === undefined || track.timeSec.length === 0) {
+        continue;
+      }
+      const nowMs = Date.now();
+      const lastFixAgeSec = Math.round(nowMs / 1000) - track.timeSec[0];
+      if (lastFixAgeSec > messageAffinityMin * 60) {
+        continue;
+      }
+      points.push({
+        lat: track.lat.at(-1),
+        lon: track.lon.at(-1),
+        alt: track.alt.at(-1),
+        timeMs: nowMs,
+        name: 'meshbir',
+        message: text,
+      });
+      pointsByMeshId.set(meshId, points);
+    }
+  }
+
   return pointsByMeshId;
 }
 
@@ -100,7 +155,9 @@ async function flushMessageQueue(redis: Redis): Promise<MeshBirMessage[]> {
       .exec();
 
     // Return older messages first
-    return (messages as string[]).map((json) => JSON.parse(json)).reverse();
+    return (messages as string[])
+      .map((json) => JSON.parse(json) as MeshBirMessage)
+      .sort((a, b) => (a.time > b.time ? 1 : -1));
   } catch (e) {
     console.error('Error reading meshbir queue', e);
   }
