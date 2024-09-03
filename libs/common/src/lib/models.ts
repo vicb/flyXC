@@ -134,7 +134,7 @@ export const trackerValidators: Readonly<Record<TrackerNames, AccountSyncValidat
   ogn: [new AccountSyncValidator('This OGN ID is invalid', validateOgnAccount)],
   zoleo: [],
   xcontest: [new AccountSyncValidator('This XContest UUID is invalid', validateXContestAccount)],
-  meshbir: [new AccountSyncValidator('This Meshtastic ID is invalid', validateMeshBirAccount)],
+  meshbir: [new AccountSyncValidator('This Bircom ID is invalid', validateMeshBirAccount)],
 };
 
 // Validates a Spot Id.
