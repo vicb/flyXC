@@ -134,7 +134,7 @@ export const trackerValidators: Readonly<Record<TrackerNames, AccountSyncValidat
   ogn: [new AccountSyncValidator('This OGN ID is invalid', validateOgnAccount)],
   zoleo: [],
   xcontest: [new AccountSyncValidator('This XContest UUID is invalid', validateXContestAccount)],
-  meshbir: [new AccountSyncValidator('This Bircom ID is invalid', validateBircomAccount)],
+  meshbir: [new AccountSyncValidator('This Bircom ID is invalid', validateMeshBirAccount)],
 };
 
 // Validates a Spot Id.
@@ -227,7 +227,7 @@ export function validateXContestAccount(id: string): string | false {
 }
 
 // Validates a Meshtastic ID.
-export function validateBircomAccount(id: string): string | false {
+export function validateMeshBirAccount(id: string): string | false {
   id = id.trim();
   return /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(id) ? id.toUpperCase() : false;
 }
