@@ -79,7 +79,7 @@ export const trackerDisplayNames: Readonly<Record<TrackerNames, string>> = {
   ogn: 'OGN',
   zoleo: 'zoleo',
   xcontest: 'XContest',
-  meshbir: 'Meshtastic',
+  meshbir: 'Bircom',
 };
 
 export const trackerIdByName: Record<TrackerNames, number> = {} as any;

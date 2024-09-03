@@ -500,7 +500,7 @@ export class SettingsPage extends LitElement {
             <a href="https://www.glidernet.org/" target="_blank">OGN (Open Glider Network)</a>
           </li>
           <li><a href="https://live.xcontest.org/" target="_blank">XCTrack (XContest live)</a></li>
-          <li><a href="https://bircom.in/" target="_blank">Bircom</a></li>
+          <li><a href="https://bircom.in/" target="_blank">Bircom (Meshtastic)</a></li>
         </ul>
         <p>
           <a href="mailto:help@flyxc.app?subject=flyXC%20registration%20error" target="_blank"> Contact us by email </a>
