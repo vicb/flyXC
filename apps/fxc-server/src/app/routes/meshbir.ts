@@ -17,15 +17,24 @@ export function getMeshBirRouter(redis: Redis): Router {
       return res.sendStatus(403);
     }
 
+    let message: MeshBirMessage;
     try {
-      const message = parseMessage(req.body);
+      message = parseMessage(req.body);
+    } catch (e) {
+      return res.sendStatus(400);
+    }
+
+    try {
+      if ((await redis.llen(Keys.meshBirMsgQueue)) >= MESHBIR_MAX_MSG) {
+        return res.status(429).send(`Exceeding ${MESHBIR_MAX_MSG} messages per minute`);
+      }
       const pipeline = redis.pipeline();
       pushListCap(pipeline, Keys.meshBirMsgQueue, [JSON.stringify(message)], MESHBIR_MAX_MSG, MESHBIR_MAX_MSG_SIZE);
       await pipeline.exec();
-      res.sendStatus(200);
+      return res.status(200);
     } catch (e) {
       console.error(e);
-      res.sendStatus(500);
+      return res.sendStatus(500);
     }
   });
 
@@ -34,7 +43,7 @@ export function getMeshBirRouter(redis: Redis): Router {
 
 // Parses meshbir messages.
 // Throws when the message is invalid.
-export function parseMessage(message: unknown): MeshBirMessage | undefined {
+export function parseMessage(message: unknown): MeshBirMessage {
   try {
     return textSchema.or(positionSchema).parse(message);
   } catch (e) {
