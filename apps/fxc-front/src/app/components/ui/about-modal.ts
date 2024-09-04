@@ -22,7 +22,8 @@ export class AboutModal extends LitElement {
           <a href="https://github.com/spasutto" target="_blank">Sylvain Pasutto</a>,
           <a href="https://github.com/flyingtof" target="_blank">flyingtof</a>, Josh Cohn,
           <a href="https://github.com/jujumo" target="_blank">JuMo</a>,
-          <a href="https://github.com/vrka" target="_blank">Karel Vrbensky</a>
+          <a href="https://github.com/vrka" target="_blank">Karel Vrbensky</a>,
+          <a href="https://github.com/ketan" target="_blank">Ketan Padegaonkar</a>
         </p>
 
         <p>

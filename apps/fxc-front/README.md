@@ -14,6 +14,7 @@
 - Josh Cohn
 - [JuMo](https://github.com/jujumo)
 - [Karel Vrbensky](https://github.com/vrka)
+- [Ketan Padegaonkar](https://github.com/ketan)
 
 ### Credits
 
