@@ -61,6 +61,8 @@ export interface ScoringResult {
     in: LatLon;
     out: LatLon;
   };
+  // optimized path suitable for gmaps APIs
+  path: { lat: number; lng: number }[];
 }
 
 /**
@@ -71,7 +73,6 @@ export interface ScoringResult {
  * @see README.md
  *
  * @param request Contains the tracks and options.
- * @param ruleName The ScoringRules to use.
  * @returns an Iterator of OptimizationResult
  */
 export function* getOptimizer(request: ScoringRequest): Iterator<ScoringResult, ScoringResult> {
@@ -85,6 +86,7 @@ export function* getOptimizer(request: ScoringRequest): Iterator<ScoringResult, 
       optimal: true,
       legs: [],
       turnpoints: [],
+      path: [],
     };
   }
   const { track } = request;
@@ -169,6 +171,15 @@ function toSolverOptions(request: ScoringRequest) {
 }
 
 function toOptimizationResult(solution: Solution, track: ScoringTrack): ScoringResult {
+  const startPoint = solution.scoreInfo?.ep?.start ? pointToLatTon(solution.scoreInfo?.ep?.start) : undefined;
+  const endPoint = solution.scoreInfo?.ep?.finish ? pointToLatTon(solution.scoreInfo?.ep?.finish) : undefined;
+  const closingPoints = solution.scoreInfo?.cp
+    ? {
+        in: pointToLatTon(solution.scoreInfo.cp.in),
+        out: pointToLatTon(solution.scoreInfo.cp.out),
+      }
+    : undefined;
+  const turnpoints = (solution.scoreInfo?.tp ?? []).map((point) => pointToLatTon(point));
   return {
     score: solution.score ?? 0,
     lengthKm: solution.scoreInfo?.distance ?? 0,
@@ -177,21 +188,19 @@ function toOptimizationResult(solution: Solution, track: ScoringTrack): ScoringR
     closingRadiusKm: getClosingRadiusKm(solution),
     solutionIndices: getSolutionIndices(solution, track),
     optimal: solution.optimal || false,
-    startPoint: solution.scoreInfo?.ep?.start ? pointToLatTon(solution.scoreInfo?.ep?.start) : undefined,
-    endPoint: solution.scoreInfo?.ep?.finish ? pointToLatTon(solution.scoreInfo?.ep?.finish) : undefined,
+    startPoint,
+    endPoint,
     legs: (solution.scoreInfo?.legs ?? []).map(({ name, d, start, finish }) => ({
       name,
       lengthKm: d,
       start: pointToLatTon(start),
       end: pointToLatTon(finish),
     })),
-    turnpoints: (solution.scoreInfo?.tp ?? []).map((point) => pointToLatTon(point)),
-    closingPoints: solution.scoreInfo?.cp
-      ? {
-          in: pointToLatTon(solution.scoreInfo.cp.in),
-          out: pointToLatTon(solution.scoreInfo.cp.out),
-        }
-      : undefined,
+    turnpoints,
+    closingPoints,
+    path: [closingPoints?.in, startPoint, ...turnpoints, endPoint, closingPoints?.out]
+      .filter((p) => p != null)
+      .map((latLon) => ({ lat: latLon?.lat, lng: latLon?.lon })),
   };
 }
 

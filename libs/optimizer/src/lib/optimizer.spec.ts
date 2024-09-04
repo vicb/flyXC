@@ -259,11 +259,7 @@ describe('optimizer', () => {
     });
   });
 
-  ([
-    'CzechLocal',
-    'CzechEurope',
-    'CzechOutsideEurope',
-  ] as ScoringRuleName[]).forEach((rule) => {
+  (['CzechLocal', 'CzechEurope', 'CzechOutsideEurope'] as ScoringRuleName[]).forEach((rule) => {
     describe(`given a 130.9 triangle with more than 3 km closing distance (${rule} rules)`, () => {
       const tp1 = { lat: 45.20467, lon: 5.72595 };
       const tp2 = { lat: 45.62463, lon: 6.11006 };

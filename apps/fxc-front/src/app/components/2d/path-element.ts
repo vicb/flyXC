@@ -1,10 +1,10 @@
 import '../ui/share-modal';
 import '../ui/waypoint-modal';
 
-import type { LatLon } from '@flyxc/common';
+import type { LatLon, RuntimeTrack } from '@flyxc/common';
 import { CircuitType } from '@flyxc/optimizer/lib/api';
 import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
-import { modalController } from '@ionic/core/components';
+import { modalController, toastController } from '@ionic/core/components';
 import { getPreciseDistance } from 'geolib';
 import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
@@ -19,6 +19,7 @@ import { drawRoute } from '../../logic/messages';
 import type { LeagueCode } from '../../logic/score/league/leagues';
 import { Scorer } from '../../logic/score/scorer';
 import * as plannerSlice from '../../redux/planner-slice';
+import { currentTrack } from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import type { PlannerElement } from './planner-element';
@@ -52,9 +53,8 @@ export class PathElement extends connect(store)(LitElement) {
   private encodedRoute = '';
   @state()
   private isFreeDrawing = false;
-  @state()
-  private score?: plannerSlice.Score;
 
+  private currentTrack?: RuntimeTrack;
   private line?: google.maps.Polyline;
   private optimizedLine?: google.maps.Polyline;
   // Set to true to block updating the state.
@@ -65,15 +65,15 @@ export class PathElement extends connect(store)(LitElement) {
   private closingSector?: ClosingSector;
   private faiSectors?: FaiSectors;
   private plannerElement?: PlannerElement;
-  private scoringRequestId = 0;
   private scorer?: Scorer;
+  private scoreInProgress?: HTMLIonToastElement;
 
   stateChanged(state: RootState): void {
+    this.currentTrack = currentTrack(state);
     this.league = state.planner.league;
     this.enabled = state.planner.enabled;
     this.encodedRoute = state.planner.route;
     this.isFreeDrawing = state.planner.isFreeDrawing;
-    this.score = state.planner.score;
   }
 
   shouldUpdate(changedProperties: PropertyValues): boolean {
@@ -99,9 +99,6 @@ export class PathElement extends connect(store)(LitElement) {
     if ((changedProperties.has('encodedRoute') || changedProperties.has('isFreeDrawing')) && this.enabled) {
       this.updateLineFromState();
     }
-    if (changedProperties.has('score') && this.enabled) {
-      this.drawOptimization(this.score);
-    }
     return super.shouldUpdate(changedProperties);
   }
 
@@ -120,30 +117,26 @@ export class PathElement extends connect(store)(LitElement) {
     if (this.encodedRoute.length === 0) {
       this.setDefaultPath();
     } else {
+      const path = this.line.getPath();
+      path.clear();
       const coords = google.maps.geometry.encoding.decodePath(this.encodedRoute);
-      this.setPath(coords);
+      coords.forEach((latLon) => {
+        path.push(latLon);
+      });
     }
     this.doNotSyncState = false;
     this.optimize();
   }
 
-  private setPath(coords: google.maps.LatLng[]) {
+  private setDefaultPath() {
     if (this.line) {
       const path = this.line.getPath();
       path.clear();
-      coords.forEach((latLon) => {
-        path.push(latLon);
-      });
+      const center = this.map.getCenter() as google.maps.LatLng;
+      const mapViewSpan = (this.map.getBounds() as google.maps.LatLngBounds).toSpan();
+      path.push(new google.maps.LatLng(center.lat(), center.lng() + mapViewSpan.lng() / 5));
+      path.push(new google.maps.LatLng(center.lat(), center.lng() - mapViewSpan.lng() / 5));
     }
-  }
-
-  private setDefaultPath() {
-    const center = this.map.getCenter() as google.maps.LatLng;
-    const mapViewSpan = (this.map.getBounds() as google.maps.LatLngBounds).toSpan();
-    this.setPath([
-      new google.maps.LatLng(center.lat(), center.lng() + mapViewSpan.lng() / 5),
-      new google.maps.LatLng(center.lat(), center.lng() - mapViewSpan.lng() / 5),
-    ]);
   }
 
   private appendToPath(coord: google.maps.LatLng): void {
@@ -190,13 +183,7 @@ export class PathElement extends connect(store)(LitElement) {
       this.appendToPath(e.latLng as google.maps.LatLng),
     );
     this.onBoundsChanged = google.maps.event.addListener(this.map, 'bounds_changed', () => {
-      if (
-        this.enabled &&
-        this.encodedRoute.length === 0 &&
-        this.score?.origin === plannerSlice.ScoreOrigin.INTERACTIVE
-      ) {
-        // when scoring a track, encoded route is empty
-        // do not redraw the default line
+      if (this.enabled && this.encodedRoute.length === 0) {
         this.updateLineFromState();
       }
     });
@@ -223,56 +210,22 @@ export class PathElement extends connect(store)(LitElement) {
 
     const points = this.getPathPoints().map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 }));
 
-    this.scorer ??= new Scorer(
-      (result: ScoringResult) => this.optimizerCallback(result),
-      () => this.scoringRequestId,
-    );
-    this.scorer.score(points, this.league, ++this.scoringRequestId);
+    this.getScorer().score(points, this.league, (result) => this.drawOptimization(result));
   }
 
-  private optimizerCallback(result: ScoringResult): void {
-    const score = { ...result, origin: plannerSlice.ScoreOrigin.INTERACTIVE };
-    store.dispatch(plannerSlice.setDistanceM(score.lengthKm * 1000));
-    store.dispatch(plannerSlice.setScore(score));
-    this.postScoreToHost(result);
+  // Lazily create and get scorer
+  private getScorer() {
+    this.scorer ??= new Scorer();
+    return this.scorer;
   }
 
-  // draw the optimize lines and sectors
-  private drawOptimization(score?: plannerSlice.Score) {
-    if (!score) {
-      return;
-    }
-    this.doNotSyncState = true;
-
-    if (score.origin !== plannerSlice.ScoreOrigin.INTERACTIVE) {
-      // in 'interactive' mode, the path is already drawn by the user or is coming from the encoded path.
-      // We should not override it.
-      // We use only what comes from the score for drawing the path.
-      // We could use the current track in the future (e.g. sample it)
-      const path = [
-        score.closingPoints?.in,
-        score.startPoint,
-        ...score.turnpoints,
-        score.endPoint,
-        score.closingPoints?.out,
-      ]
-        .filter((p) => p != null)
-        .map((p) => new google.maps.LatLng({ lat: p!.lat, lng: p!.lon }));
-      this.setPath(path);
-    }
-
-    const optimizationPath = [score.startPoint, ...score.turnpoints, score.endPoint].filter((p) => p != null);
-    if (score.circuit !== CircuitType.OpenDistance) {
-      // close the path
-      optimizationPath.push(optimizationPath[0]);
-    }
-
+  private drawOptimization(result: ScoringResult): void {
     this.optimizedLine ??= new google.maps.Polyline();
 
     this.optimizedLine.setOptions({
       map: this.map,
-      path: optimizationPath.map((p) => new google.maps.LatLng({ lat: p!.lat, lng: p!.lon })),
-      strokeColor: ROUTE_STROKE_COLORS[score.circuit],
+      path: result.path,
+      strokeColor: ROUTE_STROKE_COLORS[result.circuit],
       strokeOpacity: 0.8,
       strokeWeight: 3,
       zIndex: 1000,
@@ -283,9 +236,9 @@ export class PathElement extends connect(store)(LitElement) {
       this.closingSector.addListener('rightclick', (e) => this.appendToPath(e.latLng));
     }
 
-    if (score.closingPoints) {
-      this.closingSector.center = score.closingPoints.in;
-      this.closingSector.radiusM = (score.closingRadiusKm ?? 0) * 1000;
+    if (result.closingPoints) {
+      this.closingSector.center = result.closingPoints.in;
+      this.closingSector.radiusM = (result.closingRadiusKm ?? 0) * 1000;
       this.closingSector.update();
       this.closingSector.setMap(this.map);
     } else {
@@ -296,20 +249,23 @@ export class PathElement extends connect(store)(LitElement) {
       this.faiSectors = new FaiSectors();
       this.faiSectors.addListeners('rightclick', (e) => this.appendToPath(e.latLng));
     }
-    if (score.circuit === CircuitType.FlatTriangle || score.circuit === CircuitType.FaiTriangle) {
-      this.faiSectors.update(score.turnpoints);
+    if (result.circuit == CircuitType.FlatTriangle || result.circuit == CircuitType.FaiTriangle) {
+      this.faiSectors.update(result.turnpoints);
       this.faiSectors.setMap(this.map);
     } else {
       this.faiSectors.setMap(null);
     }
-    this.doNotSyncState = false;
+
+    store.dispatch(plannerSlice.setScore(result));
+    // FFVL/CFD
+    this.postScoreToHost(result);
   }
 
   // Sends a message to the iframe host with the changes.
   private postScoreToHost(scoringResult: ScoringResult) {
     let kms = '';
     let circuit = '';
-    if (scoringResult.lengthKm !== 0 && scoringResult.circuit != null && window.parent) {
+    if (scoringResult.lengthKm !== 0 && window.parent) {
       kms = scoringResult.lengthKm.toFixed(1);
       circuit = CIRCUIT_SHORT_NAME[scoringResult.circuit];
       if (scoringResult.circuit === CircuitType.OpenDistance) {
@@ -384,15 +340,47 @@ export class PathElement extends connect(store)(LitElement) {
       el.addEventListener('download', async () => {
         await this.openDownloadModal();
       });
-      el.addEventListener('reset', () => {
-        this.setDefaultPath();
-        return store.dispatch(plannerSlice.setRoute(''));
-      });
+      el.addEventListener('reset', () => store.dispatch(plannerSlice.setRoute('')));
       el.addEventListener('draw-route', () => {
         drawRoute.emit();
         store.dispatch(plannerSlice.setRoute(''));
       });
       el.addEventListener('close', () => store.dispatch(plannerSlice.setEnabled(false)));
+      el.addEventListener('score-track', async () => {
+        // TODO: return if already running
+        if (!this.currentTrack) {
+          return;
+        }
+
+        // TODO: dialog if too long
+        this.scoreInProgress = await toastController.create({
+          message: 'Scoring in progress',
+          position: 'middle',
+          duration: 30000,
+        });
+        await this.scoreInProgress.present();
+
+        const track = this.currentTrack;
+        const points = track.lat.map((lat, index) => ({
+          lat,
+          lon: track.lon[index],
+          alt: track.alt[index],
+          timeSec: track.timeSec[index],
+        }));
+        this.getScorer().score(points, this.league, async (result) => {
+          this.handleScoringResult(result);
+          await this.scoreInProgress?.dismiss();
+        });
+      });
+    }
+  }
+
+  private handleScoringResult(result: ScoringResult) {
+    if (this.currentTrack && this.currentTrack.timeSec.length > 1) {
+      const lastTimeSec = this.currentTrack.timeSec.at(-1)!;
+      const durationS = lastTimeSec - this.currentTrack.timeSec[0];
+      store.dispatch(plannerSlice.setSpeedKmh((result.lengthKm / durationS) * 3600));
+      store.dispatch(plannerSlice.setRoute(google.maps.geometry.encoding.encodePath(result.path)));
     }
   }
 

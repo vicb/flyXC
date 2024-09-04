@@ -1,6 +1,4 @@
-import type { RuntimeTrack } from '@flyxc/common';
 import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
-import { toastController } from '@ionic/core/components';
 import type { CSSResult, TemplateResult } from 'lit';
 import { css, html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
@@ -8,8 +6,6 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
-import type { LeagueCode } from '../../logic/score/league/leagues';
-import { Scorer } from '../../logic/score/scorer';
 import * as units from '../../logic/units';
 import * as plannerSlice from '../../redux/planner-slice';
 import { currentTrack } from '../../redux/selectors';
@@ -28,7 +24,7 @@ const ICON_EXPAND =
 @customElement('planner-element')
 export class PlannerElement extends connect(store)(LitElement) {
   @state()
-  private score?: plannerSlice.Score;
+  private score?: ScoringResult;
   @state()
   private speedKmh = 20;
   @state()
@@ -40,9 +36,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   @state()
   private isFreeDrawing = false;
   @state()
-  private currentTrack?: RuntimeTrack;
-  @state()
-  private league: LeagueCode = 'xc';
+  private hasCurrentTrack = false;
 
   private duration?: number;
   private readonly closeHandler = () => this.dispatchEvent(new CustomEvent('close'));
@@ -51,26 +45,16 @@ export class PlannerElement extends connect(store)(LitElement) {
   private readonly downloadHandler = () => this.dispatchEvent(new CustomEvent('download'));
   private readonly resetHandler = () => this.dispatchEvent(new CustomEvent('reset'));
   private readonly drawHandler = () => this.dispatchEvent(new CustomEvent('draw-route'));
-  private scoringRequestId = 0;
-  private scorer?: Scorer;
-  private scoreInProgress?: HTMLIonToastElement;
+  private readonly scoreHandler = () => this.dispatchEvent(new CustomEvent('score-track'));
 
   stateChanged(state: RootState): void {
+    this.hasCurrentTrack = currentTrack(state) != null;
     this.distanceM = state.planner.distanceM;
     this.score = state.planner.score;
     this.speedKmh = state.planner.speedKmh;
     this.units = state.units;
     this.duration = ((this.distanceM / this.speedKmh) * 60) / 1000;
     this.isFreeDrawing = state.planner.isFreeDrawing;
-    this.currentTrack = currentTrack(state);
-    this.league = state.planner.league;
-  }
-
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    this.scorer?.cleanup();
-    this.scorer = undefined;
-    this.scoreInProgress = undefined;
   }
 
   static get styles(): CSSResult {
@@ -148,11 +132,9 @@ export class PlannerElement extends connect(store)(LitElement) {
         .collapsible {
           display: ${this.hideDetails ? 'none' : 'block'};
         }
-
         .active {
           background-color: lightgray;
         }
-
         .hoverable:hover {
           background-color: #f0f0f0;
         }
@@ -169,7 +151,7 @@ export class PlannerElement extends connect(store)(LitElement) {
         </div>
         <div class="collapsible">
           <div>Points = ${this.getMultiplier()}</div>
-          <div class="large">${this.getScore()}</div>
+          <div class="large">${this.score?.score.toFixed(1)}</div>
         </div>
         <div class="collapsible">
           <div>Total distance</div>
@@ -209,8 +191,8 @@ export class PlannerElement extends connect(store)(LitElement) {
           </div>
         </div>
         ${when(
-          this.currentTrack,
-          () => html` <div class="collapsible hoverable" @click=${this.handleScoreAction}>
+          this.hasCurrentTrack,
+          () => html` <div class="collapsible hoverable" @click=${this.scoreHandler}>
             <span><i class="las la-trophy"></i>Score Track</span>
           </div>`,
         )}
@@ -251,10 +233,6 @@ export class PlannerElement extends connect(store)(LitElement) {
     return this.score?.multiplier === 1 ? 'kms' : `${this.score?.multiplier} x kms`;
   }
 
-  private getScore() {
-    return this.score?.score.toFixed(1) ?? '';
-  }
-
   private getDuration(): string {
     const duration = this.duration as number;
     const hour = Math.floor(duration / 60);
@@ -293,42 +271,5 @@ export class PlannerElement extends connect(store)(LitElement) {
 
   private wheelSpeed(e: WheelEvent): void {
     store.dispatch(e.deltaY > 0 ? plannerSlice.incrementSpeed() : plannerSlice.decrementSpeed());
-  }
-
-  private async handleScoreAction() {
-    if (!this.currentTrack) {
-      return;
-    }
-    this.scoreInProgress = await toastController.create({
-      message: 'scoring in progress',
-      position: 'middle',
-      duration: 3000,
-    });
-    await this.scoreInProgress.present();
-
-    const track = this.currentTrack;
-    const points = track.lat.map((lat, index) => ({
-      lat,
-      lon: track.lon[index],
-      alt: track.alt[index],
-      timeSec: track.timeSec[index],
-    }));
-    this.scorer ??= new Scorer(
-      (result) => this.handleScoringResult(result),
-      () => this.scoringRequestId,
-    );
-    this.scorer.score(points, this.league, ++this.scoringRequestId);
-  }
-
-  private async handleScoringResult(result: ScoringResult) {
-    store.dispatch(plannerSlice.setScore({ ...result, origin: plannerSlice.ScoreOrigin.TRACK }));
-    if (this.currentTrack && this.currentTrack.timeSec.length > 1) {
-      const lastTimeSec = this.currentTrack.timeSec.at(-1)!;
-      const durationS = lastTimeSec - this.currentTrack.timeSec[0];
-      store.dispatch(plannerSlice.setSpeedKmh((result.lengthKm / durationS) * 3600));
-      this.duration = durationS;
-    }
-    store.dispatch(plannerSlice.setDistanceM(result.lengthKm * 1000));
-    await this.scoreInProgress?.dismiss();
   }
 }

@@ -6,13 +6,15 @@ import { getScoringRuleName, type LeagueCode } from './league/leagues';
 
 export type ScoringResultHandler = (result: ScoringResult) => void;
 
-export type ScoringRequestIdProvider = () => number;
-
 export class Scorer {
   private scoringWorker?: Worker;
+  private currentScoringRequestId = 0;
+  private handlers: Map<number, ScoringResultHandler> = new Map();
 
   /**
-   * `handleScoringResult` and `getScoringRequestId` functions are invoked in a
+   * Scores a track
+   *
+   * `handleScoringResult` function is invoked in a
    * worker context which means that 'this' keyword is a reference to the worker itself.
    * If a function body uses 'this' keyword  and is sent to the constructor as a reference, it will not work.
    * In this case, the function should be wrapped in an arrow function (see example bellow).<br/>
@@ -28,32 +30,26 @@ export class Scorer {
    *   }
    *   ...
    *   // although this is a valid code, it will not work because 'this' is the worker.
-   *   scorer = new Scorer(this.handleResult,...);
+   *   const scorer = new Scorer();
+   *   const scoringRequestId = scorer.score(track, league, this.handleResult);
    *   // the correct syntax is:
-   *   scorer = new Scorer((result)=>this.handleResult(result),...);
+   *   const scoringRequestId = scorer.core(track, league, (result)=>this.handleResult(result));
    * }
    * ```
-   * @param handleScoringResult {ScoringResultHandler}
-   *        Takes the ScoringResult into account
-   * @param getScoringRequestId {ScoringRequestIdProvider}
-   *        Get a scoring request identifier. The ScoringResultHandler is invoked only if the returned
-   *        request identifier matchs the request identifier returned by the underlying optimizer.
-   */
-  constructor(
-    private handleScoringResult: ScoringResultHandler,
-    private getScoringRequestId: ScoringRequestIdProvider,
-  ) {}
-
-  /**
-   * The result is handled by the ScoringResultHandler, only if this result references the same scoringRequestId.
+   *
    * @param track
    * @param league
-   * @param scoringRequestId
+   * @param handleScoringResult {ScoringResultHandler}
+   *        Takes the ScoringResult into account
+   * @return {number} a number that identifies this scoring request
    */
-  public score(track: LatLonAltTime[], league: LeagueCode, scoringRequestId: number) {
+  public score(track: LatLonAltTime[], league: LeagueCode, handleScoringResult: ScoringResultHandler): number {
     // lazy creation of the worker
     this.scoringWorker ??= this.createWorker();
     try {
+      // stores the handler for retrieval when handling worker response message
+      const scoringRequestId = this.currentScoringRequestId++;
+      this.handlers.set(scoringRequestId, handleScoringResult );
       this.scoringWorker.postMessage({
         request: {
           track: {
@@ -63,8 +59,10 @@ export class Scorer {
         },
         id: scoringRequestId,
       });
+      return scoringRequestId;
     } catch (error) {
       console.error('Error posting message to scoring worker:', error);
+      return -1;
     }
   }
 
@@ -80,17 +78,22 @@ export class Scorer {
     this.scoringWorker.onmessageerror = null;
     this.scoringWorker.terminate();
     this.scoringWorker = undefined;
+    this.handlers.clear();
+    this.currentScoringRequestId = 0;
   }
 
   private createWorker(): Worker {
     const scoringWorker = new ScoringWorker();
     scoringWorker.onmessage = (msg: MessageEvent<WorkerResponse>) => {
-      // Ensure that this response matches the request
-      if (msg.data.id === this.getScoringRequestId()) {
-        this.handleScoringResult(msg.data.response);
+      if (msg.data.id) {
+        // retrieve the handler and invoke it
+        this.handlers.get(msg.data.id)?.call(this, msg.data.response)
+        if (msg.data.response.optimal) {
+          this.handlers.delete(msg.data.id);
+        }
       }
     };
-    scoringWorker.onerror = (error) => {
+    scoringWorker.onerror = (error: any) => {
       console.error('Scoring Worker Error:', error);
     };
     return scoringWorker;
