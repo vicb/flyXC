@@ -31,7 +31,7 @@ export function getMeshBirRouter(redis: Redis): Router {
       const pipeline = redis.pipeline();
       pushListCap(pipeline, Keys.meshBirMsgQueue, [JSON.stringify(message)], MESHBIR_MAX_MSG, MESHBIR_MAX_MSG_SIZE);
       await pipeline.exec();
-      return res.status(200);
+      return res.sendStatus(200);
     } catch (e) {
       console.error(e);
       return res.sendStatus(500);
