@@ -53,7 +53,7 @@ export class Scorer {
     // lazy creation of the worker
     this.scoringWorker ??= this.createWorker();
     // stores the handler for retrieval when handling worker response message
-    const id = this.currentScoringRequestId++;
+    const id = ++this.currentScoringRequestId;
     this.handlers.set(id, handleScoringResult);
     try {
       this.scoringWorker.postMessage({

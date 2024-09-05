@@ -267,10 +267,11 @@ export class PathElement extends connect(store)(LitElement) {
     let circuit = '';
     if (scoringResult.lengthKm !== 0 && window.parent) {
       kms = scoringResult.lengthKm.toFixed(1);
-      circuit = CIRCUIT_SHORT_NAME[scoringResult.circuit];
-      if (scoringResult.circuit === CircuitType.OpenDistance) {
-        circuit += scoringResult.solutionIndices.length - 2;
-      }
+      // add number of turn points for an open distance
+      circuit =
+        scoringResult.circuit === CircuitType.OpenDistance
+          ? CIRCUIT_SHORT_NAME[scoringResult.circuit] + scoringResult.turnpoints.length
+          : CIRCUIT_SHORT_NAME[scoringResult.circuit];
       window.parent.postMessage(
         JSON.stringify({
           kms,
