@@ -286,12 +286,12 @@ describe('parse', () => {
     });
 
     it('associates message with the last known position when recent', () => {
-      jest.useFakeTimers({ now: 123500 });
+      jest.useFakeTimers({ now: 234500 });
       expect(
         parse(
           [
             {
-              time: 123440,
+              time: 234440,
               type: 'message',
               user_id: '12345678-1234-1234-1234-123456789012',
               message: 'message',
@@ -302,10 +302,10 @@ describe('parse', () => {
           {
             '10': protos.Pilot.create({
               track: protos.LiveTrack.create({
-                alt: [1],
-                lat: [2],
-                lon: [3],
-                timeSec: [123],
+                alt: [10, 11],
+                lat: [20, 21],
+                lon: [30, 31],
+                timeSec: [123, 234],
               }),
             }),
           },
@@ -315,12 +315,12 @@ describe('parse', () => {
         Map {
           "12345678-1234-1234-1234-123456789012" => [
             {
-              "alt": 1,
-              "lat": 2,
-              "lon": 3,
+              "alt": 11,
+              "lat": 21,
+              "lon": 31,
               "message": "message",
               "name": "meshbir",
-              "timeMs": 123500,
+              "timeMs": 234500,
             },
           ],
         }

@@ -126,7 +126,7 @@ export function parse(
         continue;
       }
       const nowMs = Date.now();
-      const lastFixAgeSec = Math.round(nowMs / 1000) - track.timeSec[0];
+      const lastFixAgeSec = Math.round(nowMs / 1000) - track.timeSec.at(-1);
       if (lastFixAgeSec > messageAffinityMin * 60) {
         continue;
       }
