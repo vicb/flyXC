@@ -21,42 +21,17 @@ export class Scorer {
   /**
    * Scores a track
    *
-   * `handleScoringResult` function is invoked in a worker context which means that 'this' keyword is a reference
-   * to the worker itself. If a function body uses 'this' keyword  and is sent to the constructor as a reference,
-   * it will not work. In this case, the function should be wrapped in an arrow function (see example bellow).<br/>
-   *
-   * E.g:
-   * ```
-   * class MyClass {
-   * ...
-   *   handleResult(result: ScoringResult){
-   *   ...
-   *     this.doSomethingWithResult(result);
-   *   ...
-   *   }
-   *   ...
-   *   // although this is a valid code, it will not work because 'this' is the worker.
-   *   const scorer = new Scorer();
-   *   const scoringRequestId = scorer.score(track, league, this.handleResult);
-   *   // the correct syntax is:
-   *   const scoringRequestId = scorer.core(track, league, (result)=>this.handleResult(result));
-   * }
-   * ```
-   *
    * @param track
    * @param league
-   * @param handleScoringResult {ScoringResultHandler}
-   *        Takes the ScoringResult into account
-   * @return {number} a number that identifies this scoring request
+   * @param handleScoringResult Callback called with the scoring solution
+   * @return  a number that identifies this scoring request
    */
   public score(track: LatLonAltTime[], league: LeagueCode, handleScoringResult: ScoringResultHandler): number {
-    // lazy creation of the worker
-    this.scoringWorker ??= this.createWorker();
     // stores the handler for retrieval when handling worker response message
     const id = ++this.currentScoringRequestId;
     this.handlers.set(id, handleScoringResult);
     try {
-      this.scoringWorker.postMessage({
+      this.getWorker().postMessage({
         request: {
           track: {
             points: track,
@@ -77,6 +52,12 @@ export class Scorer {
    */
   public cleanup() {
     this.scoringWorker?.terminate();
+  }
+
+  // get worker with lazy instanciation
+  private getWorker(): Worker {
+    this.scoringWorker ??= this.createWorker();
+    return this.scoringWorker;
   }
 
   private createWorker(): Worker {

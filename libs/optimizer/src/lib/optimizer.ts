@@ -61,7 +61,7 @@ export interface ScoringResult {
     in: LatLon;
     out: LatLon;
   };
-  // optimized path suitable for gmaps APIs
+  // optimized path
   path: { lat: number; lng: number }[];
 }
 
@@ -200,7 +200,7 @@ function toOptimizationResult(solution: Solution, track: ScoringTrack): ScoringR
     closingPoints,
     path: [closingPoints?.in, startPoint, ...turnpoints, endPoint, closingPoints?.out]
       .filter((p) => p != null)
-      .map((latLon) => ({ lat: latLon?.lat, lng: latLon?.lon })),
+      .map((latLon) => ({ lat: latLon.lat, lng: latLon.lon })),
   };
 }
 

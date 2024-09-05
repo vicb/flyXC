@@ -270,7 +270,7 @@ export class PathElement extends connect(store)(LitElement) {
       // add number of turn points for an open distance
       circuit =
         scoringResult.circuit === CircuitType.OpenDistance
-          ? CIRCUIT_SHORT_NAME[scoringResult.circuit] + scoringResult.turnpoints.length
+          ? CIRCUIT_SHORT_NAME[scoringResult.circuit] + String(scoringResult.turnpoints.length)
           : CIRCUIT_SHORT_NAME[scoringResult.circuit];
       window.parent.postMessage(
         JSON.stringify({
