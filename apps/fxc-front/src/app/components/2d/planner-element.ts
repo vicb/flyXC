@@ -1,3 +1,4 @@
+import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
 import type { CSSResult, TemplateResult } from 'lit';
 import { css, html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
@@ -5,9 +6,9 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
-import type { Score } from '../../logic/score/scorer';
 import * as units from '../../logic/units';
-import { decrementSpeed, incrementSpeed, setSpeedKmh } from '../../redux/planner-slice';
+import * as plannerSlice from '../../redux/planner-slice';
+import { currentTrack } from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 
@@ -23,7 +24,7 @@ const ICON_EXPAND =
 @customElement('planner-element')
 export class PlannerElement extends connect(store)(LitElement) {
   @state()
-  private score?: Score;
+  private score?: ScoringResult;
   @state()
   private speedKmh = 20;
   @state()
@@ -34,6 +35,8 @@ export class PlannerElement extends connect(store)(LitElement) {
   private hideDetails = store.getState().browser.isSmallScreen;
   @state()
   private isFreeDrawing = false;
+  @state()
+  private hasCurrentTrack = false;
 
   private duration?: number;
   private readonly closeHandler = () => this.dispatchEvent(new CustomEvent('close'));
@@ -42,8 +45,10 @@ export class PlannerElement extends connect(store)(LitElement) {
   private readonly downloadHandler = () => this.dispatchEvent(new CustomEvent('download'));
   private readonly resetHandler = () => this.dispatchEvent(new CustomEvent('reset'));
   private readonly drawHandler = () => this.dispatchEvent(new CustomEvent('draw-route'));
+  private readonly scoreHandler = () => this.dispatchEvent(new CustomEvent('score-track'));
 
   stateChanged(state: RootState): void {
+    this.hasCurrentTrack = currentTrack(state) != null;
     this.distanceM = state.planner.distanceM;
     this.score = state.planner.score;
     this.speedKmh = state.planner.speedKmh;
@@ -141,12 +146,12 @@ export class PlannerElement extends connect(store)(LitElement) {
         <div>
           <div>${this.score.circuit}</div>
           <div class="large">
-            ${unsafeHTML(units.formatUnit(this.score.distanceM / 1000, this.units.distance, undefined, 'unit'))}
+            ${unsafeHTML(units.formatUnit(this.score.lengthKm, this.units.distance, undefined, 'unit'))}
           </div>
         </div>
         <div class="collapsible">
           <div>Points = ${this.getMultiplier()}</div>
-          <div class="large">${this.score.points.toFixed(1)}</div>
+          <div class="large">${this.score ? this.score.score.toFixed(1) : '-'}</div>
         </div>
         <div class="collapsible">
           <div>Total distance</div>
@@ -185,6 +190,12 @@ export class PlannerElement extends connect(store)(LitElement) {
             ${unsafeHTML(units.formatUnit(this.speedKmh as number, this.units.speed, undefined, 'unit'))}
           </div>
         </div>
+        ${when(
+          this.hasCurrentTrack,
+          () => html` <div class="collapsible hoverable" @click=${this.scoreHandler}>
+            <span><i class="las la-trophy"></i>Score Track</span>
+          </div>`,
+        )}
         <div
           @click=${this.drawHandler}
           class=${when(
@@ -219,7 +230,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   }
 
   private getMultiplier() {
-    return this.score?.multiplier == 1 ? 'kms' : `${this.score?.multiplier} x kms`;
+    return this.score?.multiplier === 1 ? 'kms' : `${this.score?.multiplier} x kms`;
   }
 
   private getDuration(): string {
@@ -242,23 +253,23 @@ export class PlannerElement extends connect(store)(LitElement) {
     const width = target.clientWidth;
     const delta = x > width / 2 ? 1 : -1;
     const duration = (Math.floor((this.duration as number) / 15) + delta) * 15;
-    store.dispatch(setSpeedKmh(this.distanceM / ((1000 * Math.max(15, duration)) / 60)));
+    store.dispatch(plannerSlice.setSpeedKmh(this.distanceM / ((1000 * Math.max(15, duration)) / 60)));
   }
 
   private wheelDuration(e: WheelEvent): void {
     const delta = Math.sign(e.deltaY);
     const duration = (Math.floor((this.duration as number) / 15) + delta) * 15;
-    store.dispatch(setSpeedKmh(this.distanceM / ((1000 * Math.max(15, duration)) / 60)));
+    store.dispatch(plannerSlice.setSpeedKmh(this.distanceM / ((1000 * Math.max(15, duration)) / 60)));
   }
 
   private changeSpeed(e: MouseEvent): void {
     const target = e.currentTarget as HTMLElement;
     const x = e.clientX - target.getBoundingClientRect().left;
     const width = target.clientWidth;
-    store.dispatch(x > width / 2 ? incrementSpeed() : decrementSpeed());
+    store.dispatch(x > width / 2 ? plannerSlice.incrementSpeed() : plannerSlice.decrementSpeed());
   }
 
   private wheelSpeed(e: WheelEvent): void {
-    store.dispatch(e.deltaY > 0 ? incrementSpeed() : decrementSpeed());
+    store.dispatch(e.deltaY > 0 ? plannerSlice.incrementSpeed() : plannerSlice.decrementSpeed());
   }
 }

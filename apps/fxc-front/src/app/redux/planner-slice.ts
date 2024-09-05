@@ -1,12 +1,12 @@
+import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 
 import { deleteUrlParam, getUrlParamValues, ParamNames, setUrlParamValue } from '../logic/history';
 import type { LeagueCode } from '../logic/score/league/leagues';
-import type { Score } from '../logic/score/scorer';
 
 export type PlannerState = {
-  score?: Score;
+  score?: ScoringResult;
   speedKmh: number;
   // Total length of the path.
   distanceM: number;
@@ -34,7 +34,7 @@ const plannerSlice = createSlice({
   name: 'planner',
   initialState,
   reducers: {
-    setScore: (state, action: PayloadAction<Score | undefined>) => {
+    setScore: (state, action: PayloadAction<ScoringResult | undefined>) => {
       state.score = action.payload;
     },
     setDistanceM: (state, action: PayloadAction<number>) => {

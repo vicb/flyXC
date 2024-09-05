@@ -1,10 +1,10 @@
 import '../ui/share-modal';
 import '../ui/waypoint-modal';
 
-import type { LatLon } from '@flyxc/common';
+import type { LatLon, RuntimeTrack } from '@flyxc/common';
 import { CircuitType } from '@flyxc/optimizer/lib/api';
 import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
-import { modalController } from '@ionic/core/components';
+import { modalController, toastController } from '@ionic/core/components';
 import { getPreciseDistance } from 'geolib';
 import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
@@ -17,13 +17,11 @@ import { addAltitude } from '../../logic/elevation';
 import { getCurrentUrl, pushCurrentState } from '../../logic/history';
 import { drawRoute } from '../../logic/messages';
 import type { LeagueCode } from '../../logic/score/league/leagues';
-import { getScoringRuleName } from '../../logic/score/league/leagues';
-import { Score } from '../../logic/score/scorer';
-import { setDistanceM, setEnabled, setRoute, setScore } from '../../redux/planner-slice';
+import { Scorer } from '../../logic/score/scorer';
+import * as plannerSlice from '../../redux/planner-slice';
+import { currentTrack } from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
-import type { Request as WorkerRequest, Response as WorkerResponse } from '../../workers/optimizer';
-import ScoringWorker from '../../workers/optimizer?worker';
 import type { PlannerElement } from './planner-element';
 
 // Route color by circuit type.
@@ -56,6 +54,7 @@ export class PathElement extends connect(store)(LitElement) {
   @state()
   private isFreeDrawing = false;
 
+  private currentTrack?: RuntimeTrack;
   private line?: google.maps.Polyline;
   private optimizedLine?: google.maps.Polyline;
   // Set to true to block updating the state.
@@ -66,10 +65,11 @@ export class PathElement extends connect(store)(LitElement) {
   private closingSector?: ClosingSector;
   private faiSectors?: FaiSectors;
   private plannerElement?: PlannerElement;
-  private scoringRequestId = 0;
-  private scoringWorker?: Worker;
+  private scorer?: Scorer;
+  private toastScoring?: HTMLIonToastElement;
 
   stateChanged(state: RootState): void {
+    this.currentTrack = currentTrack(state);
     this.league = state.planner.league;
     this.enabled = state.planner.enabled;
     this.encodedRoute = state.planner.route;
@@ -114,7 +114,7 @@ export class PathElement extends connect(store)(LitElement) {
     this.line.setVisible(!this.isFreeDrawing);
     this.optimizedLine?.setVisible(!this.isFreeDrawing);
     this.doNotSyncState = true;
-    if (this.encodedRoute.length == 0) {
+    if (this.encodedRoute.length === 0) {
       this.setDefaultPath();
     } else {
       const path = this.line.getPath();
@@ -164,7 +164,7 @@ export class PathElement extends connect(store)(LitElement) {
     google.maps.event.addListener(path, 'remove_at', () => this.handlePathUpdates());
     google.maps.event.addListener(path, 'insert_at', () => this.handlePathUpdates());
     google.maps.event.addListener(line, 'rightclick', (event: google.maps.PolyMouseEvent): void => {
-      if (event.vertex != null) {
+      if (event.vertex !== undefined) {
         const path = line.getPath();
         if (path.getLength() > 2) {
           path.removeAt(event.vertex);
@@ -172,7 +172,7 @@ export class PathElement extends connect(store)(LitElement) {
       }
     });
     google.maps.event.addListener(line, 'dblclick', (event: google.maps.PolyMouseEvent): void => {
-      if (event.vertex != null) {
+      if (event.vertex !== undefined) {
         const path = line.getPath();
         if (path.getLength() > 2) {
           path.removeAt(event.vertex);
@@ -183,7 +183,7 @@ export class PathElement extends connect(store)(LitElement) {
       this.appendToPath(e.latLng as google.maps.LatLng),
     );
     this.onBoundsChanged = google.maps.event.addListener(this.map, 'bounds_changed', () => {
-      if (this.enabled && this.encodedRoute.length == 0) {
+      if (this.enabled && this.encodedRoute.length === 0) {
         this.updateLineFromState();
       }
     });
@@ -201,55 +201,31 @@ export class PathElement extends connect(store)(LitElement) {
       : [];
   }
 
-  // Optimize the route and draw the optimize lines and sectors.
+  // Optimize the route.
   private optimize(): void {
     const { line } = this;
     if (!line || line.getPath().getLength() < 2 || this.doNotSyncState) {
       return;
     }
 
-    const points = this.getPathPoints();
+    const points = this.getPathPoints().map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 }));
 
-    if (!this.scoringWorker) {
-      this.scoringWorker = new ScoringWorker();
-      this.scoringWorker.onmessage = (msg: MessageEvent<WorkerResponse>) => {
-        if (msg.data.id == this.scoringRequestId) {
-          this.optimizerCallback(msg.data.response);
-        }
-      };
-    }
-
-    const request: WorkerRequest = {
-      request: {
-        track: {
-          points: points.map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 })),
-        },
-        ruleName: getScoringRuleName(this.league),
-      },
-      id: ++this.scoringRequestId,
-    };
-
-    this.scoringWorker.postMessage(request);
+    this.getScorer().score(points, this.league, (result) => this.drawOptimization(result));
   }
 
-  private optimizerCallback(result: ScoringResult): void {
-    const score = this.toScore(result);
-    store.dispatch(setScore(score));
+  // Lazily create and get scorer
+  private getScorer() {
+    this.scorer ??= new Scorer();
+    return this.scorer;
+  }
 
-    const path = [result.startPoint, ...result.turnpoints, result.endPoint]
-      .filter((p) => p != null)
-      .map((p) => ({ lat: p!.lat, lng: p!.lon }));
-
-    if (result.circuit != CircuitType.OpenDistance) {
-      path.push(path[0]);
-    }
-
+  private drawOptimization(result: ScoringResult): void {
     this.optimizedLine ??= new google.maps.Polyline();
 
     this.optimizedLine.setOptions({
       map: this.map,
-      path,
-      strokeColor: ROUTE_STROKE_COLORS[score.circuit],
+      path: result.path,
+      strokeColor: ROUTE_STROKE_COLORS[result.circuit],
       strokeOpacity: 0.8,
       strokeWeight: 3,
       zIndex: 1000,
@@ -262,7 +238,7 @@ export class PathElement extends connect(store)(LitElement) {
 
     if (result.closingPoints) {
       this.closingSector.center = result.closingPoints.in;
-      this.closingSector.radiusM = score.closingRadiusKm * 1000;
+      this.closingSector.radiusM = (result.closingRadiusKm ?? 0) * 1000;
       this.closingSector.update();
       this.closingSector.setMap(this.map);
     } else {
@@ -273,37 +249,29 @@ export class PathElement extends connect(store)(LitElement) {
       this.faiSectors = new FaiSectors();
       this.faiSectors.addListeners('rightclick', (e) => this.appendToPath(e.latLng));
     }
-    if (score.circuit == CircuitType.FlatTriangle || score.circuit == CircuitType.FaiTriangle) {
+    if (result.circuit == CircuitType.FlatTriangle || result.circuit == CircuitType.FaiTriangle) {
       this.faiSectors.update(result.turnpoints);
       this.faiSectors.setMap(this.map);
     } else {
       this.faiSectors.setMap(null);
     }
 
-    this.postScoreToHost(score);
-  }
-
-  private toScore(result: ScoringResult): Score {
-    return new Score({
-      circuit: result.circuit,
-      distanceM: result.lengthKm * 1000,
-      multiplier: result.multiplier,
-      closingRadiusKm: result.closingRadiusKm ?? 0,
-      indexes: result.solutionIndices,
-      points: result.score,
-    });
+    store.dispatch(plannerSlice.setScore(result));
+    // FFVL/CFD
+    this.postScoreToHost(result);
   }
 
   // Sends a message to the iframe host with the changes.
-  private postScoreToHost(score: Score) {
+  private postScoreToHost(scoringResult: ScoringResult) {
     let kms = '';
     let circuit = '';
-    if (score.distanceM && window.parent) {
-      kms = (score.distanceM / 1000).toFixed(1);
-      circuit = CIRCUIT_SHORT_NAME[score.circuit];
-      if (score.circuit == CircuitType.OpenDistance) {
-        circuit += score.indexes.length - 2;
-      }
+    if (scoringResult.lengthKm !== 0 && window.parent) {
+      kms = scoringResult.lengthKm.toFixed(1);
+      // add number of turn points for an open distance
+      circuit =
+        scoringResult.circuit === CircuitType.OpenDistance
+          ? CIRCUIT_SHORT_NAME[scoringResult.circuit] + String(scoringResult.turnpoints.length)
+          : CIRCUIT_SHORT_NAME[scoringResult.circuit];
       window.parent.postMessage(
         JSON.stringify({
           kms,
@@ -332,14 +300,14 @@ export class PathElement extends connect(store)(LitElement) {
     const path = this.line.getPath();
     if (!this.doNotSyncState) {
       pushCurrentState();
-      store.dispatch(setRoute(google.maps.geometry.encoding.encodePath(path)));
+      store.dispatch(plannerSlice.setRoute(google.maps.geometry.encoding.encodePath(path)));
     }
     let distanceM = 0;
     const latlonPath = path.getArray().map((latLng) => ({ lat: latLng.lat(), lon: latLng.lng() }));
     for (let i = 1; i < latlonPath.length; i++) {
       distanceM += getPreciseDistance(latlonPath[i - 1], latlonPath[i]);
     }
-    store.dispatch(setDistanceM(distanceM));
+    store.dispatch(plannerSlice.setDistanceM(distanceM));
     this.optimize();
   }
 
@@ -373,12 +341,47 @@ export class PathElement extends connect(store)(LitElement) {
       el.addEventListener('download', async () => {
         await this.openDownloadModal();
       });
-      el.addEventListener('reset', () => store.dispatch(setRoute('')));
+      el.addEventListener('reset', () => store.dispatch(plannerSlice.setRoute('')));
       el.addEventListener('draw-route', () => {
         drawRoute.emit();
-        store.dispatch(setRoute(''));
+        store.dispatch(plannerSlice.setRoute(''));
       });
-      el.addEventListener('close', () => store.dispatch(setEnabled(false)));
+      el.addEventListener('close', () => store.dispatch(plannerSlice.setEnabled(false)));
+      el.addEventListener('score-track', async () => {
+        // TODO: return if already running
+        if (!this.currentTrack) {
+          return;
+        }
+
+        // TODO: dialog if too long
+        this.toastScoring = await toastController.create({
+          message: 'Scoring in progress',
+          position: 'middle',
+          duration: 30000,
+        });
+        await this.toastScoring.present();
+
+        const track = this.currentTrack;
+        const points = track.lat.map((lat, index) => ({
+          lat,
+          lon: track.lon[index],
+          alt: track.alt[index],
+          timeSec: track.timeSec[index],
+        }));
+        this.getScorer().score(points, this.league, async (result) => {
+          this.handleScoringResult(result);
+          await this.toastScoring?.dismiss();
+        });
+      });
+    }
+  }
+
+  private handleScoringResult(result: ScoringResult) {
+    if (this.currentTrack && this.currentTrack.timeSec.length > 1) {
+      const lastTimeSec = this.currentTrack.timeSec.at(-1)!;
+      const durationS = lastTimeSec - this.currentTrack.timeSec[0];
+      store.dispatch(plannerSlice.setSpeedKmh((result.lengthKm / durationS) * 3600));
+      store.dispatch(plannerSlice.setRoute(google.maps.geometry.encoding.encodePath(result.path)));
     }
   }
 
@@ -398,5 +401,7 @@ export class PathElement extends connect(store)(LitElement) {
     this.faiSectors = undefined;
     this.plannerElement?.remove();
     this.plannerElement = undefined;
+    this.scorer?.cleanup();
+    this.scorer = undefined;
   }
 }

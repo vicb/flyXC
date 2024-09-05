@@ -37,7 +37,7 @@ import {
   setReturnUrl,
   updateTrackers,
 } from '../../redux/live-track-slice';
-import { setEnabled } from '../../redux/planner-slice';
+import * as planner from '../../redux/planner-slice';
 import * as sel from '../../redux/selectors';
 import * as skyways from '../../redux/skyways-slice';
 import type { RootState } from '../../redux/store';
@@ -204,7 +204,7 @@ export class MainMenu extends connect(store)(LitElement) {
     if (!this.plannerEnabled) {
       await maybeHideSidePane();
     }
-    store.dispatch(setEnabled(!this.plannerEnabled));
+    store.dispatch(planner.setEnabled(!this.plannerEnabled));
   }
 
   private async handleSun() {
