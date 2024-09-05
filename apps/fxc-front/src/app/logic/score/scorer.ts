@@ -9,15 +9,21 @@ export type ScoringResultHandler = (result: ScoringResult) => void;
 export class Scorer {
   private scoringWorker?: Worker;
   private currentScoringRequestId = 0;
+  /**
+   * Associate the result handler of every scoring request with the scoring request identifier.
+   * The scoring request identifier is a sequence number computed by incrementation of `currentScoringRequestId` field.
+   * This identifier is sent to the worker (`id` field of the message) and returned by the worker in the response
+   * message (`data.id` field).
+   * The handler is retrieved and invoked when the worker response is received.
+   */
   private handlers: Map<number, ScoringResultHandler> = new Map();
 
   /**
    * Scores a track
    *
-   * `handleScoringResult` function is invoked in a
-   * worker context which means that 'this' keyword is a reference to the worker itself.
-   * If a function body uses 'this' keyword  and is sent to the constructor as a reference, it will not work.
-   * In this case, the function should be wrapped in an arrow function (see example bellow).<br/>
+   * `handleScoringResult` function is invoked in a worker context which means that 'this' keyword is a reference
+   * to the worker itself. If a function body uses 'this' keyword  and is sent to the constructor as a reference,
+   * it will not work. In this case, the function should be wrapped in an arrow function (see example bellow).<br/>
    *
    * E.g:
    * ```
@@ -46,10 +52,10 @@ export class Scorer {
   public score(track: LatLonAltTime[], league: LeagueCode, handleScoringResult: ScoringResultHandler): number {
     // lazy creation of the worker
     this.scoringWorker ??= this.createWorker();
+    // stores the handler for retrieval when handling worker response message
+    const id = this.currentScoringRequestId++;
+    this.handlers.set(id, handleScoringResult);
     try {
-      // stores the handler for retrieval when handling worker response message
-      const scoringRequestId = this.currentScoringRequestId++;
-      this.handlers.set(scoringRequestId, handleScoringResult );
       this.scoringWorker.postMessage({
         request: {
           track: {
@@ -57,9 +63,9 @@ export class Scorer {
           },
           ruleName: getScoringRuleName(league),
         },
-        id: scoringRequestId,
+        id,
       });
-      return scoringRequestId;
+      return id;
     } catch (error) {
       console.error('Error posting message to scoring worker:', error);
       return -1;
@@ -70,16 +76,7 @@ export class Scorer {
    * release resources related to the worker.
    */
   public cleanup() {
-    if (!this.scoringWorker) {
-      return;
-    }
-    this.scoringWorker.onmessage = null;
-    this.scoringWorker.onerror = null;
-    this.scoringWorker.onmessageerror = null;
-    this.scoringWorker.terminate();
-    this.scoringWorker = undefined;
-    this.handlers.clear();
-    this.currentScoringRequestId = 0;
+    this.scoringWorker?.terminate();
   }
 
   private createWorker(): Worker {
@@ -87,7 +84,7 @@ export class Scorer {
     scoringWorker.onmessage = (msg: MessageEvent<WorkerResponse>) => {
       if (msg.data.id) {
         // retrieve the handler and invoke it
-        this.handlers.get(msg.data.id)?.call(this, msg.data.response)
+        this.handlers.get(msg.data.id)?.call(this, msg.data.response);
         if (msg.data.response.optimal) {
           this.handlers.delete(msg.data.id);
         }

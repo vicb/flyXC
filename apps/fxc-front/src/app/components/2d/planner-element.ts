@@ -151,7 +151,7 @@ export class PlannerElement extends connect(store)(LitElement) {
         </div>
         <div class="collapsible">
           <div>Points = ${this.getMultiplier()}</div>
-          <div class="large">${this.score?.score.toFixed(1)}</div>
+          <div class="large">${this.score ? this.score.score.toFixed(1) : '-'}</div>
         </div>
         <div class="collapsible">
           <div>Total distance</div>

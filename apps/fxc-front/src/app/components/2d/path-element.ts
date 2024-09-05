@@ -66,7 +66,7 @@ export class PathElement extends connect(store)(LitElement) {
   private faiSectors?: FaiSectors;
   private plannerElement?: PlannerElement;
   private scorer?: Scorer;
-  private scoreInProgress?: HTMLIonToastElement;
+  private toastScoring?: HTMLIonToastElement;
 
   stateChanged(state: RootState): void {
     this.currentTrack = currentTrack(state);
@@ -353,12 +353,12 @@ export class PathElement extends connect(store)(LitElement) {
         }
 
         // TODO: dialog if too long
-        this.scoreInProgress = await toastController.create({
+        this.toastScoring = await toastController.create({
           message: 'Scoring in progress',
           position: 'middle',
           duration: 30000,
         });
-        await this.scoreInProgress.present();
+        await this.toastScoring.present();
 
         const track = this.currentTrack;
         const points = track.lat.map((lat, index) => ({
@@ -369,7 +369,7 @@ export class PathElement extends connect(store)(LitElement) {
         }));
         this.getScorer().score(points, this.league, async (result) => {
           this.handleScoringResult(result);
-          await this.scoreInProgress?.dismiss();
+          await this.toastScoring?.dismiss();
         });
       });
     }
