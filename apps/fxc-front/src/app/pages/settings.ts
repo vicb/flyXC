@@ -271,7 +271,9 @@ export class SettingsPage extends LitElement {
                   .binder=${this.binder}
                   label="UUID"
                   .hint=${html`<ion-text class="ion-padding-horizontal ion-padding-top block">
-                    Enter your Bircom ID. It should look like "12345678-ab45-b23c-8549-1f3456c89e12".
+                    Enter your Bircom ID. It should look like "12345678-ab45-b23c-8549-1f3456c89e12". Jigish Gohil
+                    explains the setup in
+                    <a href="https://youtu.be/NuzwphHiXkI?si=6MW1hl8fodEnOTgd" target="_blank">this video</a>.
                   </ion-text>`}
                 >
                 </device-card>
