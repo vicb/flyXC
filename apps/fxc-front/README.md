@@ -15,6 +15,7 @@
 - [JuMo](https://github.com/jujumo)
 - [Karel Vrbensky](https://github.com/vrka)
 - [Ketan Padegaonkar](https://github.com/ketan)
+- [Jigish Gohil](https://github.com/cyberorg)
 
 ### Credits
 
