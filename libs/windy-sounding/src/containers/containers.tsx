@@ -3,11 +3,11 @@ import { intlFormatDistance } from 'date-fns/intlFormatDistance';
 import { useCallback, useState } from 'preact/hooks';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
-import { Favorites } from '../components/favorites.js';
-import { LoadingIndicator } from '../components/loading.js';
-import { Message } from '../components/message.jsx';
-import { SkewT, type SkewTProps } from '../components/skewt.js';
-import { WindProfile } from '../components/wind-profile.jsx';
+import { Favorites } from '../components/favorites';
+import { LoadingIndicator } from '../components/loading';
+import { Message } from '../components/message';
+import { SkewT, type SkewTProps } from '../components/skewt';
+import { WindProfile } from '../components/wind-profile';
 import { pluginConfig } from '../config';
 import flyxcIcon from '../img/jumoplane.svg';
 import * as forecastSlice from '../redux/forecast-slice';
@@ -16,7 +16,7 @@ import { centerMap, changeLocation, updateTime } from '../redux/meta';
 import * as pluginSlice from '../redux/plugin-slice';
 import { type AppDispatch, type RootState } from '../redux/store';
 import * as unitsSlice from '../redux/units-slice';
-import { formatTimestamp } from '../util/utils.js';
+import { formatTimestamp } from '../util/utils';
 
 // Plugin
 
