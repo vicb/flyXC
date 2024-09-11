@@ -33,7 +33,7 @@
           "error",
           {
             "ignoredFiles": ["{projectRoot}/vite.config.ts", "vite.config.ts"],
-            "ignoredDependencies": ["react-redux"]
+            "ignoredDependencies": ["react-redux", "preact"]
           }
         ]
       }
