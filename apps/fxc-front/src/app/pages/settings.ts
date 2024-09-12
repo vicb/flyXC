@@ -271,7 +271,7 @@ export class SettingsPage extends LitElement {
                   .binder=${this.binder}
                   label="UUID"
                   .hint=${html`<ion-text class="ion-padding-horizontal ion-padding-top block">
-                    Enter your Bircom ID. It should look like "12345678-ab45-b23c-8549-1f3456c89e12". Jigish Gohil
+                    Enter your Paratracker ID. It should look like "12345678-ab45-b23c-8549-1f3456c89e12". Jigish Gohil
                     explains the setup in
                     <a href="https://youtu.be/NuzwphHiXkI?si=6MW1hl8fodEnOTgd" target="_blank">this video</a>.
                   </ion-text>`}
@@ -502,7 +502,7 @@ export class SettingsPage extends LitElement {
             <a href="https://www.glidernet.org/" target="_blank">OGN (Open Glider Network)</a>
           </li>
           <li><a href="https://live.xcontest.org/" target="_blank">XCTrack (XContest live)</a></li>
-          <li><a href="https://bircom.in/" target="_blank">Bircom (Meshtastic)</a></li>
+          <li><a href="https://paratracker.in/" target="_blank">Paratracker (LoRa mesh based)</a></li>
         </ul>
         <p>
           <a href="mailto:help@flyxc.app?subject=flyXC%20registration%20error" target="_blank"> Contact us by email </a>
