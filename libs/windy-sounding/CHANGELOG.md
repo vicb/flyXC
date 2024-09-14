@@ -1,5 +1,9 @@
 # Release history
 
+## 4.1.7 - Sep 14, 2024
+
+- Update the list of supported models to exclude AROME-HD
+
 ## 4.1.6 - Aug 26, 2024
 
 - Fix the required update check
