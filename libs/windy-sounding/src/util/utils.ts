@@ -1,16 +1,16 @@
 import type { Fav } from '@windy/interfaces';
 
 // Some models do not have the required parameters for soundings (i.e. surface only)
-export const SUPPORTED_MODEL_PREFIXES = [
-  'ecmwf',
-  'gfs',
-  'nam',
-  'icon',
-  'hrrr',
-  'ukv',
-  'arome',
-  'czeAladin',
-  'canHrdps',
+const SUPPORTED_MODELS = [
+  /^ecmwf$/,
+  /^gfs$/,
+  /^nam/,
+  /^icon/,
+  /^hrrr/,
+  /^ukv$/,
+  /^arome\w+/, // "arome" is unsupported
+  /^czeAladin$/,
+  /^canHrdps$/,
 ];
 export const DEFAULT_MODEL = 'ecmwf';
 
@@ -40,7 +40,19 @@ export function formatTimestamp(ts: number) {
  * Some models only include surface data and can not be used for soundings.
  */
 export function getSupportedModelName(windyModelName: string): string {
-  return SUPPORTED_MODEL_PREFIXES.some((prefix) => windyModelName.startsWith(prefix)) ? windyModelName : DEFAULT_MODEL;
+  return isSupportedModelName(windyModelName) ? windyModelName : DEFAULT_MODEL;
+}
+
+/**
+ * Checks if a Windy model name is supported for soundings.
+ *
+ * Some models only include surface data and can not be used for soundings.
+ *
+ * @param windyModelName - The Windy model name to check.
+ * @returns True if the model is supported, false otherwise.
+ */
+export function isSupportedModelName(windyModelName: string): boolean {
+  return SUPPORTED_MODELS.some((prefix) => prefix.test(windyModelName));
 }
 
 /**

@@ -2,7 +2,7 @@ import type { Fav, LatLon } from '@windy/interfaces';
 import { useState } from 'preact/hooks';
 
 import { round } from '../util/math';
-import { getFavLabel, latLon2Str, SUPPORTED_MODEL_PREFIXES } from '../util/utils';
+import { getFavLabel, isSupportedModelName, latLon2Str } from '../util/utils';
 
 const windyModels = W.models;
 
@@ -38,7 +38,7 @@ export function Favorites({ favorites, location, isMobile, onSelected, modelName
   if (isMobile) {
     const models: string[] = windyModels
       .getAllPointProducts(location)
-      .filter((model: string) => SUPPORTED_MODEL_PREFIXES.some((prefix) => model.startsWith(prefix)))
+      .filter((model: string) => isSupportedModelName(model))
       .sort();
 
     const { lat, lon } = location;
