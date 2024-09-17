@@ -224,7 +224,7 @@ export class PathElement extends connect(store)(LitElement) {
 
     this.optimizedLine.setOptions({
       map: this.map,
-      path: result.path,
+      path: result.path.map(({ lat, lon }) => ({ lat, lng: lon })),
       strokeColor: ROUTE_STROKE_COLORS[result.circuit],
       strokeOpacity: 0.8,
       strokeWeight: 3,
@@ -381,7 +381,11 @@ export class PathElement extends connect(store)(LitElement) {
       const lastTimeSec = this.currentTrack.timeSec.at(-1)!;
       const durationS = lastTimeSec - this.currentTrack.timeSec[0];
       store.dispatch(plannerSlice.setSpeedKmh((result.lengthKm / durationS) * 3600));
-      store.dispatch(plannerSlice.setRoute(google.maps.geometry.encoding.encodePath(result.path)));
+      store.dispatch(
+        plannerSlice.setRoute(
+          google.maps.geometry.encoding.encodePath(result.path.map(({ lat, lon }) => ({ lat, lng: lon }))),
+        ),
+      );
     }
   }
 
