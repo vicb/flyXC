@@ -6,6 +6,7 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
+import type { LeagueCode } from '../../logic/score/league/leagues';
 import * as units from '../../logic/units';
 import * as plannerSlice from '../../redux/planner-slice';
 import { currentTrack } from '../../redux/selectors';
@@ -37,6 +38,8 @@ export class PlannerElement extends connect(store)(LitElement) {
   private isFreeDrawing = false;
   @state()
   private hasCurrentTrack = false;
+  @state()
+  private league: LeagueCode = 'xc';
 
   private duration?: number;
   private readonly closeHandler = () => this.dispatchEvent(new CustomEvent('close'));
@@ -55,6 +58,7 @@ export class PlannerElement extends connect(store)(LitElement) {
     this.units = state.units;
     this.duration = ((this.distanceM / this.speedKmh) * 60) / 1000;
     this.isFreeDrawing = state.planner.isFreeDrawing;
+    this.league = state.planner.league;
   }
 
   static get styles(): CSSResult {
@@ -191,9 +195,9 @@ export class PlannerElement extends connect(store)(LitElement) {
           </div>
         </div>
         ${when(
-          this.hasCurrentTrack,
+          this.hasCurrentTrack && this.league != 'none',
           () => html` <div class="collapsible hoverable" @click=${this.scoreHandler}>
-            <span><i class="las la-trophy"></i>Score Track</span>
+            <span><i class="las la-trophy"></i>Score track</span>
           </div>`,
         )}
         <div
