@@ -62,7 +62,7 @@ export interface ScoringResult {
     out: LatLon;
   };
   // optimized path
-  path: { lat: number; lng: number }[];
+  path: LatLon[];
 }
 
 /**
@@ -198,9 +198,7 @@ function toOptimizationResult(solution: Solution, track: ScoringTrack): ScoringR
     })),
     turnpoints,
     closingPoints,
-    path: [closingPoints?.in, startPoint, ...turnpoints, endPoint, closingPoints?.out]
-      .filter((p) => p != null)
-      .map((latLon) => ({ lat: latLon.lat, lng: latLon.lon })),
+    path: [closingPoints?.in, startPoint, ...turnpoints, endPoint, closingPoints?.out].filter((p) => p != null),
   };
 }
 

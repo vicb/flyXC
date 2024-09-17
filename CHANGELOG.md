@@ -13,7 +13,7 @@
 
 - Add FIS Sectors
 - Update airspaces
- 
+
 ## 2.2.0 - April 14, 2024
 
 ### fxc-front
