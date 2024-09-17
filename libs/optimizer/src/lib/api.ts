@@ -7,6 +7,7 @@ export const scoringRuleNames = [
   'CzechOutsideEurope',
   'FFVL',
   'Leonardo',
+  'None',
   'Norway',
   'UKClub',
   'UKInternational',

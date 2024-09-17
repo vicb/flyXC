@@ -8,6 +8,9 @@ import { mergeTracks } from './utils/merge-tracks';
 
 describe('optimizer', () => {
   scoringRuleNames.forEach((ruleName) => {
+    if (ruleName === 'None') {
+      return;
+    }
     describe(`${ruleName} rules`, () => {
       it('Scores an empty request with a score of 0', () => {
         const request = {
@@ -306,6 +309,7 @@ function getFreeDistanceMultiplier(scoringRules: ScoringRuleName) {
     case 'XContest':
     case 'XContestPPG':
     case 'WorldXC':
+    case 'None':
       return 1;
     case 'CzechOutsideEurope':
       return 0.8;
@@ -335,6 +339,8 @@ function getFlatTriangleMultiplier(scoringRules: ScoringRuleName) {
       return 1.8;
     case 'XContestPPG':
       return 2;
+    case 'None':
+      return 1;
   }
 }
 
@@ -360,5 +366,7 @@ function getFaiTriangleMultiplier(scoringRules: ScoringRuleName) {
       return 1.5;
     case 'XContestPPG':
       return 4;
+    case 'None':
+      return 1;
   }
 }

@@ -92,8 +92,8 @@ export function* getOptimizer(request: ScoringRequest): Iterator<ScoringResult, 
   const { track } = request;
   const flight = toIgcFile(appendPointsIfNeeded(track, MIN_IGC_XC_SCORE_POINTS));
   const solverScoringRules = scoringRules.get(request.ruleName);
-  if (solverScoringRules == null) {
-    throw new Error(`Unknown scoring rule: ${request.ruleName}`);
+  if (solverScoringRules === undefined) {
+    return toOptimizationResult(toUnoptimizedSolution(track), track);
   }
   const options = toSolverOptions(request);
   const solutionIterator = solver(flight, solverScoringRules, options);
@@ -206,6 +206,11 @@ function pointToLatTon(point: Point): LatLon {
   return { lat: point.y, lon: point.x };
 }
 
+function trackToPoint(track: LatLon[], index: number): Point {
+  const latLon = track[index];
+  return { x: latLon.lon, y: latLon.lat, r: index };
+}
+
 function getClosingRadiusKm(solution: Solution): number | undefined {
   const closingDistance = solution.scoreInfo?.cp?.d;
 
@@ -272,4 +277,23 @@ function getSolutionIndices(solution: Solution, inputTrack: ScoringTrack): numbe
       // Map added dummy points back to the last point of the input track.
       .map((index) => Math.min(index!, inputTrack.points.length - 1))
   );
+}
+
+// https://github.com/mmomtchev/igc-xc-score/blob/da601fa5ade432c1e55808de5ad3336905ea6cf8/src/foundation.js#L48C1-L64C6
+function distanceEarthFCC(p1: LatLon, p2: LatLon) {
+  const df = p1.lat - p2.lat;
+  const dg = p1.lon - p2.lon;
+  const fmDegree = (p2.lat + p1.lat) / 2;
+  const fm = fmDegree / (180 / Math.PI);
+  // Speed up cos computation using:
+  // - cos(2x) = 2 * cos(x)^2 - 1
+  // - cos(a+b) = 2 * cos(a)cos(b) - cos(a-b)
+  const cosfm = Math.cos(fm);
+  const cos2fm = 2 * cosfm * cosfm - 1;
+  const cos3fm = cosfm * (2 * cos2fm - 1);
+  const cos4fm = 2 * cos2fm * cos2fm - 1;
+  const cos5fm = 2 * cos2fm * cos3fm - cosfm;
+  const k1 = 111.13209 - 0.566605 * cos2fm + 0.0012 * cos4fm;
+  const k2 = 111.41513 * cosfm - 0.09455 * cos3fm + 0.00012 * cos5fm;
+  return Math.sqrt(k1 * df * (k1 * df) + k2 * dg * (k2 * dg));
 }

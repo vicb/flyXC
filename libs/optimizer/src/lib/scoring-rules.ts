@@ -3,10 +3,10 @@ import * as igcXcScore from 'igc-xc-score';
 import type { ScoringRuleName } from './api';
 
 // TODO: Export the rules from igc-xc-score
-const scoringBaseModel = igcXcScore.scoringRules['XContest'];
-const openDistance = scoringBaseModel[0];
-const freeTriangle = scoringBaseModel[1];
-const faiTriangle = scoringBaseModel[2];
+const XContestScoring = igcXcScore.scoringRules['XContest'];
+const openDistance = XContestScoring[0];
+const freeTriangle = XContestScoring[1];
+const faiTriangle = XContestScoring[2];
 const outAndReturn = igcXcScore.scoringRules['FAI-OAR'][0];
 
 //Czech rules see https://www.xcontest.org/cesko/pravidla/
@@ -85,12 +85,13 @@ const wxcRule = [
   { ...faiTriangle, multiplier: 2, closingDistanceFixed: 0.2 },
 ];
 
-export const scoringRules: Map<ScoringRuleName, object> = new Map([
+export const scoringRules: Map<ScoringRuleName, object | undefined> = new Map([
   ['CzechEurope', czechEuropeRule],
   ['CzechLocal', czechLocalRule],
   ['CzechOutsideEurope', czechOutEuropeRule],
   ['FFVL', igcXcScore.scoringRules['FFVL']],
   ['Leonardo', leonardoRule],
+  ['None', undefined],
   ['Norway', norwayRule],
   ['UKClub', ukXclClubRule],
   ['UKInternational', ukXclInternationalRule],
