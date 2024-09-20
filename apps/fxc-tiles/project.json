@@ -76,8 +76,7 @@
       }
     },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/coverage/apps/airspaces"],
       "dependsOn": [
         {
           "projects": ["secrets"],
@@ -85,7 +84,13 @@
         }
       ],
       "options": {
-        "jestConfig": "apps/fxc-tiles/jest.config.ts"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
     },
     "container": {

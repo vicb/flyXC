@@ -71,6 +71,32 @@
         "targetName": "lint",
         "extensions": ["ts", "tsx", "js", "jsx", "html", "vue"]
       }
+    },
+    {
+      "plugin": "@nx/jest/plugin",
+      "options": {
+        "targetName": "test"
+      },
+      "include": [
+        "apps/fetcher/**/*",
+        "apps/fxc-front/**/*",
+        "apps/fxc-server/**/*",
+        "apps/fxc-tiles/**/*",
+        "apps/misc/**/*",
+        "apps/proxy/**/*",
+        "libs/common/**/*",
+        "libs/common-node/**/*",
+        "libs/optimizer/**/*",
+        "libs/vaadin-dom/**/*",
+        "libs/windy-sounding/**/*"
+      ]
+    },
+    {
+      "plugin": "@nx/jest/plugin",
+      "options": {
+        "targetName": "benchmark"
+      },
+      "include": ["apps/run/**/*"]
     }
   ]
 }
