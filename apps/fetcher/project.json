@@ -50,8 +50,6 @@
       }
     },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "dependsOn": [
         {
           "projects": ["secrets"],
@@ -59,7 +57,13 @@
         }
       ],
       "options": {
-        "jestConfig": "apps/fetcher/jest.config.ts"
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverage": true
+        }
       }
     },
     "container": {
