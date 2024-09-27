@@ -9,7 +9,7 @@ import {
   removeBeforeFromLiveTrack,
   removeDeviceFromLiveTrack,
 } from '@flyxc/common';
-import { getDatastore, getRedisClient, pushListCap } from '@flyxc/common-node';
+import { getDatastore, getRedisClient } from '@flyxc/common-node';
 import { Secrets } from '@flyxc/secrets';
 import type { Datastore } from '@google-cloud/datastore';
 import { program } from 'commander';
@@ -134,9 +134,10 @@ async function tick(state: protos.FetcherState, datastore: Datastore) {
         pipeline
           .del(Keys.supporterNames)
           .set(Keys.supporterNum, supporters.numSupporters)
-          .set(Keys.supporterAmount, supporters.totalAmount);
-        pushListCap(pipeline, Keys.supporterNames, Array.from(supporters.names), 50, 50);
-
+          .set(Keys.supporterAmount, supporters.totalAmount)
+          .set(Keys.supporterLast3MonthsAmount, supporters.last3MonthsAmount)
+          .del(Keys.supporterNames)
+          .rpush(Keys.supporterNames, ...Array.from(supporters.names).slice(0, 50));
         state.nextSupporterSyncSec = state.lastTickSec + SUPPORTER_SYNC_SEC;
       }
 

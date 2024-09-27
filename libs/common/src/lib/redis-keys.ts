@@ -114,6 +114,7 @@ export enum Keys {
   supporterNames = 'f:supporters',
   supporterNum = 'f:supporters:num',
   supporterAmount = 'f:supporters:amount',
+  supporterLast3MonthsAmount = 'f:supporters:amount3m',
 
   // [List]
   proxyInreach = 'p:inreach:logs',

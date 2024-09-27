@@ -3,10 +3,11 @@ import { modalController } from '@ionic/core/components';
 import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
 
 @customElement('supporter-modal')
 export class SupporterModal extends LitElement {
-  private supporters = { names: [], amount: 0, number: 0 };
+  private supporters = { names: [], amount: 0, number: 0, amountLast3Months: 0 };
 
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
@@ -38,7 +39,7 @@ export class SupporterModal extends LitElement {
           </p>
           <p>
             If you can afford it, please consider supporting flyXC with a small donation by clicking the button below.
-            It will help keep me motivated to maintain and improve it.
+            It will help keep the contributors motivated to maintain and improve it.
           </p>
         </ion-text>
 
@@ -52,10 +53,11 @@ export class SupporterModal extends LitElement {
 
         <p>
           <ion-text color="dark"
-            >Thanks to the ${this.supporters.number} supporters who have contributed a total of
-            $${this.supporters.amount}:
+            >Thanks to the ${this.supporters.number} supporters who have contributed
+            $${this.supporters.amountLast3Months} over the last 3 months and a total of $${this.supporters.amount}:
             <ul>
               ${this.supporters.names.map((n) => html`<li>${n}</li>`)}
+              ${when(this.supporters.names.length > 30, () => html`<li>...</li>`)}
             </ul>
           </ion-text>
         </p>
