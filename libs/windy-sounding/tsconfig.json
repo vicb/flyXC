@@ -15,7 +15,7 @@
     "jsxFragmentFactory": "Fragment"
   },
   "files": [],
-  "include": ["src"],
+  "include": ["src", "https.ts", "types"],
   "references": [
     {
       "path": "./tsconfig.lib.json"

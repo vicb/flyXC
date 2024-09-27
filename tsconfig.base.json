@@ -22,10 +22,7 @@
       "@flyxc/secrets": ["dist/libs/secrets/main.js"],
       "@vaadin/dom": ["libs/vaadin-dom/src/index.ts"],
       "@vaadin/nodom": ["libs/vaadin-nodom/src/index.ts"],
-      "@windy/*": [
-        "./node_modules/@windycom/plugin-devtools/types/*",
-        "./node_modules/@windycom/plugin-devtools/types/client/*"
-      ],
+      "@windy/*": ["libs/windy-sounding/types/*", "libs/windy-sounding/types/client/*"],
       "windy-sounding": ["libs/windy-sounding/src/index.ts"]
     }
   },
