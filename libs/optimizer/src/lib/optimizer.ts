@@ -130,12 +130,15 @@ function toUnoptimizedSolution(track: ScoringTrack): Solution {
       score: distance,
     },
     opt: {
+      launch: 0,
+      landing: track.points.length - 1,
       scoring: {
         name: '',
         code: 'od',
         multiplier: 1,
       },
       flight: undefined as any,
+      config: {},
     },
     optimal: true,
     id: 0,
@@ -256,15 +259,13 @@ function getClosingRadiusKm(solution: Solution): number | undefined {
     return undefined;
   }
 
-  // TODO: remove cast when https://github.com/mmomtchev/igc-xc-score/pull/233 is merged
-  const closingDistanceFixed = (solution.opt.scoring as any)?.closingDistanceFixed;
+  const closingDistanceFixed = solution.opt.scoring.closingDistanceFixed;
 
   if (closingDistanceFixed != null && closingDistance < closingDistanceFixed) {
     return closingDistanceFixed;
   }
 
-  // TODO: remove cast when https://github.com/mmomtchev/igc-xc-score/pull/233 is merged
-  const closingDistanceRelativeRatio = (solution.opt.scoring as any)?.closingDistanceRelative;
+  const closingDistanceRelativeRatio = solution.opt.scoring.closingDistanceRelative;
   const closingDistanceRelative =
     solution.scoreInfo?.distance != null && closingDistanceRelativeRatio != null
       ? closingDistanceRelativeRatio * solution.scoreInfo.distance
