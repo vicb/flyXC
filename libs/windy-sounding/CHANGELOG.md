@@ -1,5 +1,9 @@
 # Release history
 
+## 4.1.8
+
+- Drop `@windy.com/devtools`
+
 ## 4.1.7 - Sep 14, 2024
 
 - Update the list of supported models to exclude AROME-HD
