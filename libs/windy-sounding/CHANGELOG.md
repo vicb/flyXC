@@ -1,8 +1,9 @@
 # Release history
 
-## 4.1.8
+## 4.1.8 - Oct 4, 2024
 
-- Drop `@windy.com/devtools`
+- Drop `@windy.com/devtools` (use a local copy of the types)
+- Remember last used location and model
 
 ## 4.1.7 - Sep 14, 2024
 
