@@ -2,6 +2,7 @@ import type { ThunkAction, UnknownAction } from '@reduxjs/toolkit';
 import type { LatLon } from '@windy/interfaces';
 
 import { pluginConfig } from '../config';
+import { saveSetting, Settings } from '../util/settings';
 import { getSupportedModelName } from '../util/utils';
 import * as forecastSlice from './forecast-slice';
 import * as pluginSlice from './plugin-slice';
@@ -65,6 +66,7 @@ export const changeLocation =
     const modelName = pluginSlice.selModelName(getState());
     dispatch(forecastSlice.fetchForecast({ modelName, location }));
     dispatch(pluginSlice.setLocation(location));
+    saveSetting(Settings.location, JSON.stringify(location));
 
     maybeCreateAndMoveMarker(location);
 
@@ -74,6 +76,7 @@ export const changeLocation =
 export const changeModel =
   (modelName: string): ThunkAction<void, RootState, unknown, UnknownAction> =>
   (dispatch, getState) => {
+    saveSetting(Settings.model, modelName);
     const location = pluginSlice.selLocation(getState());
     dispatch(forecastSlice.fetchForecast({ modelName, location }));
     dispatch(pluginSlice.setModelName(getSupportedModelName(modelName)));
