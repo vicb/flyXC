@@ -5,7 +5,7 @@ export const Settings = {
   model: 2,
 } as const;
 
-type SettingKey = keyof typeof Settings;
+type SettingKey = (typeof Settings)[keyof typeof Settings];
 
 export function loadSetting(key: SettingKey): string | undefined {
   const value = localStorage.getItem(`${PLUGIN_NAMESPACE}${key}`);
