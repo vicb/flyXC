@@ -51,16 +51,20 @@ export class SupporterModal extends LitElement {
             width="174"
         /></a>
 
-        <p>
-          <ion-text color="dark"
-            >Thanks to the ${this.supporters.number} supporters who have contributed
-            $${this.supporters.amountLast3Months} over the last 3 months and a total of $${this.supporters.amount}:
-            <ul>
-              ${this.supporters.names.map((n) => html`<li>${n}</li>`)}
-              ${when(this.supporters.names.length > 30, () => html`<li>...</li>`)}
-            </ul>
-          </ion-text>
-        </p>
+        ${when(
+          this.supporters.number > 0 && this.supporters.number - this.supporters.names.length > 0,
+          () => html`
+            <ion-text color="dark">
+              <p>
+                Thanks to the ${this.supporters.number} supporters who have contributed
+                $${this.supporters.amountLast3Months} over the last 3 months and a total of $${this.supporters.amount}:
+              </p>
+              <p>
+                ${this.supporters.names.join(`, `)} and ${this.supporters.number - this.supporters.names.length} more.
+              </p>
+            </ion-text>
+          `,
+        )}
       </ion-content>
       <ion-footer>
         <ion-toolbar color="light">
