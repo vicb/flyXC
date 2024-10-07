@@ -20,7 +20,6 @@ import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import { setCurrentTrackId } from '../../redux/track-slice';
 import { ControlsElement } from './controls-element';
-import { esi } from './esi';
 import { LineElement } from './line-element';
 import { MarkerElement } from './marker-element';
 import { PlannerElement } from './planner-element';
@@ -177,21 +176,6 @@ export class MapElement extends connect(store)(LitElement) {
       };
 
       this.map = new google.maps.Map(this.querySelector('#map') as HTMLElement, options);
-
-      // esi
-      for (const placemark of esi.kml.Document.Placemark) {
-        const [lng, lat] = placemark.Point.coordinates.split(',').map((s) => Number(s));
-        new google.maps.Circle({
-          center: { lat, lng },
-          radius: 200,
-          strokeColor: 'black',
-          strokeWeight: 1,
-          fillColor: 'gray',
-          fillOpacity: 0.3,
-          map: this.map,
-          clickable: false,
-        });
-      }
 
       const controls = document.createElement('controls-element') as ControlsElement;
       controls.map = this.map;
