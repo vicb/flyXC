@@ -155,10 +155,10 @@ export class InreachFetcher extends TrackerFetcher {
     }
     const lastFixAgeSec = Math.round(Date.now() / 1000) - tracker.lastFixSec;
     if (lastFixAgeSec > 6 * 30 * 24 * 3600) {
-      return Math.floor(45 + Math.random() * 3) * 60;
+      return Math.floor(55 + Math.random() * 10) * 60;
     }
     if (lastFixAgeSec > 3 * 30 * 24 * 3600) {
-      return Math.floor(30 + Math.random() * 3) * 60;
+      return Math.floor(35 + Math.random() * 5) * 60;
     }
     if (lastFixAgeSec > 3 * 3600) {
       return Math.floor(20 + Math.random() * 3) * 60;
