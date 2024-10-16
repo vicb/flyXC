@@ -98,5 +98,7 @@
       },
       "include": ["apps/run/**/*"]
     }
-  ]
+  ],
+  "nxCloudId": "670fcac1c44cc6732ed40361",
+  "useLegacyCache": true
 }
