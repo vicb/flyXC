@@ -167,6 +167,7 @@ export class MapElement extends connect(store)(LitElement) {
             TopoOtm.mapTypeId,
             TopoFrance.mapTypeId,
             TopoFrance.mapTypeIdScan,
+            TopoFrance.mapTypeIdScanOACI,
             TopoSpain.mapTypeId,
           ],
           style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
