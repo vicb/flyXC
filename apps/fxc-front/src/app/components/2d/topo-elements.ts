@@ -18,11 +18,14 @@ export class TopoSpain extends WMTSMapTypeElement {
 
 const IGNFR_PLAN = 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2';
 const IGNFR_SCAN = 'GEOGRAPHICALGRIDSYSTEMS.MAPS';
+const IGNFR_SCAN_OACI = 'GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN-OACI';
 
 @customElement('topo-france')
 export class TopoFrance extends WMTSMapTypeElement {
   static mapTypeId = 'topo.france.classique';
   static mapTypeIdScan = 'topo.france.scan';
+  static mapTypeIdScanOACI = 'topo.france.scan-oaci';
+
   mapName = 'France';
   copyright = {
     html: `<img src="/static/img/topo.fr.png" />`,
@@ -65,25 +68,42 @@ export class TopoFrance extends WMTSMapTypeElement {
       minZoom: 6,
       maxZoom: 17,
       name: 'France (scan)',
-      alt: 'France (scan)',
+      alt: 'France',
+    });
+  }
+
+  protected getScanOACIMapType(): google.maps.ImageMapType {
+    return new google.maps.ImageMapType({
+      getTileUrl: (...args): string => this.getTileUrl(...args),
+      tileSize: new google.maps.Size(256, 256),
+      minZoom: 6,
+      maxZoom: 11,
+      name: 'OACI (France)',
+      alt: 'OACI ',
     });
   }
 
   protected init(map: google.maps.Map): void {
     super.init(map);
     this.registerMapType(TopoFrance.mapTypeIdScan, this.getScanMapType());
+    this.registerMapType(TopoFrance.mapTypeIdScanOACI, this.getScanOACIMapType());
   }
 
   protected visibilityHandler(mapTypeId: string): void {
     if (this.copyrightEl) {
-      if (mapTypeId === TopoFrance.mapTypeId) {
-        this.layerName = IGNFR_PLAN;
-        this.copyrightEl.hidden = false;
-      } else if (mapTypeId === TopoFrance.mapTypeIdScan) {
-        this.layerName = IGNFR_SCAN;
-        this.copyrightEl.hidden = false;
-      } else {
-        this.copyrightEl.hidden = true;
+      this.copyrightEl.hidden = false;
+      switch (mapTypeId) {
+        case TopoFrance.mapTypeIdScanOACI:
+          this.layerName = IGNFR_SCAN_OACI;
+          break;
+        case TopoFrance.mapTypeIdScan:
+          this.layerName = IGNFR_SCAN;
+          break;
+        case TopoFrance.mapTypeId:
+          this.layerName = IGNFR_PLAN;
+          break;
+        default:
+          this.copyrightEl.hidden = true;
       }
     }
     super.visibilityHandler(mapTypeId);
