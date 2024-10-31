@@ -13,5 +13,5 @@ export default {
     ],
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: '../../coverage/apps/airspaces',
+  coverageDirectory: '../../coverage/apps/fxc-tiles',
 };

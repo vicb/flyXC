@@ -76,7 +76,7 @@
       }
     },
     "test": {
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/coverage/apps/airspaces"],
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/coverage/apps/fxc-tiles"],
       "dependsOn": [
         {
           "projects": ["secrets"],

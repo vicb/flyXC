@@ -98,7 +98,7 @@ export default defineConfig(
 
 // Get the airspace update date from the commit.
 function getAirspaceDate() {
-  const tileInfo = join(__dirname, '/..', '/airspaces/src/assets/airspaces/tiles-info.json');
+  const tileInfo = join(__dirname, '/..', '/fxc-tiles/src/assets/tiles/tiles-info.json');
 
   if (existsSync(tileInfo)) {
     try {
