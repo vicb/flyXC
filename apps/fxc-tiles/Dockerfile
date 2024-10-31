@@ -5,7 +5,7 @@ ENV NODE_ENV=production
 WORKDIR /usr/src/app
 RUN npm install -g npm@latest
 
-COPY dist/apps/airspaces/package*.json ./
+COPY dist/apps/fxc-tiles/package*.json ./
 RUN npm ci --no-audit
 
-COPY dist/apps/airspaces/unzip.js ./
+COPY dist/apps/fxc-tiles/unzip.js ./

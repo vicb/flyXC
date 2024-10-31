@@ -6,7 +6,7 @@ Install [tippecanoe](https://github.com/felt/tippecanoe) - note that the the map
 
 - nx build fxc-tiles
 - cd dist/apps/fxc-tiles
-- npm run download
+- `npm run download-airspaces`
 - Display stats with `node dist/apps/fxc-tiles/airspaces/stats.js` (quick check of the airspaces)
 - Create the geojson with `node dist/apps/fxc-tiles/airspaces/create-geojson.js`
 - Create the vector tiles with `node dist/apps/fxc-tiles/airspaces/create-tiles.js`
@@ -22,7 +22,7 @@ Install [tippecanoe](https://github.com/felt/tippecanoe) - note that the the map
 
 - Execute `zip -r tiles.zip tiles` to create the zip file,
 - GCE (See Below) or execute `node unzip.js -d tiles-info-diff.json` to apply the diffs,
-- Copy and commit `tiles-info.json` in `apps/airspaces/src/assets/`.
+- Copy and commit `tiles-info.json` in `apps/fxc-tiles/src/assets/`.
 
 ### Using the unzip script on a Compute VM
 
