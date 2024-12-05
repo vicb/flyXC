@@ -1,7 +1,7 @@
 import { getDatastore, getRedisClient } from '@flyxc/common-node';
 import { Secrets } from '@flyxc/secrets';
 import compression from 'compression';
-import RedisStore from 'connect-redis';
+import { RedisStore } from 'connect-redis';
 import cors from 'cors';
 import express from 'express';
 import fileUpload from 'express-fileupload';

@@ -14,7 +14,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.7",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
-    "date-fns": "^3.6.0",
+    "date-fns": "^4.1.0",
     "geojson": "^0.5.0",
     "preact": "^10.23.2",
     "react-redux": "^9.1.2",
