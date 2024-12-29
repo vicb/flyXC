@@ -1,6 +1,5 @@
 import { parse } from './skylines';
 
-/* eslint-disable @typescript-eslint/no-var-requires */
 const skyline = require('./fixtures/skylines.json');
 const skylineTrack = require('./fixtures/skylines-track.json');
 

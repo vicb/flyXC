@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'fxc-front',
   preset: '../../jest.preset.js',

@@ -2,9 +2,10 @@
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import preact from '@preact/preset-vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
-import { certificatePEM, keyPEM } from './https';
 import type { UserConfig } from 'vite';
 import { defineConfig } from 'vite';
+
+import { certificatePEM, keyPEM } from './https';
 
 export default defineConfig(
   ({ mode }): UserConfig => ({

@@ -7,7 +7,7 @@ export function getSupportersRouter(redis: Redis): Router {
   const router = Router();
 
   // Returns the supporter info
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   router.get('/supporters.json', async (req: Request, res: Response) => {
     try {
       const [names, number, amount, amountLast3Months] = (

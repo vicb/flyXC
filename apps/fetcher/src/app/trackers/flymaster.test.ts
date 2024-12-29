@@ -1,6 +1,5 @@
 import { parse } from './flymaster';
 
-/* eslint-disable @typescript-eslint/no-var-requires */
 const flymaster = require('./fixtures/flymaster.json');
 const flymasterTrack = require('./fixtures/flymaster-track.json');
 

@@ -11,7 +11,7 @@ import * as oair from '../parser/openair';
 import type { Airspace } from '../parser/parser';
 import { getAppFolderFromDist } from '../util';
 
-const GeoJSON = require('geojson'); // eslint-disable-line @typescript-eslint/no-var-requires
+const GeoJSON = require('geojson');
 
 // Filter out airspaces above:
 const MAX_FLOOR_METER = 6000;

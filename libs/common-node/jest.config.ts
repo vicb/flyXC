@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'common-node',
   preset: '../../jest.preset.js',

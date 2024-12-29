@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'fxc-tiles',
   preset: '../../jest.preset.js',

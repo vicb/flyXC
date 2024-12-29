@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'fxc-server',
   preset: '../../jest.preset.js',

@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'vaadin-dom',
   preset: '../../jest.preset.js',
