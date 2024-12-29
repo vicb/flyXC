@@ -60,7 +60,7 @@ module.exports = [
     })
     .map((config) => ({
       ...config,
-      files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
+      files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.cts', '**/*.mts'],
       rules: {
         ...config.rules,
         '@typescript-eslint/no-explicit-any': 'off',

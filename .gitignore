@@ -45,4 +45,5 @@ Thumbs.db
 .nx/workspace-data
 apps/run/benchmarks
 apps/fxc-front/dev-dist/registerSW.js
-**/vite.config.{js,ts,mjs,mts,cjs,cts}.timestamp*
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
