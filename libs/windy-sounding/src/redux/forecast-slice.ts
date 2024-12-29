@@ -36,13 +36,13 @@ export enum FetchStatus {
 }
 
 // Those properties varies with the altitude level.
-const levelProps = ['temp', 'dewpoint', 'gh', 'windU', 'windV', 'rh'] as const;
-type LevelProp = (typeof levelProps)[number];
+const _levelProps = ['temp', 'dewpoint', 'gh', 'windU', 'windV', 'rh'] as const;
+type LevelProp = (typeof _levelProps)[number];
 type LevelPropByTime = `${LevelProp}ByTime`;
 
 // Those properties do not vary with altitude.
-const sfcProps = ['rainMm', 'seaLevelPressure'] as const;
-type SfcProps = (typeof sfcProps)[number];
+const _sfcProps = ['rainMm', 'seaLevelPressure'] as const;
+type SfcProps = (typeof _sfcProps)[number];
 type SfcPropsByTime = `${SfcProps}ByTime`;
 
 type TimeValue = Record<LevelProp, number[]> & Record<SfcProps, number>;

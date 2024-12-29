@@ -130,7 +130,6 @@ export class Proxies {
         filter: `labels.proxy:${this.label}`,
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       for await (const [_, instancesObject] of aggListRequest) {
         const instances = instancesObject.instances;
 

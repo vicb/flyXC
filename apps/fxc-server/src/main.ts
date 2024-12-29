@@ -16,7 +16,6 @@ import { getWaypointRouter } from './app/routes/waypoints';
 import { getZoleoRouter } from './app/routes/zoleo';
 import { environment } from './environments/environment';
 
-// eslint-disable-next-line
 const grant = require('grant').express();
 
 const redis = getRedisClient(Secrets.REDIS_URL);

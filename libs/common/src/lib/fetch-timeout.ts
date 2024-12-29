@@ -45,6 +45,7 @@ export async function fetchResponse(
 
   const start = Date.now() / 1000;
 
+  /* eslint-disable @typescript-eslint/no-unused-expressions */
   log && console.log(`Start fetch, timeout = ${timeoutS}`);
 
   for (let numRetry = 0; numRetry < retry; numRetry++) {

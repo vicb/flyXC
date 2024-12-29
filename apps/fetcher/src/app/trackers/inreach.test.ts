@@ -1,6 +1,5 @@
 import { parse } from './inreach';
 
-/* eslint-disable @typescript-eslint/no-var-requires */
 const feed = require('./fixtures/inreach-feed.kml');
 
 describe('Parse kml feed', () => {

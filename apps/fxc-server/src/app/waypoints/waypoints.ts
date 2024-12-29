@@ -1,7 +1,6 @@
 import type { LatLonAlt } from '@flyxc/common';
 import { round } from '@flyxc/common';
 
-/* eslint-disable @typescript-eslint/no-var-requires */
 const { buildGPX, BaseBuilder } = require('gpx-builder');
 const builder = require('xmlbuilder');
 const printf = require('printf');

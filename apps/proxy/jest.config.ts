@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'proxy',
   preset: '../../jest.preset.js',

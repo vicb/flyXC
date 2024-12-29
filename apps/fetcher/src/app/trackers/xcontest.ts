@@ -36,7 +36,6 @@ export class XcontestFetcher extends TrackerFetcher {
     return true;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async fetch(devices: number[], updates: TrackerUpdates, timeoutSec: number): Promise<void> {
     const xcontestIdToLastFlight = new Map<string, XContestFlight>();
 

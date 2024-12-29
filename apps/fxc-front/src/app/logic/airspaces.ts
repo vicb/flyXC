@@ -129,7 +129,6 @@ export class AspMapType {
     return getTile(coord, zoom, zoom, doc, this.altitude, this.classes, this.types, this.active, this.fetchInfoMap);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // @ts-ignore
   releaseTile(el: HTMLElement): void {
     const fetchKey = el.dataset.fetchKey;

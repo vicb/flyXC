@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'windy-sounding',
   preset: '../../jest.preset.js',

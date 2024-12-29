@@ -70,7 +70,7 @@ export class Skyways3dElement extends connect(store)(LitElement) {
     if (this.layer) {
       this.map.remove(this.layer);
       this.layer.destroy();
-      this.layer == undefined;
+      this.layer = undefined;
     }
   }
 
