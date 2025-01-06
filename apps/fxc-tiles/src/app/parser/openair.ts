@@ -22,8 +22,8 @@ function decodeCoordinates(coords: string): { lat: number; lon: number } {
     const lon = Number(parseFloat(match[3]).toFixed(6)) * (match[4] == 'E' ? 1 : -1);
     return { lon, lat };
   }
-  // 30:58:01 N 084:49:00 W
-  match = coords.match(/([\d:]+) (N|S) ([\d:]+) (W|E)/);
+  // 30:58:01.00 N 084:49:00.00 W
+  match = coords.match(/([\d.:]+) (N|S) ([\d.:]+) (W|E)/);
   if (match != null) {
     let [d, m, s] = match[1].split(':').map((s) => parseFloat(s));
     const lat = sexagesimalToDecimal(`${d}° ${m}' ${s}" ${match[2]}`);
@@ -160,42 +160,31 @@ export function parseAll(openair: string, country: string): Airspace[] {
         throw new Error(`Unsupported variable ${line}`);
       }
 
+      case 'DA': {
+        const [radiusNm, startAngle, endAngle] = content.split(',').map((v) => parseFloat(v));
+        if (radiusNm == null || startAngle == null || endAngle == null) {
+          throw new Error(`Invalid DA arc ${line}`);
+        }
+        if (center == null) {
+          throw new Error(`No center for DA ${line}`);
+        }
+        addArc(center, radiusNm * NAUTICAL_MILE_IN_METER, direction, startAngle, endAngle, coords);
+        break;
+      }
+
       case 'DB': {
         // Arc
         const [start, end] = content.split(',').map((coords) => decodeCoordinates(coords));
         if (start == null || end == null) {
-          throw new Error(`Invalid arc ${line}`);
+          throw new Error(`Invalid DB arc ${line}`);
         }
         if (center == null) {
           throw new Error(`No center for DB ${line}`);
         }
-        let angle = getGreatCircleBearing(center, start);
-        let endAngle = getGreatCircleBearing(center, end);
-        if (direction === Direction.Clockwise && endAngle < angle) {
-          endAngle += 360;
-        }
-        if (direction === Direction.CounterClockwise && endAngle > angle) {
-          endAngle -= 360;
-        }
-        const angleStep = 10 * (direction === Direction.Clockwise ? 1 : -1);
-        const distance = getDistance(center, start);
-        // eslint-disable-next-line no-constant-condition
-        for (let i = 0; true; i++) {
-          const { latitude, longitude } = computeDestinationPoint(center, distance, angle);
-          coords.push([longitude, latitude]);
-          angle += angleStep;
-          if (direction === Direction.Clockwise && angle > endAngle) {
-            break;
-          }
-          if (direction === Direction.CounterClockwise && angle < endAngle) {
-            break;
-          }
-          if (i > 100) {
-            throw new Error(`Angle error`);
-          }
-        }
-        const { latitude, longitude } = computeDestinationPoint(center, distance, endAngle);
-        coords.push([longitude, latitude]);
+        const startAngle = getGreatCircleBearing(center, start);
+        const endAngle = getGreatCircleBearing(center, end);
+        const radius = getDistance(center, start);
+        addArc(center, radius, direction, startAngle, endAngle, coords);
         break;
       }
 
@@ -227,6 +216,40 @@ export function parseAll(openair: string, country: string): Airspace[] {
   return airspaces;
 }
 
+function addArc(
+  center: { lat: number; lon: number },
+  radius: number,
+  direction: Direction,
+  startAngle: number,
+  endAngle: number,
+  coords: [lon: number, lat: number][],
+) {
+  if (direction === Direction.Clockwise && endAngle < startAngle) {
+    endAngle += 360;
+  }
+  if (direction === Direction.CounterClockwise && endAngle > startAngle) {
+    endAngle -= 360;
+  }
+  const angleStep = 10 * (direction === Direction.Clockwise ? 1 : -1);
+  // eslint-disable-next-line no-constant-condition
+  for (let i = 0; true; i++) {
+    const { latitude, longitude } = computeDestinationPoint(center, radius, startAngle);
+    coords.push([longitude, latitude]);
+    startAngle += angleStep;
+    if (direction === Direction.Clockwise && startAngle > endAngle) {
+      break;
+    }
+    if (direction === Direction.CounterClockwise && startAngle < endAngle) {
+      break;
+    }
+    if (i > 100) {
+      throw new Error(`Angle error`);
+    }
+  }
+  const { latitude, longitude } = computeDestinationPoint(center, radius, endAngle);
+  coords.push([longitude, latitude]);
+}
+
 function decodeACField(ac: string, country: string) {
   if (ac === 'CTR') {
     return {
@@ -252,10 +275,18 @@ function decodeACField(ac: string, country: string) {
     };
   }
 
-  if (ac === 'PROHIBITED') {
+  if (ac === 'P' || ac === 'PROHIBITED') {
     return {
       icaoClass: Class.SUA,
       type: Type.Prohibited,
+      ignoreAirspace: false,
+    };
+  }
+
+  if (ac === 'W') {
+    return {
+      icaoClass: Class.SUA,
+      type: Type.WarningArea,
       ignoreAirspace: false,
     };
   }
