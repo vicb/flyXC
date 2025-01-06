@@ -4,7 +4,7 @@ Install [tippecanoe](https://github.com/felt/tippecanoe) - note that the the map
 
 ## Airspaces
 
-- nx build fxc-tiles
+- nx build secrets && nx build fxc-tiles
 - cd dist/apps/fxc-tiles
 - `npm run download-airspaces`
 - Display stats with `node dist/apps/fxc-tiles/airspaces/stats.js` (quick check of the airspaces)
