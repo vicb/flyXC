@@ -229,7 +229,15 @@ export class MapElement extends connect(store)(LitElement) {
         document.addEventListener('visibilitychange', () => this.zoomToTracks(), { once: true });
       }
 
-      store.dispatch(setApiLoading(false));
+      // Wait for the tiles to be loaded (or timeout) to hide the splashscreen.
+      let splashResolve: () => void;
+      const splashPromise = new Promise<void>((r) => (splashResolve = r));
+      const to = setTimeout(() => splashResolve(), 4000);
+      google.maps.event.addListenerOnce(this.map, 'tilesloaded', () => {
+        splashResolve();
+        clearTimeout(to);
+      });
+      splashPromise.then(() => store.dispatch(setApiLoading(false)));
     });
   }
 
@@ -237,6 +245,9 @@ export class MapElement extends connect(store)(LitElement) {
     super.disconnectedCallback();
     this.subscriptions.forEach((sub) => sub());
     this.subscriptions.length = 0;
+    if (this.map) {
+      google.maps.event.clearInstanceListeners(this.map);
+    }
     this.map = undefined;
   }
 
