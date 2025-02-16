@@ -1,5 +1,9 @@
 # Release history
 
+## 4.1.9 - Feb 16, 2025
+
+- Lower max altitude when zoomed in to ~5200m
+
 ## 4.1.8 - Oct 4, 2024
 
 - Drop `@windy.com/devtools` (use a local copy of the types)

@@ -290,7 +290,7 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
     const minModelPressure = forecastSlice.selMinModelPressure(state, modelName, location);
     const pressureToGhScale = forecastSlice.selPressureToGhScale(state, modelName, location, timeMs);
     const minPressure = isZoomedIn
-      ? Math.round(Math.max(pressureToGhScale.invert(6500 + (elevation * 2) / 5), minModelPressure))
+      ? Math.round(Math.max(pressureToGhScale.invert(5200 + (elevation * 2) / 5), minModelPressure))
       : minModelPressure;
     const maxPressure = Math.min(1000, Math.round(pressureToGhScale.invert((elevation * 4) / 5)));
 
