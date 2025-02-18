@@ -27,6 +27,7 @@ const { emitter: windyPicker } = W.picker;
 const windyRootScope = W.rootScope;
 const { singleclick } = W.singleclick;
 const favs = W.userFavs;
+const broadcast = W.broadcast;
 
 let appContainer: HTMLElement;
 let resizeObserver: ResizeObserver | undefined;
@@ -103,11 +104,11 @@ export const mountPlugin = (container: HTMLElement) => {
     addSubscription(() => windyPicker.off(pickerMovedEventId));
   }
 
-  const favsChangedEventId = favs.on('favsChanged', () => {
+  const favChangedEventId = broadcast.on('favChanged', () => {
     dispatch(pluginSlice.setFavorites(favs.getArray()));
   });
 
-  addSubscription(() => favs.off(favsChangedEventId));
+  addSubscription(() => broadcast.off(favChangedEventId));
 };
 
 // Called when the plugin is opened
