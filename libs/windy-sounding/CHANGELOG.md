@@ -1,6 +1,6 @@
 # Release history
 
-## 4.1.10 - Feb 20, 2025
+## 4.1.11 - Feb 20, 2025
 
 - Sync with the latest windy API
 
