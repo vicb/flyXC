@@ -5,7 +5,7 @@
 
   let pluginElement: HTMLElement;
 
-  export const onopen = (parameters: any) => {
+  export const onopen = async (parameters: any) => {
     // Legacys URL do not have the model.
     // old format /:lat/:lon
     // new format /:model/:lat/:lon
@@ -31,7 +31,7 @@
     lat = Number(lat ?? mapCenter.lat);
     lon = Number(lon ?? mapCenter.lng);
     const modelName = parameters?.modelName ?? loadSetting(Settings.model) ?? W.store.get('product');
-    openPlugin({ lat, lon, modelName });
+    await openPlugin({ lat, lon, modelName });
   };
 
   onMount(() => {

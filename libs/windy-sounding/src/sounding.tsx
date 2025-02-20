@@ -104,15 +104,15 @@ export const mountPlugin = (container: HTMLElement) => {
     addSubscription(() => windyPicker.off(pickerMovedEventId));
   }
 
-  const favChangedEventId = broadcast.on('favChanged', () => {
-    dispatch(pluginSlice.setFavorites(favs.getArray()));
+  const favChangedEventId = broadcast.on('favChanged', async () => {
+    dispatch(pluginSlice.setFavorites(await favs.getAll()));
   });
 
   addSubscription(() => broadcast.off(favChangedEventId));
 };
 
 // Called when the plugin is opened
-export const openPlugin = ({ lat, lon, modelName }: { lat: number; lon: number; modelName: string }) => {
+export const openPlugin = async ({ lat, lon, modelName }: { lat: number; lon: number; modelName: string }) => {
   const { dispatch } = store;
   const location = { lat, lon };
 
@@ -120,7 +120,7 @@ export const openPlugin = ({ lat, lon, modelName }: { lat: number; lon: number; 
   windyStore.set('overlay', 'clouds');
   centerMap(location);
 
-  dispatch(pluginSlice.setFavorites(favs.getArray()));
+  dispatch(pluginSlice.setFavorites(await favs.getAll()));
   // Force change to always trigger the state sync.
   windyStore.set('product', modelName, { forceChange: true });
   dispatch(pluginSlice.setTimeMs(windyStore.get('timestamp')));
