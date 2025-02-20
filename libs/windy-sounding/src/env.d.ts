@@ -20,12 +20,13 @@ declare const W: {
   map: typeof import('@windy/client/map');
   singleclick: typeof import('@windy/client/singleclick');
   location: typeof import('@windy/client/location');
-  userFavs: typeof import('@windy/client/userFavs').default;
+  userFavs: typeof import('@windy/client/userFavs');
   picker: typeof import('@windy/client/picker');
   broadcast: typeof import('@windy/client/broadcast').default;
   http: typeof import('@windy/client/http');
   user: typeof import('@windy/client/user');
 };
+
 /* eslint-enable */
 
 declare module '*.svelte' {
