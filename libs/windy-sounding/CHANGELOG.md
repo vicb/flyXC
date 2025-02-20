@@ -1,5 +1,9 @@
 # Release history
 
+## 4.1.10 - Feb 20, 2025
+
+- Sync with the latest windy API
+
 ## 4.1.9 - Feb 16, 2025
 
 - Lower max altitude when zoomed in to ~5200m
