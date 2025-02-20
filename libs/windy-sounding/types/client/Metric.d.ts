@@ -1,5 +1,5 @@
 import type { Color } from './d.ts.files/Color';
-import type { RGBString } from './d.ts.files/Color';
+import type { RGBString } from './d.ts.files/Color.d';
 import type {
   ConvObj,
   Legend,
@@ -9,9 +9,8 @@ import type {
   MetricInitParams,
   MetricItem,
   MetricKey,
-} from './d.ts.files/Metric';
-import type { LoadedTranslations } from './d.ts.files/trans';
-import type { HTMLString, NumValue } from './d.ts.files/types.d';
+} from './d.ts.files/Metric.d';
+import type { HTMLString, NumValue, LoadedTranslations } from './d.ts.files/types.d';
 export declare const rtrnSelf: (x: NumValue) => NumValue;
 /**
  * # @windy/Metric
@@ -39,6 +38,10 @@ export declare abstract class Metric<T extends string | number = string | number
    * Conversion functions
    */
   conv: ConvObj;
+  /**
+   * Backward conversion functions
+   */
+  backConv?: ConvObj;
   /**
    * number ' ' metric separator
    */
@@ -123,19 +126,16 @@ export declare abstract class Metric<T extends string | number = string | number
    * Cycles throu different metrics (for example after clicking on a legend)
    */
   cycleMetric(uiIdent?: string): void;
-  /** color object is required for classic gradient metrics, discrete ones do not need it as colors are hardcoded for them */
-  renderLegend(col: Color | undefined, el: HTMLDivElement, legend: Legend): void;
-  /**
-   * Renders colorfull legent onto the el
-   */
-  renderGradientLegend(
+  static getGradientLegend: (
     col: Color | undefined,
-    el: HTMLDivElement,
     legend: Legend,
-  ): {
+    metric: MetricItem,
+  ) => {
     background: string;
     content: HTMLString;
   } | null;
+  /** color object is required for classic gradient metrics, discrete ones do not need it as colors are hardcoded for them */
+  renderLegend(col: Color | undefined, el: HTMLDivElement, legend: Legend): void;
   renderDiscreteLegend(): {
     background: '';
     content: HTMLString;

@@ -4,21 +4,15 @@
  * 1) Wrapper for the user store object.
  * 2) Loads user info from the server.
  * 3) Handles user authentication.
- * 4) Renders user avatar.
  *
- * data-user='logged-in' or 'logged-out' attr is added to the body tag when we know the state of the user (a CSS way of isUserLoggedIn function).
  * it's to avoid unnecessary render of "login" button when the user is logged in, but we still wait for the server response
  *
  * @module user
  */
+import type { HttpPayload } from './d.ts.files/http.d';
+import type { AccountLoginResponse, UserInfo, User, LoginAndFinishAction } from './d.ts.files/user.d';
 /**
- * We use ./filename to motivate rollup treeshaking
- */
-import type { User } from './d.ts.files/dataSpecifications';
-import type { HttpPayload } from './d.ts.files/http';
-import type { AccountLoginResponse, UserInfo } from './d.ts.files/user';
-/**
- * Quick check is user is loggedIn
+ * Quick check is user is loggedIn.
  */
 export declare const isLoggedIn: () => boolean;
 export declare const getInfo: () => User | null;
@@ -33,14 +27,12 @@ export declare const getUserId: () => number;
 /**
  * Open login plugin so that user can log in
  */
-export declare const login: () => void;
+export declare const login: (finishAction?: LoginAndFinishAction) => void;
 export declare const register: () => void;
 /**
  * Log out the user - remove credentials and reload all things that depends on logged-in user
  */
 export declare const logout: () => Promise<void>;
-export declare const setExplicitConsent: (analytics: boolean) => void;
-export declare const setImplicitConsent: () => void;
 /**
  * Check if we have received valid auth object and if yes, save it and open user plugin
  *
@@ -48,7 +40,7 @@ export declare const setImplicitConsent: () => void;
  * @param handleConsent should we handle analytics consent (api/info endpoint)
  * @returns true if user is authenticated
  */
-export declare const checkAuth: (userInfo: UserInfo, handleConsent: boolean) => boolean;
+export declare const checkAuth: (userInfoPayload: UserInfo, handleConsent: boolean) => Promise<boolean>;
 /**
  * Get info about current user from account
  *
@@ -56,4 +48,7 @@ export declare const checkAuth: (userInfo: UserInfo, handleConsent: boolean) => 
  * @throws An exception when HTTP request fails
  */
 export declare const reloadInfo: () => Promise<HttpPayload<UserInfo> | null>;
-export declare const handleLoginResponse: (response: HttpPayload<AccountLoginResponse>) => void;
+export declare const handleLoginResponse: (
+  response: HttpPayload<AccountLoginResponse>,
+  provider: string,
+) => Promise<void>;

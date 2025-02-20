@@ -54,6 +54,7 @@ declare const layers: {
   dustsm: Layer<NumberedMetric>;
   radar: Layer<NumberedMetric>;
   satellite: Layer<NumberedMetric>;
+  radarPlus: Layer<NumberedMetric>;
   gtco3: Layer<NumberedMetric>;
   pm2p5: Layer<NumberedMetric>;
   no2: Layer<NumberedMetric>;
@@ -74,5 +75,6 @@ declare const layers: {
   dfm10h: Layer<NumberedMetric>;
   turbulence: Layer<NumberedMetric>;
   icing: Layer<NumberedMetric>;
+  topoMap: Layer<undefined>;
 };
 export default layers;

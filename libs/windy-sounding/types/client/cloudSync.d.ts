@@ -8,5 +8,7 @@ import '@windy/metrics';
 export declare function storeSettings(): Promise<boolean>;
 /**
  * Loads settings from a cloud and merge them
+ *
+ * @returns true if there were any data to merge
  */
-export declare function loadAndMergeSettingFromCloud(): Promise<void>;
+export declare function loadAndMergeSettingFromCloud(): Promise<boolean>;

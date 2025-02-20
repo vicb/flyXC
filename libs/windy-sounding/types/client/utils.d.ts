@@ -1,5 +1,4 @@
 import type { RegistrationError } from '@capacitor/push-notifications';
-import type { ClientMessage } from '@plugins/offline/offline';
 import type { RGBA } from '@windy/Color.d';
 import type { HttpError } from '@windy/http';
 import type { QueryStringSource } from '@windy/http.d';
@@ -42,6 +41,10 @@ export declare const num2char: (num: number) => string;
  * @returns Number
  */
 export declare const char2num: (str: string) => number;
+/**
+ * Size of the vector
+ */
+export declare const vec2size: (x: number, y: number) => number;
 /**
  * Takes {lat,lon} and returns nice string out of it (rounds coords to two decimals)
  *
@@ -122,13 +125,13 @@ export declare const radToDeg = 57.2957795;
  * leading edge, instead of the trailing.
  *
  * @param func Function to debounce
- * @param wait Time limit of debouncing
+ * @param wailTill Time limit of debouncing
  * @param immediate Should be function trigger on the leading edge or on the trailing
  * @returns Debounced function
  */
 export declare const debounce: <Args extends unknown[], F extends (...args: Args) => void>(
   func: (this: ThisParameterType<F>, ...args: Args & Parameters<F>) => void,
-  wait: number,
+  waitTill: number,
   immediate?: boolean,
 ) => (this: ThisParameterType<F>, ...args: Args & Parameters<F>) => void;
 /**
@@ -175,7 +178,7 @@ export interface WindObject extends DirObject {
  * @param v Vector [u,v]
  * @returns Object { wind, dir }
  */
-export declare const wind2obj: (v: [number, number] | RGBNumValues) => WindObject;
+export declare const wind2obj: ([u, v]: [number, number] | RGBNumValues) => WindObject;
 export interface WaveObject extends DirObject {
   period: number;
   size: number;
@@ -186,7 +189,7 @@ export interface WaveObject extends DirObject {
  * @param v Vector [u,v,size]
  * @returns Object { wind, dir, period }
  */
-export declare const wave2obj: (v: RGBNumValues) => WaveObject;
+export declare const wave2obj: ([u, v, size]: RGBNumValues) => WaveObject;
 /**
  * Trush if wx object has valid direction
  *
@@ -462,7 +465,6 @@ export declare function logError(
   msg: string,
   errorObject?: Error | HttpError | Event | ErrorEvent | RegistrationError,
 ): void;
-export declare const sendMessageToServiceWorker: (message: ClientMessage) => void;
 /**
  * Same as scale linear from d3 library except with different params
  * https://d3js.org/d3-scale/linear
@@ -503,3 +505,23 @@ export declare const getLocationOfJsAssets: (location: string) => string;
  * Is valid NumValue
  */
 export declare const isValidNumber: (d: NumOrNull | undefined) => boolean;
+/**
+ * Converts C to K
+ */
+export declare const c2kelvin: (c: number) => number;
+/**
+ * Async version of wait
+ */
+export declare const wait: (t: Timestamp) => Promise<void>;
+/**
+ * Removes accents and diacritics from string
+ * "Crème Brûlée" -> "Creme Brulee"
+ * https://stackoverflow.com/questions/990904/remove-accents-diacritics-in-a-string-in-javascript
+ * TODO: Use Unicode property escapes when widely supported, currently at 94% at caniuse
+ */
+export declare const removeDiacritics: (s: string) => string;
+/**
+ * Capitalizes the first letter of a string.
+ * This differs from the CSS property which capitalizes the first letter of each word.
+ */
+export declare const capitalize: (text: string) => string;

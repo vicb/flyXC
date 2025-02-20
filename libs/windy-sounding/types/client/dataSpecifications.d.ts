@@ -4,7 +4,7 @@
  *
  * @module dataSpecifications
  */
-import type { DataSpecifications } from './d.ts.files/dataSpecifications';
+import type { DataSpecifications } from './d.ts.files/dataSpecifications.d';
 /**
  * Mother of all settings. All the user setting (except for large data structures) should go here
  */

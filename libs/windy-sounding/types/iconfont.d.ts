@@ -182,6 +182,7 @@ export type Iconfont =
   | '<!-- @echo icon-crown-king -->'
   | '<!-- @echo icon-tide -->'
   | '<!-- @echo icon-car -->'
+  | '<!-- @echo icon-cloud-lightning-big-plus -->'
   | '<!-- @echo icon-share -->'
   | '<!-- @echo icon-bell-plus -->'
   | '<!-- @echo icon-x -->'

@@ -1,11 +1,12 @@
 import { Calendar } from '@windy/Calendar';
 import * as http from '@windy/http';
-import type { MinifestObject } from './d.ts.files/Calendar';
-import type { Layers } from './d.ts.files/Layer';
-import type { DataQuality, FileSuffix } from './d.ts.files/Product';
-import type { LatLon } from './d.ts.files/interfaces';
-import type { AcTimes, Isolines, Levels, Overlays, Products } from './d.ts.files/rootScope';
-import type { ProductCategory, ProductIdent } from './d.ts.files/types';
+import type { MinifestObject } from '@windy/Calendar.d';
+import type { Layers } from '@windy/Layer.d';
+import type { LatLon } from '@windy/interfaces';
+import type { Isolines, Levels, Overlays, Products } from '@windy/rootScope.d';
+import type { ISODateString, ProductCategory, ProductIdent, Timestamp, YYYYMMDDHH } from '@windy/types';
+export type DataQuality = 'normal' | 'high' | 'low' | 'ultra' | 'extreme';
+export type FileSuffix = 'png' | 'jpg' | 'webp';
 export type ProductInitParams = Pick<Product, 'modelName' | 'provider' | 'interval'> &
   Partial<
     Pick<
@@ -32,16 +33,18 @@ export type ProductInitParams = Pick<Product, 'modelName' | 'provider' | 'interv
       | 'modelIdent'
       | 'intervalPremium'
       | 'server'
+      | 'metadataServer'
       | 'modelResolution'
       | 'levels'
       | 'levelsOverride'
       | 'logo'
-      | 'acTimes'
       | 'preferredWaveProduct'
       | 'preferredAirProduct'
+      | 'hasAccumulations'
+      | 'freeProduct'
+      | 'hideProductSwitch'
     >
   > & {
-    requiresInfoJson?: boolean;
     forecastSize?: number;
     bounds?: [number, number][][];
   };
@@ -76,7 +79,7 @@ export declare class Product {
    */
   private productExpires;
   /**
-   * Unefective, but simple refTime solutions for data that are updated once a day
+   * Noneffective, but simple refTime solutions for data that are updated once a day
    */
   protected dailyCache?: string;
   /**
@@ -182,7 +185,6 @@ export declare class Product {
    * List of avail isolines
    */
   isolines: Isolines[];
-  requiresInfoJson: boolean;
   /**
    * If we drag out of bounds, which product we should use (must be global air product)
    */
@@ -204,56 +206,66 @@ export declare class Product {
    */
   pathGenerator: string;
   /**
-   * List of available accumulationTime
-   */
-  acTimes?: AcTimes[];
-  /**
-   * Alternative server, where the data are loaded from
+   * Alternative servers, where the data are loaded from
    */
   server?: string;
+  metadataServer?: string;
   /**
    * Some product (f.ex. StaticProduct) doesn't have meaningful
    * information about the model and time of the next update.
    * Set this to false to hide the info where not relevant (f.ex. Info plugin)
    */
   hasRefTime: boolean;
+  /**
+   * This product supper accumulations
+   */
+  hasAccumulations?: boolean;
+  /**
+   * This product is free for all users during whole timeline
+   */
+  freeProduct?: boolean;
+  /**
+   * Hide product switch in GUI, when this product is selected
+   */
+  hideProductSwitch?: boolean;
   constructor(params: ProductInitParams);
-  refTime(): string;
-  getUpdateTimes():
-    | {
-        refTime: string;
-        minUpdate: number;
-      }
-    | {
-        refTime?: undefined;
-        minUpdate?: undefined;
-      };
+  refTime(): YYYYMMDDHH | '';
+  getUpdateTimes(): {
+    refTime: ISODateString;
+    minUpdate: Timestamp;
+  } | null;
   moveTs(moveRight: boolean, isAccu?: boolean): boolean | void;
   getMinifestUrl(): string;
   loadMinifest(): Promise<http.HttpPayload<MinifestObject>>;
+  loadAndGetReftime(): Promise<ISODateString | undefined>;
   open(): Promise<void | Calendar>;
   close(): void;
   /**
    * Checks if lat,lon is within bounds
    */
   pointIsInBounds<T extends LatLon>(this: this, paramsMap: T): boolean;
+  boundsAreInViewport(map: L.Map): boolean;
   printLogo(): void;
-  getInfoFileUrl(): string;
   getCalendar(): Promise<Calendar>;
   protected expire(): void;
-  protected getStoreKey(): `lastMinifest/${string}`;
-  protected setMinifest(minifest: MinifestObject): void;
+  /**
+   * Since dissemination of minifests is not instant, and can last for minutes,
+   * we have to double check, that incoming minifest
+   * is newer than the one we have in store. If not, we keep the old one.
+   *
+   * @returns Incoming, or stored minifest, which is newer
+   */
+  protected getUpdatedMinifest(minifest: MinifestObject): Promise<MinifestObject>;
   protected setExpireTime(): void;
   /**
    * Major reason for this error is user's bad connection, which is handled
-   * by standard no connetion red message
+   * by standard no connection red message
    *
-   * We delay 0.3 sec to test properlly connection
+   * We delay 0.3 sec to test properly connection
    */
   protected showErrorMessage(err: string): void;
   protected loadAndProcessMinifest(forced?: boolean): Promise<void>;
-  protected loadAndProcessInfo(): Promise<void>;
-  private loadInfo;
   private checkNewMinifest;
+  private isPointInsidePolygon;
   private removeLogo;
 }

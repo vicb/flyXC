@@ -182,11 +182,6 @@ declare const overlays: {
     import('../weatherClasses/MetricClasses').NumberedMetric,
     import('../weatherClasses/Layer').Layer<import('../weatherClasses/MetricClasses').NumberedMetric>
   >;
-  gh: Overlay<
-    'gh',
-    import('../weatherClasses/MetricClasses').NumberedMetric,
-    import('../weatherClasses/Layer').Layer<import('../weatherClasses/MetricClasses').NumberedMetric>
-  >;
   radar: Overlay<
     'radar',
     import('../weatherClasses/MetricClasses').NumberedMetric,
@@ -194,6 +189,11 @@ declare const overlays: {
   >;
   satellite: Overlay<
     'satellite',
+    import('../weatherClasses/MetricClasses').NumberedMetric,
+    import('../weatherClasses/Layer').Layer<import('../weatherClasses/MetricClasses').NumberedMetric>
+  >;
+  radarPlus: Overlay<
+    'radarPlus',
     import('../weatherClasses/MetricClasses').NumberedMetric,
     import('../weatherClasses/Layer').Layer<import('../weatherClasses/MetricClasses').NumberedMetric>
   >;
@@ -246,5 +246,8 @@ declare const overlays: {
     import('../weatherClasses/MetricClasses').NumberedMetric,
     import('../weatherClasses/Layer').Layer<import('../weatherClasses/MetricClasses').NumberedMetric>
   >;
+  heatmaps: Overlay<'heatmaps', undefined, undefined>;
+  topoMap: Overlay<'topoMap', undefined, import('../weatherClasses/Layer').Layer<undefined>>;
+  hurricanes: Overlay<'hurricanes', undefined, undefined>;
 };
 export default overlays;

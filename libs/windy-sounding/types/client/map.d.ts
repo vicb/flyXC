@@ -12,6 +12,7 @@
  */
 import type { LatLon } from '@windy/interfaces.d';
 import type { Pixel } from '@windy/types';
+import type { MapLibreMap } from 'plugins/_shared/maplibre/mapLibreMap';
 /**
  * Already initialized instance of Leaflet L.Map
  *
@@ -50,6 +51,7 @@ export declare const markers: Record<string, L.DivIcon>;
 export interface CenterOptions extends LatLon {
   zoom?: number;
   paddingTop?: number;
+  paddingLeft?: number;
 }
 /**
  * Centers/zooms leaflet map with optional offset to the left or top
@@ -57,7 +59,7 @@ export interface CenterOptions extends LatLon {
  */
 export declare function centerMap(coords: CenterOptions, animation?: boolean): void;
 /**
- * Makes sure point is visible from bottom of the pane (will be depreciated)
+ * Makes sure point is visible from bottom of the pane (will be deprecated)
  * @ignore
  */
 export declare function ensurePointVisibleY(lat: number, lon: number, offset: number): void;
@@ -68,13 +70,22 @@ export declare function ensurePointVisibleY(lat: number, lon: number, offset: nu
  */
 export declare function panToOffset(y: Pixel, lat: number, lon: number): void;
 /**
- * Changes base map of underlying Windy.com map.
- * @ignore
- */
-export declare const baseLayer: L.GridLayer;
-/**
  * Retrieves the map tiles from the mapTilesRecord.
  * @ignore
  * @returns The map tiles.
  */
 export declare const getMapTiles: (patchType?: string) => Record<import('@windy/baseMap').MapTilesKeys, string>;
+/**
+ * Following object (singleton) contains all the stuff required for
+ * integration of mapLibre Gl into the client.
+ */
+export declare const mapLibre: {
+  /**
+   * Instance of our own mapLibre map wrapper Class
+   */
+  wrapper: MapLibreMap | null;
+};
+/**
+ * Just handy shortcut to detect that globe is active
+ */
+export declare const isGlobeActive: () => boolean;

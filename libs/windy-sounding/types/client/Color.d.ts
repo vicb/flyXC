@@ -1,107 +1,66 @@
-import type { ColorGradient, ColorIdent, PluginColorIdent, RGBA, RGBString } from './d.ts.files/Color';
-import type { StoreOptions } from './d.ts.files/store';
+import type { ColorGradient, AnyColorIdent, RGBA, RGBString } from './d.ts.files/Color.d';
 import type { NumValue } from './d.ts.files/types.d';
 export type ColorInitParams = Pick<Color, 'ident'> &
-  Partial<Pick<Color, 'qualitative' | 'save'>> & {
+  Partial<Pick<Color, 'qualitative'>> & {
     steps: number;
-    default?: ColorGradient | null;
+    default: ColorGradient;
     opaque?: boolean;
-    defaultKey?: string;
-    sync?: boolean;
     prepare?: boolean;
   };
 export declare class Color {
   /**
    * Should be color table prepared in advance without calling getColor()
-   * DO NOT MISUSE THIS PROPERTY. Use only for few colors that are used
-   * for initial rendering and overall app
+   *
+   * DO NOT MISUSE THIS PROPERTY, generating color gradients is expensive
+   * CPU operation and should be done only when needed
+   *
+   * Use only for few colors that are used
+   * for initial rendering and overall app, like temp, wind
    */
   private prepare?;
-  /**
-   * Sync color to the cloud.  By default is set true
-   */
-  private sync?;
-  /**
-   * set all alpha values to 255.  By default is set true
-   */
+  /** Set all alpha values to 255.  By default is set true */
   private opaque?;
+  /** Items precomputed for fast color access */
   private maxIndex;
+  /** Items precomputed for fast color access */
   private step;
-  /**
-   * Index of neutral gray color
-   */
+  /** Index of neutral gray color */
   private neutralGrayIndex;
-  /**
-   * Initial gradient
-   */
-  private default?;
-  /**
-   * Ident of color
-   */
-  ident: ColorIdent | PluginColorIdent | 'pressureIsolines' | 'temporary' | 'direction';
-  /**
-   * Store key
-   */
-  key: `color2_${string}`;
-  /**
-   * For color loaded from info,json
-   */
-  defaultKey?: string;
-  /**
-   * globe: use discrete palette (not blending between colors)
-   */
-  qualitative?: boolean;
-  /**
-   * Numebr of steps for colors table
-   */
-  steps: number;
-  /**
-   * Actually used gradient (can be sifferent than default)
-   */
-  gradient: ColorGradient;
-  /**
-   * Big interpolated RGBA Type array color table
-   * If defined mean someone already used the color
-   */
-  colors?: Uint8Array | null;
-  /**
-   * Save color to lcal storage. By default is set true
-   */
-  save?: boolean;
-  /**
-   * Min value
-   */
+  /** Initial gradient */
+  private defaultColorGradient;
+  /** Custom modified gradient */
+  private customColorGradient?;
+  /** Big interpolated RGBA Type array color table, generated when color is required */
+  private colors?;
+  /** Min value of associated numerical value  */
   min: NumValue;
-  /**
-   * Max value
-   */
+  /** Max value  of associated numerical value  */
   max: NumValue;
+  /** Ident of color */
+  ident: AnyColorIdent;
+  /** globe: use discrete palette (not blending between colors) */
+  qualitative?: boolean;
+  /** Number of steps for colors table */
+  steps: number;
   constructor(params: ColorInitParams);
+  getColorTable(): Uint8Array;
+  loadCustomColor(): Promise<void>;
+  hasCustomColor(): boolean;
   /**
-   * Inserts the color to the store & prepares it
-   *
-   * @param defaultColors Default color
+   * Updates custom color gradient
    */
-  defineColor(defaultColors: ColorGradient): void;
+  setCustomColor(gradient: ColorGradient, saveToIdb?: boolean): Promise<void>;
   /**
-   * Saves new color gradient to data store
+   * Removes custom color gradient
    */
-  changeColor(gradient: ColorGradient, storeOpts?: StoreOptions): void;
-  /**
-   * Back to default settings
-   */
-  toDefault(): void;
-  /**
-   * Same as getColor, but forces to generate new col tables
-   */
-  forceGetColor(): this;
+  removeCustomColor(): Promise<void>;
   /**
    * Returns a color based 'rgb()' string on provided value
    */
   color(value: NumValue): RGBString;
   /**
-   * Returns darkened or lightened cersion of original color. Uses the
-   * most primitive method of darkening/lightening by substracting or
+   * Returns darkened or lightened coercion of original color. Uses the
+   * most primitive method of darkening/lightening by subtracting or
    * adding vale to RGB components
    *
    * @param value Original numerical value
@@ -120,28 +79,19 @@ export declare class Color {
    * return .. output Uint8Array with color data
    */
   createGradientArray(bOpaque?: boolean, bPremultiply?: boolean, valueScale?: number): Uint8Array;
-  createSteppedArray(sourceSmoothArray: Uint8Array, step: number, firstStep?: number): Uint8Array;
   /**
-   * Returns color instance and creates color table (if not yet created)
+   * Generates gradient array for fast access to color table
    */
   getColor(): this;
   /**
    * Returns index to the color table based on value
    */
   value2index(value: NumValue): number;
-  getColorTable(): ColorGradient | null | undefined;
+  getColorGradient(): ColorGradient;
   /**
    * Checks validity of a gradient that it adheres to type ColorGradient
    */
-  private checkValidity;
-  /**
-   * Forces to generate new color table
-   */
-  private colorChanged;
-  /**
-   * Sets max, min values
-   */
-  private setMinMax;
+  static checkValidity(obj: unknown): boolean;
   /**
    * return array multiplied by mul coef
    */
@@ -162,7 +112,6 @@ export declare class Color {
    * preserveSaturation .. (maintain |UV| size)
    */
   private gradYuva;
-  private vec2size;
   /**
    * interpolation between 2 colors in selected space (type)
    * type .. color space / interpolation type: 'RGB' - linear in RGB space (default)
@@ -173,4 +122,8 @@ export declare class Color {
    * rgbaArray .. [r, g, b, a]; componnents in interval <0;255>
    */
   private makePremultiplied;
+  /**
+   * If color table was already generated, we need to regenerate it
+   */
+  private regenerateColorTable;
 }

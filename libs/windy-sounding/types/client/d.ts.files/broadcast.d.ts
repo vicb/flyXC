@@ -12,16 +12,19 @@ import { DetailLocChangeParams } from '@plugins/detail/detail.d';
 import { ParsLocation as GlobeParsLocation } from '@plugins/globe/main/receiver.d';
 import { Params as GlobeParams, Poi as GlobePoi } from '@plugins/globe/types.d';
 import { ExtendedDataAndParams } from '@plugins/isolines/IsolinesCanvas2D.d';
-import { ClientMessage, DownloadProgress, ServiceWorkerMessage } from '@plugins/offline/offline';
 import { Evented } from '@windy/Evented';
 import { MetricIdent, MetricItem } from '@windy/Metric.d';
 import { PluginIdent } from '@windy/Plugin';
 import { NotificationPreferences } from '@windy/dataSpecifications.d';
-import { Fav, GeolocationInfo, LatLon, WeatherParameters } from '@windy/interfaces.d';
+import { GeolocationInfo, LatLon, WeatherParameters } from '@windy/interfaces.d';
 import { PluginSource, PluginsOpenParams, PluginsQsParams } from '@windy/plugin-params.d';
 import { Plugins } from '@windy/plugins.d';
 import { Pois } from '@windy/rootScope.d';
 import type { ExternalPluginIdent } from '@windy/types';
+import type { CenterOptions } from '@windy/map';
+import type { AnimationOptions, FitBoundsOptions, LngLatBoundsLike } from '@windycom/maplibre-gl';
+import type { ViewportBounds } from '@plugins/_shared/maplibre/utils/maplibreUtils';
+import type { RadarPlusLayer } from '@plugins/radar-plus/types';
 
 type BcastTypesNonGeneric = {
   /**
@@ -74,8 +77,11 @@ export interface BasicBcastTypes<T extends keyof Plugins> {
   /** Plugin was successfully loaded and closed */
   pluginClosed: [PluginIdent | string];
 
-  /** Plugin was succesfully closed */
+  /** Plugin was successfully closed */
   pluginOpened: [PluginIdent | string];
+
+  /** Svelte plugin was successfully mounted */
+  pluginMounted: [PluginIdent | string];
 
   /**
    * Triggered when Windy has successfully loaded and rendered requested data.
@@ -101,8 +107,11 @@ export interface BasicBcastTypes<T extends keyof Plugins> {
    */
   metricChanged: [MetricIdent | undefined, MetricItem | undefined];
 
-  /** Indicates that user added, remover or rename his fav @ignore */
+  /** Indicates that user added, remover or rename his fav  */
   favChanged: [];
+
+  /** Indicates that user added, remover or rename his alert  */
+  alertChanged: [];
 
   /**
    * Indicates, that router has parsed URL and launched plugin
@@ -114,15 +123,31 @@ export interface BasicBcastTypes<T extends keyof Plugins> {
   /** @ignore */ globeOpened: [];
   /** @ignore */ globeClose: [];
   /** @ignore */ globeFailed: [];
+
   /** @ignore */ 'globe-detail': [DetailLocChangeParams | (LatLon & PluginSource)];
   /** @ignore */ 'globe-isolines': [ExtendedDataAndParams | null];
   /** @ignore */ 'globe-poi': [GlobeParsLocation & { type?: string; id?: string }];
   /** @ignore */ 'globe-zoomIn': [[number, number] | null] | [];
   /** @ignore */ 'globe-zoomOut': [[number, number] | null] | [];
   /** @ignore */ 'globe-paramsChanged': [GlobeParams];
-  /** @ignore */ 'maps-zoomIn': [number | undefined, L.ZoomOptions | undefined];
-  /** @ignore */ 'maps-zoomOut': [number | undefined, L.ZoomOptions | undefined];
-  /** @ignore */ 'maps-paramsChanged': [WeatherParameters, keyof WeatherParameters | undefined];
+
+  /** @ignore */ 'leaflet-zoomIn': [number | undefined, L.ZoomOptions | undefined];
+  /** @ignore */ 'leaflet-zoomOut': [number | undefined, L.ZoomOptions | undefined];
+  /** @ignore */ 'leaflet-paramsChanged': [WeatherParameters, keyof WeatherParameters | undefined];
+
+  /** @ignore */ 'maplibre-zoomIn': [AnimationOptions | undefined, unknown | undefined];
+  /** @ignore */ 'maplibre-zoomOut': [AnimationOptions | undefined, unknown | undefined];
+  /** @ignore */ 'maplibre-setZoom': [number, unknown | undefined];
+  /** @ignore */ 'maplibre-centerMap': [CenterOptions];
+  /** @ignore */ 'maplibre-triggerDragging': [boolean];
+  /** @ignore */ 'maplibre-fitBounds': [LngLatBoundsLike, FitBoundsOptions | undefined];
+  /** @ignore */ 'maplibre-panToOffset': [number, number, number];
+  /** @ignore */ 'maplibre-ensurePointVisibleY': [number, number, number];
+  /** @ignore */ 'maplibre-moveEnd': [];
+  /** @ignore */ 'maplibre-zoomChange': [number];
+  /** @ignore */ 'maplibre-boundsChange': [ViewportBounds];
+  /** @ignore */ 'maplibre-paramsChanged': [WeatherParameters, keyof WeatherParameters | undefined];
+  /** @ignore */ 'radarPlus-open-layer': [RadarPlusLayer, boolean | undefined]; // Layer to open, whether to open layer for color editing
   /** @ignore */ detailClose: [];
   /** @ignore */ detailRendered: []; // used only in embed2
   /** @ignore */ reloadFavs: [];
@@ -132,7 +157,6 @@ export interface BasicBcastTypes<T extends keyof Plugins> {
   /** @ignore */ screenshotReady: [];
   /** @ignore */ screenshotError: [Error];
   /** @ignore */ onResume: [];
-  /** @ignore */ cloudSync: ['error', { data: Fav | string; action: string; type: 'fav' }];
   /** @ignore */ back2home: [];
   /** @ignore */ reloadMobileApp: [];
   /** @ignore */ newLocation: [GeolocationInfo];
@@ -145,8 +169,6 @@ export interface BasicBcastTypes<T extends keyof Plugins> {
   /** @ignore */ openCapAlerts: [PluginsOpenParams['picker']];
   /** @ignore */ openapp: [];
   /** @ignore */ openSearch: [];
-  /** @ignore */ offlineNativeMessage: [ClientMessage];
-  /** @ignore */ offlineClientMessage: [ServiceWorkerMessage | { data: DownloadProgress }];
 }
 
 interface BcastTypes<T extends keyof Plugins> extends BcastTypesNonGeneric, BasicBcastTypes<T> {}

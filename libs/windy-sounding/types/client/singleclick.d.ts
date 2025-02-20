@@ -20,7 +20,7 @@
  */
 import { Evented } from '@windy/Evented';
 import type { PluginIdent } from './d.ts.files/Plugin';
-import type { SingleclickTypes, ListeningPriority } from './d.ts.files/singleclick';
+import type { SingleclickTypes, ListeningPriority } from './d.ts.files/singleclick.d';
 /**
  * Main singleclick event emitter (instance of class {@link Evented.Evented | Evented }.)
  *

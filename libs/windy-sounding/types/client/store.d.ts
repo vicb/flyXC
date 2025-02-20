@@ -38,8 +38,8 @@
  * @module store
  */
 import { Evented } from '@windy/Evented';
-import type { DataSpecifications, DataSpecificationsObject } from './d.ts.files/dataSpecifications';
-import type { SetReturnType, StoreOptions, StoreTypes } from './d.ts.files/store';
+import type { DataSpecifications, DataSpecificationsObject } from './d.ts.files/dataSpecifications.d';
+import type { SetReturnType, StoreOptions, StoreTypes } from './d.ts.files/store.d';
 declare class Store extends Evented<StoreTypes> {
   /**
    * Set default value for given key
@@ -79,12 +79,6 @@ declare class Store extends Evented<StoreTypes> {
    * @returns True if property exists
    */
   hasProperty: <T extends keyof DataSpecifications>(name: T) => boolean;
-  _set<T extends keyof DataSpecifications, Item extends DataSpecifications[T]>(
-    name: T,
-    item: Item,
-    opts: StoreOptions,
-    value: Item['def'] | null,
-  ): void;
   /**
    * Sets a value in key, value store. If succesfull,a nd value has been changed, store will brodcast message with name and value.
    * Limitation:** Our store is quite primitive so it can not compare Arrays and Objects. Always create new one or use `forceChange` * option.
@@ -165,6 +159,7 @@ declare class Store extends Evented<StoreTypes> {
     },
   ): Item['def'];
   isValid<T>(item: DataSpecificationsObject<T>, value: T): boolean;
+  private setFinally;
 }
 declare const store: Store;
 export declare const getAll: () => void,
@@ -201,5 +196,18 @@ export declare const getAll: () => void,
     name: T,
     value: Item['def'],
     opts?: StoreOptions,
-  ) => SetReturnType<T>;
+  ) => SetReturnType<T>,
+  defineProperty: <
+    T extends keyof DataSpecifications,
+    Prop extends keyof DataSpecifications[T],
+    Value extends DataSpecifications[T][Prop],
+  >(
+    name: T,
+    prop: Prop,
+    value: Value,
+  ) => void,
+  setDefault: <T extends keyof DataSpecifications, Item extends DataSpecifications[T]>(
+    name: T,
+    value: Item['def'],
+  ) => void;
 export default store;

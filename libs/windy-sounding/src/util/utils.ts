@@ -1,4 +1,4 @@
-import type { Fav } from '@windy/interfaces';
+import type { Fav } from '@windy/favs';
 
 // Some models do not have the required parameters for soundings (i.e. surface only)
 const SUPPORTED_MODELS = [
@@ -22,7 +22,7 @@ export function injectStyles(styles: string) {
 }
 
 export function getFavLabel(fav: Fav): string {
-  return fav.title || fav.name || '';
+  return fav.title || '';
 }
 
 export function formatTimestamp(ts: number) {

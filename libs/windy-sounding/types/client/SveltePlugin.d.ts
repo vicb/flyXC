@@ -1,8 +1,8 @@
 import { WindowPlugin } from '@windy/WindowPlugin';
 import type { WindowPluginInitParams } from '@windy/WindowPlugin';
 import type { PluginsOpenParams, PluginsQsParams } from '@windy/plugin-params.d';
-import type { SveltePanePlugins, SveltePlugins } from '@windy/plugins.d';
-export declare class SvelteApp<P extends keyof SveltePlugins | keyof SveltePanePlugins> {
+import type { BottomSveltePlugins, SveltePanePlugins, SveltePlugins } from '@windy/plugins.d';
+export declare class SvelteApp<P extends keyof SveltePlugins | keyof SveltePanePlugins | keyof BottomSveltePlugins> {
   constructor(_args: { target: HTMLElement; anchor: HTMLElement });
   onopen(params?: PluginsOpenParams[P], qs?: PluginsQsParams[P]): void;
   onclose(): void;
@@ -19,19 +19,24 @@ export declare class ExternalSvelteApp {
   $destroy(): void;
 }
 /** Allowed params to SveltePlugin constructor (private and protected props are omited by default) */
-export type SveltePluginInitParams<P extends keyof SveltePlugins | keyof SveltePanePlugins> = Omit<
-  WindowPluginInitParams<P>,
-  'ident'
-> &
-  Pick<SveltePlugin<P>, 'ident'> &
-  Partial<SveltePlugin<P>>;
-export declare class SveltePlugin<P extends keyof SveltePlugins | keyof SveltePanePlugins> extends WindowPlugin<P> {
+export type SveltePluginInitParams<
+  P extends keyof SveltePlugins | keyof SveltePanePlugins | keyof BottomSveltePlugins,
+> = Omit<WindowPluginInitParams<P>, 'ident'> & Pick<SveltePlugin<P>, 'ident'> & Partial<SveltePlugin<P>>;
+export declare class SveltePlugin<
+  P extends keyof SveltePlugins | keyof SveltePanePlugins | keyof BottomSveltePlugins,
+> extends WindowPlugin<P> {
   /**
    * Holder of SvelteApp
    */
-  private svelteApp?;
+  svelteApp?: SvelteApp<P> | ExternalSvelteApp | null;
+  needsPluginRoot?: boolean;
   ident: P;
   plugin: WPluginModules[`@plugins/${P}`] & AdditionalSvelteAssets;
+  constructor(
+    params: WindowPluginInitParams<P> & {
+      needsPluginRoot?: boolean;
+    },
+  );
   onopen(params?: PluginsOpenParams[P], _qs?: PluginsQsParams[P]): void;
   ondestroy(): void;
   protected mount(): void;

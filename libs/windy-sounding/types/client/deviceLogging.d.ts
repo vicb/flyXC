@@ -1,3 +1,4 @@
+import type { RegistrationHash } from '@windy/pushNotifications';
 /**
  * Deactivates current device from push notif backend
  *
@@ -10,4 +11,4 @@ export declare const deactivateCurrentDevice: () => Promise<void>;
  * @param registrationHash Push notification registration hash
  * @returns
  */
-export declare const saveCurrentDevice: (registrationHash: string | null) => void;
+export declare const saveCurrentDevice: (registrationHash?: RegistrationHash | null) => Promise<void>;

@@ -1,7 +1,16 @@
 /**
  * HTTP fetch lib using Promises, authorization and lru caching
  */
-import type { HttpOptions, HttpPayload } from './d.ts.files/http';
+import type { HttpOptions, HttpPayload } from './d.ts.files/http.d';
+/**
+ * Type of the string, that will be added to the header in Accept line to increase stealing protection a little bit
+ *
+ * Target mobile: Use legacy header format until mobile apps start sending correct origin to pass CORS check on the server
+ */
+export declare const acceptHeader: string;
+/**
+ * Enhances URL with server, tokens and auth counter
+ */
 export declare const getURL: (url: string) => string;
 export declare class HttpError extends Error {
   status: number;
@@ -51,6 +60,14 @@ export declare const post: StandardHttpRequestFun;
  * @returns HTTP payload or null when anything failed
  */
 export declare const put: StandardHttpRequestFun;
+/**
+ * Make PATCH http request
+ *
+ * @param url Url
+ * @param options Options
+ * @returns HTTP payload or null when anything failed
+ */
+export declare const patch: StandardHttpRequestFun;
 /**
  * Make HEAD http request
  *

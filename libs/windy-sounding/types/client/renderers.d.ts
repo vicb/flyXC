@@ -1,4 +1,5 @@
 import { Renderer } from '@windy/Renderer';
+import { TopoMap } from '@windy/TopoMap';
 import { TileLayer } from '@windy/TileLayer';
 declare const renderers: {
   /**
@@ -8,9 +9,13 @@ declare const renderers: {
    */
   tileLayer: TileLayer;
   noUserControl: TileLayer;
-  radar: Renderer<'radar', typeof import('../../plugins/radar/radar')>;
-  satellite: Renderer<'satellite', typeof import('../../plugins/satellite/satellite')>;
-  capAlerts: Renderer<'cap-alerts', typeof import('../../plugins/cap-alerts/cap-alerts')>;
+  radar: Renderer<'radar', any>;
+  satellite: Renderer<'satellite', any>;
+  radarPlus: Renderer<'radar-plus', any>;
+  capAlerts: Renderer<
+    'cap-alerts',
+    typeof import('../pluginSystem/SveltePlugin').SvelteApp & typeof import('../../plugins/cap-alerts/cap-alerts')
+  >;
   isolines: Renderer<'isolines', typeof import('../../plugins/isolines/isolines')>;
   particles:
     | Renderer<'gl-particles', typeof import('../../plugins/gl-particles/gl-particles')>
@@ -18,5 +23,7 @@ declare const renderers: {
   /** Extreme forecast and intersucho layers */
   daySwitcher: TileLayer;
   accumulations: TileLayer;
+  /** Seznam topographic Map */
+  topoMap: TopoMap;
 };
 export default renderers;

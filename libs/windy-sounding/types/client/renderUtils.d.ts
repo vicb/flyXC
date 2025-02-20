@@ -5,7 +5,7 @@ import { Evented } from '@windy/Evented';
 import type { Color } from '@windy/Color';
 import type { Layer } from '@windy/Layer';
 import type { FullRenderParameters } from '@windy/Layer.d';
-import type { DataQuality } from '@windy/Product.d';
+import type { DataQuality } from '@windy/Product';
 import type { TileParams } from '@windy/Renderer.d';
 import type { TilePoint } from '@windy/interfaces.d';
 interface Events {

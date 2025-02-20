@@ -5,14 +5,14 @@ import type { DirectionFunction } from '@windy/format.d';
 import type { Iconfont } from '@windy/iconfont.d';
 import type { Overlays } from '@windy/rootScope.d';
 import type { RGBNumValues } from '@windy/interpolatorTypes';
-import type { LoadedTranslations } from '@windy/trans.d';
-import type { HTMLString } from '@windy/types';
-export type UsedOverlays = Overlays | 'gh' | 'swell' | 'satelliteIRBT';
+import type { LoadedTranslations, HTMLString } from '@windy/types';
+import type { RGBAString } from '@windy/Color.d';
+export type UsedOverlays = Overlays | 'swell' | 'satelliteIRBT';
 export type OverlayInitParams = Pick<Overlay, 'ident'> & Partial<Overlay>;
 type LayerProperty<L extends Layer | undefined, P extends keyof Layer> = L extends Layer ? L[P] : undefined;
 type MetricProperty<M extends Metric | undefined, P extends keyof Metric> = M extends Metric ? M[P] : undefined;
 export declare class Overlay<
-  I extends Overlays | 'gh' = Overlays | 'gh',
+  I extends Overlays = Overlays,
   M extends I extends Layers ? LayerMetricType[I] : undefined = I extends Layers ? LayerMetricType[I] : undefined,
   L extends Layer<M> | undefined = I extends Layers ? Layer<M> : undefined,
 > {
@@ -58,6 +58,10 @@ export declare class Overlay<
    */
   hideWxLabels?: boolean;
   /**
+   * Hide elevation in the desktop picker
+   */
+  hidePickerElevation?: boolean;
+  /**
    * Eg. in day-switcher we need as short name as possible
    */
   shortname?: string;
@@ -78,7 +82,7 @@ export declare class Overlay<
    */
   partOf?: Overlays;
   /**
-   * Applies class 'hide-particles' to the body
+   * Hides particle on/off switch in GUI (so far used only in desktop GUI)
    */
   hideParticles?: boolean;
   /**
@@ -104,7 +108,24 @@ export declare class Overlay<
   c: LayerProperty<L, 'c'>;
   l: LayerProperty<L, 'l'>;
   cm: LayerProperty<L, 'cm'>;
+  /**
+   * Do not display this overlay in URL
+   */
+  hideFromURL?: boolean;
+  /**
+   * Optional promo badge to be displayed in GUI
+   */
+  promoBadge?: string;
+  promoBadgeColor?: RGBAString;
+  /**
+   * Optional menu image thumbnail
+   */
+  menuImage?: string;
   constructor(params: OverlayInitParams);
+  /**
+   * When clicking on overlay in menu, do the following action (ready to be overloaded)
+   */
+  onClick(): void;
   /**
    * Render's overlay's legend inside  el
    */
@@ -115,6 +136,10 @@ export declare class Overlay<
    * @param short If true, return shortened version of description if avail
    */
   getName(short?: boolean): string;
+  /**
+   * Return URL of image for overlay
+   */
+  getMenuImagePath(): string;
   /**
    * Get menu title
    *
@@ -135,16 +160,6 @@ export declare class Overlay<
    * @param values Interpolated values
    */
   createPickerHTML(values: RGBNumValues, _directionFormattingFunction: DirectionFunction): HTMLString;
-  /**
-   * In case of picker interpolator returns null value, this method is called
-   * (is consumed by PickerMobile only so far)
-   */
-  createPickerInvalidHTML(): HTMLString;
-  /**
-   * Create title for picker content
-   * @param alternativeContent Alternative text inside title
-   */
-  createPickerTitle(alternativeContent?: string): HTMLString;
   /**
    * Just proxy to the Metric's metric property
    */

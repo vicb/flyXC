@@ -85,6 +85,10 @@ export declare class Evented<T> {
     context?: ThisType<unknown>,
   ): void;
   /**
+   * Unhooks all registered callbacks
+   */
+  offAll(): void;
+  /**
    * @ignore
    */
   listenAll(callback: (topic: keyof T, ...args: unknown[]) => void): void;

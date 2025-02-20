@@ -86,7 +86,7 @@ export const changeModel =
 function updateUrl(state: RootState) {
   const location = pluginSlice.selLocation(state);
   const modelName = pluginSlice.selModelName(state);
-  W.location.setUrl(pluginConfig.name, { modelName, ...location });
+  W.location.setUrl(pluginConfig.name, { modelName, ...location } as any);
 }
 
 let marker: L.Marker | undefined;

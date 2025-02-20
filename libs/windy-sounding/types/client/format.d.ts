@@ -3,7 +3,7 @@
  *
  * Various formatting utils based on user language and settings
  */
-import type { DirectionFunction, HowOldOptions, TimeFormatFunction } from './d.ts.files/format';
+import type { DirectionFunction, HowOldOptions, TimeFormatFunction } from './d.ts.files/format.d';
 import type { Timestamp } from './d.ts.files/types';
 /**
  * Returns function for displaying hours (either 12,24h format) on a basis of locale store of a browser

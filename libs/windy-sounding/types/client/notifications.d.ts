@@ -1,67 +1,35 @@
-import { Evented } from '@windy/Evented';
-import * as http from '@windy/http';
+import type { NotificationExtraPayload } from './d.ts.files/pushNotifications';
 import type { HttpPayload } from './d.ts.files/http';
-import type { NotificationInfo } from './d.ts.files/notifications';
-declare class Notification extends Evented<Notification> {
-  data: Record<string, unknown>;
-  eventSource: null | EventSource;
-  canReceiveNotif: boolean;
-  hasUnloadListener: boolean;
-  constructor();
-  /**
-   * Close SSE event stream
-   */
-  clean(): void;
-  /**
-   * Connect to SSE event stream and hook all event listeners
-   */
-  watchChanges(): void;
-  /**
-   * Get notifications list (paging is applied)
-   *
-   * @param currentPage Page number to get
-   * @param pageSize Page size to include into list
-   * @returns Page is updated with received data or error is shown if anything failed
-   */
-  loadNotificationList(currentPage: number, pageSize: number): Promise<void | NotificationInfo>;
-  /**
-   * Mark alert as seen by its id. This may affect more notifications if the alert has some.
-   *
-   * @param id Alert id
-   * @returns
-   */
-  markAlertAsSeen(id: string): Promise<HttpPayload<void>>;
-  /**
-   * Mark notification as seen by its id. It affects just and only one specific notification.
-   *
-   * @param id Notification id
-   * @returns
-   */
-  markNotificationAsSeen(id: string): Promise<http.HttpPayload<void>>;
-  /**
-   * Mark all notifications ad received (= not seen yet, but already delivered)
-   *
-   * @returns
-   */
-  markNotificationsAsReceived(): Promise<void | http.HttpPayload<void>>;
-  /**
-   * Delete all users notifications
-   *
-   * @returns
-   */
-  deleteAllNotifications(): Promise<http.HttpPayload<void>>;
-  /**
-   * Mark all users notifications as seen
-   */
-  markAllAsSeen(): void;
-  /**
-   * Update notification state. It updates store value so all necessary events are triggered.
-   *
-   * @param vals `totalCount` and `newCount` values to set
-   * @param vals.totalCount Total count of all notifications (already seen is included)
-   * @param vals.newCount Count of new unseen notifications
-   */
-  updateInfo({ totalCount, newCount }: NotificationInfo): void;
-}
-declare const _default: Notification;
-export default _default;
+export declare const canReceiveNotifications: Promise<void>;
+export declare function loadNotifications(): Promise<void>;
+/**
+ * Delete all users notifications
+ */
+export declare function deleteAllNotifications(): Promise<void>;
+/**
+ * Mark all users notifications as seen
+ */
+export declare function markAllAsSeen(): Promise<void>;
+/**
+ * Mark notification as seen
+ *
+ * @param id Alert id
+ * @param processId Process id
+ */
+export declare function markNotificationAsSeen(data: NotificationExtraPayload): Promise<HttpPayload<void>>;
+/**
+ * Mark notification as received
+ *
+ * @param id Alert id
+ * @param processId Process id
+ */
+export declare function markNotificationAsReceived(data: NotificationExtraPayload): Promise<HttpPayload<void>>;
+/**
+ * After this BE will send notification to device
+ * @param type
+ * @param device
+ */
+export declare function sendTestNotification(
+  type: NotificationExtraPayload['category'],
+  registrationHash: string,
+): void;

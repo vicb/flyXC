@@ -101,6 +101,7 @@ export interface MetricTypes {
   dust: NumberedMetric;
   cosc: NumberedMetric;
   radar: NumberedMetric;
+  radsat: SatelliteMetric;
   satellite: SatelliteMetric;
   ptype: PtypeMetric;
   gh: NumberedMetric;
