@@ -1,16 +1,18 @@
-import type { CityForecastData } from '@windy/LabelsLayer.d';
-import type { DataHash, LatLon, MeteogramDataPayload, WeatherDataPayload } from '@windy/interfaces.d';
+import type { CityTemperaturesDto } from '@windy-types/citytile2';
+import type {
+  DataHash,
+  LatLon,
+  MeteogramDataPayload,
+  WeatherDataPayload,
+  ActiveStormCountPayload,
+} from '@windy/interfaces.d';
 import type { Pois, Products } from '@windy/rootScope.d';
-import type { ExtendedStationType } from '@windy/types';
-import type { HttpOptions, HttpPayload } from './http';
+import type { ExtendedStationType, StationOrPoiType } from '@windy/types';
+import type { HttpOptions, HttpPayload, QueryStringSource } from './http.d';
 interface LatLonStep extends LatLon {
   step?: number;
   interpolate?: boolean;
 }
-/**
- * @ignore
- */
-export declare const getReftimeIso: (model: Products) => any;
 /**
  * Returns URL for webcam detail by id
  *
@@ -61,6 +63,20 @@ export declare const getSearchWebcamViewsUrl: (textQuery: string, latLon?: LatLo
  */
 export declare const getWebcamMetricsUrl: (id: string | number) => string;
 /**
+ * Gets point forecast data URL for given location
+ *
+ * @param model Forecast model
+ * @param params LalLon of the location and additional parameters
+ * @param pointForecastOptions Additional options of point forecast API
+ * @param httpOptions Additional HTTP options
+ * @returns URL string for getting point forecast data
+ */
+export declare const getPointForecastUrl: <T extends LatLonStep>(
+  model: Products,
+  { lat, lon, step, interpolate }: T,
+  pointForecastOptions?: Record<string, string>,
+) => Promise<string>;
+/**
  * Gets point forecast data for given location
  *
  * @param model Forecast model
@@ -71,7 +87,7 @@ export declare const getWebcamMetricsUrl: (id: string | number) => string;
  */
 export declare const getPointForecastData: <T extends LatLonStep>(
   model: Products,
-  { lat, lon, step, interpolate }: T,
+  latLonStepInterpolate: T,
   pointForecastOptions?: Record<string, string>,
   httpOptions?: HttpOptions,
 ) => Promise<HttpPayload<WeatherDataPayload<DataHash>>>;
@@ -79,44 +95,44 @@ export declare const getPointForecastData: <T extends LatLonStep>(
  * Gets enhanced point forecast meteogram data for given location
  * @returns Promise with HTTP payload
  */
-export declare const getMeteogramForecastData: <T extends LatLonStep>(
+export declare const getMeteogramForecastUrl: <T extends LatLonStep>(
   model: Products,
   { lat, lon, step }: T,
   pointForecastOptions?: Record<string, string>,
-  options?: HttpOptions,
-) => Promise<HttpPayload<MeteogramDataPayload>>;
+) => Promise<string>;
 /**
- * Returns URL for getting archive forecast
- * @ignore
+ * Gets enhanced point forecast meteogram data for given location
+ * @returns Promise with HTTP payload
  */
-export declare const getArchiveForecastData: <T extends LatLon>(
+export declare const getMeteogramForecastData: <T extends LatLonStep>(
   model: Products,
-  { lat, lon }: T,
-  source: string,
-  qs?: string,
-  options?: HttpOptions,
-) => Promise<HttpPayload<WeatherDataPayload<DataHash>>>;
+  latLonStep: T,
+  pointForecastOptions?: Record<string, string>,
+  httpOptions?: HttpOptions,
+) => Promise<HttpPayload<MeteogramDataPayload>>;
 /**
  * Returns URL for getting citytile forecast
  *
  * @param model Forecast model
  * @param frag Mercator frag in {z}/{x}/{y} format
- * @param options HTTP options
  * @returns URL for getting citytile forecast
  * @ignore
  */
 export declare const getCitytileData: (
   model: Products,
   frag: string,
-  options?: HttpOptions,
-) => Promise<HttpPayload<CityForecastData> | null>;
+) => Promise<HttpPayload<CityTemperaturesDto> | null>;
 /**
  * Returns URL for nearest POI items (stations, airQ, ...)
  * @param param0
  * @returns URL for getting nearest POI items
  * @ignore
  */
-export declare const getNearestPoiItemsUrl: (type: Pois | 'stations', { lat, lon }: LatLon) => string;
+export declare const getNearestPoiItemsUrl: (
+  type: Pois | 'stations',
+  { lat, lon }: LatLon,
+  options?: QueryStringSource,
+) => string;
 /**
  * Returns URL for tide forecast
  * @ignore
@@ -137,4 +153,12 @@ export declare const getObservationsUrl: (
   daysFrom: number,
   daysTo?: number,
 ) => string;
+/**
+ * Get URL for getting observations for a specific station in node-poi server
+ */
+export declare const getObservationPoiUrl: (type: StationOrPoiType | 'stations', id: string) => string;
+/**
+ * Returns http promise for active hurricanes count
+ */
+export declare const getHurricanesCount: () => Promise<HttpPayload<ActiveStormCountPayload>>;
 export {};

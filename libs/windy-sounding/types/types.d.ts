@@ -1,5 +1,7 @@
+import { MainLangFile, PluginTranslations } from '@windy/lang-files.d';
+
 import weatherTable from '@plugins/_shared/detail-render/weatherTable';
-import { WeatherParameters, LatLon } from './interfaces';
+import { LatLon, WeatherParameters } from './interfaces.d';
 
 export * from '@windy/interpolatorTypes.d';
 
@@ -19,6 +21,11 @@ export type Timestamp = number;
 export type Path = string;
 
 /**
+ * String in a form YYYYMMDDHH
+ */
+export type YYYYMMDDHH = string;
+
+/**
  * Valid subscription tiers
  */
 export type SubTier = 'premium' | null;
@@ -27,19 +34,9 @@ export type Platform = 'android' | 'ios' | 'desktop';
 
 export type Device = 'mobile' | 'tablet' | 'desktop';
 
-export type FavType = 'alert' | 'airport' | 'station' | 'fav' | 'webcam' | 'route';
-
-/**
- * Search item types as received from backend
- * There is more search types as received from backend (basically all OSM types)
- */
-export type SearchType = FavType | 'natural' | 'tourism' | 'amenity' | 'admin' | 'highway' | 'railway';
-
 export type DetailDisplayType = 'table' | 'meteogram' | 'airgram' | 'waves' | 'wind';
 
 export type Directions = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
-
-export type AlertConditionProps = 'wind' | 'swell' | 'snow' | 'rain' | 'temp' | 'time' | 'model';
 
 export type HTMLElementWithSlider = HTMLElement & { noUiSlider?: noUiSlider.noUiSlider };
 
@@ -95,9 +92,9 @@ export type SveltePluginIdent = `@plugins/${keyof import('@windy/plugins.d').Sve
 
 export type SveltePanePluginIdent = `@plugins/${keyof import('@windy/plugins.d').SveltePanePlugins}`;
 
-export type TagPluginIdent = `@plugins/${keyof import('@windy/plugins.d').TagPlugins}`;
+export type BottomSveltePluginIdent = `@plugins/${keyof import('@windy/plugins.d').BottomSveltePlugins}`;
 
-export type BottomTagPluginIdent = `@plugins/${keyof import('@windy/plugins.d').BottomTagPlugins}`;
+export type TagPluginIdent = `@plugins/${keyof import('@windy/plugins.d').TagPlugins}`;
 
 export type PlainPluginIdent = `@plugins/${keyof import('@windy/plugins.d').PlainPlugins}`;
 
@@ -186,6 +183,10 @@ export type GoogleServicesPreferences = {
   status: 'denied' | 'authorized';
 };
 
+export type WidgetType = {
+  widget_type: 'satellite' | 'radar' | 'webcam' | 'detail' | 'days';
+};
+
 export type ErrorCategory = 'location' | 'notification' | 'iCloud' | 'battery';
 
 export type ShowableError = {
@@ -207,7 +208,7 @@ export type ShowableErrors = {
 };
 
 export type MigrationResult = {
-  status: 'migrationNotPerformed' | 'migratingData';
+  status: 'migrationNotPerformed' | 'migratingData' | 'migrationPerformed';
 };
 
 /**
@@ -247,10 +248,13 @@ export type LogPaths =
   | 'appRating'
   | 'articles'
   | 'detail2'
+  | 'appsflyer'
   | 'onboarding'
   | 'station'
   | 'weather'
-  | 'events';
+  | 'events'
+  | 'locationPermissionPopup'
+  | 'widgetPromo';
 
 /**
  * Type of user consent
@@ -267,21 +271,29 @@ export type ProductIdent =
   | 'icon-d2'
   | 'arome'
   | 'arome-antilles'
+  | 'arome-france'
   | 'arome-reunion'
   | 'can-hrdps'
   | 'can-rdwps'
   | 'cams-global'
   | 'cams-eu'
+  | 'cze-aladin'
   | 'icon-global'
   | 'icon-gwam'
   | 'icon-ewam'
   | 'hrrr-alaska'
   | 'hrrr-conus'
   | 'bom-access'
+  | 'bom-access-c-ad'
+  | 'bom-access-c-bn'
+  | 'bom-access-c-dn'
+  | 'bom-access-c-nq'
+  | 'bom-access-c-ph'
+  | 'bom-access-c-sy'
+  | 'bom-access-c-vt'
   | 'ukv'
   | 'gfs'
   | 'gfs-wave'
-  | 'ecmwf-aifs'
   | 'ecmwf-hres'
   | 'ecmwf-wam'
   | 'ecmwf-efi'
@@ -297,7 +309,7 @@ export type PickerOpener = LatLon & { id: string };
 
 export type ExternalPluginIdent = `windy-plugin-${string}`;
 
-export type DropDownValues = { key: string | number; value: string | number }[];
+export type DropDownValues = { key: string | number | null; value: string | number }[];
 
 /*
  * Plugin for creating backups of Local storage
@@ -310,6 +322,7 @@ export type WindyBackupPluginInfo = {
   lastBackupTriggered: number;
   triggerCounter: number;
   deviceID: string;
+  vendorID?: string;
 };
 export interface WindyBackupPlugin {
   // Compare client counter and if is older (most likely zero, when cleared)
@@ -324,3 +337,31 @@ export interface WindyBackupPlugin {
   // Returns info about native backup
   backupInfo: () => Promise<WindyBackupPluginInfo>;
 }
+
+/**
+ * Currently used main map library
+ */
+export type UsedMapLibrary = 'leaflet' | 'maplibre' | 'globe';
+
+/**
+ * All defined translation keys
+ *
+ * WARNING: Given lang files MUST be lazy loded before using the key
+ */
+export type LoadedTranslations = MainLangFile & PluginTranslations;
+
+/*
+ * Time defined in hours
+ */
+export type Hours = number;
+
+export type UserInterest =
+  | 'outdoor_activities'
+  | 'water_sports'
+  | 'winter_sports'
+  | 'wind_sports'
+  | 'aviation'
+  | 'boating'
+  | 'agriculture'
+  | 'meteorologist'
+  | 'other';

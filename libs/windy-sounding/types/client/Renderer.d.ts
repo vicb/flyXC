@@ -1,16 +1,6 @@
-import type { FullRenderParameters } from './d.ts.files/Layer';
-import type { Renderers } from './d.ts.files/Renderer';
+import type { FullRenderParameters } from './d.ts.files/Layer.d';
+import type { Renderers, AllowedUserControls, AllowedRenderPlugins, RendererInitParams } from './d.ts.files/Renderer.d';
 import type { InterpolatorFactory } from './d.ts.files/interpolator';
-import type { BottomTagPlugins, Plugins } from './d.ts.files/plugins';
-type AllowedRenderPlugins = Pick<
-  Plugins,
-  'radar' | 'satellite' | 'cap-alerts' | 'isolines' | 'gl-particles' | 'particles'
->;
-export interface RendererInitParams {
-  ident: Renderers;
-  dependency?: keyof AllowedRenderPlugins;
-  userControl?: keyof BottomTagPlugins;
-}
 /**
  * Renderer class act as a proxy between renderController and code, which is responsible to
  * render particullar layer.
@@ -57,7 +47,7 @@ export declare class Renderer<
    *
    * userControl opening and closing is handles by rndrCtrl
    */
-  userControl?: keyof BottomTagPlugins;
+  userControl?: AllowedUserControls;
   /**
    * Picker ingerpolation factory
    */
@@ -74,4 +64,3 @@ export declare class Renderer<
   paramsChanged(params: FullRenderParameters): void;
   redraw(): void;
 }
-export {};

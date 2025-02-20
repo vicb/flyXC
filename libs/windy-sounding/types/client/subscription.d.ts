@@ -67,4 +67,5 @@ export declare const checkPendingSubscription: () => void;
  * It is used only as a gateway to solving the whole issue. It must be short and clear.
  */
 export declare const getBaitTitle: (issue: SubscriptionIssue | null) => string;
+export declare const checkAndRenderSubsIssue: () => void;
 export {};

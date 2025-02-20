@@ -1,14 +1,14 @@
 /**
  * Main Windy interfaces
  */
-import { ClientMessage } from '@plugins/offline/offline';
 import { Weekday } from '@windy/Calendar.d';
 import { ExtendedTileParams } from '@windy/DataTiler.d';
+import { FavId } from '@windy/favs';
 import { FullRenderParameters } from '@windy/Layer.d';
 import { Particles } from '@windy/Particles';
-import { PluginsOpenParams, type PluginsQsParams } from '@windy/plugin-params.d';
+import { PluginsOpenParams, type DetailOpenParams, type PluginsQsParams } from '@windy/plugin-params.d';
 import { Plugins } from '@windy/plugins.d';
-import { AcTimes, Isolines, Levels, Overlays, PointProducts, Products } from '@windy/rootScope.d';
+import { Isolines, Levels, Overlays, PointProducts, Products } from '@windy/rootScope.d';
 import {
   BatteryPreferences,
   CapAlertInfo,
@@ -17,7 +17,6 @@ import {
   DetailDisplayType,
   DetailRows,
   Directions,
-  FavType,
   GoogleServicesPreferences,
   GpsPreferences,
   ISODateString,
@@ -30,12 +29,13 @@ import {
   Path,
   Pixel,
   Platform,
-  SearchType,
   StationOrPoiType,
   Timestamp,
   WidgetNotificationPreferences,
+  WidgetType,
   YearMonthDay,
   type MigrationResult,
+  type SubTier,
 } from '@windy/types.d';
 
 export interface ExportedObj {
@@ -117,8 +117,8 @@ export interface GeolocationInfo extends LatLon {
  * TODO: This is basically copied favorite
  */
 export interface HomeLocation extends LatLon {
+  id: FavId;
   title: string;
-  updated?: string;
 }
 
 export interface Alert {
@@ -159,6 +159,7 @@ export interface Alert {
   snow: {
     active: boolean;
     min: number;
+    max: number;
   };
 
   /**
@@ -168,6 +169,7 @@ export interface Alert {
   rain: {
     active: boolean;
     min: number;
+    max: number;
     hours: 3 | 6 | 12 | 24 | 48;
   };
 
@@ -247,154 +249,12 @@ export interface AlertProps {
   suspended?: boolean;
 }
 
-export interface Fav extends LatLon {
-  /** Unique ID of item */
-  id: string;
-
-  /* How many times was this item hit/used */
-  counter?: number;
-
-  /** Title of item */
-  title: string;
-
-  /** @deprecated Name was used till 2019, all should be refactored to `title` if it is safe */
-  name?: string;
-
-  /** Unique invented key, for access */
-  key?: string;
-
-  /** Type of item */
-  type: FavType | SearchType;
-
-  /** Airport ICAO code in case of airport */
-  icao?: string;
-
-  /** Weather station ID (if WX station) */
-  stationId?: string;
-
-  /** Webcam ID in case of webcam */
-  webcamId?: number;
-
-  /** For saved routes */
-  route?: string;
-
-  /**
-   * If user wants to pin to top this fav, this timestamp enable us to sort all the favs
-   * so the last pinned is on top
-   */
-  pin2top?: Timestamp | null;
-
-  /**
-   * If user wants to pin to homepage this fav, this timestamp enable us to sort all the favs
-   * so the last pinned is first in line
-   */
-  pin2homepage?: Timestamp | null;
-}
-
-/** Search result payload as received from backend */
-export interface SearchResult extends Fav {
-  /** Localized Search result */
-  title: string;
-
-  /** Type of item */
-  type: SearchType;
-
-  /** Localized, human readable country name */
-  country?: string | null;
-
-  /** Lowercase ISO-2 CC */
-  cc?: string;
-
-  /** Localized, human readable region */
-  region?: string | null;
-
-  /** Localized, human readable state */
-  state?: string;
-
-  /** Stringified bounds of found item for case of island, country etc */
-  bounds?: string;
-
-  /**
-   * Added properties for purpose of recent searches
-   */
-
-  /** Creation date */
-  timestamp?: Timestamp;
-
-  /** Search query under which was item stored to recents */
-  query?: string;
-}
-
-export interface HttpSearchPayload {
-  header: {
-    type: 'search' | 'coordinates' | 'query-error' | '2airports';
-  };
-  data: SearchResult[];
-}
-
-export interface SavedFav extends Fav {
-  /** Title of item */
-  title: string;
-
-  /** Unique invented key, for access */
-  key: string;
-
-  /** Type of item */
-  type: FavType;
-
-  /** Alert settings (conditions, properties, ...) if any */
-  alert?: Alert;
-
-  /** Basic info about alert if any */
-  alertProps?: AlertProps;
-
-  /**
-   * Query params of the route needed for creating the route again
-   *
-   * @example car/50.43,21.49;48.14,20.61;49.18,21.41
-   */
-  route?: string;
-
-  /**
-   * Timestamp when the item has been updated for the last time. It is used for updating items on all devices (the most up-to-date wins)
-   */
-  updated?: Timestamp;
-
-  overflowed?: boolean;
-
-  /** @deprecated Use `title` instead. This property is presented only because of in local storage saved old favs compatibility. */
-  name?: string;
-  /** Used for alerts to open slider on active timestamp */
-  moveToTimestamp?: boolean;
-}
-
-export interface UpcomingFav extends Fav {
-  // TODO - is it necessary? Isn't just some migration deprecated stuff?
-  name?: string;
-
-  /** Type of item */
-  type: FavType;
-
-  // TODO - is it necessary? Can unsaved fav has a route property?
-  route?: string;
-
-  // TODO - is it necessary? Can unsaved fav has an alert property?
-  alert?: Alert;
-
-  // TODO - is it necessary? Can unsaved fav has an updated property?
-  updated?: Timestamp;
-}
-
-export interface SavedAlertFav extends UpcomingFav {
-  _id?: string;
-  alert: Alert;
-}
-
 export interface WeatherParameters {
+  acRange: Timestamp;
   overlay: Overlays;
-  acTime: AcTimes;
   level: Levels;
-  isolines: Isolines;
+  isolinesType: Isolines;
+  isolinesOn: boolean;
   path: Path;
   product: Products;
 }
@@ -415,6 +275,8 @@ export interface LastSentDevice {
   platform: string;
   target: string;
   version: string;
+  subscription: SubTier;
+  cc: string;
   deactivated?: boolean;
   updated?: number;
   screen?: {
@@ -511,7 +373,7 @@ export interface Celestial {
 /**
  * Summary day as received from backend
  */
-export interface SummaryDay {
+export interface CalendarSummaryDay {
   /**
    * Identifier of the day
    */
@@ -522,6 +384,21 @@ export interface SummaryDay {
    */
   day: number;
 
+  /**
+   * Timestamp of midnight when the segment starts
+   */
+  timestamp: Timestamp;
+
+  /**
+   * Translation string for weekday
+   */
+  weekday: Weekday;
+}
+
+/**
+ * Summary day as received from backend
+ */
+export interface SummaryDay extends CalendarSummaryDay {
   /**
    * Weather icon identifier
    */
@@ -546,16 +423,6 @@ export interface SummaryDay {
    * Min temp in K
    */
   tempMin: NumValue;
-
-  /**
-   * Timestamp of midnight when the segment starts
-   */
-  timestamp: Timestamp;
-
-  /**
-   * Translation string for weekday
-   */
-  weekday: Weekday;
 
   /**
    * Mean/Average Wind force
@@ -875,7 +742,7 @@ export interface NodeForecastHeader {
   /**
    * Elevation of model grid
    */
-  modelElevation: number;
+  modelElevation?: number;
 
   /**
    * UTC offset in hours
@@ -969,15 +836,17 @@ export interface WeatherTableRenderingOptions {
    * Surface sea temperature if available
    */
   sst?: number;
-}
 
-// TS cannot extend from [] syntax, just create proxy type and use it in the next line
-type DetailPluginOpenParams = PluginsOpenParams['detail'];
+  /**
+   * Should backend interpolate values for 1h step
+   */
+  interpolate?: boolean;
+}
 
 /**
  * Parameters used for displaying detail (point forecast)
  */
-export interface DetailParams extends DetailPluginOpenParams, WeatherTableRenderingOptions {
+export interface DetailParams extends DetailOpenParams, WeatherTableRenderingOptions {
   display: DetailDisplayType;
   /**
    * Which kind of action led to displaying the detail
@@ -1068,27 +937,6 @@ export interface ExtendedRenderParams extends ExtendedTileParams, FullRenderPara
   vectors: Float32Array;
 
   speed2pixel: number;
-}
-
-/**
- * Info about articles, user has already seen
- */
-export interface SeenArticle {
-  /**
-   * Last time, the article has been displayed to the user
-   */
-  checked: Timestamp;
-
-  /**
-   * How many times the article has been seen
-   * (one count is added only if the article has been seen after 12 hours from the last seen time)
-   */
-  count: number;
-
-  /**
-   * Marks beginning of 12h interval
-   */
-  seen: Timestamp;
 }
 
 /**
@@ -1294,7 +1142,25 @@ export interface WindyServicePlugin {
   openBackgroundLocationSettings: () => Promise<void>;
   logError: (arg: { moduleName: string; msg: string; error?: string }) => Promise<void>;
   getId: () => Promise<{ identifier: string }>;
+  getAppsflyerCredentials: () => Promise<{ devKey: string | undefined; appId: string }>;
+  addWidget: (arg: WidgetType) => Promise<void>;
 }
+
+export interface NotificationLocationInfo {
+  locationEntityId: string;
+  deviceToken: string | null;
+  isRunning: boolean;
+}
+
+export interface WindyNotificationLocationPlugin {
+  getInfo: () => Promise<NotificationLocationInfo>;
+  startUpdateService: () => Promise<NotificationLocationInfo>;
+  stopUpdateService: () => Promise<NotificationLocationInfo>;
+  // Only for testing purposes
+  getDebugLog: () => Promise<{ lastLocationUpdates: string }>;
+  useCustomLocation: (arg: LatLon) => Promise<void>;
+}
+
 /**
  * A migration tool for transferring old Web View local storage to a new location.
  * This migration is necessary when the hostname is changed in the native Capacitor configuration.
@@ -1336,7 +1202,7 @@ export interface WindyMigrationPlugin {
   /**
    * Marks migration as completed and restart WebView from origin
    */
-  markMigrationCompleted: () => Promise<void>;
+  markMigrationCompleted: (opts: { reload: boolean }) => Promise<void>;
   /**
    * Returns migration status flag - either migrationNotPerformed or migratingData
    */
@@ -1484,15 +1350,6 @@ export interface Consent {
 export interface LocationState {
   url: string;
   search: string;
-}
-
-export interface WindyOfflinePlugin {
-  // startOfflineMode: () => Promise<unknown>;
-  // stopOfflineMode: () => Promise<unknown>;
-  controlReadiness: () => Promise<{ value: boolean }>;
-  // fetchOfflineData: (payload: DownloadPayload) => Promise<unknown>;
-  postMessage: (message: ClientMessage) => Promise<unknown>;
-  addListener: (eventName: 'offlineMessage', callback: (message: { data: string }) => void) => void;
 }
 
 /**
@@ -1753,4 +1610,11 @@ interface ClientPatch {
   __css: string;
   exclusivePromos: PromoObj[];
   otherPromos: PromoObj[];
+}
+
+/**
+ * Amount of active hurricanes as returnd from hurricane tracker backend
+ */
+export interface ActiveStormCountPayload {
+  activeStormCount: number;
 }

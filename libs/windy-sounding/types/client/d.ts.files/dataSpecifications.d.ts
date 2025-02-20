@@ -1,5 +1,4 @@
 import {
-  AcTimes,
   GlobalPointProducts,
   Isolines,
   Levels,
@@ -20,17 +19,20 @@ import {
   ShowableError,
   SubTier,
   Timestamp,
+  type Hours,
   type RouteMotionSpeed,
+  type UsedMapLibrary,
+  type UserInterest,
 } from '@windy/types.d';
-
-import { ColorGradient } from '@windy/Color.d';
 
 import { MetricItem } from '@windy/Metric.d';
 
+import type { User, LoginAndFinishAction } from '@windy/user.d';
+
 import type { SubscriptionInfo } from '@plugins/_shared/subscription-services/subscription-services.d';
-import type { DownloadedInfo, OfflineConfiguration } from '@plugins/offline/offline.d';
 import type RadarCalendar from '@plugins/radar/calendar/RadarCalendar';
 import type SatelliteCalendar from '@plugins/satellite/calendar/SatelliteCalendar';
+import type { NumberRange } from './alerts';
 
 /**
  * Custom animation particles settings
@@ -48,6 +50,9 @@ export interface CustomParticles {
  */
 export interface NotificationPreferences {
   email?: string;
+  preferredNotificationTime?: NumberRange[];
+  frequencyDays?: number;
+  usedTimezoneName?: string;
   sendToEmail: boolean;
   sendToMobile: boolean;
 }
@@ -69,21 +74,6 @@ export interface Donation {
   ts: Timestamp;
   amount: number;
   sub: string;
-}
-
-export interface User {
-  avatar?: string;
-  email?: string;
-  fullname?: string;
-  id: number;
-  username: string;
-  userslug: string;
-  verifiedEmail?: string;
-
-  /**
-   * Based on user location, cookie consent can be shown to the user if needed
-   */
-  requiresCookieConsent?: boolean;
 }
 
 export interface MapCoordinates extends LatLon {
@@ -145,12 +135,6 @@ export interface DataSpecificationsObject<T> {
   update?: Timestamp;
 
   /**
-   * Allow overwrite start-up URL
-   * TODO: Refactor. Used only once in router.ts
-   */
-  allowUrlRewrite?: boolean;
-
-  /**
    * Setter function (will be run before value is set)
    */
   syncSet?: (...args: unknown[]) => T;
@@ -170,7 +154,6 @@ export interface DataSpecificationsObject<T> {
  *  `overlay`,
  *  `level`,
  *  `availLevels`,
- *  `acTime`,
  *  `timestamp`,
  *  `isolines`,
  *  `product`,
@@ -200,9 +183,9 @@ export interface DataSpecifications {
   level: DataSpecificationsObject<Levels>;
 
   /**
-   * Rain/snow accumulated time range. Use `store.getAllowed('acTime')` to get list of allowed values.
+   * Rain/snow/wind accumulations time range in hours
    */
-  acTime: DataSpecificationsObject<AcTimes>;
+  acRange: DataSpecificationsObject<Hours>;
 
   /**
    * Timestamp of actual weather moment. Use freely and without hesitation. Must be valid timestamp in ms, that is
@@ -223,9 +206,14 @@ export interface DataSpecifications {
   path: DataSpecificationsObject<Path>;
 
   /**
-   * Read only value! UTC string containing time of actually rendered data that are available for current overlay and weather model.
+   * Which type of isolines to render
    */
-  isolines: DataSpecificationsObject<Isolines>;
+  isolinesType: DataSpecificationsObject<Isolines>;
+
+  /**
+   * Whether to render isolines
+   */
+  isolinesOn: DataSpecificationsObject<boolean>;
 
   /**
    * Product is set of weather data, that have same resolution, boundaries, time range and so on.
@@ -243,11 +231,6 @@ export interface DataSpecifications {
    * Products available for given map boundary
    */
   visibleProducts: DataSpecificationsObject<Products[]>;
-
-  /**
-   * Available accumulation times for give overlay and product combination
-   */
-  availAcTimes: DataSpecificationsObject<AcTimes[]>;
 
   /**
    * Global fallback product that handles situation
@@ -324,14 +307,21 @@ export interface DataSpecifications {
   isImperial: DataSpecificationsObject<boolean>;
 
   /**
-   * Type of map shown in detail
+   * Type of map tiles map shown in detail
    */
   map: DataSpecificationsObject<'sznmap' | 'sat' | 'winter'>;
+
+  /**
+   * Which type of map library is used
+   */
+  mapLibrary: DataSpecificationsObject<UsedMapLibrary>;
 
   /**
    * Show 7 days weather on startup
    */
   showWeather: DataSpecificationsObject<boolean>;
+
+  stormSettingsLightning: DataSpecificationsObject<boolean>;
 
   /**
    * Is WebGL disabled?
@@ -347,6 +337,11 @@ export interface DataSpecifications {
    * Finally used language (the one which is successfully loaded in trans module)
    */
   usedLang: DataSpecificationsObject<SupportedLanguages>;
+
+  /**
+   * The difference in minutes between UTC and the local time on the device.
+   */
+  lastTimezoneOffset: DataSpecificationsObject<number>;
 
   /**
    * Particles animation settings
@@ -406,11 +401,6 @@ export interface DataSpecifications {
   startupReverseName: DataSpecificationsObject<ReverseResult | null>;
 
   /**
-   * NOTAMs marked as read
-   */
-  notams: DataSpecificationsObject<Record<string, number> | null>;
-
-  /**
    * Users email
    */
   email: DataSpecificationsObject<string>;
@@ -424,6 +414,11 @@ export interface DataSpecifications {
    * Display Heliports that do not report METARs in the POIs layer
    */
   displayHeliports: DataSpecificationsObject<boolean>;
+
+  /**
+   * Display Airspaces map layer in the METARs POI layer
+   */
+  displayAirspaces: DataSpecificationsObject<boolean>;
 
   /**
    * User statistics
@@ -444,16 +439,10 @@ export interface DataSpecifications {
   seenRadarInfo: DataSpecificationsObject<boolean>;
 
   /**
-   * Wheather picker was dragged or not (not settings but info)
-   * @ignore
-   */
-  wasDragged: DataSpecificationsObject<boolean>;
-
-  /**
    * Detail's location - TODO: get rid of async name property
    * @ignore
    */
-  detailLocation: DataSpecificationsObject<(LatLon & { name?: string }) | null>;
+  detailLocation: DataSpecificationsObject<(LatLon & { name?: string; id?: string }) | null>;
 
   /**
    * 1h step of forecast
@@ -490,29 +479,14 @@ export interface DataSpecifications {
   capDisplay: DataSpecificationsObject<'all' | 'today' | 'tomm' | 'later'>;
 
   /**
-   * Range of displayed radar history
-   */
-  radarRange: DataSpecificationsObject<'archive' | 'long' | 'medium' | 'short'>;
-
-  /**
    * Timestamp in ms
    */
   radarTimestamp: DataSpecificationsObject<Timestamp>;
 
   /**
-   * Animation speed
-   */
-  radarSpeed: DataSpecificationsObject<'slow' | 'medium' | 'fast'>;
-
-  /**
    * Radar calendar
    */
   radarCalendar: DataSpecificationsObject<RadarCalendar | null>;
-
-  /**
-   * Animation is running
-   */
-  radarAnimation: DataSpecificationsObject<boolean>;
 
   /**
    * Visible lightning data on radar
@@ -525,11 +499,6 @@ export interface DataSpecifications {
   blitzSoundOn: DataSpecificationsObject<boolean>;
 
   /**
-   * Range of displayed satellite history
-   */
-  satelliteRange: DataSpecificationsObject<'archive' | 'long' | 'medium' | 'short'>;
-
-  /**
    * Timestamp in ms
    */
   satelliteTimestamp: DataSpecificationsObject<Timestamp>;
@@ -540,19 +509,9 @@ export interface DataSpecifications {
   satelliteCalendar: DataSpecificationsObject<SatelliteCalendar | null>;
 
   /**
-   * Satellite animation is running
+   * Interpolate images using vectors
    */
-  satelliteAnimation: DataSpecificationsObject<boolean>;
-
-  /**
-   * Satellite visualization modes
-   */
-  satelliteMode: DataSpecificationsObject<'BLUE' | 'VISIR' | 'IRBT' | 'DBG'>; // 'IR',
-
-  /**
-   * Animation speed
-   */
-  satelliteSpeed: DataSpecificationsObject<'slow' | 'medium' | 'fast'>;
+  radSatFlowOn: DataSpecificationsObject<boolean>;
 
   /**
    * Extrapolate satellite images to future
@@ -680,14 +639,6 @@ export interface DataSpecifications {
   notifications: DataSpecificationsObject<NotificationPreferences | null>;
 
   /**
-   * User likes to receive ad hoc pushNotification
-   * For instance METAR update.
-   * Once set, it always stays on on this device
-   * @ignore
-   */
-  adHocNotification: DataSpecificationsObject<boolean>;
-
-  /**
    * Number of unread notifications
    * @ignore
    */
@@ -722,11 +673,6 @@ export interface DataSpecifications {
   authHash: DataSpecificationsObject<string | null>;
 
   /**
-   * Globe plugin is active (used for disabling isolines in overlays plugin)
-   */
-  globeActive: DataSpecificationsObject<boolean>;
-
-  /**
    * Webcam or station last location (used for globe picker initial location)
    * @ignore
    */
@@ -748,12 +694,6 @@ export interface DataSpecifications {
    * @ignore
    */
   launchedBy: DataSpecificationsObject<'radar-widget' | null>;
-
-  /**
-   * Any stored color
-   * @ignore
-   */
-  [key: `color2_${string}`]: DataSpecificationsObject<ColorGradient | null>;
 
   /**
    * Any stored metric
@@ -829,34 +769,14 @@ export interface DataSpecifications {
   pickerMobileTimeout: DataSpecificationsObject<PickerMobileTimeout>;
 
   /**
-   * Selected area and layers for offline mode
-   * @ignore
-   */
-  offlineSetting: DataSpecificationsObject<OfflineConfiguration | null>;
-
-  /**
    * Endable/dissable change of detail location, when map is dragged
    */
   changeDetailOnMapDrag: DataSpecificationsObject<boolean>;
 
   /**
-   * Simple, easy to use indicator, if we are running in offline mode
-   * @ignore
+   * Timestamp in ms
    */
-  offlineMode: DataSpecificationsObject<boolean>;
-
-  /**
-   * Imfo about offline data residing in serviceWorker
-   * @ignore
-   */
-  offlineDataInfo: DataSpecificationsObject<DownloadedInfo | null>;
-
-  /**
-   * Enables/disables offline mode at all. If false, offline mode is not available
-   * and serviceWorker is not installed at all
-   * @ignore
-   */
-  offlineModeEnabled: DataSpecificationsObject<boolean>;
+  radsatTimestamp: DataSpecificationsObject<Timestamp>;
 
   /**
    * Display this type of WX stations on POI map
@@ -880,10 +800,16 @@ export interface DataSpecifications {
   stationCompareHiddenProducts: DataSpecificationsObject<PointProducts[]>;
 
   /**
-   * Main GSPR, privacy or cookie consent object
+   * Main GDPR, privacy or cookie consent object
    * @ignore
    */
   consent: DataSpecificationsObject<Consent | null>;
+
+  /**
+   * Is analytics consent required
+   * @ignore
+   */
+  analyticsConsentRequired: DataSpecificationsObject<boolean | null>;
 
   /**
    * Youtube cookie consent object
@@ -912,6 +838,37 @@ export interface DataSpecifications {
    * User has entered into arrange mode in RH menu
    */
   rhMenuArrangeMode: DataSpecificationsObject<boolean>;
+
+  /*
+   * If startup widgets should persist
+   */
+  persistentWidgets: DataSpecificationsObject<boolean>;
+
+  /**
+   * List of interests user has, based on onboarding picker
+   */
+  userInterests: DataSpecificationsObject<UserInterest[]>;
+
+  onboardingFinished: DataSpecificationsObject<boolean>;
+
+  locationPermissionsGranted: DataSpecificationsObject<boolean>;
+
+  doNotShowLocationPermissionsPopup: DataSpecificationsObject<boolean>;
+
+  locationPermissionsPopupShown: DataSpecificationsObject<number | null>;
+
+  loginAndFinishAction: DataSpecificationsObject<(LoginAndFinishAction & { updated: Timestamp }) | null>;
+
+  /**
+   * If user wants to display just some type of favs in favs plugin
+   */
+  favsFilter: DataSpecificationsObject<FavTypeNew[]>;
+
+  /**
+   * Contains information, that registration hash for pushNotifications has been
+   * successfully sent to the backend
+   */
+  pushNotificationsReady: DataSpecificationsObject<boolean>;
 }
 
 /**

@@ -1,27 +1,17 @@
-import type { StorageData } from '@windy/storage.d';
+import type { Timestamp } from '@windy/types';
 export interface PromoInfoObject {
+  id: string;
   displayed: number;
-  ts: number;
+  ts: Timestamp;
 }
 /**
- * Get raw promo object from localStorage
- *
- * @returns Local promos
+ * Get basic info about promo for given ident
  */
-export declare const getAll: () => StorageData['promos2'];
-/**
- * Get basic info about promo
- *
- * @param ident Identification
- * @returns Promo info object
- */
-export declare const getCounter2: (ident: string) => PromoInfoObject;
+export declare const getCounter: (id: string) => Promise<PromoInfoObject>;
 /**
  * Increases 'seen' counter for particular promo
- *
- * @param ident Ident
  */
-export declare const hitCounter: (ident: string) => void;
+export declare const hitCounter: (id: string) => Promise<void>;
 /**
  * Flag the promo to be never seen again (by setting
  * its number to 1000)

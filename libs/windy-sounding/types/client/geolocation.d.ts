@@ -1,5 +1,6 @@
 import '@windy/router';
 import type { GeolocationInfo, HomeLocation } from '@windy/interfaces.d';
+import type { PositionOptions } from '@capacitor/geolocation';
 /**
  * Returns either GPS or IP location whichever is newer.
  *
@@ -10,13 +11,21 @@ import type { GeolocationInfo, HomeLocation } from '@windy/interfaces.d';
  * @returns Location got from GPS or IP, the newer is preferred
  */
 export declare const getMyLatestPos: () => GeolocationInfo;
+interface GeolocationOptions extends PositionOptions {
+  doNotShowSearchGPSMessage?: boolean;
+  doNotShowFailureMessage?: boolean;
+  getMeFallbackGps?: boolean;
+}
 /**
  * Returns promise on GPS based location with GeoIP location as a fallback.
  *
- * @param options Optionally custom options passed to Capacitor geolocation plugin
+ * Enables to display information messages to user by default, and enables to
+ * get fallback GPS location if GPS location is not available.
+ *
+ * @param options Options for geolocation
  * @returns Geolocation info from GPS, GeoIP as a fallback
  */
-export declare const getGPSlocation: (options?: PositionOptions) => Promise<GeolocationInfo>;
+export declare const getGPSlocation: (options?: GeolocationOptions) => Promise<GeolocationInfo>;
 /**
  * Returns fallback name created from lat,lon if nothing else can be used
  *
@@ -28,10 +37,9 @@ export declare const getGPSlocation: (options?: PositionOptions) => Promise<Geol
  */
 export declare const getFallbackName: (lat: number | string, lon: number | string) => string;
 /**
- * Gets accurate home location. Cannot be used in map initialization beacause it is async.
- *
- * @param cb Callback function to call when location is get. Location info object is passed as a callback argument
- *
+ * Gets accurate home location. Cannot be used in map initialization because it is async.
  * @ignore
  */
-export declare const getHomeLocation: (cb: (loc: GeolocationInfo | HomeLocation) => void) => void;
+export declare const getHomeLocation: () => Promise<GeolocationInfo | HomeLocation>;
+export declare function requestLocationPermissions(): Promise<boolean>;
+export {};

@@ -1,14 +1,9 @@
-import { MinifestObject } from '@windy/Calendar.d';
-import { Fav, LastSentDevice, SavedFav, SeenArticle } from '@windy/interfaces.d';
-import { StoredTransFile } from '@windy/trans.d';
 import { Timestamp } from '@windy/types.d';
-
-import LRUCache from './lruCache';
+import { Fav, type ObsoleteFav } from '@windy/favs.d';
+import { SearchRecent } from '@plugins/search/search';
 
 export interface StorageData {
-  /**
-   * Number of hits for every single promo2 id.
-   */
+  /** @deprecated  replaced by IDB */
   promos2?: Record<string, number>;
 
   /**
@@ -35,18 +30,6 @@ export interface StorageData {
    */
   rateDialogShown?: Timestamp;
 
-  lastSentDevice?: LastSentDevice;
-
-  /**
-   * Articles, user has seen on particular device
-   */
-  articles?: Record<string, SeenArticle>;
-
-  /**
-   * Airport detail offline cache
-   */
-  'offline/airport'?: ReturnType<LRUCache<string>['toJSON']>;
-
   /**
    * Used by dev plugin for plugins development
    */
@@ -54,27 +37,21 @@ export interface StorageData {
 
   version?: string;
 
-  // TODO - centralize all these template strings to the logic directly in their modules
-
   [key: `settings_${string}_ts`]: Timestamp | null;
-
-  [key: `lang/${string}.json`]: StoredTransFile | null;
-
-  [key: `favs${number}`]: Record<string, SavedFav> | null;
-
-  // TODO - remove this
-  [key: `favs${number}_overflowed`]: Record<string, SavedFav> | null;
-
-  [key: `favs${number}_ts`]: Timestamp | null;
-
-  [key: `recents${number}`]: Record<string, Fav> | null;
-
-  [key: `lastMinifest/${string}`]: MinifestObject | null;
 
   /**
    * Other dynamically add storage data
    */
   [ident: string]: unknown | null;
+
+  /** @deprecated & replaced by IDB */
+  [key: `recents${number}`]: Record<string, SearchRecent> | null;
+
+  /** @deprecated & replaced by IDB */
+  [key: `favs${number}`]: Record<string, Fav | ObsoleteFav> | null;
+
+  /** @deprecated & replaced by IDB */
+  [key: `favs${number}_ts`]: Timestamp | null;
 }
 
 export type StorageDataKey = keyof StorageData & string;

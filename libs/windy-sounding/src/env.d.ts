@@ -10,6 +10,7 @@ declare const SwipeListener: any;
 declare const W: {
   store: typeof import('@windy/client/store').default;
   utils: typeof import('@windy/client/utils');
+
   fetch: typeof import('@windy/client/fetch');
   subscription: typeof import('@windy/client/subscription');
   products: typeof import('@windy/client/products').default;

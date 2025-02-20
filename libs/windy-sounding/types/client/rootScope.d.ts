@@ -1,6 +1,5 @@
 import type { Iconfont } from './d.ts.files/iconfont';
-import type { Isolines, Pois } from './d.ts.files/rootScope';
-import type { LoadedTranslations } from './d.ts.files/trans';
+import type { LoadedTranslations } from './d.ts.files/types';
 /**
  * Version of Windy.com client (as taken from package.json)
  * @ignore
@@ -15,12 +14,12 @@ export declare const target: 'mobile' | 'index' | 'lib' | 'embed2';
  * Platform
  * @ignore
  */
-export declare const platform: import('../types').Platform;
+export declare const platform: import('@windy/types').Platform;
 /**
  * Device
  * @ignore
  */
-export declare const device: import('../types').Device;
+export declare const device: import('@windy/types').Device;
 /**
  * List of Windy's supported languages
  */
@@ -134,6 +133,7 @@ export declare const iconsDir = '<!-- @echo IMG_RELATIVE_PATH -->/icons7';
 export declare const overlays: readonly [
   'radar',
   'satellite',
+  'radarPlus',
   'wind',
   'gust',
   'gustAccu',
@@ -191,20 +191,9 @@ export declare const overlays: readonly [
   'drought100',
   'fwi',
   'dfm10h',
-];
-/**
- * List of valid accumulation times
- */
-export declare const acTimes: readonly [
-  'next12h',
-  'next24h',
-  'next36h',
-  'next2d',
-  'next48h',
-  'next60h',
-  'next3d',
-  'next5d',
-  'next10d',
+  'heatmaps',
+  'topoMap',
+  'hurricanes',
 ];
 /**
  * Identifier of products that cover only certain area
@@ -218,14 +207,23 @@ export declare const localProducts: readonly [
   'iconD2',
   'arome',
   'aromeAntilles',
+  'aromeFrance',
   'aromeReunion',
   'canHrdps',
   'canRdwpsWaves',
   'camsEu',
+  'czeAladin',
   'iconEuWaves',
   'hrrrAlaska',
   'hrrrConus',
   'bomAccess',
+  'bomAccessAd',
+  'bomAccessBn',
+  'bomAccessDn',
+  'bomAccessNq',
+  'bomAccessPh',
+  'bomAccessSy',
+  'bomAccessVt',
   'ukv',
   'jmaMsm',
   'jmaCwmWaves',
@@ -237,20 +235,20 @@ export declare const globalProducts: readonly [
   'gfs',
   'ecmwf',
   'ecmwfAnalysis',
-  'ecmwfAifs',
   'radar',
   'ecmwfWaves',
   'gfsWaves',
   'icon',
-  'iconWaves',
   'capAlerts',
   'cams',
   'efi',
   'satellite',
+  'radarPlus',
   'cmems',
   'drought',
   'fireDanger',
   'activeFires',
+  'topoMap',
 ];
 /**
  * Identifiers of sea products
@@ -258,7 +256,6 @@ export declare const globalProducts: readonly [
 export declare const seaProducts: readonly [
   'ecmwfWaves',
   'gfsWaves',
-  'iconWaves',
   'iconEuWaves',
   'canRdwpsWaves',
   'cmems',
@@ -267,14 +264,7 @@ export declare const seaProducts: readonly [
 /**
  * Identifiers of wave products, if product is not here, it will be considered as air product
  */
-export declare const waveProducts: readonly [
-  'ecmwfWaves',
-  'gfsWaves',
-  'iconWaves',
-  'iconEuWaves',
-  'jmaCwmWaves',
-  'canRdwpsWaves',
-];
+export declare const waveProducts: readonly ['ecmwfWaves', 'gfsWaves', 'iconEuWaves', 'jmaCwmWaves', 'canRdwpsWaves'];
 /**
  * identifiers of air quality product
  */
@@ -291,12 +281,21 @@ export declare const localPointProducts: readonly [
   'iconEuWaves',
   'arome',
   'aromeAntilles',
+  'aromeFrance',
   'aromeReunion',
   'canHrdps',
   'canRdwpsWaves',
+  'czeAladin',
   'hrrrAlaska',
   'hrrrConus',
   'bomAccess',
+  'bomAccessAd',
+  'bomAccessBn',
+  'bomAccessDn',
+  'bomAccessNq',
+  'bomAccessPh',
+  'bomAccessSy',
+  'bomAccessVt',
   'ukv',
   'jmaMsm',
   'jmaCwmWaves',
@@ -304,7 +303,7 @@ export declare const localPointProducts: readonly [
 /**
  * Identifiers of global products, that have point forecast
  */
-export declare const globalPointProducts: readonly ['gfs', 'ecmwf', 'ecmwfAifs', 'icon', 'mblue'];
+export declare const globalPointProducts: readonly ['gfs', 'ecmwf', 'icon', 'mblue'];
 /**
  * Identifiers of all land products combined
  */
@@ -312,20 +311,20 @@ export declare const products: readonly [
   'gfs',
   'ecmwf',
   'ecmwfAnalysis',
-  'ecmwfAifs',
   'radar',
   'ecmwfWaves',
   'gfsWaves',
   'icon',
-  'iconWaves',
   'capAlerts',
   'cams',
   'efi',
   'satellite',
+  'radarPlus',
   'cmems',
   'drought',
   'fireDanger',
   'activeFires',
+  'topoMap',
   'nems',
   'namConus',
   'namHawaii',
@@ -334,14 +333,23 @@ export declare const products: readonly [
   'iconD2',
   'arome',
   'aromeAntilles',
+  'aromeFrance',
   'aromeReunion',
   'canHrdps',
   'canRdwpsWaves',
   'camsEu',
+  'czeAladin',
   'iconEuWaves',
   'hrrrAlaska',
   'hrrrConus',
   'bomAccess',
+  'bomAccessAd',
+  'bomAccessBn',
+  'bomAccessDn',
+  'bomAccessNq',
+  'bomAccessPh',
+  'bomAccessSy',
+  'bomAccessVt',
   'ukv',
   'jmaMsm',
   'jmaCwmWaves',
@@ -355,7 +363,6 @@ export declare const products: readonly [
 export declare const pointProducts: readonly [
   'gfs',
   'ecmwf',
-  'ecmwfAifs',
   'icon',
   'mblue',
   'namConus',
@@ -366,12 +373,21 @@ export declare const pointProducts: readonly [
   'iconEuWaves',
   'arome',
   'aromeAntilles',
+  'aromeFrance',
   'aromeReunion',
   'canHrdps',
   'canRdwpsWaves',
+  'czeAladin',
   'hrrrAlaska',
   'hrrrConus',
   'bomAccess',
+  'bomAccessAd',
+  'bomAccessBn',
+  'bomAccessDn',
+  'bomAccessNq',
+  'bomAccessPh',
+  'bomAccessSy',
+  'bomAccessVt',
   'ukv',
   'jmaMsm',
   'jmaCwmWaves',
@@ -394,10 +410,6 @@ export declare const isMobileOrTablet: boolean;
  */
 export declare const isRetina: boolean;
 /**
- * Preferred browsers' language (not the used one). Can contain language that is not supported by Windy
- */
-export declare const prefLang: string;
-/**
  * Valid levels, their identifier and display string
  * @ignore this will crash Markdown parser
  */
@@ -412,12 +424,12 @@ export declare const maxFavPoisDesktop = 7;
  * Valid POI layers, their name and icon
  * @ignore this will crash Markdown parser
  */
-export declare const pois: Record<Pois, [keyof LoadedTranslations | string, Iconfont]>;
+export declare const pois: Record<string, [keyof LoadedTranslations | string, Iconfont]>;
 /**
  * List of valid isoline identifiers
  * @ignore this will crash Markdown parser
  */
-export declare const isolines: Isolines[];
+export declare const isolinesType: readonly ['pressure', 'gh', 'temp', 'deg0'];
 /**
  * Location of internal Windy plugins
  * TODO: Mobile apps have probably different location

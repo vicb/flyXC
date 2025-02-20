@@ -1,7 +1,5 @@
-import { OpenOptions } from '@capacitor/browser';
-import { ProviderConstructorParams } from '@plugins/_shared/subscription-services/subscription-services.d';
-import { FavEventTypes } from '@plugins/favs/favs.d';
-import { StartupArticleData, WhatsNewData } from '@plugins/startup/startup.d';
+import { Fav, FavId } from '@windy/favs.d';
+import { StartupArticleData, WhatsNewData } from '@windy/startup.d';
 import { HiddenReasonType, ReasonTypes } from '@plugins/subscription/subscription';
 import { FullRenderParameters } from '@windy/Layer.d';
 import { HttpPayload } from '@windy/http.d';
@@ -11,14 +9,12 @@ import {
   HomeLocation,
   LatLon,
   PickerCoords,
-  SavedAlertFav,
-  SavedFav,
   SummaryDataHash,
   WeatherDataPayload,
 } from '@windy/interfaces.d';
 import { Pois, Products } from '@windy/rootScope.d';
 import { SingleClickParams } from '@windy/singleclick.d';
-import { DetailDisplayType, RouteType, StationOrPoiType, type ExternalPluginIdent } from '@windy/types.d';
+import { DetailDisplayType, RouteType, StationOrPoiType, ExternalPluginIdent, type Timestamp } from '@windy/types.d';
 import { WebcamCategoryType } from '@windy/webcams';
 
 /**
@@ -28,7 +24,6 @@ export type PluginOpenEventSource =
   | 'contextmenu'
   | 'hp'
   | 'url'
-  | 'sigleclick'
   | 'poi-icon'
   | 'search'
   | 'detail'
@@ -44,6 +39,7 @@ export type PluginOpenEventSource =
   | 'api'
   | 'last'
   | 'back-button'
+  | 'other'
   | 'label';
 
 export interface PluginSource {
@@ -51,7 +47,7 @@ export interface PluginSource {
   poiType?: StationOrPoiType | Pois | 'stations';
 }
 
-interface DetailOpenParams extends PluginSource, LatLon {
+export interface DetailOpenParams extends PluginSource, LatLon {
   /**
    * How to display detail
    */
@@ -78,16 +74,15 @@ interface DetailOpenParams extends PluginSource, LatLon {
   sourceEl?: HTMLElement;
 
   /**
-   * Detail was opened by clicking on Alert neotification so detail table should be scrolled to
+   * Detail was opened by clicking on Alert notification so detail table should be scrolled to
    * particular timestamp
    */
   moveToTimestamp?: boolean;
 
   /**
-   * Array of times, when Alert was triggered in a form of 897987987,098908089,09809098
-   * where numbers are timestamps / tsHour
+   * Array of timestamp, when Alert was triggered
    */
-  hrTimestamps?: string;
+  timestamps?: Timestamp[] | null;
 }
 
 type WebcamDetailOpenParams =
@@ -97,8 +92,9 @@ type WebcamDetailOpenParams =
   | undefined;
 
 type RplannerDistanceParams =
+  | { view: RouteType; coords: string; id: FavId; isFav: true } // Opening from favourites
   | { view?: RouteType; coords: string; id?: string } // Opening from URL
-  | SavedFav
+  | Fav
   // | RplannerOpeningAsFavs // Clicking on route stored as fav
   | LatLon[] // User puts two airports is search bar
   | (LatLon & {
@@ -120,12 +116,7 @@ export type PluginsOpenParams = {
   detail: DetailOpenParams;
   picker: PickerOpenParams;
   'picker-mobile': PickerOpenParams;
-  favs:
-    | (PluginSource & {
-        msg?: FavEventTypes;
-      })
-    | undefined;
-
+  favs: PluginSource & { importObsoleteFavs?: boolean };
   station: PluginSource & { id: string };
   multimodel: LatLon & PluginSource & { name?: string | null };
   webcams: (PluginSource & { category: WebcamCategoryType }) | undefined;
@@ -147,42 +138,33 @@ export type PluginsOpenParams = {
   contextmenu: PluginSource & LatLon & { containerPoint?: L.Point };
   subscription:
     | (PluginSource & {
-        fscNext?: string;
         promote?: ReasonTypes | HiddenReasonType;
         pendingError?: Error & { responseText: string };
       })
     | undefined;
-  alerts:
-    | (PluginSource & {
-        id?: string;
-        name?: string;
-        title?: string;
-        action?: 'new';
-        lat?: string | number;
-        lon?: string | number;
-      })
-    | (PluginSource & SavedAlertFav);
+  'alerts-edit': PluginSource &
+    (
+      | { action: 'edit'; id: string }
+      | { action: 'migration'; favId: string }
+      | {
+          action: 'new';
+          lat: number;
+          lon: number;
+          locationName?: string;
+        }
+    );
+  alerts: PluginSource & {
+    message?: string;
+  };
   distance: PluginSource & RplannerDistanceParams;
   rplanner: PluginSource & RplannerDistanceParams;
-  airport: PluginSource & {
-    // Airport plugin can receive ICAO code as id || icao property
-    icao?: string;
-    id?: string;
-  };
-  'save-password': PluginSource & {
-    username: string;
-    password: string;
-  };
+  airport: PluginSource & { id: string };
   share: undefined;
   'nearest-stations': PluginSource & LatLon & { compactVersion?: boolean; includeAirq?: boolean };
   'nearest-airq': PluginSource & LatLon;
   'nearest-webcams-mobile': PluginSource & LatLon;
   'nearest-webcams': PluginSource & LatLon;
   'external-plugins': (PluginSource & { id?: string; qs?: PluginsQsParams['external-plugins'] }) | undefined;
-  browser: PluginSource & {
-    options: OpenOptions;
-    onFinished?: () => void;
-  };
   sounding: PluginSource & LatLon & { name?: string };
   radiosonde: PluginSource & { id: string; lat?: number; lon?: number };
   startup: PluginSource;
@@ -209,10 +191,16 @@ export type PluginsOpenParams = {
         showSystemDialog?: boolean;
       })
     | undefined;
-  offline: PluginSource;
+  'location-permission':
+    | (PluginSource & {
+        resolve?: (value: boolean | PromiseLike<boolean>) => void;
+      })
+    | undefined;
   'developer-mode': (PluginSource & { qs: Record<string, string> | undefined }) | undefined;
   'windy-external-plugin': PluginSource & LatLon;
-  menu: PluginSource; // FIXME: This typing is not correct. Poi selector on HP is calling menu with string 'pois'
+  menu: PluginSource & { scrollTo?: 'pois' };
+  onboarding: (PluginSource & { getUserInterests?: boolean }) | undefined;
+  'heatmaps-redirect': PluginSource & { id?: string };
 } & {
   [external: ExternalPluginIdent]:
     | (PluginSource & { query: Record<string, string> | undefined })
@@ -221,7 +209,6 @@ export type PluginsOpenParams = {
 } & { [others: string]: undefined };
 
 export type PluginsQsParams = {
-  subscription: ProviderConstructorParams | undefined;
   'external-plugins': Record<string, string> | undefined;
   'developer-mode': Record<string, string> | undefined;
   detail: { hrTimestamps?: string; name?: string; moveToTimestamp?: string };

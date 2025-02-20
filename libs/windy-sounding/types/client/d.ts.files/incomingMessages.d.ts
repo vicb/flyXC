@@ -53,10 +53,6 @@ export interface QueryStringEmbedParams {
   product?: Products;
   showDetail: boolean;
   showMarker: boolean;
-  /**
-   * @deprecated Only used for query string of type=alert
-   */
-  timestamps?: string;
   type: 'map' | 'alert' | 'forecast';
   zoom: number;
 }

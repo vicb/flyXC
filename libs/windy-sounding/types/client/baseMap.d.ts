@@ -11,11 +11,14 @@ export type MapTilesKeys =
   | 'satLocal'
   | 'sat';
 /**
- * Leaflet instance of actually used base layer
- */
-export declare let baseLayer: L.GridLayer;
-/**
  * Return just record of different map tilesURLs that we use as basemap
  */
 export declare const mapTilesRecord: (patchType?: string | null) => Record<MapTilesKeys, string>;
-export declare function updateBasemap(map: L.Map): L.GridLayer;
+/**
+ * Adds basemap to Leaflet map or updates source of tiles it if already exists
+ */
+export declare function addOrUpdateBasemap(map: L.Map): void;
+/**
+ * Remove basemap from Leaflet map
+ */
+export declare function removeBasemap(map: L.Map): void;

@@ -1,4 +1,4 @@
-import type { Canvas, ExtendedWebGLTexture, WebGLProgramObject } from './d.ts.files/GlObj';
+import type { Canvas, ExtendedWebGLTexture, WebGLProgramObject } from './d.ts.files/GlObj.d';
 /**
  * GLObj - Web GL context wrapper
  */

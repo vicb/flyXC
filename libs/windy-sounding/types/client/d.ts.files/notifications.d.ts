@@ -1,8 +1,8 @@
 import { QueryStringSource } from '@windy/http.d';
 
 export interface NotifHttpQsOptions extends QueryStringSource {
-  pageSize: number;
-  current: number;
+  pageSize?: number;
+  current?: number;
   markAsViewed?: boolean;
 }
 

@@ -1,87 +1,41 @@
-import type { SupportedLangFiles, Translations } from './d.ts.files/lang-files.d';
-import type { LoadedTranslations, LoadingOptions, TransFileInfo } from './d.ts.files/trans';
-export declare const files: Record<keyof SupportedLangFiles, TransFileInfo>;
+/**
+ * # @windy/trans
+ *
+ * This module handles all i18n tasks, including detecting the desired language,
+ * lazy loading language files, translating parts of the DOM, and returning
+ * translated strings for later use in the app.
+ *
+ * English language stings from `main` file are hardcoded in the core by default,
+ * to avoid any undefined strings in DOM. Other languages are loaded on demand.
+ *
+ * WARNING: Contrary to previous version, Windy does not support changing language
+ * during a runtime. Once user opts to change the language, whole app must be reloaded.
+ *
+ * @module trans
+ */
+import type { SupportedLangFiles } from '@windy/lang-files.d';
+import type { LoadedTranslations } from '@windy/types';
+export declare const supportedLangFiles: string[];
 /**
  * key-value pairs with all loaded lang strings
+ * WARNING: Typing here is not true... lang files are loaded step-by-step on demand, but it is useless to use `!` everywhere
  */
-declare const trans: LoadedTranslations;
+export declare const t: LoadedTranslations;
 /**
- * Preferred language which does not existed in translations (for statistics purposes)
+ * Preferred browsers' language (not the used one). Can contain language that is not supported by Windy
  */
-declare let missingLang: string | undefined;
+export declare const navigatorPreferredLang: string;
+export declare const getUrlOfLangFile: (id: keyof SupportedLangFiles) => string;
 /**
- * Get file from storage, checks it version number and if
- * fits current version returns it. If file is not in storage downloads a file
- * and stores it in storage.
- *
- * Handles versioning of the file, so each new versionof client get its correct file.
- *
- * If filename is relative filename (set in options). For example for 'lang/cs.json'
- * we try to download /v5.0/lang/cz.json'
- *
- * Can also store files with absolute URLs
- *
- * @param  {string} filename Filename (e.g. 'lang/cs.json')
- * @param  {Object} options Optionally custom options
- * @returns Resolves with contents of loaded file (key-value pairs)
- */
-declare const getFile: (filename: string, options?: LoadingOptions) => Promise<Translations>;
-/**
- * Loads external language file and attach it as a source of translations. Missing translations are presented in default english lang.
+ *english lang.
  * It does nothing in case of english, as it is already loaded by default.
  *
  * @param id Id of translation file
- * @param lang Optionally forced language, client lang is used by default
  * @returns Translations in key-pair object. Missing translations are presented in default english lang.
  */
-declare const loadLangFile: (
-  id: keyof SupportedLangFiles,
-  lang?:
-    | 'en'
-    | 'zh-TW'
-    | 'zh'
-    | 'ja'
-    | 'fr'
-    | 'ko'
-    | 'it'
-    | 'ru'
-    | 'nl'
-    | 'cs'
-    | 'tr'
-    | 'pl'
-    | 'sv'
-    | 'fi'
-    | 'ro'
-    | 'el'
-    | 'hu'
-    | 'hr'
-    | 'ca'
-    | 'da'
-    | 'ar'
-    | 'fa'
-    | 'hi'
-    | 'ta'
-    | 'sk'
-    | 'uk'
-    | 'bg'
-    | 'he'
-    | 'is'
-    | 'lt'
-    | 'et'
-    | 'vi'
-    | 'sl'
-    | 'sr'
-    | 'id'
-    | 'th'
-    | 'sq'
-    | 'pt'
-    | 'nb'
-    | 'es'
-    | 'de'
-    | 'bn',
-) => Promise<void | Translations>;
+export declare const loadLangFile: (id: keyof SupportedLangFiles) => Promise<void>;
 /**
- * Replace all `[data-*]` translation tags with proper translation in HTML element. It overrides its innerHTML
+ * Replace. It overrides its innerHTML
  * Supported data suffixes: 'title', 'placeholder', 't', 'afterbegin', 'beforeend', 'tooltipsrc'
  *
  * @param element HTML element where tags should be replaced
@@ -100,14 +54,4 @@ declare const loadLangFile: (
  * </p>
  * ```
  */
-declare const translateDocument: <T extends HTMLElement>(element: T) => void;
-/**
- * @module trans
- *
- * - handles all i18n tasks
- * - detects desired language
- * - lazy loads language file
- * - translates required part of a DOM (with many limitations)
- * - returns translated strings for later use in app
- */
-export { getFile, loadLangFile, missingLang, trans as t, translateDocument };
+export declare const translateDocument: <T extends HTMLElement>(element: T) => void;

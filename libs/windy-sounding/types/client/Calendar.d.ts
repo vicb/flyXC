@@ -1,15 +1,19 @@
 /**
  * Object containing timestamps and methods for given weather product
  */
-import type { CalendarDay, MinifestObject, Weekday } from './d.ts.files/Calendar';
-import type { TimeFormatFunction } from './d.ts.files/format';
-import type { Products } from './d.ts.files/rootScope';
-import type { ISODateString, Path, Timestamp } from './d.ts.files/types.d';
+import type { CalendarDay, MinifestObject, Weekday } from './d.ts.files/Calendar.d';
+import type { TimeFormatFunction } from './d.ts.files/format.d';
+import type { Products } from './d.ts.files/rootScope.d';
+import type { ISODateString, Path, Timestamp, YYYYMMDDHH } from './d.ts.files/types.d';
 export type CalendarInitParams = Pick<Calendar, 'numOfHours' | 'minifestFile'> & {
   /**
    * Ident of product that this calendar is for
    */
   product: Products;
+  /**
+   * This product is a free product
+   */
+  freeProduct?: boolean;
   /**
    * Optional latest timestamp (for use for offline mode for example)
    */
@@ -25,10 +29,6 @@ export declare class Calendar {
    * Number of hours covered by this calendar
    */
   numOfHours: number;
-  /**
-   * Type of the calendare
-   */
-  type: 'historical' | 'mixed' | 'forecast';
   calendarHours: number;
   /**
    * Today midnigh in LT of user's computer
@@ -47,21 +47,13 @@ export declare class Calendar {
    */
   premiumStart: Timestamp | null;
   /**
-   * End of calendar timeline
-   */
-  endOfcalendar: Date;
-  /**
-   * endOfcalendar as timestamp
+   * endOfCalendar as timestamp
    */
   endOfCal: Timestamp;
   /**
    * endOfCal or latest timestamp, whiever is smaller
    */
   end: Timestamp;
-  /**
-   * Max timestamp value, usually same as end (should be updated later on basis of minifest)
-   */
-  maxTimestamp: Timestamp;
   /**
    * Array of calendayr days to be used in UI
    */
@@ -85,7 +77,7 @@ export declare class Calendar {
   /**
    * Minifests's reference time is some non stndard format
    */
-  refTime: string;
+  refTime: YYYYMMDDHH;
   /**
    * Minifests's reference time
    */
@@ -125,7 +117,7 @@ export declare class Calendar {
    * Return YYYY/MM/DD/HH or YYYYMMDDHH on a basis of provided date
    * we do not CHECK existence of path in minifest
    */
-  static date2path(date: Date): Path;
+  static date2path(date: Date): YYYYMMDDHH;
   /**
    * Returns JavaScript date object corresponding
    * to provided path in a form YYYY/MM/DD/HH or YYYYMMDDHH
@@ -145,5 +137,5 @@ export declare class Calendar {
   /**
    * Return nearest midnight
    */
-  static getMidnight(): Date;
+  static getMidnight(ts?: number): Date;
 }

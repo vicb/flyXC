@@ -1,5 +1,4 @@
-import { LoadedTranslations } from '@windy/trans.d';
-import { Timestamp, ISODateString } from '@windy/types.d';
+import { Timestamp, ISODateString, LoadedTranslations } from '@windy/types.d';
 
 /**
  * Main minifest object. Mother of all forecasts
@@ -79,6 +78,16 @@ export interface CalendarDay {
    * year
    */
   year: number;
+
+  /**
+   * Forecast for this day is for Premium users only
+   */
+  premium: boolean;
+
+  /**
+   * Forecast for this day is available
+   */
+  hasForecast: boolean;
 }
 
 /**

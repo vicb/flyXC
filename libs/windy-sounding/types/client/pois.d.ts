@@ -2,7 +2,7 @@
  * @module pois
  * Single purpose of this module is to load `poi-libs` plugin whenever user selects non-empty poi or has/adds alert/favourite
  */
-import type { PoisCheckboxes } from './d.ts.files/pois';
+import type { PoisCheckboxes } from './d.ts.files/pois.d';
 /**
  * Config for checkboxes of specified poi
  *
@@ -11,6 +11,5 @@ import type { PoisCheckboxes } from './d.ts.files/pois';
 export declare const poisCheckboxes: PoisCheckboxes;
 /**
  * Is there something to display on map as a POI
- * TODO: Make sure Alerts are included in favs too by creating alert on map
  */
-export declare const displayPoiOnMap: () => boolean;
+export declare const displayPoiOnMap: () => Promise<boolean>;

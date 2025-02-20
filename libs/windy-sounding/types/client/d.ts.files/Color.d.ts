@@ -39,7 +39,6 @@ export type ColorIdent =
   | 'rainAccu'
   | 'waves'
   | 'currents'
-  | 'currentsTide'
   | 'visibility'
   | 'gtco3'
   | 'aod550'
@@ -51,6 +50,7 @@ export type ColorIdent =
   | 'dust'
   | 'satellite'
   | 'radar'
+  | 'radarPlus'
   | 'fog'
   | 'justGray'
   | 'efiWind'
@@ -58,10 +58,8 @@ export type ColorIdent =
   | 'efiRain'
   | 'moistureAnom40'
   | 'moistureAnom100'
-  | 'drought40'
-  | 'drought100'
-  | 'soilMoisture40'
-  | 'soilMoisture100'
+  | 'drought'
+  | 'soilMoisture'
   | 'fwi'
   | 'dfm10h'
   | 'solarpower'
@@ -80,3 +78,11 @@ type PluginColorIdent =
   | 'dewpointSpreadDetail'
   | 'blitz'
   | 'radiation';
+
+// pressureIsolines color is dynamically created in @plugins/isolines
+export type AnyColorIdent = ColorIdent | PluginColorIdent | 'pressureIsolines' | 'temporary' | 'direction';
+
+export interface UserColor {
+  id: AnyColorIdent;
+  gradient: ColorGradient;
+}

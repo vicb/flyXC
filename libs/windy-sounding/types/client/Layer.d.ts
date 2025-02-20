@@ -1,13 +1,12 @@
 import type { Color } from './d.ts.files/Color';
-import type { FullRenderParameters, Layers, RenderParams, TransformFunction } from './d.ts.files/Layer';
+import type { FullRenderParameters, Layers, RenderParams, TransformFunction } from './d.ts.files/Layer.d';
 import type { Metric } from './d.ts.files/Metric';
-import type { Legend } from './d.ts.files/Metric';
+import type { Legend } from './d.ts.files/Metric.d';
 import type { NumberedMetric } from './d.ts.files/MetricClasses';
-import type { Product } from './d.ts.files/Product';
-import type { DataQuality, FileSuffix } from './d.ts.files/Product';
-import type { Renderers } from './d.ts.files/Renderer';
+import type { DataQuality, FileSuffix, Product } from './d.ts.files/Product';
+import type { Renderers } from './d.ts.files/Renderer.d';
 import type { WeatherParameters } from './d.ts.files/interfaces.d';
-import type { Levels, Products } from './d.ts.files/rootScope';
+import type { Levels, Products } from './d.ts.files/rootScope.d';
 import type { Timestamp } from './d.ts.files/types';
 type LayerInitParams = Pick<Layer, 'ident'> & Partial<Layer>;
 export declare class Layer<M extends Metric | undefined = Metric | undefined> {

@@ -5,6 +5,7 @@ import type {
   CompiledExternalPluginConfig,
   ExternalPluginConfig,
   InstalledExternalPluginConfig,
+  PluginOpeningOptions,
 } from '@windy/interfaces';
 import type { PluginPane } from './Plugin';
 /** Allowed params to SveltePlugin constructor (private and protected props are omitted by default) */
@@ -46,6 +47,7 @@ export declare class ExternalSveltePlugin extends SveltePlugin<'windy-external-p
       url,
     }: InstalledExternalPluginConfig,
   );
+  open({ params, disableOpeningAnimation, qs }: PluginOpeningOptions<'windy-external-plugin'>): Promise<void | boolean>;
   getCss(): string;
 }
 export {};

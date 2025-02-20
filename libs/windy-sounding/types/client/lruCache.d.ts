@@ -65,5 +65,11 @@ declare class LRUCache<T = unknown> {
    * Removes all entries
    */
   removeAll(): void;
+  /**
+   * @summary Applies given callback to each element in the cache
+   *  - call order is ASC in terms of record age (from oldest to newest)
+   * @param callback Callback to call for each element
+   */
+  forEach(callback: (val: T, key: string) => void): void;
 }
 export default LRUCache;

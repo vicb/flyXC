@@ -1,25 +1,21 @@
-import { BottomTagPlugin } from '@windy/BottomTagPlugin';
+import { BottomSveltePlugin } from '@windy/BottomSveltePlugins';
 import { Plugin } from '@windy/Plugin';
 import { SveltePanePlugin } from '@windy/SveltePanePlugin';
 import { SveltePlugin } from '@windy/SveltePlugin';
 import { TagPlugin } from '@windy/TagPlugin';
 
-export interface BottomTagPlugins {
-  accumulations: BottomTagPlugin<'accumulations'>;
-  radar: BottomTagPlugin<'radar'>;
-  satellite: BottomTagPlugin<'satellite'>;
-  'cap-alerts': BottomTagPlugin<'cap-alerts'>;
-  'day-switcher': BottomTagPlugin<'day-switcher'>;
+export interface BottomSveltePlugins {
+  'mobile-calendar'?: BottomSveltePlugin<'mobile-calendar'>;
+  'progress-bar'?: BottomSveltePlugin<'progress-bar'>;
 
-  // mobile only, not embed
-  'mobile-calendar'?: BottomTagPlugin<'mobile-calendar'>;
-
-  // embed or desktop only
-  'progress-bar'?: BottomTagPlugin<'progress-bar'>;
+  'day-switcher': BottomSveltePlugin<'day-switcher'>;
+  'cap-alerts': BottomSveltePlugin<'cap-alerts'>;
+  accumulations: BottomSveltePlugin<'accumulations'>;
 }
 
 export interface SveltePanePlugins {
   favs: SveltePanePlugin<'favs'>;
+  'alerts-edit': SveltePanePlugin<'alerts-edit'>;
   alerts: SveltePanePlugin<'alerts'>;
   colors: SveltePanePlugin<'colors'>;
   articles: SveltePanePlugin<'articles'>;
@@ -32,12 +28,12 @@ export interface SveltePanePlugins {
   radiosonde: SveltePanePlugin<'radiosonde'>;
   airport: SveltePanePlugin<'airport'>;
   info: SveltePanePlugin<'info'>;
-  offline: SveltePlugin<'offline'>;
   webcams: SveltePanePlugin<'webcams'>;
   'webcams-detail': SveltePanePlugin<'webcams-detail'>;
   'webcams-add': SveltePanePlugin<'webcams-add'>;
   'webcams-edit': SveltePanePlugin<'webcams-edit'>;
   'webcams-remove': SveltePanePlugin<'webcams-remove'>;
+
   uploader?: SveltePanePlugin<'uploader'>;
   'external-plugins'?: SveltePanePlugin<'external-plugins'>;
 }
@@ -58,18 +54,34 @@ export interface SveltePlugins {
   rplanner: SveltePlugin<'rplanner'>;
   menu: SveltePlugin<'menu'>;
   'fav-alert-menu': SveltePlugin<'fav-alert-menu'>;
+  radar: SveltePlugin<'radar'>;
+  satellite: SveltePlugin<'satellite'>;
+  'radar-plus': SveltePlugin<'radar-plus'>;
+  'map-selector': SveltePlugin<'map-selector'>;
 
   // Mobile/desktop only plugins
   distance?: SveltePlugin<'distance'>;
   'watch-faces'?: SveltePlugin<'watch-faces'>;
   'app-review-dialog'?: SveltePlugin<'app-review-dialog'>;
+  widgets?: SveltePlugin<'widgets'>;
   'fav-layers'?: SveltePlugin<'fav-layers'>;
+  onboarding?: SveltePlugin<'onboarding'>;
   'developer-mode'?: SveltePlugin<'developer-mode'>;
   'pin-to-homepage'?: SveltePlugin<'pin-to-homepage'>;
   'startup-whats-new'?: SveltePlugin<'startup-whats-new'>;
   'rhpane-top': SveltePlugin<'rhpane-top'>;
+  rhbottom?: SveltePlugin<'rhbottom'>;
+  'location-permission'?: SveltePlugin<'location-permission'>;
 
   'startup-weather'?: SveltePlugin<'startup-weather'>;
+  'mobile-ui'?: SveltePlugin<'mobile-ui'>;
+  'embed-ui'?: SveltePlugin<'embed-ui'>;
+  contextmenu?: SveltePlugin<'contextmenu'>;
+  upload: SveltePlugin<'upload'>;
+  screenshot: SveltePlugin<'screenshot'>;
+  search: SveltePlugin<'search'>;
+  'startup-articles'?: SveltePlugin<'startup-articles'>;
+  'picker-mobile'?: SveltePlugin<'picker-mobile'>; // to Svelte plugin
 
   // Used as fake plugin for any other external plugin
   // basically we are unable to type each individual external plugin
@@ -80,41 +92,17 @@ export interface PlainPlugins {
   'gl-particles': Plugin<'gl-particles'>;
   'legacy-tile-render': Plugin<'legacy-tile-render'>;
   particles: Plugin<'particles'>;
-  startup?: Plugin<'startup'>;
+  isolines: Plugin<'isolines'>;
 }
 
 export interface TagPlugins {
-  /**
-   * Libraries with possible CSS, that remains opened
-   */
-  rhbottom: TagPlugin<'rhbottom'>;
+  // These plugins have css only (no html)
   'poi-libs': TagPlugin<'poi-libs'>;
-
-  /**
-   * Tag Plugins
-   */
-  upload: TagPlugin<'upload'>;
-  screenshot: TagPlugin<'screenshot'>;
-  isolines: TagPlugin<'isolines'>;
-  search: TagPlugin<'search'>;
-
-  // not embed plugins
-  'startup-articles'?: TagPlugin<'startup-articles'>;
-
-  // desktop only plugins
-  contextmenu?: TagPlugin<'contextmenu'>;
   picker?: TagPlugin<'picker'>;
   globe?: TagPlugin<'globe'>;
-
-  // mobile only plugins
-  'picker-mobile'?: TagPlugin<'picker-mobile'>;
-  'promo-mobile-intro'?: TagPlugin<'promo-mobile-intro'>;
-  profile?: TagPlugin<'profile'>;
-  'save-password'?: TagPlugin<'save-password'>;
-  browser?: TagPlugin<'browser'>;
-  'map-selector'?: TagPlugin<'map-selector'>;
+  'heatmaps-redirect': TagPlugin<'heatmaps-redirect'>;
 }
 
-export interface Plugins extends TagPlugins, SveltePlugins, SveltePanePlugins, PlainPlugins, BottomTagPlugins {}
+export interface Plugins extends TagPlugins, SveltePlugins, SveltePanePlugins, PlainPlugins, BottomSveltePlugins {}
 
-export interface WindowPlugins extends TagPlugins, SveltePlugins, SveltePanePlugins, BottomTagPlugins {}
+export interface WindowPlugins extends TagPlugins, SveltePlugins, SveltePanePlugins, BottomSveltePlugins {}

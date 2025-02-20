@@ -5,11 +5,11 @@ import type { WindowInitParams } from '@windy/Window';
 import type { PluginOpeningOptions, WindowClosingOptions } from '@windy/interfaces.d';
 import type { InterpolatorFactory } from '@windy/interpolator';
 import type { PluginsOpenParams, PluginsQsParams } from '@windy/plugin-params.d';
-import type { BottomTagPlugins, SveltePanePlugins, SveltePlugins, TagPlugins } from '@windy/plugins.d';
+import type { BottomSveltePlugins, SveltePanePlugins, SveltePlugins, TagPlugins } from '@windy/plugins.d';
 import type { ParsedQueryString } from '@windy/queryString';
 import type { ListeningPriority } from '@windy/singleclick.d';
-import type { LoadedTranslations } from '@windy/trans.d';
-export interface WindowPlugins extends TagPlugins, SveltePlugins, SveltePanePlugins, BottomTagPlugins {}
+import type { LoadedTranslations } from '@windy/types';
+export interface WindowPlugins extends TagPlugins, SveltePlugins, SveltePanePlugins, BottomSveltePlugins {}
 /** Allowed params to WindowPlugin constructor (private and protected props are omited by default) */
 export type WindowPluginInitParams<P extends keyof WindowPlugins> = PluginInitParams<P> &
   Omit<WindowInitParams, 'ident' | 'html'> &
@@ -118,6 +118,10 @@ export declare abstract class WindowPlugin<P extends keyof WindowPlugins> extend
    * header with title (adds .no-header class to the plugin container)
    */
   noHeader?: boolean;
+  /**
+   * While plugin was being opened, closing was requested
+   */
+  closingRequested?: boolean;
   constructor(params: WindowPluginInitParams<P>);
   /**
    * Check if plugin is loaded and decides if load or open. Params are passed to onopen fun

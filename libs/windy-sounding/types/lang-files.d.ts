@@ -1,5 +1,20 @@
 // !!! Automatically generated file by make/langs.ts !!!
 
+export interface AccumulationsLangFile {
+  /**
+   * accumulations: {{num}} days
+   */
+  ACC_DAYS: string;
+  /**
+   * accumulations: Duration of the accumulation:
+   */
+  ACC_DURATION: string;
+  /**
+   * accumulations: {{num}} hours
+   */
+  ACC_HOURS: string;
+}
+
 export interface AlertsLangFile {
   /**
    * alerts: Processing
@@ -38,6 +53,14 @@ export interface AlertsLangFile {
    */
   ALERTS_TO_DELETE: string;
   /**
+   * alerts: Choose recommended alert setting for
+   */
+  ALERT_ACTIVITY_DESCRIPTION: string;
+  /**
+   * alerts: I agree with Windy's <a href="{{link}}" target="_blank">conditions</a> for alert handling.
+   */
+  ALERT_ANALYTICS_CONSENT: string;
+  /**
    * alerts: Which alerts do you want to assign to your user account? The other alerts will be deleted!
    */
   ALERT_ASSIGNING_DESC: string;
@@ -54,6 +77,18 @@ export interface AlertsLangFile {
    */
   ALERT_AT_LEAST: string;
   /**
+   * alerts: Finish migration
+   */
+  ALERT_BUTTON_FINISH_MIGRATION: string;
+  /**
+   * alerts: Next
+   */
+  ALERT_BUTTON_NEXT: string;
+  /**
+   * alerts: Previous
+   */
+  ALERT_BUTTON_PREVIOUS: string;
+  /**
    * alerts: change
    */
   ALERT_CHANGE: string;
@@ -62,9 +97,33 @@ export interface AlertsLangFile {
    */
   ALERT_CHECK: string;
   /**
+   * alerts: Cloudiness
+   */
+  ALERT_CLOUDINESS: string;
+  /**
    * alerts: Click on icons to select maximum amount of clouds
    */
   ALERT_CLOUDS: string;
+  /**
+   * alerts: cloudy
+   */
+  ALERT_CLOUDS_BKN: string;
+  /**
+   * alerts: partly cloudy
+   */
+  ALERT_CLOUDS_FEW: string;
+  /**
+   * alerts: overcast
+   */
+  ALERT_CLOUDS_OVC: string;
+  /**
+   * alerts: scattered
+   */
+  ALERT_CLOUDS_SCT: string;
+  /**
+   * alerts: sky clear
+   */
+  ALERT_CLOUDS_SKC: string;
   /**
    * alerts: It seems alert with an id <em>{{alertId}}</em> is corrupted. Please, delete it and create a new one.
    */
@@ -77,10 +136,6 @@ export interface AlertsLangFile {
    * alerts: Delete alert
    */
   ALERT_DELETE2: string;
-  /**
-   * alerts: Alert has been deleted.
-   */
-  ALERT_DELETED: string;
   /**
    * alerts: Assigning was completed
    */
@@ -182,9 +237,17 @@ export interface AlertsLangFile {
    */
   ALERT_LON: string;
   /**
+   * alerts: Best model for given location
+   */
+  ALERT_MODEL_BEST: string;
+  /**
    * alerts: Name of the alert
    */
   ALERT_NAME: string;
+  /**
+   * alerts: Text of the notification
+   */
+  ALERT_NOTIFICATION_TEXT: string;
   /**
    * alerts: Not considered
    */
@@ -202,6 +265,18 @@ export interface AlertsLangFile {
    */
   ALERT_PART_DAY: string;
   /**
+   * alerts: Please note that ‘day 1’ refers to the first day of the current forecast, not necessarily the first day of the week.
+   */
+  ALERT_PART_RANGE_DESCRIPTION: string;
+  /**
+   * alerts: <b>{{min}}</b> to <b>{{max}}</b> days of the forecast
+   */
+  ALERT_PART_RANGE_LONG: string;
+  /**
+   * alerts: Only day <b>{{value}}</b> of the forecast
+   */
+  ALERT_PART_RANGE_SHORT: string;
+  /**
    * alerts: Part of a week I am interested in
    */
   ALERT_PART_WEEK: string;
@@ -210,9 +285,9 @@ export interface AlertsLangFile {
    */
   ALERT_PREVAIL: string;
   /**
-   * alerts: At least <b>{{min}} {{metric}}</b> of rain must accumulate...
+   * alerts: <b>{{min}}</b> to <b>{{max}}</b> {{metric}} of rain must accumulate...
    */
-  ALERT_RAIN: string;
+  ALERT_RAIN2: string;
   /**
    * alerts: Amount of convective rain (storms, rainshowers) is unpredictable
    */
@@ -222,9 +297,9 @@ export interface AlertsLangFile {
    */
   ALERT_RAIN_PERIOD: string;
   /**
-   * alerts: <p>Your Alert has been saved</p>Windy will send you an email several days ahead, if your conditions are met.
+   * alerts: resume alert
    */
-  ALERT_SAVED: string;
+  ALERT_RESUME: string;
   /**
    * alerts: Assign
    */
@@ -238,13 +313,25 @@ export interface AlertsLangFile {
    */
   ALERT_SENT_TO: string;
   /**
-   * alerts: At least <b>{{min}}</b> {{metric}} of snow must fall in the previous 3 days
+   * alerts: <b>{{min}}</b> to <b>{{max}}</b> {{metric}} of snow must fall in the previous 3 days
    */
-  ALERT_SNOW: string;
+  ALERT_SNOW2: string;
   /**
-   * alerts: Some of the Alerts can be delivered to your Spam/Junk mail folder. Please check it from time to time.
+   * alerts: Activity
    */
-  ALERT_SPAM: string;
+  ALERT_STEP_ACTIVITY: string;
+  /**
+   * alerts: Conditions
+   */
+  ALERT_STEP_CONDITIONS: string;
+  /**
+   * alerts: Customization
+   */
+  ALERT_STEP_CUSTOMIZATION: string;
+  /**
+   * alerts: Location
+   */
+  ALERT_STEP_LOCATION: string;
   /**
    * alerts: suspend alert for some time
    */
@@ -253,6 +340,10 @@ export interface AlertsLangFile {
    * alerts: Swell size from <b>{{min}}</b> to <b>{{max}}</b>
    */
   ALERT_SWELL: string;
+  /**
+   * alerts: Temperature
+   */
+  ALERT_TEMP: string;
   /**
    * alerts: Temperature from <b>{{min}}</b> to <b>{{max}}</b>
    */
@@ -482,6 +573,10 @@ export interface DistanceLangFile {
    */
   DST_CLICK_ADD: string;
   /**
+   * distance: Edit
+   */
+  DST_EDIT: string;
+  /**
    * distance: Export GPX
    */
   DST_EXPORT: string;
@@ -565,17 +660,61 @@ export interface DistanceLangFile {
 
 export interface FavsLangFile {
   /**
-   * favs: Some of your not-synchronized favorites cannot be saved to the cloud. Please, try again later or delete them and create again.
+   * favs: Alert has been deleted.
    */
-  FAVS_BATCH_ERROR: string;
+  FAVS_ALERT_DELETED: string;
+  /**
+   * favs: <p>Your Alert has been saved</p><p>Windy will send you notification or an email several days ahead, if your conditions are met.</p>
+   */
+  FAVS_ALERT_SAVED: string;
+  /**
+   * favs: Airports
+   */
+  FAVS_FILTER_AIRPORTS: string;
+  /**
+   * favs: All
+   */
+  FAVS_FILTER_ALL: string;
+  /**
+   * favs: Places
+   */
+  FAVS_FILTER_PLACES: string;
+  /**
+   * favs: Routes
+   */
+  FAVS_FILTER_ROUTES: string;
+  /**
+   * favs: Stations
+   */
+  FAVS_FILTER_STATIONS: string;
+  /**
+   * favs: Webcams
+   */
+  FAVS_FILTER_WEBCAMS: string;
   /**
    * favs: <b>How to add a favorite:</b><br />1) Click anywhere on a map or open detailed forecast for a location<br />2) Click on "{{icon}}" icon right of a search input
    */
   FAVS_HOW_TO_ADD: string;
   /**
-   * favs: Not in sync
+   * favs: Error loading your fav item. Try again later.
    */
-  FAVS_NOT_IN_SYNC: string;
+  FAVS_LOADING_ERROR: string;
+  /**
+   * favs: Migrate all
+   */
+  FAVS_MIGRATE_ALL: string;
+  /**
+   * favs: You have a lot of alerts, do you want to migrate them all at once?
+   */
+  FAVS_MIGRATION_MASS_MIGRATION: string;
+  /**
+   * favs: We're improving our alert system! Migrate your alerts before {{date}} to continue receiving notifications.
+   */
+  FAVS_MIGRATION_WARNING: string;
+  /**
+   * favs: Not saved
+   */
+  FAVS_NOT_IN_SYNC2: string;
   /**
    * favs: Pin favorite...
    */
@@ -589,6 +728,10 @@ export interface FavsLangFile {
    */
   FAVS_PIN_TOP: string;
   /**
+   * favs: Rename
+   */
+  FAVS_RENAME: string;
+  /**
    * favs: It seems our servers are not available at the moment. Try again later.
    */
   FAVS_RENAME_ERROR: string;
@@ -601,25 +744,17 @@ export interface FavsLangFile {
    */
   FAVS_RENAME_SHORT: string;
   /**
-   * favs: save to cloud
+   * favs: Save to cloud
    */
   FAVS_SAVE_TO_CLOUD: string;
-  /**
-   * favs: delete them all
-   */
-  FAVS_SYNC_ERROR_DELETE: string;
-  /**
-   * favs: Some of your favorites are not synchronized with our database. These favorites will not appear on other devices and alerts will not work. You can {{saveToCloud}} or {{delete}}. You can also process them individually in the list below.
-   */
-  FAVS_SYNC_ERROR_MESSAGE: string;
-  /**
-   * favs: save them to the cloud
-   */
-  FAVS_SYNC_ERROR_SAVE_TO_CLOUD: string;
   /**
    * favs: Unpin from homepage
    */
   FAVS_UNPIN_HOMEPAGE: string;
+  /**
+   * favs: Unpin from top
+   */
+  FAVS_UNPIN_TOP: string;
   /**
    * favs: Search favorites...
    */
@@ -684,6 +819,10 @@ export interface HurricanesLangFile {
    */
   HURR_TYPHOON_CAT: string;
   /**
+   * hurricanes: Unnamed storm
+   */
+  HURR_UNNAMED: string;
+  /**
    * hurricanes: Yesterday
    */
   YESTERDAY: string;
@@ -742,22 +881,6 @@ export interface MainLangFile {
    */
   ACCU: string;
   /**
-   * Last {{num}} days
-   */
-  ACC_LAST_DAYS: string;
-  /**
-   * Last {{num}} hours
-   */
-  ACC_LAST_HOURS: string;
-  /**
-   * Next {{num}} days
-   */
-  ACC_NEXT_DAYS: string;
-  /**
-   * Next {{num}} hours
-   */
-  ACC_NEXT_HOURS: string;
-  /**
    * Activate
    */
   ACTIVATE: string;
@@ -810,6 +933,10 @@ export interface MainLangFile {
    */
   ALERTS_LINK_SHORT: string;
   /**
+   * Migrate alert
+   */
+  ALERT_MIGRATE: string;
+  /**
    * All
    */
   ALL: string;
@@ -829,6 +956,10 @@ export interface MainLangFile {
    * Aerosol
    */
   AOD550: string;
+  /**
+   * Archive
+   */
+  ARCHIVE: string;
   /**
    * Area
    */
@@ -934,6 +1065,10 @@ export interface MainLangFile {
    */
   DEFAULT_UNITS: string;
   /**
+   * Delete
+   */
+  DELETE: string;
+  /**
    * Detailed forecast for this location
    */
   DETAILED: string;
@@ -970,6 +1105,10 @@ export interface MainLangFile {
    */
   DIRECTIONS_ANY: string;
   /**
+   * Select directions
+   */
+  DIRECTIONS_SELECT: string;
+  /**
    * E
    */
   DIRECTION_E: string;
@@ -1002,6 +1141,10 @@ export interface MainLangFile {
    */
   DIRECTION_W: string;
   /**
+   * Display style
+   */
+  DISPLAY_STYLE: string;
+  /**
    * Display warnings for this location
    */
   DISPLAY_WARNINGS: string;
@@ -1017,10 +1160,6 @@ export interface MainLangFile {
    * Don't have an account?
    */
   DONT_HAVE_ACCOUNT: string;
-  /**
-   * Drag me if you want
-   */
-  DRAG_ME: string;
   /**
    * Dust mass
    */
@@ -1110,7 +1249,7 @@ export interface MainLangFile {
    */
   D_POLAR_NIGHT: string;
   /**
-   * Precit.
+   * Precip.
    */
   D_PRECI: string;
   /**
@@ -1186,14 +1325,6 @@ export interface MainLangFile {
    */
   E_MESSAGE: string;
   /**
-   * delete
-   */
-  FAVS_DELETE: string;
-  /**
-   * Rename
-   */
-  FAVS_RENAME: string;
-  /**
    * Favorites sync error
    */
   FAVS_SYNCHRO_ERROR_TITLE: string;
@@ -1258,9 +1389,13 @@ export interface MainLangFile {
    */
   GETTING_LOCATION: string;
   /**
-   * Failed to determine your location. Make sure your browser has permission to access your location
+   * Failed to determine your location. Make sure Windy.com has permission to access your location
    */
   GETTING_LOCATION_ERROR: string;
+  /**
+   * Failed to determine your location
+   */
+  GETTING_LOCATION_TIMEOUT: string;
   /**
    * Surface Ozone
    */
@@ -1281,6 +1416,10 @@ export interface MainLangFile {
    * Haze
    */
   HAZE: string;
+  /**
+   * City heatmaps
+   */
+  HEATMAP: string;
   /**
    * Heavy thunder
    */
@@ -1466,6 +1605,10 @@ export interface MainLangFile {
    */
   MAP: string;
   /**
+   * VFR airspaces map
+   */
+  MAP_AIRSPACES: string;
+  /**
    * Medium clouds
    */
   MEDIUM_CLOUDS: string;
@@ -1477,6 +1620,10 @@ export interface MainLangFile {
    * About us
    */
   MENU_ABOUT: string;
+  /**
+   * Alerts
+   */
+  MENU_ALERTS: string;
   /**
    * Distance & planning
    */
@@ -1534,6 +1681,14 @@ export interface MainLangFile {
    */
   MENU_SETTINGS: string;
   /**
+   * App add-ons
+   */
+  MENU_TITLE_ADDONS: string;
+  /**
+   * Tutorials
+   */
+  MENU_TUTORIALS: string;
+  /**
    * Update interval
    */
   MENU_U_INTERVAL: string;
@@ -1545,6 +1700,10 @@ export interface MainLangFile {
    * Apple Watch Faces
    */
   MENU_WATCHFACES: string;
+  /**
+   * Widgets
+   */
+  MENU_WIDGETS: string;
   /**
    * {DURATION} days ago
    */
@@ -1590,6 +1749,10 @@ export interface MainLangFile {
    */
   MODEL: string;
   /**
+   * Model elevation
+   */
+  MODEL_ELEVATION: string;
+  /**
    * Switch 2D / 3D mode
    */
   MODE_2D3D: string;
@@ -1614,6 +1777,10 @@ export interface MainLangFile {
    */
   MORE_PRODUCTS: string;
   /**
+   * Unfortunately, plugin {{title}} was unpublished by the author and is no longer available.
+   */
+  MSG_EXTERNAL_PLUGIN_UNPUBLISHED: string;
+  /**
    * You have successfully logged in!
    */
   MSG_LOGIN_SUCCESFULL: string;
@@ -1637,6 +1804,10 @@ export interface MainLangFile {
    * My Alerts
    */
   MY_ALERTS: string;
+  /**
+   * My Favorites
+   */
+  MY_FAVS: string;
   /**
    * My location
    */
@@ -1674,6 +1845,10 @@ export interface MainLangFile {
    */
   NEXT: string;
   /**
+   * No
+   */
+  NO: string;
+  /**
    * NO₂
    */
   NO22: string;
@@ -1697,10 +1872,6 @@ export interface MainLangFile {
    * No fog
    */
   NO_FOG: string;
-  /**
-   * Offline mode
-   */
-  OFFLINE_MODE: string;
   /**
    * or
    */
@@ -1894,10 +2065,6 @@ export interface MainLangFile {
    */
   P_LOCATION: string;
   /**
-   * Please <b>login</b> or <b>register</b> to synchronize all your favorites and settings with all your devices.
-   */
-  P_LOGIN_SYNC: string;
-  /**
    * Station pressure
    */
   QFE: string;
@@ -1917,6 +2084,10 @@ export interface MainLangFile {
    * Radar, lightning
    */
   RADAR_BLITZ: string;
+  /**
+   * Radar+
+   */
+  RADAR_PLUS: string;
   /**
    * Radar
    */
@@ -2134,10 +2305,6 @@ export interface MainLangFile {
    */
   SUBSCRIPTION: string;
   /**
-   * You have reached the <strong>maximum</strong> limit of free favorites and alerts. Subscribe to <strong>Windy Premium</strong> to remove this limitation.
-   */
-  SUB_ALERTS_FREE_LIMIT: string;
-  /**
    * Your subscription ends soon
    */
   SUB_CUFFS_CANCELED_1: string;
@@ -2153,10 +2320,6 @@ export interface MainLangFile {
    * Your subscription ends at any moment
    */
   SUB_CUFFS_CANCELED_4: string;
-  /**
-   * You can then have a maximum of 3 favorite places and alerts.
-   */
-  SUB_CUFFS_FAVS: string;
   /**
    * Soon, you will no longer have access to this feature.
    */
@@ -2269,10 +2432,6 @@ export interface MainLangFile {
    * Login/Register to save all your settings to the cloud
    */
   S_SAVE2: string;
-  /**
-   * Your settings are saved to the cloud
-   */
-  S_SAVE_AUTO: string;
   /**
    * Speed
    */
@@ -2410,6 +2569,10 @@ export interface MainLangFile {
    */
   U_PROFILE: string;
   /**
+   * Vibrate
+   */
+  VIBRATE: string;
+  /**
    * views
    */
   VIEWS: string;
@@ -2489,6 +2652,10 @@ export interface MainLangFile {
    * Weather warnings
    */
   WX_WARNINGS: string;
+  /**
+   * Yes
+   */
+  YES: string;
   /**
    * Zoom in
    */
@@ -2600,7 +2767,7 @@ export interface MenuLangFile {
    */
   MM_NOT_MORE: string;
   /**
-   * menu: Weather now
+   * menu: Weather now & new layers
    */
   MM_NOWCAST: string;
   /**
@@ -2663,6 +2830,26 @@ export interface MenuLangFile {
 
 export interface NotificationsLangFile {
   /**
+   * notifications: Add new alert for this location
+   */
+  NOTIF_ADD_ALERT: string;
+  /**
+   * notifications: How to add an alert:
+   */
+  NOTIF_ALERT_HOW_TO_ADD_HEADING: string;
+  /**
+   * notifications: Click anywhere on the map or open the detailed forecast for a location
+   */
+  NOTIF_ALERT_HOW_TO_ADD_STEP_1: string;
+  /**
+   * notifications: Click on the "{{item}}" icon to the right of the search input
+   */
+  NOTIF_ALERT_HOW_TO_ADD_STEP_2: string;
+  /**
+   * notifications: Alert successfully migrated
+   */
+  NOTIF_ALERT_MIGRATED: string;
+  /**
    * notifications: {title} - active on {date}
    */
   NOTIF_ALERT_TITLE: string;
@@ -2686,6 +2873,14 @@ export interface NotificationsLangFile {
    * notifications: You will receive a notification every day with the forecast for your current location.
    */
   NOTIF_DAILY_MOBILE_NOTIFICATIONS_INFO: string;
+  /**
+   * notifications: Day
+   */
+  NOTIF_DAY: string;
+  /**
+   * notifications: {{count}} days
+   */
+  NOTIF_DAYS: string;
   /**
    * notifications: An error occurred while sending the verification email
    */
@@ -2719,6 +2914,18 @@ export interface NotificationsLangFile {
    */
   NOTIF_MOBILE_NOTIFICATIONS_INFO: string;
   /**
+   * notifications: We should send notifications every
+   */
+  NOTIF_NOTIFICATION_FREQUENCY: string;
+  /**
+   * notifications: What time should we send you notifications
+   */
+  NOTIF_NOTIFICATION_TIME: string;
+  /**
+   * notifications: What timezone should we use to send you notifications
+   */
+  NOTIF_NOTIFICATION_TIMEZONE: string;
+  /**
    * notifications: Your email address is <strong>not verified</strong>. If you don't verify your address, we won't be able to send you emails.
    */
   NOTIF_NOT_VERIFIED_EMAIL: string;
@@ -2735,10 +2942,6 @@ export interface NotificationsLangFile {
    */
   NOTIF_UNAUTHENTICATED_MSG: string;
   /**
-   * notifications: Email address is not valid.
-   */
-  NOTIF_VALID_EMAIL: string;
-  /**
    * notifications: Verification email was sent. Check your inbox.
    */
   NOTIF_VERIFICATION_SENT: string;
@@ -2750,6 +2953,121 @@ export interface NotificationsLangFile {
    * notifications: Verify email
    */
   NOTIF_VERIFY_EMAIL: string;
+}
+
+export interface OnboardingLangFile {
+  /**
+   * onboarding: Don't show again
+   */
+  LOCATION_BTN_NOT_SHOW_AGAIN: string;
+  /**
+   * onboarding: Allow location permission to get accurate weather updates based on your current location.
+   */
+  LOCATION_SUBTITLE: string;
+  /**
+   * onboarding: This feature requires location permission
+   */
+  LOCATION_TITLE: string;
+  /**
+   * onboarding: Accept
+   */
+  ONBOARDING_ACCEPT: string;
+  /**
+   * onboarding: Allow
+   */
+  ONBOARDING_ALLOW: string;
+  /**
+   * onboarding: <p>We do not sell advertisement, <b>we do not use cookies or trackers</b> and we fully respect you privacy.</p><p>Our application uses anonymous analytics to provide the best possible user experience. It help us optimize and develop Windy to your preferences.</p><p>By clicking 'Allow', you agree to the use of fully anonymous analytics. For more information on how we use analytics or to change your settings, please visit "Main Menu - Privacy Protection".</p>
+   */
+  ONBOARDING_ANALYTICS_DESC: string;
+  /**
+   * onboarding: Allow anonymous analytics
+   */
+  ONBOARDING_ANALYTICS_TITLE: string;
+  /**
+   * onboarding: Before we start...
+   */
+  ONBOARDING_BEFORE_WE_START: string;
+  /**
+   * onboarding: Confirm
+   */
+  ONBOARDING_CONFIRM: string;
+  /**
+   * onboarding: Don't allow
+   */
+  ONBOARDING_DONT_ALLOW: string;
+  /**
+   * onboarding: <p>So we can develop Windy for you.</p>
+   */
+  ONBOARDING_INTERESTS_DESC: string;
+  /**
+   * onboarding: Agriculture
+   */
+  ONBOARDING_INTERESTS_ITEM_AGRICULTURE: string;
+  /**
+   * onboarding: Aviation
+   */
+  ONBOARDING_INTERESTS_ITEM_AVIATION: string;
+  /**
+   * onboarding: Boating
+   */
+  ONBOARDING_INTERESTS_ITEM_BOATING: string;
+  /**
+   * onboarding: Meteorologist,<br>scientist
+   */
+  ONBOARDING_INTERESTS_ITEM_METEOROLOGIST: string;
+  /**
+   * onboarding: Other
+   */
+  ONBOARDING_INTERESTS_ITEM_OTHER: string;
+  /**
+   * onboarding: Outdoor activities
+   */
+  ONBOARDING_INTERESTS_ITEM_OUTDOOR_ACTIVITIES: string;
+  /**
+   * onboarding: Water sports
+   */
+  ONBOARDING_INTERESTS_ITEM_WATER_SPORTS: string;
+  /**
+   * onboarding: Wind sports
+   */
+  ONBOARDING_INTERESTS_ITEM_WIND_SPORTS: string;
+  /**
+   * onboarding: Winter sports
+   */
+  ONBOARDING_INTERESTS_ITEM_WINTER_SPORTS: string;
+  /**
+   * onboarding: Tell us about yourself
+   */
+  ONBOARDING_INTERESTS_TITLE: string;
+  /**
+   * onboarding: <p>We do not sell advertisement, <b>we do not store or share you location</b> and we fully respect you privacy.</p><p>If you allow location services, we can provide you with better weather data based on your position.</p>
+   */
+  ONBOARDING_LOCATION_DESC: string;
+  /**
+   * onboarding: Allow location services
+   */
+  ONBOARDING_LOCATION_TITLE: string;
+  /**
+   * onboarding: Reject
+   */
+  ONBOARDING_REJECT: string;
+  /**
+   * onboarding: Save
+   */
+  ONBOARDING_SAVE: string;
+  /**
+   * onboarding: Set units
+   */
+  ONBOARDING_SET_UNITS: string;
+  /**
+   * onboarding: Set up later
+   */
+  ONBOARDING_SET_UP_LATER: string;
+  /**
+   * onboarding: Set up your units
+   */
+  ONBOARDING_UNITS_TITLE: string;
 }
 
 export interface ProductsLangFile {
@@ -2802,6 +3120,10 @@ export interface ProductsLangFile {
    */
   hclouds: string;
   /**
+   * products: Precise, street level map of temperatures in cities.
+   */
+  heatmaps: string;
+  /**
    * products: Low clouds is cloud coverage at an altitude between the surface and circa 2000m.  Cloud cover is given in percent.
    */
   lclouds: string;
@@ -2833,6 +3155,10 @@ export interface ProductsLangFile {
    * products: Reflectivity measured with doppler radar, indicating actual rain/snow/hail or amount of predicable water in clouds. Weather radar, also called Doppler weather radar, is a type of radar used to locate precipitation, calculate its motion, and estimate its type (rain, snow, hail etc.) or amount of predicable water in clouds Return echoes from targets ("reflectivity") are analyzed for their intensities to establish the precipitation rate in the scanned volume.
    */
   radar: string;
+  /**
+   * products: A combination of a global picture of the current state of cloud cover from geostationary satellites and reflectivity measured with doppler radar, indicating actual rain/snow/hail or amount of predicable water in clouds. Beta feature.
+   */
+  radarPlus: string;
   /**
    * products: Actual doppler radar & satellite imagery
    */
@@ -3272,6 +3598,10 @@ export interface SettingsLangFile {
    */
   S_PREMIUM_REQ: string;
   /**
+   * settings: Smooth radar and satellite animation
+   */
+  S_RADSAT_INTERPOLATE: string;
+  /**
    * settings: ...reload Windy to take effect
    */
   S_RELOAD: string;
@@ -3682,7 +4012,7 @@ export interface StationLangFile {
    */
   STATION_DUPLICATE_EXISTS: string;
   /**
-   * station: Health reccomendation
+   * station: Health recommendations
    */
   STATION_HEALTH_RECCOMENDATION: string;
   /**
@@ -3742,7 +4072,7 @@ export interface StationLangFile {
    */
   STATION_LEGEND_TIME: string;
   /**
-   * station: Observation station {{id}} does not report any date for this period
+   * station: Observation station {{id}} does not report any data for this period
    */
   STATION_LOADING_ERROR_204: string;
   /**
@@ -3908,30 +4238,6 @@ export interface SubscriptionLangFile {
    * subscription: Automatically renewed every year. You can cancel your subscription anytime.
    */
   SUB_ANNUAL_STORE_REQUIREMENT: string;
-  /**
-   * subscription: BUY NOW
-   */
-  SUB_BF_CTA_BUTTON: string;
-  /**
-   * subscription: Discounted price: {{amount}} <small>/year</small>
-   */
-  SUB_BF_DISCOUNTED_PRICE: string;
-  /**
-   * subscription: Our special offer will expire in {{timeLeft}}.
-   */
-  SUB_BF_EXPIRATION: string;
-  /**
-   * subscription: Discounted price is charged during the first year of subscription only.
-   */
-  SUB_BF_FIRST_YEAR: string;
-  /**
-   * subscription: Normal price: {{amount}} <small>/year</small>
-   */
-  SUB_BF_NORMAL_PRICE: string;
-  /**
-   * subscription: BLACK FRIDAY DISCOUNT
-   */
-  SUB_BF_TITLE: string;
   /**
    * subscription: Your Windy Premium subscription has expired. Renew the subscription to continue using all its benefits.
    */
@@ -4109,29 +4415,37 @@ export interface SubscriptionLangFile {
    */
   SUB_RESTORE_CTA: string;
   /**
-   * subscription: Failed to restore purchases, please try again or follow the steps in the article [article].
+   * subscription: If you are having trouble with your subscription, you can restore your purchases using your order reference.
    */
-  SUB_RESTORE_ERROR_LINK: string;
+  SUB_RESTORE_DESKTOP_DESCRIPTION: string;
   /**
-   * subscription: If you're having problems with your subscription and have paid via FastSpring, you can restore the purchase using the order reference. The reference looks like [example] and can be found in e-mails from FastSpring.
+   * subscription: If you paid through <strong>FastSpring</strong>, the order reference looks like <code>WINDY123456-1234-12345</code> and can be found in <strong>emails</strong> from FastSpring.
    */
-  SUB_RESTORE_FS_DESCRIPTION: string;
+  SUB_RESTORE_DESKTOP_DESCRIPTION_FS: string;
+  /**
+   * subscription: If you paid through <strong>Paddle</strong>, the order reference starts with <code>txn_</code> and can be found on your Paddle <strong>invoice</strong>.
+   */
+  SUB_RESTORE_DESKTOP_DESCRIPTION_PADDLE: string;
   /**
    * subscription: Your subscription is no longer active. It has probably expired or been cancelled at your initiative. If you think it is a mistake, send us the invoice you received with your purchase at [mailAddress].
    */
-  SUB_RESTORE_FS_ERROR_EXPIRED: string;
+  SUB_RESTORE_DESKTOP_ERROR_EXPIRED: string;
   /**
    * subscription: Your subscription is not valid. Please check the invoice you received with your purchase carefully to ensure you are trying to restore Windy Premium. Or send it to us at [mailAddress].
    */
-  SUB_RESTORE_FS_ERROR_INVALID: string;
+  SUB_RESTORE_DESKTOP_ERROR_INVALID: string;
   /**
    * subscription: Please enter a valid order reference
    */
-  SUB_RESTORE_FS_REFERENCE_INVALID: string;
+  SUB_RESTORE_DESKTOP_REFERENCE_INVALID: string;
   /**
    * subscription: Order reference
    */
-  SUB_RESTORE_FS_REFERENCE_LABEL: string;
+  SUB_RESTORE_DESKTOP_REFERENCE_LABEL: string;
+  /**
+   * subscription: Failed to restore purchases, please try again or follow the steps in the article [article].
+   */
+  SUB_RESTORE_ERROR_LINK: string;
   /**
    * subscription: We didn't find any purchases to restore.
    */
@@ -5128,11 +5442,263 @@ export interface WebcamsLangFile {
   CAM_YOUR_IMAGE: string;
 }
 
+export interface WidgetspromoLangFile {
+  /**
+   * widgetspromo: Add Windy widget
+   */
+  WIDGETS_AN_HOME_BTN_ADD: string;
+  /**
+   * widgetspromo: In the widget settings, you can customize the location, toggle the visibility of specific information like weather data, and adjust the theme by modifying the font size and background transparency to suit your preferences.
+   */
+  WIDGETS_AN_HOME_SETTINGS_DESCRIPTION: string;
+  /**
+   * widgetspromo: Press and hold an empty area of your home screen until the customization options appear.
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_1_DESCRIPTION: string;
+  /**
+   * widgetspromo: Enter widget selection mode
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_1_TITLE: string;
+  /**
+   * widgetspromo: From the customization options, tap the "Widgets" button to open the widget gallery.
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_2_DESCRIPTION: string;
+  /**
+   * widgetspromo: Tap on "Widgets"
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_2_TITLE: string;
+  /**
+   * widgetspromo: This action opens the widget gallery where you can browse or search for the widget you want to add.
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_3_DESCRIPTION: string;
+  /**
+   * widgetspromo: Select the widget
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_3_TITLE: string;
+  /**
+   * widgetspromo: Scroll through the list or use the search bar to find the Windy for the widget you want to add. Tap on the widget to select it.
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_4_DESCRIPTION: string;
+  /**
+   * widgetspromo: Select the widget
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_4_TITLE: string;
+  /**
+   * widgetspromo: After dragging the widget, release it to place it on your home screen. You can move it by pressing and dragging if needed.
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_5_DESCRIPTION: string;
+  /**
+   * widgetspromo: Place the widget
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_5_TITLE: string;
+  /**
+   * widgetspromo: Some widgets offer customization options. Tap the widget after placing it to configure additional settings if available.
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_6_DESCRIPTION: string;
+  /**
+   * widgetspromo: Customize the widget (optional)
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_6_TITLE: string;
+  /**
+   * widgetspromo: Widget families
+   */
+  WIDGETS_FAMILIES_TITLE: string;
+  /**
+   * widgetspromo: Multi day forecast, weather radar, satellite view. Everything you need too stay up with weather.
+   */
+  WIDGETS_IOS_HOME_FORECAST_DESCRIPTION: string;
+  /**
+   * widgetspromo: Forecast widgets
+   */
+  WIDGETS_IOS_HOME_FORECAST_TITLE: string;
+  /**
+   * widgetspromo: Local storm, or major hurricane, radar nad satellite gives you a bigger picture of situation around new in real-time.
+   */
+  WIDGETS_IOS_HOME_RADAR_DESCRIPTION: string;
+  /**
+   * widgetspromo: Radar and Satellite widgets
+   */
+  WIDGETS_IOS_HOME_RADAR_TITLE: string;
+  /**
+   * widgetspromo: Choose your location, model, or level of detail you need for your use case. All of that in light, dark, or auto appereance
+   */
+  WIDGETS_IOS_HOME_SETTINGS_DESCRIPTION: string;
+  /**
+   * widgetspromo: Add a weather forecast widget to your home screen and stay prepared for any weather, anytime!
+   */
+  WIDGETS_IOS_HOME_SUBTITLE: string;
+  /**
+   * widgetspromo: Home screen widgets
+   */
+  WIDGETS_IOS_HOME_TITLE: string;
+  /**
+   * widgetspromo: and navigate to the home screen where you want to add the widget.
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_1_DESCRIPTION: string;
+  /**
+   * widgetspromo: Unlock your iPhone
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_1_TITLE: string;
+  /**
+   * widgetspromo: Long press on an empty area of your screen or on any app until the icons start shaking. Look for the plus (+) icon in the top-left or top-right corner of the screen.
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_2_DESCRIPTION: string;
+  /**
+   * widgetspromo: Enter jiggle mode
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_2_TITLE: string;
+  /**
+   * widgetspromo: This action opens the widget gallery where you can browse or search for the widget you want to add.
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_3_DESCRIPTION: string;
+  /**
+   * widgetspromo: Tap the plus (+) icon
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_3_TITLE: string;
+  /**
+   * widgetspromo: Find the widget you wish to use by scrolling or using the search function at the top of the gallery. Tap on the widget to choose
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_4_DESCRIPTION: string;
+  /**
+   * widgetspromo: Select the widget
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_4_TITLE: string;
+  /**
+   * widgetspromo: Swipe to see different size options for the selected widget. Once you decide on the size, tap "Add Widget".
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_5_DESCRIPTION: string;
+  /**
+   * widgetspromo: Choose the widget size
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_5_TITLE: string;
+  /**
+   * widgetspromo: After adding it, you can move the widget by dragging it to your desired location on the home screen.
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_6_DESCRIPTION: string;
+  /**
+   * widgetspromo: Place the widget
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_6_TITLE: string;
+  /**
+   * widgetspromo: Tap "Done" in the top-right corner or press the home button if your model has one to save your changes.
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_7_DESCRIPTION: string;
+  /**
+   * widgetspromo: Exit jiggle mode
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_7_TITLE: string;
+  /**
+   * widgetspromo: Some widgets offer additional settings, which can be accessed by tapping on the widget once it's on your home screen.
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_8_DESCRIPTION: string;
+  /**
+   * widgetspromo: Customize the widget
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_8_TITLE: string;
+  /**
+   * widgetspromo: Forecast widget provides a 4-day forecast with daily high/low temperatures and weather icons for quick insights. Hour forecast widget offers a compact view focusing on temperature and wind conditions across different times.
+   */
+  WIDGETS_IOS_LOCK_FORECAST_DESCRIPTION: string;
+  /**
+   * widgetspromo: Forecast widgets
+   */
+  WIDGETS_IOS_LOCK_FORECAST_TITLE: string;
+  /**
+   * widgetspromo: Lock Screen widgets are also editable. Tap on the widget when in "customize" mode to bring up the widget settings.
+   */
+  WIDGETS_IOS_LOCK_SETTINGS_STEP_1_DESCRIPTION: string;
+  /**
+   * widgetspromo: You can select the current/custom location, forecast model, number of days you want the widget for (up to 5 days), and the background.
+   */
+  WIDGETS_IOS_LOCK_SETTINGS_STEP_2_DESCRIPTION: string;
+  /**
+   * widgetspromo: You can set the background for each widget, allowing you to improve readability and match the widget with a wallpaper.
+   */
+  WIDGETS_IOS_LOCK_SETTINGS_STEP_3_DESCRIPTION: string;
+  /**
+   * widgetspromo: Add a Windy widget to your Lock Screen now and always step out ready, no matter the weather!
+   */
+  WIDGETS_IOS_LOCK_SUBTITLE: string;
+  /**
+   * widgetspromo: Lock screen widgets
+   */
+  WIDGETS_IOS_LOCK_TITLE: string;
+  /**
+   * widgetspromo: Long press on the lock screen until the customization options appear.
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_1_DESCRIPTION: string;
+  /**
+   * widgetspromo: Enter Lock Screen customization mode
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_1_TITLE: string;
+  /**
+   * widgetspromo: Select the "Customize" option at the bottom of your lock screen to edit it.
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_2_DESCRIPTION: string;
+  /**
+   * widgetspromo: Tap "Customize"
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_2_TITLE: string;
+  /**
+   * widgetspromo: In the lock screen editor, tap on the widget area, which is located below the clock.
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_3_DESCRIPTION: string;
+  /**
+   * widgetspromo: Tap on the widget area
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_3_TITLE: string;
+  /**
+   * widgetspromo: Scroll through on Windy widgets or use the search bar to find the Windy for the widget you want to add. Tap the widget you want to select it.
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_4_DESCRIPTION: string;
+  /**
+   * widgetspromo: Select the widget
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_4_TITLE: string;
+  /**
+   * widgetspromo: After adding the widget, tap "Done" in the top-right corner to save your custom lock screen.
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_5_DESCRIPTION: string;
+  /**
+   * widgetspromo: Save your changes
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_5_TITLE: string;
+  /**
+   * widgetspromo: Once completed, lock your iPhone and check the lock screen to see the newly added widget.
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_6_DESCRIPTION: string;
+  /**
+   * widgetspromo: Lock your iPhone
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_6_TITLE: string;
+  /**
+   * widgetspromo: Home screen
+   */
+  WIDGETS_IOS_SWITCH_HOME_BTN: string;
+  /**
+   * widgetspromo: Lock screen
+   */
+  WIDGETS_IOS_SWITCH_LOCKSCREEN_BTN: string;
+  /**
+   * widgetspromo: Windy widgets
+   */
+  WIDGETS_PLUGIN_TITLE: string;
+  /**
+   * widgetspromo: Widget settings
+   */
+  WIDGETS_SETTINGS_TITLE: string;
+  /**
+   * widgetspromo: Step by step guide
+   */
+  WIDGETS_STEPBYSTEP_TITLE: string;
+}
+
 // prettier-ignore
-export interface PluginTranslations extends AlertsLangFile, AppreviewLangFile, ArticlesLangFile, ConsentLangFile, DistanceLangFile, FavsLangFile, HurricanesLangFile, InfoLangFile, LibLangFile, MenuLangFile, NotificationsLangFile, ProductsLangFile, RegisterLangFile, SettingsLangFile, SoundingLangFile, StationLangFile, SubscriptionLangFile, WatchfaceLangFile, WebcamsLangFile {}
+export interface PluginTranslations extends AccumulationsLangFile, AlertsLangFile, AppreviewLangFile, ArticlesLangFile, ConsentLangFile, DistanceLangFile, FavsLangFile, HurricanesLangFile, InfoLangFile, LibLangFile, MenuLangFile, NotificationsLangFile, OnboardingLangFile, ProductsLangFile, RegisterLangFile, SettingsLangFile, SoundingLangFile, StationLangFile, SubscriptionLangFile, WatchfaceLangFile, WebcamsLangFile, WidgetspromoLangFile {}
 export interface Translations extends MainLangFile, PluginTranslations {}
 
 export interface SupportedLangFiles {
+  accumulations: AccumulationsLangFile;
   alerts: AlertsLangFile;
   appreview: AppreviewLangFile;
   articles: ArticlesLangFile;
@@ -5145,6 +5711,7 @@ export interface SupportedLangFiles {
   lib: LibLangFile;
   menu: MenuLangFile;
   notifications: NotificationsLangFile;
+  onboarding: OnboardingLangFile;
   products: ProductsLangFile;
   register: RegisterLangFile;
   settings: SettingsLangFile;
@@ -5153,4 +5720,5 @@ export interface SupportedLangFiles {
   subscription: SubscriptionLangFile;
   watchface: WatchfaceLangFile;
   webcams: WebcamsLangFile;
+  widgetspromo: WidgetspromoLangFile;
 }

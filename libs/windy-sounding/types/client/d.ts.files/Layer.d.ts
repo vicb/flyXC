@@ -1,5 +1,5 @@
 import { NumberedMetric, PrecipMetric, PtypeMetric, UVIndexMetric } from '@windy/MetricClasses';
-import { DataQuality, FileSuffix } from '@windy/Product.d';
+import { DataQuality, FileSuffix } from '@windy/Product';
 import { WeatherParameters } from '@windy/interfaces.d';
 import { Levels, Overlays } from '@windy/rootScope.d';
 import { NumValue, Path } from '@windy/types.d';
@@ -71,6 +71,7 @@ export interface LayerMetricType {
   dustsm: NumberedMetric;
   radar: NumberedMetric;
   satellite: NumberedMetric;
+  radarPlus: NumberedMetric;
   gtco3: NumberedMetric;
   pm2p5: NumberedMetric;
   no2: NumberedMetric;
@@ -91,6 +92,7 @@ export interface LayerMetricType {
   dfm10h: NumberedMetric;
   turbulence: NumberedMetric;
   icing: NumberedMetric;
+  topoMap: undefined;
 }
 
 /**
@@ -181,4 +183,9 @@ interface FullRenderParameters extends WeatherParameters, RenderParams {
   refTime: string;
   fullPath: string;
   path: Path;
+
+  /**
+   * Optional accumulation range in hours
+   */
+  acRangeInHours?: number;
 }

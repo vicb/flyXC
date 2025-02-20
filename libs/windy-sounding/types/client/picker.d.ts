@@ -34,7 +34,7 @@ export declare class PickerDot {
    * Locks picker in position, so any change in picker location
    * will sync its position  to desired lat,lons
    */
-  lockPosition(): void;
+  lockPosition(): LatLon;
   unlockPosition(): void;
   /**
    * Sets & lock the position of picker dot

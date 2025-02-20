@@ -46,7 +46,7 @@ export declare class Plugin<P extends PluginIdent> {
   /**
    * Required language files
    */
-  langFiles?: LangFileKey[];
+  langFiles: LangFileKey[];
   /**
    * Status of the plugin (is loaded or not)
    */
@@ -61,7 +61,7 @@ export declare class Plugin<P extends PluginIdent> {
    */
   pane?: PluginPane;
   /**
-   * Is the tag currentlly open?
+   * Is the tag currently open?
    */
   isOpen?: boolean;
   /**

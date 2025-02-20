@@ -3,7 +3,7 @@
  * Defines global `logError( moduleName, msg, errObj )` for custom err loggin.
  * Licences go here since this is the first minified file
  */
-import type { ErrorPayload } from './d.ts.files/errorLogger';
+import type { ErrorPayload } from './d.ts.files/errorLogger.d';
 /**
  * Array of all errors reported to kibana, to show them in debug mode
  * plugin

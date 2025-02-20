@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import type { Fav } from '@windy/favs';
 import type { HttpPayload } from '@windy/http';
-import type { CompiledExternalPluginConfig, Fav, LatLon } from '@windy/interfaces';
+import type { CompiledExternalPluginConfig, LatLon } from '@windy/interfaces';
 import { SemVer } from 'semver';
 
 import type { PluginConfig } from '../types';
