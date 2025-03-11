@@ -77,7 +77,6 @@ export class Map3dElement extends connect(store)(LitElement) {
   private subscriptions: UnsubscribeHandle[] = [];
   private previousLookAt?: LatLonAlt;
   private updateCamera = false;
-  private readonly adRatio = store.getState().browser.isSmallScreen ? 0.7 : 1;
 
   stateChanged(state: RootState): void {
     this.tracks = sel.tracks(state);
@@ -212,17 +211,6 @@ export class Map3dElement extends connect(store)(LitElement) {
 
     const controls = document.createElement('controls3d-element');
     view.ui.add(controls, 'top-left');
-
-    if (!store.getState().browser.isFromFfvl) {
-      const ad = document.createElement('a');
-      ad.setAttribute('href', 'https://www.niviuk.com/');
-      ad.setAttribute('target', '_blank');
-      ad.className = 'ad';
-      ad.innerHTML = `<img width="${Math.round(175 * this.adRatio)}" height="${Math.round(
-        40 * this.adRatio,
-      )}" src="/static/img/niviuk.svg">`;
-      view.ui.add(ad);
-    }
 
     const layerSwitcher = this.renderRoot.querySelector('#layers') as HTMLSelectElement;
     view.ui.add(layerSwitcher, 'top-right');
