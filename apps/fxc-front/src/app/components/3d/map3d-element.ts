@@ -99,9 +99,9 @@ export class Map3dElement extends connect(store)(LitElement) {
           const dLon = lookAt.lon - this.previousLookAt.lon;
           const dAlt = lookAt.alt - this.previousLookAt.alt;
           const camera = this.view.camera.clone();
-          camera.position.latitude += dLat;
-          camera.position.longitude += dLon;
-          camera.position.z += dAlt * this.multiplier;
+          camera.position.latitude! += dLat;
+          camera.position.longitude! += dLon;
+          camera.position.z! += dAlt * this.multiplier;
           this.view.camera = camera;
         }
       }
@@ -205,7 +205,9 @@ export class Map3dElement extends connect(store)(LitElement) {
         store.dispatch(setCurrentLiveId(undefined));
       }
     });
-    view.popup.viewModel.includeDefaultActions = false;
+    if (view.popup) {
+      view.popup.viewModel.includeDefaultActions = false;
+    }
     view.ui.remove('zoom');
 
     const controls = document.createElement('controls3d-element');
@@ -254,7 +256,7 @@ export class Map3dElement extends connect(store)(LitElement) {
           this.center({ ...location, alt: 0 }, zoom);
         }
 
-        view.watch('center', (point: Point) => this.handleLocation({ lat: point.latitude, lon: point.longitude }));
+        view.watch('center', (point: Point) => this.handleLocation({ lat: point.latitude!, lon: point.longitude! }));
       })
       .catch(async (e) => {
         store.dispatch(setApiLoading(false));
@@ -288,7 +290,7 @@ export class Map3dElement extends connect(store)(LitElement) {
             store.dispatch(setCurrentTrackId(trackId));
           }
         } else {
-          this.airspace?.handleClick({ lat: e.mapPoint.latitude, lon: e.mapPoint.longitude }, view);
+          this.airspace?.handleClick({ lat: e.mapPoint.latitude!, lon: e.mapPoint.longitude! }, view);
         }
       });
     });

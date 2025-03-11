@@ -15,7 +15,7 @@
   },
   "private": true,
   "devDependencies": {
-    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/eslintrc": "^3.3.0",
     "@esri/arcgis-rest-geocoding": "^4.0.3",
     "@esri/arcgis-rest-request": "^4.3.0",
     "@nx-tools/nx-container": "^6.2.0",
@@ -30,8 +30,8 @@
     "@nx/web": "20.4.0",
     "@nx/webpack": "20.4.0",
     "@nx/workspace": "20.4.0",
-    "@preact/preset-vite": "^2.9.3",
-    "@protobuf-ts/plugin": "^2.9.4",
+    "@preact/preset-vite": "^2.10.1",
+    "@protobuf-ts/plugin": "^2.9.5",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "@swc/helpers": "0.5.11",
     "@types/compression": "^1.7.5",
@@ -88,24 +88,24 @@
     "vitest": "^1.6.0",
     "workbox-precaching": "^7.3.0",
     "workbox-routing": "^7.3.0",
-    "wrangler": "^3.107.3"
+    "wrangler": "^3.112.0"
   },
   "dependencies": {
     "@alenaksu/json-viewer": "^2.1.2",
-    "@arcgis/core": "^4.31.6",
+    "@arcgis/core": "^4.32.8",
     "@dr.pogodin/csurf": "^1.14.1",
-    "@google-cloud/compute": "^4.11.0",
+    "@google-cloud/compute": "^4.12.0",
     "@google-cloud/datastore": "^9.2.1",
     "@google-cloud/pubsub": "^4.10.0",
-    "@google-cloud/storage": "^7.15.0",
+    "@google-cloud/storage": "^7.15.2",
     "@googlemaps/js-api-loader": "^1.16.8",
     "@ionic/core": "^8.4.3",
     "@literals/rollup-plugin-html-css-minifier": "^3.0.1",
     "@mapbox/sphericalmercator": "^1.2.0",
     "@popperjs/core": "^2.11.8",
-    "@protobuf-ts/runtime": "^2.9.4",
-    "@reduxjs/toolkit": "^2.5.1",
-    "@stencil/core": "^4.25.3",
+    "@protobuf-ts/runtime": "^2.9.5",
+    "@reduxjs/toolkit": "^2.6.1",
+    "@stencil/core": "^4.27.2",
     "@swc-node/register": "1.9.2",
     "@swc/core": "1.5.7",
     "@tmcw/togeojson": "^5.8.1",
@@ -133,7 +133,7 @@
     "grant": "^5.4.24",
     "igc-parser": "^2.0.0",
     "igc-xc-score": "^1.8.0",
-    "ioredis": "^5.4.2",
+    "ioredis": "^5.6.0",
     "lit": "^3.2.1",
     "lodepng": "^2.3.0",
     "mapbox-vector-tile": "^0.3.0",
@@ -154,6 +154,6 @@
     "validator": "^13.12.0",
     "xml-js": "^1.6.11",
     "xmlbuilder": "^15.1.1",
-    "zod": "^3.24.1"
+    "zod": "^3.24.2"
   }
 }
