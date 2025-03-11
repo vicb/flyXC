@@ -71,7 +71,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       this.showTypes,
     );
     if (html) {
-      view.popup.open({
+      view.popup?.open({
         location: {
           latitude: latLon.lat,
           longitude: latLon.lon,

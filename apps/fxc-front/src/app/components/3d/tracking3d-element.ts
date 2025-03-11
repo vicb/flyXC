@@ -298,10 +298,10 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         point = this.sampler.queryElevation(point) as Point;
       }
       // The sampler sometimes return incorrect values (i.e. 3.40...e+37).
-      if (point.z > 20000) {
+      if ((point.z ?? 0) > 20000) {
         point.z = 0;
       }
-      point.z = Math.max(point.z, feature.geometry.coordinates[2] * this.multiplier);
+      point.z = Math.max(point.z!, feature.geometry.coordinates[2] * this.multiplier);
       graphic.set('geometry', point);
       graphic.set('attributes', { liveTrackId: pilotId, liveTrackIndex: pointProperties.index });
       markers.push(graphic);
@@ -309,7 +309,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       if (label) {
         const graphic = new Graphic();
         point = point.clone();
-        point.z += MSG_MARKER_HEIGHT;
+        point.z! += MSG_MARKER_HEIGHT;
         graphic.set('geometry', point);
         this.txtSymbol.symbolLayers[0].text = label;
         this.txtSymbol.symbolLayers[0].material.color = isActive ? '#BF1515' : 'black';
@@ -339,7 +339,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
 
         const track = liveTrackSelectors.selectById(store.getState(), attr.liveTrackId) as protos.LiveTrack;
 
-        view.popup.open({
+        view.popup?.open({
           location: new Point({
             latitude: track.lat[index],
             longitude: track.lon[index],

@@ -7,6 +7,7 @@ import './tracking3d-element';
 
 import Basemap from '@arcgis/core/Basemap';
 import esriConfig from '@arcgis/core/config';
+import { watch } from '@arcgis/core/core/reactiveUtils.js';
 import Point from '@arcgis/core/geometry/Point';
 import BaseElevationLayer from '@arcgis/core/layers/BaseElevationLayer';
 import ElevationLayer from '@arcgis/core/layers/ElevationLayer';
@@ -77,7 +78,6 @@ export class Map3dElement extends connect(store)(LitElement) {
   private subscriptions: UnsubscribeHandle[] = [];
   private previousLookAt?: LatLonAlt;
   private updateCamera = false;
-  private readonly adRatio = store.getState().browser.isSmallScreen ? 0.7 : 1;
 
   stateChanged(state: RootState): void {
     this.tracks = sel.tracks(state);
@@ -99,9 +99,9 @@ export class Map3dElement extends connect(store)(LitElement) {
           const dLon = lookAt.lon - this.previousLookAt.lon;
           const dAlt = lookAt.alt - this.previousLookAt.alt;
           const camera = this.view.camera.clone();
-          camera.position.latitude += dLat;
-          camera.position.longitude += dLon;
-          camera.position.z += dAlt * this.multiplier;
+          camera.position.latitude = (camera.position.latitude ?? 0) + dLat;
+          camera.position.longitude = (camera.position.longitude ?? 0) + dLon;
+          camera.position.z = (camera.position.z ?? 0) + dAlt * this.multiplier;
           this.view.camera = camera;
         }
       }
@@ -200,27 +200,21 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.view = view;
     this.createLighting();
 
-    view.watch('popup.visible', (visible) => {
-      if (visible == false) {
-        store.dispatch(setCurrentLiveId(undefined));
-      }
-    });
-    view.popup.viewModel.includeDefaultActions = false;
+    watch(
+      () => view.popup?.visible,
+      (visible) => {
+        if (visible == false) {
+          store.dispatch(setCurrentLiveId(undefined));
+        }
+      },
+    );
+    if (view.popup) {
+      view.popup.viewModel.includeDefaultActions = false;
+    }
     view.ui.remove('zoom');
 
     const controls = document.createElement('controls3d-element');
     view.ui.add(controls, 'top-left');
-
-    if (!store.getState().browser.isFromFfvl) {
-      const ad = document.createElement('a');
-      ad.setAttribute('href', 'https://www.niviuk.com/');
-      ad.setAttribute('target', '_blank');
-      ad.className = 'ad';
-      ad.innerHTML = `<img width="${Math.round(175 * this.adRatio)}" height="${Math.round(
-        40 * this.adRatio,
-      )}" src="/static/img/niviuk.svg">`;
-      view.ui.add(ad);
-    }
 
     const layerSwitcher = this.renderRoot.querySelector('#layers') as HTMLSelectElement;
     view.ui.add(layerSwitcher, 'top-right');
@@ -254,7 +248,10 @@ export class Map3dElement extends connect(store)(LitElement) {
           this.center({ ...location, alt: 0 }, zoom);
         }
 
-        view.watch('center', (point: Point) => this.handleLocation({ lat: point.latitude, lon: point.longitude }));
+        watch(
+          () => view.center,
+          (point: Point) => this.handleLocation({ lat: point.latitude ?? 0, lon: point.longitude ?? 0 }),
+        );
       })
       .catch(async (e) => {
         store.dispatch(setApiLoading(false));
@@ -288,7 +285,7 @@ export class Map3dElement extends connect(store)(LitElement) {
             store.dispatch(setCurrentTrackId(trackId));
           }
         } else {
-          this.airspace?.handleClick({ lat: e.mapPoint.latitude, lon: e.mapPoint.longitude }, view);
+          this.airspace?.handleClick({ lat: e.mapPoint.latitude ?? 0, lon: e.mapPoint.longitude ?? 0 }, view);
         }
       });
     });
@@ -417,12 +414,6 @@ export class Map3dElement extends connect(store)(LitElement) {
       <style>
         #layers {
           font: 18px Roboto, arial, sans-serif !important;
-        }
-        .ad {
-          box-shadow: none;
-          bottom: 10px;
-          left: 50%;
-          transform: translate(-50%, 0);
         }
       </style>
       <div id="map3d"></div>
