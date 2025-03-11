@@ -99,9 +99,9 @@ export class Map3dElement extends connect(store)(LitElement) {
           const dLon = lookAt.lon - this.previousLookAt.lon;
           const dAlt = lookAt.alt - this.previousLookAt.alt;
           const camera = this.view.camera.clone();
-          camera.position.latitude! += dLat;
-          camera.position.longitude! += dLon;
-          camera.position.z! += dAlt * this.multiplier;
+          camera.position.latitude = (camera.position.latitude ?? 0) + dLat;
+          camera.position.longitude = (camera.position.longitude ?? 0) + dLon;
+          camera.position.z = (camera.position.z ?? 0) + dAlt * this.multiplier;
           this.view.camera = camera;
         }
       }
@@ -250,7 +250,7 @@ export class Map3dElement extends connect(store)(LitElement) {
 
         watch(
           () => view.center,
-          (point: Point) => this.handleLocation({ lat: point.latitude!, lon: point.longitude! }),
+          (point: Point) => this.handleLocation({ lat: point.latitude ?? 0, lon: point.longitude ?? 0 }),
         );
       })
       .catch(async (e) => {
@@ -285,7 +285,7 @@ export class Map3dElement extends connect(store)(LitElement) {
             store.dispatch(setCurrentTrackId(trackId));
           }
         } else {
-          this.airspace?.handleClick({ lat: e.mapPoint.latitude!, lon: e.mapPoint.longitude! }, view);
+          this.airspace?.handleClick({ lat: e.mapPoint.latitude ?? 0, lon: e.mapPoint.longitude ?? 0 }, view);
         }
       });
     });
@@ -414,12 +414,6 @@ export class Map3dElement extends connect(store)(LitElement) {
       <style>
         #layers {
           font: 18px Roboto, arial, sans-serif !important;
-        }
-        .ad {
-          box-shadow: none;
-          bottom: 10px;
-          left: 50%;
-          transform: translate(-50%, 0);
         }
       </style>
       <div id="map3d"></div>
