@@ -7,6 +7,7 @@ import './tracking3d-element';
 
 import Basemap from '@arcgis/core/Basemap';
 import esriConfig from '@arcgis/core/config';
+import { watch } from '@arcgis/core/core/reactiveUtils.js';
 import Point from '@arcgis/core/geometry/Point';
 import BaseElevationLayer from '@arcgis/core/layers/BaseElevationLayer';
 import ElevationLayer from '@arcgis/core/layers/ElevationLayer';
@@ -199,11 +200,14 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.view = view;
     this.createLighting();
 
-    view.watch('popup.visible', (visible) => {
-      if (visible == false) {
-        store.dispatch(setCurrentLiveId(undefined));
-      }
-    });
+    watch(
+      () => view.popup?.visible,
+      (visible) => {
+        if (visible == false) {
+          store.dispatch(setCurrentLiveId(undefined));
+        }
+      },
+    );
     if (view.popup) {
       view.popup.viewModel.includeDefaultActions = false;
     }
@@ -244,7 +248,10 @@ export class Map3dElement extends connect(store)(LitElement) {
           this.center({ ...location, alt: 0 }, zoom);
         }
 
-        view.watch('center', (point: Point) => this.handleLocation({ lat: point.latitude!, lon: point.longitude! }));
+        watch(
+          () => view.center,
+          (point: Point) => this.handleLocation({ lat: point.latitude!, lon: point.longitude! }),
+        );
       })
       .catch(async (e) => {
         store.dispatch(setApiLoading(false));
