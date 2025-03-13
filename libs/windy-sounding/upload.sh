@@ -26,4 +26,4 @@ tar cf /tmp/plugin.tar -C dist/libs/windy-sounding plugin.min.js plugin.min.js.m
 
 echo "# Publishing plugin..."
 
-curl -s --fail-with-body -XPOST 'https://api.windy.com/api/windy-plugins/v1.0/upload' -H "x-windy-api-key: ${WINDY_API_KEY}" -F "plugin_archive=@/tmp/plugin.tar"
+curl -s --fail-with-body -XPOST 'https://node.windy.com/plugins/v1.0/upload' -H "x-windy-api-key: ${WINDY_API_KEY}" -F "plugin_archive=@/tmp/plugin.tar"
