@@ -38,22 +38,22 @@ openaipAirspaces = openaipAirspaces.map(processFn);
 printLogs('Processed:', logs);
 // filter
 openaipAirspaces = openaipAirspaces.filter(filterFn);
-openaipAirspaces = openaipAirspaces.filter(createFilterOutColombia(logs));
 printLogs('Filtered:', logs);
 console.log(`-> ${openaipAirspaces.length} airspaces`);
 
-// Colombia
-console.log('\n# Colombia airspaces (XContest)');
-const coContent = readFileSync(join(program.opts().input, 'colombia.openair'), 'utf-8');
-let coAirspaces = oair.parseAll(coContent, 'CO');
-console.log(`${coAirspaces.length} airspaces imported`);
+// Arclosan
+console.log('\n# Arclosan');
+const arclosan = readFileSync(join(program.opts().input, 'arclosan.openair'), 'utf-8');
+let arclosanAirspaces = oair.parseAll(arclosan, 'FR');
+console.log(`${arclosanAirspaces.length} airspaces imported`);
+
 // post process
-coAirspaces = coAirspaces.map(processFn);
+arclosanAirspaces = arclosanAirspaces.map(processFn);
 printLogs('Processed:', logs);
 // filter
-coAirspaces = coAirspaces.filter(filterFn);
+arclosanAirspaces = arclosanAirspaces.filter(filterFn);
 printLogs('Filtered:', logs);
-console.log(`-> ${coAirspaces.length} airspaces`);
+console.log(`-> ${arclosanAirspaces.length} airspaces`);
 
 // Ukraine
 console.log('\n# Ukraine airspaces');
@@ -82,7 +82,7 @@ printLogs('Filtered:', logs);
 console.log(`-> ${reAirspaces.length} airspaces`);
 
 console.log('\n# Airspaces');
-const airspaces = [...openaipAirspaces, ...coAirspaces, ...uaAirspaces, ...reAirspaces];
+const airspaces = [...openaipAirspaces, ...arclosanAirspaces, ...uaAirspaces, ...reAirspaces];
 console.log(`-> ${airspaces.length} airspaces`);
 const airspaceObj = GeoJSON.parse(airspaces, { Polygon: 'polygon' });
 writeFileSync(program.opts().output, JSON.stringify(airspaceObj, null, 2));
@@ -105,19 +105,6 @@ function createFilter(logs: Map<string, number>) {
       return false;
     }
 
-    return true;
-  };
-}
-
-// Filter out CO airspaces from openaip.net
-// They are not up to date
-// See https://paltakats.com/airspace-piedechinche
-function createFilterOutColombia(logs: Map<string, number>) {
-  return (airspace: Airspace, index: number) => {
-    if (airspace.country.toUpperCase() === 'CO') {
-      incMapKey(logs, 'CO');
-      return false;
-    }
     return true;
   };
 }
