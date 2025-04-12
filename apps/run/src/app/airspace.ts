@@ -2,6 +2,7 @@ import type { AirspaceString, AirspaceTyped, Point } from '@flyxc/common';
 import {
   AIRSPACE_TILE_SIZE,
   AirspaceColorCategory,
+  applyTimeRule,
   fetchResponse,
   Flags,
   getAirspaceColorCategory,
@@ -100,9 +101,11 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
     }
     const aspLayer = new VectorTile(new Uint8Array(buffer)).layers.asp;
 
+    const startDate = track.timeSec[0] ? new Date(track.timeSec[0] * 1000) : new Date();
+
     for (let i = 0; i < aspLayer.length; i++) {
       const feature = aspLayer.feature(i);
-      const airspace = toTypedAirspace(feature.properties as AirspaceString);
+      const airspace = applyTimeRule(toTypedAirspace(feature.properties as AirspaceString), startDate);
       const airspaceId = getAirspaceFeatureId(airspace);
       for (const fixIdx of indexes) {
         // Do not check airspaces above the track.

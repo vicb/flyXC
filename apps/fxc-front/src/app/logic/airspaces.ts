@@ -1,6 +1,7 @@
 import type { AirspaceString, AirspaceTyped, Class, LatLon, Point, Type } from '@flyxc/common';
 import {
   AIRSPACE_TILE_SIZE,
+  applyTimeRule,
   getAirspaceCategory,
   getAirspaceColor,
   getAirspaceTileUrl,
@@ -37,6 +38,7 @@ export async function getAirspaceList(
   gndAltitude: number,
   showClasses: Class[],
   showTypes: Type[],
+  date: Date,
 ): Promise<string> {
   const tileZoom = Math.min(zoom, MAX_AIRSPACE_TILE_ZOOM);
   const { tile: tileCoords, px } = pixelCoordinates(latLon, tileZoom, AIRSPACE_TILE_SIZE);
@@ -62,7 +64,7 @@ export async function getAirspaceList(
   const info: string[] = [];
   for (let i = 0; i < layer.length; i++) {
     const f = layer.feature(i);
-    const airspace = toTypedAirspace(f.properties as AirspaceString);
+    const airspace = applyTimeRule(toTypedAirspace(f.properties as AirspaceString), date);
     const floor = airspace.floorM + (airspace.floorRefGnd ? gndAltitude : 0);
     const top = airspace.topM + (airspace.topRefGnd ? gndAltitude : 0);
     const onlyConsiderFloor = gndAltitude == 0;
@@ -99,6 +101,8 @@ export class AspMapType {
   classes: Class[] = [];
   types: Type[] = [];
   active_ = true;
+  date = new Date();
+
   // FetchInfo indexed by fetch key.
   fetchInfoMap: Map<number, FetchInfo> = new Map();
 
@@ -126,7 +130,18 @@ export class AspMapType {
   }
 
   getTile(coord: google.maps.Point, zoom: number, doc: Document): HTMLElement {
-    return getTile(coord, zoom, zoom, doc, this.altitude, this.classes, this.types, this.active, this.fetchInfoMap);
+    return getTile(
+      coord,
+      zoom,
+      zoom,
+      doc,
+      this.altitude,
+      this.classes,
+      this.types,
+      this.active,
+      this.fetchInfoMap,
+      this.date,
+    );
   }
 
   // @ts-ignore
@@ -168,6 +183,10 @@ export class AspMapType {
     this.types = types;
   }
 
+  setDate(date: Date): void {
+    this.date = date;
+  }
+
   // minZoom and maxZoom are not taken into account by the Google Maps API for overlay map types.
   // We need to manually activate the layers for the current zoom level.
   setCurrentZoom(zoom: number): void {
@@ -204,6 +223,7 @@ export class AspZoomMapType extends AspMapType {
       this.types,
       this.active,
       this.fetchInfoMap,
+      this.date,
     );
   }
 }
@@ -220,6 +240,7 @@ function getTile(
   showTypes: Type[],
   active: boolean,
   fetchInfoMap: Map<number, FetchInfo>,
+  date: Date,
 ): HTMLElement {
   if (!active) {
     return doc.createElement('div');
@@ -262,7 +283,7 @@ function getTile(
         return;
       }
       const vectorTile = new VectorTile(new Uint8Array(buffer));
-      renderTiles(fetchKey, fetchInfoMap, vectorTile, altitude, showClasses, showTypes, mapZoom, tileZoom);
+      renderTiles(fetchKey, fetchInfoMap, vectorTile, altitude, showClasses, showTypes, mapZoom, tileZoom, date);
     })
     .catch((e) => {
       // AbortError are expected when aborting a request.
@@ -288,6 +309,7 @@ function renderTiles(
   showTypes: Type[],
   mapZoom: number,
   tileZoom: number,
+  date: Date,
 ) {
   const fetchInfo = fetchInfoMap.get(fetchKey);
   if (fetchInfo == null) {
@@ -320,7 +342,7 @@ function renderTiles(
 
     for (let i = 0; i < vectorTile.layers.asp.length; i++) {
       const f = vectorTile.layers.asp.feature(i);
-      const airspace = toTypedAirspace(f.properties as any);
+      const airspace = applyTimeRule(toTypedAirspace(f.properties as any), date);
       const ratio = renderSize / f.extent;
       if (
         f.type === 3 &&

@@ -70,7 +70,8 @@ export class AirspaceElement extends connect(store)(LitElement) {
       if (
         changedProperties.has('maxAltitude') ||
         changedProperties.has('showClasses') ||
-        changedProperties.has('showTypes')
+        changedProperties.has('showTypes') ||
+        changedProperties.has('track')
       ) {
         this.removeOverlays();
         this.addOverlays();
@@ -78,7 +79,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
       if (this.track && changedProperties.has('timeSec') && !this.isMapClick) {
         const point = sel.getTrackLatLonAlt(store.getState())(this.timeSec) as common.LatLonAlt;
         const gndAlt = sel.getGndAlt(store.getState())(this.timeSec);
-        this.showAirspaceInfo(point, gndAlt);
+        this.showAirspaceInfo(point, { gndAlt, date: new Date(this.timeSec * 1000) });
       }
     }
     if (changedProperties.has('show')) {
@@ -100,10 +101,12 @@ export class AirspaceElement extends connect(store)(LitElement) {
 
   private async handleMapClick(latLng: google.maps.LatLng): Promise<void> {
     this.isMapClick = true;
-    this.showAirspaceInfo({ lat: latLng.lat(), lon: latLng.lng(), alt: this.maxAltitude });
+    // Use the track time or the current time
+    const date = this.track ? new Date(this.timeSec * 1000) : new Date();
+    this.showAirspaceInfo({ lat: latLng.lat(), lon: latLng.lng(), alt: this.maxAltitude }, { date });
   }
 
-  private async showAirspaceInfo(point: common.LatLonAlt, gndAlt = 0) {
+  private async showAirspaceInfo(point: common.LatLonAlt, { gndAlt = 0, date = new Date() } = {}) {
     if (this.show) {
       const html = await getAirspaceList(
         Math.round(this.map.getZoom() ?? 10),
@@ -112,6 +115,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
         gndAlt,
         this.showClasses,
         this.showTypes,
+        date,
       );
       if (html !== '') {
         this.info?.setContent(html);
@@ -129,6 +133,9 @@ export class AirspaceElement extends connect(store)(LitElement) {
         o.setAltitude(this.maxAltitude);
         o.showClasses(this.showClasses);
         o.showTypes(this.showTypes);
+        // Use the track time or the current time
+        const date = this.track ? new Date(this.timeSec * 1000) : new Date();
+        o.setDate(date);
         this.map.overlayMapTypes.push(o as any);
       }
     });
