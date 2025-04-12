@@ -1,8 +1,10 @@
+import { TZDate } from '@date-fns/tz';
+import { addDays, isAfter, isBefore, isFriday, isMonday, isSaturday, isSunday, nextFriday, nextMonday } from 'date-fns';
 import type { Feature } from 'mapbox-vector-tile';
 
 import type { Point } from './runtime-track';
 
-// Maximium zoom level for the airspaces.
+// Maximum zoom level for the airspaces.
 export const MAX_AIRSPACE_TILE_ZOOM = 10;
 export const AIRSPACE_TILE_SIZE = 256;
 
@@ -377,4 +379,155 @@ function isInPolygon(point: Point, polygon: Point[], ratio: number): boolean {
   }
 
   return isIn;
+}
+
+export const timedAirspaces = [
+  // Inactive from July to Oct
+  // https://www.ecrins-parcnational.fr/les-survols-non-motorises
+  'PARC/RESERVE  ECRINS 1000M/SOL',
+  // See https://www.freedom-parapente.fr/site/puy-de-dome
+  'TMA CLERMONT 2.1 (VOL LIBRE)',
+  'TMA CLERMONT 2.2 CHAMPEIX (VOL LIBRE)',
+  'TMA CLERMONT 2.3 ORCINES (VOL LIBRE)',
+  'TMA CLERMONT 4.1 JOB (VOL LIBRE)',
+  'TMA CLERMONT5.1 PUY DE DOME (VOL LIBRE)',
+  // Active in July and August
+  // https://federation.ffvl.fr/sites/ffvl.fr/files/Massifdumontblancchamonix.pdf
+  'LF-R30B MONT BLANC (JULY+AUGUST)',
+  // Class E
+  // - 2nd Monday of April to 2nd Friday of December
+  // - outside the above period: Monday 11:00UTC to Thursday 23:59UTC
+  'TMA CHAMBERY 1',
+  'CTR CHAMBERY 2 (ACTIVE MID DEC -> MID AVRIL)',
+  'CTR CHAMBERY 3 (ACTIVE MID DEC -> MID AVRIL)',
+] as const;
+
+export type TimedAirspace = (typeof timedAirspaces)[number];
+
+export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceTyped {
+  if (airspace.country != 'FR') {
+    return airspace;
+  }
+
+  const tzDate = new TZDate(date, 'Europe/Paris');
+  const year = tzDate.getFullYear();
+  const month = tzDate.getMonth() + 1;
+
+  switch (airspace.name) {
+    case 'PARC/RESERVE  ECRINS 1000M/SOL':
+      if (month >= 7 && month <= 10) {
+        return {
+          ...airspace,
+          name: 'PARC/RESERVE  ECRINS 1000M/SOL - INACTIVE',
+          type: Type.Other,
+        };
+      }
+      return airspace;
+
+    case 'TMA CLERMONT 2.1 (VOL LIBRE)': {
+      const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
+      const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
+
+      const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
+      if (lower) {
+        return { ...airspace, topM: 1680 };
+      }
+      return airspace;
+    }
+
+    case 'TMA CLERMONT 2.2 CHAMPEIX (VOL LIBRE)': {
+      const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
+      const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
+
+      const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
+      if (lower) {
+        return { ...airspace, topM: 1680 };
+      }
+      return airspace;
+    }
+
+    case 'TMA CLERMONT 2.3 ORCINES (VOL LIBRE)': {
+      const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
+      const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
+
+      const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
+      if (lower) {
+        return { ...airspace, topM: 1680 };
+      }
+      return {
+        ...airspace,
+        topM: isSaturday(tzDate) || isSunday(tzDate) ? 2591 : 1980,
+      };
+    }
+
+    case 'TMA CLERMONT 4.1 JOB (VOL LIBRE)': {
+      const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
+      const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
+
+      const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
+      if (lower) {
+        return { ...airspace, topM: 2590 };
+      }
+      return {
+        ...airspace,
+        topM: isSaturday(tzDate) || isSunday(tzDate) ? 2896 : 2590,
+      };
+    }
+
+    case 'TMA CLERMONT5.1 PUY DE DOME (VOL LIBRE)': {
+      const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
+      const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
+
+      const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
+      if (lower) {
+        return { ...airspace, topM: 2590 };
+      }
+      return airspace;
+    }
+
+    case 'LF-R30B MONT BLANC (JULY+AUGUST)':
+      if (month == 7 || month == 8) {
+        return airspace;
+      }
+      return {
+        ...airspace,
+        type: Type.Other,
+        name: 'LF-R30B MONT BLANC - INACTIVE',
+      };
+
+    case 'TMA CHAMBERY 1':
+    case 'TMA CHAMBERY 2':
+    case 'TMA CHAMBERY 3':
+    case 'CTR CHAMBERY 2 (ACTIVE MID DEC -> MID AVRIL)':
+    case 'CTR CHAMBERY 3 (ACTIVE MID DEC -> MID AVRIL)': {
+      // 2nd Monday of April
+      const start = addDays(nextMonday(new TZDate(`${year}-04-01`, 'Europe/Paris')), 7);
+      // 2nd Friday of December
+      const end = addDays(nextFriday(new TZDate(`${year}-12-01`, 'Europe/Paris')), 7);
+
+      if (isBefore(tzDate, start) || isAfter(tzDate, end)) {
+        const isClassD =
+          isFriday(tzDate) ||
+          isSaturday(tzDate) ||
+          isSunday(tzDate) ||
+          (isMonday(tzDate) && tzDate.getUTCHours() <= 11);
+        return isClassD
+          ? // TODO: asked Stephan to change to D
+            { ...airspace, icaoClass: Class.D }
+          : {
+              ...airspace,
+              icaoClass: Class.E,
+              name: `${airspace.name} (E)`,
+            };
+      }
+      return {
+        ...airspace,
+        icaoClass: Class.E,
+        name: `${airspace.name} (E)`,
+      };
+    }
+
+    default:
+      return airspace;
+  }
 }

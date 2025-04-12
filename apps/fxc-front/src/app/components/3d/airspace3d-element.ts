@@ -69,6 +69,8 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       0,
       this.showClasses,
       this.showTypes,
+      // TODO: use track time when there is a track
+      new Date(),
     );
     if (html) {
       view.popup?.open({

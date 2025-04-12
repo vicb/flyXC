@@ -93,6 +93,7 @@
   "dependencies": {
     "@alenaksu/json-viewer": "^2.1.2",
     "@arcgis/core": "^4.32.9",
+    "@date-fns/tz": "^1.2.0",
     "@dr.pogodin/csurf": "^1.14.1",
     "@google-cloud/compute": "^5.1.0",
     "@google-cloud/datastore": "^9.2.1",
