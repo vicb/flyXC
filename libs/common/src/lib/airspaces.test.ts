@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import { TZDate } from '@date-fns/tz';
 import { VectorTile } from 'mapbox-vector-tile';
 
@@ -13,12 +16,20 @@ import { fetchResponse } from './fetch-timeout';
 
 async function getTile(x: number, y: number, z: number): Promise<Map<string, AirspaceTyped>> {
   const airspaces = new Map<string, AirspaceTyped>();
-  const url = getAirspaceTileUrl(x, y, z, 'cloud');
-  const response = await fetchResponse(url);
-  if (!response.ok) {
-    throw new Error(`Error reading the tile ${url}`);
+  let buffer: ArrayBuffer;
+
+  const filename = path.join(__dirname, '../../../..', `apps/fxc-tiles/src/assets/airspaces/tiles/${z}/${x}/${y}.pbf`);
+  if (fs.existsSync(filename)) {
+    buffer = fs.readFileSync(filename);
+  } else {
+    const url = getAirspaceTileUrl(x, y, z, 'cloud');
+    const response = await fetchResponse(url);
+    if (!response.ok) {
+      throw new Error(`Error reading the tile ${url}`);
+    }
+    buffer = await response.arrayBuffer();
   }
-  const buffer = await response.arrayBuffer();
+
   const aspLayer = new VectorTile(new Uint8Array(buffer)).layers.asp;
   for (let i = 0; i < aspLayer.length; i++) {
     const feature = aspLayer.feature(i);
@@ -48,7 +59,7 @@ describe('Time dependent Airspace', () => {
         "topLabel": "3281ft GND",
         "topM": 1000,
         "topRefGnd": true,
-        "type": 3,
+        "type": 29,
       }
     `);
     expect(airspaces.get('TMA CLERMONT 2.1 (VOL LIBRE)')).toMatchInlineSnapshot(`
