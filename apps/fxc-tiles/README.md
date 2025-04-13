@@ -16,6 +16,7 @@ Install [tippecanoe](https://github.com/felt/tippecanoe) - note that the the map
 - Create the tiles - See above,
 - Create the tile info with `node dist/apps/fxc-tiles/airspaces/create-tiles-info.js`
 - Create the info diff with `node dist/apps/fxc-tiles/airspaces/create-tiles-info-diff.js`
+- Run tests `nx check`
 - Sync the diff with `node dist/apps/fxc-tiles/airspaces/upload-tiles-diff.js`
 
 ### ZIP update (outdated, probably not needed with the diff update)
