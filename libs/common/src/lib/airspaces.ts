@@ -458,7 +458,7 @@ export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceType
       }
       return {
         ...airspace,
-        ...(isSaturday(tzDate) || isSunday(tzDate) ? undefined : { topM: 1980, topLabel: '1980m' }),
+        ...(isSaturday(tzDate) || isSunday(tzDate) ? {} : { topM: 1980, topLabel: '1980m' }),
       };
     }
 
@@ -472,7 +472,7 @@ export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceType
       }
       return {
         ...airspace,
-        ...(isSaturday(tzDate) || isSunday(tzDate) ? undefined : { topM: 2590, topLabel: '2590m' }),
+        ...(isSaturday(tzDate) || isSunday(tzDate) ? {} : { topM: 2590, topLabel: '2590m' }),
       };
     }
 
