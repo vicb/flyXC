@@ -11,6 +11,7 @@ import {
   Class,
   getAirspaceTileUrl,
   toTypedAirspace,
+  Type,
 } from './airspaces';
 import { fetchResponse } from './fetch-timeout';
 
@@ -167,6 +168,36 @@ describe('Time dependent Airspace', () => {
         "type": 7,
       }
     `);
+    expect(airspaces.get('TMA CHAMBERY 2')).toMatchInlineSnapshot(`
+      {
+        "activity": 0,
+        "country": "FR",
+        "floorLabel": "5500ft MSL",
+        "floorM": 1676,
+        "floorRefGnd": false,
+        "icaoClass": 4,
+        "name": "TMA CHAMBERY 2",
+        "topLabel": "FL 95",
+        "topM": 2896,
+        "topRefGnd": false,
+        "type": 7,
+      }
+    `);
+    expect(airspaces.get('TMA CHAMBERY 3')).toMatchInlineSnapshot(`
+      {
+        "activity": 0,
+        "country": "FR",
+        "floorLabel": "FL 95",
+        "floorM": 2896,
+        "floorRefGnd": false,
+        "icaoClass": 4,
+        "name": "TMA CHAMBERY 3",
+        "topLabel": "FL 115",
+        "topM": 3505,
+        "topRefGnd": false,
+        "type": 7,
+      }
+    `);
     expect(airspaces.get('CTR CHAMBERY 2 (ACTIVE MID DEC -> MID AVRIL)')).toMatchInlineSnapshot(`
       {
         "activity": 0,
@@ -207,82 +238,82 @@ describe('Time dependent Airspace', () => {
     expect(applyTimeRule(ecrins, new TZDate('2024-11-01', 'Europe/Paris'))).toEqual(ecrins);
     expect(applyTimeRule(ecrins, new TZDate('2024-12-31', 'Europe/Paris'))).toEqual(ecrins);
 
-    expect(applyTimeRule(ecrins, new TZDate('2024-07-01', 'Europe/Paris'))).not.toEqual(ecrins);
-    expect(applyTimeRule(ecrins, new TZDate('2024-10-31', 'Europe/Paris'))).not.toEqual(ecrins);
+    expect(applyTimeRule(ecrins, new TZDate('2024-07-01', 'Europe/Paris')).type).toEqual(Type.Other);
+    expect(applyTimeRule(ecrins, new TZDate('2024-10-31', 'Europe/Paris')).type).toEqual(Type.Other);
   });
 
   test('TMA CLERMONT 2.1 (VOL LIBRE)', () => {
     const clermont21 = airspaces.get('TMA CLERMONT 2.1 (VOL LIBRE)')!;
 
-    expect(applyTimeRule(clermont21, new TZDate('2024-01-01', 'Europe/Paris'))).not.toEqual(clermont21);
-    expect(applyTimeRule(clermont21, new TZDate('2024-03-14', 'Europe/Paris'))).not.toEqual(clermont21);
-    expect(applyTimeRule(clermont21, new TZDate('2024-10-16', 'Europe/Paris'))).not.toEqual(clermont21);
-    expect(applyTimeRule(clermont21, new TZDate('2024-12-31', 'Europe/Paris'))).not.toEqual(clermont21);
+    expect(applyTimeRule(clermont21, new TZDate('2024-01-01', 'Europe/Paris')).topM).toEqual(1680);
+    expect(applyTimeRule(clermont21, new TZDate('2024-03-14', 'Europe/Paris')).topM).toEqual(1680);
+    expect(applyTimeRule(clermont21, new TZDate('2024-10-16', 'Europe/Paris')).topM).toEqual(1680);
+    expect(applyTimeRule(clermont21, new TZDate('2024-12-31', 'Europe/Paris')).topM).toEqual(1680);
 
-    expect(applyTimeRule(clermont21, new TZDate('2024-03-15', 'Europe/Paris'))).toEqual(clermont21);
-    expect(applyTimeRule(clermont21, new TZDate('2024-10-15', 'Europe/Paris'))).toEqual(clermont21);
+    expect(applyTimeRule(clermont21, new TZDate('2024-03-15', 'Europe/Paris')).topM).toEqual(1981);
+    expect(applyTimeRule(clermont21, new TZDate('2024-10-15', 'Europe/Paris')).topM).toEqual(1981);
   });
 
   test('TMA CLERMONT 2.2 CHAMPEIX (VOL LIBRE)', () => {
     const clermont22 = airspaces.get('TMA CLERMONT 2.2 CHAMPEIX (VOL LIBRE)')!;
 
-    expect(applyTimeRule(clermont22, new TZDate('2024-01-01', 'Europe/Paris'))).not.toEqual(clermont22);
-    expect(applyTimeRule(clermont22, new TZDate('2024-03-14', 'Europe/Paris'))).not.toEqual(clermont22);
-    expect(applyTimeRule(clermont22, new TZDate('2024-10-16', 'Europe/Paris'))).not.toEqual(clermont22);
-    expect(applyTimeRule(clermont22, new TZDate('2024-12-31', 'Europe/Paris'))).not.toEqual(clermont22);
+    expect(applyTimeRule(clermont22, new TZDate('2024-01-01', 'Europe/Paris')).topM).toEqual(1680);
+    expect(applyTimeRule(clermont22, new TZDate('2024-03-14', 'Europe/Paris')).topM).toEqual(1680);
+    expect(applyTimeRule(clermont22, new TZDate('2024-10-16', 'Europe/Paris')).topM).toEqual(1680);
+    expect(applyTimeRule(clermont22, new TZDate('2024-12-31', 'Europe/Paris')).topM).toEqual(1680);
 
-    expect(applyTimeRule(clermont22, new TZDate('2024-03-15', 'Europe/Paris'))).toEqual(clermont22);
-    expect(applyTimeRule(clermont22, new TZDate('2024-10-15', 'Europe/Paris'))).toEqual(clermont22);
+    expect(applyTimeRule(clermont22, new TZDate('2024-03-15', 'Europe/Paris')).topM).toEqual(1980);
+    expect(applyTimeRule(clermont22, new TZDate('2024-10-15', 'Europe/Paris')).topM).toEqual(1980);
   });
 
   test('TMA CLERMONT 2.3 ORCINES (VOL LIBRE)', () => {
     const clermont23 = airspaces.get('TMA CLERMONT 2.3 ORCINES (VOL LIBRE)')!;
 
-    expect(applyTimeRule(clermont23, new TZDate('2024-01-01', 'Europe/Paris'))).not.toEqual(clermont23);
-    expect(applyTimeRule(clermont23, new TZDate('2024-03-14', 'Europe/Paris'))).not.toEqual(clermont23);
-    expect(applyTimeRule(clermont23, new TZDate('2024-10-16', 'Europe/Paris'))).not.toEqual(clermont23);
-    expect(applyTimeRule(clermont23, new TZDate('2024-12-31', 'Europe/Paris'))).not.toEqual(clermont23);
+    expect(applyTimeRule(clermont23, new TZDate('2024-01-01', 'Europe/Paris')).topM).toEqual(1680);
+    expect(applyTimeRule(clermont23, new TZDate('2024-03-14', 'Europe/Paris')).topM).toEqual(1680);
+    expect(applyTimeRule(clermont23, new TZDate('2024-10-16', 'Europe/Paris')).topM).toEqual(1680);
+    expect(applyTimeRule(clermont23, new TZDate('2024-12-31', 'Europe/Paris')).topM).toEqual(1680);
 
     // 2024-03-15 is a Friday
-    expect(applyTimeRule(clermont23, new TZDate('2024-03-15', 'Europe/Paris'))).not.toEqual(clermont23);
-    expect(applyTimeRule(clermont23, new TZDate('2024-03-16', 'Europe/Paris'))).toEqual(clermont23);
-    expect(applyTimeRule(clermont23, new TZDate('2024-03-17', 'Europe/Paris'))).toEqual(clermont23);
+    expect(applyTimeRule(clermont23, new TZDate('2024-03-15', 'Europe/Paris')).topM).toEqual(1980);
+    expect(applyTimeRule(clermont23, new TZDate('2024-03-16', 'Europe/Paris')).topM).toEqual(2591);
+    expect(applyTimeRule(clermont23, new TZDate('2024-03-17', 'Europe/Paris')).topM).toEqual(2591);
 
     // 2024-10-15 is a Tuesday
-    expect(applyTimeRule(clermont23, new TZDate('2024-10-15', 'Europe/Paris'))).not.toEqual(clermont23);
-    expect(applyTimeRule(clermont23, new TZDate('2024-10-13', 'Europe/Paris'))).toEqual(clermont23);
-    expect(applyTimeRule(clermont23, new TZDate('2024-10-12', 'Europe/Paris'))).toEqual(clermont23);
+    expect(applyTimeRule(clermont23, new TZDate('2024-10-15', 'Europe/Paris')).topM).toEqual(1980);
+    expect(applyTimeRule(clermont23, new TZDate('2024-10-13', 'Europe/Paris')).topM).toEqual(2591);
+    expect(applyTimeRule(clermont23, new TZDate('2024-10-12', 'Europe/Paris')).topM).toEqual(2591);
   });
 
   test('TMA CLERMONT 4.1 JOB (VOL LIBRE)', () => {
     const clermont41 = airspaces.get('TMA CLERMONT 4.1 JOB (VOL LIBRE)')!;
 
-    expect(applyTimeRule(clermont41, new TZDate('2024-01-01', 'Europe/Paris'))).not.toEqual(clermont41);
-    expect(applyTimeRule(clermont41, new TZDate('2024-03-14', 'Europe/Paris'))).not.toEqual(clermont41);
-    expect(applyTimeRule(clermont41, new TZDate('2024-10-16', 'Europe/Paris'))).not.toEqual(clermont41);
-    expect(applyTimeRule(clermont41, new TZDate('2024-12-31', 'Europe/Paris'))).not.toEqual(clermont41);
+    expect(applyTimeRule(clermont41, new TZDate('2024-01-01', 'Europe/Paris')).topM).toEqual(2590);
+    expect(applyTimeRule(clermont41, new TZDate('2024-03-14', 'Europe/Paris')).topM).toEqual(2590);
+    expect(applyTimeRule(clermont41, new TZDate('2024-10-16', 'Europe/Paris')).topM).toEqual(2590);
+    expect(applyTimeRule(clermont41, new TZDate('2024-12-31', 'Europe/Paris')).topM).toEqual(2590);
 
     // 2024-03-15 is a Friday
-    expect(applyTimeRule(clermont41, new TZDate('2024-03-15', 'Europe/Paris'))).not.toEqual(clermont41);
-    expect(applyTimeRule(clermont41, new TZDate('2024-03-16', 'Europe/Paris'))).toEqual(clermont41);
-    expect(applyTimeRule(clermont41, new TZDate('2024-03-17', 'Europe/Paris'))).toEqual(clermont41);
+    expect(applyTimeRule(clermont41, new TZDate('2024-03-15', 'Europe/Paris')).topM).toEqual(2590);
+    expect(applyTimeRule(clermont41, new TZDate('2024-03-16', 'Europe/Paris')).topM).toEqual(2896);
+    expect(applyTimeRule(clermont41, new TZDate('2024-03-17', 'Europe/Paris')).topM).toEqual(2896);
 
     // 2024-10-15 is a Tuesday
-    expect(applyTimeRule(clermont41, new TZDate('2024-10-15', 'Europe/Paris'))).not.toEqual(clermont41);
-    expect(applyTimeRule(clermont41, new TZDate('2024-10-13', 'Europe/Paris'))).toEqual(clermont41);
-    expect(applyTimeRule(clermont41, new TZDate('2024-10-12', 'Europe/Paris'))).toEqual(clermont41);
+    expect(applyTimeRule(clermont41, new TZDate('2024-10-15', 'Europe/Paris')).topM).toEqual(2590);
+    expect(applyTimeRule(clermont41, new TZDate('2024-10-13', 'Europe/Paris')).topM).toEqual(2896);
+    expect(applyTimeRule(clermont41, new TZDate('2024-10-12', 'Europe/Paris')).topM).toEqual(2896);
   });
 
   test('TMA CLERMONT5.1 PUY DE DOME (VOL LIBRE)', () => {
     const clermont51 = airspaces.get('TMA CLERMONT5.1 PUY DE DOME (VOL LIBRE)')!;
 
-    expect(applyTimeRule(clermont51, new TZDate('2024-01-01', 'Europe/Paris'))).not.toEqual(clermont51);
-    expect(applyTimeRule(clermont51, new TZDate('2024-03-14', 'Europe/Paris'))).not.toEqual(clermont51);
-    expect(applyTimeRule(clermont51, new TZDate('2024-10-16', 'Europe/Paris'))).not.toEqual(clermont51);
-    expect(applyTimeRule(clermont51, new TZDate('2024-12-31', 'Europe/Paris'))).not.toEqual(clermont51);
+    expect(applyTimeRule(clermont51, new TZDate('2024-01-01', 'Europe/Paris')).topM).toEqual(2590);
+    expect(applyTimeRule(clermont51, new TZDate('2024-03-14', 'Europe/Paris')).topM).toEqual(2590);
+    expect(applyTimeRule(clermont51, new TZDate('2024-10-16', 'Europe/Paris')).topM).toEqual(2590);
+    expect(applyTimeRule(clermont51, new TZDate('2024-12-31', 'Europe/Paris')).topM).toEqual(2590);
 
-    expect(applyTimeRule(clermont51, new TZDate('2024-03-15', 'Europe/Paris'))).toEqual(clermont51);
-    expect(applyTimeRule(clermont51, new TZDate('2024-10-15', 'Europe/Paris'))).toEqual(clermont51);
+    expect(applyTimeRule(clermont51, new TZDate('2024-03-15', 'Europe/Paris')).topM).toEqual(3505);
+    expect(applyTimeRule(clermont51, new TZDate('2024-10-15', 'Europe/Paris')).topM).toEqual(3505);
   });
 
   test('LF-R30B MONT BLANC (JULY+AUGUST)', () => {
@@ -297,53 +328,44 @@ describe('Time dependent Airspace', () => {
     expect(applyTimeRule(r30b, new TZDate('2024-08-31', 'Europe/Paris'))).toEqual(r30b);
   });
 
-  test('TMA CHAMBERY 1', () => {
-    const chamberyTMA1 = airspaces.get('TMA CHAMBERY 1')!;
-    // TODO: remove when openaip is fixed
-    chamberyTMA1.icaoClass = Class.D;
+  test('TMA CHAMBERY', () => {
+    for (const tmaName of ['TMA CHAMBERY 1', 'TMA CHAMBERY 2', 'TMA CHAMBERY 3']) {
+      const tma = airspaces.get(tmaName)!;
+      // openaip has class E
+      tma.icaoClass = Class.D;
 
-    // E from 2nd Monday of April to 2nd Friday of December
-    expect(applyTimeRule(chamberyTMA1, new TZDate('2025-04-14', 'Europe/Paris'))).not.toEqual(chamberyTMA1);
-    expect(applyTimeRule(chamberyTMA1, new TZDate('2025-12-12', 'Europe/Paris'))).not.toEqual(chamberyTMA1);
+      // E from 2nd Monday of April to 2nd Friday of December
+      expect(applyTimeRule(tma, new TZDate('2025-04-14', 'Europe/Paris'))).not.toEqual(tma);
+      expect(applyTimeRule(tma, new TZDate('2025-12-12', 'Europe/Paris'))).not.toEqual(tma);
 
-    // E from from Monday 11UTC to Thursday 23:59UTC
-    expect(applyTimeRule(chamberyTMA1, new TZDate('2025-04-13', 'Europe/Paris'))).toEqual(chamberyTMA1);
-    expect(applyTimeRule(chamberyTMA1, new TZDate('2025-12-13', 'Europe/Paris'))).toEqual(chamberyTMA1);
-    // Tuesday -> Thursday
-    expect(applyTimeRule(chamberyTMA1, new TZDate('2025-04-08', 'Europe/Paris'))).not.toEqual(chamberyTMA1);
-    expect(applyTimeRule(chamberyTMA1, new TZDate('2025-04-09', 'Europe/Paris'))).not.toEqual(chamberyTMA1);
-    expect(applyTimeRule(chamberyTMA1, new TZDate('2025-04-10', 'Europe/Paris'))).not.toEqual(chamberyTMA1);
+      // E from from Monday 11UTC to Thursday 23:59UTC
+      expect(applyTimeRule(tma, new TZDate('2025-04-13', 'Europe/Paris'))).toEqual(tma);
+      expect(applyTimeRule(tma, new TZDate('2025-12-13', 'Europe/Paris'))).toEqual(tma);
+      // Tuesday -> Thursday
+      expect(applyTimeRule(tma, new TZDate('2025-04-08', 'Europe/Paris'))).not.toEqual(tma);
+      expect(applyTimeRule(tma, new TZDate('2025-04-09', 'Europe/Paris'))).not.toEqual(tma);
+      expect(applyTimeRule(tma, new TZDate('2025-04-10', 'Europe/Paris'))).not.toEqual(tma);
+    }
   });
 
-  test('CTR CHAMBERY 2 (ACTIVE MID DEC -> MID AVRIL)', () => {
-    const chamberyCTR2 = airspaces.get('CTR CHAMBERY 2 (ACTIVE MID DEC -> MID AVRIL)')!;
+  test('CTR CHAMBERY', () => {
+    for (const ctrName of [
+      'CTR CHAMBERY 2 (ACTIVE MID DEC -> MID AVRIL)',
+      'CTR CHAMBERY 3 (ACTIVE MID DEC -> MID AVRIL)',
+    ]) {
+      const ctr = airspaces.get(ctrName)!;
 
-    // E from 2nd Monday of April to 2nd Friday of December
-    expect(applyTimeRule(chamberyCTR2, new TZDate('2025-04-14', 'Europe/Paris'))).not.toEqual(chamberyCTR2);
-    expect(applyTimeRule(chamberyCTR2, new TZDate('2025-12-12', 'Europe/Paris'))).not.toEqual(chamberyCTR2);
+      // E from 2nd Monday of April to 2nd Friday of December
+      expect(applyTimeRule(ctr, new TZDate('2025-04-14', 'Europe/Paris'))).not.toEqual(ctr);
+      expect(applyTimeRule(ctr, new TZDate('2025-12-12', 'Europe/Paris'))).not.toEqual(ctr);
 
-    // E from from Monday 11UTC to Thursday 23:59UTC
-    expect(applyTimeRule(chamberyCTR2, new TZDate('2025-04-13', 'Europe/Paris'))).toEqual(chamberyCTR2);
-    expect(applyTimeRule(chamberyCTR2, new TZDate('2025-12-13', 'Europe/Paris'))).toEqual(chamberyCTR2);
-    // Tuesday -> Thursday
-    expect(applyTimeRule(chamberyCTR2, new TZDate('2025-04-08', 'Europe/Paris'))).not.toEqual(chamberyCTR2);
-    expect(applyTimeRule(chamberyCTR2, new TZDate('2025-04-09', 'Europe/Paris'))).not.toEqual(chamberyCTR2);
-    expect(applyTimeRule(chamberyCTR2, new TZDate('2025-04-10', 'Europe/Paris'))).not.toEqual(chamberyCTR2);
-  });
-
-  test('CTR CHAMBERY 3 (ACTIVE MID DEC -> MID AVRIL)', () => {
-    const chamberyCTR3 = airspaces.get('CTR CHAMBERY 3 (ACTIVE MID DEC -> MID AVRIL)')!;
-
-    // E from 2nd Monday of April to 2nd Friday of December
-    expect(applyTimeRule(chamberyCTR3, new TZDate('2025-04-14', 'Europe/Paris'))).not.toEqual(chamberyCTR3);
-    expect(applyTimeRule(chamberyCTR3, new TZDate('2025-12-12', 'Europe/Paris'))).not.toEqual(chamberyCTR3);
-
-    // E from from Monday 11UTC to Thursday 23:59UTC
-    expect(applyTimeRule(chamberyCTR3, new TZDate('2025-04-13', 'Europe/Paris'))).toEqual(chamberyCTR3);
-    expect(applyTimeRule(chamberyCTR3, new TZDate('2025-12-13', 'Europe/Paris'))).toEqual(chamberyCTR3);
-    // Tuesday -> Thursday
-    expect(applyTimeRule(chamberyCTR3, new TZDate('2025-04-08', 'Europe/Paris'))).not.toEqual(chamberyCTR3);
-    expect(applyTimeRule(chamberyCTR3, new TZDate('2025-04-09', 'Europe/Paris'))).not.toEqual(chamberyCTR3);
-    expect(applyTimeRule(chamberyCTR3, new TZDate('2025-04-10', 'Europe/Paris'))).not.toEqual(chamberyCTR3);
+      // E from from Monday 11UTC to Thursday 23:59UTC
+      expect(applyTimeRule(ctr, new TZDate('2025-04-13', 'Europe/Paris'))).toEqual(ctr);
+      expect(applyTimeRule(ctr, new TZDate('2025-12-13', 'Europe/Paris'))).toEqual(ctr);
+      // Tuesday -> Thursday
+      expect(applyTimeRule(ctr, new TZDate('2025-04-08', 'Europe/Paris'))).not.toEqual(ctr);
+      expect(applyTimeRule(ctr, new TZDate('2025-04-09', 'Europe/Paris'))).not.toEqual(ctr);
+      expect(applyTimeRule(ctr, new TZDate('2025-04-10', 'Europe/Paris'))).not.toEqual(ctr);
+    }
   });
 });

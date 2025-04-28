@@ -398,6 +398,8 @@ export const timedAirspaces = [
   // - 2nd Monday of April to 2nd Friday of December
   // - outside the above period: Monday 11:00UTC to Thursday 23:59UTC
   'TMA CHAMBERY 1',
+  'TMA CHAMBERY 2',
+  'TMA CHAMBERY 3',
   'CTR CHAMBERY 2 (ACTIVE MID DEC -> MID AVRIL)',
   'CTR CHAMBERY 3 (ACTIVE MID DEC -> MID AVRIL)',
 ] as const;
@@ -430,7 +432,7 @@ export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceType
 
       const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
       if (lower) {
-        return { ...airspace, topM: 1680 };
+        return { ...airspace, topM: 1680, topLabel: '1680m' };
       }
       return airspace;
     }
@@ -441,9 +443,9 @@ export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceType
 
       const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
       if (lower) {
-        return { ...airspace, topM: 1680 };
+        return { ...airspace, topM: 1680, topLabel: '1680m' };
       }
-      return airspace;
+      return { ...airspace, topM: 1980, topLabel: '1980m' };
     }
 
     case 'TMA CLERMONT 2.3 ORCINES (VOL LIBRE)': {
@@ -452,11 +454,11 @@ export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceType
 
       const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
       if (lower) {
-        return { ...airspace, topM: 1680 };
+        return { ...airspace, topM: 1680, topLabel: '1680m' };
       }
       return {
         ...airspace,
-        topM: isSaturday(tzDate) || isSunday(tzDate) ? 2591 : 1980,
+        ...(isSaturday(tzDate) || isSunday(tzDate) ? {} : { topM: 1980, topLabel: '1980m' }),
       };
     }
 
@@ -466,11 +468,11 @@ export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceType
 
       const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
       if (lower) {
-        return { ...airspace, topM: 2590 };
+        return { ...airspace, topM: 2590, topLabel: '2590m' };
       }
       return {
         ...airspace,
-        topM: isSaturday(tzDate) || isSunday(tzDate) ? 2896 : 2590,
+        ...(isSaturday(tzDate) || isSunday(tzDate) ? {} : { topM: 2590, topLabel: '2590m' }),
       };
     }
 
@@ -480,7 +482,7 @@ export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceType
 
       const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
       if (lower) {
-        return { ...airspace, topM: 2590 };
+        return { ...airspace, topM: 2590, topLabel: '2590m' };
       }
       return airspace;
     }
@@ -497,7 +499,28 @@ export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceType
 
     case 'TMA CHAMBERY 1':
     case 'TMA CHAMBERY 2':
-    case 'TMA CHAMBERY 3':
+    case 'TMA CHAMBERY 3': {
+      // 2nd Monday of April
+      const start = addDays(nextMonday(new TZDate(`${year}-04-01`, 'Europe/Paris')), 7);
+      // 2nd Friday of December
+      const end = addDays(nextFriday(new TZDate(`${year}-12-01`, 'Europe/Paris')), 7);
+
+      const isClassD =
+        (isBefore(tzDate, start) || isAfter(tzDate, end)) &&
+        (isFriday(tzDate) ||
+          isSaturday(tzDate) ||
+          isSunday(tzDate) ||
+          (isMonday(tzDate) && tzDate.getUTCHours() <= 11));
+
+      return isClassD
+        ? // openaip has class E
+          { ...airspace, icaoClass: Class.D }
+        : {
+            ...airspace,
+            icaoClass: Class.E,
+          };
+    }
+
     case 'CTR CHAMBERY 2 (ACTIVE MID DEC -> MID AVRIL)':
     case 'CTR CHAMBERY 3 (ACTIVE MID DEC -> MID AVRIL)': {
       // 2nd Monday of April
@@ -505,26 +528,22 @@ export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceType
       // 2nd Friday of December
       const end = addDays(nextFriday(new TZDate(`${year}-12-01`, 'Europe/Paris')), 7);
 
-      if (isBefore(tzDate, start) || isAfter(tzDate, end)) {
-        const isClassD =
-          isFriday(tzDate) ||
+      const isActive =
+        (isBefore(tzDate, start) || isAfter(tzDate, end)) &&
+        (isFriday(tzDate) ||
           isSaturday(tzDate) ||
           isSunday(tzDate) ||
-          (isMonday(tzDate) && tzDate.getUTCHours() <= 11);
-        return isClassD
-          ? // TODO: asked Stephan to change to D
-            { ...airspace, icaoClass: Class.D }
-          : {
-              ...airspace,
-              icaoClass: Class.E,
-              name: `${airspace.name} (E)`,
-            };
-      }
-      return {
-        ...airspace,
-        icaoClass: Class.E,
-        name: `${airspace.name} (E)`,
-      };
+          (isMonday(tzDate) && tzDate.getUTCHours() <= 11));
+
+      return isActive
+        ? // openaip has class E
+          { ...airspace, icaoClass: Class.D }
+        : {
+            ...airspace,
+            icaoClass: Class.SUA,
+            type: Type.Other,
+            name: `${airspace.name} - INACTIVE`,
+          };
     }
 
     default:
