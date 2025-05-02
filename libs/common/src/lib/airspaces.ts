@@ -394,6 +394,9 @@ export const timedAirspaces = [
   // Active in July and August
   // https://federation.ffvl.fr/sites/ffvl.fr/files/Massifdumontblancchamonix.pdf
   'LF-R30B MONT BLANC (JULY+AUGUST)',
+  // 300m AGL for PG
+  // https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000021755667
+  'PARC/RESERVE  AIGUILLES ROUGES 1000M/SOL',
   // Class E
   // - 2nd Monday of April to 2nd Friday of December
   // - outside the above period: Monday 11:00UTC to Thursday 23:59UTC
@@ -416,6 +419,14 @@ export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceType
   const month = tzDate.getMonth() + 1;
 
   switch (airspace.name) {
+    case 'PARC/RESERVE  AIGUILLES ROUGES 1000M/SOL':
+      return {
+        ...airspace,
+        name: 'PARC/RESERVE  AIGUILLES ROUGES 300M/SOL',
+        topM: 300,
+        topLabel: '984ft GND',
+      };
+
     case 'PARC/RESERVE  ECRINS 1000M/SOL':
       if (month >= 7 && month <= 10) {
         return {
