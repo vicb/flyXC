@@ -228,6 +228,32 @@ describe('Time dependent Airspace', () => {
         "type": 4,
       }
     `);
+    expect(airspaces.get('PARC/RESERVE  AIGUILLES ROUGES 1000M/SOL')).toMatchInlineSnapshot(`
+      {
+        "activity": 0,
+        "country": "FR",
+        "floorLabel": "GND",
+        "floorM": 0,
+        "floorRefGnd": true,
+        "icaoClass": 8,
+        "name": "PARC/RESERVE  AIGUILLES ROUGES 1000M/SOL",
+        "topLabel": "3281ft GND",
+        "topM": 1000,
+        "topRefGnd": true,
+        "type": 29,
+      }
+    `);
+  });
+
+  test('PARC/RESERVE  AIGUILLES ROUGES 1000M/SOL', () => {
+    const aiguillesRouges = airspaces.get('PARC/RESERVE  AIGUILLES ROUGES 1000M/SOL')!;
+    const override = applyTimeRule(aiguillesRouges, new TZDate('2024-07-01', 'Europe/Paris'));
+
+    expect(override).toMatchObject({
+      topM: 300,
+      topLabel: '984ft GND',
+      name: 'PARC/RESERVE  AIGUILLES ROUGES 300M/SOL',
+    });
   });
 
   test('PARC/RESERVE  ECRINS 1000M/SOL', () => {
