@@ -19,7 +19,7 @@ import type { Redis } from 'ioredis';
 import { getUserInfo, isLoggedIn, logout } from './session';
 
 // Store the token in the session.
-const csrfProtection = csurf({ cookie: false });
+const csrfProtection = csurf();
 
 export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
   const router = Router();
