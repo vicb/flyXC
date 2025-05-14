@@ -1,8 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2023",
     "module": "ES2022",
+    "lib": ["ES2023", "DOM"],
     "moduleResolution": "Bundler",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
