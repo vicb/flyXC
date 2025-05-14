@@ -56,8 +56,8 @@ export const slice = createSlice({
       state.isZoomedIn = action.payload;
     },
     setFavorites: (state, action: { payload: Fav[] }) => {
-      action.payload.sort((favA, favB) => (getFavLabel(favA) > getFavLabel(favB) ? 1 : -1));
-      state.favorites = action.payload;
+      const favorites = action.payload.toSorted((favA, favB) => (getFavLabel(favA) > getFavLabel(favB) ? 1 : -1));
+      state.favorites = favorites;
     },
     setModelName: (state, action: { payload: string }) => {
       state.modelName = getSupportedModelName(action.payload);
@@ -92,8 +92,14 @@ export const slice = createSlice({
 export const fetchPluginConfig = createAsyncThunk<void, PluginConfig, { state: RootState }>(
   'plugin/fetchPluginConfig',
   async (localPluginConfig: PluginConfig, api) => {
-    const payload: HttpPayload<CompiledExternalPluginConfig[]> = await W.http.get('/articles/plugins/list');
-    const remoteConfig = findConfig(payload.data, localPluginConfig.name);
+    let payload: HttpPayload<CompiledExternalPluginConfig[]> | undefined;
+    let remoteConfig: CompiledExternalPluginConfig | undefined;
+    try {
+      payload = await W.http.get('/plugins/list');
+      remoteConfig = findConfig(payload.data, localPluginConfig.name);
+    } catch (e) {
+      console.error(`Could not load remote plugin config`, e);
+    }
 
     if (remoteConfig) {
       if (new SemVer(localPluginConfig.version).compare(remoteConfig.version) == -1) {
