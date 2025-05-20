@@ -381,35 +381,37 @@ function isInPolygon(point: Point, polygon: Point[], ratio: number): boolean {
   return isIn;
 }
 
-export const timedAirspaces = [
+export const airspaceOverrides = {
   // Inactive from July to Oct
   // https://www.ecrins-parcnational.fr/les-survols-non-motorises
-  'PARC/RESERVE  ECRINS 1000M/SOL',
+  ecrins: 'PARC/RESERVE  ECRINS',
   // See https://www.freedom-parapente.fr/site/puy-de-dome
-  'TMA CLERMONT 2.1 (VOL LIBRE)',
-  'TMA CLERMONT 2.2 CHAMPEIX (VOL LIBRE)',
-  'TMA CLERMONT 2.3 ORCINES (VOL LIBRE)',
-  'TMA CLERMONT 4.1 JOB (VOL LIBRE)',
-  'TMA CLERMONT5.1 PUY DE DOME (VOL LIBRE)',
+  TMAClermont21: 'TMA CLERMONT 2.1 VIC',
+  TMAClermont22: 'TMA CLERMONT 2.2 CHAMPEIX',
+  TMAClermont23: 'TMA CLERMONT 2.3 ORCINES',
+  TMAClermont41: 'TMA CLERMONT 4.1 JOB',
+  TMAClermont51: 'TMA CLERMONT 5.1 PUY DE DOME',
   // Active in July and August
   // https://federation.ffvl.fr/sites/ffvl.fr/files/Massifdumontblancchamonix.pdf
-  'LF-R30B MONT BLANC (JULY+AUGUST)',
+  LFR30B: 'LF-R30B MONT BLANC (JULY+AUGUST)',
   // 300m AGL for PG
   // https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000021755667
-  'PARC/RESERVE  AIGUILLES ROUGES 1000M/SOL',
+  aiguilleRouges: 'PARC/RESERVE  AIGUILLES ROUGES',
   // Class E
   // - 2nd Monday of April to 2nd Friday of December
   // - outside the above period: Monday 11:00UTC to Thursday 23:59UTC
-  'TMA CHAMBERY 1',
-  'TMA CHAMBERY 2',
-  'TMA CHAMBERY 3',
-  'CTR CHAMBERY 2 (ACTIVE MID DEC -> MID AVRIL)',
-  'CTR CHAMBERY 3 (ACTIVE MID DEC -> MID AVRIL)',
-] as const;
+  TMAChambery1: 'TMA CHAMBERY 1',
+  TMAChambery2: 'TMA CHAMBERY 2',
+  TMAChambery3: 'TMA CHAMBERY 3',
+  // Disabled
+  // - 2nd Monday of April to 2nd Friday of December
+  // - outside the above period: Monday 11:00UTC to Thursday 23:59UTC
+  CTRChambery2: 'CTR CHAMBERY 2 (ACTIVE MID DEC -> MID AVRIL)',
+} as const;
 
-export type TimedAirspace = (typeof timedAirspaces)[number];
+export type AirspaceOverride = (typeof airspaceOverrides)[keyof typeof airspaceOverrides];
 
-export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceTyped {
+export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyped {
   if (airspace.country != 'FR') {
     return airspace;
   }
@@ -419,86 +421,89 @@ export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceType
   const month = tzDate.getMonth() + 1;
 
   switch (airspace.name) {
-    case 'PARC/RESERVE  AIGUILLES ROUGES 1000M/SOL':
+    case airspaceOverrides.aiguilleRouges:
       return {
         ...airspace,
-        name: 'PARC/RESERVE  AIGUILLES ROUGES 300M/SOL',
-        topM: 300,
-        topLabel: '984ft GND',
+        ...createTopM(300),
       };
 
-    case 'PARC/RESERVE  ECRINS 1000M/SOL':
+    case airspaceOverrides.ecrins:
       if (month >= 7 && month <= 10) {
         return {
           ...airspace,
-          name: 'PARC/RESERVE  ECRINS 1000M/SOL - INACTIVE',
+          name: `${airspace.name} - INACTIVE`,
           type: Type.Other,
         };
       }
       return airspace;
 
-    case 'TMA CLERMONT 2.1 (VOL LIBRE)': {
+    case airspaceOverrides.TMAClermont21: {
+      airspace = { ...airspace, type: Type.TMA, icaoClass: Class.G };
+
       const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
       const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
-
       const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
       if (lower) {
-        return { ...airspace, topM: 1680, topLabel: '1680m' };
+        return { ...airspace, ...createTopM(1680) };
       }
-      return airspace;
+      return { ...airspace, ...createTopM(1980) };
     }
 
-    case 'TMA CLERMONT 2.2 CHAMPEIX (VOL LIBRE)': {
+    case airspaceOverrides.TMAClermont22: {
+      airspace = { ...airspace, type: Type.TMA, icaoClass: Class.G };
+
       const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
       const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
-
       const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
       if (lower) {
-        return { ...airspace, topM: 1680, topLabel: '1680m' };
+        return { ...airspace, ...createTopM(1680) };
       }
-      return { ...airspace, topM: 1980, topLabel: '1980m' };
+      return { ...airspace, ...createTopM(1980) };
     }
 
-    case 'TMA CLERMONT 2.3 ORCINES (VOL LIBRE)': {
+    case airspaceOverrides.TMAClermont23: {
+      airspace = { ...airspace, type: Type.TMA, icaoClass: Class.G };
+
       const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
       const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
-
       const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
       if (lower) {
-        return { ...airspace, topM: 1680, topLabel: '1680m' };
-      }
-      return {
-        ...airspace,
-        ...(isSaturday(tzDate) || isSunday(tzDate) ? {} : { topM: 1980, topLabel: '1980m' }),
-      };
-    }
-
-    case 'TMA CLERMONT 4.1 JOB (VOL LIBRE)': {
-      const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
-      const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
-
-      const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
-      if (lower) {
-        return { ...airspace, topM: 2590, topLabel: '2590m' };
+        return { ...airspace, ...createTopM(1680) };
       }
       return {
         ...airspace,
-        ...(isSaturday(tzDate) || isSunday(tzDate) ? {} : { topM: 2590, topLabel: '2590m' }),
+        ...(isSaturday(tzDate) || isSunday(tzDate) ? { ...createTopM(2590) } : { ...createTopM(1980) }),
       };
     }
 
-    case 'TMA CLERMONT5.1 PUY DE DOME (VOL LIBRE)': {
+    case airspaceOverrides.TMAClermont41: {
+      airspace = { ...airspace, type: Type.TMA, icaoClass: Class.G };
+
       const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
       const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
-
       const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
       if (lower) {
-        return { ...airspace, topM: 2590, topLabel: '2590m' };
+        return { ...airspace, ...createTopM(2590) };
       }
-      return airspace;
+      return {
+        ...airspace,
+        ...(isSaturday(tzDate) || isSunday(tzDate) ? { ...createTopM(2895) } : { ...createTopM(2590) }),
+      };
     }
 
-    case 'LF-R30B MONT BLANC (JULY+AUGUST)':
+    case airspaceOverrides.TMAClermont51: {
+      airspace = { ...airspace, type: Type.TMA, icaoClass: Class.G };
+
+      const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
+      const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
+      const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
+      if (lower) {
+        return { ...airspace, ...createTopM(2590) };
+      }
+      return { ...airspace, ...createTopM(3505) };
+    }
+
+    case airspaceOverrides.LFR30B:
       if (month == 7 || month == 8) {
         return airspace;
       }
@@ -508,9 +513,9 @@ export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceType
         name: 'LF-R30B MONT BLANC - INACTIVE',
       };
 
-    case 'TMA CHAMBERY 1':
-    case 'TMA CHAMBERY 2':
-    case 'TMA CHAMBERY 3': {
+    case airspaceOverrides.TMAChambery1:
+    case airspaceOverrides.TMAChambery2:
+    case airspaceOverrides.TMAChambery3: {
       // 2nd Monday of April
       const start = addDays(nextMonday(new TZDate(`${year}-04-01`, 'Europe/Paris')), 7);
       // 2nd Friday of December
@@ -523,17 +528,12 @@ export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceType
           isSunday(tzDate) ||
           (isMonday(tzDate) && tzDate.getUTCHours() <= 11));
 
-      return isClassD
-        ? // openaip has class E
-          { ...airspace, icaoClass: Class.D }
-        : {
-            ...airspace,
-            icaoClass: Class.E,
-          };
+      return isClassD ? { ...airspace, icaoClass: Class.D } : { ...airspace, icaoClass: Class.E };
     }
 
-    case 'CTR CHAMBERY 2 (ACTIVE MID DEC -> MID AVRIL)':
-    case 'CTR CHAMBERY 3 (ACTIVE MID DEC -> MID AVRIL)': {
+    case airspaceOverrides.CTRChambery2: {
+      airspace = { ...airspace, ...createTopM(1067), topRefGnd: true };
+
       // 2nd Monday of April
       const start = addDays(nextMonday(new TZDate(`${year}-04-01`, 'Europe/Paris')), 7);
       // 2nd Friday of December
@@ -547,8 +547,7 @@ export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceType
           (isMonday(tzDate) && tzDate.getUTCHours() <= 11));
 
       return isActive
-        ? // openaip has class E
-          { ...airspace, icaoClass: Class.D }
+        ? { ...airspace, icaoClass: Class.D }
         : {
             ...airspace,
             icaoClass: Class.SUA,
@@ -560,4 +559,8 @@ export function applyTimeRule(airspace: AirspaceTyped, date: Date): AirspaceType
     default:
       return airspace;
   }
+}
+
+function createTopM(topM: number) {
+  return { topM, topLabel: `${topM}m` };
 }

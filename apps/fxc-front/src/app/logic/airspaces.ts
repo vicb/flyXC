@@ -1,7 +1,7 @@
 import type { AirspaceString, AirspaceTyped, Class, LatLon, Point, Type } from '@flyxc/common';
 import {
   AIRSPACE_TILE_SIZE,
-  applyTimeRule,
+  applyOverrides,
   getAirspaceCategory,
   getAirspaceColor,
   getAirspaceTileUrl,
@@ -64,7 +64,7 @@ export async function getAirspaceList(
   const info: string[] = [];
   for (let i = 0; i < layer.length; i++) {
     const f = layer.feature(i);
-    const airspace = applyTimeRule(toTypedAirspace(f.properties as AirspaceString), date);
+    const airspace = applyOverrides(toTypedAirspace(f.properties as AirspaceString), date);
     const floor = airspace.floorM + (airspace.floorRefGnd ? gndAltitude : 0);
     const top = airspace.topM + (airspace.topRefGnd ? gndAltitude : 0);
     const onlyConsiderFloor = gndAltitude == 0;
@@ -342,7 +342,7 @@ function renderTiles(
 
     for (let i = 0; i < vectorTile.layers.asp.length; i++) {
       const f = vectorTile.layers.asp.feature(i);
-      const airspace = applyTimeRule(toTypedAirspace(f.properties as any), date);
+      const airspace = applyOverrides(toTypedAirspace(f.properties as any), date);
       const ratio = renderSize / f.extent;
       if (
         f.type === 3 &&

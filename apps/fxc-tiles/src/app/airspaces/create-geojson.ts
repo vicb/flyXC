@@ -41,20 +41,6 @@ openaipAirspaces = openaipAirspaces.filter(filterFn);
 printLogs('Filtered:', logs);
 console.log(`-> ${openaipAirspaces.length} airspaces`);
 
-// Arclosan
-console.log('\n# Arclosan');
-const arclosan = readFileSync(join(program.opts().input, 'arclosan.openair'), 'utf-8');
-let arclosanAirspaces = oair.parseAll(arclosan, 'FR');
-console.log(`${arclosanAirspaces.length} airspaces imported`);
-
-// post process
-arclosanAirspaces = arclosanAirspaces.map(processFn);
-printLogs('Processed:', logs);
-// filter
-arclosanAirspaces = arclosanAirspaces.filter(filterFn);
-printLogs('Filtered:', logs);
-console.log(`-> ${arclosanAirspaces.length} airspaces`);
-
 // Ukraine
 console.log('\n# Ukraine airspaces');
 const uaContent = readFileSync(join(program.opts().input, 'UKRAINE (UK).txt'), 'utf-8');
@@ -82,7 +68,7 @@ printLogs('Filtered:', logs);
 console.log(`-> ${reAirspaces.length} airspaces`);
 
 console.log('\n# Airspaces');
-const airspaces = [...openaipAirspaces, ...arclosanAirspaces, ...uaAirspaces, ...reAirspaces];
+const airspaces = [...openaipAirspaces, ...uaAirspaces, ...reAirspaces];
 console.log(`-> ${airspaces.length} airspaces`);
 const airspaceObj = GeoJSON.parse(airspaces, { Polygon: 'polygon' });
 writeFileSync(program.opts().output, JSON.stringify(airspaceObj, null, 2));
