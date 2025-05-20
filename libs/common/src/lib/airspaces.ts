@@ -424,8 +424,7 @@ export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyp
     case airspaceOverrides.aiguilleRouges:
       return {
         ...airspace,
-        topM: 300,
-        topLabel: '984ft GND',
+        ...createTopM(300),
       };
 
     case airspaceOverrides.ecrins:
@@ -445,9 +444,9 @@ export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyp
       const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
       const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
       if (lower) {
-        return { ...airspace, topM: 1680, topLabel: '1680m' };
+        return { ...airspace, ...createTopM(1680) };
       }
-      return { ...airspace, topM: 1980, topLabel: '1980m' };
+      return { ...airspace, ...createTopM(1980) };
     }
 
     case airspaceOverrides.TMAClermont22: {
@@ -457,9 +456,9 @@ export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyp
       const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
       const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
       if (lower) {
-        return { ...airspace, topM: 1680, topLabel: '1680m' };
+        return { ...airspace, ...createTopM(1680) };
       }
-      return { ...airspace, topM: 1980, topLabel: '1980m' };
+      return { ...airspace, ...createTopM(1980) };
     }
 
     case airspaceOverrides.TMAClermont23: {
@@ -469,13 +468,11 @@ export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyp
       const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
       const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
       if (lower) {
-        return { ...airspace, topM: 1680, topLabel: '1680m' };
+        return { ...airspace, ...createTopM(1680) };
       }
       return {
         ...airspace,
-        ...(isSaturday(tzDate) || isSunday(tzDate)
-          ? { topM: 2590, topLabel: '2590m' }
-          : { topM: 1980, topLabel: '1980m' }),
+        ...(isSaturday(tzDate) || isSunday(tzDate) ? { ...createTopM(2590) } : { ...createTopM(1980) }),
       };
     }
 
@@ -486,13 +483,11 @@ export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyp
       const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
       const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
       if (lower) {
-        return { ...airspace, topM: 2590, topLabel: '2590m' };
+        return { ...airspace, ...createTopM(2590) };
       }
       return {
         ...airspace,
-        ...(isSaturday(tzDate) || isSunday(tzDate)
-          ? { topM: 2895, topLabel: '2895m' }
-          : { topM: 2590, topLabel: '2590m' }),
+        ...(isSaturday(tzDate) || isSunday(tzDate) ? { ...createTopM(2895) } : { ...createTopM(2590) }),
       };
     }
 
@@ -503,9 +498,9 @@ export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyp
       const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
       const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
       if (lower) {
-        return { ...airspace, topM: 2590, topLabel: '2590m' };
+        return { ...airspace, ...createTopM(2590) };
       }
-      return { ...airspace, topM: 3505, topLabel: '3500m' };
+      return { ...airspace, ...createTopM(3505) };
     }
 
     case airspaceOverrides.LFR30B:
@@ -537,7 +532,7 @@ export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyp
     }
 
     case airspaceOverrides.CTRChambery2: {
-      airspace = { ...airspace, topM: 1067, topLabel: '1000ft GND', topRefGnd: true };
+      airspace = { ...airspace, ...createTopM(1067), topRefGnd: true };
 
       // 2nd Monday of April
       const start = addDays(nextMonday(new TZDate(`${year}-04-01`, 'Europe/Paris')), 7);
@@ -564,4 +559,8 @@ export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyp
     default:
       return airspace;
   }
+}
+
+function createTopM(topM: number) {
+  return { topM, topLabel: `${topM}m` };
 }

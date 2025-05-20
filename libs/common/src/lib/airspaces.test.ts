@@ -190,7 +190,7 @@ describe('Airspace overrides', () => {
 
     expect(override).toMatchObject({
       topM: 300,
-      topLabel: '984ft GND',
+      topLabel: '300m',
     });
   });
 
