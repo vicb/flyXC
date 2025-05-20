@@ -319,16 +319,16 @@ describe('Airspace overrides', () => {
   test(airspaceOverrides.CTRChambery2, () => {
     const ctr = airspaces.get(airspaceOverrides.CTRChambery2)!;
 
-    // E from 2nd Monday of April to 2nd Friday of December
-    expect(applyOverrides(ctr, new TZDate('2025-04-14', 'Europe/Paris'))).not.toEqual(ctr);
-    expect(applyOverrides(ctr, new TZDate('2025-12-12', 'Europe/Paris'))).not.toEqual(ctr);
+    // disabled from 2nd Monday of April to 2nd Friday of December
+    expect(applyOverrides(ctr, new TZDate('2025-04-14', 'Europe/Paris')).icaoClass).toEqual(Class.SUA);
+    expect(applyOverrides(ctr, new TZDate('2025-12-12', 'Europe/Paris')).icaoClass).toEqual(Class.SUA);
 
-    // E from from Monday 11UTC to Thursday 23:59UTC
-    expect(applyOverrides(ctr, new TZDate('2025-04-13', 'Europe/Paris'))).toEqual(ctr);
-    expect(applyOverrides(ctr, new TZDate('2025-12-13', 'Europe/Paris'))).toEqual(ctr);
+    // disabled from from Monday 11UTC to Thursday 23:59UTC
+    expect(applyOverrides(ctr, new TZDate('2025-04-13', 'Europe/Paris')).icaoClass).toEqual(Class.D);
+    expect(applyOverrides(ctr, new TZDate('2025-12-13', 'Europe/Paris')).icaoClass).toEqual(Class.D);
     // Tuesday -> Thursday
-    expect(applyOverrides(ctr, new TZDate('2025-04-08', 'Europe/Paris'))).not.toEqual(ctr);
-    expect(applyOverrides(ctr, new TZDate('2025-04-09', 'Europe/Paris'))).not.toEqual(ctr);
-    expect(applyOverrides(ctr, new TZDate('2025-04-10', 'Europe/Paris'))).not.toEqual(ctr);
+    expect(applyOverrides(ctr, new TZDate('2025-04-08', 'Europe/Paris')).icaoClass).toEqual(Class.SUA);
+    expect(applyOverrides(ctr, new TZDate('2025-04-09', 'Europe/Paris')).icaoClass).toEqual(Class.SUA);
+    expect(applyOverrides(ctr, new TZDate('2025-04-10', 'Europe/Paris')).icaoClass).toEqual(Class.SUA);
   });
 });
