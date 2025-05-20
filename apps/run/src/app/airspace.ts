@@ -2,7 +2,7 @@ import type { AirspaceString, AirspaceTyped, Point } from '@flyxc/common';
 import {
   AIRSPACE_TILE_SIZE,
   AirspaceColorCategory,
-  applyTimeRule,
+  applyOverrides,
   fetchResponse,
   Flags,
   getAirspaceColorCategory,
@@ -105,7 +105,7 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
 
     for (let i = 0; i < aspLayer.length; i++) {
       const feature = aspLayer.feature(i);
-      const airspace = applyTimeRule(toTypedAirspace(feature.properties as AirspaceString), startDate);
+      const airspace = applyOverrides(toTypedAirspace(feature.properties as AirspaceString), startDate);
       const airspaceId = getAirspaceFeatureId(airspace);
       for (const fixIdx of indexes) {
         // Do not check airspaces above the track.
