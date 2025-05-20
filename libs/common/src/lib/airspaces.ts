@@ -439,8 +439,7 @@ export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyp
       return airspace;
 
     case airspaceOverrides.TMAClermont21: {
-      airspace.type = Type.TMA;
-      airspace.icaoClass = Class.G;
+      airspace = { ...airspace, type: Type.TMA, icaoClass: Class.G };
 
       const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
       const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
@@ -452,8 +451,7 @@ export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyp
     }
 
     case airspaceOverrides.TMAClermont22: {
-      airspace.type = Type.TMA;
-      airspace.icaoClass = Class.G;
+      airspace = { ...airspace, type: Type.TMA, icaoClass: Class.G };
 
       const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
       const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
@@ -465,8 +463,7 @@ export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyp
     }
 
     case airspaceOverrides.TMAClermont23: {
-      airspace.type = Type.TMA;
-      airspace.icaoClass = Class.G;
+      airspace = { ...airspace, type: Type.TMA, icaoClass: Class.G };
 
       const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
       const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
@@ -483,8 +480,7 @@ export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyp
     }
 
     case airspaceOverrides.TMAClermont41: {
-      airspace.type = Type.TMA;
-      airspace.icaoClass = Class.G;
+      airspace = { ...airspace, type: Type.TMA, icaoClass: Class.G };
 
       const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
       const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
@@ -501,8 +497,7 @@ export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyp
     }
 
     case airspaceOverrides.TMAClermont51: {
-      airspace.type = Type.TMA;
-      airspace.icaoClass = Class.G;
+      airspace = { ...airspace, type: Type.TMA, icaoClass: Class.G };
 
       const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
       const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
@@ -542,9 +537,7 @@ export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyp
     }
 
     case airspaceOverrides.CTRChambery2: {
-      airspace.topM = 1067;
-      airspace.topLabel = '1000ft GND';
-      airspace.topRefGnd = true;
+      airspace = { ...airspace, topM: 1067, topLabel: '1000ft GND', topRefGnd: true };
 
       // 2nd Monday of April
       const start = addDays(nextMonday(new TZDate(`${year}-04-01`, 'Europe/Paris')), 7);
