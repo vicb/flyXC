@@ -61,12 +61,6 @@ Once the plugin is installed on your phone, you can navigate to "<https://www.wi
 
 The windy team is working on improving the user experience on mobiles. They will also add plugin support in the native apps - you soon won't have to open windy.com in a browser to see the plugin.
 
-## Updating the plugin
-
-Windy plugins do not auto-update for now.
-
-You have to manually delete the plugin and re-install it to update to the latest available version.
-
 ## Notes
 
 - On desktop, you can scroll (mouse wheel) on the sounding diagram to go forward/backward in time - (pressing ctrl or shift will jump to the next/previous day),
