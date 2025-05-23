@@ -128,7 +128,7 @@ export const openPlugin = async ({ lat, lon, modelName }: { lat: number; lon: nu
   setSizeFrom(appContainer);
 
   if (pluginSlice.selStatus(store.getState()) === pluginSlice.PluginStatus.Idle) {
-    dispatch(pluginSlice.fetchPluginConfig(pluginConfig));
+    dispatch(pluginSlice.setStatus(pluginSlice.PluginStatus.Ready));
   }
 };
 

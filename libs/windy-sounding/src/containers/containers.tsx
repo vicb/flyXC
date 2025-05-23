@@ -21,41 +21,29 @@ import { formatTimestamp } from '../util/utils';
 // Plugin
 
 export function Plugin() {
-  const {
-    width,
-    startHeight,
-    status,
-    updateAvailable,
-    updateRequired,
-    fetchStatus,
-    availableVersion,
-    isWindyDataAvailableAtCurrentTime,
-    modelName,
-    location,
-  } = useSelector((state: RootState) => {
-    const modelName = pluginSlice.selModelName(state);
-    const location = pluginSlice.selLocation(state);
-    const timeMs = pluginSlice.selTimeMs(state);
-    const fetchStatus = forecastSlice.selFetchStatus(state, modelName, location);
-    let isWindyDataAvailableAtCurrentTime;
-    try {
-      isWindyDataAvailableAtCurrentTime = forecastSlice.selIsWindyDataAvailableAt(state, modelName, location, timeMs);
-    } catch (e) {
-      isWindyDataAvailableAtCurrentTime = false;
-    }
-    return {
-      width: pluginSlice.selWidth(state),
-      startHeight: pluginSlice.selHeight(state),
-      status: pluginSlice.selStatus(state),
-      updateAvailable: pluginSlice.selUpdateAvailable(state),
-      updateRequired: pluginSlice.selUpdateRequired(state),
-      fetchStatus,
-      availableVersion: pluginSlice.selAvailableVersion(state),
-      modelName,
-      location,
-      isWindyDataAvailableAtCurrentTime,
-    };
-  }, shallowEqual);
+  const { width, startHeight, status, fetchStatus, isWindyDataAvailableAtCurrentTime, modelName, location } =
+    useSelector((state: RootState) => {
+      const modelName = pluginSlice.selModelName(state);
+      const location = pluginSlice.selLocation(state);
+      const timeMs = pluginSlice.selTimeMs(state);
+      const fetchStatus = forecastSlice.selFetchStatus(state, modelName, location);
+      let isWindyDataAvailableAtCurrentTime;
+      try {
+        isWindyDataAvailableAtCurrentTime = forecastSlice.selIsWindyDataAvailableAt(state, modelName, location, timeMs);
+      } catch (e) {
+        isWindyDataAvailableAtCurrentTime = false;
+      }
+      return {
+        width: pluginSlice.selWidth(state),
+        startHeight: pluginSlice.selHeight(state),
+        status: pluginSlice.selStatus(state),
+        fetchStatus,
+
+        modelName,
+        location,
+        isWindyDataAvailableAtCurrentTime,
+      };
+    }, shallowEqual);
 
   if (startHeight === 0) {
     return;
@@ -137,17 +125,6 @@ export function Plugin() {
   let errorMessage: any;
 
   switch (true) {
-    case updateRequired:
-      errorMessage = (
-        <>
-          <p>Update to v{availableVersion} required.</p>
-          <p>Uninstall the current version first to install v{availableVersion}</p>
-          <div className="button" role="button" tabIndex={0} onClick={openPluginMenu}>
-            Update
-          </div>
-        </>
-      );
-      break;
     case fetchStatus === forecastSlice.FetchStatus.ErrorOutOfBounds:
       errorMessage = <p>The selected location is out of model bounds.</p>;
       break;
@@ -193,14 +170,7 @@ export function Plugin() {
 
       <div id="wsp-sounding">
         <section onWheel={handleWheelEvent as any}>
-          {updateAvailable && (
-            <div id="wsp-update">
-              <p>
-                New plugin <a onClick={openPluginMenu}>version {availableVersion}</a> available!
-              </p>
-            </div>
-          )}
-          {updateRequired || <Details />}
+          <Details />
           {errorMessage && !isLoading ? (
             <Message {...{ width, height, message: errorMessage }} />
           ) : (
