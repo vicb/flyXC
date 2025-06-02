@@ -72,7 +72,7 @@ function encodeGPXWaypoints(
   return { file: buildGPX(gpxData), mime: 'application/gpx+xml', filename: 'waypoints.gpx' };
 }
 
-function encodeGPXRoute(
+export function encodeGPXRoute(
   points: LatLonAlt[],
   prefix: string,
 ): { mime?: string; file?: string; filename?: string; error?: string } {
@@ -89,7 +89,10 @@ function encodeGPXRoute(
   const route = new Route({ rtept });
   const gpxData = new BaseBuilder();
   gpxData.setRoutes([route]);
-  return { file: buildGPX(gpxData), mime: 'application/gpx+xml', filename: 'route.gpx' };
+  // Fix for https://github.com/vicb/flyXC/issues/362
+  // Passing a name to `new Route({name, ...})` would add the name as the last child
+  const file = buildGPX(gpxData).replace('<rte>', '<rte>\n      <name>flyXC route</name>');
+  return { file, mime: 'application/gpx+xml', filename: 'route.gpx' };
 }
 
 function encodeKML(
