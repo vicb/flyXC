@@ -25,7 +25,7 @@ interface LeagueDetails {
 
 export const LEAGUES: Readonly<Record<LeagueCode, LeagueDetails>> = {
   czl: { name: 'Czech (ČPP local)', ruleName: 'CzechLocal' },
-  cze: { name: 'Czech (ČPP Europe)', ruleName: 'CzechEurope' },
+  cze: { name: 'Czech (ČPP Europe) / SHV', ruleName: 'CzechEurope' },
   czo: { name: 'Czech (ČPP outside Europe)', ruleName: 'CzechOutsideEurope' },
   fr: { name: 'France (CFD)', ruleName: 'FFVL' },
   leo: { name: 'Leonardo', ruleName: 'Leonardo' },
