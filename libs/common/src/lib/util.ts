@@ -44,7 +44,7 @@ export async function parallelTasksWithTimeout<T>(
   const executing: Promise<unknown>[] = [];
 
   let isTimeout = false;
-  const timeoutId: any = timeoutMs > 0 ? setInterval(() => (isTimeout = true), timeoutMs) : 0;
+  const timeoutId: any = timeoutMs > 0 ? setTimeout(() => (isTimeout = true), timeoutMs) : 0;
   let index = 0;
 
   for (const item of items) {
@@ -73,7 +73,7 @@ export async function parallelTasksWithTimeout<T>(
   }
 
   const results = await Promise.allSettled(started);
-  clearInterval(timeoutId);
+  clearTimeout(timeoutId);
   return { results, isTimeout };
 }
 
