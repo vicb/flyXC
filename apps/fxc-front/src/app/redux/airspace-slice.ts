@@ -9,11 +9,33 @@ type AirspaceState = {
   showTypes: Type[];
 };
 
+let initClasses = [Class.A, Class.B, Class.C, Class.D, Class.E];
+
+try {
+  const classes = localStorage.getItem('airspaceClasses');
+  if (classes) {
+    initClasses = JSON.parse(classes);
+  }
+} catch (e) {
+  // empty
+}
+
+let initTypes = [Type.Prohibited, Type.Restricted, Type.Danger];
+
+try {
+  const types = localStorage.getItem('airspaceTypes');
+  if (types) {
+    initTypes = JSON.parse(types);
+  }
+} catch (e) {
+  // empty
+}
+
 const initialState: AirspaceState = {
   maxAltitude: 3000,
   show: false,
-  showClasses: [Class.A, Class.B, Class.C, Class.D, Class.E],
-  showTypes: [Type.Prohibited, Type.Restricted, Type.Danger],
+  showClasses: initClasses,
+  showTypes: initTypes,
 };
 
 const airspaceSlice = createSlice({
@@ -25,8 +47,10 @@ const airspaceSlice = createSlice({
     },
     showClasses: (state, action: PayloadAction<Class[]>) => {
       state.showClasses = action.payload;
+      localStorage.setItem('airspaceClasses', JSON.stringify(action.payload));
     },
     showTypes: (state, action: PayloadAction<Type[]>) => {
+      localStorage.setItem('airspaceTypes', JSON.stringify(action.payload));
       state.showTypes = action.payload;
     },
     setMaxAltitude: (state, action: PayloadAction<number>) => {
