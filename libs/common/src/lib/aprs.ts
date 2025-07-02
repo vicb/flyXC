@@ -72,7 +72,6 @@ export function parseAprsPosition(position: string, nowSec = Math.round(Date.now
   const speed = Math.round(Number(match.groups['speed'] ?? '0') * KNOT_IN_KMH);
   const course = Number(match.groups['course'] ?? '0');
   const alt = Math.round(Number(match.groups['alt'] ?? '0') * FT_IN_METER);
-  const comment = match.groups['comment'];
   return {
     lat,
     lon,
@@ -80,7 +79,6 @@ export function parseAprsPosition(position: string, nowSec = Math.round(Date.now
     alt,
     speed,
     course,
-    comment,
   };
 }
 

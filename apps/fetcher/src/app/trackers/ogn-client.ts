@@ -8,7 +8,9 @@ import type { AprsPosition } from '@flyxc/common';
 import { parseAprsPosition } from '@flyxc/common';
 
 const VERSION = '1.0';
-const OGN_FAST_ID_REGEXP = /\bid[0-9a-z]{2}(?<id>[0-9a-z]{6})\b/i;
+// ICA3C6742>OGADSB,qAS,AVX1100:/181728h5022.93N/00925.77E^223/318/A=011197 !W42! id253C6742 -1280fpm FL105.29 A3:DLH6AX Sq5662
+// NAVFE0B52>OGNAVI,qAS,NAVITER2:/181152h4332.89N/11619.14W'000/000/A=002726 !W69! id1C40FE0B52 +000fpm +0.0rot
+const OGN_FAST_ID_REGEXP = /\bid[0-9a-z]*?(?<id>[0-9a-z]{6})\b/i;
 const OGN_POSITION_REGEXP = /^(?<src>.+?)>.*?:\/(?<position>.*)$/i;
 const MAX_NUM_POSITIONS = 100000;
 const TX_KEEP_ALIVE_MIN = 10;
@@ -117,7 +119,8 @@ export class OgnClient {
             const positions = this.positions.get(id);
             if (positions == null) {
               this.positions.set(id, [position]);
-            } else {
+            } else if (position.timeSec >= positions.at(-1).timeSec + 5) {
+              // Max 1 point every 5s
               positions.push(position);
             }
           }
