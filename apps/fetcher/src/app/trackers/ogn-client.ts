@@ -119,11 +119,9 @@ export class OgnClient {
             const positions = this.positions.get(id);
             if (positions == null) {
               this.positions.set(id, [position]);
-            } else {
+            } else if (position.timeSec >= positions.at(-1).timeSec + 5) {
               // Max 1 point every 5s
-              if (position.timeSec >= positions.at(-1).timeSec + 5) {
-                positions.push(position);
-              }
+              positions.push(position);
             }
           }
         }
