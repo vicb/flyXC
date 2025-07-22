@@ -11,7 +11,7 @@ export declare const getCounter: (id: string) => Promise<PromoInfoObject>;
 /**
  * Increases 'seen' counter for particular promo
  */
-export declare const hitCounter: (id: string) => Promise<void>;
+export declare const hitCounter: (id: string, logEvent?: boolean) => Promise<void>;
 /**
  * Flag the promo to be never seen again (by setting
  * its number to 1000)

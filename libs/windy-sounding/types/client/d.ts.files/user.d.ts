@@ -20,6 +20,9 @@ export interface User {
 
   /** TimeStamp of user last login */
   logindate?: number;
+
+  /** Consent to receive newsletter; */
+  marketingConsent?: boolean;
 }
 
 /**

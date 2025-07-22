@@ -11,29 +11,28 @@ export type FavType = FavTypeNew | 'alert';
 
 export type RouteAsString = `${RouteType}/${string}`;
 
-export type FavFragment =
-  | (LatLon & {
-      /** Title of the fav */
-      title: string;
-    }) &
-      (
-        | { type: 'fav' }
+export type FavFragment = (LatLon & {
+  /** Title of the fav */
+  title: string;
+}) &
+  (
+    | { type: 'fav' }
 
-        /** @deprecated use till migration of alerts is in process */
-        | {
-            type: 'alert';
-            alert: Alert;
-            alertProps: AlertProps;
-          }
+    /** @deprecated use till migration of alerts is in process */
+    | {
+        type: 'alert';
+        alert: Alert;
+        alertProps: AlertProps;
+      }
 
-        /** Airport ICAO code in case of airport */
-        | { type: 'airport'; icao: string }
+    /** Airport ICAO code in case of airport */
+    | { type: 'airport'; icao: string }
 
-        /** Weather station ID (if WX station) */
-        | { type: 'station'; stationId: StationId }
-        | { type: 'webcam'; webcamId: number }
-        | { type: 'route'; route: RouteAsString }
-      );
+    /** Weather station ID (if WX station) */
+    | { type: 'station'; stationId: StationId }
+    | { type: 'webcam'; webcamId: number }
+    | { type: 'route'; route: RouteAsString }
+  );
 
 export type Fav = FavFragment & {
   /** Unique mongoDb ID of item */

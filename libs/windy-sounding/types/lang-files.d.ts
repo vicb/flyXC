@@ -15,6 +15,37 @@ export interface AccumulationsLangFile {
   ACC_HOURS: string;
 }
 
+export interface AirportLangFile {
+  /**
+   * airport: Detailed forecast for {{icao}}
+   */
+  AIRPORT_METARS_DETAILED_FORECAST: string;
+  /**
+   * airport: Display {{icao}} as weather station
+   */
+  AIRPORT_METARS_DISPLAY_AS_STATION: string;
+  /**
+   * airport: Airport name
+   */
+  AIRPORT_NAME: string;
+  /**
+   * airport: Show on map
+   */
+  DISPLAY_AIRPORT2: string;
+  /**
+   * airport: Nearest METARs
+   */
+  NEAREST_METARS: string;
+  /**
+   * airport: Runways
+   */
+  RUNWAYS: string;
+  /**
+   * airport: Time info
+   */
+  TIME_INFO: string;
+}
+
 export interface AlertsLangFile {
   /**
    * alerts: Processing
@@ -649,6 +680,14 @@ export interface DistanceLangFile {
    */
   DST_SWITCH_ECMWF: string;
   /**
+   * distance: select .gpx file
+   */
+  RPLANNER_SELECT_GPX_BTN: string;
+  /**
+   * distance: to import route (you can also drop file here).
+   */
+  RPLANNER_SELECT_GPX_TEXT: string;
+  /**
    * distance: <strong>VFR</strong>, <strong>IFR</strong>, <strong>Airgram</strong> and <strong>Boat</strong> with in-depth data.
    */
   SUB_RPLANNER_FEATURES: string;
@@ -759,6 +798,105 @@ export interface FavsLangFile {
    * favs: Search favorites...
    */
   SEARCH_FAVOURITE: string;
+}
+
+export interface GarminLangFile {
+  /**
+   * garmin: Install the Datafield
+   */
+  GARMIN_DATAFIELD_BTN_STORE: string;
+  /**
+   * garmin: Datafield Settings
+   */
+  GARMIN_DATAFIELD_SETTINGS_TITLE: string;
+  /**
+   * garmin:
+   */
+  GARMIN_DATAFIELD_SUBTITLE: string;
+  /**
+   * garmin: Windy Datafield
+   */
+  GARMIN_DATAFIELD_TITLE: string;
+  /**
+   * garmin: Garmin Devices
+   */
+  GARMIN_PLUGIN_TITLE: string;
+  /**
+   * garmin: Datafield
+   */
+  GARMIN_SWITCH_DATAFIELD_BTN: string;
+  /**
+   * garmin: Watch Face
+   */
+  GARMIN_SWITCH_WATCHFACE_BTN: string;
+  /**
+   * garmin: Widget
+   */
+  GARMIN_SWITCH_WIDGET_BTN: string;
+  /**
+   * garmin: For troubleshooting, please visit our
+   */
+  GARMIN_TROUBLESHOOTING_PART_1: string;
+  /**
+   * garmin: community forum.
+   */
+  GARMIN_TROUBLESHOOTING_PART_2: string;
+  /**
+   * garmin: Install the Watch Face
+   */
+  GARMIN_WATCHFACE_BTN_STORE: string;
+  /**
+   * garmin: Customise your watch face by setting up the forecast type, model, units, and location settings.
+   */
+  GARMIN_WATCHFACE_SETTINGS_01: string;
+  /**
+   * garmin: Two types of weather forecasts are available.
+   */
+  GARMIN_WATCHFACE_SETTINGS_02: string;
+  /**
+   * garmin: Useful settings are available in the Watch Face app.
+   */
+  GARMIN_WATCHFACE_SETTINGS_03: string;
+  /**
+   * garmin: Complete settings are accessible via the Connect IQ mobile app.
+   */
+  GARMIN_WATCHFACE_SETTINGS_04: string;
+  /**
+   * garmin: Watch Face Settings
+   */
+  GARMIN_WATCHFACE_SETTINGS_TITLE: string;
+  /**
+   * garmin: One glance too see everything essential for the next few days or hours.
+   */
+  GARMIN_WATCHFACE_SUBTITLE: string;
+  /**
+   * garmin: Windy Watch Face
+   */
+  GARMIN_WATCHFACE_TITLE: string;
+  /**
+   * garmin: Install the Widget
+   */
+  GARMIN_WIDGET_BTN_STORE: string;
+  /**
+   * garmin: Customise your widget by settings up the forecast model, units, and location settings.
+   */
+  GARMIN_WIDGET_SETTINGS_01: string;
+  /**
+   * garmin: Settings are accessible via the Connect IQ mobile app.
+   */
+  GARMIN_WIDGET_SETTINGS_02: string;
+  /**
+   * garmin: Widget Settings
+   */
+  GARMIN_WIDGET_SETTINGS_TITLE: string;
+  /**
+   * garmin: Get a 4-day forecast, a look at the upcoming hours, or today’s overview for your location – all in the Windy widget.
+   */
+  GARMIN_WIDGET_SUBTITLE: string;
+  /**
+   * garmin: Weather Widget
+   */
+  GARMIN_WIDGET_TITLE: string;
 }
 
 export interface HurricanesLangFile {
@@ -969,6 +1107,10 @@ export interface MainLangFile {
    */
   ARTICLES: string;
   /**
+   * Author
+   */
+  AUTHOR: string;
+  /**
    * Available for:
    */
   AVAIL_FOR: string;
@@ -976,6 +1118,14 @@ export interface MainLangFile {
    * Show lightning
    */
   BLITZ_ON: string;
+  /**
+   * Your {{platform}} does not support {{technology}}. Some features may not work correctly.
+   */
+  BROWSER_SUPPORT_ERROR: string;
+  /**
+   * By distance
+   */
+  BY_DISTANCE: string;
   /**
    * Webcams previews
    */
@@ -992,6 +1142,10 @@ export interface MainLangFile {
    * Thermals
    */
   CCL: string;
+  /**
+   * Choose a file
+   */
+  CHOOSE_A_FILE: string;
   /**
    * Click to change units
    */
@@ -1069,6 +1223,10 @@ export interface MainLangFile {
    */
   DELETE: string;
   /**
+   * Description
+   */
+  DESCRIPTION: string;
+  /**
    * Detailed forecast for this location
    */
   DETAILED: string;
@@ -1081,6 +1239,10 @@ export interface MainLangFile {
    */
   DETAIL_SET_UP_ALERT: string;
   /**
+   * We do not provide tide forecast for this location
+   */
+  DETAIL_TIDE_FORECAST_NOT_AVAILABLE: string;
+  /**
    * Time of forecast on map
    */
   DETAIL_TIME_ON_MAP: string;
@@ -1088,6 +1250,10 @@ export interface MainLangFile {
    * Developed with
    */
   DEVELOPED: string;
+  /**
+   * Develop your own plugin
+   */
+  DEVELOP_PLUGIN: string;
   /**
    * Dew point
    */
@@ -1160,6 +1326,10 @@ export interface MainLangFile {
    * Don't have an account?
    */
   DONT_HAVE_ACCOUNT: string;
+  /**
+   * Download file
+   */
+  DOWNLOAD_FILE: string;
   /**
    * Dust mass
    */
@@ -1301,6 +1471,10 @@ export interface MainLangFile {
    */
   D_WEBCAMS_24: string;
   /**
+   * Ebb tide
+   */
+  EBB_TIDE: string;
+  /**
    * Edit alert
    */
   EDIT_ALERT: string;
@@ -1337,6 +1511,18 @@ export interface MainLangFile {
    */
   FIELD_INVALID_EMAIL: string;
   /**
+   * File
+   */
+  FILE: string;
+  /**
+   * File name
+   */
+  FILE_NAME: string;
+  /**
+   * Filter
+   */
+  FILTER: string;
+  /**
    * Fire
    */
   FIRE: string;
@@ -1352,6 +1538,10 @@ export interface MainLangFile {
    * Flood
    */
   FLOOD: string;
+  /**
+   * Flood tide
+   */
+  FLOOD_TIDE: string;
   /**
    * Fog
    */
@@ -1469,6 +1659,10 @@ export interface MainLangFile {
    */
   ICING_TRACE: string;
   /**
+   * installed
+   */
+  INSTALLED: string;
+  /**
    * Drought monitoring
    */
   INTERSUCHO: string;
@@ -1581,6 +1775,10 @@ export interface MainLangFile {
    */
   LATER: string;
   /**
+   * Latest files from Community
+   */
+  LATEST_FILES_FROM_COMMUNITY: string;
+  /**
    * Less
    */
   LESS: string;
@@ -1593,6 +1791,14 @@ export interface MainLangFile {
    */
   LIGHT_THUNDER: string;
   /**
+   * Loading elevation...
+   */
+  LOADING_ELEVATION: string;
+  /**
+   * Loading more uploads
+   */
+  LOADING_MORE_UPLOADS: string;
+  /**
    * Low clouds
    */
   LOW_CLOUDS: string;
@@ -1601,6 +1807,10 @@ export interface MainLangFile {
    */
   LOW_PREDICT: string;
   /**
+   * Make data private
+   */
+  MAKE_DATA_PRIVATE: string;
+  /**
    * Map
    */
   MAP: string;
@@ -1608,6 +1818,14 @@ export interface MainLangFile {
    * VFR airspaces map
    */
   MAP_AIRSPACES: string;
+  /**
+   * Max Ebb
+   */
+  MAX_EBB: string;
+  /**
+   * Max Flood
+   */
+  MAX_FLOOD: string;
   /**
    * Medium clouds
    */
@@ -1745,6 +1963,14 @@ export interface MainLangFile {
    */
   METAR_VAR: string;
   /**
+   * Min Ebb
+   */
+  MIN_EBB: string;
+  /**
+   * Min Flood
+   */
+  MIN_FLOOD: string;
+  /**
    * Forecast model
    */
   MODEL: string;
@@ -1777,9 +2003,17 @@ export interface MainLangFile {
    */
   MORE_PRODUCTS: string;
   /**
+   * Plugin {{title}} is not installed. Do you want to install it?
+   */
+  MSG_EXTERNAL_PLUGIN_NOT_INSTALLED: string;
+  /**
    * Unfortunately, plugin {{title}} was unpublished by the author and is no longer available.
    */
   MSG_EXTERNAL_PLUGIN_UNPUBLISHED: string;
+  /**
+   * New version of the plugin {{title}} is available. Do you want to update?
+   */
+  MSG_EXTERNAL_PLUGIN_UPDATE_AVAILABLE: string;
   /**
    * You have successfully logged in!
    */
@@ -1809,6 +2043,14 @@ export interface MainLangFile {
    */
   MY_FAVS: string;
   /**
+   * My files
+   */
+  MY_FILES: string;
+  /**
+   * Live alerts
+   */
+  MY_LIVE_ALERTS: string;
+  /**
    * My location
    */
   MY_LOCATION: string;
@@ -1836,6 +2078,10 @@ export interface MainLangFile {
    * New!
    */
   NEW: string;
+  /**
+   * Subscribe to newsletter
+   */
+  NEWSLETTER_CONSENT: string;
   /**
    * New snow
    */
@@ -1873,9 +2119,21 @@ export interface MainLangFile {
    */
   NO_FOG: string;
   /**
+   * Open in route planner
+   */
+  OPEN_IN_RPLANNER: string;
+  /**
+   * Open plugin
+   */
+  OPEN_PLUGIN: string;
+  /**
    * or
    */
   OR: string;
+  /**
+   * or drop file here.
+   */
+  OR_DROP_FILE_HERE: string;
   /**
    * Outdated
    */
@@ -1948,6 +2206,50 @@ export interface MainLangFile {
    * Period
    */
   PERIOD: string;
+  /**
+   * Are you sure you want to uninstall this plugin?
+   */
+  PLUGINS_CONFIRM_UNINSTALL: string;
+  /**
+   * Windy Plugins discussion
+   */
+  PLUGINS_DISCUSSION: string;
+  /**
+   * Error installing plugin
+   */
+  PLUGINS_ERROR_INSTALLING: string;
+  /**
+   * Install plugin
+   */
+  PLUGINS_INSTALL: string;
+  /**
+   * Your plugin was installed and added to the main menu
+   */
+  PLUGINS_INSTALLED: string;
+  /**
+   * Install untrusted plugin
+   */
+  PLUGINS_INSTALL_UNTRUSTED: string;
+  /**
+   * Load plugin directly from URL
+   */
+  PLUGINS_LOAD_URL: string;
+  /**
+   * Name
+   */
+  PLUGINS_NAME: string;
+  /**
+   * Uninstall plugin
+   */
+  PLUGINS_UNINSTALL: string;
+  /**
+   * Installing plugins from untrusted sources can be dangerous. Install plugins only from sources you trust.
+   */
+  PLUGINS_UNTRUSTED: string;
+  /**
+   * URL of the plugin
+   */
+  PLUGINS_URL: string;
   /**
    * PM2.5
    */
@@ -2041,6 +2343,10 @@ export interface MainLangFile {
    */
   PRIVACY_POLICY: string;
   /**
+   * Professional first
+   */
+  PROFESSIONAL_FIRST: string;
+  /**
    * Use <strong>long tap</strong> on home button to open detailed forecast for your location.
    */
   PROMO_LONG_PRESS_HOME: string;
@@ -2133,6 +2439,10 @@ export interface MainLangFile {
    */
   REGISTER_HERE: string;
   /**
+   * Requires Premium
+   */
+  REQUIRES_PREMIUM: string;
+  /**
    * Humidity
    */
   RH: string;
@@ -2160,6 +2470,14 @@ export interface MainLangFile {
    * Satellite
    */
   SATELLITE: string;
+  /**
+   * There is an outage of our data source for some satellites.
+   */
+  SATELLITE_OUTAGE_MESSAGE: string;
+  /**
+   * Save file to cloud
+   */
+  SAVE_FILE_TO_CLOUD: string;
   /**
    * Search location...
    */
@@ -2200,6 +2518,22 @@ export interface MainLangFile {
    * Show weather picker
    */
   SHOW_PICKER: string;
+  /**
+   * Show speed in map
+   */
+  SHOW_SPEED_IN_MAP: string;
+  /**
+   * Size
+   */
+  SIZE: string;
+  /**
+   * Slack, Ebb Begins
+   */
+  SLACK_EBB: string;
+  /**
+   * Slack, Flood Begins
+   */
+  SLACK_FLOOD: string;
   /**
    * Pressure (sea l.)
    */
@@ -2288,6 +2622,10 @@ export interface MainLangFile {
    * Sound
    */
   SOUND_ON: string;
+  /**
+   * Source code
+   */
+  SOURCE_CODE: string;
   /**
    * Surface sea temperature
    */
@@ -2465,6 +2803,14 @@ export interface MainLangFile {
    */
   TIDES: string;
   /**
+   * High Tide
+   */
+  TIDE_HIGH: string;
+  /**
+   * Low Tide
+   */
+  TIDE_LOW: string;
+  /**
    * Wind map & weather forecast
    */
   TITLE: string;
@@ -2529,6 +2875,38 @@ export interface MainLangFile {
    */
   TURBULENCE_SEVERE: string;
   /**
+   * Type
+   */
+  TYPE: string;
+  /**
+   * Updated
+   */
+  UPDATED: string;
+  /**
+   * Uploaded
+   */
+  UPLOADED: string;
+  /**
+   * Your upload is being processed.
+   */
+  UPLOAD_BEING_PROCESSED: string;
+  /**
+   * Describe content of your file (required)
+   */
+  UPLOAD_DESCRIBE_FILE: string;
+  /**
+   * Supported extensions: .geojson, .json, .gpx, .kml, .xml
+   */
+  UPLOAD_EXTENSIONS: string;
+  /**
+   * Upload, display and share your KML, GPX or GeoJSON.
+   */
+  UPLOAD_KML_GPX: string;
+  /**
+   * Files larger than 5MB cannot be uploaded to the cloud.
+   */
+  UPLOAD_SIZE_LIMIT: string;
+  /**
    * UV Index
    */
   UVINDEX: string;
@@ -2569,6 +2947,10 @@ export interface MainLangFile {
    */
   U_PROFILE: string;
   /**
+   * Version
+   */
+  VERSION: string;
+  /**
    * Vibrate
    */
   VIBRATE: string;
@@ -2580,6 +2962,10 @@ export interface MainLangFile {
    * Visibility
    */
   VISIBILITY: string;
+  /**
+   * Warnings
+   */
+  WARNINGS: string;
   /**
    * Water temp.
    */
@@ -2687,6 +3073,73 @@ export interface LibLangFile {
    * lib: Go to the original website:
    */
   GO_TO_THE_ORIGINAL_WEBSITE: string;
+}
+
+export interface LivealertsLangFile {
+  /**
+   * livealerts: Live alerts
+   */
+  LIVE_ALERTS: string;
+  /**
+   * livealerts: Background location permission is required.
+   */
+  LIVE_ALERTS_ANDROID_ERROR_PERMISSION_LOCATION: string;
+  /**
+   * livealerts: Notification permission is required.
+   */
+  LIVE_ALERTS_ANDROID_ERROR_PERMISSION_NOTIFICATIONS: string;
+  /**
+   * livealerts: Enable location access
+   */
+  LIVE_ALERTS_BUTTON_OPEN_LOCATION_DIALOG: string;
+  /**
+   * livealerts: Enable notifications
+   */
+  LIVE_ALERTS_BUTTON_OPEN_NOTIFICATION_DIALOG: string;
+  /**
+   * livealerts: Open application settings
+   */
+  LIVE_ALERTS_BUTTON_OPEN_SETTINGS: string;
+  /**
+   * livealerts: Download the app here
+   */
+  LIVE_ALERTS_DOWNLOAD_APP: string;
+  /**
+   * livealerts: Enable location access to receive live alerts for your current area.
+   */
+  LIVE_ALERTS_ERROR_NOTDEFINED_LOCATION: string;
+  /**
+   * livealerts: Enable notifications to get live alerts
+   */
+  LIVE_ALERTS_ERROR_NOTDEFINED_NOTIFICATIONS: string;
+  /**
+   * livealerts: Live alerts are supported only on native Windy.com app
+   */
+  LIVE_ALERTS_ERROR_PLATFORM: string;
+  /**
+   * livealerts: To get alerts for your area, allow Location > Always in settings.
+   */
+  LIVE_ALERTS_IOS_ERROR_PERMISSION_LOCATION: string;
+  /**
+   * livealerts: To get alerts, allow notifications in your system settings.
+   */
+  LIVE_ALERTS_IOS_ERROR_PERMISSION_NOTIFICATIONS: string;
+  /**
+   * livealerts: CAP
+   */
+  LIVE_ALERTS_SERVICE_CAP: string;
+  /**
+   * livealerts: Heavy rain
+   */
+  LIVE_ALERTS_SERVICE_HEAVY_RAIN: string;
+  /**
+   * livealerts: Storms
+   */
+  LIVE_ALERTS_SERVICE_STORMS: string;
+  /**
+   * livealerts: Tropical cyclones
+   */
+  LIVE_ALERTS_SERVICE_TC: string;
 }
 
 export interface MenuLangFile {
@@ -3068,6 +3521,30 @@ export interface OnboardingLangFile {
    * onboarding: Set up your units
    */
   ONBOARDING_UNITS_TITLE: string;
+  /**
+   * onboarding: Today’s forecast is ready — check it now in Windy!.
+   */
+  RETENTION_DEFAULT_BODY: string;
+  /**
+   * onboarding: What’s the Weather Today? ☀️ 🌧️
+   */
+  RETENTION_DEFAULT_TITLE: string;
+  /**
+   * onboarding: See how different weather models stack up in Windy
+   */
+  RETENTION_FORECAST_BODY: string;
+  /**
+   * onboarding: Not the Forecast You Hoped For? 🤔
+   */
+  RETENTION_FORECAST_TITLE: string;
+  /**
+   * onboarding: 50+ layers to explore — wind, radar, storms & more!
+   */
+  RETENTION_LAYERS_BODY: string;
+  /**
+   * onboarding: Dive Deeper into Weather 🌍
+   */
+  RETENTION_LAYERS_TITLE: string;
 }
 
 export interface ProductsLangFile {
@@ -3227,6 +3704,73 @@ export interface ProductsLangFile {
    * products: Wind waves, or wind-generated waves, are surface waves that occur on the free surface of bodies of water (like oceans, seas, lakes, etc.). They result from the wind blowing over an area of water surface. Wind waves are generated by the immediate local wind – which gives them the direction. After the wind ceases to blow, wind waves are called swells.
    */
   wwaves: string;
+}
+
+export interface RadsatLangFile {
+  /**
+   * radsat: Blue
+   */
+  RADSAT_BLUE: string;
+  /**
+   * radsat: Infra
+   */
+  RADSAT_INFRA: string;
+  /**
+   * radsat: Next {hour}h
+   */
+  RADSAT_NEXT_X_HOUR: string;
+  /**
+   * radsat: Overlay with radar
+   */
+  RADSAT_OVERLAY_WITH_RADAR: string;
+  /**
+   * radsat: Overlay with satellite
+   */
+  RADSAT_OVERLAY_WITH_SATELLITE: string;
+  /**
+   * radsat: Play with forecast
+   */
+  RADSAT_PLAY_WITH_FORECAST: string;
+  /**
+   * radsat: RAD
+   */
+  RADSAT_RAD: string;
+  /**
+   * radsat: SAT
+   */
+  RADSAT_SAT: string;
+  /**
+   * radsat: There is an outage of our data source for some satellites. Regions that lack satellite coverage include: {regions}.
+   */
+  RADSAT_SATELLITE_OUTAGE_MESSAGE: string;
+  /**
+   * radsat: Africa, Europe
+   */
+  RADSAT_SATELLITE_OUTAGE_REGION_AFRICA_EUROPE: string;
+  /**
+   * radsat: Asia
+   */
+  RADSAT_SATELLITE_OUTAGE_REGION_ASIA: string;
+  /**
+   * radsat: Australia
+   */
+  RADSAT_SATELLITE_OUTAGE_REGION_AUSTRALIA: string;
+  /**
+   * radsat: North America
+   */
+  RADSAT_SATELLITE_OUTAGE_REGION_NORTH_AMERICA: string;
+  /**
+   * radsat: South America
+   */
+  RADSAT_SATELLITE_OUTAGE_REGION_SOUTH_AMERICA: string;
+  /**
+   * radsat: Visible
+   */
+  RADSAT_VISIBLE: string;
+  /**
+   * radsat: {hour}h ago
+   */
+  RADSAT_X_HOUR_AGO: string;
 }
 
 export interface RegisterLangFile {
@@ -3490,6 +4034,18 @@ export interface SettingsLangFile {
    */
   S_ALWAYS_ON: string;
   /**
+   * settings: Customize Windy App icon
+   */
+  S_APP_ICON: string;
+  /**
+   * settings: Requires Premium subscription
+   */
+  S_APP_ICON_PREMIUM: string;
+  /**
+   * settings: Now, restart the app to change the icon
+   */
+  S_APP_ICON_RELOAD: string;
+  /**
    * settings: automatic
    */
   S_AUTOMATIC: string;
@@ -3586,6 +4142,10 @@ export interface SettingsLangFile {
    */
   S_PARTICLES: string;
   /**
+   * settings: Show elevation in weather picker
+   */
+  S_PICKER_ELEVATION: string;
+  /**
    * settings: Autoclose weather picker in:
    */
   S_PICKER_TIMEOUT: string;
@@ -3629,6 +4189,10 @@ export interface SettingsLangFile {
    * settings: Smooth satellite animation
    */
   S_SMOOTH_SAT: string;
+  /**
+   * settings: Start-up zoom level
+   */
+  S_STARTUP_ZOOM: string;
   /**
    * settings: string
    */
@@ -4183,6 +4747,57 @@ export interface StationLangFile {
    * station: Gust
    */
   STATION_WIND_GUST: string;
+}
+
+export interface StoriesLangFile {
+  /**
+   * stories: Show location on map
+   */
+  STORIES_ACTIONS_SHOW_LOCATION: string;
+  /**
+   * stories: Add your comment...
+   */
+  STORIES_COMMENTS_ADD_COMMENT: string;
+  /**
+   * stories: Add images
+   */
+  STORIES_COMMENTS_ADD_IMAGES: string;
+  /**
+   * stories: Cancel
+   */
+  STORIES_COMMENTS_CANCEL: string;
+  /**
+   * stories: Close comments
+   */
+  STORIES_COMMENTS_CLOSE_COMMENTS: string;
+  /**
+   * stories: Error
+   */
+  STORIES_COMMENTS_ERROR: string;
+  /**
+   * stories: Send
+   */
+  STORIES_COMMENTS_SEND: string;
+  /**
+   * stories: Loading
+   */
+  STORIES_LOADING: string;
+  /**
+   * stories: Next card
+   */
+  STORIES_TOOLTIP_NEXT_CARD: string;
+  /**
+   * stories: Next story
+   */
+  STORIES_TOOLTIP_NEXT_STORY: string;
+  /**
+   * stories: Prev. card
+   */
+  STORIES_TOOLTIP_PREV_CARD: string;
+  /**
+   * stories: Prev. story
+   */
+  STORIES_TOOLTIP_PREV_STORY: string;
 }
 
 export interface SubscriptionLangFile {
@@ -5401,6 +6016,10 @@ export interface WebcamsLangFile {
    */
   CAM_SUMMARY: string;
   /**
+   * webcams: Terms of Use of Windy Webcam Services
+   */
+  CAM_TERMS_OF_USE: string;
+  /**
    * webcams: Enter the name of whatever is visible on the webcam image.
    */
   CAM_VIEW_DESCRIPTION: string;
@@ -5694,29 +6313,34 @@ export interface WidgetspromoLangFile {
 }
 
 // prettier-ignore
-export interface PluginTranslations extends AccumulationsLangFile, AlertsLangFile, AppreviewLangFile, ArticlesLangFile, ConsentLangFile, DistanceLangFile, FavsLangFile, HurricanesLangFile, InfoLangFile, LibLangFile, MenuLangFile, NotificationsLangFile, OnboardingLangFile, ProductsLangFile, RegisterLangFile, SettingsLangFile, SoundingLangFile, StationLangFile, SubscriptionLangFile, WatchfaceLangFile, WebcamsLangFile, WidgetspromoLangFile {}
+export interface PluginTranslations extends AccumulationsLangFile, AirportLangFile, AlertsLangFile, AppreviewLangFile, ArticlesLangFile, ConsentLangFile, DistanceLangFile, FavsLangFile, GarminLangFile, HurricanesLangFile, InfoLangFile, LibLangFile, LivealertsLangFile, MenuLangFile, NotificationsLangFile, OnboardingLangFile, ProductsLangFile, RadsatLangFile, RegisterLangFile, SettingsLangFile, SoundingLangFile, StationLangFile, StoriesLangFile, SubscriptionLangFile, WatchfaceLangFile, WebcamsLangFile, WidgetspromoLangFile {}
 export interface Translations extends MainLangFile, PluginTranslations {}
 
 export interface SupportedLangFiles {
   accumulations: AccumulationsLangFile;
+  airport: AirportLangFile;
   alerts: AlertsLangFile;
   appreview: AppreviewLangFile;
   articles: ArticlesLangFile;
   consent: ConsentLangFile;
   distance: DistanceLangFile;
   favs: FavsLangFile;
+  garmin: GarminLangFile;
   hurricanes: HurricanesLangFile;
   info: InfoLangFile;
   main: MainLangFile;
   lib: LibLangFile;
+  livealerts: LivealertsLangFile;
   menu: MenuLangFile;
   notifications: NotificationsLangFile;
   onboarding: OnboardingLangFile;
   products: ProductsLangFile;
+  radsat: RadsatLangFile;
   register: RegisterLangFile;
   settings: SettingsLangFile;
   sounding: SoundingLangFile;
   station: StationLangFile;
+  stories: StoriesLangFile;
   subscription: SubscriptionLangFile;
   watchface: WatchfaceLangFile;
   webcams: WebcamsLangFile;

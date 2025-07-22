@@ -9,7 +9,7 @@ export declare const version: string;
  * Target
  * @ignore
  */
-export declare const target: 'mobile' | 'index' | 'lib' | 'embed2';
+export declare const target: 'lib' | 'embed' | 'mobile' | 'index' | 'imaker';
 /**
  * Platform
  * @ignore
@@ -401,9 +401,17 @@ export declare const isMobile: boolean;
  */
 export declare const isTablet: boolean;
 /**
+ * Indicates that that browsing device is desktop
+ */
+export declare const isDesktop: boolean;
+/**
  * Indicates that browsing device is mobile or tablet
  */
 export declare const isMobileOrTablet: boolean;
+/**
+ * Indicates that browsing device is tablet or desktop
+ */
+export declare const isDesktopOrTablet: boolean;
 /**
  * Indicates that browsing device has retina display
  * @ignore

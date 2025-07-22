@@ -229,12 +229,12 @@ export declare class Product {
    */
   hideProductSwitch?: boolean;
   constructor(params: ProductInitParams);
-  refTime(): YYYYMMDDHH | '';
+  refTime(): YYYYMMDDHH | undefined;
   getUpdateTimes(): {
     refTime: ISODateString;
     minUpdate: Timestamp;
   } | null;
-  moveTs(moveRight: boolean, isAccu?: boolean): boolean | void;
+  moveTs(moveRight: boolean, isAccu?: boolean): boolean;
   getMinifestUrl(): string;
   loadMinifest(): Promise<http.HttpPayload<MinifestObject>>;
   loadAndGetReftime(): Promise<ISODateString | undefined>;
@@ -248,14 +248,6 @@ export declare class Product {
   printLogo(): void;
   getCalendar(): Promise<Calendar>;
   protected expire(): void;
-  /**
-   * Since dissemination of minifests is not instant, and can last for minutes,
-   * we have to double check, that incoming minifest
-   * is newer than the one we have in store. If not, we keep the old one.
-   *
-   * @returns Incoming, or stored minifest, which is newer
-   */
-  protected getUpdatedMinifest(minifest: MinifestObject): Promise<MinifestObject>;
   protected setExpireTime(): void;
   /**
    * Major reason for this error is user's bad connection, which is handled

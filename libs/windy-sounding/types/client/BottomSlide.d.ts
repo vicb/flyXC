@@ -48,6 +48,9 @@ export declare class BottomSlide extends Drag {
   ondrag(_x: number, y: number, e: Event): void;
   ondragend(): void;
   startDrag(e: TouchEvent): void;
+  release(): void;
   private initCloseOnSwipeDown;
+  private setHalfOpen;
   private updatePosition;
+  private onRqstPluginHalfOpen;
 }

@@ -1,10 +1,10 @@
+import { HttpError } from './errors';
 import type { RegistrationError } from '@capacitor/push-notifications';
 import type { RGBA } from '@windy/Color.d';
-import type { HttpError } from '@windy/http';
 import type { QueryStringSource } from '@windy/http.d';
 import type { LatLon, LinearScale, TilePoint } from '@windy/interfaces.d';
 import type { RGBNumValues } from '@windy/interpolatorTypes';
-import type { ExtendedStationType, HTMLString, NumOrNull, Timestamp } from '@windy/types.d';
+import type { ExtendedStationType, HTMLString, NumOrNull, Timestamp, ParsedQueryString } from '@windy/types.d';
 /**
  * One minute in ms.
  *
@@ -135,7 +135,11 @@ export declare const debounce: <Args extends unknown[], F extends (...args: Args
   immediate?: boolean,
 ) => (this: ThisParameterType<F>, ...args: Args & Parameters<F>) => void;
 /**
- * Retun throttling function
+ * Returns a throttled variant of the input function, using a timer to limit calls of the input function.
+ * If the throttled function is called and the timer is not running, the input function is executed immediatelly and a timer is started.
+ * If the throttled function is called again before the timer runs out, the input function is not executed, but the call arguments are stored
+ * and the input function is called once the timer runs out.
+ * If the throttled function is called multiple times while the timer is running, only the latest call arguments are used once the timer runs out.
  *
  * @param this NOT USED, it is only TS explicit this annotation build-time parameter. Consider it as the first parameter would not exist.
  * @param fn Function to throttle
@@ -226,6 +230,7 @@ export declare const isNear: <T extends LatLon, F extends LatLon>(a: T, b: F) =>
  * @returns Bounded number
  */
 export declare const bound: (num: number, min: number, max: number) => number;
+export declare const clamp: (num: number, min: number, max: number) => number;
 /**
  * Smoothstep https://en.wikipedia.org/wiki/Smoothstep
  *
@@ -525,3 +530,31 @@ export declare const removeDiacritics: (s: string) => string;
  * This differs from the CSS property which capitalizes the first letter of each word.
  */
 export declare const capitalize: (text: string) => string;
+export declare const parseQueryString: (searchQuery: string | undefined) => ParsedQueryString | undefined;
+export declare const seoLangRegex: RegExp;
+/**
+ * Examples of SEO URLs:
+ *
+ * ## https://www.windy.com/cs/... (case [1])
+ * SEO language, used in @module trans  Must be followed by string
+ *
+ * ## https://www.windy.com/-Name-Whatever-overlay (case [2])
+ * SEO Name of Overlay
+ *
+ * ## https://www.windy.com/-Name-Whatever/... (case [3])
+ * SEO NAME of plugin name, followed by any other string
+ *
+ * Remember that numbers are not allowed at the beginning of the URL, to distinguish
+ * any URL from detail.
+ *
+ */
+export declare const parseSeoUrl: (url: string) => {
+  purl: string;
+  overlay: string;
+};
+/**
+ * Safely URL decoded startup pathname
+ */
+export declare const startupPath: any;
+export declare const generateUuidV4: () => string;
+export declare const getErrorMessage: (error: unknown) => string;

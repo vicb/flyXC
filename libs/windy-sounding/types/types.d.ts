@@ -118,12 +118,7 @@ export type MeteogramLevels =
   | '1000h'
   | 'surface';
 
-export type CapAlertSeverity /** moderate **/ =
-  | 'M'
-  /** severe **/
-  | 'S'
-  | /** extreme **/ 'E'
-  | /** unknown **/ 'A';
+export type CapAlertSeverity = 'M' /** moderate **/ | 'S' /** severe **/ | 'E' /** extreme **/ | 'A' /** unknown **/;
 
 export type CapAlertType =
   | 'T' /** thunderstorm **/
@@ -160,7 +155,14 @@ export type RouteMotionSpeed = {
 };
 
 export type LocationPreferences = {
-  status: 'notDetermined' | 'restricted' | 'denied' | 'authorized' | 'unknownState';
+  status:
+    | 'notDetermined' // Native popup asking for location permission, was not shown yet.
+    | 'restricted' // The user cannot change this app’s status, possibly due to active restrictions such as parental controls being in place.
+    | 'denied' // User disabled app permissions, turned off device location, or enabled Airplane mode.
+    | 'authorized' // Deprecated
+    | 'authorizedAlways' // This authorization allows you to use all location services and receive location events whether or not your app is in use.
+    | 'authorizedWhenInUse' // This authorization allows you to use location services only when your app is in the foreground.
+    | 'unknownState'; // Device may not have location services
 };
 
 export type NotificationPreferences = {
@@ -207,10 +209,6 @@ export type ShowableErrors = {
   closed: Set<string>;
 };
 
-export type MigrationResult = {
-  status: 'migrationNotPerformed' | 'migratingData' | 'migrationPerformed';
-};
-
 /**
  * Overlay categories used for better UI navigation (mobile/tablet)
  */
@@ -246,6 +244,7 @@ export type LogPaths =
   | 'promo'
   | 'airport'
   | 'appRating'
+  | 'appOpening'
   | 'articles'
   | 'detail2'
   | 'appsflyer'
@@ -254,7 +253,17 @@ export type LogPaths =
   | 'weather'
   | 'events'
   | 'locationPermissionPopup'
-  | 'widgetPromo';
+  | 'widgetPromo'
+  | 'storyEvent'
+  | 'garmin';
+
+export type LogEvents =
+  | 'logout'
+  | 'animation-started'
+  | 'user-logged'
+  | 'click-on-hp'
+  | 'article-event'
+  | 'displayed-on-hp';
 
 /**
  * Type of user consent
@@ -344,16 +353,18 @@ export interface WindyBackupPlugin {
 export type UsedMapLibrary = 'leaflet' | 'maplibre' | 'globe';
 
 /**
+ * Time defined in hours
+ */
+export type Hours = number;
+
+export type Minutes = number;
+
+/**
  * All defined translation keys
  *
  * WARNING: Given lang files MUST be lazy loded before using the key
  */
 export type LoadedTranslations = MainLangFile & PluginTranslations;
-
-/*
- * Time defined in hours
- */
-export type Hours = number;
 
 export type UserInterest =
   | 'outdoor_activities'
@@ -365,3 +376,27 @@ export type UserInterest =
   | 'agriculture'
   | 'meteorologist'
   | 'other';
+
+export type ParsedQueryString = Record<string, string | undefined>;
+
+export type Size = 'xxs' | 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' | 'xxxl' | 'ultra';
+
+/**
+ * Custom app icon for Premium users
+ */
+export type CustomAppIcon =
+  | 'aviation'
+  | 'boating'
+  | 'cycling'
+  | 'default'
+  | 'hiking'
+  | 'outdoor'
+  | 'paragliding'
+  | 'premium'
+  | 'running'
+  | 'scientist'
+  | 'swimming'
+  | 'water-sports'
+  | 'wind'
+  | 'windsurfing'
+  | 'winter-sports';

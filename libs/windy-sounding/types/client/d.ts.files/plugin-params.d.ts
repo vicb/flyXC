@@ -17,6 +17,10 @@ import { SingleClickParams } from '@windy/singleclick.d';
 import { DetailDisplayType, RouteType, StationOrPoiType, ExternalPluginIdent, type Timestamp } from '@windy/types.d';
 import { WebcamCategoryType } from '@windy/webcams';
 
+import type { StoryPreview } from '@plugins/stories/stories.d';
+import type { StationDisplayType } from '@plugins/station/station';
+import type { PluginsListResponseDto } from '@plugins/external-plugins/external-plugins';
+
 /**
  * Type of source event, that led to opening any plugin
  */
@@ -24,11 +28,12 @@ export type PluginOpenEventSource =
   | 'contextmenu'
   | 'hp'
   | 'url'
+  | 'singleclick'
   | 'poi-icon'
   | 'search'
   | 'detail'
-  | 'singleclick'
   | 'favs-page'
+  | 'alerts-page'
   | 'favs-on-hp'
   | 'picker'
   | 'meta'
@@ -69,13 +74,7 @@ export interface DetailOpenParams extends PluginSource, LatLon {
   id?: string;
 
   /**
-   * If detail is opened by clicking on label
-   */
-  sourceEl?: HTMLElement;
-
-  /**
-   * Detail was opened by clicking on Alert notification so detail table should be scrolled to
-   * particular timestamp
+   * Detail should be scrolled to this timestamp
    */
   moveToTimestamp?: boolean;
 
@@ -117,7 +116,11 @@ export type PluginsOpenParams = {
   picker: PickerOpenParams;
   'picker-mobile': PickerOpenParams;
   favs: PluginSource & { importObsoleteFavs?: boolean };
-  station: PluginSource & { id: string };
+  station: PluginSource & {
+    id: string;
+    moveToTimestamp?: Timestamp;
+    view?: StationDisplayType;
+  };
   multimodel: LatLon & PluginSource & { name?: string | null };
   webcams: (PluginSource & { category: WebcamCategoryType }) | undefined;
   'webcams-detail': PluginSource & WebcamDetailOpenParams;
@@ -164,12 +167,18 @@ export type PluginsOpenParams = {
   'nearest-airq': PluginSource & LatLon;
   'nearest-webcams-mobile': PluginSource & LatLon;
   'nearest-webcams': PluginSource & LatLon;
-  'external-plugins': (PluginSource & { id?: string; qs?: PluginsQsParams['external-plugins'] }) | undefined;
+  'external-plugins':
+    | (PluginSource & {
+        id?: string;
+        qs?: PluginsQsParams['external-plugins'];
+        installPlugin?: PluginsListResponseDto;
+      })
+    | undefined;
   sounding: PluginSource & LatLon & { name?: string };
   radiosonde: PluginSource & { id: string; lat?: number; lon?: number };
   startup: PluginSource;
   'startup-whats-new': PluginSource & { data: WhatsNewData };
-  'startup-articles': PluginSource & { data: StartupArticleData[] };
+  'startup-articles': PluginSource & { data: StartupArticleData };
   'startup-weather': PluginSource & {
     coords: HomeLocation | GeolocationInfo;
     promises: {
@@ -199,6 +208,7 @@ export type PluginsOpenParams = {
   'developer-mode': (PluginSource & { qs: Record<string, string> | undefined }) | undefined;
   'windy-external-plugin': PluginSource & LatLon;
   menu: PluginSource & { scrollTo?: 'pois' };
+  stories: { id: string; sortedAndEnhancedPreviews?: StoryPreview[] } & PluginSource;
   onboarding: (PluginSource & { getUserInterests?: boolean }) | undefined;
   'heatmaps-redirect': PluginSource & { id?: string };
 } & {

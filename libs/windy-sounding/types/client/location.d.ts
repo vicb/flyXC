@@ -28,6 +28,11 @@ import type { PluginIdent } from '@windy/Plugin';
 import type { WindowPlugins } from '@windy/WindowPlugin';
 import type { PluginsOpenParams } from '@windy/plugin-params';
 /**
+ * At what time, the search string was last time updated
+ * @param ovr
+ * @returns
+ */
+/**
  * Sets browser's description meta tag for purpose of SEO
  */
 export declare const description: (desc: string) => void;

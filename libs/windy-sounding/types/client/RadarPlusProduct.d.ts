@@ -15,5 +15,5 @@ export declare class RadarPlusProduct extends StaticProduct {
   /**
    * Handling keyboard shortcuts
    */
-  moveTs(moveRight: boolean): boolean | void;
+  moveTs(moveRight: boolean): boolean;
 }

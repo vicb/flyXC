@@ -2,14 +2,11 @@ import type { NotificationExtraPayload } from './d.ts.files/pushNotifications';
 import type { HttpPayload } from './d.ts.files/http';
 export declare const canReceiveNotifications: Promise<void>;
 export declare function loadNotifications(): Promise<void>;
+export declare function watchChanges(): void;
 /**
  * Delete all users notifications
  */
 export declare function deleteAllNotifications(): Promise<void>;
-/**
- * Mark all users notifications as seen
- */
-export declare function markAllAsSeen(): Promise<void>;
 /**
  * Mark notification as seen
  *
@@ -32,4 +29,5 @@ export declare function markNotificationAsReceived(data: NotificationExtraPayloa
 export declare function sendTestNotification(
   type: NotificationExtraPayload['category'],
   registrationHash: string,
+  deviceID: string,
 ): void;

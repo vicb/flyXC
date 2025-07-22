@@ -1,3 +1,4 @@
+import { BottomSlide } from '@windy/BottomSlide';
 import { Plugin } from '@windy/Plugin';
 import { Window } from '@windy/Window';
 import type { PluginInitParams } from '@windy/Plugin';
@@ -6,9 +7,8 @@ import type { PluginOpeningOptions, WindowClosingOptions } from '@windy/interfac
 import type { InterpolatorFactory } from '@windy/interpolator';
 import type { PluginsOpenParams, PluginsQsParams } from '@windy/plugin-params.d';
 import type { BottomSveltePlugins, SveltePanePlugins, SveltePlugins, TagPlugins } from '@windy/plugins.d';
-import type { ParsedQueryString } from '@windy/queryString';
 import type { ListeningPriority } from '@windy/singleclick.d';
-import type { LoadedTranslations } from '@windy/types';
+import type { LoadedTranslations, ParsedQueryString } from '@windy/types';
 export interface WindowPlugins extends TagPlugins, SveltePlugins, SveltePanePlugins, BottomSveltePlugins {}
 /** Allowed params to WindowPlugin constructor (private and protected props are omited by default) */
 export type WindowPluginInitParams<P extends keyof WindowPlugins> = PluginInitParams<P> &
@@ -27,6 +27,7 @@ export declare abstract class WindowPlugin<P extends keyof WindowPlugins> extend
    * ID of CSS style
    */
   protected cssID: `plugin-css-${string}`;
+  protected bottomSlide?: BottomSlide;
   /**
    * Was CSS inserted into the DOM
    */

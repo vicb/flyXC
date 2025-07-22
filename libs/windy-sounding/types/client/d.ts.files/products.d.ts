@@ -1,6 +1,5 @@
 import { AccessProduct, AccessCProduct } from '@windy/AccessProducts';
 import { AromeProduct } from '@windy/AromeProduct';
-import { EcmwfAnalysisProduct } from '@windy/EcmwfAnalysisProduct';
 import { EcmwfProduct } from '@windy/EcmwfProduct';
 import { Product } from '@windy/Product';
 import { RadarPlusProduct } from '@windy/RadarPlusProduct';
@@ -22,7 +21,7 @@ export type products = Implements<
     mblue: Product;
     ecmwf: EcmwfProduct;
     ecmwfWaves: Product;
-    ecmwfAnalysis: EcmwfAnalysisProduct;
+    ecmwfAnalysis: EcmwfProduct;
     canHrdps: Product;
     canRdwpsWaves: Product;
     cams: Product;

@@ -1,4 +1,4 @@
-import { Timestamp } from '@windy/types.d';
+import { Timestamp, type NumOrNull } from '@windy/types.d';
 
 type CityDivId = string; // `${x}:${y}`
 type CityLabelId = string; // `${lat}/${lon}`
@@ -18,7 +18,7 @@ export interface CityLabel {
   el: HTMLDivElement;
 
   /** Forecast data with temperature in K, it is lazy loaded with forecast request */
-  data?: number[];
+  data?: NumOrNull[];
 }
 
 /** Representation of one leaflet tile with its CityLabels */

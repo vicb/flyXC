@@ -2,10 +2,15 @@ import { WindowPlugin } from '@windy/WindowPlugin';
 import type { WindowPluginInitParams } from '@windy/WindowPlugin';
 import type { PluginsOpenParams, PluginsQsParams } from '@windy/plugin-params.d';
 import type { BottomSveltePlugins, SveltePanePlugins, SveltePlugins } from '@windy/plugins.d';
+import type { InterpolatorFactory } from '@windy/interpolator';
+import type { FullRenderParameters } from '@windy/Layer.d';
 export declare class SvelteApp<P extends keyof SveltePlugins | keyof SveltePanePlugins | keyof BottomSveltePlugins> {
+  interpolator?: InterpolatorFactory;
   constructor(_args: { target: HTMLElement; anchor: HTMLElement });
   onopen(params?: PluginsOpenParams[P], qs?: PluginsQsParams[P]): void;
   onclose(): void;
+  paramsChanged(params?: FullRenderParameters): void;
+  onRenderStart(params?: FullRenderParameters): void;
   $destroy(): void;
 }
 /**
@@ -39,6 +44,8 @@ export declare class SveltePlugin<
   );
   onopen(params?: PluginsOpenParams[P], _qs?: PluginsQsParams[P]): void;
   ondestroy(): void;
+  paramsChanged(params?: FullRenderParameters): void;
+  onRenderStart: (params?: FullRenderParameters) => void;
   protected mount(): void;
   protected unmount(): void;
 }

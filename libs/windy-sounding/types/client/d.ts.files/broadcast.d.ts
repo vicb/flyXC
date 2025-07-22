@@ -8,7 +8,6 @@
     TODO: Minimize amount of these events and reduce their usage
 
 */
-import { DetailLocChangeParams } from '@plugins/detail/detail.d';
 import { ParsLocation as GlobeParsLocation } from '@plugins/globe/main/receiver.d';
 import { Params as GlobeParams, Poi as GlobePoi } from '@plugins/globe/types.d';
 import { ExtendedDataAndParams } from '@plugins/isolines/IsolinesCanvas2D.d';
@@ -25,6 +24,7 @@ import type { CenterOptions } from '@windy/map';
 import type { AnimationOptions, FitBoundsOptions, LngLatBoundsLike } from '@windycom/maplibre-gl';
 import type { ViewportBounds } from '@plugins/_shared/maplibre/utils/maplibreUtils';
 import type { RadarPlusLayer } from '@plugins/radar-plus/types';
+import type { ParsedStartupValues } from './router';
 
 type BcastTypesNonGeneric = {
   /**
@@ -80,9 +80,6 @@ export interface BasicBcastTypes<T extends keyof Plugins> {
   /** Plugin was successfully closed */
   pluginOpened: [PluginIdent | string];
 
-  /** Svelte plugin was successfully mounted */
-  pluginMounted: [PluginIdent | string];
-
   /**
    * Triggered when Windy has successfully loaded and rendered requested data.
    * Use this for triggering your own tasks.
@@ -114,17 +111,26 @@ export interface BasicBcastTypes<T extends keyof Plugins> {
   alertChanged: [];
 
   /**
-   * Indicates, that router has parsed URL and launched plugin
-   * that was requested in URL
+   * Indicates, that router has parsed URL
    */
-  routerParsed: [PluginIdent | ExternalPluginIdent | void];
+  routerParsed: [PluginIdent | ExternalPluginIdent | void, ParsedStartupValues | undefined];
+
+  /**
+   * Indicates that mobile ui of plugin using BottomSlide was half opened
+   */
+  pluginHalfOpened: [PluginIdent, boolean];
+
+  /**
+   * Request to half open plugin, used in BottomSlide
+   */
+  rqstHalfOpen: [ident: PluginIdent, value: boolean | undefined, emit: boolean | undefined];
 
   // prettier-ignore
   /** @ignore */ globeOpened: [];
   /** @ignore */ globeClose: [];
   /** @ignore */ globeFailed: [];
 
-  /** @ignore */ 'globe-detail': [DetailLocChangeParams | (LatLon & PluginSource)];
+  /** @ignore */ 'globe-detail': [LatLon & PluginSource];
   /** @ignore */ 'globe-isolines': [ExtendedDataAndParams | null];
   /** @ignore */ 'globe-poi': [GlobeParsLocation & { type?: string; id?: string }];
   /** @ignore */ 'globe-zoomIn': [[number, number] | null] | [];
@@ -149,13 +155,12 @@ export interface BasicBcastTypes<T extends keyof Plugins> {
   /** @ignore */ 'maplibre-paramsChanged': [WeatherParameters, keyof WeatherParameters | undefined];
   /** @ignore */ 'radarPlus-open-layer': [RadarPlusLayer, boolean | undefined]; // Layer to open, whether to open layer for color editing
   /** @ignore */ detailClose: [];
-  /** @ignore */ detailRendered: []; // used only in embed2
+  /** @ignore */ detailRendered: []; // used only in embed, imaker indicates that detail is ready
+  /** @ignore */ stationRendered: []; // used only in embed, imaker indicates that detail is ready
   /** @ignore */ reloadFavs: [];
   /** @ignore */ notifPrefChanged: [NotificationPreferences | undefined];
   /** @ignore */ satBackupReload: [];
   /** @ignore */ promptSavePassword: [];
-  /** @ignore */ screenshotReady: [];
-  /** @ignore */ screenshotError: [Error];
   /** @ignore */ onResume: [];
   /** @ignore */ back2home: [];
   /** @ignore */ reloadMobileApp: [];
