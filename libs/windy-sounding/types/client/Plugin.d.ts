@@ -110,6 +110,10 @@ export declare class Plugin<P extends PluginIdent> {
    * Ready to be overloaded
    */
   paramsChanged(..._args: unknown[]): void;
+  /**
+   * Ready to be overloaded
+   */
+  onRenderStart(..._args: unknown[]): void;
   protected initProperties(): void;
 }
 export {};

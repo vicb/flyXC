@@ -6,7 +6,7 @@ import { ExtendedTileParams } from '@windy/DataTiler.d';
 import { FavId } from '@windy/favs';
 import { FullRenderParameters } from '@windy/Layer.d';
 import { Particles } from '@windy/Particles';
-import { PluginsOpenParams, type DetailOpenParams, type PluginsQsParams } from '@windy/plugin-params.d';
+import { PluginsOpenParams, PluginOpenEventSource, PluginsQsParams } from '@windy/plugin-params.d';
 import { Plugins } from '@windy/plugins.d';
 import { Isolines, Levels, Overlays, PointProducts, Products } from '@windy/rootScope.d';
 import {
@@ -29,13 +29,14 @@ import {
   Path,
   Pixel,
   Platform,
-  StationOrPoiType,
   Timestamp,
   WidgetNotificationPreferences,
   WidgetType,
   YearMonthDay,
-  type MigrationResult,
-  type SubTier,
+  Hours,
+  Minutes,
+  SubTier,
+  CustomAppIcon,
 } from '@windy/types.d';
 
 export interface ExportedObj {
@@ -321,7 +322,7 @@ export interface Celestial {
   /**
    * TZ offset in hours
    */
-  TZoffset: number;
+  TZoffset: Hours;
 
   /**
    * TZ offset nicely formatted
@@ -331,7 +332,7 @@ export interface Celestial {
   /**
    * TZ offset in minutes
    */
-  TZoffsetMin: number;
+  TZoffsetMin: Minutes;
 
   /**
    * Type of TZ type t..terrestrial, n..nautical
@@ -340,6 +341,7 @@ export interface Celestial {
 
   /**
    * Determines probability if the location is at sea or not as number from 1..0
+   * Unfortunately the number is inverted, so 1 means land, and 0 means sea
    */
   atSea: number;
 
@@ -778,14 +780,100 @@ export interface WeatherDataPayload<T extends DataHash | SummaryDataHash> {
   now?: T extends SummaryDataHash ? WeatherDataNow : never;
 }
 
-/**
- * Minimal required options for RendererWeatherTable
- */
-export interface WeatherTableRenderingOptions {
+export interface DetailExtendedLatLon extends LatLon {
   /**
-   * How to display detail
+   * Optional name of the location
+   */
+  name?: string;
+
+  /**
+   * id of city label that was was clicked on (if any)
+   */
+  cityLabelId?: string;
+
+  /**
+   * id of surf spot that was clicked on (if any)
+   */
+  surfSpotId?: string;
+
+  /**
+   * id of pg spot that was clicked on (if any)
+   */
+  pgSpotId?: string;
+
+  /**
+   * id if tide station that was clicked on (if any)
+   */
+  tideStationId?: string;
+
+  /**
+   * Source, which led to opening the detail
+   */
+  source?: PluginOpenEventSource;
+
+  /**
+   * Indicates, that the detail was just opened
+   */
+  externalOpen?: boolean;
+
+  /**
+   * Array of timestamps, that arrived from Alert notification, that should be shown
+   */
+  timestamps?: Timestamp[] | null;
+
+  /**
+   * Timestamp to which we should scroll detail
+   */
+  scrollToTimestamp?: Timestamp;
+}
+
+export type WeatherTableRenderingOptions = {
+  /**
+   * Width of table element
+   */
+  tdWidth: number;
+
+  /**
+   * Should we use 12h format for time?
+   */
+  is12hFormat?: boolean;
+} & Pick<DetailParams, 'display' | 'step' | 'rows' | 'days'>;
+
+/**
+ * Parameters used for displaying detail (point forecast)
+ */
+export interface DetailParams extends DetailExtendedLatLon {
+  /**
+   * Optional name of the spot
+   */
+  name?: string;
+
+  /**
+   * Type of display
    */
   display: DetailDisplayType;
+
+  /**
+   * Should we display extended 10hours forecast?
+   */
+  extended: boolean;
+
+  /**
+   * Required point product
+   */
+  model: Products;
+
+  /**
+   * Required multiple point products
+   */
+  models?: Products[];
+
+  /**
+   * Always incrementing synchronization number, that enables
+   * to cancel async tasks, if we will have new version of params
+   * available
+   */
+  syncCounter: number;
 
   /**
    * Which rows to render
@@ -798,109 +886,13 @@ export interface WeatherTableRenderingOptions {
   step: 1 | 3;
 
   /**
-   * Width of each table cell (in pixels)
-   */
-  tdWidth: Pixel;
-
-  /**
    * How many days to display
    */
   days: number;
-
-  /**
-   * Size of weather icons
-   */
-  iconSize: Pixel;
-
-  /**
-   * Array of times, when Alert was triggered
-   */
-  timestamps?: null | Timestamp[];
-
-  /**
-   * Should we display detail with Z times?
-   */
-  zuluMode?: boolean;
-
-  /**
-   * Shoud we display 12 or 24h format
-   */
-  is12hFormat?: boolean;
-
-  /**
-   * Content to put in header of legend
-   */
-  legendHeaderContent?: string;
-
-  /**
-   * Surface sea temperature if available
-   */
-  sst?: number;
-
-  /**
-   * Should backend interpolate values for 1h step
-   */
-  interpolate?: boolean;
 }
 
 /**
- * Parameters used for displaying detail (point forecast)
- */
-export interface DetailParams extends DetailOpenParams, WeatherTableRenderingOptions {
-  display: DetailDisplayType;
-  /**
-   * Which kind of action led to displaying the detail
-   */
-  emitter?: 'externalOpen' | 'locationChange';
-
-  /**
-   * Should we display extended 10hours forecast?
-   */
-  extended: boolean;
-
-  /**
-   * Height of background canvas
-   */
-  height?: Pixel;
-
-  /**
-   * Required point product
-   */
-  model: Products;
-
-  /**
-   * Required multiple point products
-   * TODO - split to more interfaces, for multimodel and others
-   */
-  models?: Products[];
-
-  //source: PluginOpenEventSource;
-
-  /**
-   * Type of POI that was clicked to open detail or was contained in URL on page load
-   */
-  poiType?: StationOrPoiType;
-
-  /**
-   * POI id that was clicked to open detail or was contained in URL on page load
-   */
-  id?: string;
-
-  /**
-   * height of temperature background canvas
-   */
-  tempBgH?: Pixel;
-
-  /**
-   * Always incrementing synchronization number, that enables
-   * to cancel async tasks, if we will have new version of params
-   * available
-   */
-  syncCounter: number;
-}
-
-/**
- * Multimple weather models loaded by multiLoad.ts
+ * Multiple weather models loaded by multiLoad.ts
  */
 export interface MultiLoadPayload {
   model: PointProducts;
@@ -1008,21 +1000,30 @@ export interface BillingPlugin {
 export interface TimeLocal {
   weekday: Weekday;
   day: string;
-  month: string;
-  year: string;
+  month?: string;
+  year?: string;
   /** '09' */
   hour: string;
 }
 
 export interface CapAlertHeadline {
+  id: string;
   start: Timestamp;
   end: Timestamp;
   type: CapAlertType;
   severity: CapAlertSeverity;
-  headline: string;
+  headline?: string;
   event: string;
   startLocal: TimeLocal;
   endLocal: TimeLocal;
+}
+
+export interface ExtendedCapLine extends CapAlertHeadline {
+  id: string;
+  startDay: string;
+  endDay: string;
+  shortenedEvent: string;
+  color: string;
 }
 
 export interface CapAlertData extends CapAlertHeadline {
@@ -1144,6 +1145,9 @@ export interface WindyServicePlugin {
   getId: () => Promise<{ identifier: string }>;
   getAppsflyerCredentials: () => Promise<{ devKey: string | undefined; appId: string }>;
   addWidget: (arg: WidgetType) => Promise<void>;
+  isGarminAppInstalled: () => Promise<{ value: boolean }>;
+  setAppIcon(arg: { iconName: CustomAppIcon }): Promise<void>;
+  getAppIcon(): Promise<{ iconName: CustomAppIcon | null }>;
 }
 
 export interface NotificationLocationInfo {
@@ -1159,6 +1163,29 @@ export interface WindyNotificationLocationPlugin {
   // Only for testing purposes
   getDebugLog: () => Promise<{ lastLocationUpdates: string }>;
   useCustomLocation: (arg: LatLon) => Promise<void>;
+}
+
+export interface WindyLocalNotificationPlugin {
+  schedule: (arg: {
+    title: string;
+    subtitle: string | null;
+    body: string;
+    timeInterval: number; // in seconds
+  }) => Promise<{ id: string }>; // id of the scheduled notification
+  cancel: (arg: { id: string }) => Promise<void>;
+  cancelAll: () => Promise<void>;
+  getPending: () => Promise<{ pending: string[] }>; // array of ids of pending notifications
+  registerRetentionNotification: (arg: {
+    title: string;
+    subtitle: string | null;
+    body: string;
+    marketingId: string | null; // is used for analytics
+    deepLink: string | null; // deepLink to open when the notification is clicked
+    showAfter: number; // in seconds
+    showUntil: number; // in seconds
+  }) => Promise<{ status: 'notStarted' | 'scheduled' | 'delivered' | 'opened' | 'expired' }>; // status of the registration
+  sendTestRetentionNotification: () => Promise<{ id: string }>;
+  resetRetentionNotification: () => Promise<void>;
 }
 
 /**
@@ -1203,10 +1230,6 @@ export interface WindyMigrationPlugin {
    * Marks migration as completed and restart WebView from origin
    */
   markMigrationCompleted: (opts: { reload: boolean }) => Promise<void>;
-  /**
-   * Returns migration status flag - either migrationNotPerformed or migratingData
-   */
-  getMigrationStatus: () => Promise<MigrationResult>;
   /**
    * Sends migration data to native layer
    */
@@ -1617,4 +1640,62 @@ interface ClientPatch {
  */
 export interface ActiveStormCountPayload {
   activeStormCount: number;
+}
+
+/**
+ * Cap alert was slided from left to right on startup screen
+ */
+export interface CapAlertSlided {
+  id: string;
+  expire: Timestamp;
+}
+
+/**
+ * Handy payload or reusable data that helps to render Forecast Table
+ */
+export interface WeatherTableRenderingData {
+  /**
+   * Day identifiers, that were used in data object (above)
+   */
+  usedDays: YearMonthDay[];
+
+  /**
+   * Loaded data.data (modified later by splicing data arrays)
+   */
+  data: DataHash;
+
+  /**
+   * Length of used forecast as a umber of TD segments
+   */
+  dataLength: number;
+
+  /**
+   * Start of timeline
+   */
+  start: Timestamp;
+  end: Timestamp;
+
+  tsWidth: Timestamp;
+  pxWidth: Pixel;
+  px2ts: number;
+
+  /**
+   * UTC offset in hours
+   */
+  utcOffset: Hours;
+
+  /**
+   * UTC offset in minutes
+   */
+  utcOffsetMinutes: Minutes;
+
+  /**
+   * Indicates that data payload has waves
+   */
+  hasWaves: boolean;
+
+  /**
+   * Summary of days used
+   */
+  summary: Record<YearMonthDay, SummaryDay>;
 }

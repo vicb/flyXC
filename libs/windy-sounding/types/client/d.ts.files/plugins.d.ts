@@ -64,6 +64,7 @@ export interface SveltePlugins {
   'watch-faces'?: SveltePlugin<'watch-faces'>;
   'app-review-dialog'?: SveltePlugin<'app-review-dialog'>;
   widgets?: SveltePlugin<'widgets'>;
+  garmin?: SveltePlugin<'garmin'>;
   'fav-layers'?: SveltePlugin<'fav-layers'>;
   onboarding?: SveltePlugin<'onboarding'>;
   'developer-mode'?: SveltePlugin<'developer-mode'>;
@@ -78,7 +79,6 @@ export interface SveltePlugins {
   'embed-ui'?: SveltePlugin<'embed-ui'>;
   contextmenu?: SveltePlugin<'contextmenu'>;
   upload: SveltePlugin<'upload'>;
-  screenshot: SveltePlugin<'screenshot'>;
   search: SveltePlugin<'search'>;
   'startup-articles'?: SveltePlugin<'startup-articles'>;
   'picker-mobile'?: SveltePlugin<'picker-mobile'>; // to Svelte plugin
@@ -86,6 +86,7 @@ export interface SveltePlugins {
   // Used as fake plugin for any other external plugin
   // basically we are unable to type each individual external plugin
   'windy-external-plugin'?: SveltePlugin<'windy-external-plugin'>;
+  stories: SveltePlugin<'stories'>;
 }
 
 export interface PlainPlugins {

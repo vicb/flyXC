@@ -1,4 +1,4 @@
 /**
  * Connection is lost, user is offline
  */
-export declare function testNetworkConnection(): void;
+export declare function testNetworkConnection(): Promise<void>;

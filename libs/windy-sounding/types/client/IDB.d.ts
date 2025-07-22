@@ -1,16 +1,28 @@
 import type { Timestamp } from '@windy/types.d';
 /**
+ * List of all collections we will need in our database
+ * remember to update this list when adding new collections
+ * Collections MUST be created at once
+ */
+export declare const allUsedCollections: readonly [
+  'customColors',
+  'installedPlugins',
+  'likedStoryComments',
+  'log',
+  'markedNotams',
+  'popularLocations',
+  'searchRecents',
+  'seenArticles',
+  'seenPromos',
+  'seenStories',
+  'slidedCapAlerts',
+  'userAlerts',
+  'userFavs',
+];
+/**
  * Allowed data types for storage
  */
-export type DatabaseStore =
-  | 'userFavs'
-  | 'userAlerts'
-  | 'customColors'
-  | 'searchRecents'
-  | 'markedNotams'
-  | 'minifests'
-  | 'seenArticles'
-  | 'seenPromos';
+export type DatabaseStore = (typeof allUsedCollections)[number];
 export type BackendItem<V> = {
   updated: Timestamp;
   id: string;

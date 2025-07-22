@@ -41,12 +41,11 @@ export interface InitOptions extends WindyAPIOptions {
   zoom?: number;
 }
 
-type ApiPicker =
-  | typeof import('@windy/picker') & {
-      open: (latLon: LatLon) => void;
-      close: () => void;
-      getParams: () => PluginsOpenParams['picker'];
-    };
+type ApiPicker = typeof import('@windy/picker') & {
+  open: (latLon: LatLon) => void;
+  close: () => void;
+  getParams: () => PluginsOpenParams['picker'];
+};
 
 export type InitCb = (windyAPI: {
   map: WModules['map']['map'];
@@ -61,7 +60,6 @@ export type InitCb = (windyAPI: {
 export interface ApiAuthResponse {
   domains: string;
   paid: boolean;
-  apiUser: string;
   id: string;
   name: string;
   type: string;

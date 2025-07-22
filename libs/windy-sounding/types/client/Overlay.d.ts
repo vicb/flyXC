@@ -163,7 +163,7 @@ export declare class Overlay<
   /**
    * Just proxy to the Metric's metric property
    */
-  get metric(): '' | import('./Metric').MetricItem;
+  get metric(): import('./Metric').MetricItem | '';
   protected initProperties(): void;
 }
 export {};

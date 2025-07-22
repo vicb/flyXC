@@ -12,12 +12,6 @@ export declare const acceptHeader: string;
  * Enhances URL with server, tokens and auth counter
  */
 export declare const getURL: (url: string) => string;
-export declare class HttpError extends Error {
-  status: number;
-  message: string;
-  responseText?: string;
-  constructor(status: number, message: string, responseText?: string);
-}
 /**
  * Create Event Source for SSE with tokens for authentication
  * Do not forget to close the EventSource, otherwise there will be an error event when the page closes.

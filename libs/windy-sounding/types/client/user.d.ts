@@ -9,6 +9,7 @@
  *
  * @module user
  */
+import '@windy/liveAlerts';
 import type { HttpPayload } from './d.ts.files/http.d';
 import type { AccountLoginResponse, UserInfo, User, LoginAndFinishAction } from './d.ts.files/user.d';
 /**
@@ -16,6 +17,7 @@ import type { AccountLoginResponse, UserInfo, User, LoginAndFinishAction } from 
  */
 export declare const isLoggedIn: () => boolean;
 export declare const getInfo: () => User | null;
+export declare const emptyAvatar = '<!-- @echo IMG_ABSOLUTE_PATH -->/avatar.jpg';
 /**
  * Safe way how to retrieve use avatar
  * @returns link to user avatar or default avatar

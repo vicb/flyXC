@@ -32,6 +32,7 @@ export declare class ExternalSveltePlugin extends SveltePlugin<'windy-external-p
   mobileConfig: Record<InstalledExternalPluginConfig['mobileUI'], Config2config>;
   desktopConfig: Record<InstalledExternalPluginConfig['desktopUI'], Config2config>;
   widthOfRhPane: number;
+  version: string;
   listenToSingleclick: ExternalPluginConfig['listenToSingleclick'];
   addToContextmenu: ExternalPluginConfig['addToContextmenu'];
   constructor(
@@ -45,9 +46,14 @@ export declare class ExternalSveltePlugin extends SveltePlugin<'windy-external-p
       listenToSingleclick,
       addToContextmenu,
       url,
+      version,
     }: InstalledExternalPluginConfig,
   );
   open({ params, disableOpeningAnimation, qs }: PluginOpeningOptions<'windy-external-plugin'>): Promise<void | boolean>;
+  hasNewerVersion(latestVersion: string): boolean;
+  showConfirmationWindow(): Promise<boolean>;
+  getDayDiff(timestamp: string): number;
+  uninstallPlugin(): Promise<void>;
   getCss(): string;
 }
 export {};

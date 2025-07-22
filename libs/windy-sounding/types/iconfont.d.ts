@@ -1,6 +1,8 @@
 // !!! Automatically generated file by make/iconfont.ts !!!
 
 export type Iconfont =
+  | '<!-- @echo icon-pictures -->'
+  | '<!-- @echo icon-comment-o -->'
   | '<!-- @echo icon-upload -->'
   | '<!-- @echo icon-long-tap -->'
   | '<!-- @echo icon-moving-cloud -->'
@@ -187,6 +189,11 @@ export type Iconfont =
   | '<!-- @echo icon-bell-plus -->'
   | '<!-- @echo icon-x -->'
   | '<!-- @echo icon-twitter -->'
+  | '<!-- @echo icon-fire-warning -->'
+  | '<!-- @echo icon-fire-match -->'
+  | '<!-- @echo icon-fire-wind -->'
+  | '<!-- @echo icon-crosshair -->'
+  | '<!-- @echo icon-pushpin -->'
   | '<!-- @echo icon-github -->'
   | '<!-- @echo icon-link -->'
   | '<!-- @echo icon-plane-snowflake -->'

@@ -95,13 +95,17 @@ export declare abstract class Metric<T extends string | number = string | number
    * @param params
    */
   constructor(params: MetricInitParams);
+  /**
+   * Returns metric value
+   */
+  getMetric(): MetricItem;
   onMetricChanged(metric: MetricItem): void;
   getDefault(): MetricItem;
   setDefault(): void;
   /**
    * get value + label on a basis of user selected metric
    */
-  convertValue(value: NumValue, separator?: string, suffix?: string): string;
+  convertValue(value: NumValue, separator?: string, suffix?: string, forcedPrecision?: number): string;
   /**
    * Not available
    */

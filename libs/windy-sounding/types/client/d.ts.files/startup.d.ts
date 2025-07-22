@@ -31,21 +31,10 @@ export interface WhatsNewData extends StartupItem {
   };
 }
 
-export interface EnhancedStartupArticle extends StartupArticleData {
-  key: string;
-  count: number;
-  lastDisplayed: number;
-}
-
 /**
  * Info about articles, user has already seen
  */
 export interface SeenArticle {
-  /**
-   * Last time, the article has been displayed to the user
-   */
-  lastDisplayed: Timestamp;
-
   /**
    * How many times the article has been seen
    * (one count is added only if the article has been seen after 12 hours from the last seen time)
@@ -56,4 +45,21 @@ export interface SeenArticle {
    * Marks beginning of 12h interval
    */
   seen: Timestamp;
+
+  /**
+   * Article was liked by user
+   */
+  liked?: boolean;
+}
+
+export interface SeenStory {
+  /**
+   * Timestamp when was story seen
+   */
+  seen: Timestamp;
+
+  /**
+   * Story was liked by user
+   */
+  liked?: boolean;
 }

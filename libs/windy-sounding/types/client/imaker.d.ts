@@ -1,44 +1,25 @@
-/**
- * All these exports are exported in `window.W` object.
- *
- * Modules, that are use only internally, within core,
- * and act as dependency to some other module,
- * do not need to be listed here.
- *
- * Orphaned modules, that are not used anywhere,
- * and modules consumed by plugins, MUST be listed here.
- */
-export * as errorLogger from './utils/errorLogger';
-/**
-const originalGetCurrentPosition = navigator.geolocation.getCurrentPosition;
-navigator.geolocation.getCurrentPosition = (...args) => {
-    alert(`XXX getCurrentPosition ${new Error().stack}`);
-    debugger;
-    originalGetCurrentPosition.call(navigator.geolocation, ...args);
-};
-// Monkey-patch watchPosition
-const originalWatchPosition = navigator.geolocation.watchPosition;
-navigator.geolocation.watchPosition = (...args) => {
-    alert('XXX watchPosition');
-    debugger;
-    return originalWatchPosition.call(navigator.geolocation, ...args);
-};
- */
 import './leafletExt/CanvasLayer';
+export * as detectDevice from './dummyModules/detectDevice';
+export * as log from './dummyModules/log';
+export * as promo from './dummyModules/promo';
+export * as location from './dummyModules/location';
+export * as router from './dummyModules/router';
+export * as showableErrorsService from './dummyModules/showableErrorsService';
+export * as userFavs from './dummyModules/userFavs';
+export * as share from './dummyModules/share';
 export * as Evented from './utils/Evented';
 export * as css from './utils/css';
 export * as fetch from './utils/fetch';
 export * as format from './utils/format';
 export * as ga from './utils/ga';
 export * as http from './utils/http';
-export * as log from './utils/log';
+export * as levelUtils from './utils/levelUtils';
 export { default as lruCache } from './utils/lruCache';
 export { default as storage } from './utils/storage';
-export * as subscription from './utils/subscription';
-export * as utils from './utils/utils';
-export * as errors from './utils/errors';
 export * as IDB from './utils/IDB';
 export * as idbInstances from './utils/idbInstances';
+export * as subscription from './utils/subscription';
+export * as utils from './utils/utils';
 export * as Calendar from './weatherClasses/Calendar';
 export * as Color from './weatherClasses/Color';
 export * as EcmwfProduct from './weatherClasses/EcmwfProduct';
@@ -64,21 +45,17 @@ export * as cloudSync from './services/cloudSync';
 export { default as colors } from './services/colors';
 export * as connection from './services/connection';
 export { default as dataSpecifications } from './services/dataSpecifications';
-export * as detectDevice from './services/detectDevice';
 export * as device from './services/device';
 export * as deviceLogging from './services/deviceLogging';
 export * as geolocation from './services/geolocation';
-export * as liveAlerts from './services/liveAlerts';
 export * as notifications from './services/notifications';
 export * as ogTags from './services/ogTags';
 export * as params from './services/params';
 export * as pois from './services/pois';
 export * as reverseName from './services/reverseName';
 export * as rootScope from './services/rootScope';
-export * as router from './services/router';
 export { default as store } from './services/store';
 export * as trans from './services/trans';
-export * as userFavs from './services/userFavs';
 export * as userAlerts from './services/userAlerts';
 export * as userConsent from './services/userConsent';
 export * as user from './services/user';
@@ -99,14 +76,11 @@ export * as Window from './uiClasses/Window';
 export * as components from './ui/components';
 export * as startupWeather from './ui/startupWeather';
 export * as keyboard from './ui/keyboard';
-export * as location from './ui/location';
 export * as permanentPromos from './ui/permanentPromos';
-export * as promo from './ui/promo';
 export * as query from './ui/query';
 export * as rhMessage from './ui/rhMessage';
 export * as timeAnimation from './ui/timeAnimation';
 export * as visibility from './ui/visibility';
-export * as share from './ui/share';
 export * as loadArticlesOrWhatsNew from './ui/loadArticlesOrWhatsNew';
 export * as DataTiler from './renderClasses/DataTiler';
 export * as Particles from './renderClasses/Particles';
@@ -133,13 +107,6 @@ export * as map from './map/map';
 export * as mapGlobeCtrl from './map/mapGlobeCtrl';
 export * as picker from './map/picker';
 export * as singleclick from './map/singleclick';
-export * as mobile from './capacitor/mobile';
-export * as mobileUtils from './capacitor/mobileUtils';
-export * as nativeStorage from './capacitor/nativeStorage';
-export * as pushNotifications from './capacitor/pushNotifications';
-export * as appsFlyer from './capacitor/appsFlyer';
-export * as showableErrorsService from './capacitor/showableErrorsService';
-import './ui/patchAndPromoCtrl';
-import './ui/storeLastPosition';
-import './services/customColors';
-import './services/compatibilityCheck';
+export * as pushNotifications from './dummyModules/pushNotifications';
+export * as appsFlyer from './dummyModules/appsFlyer';
+export * as imaker from './services/imakerMain';

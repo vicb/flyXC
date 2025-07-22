@@ -66,6 +66,7 @@ export type ColorIdent =
   | 'uvindex'
   | 'turbulence'
   | 'icing'
+  | 'dewpoint'
   | 'wetbulbtemp';
 
 type PluginColorIdent =

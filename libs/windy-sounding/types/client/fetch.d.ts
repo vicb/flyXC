@@ -1,14 +1,26 @@
+/**
+ * # @windy/fetch
+ *
+ * Basic HTTP requests for getting URLs of our
+ * backend services or fetching data from Windy API.
+ * Although it works as wrapper around our {@link http} module,
+ * it ensures standardized way of fetching data.
+ *
+ * @module fetch
+ */
+import * as http from '@windy/http';
 import type { CityTemperaturesDto } from '@windy-types/citytile2';
 import type {
   DataHash,
   LatLon,
   MeteogramDataPayload,
   WeatherDataPayload,
+  CapAlertHeadline,
   ActiveStormCountPayload,
 } from '@windy/interfaces.d';
 import type { Pois, Products } from '@windy/rootScope.d';
 import type { ExtendedStationType, StationOrPoiType } from '@windy/types';
-import type { HttpOptions, HttpPayload, QueryStringSource } from './http.d';
+import type { HttpOptions, HttpPayload, QueryStringSource } from '@windy/http.d';
 interface LatLonStep extends LatLon {
   step?: number;
   interpolate?: boolean;
@@ -158,7 +170,8 @@ export declare const getObservationsUrl: (
  */
 export declare const getObservationPoiUrl: (type: StationOrPoiType | 'stations', id: string) => string;
 /**
- * Returns http promise for active hurricanes count
+ * Returns loading promise for cap alert headlines
  */
+export declare const getCapAlertsSummary: ({ lat, lon }: LatLon) => Promise<http.HttpPayload<CapAlertHeadline[]>>;
 export declare const getHurricanesCount: () => Promise<HttpPayload<ActiveStormCountPayload>>;
 export {};

@@ -102,4 +102,4 @@ export declare const seoLang: (lang: string) => string;
  * @param viewcount Number to show at animation end
  * @param el HTML element where animate counting and show the final number
  */
-export declare const animateViews: (viewcount: number, el: HTMLElement) => void;
+export declare const animateViews: (viewcount: number, el: HTMLElement, useViewsText?: boolean) => void;

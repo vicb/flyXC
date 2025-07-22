@@ -10,7 +10,7 @@ import {
   type PointProducts,
 } from '@windy/rootScope.d';
 
-import { Consent, GeolocationInfo, HomeLocation, InstalledExternalPluginConfig, LatLon } from '@windy/interfaces.d';
+import { Consent, DetailExtendedLatLon, GeolocationInfo, HomeLocation, LatLon } from '@windy/interfaces.d';
 
 import {
   MenuItems,
@@ -19,20 +19,21 @@ import {
   ShowableError,
   SubTier,
   Timestamp,
-  type Hours,
-  type RouteMotionSpeed,
-  type UsedMapLibrary,
-  type UserInterest,
+  Hours,
+  RouteMotionSpeed,
+  UsedMapLibrary,
+  UserInterest,
 } from '@windy/types.d';
 
 import { MetricItem } from '@windy/Metric.d';
 
-import type { User, LoginAndFinishAction } from '@windy/user.d';
+import type { LoginAndFinishAction, User } from '@windy/user.d';
 
 import type { SubscriptionInfo } from '@plugins/_shared/subscription-services/subscription-services.d';
 import type RadarCalendar from '@plugins/radar/calendar/RadarCalendar';
 import type SatelliteCalendar from '@plugins/satellite/calendar/SatelliteCalendar';
-import type { NumberRange } from './alerts';
+import type { NumberRange } from '@windy/alerts.d';
+import type { FavTypeNew } from '@windy/favs.d';
 
 /**
  * Custom animation particles settings
@@ -145,6 +146,11 @@ export interface DataSpecificationsObject<T> {
   asyncSet?: (...args: unknown[]) => Promise<T>;
 }
 
+export interface FeatureFlags {
+  disableSatellitePlus: boolean;
+  disableNewRadarPlusGui: boolean;
+}
+
 /**
  * # Properties used in @windy/store
  *
@@ -203,7 +209,7 @@ export interface DataSpecifications {
    * Read only value! UTC string containing time of actually rendered data that are available for current overlay and weather model.
    * @ignore
    */
-  path: DataSpecificationsObject<Path>;
+  path: DataSpecificationsObject<Path | null>;
 
   /**
    * Which type of isolines to render
@@ -276,6 +282,11 @@ export interface DataSpecifications {
   latlon: DataSpecificationsObject<boolean>;
 
   /**
+   * Display altitude on picker
+   */
+  showPickerElevation: DataSpecificationsObject<boolean>;
+
+  /**
    * Desired language for Windy. By default is determined by user's browser setting and set to `auto`.
    * Use `store.getAllowed('lang')` to get list of avail langs defined in `supportedLanguages.
    */
@@ -285,6 +296,11 @@ export interface DataSpecifications {
    * Show english map labels instead of localized labels
    */
   englishLabels: DataSpecificationsObject<boolean>;
+
+  /**
+   * Consent to receive newsletter
+   */
+  marketingConsent: DataSpecificationsObject<boolean>;
 
   /**
    * Display directions in Weather picker as number or as a string (for example NW).
@@ -379,6 +395,11 @@ export interface DataSpecifications {
   startUpLastOverlay: DataSpecificationsObject<boolean>;
 
   /**
+   * User selected default zoom
+   */
+  startUpZoom: DataSpecificationsObject<number | null>;
+
+  /**
    * Save forecast resolution step to be used at startup.
    * 1: 1h step
    * 3: 3h step
@@ -442,7 +463,7 @@ export interface DataSpecifications {
    * Detail's location - TODO: get rid of async name property
    * @ignore
    */
-  detailLocation: DataSpecificationsObject<(LatLon & { name?: string; id?: string }) | null>;
+  detailLocation: DataSpecificationsObject<DetailExtendedLatLon | null>;
 
   /**
    * 1h step of forecast
@@ -690,12 +711,6 @@ export interface DataSpecifications {
   mapCoords: DataSpecificationsObject<MapCoordinates | null>;
 
   /**
-   * Whether app has been launched from some source which requires different init state
-   * @ignore
-   */
-  launchedBy: DataSpecificationsObject<'radar-widget' | null>;
-
-  /**
    * Any stored metric
    * @ignore
    */
@@ -828,12 +843,6 @@ export interface DataSpecifications {
    */
   appLocalStorageCounter: DataSpecificationsObject<number | null>;
 
-  /**
-   * List of installed external plugins
-   * @ignore
-   */
-  installedPlugins: DataSpecificationsObject<InstalledExternalPluginConfig[]>;
-
   /*
    * User has entered into arrange mode in RH menu
    */
@@ -869,6 +878,22 @@ export interface DataSpecifications {
    * successfully sent to the backend
    */
   pushNotificationsReady: DataSpecificationsObject<boolean>;
+
+  /**
+   * Feature flags to enable/disable features without the need to re-release the client
+   */
+  featureFlags: DataSpecificationsObject<FeatureFlags>;
+
+  /**
+   * Whenever fullscreen plugin is opened on mobile device suspend potential
+   * sound & haptic feedback on radar/sat layers
+   */
+  suspendSoundAndHaptic: DataSpecificationsObject<boolean>;
+
+  /**
+   * User has enabled advanced features in debug console
+   */
+  advancedDebugConsole: DataSpecificationsObject<boolean>;
 }
 
 /**

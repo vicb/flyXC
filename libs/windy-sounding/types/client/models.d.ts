@@ -18,11 +18,11 @@ export declare const overlay2product: {
 /**
  * From list of products deduplicates icon/iconEu, iconWaves/iconEuWaves
  */
-export declare const dedupeIcon: (productsList: Products[]) => Products[];
+export declare const removeModelsFromSameGroup: (productsList: Products[]) => Products[];
 /**
  * Return particular icon related model based on rqrd and avbl models
  */
-export declare const getIconModel: (rqrdProduct: Products, avProducts: Products[]) => Products | null;
+export declare const bestModelFromSameGroup: (rqrdProduct: Products, avProducts: Products[]) => Products | null;
 /**
  * Return idents of visible local products available in the current map boundaries (or empty array undefined)
  */
@@ -31,6 +31,8 @@ export declare const betterProducts: <
   PT extends boolean,
   R extends PT extends true
     ?
+        | 'gfs'
+        | 'ecmwf'
         | 'icon'
         | 'namConus'
         | 'namHawaii'
@@ -58,16 +60,25 @@ export declare const betterProducts: <
         | 'ukv'
         | 'jmaMsm'
         | 'jmaCwmWaves'
-        | 'gfs'
-        | 'ecmwf'
         | 'mblue'
     :
-        | 'icon'
+        | 'drought'
         | 'radar'
         | 'satellite'
         | 'radarPlus'
         | 'capAlerts'
         | 'topoMap'
+        | 'gfs'
+        | 'ecmwf'
+        | 'ecmwfAnalysis'
+        | 'ecmwfWaves'
+        | 'gfsWaves'
+        | 'icon'
+        | 'cams'
+        | 'efi'
+        | 'cmems'
+        | 'fireDanger'
+        | 'activeFires'
         | 'nems'
         | 'namConus'
         | 'namHawaii'
@@ -96,17 +107,6 @@ export declare const betterProducts: <
         | 'ukv'
         | 'jmaMsm'
         | 'jmaCwmWaves'
-        | 'gfs'
-        | 'ecmwf'
-        | 'ecmwfAnalysis'
-        | 'ecmwfWaves'
-        | 'gfsWaves'
-        | 'cams'
-        | 'efi'
-        | 'cmems'
-        | 'drought'
-        | 'fireDanger'
-        | 'activeFires'
         | 'mblue',
 >(
   latLon: T,
@@ -121,7 +121,9 @@ export declare const getProduct: (overlay: Overlays, rqrdProduct: Products) => P
  */
 export declare const getAllPointProducts: <T extends LatLon>(latLon: T) => PointProducts[];
 /**
- * Returns dedupped AIR products for point forecast in given location
+ * Returns deduped AIR products for point forecast in given location
  */
-export declare const getPointProducts: <T extends LatLon>(latLon: T) => Products[];
+export declare const getPointProducts: <T extends LatLon>(latLon: T) => PointProducts[];
+export declare const hasMoreProducts: (ovr: Layers | UsedOverlays) => boolean;
+export declare const getDefaultProduct: (overlay: Overlays) => Products | undefined;
 export {};

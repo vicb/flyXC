@@ -10,5 +10,5 @@ export declare const latestBcasts: BcastHistory[];
  * @param msg
  * @param data
  */
-export declare const addLatestBcast: (ident: string, msg: string, data?: unknown) => void;
+export declare const addLatestBcast: (ident: string, msg: string, data?: string | unknown) => void;
 export declare const getLatestBcasts: (now: Timestamp) => string | undefined;

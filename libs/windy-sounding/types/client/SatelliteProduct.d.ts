@@ -15,5 +15,5 @@ export declare class SatelliteProduct extends StaticProduct {
   /**
    * Handling keyboard shortcuts
    */
-  moveTs(moveRight: boolean): void;
+  moveTs(moveRight: boolean): boolean;
 }

@@ -14,9 +14,8 @@ export interface AlertRequest {
   priority?: number;
   suspended: boolean;
   userInterest: UserInterest;
+  hasCustomDescription?: boolean;
 }
-
-type Extends<T, U extends T> = U;
 
 export type GlobalProductWithWaves = Extends<Products, 'ecmwf' | 'gfs' | 'icon' | 'mblue'>;
 

@@ -76,7 +76,7 @@ export declare class Color {
    * bOpaque .. set alpha to 255
    * bPremultiply .. mul RGB by A
    * valueScale .. optional scale used for WebGL texture data (coef 0.5 means half step - gradient size is doubled)
-   * return .. output Uint8Array with color data
+   * return .. output Uint8Array with color data (NOTE: Uint8ClampedArray NOT SUPPORTED in WebGL!)
    */
   createGradientArray(bOpaque?: boolean, bPremultiply?: boolean, valueScale?: number): Uint8Array;
   /**

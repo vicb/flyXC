@@ -1,4 +1,5 @@
 import type { DeviceInfo } from '@capacitor/device';
+export declare const generateDeviceId: () => string;
 /**
  * Returns platform unique persistent id for Android and iOS, or semi-persistent generated random id for desktop
  *
