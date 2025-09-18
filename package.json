@@ -116,7 +116,7 @@
     "axios": "1.7.9",
     "commander": "^12.1.0",
     "compression": "^1.7.5",
-    "connect-redis": "^9.0.0",
+    "connect-redis": "8.x",
     "core-js": "^3.36.1",
     "cors": "^2.8.5",
     "d3-array": "^3.2.4",
