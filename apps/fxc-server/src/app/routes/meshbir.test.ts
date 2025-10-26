@@ -66,7 +66,7 @@ describe('parseMessage', () => {
 
   describe('invalid messages', () => {
     it('should throw on invalid message', () => {
-      expect(() => parseMessage({ type: 'unkown' })).toThrowErrorMatchingInlineSnapshot(`"Invalid message format"`);
+      expect(() => parseMessage({ type: 'unknown' })).toThrowErrorMatchingInlineSnapshot(`"Invalid message format"`);
     });
 
     it('should throw on invalid values', () => {
