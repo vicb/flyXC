@@ -156,7 +156,15 @@ async function flushMessageQueue(redis: Redis): Promise<MeshBirMessage[]> {
 
     // Return older messages first
     return (messages as string[])
-      .map((json) => JSON.parse(json) as MeshBirMessage)
+      .map((json) => {
+        try {
+          return JSON.parse(json) as MeshBirMessage;
+        } catch {
+          console.error(`Error parsing meshbir ${json}`);
+          return undefined;
+        }
+      })
+      .filter((msg) => msg !== undefined)
       .sort((a, b) => (a.time > b.time ? 1 : -1));
   } catch (e) {
     console.error('Error reading meshbir queue', e);
