@@ -1,25 +1,12 @@
-import { fetchResponse } from '@flyxc/common';
 import { modalController } from '@ionic/core/components';
 import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { when } from 'lit/directives/when.js';
 
 @customElement('supporter-modal')
 export class SupporterModal extends LitElement {
-  private supporters = { names: [], amount: 0, number: 0, amountLast3Months: 0 };
-
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
-    try {
-      const response = await fetchResponse(`${import.meta.env.VITE_API_SERVER}/api/supporters.json`);
-      if (response.ok) {
-        this.supporters = await response.json();
-        this.requestUpdate();
-      }
-    } catch (e) {
-      // do nothing
-    }
   }
 
   render(): TemplateResult {
@@ -50,21 +37,6 @@ export class SupporterModal extends LitElement {
             height="41"
             width="174"
         /></a>
-
-        ${when(
-          this.supporters.number > 0 && this.supporters.number - this.supporters.names.length > 0,
-          () => html`
-            <ion-text color="dark">
-              <p>
-                Thanks to the ${this.supporters.number} supporters who have contributed
-                $${this.supporters.amountLast3Months} over the last 3 months and a total of $${this.supporters.amount}:
-              </p>
-              <p>
-                ${this.supporters.names.join(`, `)} and ${this.supporters.number - this.supporters.names.length} more.
-              </p>
-            </ion-text>
-          `,
-        )}
       </ion-content>
       <ion-footer>
         <ion-toolbar color="light">

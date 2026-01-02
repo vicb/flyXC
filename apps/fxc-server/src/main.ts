@@ -10,7 +10,6 @@ import session from 'express-session';
 import { getAdminRouter } from './app/routes/admin';
 import { getTrackerRouter } from './app/routes/live-track';
 import { getMeshBirRouter } from './app/routes/meshbir';
-import { getSupportersRouter } from './app/routes/supporters';
 import { getTrackRouter } from './app/routes/track';
 import { getWaypointRouter } from './app/routes/waypoints';
 import { getZoleoRouter } from './app/routes/zoleo';
@@ -92,8 +91,7 @@ const app = express()
   .use('/api/track', getTrackRouter(datastore))
   .use('/api/waypoint', getWaypointRouter())
   .use('/api/zoleo', getZoleoRouter(redis))
-  .use('/api/bircom', getMeshBirRouter(redis))
-  .use('/api', getSupportersRouter(redis));
+  .use('/api/bircom', getMeshBirRouter(redis));
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => console.info(`Started server on port ${port}.`));
