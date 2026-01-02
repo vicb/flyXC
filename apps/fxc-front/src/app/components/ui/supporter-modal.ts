@@ -5,10 +5,6 @@ import { customElement } from 'lit/decorators.js';
 
 @customElement('supporter-modal')
 export class SupporterModal extends LitElement {
-  async connectedCallback(): Promise<void> {
-    super.connectedCallback();
-  }
-
   render(): TemplateResult {
     return html`<ion-header>
         <ion-toolbar color="light">

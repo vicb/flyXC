@@ -52,7 +52,7 @@ function loadGMaps(): Promise<void> {
       const { key } = getApiKeyAndHost('GMAPS', store.getState().track.domain);
       gMapLoader.setOptions({
         key,
-        channel: 'weekly',
+        v: 'weekly',
         libraries: ['geometry', 'marker'],
       });
       gMapLoader.importLibrary('maps').then(() => resolve());
