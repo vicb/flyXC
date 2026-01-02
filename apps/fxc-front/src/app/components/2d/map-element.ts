@@ -1,6 +1,6 @@
 import type { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
 import { findClosestFix, pixelCoordinates } from '@flyxc/common';
-import { Loader } from '@googlemaps/js-api-loader';
+import * as gMapLoader from '@googlemaps/js-api-loader';
 import type { PropertyValues, TemplateResult } from 'lit';
 import { html, LitElement, svg } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -50,13 +50,12 @@ function loadGMaps(): Promise<void> {
   if (!gMapsApiLoading) {
     const load = (resolve: () => void) => {
       const { key } = getApiKeyAndHost('GMAPS', store.getState().track.domain);
-      new Loader({
-        apiKey: key,
-        version: 'weekly',
+      gMapLoader.setOptions({
+        key,
+        channel: 'weekly',
         libraries: ['geometry', 'marker'],
-      })
-        .load()
-        .then(resolve);
+      });
+      gMapLoader.importLibrary('maps').then(() => resolve());
     };
     let resolve: () => void = () => null;
     gMapsApiLoading = new Promise((r) => (resolve = r));
