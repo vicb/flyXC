@@ -99,7 +99,7 @@
     "@google-cloud/datastore": "^10.0.1",
     "@google-cloud/pubsub": "^5.2.0",
     "@google-cloud/storage": "^7.18.0",
-    "@googlemaps/js-api-loader": "^1.16.10",
+    "@googlemaps/js-api-loader": "^2.0.2",
     "@ionic/core": "^8.7.16",
     "@literals/rollup-plugin-html-css-minifier": "^3.0.1",
     "@mapbox/sphericalmercator": "^1.2.0",
