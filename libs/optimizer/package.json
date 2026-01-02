@@ -5,7 +5,7 @@
     "igc-parser": "^2.0.0",
     "igc-xc-score": "^1.7.0",
     "tslib": "^2.3.0",
-    "@eslint/js": "9.35.0",
+    "@eslint/js": "9.39.2",
     "jsonc-eslint-parser": "2.4.0"
   },
   "type": "module",
