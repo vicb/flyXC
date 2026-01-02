@@ -15,7 +15,6 @@ import type { Datastore } from '@google-cloud/datastore';
 import { program } from 'commander';
 import type { ChainableCommander } from 'ioredis';
 
-import { fetchSupporters } from './app/misc/buy-coffee';
 import { addExportLogs, addHostInfo, addStateLogs, addSyncLogs, HandleCommand } from './app/redis';
 import { createStateArchive, exportToStorage } from './app/state/serialize';
 import {
@@ -28,7 +27,6 @@ import {
   PERIODIC_STATE_PATH,
   restoreState,
   SHUTDOWN_STATE_PATH,
-  SUPPORTER_SYNC_SEC,
 } from './app/state/state';
 import { syncFromDatastore } from './app/state/sync';
 import { disconnectOgnClient, resfreshTrackers } from './app/trackers/refresh';
@@ -126,19 +124,6 @@ async function tick(state: protos.FetcherState, datastore: Datastore) {
         const success = await exportToStorage(state, BUCKET_NAME, PERIODIC_STATE_PATH);
         state.nextExportSec = state.lastTickSec + EXPORT_FILE_SEC;
         addExportLogs(pipeline, success, state.lastTickSec);
-      }
-
-      // Sync supporters.
-      if (state.lastTickSec > state.nextSupporterSyncSec) {
-        const supporters = await fetchSupporters();
-        pipeline
-          .del(Keys.supporterNames)
-          .set(Keys.supporterNum, supporters.numSupporters)
-          .set(Keys.supporterAmount, supporters.totalAmount)
-          .set(Keys.supporterLast3MonthsAmount, supporters.last3MonthsAmount)
-          .del(Keys.supporterNames)
-          .rpush(Keys.supporterNames, ...Array.from(supporters.names).slice(0, 50));
-        state.nextSupporterSyncSec = state.lastTickSec + SUPPORTER_SYNC_SEC;
       }
 
       await pipeline.exec();
