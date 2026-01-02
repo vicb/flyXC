@@ -117,7 +117,8 @@ export const openPlugin = async ({ lat, lon, modelName }: { lat: number; lon: nu
   const location = { lat, lon };
 
   windyMap.setZoom(10, { animate: false });
-  windyStore.set('overlay', 'clouds');
+  // TODO: added a setTimeout to avoid a crash being investigated by the windy team.
+  setTimeout(() => windyStore.set('overlay', 'clouds'), 200);
   centerMap(location);
 
   dispatch(pluginSlice.setFavorites(await favs.getAll()));
