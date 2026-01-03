@@ -1,12 +1,35 @@
 // from ionic-framework/core/components/ion-router.js (my-router branch)
+// `componentOnReady` and `debounce` are inlined
 
 // @ts-nocheck
 
 /*!
  * (C) Ionic http://ionicframework.com - MIT License
  */
-import { c as componentOnReady, o as debounce } from '@ionic/core/components/helpers.js';
 import { createEvent, HTMLElement, proxyCustomElement } from '@stencil/core/internal/client';
+
+// Inlined from core/src/utils/helpers.ts
+const raf = (h: FrameRequestCallback) => {
+  if (typeof requestAnimationFrame === 'function') {
+    return requestAnimationFrame(h);
+  }
+  return setTimeout(h);
+};
+const componentOnReady = (el: any, callback: any) => {
+  if (el.componentOnReady) {
+    el.componentOnReady().then((resolvedEl: any) => callback(resolvedEl));
+  } else {
+    raf(() => callback(el));
+  }
+};
+
+const debounce = (func: (...args: any[]) => void, wait = 0) => {
+  let timer: any;
+  return (...args: any[]): any => {
+    clearTimeout(timer);
+    timer = setTimeout(func, wait, ...args);
+  };
+};
 
 const ROUTER_INTENT_NONE = 'root';
 const ROUTER_INTENT_FORWARD = 'forward';
