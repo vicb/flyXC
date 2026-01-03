@@ -53,9 +53,14 @@ function loadGMaps(): Promise<void> {
       gMapLoader.setOptions({
         key,
         v: 'weekly',
-        libraries: ['geometry', 'marker'],
       });
-      gMapLoader.importLibrary('maps').then(() => resolve());
+      Promise.all([
+        gMapLoader.importLibrary('maps'),
+        gMapLoader.importLibrary('marker'),
+        gMapLoader.importLibrary('geometry'),
+      ]).then((): void => {
+        resolve();
+      });
     };
     let resolve: () => void = () => null;
     gMapsApiLoading = new Promise((r) => (resolve = r));
