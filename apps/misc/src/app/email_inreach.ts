@@ -3,7 +3,6 @@ import { setTimeout } from 'node:timers/promises';
 
 import type { LiveTrackEntity } from '@flyxc/common';
 import { trackerNames } from '@flyxc/common';
-import { Secrets } from '@flyxc/secrets';
 import { EmailParams, MailerSend, Recipient, Sender } from 'mailersend';
 
 (async () => {
@@ -15,7 +14,7 @@ import { EmailParams, MailerSend, Recipient, Sender } from 'mailersend';
   console.log(`## Found ${inreachOnly.length} account with only inReach enabled`);
 
   const mailerSend = new MailerSend({
-    apiKey: Secrets.MAILERSEND_TOKEN,
+    apiKey: SECRETS.MAILERSEND_TOKEN,
   });
 
   for (const { name, email } of inreachOnly) {

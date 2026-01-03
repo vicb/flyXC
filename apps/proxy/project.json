@@ -8,17 +8,11 @@
     "build": {
       "executor": "@nx/webpack:webpack",
       "outputs": ["{options.outputPath}"],
-      "dependsOn": [
-        {
-          "projects": ["secrets"],
-          "target": "build"
-        }
-      ],
       "options": {
         "target": "node",
         "compiler": "tsc",
         "outputPath": "dist/apps/proxy",
-        "main": "apps/proxy/src/main.ts",
+        "main": "apps/proxy/src/index.ts",
         "tsConfig": "apps/proxy/tsconfig.app.json",
         "generatePackageJson": true,
         "babelUpwardRootMode": true,
@@ -44,12 +38,6 @@
       }
     },
     "test": {
-      "dependsOn": [
-        {
-          "projects": ["secrets"],
-          "target": "build"
-        }
-      ],
       "options": {
         "passWithNoTests": true
       },

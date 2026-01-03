@@ -9,7 +9,6 @@ import {
   SkylinesValidator,
   updateLiveTrackEntityFromModel,
 } from '@flyxc/common-node';
-import { Secrets } from '@flyxc/secrets';
 import { Datastore } from '@google-cloud/datastore';
 import { NoDomBinder } from '@vaadin/nodom';
 import type { Request, Response } from 'express';
@@ -30,7 +29,7 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
     const token = req.header('token');
     if (token) {
       switch (token) {
-        case Secrets.FLYME_TOKEN: {
+        case SECRETS.FLYME_TOKEN: {
           const groupProto = await redis.getBuffer(Keys.fetcherExportFlymeProto);
           if (req.header('accept') == 'application/json') {
             const track = protos.LiveDifferentialTrackGroup.fromBinary(groupProto!);
@@ -137,7 +136,7 @@ export async function createOrUpdateLiveTrack(
   req: Request,
   res: Response,
   email: string,
-  token: string,
+  googleId: string,
   redis: Redis,
 ) {
   try {
@@ -147,7 +146,7 @@ export async function createOrUpdateLiveTrack(
 
     // Server side validators.
     const model = binder.model;
-    binder.for(model.flyme).addValidator(new FlyMeValidator(entity?.flyme));
+    binder.for(model.flyme).addValidator(new FlyMeValidator(entity?.flyme, SECRETS.FLYME_TOKEN));
     binder.for(model.inreach).addValidator(new InreachValidator(entity?.inreach));
     binder.for(model.skylines).addValidator(new SkylinesValidator(entity?.skylines));
 
@@ -164,7 +163,7 @@ export async function createOrUpdateLiveTrack(
       });
     }
 
-    entity = updateLiveTrackEntityFromModel(entity, account, email, token);
+    entity = updateLiveTrackEntityFromModel(entity, account, email, googleId);
 
     try {
       await datastore.save({

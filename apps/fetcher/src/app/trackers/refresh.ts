@@ -9,7 +9,6 @@ import {
   simplifyLiveTrack,
 } from '@flyxc/common';
 import { pushListCap } from '@flyxc/common-node';
-import { Secrets } from '@flyxc/secrets';
 import type { Datastore } from '@google-cloud/datastore';
 import type { ChainableCommander, Redis } from 'ioredis';
 
@@ -27,7 +26,7 @@ import type { TrackerUpdates } from './tracker';
 import { XcontestFetcher } from './xcontest';
 import { ZoleoFetcher } from './zoleo';
 
-const ognClient = new OgnClient(OGN_HOST, OGN_PORT, Secrets.APRS_USER, Secrets.APRS_PASSWORD);
+const ognClient = new OgnClient(OGN_HOST, OGN_PORT, SECRETS.APRS_USER, SECRETS.APRS_PASSWORD);
 
 export function disconnectOgnClient() {
   ognClient.disconnect();

@@ -8,7 +8,6 @@ import {
   ZOLEO_MAX_MSG,
   ZOLEO_MAX_MSG_SIZE,
 } from '@flyxc/common-node';
-import { Secrets } from '@flyxc/secrets';
 import { Datastore } from '@google-cloud/datastore';
 import type { Request, Response } from 'express';
 import { Router } from 'express';
@@ -20,7 +19,7 @@ import { getUserInfo, isLoggedIn } from './session';
 
 const auth = basicAuth({
   users: {
-    [Secrets.ZOLEO_PUSH_USER]: Secrets.ZOLEO_PUSH_PWD,
+    [SECRETS.ZOLEO_PUSH_USER]: SECRETS.ZOLEO_PUSH_PWD,
   },
 });
 
@@ -107,11 +106,11 @@ export function getZoleoRouter(redis: Redis): Router {
     }
 
     try {
-      const url = Secrets.ZOLEO_UNLINK_URL.replace('{deviceId}', deviceId);
+      const url = SECRETS.ZOLEO_UNLINK_URL.replace('{deviceId}', deviceId);
       const response = await fetchResponse(url, {
         method: 'PUT',
         headers: {
-          'x-api-key': Secrets.ZOLEO_UNLINK_API_KEY,
+          'x-api-key': SECRETS.ZOLEO_UNLINK_API_KEY,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ status: 'inactive' }),

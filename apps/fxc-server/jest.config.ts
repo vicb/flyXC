@@ -1,7 +1,12 @@
 export default {
   displayName: 'fxc-server',
   preset: '../../jest.preset.js',
-  globals: {},
+  globals: {
+    // Defined secrets used during tests.
+    SECRETS: {
+      ADMINS: 'admin',
+    },
+  },
   testEnvironment: 'node',
   transform: {
     '^.+\\.[tj]s$': [

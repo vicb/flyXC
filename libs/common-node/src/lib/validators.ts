@@ -1,6 +1,5 @@
 import type { TrackerEntity, TrackerModel } from '@flyxc/common';
 import { fetchResponse, validateInreachAccount, validateSkylinesAccount } from '@flyxc/common';
-import { Secrets } from '@flyxc/secrets';
 import type { Validator } from '@vaadin/nodom';
 
 // Makes sure the account is not password protected.
@@ -48,10 +47,8 @@ export class InreachValidator implements Validator<TrackerModel> {
 //
 // Returns a numeric id when the username exists or undefined.
 // Throws when there is a server error or a status code != 200.
-async function getFlyMeId(username: string): Promise<string | undefined> {
-  const url = `https://xcglobe.com/livetrack/flyxcRegisterUser?username=${encodeURIComponent(username)}&token=${
-    Secrets.FLYME_TOKEN
-  }`;
+async function getFlyMeId(username: string, token: string): Promise<string | undefined> {
+  const url = `https://xcglobe.com/livetrack/flyxcRegisterUser?username=${encodeURIComponent(username)}&token=${token}`;
 
   let response: Response;
 
@@ -80,7 +77,7 @@ export class FlyMeValidator implements Validator<TrackerModel> {
   private currentEnabled = false;
   private currentAccount = '';
 
-  constructor(flyme: TrackerEntity | undefined) {
+  constructor(flyme: TrackerEntity | undefined, private token: string) {
     if (flyme != null) {
       this.currentAccount = flyme.account;
       this.currentEnabled = flyme.enabled;
@@ -100,7 +97,7 @@ export class FlyMeValidator implements Validator<TrackerModel> {
     }
 
     try {
-      tracker.account_resolved = await getFlyMeId(tracker.account);
+      tracker.account_resolved = await getFlyMeId(tracker.account, this.token);
       return true;
     } catch (e) {
       this.message = `${e}`;

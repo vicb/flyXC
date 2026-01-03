@@ -1,7 +1,6 @@
-import { Secrets } from '@flyxc/secrets';
 import type { Request } from 'express';
 
-const adminEmails = Secrets.ADMINS.split(',');
+const adminEmails = SECRETS.ADMINS.split(',');
 
 declare module 'express-session' {
   interface SessionData {

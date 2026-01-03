@@ -3,7 +3,7 @@
   "version": "2.2.0",
   "license": "MIT",
   "scripts": {
-    "dev": "nx build secrets && nx run-many --target=serve --projects=fxc-front,fxc-server,fxc-tiles --configuration=development",
+    "dev": "nx run-many --target=serve --projects=fxc-front,fxc-server,fxc-tiles --configuration=development",
     "check": "npm run fixlint && nx format && nx run-many --targets=test,lint,build --parallel 6",
     "fixlint": "nx run-many -t lint --fix --parallel 6"
   },
@@ -55,6 +55,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "@vitest/coverage-v8": "^1.0.4",
     "@vitest/ui": "^1.3.1",
+    "baseline-browser-mapping": "^2.9.11",
     "cypress": "13.13.0",
     "dotenv-webpack": "^8.1.1",
     "eslint": "^9.39.2",
@@ -94,6 +95,7 @@
     "@alenaksu/json-viewer": "^2.1.2",
     "@arcgis/core": "^4.34.8",
     "@date-fns/tz": "^1.4.1",
+    "@dotenvx/dotenvx": "^1.51.4",
     "@dr.pogodin/csurf": "^1.16.7",
     "@google-cloud/compute": "^6.6.0",
     "@google-cloud/datastore": "^10.0.1",

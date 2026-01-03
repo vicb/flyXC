@@ -1,5 +1,4 @@
 import { getDatastore, getRedisClient } from '@flyxc/common-node';
-import { Secrets } from '@flyxc/secrets';
 import compression from 'compression';
 import { RedisStore } from 'connect-redis';
 import cors from 'cors';
@@ -17,7 +16,7 @@ import { environment } from './environments/environment';
 
 const grant = require('grant').express();
 
-const redis = getRedisClient(Secrets.REDIS_URL);
+const redis = getRedisClient(SECRETS.REDIS_URL);
 
 const datastore = getDatastore();
 
@@ -49,7 +48,7 @@ const app = express()
   .use(fileUpload({ headers: { 'content-type': 'application/octet-stream' }, limits: { fileSize: 32 * 1024 * 1024 } }))
   .use(
     session({
-      secret: Secrets.SESSION_SECRET,
+      secret: SECRETS.SESSION_SECRET,
       cookie: {
         httpOnly: true,
         path: '/',
@@ -76,8 +75,8 @@ const app = express()
         prefix: '/oauth',
       },
       google: {
-        key: Secrets.GOOGLE_OAUTH_ID,
-        secret: Secrets.GOOGLE_OAUTH_SECRET,
+        key: SECRETS.GOOGLE_OAUTH_ID,
+        secret: SECRETS.GOOGLE_OAUTH_SECRET,
         scope: ['openid', 'email', 'profile'],
         nonce: true,
         callback: '/devices.html',

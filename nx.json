@@ -49,7 +49,7 @@
       "!{projectRoot}/src/test-setup.[jt]s",
       "!{projectRoot}/eslint.config.js"
     ],
-    "sharedGlobals": ["{workspaceRoot}/babel.config.json"]
+    "sharedGlobals": ["{workspaceRoot}/babel.config.json", "{workspaceRoot}/secrets.env.local"]
   },
   "generators": {
     "@nx/web:application": {

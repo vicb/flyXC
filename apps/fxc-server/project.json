@@ -8,12 +8,6 @@
     "build": {
       "executor": "@nx/webpack:webpack",
       "outputs": ["{options.outputPath}"],
-      "dependsOn": [
-        {
-          "projects": ["secrets"],
-          "target": "build"
-        }
-      ],
       "options": {
         "target": "node",
         "compiler": "tsc",
@@ -62,12 +56,6 @@
       }
     },
     "test": {
-      "dependsOn": [
-        {
-          "projects": ["secrets"],
-          "target": "build"
-        }
-      ],
       "options": {
         "passWithNoTests": true
       },

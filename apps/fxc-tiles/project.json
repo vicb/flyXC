@@ -8,12 +8,6 @@
     "build": {
       "executor": "@nx/webpack:webpack",
       "outputs": ["{options.outputPath}"],
-      "dependsOn": [
-        {
-          "projects": ["secrets"],
-          "target": "build"
-        }
-      ],
       "options": {
         "target": "node",
         "compiler": "tsc",
@@ -77,12 +71,6 @@
     },
     "test": {
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/coverage/apps/fxc-tiles"],
-      "dependsOn": [
-        {
-          "projects": ["secrets"],
-          "target": "build"
-        }
-      ],
       "options": {
         "passWithNoTests": true
       },
