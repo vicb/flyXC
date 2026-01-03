@@ -7,6 +7,7 @@ import './tracking3d-element';
 
 import Basemap from '@arcgis/core/Basemap';
 import esriConfig from '@arcgis/core/config';
+import * as arcgisDecorators from '@arcgis/core/core/accessorSupport/decorators.js';
 import { watch } from '@arcgis/core/core/reactiveUtils.js';
 import Point from '@arcgis/core/geometry/Point';
 import BaseElevationLayer from '@arcgis/core/layers/BaseElevationLayer';
@@ -58,6 +59,8 @@ export class Map3dElement extends connect(store)(LitElement) {
   private graphicsLayer?: GraphicsLayer;
   @state()
   private gndGraphicsLayer?: GraphicsLayer;
+  @state()
+  private apiLoaded = false;
 
   // ArcGis objects.
   private map?: Map;
@@ -78,6 +81,7 @@ export class Map3dElement extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     this.tracks = sel.tracks(state);
+    this.apiLoaded = !state.app.loadingApi;
     this.timeSec = state.app.timeSec;
     this.currentTrackId = state.track.currentTrackId;
     this.multiplier = state.arcgis.altMultiplier;
@@ -117,9 +121,9 @@ export class Map3dElement extends connect(store)(LitElement) {
     if (changedProps.has('multiplier')) {
       changedProps.delete('multiplier');
       if (this.elevationLayer) {
-        this.map?.ground.layers.remove(this.elevationLayer as any);
-        this.elevationLayer = createElevationLayer(this.multiplier);
-        this.map?.ground.layers.add(this.elevationLayer as any);
+        this.map?.ground.layers.remove(this.elevationLayer);
+        this.elevationLayer = new ExaggeratedElevationLayer({ multiplier: this.multiplier });
+        this.map?.ground.layers.add(this.elevationLayer);
       }
     }
 
@@ -139,6 +143,7 @@ export class Map3dElement extends connect(store)(LitElement) {
 
   connectedCallback(): void {
     super.connectedCallback();
+    this.apiLoaded = false;
     store.dispatch(setApiLoading(true));
     // Add Arcgis CSS
     const linkHref = `${esriConfig.assetsPath}/esri/themes/light/main.css`;
@@ -151,7 +156,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   }
 
   firstUpdated(): void {
-    this.elevationLayer = createElevationLayer(this.multiplier);
+    this.elevationLayer = new ExaggeratedElevationLayer({ multiplier: this.multiplier });
 
     const labelLayer = new SceneLayer({
       portalItem: { id: '002ce369070544f4ba55886efee41983' },
@@ -247,7 +252,11 @@ export class Map3dElement extends connect(store)(LitElement) {
 
         watch(
           () => view.center,
-          (point: Point) => this.handleLocation({ lat: point.latitude ?? 0, lon: point.longitude ?? 0 }),
+          (point?: Point) => {
+            if (point) {
+              this.handleLocation({ lat: point.latitude ?? 0, lon: point.longitude ?? 0 });
+            }
+          },
         );
       })
       .catch(async (e) => {
@@ -405,7 +414,7 @@ export class Map3dElement extends connect(store)(LitElement) {
         ${Object.getOwnPropertyNames(this.basemaps).map((name) => html`<option value="${name}">${name}</option>`)}
       </select>
       ${when(
-        this.graphicsLayer != null,
+        this.graphicsLayer != null && this.apiLoaded,
         () => html`<tracking3d-element
             .layer=${this.graphicsLayer}
             .gndLayer=${this.gndGraphicsLayer}
@@ -439,36 +448,42 @@ export class Map3dElement extends connect(store)(LitElement) {
   }
 }
 
-let Layer: any;
+@arcgisDecorators.subclass()
+class ExaggeratedElevationLayer extends BaseElevationLayer {
+  @arcgisDecorators.property()
+  multiplier = 1;
+  @arcgisDecorators.property()
+  _elevation: ElevationLayer | undefined;
 
-// Creates a layer with exaggeration.
-// See https://developers.arcgis.com/javascript/latest/api-reference/esri-layers-BaseElevationLayer.html
-function createElevationLayer(multiplier = 1): BaseElevationLayer {
-  if (!Layer) {
-    Layer = (BaseElevationLayer as any).createSubclass({
-      properties: {
-        // exaggeration multiplier.
-        multiplier: 1,
-      },
-      load: function () {
-        this._elevation = new ElevationLayer({
-          url: '//elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer',
-        });
-      },
-      fetchTile: function (level: number, row: number, col: number, options: unknown) {
-        return this._elevation.fetchTile(level, row, col, options).then((data: { values?: number[] }) => {
-          if (data.values) {
-            for (let i = 0; i < data.values.length; i++) {
-              data.values[i] *= this.multiplier;
-            }
-          }
-          return data;
-        });
-      },
-    });
+  constructor(properties: __esri.BaseElevationLayerProperties & { multiplier: number }) {
+    super(properties);
+    this.multiplier = properties.multiplier;
   }
 
-  const layer = new Layer();
-  layer.multiplier = multiplier;
-  return layer;
+  load(): Promise<void> {
+    this._elevation = new ElevationLayer({
+      url: 'https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer',
+    });
+    const loadPromise = this._elevation.load();
+    this.addResolvingPromise(loadPromise);
+    return loadPromise;
+  }
+
+  async fetchTile(
+    level: number,
+    row: number,
+    col: number,
+    options?: __esri.BaseElevationLayerFetchTileOptions,
+  ): Promise<__esri.ElevationTileData> {
+    if (!this._elevation) {
+      return {} as any;
+    }
+    const data = await this._elevation.fetchTile(level, row, col, options);
+    if (data.values) {
+      for (let i = 0; i < data.values.length; i++) {
+        data.values[i] *= this.multiplier;
+      }
+    }
+    return data;
+  }
 }
