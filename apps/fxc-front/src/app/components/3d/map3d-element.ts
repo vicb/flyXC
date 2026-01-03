@@ -12,7 +12,6 @@ import Point from '@arcgis/core/geometry/Point';
 import BaseElevationLayer from '@arcgis/core/layers/BaseElevationLayer';
 import ElevationLayer from '@arcgis/core/layers/ElevationLayer';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
-import IntegratedMesh3DTilesLayer from '@arcgis/core/layers/IntegratedMesh3DTilesLayer.js';
 import SceneLayer from '@arcgis/core/layers/SceneLayer';
 import TileLayer from '@arcgis/core/layers/TileLayer';
 import VectorTileLayer from '@arcgis/core/layers/VectorTileLayer';
@@ -32,7 +31,6 @@ import { when } from 'lit/directives/when.js';
 import type { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
-import { getApiKeyAndHost } from '../../apikey';
 import * as msg from '../../logic/messages';
 import { setApiLoading, setTimeSec, setView3d } from '../../redux/app-slice';
 import { setCurrentLiveId } from '../../redux/live-track-slice';
@@ -69,7 +67,6 @@ export class Map3dElement extends connect(store)(LitElement) {
   private airspace?: Airspace3dElement;
   private basemaps: Record<string, string | Basemap | null> = {
     Satellite: null,
-    Google: null,
     OpenTopoMap: null,
     'IGN France': null,
     Topo: 'topo-3d',
@@ -330,19 +327,6 @@ export class Map3dElement extends connect(store)(LitElement) {
       ],
       title: 'IGN',
       id: 'ignfr',
-    });
-
-    this.basemaps.Google = new Basemap({
-      baseLayers: [
-        new IntegratedMesh3DTilesLayer({
-          url: 'https://tile.googleapis.com/v1/3dtiles/root.json',
-          title: 'Google tiles',
-          customParameters: { key: getApiKeyAndHost('GMAPS').key },
-        }),
-      ],
-      referenceLayers: [labelLayer],
-      title: 'google',
-      id: 'google',
     });
   }
 
