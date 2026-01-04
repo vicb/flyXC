@@ -11,7 +11,6 @@ import {
   simplifyLiveTrack,
   validateFlymasterAccount,
 } from '@flyxc/common';
-import { Secrets } from '@flyxc/secrets';
 
 import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
@@ -52,8 +51,8 @@ export class FlymasterFetcher extends TrackerFetcher {
       }
 
       let flights: { [id: string]: any } = {};
-      const url = `https://lt.flymaster.net/wlb/getLiveData.php?grp=${Secrets.FLYMASTER_GROUP_ID}&token=${
-        Secrets.FLYMASTER_GROUP_TOKEN
+      const url = `https://lt.flymaster.net/wlb/getLiveData.php?grp=${SECRETS.FLYMASTER_GROUP_ID}&token=${
+        SECRETS.FLYMASTER_GROUP_TOKEN
       }&trackers=${JSON.stringify(trackersParam)}`;
 
       try {

@@ -1,7 +1,9 @@
 export default {
   displayName: 'fetcher',
   preset: '../../jest.preset.js',
-  globals: {},
+  globals: {
+    SECRETS: {},
+  },
   testEnvironment: 'node',
   transform: {
     '^.+\\.[tj]s$': [

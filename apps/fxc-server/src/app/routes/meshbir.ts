@@ -1,7 +1,6 @@
 import { Keys } from '@flyxc/common';
 import type { MeshBirMessage } from '@flyxc/common-node';
 import { MESHBIR_MAX_MSG, MESHBIR_MAX_MSG_SIZE, positionSchema, pushListCap, textSchema } from '@flyxc/common-node';
-import { Secrets } from '@flyxc/secrets';
 import type { Request, Response } from 'express';
 import { Router } from 'express';
 import type Redis from 'ioredis';
@@ -13,7 +12,7 @@ export function getMeshBirRouter(redis: Redis): Router {
   // Hook called by meshbir.
   router.post('/push', async (req: Request, res: Response) => {
     const [bearer, value] = req.headers.authorization.split(' ');
-    if (bearer.toLowerCase() !== 'bearer' || value !== Secrets.MESHBIR_AUTH_TOKEN) {
+    if (bearer.toLowerCase() !== 'bearer' || value !== SECRETS.MESHBIR_AUTH_TOKEN) {
       return res.sendStatus(403);
     }
 

@@ -10,7 +10,6 @@ import {
   TRACKERS_MAX_FETCH_DURATION_SEC,
   validateXContestAccount,
 } from '@flyxc/common';
-import { Secrets } from '@flyxc/secrets';
 
 import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
@@ -51,7 +50,7 @@ export class XcontestFetcher extends TrackerFetcher {
     try {
       const response = await fetchResponse(liveUserUrl, {
         timeoutS: 30,
-        headers: { Authorization: `Bearer ${Secrets.XCONTEXT_JWT}` },
+        headers: { Authorization: `Bearer ${SECRETS.XCONTEST_JWT}` },
       });
       if (response.ok) {
         try {
@@ -103,7 +102,7 @@ export class XcontestFetcher extends TrackerFetcher {
           .replace('{flightUuid}', flightId);
         const response = await fetchResponse(url, {
           timeoutS: 10,
-          headers: { Authorization: `Bearer ${Secrets.XCONTEXT_JWT}` },
+          headers: { Authorization: `Bearer ${SECRETS.XCONTEST_JWT}` },
         });
         if (response.ok) {
           try {

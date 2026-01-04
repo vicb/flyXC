@@ -1,7 +1,6 @@
 import { diffDecodeTrack, diffEncodeAirspaces, diffEncodeArray32bit, fetchResponse, protos } from '@flyxc/common';
 import type { TrackEntity } from '@flyxc/common-node';
 import { retrieveTrackById, saveTrack } from '@flyxc/common-node';
-import { Secrets } from '@flyxc/secrets';
 import type { Datastore } from '@google-cloud/datastore';
 import async from 'async';
 import * as polyline from 'google-polyline';
@@ -79,7 +78,7 @@ async function getLocation(track: protos.Track): Promise<{ city: string; country
   try {
     if (track.lat && track.lat.length > 0 && track.lon && track.lon.length > 0) {
       const response = await fetchResponse(
-        `http://api.geonames.org/findNearbyPlaceNameJSON?lat=${track.lat[0]}&lng=${track.lon[0]}&username=${Secrets.GEONAMES}`,
+        `http://api.geonames.org/findNearbyPlaceNameJSON?lat=${track.lat[0]}&lng=${track.lon[0]}&username=${SECRETS.GEONAMES}`,
         {
           retry: 3,
           timeoutS: 5,

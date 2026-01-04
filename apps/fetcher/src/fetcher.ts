@@ -10,7 +10,6 @@ import {
   removeDeviceFromLiveTrack,
 } from '@flyxc/common';
 import { getDatastore, getRedisClient } from '@flyxc/common-node';
-import { Secrets } from '@flyxc/secrets';
 import type { Datastore } from '@google-cloud/datastore';
 import { program } from 'commander';
 import type { ChainableCommander } from 'ioredis';
@@ -32,7 +31,7 @@ import { syncFromDatastore } from './app/state/sync';
 import { disconnectOgnClient, resfreshTrackers } from './app/trackers/refresh';
 import { resfreshUfoFleets } from './app/ufos/refresh';
 
-const redis = getRedisClient(Secrets.REDIS_URL);
+const redis = getRedisClient(SECRETS.REDIS_URL);
 
 program.option('-e, --exit_hours <hours>', 'restart after', '0').parse();
 
