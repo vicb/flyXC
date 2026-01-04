@@ -10,7 +10,7 @@
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "outputPath": "dist/libs/windy-sounding"
+        "outputPath": "libs/windy-sounding/dist"
       },
       "configurations": {
         "development": {
@@ -60,11 +60,11 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "rm -rf dist/libs/windy-sounding",
+          "rm -rf libs/windy-sounding/dist",
           "npx nx build windy-sounding --configuration=production --skip-nx-cache",
           "npx nx build windy-sounding --configuration=development --skip-nx-cache",
           "BUILD_PLUGIN_CONFIG=true npx nx build windy-sounding --configuration production --skip-nx-cache",
-          "node libs/windy-sounding/generate-manifest.js dist/libs/windy-sounding"
+          "node libs/windy-sounding/generate-manifest.js libs/windy-sounding/dist"
         ],
         "parallel": false
       }

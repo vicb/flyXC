@@ -6,45 +6,31 @@
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@nx/webpack:webpack",
+      "executor": "@nx/vite:build",
       "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
       "options": {
-        "target": "node",
-        "compiler": "tsc",
-        "outputPath": "dist/apps/proxy",
-        "main": "apps/proxy/src/index.ts",
-        "tsConfig": "apps/proxy/tsconfig.app.json",
-        "generatePackageJson": true,
-        "babelUpwardRootMode": true,
-        "webpackConfig": "apps/proxy/webpack.config.js"
+        "outputPath": "apps/proxy/dist",
+        "generatePackageJson": false
       },
       "configurations": {
+        "development": {
+          "mode": "development"
+        },
         "production": {
-          "optimization": true,
-          "extractLicenses": true,
-          "inspect": false
+          "mode": "production"
         }
       }
     },
     "serve": {
-      "executor": "@nx/js:node",
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
       "options": {
-        "buildTarget": "proxy:build"
+        "command": "node apps/proxy/dist/index.js"
       },
       "configurations": {
         "production": {
-          "buildTarget": "proxy:build:production"
-        }
-      }
-    },
-    "test": {
-      "options": {
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "coverage": true
+          "command": "node apps/proxy/dist/index.js"
         }
       }
     },

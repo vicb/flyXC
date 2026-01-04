@@ -18,8 +18,10 @@ import { fetchResponse } from './fetch-timeout';
 
 async function getTile(x: number, y: number, z: number): Promise<Map<string, AirspaceTyped>> {
   const airspaces = new Map<string, AirspaceTyped>();
-  let buffer: ArrayBuffer;
+  let buffer: Buffer;
 
+  // `__dirname` is `base/libs/common/src/lib`
+  // We want to get `base/apps/fxc-tiles/src/assets/airspaces/tiles/{z}/{x}/{y}.pbf`
   const filename = path.join(__dirname, '../../../..', `apps/fxc-tiles/src/assets/airspaces/tiles/${z}/${x}/${y}.pbf`);
   if (fs.existsSync(filename)) {
     buffer = fs.readFileSync(filename);
@@ -29,7 +31,7 @@ async function getTile(x: number, y: number, z: number): Promise<Map<string, Air
     if (!response.ok) {
       throw new Error(`Error reading the tile ${url}`);
     }
-    buffer = await response.arrayBuffer();
+    buffer = Buffer.from(await response.arrayBuffer());
   }
 
   const aspLayer = new VectorTile(new Uint8Array(buffer)).layers.asp;

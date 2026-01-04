@@ -1,5 +1,3 @@
-import { expect } from '@jest/globals';
-
 import {
   decimalDegreeToDegreesMinutes,
   degreesMinutesToDecimalDegrees,
@@ -23,7 +21,7 @@ describe('decimalDegreeToDegreesMinutes', () => {
   });
 
   it('should throw for negative values', () => {
-    expect(() => decimalDegreeToDegreesMinutes(-1)).toThrowErrorMatchingInlineSnapshot(`"dd should be >= 0"`);
+    expect(() => decimalDegreeToDegreesMinutes(-1)).toThrowErrorMatchingInlineSnapshot(`[Error: dd should be >= 0]`);
   });
 });
 
@@ -42,13 +40,13 @@ describe('degreesMinutesToDecimalDegrees', () => {
 
   it('should throw for negative values', () => {
     expect(() => degreesMinutesToDecimalDegrees({ degrees: -1, minutes: 0 })).toThrowErrorMatchingInlineSnapshot(
-      `"degrees and minutes should be >= 0"`,
+      `[Error: degrees and minutes should be >= 0]`,
     );
     expect(() => degreesMinutesToDecimalDegrees({ degrees: -1, minutes: -1 })).toThrowErrorMatchingInlineSnapshot(
-      `"degrees and minutes should be >= 0"`,
+      `[Error: degrees and minutes should be >= 0]`,
     );
     expect(() => degreesMinutesToDecimalDegrees({ degrees: 0, minutes: -1 })).toThrowErrorMatchingInlineSnapshot(
-      `"degrees and minutes should be >= 0"`,
+      `[Error: degrees and minutes should be >= 0]`,
     );
   });
 });

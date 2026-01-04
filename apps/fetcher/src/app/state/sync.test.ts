@@ -25,9 +25,9 @@ describe('sync', () => {
 
   beforeAll(() => {
     nowFn = Date.now;
-    Date.now = jest.fn(() => NOW * 1000);
+    Date.now = vi.fn(() => NOW * 1000);
     errorFn = console.error;
-    console.error = jest.fn();
+    console.error = vi.fn();
   });
 
   afterAll(() => {

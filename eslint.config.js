@@ -70,6 +70,13 @@ module.exports = [
       },
     })),
   {
-    ignores: ['**/.vite/', '**/.cache/', '**/node_modules/', '**/apps/fxc-tiles/src/assets/airspaces/'],
+    ignores: [
+      '**/.vite/',
+      '**/.cache/',
+      '**/node_modules/',
+      '**/apps/fxc-tiles/src/assets/airspaces/',
+      '**/vite.config.*.timestamp*',
+      '**/vitest.config.*.timestamp*',
+    ],
   },
 ];

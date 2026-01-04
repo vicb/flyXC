@@ -2,10 +2,20 @@
   "name": "fxc-tiles",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "scripts": {
     "download-airspaces": "chmod +x airspaces/download.sh && airspaces/download.sh"
   },
   "nx": {
     "includedScripts": []
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "catalog:default",
+    "@flyxc/common": "workspace:*",
+    "@google-cloud/storage": "catalog:default",
+    "commander": "catalog:default",
+    "geojson": "^0.5.0",
+    "geolib": "catalog:default",
+    "glob": "catalog:default"
   }
 }

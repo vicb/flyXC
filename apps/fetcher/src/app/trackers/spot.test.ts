@@ -1,8 +1,7 @@
+import spot2Feed from './fixtures/spot2.txt?raw';
+import spot3Feed from './fixtures/spot3.txt?raw';
 import type { LivePoint } from './live-track';
 import { parse } from './spot';
-
-const spot2Feed = require('./fixtures/spot2.txt');
-const spot3Feed = require('./fixtures/spot3.txt');
 
 describe('Parse JSON feed', () => {
   let spot2: LivePoint[];
@@ -146,7 +145,7 @@ describe('Parse JSON feed', () => {
   });
 
   it('should throw on invalid format', () => {
-    expect(() => parse('random')).toThrowError('Invalid SPOT json - feed: random');
+    expect(() => parse('random')).toThrow('Invalid SPOT json - feed: random');
   });
 
   it('should throw on invalid feed error', () => {
@@ -162,7 +161,7 @@ describe('Parse JSON feed', () => {
         }
     }`;
 
-    expect(() => parse(error)).toThrowError(/Feed with Id: invalid_feed_id not found/);
+    expect(() => parse(error)).toThrow(/Feed with Id: invalid_feed_id not found/);
   });
 
   it('should return an empty list of points when the feed is empty', () => {

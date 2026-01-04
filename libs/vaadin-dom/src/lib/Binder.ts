@@ -1,5 +1,5 @@
-import type { AbstractModel, BinderConfiguration, ModelConstructor } from '@vaadin/nodom';
-import { _onChange, NoDomBinder } from '@vaadin/nodom';
+import type { AbstractModel, BinderConfiguration, ModelConstructor } from 'vaadin-nodom';
+import { _onChange, NoDomBinder } from 'vaadin-nodom';
 
 import type { FieldStrategy } from './Field';
 import { getDefaultFieldStrategy } from './Field';

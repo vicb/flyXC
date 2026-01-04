@@ -1,7 +1,7 @@
 import { InstancesClient, InstanceTemplatesClient, ZoneOperationsClient } from '@google-cloud/compute';
 import { format } from 'date-fns';
 
-import { environment } from '../../environments/environment';
+import { config } from '../config';
 
 // Zones with N1 machines (proxy are f1-micro)
 // See https://cloud.google.com/compute/docs/regions-zones
@@ -36,7 +36,7 @@ export class Proxies {
   private killingZombies = false;
 
   constructor(label: string) {
-    this.label = `${environment.production ? '' : 'dev-'}${label}`;
+    this.label = `${config.production ? '' : 'dev-'}${label}`;
   }
 
   // Starts a proxy server.
@@ -91,7 +91,7 @@ export class Proxies {
         });
         if (Array.isArray(instance?.networkInterfaces) && Array.isArray(instance.networkInterfaces[0]?.accessConfigs)) {
           // Use the external IP in dev.
-          this.ip = environment.gae
+          this.ip = config.gae
             ? instance.networkInterfaces[0].networkIP
             : instance.networkInterfaces[0].accessConfigs[0].natIP;
         } else {

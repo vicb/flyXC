@@ -1,4 +1,4 @@
-import type { LatLonAltTime, ScoringResult } from '@flyxc/optimizer/lib/optimizer';
+import type { LatLonAltTime, ScoringResult } from '@flyxc/optimizer/src/lib/optimizer';
 
 import { type Response as WorkerResponse } from '../../workers/optimizer';
 import ScoringWorker from '../../workers/optimizer?worker';

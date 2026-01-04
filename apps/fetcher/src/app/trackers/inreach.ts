@@ -69,13 +69,15 @@ export class InreachFetcher extends TrackerFetcher {
             timeoutS: 8,
             method: 'POST',
             headers: { 'Content-Type': 'application/octet-stream' },
-            body: protos.Request.toBinary({
-              url,
-              retry: 1,
-              timeoutS: 5,
-              retryOnTimeout: false,
-              key: SECRETS.PROXY_KEY,
-            }),
+            body: Buffer.from(
+              protos.Request.toBinary({
+                url,
+                retry: 1,
+                timeoutS: 5,
+                retryOnTimeout: false,
+                key: SECRETS.PROXY_KEY,
+              }),
+            ),
           });
         } else {
           if (proxies.detachCurrent()) {

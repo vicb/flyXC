@@ -3,6 +3,9 @@ const baseConfig = require('../../eslint.config.js');
 module.exports = [
   ...baseConfig,
   {
+    ignores: ['dist/**'],
+  },
+  {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     rules: {
       'import/no-extraneous-dependencies': [
@@ -17,12 +20,12 @@ module.exports = [
     },
   },
   {
-    files: ['**/*.json'],
+    files: ['**/{package,project}.json'],
     rules: {
       '@nx/dependency-checks': [
         'error',
         {
-          ignoredFiles: ['{projectRoot}/vite.config.ts', 'vite.config.ts'],
+          ignoredFiles: ['{projectRoot}/vite.config.ts', 'vite.config.*'],
           ignoredDependencies: ['react-redux', 'preact'],
         },
       ],

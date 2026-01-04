@@ -1,5 +1,14 @@
 {
   "name": "proxy",
   "version": "1.0.0",
-  "description": "Forward fetcher requests"
+  "description": "Forward fetcher requests",
+  "type": "module",
+  "main": "./index.js",
+  "dependencies": {
+    "@flyxc/common": "workspace:*",
+    "express": "catalog:default"
+  },
+  "devDependencies": {
+    "@dotenvx/dotenvx": "catalog:default"
+  }
 }

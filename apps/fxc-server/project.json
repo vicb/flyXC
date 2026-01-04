@@ -6,64 +6,50 @@
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@nx/webpack:webpack",
+      "executor": "@nx/vite:build",
       "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "development",
       "options": {
-        "target": "node",
-        "compiler": "tsc",
-        "outputPath": "dist/apps/fxc-server",
-        "main": "apps/fxc-server/src/main.ts",
-        "tsConfig": "apps/fxc-server/tsconfig.app.json",
-        "babelUpwardRootMode": true,
-        "webpackConfig": "apps/fxc-server/webpack.config.js"
+        "outputPath": "apps/fxc-server/dist",
+        "generatePackageJson": false
       },
       "configurations": {
+        "development": {
+          "mode": "development"
+        },
         "production": {
-          "optimization": true,
-          "extractLicenses": true,
-          "inspect": false,
-          "generatePackageJson": true,
-          "fileReplacements": [
-            {
-              "replace": "apps/fxc-server/src/environments/environment.ts",
-              "with": "apps/fxc-server/src/environments/environment.prod.ts"
-            }
-          ],
-          "assets": [
-            "apps/fxc-server/src/app.yaml",
-            "apps/fxc-server/src/index.yaml",
-            "apps/fxc-server/src/.gcloudignore"
-          ]
+          "mode": "production"
         }
       }
     },
-    "serve": {
-      "executor": "@nx/js:node",
+    "copy-assets": {
+      "executor": "nx:run-commands",
       "options": {
-        "buildTarget": "fxc-server:build"
+        "commands": [
+          "cp apps/fxc-server/src/app.yaml apps/fxc-server/dist/",
+          "cp apps/fxc-server/src/index.yaml apps/fxc-server/dist/",
+          "cp apps/fxc-server/src/.gcloudignore apps/fxc-server/dist/"
+        ],
+        "parallel": false
+      }
+    },
+    "serve": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "node apps/fxc-server/dist/index.js"
       },
       "configurations": {
         "production": {
-          "buildTarget": "fxc-server:build:production"
+          "command": "node apps/fxc-server/dist/index.js"
         }
       }
     },
     "deploy": {
       "executor": "nx:run-commands",
-      "dependsOn": ["build"],
+      "dependsOn": ["build", "copy-assets"],
       "options": {
-        "command": "gcloud app deploy dist/apps/fxc-server/app.yaml"
-      }
-    },
-    "test": {
-      "options": {
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "coverage": true
-        }
+        "command": "gcloud app deploy apps/fxc-server/dist/app.yaml"
       }
     }
   }

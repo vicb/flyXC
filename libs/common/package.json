@@ -1,8 +1,22 @@
 {
   "name": "@flyxc/common",
   "version": "0.0.1",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "protos": "protoc --ts_out src/protos  --ts_opt long_type_number --ts_opt force_optimize_code_size --proto_path src/protos --experimental_allow_proto3_optional track.proto live-track.proto fetcher-state.proto proxy.proto"
+  },
+  "dependencies": {
+    "@date-fns/tz": "^1.4.1",
+    "@google-cloud/datastore": "catalog:default",
+    "@mapbox/sphericalmercator": "^1.2.0",
+    "@protobuf-ts/runtime": "^2.11.1",
+    "date-fns": "catalog:default",
+    "geolib": "catalog:default",
+    "mapbox-vector-tile": "catalog:default",
+    "tslib": "catalog:default",
+    "vaadin-nodom": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/mapbox__sphericalmercator": "catalog:default"
   }
 }

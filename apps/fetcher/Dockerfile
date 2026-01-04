@@ -11,10 +11,10 @@ RUN apt-get update -y \
 WORKDIR /usr/src/app
 RUN npm install -g npm@latest
 
-COPY dist/apps/fetcher/package*.json ./
+COPY apps/fetcher/dist/package*.json ./
 RUN npm ci --no-audit
 
-COPY dist/apps/fetcher/main.js ./
+COPY apps/fetcher/dist/index.js ./
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 

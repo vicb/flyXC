@@ -5,19 +5,19 @@ Install [tippecanoe](https://github.com/felt/tippecanoe) - note that the the map
 ## Airspaces
 
 - nx build secrets && nx build fxc-tiles
-- cd dist/apps/fxc-tiles
+- cd apps/fxc-tiles/dist
 - `npm run download-airspaces`
-- Display stats with `node dist/apps/fxc-tiles/airspaces/stats.js` (quick check of the airspaces)
-- Create the geojson with `node dist/apps/fxc-tiles/airspaces/create-geojson.js`
-- Create the vector tiles with `node dist/apps/fxc-tiles/airspaces/create-tiles.js`
+- Display stats with `node apps/fxc-tiles/dist/airspaces/stats.js` (quick check of the airspaces)
+- Create the geojson with `node apps/fxc-tiles/dist/airspaces/create-geojson.js`
+- Create the vector tiles with `node apps/fxc-tiles/dist/airspaces/create-tiles.js`
 
 ### Diff update
 
 - Create the tiles - See above,
-- Create the tile info with `node dist/apps/fxc-tiles/airspaces/create-tiles-info.js`
-- Create the info diff with `node dist/apps/fxc-tiles/airspaces/create-tiles-info-diff.js`
+- Create the tile info with `node apps/fxc-tiles/dist/airspaces/create-tiles-info.js`
+- Create the info diff with `node apps/fxc-tiles/dist/airspaces/create-tiles-info-diff.js`
 - Run tests `nx check`
-- Sync the diff with `node dist/apps/fxc-tiles/airspaces/upload-tiles-diff.js`
+- Sync the diff with `node apps/fxc-tiles/dist/airspaces/upload-tiles-diff.js`
 
 ### ZIP update (outdated, probably not needed with the diff update)
 

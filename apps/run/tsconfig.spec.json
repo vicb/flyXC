@@ -2,8 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
-    "module": "commonjs",
-    "types": ["jest", "node"]
+    "module": "esnext",
+    "types": ["vitest/globals", "node"]
   },
-  "include": ["jest.config.ts", "src/**/*.test.ts", "src/**/*.spec.ts", "src/**/*.d.ts"]
+  "include": ["vite.config.ts", "src/**/*.test.ts", "src/**/*.spec.ts", "src/**/*.d.ts", "../../secrets.d.ts"]
 }

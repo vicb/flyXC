@@ -19,6 +19,7 @@
     "types": ["vite/client", "vite-plugin-pwa/vanillajs", "vite-plugin-pwa/info"]
   },
   "include": ["src"],
+  "exclude": ["node_modules", "../../node_modules"],
   "references": [
     {
       "path": "./tsconfig.app.json"

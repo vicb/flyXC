@@ -9,7 +9,7 @@
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/libs/optimizer",
+        "outputPath": "libs/optimizer/dist",
         "main": "libs/optimizer/src/index.ts",
         "additionalEntryPoints": [
           "libs/optimizer/src/lib/api.ts",
@@ -19,17 +19,6 @@
         "generateExportsField": true,
         "tsConfig": "libs/optimizer/tsconfig.lib.json",
         "assets": ["libs/optimizer/*.md"]
-      }
-    },
-    "test": {
-      "options": {
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "coverage": true
-        }
       }
     }
   }

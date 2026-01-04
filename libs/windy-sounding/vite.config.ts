@@ -46,7 +46,7 @@ export default defineConfig(
 
     // See: https://vitejs.dev/guide/build.html#library-mode
     build: {
-      outDir: '../../dist/libs/windy-sounding',
+      outDir: 'libs/windy-sounding/dist',
       emptyOutDir: false,
       reportCompressedSize: true,
       target: 'esnext',

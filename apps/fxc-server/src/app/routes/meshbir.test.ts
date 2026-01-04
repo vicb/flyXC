@@ -66,7 +66,9 @@ describe('parseMessage', () => {
 
   describe('invalid messages', () => {
     it('should throw on invalid message', () => {
-      expect(() => parseMessage({ type: 'unknown' })).toThrowErrorMatchingInlineSnapshot(`"Invalid message format"`);
+      expect(() => parseMessage({ type: 'unknown' })).toThrowErrorMatchingInlineSnapshot(
+        `[Error: Invalid message format]`,
+      );
     });
 
     it('should throw on invalid values', () => {
@@ -77,7 +79,7 @@ describe('parseMessage', () => {
           time: '123456', // should be a number
           message: 'hello Meshtastic',
         }),
-      ).toThrowErrorMatchingInlineSnapshot(`"Invalid message format"`);
+      ).toThrowErrorMatchingInlineSnapshot(`[Error: Invalid message format]`);
     });
 
     it('should throw on missing values', () => {
@@ -88,7 +90,7 @@ describe('parseMessage', () => {
           //time: 123456,
           message: 'hello Meshtastic',
         }),
-      ).toThrowErrorMatchingInlineSnapshot(`"Invalid message format"`);
+      ).toThrowErrorMatchingInlineSnapshot(`[Error: Invalid message format]`);
     });
   });
 });

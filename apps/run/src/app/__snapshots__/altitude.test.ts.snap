@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Altitude should retrieve a track gnd altitude 1`] = `
+exports[`Altitude > should retrieve a track gnd altitude 1`] = `
 {
   "altitudes": [
     326,

@@ -11,7 +11,7 @@
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "outputPath": "dist/apps/fxc-front",
+        "outputPath": "apps/fxc-front/dist",
         "target": "es2020"
       },
       "configurations": {
@@ -57,17 +57,6 @@
         }
       },
       "dependsOn": ["build"]
-    },
-    "test": {
-      "options": {
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "coverage": true
-        }
-      }
     }
   }
 }

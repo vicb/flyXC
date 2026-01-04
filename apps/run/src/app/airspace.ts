@@ -252,7 +252,7 @@ function getAirspaceFeatureId(airspace: AirspaceTyped): string {
 function getAirspaceCache(): LRU<ArrayBuffer | null> {
   if (airspaceCache == null) {
     console.log(`ASP LRU Capacity = ${ASLP_LRU_CAPACITY}`);
-    airspaceCache = lru<Buffer | null>(ASLP_LRU_CAPACITY);
+    airspaceCache = lru<ArrayBuffer | null>(ASLP_LRU_CAPACITY);
   }
   return airspaceCache;
 }

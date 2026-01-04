@@ -1,0 +1,11 @@
+{
+  "name": "vaadin-nodom",
+  "version": "0.0.1",
+  "type": "module",
+  "dependencies": {
+    "validator": "^13.12.0"
+  },
+  "devDependencies": {
+    "@types/validator": "catalog:default"
+  }
+}

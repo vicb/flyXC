@@ -2,5 +2,21 @@
   "name": "run",
   "version": "1.0.0",
   "description": "Run post-processing on google cloud",
-  "main": "index.js"
+  "type": "module",
+  "main": "./index.js",
+  "dependencies": {
+    "@flyxc/common": "workspace:*",
+    "@flyxc/common-node": "workspace:*",
+    "@google-cloud/datastore": "catalog:default",
+    "async": "^3.2.6",
+    "express": "catalog:default",
+    "google-polyline": "^1.0.3",
+    "lodepng": "^2.3.0",
+    "mapbox-vector-tile": "catalog:default",
+    "simplify-path": "catalog:default",
+    "tiny-lru": "^11.4.5"
+  },
+  "devDependencies": {
+    "@dotenvx/dotenvx": "catalog:default"
+  }
 }

@@ -14,11 +14,12 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.7",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
-    "date-fns": "^4.1.0",
+    "date-fns": "catalog:default",
     "geojson": "^0.5.0",
     "preact": "^10.23.2",
     "react-redux": "^9.1.2",
     "svelte": "^4.2.19",
-    "jsonc-eslint-parser": "2.4.0"
+    "svelte-check": "^4.1.4",
+    "vite": "catalog:default"
   }
 }

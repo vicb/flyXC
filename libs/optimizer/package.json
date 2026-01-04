@@ -2,11 +2,13 @@
   "name": "@flyxc/optimizer",
   "version": "0.0.1",
   "dependencies": {
+    "@eslint/js": "9.39.2",
     "igc-parser": "^2.0.0",
     "igc-xc-score": "^1.7.0",
-    "tslib": "^2.3.0",
-    "@eslint/js": "9.39.2",
-    "jsonc-eslint-parser": "2.4.0"
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "geolib": "catalog:default"
   },
   "type": "module",
   "main": "./src/index.js",
