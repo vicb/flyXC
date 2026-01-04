@@ -2,8 +2,8 @@ import '../ui/share-modal';
 import '../ui/waypoint-modal';
 
 import type { LatLon, RuntimeTrack } from '@flyxc/common';
-import { CircuitType } from '@flyxc/optimizer/lib/api';
-import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
+import { CircuitType } from '@flyxc/optimizer/src/lib/api';
+import type { ScoringResult } from '@flyxc/optimizer/src/lib/optimizer';
 import { modalController, toastController } from '@ionic/core/components';
 import { getPreciseDistance } from 'geolib';
 import type { PropertyValues } from 'lit';

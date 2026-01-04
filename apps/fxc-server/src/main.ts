@@ -5,16 +5,17 @@ import cors from 'cors';
 import express from 'express';
 import fileUpload from 'express-fileupload';
 import session from 'express-session';
+import grant from 'grant';
 
+import { config } from './app/config';
 import { getAdminRouter } from './app/routes/admin';
 import { getTrackerRouter } from './app/routes/live-track';
 import { getMeshBirRouter } from './app/routes/meshbir';
 import { getTrackRouter } from './app/routes/track';
 import { getWaypointRouter } from './app/routes/waypoints';
 import { getZoleoRouter } from './app/routes/zoleo';
-import { environment } from './environments/environment';
 
-const grant = require('grant').express();
+const grantExpress = grant.express();
 
 const redis = getRedisClient(SECRETS.REDIS_URL);
 
@@ -42,7 +43,7 @@ const app = express()
       exposedHeaders: ['xsrf-token'],
     }),
   )
-  .set('trust proxy', environment.gae)
+  .set('trust proxy', config.gae)
   .use(express.json())
   .use(express.urlencoded({ extended: true }))
   .use(fileUpload({ headers: { 'content-type': 'application/octet-stream' }, limits: { fileSize: 32 * 1024 * 1024 } }))
@@ -54,10 +55,10 @@ const app = express()
         path: '/',
         // "strict" would not send the cookie on the redirect.
         sameSite: 'lax',
-        domain: environment.cookieDomain,
-        secure: environment.https,
+        domain: config.cookieDomain,
+        secure: config.https,
       },
-      name: environment.cookieName,
+      name: config.cookieName,
       resave: false,
       store: new RedisStore({ client: redis }),
       unset: 'destroy',
@@ -66,9 +67,9 @@ const app = express()
   )
   .use(
     '/oauth',
-    grant({
+    grantExpress({
       defaults: {
-        origin: environment.oauthOrigin,
+        origin: config.oauthOrigin,
         transport: 'session',
         state: true,
         response: ['tokens', 'profile'],
@@ -107,7 +108,7 @@ function corsDelegate(requestOrigin: string | undefined, callback: originCallbac
 
   try {
     const { hostname } = new URL(requestOrigin);
-    const origin: boolean = environment.corsAllowList.some((allowedDomain) => {
+    const origin: boolean = config.corsAllowList.some((allowedDomain) => {
       if (allowedDomain.startsWith('.')) {
         return hostname.endsWith(allowedDomain);
       }

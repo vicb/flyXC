@@ -1,12 +1,16 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { round } from '@flyxc/common';
 import { program } from 'commander';
 import { globSync } from 'glob';
 
 import { getAppFolderFromDist, printOnCurrentLine } from '../util';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces/tiles'));
 const defaultOutputFile = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces/tiles-info.json'));

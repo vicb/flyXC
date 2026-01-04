@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { Fav } from '@windy/favs';
-import type { CompiledExternalPluginConfig, LatLon } from '@windy/interfaces';
+import type { LatLon } from '@windy/interfaces';
 
 import { getFavLabel, getSupportedModelName } from '../util/utils';
 import type { RootState } from './store';

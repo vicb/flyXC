@@ -286,7 +286,7 @@ describe('parse', () => {
     });
 
     it('associates message with the last known position when recent', () => {
-      jest.useFakeTimers({ now: 234500 });
+      vi.useFakeTimers({ now: 234500 });
       expect(
         parse(
           [
@@ -328,7 +328,7 @@ describe('parse', () => {
     });
 
     it("doesn't associates message with the last known position when too old", () => {
-      jest.useFakeTimers({ now: 123500 });
+      vi.useFakeTimers({ now: 123500 });
       expect(
         parse(
           [

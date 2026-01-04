@@ -1,17 +1,20 @@
 // #!/usr/bin/env node
 
 import { readFileSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { Type } from '@flyxc/common';
 import { program } from 'commander';
+import GeoJSON from 'geojson';
 
 import * as oaip from '../parser/openaip';
 import * as oair from '../parser/openair';
 import type { Airspace } from '../parser/parser';
 import { getAppFolderFromDist } from '../util';
 
-const GeoJSON = require('geojson');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Filter out airspaces above:
 const MAX_FLOOR_METER = 6000;

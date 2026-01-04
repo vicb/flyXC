@@ -4,9 +4,10 @@ import { join } from 'node:path';
 
 import { literalsHtmlCssMinifier } from '@literals/rollup-plugin-html-css-minifier';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
-import { formatInTimeZone } from 'date-fns-tz';
+import { TZDate } from '@date-fns/tz';
+import { format } from 'date-fns';
 import { visualizer } from 'rollup-plugin-visualizer';
-import { defineConfig, type UserConfig } from 'vite';
+import { defineConfig, type UserConfig } from 'vitest/config';
 import { checker } from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 
@@ -29,7 +30,7 @@ const assetFileNames = (assetInfo: any) => {
 export default defineConfig(
   ({ mode }): UserConfig => ({
     root: __dirname,
-    cacheDir: '../../node_modules/.vite/apps/fxc-front',
+    cacheDir: 'node_modules/.vite/apps/fxc-front',
 
     server: {
       port: 8080,
@@ -42,7 +43,7 @@ export default defineConfig(
     },
 
     build: {
-      outDir: '../../dist/apps/fxc-front',
+      outDir: 'apps/fxc-front/dist',
       reportCompressedSize: true,
       commonjsOptions: { transformMixedEsModules: true },
       emptyOutDir: true,
@@ -85,13 +86,25 @@ export default defineConfig(
     },
 
     define: {
-      __BUILD_TIMESTAMP__: JSON.stringify(formatInTimeZone(new Date(), 'Europe/Paris', 'yyyyMMdd-HHmm')),
+      __BUILD_TIMESTAMP__: JSON.stringify(format(new TZDate(new Date(), 'Europe/Paris'), 'yyyyMMdd-HHmm')),
       __AIRSPACE_DATE__: JSON.stringify(getAirspaceDate()),
       'process.env.NODE_ENV': JSON.stringify(mode),
       // Vite does not define global.
       // Required for a dependency of igc-xc-score.
       // See https://stackoverflow.com/questions/72114775/vite-global-is-not-defined/73208485#73208485
       global: {},
+    },
+
+    // Vitest configuration
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+      coverage: {
+        reportsDirectory: '../../coverage/apps/fxc-front',
+        provider: 'v8',
+      },
+      passWithNoTests: true,
     },
   }),
 );
@@ -103,7 +116,7 @@ function getAirspaceDate() {
   if (existsSync(tileInfo)) {
     try {
       return String(execSync(`git log -1 --format="%ad" --date=format:"%Y-%m-%d" -- ${tileInfo}`)).trim();
-    } catch (e) {
+    } catch {
       return '-';
     }
   }

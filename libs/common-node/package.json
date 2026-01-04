@@ -1,0 +1,17 @@
+{
+  "name": "@flyxc/common-node",
+  "version": "0.0.1",
+  "type": "commonjs",
+  "devDependencies": {
+    "jsonc-eslint-parser": "catalog:default"
+  },
+  "peerDependencies": {
+    "@flyxc/common": "workspace:*",
+    "@google-cloud/datastore": "catalog:default",
+    "@google-cloud/pubsub": "catalog:default",
+    "ioredis": "catalog:default",
+    "tslib": "catalog:default",
+    "vaadin-nodom": "workspace:*",
+    "zod": "catalog:default"
+  }
+}

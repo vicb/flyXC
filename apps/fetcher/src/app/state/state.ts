@@ -1,12 +1,12 @@
 import type { protos } from '@flyxc/common';
 
-import { environment } from '../../environments/environment.prod';
+import { config } from '../config';
 import { importFromStorage } from './serialize';
 
 export const BUCKET_NAME = 'fly-xc.appspot.com';
 
 // Update the state version when the shape change (i.e. proto).
-const STATE_FOLDER = environment.production ? 'fetcher' : 'fetcher.dev';
+const STATE_FOLDER = config.production ? 'fetcher' : 'fetcher.dev';
 
 const STATE_VERSION = 1;
 export const PERIODIC_STATE_PATH = `${STATE_FOLDER}/state_v${STATE_VERSION}.brotli`;

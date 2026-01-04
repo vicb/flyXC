@@ -4,11 +4,11 @@ import './admin-elements';
 
 import { AccountFormModel, fetchResponse } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
-import { Binder, field } from '@vaadin/dom';
 import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
 import { customElement, queryAll, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
+import { Binder, field } from 'vaadin-dom';
 
 import { setFetchMillis } from '../redux/live-track-slice';
 import type { TrackerPanel } from './admin-elements';

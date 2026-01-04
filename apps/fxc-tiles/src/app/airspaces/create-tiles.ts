@@ -2,12 +2,16 @@
 
 import { execSync } from 'node:child_process';
 import { existsSync, readdirSync, rmSync, statSync, unlinkSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { MAX_AIRSPACE_TILE_ZOOM } from '@flyxc/common';
 import { program } from 'commander';
 
 import { getAppFolderFromDist, printOnCurrentLine } from '../util';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const defaultInputFile = resolve(join(getAppFolderFromDist(__dirname), 'src/assets/airspaces/airspaces.geojson'));
 const defaultOutputFolder = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces/tiles'));

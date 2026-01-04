@@ -33,7 +33,7 @@
       "dependsOn": ["^build"],
       "inputs": ["production", "^production"]
     },
-    "@nx/vite:test": {
+    "@nx/vitest:test": {
       "cache": true,
       "inputs": ["default", "^production"]
     }
@@ -74,9 +74,10 @@
       }
     },
     {
-      "plugin": "@nx/jest/plugin",
+      "plugin": "@nx/vitest",
       "options": {
-        "targetName": "test"
+        "testTargetName": "test",
+        "testMode": "run"
       },
       "include": [
         "apps/fetcher/**/*",
@@ -85,19 +86,13 @@
         "apps/fxc-tiles/**/*",
         "apps/misc/**/*",
         "apps/proxy/**/*",
+        "apps/run/**/*",
         "libs/common/**/*",
         "libs/common-node/**/*",
         "libs/optimizer/**/*",
         "libs/vaadin-dom/**/*",
         "libs/windy-sounding/**/*"
       ]
-    },
-    {
-      "plugin": "@nx/jest/plugin",
-      "options": {
-        "targetName": "benchmark"
-      },
-      "include": ["apps/run/**/*"]
     }
   ]
 }

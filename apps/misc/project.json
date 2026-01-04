@@ -6,46 +6,19 @@
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@nx/webpack:webpack",
+      "executor": "@nx/vite:build",
       "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
       "options": {
-        "target": "node",
-        "compiler": "tsc",
-        "outputPath": "dist/apps/misc",
-        "main": "apps/misc/src/app/list_tracks.ts",
-        "outputFileName": "list_track.js",
-        "tsConfig": "apps/misc/tsconfig.app.json",
-        "assets": ["apps/misc/src/assets"],
-        "webpackConfig": "apps/misc/webpack.config.js",
-        "additionalEntryPoints": [
-          {
-            "entryName": "stat_tracks",
-            "entryPath": "apps/misc/src/app/stat_tracks.ts"
-          },
-          {
-            "entryName": "delete_old_storage",
-            "entryPath": "apps/misc/src/app/delete_old_storage.ts"
-          },
-          {
-            "entryName": "list_trackers",
-            "entryPath": "apps/misc/src/app/list_trackers.ts"
-          },
-          {
-            "entryName": "list_flymaster",
-            "entryPath": "apps/misc/src/app/list_flymaster.ts"
-          },
-          {
-            "entryName": "email_inreach",
-            "entryPath": "apps/misc/src/app/email_inreach.ts"
-          }
-        ],
-        "babelUpwardRootMode": true
+        "outputPath": "apps/misc/dist",
+        "generatePackageJson": false
       },
       "configurations": {
+        "development": {
+          "mode": "development"
+        },
         "production": {
-          "optimization": true,
-          "extractLicenses": true,
-          "inspect": false
+          "mode": "production"
         }
       }
     },
@@ -57,17 +30,6 @@
       "configurations": {
         "production": {
           "buildTarget": "misc:build:production"
-        }
-      }
-    },
-    "test": {
-      "options": {
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "coverage": true
         }
       }
     }

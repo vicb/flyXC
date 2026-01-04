@@ -1,9 +1,8 @@
 import type { LatLonAlt } from '@flyxc/common';
 import { round } from '@flyxc/common';
-
-const { buildGPX, BaseBuilder } = require('gpx-builder');
-const builder = require('xmlbuilder');
-const printf = require('printf');
+import { BaseBuilder, buildGPX } from 'gpx-builder';
+import printf from 'printf';
+import builder from 'xmlbuilder';
 
 export function encode(
   format: string,
@@ -69,7 +68,7 @@ function encodeGPXWaypoints(
   });
   const gpxData = new BaseBuilder();
   gpxData.setWayPoints(waypoints);
-  return { file: buildGPX(gpxData), mime: 'application/gpx+xml', filename: 'waypoints.gpx' };
+  return { file: buildGPX(gpxData.toObject()), mime: 'application/gpx+xml', filename: 'waypoints.gpx' };
 }
 
 export function encodeGPXRoute(
@@ -86,13 +85,10 @@ export function encodeGPXRoute(
     attributes.ele = p.alt.toString();
     return new Point(p.lat.toFixed(6), p.lon.toFixed(6), attributes);
   });
-  const route = new Route({ rtept });
+  const route = new Route({ rtept, name: 'flyXC route' });
   const gpxData = new BaseBuilder();
   gpxData.setRoutes([route]);
-  // Fix for https://github.com/vicb/flyXC/issues/362
-  // Passing a name to `new Route({name, ...})` would add the name as the last child
-  const file = buildGPX(gpxData).replace('<rte>', '<rte>\n      <name>flyXC route</name>');
-  return { file, mime: 'application/gpx+xml', filename: 'route.gpx' };
+  return { file: buildGPX(gpxData.toObject()), mime: 'application/gpx+xml', filename: 'route.gpx' };
 }
 
 function encodeKML(

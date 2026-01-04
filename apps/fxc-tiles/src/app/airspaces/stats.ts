@@ -1,9 +1,11 @@
 import { readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { getAppFolderFromDist } from '../util';
 
-console.log(__dirname);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const inputFolder = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces'));
 

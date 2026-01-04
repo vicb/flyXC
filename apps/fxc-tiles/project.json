@@ -6,90 +6,20 @@
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@nx/webpack:webpack",
+      "executor": "@nx/vite:build",
       "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
       "options": {
-        "target": "node",
-        "compiler": "tsc",
-        "outputPath": "dist/apps/fxc-tiles",
-        "outputFileName": "unzip.js",
-        "main": "apps/fxc-tiles/src/app/airspaces/unzip.ts",
-        "generatePackageJson": true,
-        "additionalEntryPoints": [
-          {
-            "entryName": "airspaces/create-geojson",
-            "entryPath": "apps/fxc-tiles/src/app/airspaces/create-geojson.ts"
-          },
-          {
-            "entryName": "airspaces/create-tiles",
-            "entryPath": "apps/fxc-tiles/src/app/airspaces/create-tiles.ts"
-          },
-          {
-            "entryName": "airspaces/download-openaip",
-            "entryPath": "apps/fxc-tiles/src/app/airspaces/download-openaip.ts"
-          },
-          {
-            "entryName": "airspaces/create-tiles-info",
-            "entryPath": "apps/fxc-tiles/src/app/airspaces/create-tiles-info.ts"
-          },
-          {
-            "entryName": "airspaces/stats",
-            "entryPath": "apps/fxc-tiles/src/app/airspaces/stats.ts"
-          },
-          {
-            "entryName": "airspaces/create-tiles-info-diff",
-            "entryPath": "apps/fxc-tiles/src/app/airspaces/create-tiles-info-diff.ts"
-          },
-          {
-            "entryName": "airspaces/upload-tiles-diff",
-            "entryPath": "apps/fxc-tiles/src/app/airspaces/upload-tiles-diff.ts"
-          }
-        ],
-        "tsConfig": "apps/fxc-tiles/tsconfig.app.json",
-        "assets": [
-          {
-            "glob": "download.sh",
-            "input": "apps/fxc-tiles/src/assets/airspaces",
-            "output": "airspaces"
-          },
-          {
-            "glob": "cors.json",
-            "input": "apps/fxc-tiles/src/assets/airspaces",
-            "output": "assets"
-          }
-        ],
-        "babelUpwardRootMode": true,
-        "webpackConfig": "apps/fxc-tiles/webpack.config.js"
+        "outputPath": "apps/fxc-tiles/dist",
+        "generatePackageJson": false
       },
       "configurations": {
+        "development": {
+          "mode": "development"
+        },
         "production": {
-          "optimization": true,
-          "extractLicenses": true,
-          "inspect": false
+          "mode": "production"
         }
-      }
-    },
-    "test": {
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/coverage/apps/fxc-tiles"],
-      "options": {
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "coverage": true
-        }
-      }
-    },
-    "container": {
-      "executor": "@nx-tools/nx-container:build",
-      "dependsOn": ["build"],
-      "options": {
-        "platforms": ["linux/amd64", "linux/arm64"],
-        "engine": "docker",
-        "pull": true,
-        "push": true,
-        "tags": ["gcr.io/fly-xc/unzip"]
       }
     },
     "serve": {

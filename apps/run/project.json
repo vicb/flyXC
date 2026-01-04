@@ -6,62 +6,31 @@
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@nx/webpack:webpack",
+      "executor": "@nx/vite:build",
       "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "development",
       "options": {
-        "target": "node",
-        "compiler": "tsc",
-        "outputPath": "dist/apps/run",
-        "main": "apps/run/src/main.ts",
-        "tsConfig": "apps/run/tsconfig.app.json",
-        "generatePackageJson": true,
-        "babelUpwardRootMode": true,
-        "webpackConfig": "apps/run/webpack.config.js"
+        "outputPath": "apps/run/dist",
+        "generatePackageJson": false
       },
       "configurations": {
+        "development": {
+          "mode": "development"
+        },
         "production": {
-          "optimization": true,
-          "extractLicenses": true,
-          "inspect": false,
-          "fileReplacements": [
-            {
-              "replace": "apps/run/src/environments/environment.ts",
-              "with": "apps/run/src/environments/environment.prod.ts"
-            }
-          ]
+          "mode": "production"
         }
       }
     },
     "serve": {
-      "executor": "@nx/js:node",
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
       "options": {
-        "buildTarget": "run:build"
+        "command": "node apps/run/dist/index.js"
       },
       "configurations": {
         "production": {
-          "buildTarget": "run:build:production"
-        }
-      }
-    },
-    "test": {
-      "options": {
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "coverage": true
-        }
-      }
-    },
-    "benchmark": {
-      "options": {
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "coverage": true
+          "command": "node apps/run/dist/index.js"
         }
       }
     },

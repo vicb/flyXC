@@ -10,10 +10,10 @@ import {
   updateLiveTrackEntityFromModel,
 } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
-import { NoDomBinder } from '@vaadin/nodom';
 import type { Request, Response } from 'express';
 import { Router } from 'express';
 import type { Redis } from 'ioredis';
+import { NoDomBinder } from 'vaadin-nodom';
 
 import { getUserInfo, isLoggedIn, logout } from './session';
 

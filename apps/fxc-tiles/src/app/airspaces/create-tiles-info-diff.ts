@@ -1,9 +1,13 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { program } from 'commander';
 
 import { getAppFolderFromDist } from '../util';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const newInfoFile = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces/tiles-info.json'));
 const refInfoFile = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces/tiles-info-previous.json'));

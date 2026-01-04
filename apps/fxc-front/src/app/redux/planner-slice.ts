@@ -1,4 +1,4 @@
-import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
+import type { ScoringResult } from '@flyxc/optimizer/src/lib/optimizer';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 

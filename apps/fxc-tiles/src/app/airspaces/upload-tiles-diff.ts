@@ -1,7 +1,8 @@
 // Unzip tiles to Google Cloud Storage.
 
 import { existsSync, readFileSync } from 'node:fs';
-import path, { join, resolve } from 'node:path';
+import path, { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { parallelTasksWithTimeout } from '@flyxc/common';
 import type { Bucket } from '@google-cloud/storage';
@@ -12,6 +13,9 @@ import { getAppFolderFromDist, printOnCurrentLine } from '../util';
 
 const LOG_EVERY_N_TILES = 100;
 const NUM_SLOTS = 30;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces/tiles'));
 const defaultDiffFile = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces/tiles-info-diff.json'));
