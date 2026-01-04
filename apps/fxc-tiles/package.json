@@ -7,5 +7,19 @@
   },
   "nx": {
     "includedScripts": []
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "catalog:default",
+    "@google-cloud/storage": "catalog:default",
+    "commander": "catalog:default",
+    "geojson": "^0.5.0",
+    "geolib": "catalog:default",
+    "glob": "^11.0.3",
+    "unzipper": "^0.12.3",
+    "@flyxc/common": "workspace:*"
+  },
+  "devDependencies": {
+    "jsonc-eslint-parser": "catalog:default",
+    "terser-webpack-plugin": "catalog:default"
   }
 }

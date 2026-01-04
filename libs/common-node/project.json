@@ -5,6 +5,16 @@
   "projectType": "library",
   "tags": [],
   "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "libs/common-node/dist",
+        "main": "libs/common-node/index.ts",
+        "generateExportsField": true,
+        "tsConfig": "libs/common-node/tsconfig.lib.json"
+      }
+    },
     "test": {
       "options": {
         "passWithNoTests": true

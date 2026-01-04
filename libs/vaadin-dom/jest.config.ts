@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   displayName: 'vaadin-dom',
   preset: '../../jest.preset.js',
   globals: {},

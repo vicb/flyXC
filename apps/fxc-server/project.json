@@ -11,7 +11,7 @@
       "options": {
         "target": "node",
         "compiler": "tsc",
-        "outputPath": "dist/apps/fxc-server",
+        "outputPath": "apps/fxc-server/dist",
         "main": "apps/fxc-server/src/main.ts",
         "tsConfig": "apps/fxc-server/tsconfig.app.json",
         "babelUpwardRootMode": true,
@@ -52,7 +52,7 @@
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
       "options": {
-        "command": "gcloud app deploy dist/apps/fxc-server/app.yaml"
+        "command": "gcloud app deploy apps/fxc-server/dist/app.yaml"
       }
     },
     "test": {

@@ -1,11 +1,12 @@
 const { composePlugins, withNx } = require('@nx/webpack');
 const webpack = require('webpack');
 const fs = require('node:fs');
+const path = require('node:path');
 const { parse } = require('@dotenvx/dotenvx');
 
 // Nx plugins for webpack.
 module.exports = composePlugins(withNx(), (config) => {
-  const secretsPath = 'secrets.env.local';
+  const secretsPath = path.join(__dirname, '../../secrets.env.local');
   /** @type {Record<string, string>} */
   const secrets = {};
 

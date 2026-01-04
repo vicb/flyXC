@@ -11,7 +11,7 @@
       "options": {
         "target": "node",
         "compiler": "tsc",
-        "outputPath": "dist/apps/misc",
+        "outputPath": "apps/misc/dist",
         "main": "apps/misc/src/app/list_tracks.ts",
         "outputFileName": "list_track.js",
         "tsConfig": "apps/misc/tsconfig.app.json",

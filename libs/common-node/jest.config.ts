@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   displayName: 'common-node',
   preset: '../../jest.preset.js',
   globals: {},

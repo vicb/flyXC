@@ -1,5 +1,13 @@
 {
   "name": "proxy",
   "version": "1.0.0",
-  "description": "Forward fetcher requests"
+  "description": "Forward fetcher requests",
+  "dependencies": {
+    "@dotenvx/dotenvx": "catalog:default",
+    "@flyxc/common": "workspace:*",
+    "express": "catalog:default"
+  },
+  "devDependencies": {
+    "jsonc-eslint-parser": "catalog:default"
+  }
 }

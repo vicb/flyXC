@@ -2,11 +2,12 @@ const { composePlugins, withNx } = require('@nx/webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 const webpack = require('webpack');
 const fs = require('node:fs');
+const path = require('node:path');
 const { parse } = require('@dotenvx/dotenvx');
 
 // Nx plugins for webpack.
 module.exports = composePlugins(withNx(), (config) => {
-  const secretsPath = 'secrets.env.local';
+  const secretsPath = path.join(__dirname, '../../secrets.env.local');
   /** @type {Record<string, string>} */
   const secrets = {};
 
@@ -33,6 +34,13 @@ module.exports = composePlugins(withNx(), (config) => {
         exclude: 'static',
       }),
     ];
+  }
+
+  // Mark @google-cloud packages as external to avoid bundling them
+  // This prevents issues with dynamic file loading (e.g., proto files)
+  config.externals = config.externals || [];
+  if (Array.isArray(config.externals)) {
+    config.externals.push(/^@google-cloud\/.*/);
   }
 
   return config;

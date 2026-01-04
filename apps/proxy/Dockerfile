@@ -10,10 +10,10 @@ RUN apt-get update -y \
 WORKDIR /usr/src/app
 RUN npm install -g npm@latest
 
-COPY dist/apps/proxy/package*.json ./
+COPY apps/proxy/dist/package*.json ./
 RUN npm ci --no-audit
 
-COPY dist/apps/proxy/main.js ./
+COPY apps/proxy/dist/main.js ./
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 

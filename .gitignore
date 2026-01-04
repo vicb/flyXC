@@ -7,6 +7,8 @@ tmp
 
 # dependencies
 node_modules
+.pnpm-store
+pnpm-debug.log
 
 # IDEs and editors
 /.idea
@@ -31,6 +33,7 @@ node_modules
 /libpeerconnection.log
 npm-debug.log
 yarn-error.log
+pnpm-debug.log
 testem.log
 /typings
 /.nx-container

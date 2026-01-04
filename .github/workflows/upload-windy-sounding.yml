@@ -15,11 +15,18 @@ jobs:
           # We must fetch at least the immediate parents so that if this is
           # a pull request then we can checkout the head.
           fetch-depth: 2
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.22.0
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: Build
-        run: |
-          npm ci --no-audit
-          npm --prefix libs/windy-sounding ci --no-audit
-          npx nx build windy-sounding
+        run: pnpm nx build windy-sounding
       - name: Publish Plugin
-        run: |
-          npx nx upload windy-sounding
+        run: pnpm nx upload windy-sounding

@@ -2,8 +2,12 @@
 
 /dist
 /coverage
+/apps/*/dist
+/libs/*/dist
 
 /apps/fxc-front/public
 /apps/fxc-tiles/src/assets/airspaces
 /.nx/cache
 /.nx/workspace-data
+
+/pnpm-lock.yaml

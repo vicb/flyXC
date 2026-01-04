@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   displayName: 'run',
   preset: '../../jest.preset.js',
   globals: {},

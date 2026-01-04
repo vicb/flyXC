@@ -1,0 +1,12 @@
+{
+  "name": "vaadin-dom",
+  "version": "0.0.1",
+  "devDependencies": {
+    "jsonc-eslint-parser": "catalog:default"
+  },
+  "dependencies": {
+    "lit": "catalog:default",
+    "tslib": "catalog:default",
+    "vaadin-nodom": "workspace:*"
+  }
+}

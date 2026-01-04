@@ -11,7 +11,7 @@
       "options": {
         "target": "node",
         "compiler": "tsc",
-        "outputPath": "dist/apps/fetcher",
+        "outputPath": "apps/fetcher/dist",
         "main": "apps/fetcher/src/fetcher.ts",
         "tsConfig": "apps/fetcher/tsconfig.app.json",
         "generatePackageJson": true,
@@ -35,7 +35,8 @@
     "serve": {
       "executor": "@nx/js:node",
       "options": {
-        "buildTarget": "fetcher:build"
+        "buildTarget": "fetcher:build",
+        "inspect": false
       },
       "configurations": {
         "production": {

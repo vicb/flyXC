@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   displayName: 'proxy',
   preset: '../../jest.preset.js',
   globals: {},

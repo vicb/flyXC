@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   displayName: 'fetcher',
   preset: '../../jest.preset.js',
   globals: {

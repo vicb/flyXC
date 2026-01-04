@@ -10,10 +10,10 @@ RUN apt-get update -y \
 WORKDIR /usr/src/app
 RUN npm install -g npm@latest
 
-COPY dist/apps/run/package*.json ./
+COPY apps/run/dist/package*.json ./
 RUN npm ci --no-audit
 
-COPY dist/apps/run/main.js ./
+COPY apps/run/dist/main.js ./
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 

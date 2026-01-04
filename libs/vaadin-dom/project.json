@@ -5,6 +5,16 @@
   "projectType": "library",
   "tags": [],
   "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "libs/vaadin-dom/dist",
+        "main": "libs/vaadin-dom/index.ts",
+        "generateExportsField": true,
+        "tsConfig": "libs/vaadin-dom/tsconfig.lib.json"
+      }
+    },
     "test": {
       "options": {
         "passWithNoTests": true

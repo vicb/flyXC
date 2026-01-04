@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   displayName: 'fxc-tiles',
   preset: '../../jest.preset.js',
   globals: {},

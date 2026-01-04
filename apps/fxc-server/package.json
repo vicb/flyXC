@@ -5,5 +5,35 @@
   "scripts": {
     "start": "node main.js"
   },
-  "private": true
+  "dependencies": {
+    "@dotenvx/dotenvx": "catalog:default",
+    "@dr.pogodin/csurf": "^1.16.7",
+    "@google-cloud/datastore": "catalog:default",
+    "@tmcw/togeojson": "^5.8.1",
+    "@xmldom/xmldom": "catalog:default",
+    "compression": "^1.8.1",
+    "connect-redis": "8.x",
+    "cors": "^2.8.5",
+    "express": "catalog:default",
+    "express-basic-auth": "^1.2.1",
+    "express-fileupload": "^1.5.2",
+    "express-session": "^1.18.2",
+    "gpx-builder": "^5.4.0",
+    "grant": "^5.4.24",
+    "ioredis": "catalog:default",
+    "object-standard-path": "^0.3.1",
+    "printf": "^0.6.1",
+    "terser-webpack-plugin": "catalog:default",
+    "xmlbuilder": "^15.1.1",
+    "zod": "catalog:default",
+    "@flyxc/common": "workspace:*",
+    "@flyxc/common-node": "workspace:*",
+    "vaadin-nodom": "workspace:*",
+    "igc-parser": "^2.0.0"
+  },
+  "private": true,
+  "devDependencies": {
+    "jsonc-eslint-parser": "catalog:default",
+    "terser-webpack-plugin": "catalog:default"
+  }
 }

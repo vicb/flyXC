@@ -11,7 +11,7 @@
       "options": {
         "target": "node",
         "compiler": "tsc",
-        "outputPath": "dist/apps/fxc-tiles",
+        "outputPath": "apps/fxc-tiles/dist",
         "outputFileName": "unzip.js",
         "main": "apps/fxc-tiles/src/app/airspaces/unzip.ts",
         "generatePackageJson": true,

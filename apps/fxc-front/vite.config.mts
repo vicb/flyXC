@@ -29,7 +29,7 @@ const assetFileNames = (assetInfo: any) => {
 export default defineConfig(
   ({ mode }): UserConfig => ({
     root: __dirname,
-    cacheDir: '../../node_modules/.vite/apps/fxc-front',
+    cacheDir: 'node_modules/.vite/apps/fxc-front',
 
     server: {
       port: 8080,
@@ -42,7 +42,7 @@ export default defineConfig(
     },
 
     build: {
-      outDir: '../../dist/apps/fxc-front',
+      outDir: 'apps/fxc-front/dist',
       reportCompressedSize: true,
       commonjsOptions: { transformMixedEsModules: true },
       emptyOutDir: true,
@@ -103,7 +103,7 @@ function getAirspaceDate() {
   if (existsSync(tileInfo)) {
     try {
       return String(execSync(`git log -1 --format="%ad" --date=format:"%Y-%m-%d" -- ${tileInfo}`)).trim();
-    } catch (e) {
+    } catch {
       return '-';
     }
   }

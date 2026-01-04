@@ -11,7 +11,7 @@
       "options": {
         "target": "node",
         "compiler": "tsc",
-        "outputPath": "dist/apps/proxy",
+        "outputPath": "apps/proxy/dist",
         "main": "apps/proxy/src/index.ts",
         "tsConfig": "apps/proxy/tsconfig.app.json",
         "generatePackageJson": true,

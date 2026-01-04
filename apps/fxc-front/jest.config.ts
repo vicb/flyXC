@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   displayName: 'fxc-front',
   preset: '../../jest.preset.js',
   globals: {},

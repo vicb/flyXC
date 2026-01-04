@@ -11,7 +11,7 @@
       "options": {
         "target": "node",
         "compiler": "tsc",
-        "outputPath": "dist/apps/run",
+        "outputPath": "apps/run/dist",
         "main": "apps/run/src/main.ts",
         "tsConfig": "apps/run/tsconfig.app.json",
         "generatePackageJson": true,

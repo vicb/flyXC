@@ -9,7 +9,7 @@
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/libs/optimizer",
+        "outputPath": "libs/optimizer/dist",
         "main": "libs/optimizer/src/index.ts",
         "additionalEntryPoints": [
           "libs/optimizer/src/lib/api.ts",

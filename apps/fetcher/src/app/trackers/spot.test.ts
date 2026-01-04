@@ -146,7 +146,7 @@ describe('Parse JSON feed', () => {
   });
 
   it('should throw on invalid format', () => {
-    expect(() => parse('random')).toThrowError('Invalid SPOT json - feed: random');
+    expect(() => parse('random')).toThrow('Invalid SPOT json - feed: random');
   });
 
   it('should throw on invalid feed error', () => {
@@ -162,7 +162,7 @@ describe('Parse JSON feed', () => {
         }
     }`;
 
-    expect(() => parse(error)).toThrowError(/Feed with Id: invalid_feed_id not found/);
+    expect(() => parse(error)).toThrow(/Feed with Id: invalid_feed_id not found/);
   });
 
   it('should return an empty list of points when the feed is empty', () => {
