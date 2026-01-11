@@ -1,10 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { parse } from '@dotenvx/dotenvx';
-import { nodeExternals } from 'rollup-plugin-node-externals';
 import type { UserConfig } from 'vitest/config';
 import { defineConfig } from 'vitest/config';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ mode }): UserConfig => {
   // Load secrets from secrets.env.local file
@@ -34,17 +36,14 @@ export default defineConfig(({ mode }): UserConfig => {
       target: 'node22',
       minify: mode === 'production',
       sourcemap: mode === 'production',
-      // Library mode for Node.js application
-      lib: {
-        entry: 'src/index.ts',
-        fileName: 'index',
-        formats: ['es'],
-      },
+      ssr: true,
       rollupOptions: {
-        plugins: [nodeExternals()],
+        input: path.resolve(__dirname, 'src/index.ts'),
         output: {
           // Preserve module structure for Node.js
           preserveModules: false,
+          entryFileNames: 'index.js',
+          format: 'es',
         },
       },
       commonjsOptions: {

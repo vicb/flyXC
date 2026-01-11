@@ -1,9 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { parse } from '@dotenvx/dotenvx';
-import { nodeExternals } from 'rollup-plugin-node-externals';
 import { defineConfig } from 'vitest/config';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ mode }) => {
   // Load secrets from secrets.env.local file
@@ -34,14 +36,8 @@ export default defineConfig(({ mode }) => {
       target: 'node22',
       minify: mode === 'production',
       sourcemap: mode === 'production',
-      // Library mode for Node.js application
-      lib: {
-        entry: 'src/main.ts',
-        fileName: 'index',
-        formats: ['es'],
-      },
+      ssr: true,
       rollupOptions: {
-        plugins: [nodeExternals()],
         external: (id) => {
           // Mark @google-cloud packages as external to avoid bundling them
           // This prevents issues with dynamic file loading (e.g., proto files)
@@ -50,9 +46,12 @@ export default defineConfig(({ mode }) => {
           }
           return false;
         },
+        input: path.resolve(__dirname, 'src/main.ts'),
         output: {
           // Preserve module structure for Node.js
           preserveModules: false,
+          entryFileNames: 'index.js',
+          format: 'es',
         },
       },
       commonjsOptions: {

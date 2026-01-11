@@ -1,10 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { parse } from '@dotenvx/dotenvx';
-import { nodeExternals } from 'rollup-plugin-node-externals';
 import type { UserConfig } from 'vitest/config';
 import { defineConfig } from 'vitest/config';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ mode }): UserConfig => {
   // Load secrets from secrets.env.local file
@@ -34,22 +36,19 @@ export default defineConfig(({ mode }): UserConfig => {
       target: 'node22',
       minify: mode === 'production',
       sourcemap: mode === 'production',
-      // Library mode for Node.js application with multiple entry points
-      lib: {
-        entry: {
-          list_track: 'src/app/list_tracks.ts',
-          stat_tracks: 'src/app/stat_tracks.ts',
-          delete_old_storage: 'src/app/delete_old_storage.ts',
-          list_trackers: 'src/app/list_trackers.ts',
-          list_flymaster: 'src/app/list_flymaster.ts',
-          email_inreach: 'src/app/email_inreach.ts',
-        },
-        formats: ['es'],
-      },
+      ssr: true,
       rollupOptions: {
-        plugins: [nodeExternals()],
+        input: {
+          list_track: path.resolve(__dirname, 'src/app/list_tracks.ts'),
+          stat_tracks: path.resolve(__dirname, 'src/app/stat_tracks.ts'),
+          delete_old_storage: path.resolve(__dirname, 'src/app/delete_old_storage.ts'),
+          list_trackers: path.resolve(__dirname, 'src/app/list_trackers.ts'),
+          list_flymaster: path.resolve(__dirname, 'src/app/list_flymaster.ts'),
+          email_inreach: path.resolve(__dirname, 'src/app/email_inreach.ts'),
+        },
         output: {
           entryFileNames: '[name].js',
+          format: 'es',
         },
       },
       commonjsOptions: {

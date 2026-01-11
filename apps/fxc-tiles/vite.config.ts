@@ -1,9 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { parse } from '@dotenvx/dotenvx';
-import { nodeExternals } from 'rollup-plugin-node-externals';
 import { defineConfig } from 'vitest/config';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ mode }) => {
   // Load secrets from secrets.env.local file
@@ -34,23 +36,20 @@ export default defineConfig(({ mode }) => {
       target: 'node22',
       minify: mode === 'production',
       sourcemap: mode === 'production',
-      // Library mode for Node.js application with multiple entry points
-      lib: {
-        entry: {
-          'airspaces/create-geojson': 'src/app/airspaces/create-geojson.ts',
-          'airspaces/create-tiles': 'src/app/airspaces/create-tiles.ts',
-          'airspaces/download-openaip': 'src/app/airspaces/download-openaip.ts',
-          'airspaces/create-tiles-info': 'src/app/airspaces/create-tiles-info.ts',
-          'airspaces/stats': 'src/app/airspaces/stats.ts',
-          'airspaces/create-tiles-info-diff': 'src/app/airspaces/create-tiles-info-diff.ts',
-          'airspaces/upload-tiles-diff': 'src/app/airspaces/upload-tiles-diff.ts',
-        },
-        formats: ['es'],
-      },
+      ssr: true,
       rollupOptions: {
-        plugins: [nodeExternals()],
+        input: {
+          'airspaces/create-geojson': path.resolve(__dirname, 'src/app/airspaces/create-geojson.ts'),
+          'airspaces/create-tiles': path.resolve(__dirname, 'src/app/airspaces/create-tiles.ts'),
+          'airspaces/download-openaip': path.resolve(__dirname, 'src/app/airspaces/download-openaip.ts'),
+          'airspaces/create-tiles-info': path.resolve(__dirname, 'src/app/airspaces/create-tiles-info.ts'),
+          'airspaces/stats': path.resolve(__dirname, 'src/app/airspaces/stats.ts'),
+          'airspaces/create-tiles-info-diff': path.resolve(__dirname, 'src/app/airspaces/create-tiles-info-diff.ts'),
+          'airspaces/upload-tiles-diff': path.resolve(__dirname, 'src/app/airspaces/upload-tiles-diff.ts'),
+        },
         output: {
           entryFileNames: '[name].js',
+          format: 'es',
         },
       },
       commonjsOptions: {
