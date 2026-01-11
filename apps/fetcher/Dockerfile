@@ -14,7 +14,7 @@ RUN npm install -g npm@latest
 COPY apps/fetcher/dist/package*.json ./
 RUN npm ci --no-audit
 
-COPY apps/fetcher/dist/main.js ./
+COPY apps/fetcher/dist/index.js ./
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 
