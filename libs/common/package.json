@@ -8,15 +8,12 @@
   "dependencies": {
     "@date-fns/tz": "^1.4.1",
     "@google-cloud/datastore": "catalog:default",
-    "@mapbox/sphericalmercator": "^1.2.0",
+    "@mapbox/sphericalmercator": "^2.0.2",
     "@protobuf-ts/runtime": "^2.11.1",
     "date-fns": "catalog:default",
     "geolib": "catalog:default",
     "mapbox-vector-tile": "catalog:default",
     "tslib": "catalog:default",
     "vaadin-nodom": "workspace:*"
-  },
-  "devDependencies": {
-    "@types/mapbox__sphericalmercator": "catalog:default"
   }
 }

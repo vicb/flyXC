@@ -1,14 +1,14 @@
-import SphericalMercator from '@mapbox/sphericalmercator';
+import { SphericalMercator } from '@mapbox/sphericalmercator';
 
 import type { LatLon, Point } from './runtime-track';
 
-const mercatorBySize = new Map<number, SphericalMercator>();
+const mercatorBySize = new Map<number, InstanceType<typeof SphericalMercator>>();
 
 // Returns:
 // - tile =  coordinates of the tile,
 // - px = pixel coordinates in the tile,
 // - world = world coordinates.
-export function pixelCoordinates(
+export function getPixelCoordinates(
   latLon: LatLon,
   zoom: number,
   tileSize: number,

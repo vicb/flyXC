@@ -5,10 +5,10 @@ import {
   getAirspaceCategory,
   getAirspaceColor,
   getAirspaceTileUrl,
+  getPixelCoordinates,
   isAirspaceVisible,
   isInFeature,
   MAX_AIRSPACE_TILE_ZOOM,
-  pixelCoordinates,
   toTypedAirspace,
 } from '@flyxc/common';
 import { VectorTile } from 'mapbox-vector-tile';
@@ -41,7 +41,7 @@ export async function getAirspaceList(
   date: Date,
 ): Promise<string> {
   const tileZoom = Math.min(zoom, MAX_AIRSPACE_TILE_ZOOM);
-  const { tile: tileCoords, px } = pixelCoordinates(latLon, tileZoom, AIRSPACE_TILE_SIZE);
+  const { tile: tileCoords, px } = getPixelCoordinates(latLon, tileZoom, AIRSPACE_TILE_SIZE);
 
   const response = await fetch(
     getAirspaceTileUrl(tileCoords.x, tileCoords.y, tileZoom, import.meta.env.VITE_AIRSPACE_SERVER),

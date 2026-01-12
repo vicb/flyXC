@@ -7,9 +7,9 @@ import {
   Flags,
   getAirspaceColorCategory,
   getAirspaceTileUrl,
+  getPixelCoordinates,
   isInFeature,
   MAX_AIRSPACE_TILE_ZOOM,
-  pixelCoordinates,
   protos,
   toTypedAirspace,
 } from '@flyxc/common';
@@ -44,7 +44,7 @@ export function getIndicesByUrlAndPx(
   for (let i = 0; i < track.lat.length; i++) {
     const lon = track.lon[i];
     const lat = track.lat[i];
-    const { tile, px } = pixelCoordinates({ lat, lon }, MAX_AIRSPACE_TILE_ZOOM, AIRSPACE_TILE_SIZE);
+    const { tile, px } = getPixelCoordinates({ lat, lon }, MAX_AIRSPACE_TILE_ZOOM, AIRSPACE_TILE_SIZE);
     pxInTiles.push(px);
     const url = getAirspaceTileUrl(tile.x, tile.y, MAX_AIRSPACE_TILE_ZOOM, 'cloud');
     if (!indexesByTileUrl.has(url)) {

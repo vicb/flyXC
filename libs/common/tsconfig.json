@@ -4,6 +4,7 @@
     "target": "ES2023",
     "lib": ["ES2023", "DOM"],
     "module": "esnext",
+    "moduleResolution": "bundler",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitOverride": true,
