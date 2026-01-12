@@ -2,7 +2,7 @@ import { getDatastore, getRedisClient } from '@flyxc/common-node';
 import compression from 'compression';
 import { RedisStore } from 'connect-redis';
 import cors from 'cors';
-import express from 'express';
+import express, { type RequestHandler } from 'express';
 import fileUpload from 'express-fileupload';
 import session from 'express-session';
 import grant from 'grant';
@@ -33,7 +33,7 @@ const app = express()
         const size = Number(res.get('Content-Length') ?? 0);
         return size > 10000 && /protobuf/i.test(contentType);
       },
-    }),
+    }) as unknown as RequestHandler,
   )
   // Enable pre-flight
   .use(
@@ -46,7 +46,12 @@ const app = express()
   .set('trust proxy', config.gae)
   .use(express.json())
   .use(express.urlencoded({ extended: true }))
-  .use(fileUpload({ headers: { 'content-type': 'application/octet-stream' }, limits: { fileSize: 32 * 1024 * 1024 } }))
+  .use(
+    fileUpload({
+      headers: { 'content-type': 'application/octet-stream' },
+      limits: { fileSize: 32 * 1024 * 1024 },
+    }) as unknown as RequestHandler,
+  )
   .use(
     session({
       secret: SECRETS.SESSION_SECRET,
@@ -63,7 +68,7 @@ const app = express()
       store: new RedisStore({ client: redis }),
       unset: 'destroy',
       saveUninitialized: false,
-    }),
+    }) as unknown as RequestHandler,
   )
   .use(
     '/oauth',

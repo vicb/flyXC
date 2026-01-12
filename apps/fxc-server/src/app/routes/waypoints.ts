@@ -16,7 +16,7 @@ export function getWaypointRouter(): Router {
     const { mime, file, filename, error } = encode(format, points, prefix);
 
     if (error) {
-      res.redirect('back');
+      res.sendStatus(500);
     } else {
       res.attachment(`${filename}`).set('Content-Type', mime).send(file);
     }
