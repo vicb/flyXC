@@ -71,7 +71,7 @@ export default defineConfig(({ mode }) => {
 
     // SSR mode for Node.js
     ssr: {
-      noExternal: ['@flyxc/common', '@flyxc/common-node'],
+      noExternal: ['@flyxc/common', '@flyxc/common-node', 'google-polyline'],
     },
 
     // Vitest configuration

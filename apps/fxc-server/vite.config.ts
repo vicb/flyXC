@@ -67,7 +67,7 @@ export default defineConfig(({ mode }) => {
 
     // SSR mode for Node.js
     ssr: {
-      noExternal: ['@flyxc/common', '@flyxc/common-node', 'vaadin-nodom'],
+      noExternal: ['@flyxc/common', '@flyxc/common-node', 'vaadin-nodom', '@tmcw/togeojson'],
     },
 
     // Vitest configuration
