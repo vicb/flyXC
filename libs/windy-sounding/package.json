@@ -11,15 +11,33 @@
     "directory": "libs/windy-plugin"
   },
   "license": "MIT",
+  "scripts": {
+    "build:dev": "vite build --mode development",
+    "build:prod": "vite build --mode production",
+    "build:config": "BUILD_PLUGIN_CONFIG=true pnpm run build:prod",
+    "clean": "rm -rf dist",
+    "manifest": "node generate-manifest.js dist",
+    "preview": "pnpm build:dev --watch & pnpm build:prod --watch & vite preview",
+    "upload:prepare": "rm -rf dist && pnpm build:prod && pnpm build:dev && pnpm build:config && pnpm manifest",
+    "upload": "./upload.sh"
+  },
   "dependencies": {
-    "@reduxjs/toolkit": "^2.2.7",
+    "@reduxjs/toolkit": "catalog:default",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "date-fns": "catalog:default",
     "geojson": "^0.5.0",
     "preact": "^10.23.2",
     "react-redux": "^9.1.2",
     "svelte": "^4.2.19",
-    "svelte-check": "^4.1.4",
-    "vite": "catalog:default"
+    "svelte-check": "^4.1.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "@babel/preset-typescript": "^7.26.0",
+    "@preact/preset-vite": "^2.10.1",
+    "@types/geojson": "^7946.0.15",
+    "core-js": "^3.36.1",
+    "vite": "~5.3.1"
   }
 }

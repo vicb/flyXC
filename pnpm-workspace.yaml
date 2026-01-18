@@ -8,6 +8,7 @@ catalog:
   '@google-cloud/datastore': '^10.0.1'
   '@google-cloud/pubsub': '^5.2.0'
   '@google-cloud/storage': '^7.18.0'
+  '@reduxjs/toolkit': '^2.11.2'
   '@types/compression': '^1.8.1'
   '@types/cors': '^2.8.19'
   '@types/csurf': '^1.11.5'
