@@ -332,6 +332,7 @@ function getFlatTriangleMultiplier(scoringRules: ScoringRuleName) {
     case 'XContest':
       return 1.4;
     case 'Norway':
+      return 1.6;
     case 'UKClub':
     case 'UKNational':
       return 1.7;
@@ -361,7 +362,7 @@ function getFaiTriangleMultiplier(scoringRules: ScoringRuleName) {
     case 'CzechLocal':
       return 2.2;
     case 'Norway':
-      return 2.4;
+      return 1.8;
     case 'UKInternational':
       return 1.5;
     case 'XContestPPG':
