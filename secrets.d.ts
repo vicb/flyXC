@@ -21,4 +21,5 @@ declare const SECRETS: {
   FLYMASTER_GROUP_TOKEN: string;
   MAILERSEND_TOKEN: string;
   MESHBIR_AUTH_TOKEN: string;
+  ZIPLINE_TOKEN: string;
 };

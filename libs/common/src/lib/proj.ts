@@ -2,7 +2,7 @@ import SphericalMercator from '@mapbox/sphericalmercator';
 
 import type { LatLon, Point } from './runtime-track';
 
-const mercatorBySize = new Map<number, SphericalMercator>();
+const mercatorBySize = new Map<number, InstanceType<typeof SphericalMercator>>();
 
 // Returns:
 // - tile =  coordinates of the tile,
