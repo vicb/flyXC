@@ -1,3 +1,5 @@
+import crypto from 'node:crypto';
+
 import csurf from '@dr.pogodin/csurf';
 import type { AccountModel, LiveTrackEntity } from '@flyxc/common';
 import { AccountFormModel, differentialDecodeLiveTrack, Keys, LiveDataRetentionSec, protos } from '@flyxc/common';
@@ -43,17 +45,28 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
         case SECRETS.ZIPLINE_TOKEN: {
           const liveGroupProto = await redis.getBuffer(Keys.fetcherFullProtoH12);
 
-          const liveGroup = protos.LiveDifferentialTrackGroup.fromBinary(liveGroupProto!);
+          const liveGroup = liveGroupProto
+            ? protos.LiveDifferentialTrackGroup.fromBinary(liveGroupProto)
+            : protos.LiveDifferentialTrackGroup.create();
 
-          const anonTracks: protos.LiveDifferentialTrack[] = liveGroup.tracks.map(({ lat, lon, alt, timeSec }) => ({
-            name: '',
-            flags: [],
-            extra: {},
-            lat,
-            lon,
-            alt,
-            timeSec,
-          }));
+          const anonTracks: protos.LiveDifferentialTrack[] = liveGroup.tracks.map(
+            ({ lat, lon, alt, timeSec, id, idStr }) => {
+              // Anonymizes the track by hashing the id with a salt.
+              const sha1 = crypto.createHash('sha1');
+              sha1.update(String(idStr ?? id) + SECRETS.EXPORT_ID_SALT);
+
+              return {
+                idStr: sha1.digest('hex'),
+                name: '',
+                flags: [],
+                extra: {},
+                lat,
+                lon,
+                alt,
+                timeSec,
+              };
+            },
+          );
           const anonGroup: protos.LiveDifferentialTrackGroup = {
             tracks: anonTracks,
             incremental: false,

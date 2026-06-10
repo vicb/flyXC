@@ -22,4 +22,5 @@ declare const SECRETS: {
   MAILERSEND_TOKEN: string;
   MESHBIR_AUTH_TOKEN: string;
   ZIPLINE_TOKEN: string;
+  EXPORT_ID_SALT: string;
 };
