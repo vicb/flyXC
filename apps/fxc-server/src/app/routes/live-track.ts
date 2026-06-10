@@ -1,6 +1,8 @@
+import crypto from 'node:crypto';
+
 import csurf from '@dr.pogodin/csurf';
 import type { AccountModel, LiveTrackEntity } from '@flyxc/common';
-import { AccountFormModel, Keys, LiveDataRetentionSec, protos } from '@flyxc/common';
+import { AccountFormModel, differentialDecodeLiveTrack, Keys, LiveDataRetentionSec, protos } from '@flyxc/common';
 import {
   FlyMeValidator,
   InreachValidator,
@@ -37,6 +39,45 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
           } else {
             res.set('Content-Type', 'application/x-protobuf');
             res.send(groupProto);
+          }
+          break;
+        }
+        case SECRETS.ZIPLINE_TOKEN: {
+          const liveGroupProto = await redis.getBuffer(Keys.fetcherFullProtoH12);
+
+          const liveGroup = liveGroupProto
+            ? protos.LiveDifferentialTrackGroup.fromBinary(liveGroupProto)
+            : protos.LiveDifferentialTrackGroup.create();
+
+          const anonTracks: protos.LiveDifferentialTrack[] = liveGroup.tracks.map(
+            ({ lat, lon, alt, timeSec, id, idStr }) => {
+              // Anonymizes the track by hashing the id with a salt.
+              const sha1 = crypto.createHash('sha1');
+              sha1.update(String(idStr ?? id) + SECRETS.EXPORT_ID_SALT);
+
+              return {
+                idStr: sha1.digest('hex'),
+                name: '',
+                flags: [],
+                extra: {},
+                lat,
+                lon,
+                alt,
+                timeSec,
+              };
+            },
+          );
+          const anonGroup: protos.LiveDifferentialTrackGroup = {
+            tracks: anonTracks,
+            incremental: false,
+            remoteId: [],
+          };
+
+          if (req.header('accept') == 'application/json') {
+            res.json(protos.LiveDifferentialTrackGroup.toJson(anonGroup));
+          } else {
+            res.set('Content-Type', 'application/x-protobuf');
+            res.send(protos.LiveDifferentialTrackGroup.toBinary(anonGroup));
           }
           break;
         }
