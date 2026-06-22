@@ -42,6 +42,7 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
           }
           break;
         }
+        case SECRETS.WING_TOKEN:
         case SECRETS.ZIPLINE_TOKEN: {
           const liveGroupProto = await redis.getBuffer(Keys.fetcherFullProtoH12);
 
