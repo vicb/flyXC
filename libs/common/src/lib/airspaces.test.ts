@@ -20,7 +20,7 @@ async function getTile(x: number, y: number, z: number): Promise<Map<string, Air
   const airspaces = new Map<string, AirspaceTyped>();
   let buffer: ArrayBuffer;
 
-  const filename = path.join(__dirname, '../../../..', `apps/fxc-tiles/src/assets/airspaces/tiles/${z}/${x}/${y}.pbf`);
+  const filename = path.join(__dirname, '../../../..', `apps/fxc-tiles/assets/tiles/${z}/${x}/${y}.pbf`);
   if (fs.existsSync(filename)) {
     buffer = fs.readFileSync(filename);
   } else {

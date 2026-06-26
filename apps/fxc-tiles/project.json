@@ -11,7 +11,7 @@
       "options": {
         "target": "node",
         "compiler": "tsc",
-        "outputPath": "dist/apps/fxc-tiles",
+        "outputPath": "apps/fxc-tiles/dist",
         "outputFileName": "unzip.js",
         "main": "apps/fxc-tiles/src/app/airspaces/unzip.ts",
         "generatePackageJson": true,
@@ -46,18 +46,6 @@
           }
         ],
         "tsConfig": "apps/fxc-tiles/tsconfig.app.json",
-        "assets": [
-          {
-            "glob": "download.sh",
-            "input": "apps/fxc-tiles/src/assets/airspaces",
-            "output": "airspaces"
-          },
-          {
-            "glob": "cors.json",
-            "input": "apps/fxc-tiles/src/assets/airspaces",
-            "output": "assets"
-          }
-        ],
         "babelUpwardRootMode": true,
         "webpackConfig": "apps/fxc-tiles/webpack.config.js"
       },
@@ -95,7 +83,7 @@
     "serve": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npx servez -p 8084 -q apps/fxc-tiles/src/assets/airspaces/tiles"
+        "command": "npx servez -p 8084 -q apps/fxc-tiles/assets/tiles"
       }
     }
   }

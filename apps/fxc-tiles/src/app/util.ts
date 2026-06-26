@@ -4,6 +4,10 @@ export function printOnCurrentLine(msg: string) {
   process.stdout.write(msg);
 }
 
+/**
+ * @param pathName Some path in the dist folder
+ * @returns The app path, i.e. `/path/to/apps/fxc-tiles/`
+ */
 export function getAppFolderFromDist(pathName: string) {
-  return pathName.replace(/\/dist(\/apps\/.*?)\/.*/, '$1/');
+  return pathName.replace(/\/dist\/.*/, '');
 }

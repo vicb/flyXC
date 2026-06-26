@@ -63,6 +63,9 @@ export enum Type {
   TFR = 31,
   VFRSector = 32,
   FISSector = 33,
+  LowerTrafficArea = 34,
+  UpperTrafficArea = 35,
+  MilitaryControlledTowerRegion = 36,
   LastValue,
 }
 
@@ -87,7 +90,8 @@ export enum Activity {
   Aeroclub = 3,
   ULM = 4,
   HgPg = 5,
-  LastValue = HgPg,
+  Unknown = 6,
+  LastValue = Unknown,
 }
 
 // Any update in this function should be reflected for the 3D airspaces.
@@ -228,6 +232,12 @@ export function getTypeName(type: Type): string {
       return 'VFR';
     case Type.FISSector:
       return 'FIS';
+    case Type.LowerTrafficArea:
+      return 'Lower traffic area';
+    case Type.UpperTrafficArea:
+      return 'Upper traffic area';
+    case Type.MilitaryControlledTowerRegion:
+      return 'Military controlled tower region';
     case Type.LastValue:
       throw new Error('Invalid type');
   }
@@ -384,19 +394,19 @@ function isInPolygon(point: Point, polygon: Point[], ratio: number): boolean {
 export const airspaceOverrides = {
   // Inactive from July to Oct
   // https://www.ecrins-parcnational.fr/les-survols-non-motorises
-  ecrins: 'PARC/RESERVE  ECRINS',
+  ecrins: 'PARC/RESERVE  ECRINS 1000M/SOL',
   // See https://www.freedom-parapente.fr/site/puy-de-dome
-  TMAClermont21: 'TMA CLERMONT 2.1 VIC',
-  TMAClermont22: 'TMA CLERMONT 2.2 CHAMPEIX',
-  TMAClermont23: 'TMA CLERMONT 2.3 ORCINES',
-  TMAClermont41: 'TMA CLERMONT 4.1 JOB',
-  TMAClermont51: 'TMA CLERMONT 5.1 PUY DE DOME',
+  TMAClermont21: 'TMA CLERMONT 2.1 (VOL LIBRE)',
+  TMAClermont22: 'TMA CLERMONT 2.2 CHAMPEIX (VOL LIBRE)',
+  TMAClermont23: 'TMA CLERMONT 2.3 ORCINES (VOL LIBRE)',
+  TMAClermont41: 'TMA CLERMONT 4.1 JOB (VOL LIBRE)',
+  TMAClermont51: 'TMA CLERMONT5.1 PUY DE DOME (VOL LIBRE)',
   // Active in July and August
   // https://federation.ffvl.fr/sites/ffvl.fr/files/Massifdumontblancchamonix.pdf
   LFR30B: 'LF-R30B MONT BLANC (JULY+AUGUST)',
   // 300m AGL for PG
   // https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000021755667
-  aiguilleRouges: 'PARC/RESERVE  AIGUILLES ROUGES',
+  aiguilleRouges: 'PARC/RESERVE  AIGUILLES ROUGES 1000M/SOL',
   // Class E
   // - 2nd Monday of April to 2nd Friday of December
   // - outside the above period: Monday 11:00UTC to Thursday 23:59UTC

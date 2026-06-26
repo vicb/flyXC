@@ -16,8 +16,8 @@ const GeoJSON = require('geojson');
 // Filter out airspaces above:
 const MAX_FLOOR_METER = 6000;
 
-const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces'));
-const defaultOutputFile = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces/airspaces.geojson'));
+const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), '/assets'));
+const defaultOutputFile = resolve(join(getAppFolderFromDist(__dirname), '/assets/airspaces.geojson'));
 
 program
   .option('-i, --input <folder>', 'input folder', defaultInputFolder)
