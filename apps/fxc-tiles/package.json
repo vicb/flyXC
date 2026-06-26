@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "download-airspaces": "assets/download.sh"
+    "download-airspaces": "sh assets/download.sh"
   },
   "nx": {
     "includedScripts": []

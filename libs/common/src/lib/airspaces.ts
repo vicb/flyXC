@@ -394,19 +394,19 @@ function isInPolygon(point: Point, polygon: Point[], ratio: number): boolean {
 export const airspaceOverrides = {
   // Inactive from July to Oct
   // https://www.ecrins-parcnational.fr/les-survols-non-motorises
-  ecrins: 'PARC/RESERVE  ECRINS',
+  ecrins: 'PARC/RESERVE  ECRINS 1000M/SOL',
   // See https://www.freedom-parapente.fr/site/puy-de-dome
-  TMAClermont21: 'TMA CLERMONT 2.1 VIC',
-  TMAClermont22: 'TMA CLERMONT 2.2 CHAMPEIX',
-  TMAClermont23: 'TMA CLERMONT 2.3 ORCINES',
-  TMAClermont41: 'TMA CLERMONT 4.1 JOB',
-  TMAClermont51: 'TMA CLERMONT 5.1 PUY DE DOME',
+  TMAClermont21: 'TMA CLERMONT 2.1 (VOL LIBRE)',
+  TMAClermont22: 'TMA CLERMONT 2.2 CHAMPEIX (VOL LIBRE)',
+  TMAClermont23: 'TMA CLERMONT 2.3 ORCINES (VOL LIBRE)',
+  TMAClermont41: 'TMA CLERMONT 4.1 JOB (VOL LIBRE)',
+  TMAClermont51: 'TMA CLERMONT5.1 PUY DE DOME (VOL LIBRE)',
   // Active in July and August
   // https://federation.ffvl.fr/sites/ffvl.fr/files/Massifdumontblancchamonix.pdf
   LFR30B: 'LF-R30B MONT BLANC (JULY+AUGUST)',
   // 300m AGL for PG
   // https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000021755667
-  aiguilleRouges: 'PARC/RESERVE  AIGUILLES ROUGES',
+  aiguilleRouges: 'PARC/RESERVE  AIGUILLES ROUGES 1000M/SOL',
   // Class E
   // - 2nd Monday of April to 2nd Friday of December
   // - outside the above period: Monday 11:00UTC to Thursday 23:59UTC
