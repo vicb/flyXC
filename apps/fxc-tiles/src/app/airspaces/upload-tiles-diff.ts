@@ -13,8 +13,8 @@ import { getAppFolderFromDist, printOnCurrentLine } from '../util';
 const LOG_EVERY_N_TILES = 100;
 const NUM_SLOTS = 30;
 
-const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces/tiles'));
-const defaultDiffFile = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces/tiles-info-diff.json'));
+const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), '/assets/tiles'));
+const defaultDiffFile = resolve(join(getAppFolderFromDist(__dirname), '/assets/tiles-info-diff.json'));
 
 program
   .option('-i, --input <folder>', 'input folder', defaultInputFolder)

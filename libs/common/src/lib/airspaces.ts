@@ -63,6 +63,9 @@ export enum Type {
   TFR = 31,
   VFRSector = 32,
   FISSector = 33,
+  LowerTrafficArea = 34,
+  UpperTrafficArea = 35,
+  MilitaryControlledTowerRegion = 36,
   LastValue,
 }
 
@@ -87,7 +90,8 @@ export enum Activity {
   Aeroclub = 3,
   ULM = 4,
   HgPg = 5,
-  LastValue = HgPg,
+  Unknown = 6,
+  LastValue = Unknown,
 }
 
 // Any update in this function should be reflected for the 3D airspaces.
@@ -228,6 +232,12 @@ export function getTypeName(type: Type): string {
       return 'VFR';
     case Type.FISSector:
       return 'FIS';
+    case Type.LowerTrafficArea:
+      return 'Lower traffic area';
+    case Type.UpperTrafficArea:
+      return 'Upper traffic area';
+    case Type.MilitaryControlledTowerRegion:
+      return 'Military controlled tower region';
     case Type.LastValue:
       throw new Error('Invalid type');
   }

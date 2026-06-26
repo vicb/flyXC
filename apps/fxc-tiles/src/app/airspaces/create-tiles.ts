@@ -9,8 +9,8 @@ import { program } from 'commander';
 
 import { getAppFolderFromDist, printOnCurrentLine } from '../util';
 
-const defaultInputFile = resolve(join(getAppFolderFromDist(__dirname), 'src/assets/airspaces/airspaces.geojson'));
-const defaultOutputFolder = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces/tiles'));
+const defaultInputFile = resolve(join(getAppFolderFromDist(__dirname), 'assets/airspaces.geojson'));
+const defaultOutputFolder = resolve(join(getAppFolderFromDist(__dirname), 'assets/tiles'));
 
 program
   .option('-i, --input <folder>', 'input folder', defaultInputFile)

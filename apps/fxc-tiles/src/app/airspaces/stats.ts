@@ -3,11 +3,9 @@ import { join, resolve } from 'node:path';
 
 import { getAppFolderFromDist } from '../util';
 
-console.log(__dirname);
+const assetsFolder = resolve(join(getAppFolderFromDist(__dirname), '/assets'));
 
-const inputFolder = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces'));
-
-const airspaces = JSON.parse(readFileSync(join(inputFolder, 'openaip.json'), 'utf-8'));
+const airspaces = JSON.parse(readFileSync(join(assetsFolder, 'openaip.json'), 'utf-8'));
 
 const classes = new Map([
   [0, 'A'],

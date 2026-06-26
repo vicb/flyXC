@@ -8,11 +8,9 @@ import { globSync } from 'glob';
 
 import { getAppFolderFromDist, printOnCurrentLine } from '../util';
 
-const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces/tiles'));
-const defaultOutputFile = resolve(join(getAppFolderFromDist(__dirname), '/src/assets/airspaces/tiles-info.json'));
-const previousInfoFilename = resolve(
-  join(getAppFolderFromDist(__dirname), '/src/assets/airspaces/tiles-info-previous.json'),
-);
+const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), '/assets/tiles'));
+const defaultOutputFile = resolve(join(getAppFolderFromDist(__dirname), '/assets/tiles-info.json'));
+const previousInfoFilename = resolve(join(getAppFolderFromDist(__dirname), '/assets/tiles-info-previous.json'));
 
 program
   .option('-i, --input <folder>', 'input folder', defaultInputFolder)
