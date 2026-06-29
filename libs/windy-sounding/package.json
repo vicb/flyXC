@@ -1,6 +1,6 @@
 {
   "name": "windy-plugin-fxc-soundings",
-  "version": "4.1.16",
+  "version": "4.1.17",
   "type": "module",
   "private": true,
   "description": "Alternative sounding graphs with custom features for PG/HG pilots.",
@@ -8,7 +8,10 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/vicb/flyxc.git",
-    "directory": "libs/windy-plugin"
+    "directory": "libs/windy-sounding"
+  },
+  "bugs": {
+    "url": "https://github.com/vicb/flyxc/issues"
   },
   "license": "MIT",
   "dependencies": {

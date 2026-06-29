@@ -91,18 +91,15 @@ export const mountPlugin = (container: HTMLElement) => {
   });
   addSubscription(() => singleclick.off(singleClickIdEventId));
 
-  // Use the picker events on desktop.
-  if (!windyRootScope.isMobileOrTablet) {
-    const pickerOpenedEventId = windyPicker.on('pickerOpened', (location: LatLon) => {
-      dispatch(changeLocation(location));
-    });
-    addSubscription(() => windyPicker.off(pickerOpenedEventId));
+  const pickerOpenedEventId = windyPicker.on('pickerOpened', (location: LatLon) => {
+    dispatch(changeLocation(location));
+  });
+  addSubscription(() => windyPicker.off(pickerOpenedEventId));
 
-    const pickerMovedEventId = windyPicker.on('pickerMoved', (location: LatLon) => {
-      dispatch(changeLocation(location));
-    });
-    addSubscription(() => windyPicker.off(pickerMovedEventId));
-  }
+  const pickerMovedEventId = windyPicker.on('pickerMoved', (location: LatLon) => {
+    dispatch(changeLocation(location));
+  });
+  addSubscription(() => windyPicker.off(pickerMovedEventId));
 
   const favChangedEventId = broadcast.on('favChanged', async () => {
     dispatch(pluginSlice.setFavorites(await favs.getAll()));
@@ -117,8 +114,6 @@ export const openPlugin = async ({ lat, lon, modelName }: { lat: number; lon: nu
   const location = { lat, lon };
 
   windyMap.setZoom(10, { animate: false });
-  // TODO: added a setTimeout to avoid a crash being investigated by the windy team.
-  setTimeout(() => windyStore.set('overlay', 'clouds'), 200);
   centerMap(location);
 
   dispatch(pluginSlice.setFavorites(await favs.getAll()));
