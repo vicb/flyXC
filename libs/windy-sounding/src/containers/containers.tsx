@@ -253,7 +253,7 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
 
   const setIsZoomedIn = useCallback((expanded: boolean) => dispatch(pluginSlice.setIsZoomedIn(expanded)), []);
 
-  const { minPressure, maxPressure, isZoomedIn, levels, ghs, seaLevelPressure, surfaceElevation } = useSelector(
+  const { minPressure, maxPressure, isZoomedIn, levels, ghs, seaLevelPressure } = useSelector(
     (state: RootState) => {
       const timeMs = pluginSlice.selTimeMs(state);
       const isZoomedIn = pluginSlice.selIsZoomedIn(state);
@@ -277,7 +277,6 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
         levels: periodValues.levels,
         ghs: timeValues.gh,
         seaLevelPressure: timeValues.seaLevelPressure,
-        surfaceElevation: elevation,
       };
     },
     shallowEqual,
@@ -327,7 +326,7 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
         }
       }
     },
-    [levels, ghs, seaLevelPressure, minPressure, maxPressure, height, surfaceElevation],
+    [levels, ghs, seaLevelPressure, minPressure, maxPressure, height],
   );
 
   return (

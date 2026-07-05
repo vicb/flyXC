@@ -377,6 +377,23 @@
   }
 }
 
+.layer-icon {
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  opacity: 0.3;
+  pointer-events: bounding-box;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &.active {
+    opacity: 1;
+    fill: var(--color-orange);
+  }
+}
+
 // Mobile bottom bar.
 #plugin-windy-plugin-fxc-soundings {
   &.plugin-mobile-bottom-small {
