@@ -16,6 +16,8 @@ import { centerMap, changeLocation, updateTime } from '../redux/meta';
 import * as pluginSlice from '../redux/plugin-slice';
 import { type AppDispatch, type RootState } from '../redux/store';
 import * as unitsSlice from '../redux/units-slice';
+import * as atm from '../util/atmosphere';
+import * as math from '../util/math';
 import { formatTimestamp } from '../util/utils';
 
 // Plugin
@@ -251,35 +253,82 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
 
   const setIsZoomedIn = useCallback((expanded: boolean) => dispatch(pluginSlice.setIsZoomedIn(expanded)), []);
 
-  const { minPressure, maxPressure, isZoomedIn } = useSelector((state: RootState) => {
-    const timeMs = pluginSlice.selTimeMs(state);
-    const isZoomedIn = pluginSlice.selIsZoomedIn(state);
-    const modelName = pluginSlice.selModelName(state);
-    const location = pluginSlice.selLocation(state);
-    const elevation = forecastSlice.selElevation(state, modelName, location);
-    const minModelPressure = forecastSlice.selMinModelPressure(state, modelName, location);
-    const pressureToGhScale = forecastSlice.selPressureToGhScale(state, modelName, location, timeMs);
-    const minPressure = isZoomedIn
-      ? Math.round(Math.max(pressureToGhScale.invert(5200 + (elevation * 2) / 5), minModelPressure))
-      : minModelPressure;
-    const maxPressure = Math.min(1000, Math.round(pressureToGhScale.invert((elevation * 4) / 5)));
+  const { minPressure, maxPressure, isZoomedIn, levels, ghs, seaLevelPressure, surfaceElevation } = useSelector(
+    (state: RootState) => {
+      const timeMs = pluginSlice.selTimeMs(state);
+      const isZoomedIn = pluginSlice.selIsZoomedIn(state);
+      const modelName = pluginSlice.selModelName(state);
+      const location = pluginSlice.selLocation(state);
+      const elevation = forecastSlice.selElevation(state, modelName, location);
+      const minModelPressure = forecastSlice.selMinModelPressure(state, modelName, location);
+      const pressureToGhScale = forecastSlice.selPressureToGhScale(state, modelName, location, timeMs);
+      const minPressure = isZoomedIn
+        ? Math.round(Math.max(pressureToGhScale.invert(5200 + (elevation * 2) / 5), minModelPressure))
+        : minModelPressure;
+      const maxPressure = Math.min(1000, Math.round(pressureToGhScale.invert((elevation * 4) / 5)));
 
-    return { isZoomedIn, minPressure, maxPressure };
-  }, shallowEqual);
+      const periodValues = forecastSlice.selPeriodValues(state, modelName, location);
+      const timeValues = forecastSlice.selValuesAt(state, modelName, location, timeMs);
+
+      return {
+        isZoomedIn,
+        minPressure,
+        maxPressure,
+        levels: periodValues.levels,
+        ghs: timeValues.gh,
+        seaLevelPressure: timeValues.seaLevelPressure,
+        surfaceElevation: elevation,
+      };
+    },
+    shallowEqual,
+  );
 
   const skewTWidth = Math.round((width * skewTWidthPercent) / 100);
   const windWidth = width - skewTWidth - 5;
 
-  const moveCursor = useCallback((y: number | undefined) => {
-    if (y === undefined) {
-      // Do not remove the pointer on mobile.
-      if (!W.rootScope.isMobileOrTablet) {
-        setYpointer(undefined);
+  const moveCursor = useCallback(
+    (y: number | undefined) => {
+      if (y === undefined) {
+        // Do not remove the pointer on mobile.
+        if (!W.rootScope.isMobileOrTablet) {
+          setYpointer(undefined);
+        }
+      } else {
+        setYpointer(y);
+
+        const availLevels = W.store.get('availLevels');
+        if (availLevels && availLevels.length > 1) {
+          const pressureToGhScale = atm.getPressureToGhScale(levels, ghs, seaLevelPressure);
+          const ghMeterToPxScale = math.scaleLinear(
+            [pressureToGhScale(minPressure), pressureToGhScale(maxPressure)],
+            [0, height],
+          );
+          const yMeters = ghMeterToPxScale.invert(y);
+
+          const levelsWithElev = availLevels
+            .filter((level) => level.endsWith('h'))
+            .map((level) => {
+              const levelPressure = parseInt(level.slice(0, -1), 10);
+              return { level, elev: pressureToGhScale(levelPressure) };
+            });
+
+          levelsWithElev.sort((a, b) => a.elev - b.elev);
+
+          let selectedLevel = levelsWithElev[0].level;
+          for (const item of levelsWithElev) {
+            if (yMeters >= item.elev) {
+              selectedLevel = item.level;
+            }
+          }
+
+          if (selectedLevel && W.store.get('level') !== selectedLevel) {
+            W.store.set('level', selectedLevel);
+          }
+        }
       }
-    } else {
-      setYpointer(y);
-    }
-  }, []);
+    },
+    [levels, ghs, seaLevelPressure, minPressure, maxPressure, height, surfaceElevation],
+  );
 
   return (
     <g
