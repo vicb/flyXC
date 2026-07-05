@@ -538,7 +538,3 @@ function openMenu(e: KeyboardEvent | MouseEvent) {
     W.broadcast.emit('rqstOpen', 'menu');
   }
 }
-
-function openPluginMenu() {
-  W.broadcast.emit('rqstOpen', 'external-plugins');
-}
