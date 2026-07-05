@@ -10,7 +10,7 @@ jobs:
     env:
       WINDY_API_KEY: '${{ secrets.WINDY_API_KEY }}'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # We must fetch at least the immediate parents so that if this is
           # a pull request then we can checkout the head.
