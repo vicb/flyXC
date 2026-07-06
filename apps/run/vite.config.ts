@@ -79,6 +79,13 @@ export default defineConfig(({ mode }) => {
       globals: true,
       environment: 'node',
       include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+      server: {
+        deps: {
+          // Externalize lodepng (contains CJS native addon) so Vitest loads it directly via Node's require
+          // instead of virtualizing/transforming it, resolving 'lodepng.node' module resolution errors on CI.
+          external: ['lodepng'],
+        },
+      },
       coverage: {
         reportsDirectory: '../../coverage/apps/run',
         provider: 'v8',
