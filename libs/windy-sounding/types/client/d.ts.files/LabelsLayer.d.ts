@@ -11,24 +11,24 @@ export type CityLabelData = [string, string, string, number, number, number, num
 
 /** Represantation of single one HTML label with its temperature data */
 export interface CityLabel {
-  /** Id of the label, it is same as a key for `CityTemperaturesDto`, so it is used for pairing label with temperature data */
-  id: CityLabelId;
+    /** Id of the label, it is same as a key for `CityTemperaturesDto`, so it is used for pairing label with temperature data */
+    id: CityLabelId;
 
-  /** HTML element of the label for binding labels and temperature values */
-  el: HTMLDivElement;
+    /** HTML element of the label for binding labels and temperature values */
+    el: HTMLDivElement;
 
-  /** Forecast data with temperature in K, it is lazy loaded with forecast request */
-  data?: NumOrNull[];
+    /** Forecast data with temperature in K, it is lazy loaded with forecast request */
+    data?: NumOrNull[];
 }
 
 /** Representation of one leaflet tile with its CityLabels */
 export interface CityDiv {
-  /** Labels included in the leaflet tile */
-  labels: CityLabel[];
+    /** Labels included in the leaflet tile */
+    labels: CityLabel[];
 
-  /** Mercator URL frag in format <z>/<x>/<y>. It is lazy binded when tile is created */
-  urlFrag?: string;
+    /** Mercator URL frag in format <z>/<x>/<y>. It is lazy binded when tile is created */
+    urlFrag?: string;
 
-  /* Array of timestamps for which the temperatures are forecasted. Lazy loaded with forecast request */
-  timestamps?: Timestamp[];
+    /* Array of timestamps for which the temperatures are forecasted. Lazy loaded with forecast request */
+    timestamps?: Timestamp[];
 }

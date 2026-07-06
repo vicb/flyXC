@@ -1,4 +1,6 @@
-import process from 'node:process';
+// Do not use "process" because the global "process.env" is
+// replaced at build time by Vite.
+import nodeProcess from 'node:process';
 
 import {
   differentialEncodeLiveTrack,
@@ -9,10 +11,10 @@ import {
   removeBeforeFromLiveTrack,
   removeDeviceFromLiveTrack,
 } from '@flyxc/common';
+import type { RedisClientMultiCmd } from '@flyxc/common-node';
 import { getDatastore, getRedisClient } from '@flyxc/common-node';
 import type { Datastore } from '@google-cloud/datastore';
 import { program } from 'commander';
-import type { ChainableCommander } from 'ioredis';
 
 import { addExportLogs, addHostInfo, addStateLogs, addSyncLogs, HandleCommand } from './app/redis';
 import { createStateArchive, exportToStorage } from './app/state/serialize';
@@ -31,7 +33,7 @@ import { syncFromDatastore } from './app/state/sync';
 import { disconnectOgnClient, resfreshTrackers } from './app/trackers/refresh';
 import { resfreshUfoFleets } from './app/ufos/refresh';
 
-const redis = getRedisClient(SECRETS.REDIS_URL);
+const redis = getRedisClient(process.env.NODE_ENV === 'development' ? SECRETS.REDIS_URL_DEV : SECRETS.REDIS_URL);
 
 program.option('-e, --exit_hours <hours>', 'restart after', '0').parse();
 
@@ -54,7 +56,7 @@ async function start(datastore: Datastore): Promise<void> {
     console.log(`Initial sync from the datastore`, status);
   }
 
-  state.nodeVersion = process.version;
+  state.nodeVersion = nodeProcess.version;
   state.numStarts++;
   state.inTick = false;
   state.numTicks = 0;
@@ -67,7 +69,7 @@ async function start(datastore: Datastore): Promise<void> {
   const ticker = setInterval(() => tick(state, datastore), LIVE_REFRESH_SEC * 1000);
 
   for (const signal of ['SIGTERM', 'SIGINT', 'SIGHUP']) {
-    process.on(signal, async () => {
+    nodeProcess.on(signal, async () => {
       clearInterval(ticker);
       await shutdown(state);
     });
@@ -89,11 +91,11 @@ async function tick(state: protos.FetcherState, datastore: Datastore) {
   state.lastTickSec = Math.round(Date.now() / 1000);
 
   try {
-    const memory = process.memoryUsage();
+    const memory = nodeProcess.memoryUsage();
     state.memHeapMb = Math.round(memory.heapTotal / 1e6);
     state.memRssMb = Math.round(memory.rss / 1e6);
 
-    const pipeline = redis.pipeline();
+    const pipeline = redis.multi();
 
     await updateAll(pipeline, state, datastore);
 
@@ -102,7 +104,7 @@ async function tick(state: protos.FetcherState, datastore: Datastore) {
 
     if (state.nextStopSec > 0 && state.lastTickSec > state.nextStopSec) {
       // We do not need to sync on shutdown as there will be a sync on startup.
-      await pipeline.exec();
+      await pipeline.execTyped(true);
       state.nextStopSec = state.lastTickSec + exitAfterSec;
       await shutdown(state);
     } else {
@@ -125,7 +127,7 @@ async function tick(state: protos.FetcherState, datastore: Datastore) {
         addExportLogs(pipeline, success, state.lastTickSec);
       }
 
-      await pipeline.exec();
+      await pipeline.execTyped(true);
     }
 
     // Handle commands received via Redis
@@ -139,7 +141,7 @@ async function tick(state: protos.FetcherState, datastore: Datastore) {
 }
 
 // Update every tick.
-async function updateAll(pipeline: ChainableCommander, state: protos.FetcherState, datastore: Datastore) {
+async function updateAll(pipeline: RedisClientMultiCmd, state: protos.FetcherState, datastore: Datastore) {
   try {
     await Promise.allSettled([resfreshTrackers(pipeline, state, redis, datastore), resfreshUfoFleets(pipeline, state)]);
 
@@ -212,10 +214,10 @@ async function shutdown(state: protos.FetcherState) {
   } catch (e) {
     console.error(`storage error: ${e}`);
   }
-  await redis.quit();
+  await redis.close();
   disconnectOgnClient();
   console.log('Exit...');
-  process.exit();
+  nodeProcess.exit();
 }
 
 /**

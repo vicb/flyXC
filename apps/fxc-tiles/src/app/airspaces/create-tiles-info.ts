@@ -1,12 +1,16 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { round } from '@flyxc/common';
 import { program } from 'commander';
 import { globSync } from 'glob';
 
 import { getAppFolderFromDist, printOnCurrentLine } from '../util';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), '/assets/tiles'));
 const defaultOutputFile = resolve(join(getAppFolderFromDist(__dirname), '/assets/tiles-info.json'));
@@ -31,7 +35,7 @@ console.log(`# Generating tile fingerprints (${Math.round(tileFiles.length / 100
 
 const info = {
   // tileKey (level-x-y) to fingerprint.
-  fingerprint: {},
+  fingerprint: {} as Record<string, string>,
   // Number of tiles.
   number: 0,
   // Size in MB.

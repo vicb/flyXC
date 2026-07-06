@@ -1,58 +1,59 @@
-import { SubscriptionInfo } from '@plugins/_shared/subscription-services/subscription-services.d';
 import { SubTier, type ExternalPluginIdent } from '@windy/types.d';
 import { FavFragment } from '@windy/favs';
+
+import type { SubscriptionInfo } from '@plugins/shared/subscription-services/subscription-services.d';
 import type { PluginsOpenParams } from '@windy/plugin-params';
 
 export interface User {
-  avatar?: string;
-  email?: string;
-  fullname?: string;
-  id: number;
-  username: string;
-  userslug: string;
-  verifiedEmail?: string;
+    avatar?: string;
+    email?: string;
+    fullname?: string;
+    id: number;
+    username: string;
+    userslug: string;
+    verifiedEmail?: string;
 
-  /** Based on user location, cookie consent can be shown to the user if needed */
-  requiresCookieConsent: boolean;
+    /** Based on user location, cookie consent can be shown to the user if needed */
+    requiresCookieConsent: boolean;
 
-  /** TimeStamp of user registration */
-  joindate?: number;
+    /** TimeStamp of user registration */
+    joindate?: number;
 
-  /** TimeStamp of user last login */
-  logindate?: number;
+    /** TimeStamp of user last login */
+    logindate?: number;
 
-  /** Consent to receive newsletter; */
-  marketingConsent?: boolean;
+    /** Consent to receive newsletter; */
+    marketingConsent?: boolean;
 }
 
 /**
  * user info as it's returned from account or node users
  */
 export type UserInfo = {
-  /** aka userToken in storage */
-  token: string;
+    /** aka userToken in storage */
+    token: string;
 } & (
-  | {
-      auth: false;
-      userInfo: {
-        requiresCookieConsent: boolean;
-      };
-    }
-  | {
-      /** true if user is authenticated */
-      auth: true;
+    | {
+          auth: false;
+          userInfo: {
+              requiresCookieConsent: boolean;
+          };
+      }
+    | {
+          /** true if user is authenticated */
+          auth: true;
 
-      /** @deprecated */
-      subscription?: SubTier;
+          /** @deprecated */
+          subscription?: SubTier;
 
-      /** Detail info about subscription. It is undefined if no subscription is available for the user. */
-      subscriptionInfo?: SubscriptionInfo;
+          /** Detail info about subscription. It is undefined if no subscription is available for the user. */
+          subscriptionInfo?: SubscriptionInfo;
 
-      /**
-       * user as in storage definition
-       */
-      userInfo: User;
-    }
+          /**
+           * user as in storage definition
+           */
+          userInfo: User;
+      }
 );
 
 /**
@@ -65,20 +66,20 @@ export type UserInfo = {
  * login response as it's returned from account or node login
  */
 export interface AccountLoginResponse {
-  /**
-   * custom message to be used in errors (or 'ok' if no error)
-   */
-  message: string;
+    /**
+     * custom message to be used in errors (or 'ok' if no error)
+     */
+    message: string;
 
-  /**
-   * userInfo as information to be stored
-   */
-  userInfo: UserInfo;
+    /**
+     * userInfo as information to be stored
+     */
+    userInfo: UserInfo;
 
-  /**
-   * authHash as in storage definition
-   */
-  authHash: string;
+    /**
+     * authHash as in storage definition
+     */
+    authHash: string;
 }
 
 /**
@@ -87,30 +88,34 @@ export interface AccountLoginResponse {
  *
  */
 export type LoginAndFinishAction =
-  | {
-      action: 'addFav';
-      params: FavFragment;
-    }
-  | {
-      action: 'alerts-edit';
-      params: PluginsOpenParams['alerts-edit'];
-    }
-  | {
-      action: 'uploader';
-      params: PluginsOpenParams['uploader'];
-    }
-  | {
-      action: 'favs';
-      params: PluginsOpenParams['favs'];
-    }
-  | {
-      action: 'colors';
-      params: PluginsOpenParams['colors'];
-    }
-  | {
-      action: 'openExternalPlugin';
-      params: {
-        name: ExternalPluginIdent;
-        openParams: PluginsOpenParams['windy-external-plugin'];
+    | {
+          action: 'addFav';
+          params: FavFragment;
+      }
+    | {
+          action: 'alerts-edit';
+          params: PluginsOpenParams['alerts-edit'];
+      }
+    | {
+          action: 'uploader';
+          params: PluginsOpenParams['uploader'];
+      }
+    | {
+          action: 'favs';
+          params: PluginsOpenParams['favs'];
+      }
+    | {
+          action: 'colors';
+          params: PluginsOpenParams['colors'];
+      }
+    | {
+          action: 'external-plugins';
+          params: PluginsOpenParams['external-plugins'];
+      }
+    | {
+          action: 'openExternalPlugin';
+          params: {
+              name: ExternalPluginIdent;
+              openParams: PluginsOpenParams['windy-external-plugin'];
+          };
       };
-    };

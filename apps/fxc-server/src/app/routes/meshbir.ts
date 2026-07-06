@@ -1,12 +1,11 @@
 import { Keys } from '@flyxc/common';
-import type { MeshBirMessage } from '@flyxc/common-node';
+import type { MeshBirMessage, RedisClient } from '@flyxc/common-node';
 import { MESHBIR_MAX_MSG, MESHBIR_MAX_MSG_SIZE, positionSchema, pushListCap, textSchema } from '@flyxc/common-node';
 import type { Request, Response } from 'express';
 import { Router } from 'express';
-import type Redis from 'ioredis';
 import { ZodError } from 'zod';
 
-export function getMeshBirRouter(redis: Redis): Router {
+export function getMeshBirRouter(redis: RedisClient): Router {
   const router = Router();
 
   // Hook called by meshbir.
@@ -24,12 +23,12 @@ export function getMeshBirRouter(redis: Redis): Router {
     }
 
     try {
-      if ((await redis.llen(Keys.meshBirMsgQueue)) >= MESHBIR_MAX_MSG) {
+      if ((await redis.lLen(Keys.meshBirMsgQueue)) >= MESHBIR_MAX_MSG) {
         return res.status(429).send(`Exceeding ${MESHBIR_MAX_MSG} messages per minute`);
       }
-      const pipeline = redis.pipeline();
+      const pipeline = redis.multi();
       pushListCap(pipeline, Keys.meshBirMsgQueue, [JSON.stringify(message)], MESHBIR_MAX_MSG, MESHBIR_MAX_MSG_SIZE);
-      await pipeline.exec();
+      await pipeline.execTyped(true);
       return res.sendStatus(200);
     } catch (e) {
       console.error(e);

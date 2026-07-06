@@ -9,52 +9,52 @@ import type { Levels, Overlays, Products } from '@windy/rootScope.d';
  * Values parsed from the query string.
  */
 export interface QueryStringEmbedParams {
-  /**
-   * @deprecated Deleted from the embed config (2023-09-20).
-   */
-  calendar: string;
-  detailLat: number;
-  detailLon: number;
-  embedMake: boolean;
-  /**
-   * @deprecated Not sent from the old embed config.
-   */
-  forecast?: string;
-  /**
-   * @deprecated Menu constantly shown in the old embed config.
-   */
-  hideMenu: boolean;
-  hideMessage: boolean;
-  /**
-   * Used in `rootScope.ts`.
-   */
-  lang?: string;
-  lat: number;
-  /**
-   * @deprecated Currently not sent from the embed config (2023-09-20).
-   */
-  level?: Levels;
-  lon: number;
-  /**
-   * @deprecated Location constantly set to `coordinates` in the old embed config.
-   */
-  location: string;
-  metricRain?: MetricItem;
-  metricTemp?: MetricItem;
-  metricWind?: MetricItem;
-  /**
-   * @deprecated Currently not sent from the embed config (2023-09-20).
-   */
-  overlay?: Overlays;
-  pressure: boolean;
-  /**
-   * @deprecated Currently not sent from the embed config (2023-09-20).
-   */
-  product?: Products;
-  showDetail: boolean;
-  showMarker: boolean;
-  type: 'map' | 'alert' | 'forecast';
-  zoom: number;
+    /**
+     * @deprecated Deleted from the embed config (2023-09-20).
+     */
+    calendar: string;
+    detailLat: number;
+    detailLon: number;
+    embedMake: boolean;
+    /**
+     * @deprecated Not sent from the old embed config.
+     */
+    forecast?: string;
+    /**
+     * @deprecated Menu constantly shown in the old embed config.
+     */
+    hideMenu: boolean;
+    hideMessage: boolean;
+    /**
+     * Used in `rootScope.ts`.
+     */
+    lang?: string;
+    lat: number;
+    /**
+     * @deprecated Currently not sent from the embed config (2023-09-20).
+     */
+    level?: Levels;
+    lon: number;
+    /**
+     * @deprecated Location constantly set to `coordinates` in the old embed config.
+     */
+    location: string;
+    metricRain?: MetricItem;
+    metricTemp?: MetricItem;
+    metricWind?: MetricItem;
+    /**
+     * @deprecated Currently not sent from the embed config (2023-09-20).
+     */
+    overlay?: Overlays;
+    pressure: boolean;
+    /**
+     * @deprecated Currently not sent from the embed config (2023-09-20).
+     */
+    product?: Products;
+    showDetail: boolean;
+    showMarker: boolean;
+    type: 'map' | 'alert' | 'forecast';
+    zoom: number;
 }
 
 /**
@@ -62,20 +62,20 @@ export interface QueryStringEmbedParams {
  * Subset of {@link QueryStringEmbedParams} with support for default units.
  */
 export interface UpdateEmbedPayload {
-  detailLat: number;
-  detailLon: number;
-  hideMessage: boolean;
-  metricRain: QueryStringEmbedParams['metricRain'] | 'default';
-  metricTemp: QueryStringEmbedParams['metricTemp'] | 'default';
-  metricWind: QueryStringEmbedParams['metricWind'] | 'default';
-  pressure: boolean;
-  showDetail: boolean;
-  showMarker: boolean;
+    detailLat: number;
+    detailLon: number;
+    hideMessage: boolean;
+    metricRain: QueryStringEmbedParams['metricRain'] | 'default';
+    metricTemp: QueryStringEmbedParams['metricTemp'] | 'default';
+    metricWind: QueryStringEmbedParams['metricWind'] | 'default';
+    pressure: boolean;
+    showDetail: boolean;
+    showMarker: boolean;
 }
 
 export interface UpdateEmbedMessageData {
-  type: 'updateEmbed';
-  payload: UpdateEmbedPayload;
+    type: 'updateEmbed';
+    payload: UpdateEmbedPayload;
 }
 
 /**

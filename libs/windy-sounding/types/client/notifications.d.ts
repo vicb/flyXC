@@ -26,8 +26,4 @@ export declare function markNotificationAsReceived(data: NotificationExtraPayloa
  * @param type
  * @param device
  */
-export declare function sendTestNotification(
-  type: NotificationExtraPayload['category'],
-  registrationHash: string,
-  deviceID: string,
-): void;
+export declare function sendTestNotification(type: NotificationExtraPayload['category'], registrationHash: string, deviceID: string): void;

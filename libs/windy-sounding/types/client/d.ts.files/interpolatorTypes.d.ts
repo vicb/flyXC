@@ -1,5 +1,5 @@
 import { NumValue } from '@windy/types.d';
-import { LatLon } from '@windy/interfaces.d';
+import { LatLon, type FullRenderParameters } from '@windy/interfaces.d';
 
 /**
  * Returned values in data RGB channels as tuple [NumValue, NumValue, NumValue]
@@ -23,13 +23,13 @@ export type InterpolatorPossibleReturns = RGBNumValues | null | undefined | numb
  * Interpolates pixel to tuple weather values from RGB channels
  */
 export type PixelInterpolationFun = (
-  x: number,
-  y: number,
-  mercXpx?: number, // mercator coords in pixels (needed for radar and satellite)
-  mercYpx?: number,
-) => InterpolatorPossibleReturns;
+    mercXpx?: number, // mercator coords in pixels (needed for radar and satellite)
+    mercYpx?: number,
+    abort?: AbortController,
+    params?: FullRenderParameters
+) => Promise<InterpolatorPossibleReturns>;
 
 /**
  * Interpolates coordinates to tuple weather values from RGB channels
  */
-export type CoordsInterpolationFun = <T extends LatLon>(latLon: T) => InterpolatorPossibleReturns;
+export type CoordsInterpolationFun = <T extends LatLon>(latLon: T, abort?: AbortController, params?: FullRenderParameters) => Promise<InterpolatorPossibleReturns>;

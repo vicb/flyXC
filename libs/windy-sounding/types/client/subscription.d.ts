@@ -1,24 +1,10 @@
-import type { SubTier } from '@windy/types.d';
-import type { SubscriptionInfo } from '@plugins/_shared/subscription-services/subscription-services.d';
-export type SubscriptionIssue =
-  | {
-      type: 'graced' | 'paused' | 'onhold';
-    }
-  | {
-      type: 'expiring';
-      expiresInHours: number;
-    };
-/**
- * Get the current tier of the user.
- *
- * @returns "premium" for premium user, null otherwise
- */
-export declare const getTier: () => SubTier;
-/**
- * When any user changes his/her premium status (redeem, restore, ...), we need to refresh token2 to
- * reflect premium status for our backends
- */
-declare const reloadUserToken: () => void;
+import type { SubscriptionInfo } from '@plugins/shared/subscription-services/subscription-services.d';
+export type SubscriptionIssue = {
+    type: 'graced' | 'paused' | 'onhold';
+} | {
+    type: 'expiring';
+    expiresInHours: number;
+};
 /**
  * Clear pending subscription (i.e. unclaimed, not-redeemed subscription) from store.
  */
@@ -29,24 +15,11 @@ export declare const clearPendingSubscription: () => void;
  * @param {string} redeemCode Code to store
  */
 export declare const setPendingSubscription: (redeemCode: string) => void;
-/**
- * Disable all premium features for the user. It does not deactivate subscription, it is just client GUI reset.
- */
-export declare const deactivateAllFeatures: () => void;
+export declare const setSubsBodyClass: (tier: 'premium') => void;
 /**
  * Set a tier for the user. It also clears pending and failed subscriptions if tier is passed.
- *
- * @param value Tier to set for the user, "null" for the subscription deactivation
- * @param options Optionally `reloadUserToken: true` if client should reload JWT token after setting the tier
- * @returns Same value which has been set
  */
-export declare const setTier: (
-  value: SubTier,
-  options?: {
-    reloadUserToken?: boolean;
-    subscriptionInfo?: SubscriptionInfo;
-  },
-) => SubTier;
+export declare const setTier: (subscriptionInfo: SubscriptionInfo | null) => void;
 /**
  * Returns boolean value if user has any valid premium subscription.
  *
@@ -68,4 +41,3 @@ export declare const checkPendingSubscription: () => void;
  */
 export declare const getBaitTitle: (issue: SubscriptionIssue | null) => string;
 export declare const checkAndRenderSubsIssue: () => void;
-export {};

@@ -1,59 +1,37 @@
 import { SveltePlugin, type ExternalSvelteApp } from '@windy/SveltePlugin';
 import type { WindowPluginInitParams } from '@windy/WindowPlugin';
 import type { SveltePanePlugins, SveltePlugins } from '@windy/plugins.d';
-import type {
-  CompiledExternalPluginConfig,
-  ExternalPluginConfig,
-  InstalledExternalPluginConfig,
-  PluginOpeningOptions,
-} from '@windy/interfaces';
-import type { PluginPane } from './Plugin';
+import type { CompiledExternalPluginConfig, ExternalPluginConfig, InstalledExternalPluginConfig, PluginOpeningOptions } from '@windy/interfaces';
+import type { PluginPane } from '@windy/Plugin';
+import type { SemVersion } from '@windy/types';
 /** Allowed params to SveltePlugin constructor (private and protected props are omitted by default) */
-export type ExternalSveltePluginInitParams<P extends keyof SveltePlugins | keyof SveltePanePlugins> = Omit<
-  WindowPluginInitParams<P>,
-  'ident'
-> &
-  Pick<SveltePlugin<P>, 'ident'> &
-  Partial<SveltePlugin<P>>;
+export type ExternalSveltePluginInitParams<P extends keyof SveltePlugins | keyof SveltePanePlugins> = Omit<WindowPluginInitParams<P>, 'ident'> & Pick<SveltePlugin<P>, 'ident'> & Partial<SveltePlugin<P>>;
 export type LoadeExternalSveltePlugin = {
-  default: ExternalSvelteApp;
+    default: ExternalSvelteApp;
 } & AdditionalSvelteAssets & {
     __pluginConfig: CompiledExternalPluginConfig;
-  };
+};
 type Config2config = {
-  className: string;
-  attachPoint?: string;
-  pane: PluginPane;
-  addMObileSliders?: boolean;
+    className: string;
+    attachPoint?: string;
+    pane: PluginPane;
+    addMObileSliders?: boolean;
 };
 export declare class ExternalSveltePlugin extends SveltePlugin<'windy-external-plugin'> {
-  ident: 'windy-external-plugin';
-  plugin: WPluginModules[`@plugins/windy-external-plugin`] & AdditionalSvelteAssets;
-  mobileConfig: Record<InstalledExternalPluginConfig['mobileUI'], Config2config>;
-  desktopConfig: Record<InstalledExternalPluginConfig['desktopUI'], Config2config>;
-  widthOfRhPane: number;
-  version: string;
-  listenToSingleclick: ExternalPluginConfig['listenToSingleclick'];
-  addToContextmenu: ExternalPluginConfig['addToContextmenu'];
-  constructor(
-    params: WindowPluginInitParams<'windy-external-plugin'>,
-    {
-      desktopUI,
-      title,
-      mobileUI,
-      desktopWidth,
-      routerPath,
-      listenToSingleclick,
-      addToContextmenu,
-      url,
-      version,
-    }: InstalledExternalPluginConfig,
-  );
-  open({ params, disableOpeningAnimation, qs }: PluginOpeningOptions<'windy-external-plugin'>): Promise<void | boolean>;
-  hasNewerVersion(latestVersion: string): boolean;
-  showConfirmationWindow(): Promise<boolean>;
-  getDayDiff(timestamp: string): number;
-  uninstallPlugin(): Promise<void>;
-  getCss(): string;
+    ident: 'windy-external-plugin';
+    plugin: WPluginModules[`@plugins/windy-external-plugin`] & AdditionalSvelteAssets;
+    mobileConfig: Record<InstalledExternalPluginConfig['mobileUI'], Config2config>;
+    desktopConfig: Record<InstalledExternalPluginConfig['desktopUI'], Config2config>;
+    widthOfRhPane: number;
+    version: SemVersion;
+    listenToSingleclick: ExternalPluginConfig['listenToSingleclick'];
+    addToContextmenu: ExternalPluginConfig['addToContextmenu'];
+    constructor(params: WindowPluginInitParams<'windy-external-plugin'>, { desktopUI, title, mobileUI, desktopWidth, routerPath, listenToSingleclick, addToContextmenu, url, version, }: InstalledExternalPluginConfig);
+    open({ params, disableOpeningAnimation, qs, }: PluginOpeningOptions<'windy-external-plugin'>): Promise<void | boolean>;
+    hasNewerVersion(latestVersion: SemVersion): boolean;
+    showConfirmationWindow(): Promise<boolean>;
+    getDayDiff(timestamp: string): number;
+    uninstallPlugin(): Promise<void>;
+    getCss(): string;
 }
 export {};

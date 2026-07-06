@@ -22,4 +22,4 @@ export declare const replaceClass: (regExp: RegExp, newClass: string, el?: HTMLE
 /**
  * The attach point for default plugins.
  */
-export declare const defaultPluginsAttachPoint = '[data-plugin="plugins"]';
+export declare const defaultPluginsAttachPoint = "[data-plugin=\"plugins\"]";

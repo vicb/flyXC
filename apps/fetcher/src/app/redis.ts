@@ -1,9 +1,9 @@
 import * as zlib from 'node:zlib';
 
 import { Keys, protos, trackerNames } from '@flyxc/common';
+import type { RedisClient, RedisClientMultiCmd } from '@flyxc/common-node';
 import { pushListCap } from '@flyxc/common-node';
 import type { Datastore } from '@google-cloud/datastore';
-import type { ChainableCommander, Redis } from 'ioredis';
 import * as nos from 'node-os-utils';
 
 import type { ElevationUpdates } from './elevation/elevation';
@@ -13,7 +13,7 @@ import type { SyncStatus } from './state/sync';
 import { syncFromDatastore } from './state/sync';
 
 // Logs for syncs.
-export function addSyncLogs(pipeline: ChainableCommander, status: SyncStatus, timeSec: number) {
+export function addSyncLogs(pipeline: RedisClientMultiCmd, status: SyncStatus, timeSec: number) {
   const type = status.full ? 'full' : 'inc';
 
   if (status.errors.length) {
@@ -29,12 +29,12 @@ export function addSyncLogs(pipeline: ChainableCommander, status: SyncStatus, ti
 }
 
 // Logs for export to datastore.
-export function addExportLogs(pipeline: ChainableCommander, success: boolean, timeSec: number) {
+export function addExportLogs(pipeline: RedisClientMultiCmd, success: boolean, timeSec: number) {
   pushListCap(pipeline, Keys.stateExportStatus, [`[${timeSec}] ${success ? 'ok' : 'ko'}`], 5);
 }
 
 // Logs the elevation updates.
-export function addElevationLogs(pipeline: ChainableCommander, updates: ElevationUpdates, timeSec: number): void {
+export function addElevationLogs(pipeline: RedisClientMultiCmd, updates: ElevationUpdates, timeSec: number): void {
   pushListCap(
     pipeline,
     Keys.elevationErrors,
@@ -49,7 +49,7 @@ let cpuUsage = 0;
 let cpuUsagePromise: Promise<number> | null = null;
 
 // Logs host info.
-export async function addHostInfo(pipeline: ChainableCommander): Promise<void> {
+export async function addHostInfo(pipeline: RedisClientMultiCmd): Promise<void> {
   // CPU usage over 5min.
   if (cpuUsagePromise == null) {
     cpuUsagePromise = nos.cpu
@@ -68,7 +68,7 @@ export async function addHostInfo(pipeline: ChainableCommander): Promise<void> {
 }
 
 // Logs state variables.
-export function addStateLogs(pipeline: ChainableCommander, state: protos.FetcherState): void {
+export function addStateLogs(pipeline: RedisClientMultiCmd, state: protos.FetcherState): void {
   pipeline
     .set(Keys.fetcherMemoryHeapMb, state.memHeapMb)
     .set(Keys.fetcherMemoryRssMb, state.memRssMb)
@@ -108,54 +108,58 @@ export function addStateLogs(pipeline: ChainableCommander, state: protos.Fetcher
 }
 
 // Handle the commands received via REDIS.
-export async function HandleCommand(redis: Redis, state: protos.FetcherState, datastore: Datastore): Promise<void> {
+export async function HandleCommand(
+  redis: RedisClient,
+  state: protos.FetcherState,
+  datastore: Datastore,
+): Promise<void> {
   try {
-    const [[, cmdCapture], [, cmdExport], [, cmdSyncCount], [, cmdSyncFull]] = (await redis
-      .pipeline()
+    const [cmdCapture, cmdExport, cmdSyncCount, cmdSyncFull] = await redis
+      .multi()
       .get(Keys.fetcherCmdCaptureState)
       .get(Keys.fetcherCmdExportFile)
       .get(Keys.fetcherCmdSyncIncCount)
       .get(Keys.fetcherCmdSyncFull)
-      .exec()) as [error: Error | null, result: unknown][];
+      .execTyped(true);
 
     if (cmdCapture != null) {
       const snapshot = Buffer.from(protos.FetcherState.toBinary(state));
       await redis
-        .pipeline()
+        .multi()
         .del(Keys.fetcherCmdCaptureState)
-        .set(Keys.fetcherStateBrotli, zlib.brotliCompressSync(snapshot), 'EX', 10 * 60)
-        .exec();
+        .set(Keys.fetcherStateBrotli, zlib.brotliCompressSync(snapshot), { EX: 10 * 60 })
+        .execTyped(true);
       console.log(`[cmd] state captured`);
     }
 
     if (cmdExport != null) {
       const success = await exportToStorage(state, BUCKET_NAME, PERIODIC_STATE_PATH);
       state.nextExportSec = state.lastTickSec + EXPORT_FILE_SEC;
-      const pipeline = redis.pipeline();
+      const pipeline = redis.multi();
       pipeline.del(Keys.fetcherCmdExportFile);
       addExportLogs(pipeline, success, state.lastTickSec);
-      await pipeline.exec();
+      await pipeline.execTyped(true);
     }
 
     if (cmdSyncCount != null) {
-      const pipeline = redis.pipeline();
+      const pipeline = redis.multi();
       const count = Number(cmdSyncCount);
       if (isNaN(count) || count < 0) {
         pipeline.del(Keys.fetcherCmdSyncIncCount);
       } else if (count > 0) {
         const status = await syncFromDatastore(datastore, state, { full: false });
-        pipeline.decrby(Keys.fetcherCmdSyncIncCount, count);
+        pipeline.decrBy(Keys.fetcherCmdSyncIncCount, count);
         addSyncLogs(pipeline, status, state.lastTickSec);
       }
-      await pipeline.exec();
+      await pipeline.execTyped(true);
     }
 
     if (cmdSyncFull != null) {
       const status = await syncFromDatastore(datastore, state, { full: true });
-      const pipeline = redis.pipeline();
+      const pipeline = redis.multi();
       pipeline.del(Keys.fetcherCmdSyncFull);
       addSyncLogs(pipeline, status, state.lastTickSec);
-      await pipeline.exec();
+      await pipeline.execTyped(true);
     }
   } catch (e) {
     console.error(`[cmd] error:\n${e}`);

@@ -3,7 +3,7 @@
  */
 type AllowedTags = 'title' | 'type' | 'url' | 'description' | 'published' | 'image' | 'imageWidth' | 'imageHeight';
 type OGTags = {
-  [K in AllowedTags]?: string | number;
+    [K in AllowedTags]?: string | number;
 };
 /**
  * Set og:tags values content. Empty string is used if no value is presented for passed key

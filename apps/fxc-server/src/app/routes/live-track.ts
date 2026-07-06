@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import csurf from '@dr.pogodin/csurf';
 import type { AccountModel, LiveTrackEntity } from '@flyxc/common';
 import { AccountFormModel, differentialDecodeLiveTrack, Keys, LiveDataRetentionSec, protos } from '@flyxc/common';
+import type { RedisClient } from '@flyxc/common-node';
 import {
   FlyMeValidator,
   InreachValidator,
@@ -12,18 +13,21 @@ import {
   updateLiveTrackEntityFromModel,
 } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
-import { NoDomBinder } from '@vaadin/nodom';
 import type { Request, Response } from 'express';
 import { Router } from 'express';
-import type { Redis } from 'ioredis';
+import { RESP_TYPES } from 'redis';
+import { NoDomBinder } from 'vaadin-nodom';
 
 import { getUserInfo, isLoggedIn, logout } from './session';
 
 // Store the token in the session.
 const csrfProtection = csurf();
 
-export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
+export function getTrackerRouter(redis: RedisClient, datastore: Datastore): Router {
   const router = Router();
+  const bufferRedis = redis.withTypeMapping({
+    [RESP_TYPES.BLOB_STRING]: Buffer,
+  });
 
   // Get the geojson for the currently active trackers.
   router.get('/tracks.pbf', async (req: Request, res: Response) => {
@@ -32,7 +36,7 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
     if (token) {
       switch (token) {
         case SECRETS.FLYME_TOKEN: {
-          const groupProto = await redis.getBuffer(Keys.fetcherExportFlymeProto);
+          const groupProto = await bufferRedis.get(Keys.fetcherExportFlymeProto);
           if (req.header('accept') == 'application/json') {
             const track = protos.LiveDifferentialTrackGroup.fromBinary(groupProto!);
             res.json(protos.LiveDifferentialTrackGroup.toJson(track));
@@ -44,7 +48,7 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
         }
         case SECRETS.WING_TOKEN:
         case SECRETS.ZIPLINE_TOKEN: {
-          const liveGroupProto = await redis.getBuffer(Keys.fetcherFullProtoH12);
+          const liveGroupProto = await bufferRedis.get(Keys.fetcherFullProtoH12);
 
           const liveGroup = liveGroupProto
             ? protos.LiveDifferentialTrackGroup.fromBinary(liveGroupProto)
@@ -110,7 +114,7 @@ export function getTrackerRouter(redis: Redis, datastore: Datastore): Router {
         }
       }
       res.set('Content-Type', 'application/x-protobuf');
-      res.send(await redis.getBuffer(key));
+      res.send(await bufferRedis.get(key));
     }
   });
 
@@ -179,7 +183,7 @@ export async function createOrUpdateLiveTrack(
   res: Response,
   email: string,
   googleId: string,
-  redis: Redis,
+  redis: RedisClient,
 ) {
   try {
     const account: AccountModel = req.body;

@@ -1,14 +1,10 @@
-const { FlatCompat } = require('@eslint/eslintrc');
-const js = require('@eslint/js');
 const nxEslintPlugin = require('@nx/eslint-plugin');
 const eslintPluginRequireNodeImportPrefix = require('eslint-plugin-require-node-import-prefix');
 const eslintPluginSimpleImportSort = require('eslint-plugin-simple-import-sort');
 const eslintPluginImport = require('eslint-plugin-import');
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-});
+const eslintPluginWc = require('eslint-plugin-wc');
+const eslintPluginLit = require('eslint-plugin-lit');
+const nxTypescript = require('@nx/eslint-plugin/typescript');
 
 module.exports = [
   {
@@ -54,22 +50,34 @@ module.exports = [
       'no-extra-semi': 'error',
     },
   },
-  ...compat
-    .config({
-      extends: ['plugin:@nx/typescript', 'plugin:wc/recommended', 'plugin:lit/recommended'],
-    })
-    .map((config) => ({
-      ...config,
-      files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.cts', '**/*.mts'],
-      rules: {
-        ...config.rules,
-        '@typescript-eslint/no-explicit-any': 'off',
-        '@typescript-eslint/no-non-null-assertion': 'off',
-        '@typescript-eslint/ban-ts-comment': 'off',
-        'no-extra-semi': 'error',
-      },
-    })),
+  ...nxTypescript.configs.typescript.map((config) => ({
+    ...config,
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.cts', '**/*.mts'],
+    rules: {
+      ...config.rules,
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/ban-ts-comment': 'off',
+      'no-extra-semi': 'error',
+    },
+  })),
   {
-    ignores: ['**/.vite/', '**/.cache/', '**/node_modules/', '**/apps/fxc-tiles/src/assets/airspaces/', 'dist/'],
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.cts', '**/*.mts'],
+    ...eslintPluginWc.configs['flat/recommended'],
+  },
+  {
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.cts', '**/*.mts'],
+    ...eslintPluginLit.configs['flat/recommended'],
+  },
+  {
+    ignores: [
+      '**/.vite/',
+      '**/.cache/',
+      '**/node_modules/',
+      '**/apps/fxc-tiles/src/assets/airspaces/',
+      '**/vite.config.*.timestamp*',
+      '**/vitest.config.*.timestamp*',
+      '**/dist/',
+    ],
   },
 ];

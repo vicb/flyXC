@@ -12,9 +12,9 @@ import type { PositionOptions } from '@capacitor/geolocation';
  */
 export declare const getMyLatestPos: () => GeolocationInfo;
 interface GeolocationOptions extends PositionOptions {
-  doNotShowSearchGPSMessage?: boolean;
-  doNotShowFailureMessage?: boolean;
-  getMeFallbackGps?: boolean;
+    doNotShowSearchGPSMessage?: boolean;
+    doNotShowFailureMessage?: boolean;
+    getMeFallbackGps?: boolean;
 }
 /**
  * Returns promise on GPS based location with GeoIP location as a fallback.

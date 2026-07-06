@@ -1,21 +1,15 @@
 import { Evented } from '@windy/Evented';
-import type { OnHoverPOIData } from '@plugins/poi-libs/poi-libs.d';
 import type { LatLon } from '@windy/interfaces.d';
 import type { PluginsOpenParams } from '@windy/plugin-params.d';
-import type { Pixel, PickerOpener } from '@windy/types';
+import type { Pixel } from '@windy/types';
+import type { LatLng } from '@leafletGl';
 interface Events {
-  pickerOpened: [
-    PluginsOpenParams['picker'] & {
-      source?: 'picker';
-    },
-  ];
-  pickerMoved: [PluginsOpenParams['picker']];
-  pickerClosed: [];
-  dataChanged: [];
-  getPOIsAtXY: [Pixel, Pixel];
-  POIloaded: [OnHoverPOIData];
-  POIclose: [];
-  rqstOpenPOIdetail: [PickerOpener];
+    pickerOpened: [PluginsOpenParams['picker'] & {
+        source?: 'picker';
+    }];
+    pickerMoved: [PluginsOpenParams['picker']];
+    pickerClosed: [];
+    dataChanged: [];
 }
 /**
  * Main emitter for purpose of picker actions, must be pard of core, so it is here.
@@ -25,38 +19,38 @@ export declare const emitter: Evented<Events>;
  * Major handling of mobile/tablet picker dot on the screen
  */
 export declare class PickerDot {
-  pickerDotEl: HTMLDivElement;
-  mapContainerEl: HTMLDivElement;
-  lat: number | null;
-  lon: number | null;
-  constructor();
-  /**
-   * Locks picker in position, so any change in picker location
-   * will sync its position  to desired lat,lons
-   */
-  lockPosition(): LatLon;
-  unlockPosition(): void;
-  /**
-   * Sets & lock the position of picker dot
-   */
-  setPosition(lat: number, lon: number): void;
-  /**
-   * Offsets position of picker to top by moving whole map container
-   * moves map only to top
-   */
-  offsetPosition(y: Pixel): void;
-  /** Resets previously offset picker position */
-  resetOffset(): void;
-  /** Returns picker dot position as Leaflet coords */
-  getLatLng(): L.LatLng;
-  /** Returns lat and lon of the actual picker dot position */
-  getLatLon(): LatLon;
-  /** Returns position of pickerDot on Leaflet map */
-  getDotPosition(): {
-    x: Pixel;
-    y: Pixel;
-  };
-  private positionChanged;
+    pickerDotEl: HTMLDivElement;
+    mapContainerEl: HTMLDivElement;
+    lat: number | null;
+    lon: number | null;
+    constructor();
+    /**
+     * Locks picker in position, so any change in picker location
+     * will sync its position  to desired lat,lons
+     */
+    lockPosition(): LatLon;
+    unlockPosition(): void;
+    /**
+     * Sets & lock the position of picker dot
+     */
+    setPosition(lat: number, lon: number): void;
+    /**
+     * Offsets position of picker to top by moving whole map container
+     * moves map only to top
+     */
+    offsetPosition(y: Pixel): void;
+    /** Resets previously offset picker position */
+    resetOffset(): void;
+    /** Returns picker dot position as Leaflet coords */
+    getLatLng(): LatLng;
+    /** Returns lat and lon of the actual picker dot position */
+    getLatLon(x?: Pixel, y?: Pixel): LatLon;
+    /** Returns position of pickerDot on Leaflet map */
+    getDotPosition(): {
+        x: Pixel;
+        y: Pixel;
+    };
+    private positionChanged;
 }
 /**
  * Instance of blinking dot on map (used in picker-mobile, detail & distance plugins so far)

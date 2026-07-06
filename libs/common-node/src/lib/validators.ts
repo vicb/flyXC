@@ -1,6 +1,6 @@
 import type { TrackerEntity, TrackerModel } from '@flyxc/common';
 import { fetchResponse, validateInreachAccount, validateSkylinesAccount } from '@flyxc/common';
-import type { Validator } from '@vaadin/nodom';
+import type { Validator } from 'vaadin-nodom';
 
 // Makes sure the account is not password protected.
 export class InreachValidator implements Validator<TrackerModel> {

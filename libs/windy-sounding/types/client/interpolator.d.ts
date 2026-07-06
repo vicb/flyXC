@@ -1,12 +1,7 @@
-import type {
-  CoordsInterpolationFun,
-  PixelInterpolationFun,
-  RGBNumValues,
-  InterpolatorPossibleReturns,
-} from '@windy/interpolatorTypes';
-export type { CoordsInterpolationFun, PixelInterpolationFun, RGBNumValues, InterpolatorPossibleReturns };
+import type { CoordsInterpolationFun, PixelInterpolationFun, RGBNumValues, InterpolatorPossibleReturns } from '@windy/interpolatorTypes';
+export type { CoordsInterpolationFun, PixelInterpolationFun, RGBNumValues, InterpolatorPossibleReturns, };
 export type InterpolatorFactory = {
-  createFun: (cb: <T>(...args: unknown[]) => T | void) => void;
+    createFun: (cb: <T>(...args: unknown[]) => T | void) => void;
 };
 /**
  * Returns a Promise, that resolves with an lat lon interpolation function for given map view,

@@ -1,9 +1,8 @@
 import type { protos, TrackerNames } from '@flyxc/common';
 import { Keys, validateZoleoAccount } from '@flyxc/common';
-import type { ZoleoMessage } from '@flyxc/common-node';
+import type { RedisClient, RedisClientMultiCmd, ZoleoMessage } from '@flyxc/common-node';
 import { LIVE_TRACK_TABLE } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
-import type { ChainableCommander, Redis } from 'ioredis';
 
 import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
@@ -13,8 +12,8 @@ import { TrackerFetcher } from './tracker';
 export class ZoleoFetcher extends TrackerFetcher {
   constructor(
     state: protos.FetcherState,
-    pipeline: ChainableCommander,
-    protected redis: Redis,
+    pipeline: RedisClientMultiCmd,
+    protected redis: RedisClient,
     protected datastore: Datastore,
   ) {
     super(state, pipeline);
@@ -128,13 +127,13 @@ async function addNewDevices(datastore: Datastore, messages: ZoleoMessage[]): Pr
 }
 
 // Returns and empty the message queue.
-async function flushMessageQueue(redis: Redis): Promise<(ZoleoMessage | null)[]> {
+async function flushMessageQueue(redis: RedisClient): Promise<(ZoleoMessage | null)[]> {
   try {
-    const [[_, messages]] = await redis
+    const [messages] = await redis
       .multi()
-      .lrange(Keys.zoleoMsgQueue, 0, -1)
-      .ltrim(Keys.zoleoMsgQueue, 1, 0)
-      .exec();
+      .lRange(Keys.zoleoMsgQueue, 0, -1)
+      .lTrim(Keys.zoleoMsgQueue, 1, 0)
+      .execTyped(true);
 
     // Return older messages first
     return (messages as string[]).map((json) => JSON.parse(json) as ZoleoMessage).reverse();

@@ -1,5 +1,6 @@
 declare const SECRETS: {
   GEONAMES: string;
+  REDIS_URL_DEV: string;
   REDIS_URL: string;
   GOOGLE_OAUTH_ID: string;
   GOOGLE_OAUTH_SECRET: string;

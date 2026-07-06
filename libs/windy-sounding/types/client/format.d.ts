@@ -5,6 +5,7 @@
  */
 import type { DirectionFunction, HowOldOptions, TimeFormatFunction } from './d.ts.files/format.d';
 import type { Timestamp } from './d.ts.files/types';
+export declare const euTime: TimeFormatFunction;
 /**
  * Returns function for displaying hours (either 12,24h format) on a basis of locale store of a browser
  * US, UK, PH, CA, AU, NZ, IN, EG, SA, CO, PK, MY - AM,PM format
@@ -12,6 +13,13 @@ import type { Timestamp } from './d.ts.files/types';
  * @returns Time format function
  */
 export declare const getHoursFunction: () => TimeFormatFunction;
+/**
+ * Converts timestamp to formatted time string
+ *
+ * @param ts Timestamp
+ * @returns Formatted time string, e.g. '18:00' or '6:00 PM'
+ */
+export declare const tsToFormattedTime: (ts: number) => string;
 /**
  * Returns UTC formated hours, e.g. '09:00Z' or '18:00Z'
  *
@@ -34,6 +42,10 @@ export declare const hourMinuteUTC: (ts: number) => string;
  */
 export declare const thousands: (amount?: string | number | null) => string;
 /**
+ * Returns string representation of a degree direction (e.g. 'N', 'NE', ...)
+ */
+export declare const stringDir: DirectionFunction;
+/**
  * Returns direction formatting function based on user's settings. E.g. 'N', 'NE', ... or '123°'
  *
  * @returns Format function to convert number into 'N', 'NE', ... strings or '123°' strings
@@ -54,12 +66,9 @@ export declare const obsoleteClass: (updatedSecAgo: number, limitInMins?: number
  * @returns '5 days', '5 days ago', '4 hours 15 minutes' etc... Empty string if any error occurs
  */
 export declare const howOld: (options: HowOldOptions) => string;
-export declare const countdown: (
-  ts: Timestamp,
-  options?: {
+export declare const countdown: (ts: Timestamp, options?: {
     showSeconds?: boolean;
-  },
-) => string;
+}) => string;
 /**
  * Converts lat,lon numbers to human friendly Degrees, Minutes and Seconds format, e.g. N49°9'21", E14°7'30"
  *
