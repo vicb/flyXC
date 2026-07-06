@@ -1,5 +1,4 @@
 import type { AlertRequest, AlertResponse, AlertCheckResponse } from '@windy/alerts.d';
-import type { Fav } from '@windy/favs.d';
 import type { LatLon } from '@windy/interfaces';
 export declare enum AlertStatus {
   Triggered = 'triggered',
@@ -52,11 +51,6 @@ export declare enum CloudCoverage {
   Overcast = 'OVC',
 }
 export declare function getAlertTimestamps(alertId: string): Promise<AlertCheckResponse>;
-export declare function getAlertV3(alertId: string): Promise<
-  Fav & {
-    type: 'alert';
-  }
->;
 export declare function getAlerts(): Promise<AlertResponse[]>;
 export declare function getAlert(alertId: string): Promise<AlertResponse | null>;
 export declare function createAlert(data: AlertRequest): Promise<void>;

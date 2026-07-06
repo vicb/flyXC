@@ -12,7 +12,7 @@ import { DataTiler } from '@windy/DataTiler';
 import type { PixelInterpolationFun, CoordsInterpolationFun } from '@windy/interpolatorTypes';
 import type { DataTile } from './dataLoader';
 import type { ExtendedTileParams } from '@windy/DataTiler.d';
-import type { FullRenderParameters } from '@windy/Layer.d';
+import type { FullRenderParameters } from '@windy/interfaces';
 export declare class TileInterpolator extends DataTiler {
   cb<T extends true | false>(
     f1: CoordsInterpolationFun, // async interpolator does not use fakeFun with null return type

@@ -1,5 +1,25 @@
 {
   "name": "fetcher",
   "version": "1.0.0",
-  "description": "Fetch live tracking data"
+  "description": "Fetch live tracking data",
+  "type": "module",
+  "main": "./index.js",
+  "dependencies": {
+    "@dotenvx/dotenvx": "catalog:default",
+    "@flyxc/common": "workspace:*",
+    "@flyxc/common-node": "workspace:*",
+    "@google-cloud/compute": "^6.6.0",
+    "@google-cloud/datastore": "catalog:default",
+    "@google-cloud/pubsub": "catalog:default",
+    "@google-cloud/storage": "catalog:default",
+    "@xmldom/xmldom": "catalog:default",
+    "commander": "catalog:default",
+    "date-fns": "catalog:default",
+    "geolib": "catalog:default",
+    "ioredis": "catalog:default",
+    "node-os-utils": "^1.3.7"
+  },
+  "devDependencies": {
+    "@types/node-os-utils": "catalog:default"
+  }
 }

@@ -1,4 +1,6 @@
+import { Evented } from '@windy/Evented';
 import type { Timestamp } from '@windy/types.d';
+import type { IdbConnection } from '@windy/idbConnection';
 /**
  * List of all collections we will need in our database
  * remember to update this list when adding new collections
@@ -6,19 +8,30 @@ import type { Timestamp } from '@windy/types.d';
  */
 export declare const allUsedCollections: readonly [
   'customColors',
-  'installedPlugins',
+  'installedPlugins2',
   'likedStoryComments',
   'log',
   'markedNotams',
   'popularLocations',
-  'searchRecents',
-  'seenArticles',
+  'searchRecents2',
+  'upvotedArticles',
   'seenPromos',
-  'seenStories',
   'slidedCapAlerts',
   'userAlerts',
   'userFavs',
 ];
+interface IdbEvent {
+  _nativeSync: [
+    {
+      storeId: DatabaseStore;
+      syncToNativeStorage: boolean;
+    },
+  ];
+}
+/**
+ * Used by nativeStorage.ts to sync IDB with native storage
+ */
+export declare const idbEmitter: Evented<IdbEvent>;
 /**
  * Allowed data types for storage
  */
@@ -29,14 +42,18 @@ export type BackendItem<V> = {
   value: V;
 };
 export type BackendPayload<V> = BackendItem<V>[];
-export type SupportedApiEndpoints = 'notams' | 'colors' | 'alerts' | 'favs';
+/**
+ * Any objecgs synced with cloud MUST have an unique id property
+ */
+export type SupportedApiEndpoints = 'notams' | 'colors' | 'alerts' | 'favs' | 'plugins';
 export type StoredObjectWithId = {
   id: string;
 };
 export interface IDBParams {
   storeId: DatabaseStore;
-  initPromise: Promise<IDBDatabase>;
+  connection: IdbConnection;
   backendApiEndpoint?: SupportedApiEndpoints;
+  syncToNativeStorage?: boolean;
 }
 /**
  * Wrapper around IndexedDB to provide async storage
@@ -47,7 +64,7 @@ export declare class IDB<K extends string | number, V, W = V> {
   private storeId;
   private memoryCache;
   private cacheIsValid;
-  private initPromise;
+  private connection;
   /**
    * Is this db synced with backend?
    *
@@ -59,6 +76,10 @@ export declare class IDB<K extends string | number, V, W = V> {
    * URL of the API endpoint, where data should be stored
    */
   private apiEndpoint;
+  /**
+   * Should this DB sync with mobile native storage
+   */
+  private syncToNativeStorage;
   /**
    * Timestamp of last db update on this device (used only when collection has userBackend)
    */
@@ -81,3 +102,4 @@ export declare class IDB<K extends string | number, V, W = V> {
    */
   loadFromCloud(): Promise<boolean>;
 }
+export {};

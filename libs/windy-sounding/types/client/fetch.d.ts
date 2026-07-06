@@ -17,10 +17,19 @@ import type {
   WeatherDataPayload,
   CapAlertHeadline,
   ActiveStormCountPayload,
+  AirQDataHash,
+  TZinfo,
 } from '@windy/interfaces.d';
 import type { Pois, Products } from '@windy/rootScope.d';
-import type { ExtendedStationType, StationOrPoiType } from '@windy/types';
+import type { SatelliteInfoJson } from '@windy/satellite.d';
+import type { RadarMinifest } from '@plugins/radar-plus/types';
+import type { ExtendedStationType, Pixel, StationOrPoiType, NumValue } from '@windy/types';
+import type { OSMMapBounds } from '@plugins/search/search.d';
 import type { HttpOptions, HttpPayload, QueryStringSource } from '@windy/http.d';
+import type { StormListJSON } from '@plugins/shared/hurricanes/types';
+import type { LiveAlertEvent } from '@plugins/startup-live-alerts/startup-live-alerts';
+import type { WhatsNewObsolete, WhatsNewData } from '@windy/startup.d';
+import type { ArticleStartupData } from '@plugins/articles/articles';
 interface LatLonStep extends LatLon {
   step?: number;
   interpolate?: boolean;
@@ -89,6 +98,13 @@ export declare const getPointForecastUrl: <T extends LatLonStep>(
   pointForecastOptions?: Record<string, string>,
 ) => Promise<string>;
 /**
+ * Gets point forecast for NOWcast data for given location
+ *
+ * @param model Forecast model
+ * @returns Promise with HTTP payload
+ */
+export declare const getNowPointForecastUrl: (model: Products, { lat, lon }: LatLon) => Promise<string>;
+/**
  * Gets point forecast data for given location
  *
  * @param model Forecast model
@@ -97,12 +113,15 @@ export declare const getPointForecastUrl: <T extends LatLonStep>(
  * @param httpOptions Additional HTTP options
  * @returns Promise with HTTP payload
  */
-export declare const getPointForecastData: <T extends LatLonStep>(
+export declare const getPointForecastData: <
+  K extends DataHash | AirQDataHash = DataHash,
+  T extends LatLonStep = LatLonStep,
+>(
   model: Products,
   latLonStepInterpolate: T,
   pointForecastOptions?: Record<string, string>,
   httpOptions?: HttpOptions,
-) => Promise<HttpPayload<WeatherDataPayload<DataHash>>>;
+) => Promise<http.HttpPayload<WeatherDataPayload<K>>>;
 /**
  * Gets enhanced point forecast meteogram data for given location
  * @returns Promise with HTTP payload
@@ -168,10 +187,75 @@ export declare const getObservationsUrl: (
 /**
  * Get URL for getting observations for a specific station in node-poi server
  */
-export declare const getObservationPoiUrl: (type: StationOrPoiType | 'stations', id: string) => string;
+export declare const getObservationPoiUrl: (type: StationOrPoiType | 'stations' | 'metars', id: string) => string;
 /**
  * Returns loading promise for cap alert headlines
  */
-export declare const getCapAlertsSummary: ({ lat, lon }: LatLon) => Promise<http.HttpPayload<CapAlertHeadline[]>>;
+export declare const getCapAlertsSummary: (
+  { lat, lon }: LatLon,
+  source?: 'hp' | 'detail',
+) => Promise<http.HttpPayload<CapAlertHeadline[]>>;
 export declare const getHurricanesCount: () => Promise<HttpPayload<ActiveStormCountPayload>>;
+/**
+ * Loads Satellite Product info
+ */
+export declare const getSatelliteInfo: () => Promise<HttpPayload<SatelliteInfoJson>>;
+/**
+ * Loads Radar Product info
+ */
+export declare const getRadarInfo: () => Promise<HttpPayload<RadarMinifest>>;
+export declare const getRadarArchiveInfo: () => Promise<HttpPayload<RadarMinifest>>;
+export declare const getSatelliteArchiveInfo: () => Promise<HttpPayload<SatelliteInfoJson>>;
+export declare const getRadarCoverage: () => Promise<HttpPayload<number[]>>;
+export declare const getHurricanesList: () => Promise<HttpPayload<StormListJSON>>;
+/**
+ * Loads elevation (AMSL meters) for given coordinates
+ */
+export declare const getElevation: (
+  lat: number,
+  lon: number,
+  httpOptions?: HttpOptions,
+) => Promise<HttpPayload<NumValue>>;
+/**
+ * Returns URL for static map image. Max zoom level is 13
+ */
+export declare const getStaticMapImageUrl: (
+  params: LatLon & {
+    zoom: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
+    size: Pixel;
+    bounds?: OSMMapBounds;
+  },
+) => string;
+/**
+ * Returns active live alert for given location (if any)
+ */
+export declare const getLiveAlerts: ({ lat, lon }: LatLon) => Promise<
+  http.HttpPayload<{
+    alerts: LiveAlertEvent[];
+  }>
+>;
+/**
+ * Returns a URL for retrieving radar/sat image
+ */
+export declare const getRadarSatImageUrl: (
+  type: 'radar' | 'satellite',
+  {
+    lat,
+    lon,
+    w,
+    h,
+    format,
+    satMode,
+    radarMode,
+  }: LatLon & {
+    w?: Pixel;
+    h?: Pixel;
+    format?: 'webp' | 'jpg';
+    satMode?: 'infra' | 'infraplus' | 'blue' | 'visible' | 'grey' | 'irbt';
+    radarMode?: 'default' | 'radarplus';
+  },
+) => string;
+export declare const getArticle: (latLon: LatLon) => Promise<HttpPayload<ArticleStartupData>>;
+export declare const getWhatsNew: (latLon: LatLon) => Promise<HttpPayload<WhatsNewObsolete | WhatsNewData>>;
+export declare const getTimezoneInfo: (location: LatLon, datetime: string) => Promise<HttpPayload<TZinfo>>;
 export {};

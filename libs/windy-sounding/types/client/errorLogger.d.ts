@@ -13,7 +13,7 @@ interface ErrorPayload {
   platform: Platform;
   device: Device;
   ver: string;
-  target: 'index' | 'mobile' | 'embed' | 'lib' | 'imaker';
+  target: 'index' | 'mobile' | 'embed' | 'lib';
   msg: string;
   timestamp: Timestamp;
   runningMinutes: number;
@@ -27,10 +27,29 @@ interface ErrorPayload {
   stack?: string;
   repeated?: number;
   latestBcast?: string;
+  network?: Record<string, string | number>;
 }
 /**
  * Array of all errors reported to kibana, to show them in debug mode
  * plugin
  */
 export declare const sentErrors: ErrorPayload[];
+/**
+ * Suspend further error reporting (for example after launching 3rd party plugin, that may cause errors)
+ */
+export declare const suspendErrorLogging: () => void;
+/**
+ * Get NetworkInformation from navigator.connection if available
+ * https://developer.mozilla.org/en-US/docs/Web/API/Network_Information_API
+ * https://caniuse.com/netinfo
+ * @returns NetworkInformation or empty object
+ */
+export declare function getNetworkInformation(): {
+  downlink: any;
+  downlinkMax: any;
+  effectiveType: any;
+  rtt: any;
+  saveData: any;
+  type: any;
+};
 export {};

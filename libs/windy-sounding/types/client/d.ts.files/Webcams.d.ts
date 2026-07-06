@@ -1,6 +1,6 @@
+import { HttpPayload } from '@windy/http.d';
 import { LatLon } from '@windy/interfaces.d';
 import { Timestamp } from '@windy/types.d';
-import { HttpPayload } from '@windy/http.d';
 
 export type WebcamCategoryType =
   | 'landscape'
@@ -75,7 +75,6 @@ export interface WebcamImageUrls {
   normal: string;
   original: string;
   preview: string;
-  teaserbg: string;
   thumbnail: string;
   webcam: string;
 }
@@ -83,6 +82,8 @@ export interface WebcamImageUrls {
 export type WebcamImageSize = keyof WebcamImageUrls;
 
 export type WebcamTimelapseType = 'day' | 'current' | 'all';
+
+// FIXME TODO: This type does not correspond to output form a backend. Fix the type
 export interface WebcamDetail {
   categories: WebcamCategoryType[];
   contacts: { owner: string; caretaker: string };
@@ -151,6 +152,12 @@ export interface GeneralWcAdminResponse {
 export interface WebcamLastUpdatedOn {
   webcamId: number[];
   lastUpdatedOn: number[];
+}
+
+export interface WebcamImageRequestParams {
+  webcamId: string | number;
+  state?: 'current' | 'daylight';
+  size?: WebcamImageSize;
 }
 
 export interface WebcamMetadata {

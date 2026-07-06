@@ -1,0 +1,14 @@
+{
+  "name": "misc",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@dotenvx/dotenvx": "catalog:default",
+    "@flyxc/common": "workspace:*",
+    "@flyxc/common-node": "workspace:*",
+    "@google-cloud/datastore": "catalog:default",
+    "@google-cloud/storage": "catalog:default",
+    "mailersend": "^2.3.0"
+  }
+}

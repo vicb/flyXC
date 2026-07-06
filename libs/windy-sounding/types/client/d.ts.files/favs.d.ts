@@ -1,32 +1,25 @@
-import type { RouteType, StationId, Timestamp } from '@windy/types';
-import type { LatLon, Alert, AlertProps } from '@windy/interfaces';
+import type { ISOCountryCode, RouteType, StationId, Timestamp } from '@windy/types';
+import type { LatLon } from '@windy/interfaces';
 
 export type FavId = string;
 
 /** New fav type not including alerts */
-export type FavTypeNew = 'fav' | 'airport' | 'station' | 'webcam' | 'route';
-
-/** @deprecated Old fav type including alert that will be abandoned soon */
-export type FavType = FavTypeNew | 'alert';
+export type FavType = 'fav' | 'airport' | 'station' | 'webcam' | 'route';
 
 export type RouteAsString = `${RouteType}/${string}`;
 
 export type FavFragment = (LatLon & {
   /** Title of the fav */
   title: string;
+
+  /** Lowercase ISO 2 letter CC or xx if fav is in the ocean for example */
+  cc?: ISOCountryCode | 'xx';
 }) &
   (
     | { type: 'fav' }
 
-    /** @deprecated use till migration of alerts is in process */
-    | {
-        type: 'alert';
-        alert: Alert;
-        alertProps: AlertProps;
-      }
-
     /** Airport ICAO code in case of airport */
-    | { type: 'airport'; icao: string }
+    | { type: 'airport'; icao: string; iata?: string }
 
     /** Weather station ID (if WX station) */
     | { type: 'station'; stationId: StationId }
@@ -54,10 +47,6 @@ export type Fav = FavFragment & {
    * Timestamp when the item has been updated for the last time. It is used for updating items on all devices (the most up-to-date wins)
    */
   updated: Timestamp;
-};
-
-export type ObsoleteFav = FavFragment & {
-  key: string;
 };
 
 export type FavQuery =

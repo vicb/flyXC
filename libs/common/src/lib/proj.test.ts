@@ -1,8 +1,8 @@
-import { pixelCoordinates } from './proj';
+import { getPixelCoordinates } from './proj';
 
-describe(`pixelCoordinates`, () => {
+describe(`getPixelCoordinates`, () => {
   it('tile size 256px', () => {
-    expect(pixelCoordinates({ lat: 0, lon: 90 }, 1, 256)).toEqual({
+    expect(getPixelCoordinates({ lat: 0, lon: 90 }, 1, 256)).toEqual({
       px: {
         x: 128,
         y: 0,
@@ -19,7 +19,7 @@ describe(`pixelCoordinates`, () => {
   });
 
   it('tile size 512px', () => {
-    expect(pixelCoordinates({ lat: 0, lon: 90 }, 1, 512)).toEqual({
+    expect(getPixelCoordinates({ lat: 0, lon: 90 }, 1, 512)).toEqual({
       px: {
         x: 256,
         y: 0,

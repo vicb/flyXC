@@ -1,4 +1,4 @@
-import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
+import type { ScoringResult } from '@flyxc/optimizer/src/lib/optimizer';
 import type { CSSResult, TemplateResult } from 'lit';
 import { css, html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';

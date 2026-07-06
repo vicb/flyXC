@@ -18,12 +18,11 @@ GH_INFO_FILE=$(mktemp)
 echo "{\"repositoryName\": \"${GH_REPO}\", \"commitSha\": \"${GH_SHA}\", \"repositoryOwner\": \"${GH_OWNER}\"}" > $GH_INFO_FILE
 
 PLUGIN_JSON_FILE=$(mktemp)
-cat dist/libs/windy-sounding/plugin.json > $PLUGIN_JSON_FILE
+cat libs/windy-sounding/dist/plugin.json > $PLUGIN_JSON_FILE
 
-jq -s '.[0] * .[1]' $PLUGIN_JSON_FILE $GH_INFO_FILE > dist/libs/windy-sounding/plugin.json
+jq -s '.[0] * .[1]' $PLUGIN_JSON_FILE $GH_INFO_FILE > libs/windy-sounding/dist/plugin.json
 
-tar cf /tmp/plugin.tar -C dist/libs/windy-sounding plugin.min.js plugin.min.js.map plugin.js plugin.json screenshot.jpg
-
+tar cf /tmp/plugin.tar -C libs/windy-sounding/dist plugin.min.js plugin.min.js.map plugin.js plugin.json screenshot.jpg 
 echo "# Publishing plugin..."
 
 curl -s --fail-with-body -XPOST 'https://node.windy.com/plugins/v1.0/upload' -H "x-windy-api-key: ${WINDY_API_KEY}" -F "plugin_archive=@/tmp/plugin.tar"

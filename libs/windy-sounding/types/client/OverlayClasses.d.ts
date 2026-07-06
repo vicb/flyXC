@@ -31,3 +31,11 @@ export declare class CloudsOverlay<I extends Overlays = Overlays> extends Overla
   hidePickerElevation: boolean;
   createPickerHTML(values: RGBNumValues): string;
 }
+export declare class AqiOverlay<I extends Overlays = Overlays> extends Overlay<I> {
+  hidePickerElevation: boolean;
+  labels: {
+    [value: number]: keyof LoadedTranslations;
+  };
+  getAirQLabel(aqi: number): string;
+  createPickerHTML(values: RGBNumValues): string;
+}

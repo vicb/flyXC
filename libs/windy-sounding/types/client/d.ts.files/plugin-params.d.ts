@@ -1,7 +1,6 @@
 import { Fav, FavId } from '@windy/favs.d';
-import { StartupArticleData, WhatsNewData } from '@windy/startup.d';
-import { HiddenReasonType, ReasonTypes } from '@plugins/subscription/subscription';
-import { FullRenderParameters } from '@windy/Layer.d';
+import { WhatsNewData } from '@windy/startup.d';
+
 import { HttpPayload } from '@windy/http.d';
 import {
   CapAlertHeadline,
@@ -11,21 +10,25 @@ import {
   PickerCoords,
   SummaryDataHash,
   WeatherDataPayload,
+  FullRenderParameters,
 } from '@windy/interfaces.d';
 import { Pois, Products } from '@windy/rootScope.d';
 import { SingleClickParams } from '@windy/singleclick.d';
 import { DetailDisplayType, RouteType, StationOrPoiType, ExternalPluginIdent, type Timestamp } from '@windy/types.d';
 import { WebcamCategoryType } from '@windy/webcams';
+import type { Point } from '@leafletGl';
 
-import type { StoryPreview } from '@plugins/stories/stories.d';
 import type { StationDisplayType } from '@plugins/station/station';
-import type { PluginsListResponseDto } from '@plugins/external-plugins/external-plugins';
+import type { LiveAlertEvent } from '@plugins/startup-live-alerts/startup-live-alerts';
+import type { ArticleStartupData } from '@plugins/articles/articles.d';
+import type { HiddenReasonType, ReasonTypes, SubscriptionSource } from '@plugins/subscription/subscription';
 
 /**
  * Type of source event, that led to opening any plugin
  */
 export type PluginOpenEventSource =
   | 'contextmenu'
+  | 'beta-drop-down'
   | 'hp'
   | 'url'
   | 'singleclick'
@@ -36,6 +39,8 @@ export type PluginOpenEventSource =
   | 'alerts-page'
   | 'favs-on-hp'
   | 'picker'
+  | 'picker-mobile'
+  | 'picker-mobile-settings'
   | 'meta'
   | 'fallback'
   | 'gps'
@@ -102,7 +107,8 @@ type RplannerDistanceParams =
   | {
       import: boolean;
       content: string;
-    }; // Uploaded GPX
+    } // Uploaded GPX
+  | undefined;
 
 export type PickerOpenParams =
   | (PluginSource &
@@ -115,7 +121,7 @@ export type PluginsOpenParams = {
   detail: DetailOpenParams;
   picker: PickerOpenParams;
   'picker-mobile': PickerOpenParams;
-  favs: PluginSource & { importObsoleteFavs?: boolean };
+  favs: PluginSource;
   station: PluginSource & {
     id: string;
     moveToTimestamp?: Timestamp;
@@ -126,7 +132,6 @@ export type PluginsOpenParams = {
   'webcams-detail': PluginSource & WebcamDetailOpenParams;
   'webcams-edit': PluginSource & WebcamDetailOpenParams;
   'webcams-remove': PluginSource & WebcamDetailOpenParams;
-  //settings: (PluginSource & { id: string }) | undefined;
   settings: PluginSource | undefined;
   articles: (PluginSource & { id: number | string }) | undefined;
   upload: PluginSource & { id: string };
@@ -138,17 +143,22 @@ export type PluginsOpenParams = {
        */
       name?: string;
     };
-  contextmenu: PluginSource & LatLon & { containerPoint?: L.Point };
+  contextmenu: PluginSource & LatLon & { containerPoint?: Point };
+  'beta-drop-down': undefined;
+
+  /**
+   * Typing is incorrect here. If called from ClickHandler it has a string as params
+   */
   subscription:
-    | (PluginSource & {
-        promote?: ReasonTypes | HiddenReasonType;
-        pendingError?: Error & { responseText: string };
-      })
-    | undefined;
+    | PluginSource
+    | (PluginSource &
+        (
+          | { promote?: ReasonTypes | HiddenReasonType; subsSource: SubscriptionSource }
+          | { pendingError: Error & { responseText: string } }
+        ));
   'alerts-edit': PluginSource &
     (
       | { action: 'edit'; id: string }
-      | { action: 'migration'; favId: string }
       | {
           action: 'new';
           lat: number;
@@ -163,22 +173,18 @@ export type PluginsOpenParams = {
   rplanner: PluginSource & RplannerDistanceParams;
   airport: PluginSource & { id: string };
   share: undefined;
+  'report-issue': PluginSource & { openedFrom?: 'radar' | 'satellite' | 'betaDropDown' };
+  'sun-moon': (PluginSource & LatLon) | undefined;
   'nearest-stations': PluginSource & LatLon & { compactVersion?: boolean; includeAirq?: boolean };
   'nearest-airq': PluginSource & LatLon;
   'nearest-webcams-mobile': PluginSource & LatLon;
   'nearest-webcams': PluginSource & LatLon;
-  'external-plugins':
-    | (PluginSource & {
-        id?: string;
-        qs?: PluginsQsParams['external-plugins'];
-        installPlugin?: PluginsListResponseDto;
-      })
-    | undefined;
+  'external-plugins': (PluginSource & { id?: string; qs?: PluginsQsParams['external-plugins'] }) | undefined;
   sounding: PluginSource & LatLon & { name?: string };
   radiosonde: PluginSource & { id: string; lat?: number; lon?: number };
-  startup: PluginSource;
-  'startup-whats-new': PluginSource & { data: WhatsNewData };
-  'startup-articles': PluginSource & { data: StartupArticleData };
+  'whats-new': PluginSource & { data: WhatsNewData };
+  'startup-articles': PluginSource & { data: ArticleStartupData };
+  'startup-promos': PluginSource & { typeOfPromo: 'obsoleteApp' | 'premium' | 'mapyCom' };
   'startup-weather': PluginSource & {
     coords: HomeLocation | GeolocationInfo;
     promises: {
@@ -186,6 +192,12 @@ export type PluginsOpenParams = {
       capAlerts: Promise<HttpPayload<CapAlertHeadline[]>>;
     };
   };
+  'startup-pin2hp': PluginSource;
+  'startup-live-alerts': PluginSource & {
+    coords: LatLon | GeolocationInfo | HomeLocation;
+    alerts: LiveAlertEvent[];
+  };
+  'startup-debug': PluginSource;
   login:
     | (PluginSource & {
         reason?: 'login' | 'register';
@@ -208,9 +220,13 @@ export type PluginsOpenParams = {
   'developer-mode': (PluginSource & { qs: Record<string, string> | undefined }) | undefined;
   'windy-external-plugin': PluginSource & LatLon;
   menu: PluginSource & { scrollTo?: 'pois' };
-  stories: { id: string; sortedAndEnhancedPreviews?: StoryPreview[] } & PluginSource;
   onboarding: (PluginSource & { getUserInterests?: boolean }) | undefined;
   'heatmaps-redirect': PluginSource & { id?: string };
+  'beta-cookie': PluginSource & { action?: 'activate' | 'remove' };
+  'radar-plus-use-satellite': PluginSource | undefined;
+  info: PluginSource & {
+    displayOverlayInfoFirst?: boolean;
+  };
 } & {
   [external: ExternalPluginIdent]:
     | (PluginSource & { query: Record<string, string> | undefined })

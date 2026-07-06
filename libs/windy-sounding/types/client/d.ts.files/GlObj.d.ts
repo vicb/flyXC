@@ -1,4 +1,4 @@
-import type { Texture2D } from 'plugins/_shared/gl-lib/gl-lib';
+import type { Texture2D } from '@plugins/shared/gl-lib/gl-lib';
 import type { Mat2, Mat2d, Mat3, Mat4, Quat, Quat2, Vec2, Vec3, Vec4 } from '@plugins/globe/gl-matrix/types';
 
 export interface CustomError extends Error {
@@ -7,10 +7,6 @@ export interface CustomError extends Error {
   name: string;
   full?: string;
 }
-
-// export type WebGLProgramObject = {
-//     [whatever: string]: any;
-// };
 
 export type UniformName = `u${string}`;
 

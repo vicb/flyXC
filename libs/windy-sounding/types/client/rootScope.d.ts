@@ -4,12 +4,12 @@ import type { LoadedTranslations } from './d.ts.files/types';
  * Version of Windy.com client (as taken from package.json)
  * @ignore
  */
-export declare const version: string;
+export declare const version: `${number}.${number}.${number}`;
 /**
  * Target
  * @ignore
  */
-export declare const target: 'lib' | 'embed' | 'mobile' | 'index' | 'imaker';
+export declare const target: 'index' | 'embed' | 'mobile' | 'lib';
 /**
  * Platform
  * @ignore
@@ -86,7 +86,7 @@ export declare const setNodeServer: (value: string) => void;
  * Map tile server
  * @ignore
  */
-export declare const tileServer: string;
+export declare const tileServer = '<!-- @echo TILES_HOST -->';
 /**
  * Community forum DO NOT PUT TRAILING "/" TO THE URL
  * @ignore
@@ -133,7 +133,6 @@ export declare const iconsDir = '<!-- @echo IMG_RELATIVE_PATH -->/icons7';
 export declare const overlays: readonly [
   'radar',
   'satellite',
-  'radarPlus',
   'wind',
   'gust',
   'gustAccu',
@@ -170,6 +169,8 @@ export declare const overlays: readonly [
   'sst',
   'currents',
   'currentsTide',
+  'wavePower',
+  'aqi',
   'no2',
   'pm2p5',
   'aod550',
@@ -194,6 +195,7 @@ export declare const overlays: readonly [
   'heatmaps',
   'topoMap',
   'hurricanes',
+  'radarPlus',
 ];
 /**
  * Identifier of products that cover only certain area
@@ -243,7 +245,6 @@ export declare const globalProducts: readonly [
   'cams',
   'efi',
   'satellite',
-  'radarPlus',
   'cmems',
   'drought',
   'fireDanger',
@@ -299,6 +300,7 @@ export declare const localPointProducts: readonly [
   'ukv',
   'jmaMsm',
   'jmaCwmWaves',
+  'camsEu',
 ];
 /**
  * Identifiers of global products, that have point forecast
@@ -319,7 +321,6 @@ export declare const products: readonly [
   'cams',
   'efi',
   'satellite',
-  'radarPlus',
   'cmems',
   'drought',
   'fireDanger',
@@ -391,7 +392,44 @@ export declare const pointProducts: readonly [
   'ukv',
   'jmaMsm',
   'jmaCwmWaves',
+  'camsEu',
 ];
+/**
+ * Point products that have air point forecast
+ */
+export declare const airPointProducts: (
+  | 'icon'
+  | 'namConus'
+  | 'namHawaii'
+  | 'namAlaska'
+  | 'iconEu'
+  | 'iconD2'
+  | 'arome'
+  | 'aromeAntilles'
+  | 'aromeFrance'
+  | 'aromeReunion'
+  | 'canHrdps'
+  | 'canRdwpsWaves'
+  | 'camsEu'
+  | 'czeAladin'
+  | 'iconEuWaves'
+  | 'hrrrAlaska'
+  | 'hrrrConus'
+  | 'bomAccess'
+  | 'bomAccessAd'
+  | 'bomAccessBn'
+  | 'bomAccessDn'
+  | 'bomAccessNq'
+  | 'bomAccessPh'
+  | 'bomAccessSy'
+  | 'bomAccessVt'
+  | 'ukv'
+  | 'jmaMsm'
+  | 'jmaCwmWaves'
+  | 'gfs'
+  | 'ecmwf'
+  | 'mblue'
+)[];
 /**
  * IndicatesIndicates that that browsing device is mobile
  */
@@ -432,7 +470,7 @@ export declare const maxFavPoisDesktop = 7;
  * Valid POI layers, their name and icon
  * @ignore this will crash Markdown parser
  */
-export declare const pois: Record<string, [keyof LoadedTranslations | string, Iconfont]>;
+export declare const pois: Record<string, [keyof LoadedTranslations, Iconfont]>;
 /**
  * List of valid isoline identifiers
  * @ignore this will crash Markdown parser
@@ -443,3 +481,7 @@ export declare const isolinesType: readonly ['pressure', 'gh', 'temp', 'deg0'];
  * TODO: Mobile apps have probably different location
  */
 export declare const pluginsLocation: string;
+export declare const pollenProducts: Record<
+  string,
+  [longTranslation: keyof LoadedTranslations, shortTranslation: keyof LoadedTranslations]
+>;

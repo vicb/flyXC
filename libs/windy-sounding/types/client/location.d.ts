@@ -25,7 +25,7 @@
  */
 import type { ExternalPluginIdent } from '@windy/types.d';
 import type { PluginIdent } from '@windy/Plugin';
-import type { WindowPlugins } from '@windy/WindowPlugin';
+import type { WindowPlugins } from '@windy/plugins.d';
 import type { PluginsOpenParams } from '@windy/plugin-params';
 /**
  * At what time, the search string was last time updated

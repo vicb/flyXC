@@ -31,7 +31,7 @@ export declare class SatelliteMetric extends NumberedMetric {
    * Dynamic update from minifest/info.json
    * @param pars various pars depending on concrete instance
    */
-  updateLines(pars: [number, number], radarEnabled?: boolean): void;
+  updateLines(pars: [number, number], _radarEnabled?: boolean): void;
 }
 export declare class PrecipMetric extends NumberedMetric {
   initProperties(): void;

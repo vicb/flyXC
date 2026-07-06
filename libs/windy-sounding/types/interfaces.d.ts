@@ -1,43 +1,49 @@
 /**
  * Main Windy interfaces
  */
-import { Weekday } from '@windy/Calendar.d';
-import { ExtendedTileParams } from '@windy/DataTiler.d';
+import { Weekday } from '@windy/Calendar';
 import { FavId } from '@windy/favs';
-import { FullRenderParameters } from '@windy/Layer.d';
-import { Particles } from '@windy/Particles';
-import { PluginsOpenParams, PluginOpenEventSource, PluginsQsParams } from '@windy/plugin-params.d';
+import { Layers } from '@windy/Layer';
+import { PluginOpenEventSource, PluginsOpenParams, PluginsQsParams } from '@windy/plugin-params.d';
 import { Plugins } from '@windy/plugins.d';
+import { DataQuality } from '@windy/Product';
 import { Isolines, Levels, Overlays, PointProducts, Products } from '@windy/rootScope.d';
 import {
   BatteryPreferences,
   CapAlertInfo,
   CapAlertSeverity,
   CapAlertType,
+  CustomAppIcon,
   DetailDisplayType,
   DetailRows,
   Directions,
   GoogleServicesPreferences,
   GpsPreferences,
+  Hours,
   ISODateString,
+  ISOCountryCode,
   LocationPreferences,
   MeteogramLayers,
   MeteogramLevels,
+  Minutes,
   NotificationPreferences,
   NumOrNull,
   NumValue,
+  ParticlesIdent,
   Path,
+  PatternType,
   Pixel,
   Platform,
+  RenderChannels,
+  SubTier,
   Timestamp,
+  TransformFunction,
   WidgetNotificationPreferences,
   WidgetType,
   YearMonthDay,
-  Hours,
-  Minutes,
-  SubTier,
-  CustomAppIcon,
+  type SemVersion,
 } from '@windy/types.d';
+import type { LatLng, Marker, PaddingOptions, RequireAtLeastOne } from '@leafletGl';
 
 export interface ExportedObj {
   default?: unknown;
@@ -101,7 +107,7 @@ export interface GeolocationInfo extends LatLon {
   /**
    * Optional lowercase 2 letter ISO country code
    */
-  cc?: string;
+  cc?: ISOCountryCode;
 
   /**
    * Optional name of the place
@@ -251,12 +257,11 @@ export interface AlertProps {
 }
 
 export interface WeatherParameters {
-  acRange: Timestamp;
+  acRange: Hours;
   overlay: Overlays;
   level: Levels;
   isolinesType: Isolines;
   isolinesOn: boolean;
-  path: Path;
   product: Products;
 }
 
@@ -275,9 +280,9 @@ export interface LastSentDevice {
   deviceID: string;
   platform: string;
   target: string;
-  version: string;
+  version: SemVersion;
   subscription: SubTier;
-  cc: string;
+  cc: ISOCountryCode | 'xx';
   deactivated?: boolean;
   updated?: number;
   screen?: {
@@ -306,9 +311,9 @@ export interface TilePoint {
 }
 
 /**
- * Celestial object as received from backend
+ * Timezone information as received from backend
  */
-export interface Celestial {
+export interface TZinfo {
   /**
    * Time zone abbreviation (for instance CEST)
    */
@@ -338,7 +343,12 @@ export interface Celestial {
    * Type of TZ type t..terrestrial, n..nautical
    */
   TZtype: 't' | 'n';
+}
 
+/**
+ * Celestial object as received from backend
+ */
+export interface Celestial extends TZinfo {
   /**
    * Determines probability if the location is at sea or not as number from 1..0
    * Unfortunately the number is inverted, so 1 means land, and 0 means sea
@@ -371,6 +381,11 @@ export interface Celestial {
   sunset: `${number}:${number}`;
   sunsetTs: Timestamp;
 }
+
+export type CelestialWithoutTimezone = Pick<
+  Celestial,
+  'night' | 'sunsetTs' | 'sunriseTs' | 'duskTs' | 'isDay' | 'atSea'
+>;
 
 /**
  * Summary day as received from backend
@@ -488,7 +503,6 @@ export interface IsDay {
 /**
  * Weather data object as received from backend (full version)
  */
-
 export interface DataHash extends SummaryDataHash, IsDay {
   /**
    * Day identifier
@@ -508,7 +522,7 @@ export interface DataHash extends SummaryDataHash, IsDay {
   /**
    * Local Time hour for given place in 24h format
    */
-  hour: number[];
+  hour: Hours[];
 
   /**
    * Weather icon identifier
@@ -645,6 +659,80 @@ export type PickDataHashPropsByType<U, Strict = true> = Pick<
   }[keyof DataHash]
 >;
 
+export interface AirQDataHash extends IsDay {
+  /**
+   * Timestamp of beginning of segment
+   */
+  ts: Timestamp[];
+
+  /**
+   * Day identifier
+   */
+  day: YearMonthDay[];
+
+  /**
+   * Local Time hour for given place in 24h format
+   */
+  hour: Hours[];
+
+  /**
+   * CAMS airq properties
+   */
+  aqiUs: NumValue[];
+  /**
+   * Concentration of carbon monoxide (CO) in the air.
+   */
+  chemsCosc: NumValue[];
+  /**
+   * Concentration of dust particles (coarse particulate matter) in the air.
+   */
+  chemsDustsm: NumValue[];
+  /**
+   * Concentration of sulfur dioxide (SO2) in the air.
+   */
+  chemsSo2sm: NumValue[];
+  /**
+   * Ground-level ozone (O3) concentration.
+   */
+  go3: NumValue[];
+  /**
+   * Nitrogen dioxide (NO2) concentration.
+   */
+  no2: NumValue[];
+  /**
+   * Particulate matter with a diameter of 10 micrometers or less.
+   */
+  pm10: NumValue[];
+  /**
+   * Particulate matter with a diameter of 2.5 micrometers or less.
+   */
+  pm2p5: NumValue[];
+  /**
+   * Concentration of Alder pollen.
+   */
+  pollenAlder?: NumValue[];
+  /**
+   * Concentration of Birch pollen.
+   */
+  pollenBirch?: NumValue[];
+  /**
+   * Concentration of Grass pollen.
+   */
+  pollenGrass?: NumValue[];
+  /**
+   * Concentration of Mugwort pollen.
+   */
+  pollenMugwort?: NumValue[];
+  /**
+   * Concentration of Olive pollen.
+   */
+  pollenOlive?: NumValue[];
+  /**
+   * Concentration of Ragweed pollen.
+   */
+  pollenRagweed?: NumValue[];
+}
+
 /**
  * node-forecast header object
  */
@@ -772,7 +860,7 @@ export interface WeatherDataNow {
 /**
  * Weather data or Summary Weather data JSON as received from node-forecast
  */
-export interface WeatherDataPayload<T extends DataHash | SummaryDataHash> {
+export interface WeatherDataPayload<T extends DataHash | SummaryDataHash | AirQDataHash = DataHash> {
   header: NodeForecastHeader;
   celestial: Celestial;
   summary: Record<YearMonthDay, SummaryDay>;
@@ -837,7 +925,7 @@ export type WeatherTableRenderingOptions = {
    * Should we use 12h format for time?
    */
   is12hFormat?: boolean;
-} & Pick<DetailParams, 'display' | 'step' | 'rows' | 'days'>;
+} & Pick<DetailParams, 'display' | 'step' | 'days'>;
 
 /**
  * Parameters used for displaying detail (point forecast)
@@ -913,25 +1001,6 @@ export interface MeteogramDataPayload {
 }
 
 /**
- * Particle animation parameters
- */
-export interface ExtendedRenderParams extends ExtendedTileParams, FullRenderParameters {
-  canvas: HTMLCanvasElement;
-
-  /**
-   * Actual instance of particles
-   */
-  partObj: Particles;
-
-  /**
-   * Pointer to dest table
-   */
-  vectors: Float32Array;
-
-  speed2pixel: number;
-}
-
-/**
  * How good are observations by this AD or WX station?
  */
 export interface ObservationInfo {
@@ -942,7 +1011,7 @@ export interface ObservationInfo {
 }
 
 export interface ServiceGeoipResponse {
-  country: string;
+  country: ISOCountryCode;
   region: `${number}`;
   eu: '0' | '1';
   timezone: string;
@@ -951,11 +1020,6 @@ export interface ServiceGeoipResponse {
   metro: number;
   area: number;
   ip: string;
-
-  /**
-   * @deprecated
-   */
-  hash: 'oiurouoweruouoiuou';
 }
 
 export interface BillingPluginMinimalProduct {
@@ -1128,18 +1192,38 @@ export interface WindyWatchPlugin {
   addWatchFace: () => Promise<unknown>;
 }
 
-export interface WindyServicePlugin {
+export interface WindyServicesPlugin {
   openSettings: () => Promise<void | string>;
   getLocationPermissions: () => Promise<LocationPreferences>;
   getNotificationPermissions: () => Promise<NotificationPreferences>;
   openApplicationSettings: () => Promise<void | string>;
   isGpsEnabled: () => Promise<GpsPreferences>;
-  getBatteryUsagePermissions: () => Promise<BatteryPreferences>;
+  /**
+   * Android-only function that checks whether the app has battery usage permissions.
+   *
+   * - If the user has no widget installed, it always resolves to "authorized".
+   * - Otherwise, it may resolve to:
+   * - "authorized" → permission granted
+   * - "denied" → permission restricted
+   *
+   * May be undefined on non-Android platforms.
+   *
+   * @returns {Promise<BatteryPreferences>} A promise resolving to "authorized" or "denied".
+   * */
+  getBatteryUsagePermissions?: () => Promise<BatteryPreferences>;
   openBatterySettings: () => Promise<void>;
   getGoogleServicesAvailability: () => Promise<GoogleServicesPreferences>;
   getWidgetNotificationPermissions: () => Promise<WidgetNotificationPreferences>;
   openWidgetNotificationSettings: () => Promise<void>;
   getBackgroundLocationPermission: () => Promise<GpsPreferences>;
+  /**
+   * Android-only function that checks whether the app has battery usage permissions.
+   *
+   * May be undefined on non-Android platforms.
+   *
+   * @returns {Promise<BatteryPreferences>} A promise resolving to "authorized" or "denied".
+   */
+  getBatteryStatus?: () => Promise<BatteryPreferences>;
   openBackgroundLocationSettings: () => Promise<void>;
   logError: (arg: { moduleName: string; msg: string; error?: string }) => Promise<void>;
   getId: () => Promise<{ identifier: string }>;
@@ -1240,6 +1324,74 @@ export interface WindyMigrationPlugin {
   getOldLocalStorageDataAndroid: () => Promise<{ result: string | null }>;
 }
 
+export interface ImageOptions {
+  maxWidth?: number;
+  maxHeight?: number;
+  quality?: number; // 0..1
+  format?: 'jpeg' | 'png'; // default 'jpeg'
+}
+
+export interface VideoOptions {
+  preset?: 'medium' | 'low' | 'h264_720p' | 'h264_1080p' | 'passthrough'; // Medium is default
+}
+
+export interface CompressOptions {
+  imageOptions?: ImageOptions;
+  videoOptions?: VideoOptions;
+}
+
+export interface OneCompressOptions extends CompressOptions {
+  id: string;
+}
+
+export interface PickedItem {
+  id: string;
+  kind: 'image' | 'video' | 'unknown';
+  filename?: string;
+  mimeType?: string;
+  originalPath?: string; // POSIX path to original temp file
+  width?: number;
+  height?: number;
+  duration?: number;
+  size?: number; // bytes
+}
+
+export interface CompressedItem extends PickedItem {
+  compressedPath: string; // POSIX path to compressed file
+  compressedSize: number; // bytes
+}
+
+/**
+ * Extended MediaItem type that supports both native compressed items
+ * and web-based items with blob references
+ */
+export interface MediaItem extends PickedItem {
+  compressedPath?: string; // For native plugin
+  compressedSize?: number;
+  blob?: Blob; // For web fallback (full-size, no compression)
+  blobUrl?: string; // Object URL for preview
+}
+
+type PickOptions = {
+  selectionLimit?: number;
+};
+
+// iOS only
+export interface WindyMediaPlugin {
+  pick(options?: PickOptions): Promise<{ items: PickedItem[] }>;
+  getPicked(): Promise<{ items: PickedItem[] }>;
+  removeFromPicked(id: string): Promise<{ success: boolean }>;
+  pickAndCompress(options?: PickOptions): Promise<{ items: CompressedItem[] }>;
+  compressOne(arg: OneCompressOptions): Promise<{ item: CompressedItem }>;
+  // CompressAll - if compress options are not provided, default options will be used
+  compressAll(arg: CompressOptions | undefined): Promise<{ items: CompressedItem[] }>;
+  clearAll(): Promise<void>;
+  addListener(
+    eventName: 'compressionProgress',
+    listener: (payload: { total: number; done: number; percent: number }) => void,
+  ): { remove: () => void };
+}
+
 export interface SocialLoginParams {
   purpose: string;
   deviceId: string;
@@ -1313,8 +1465,8 @@ export interface PluginOpeningOptions<P extends keyof Plugins> extends WindowOpe
  */
 export interface RplannerPoint {
   ident: number;
-  marker: L.Marker;
-  position: L.LatLng;
+  marker: Marker;
+  position: LatLng;
 }
 
 /**
@@ -1324,7 +1476,7 @@ export interface RplannerWaypoint {
   distance?: number;
   ident?: number;
   initialBearing?: number;
-  point: L.LatLng;
+  point: LatLng;
   rads?: {
     cosInitialBearing: number;
     cosLat: number;
@@ -1435,7 +1587,7 @@ export interface ExternalPluginConfig {
    *
    * @example '1.0.0'
    */
-  version: string;
+  version: SemVersion;
 
   /**
    * Official title of the plugin, that will be displayed as a browser title,
@@ -1556,6 +1708,11 @@ export interface CompiledExternalPluginConfig extends ExternalPluginConfig {
  */
 export interface InstalledExternalPluginConfig extends CompiledExternalPluginConfig {
   /**
+   * ID must be present to enable backend cloud sync
+   */
+  id: string;
+
+  /**
    * URL of the plugin is used as unique identifier
    */
   url: string;
@@ -1563,7 +1720,7 @@ export interface InstalledExternalPluginConfig extends CompiledExternalPluginCon
   /**
    * From which process was plugin installed
    */
-  installedBy: 'dev' | 'gallery' | 'url' | 'patch';
+  installedBy: 'dev' | 'gallery' | 'url';
 
   /**
    * When was this plugin installed by specific user
@@ -1578,64 +1735,6 @@ interface PromoFilteringParams {
 }
 
 /**
- * Main promo object, used in `client-patch`
- */
-interface PromoObj {
-  /**
-   * Main ID of the promo. This key is also used in `promo` object in localStorage
-   */
-  readonly id: string;
-
-  /**
-   * ISO date, when the promo expires
-   */
-  readonly end: string;
-
-  /**
-   * How many times display promo to the user (respective on one device)
-   */
-  counter: number;
-
-  /**
-   * How often to display promo on particular device (in ms)
-   */
-  delay: number;
-
-  /**
-   * Any others filters, deciding whether to display promo or not
-   */
-  filter: () => boolean;
-
-  /**
-   * Should we display HP articles together with promo
-   * @deprecated
-   */
-  loadArticles?: boolean;
-
-  /**
-   * Required method to be run, when promo is executed. In this stage we can also
-   * do some additional checks, if promo should be displayed or not, so we must
-   * call `promo.hitCounter()` method ourselves.
-   */
-  readonly run: () => void;
-
-  /**
-   * Optional HTML code to be used internally in `run` method
-   */
-  html?: string;
-}
-
-/**
- * Client patch object
- */
-interface ClientPatch {
-  __version: string;
-  __css: string;
-  exclusivePromos: PromoObj[];
-  otherPromos: PromoObj[];
-}
-
-/**
  * Amount of active hurricanes as returnd from hurricane tracker backend
  */
 export interface ActiveStormCountPayload {
@@ -1643,6 +1742,96 @@ export interface ActiveStormCountPayload {
 }
 
 /**
+ * These properties are passed directly to renderer by enhancing returned params
+ */
+interface RenderParams {
+  /**
+   * Which channels contain tile rendering data
+   */
+  renderFrom?: RenderChannels;
+
+  /**
+   * Not confirmed: Display map as a sea, meaning the sea layers are below surface layers
+   */
+  sea?: boolean;
+
+  /**
+   * Display map as a land, meaning the sea area is hidden with mask
+   */
+  landOnly?: boolean;
+
+  /**
+   * Identifier of particle type
+   */
+  particlesIdent?: ParticlesIdent;
+
+  /**
+   * Uses two instances of Color for rendering
+   */
+  isMultiColor?: boolean;
+
+  /**
+   * Should green channel be interpolated to nearest discreet value
+   */
+  interpolateNearestG?: boolean;
+
+  /**
+   * Name of interpolator method
+   */
+  interpolate?: 'interpolateOverlay' | 'interpolateWaves';
+
+  /**
+   * Used patternator
+   */
+  pattern?: PatternType;
+}
+
+/**
+ * Set of params required to render the layer
+ */
+interface FullRenderParameters extends WeatherParameters, RenderParams {
+  layer: Layers;
+  JPGtransparency?: boolean;
+  PNGtransparency?: boolean;
+  transformR?: TransformFunction;
+  transformG?: TransformFunction;
+  transformB?: TransformFunction;
+  directory: string;
+
+  /**
+   * Specify zoom of mercator data tiles in dependence of map zoom
+   */
+  dataQuality?: DataQuality;
+  maxTileZoom?: {
+    free: number;
+    premium: number;
+  };
+
+  /**
+   * bump data quality by 1 level for particular overlay/layer
+   */
+  upgradeDataQuality?: boolean;
+
+  /**
+   * Force to select particular zoom of data tiles
+   */
+  dataTilesZoom?: number;
+
+  level: Levels;
+  refTime: Path;
+  fullPath: string;
+  path: Path;
+
+  /**
+   * Optional accumulation range in hours
+   */
+  acRangeInHours?: number;
+
+  // TODO: Why this does not use FileSuffix type?
+  fileSuffix?: 'png' | 'jpg' | 'json';
+}
+
+/*
  * Cap alert was slided from left to right on startup screen
  */
 export interface CapAlertSlided {
@@ -1653,7 +1842,7 @@ export interface CapAlertSlided {
 /**
  * Handy payload or reusable data that helps to render Forecast Table
  */
-export interface WeatherTableRenderingData {
+export interface WeatherTableRenderingData<T extends DataHash | AirQDataHash = DataHash> {
   /**
    * Day identifiers, that were used in data object (above)
    */
@@ -1662,7 +1851,12 @@ export interface WeatherTableRenderingData {
   /**
    * Loaded data.data (modified later by splicing data arrays)
    */
-  data: DataHash;
+  data: T;
+
+  /**
+   * Type of the data above
+   */
+  dataType: 'forecast' | 'airq';
 
   /**
    * Length of used forecast as a umber of TD segments
@@ -1678,6 +1872,7 @@ export interface WeatherTableRenderingData {
   tsWidth: Timestamp;
   pxWidth: Pixel;
   px2ts: number;
+  tdWidth: Pixel;
 
   /**
    * UTC offset in hours
@@ -1698,4 +1893,9 @@ export interface WeatherTableRenderingData {
    * Summary of days used
    */
   summary: Record<YearMonthDay, SummaryDay>;
+}
+
+export interface SimplifiedGetBoundsOptions {
+  animate?: boolean;
+  padding?: RequireAtLeastOne<PaddingOptions>;
 }

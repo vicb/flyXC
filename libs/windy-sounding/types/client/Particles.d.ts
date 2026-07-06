@@ -1,4 +1,4 @@
-import type { RGBAString, RGBA } from '@windy/Color.d';
+import type { RGBAString, RGBA } from '@windy/types.d';
 import type { Levels } from '@windy/rootScope.d';
 import type { ExtendedRenderParams } from '@windy/interfaces.d';
 import type { CustomParticles } from '@windy/dataSpecifications.d';

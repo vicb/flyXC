@@ -6,10 +6,9 @@ import type { WindowInitParams } from '@windy/Window';
 import type { PluginOpeningOptions, WindowClosingOptions } from '@windy/interfaces.d';
 import type { InterpolatorFactory } from '@windy/interpolator';
 import type { PluginsOpenParams, PluginsQsParams } from '@windy/plugin-params.d';
-import type { BottomSveltePlugins, SveltePanePlugins, SveltePlugins, TagPlugins } from '@windy/plugins.d';
+import type { WindowPlugins } from '@windy/plugins.d';
 import type { ListeningPriority } from '@windy/singleclick.d';
 import type { LoadedTranslations, ParsedQueryString } from '@windy/types';
-export interface WindowPlugins extends TagPlugins, SveltePlugins, SveltePanePlugins, BottomSveltePlugins {}
 /** Allowed params to WindowPlugin constructor (private and protected props are omited by default) */
 export type WindowPluginInitParams<P extends keyof WindowPlugins> = PluginInitParams<P> &
   Omit<WindowInitParams, 'ident' | 'html'> &
@@ -147,15 +146,13 @@ export declare abstract class WindowPlugin<P extends keyof WindowPlugins> extend
   beforeLoad(..._args: unknown[]): void;
   /**
    * Called by router when URL matches plugin's router (feel free to overload it)
+   *
+   * Typing is difficult here, because captured groups provide just object with string values
+   * and we dunno that it adheres to PluginsOpenParams[P] type.
+   *
+   * Yet the return type MUST BE PluginsOpenParams[P] so it can be used
    */
-  onRouteMatch(
-    {
-      groups,
-    }: string[] & {
-      groups: PluginsOpenParams[P];
-    },
-    _qs?: ParsedQueryString,
-  ): PluginsOpenParams[P] | undefined;
+  onRouteMatch(regExpGroups: Record<string, string>, _qs?: ParsedQueryString): PluginsOpenParams[P];
   /**
    * When called with params, it will create valid URL for plugin
    * as defined in router property.

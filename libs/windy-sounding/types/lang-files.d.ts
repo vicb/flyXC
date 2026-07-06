@@ -640,6 +640,10 @@ export interface DistanceLangFile {
    */
   DST_OK: string;
   /**
+   * distance: Remove from your favorites
+   */
+  DST_REMOVE_FAV: string;
+  /**
    * distance: Remove last waypoint
    */
   DST_REMOVE_LAST: string;
@@ -655,10 +659,6 @@ export interface DistanceLangFile {
    * distance: Save route to favorites
    */
   DST_SAVE: string;
-  /**
-   * distance: Saved to your favorites
-   */
-  DST_SAVED: string;
   /**
    * distance: Share route
    */
@@ -739,18 +739,6 @@ export interface FavsLangFile {
    */
   FAVS_LOADING_ERROR: string;
   /**
-   * favs: Migrate all
-   */
-  FAVS_MIGRATE_ALL: string;
-  /**
-   * favs: You have a lot of alerts, do you want to migrate them all at once?
-   */
-  FAVS_MIGRATION_MASS_MIGRATION: string;
-  /**
-   * favs: We're improving our alert system! Migrate your alerts before {{date}} to continue receiving notifications.
-   */
-  FAVS_MIGRATION_WARNING: string;
-  /**
    * favs: Not saved
    */
   FAVS_NOT_IN_SYNC2: string;
@@ -802,19 +790,27 @@ export interface FavsLangFile {
 
 export interface GarminLangFile {
   /**
-   * garmin: Install the Datafield
+   * garmin: Install the Data Field
    */
   GARMIN_DATAFIELD_BTN_STORE: string;
   /**
-   * garmin: Datafield Settings
+   * garmin: Customise your data field by setting up the forecast model, radar, relative wind, units, and location settings.
+   */
+  GARMIN_DATAFIELD_SETTINGS_01: string;
+  /**
+   * garmin: Settings are accessible via the Connect IQ mobile app.
+   */
+  GARMIN_DATAFIELD_SETTINGS_02: string;
+  /**
+   * garmin: Data Field Settings
    */
   GARMIN_DATAFIELD_SETTINGS_TITLE: string;
   /**
-   * garmin:
+   * garmin: See live weather as you move. Get forecasts while running, cycling, or hiking — alongside your activity stats or in full-screen radar with a forecast.
    */
   GARMIN_DATAFIELD_SUBTITLE: string;
   /**
-   * garmin: Windy Datafield
+   * garmin: Windy Data Field
    */
   GARMIN_DATAFIELD_TITLE: string;
   /**
@@ -822,7 +818,7 @@ export interface GarminLangFile {
    */
   GARMIN_PLUGIN_TITLE: string;
   /**
-   * garmin: Datafield
+   * garmin: Data Field
    */
   GARMIN_SWITCH_DATAFIELD_BTN: string;
   /**
@@ -838,7 +834,7 @@ export interface GarminLangFile {
    */
   GARMIN_TROUBLESHOOTING_PART_1: string;
   /**
-   * garmin: community forum.
+   * garmin: community forum
    */
   GARMIN_TROUBLESHOOTING_PART_2: string;
   /**
@@ -866,7 +862,7 @@ export interface GarminLangFile {
    */
   GARMIN_WATCHFACE_SETTINGS_TITLE: string;
   /**
-   * garmin: One glance too see everything essential for the next few days or hours.
+   * garmin: Have essential weather data at a glance — from live radar to forecasts for the next hours or days.
    */
   GARMIN_WATCHFACE_SUBTITLE: string;
   /**
@@ -890,7 +886,7 @@ export interface GarminLangFile {
    */
   GARMIN_WIDGET_SETTINGS_TITLE: string;
   /**
-   * garmin: Get a 4-day forecast, a look at the upcoming hours, or today’s overview for your location – all in the Windy widget.
+   * garmin: Stay ahead with a quick view of the radar, 4-day forecast, upcoming hours, or today’s weather detail - all directly in your Windy widget.
    */
   GARMIN_WIDGET_SUBTITLE: string;
   /**
@@ -1095,6 +1091,10 @@ export interface MainLangFile {
    */
   AOD550: string;
   /**
+   * Air quality index
+   */
+  AQI: string;
+  /**
    * Archive
    */
   ARCHIVE: string;
@@ -1150,6 +1150,10 @@ export interface MainLangFile {
    * Click to change units
    */
   CLICK_ON_LEGEND: string;
+  /**
+   * Close archive
+   */
+  CLOSE_ARCHIVE: string;
   /**
    * Clouds, rain
    */
@@ -1235,6 +1239,22 @@ export interface MainLangFile {
    */
   DETAIL_DRAG_CHECKBOX: string;
   /**
+   * Error loading wind data for this model
+   */
+  DETAIL_ERROR_LOADING_WIND_DATA: string;
+  /**
+   * Error loading forecast for {{model}}
+   */
+  DETAIL_FORECAST_LOADING_FAILED: string;
+  /**
+   * Retry
+   */
+  DETAIL_FORECAST_RETRY: string;
+  /**
+   * Selected model ({{model}}) is unavailable in current location. Reverting to previous model ({{prevModel}}).
+   */
+  DETAIL_MODEL_UNAVAILABLE: string;
+  /**
    * Set up Windy Alert for this location and never miss your desired conditions.
    */
   DETAIL_SET_UP_ALERT: string;
@@ -1311,10 +1331,6 @@ export interface MainLangFile {
    */
   DISPLAY_STYLE: string;
   /**
-   * Display warnings for this location
-   */
-  DISPLAY_WARNINGS: string;
-  /**
    * Distance
    */
   DISTANCE: string;
@@ -1334,6 +1350,10 @@ export interface MainLangFile {
    * Dust mass
    */
   DUSTSM: string;
+  /**
+   * Dust
+   */
+  DUSTSM_SHORT: string;
   /**
    * 1h forecast
    */
@@ -1422,6 +1442,10 @@ export interface MainLangFile {
    * Precip.
    */
   D_PRECI: string;
+  /**
+   * Show sun position on map
+   */
+  D_SHOW_SUN_POSITION: string;
   /**
    * Nearest weather stations
    */
@@ -1571,6 +1595,10 @@ export interface MainLangFile {
    */
   FRI2: string;
   /**
+   * F
+   */
+  FRI3: string;
+  /**
    * Freezing rain
    */
   FZ_RAIN: string;
@@ -1639,6 +1667,10 @@ export interface MainLangFile {
    */
   HURR_TRACKER: string;
   /**
+   * Hurr. tracker
+   */
+  HURR_TRACKER_SHORT: string;
+  /**
    * Icing
    */
   ICING2: string;
@@ -1658,6 +1690,10 @@ export interface MainLangFile {
    * trace
    */
   ICING_TRACE: string;
+  /**
+   * Improve my position
+   */
+  IMPROVE_POS: string;
   /**
    * installed
    */
@@ -1899,6 +1935,10 @@ export interface MainLangFile {
    */
   MENU_SETTINGS: string;
   /**
+   * Sun/Moon position
+   */
+  MENU_SUN_MOON: string;
+  /**
    * App add-ons
    */
   MENU_TITLE_ADDONS: string;
@@ -1991,6 +2031,10 @@ export interface MainLangFile {
    */
   MON2: string;
   /**
+   * M
+   */
+  MON3: string;
+  /**
    * More
    */
   MORE: string;
@@ -2003,10 +2047,6 @@ export interface MainLangFile {
    */
   MORE_PRODUCTS: string;
   /**
-   * Plugin {{title}} is not installed. Do you want to install it?
-   */
-  MSG_EXTERNAL_PLUGIN_NOT_INSTALLED: string;
-  /**
    * Unfortunately, plugin {{title}} was unpublished by the author and is no longer available.
    */
   MSG_EXTERNAL_PLUGIN_UNPUBLISHED: string;
@@ -2014,6 +2054,10 @@ export interface MainLangFile {
    * New version of the plugin {{title}} is available. Do you want to update?
    */
   MSG_EXTERNAL_PLUGIN_UPDATE_AVAILABLE: string;
+  /**
+   * Close other Windy.com tabs and reload to update to the new version
+   */
+  MSG_INSTALLING_NEW_VERSION: string;
   /**
    * You have successfully logged in!
    */
@@ -2207,6 +2251,10 @@ export interface MainLangFile {
    */
   PERIOD: string;
   /**
+   * Play with forecast
+   */
+  PLAY_WITH_FORECAST: string;
+  /**
    * Are you sure you want to uninstall this plugin?
    */
   PLUGINS_CONFIRM_UNINSTALL: string;
@@ -2322,6 +2370,62 @@ export interface MainLangFile {
    * Reported wind
    */
   POI_WIND: string;
+  /**
+   * Pollen&AirQ
+   */
+  POLLEN_AIRQ: string;
+  /**
+   * Pollen & Air Quality
+   */
+  POLLEN_AIRQ_LONG: string;
+  /**
+   * Alder pollen
+   */
+  POLLEN_ALDER: string;
+  /**
+   * Alder
+   */
+  POLLEN_ALDER_SHORT: string;
+  /**
+   * Birch pollen
+   */
+  POLLEN_BIRCH: string;
+  /**
+   * Birch
+   */
+  POLLEN_BIRCH_SHORT: string;
+  /**
+   * Grass pollen
+   */
+  POLLEN_GRASS: string;
+  /**
+   * Grass
+   */
+  POLLEN_GRASS_SHORT: string;
+  /**
+   * Mugwort pol.
+   */
+  POLLEN_MUGWORT: string;
+  /**
+   * Mugwort
+   */
+  POLLEN_MUGWORT_SHORT: string;
+  /**
+   * Olive pollen
+   */
+  POLLEN_OLIVE: string;
+  /**
+   * Olive
+   */
+  POLLEN_OLIVE_SHORT: string;
+  /**
+   * Ragweed pol.
+   */
+  POLLEN_RAGWEED: string;
+  /**
+   * Ragwe.
+   */
+  POLLEN_RAGWEED_SHORT: string;
   /**
    * Position
    */
@@ -2439,6 +2543,10 @@ export interface MainLangFile {
    */
   REGISTER_HERE: string;
   /**
+   * Report Issue
+   */
+  REPORT_ISSUE: string;
+  /**
    * Requires Premium
    */
   REQUIRES_PREMIUM: string;
@@ -2467,6 +2575,10 @@ export interface MainLangFile {
    */
   SAT2: string;
   /**
+   * S
+   */
+  SAT3: string;
+  /**
    * Satellite
    */
   SATELLITE: string;
@@ -2490,6 +2602,10 @@ export interface MainLangFile {
    * Send
    */
   SEND: string;
+  /**
+   * Set notifications
+   */
+  SET_NOTIFICATIONS: string;
   /**
    * Surface
    */
@@ -2727,6 +2843,10 @@ export interface MainLangFile {
    */
   SUN2: string;
   /**
+   * S
+   */
+  SUN3: string;
+  /**
    * Surface visibility
    */
   SURFACE_VISIBILITY: string;
@@ -2795,6 +2915,10 @@ export interface MainLangFile {
    */
   THU2: string;
   /**
+   * T
+   */
+  THU3: string;
+  /**
    * Thunderstorms
    */
   THUNDER: string;
@@ -2850,6 +2974,10 @@ export interface MainLangFile {
    * Tue
    */
   TUE2: string;
+  /**
+   * T
+   */
+  TUE3: string;
   /**
    * Clear air turbulence
    */
@@ -2987,6 +3115,14 @@ export interface MainLangFile {
    */
   WAVESTIDES_BROWSER_TITLE: string;
   /**
+   * Waves & Tides
+   */
+  WAVESTIDES_LONG: string;
+  /**
+   * Wave power
+   */
+  WAVE_POWER: string;
+  /**
    * Wednesday
    */
   WED: string;
@@ -2994,6 +3130,10 @@ export interface MainLangFile {
    * Wed
    */
   WED2: string;
+  /**
+   * W
+   */
+  WED3: string;
   /**
    * Wet-bulb temperature
    */
@@ -3006,6 +3146,14 @@ export interface MainLangFile {
    * weather forecast
    */
   WFORECAST: string;
+  /**
+   * Thank you for using <b>Windy Premium</b> 👑.<br />Awesome people like you make <b>Windy.com</b> possible!
+   */
+  WHATS_NEW_THANK_YOU: string;
+  /**
+   * Upgrade to Windy Premium and enjoy 3× more daily updates, a 15-day weather forecast, full-year access to radar and satellite history, plus detailed wave and tide forecasts.
+   */
+  WHATS_NEW_UPGRADE: string;
   /**
    * What is new:
    */
@@ -3105,13 +3253,17 @@ export interface LivealertsLangFile {
    */
   LIVE_ALERTS_DOWNLOAD_APP: string;
   /**
+   * livealerts: To get alerts for your area, allow unrestricted battery usage in settings.
+   */
+  LIVE_ALERTS_ERROR_BATTERY_PERMISSION: string;
+  /**
    * livealerts: Enable location access to receive live alerts for your current area.
    */
-  LIVE_ALERTS_ERROR_NOTDEFINED_LOCATION: string;
+  LIVE_ALERTS_ERROR_NOT_DETERMINED_LOCATION: string;
   /**
    * livealerts: Enable notifications to get live alerts
    */
-  LIVE_ALERTS_ERROR_NOTDEFINED_NOTIFICATIONS: string;
+  LIVE_ALERTS_ERROR_NOT_DETERMINED_NOTIFICATIONS: string;
   /**
    * livealerts: Live alerts are supported only on native Windy.com app
    */
@@ -3167,6 +3319,10 @@ export interface MenuLangFile {
    * menu: Error console
    */
   MM_ERROR: string;
+  /**
+   * menu: Extend your Windy
+   */
+  MM_EXTEND: string;
   /**
    * menu: Forecast updated
    */
@@ -3235,6 +3391,14 @@ export interface MenuLangFile {
    * menu: Pin to homepage
    */
   MM_PIN_HOMEPAGE: string;
+  /**
+   * menu: Layers & POIs
+   */
+  MM_PIN_SWITCH_LAYERS: string;
+  /**
+   * menu: Forecast models
+   */
+  MM_PIN_SWITCH_MODELS: string;
   /**
    * menu: Install Windy Plugin
    */
@@ -3446,6 +3610,10 @@ export interface OnboardingLangFile {
    */
   ONBOARDING_CONFIRM: string;
   /**
+   * onboarding: Continue
+   */
+  ONBOARDING_CONTINUE: string;
+  /**
    * onboarding: Don't allow
    */
   ONBOARDING_DONT_ALLOW: string;
@@ -3545,6 +3713,77 @@ export interface OnboardingLangFile {
    * onboarding: Dive Deeper into Weather 🌍
    */
   RETENTION_LAYERS_TITLE: string;
+}
+
+export interface PickerLangFile {
+  /**
+   * picker: About data
+   */
+  PICKER_ABOUT: string;
+  /**
+   * picker: Always on
+   */
+  PICKER_ALWAYS_ON: string;
+  /**
+   * picker: Display coordinates & elevation
+   */
+  PICKER_COORDS_ELEV: string;
+  /**
+   * picker: Display directions as
+   */
+  PICKER_DIRECTION: string;
+  /**
+   * picker: Distance<small>& route plan</small>
+   */
+  PICKER_DISTANCE: string;
+  /**
+   * picker: Forecast<small>for this point</small>
+   */
+  PICKER_FORECAST: string;
+  /**
+   * picker: Loading...
+   */
+  PICKER_LOADING: string;
+  /**
+   * picker: number
+   */
+  PICKER_NUMBER: string;
+  /**
+   * picker: {{value}} seconds
+   */
+  PICKER_SECONDS: string;
+  /**
+   * picker: Settings<small>for picker</small>
+   */
+  PICKER_SETTINGS: string;
+  /**
+   * picker: Share<small>this map</small>
+   */
+  PICKER_SHARE: string;
+  /**
+   * picker: Sounding<small>for this point</small>
+   */
+  PICKER_SOUNDING: string;
+  /**
+   * picker: string
+   */
+  PICKER_STRING: string;
+  /**
+   * picker: Sun/Moon<small>position</small>
+   */
+  PICKER_SUN_MOON: string;
+  /**
+   * picker: Support<small>Windy.com</small>
+   */
+  PICKER_SUPPORT: string;
+  /**
+   * picker: Autoclose picker in
+   */
+  PICKER_TIMEOUT: string;
+  /**
+   * picker: Warnings<small>for this point</small>
+   */
+  PICKER_WARNINGS: string;
 }
 
 export interface ProductsLangFile {
@@ -3708,6 +3947,14 @@ export interface ProductsLangFile {
 
 export interface RadsatLangFile {
   /**
+   * radsat: OK, got it
+   */
+  RADAR_ISSUE_OK: string;
+  /**
+   * radsat: We're testing new radar rendering. If something looks wrong, please let us know using the <span data-icon="{{bugIcon}}"></span> <b>Report Issue</b> tool in the <span data-icon="{{optionsIcon}}"></span> radar menu.
+   */
+  RADAR_ISSUE_PROMO: string;
+  /**
    * radsat: Blue
    */
   RADSAT_BLUE: string;
@@ -3715,6 +3962,14 @@ export interface RadsatLangFile {
    * radsat: Infra
    */
   RADSAT_INFRA: string;
+  /**
+   * radsat: More...
+   */
+  RADSAT_JUST_MORE: string;
+  /**
+   * radsat: More options...
+   */
+  RADSAT_MORE: string;
   /**
    * radsat: Next {hour}h
    */
@@ -3740,7 +3995,7 @@ export interface RadsatLangFile {
    */
   RADSAT_SAT: string;
   /**
-   * radsat: There is an outage of our data source for some satellites. Regions that lack satellite coverage include: {regions}.
+   * radsat: There is outage of data in regions: {regions}.
    */
   RADSAT_SATELLITE_OUTAGE_MESSAGE: string;
   /**
@@ -3936,6 +4191,108 @@ export interface RegisterLangFile {
   YOU_MUST_AGREE: string;
 }
 
+export interface ReportissueLangFile {
+  /**
+   * reportissue: Attach screenshot or video
+   */
+  REPORT_ISSUE_ATTACH: string;
+  /**
+   * reportissue: The best way to describe issue is to send us screenshots or video, which illustrate the problem, together with a short description of what is wrong and how to reproduce it.
+   */
+  REPORT_ISSUE_DESCRIPTION: string;
+  /**
+   * reportissue: Fullscreen preview
+   */
+  REPORT_ISSUE_FULLSCREEN_PREVIEW: string;
+  /**
+   * reportissue: Maximum file size is 20MB
+   */
+  REPORT_ISSUE_MAX_SIZE: string;
+  /**
+   * reportissue: Describe the issue you encountered...
+   */
+  REPORT_ISSUE_PLACEHOLDER: string;
+  /**
+   * reportissue: Send us error report
+   */
+  REPORT_ISSUE_SEND: string;
+  /**
+   * reportissue: Send new report
+   */
+  REPORT_ISSUE_SEND_NEW: string;
+  /**
+   * reportissue: Thank you for the report! We'll look into it.
+   */
+  REPORT_ISSUE_SUCCESS: string;
+  /**
+   * reportissue: Uploading files:
+   */
+  REPORT_ISSUE_UPLOADING: string;
+}
+
+export interface SearchLangFile {
+  /**
+   * search: Clear search history
+   */
+  SEARCH_CLEAR_HISTORY: string;
+  /**
+   * search: Paragliding spots provided by <a href="https://paraglidingearth.com/" target="_blank">Paragliding Earth</a>
+   */
+  SEARCH_DATA_PG_PROVIDER: string;
+  /**
+   * search: Surfing spots provided by <a href="https://www.stormrider.surf/" target="_blank">Stormrider</a>
+   */
+  SEARCH_DATA_SURF_PROVIDER: string;
+  /**
+   * search: Airports
+   */
+  SEARCH_FILTER_AIRPORTS: string;
+  /**
+   * search: All
+   */
+  SEARCH_FILTER_ALL: string;
+  /**
+   * search: Kite, Surf, WS
+   */
+  SEARCH_FILTER_KITE_SURF_WS: string;
+  /**
+   * search: Paragl.
+   */
+  SEARCH_FILTER_PARAGLIDING: string;
+  /**
+   * search: Webcams
+   */
+  SEARCH_FILTER_WEBCAMS: string;
+  /**
+   * search: Wx Stations
+   */
+  SEARCH_FILTER_WX_STATIONS: string;
+  /**
+   * search: No results found
+   */
+  SEARCH_NO_RESULTS_FOUND: string;
+  /**
+   * search: No results found for
+   */
+  SEARCH_NO_RESULTS_FOUND_FOR: string;
+  /**
+   * search: Airports can be found by <b>ICAO</b> or <b>IATA</b> code
+   */
+  SEARCH_TIP_AIRPORT: string;
+  /**
+   * search: Search for coordinates to display location on a map
+   */
+  SEARCH_TIP_COORDS: string;
+  /**
+   * search: Search for name of active <b>hurricane</b> or <b>tropical cyclone</b>
+   */
+  SEARCH_TIP_HURRICANE: string;
+  /**
+   * search: Use e.g. <b>"LAX JFK"</b> or <b>"LKPR LSZS"</b> to display flying route
+   */
+  SEARCH_TIP_ROUTE: string;
+}
+
 export interface SettingsLangFile {
   /**
    * settings: Widgets cannot access the location from the background. Please allow background location usage.
@@ -4034,6 +4391,10 @@ export interface SettingsLangFile {
    */
   S_ALWAYS_ON: string;
   /**
+   * settings: Speed of animation
+   */
+  S_ANIMATION_SPEED: string;
+  /**
    * settings: Customize Windy App icon
    */
   S_APP_ICON: string;
@@ -4049,14 +4410,6 @@ export interface SettingsLangFile {
    * settings: automatic
    */
   S_AUTOMATIC: string;
-  /**
-   * settings: Graphic compatibility mode
-   */
-  S_COMPATIBILITY_MODE: string;
-  /**
-   * settings: Disables some problematic modern graphics acceleration
-   */
-  S_COMPATIBILITY_MODE_NOTE: string;
   /**
    * settings: Contrast
    */
@@ -4081,6 +4434,10 @@ export interface SettingsLangFile {
    * settings: Satellite future extrapolation
    */
   S_EXTRA_SAT: string;
+  /**
+   * settings: Fast
+   */
+  S_FAST: string;
   /**
    * settings: High
    */
@@ -4154,9 +4511,9 @@ export interface SettingsLangFile {
    */
   S_PREDEFINED: string;
   /**
-   * settings: This option requires Premium Subscription
+   * settings: Show precipitation type on radar
    */
-  S_PREMIUM_REQ: string;
+  S_RADAR_RENDER_P_TYPE: string;
   /**
    * settings: Smooth radar and satellite animation
    */
@@ -4186,6 +4543,10 @@ export interface SettingsLangFile {
    */
   S_SECONDS: string;
   /**
+   * settings: Slow
+   */
+  S_SLOW: string;
+  /**
    * settings: Smooth satellite animation
    */
   S_SMOOTH_SAT: string;
@@ -4201,6 +4562,10 @@ export interface SettingsLangFile {
    * settings: Time format
    */
   S_TIME_FORMAT: string;
+  /**
+   * settings: Very fast
+   */
+  S_VERY_FAST: string;
   /**
    * settings: Size
    */
@@ -4317,6 +4682,10 @@ export interface SoundingLangFile {
    */
   RADIOSONDE_TITLE: string;
   /**
+   * sounding: Higher altitudes measurements missing on this ascent
+   */
+  RADIOSONDE_WARNING_DATA_CROPPED: string;
+  /**
    * sounding: Ascents
    */
   SOUNDING_ASCENTS: string;
@@ -4368,6 +4737,73 @@ export interface SoundingLangFile {
    * sounding: {{forced}} data is displayed, as {{wanted}} is not supported.
    */
   SOUNDING_UNSUPPORTED_MODEL: string;
+}
+
+export interface StartuppromosLangFile {
+  /**
+   * startuppromos: <b>Hi, I’m Ivo, the founder of Windy.com.</b><br /><br />Let me introduce you to my other project: <b class="clickable">Mapy.com</b><br /><br />An ad-free, privacy-focused 🔒 map for hikers 🥾, runners 🏃‍♂️, cyclists 🚴‍♀️, skiers 🎿, and all outdoor enthusiasts 🌲 — with full offline support.
+   */
+  MAPY_COM_DESKTOP: string;
+  /**
+   * startuppromos: From Ivo, the founder of Windy.com
+   */
+  MAPY_COM_FROM: string;
+  /**
+   * startuppromos: Please try my another project: <b>Mapy.com</b><br />A map for hikers 🥾, runners 🏃‍♂️, cyclists 🚴‍♀️, skiers 🎿, and all outdoor enthusiasts 🌲
+   */
+  MAPY_COM_MOBILE: string;
+  /**
+   * startuppromos: Visit Mapy.com
+   */
+  MAPY_COM_VISIT: string;
+  /**
+   * startuppromos: This version of Windy.com App is <b>obsolete</b> and will stop working soon. Please <b>update your Windy.com App</b> to the latest version.
+   */
+  STARTUP_OBSOLETE_APP: string;
+  /**
+   * startuppromos: Subscribe to <b>Windy Premium</b> to get twice often updated forecast data, with three times better resolution.
+   */
+  STARTUP_PROMO_1: string;
+  /**
+   * startuppromos: 3 hour forecast resolution
+   */
+  SUB2_1_1: string;
+  /**
+   * startuppromos: High resolution 1 hour forecast
+   */
+  SUB2_1_2: string;
+  /**
+   * startuppromos: Low density forecast maps
+   */
+  SUB2_2_1: string;
+  /**
+   * startuppromos: Detailed, high density forecast maps
+   */
+  SUB2_2_2: string;
+  /**
+   * startuppromos: 7 day forecast
+   */
+  SUB2_3_1: string;
+  /**
+   * startuppromos: 15 day forecast
+   */
+  SUB2_3_2: string;
+  /**
+   * startuppromos: 1h satellite & radar archive
+   */
+  SUB2_4_1: string;
+  /**
+   * startuppromos: 365-day satellite & radar archive
+   */
+  SUB2_4_2: string;
+  /**
+   * startuppromos: Free
+   */
+  SUB2_FREE: string;
+  /**
+   * startuppromos: Subscribe to Windy Premium and get the most detailed forecast
+   */
+  SUB2_HEADING: string;
 }
 
 export interface StationLangFile {
@@ -4749,57 +5185,6 @@ export interface StationLangFile {
   STATION_WIND_GUST: string;
 }
 
-export interface StoriesLangFile {
-  /**
-   * stories: Show location on map
-   */
-  STORIES_ACTIONS_SHOW_LOCATION: string;
-  /**
-   * stories: Add your comment...
-   */
-  STORIES_COMMENTS_ADD_COMMENT: string;
-  /**
-   * stories: Add images
-   */
-  STORIES_COMMENTS_ADD_IMAGES: string;
-  /**
-   * stories: Cancel
-   */
-  STORIES_COMMENTS_CANCEL: string;
-  /**
-   * stories: Close comments
-   */
-  STORIES_COMMENTS_CLOSE_COMMENTS: string;
-  /**
-   * stories: Error
-   */
-  STORIES_COMMENTS_ERROR: string;
-  /**
-   * stories: Send
-   */
-  STORIES_COMMENTS_SEND: string;
-  /**
-   * stories: Loading
-   */
-  STORIES_LOADING: string;
-  /**
-   * stories: Next card
-   */
-  STORIES_TOOLTIP_NEXT_CARD: string;
-  /**
-   * stories: Next story
-   */
-  STORIES_TOOLTIP_NEXT_STORY: string;
-  /**
-   * stories: Prev. card
-   */
-  STORIES_TOOLTIP_PREV_CARD: string;
-  /**
-   * stories: Prev. story
-   */
-  STORIES_TOOLTIP_PREV_STORY: string;
-}
-
 export interface SubscriptionLangFile {
   /**
    * subscription: Buy for one year
@@ -5089,6 +5474,97 @@ export interface SubscriptionLangFile {
    * subscription: You will lose:
    */
   SUB_YOU_WILL_LOSE: string;
+}
+
+export interface SunmoonLangFile {
+  /**
+   * sunmoon: above horizon
+   */
+  SUN_MOON_ABOVE_HORIZON: string;
+  /**
+   * sunmoon: below horizon
+   */
+  SUN_MOON_BELOW_HORIZON: string;
+  /**
+   * sunmoon: Moon
+   */
+  SUN_MOON_MOON: string;
+  /**
+   * sunmoon: Moonrise
+   */
+  SUN_MOON_MOONRISE: string;
+  /**
+   * sunmoon: Moonset
+   */
+  SUN_MOON_MOONSET: string;
+  /**
+   * sunmoon: Moon: Azm {{azimuth}}°, Alt {{altitude}}°
+   */
+  SUN_MOON_MOON_TOOLTIP: string;
+  /**
+   * sunmoon: {{illuminatedFraction}}% illuminated
+   */
+  SUN_MOON_PCT_ILLUMINATED: string;
+  /**
+   * sunmoon: First Quarter
+   */
+  SUN_MOON_PHASE_FIRST_QUARTER: string;
+  /**
+   * sunmoon: Full Moon
+   */
+  SUN_MOON_PHASE_FULL: string;
+  /**
+   * sunmoon: Last Quarter
+   */
+  SUN_MOON_PHASE_LAST_QUARTER: string;
+  /**
+   * sunmoon: New Moon
+   */
+  SUN_MOON_PHASE_NEW: string;
+  /**
+   * sunmoon: Waning Crescent
+   */
+  SUN_MOON_PHASE_WANING_CRESCENT: string;
+  /**
+   * sunmoon: Waning Gibbous
+   */
+  SUN_MOON_PHASE_WANING_GIBBOUS: string;
+  /**
+   * sunmoon: Waxing Crescent
+   */
+  SUN_MOON_PHASE_WAXING_CRESCENT: string;
+  /**
+   * sunmoon: Waxing Gibbous
+   */
+  SUN_MOON_PHASE_WAXING_GIBBOUS: string;
+  /**
+   * sunmoon: Sun
+   */
+  SUN_MOON_SUN: string;
+  /**
+   * sunmoon: Sunrise
+   */
+  SUN_MOON_SUNRISE: string;
+  /**
+   * sunmoon: Sunset
+   */
+  SUN_MOON_SUNSET: string;
+  /**
+   * sunmoon: Sun: Azm {{azimuth}}°, Alt {{altitude}}°
+   */
+  SUN_MOON_SUN_TOOLTIP: string;
+  /**
+   * sunmoon: Minimize
+   */
+  SUN_MOON_TAB_MINIMIZE: string;
+  /**
+   * sunmoon: Path
+   */
+  SUN_MOON_TAB_PATH: string;
+  /**
+   * sunmoon: Position
+   */
+  SUN_MOON_TAB_POSITION: string;
 }
 
 export interface WatchfaceLangFile {
@@ -6313,7 +6789,7 @@ export interface WidgetspromoLangFile {
 }
 
 // prettier-ignore
-export interface PluginTranslations extends AccumulationsLangFile, AirportLangFile, AlertsLangFile, AppreviewLangFile, ArticlesLangFile, ConsentLangFile, DistanceLangFile, FavsLangFile, GarminLangFile, HurricanesLangFile, InfoLangFile, LibLangFile, LivealertsLangFile, MenuLangFile, NotificationsLangFile, OnboardingLangFile, ProductsLangFile, RadsatLangFile, RegisterLangFile, SettingsLangFile, SoundingLangFile, StationLangFile, StoriesLangFile, SubscriptionLangFile, WatchfaceLangFile, WebcamsLangFile, WidgetspromoLangFile {}
+export interface PluginTranslations extends AccumulationsLangFile, AirportLangFile, AlertsLangFile, AppreviewLangFile, ArticlesLangFile, ConsentLangFile, DistanceLangFile, FavsLangFile, GarminLangFile, HurricanesLangFile, InfoLangFile, LibLangFile, LivealertsLangFile, MenuLangFile, NotificationsLangFile, OnboardingLangFile, PickerLangFile, ProductsLangFile, RadsatLangFile, RegisterLangFile, ReportissueLangFile, SearchLangFile, SettingsLangFile, SoundingLangFile, StartuppromosLangFile, StationLangFile, SubscriptionLangFile, SunmoonLangFile, WatchfaceLangFile, WebcamsLangFile, WidgetspromoLangFile {}
 export interface Translations extends MainLangFile, PluginTranslations {}
 
 export interface SupportedLangFiles {
@@ -6334,14 +6810,18 @@ export interface SupportedLangFiles {
   menu: MenuLangFile;
   notifications: NotificationsLangFile;
   onboarding: OnboardingLangFile;
+  picker: PickerLangFile;
   products: ProductsLangFile;
   radsat: RadsatLangFile;
   register: RegisterLangFile;
+  reportissue: ReportissueLangFile;
+  search: SearchLangFile;
   settings: SettingsLangFile;
   sounding: SoundingLangFile;
+  startuppromos: StartuppromosLangFile;
   station: StationLangFile;
-  stories: StoriesLangFile;
   subscription: SubscriptionLangFile;
+  sunmoon: SunmoonLangFile;
   watchface: WatchfaceLangFile;
   webcams: WebcamsLangFile;
   widgetspromo: WidgetspromoLangFile;

@@ -26,6 +26,7 @@ export declare const getAvatar: () => string;
 export declare const getEmail: () => string;
 export declare const getUsername: () => string;
 export declare const getUserId: () => number;
+export declare const isLoggedInPromise: () => Promise<boolean>;
 /**
  * Open login plugin so that user can log in
  */

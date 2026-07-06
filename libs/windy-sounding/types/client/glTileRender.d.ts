@@ -1,5 +1,5 @@
 import type { ExtendedWebGLTexture, WebGLProgramObject } from '@windy/GlObj.d';
-import type { TileParams } from '@windy/Renderer.d';
+import type { TileParams } from '@windy/Renderer';
 import type { TileLayerCanvas } from '@windy/TileLayerCanvas.d';
 import type { DataTile } from '@windy/dataLoader';
 export type Gradient = {
@@ -141,12 +141,6 @@ declare class TileRenderer {
    * @returns texture with additional params
    */
   private createGradientObject;
-  /**
-   * Predefined alpha values are set to gradient and then color array is generated
-   * (solution for user gradient colors with bad alpha)
-   * @param colorObj
-   */
-  private augmentRainCoverColorsWithAlpha;
   /**
    * Prepare color gradient(s) for layer
    * @param layer

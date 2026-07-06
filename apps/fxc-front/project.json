@@ -6,13 +6,12 @@
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@nx/vite:build",
       "dependsOn": ["optimizer"],
-      "outputs": ["{options.outputPath}"],
+      "outputs": ["{projectRoot}/{options.outDir}", "{projectRoot}/apps/fxc-front/dist"],
       "defaultConfiguration": "production",
       "options": {
-        "outputPath": "dist/apps/fxc-front",
-        "target": "es2020"
+        "target": "es2020",
+        "outDir": "./dist"
       },
       "configurations": {
         "development": {
@@ -24,49 +23,17 @@
       }
     },
     "serve": {
-      "executor": "@nx/vite:dev-server",
       "defaultConfiguration": "development",
-      "options": {
-        "buildTarget": "fxc-front:build",
-        "proxyConfig": "apps/fxc-front/proxy.conf.json"
-      },
       "configurations": {
-        "development": {
-          "buildTarget": "fxc-front:build:development",
-          "hmr": true
-        },
-        "production": {
-          "buildTarget": "fxc-front:build:production",
-          "hmr": false
-        }
+        "development": {},
+        "production": {}
       }
     },
     "preview": {
-      "executor": "@nx/vite:preview-server",
       "defaultConfiguration": "development",
-      "options": {
-        "buildTarget": "fxc-front:build",
-        "proxyConfig": "apps/fxc-front/proxy.conf.json"
-      },
       "configurations": {
-        "development": {
-          "buildTarget": "fxc-front:build:development"
-        },
-        "production": {
-          "buildTarget": "fxc-front:build:production"
-        }
-      },
-      "dependsOn": ["build"]
-    },
-    "test": {
-      "options": {
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "coverage": true
-        }
+        "development": {},
+        "production": {}
       }
     }
   }

@@ -2,6 +2,7 @@ import { modalController } from '@ionic/core/components';
 import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import { version } from 'package.json';
 
 @customElement('about-modal')

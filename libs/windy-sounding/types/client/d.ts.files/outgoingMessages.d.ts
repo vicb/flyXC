@@ -3,7 +3,7 @@
  */
 
 import type { MetricItem } from '@windy/Metric.d';
-import type { LatLon } from '../../types/interfaces';
+import type { LatLon } from '@windy/interfaces';
 
 /**
  * Types of valid messages sent to the embed config via window.postMessage.

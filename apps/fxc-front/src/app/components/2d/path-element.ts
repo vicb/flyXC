@@ -2,8 +2,8 @@ import '../ui/share-modal';
 import '../ui/waypoint-modal';
 
 import type { LatLon, RuntimeTrack } from '@flyxc/common';
-import { CircuitType } from '@flyxc/optimizer/lib/api';
-import type { ScoringResult } from '@flyxc/optimizer/lib/optimizer';
+import { CircuitType } from '@flyxc/optimizer/src/lib/api';
+import type { ScoringResult } from '@flyxc/optimizer/src/lib/optimizer';
 import { modalController, toastController } from '@ionic/core/components';
 import { getPreciseDistance } from 'geolib';
 import type { PropertyValues } from 'lit';
@@ -303,7 +303,7 @@ export class PathElement extends connect(store)(LitElement) {
       store.dispatch(plannerSlice.setRoute(google.maps.geometry.encoding.encodePath(path)));
     }
     let distanceM = 0;
-    const latlonPath = path.getArray().map((latLng) => ({ lat: latLng.lat(), lon: latLng.lng() }));
+    const latlonPath = path.getArray().map((latLng: google.maps.LatLng) => ({ lat: latLng.lat(), lon: latLng.lng() }));
     for (let i = 1; i < latlonPath.length; i++) {
       distanceM += getPreciseDistance(latlonPath[i - 1], latlonPath[i]);
     }

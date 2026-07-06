@@ -52,4 +52,4 @@ export declare const release: (ident: PluginIdent, priority: ListeningPriority) 
  * Handles all singleclick events from instance of Leaflet map
  * @ignore
  */
-export declare const opener: (ev: L.LeafletMouseEvent) => void;
+export declare const opener: (ev: LeafletMouseEvent) => void;

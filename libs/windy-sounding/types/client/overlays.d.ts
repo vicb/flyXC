@@ -1,5 +1,6 @@
 import { Overlay } from '@windy/Overlay';
 import {
+  AqiOverlay,
   AwpOverlay,
   CloudsOverlay,
   CurrentOverlay,
@@ -25,6 +26,11 @@ declare const overlays: {
   >;
   solarpower: Overlay<
     'solarpower',
+    import('../weatherClasses/MetricClasses').NumberedMetric,
+    import('../weatherClasses/Layer').Layer<import('../weatherClasses/MetricClasses').NumberedMetric>
+  >;
+  wavePower: Overlay<
+    'wavePower',
     import('../weatherClasses/MetricClasses').NumberedMetric,
     import('../weatherClasses/Layer').Layer<import('../weatherClasses/MetricClasses').NumberedMetric>
   >;
@@ -192,16 +198,6 @@ declare const overlays: {
     import('../weatherClasses/MetricClasses').NumberedMetric,
     import('../weatherClasses/Layer').Layer<import('../weatherClasses/MetricClasses').NumberedMetric>
   >;
-  radarPlus: Overlay<
-    'radarPlus',
-    import('../weatherClasses/MetricClasses').NumberedMetric,
-    import('../weatherClasses/Layer').Layer<import('../weatherClasses/MetricClasses').NumberedMetric>
-  >;
-  satelliteIRBT: Overlay<
-    'satellite',
-    import('../weatherClasses/MetricClasses').NumberedMetric,
-    import('../weatherClasses/Layer').Layer<import('../weatherClasses/MetricClasses').NumberedMetric>
-  >;
   capAlerts: Overlay<'capAlerts', undefined, import('../weatherClasses/Layer').Layer<undefined>>;
   efiWind: Overlay<
     'efiWind',
@@ -249,5 +245,7 @@ declare const overlays: {
   heatmaps: Overlay<'heatmaps', undefined, undefined>;
   topoMap: Overlay<'topoMap', undefined, import('../weatherClasses/Layer').Layer<undefined>>;
   hurricanes: Overlay<'hurricanes', undefined, undefined>;
+  aqi: AqiOverlay<'aqi'>;
+  radarPlus: Overlay<'radarPlus', undefined, undefined>;
 };
 export default overlays;

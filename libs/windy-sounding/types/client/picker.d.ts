@@ -1,8 +1,8 @@
 import { Evented } from '@windy/Evented';
-import type { OnHoverPOIData } from '@plugins/poi-libs/poi-libs.d';
 import type { LatLon } from '@windy/interfaces.d';
 import type { PluginsOpenParams } from '@windy/plugin-params.d';
-import type { Pixel, PickerOpener } from '@windy/types';
+import type { Pixel } from '@windy/types';
+import type { LatLng } from '@leafletGl';
 interface Events {
   pickerOpened: [
     PluginsOpenParams['picker'] & {
@@ -12,10 +12,6 @@ interface Events {
   pickerMoved: [PluginsOpenParams['picker']];
   pickerClosed: [];
   dataChanged: [];
-  getPOIsAtXY: [Pixel, Pixel];
-  POIloaded: [OnHoverPOIData];
-  POIclose: [];
-  rqstOpenPOIdetail: [PickerOpener];
 }
 /**
  * Main emitter for purpose of picker actions, must be pard of core, so it is here.
@@ -48,9 +44,9 @@ export declare class PickerDot {
   /** Resets previously offset picker position */
   resetOffset(): void;
   /** Returns picker dot position as Leaflet coords */
-  getLatLng(): L.LatLng;
+  getLatLng(): LatLng;
   /** Returns lat and lon of the actual picker dot position */
-  getLatLon(): LatLon;
+  getLatLon(x?: Pixel, y?: Pixel): LatLon;
   /** Returns position of pickerDot on Leaflet map */
   getDotPosition(): {
     x: Pixel;

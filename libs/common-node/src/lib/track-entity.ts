@@ -8,7 +8,7 @@ import { Datastore } from '@google-cloud/datastore';
 export const TRACK_TABLE = 'Track';
 
 // A track as stored in datastore.
-// The ArrayBuffer zre stored gzipped in the datastore.
+// The ArrayBuffer are stored gzipped in the datastore.
 // They are automatically compressed and expanded when using the API in this file.
 export interface TrackEntity {
   [Datastore.KEY]?: Key;
@@ -163,11 +163,11 @@ function entityToMetaTrackGroup(entity: TrackEntity): protos.MetaTrackGroup {
   };
 }
 
-function zipOrUndefined(buffer: ArrayBuffer | undefined): Buffer | undefined {
+function zipOrUndefined(buffer: Buffer | undefined): Buffer | undefined {
   return buffer == null ? undefined : zlib.gzipSync(buffer, { level: 9 });
 }
 
-function unzipOrUndefined(buffer: ArrayBuffer | undefined): Buffer | undefined {
+function unzipOrUndefined(buffer: Buffer | undefined): Buffer | undefined {
   return buffer == null ? undefined : zlib.gunzipSync(buffer);
 }
 

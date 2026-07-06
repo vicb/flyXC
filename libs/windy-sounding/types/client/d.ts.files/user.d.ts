@@ -1,6 +1,7 @@
-import { SubscriptionInfo } from '@plugins/_shared/subscription-services/subscription-services.d';
 import { SubTier, type ExternalPluginIdent } from '@windy/types.d';
 import { FavFragment } from '@windy/favs';
+
+import type { SubscriptionInfo } from '@plugins/shared/subscription-services/subscription-services.d';
 import type { PluginsOpenParams } from '@windy/plugin-params';
 
 export interface User {
@@ -106,6 +107,10 @@ export type LoginAndFinishAction =
   | {
       action: 'colors';
       params: PluginsOpenParams['colors'];
+    }
+  | {
+      action: 'external-plugins';
+      params: PluginsOpenParams['external-plugins'];
     }
   | {
       action: 'openExternalPlugin';

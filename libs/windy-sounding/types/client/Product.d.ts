@@ -1,10 +1,10 @@
 import { Calendar } from '@windy/Calendar';
-import * as http from '@windy/http';
-import type { MinifestObject } from '@windy/Calendar.d';
-import type { Layers } from '@windy/Layer.d';
+import { type LeafletGlMap } from '@leafletGl';
+import type { MinifestObject } from '@windy/Calendar';
+import type { Layers } from '@windy/Layer';
 import type { LatLon } from '@windy/interfaces';
 import type { Isolines, Levels, Overlays, Products } from '@windy/rootScope.d';
-import type { ISODateString, ProductCategory, ProductIdent, Timestamp, YYYYMMDDHH } from '@windy/types';
+import type { ISODateString, ProductCategory, ProductIdent, Timestamp, TimeRangeMs, Path, Minutes } from '@windy/types';
 export type DataQuality = 'normal' | 'high' | 'low' | 'ultra' | 'extreme';
 export type FileSuffix = 'png' | 'jpg' | 'webp';
 export type ProductInitParams = Pick<Product, 'modelName' | 'provider' | 'interval'> &
@@ -26,14 +26,12 @@ export type ProductInitParams = Pick<Product, 'modelName' | 'provider' | 'interv
       | 'labelsTemp'
       | 'overlays'
       | 'preferredProduct'
-      | 'pathGenerator'
       | 'isolines'
       | 'directory'
       | 'category'
       | 'modelIdent'
       | 'intervalPremium'
       | 'server'
-      | 'metadataServer'
       | 'modelResolution'
       | 'levels'
       | 'levelsOverride'
@@ -41,8 +39,11 @@ export type ProductInitParams = Pick<Product, 'modelName' | 'provider' | 'interv
       | 'preferredWaveProduct'
       | 'preferredAirProduct'
       | 'hasAccumulations'
+      | 'hasMinifest'
       | 'freeProduct'
       | 'hideProductSwitch'
+      | 'modelDescription'
+      | 'supportsMeteogram'
     >
   > & {
     forecastSize?: number;
@@ -50,38 +51,14 @@ export type ProductInitParams = Pick<Product, 'modelName' | 'provider' | 'interv
   };
 export declare class Product {
   /**
-   * Minifest loading promise
-   */
-  protected loadingPromise?: null | Promise<Calendar | undefined | void>;
-  /**
-   * Version of minifest used
-   */
-  protected infoVersion?: string;
-  /**
-   * minifest loading timer
-   */
-  private refreshInterval?;
-  /**
-   *  Timestamp of last minifest check
-   */
-  private minifestTimestamp;
-  /**
    * Boundaries of the product in a format [[north, west], [north, east], [south, east], [south, west]] or any more accurate polygon
    */
   private bounds?;
+  protected minifestExpirationTime: TimeRangeMs;
   /**
-   * Has binded listeners
+   * Minifest loading promise
    */
-  private hasListeners;
-  private bindedCheckNewMinifest;
-  /**
-   * When the product will expire (in ms)
-   */
-  private productExpires;
-  /**
-   * Noneffective, but simple refTime solutions for data that are updated once a day
-   */
-  protected dailyCache?: string;
+  protected loadingPromise?: null | Promise<Calendar | undefined | void>;
   /**
    * Must contain ident of self
    */
@@ -138,14 +115,18 @@ export declare class Product {
   /**
    * Description of product for purpose of UI
    */
-  modelName: string;
+  modelName: string | '';
   modelResolution?: number;
   provider?: string;
   /**
+   * Optional model description
+   */
+  modelDescription?: string;
+  /**
    * Update interval (in minutes)
    */
-  interval: number;
-  intervalPremium?: number;
+  interval: Minutes;
+  intervalPremium?: Minutes;
   /**
    * Usual length of forecast in hours (used upon creation of backup minifest)
    */
@@ -202,20 +183,15 @@ export declare class Product {
    */
   minifest?: MinifestObject | null;
   /**
-   * How the data image path should be constructed
-   */
-  pathGenerator: string;
-  /**
    * Alternative servers, where the data are loaded from
    */
   server?: string;
-  metadataServer?: string;
   /**
-   * Some product (f.ex. StaticProduct) doesn't have meaningful
+   * Some product doesn't have meaningful
    * information about the model and time of the next update.
    * Set this to false to hide the info where not relevant (f.ex. Info plugin)
    */
-  hasRefTime: boolean;
+  hasMinifest: boolean;
   /**
    * This product supper accumulations
    */
@@ -228,36 +204,32 @@ export declare class Product {
    * Hide product switch in GUI, when this product is selected
    */
   hideProductSwitch?: boolean;
+  /**
+   * Time when minifest was last updated
+   */
+  minifestLastUpdate?: Timestamp;
+  /**
+   * Point fcst backend for this product supports airgram/meteogram
+   */
+  supportsMeteogram?: boolean;
   constructor(params: ProductInitParams);
-  refTime(): YYYYMMDDHH | undefined;
-  getUpdateTimes(): {
-    refTime: ISODateString;
-    minUpdate: Timestamp;
-  } | null;
-  moveTs(moveRight: boolean, isAccu?: boolean): boolean;
-  getMinifestUrl(): string;
-  loadMinifest(): Promise<http.HttpPayload<MinifestObject>>;
-  loadAndGetReftime(): Promise<ISODateString | undefined>;
-  open(): Promise<void | Calendar>;
-  close(): void;
+  getRefTimeISOFormat(): Promise<ISODateString | undefined>;
+  getRefTime(): Promise<Path | undefined>;
+  /**
+   * Loads & returns a minifest. Since our @windy/http module has its own cache, we don't need to
+   * cache ongoing requests promise and simplify the code as much as possible
+   */
+  loadMinifest(): Promise<MinifestObject>;
   /**
    * Checks if lat,lon is within bounds
    */
   pointIsInBounds<T extends LatLon>(this: this, paramsMap: T): boolean;
-  boundsAreInViewport(map: L.Map): boolean;
-  printLogo(): void;
-  getCalendar(): Promise<Calendar>;
-  protected expire(): void;
-  protected setExpireTime(): void;
   /**
-   * Major reason for this error is user's bad connection, which is handled
-   * by standard no connection red message
-   *
-   * We delay 0.3 sec to test properly connection
+   * Detects if the the bounds are in viewport
    */
-  protected showErrorMessage(err: string): void;
-  protected loadAndProcessMinifest(forced?: boolean): Promise<void>;
-  private checkNewMinifest;
+  boundsAreInViewport(map: LeafletGlMap): boolean;
+  close(): void;
+  open(): void;
+  getCalendar(): Promise<Calendar | undefined>;
   private isPointInsidePolygon;
-  private removeLogo;
 }

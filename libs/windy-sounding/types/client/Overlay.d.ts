@@ -1,13 +1,11 @@
-import type { Layer } from '@windy/Layer';
-import type { LayerMetricType, Layers } from '@windy/Layer.d';
+import type { LayerMetricType, Layers, Layer } from '@windy/Layer';
 import type { Metric } from '@windy/Metric';
 import type { DirectionFunction } from '@windy/format.d';
 import type { Iconfont } from '@windy/iconfont.d';
 import type { Overlays } from '@windy/rootScope.d';
 import type { RGBNumValues } from '@windy/interpolatorTypes';
-import type { LoadedTranslations, HTMLString } from '@windy/types';
-import type { RGBAString } from '@windy/Color.d';
-export type UsedOverlays = Overlays | 'swell' | 'satelliteIRBT';
+import type { LoadedTranslations, HTMLString, RGBString } from '@windy/types';
+export type UsedOverlays = Overlays | 'swell';
 export type OverlayInitParams = Pick<Overlay, 'ident'> & Partial<Overlay>;
 type LayerProperty<L extends Layer | undefined, P extends keyof Layer> = L extends Layer ? L[P] : undefined;
 type MetricProperty<M extends Metric | undefined, P extends keyof Metric> = M extends Metric ? M[P] : undefined;
@@ -116,7 +114,7 @@ export declare class Overlay<
    * Optional promo badge to be displayed in GUI
    */
   promoBadge?: string;
-  promoBadgeColor?: RGBAString;
+  promoBadgeColor?: RGBString;
   /**
    * Optional menu image thumbnail
    */
@@ -151,11 +149,6 @@ export declare class Overlay<
    */
   getMenuIdent(): Overlays;
   /**
-   * Custom onopen methods, currently unused
-   */
-  onopen?(): void;
-  onclose?(): void;
-  /**
    * Create part of inner text of picker
    * @param values Interpolated values
    */
@@ -163,7 +156,7 @@ export declare class Overlay<
   /**
    * Just proxy to the Metric's metric property
    */
-  get metric(): import('./Metric').MetricItem | '';
+  get metric(): '' | import('./Metric').MetricItem;
   protected initProperties(): void;
 }
 export {};

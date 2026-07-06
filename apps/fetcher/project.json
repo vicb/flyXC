@@ -6,51 +6,29 @@
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@nx/webpack:webpack",
-      "outputs": ["{options.outputPath}"],
+      "outputs": ["{projectRoot}/{options.outDir}", "{projectRoot}/dist"],
+      "defaultConfiguration": "development",
       "options": {
-        "target": "node",
-        "compiler": "tsc",
-        "outputPath": "dist/apps/fetcher",
-        "main": "apps/fetcher/src/fetcher.ts",
-        "tsConfig": "apps/fetcher/tsconfig.app.json",
-        "generatePackageJson": true,
-        "babelUpwardRootMode": true,
-        "webpackConfig": "apps/fetcher/webpack.config.js"
+        "outDir": "./dist"
       },
       "configurations": {
+        "development": {
+          "mode": "development"
+        },
         "production": {
-          "optimization": true,
-          "extractLicenses": true,
-          "inspect": false,
-          "fileReplacements": [
-            {
-              "replace": "apps/fetcher/src/environments/environment.ts",
-              "with": "apps/fetcher/src/environments/environment.prod.ts"
-            }
-          ]
+          "mode": "production"
         }
       }
     },
     "serve": {
-      "executor": "@nx/js:node",
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
       "options": {
-        "buildTarget": "fetcher:build"
+        "command": "node apps/fetcher/dist/index.js"
       },
       "configurations": {
         "production": {
-          "buildTarget": "fetcher:build:production"
-        }
-      }
-    },
-    "test": {
-      "options": {
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "coverage": true
+          "command": "node apps/fetcher/dist/index.js"
         }
       }
     },

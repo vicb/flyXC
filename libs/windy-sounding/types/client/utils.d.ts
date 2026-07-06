@@ -1,32 +1,43 @@
-import { HttpError } from './errors';
+/// <reference types="svelte" />
+import { HttpError } from '@windy/errors';
 import type { RegistrationError } from '@capacitor/push-notifications';
-import type { RGBA } from '@windy/Color.d';
 import type { QueryStringSource } from '@windy/http.d';
 import type { LatLon, LinearScale, TilePoint } from '@windy/interfaces.d';
 import type { RGBNumValues } from '@windy/interpolatorTypes';
-import type { ExtendedStationType, HTMLString, NumOrNull, Timestamp, ParsedQueryString } from '@windy/types.d';
+import type {
+  ExtendedStationType,
+  HTMLString,
+  NumOrNull,
+  NumValue,
+  Path,
+  Timestamp,
+  TimeRangeMs,
+  ParsedQueryString,
+  RGBAString,
+  RGBString,
+  ColorGradientString,
+  RGBA,
+  Hours,
+  YearMonthDay,
+} from '@windy/types.d';
+import type { Vector3 } from '@windy/math';
+import type { Readable, Subscriber, Unsubscriber } from 'svelte/store';
 /**
- * One minute in ms.
- *
- * @type {Timestamp}
+ * One minute duration in ms.
  */
-export declare const tsMinute: Timestamp;
+export declare const tsMinute: TimeRangeMs;
 /**
- * One hour in ms.
- *
- * @type {Timestamp}
+ * One hour duration in ms.
  */
-export declare const tsHour: Timestamp;
+export declare const tsHour: TimeRangeMs;
 /**
- * One day in ms.
- *
- * @type {Timestamp}
+ * One day duration in ms.
  */
-export declare const tsDay: Timestamp;
+export declare const tsDay: TimeRangeMs;
 /**
- * Long press time in ms. to be used everywhere
+ * Long press time duration in ms.
  */
-export declare const longPressTime: Timestamp;
+export declare const longPressTime: TimeRangeMs;
 /**
  * Converts number to char
  *
@@ -222,14 +233,13 @@ export declare const windDir2html: (wx: WindObject) => HTMLString;
  */
 export declare const isNear: <T extends LatLon, F extends LatLon>(a: T, b: F) => boolean;
 /**
- * Bounds a number to a limits
+ * Clamps a number to a range
  *
- * @param num Number to bound
+ * @param num Number to clamp
  * @param min Minimum
  * @param max Maximum
- * @returns Bounded number
+ * @returns Clamped number
  */
-export declare const bound: (num: number, min: number, max: number) => number;
 export declare const clamp: (num: number, min: number, max: number) => number;
 /**
  * Smoothstep https://en.wikipedia.org/wiki/Smoothstep
@@ -305,6 +315,10 @@ export declare const getAdjustedNow: (syncTime?: number) => number;
 export declare const isValidLang: (
   lang: string,
 ) => lang is
+  | 'id'
+  | 'hr'
+  | 'th'
+  | 'tr'
   | 'en'
   | 'zh-TW'
   | 'zh'
@@ -315,14 +329,12 @@ export declare const isValidLang: (
   | 'ru'
   | 'nl'
   | 'cs'
-  | 'tr'
   | 'pl'
   | 'sv'
   | 'fi'
   | 'ro'
   | 'el'
   | 'hu'
-  | 'hr'
   | 'ca'
   | 'da'
   | 'ar'
@@ -339,8 +351,6 @@ export declare const isValidLang: (
   | 'vi'
   | 'sl'
   | 'sr'
-  | 'id'
-  | 'th'
   | 'sq'
   | 'pt'
   | 'nb'
@@ -399,7 +409,7 @@ export declare const download: (data: BlobPart, type: string, name: string) => v
  * @param ident ID of plugin to load
  * @returns Instance of the Capacitor plugin
  */
-export declare const getNativePlugin: <T = unknown>(ident: string) => T;
+export declare function getNativePlugin<T = unknown>(ident: string): T | null;
 /**
  * JQuery like selector
  *
@@ -455,6 +465,21 @@ export declare const getRefs: <N extends HTMLElement, R extends Record<string, H
  * Sanitizes HTML code, escape all XSS dangerous characters
  */
 export declare const sanitizeHTML: (s: string) => string;
+export interface LogErrorDetail {
+  moduleName: string;
+  msg: string;
+  errorObject?: Error | HttpError | Event | ErrorEvent | RegistrationError;
+  additionalInfo?: {
+    /**
+     * Any additional data you want to log alongside the error to provide more context
+     */
+    extra?: Record<string, unknown>;
+    /**
+     * Key-value pairs to use as tags in GlitchTip
+     */
+    tags?: Record<string, string>;
+  };
+}
 /**
  * Custom error logging function.
  *
@@ -469,6 +494,7 @@ export declare function logError(
   moduleName: string,
   msg: string,
   errorObject?: Error | HttpError | Event | ErrorEvent | RegistrationError,
+  additionalInfo?: LogErrorDetail['additionalInfo'],
 ): void;
 /**
  * Same as scale linear from d3 library except with different params
@@ -485,8 +511,9 @@ export declare const scaleLinear: ({
   range: [number, number];
   clip?: boolean;
 }) => LinearScale;
+export declare const maxCanvasRatio = 2;
 /**
- * Unified canvasRatio used in overall Windy. Not bigger then 2
+ * Unified canvasRatio used in overall Windy. Not bigger than maxCanvasRatio
  */
 export declare const canvasRatio: number;
 /**
@@ -530,6 +557,10 @@ export declare const removeDiacritics: (s: string) => string;
  * This differs from the CSS property which capitalizes the first letter of each word.
  */
 export declare const capitalize: (text: string) => string;
+/**
+ * Get unified path format out of ts
+ */
+export declare const getPathFromTs: (ts: Timestamp | Date, replacerPattern?: string) => Path;
 export declare const parseQueryString: (searchQuery: string | undefined) => ParsedQueryString | undefined;
 export declare const seoLangRegex: RegExp;
 /**
@@ -558,3 +589,47 @@ export declare const parseSeoUrl: (url: string) => {
 export declare const startupPath: any;
 export declare const generateUuidV4: () => string;
 export declare const getErrorMessage: (error: unknown) => string;
+/**
+ * Creates a color gradient from array of prepared ones
+ */
+export declare const createColorGradient: (
+  gradient: (RGBAString | RGBString)[],
+  numValues: NumValue[],
+) => ColorGradientString;
+/**
+ * preventDefault wrapper for event handlers
+ */
+export declare const preventDefault: <E extends Event = Event>(callback: (event: E) => void) => (event: E) => void;
+export declare const openInApp: () => void;
+/**
+ * Given the UTC offset returns local time
+ */
+export declare const toLocalTime: (
+  ts: Timestamp,
+  utcOffset: Hours,
+) => {
+  h: Hours;
+  m: number;
+  day: number;
+  weekDay: number;
+  yearMonthDay: YearMonthDay;
+};
+/**
+ * @summary Extracts positions of the tile coordinates in the per-tile request urls to enabled coordinates extraction
+ *  which is required to modify the original tile request created by maplibre
+ * @param url
+ * @returns
+ */
+export declare function extractTileCoordsUrlPositionsFromParametricUrl(url: string): Vector3;
+/**
+ * @summary Modifies the input leaflet zoom based on the currently used map library
+ *  - maplibre zoom is offset by 1 from the leaflet zoom, since Leaflet uses
+ *  zoom computed wrt 256px tile while maplibre uses 512px tile as base size
+ * @param leafletZoom Leaflet-based zoom level
+ */
+export declare const offsetLeafletZoom: (leafletZoom: number) => number;
+/**
+ * Used for Svelte stores
+ * Sometimes we only want to subscribe to changes in store and don't want to be called with initial value
+ */
+export declare const subscribeToChange: <T>(store: Readable<T>, callback: Subscriber<T>) => Unsubscriber;

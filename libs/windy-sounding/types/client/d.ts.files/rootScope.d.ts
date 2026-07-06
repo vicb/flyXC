@@ -23,3 +23,5 @@ export type SupportedLanguages = typeof import('./rootScope').supportedLanguages
 export type Pois = keyof typeof import('./rootScope').pois;
 
 export type Isolines = typeof import('./rootScope').isolinesType[number];
+
+export type PollenProducts = keyof typeof import('./rootScope').pollenProducts;

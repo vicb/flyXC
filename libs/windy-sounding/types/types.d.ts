@@ -1,7 +1,7 @@
 import { MainLangFile, PluginTranslations } from '@windy/lang-files.d';
 
 import weatherTable from '@plugins/_shared/detail-render/weatherTable';
-import { LatLon, WeatherParameters } from './interfaces.d';
+import { LatLon, WeatherParameters } from '@windy/interfaces.d';
 
 export * from '@windy/interpolatorTypes.d';
 
@@ -11,19 +11,20 @@ export * from '@windy/interpolatorTypes.d';
 export type ISODateString = string;
 
 /**
- * Timestamp or any time duration in ms
+ * Point in time expressed as milliseconds since Unix epoch (Date.now()).
+ * Use {@link TimeRangeMs} instead for durations/interval lengths.
  */
 export type Timestamp = number;
 
 /**
- * Path in a form of YYYY/MM/DD/HH or YYYYMMDDHH based on minifest/calendar version
+ * Time range / duration in milliseconds (NOT an absolute epoch timestamp)
  */
-export type Path = string;
+export type TimeRangeMs = number;
 
 /**
- * String in a form YYYYMMDDHH
+ * Path in a form of YYYYMMDDHH based on minifest/calendar version
  */
-export type YYYYMMDDHH = string;
+export type Path = string;
 
 /**
  * Valid subscription tiers
@@ -34,7 +35,7 @@ export type Platform = 'android' | 'ios' | 'desktop';
 
 export type Device = 'mobile' | 'tablet' | 'desktop';
 
-export type DetailDisplayType = 'table' | 'meteogram' | 'airgram' | 'waves' | 'wind';
+export type DetailDisplayType = 'table' | 'meteogram' | 'airgram' | 'waves' | 'wind' | 'airq';
 
 export type Directions = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
 
@@ -63,7 +64,7 @@ export type StationId = `${ExtendedStationType}-${string}`;
  */
 export type StationOrPoiType = StationType | PoiType;
 
-export type FlightCategory = 'I' | 'V' | 'L' | 'M' | 'U';
+export type FlyingConditions = 'I' | 'V' | 'L' | 'M' | 'U';
 
 /**
  * Allowed type of tides
@@ -93,6 +94,8 @@ export type SveltePluginIdent = `@plugins/${keyof import('@windy/plugins.d').Sve
 export type SveltePanePluginIdent = `@plugins/${keyof import('@windy/plugins.d').SveltePanePlugins}`;
 
 export type BottomSveltePluginIdent = `@plugins/${keyof import('@windy/plugins.d').BottomSveltePlugins}`;
+
+export type StartupElementPluginIdent = `@plugins/${keyof import('@windy/plugins.d').StartupElementPlugins}`;
 
 export type TagPluginIdent = `@plugins/${keyof import('@windy/plugins.d').TagPlugins}`;
 
@@ -173,6 +176,9 @@ export type GpsPreferences = {
   status: 'denied' | 'authorized';
 };
 
+/**
+ * Implemented only on android native - iOS does not restrict battery usage for individual applications
+ */
 export type BatteryPreferences = {
   status: 'denied' | 'authorized';
 };
@@ -235,6 +241,7 @@ export type PickerMobileTimeout = '3' | '6' | '9' | '12' | 'always';
  */
 export type LogPaths =
   | keyof WeatherParameters
+  | 'path'
   | 'version'
   | 'plugin'
   | 'pois'
@@ -260,10 +267,16 @@ export type LogPaths =
 export type LogEvents =
   | 'logout'
   | 'animation-started'
+  | 'animation-speed-changed'
   | 'user-logged'
   | 'click-on-hp'
   | 'article-event'
-  | 'displayed-on-hp';
+  | 'displayed-on-hp'
+  | 'subs-opened'
+  | 'subs-purchased'
+  | 'map-selector-clicked'
+  | 'radsat-animation-speed-changed'
+  | 'login-finish-action';
 
 /**
  * Type of user consent
@@ -318,7 +331,9 @@ export type PickerOpener = LatLon & { id: string };
 
 export type ExternalPluginIdent = `windy-plugin-${string}`;
 
-export type DropDownValues = { key: string | number | null; value: string | number }[];
+export type AllowedDropDownKey = string | number | null | boolean;
+
+export type DropDownValues = { key: AllowedDropDownKey; value: string | number }[];
 
 /*
  * Plugin for creating backups of Local storage
@@ -350,14 +365,22 @@ export interface WindyBackupPlugin {
 /**
  * Currently used main map library
  */
-export type UsedMapLibrary = 'leaflet' | 'maplibre' | 'globe';
+export type UsedMapLibrary = 'leafletGl' | 'globe';
 
 /**
  * Time defined in hours
  */
 export type Hours = number;
 
+/**
+ * Time defined in minutes
+ */
 export type Minutes = number;
+
+/**
+ * Time defined in seconds
+ */
+export type Seconds = number;
 
 /**
  * All defined translation keys
@@ -377,9 +400,37 @@ export type UserInterest =
   | 'meteorologist'
   | 'other';
 
+export type ParticlesIdent = 'wind' | 'waves' | 'currents';
+
+export type PatternType = 'cclPattern' | 'rainPattern' | 'ptypePattern';
+
+export type TransformFunction = (x: NumValue) => NumValue;
+
+export type RenderChannels = 'R' | 'RG' | 'B';
+
 export type ParsedQueryString = Record<string, string | undefined>;
 
 export type Size = 'xxs' | 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' | 'xxxl' | 'ultra';
+
+export type RGBA = [number, number, number, number];
+
+export type YUVA = [number, number, number, number];
+
+export type ColorGradient = [NumValue, RGBA][];
+
+export type ColorGradientString = [NumValue, RGBString | RGBAString][];
+
+export type AnimationSpeed = 'normal' | 'fast' | 'very-fast';
+
+/**
+ * 'rgb(200,0,150)'
+ */
+export type RGBString = `rgb(${number},${number},${number})`;
+
+/**
+ * 'rgba(200,0,150,1)'
+ */
+export type RGBAString = `rgba(${number},${number},${number},${number})`;
 
 /**
  * Custom app icon for Premium users
@@ -400,3 +451,263 @@ export type CustomAppIcon =
   | 'wind'
   | 'windsurfing'
   | 'winter-sports';
+
+/**
+ * All ISO 3166-1 alpha-2 country codes (current), lowercase.
+ */
+export type ISOCountryCode =
+  | 'ad'
+  | 'ae'
+  | 'af'
+  | 'ag'
+  | 'ai'
+  | 'al'
+  | 'am'
+  | 'ao'
+  | 'aq'
+  | 'ar'
+  | 'as'
+  | 'at'
+  | 'au'
+  | 'aw'
+  | 'ax'
+  | 'az'
+  | 'ba'
+  | 'bb'
+  | 'bd'
+  | 'be'
+  | 'bf'
+  | 'bg'
+  | 'bh'
+  | 'bi'
+  | 'bj'
+  | 'bl'
+  | 'bm'
+  | 'bn'
+  | 'bo'
+  | 'bq'
+  | 'br'
+  | 'bs'
+  | 'bt'
+  | 'bv'
+  | 'bw'
+  | 'by'
+  | 'bz'
+  | 'ca'
+  | 'cc'
+  | 'cd'
+  | 'cf'
+  | 'cg'
+  | 'ch'
+  | 'ci'
+  | 'ck'
+  | 'cl'
+  | 'cm'
+  | 'cn'
+  | 'co'
+  | 'cr'
+  | 'cu'
+  | 'cv'
+  | 'cw'
+  | 'cx'
+  | 'cy'
+  | 'cz'
+  | 'de'
+  | 'dj'
+  | 'dk'
+  | 'dm'
+  | 'do'
+  | 'dz'
+  | 'ec'
+  | 'ee'
+  | 'eg'
+  | 'eh'
+  | 'er'
+  | 'es'
+  | 'et'
+  | 'fi'
+  | 'fj'
+  | 'fk'
+  | 'fm'
+  | 'fo'
+  | 'fr'
+  | 'ga'
+  | 'gb'
+  | 'gd'
+  | 'ge'
+  | 'gf'
+  | 'gg'
+  | 'gh'
+  | 'gi'
+  | 'gl'
+  | 'gm'
+  | 'gn'
+  | 'gp'
+  | 'gq'
+  | 'gr'
+  | 'gs'
+  | 'gt'
+  | 'gu'
+  | 'gw'
+  | 'gy'
+  | 'hk'
+  | 'hm'
+  | 'hn'
+  | 'hr'
+  | 'ht'
+  | 'hu'
+  | 'id'
+  | 'ie'
+  | 'il'
+  | 'im'
+  | 'in'
+  | 'io'
+  | 'iq'
+  | 'ir'
+  | 'is'
+  | 'it'
+  | 'je'
+  | 'jm'
+  | 'jo'
+  | 'jp'
+  | 'ke'
+  | 'kg'
+  | 'kh'
+  | 'ki'
+  | 'km'
+  | 'kn'
+  | 'kp'
+  | 'kr'
+  | 'kw'
+  | 'ky'
+  | 'kz'
+  | 'la'
+  | 'lb'
+  | 'lc'
+  | 'li'
+  | 'lk'
+  | 'lr'
+  | 'ls'
+  | 'lt'
+  | 'lu'
+  | 'lv'
+  | 'ly'
+  | 'ma'
+  | 'mc'
+  | 'md'
+  | 'me'
+  | 'mf'
+  | 'mg'
+  | 'mh'
+  | 'mk'
+  | 'ml'
+  | 'mm'
+  | 'mn'
+  | 'mo'
+  | 'mp'
+  | 'mq'
+  | 'mr'
+  | 'ms'
+  | 'mt'
+  | 'mu'
+  | 'mv'
+  | 'mw'
+  | 'mx'
+  | 'my'
+  | 'mz'
+  | 'na'
+  | 'nc'
+  | 'ne'
+  | 'nf'
+  | 'ng'
+  | 'ni'
+  | 'nl'
+  | 'no'
+  | 'np'
+  | 'nr'
+  | 'nu'
+  | 'nz'
+  | 'om'
+  | 'pa'
+  | 'pe'
+  | 'pf'
+  | 'pg'
+  | 'ph'
+  | 'pk'
+  | 'pl'
+  | 'pm'
+  | 'pn'
+  | 'pr'
+  | 'ps'
+  | 'pt'
+  | 'pw'
+  | 'py'
+  | 'qa'
+  | 're'
+  | 'ro'
+  | 'rs'
+  | 'ru'
+  | 'rw'
+  | 'sa'
+  | 'sb'
+  | 'sc'
+  | 'sd'
+  | 'se'
+  | 'sg'
+  | 'sh'
+  | 'si'
+  | 'sj'
+  | 'sk'
+  | 'sl'
+  | 'sm'
+  | 'sn'
+  | 'so'
+  | 'sr'
+  | 'ss'
+  | 'st'
+  | 'sv'
+  | 'sx'
+  | 'sy'
+  | 'sz'
+  | 'tc'
+  | 'td'
+  | 'tf'
+  | 'tg'
+  | 'th'
+  | 'tj'
+  | 'tk'
+  | 'tl'
+  | 'tm'
+  | 'tn'
+  | 'to'
+  | 'tr'
+  | 'tt'
+  | 'tv'
+  | 'tw'
+  | 'tz'
+  | 'ua'
+  | 'ug'
+  | 'um'
+  | 'us'
+  | 'uy'
+  | 'uz'
+  | 'va'
+  | 'vc'
+  | 've'
+  | 'vg'
+  | 'vi'
+  | 'vn'
+  | 'vu'
+  | 'wf'
+  | 'ws'
+  | 'ye'
+  | 'yt'
+  | 'za'
+  | 'zm'
+  | 'zw';
+
+export type Timeout = ReturnType<typeof setTimeout>;
+
+export type Interval = ReturnType<typeof setInterval>;
+
+export type SemVersion = `${number}.${number}.${number}`;

@@ -1,11 +1,100 @@
-import type { ColorGradient, AnyColorIdent, RGBA, RGBString } from './d.ts.files/Color.d';
-import type { NumValue } from './d.ts.files/types.d';
+import type { RGBA, RGBString, ColorGradient, NumValue, ColorGradientString } from '@windy/types.d';
+export type ColorIdent =
+  | 'temp'
+  | 'wind'
+  | 'rh'
+  | 'pressure'
+  | 'cclAltitude'
+  | 'altitude'
+  | 'deg0'
+  | 'levels'
+  | 'rain'
+  | 'ptype'
+  | 'rainClouds'
+  | 'clouds'
+  | 'lclouds'
+  | 'hclouds'
+  | 'mclouds'
+  | 'cape'
+  | 'lightDensity'
+  | 'cbase'
+  | 'snow'
+  | 'rainAccu'
+  | 'waves'
+  | 'currents'
+  | 'visibility'
+  | 'gtco3'
+  | 'aod550'
+  | 'pm2p5'
+  | 'no2'
+  | 'tcso2'
+  | 'go3'
+  | 'cosc'
+  | 'dust'
+  | 'satellite'
+  | 'radar'
+  | 'fog'
+  | 'justGray'
+  | 'efiWind'
+  | 'efiTemp'
+  | 'efiRain'
+  | 'moistureAnom40'
+  | 'moistureAnom100'
+  | 'drought'
+  | 'soilMoisture'
+  | 'fwi'
+  | 'dfm10h'
+  | 'solarpower'
+  | 'wavePower'
+  | 'uvindex'
+  | 'turbulence'
+  | 'icing'
+  | 'wetbulbtemp'
+  | 'aqi'
+  | 'dewpoint';
+export type PluginColorIdent =
+  | 'windDetail'
+  | 'wavesDetail'
+  | 'periodDetail'
+  | 'altitudeDetail'
+  | 'visibilityDetail'
+  | 'dewpointSpreadDetail'
+  | 'blitz'
+  | 'radiation'
+  | 'pmDetail'
+  | 'dustDetail'
+  | 'coscDetail'
+  | 'no2Detail'
+  | 'pollenDetail'
+  | 'so2Detail'
+  | 'aqiGradientDetail'
+  | 'wavePowerDetail';
+export type AnyColorIdent =
+  | ColorIdent
+  | PluginColorIdent
+  | 'pressureIsolines'
+  | 'temporary'
+  | 'direction'
+  | 'airgramColor'
+  | 'tempFillColors'
+  | 'tideGraphColors'
+  | 'aqiFillColors';
+export interface UserColor {
+  id: AnyColorIdent;
+  gradient: ColorGradient;
+}
 export type ColorInitParams = Pick<Color, 'ident'> &
   Partial<Pick<Color, 'qualitative'>> & {
-    steps: number;
-    default: ColorGradient;
+    default: ColorGradientString;
+    steps?: number;
     opaque?: boolean;
     prepare?: boolean;
+    /**
+     * Min and max gradient value override
+     *  - used for gradients with constant min and max values
+     *  - e.g. radar with [0,256] in all cases (gradient is not resized based on the current gradient extents)
+     */
+    minMaxValue?: [NumValue, NumValue];
   };
 export declare class Color {
   /**
@@ -27,9 +116,12 @@ export declare class Color {
   /** Index of neutral gray color */
   private neutralGrayIndex;
   /** Initial gradient */
-  private defaultColorGradient;
+  private initialColorGradient;
+  /** Initial gradient, that was parsed to RGBA arrays from RGBAStrings */
+  private defaultColorGradient?;
   /** Custom modified gradient */
   private customColorGradient?;
+  private minMaxValue?;
   /** Big interpolated RGBA Type array color table, generated when color is required */
   private colors?;
   /** Min value of associated numerical value  */
@@ -92,6 +184,11 @@ export declare class Color {
    * Checks validity of a gradient that it adheres to type ColorGradient
    */
   static checkValidity(obj: unknown): boolean;
+  private parseRGBAString;
+  /**
+   * Converts ColorGradientString into ColorGradient
+   */
+  private parseColorGradient;
   /**
    * return array multiplied by mul coef
    */

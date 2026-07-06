@@ -9,12 +9,14 @@ export interface SingleClickParams extends LatLon {
   source: 'singleclick';
 }
 
+type PoiKeys = `poi-${Pois | 'stations' | 'label'}`;
+
 type SingleclickPoiTypes = {
-  [key in `poi-${Pois | 'stations' | 'label'}`]: [HTMLElement];
+  [key in PoiKeys]: [HTMLElement];
 };
 
 export type SingleclickPluginTypes = {
-  [key in PluginIdent]: [SingleClickParams];
+  [key in Exclude<PluginIdent, PoiKeys>]: [SingleClickParams];
 };
 
 export type SingleclickEternalPluginTypes = {

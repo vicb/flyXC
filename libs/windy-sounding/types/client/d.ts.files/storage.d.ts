@@ -1,6 +1,4 @@
 import { Timestamp } from '@windy/types.d';
-import { Fav, type ObsoleteFav } from '@windy/favs.d';
-import { SearchRecent } from '@plugins/search/search';
 
 export interface StorageData {
   /** @deprecated  replaced by IDB */
@@ -43,15 +41,6 @@ export interface StorageData {
    * Other dynamically add storage data
    */
   [ident: string]: unknown | null;
-
-  /** @deprecated & replaced by IDB */
-  [key: `recents${number}`]: Record<string, SearchRecent> | null;
-
-  /** @deprecated & replaced by IDB */
-  [key: `favs${number}`]: Record<string, Fav | ObsoleteFav> | null;
-
-  /** @deprecated & replaced by IDB */
-  [key: `favs${number}_ts`]: Timestamp | null;
 }
 
 export type StorageDataKey = keyof StorageData & string;

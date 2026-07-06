@@ -1,4 +1,5 @@
-import { Layer, WaveLayer } from '@windy/Layer';
+import { Layer } from '@windy/Layer';
+import { WaveLayer } from '@windy/LayerClasses';
 import type { NumberedMetric, PrecipMetric, PtypeMetric } from '@windy/MetricClasses';
 declare const layers: {
   capAlerts: Layer<undefined>;
@@ -12,6 +13,7 @@ declare const layers: {
   ecmwfWindParticles500h: Layer<undefined>;
   ecmwfWindParticles600h: Layer<undefined>;
   waveParticles: Layer<undefined>;
+  waveParticlesWaves: Layer<undefined>;
   currentParticles: Layer<undefined>;
   currentsTideParticles: Layer<undefined>;
   wind: Layer<NumberedMetric>;
@@ -39,6 +41,7 @@ declare const layers: {
   rainAccu: Layer<NumberedMetric>;
   waves: WaveLayer;
   wwaves: WaveLayer;
+  wavePower: Layer<NumberedMetric>;
   swell1: WaveLayer;
   swell2: WaveLayer;
   swell3: WaveLayer;
@@ -54,7 +57,6 @@ declare const layers: {
   dustsm: Layer<NumberedMetric>;
   radar: Layer<NumberedMetric>;
   satellite: Layer<NumberedMetric>;
-  radarPlus: Layer<NumberedMetric>;
   gtco3: Layer<NumberedMetric>;
   pm2p5: Layer<NumberedMetric>;
   no2: Layer<NumberedMetric>;
@@ -76,5 +78,6 @@ declare const layers: {
   turbulence: Layer<NumberedMetric>;
   icing: Layer<NumberedMetric>;
   topoMap: Layer<undefined>;
+  aqi: Layer<NumberedMetric>;
 };
 export default layers;

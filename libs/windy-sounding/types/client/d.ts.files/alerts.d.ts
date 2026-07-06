@@ -33,6 +33,7 @@ export interface NumberRange {
 
 export interface AlertConditionBase {
   type: AlertConditionType;
+  valid?: boolean;
 }
 
 export interface CloudinessAlertCondition extends AlertConditionBase {

@@ -6,6 +6,7 @@ import {
   SatelliteMetric,
   UVIndexMetric,
 } from '@windy/MetricClasses';
+import { Metric } from '@windy/Metric';
 import { NumValue } from '@windy/types.d';
 
 /*
@@ -46,6 +47,7 @@ export type MetricItem =
   | 'type'
   | 'l/km²'
   | 'W/m²'
+  | 'kW/m'
   | 'drought'
   | 'fwi'
   | 'mm/h'
@@ -53,7 +55,9 @@ export type MetricItem =
   | 'uvindex'
   | 'EDR'
   | 'km²'
-  | 'acres';
+  | 'acres'
+  | 'AQI'
+  | 'gr./m³';
 
 /**
  * # @windy/metrics
@@ -116,11 +120,14 @@ export interface MetricTypes {
   fwi: NumberedMetric;
   dfm10h: NumberedMetric;
   solarpower: NumberedMetric;
+  wavePower: NumberedMetric;
   uvindex: UVIndexMetric;
   capAlerts: NumberedMetric;
   turbulence: NumberedMetric;
   icing: NumberedMetric;
   area: NumberedMetric;
+  aqi: NumberedMetric;
+  pollen: NumberedMetric;
 }
 
 /** @ignore */
@@ -190,4 +197,18 @@ export interface Conversion {
 export type ConvObj = { [K in MetricItem]?: Conversion };
 
 /** @ignore */
-export type MetricInitParams = Pick<NumberedMetric, 'ident'> & Partial<NumberedMetric>;
+export type MetricInitParams = Pick<Metric, 'ident'> &
+  Partial<
+    Pick<
+      Metric,
+      | 'lines'
+      | 'conv'
+      | 'backConv'
+      | 'defaults'
+      | 'cohesion'
+      | 'nativeSync'
+      | 'description'
+      | 'separator'
+      | 'discreteLegend'
+    >
+  >;

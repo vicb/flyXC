@@ -6,8 +6,7 @@ let redis: Redis | undefined;
 
 export function getRedisClient(url: string): Redis {
   if (!redis) {
-    const keyPrefix = process.env.NODE_ENV == 'development' ? 'dev:' : undefined;
-    redis = new Redis(url, { keyPrefix });
+    redis = new Redis(url);
   }
   return redis;
 }

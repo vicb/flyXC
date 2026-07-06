@@ -4,27 +4,25 @@
 
     Now it is better to use close coupled components, with strong type control
 
-
     TODO: Minimize amount of these events and reduce their usage
 
 */
-import { ParsLocation as GlobeParsLocation } from '@plugins/globe/main/receiver.d';
-import { Params as GlobeParams, Poi as GlobePoi } from '@plugins/globe/types.d';
-import { ExtendedDataAndParams } from '@plugins/isolines/IsolinesCanvas2D.d';
+
 import { Evented } from '@windy/Evented';
 import { MetricIdent, MetricItem } from '@windy/Metric.d';
 import { PluginIdent } from '@windy/Plugin';
 import { NotificationPreferences } from '@windy/dataSpecifications.d';
-import { GeolocationInfo, LatLon, WeatherParameters } from '@windy/interfaces.d';
+import { GeolocationInfo, LatLon, WeatherParameters, type FullRenderParameters } from '@windy/interfaces.d';
 import { PluginSource, PluginsOpenParams, PluginsQsParams } from '@windy/plugin-params.d';
 import { Plugins } from '@windy/plugins.d';
 import { Pois } from '@windy/rootScope.d';
 import type { ExternalPluginIdent } from '@windy/types';
-import type { CenterOptions } from '@windy/map';
-import type { AnimationOptions, FitBoundsOptions, LngLatBoundsLike } from '@windycom/maplibre-gl';
-import type { ViewportBounds } from '@plugins/_shared/maplibre/utils/maplibreUtils';
+import type { ZoomOptions } from '@leafletGl';
 import type { RadarPlusLayer } from '@plugins/radar-plus/types';
-import type { ParsedStartupValues } from './router';
+import type { ParsedStartupValues } from '@windy/router';
+import type { ParsLocation as GlobeParsLocation } from '@plugins/globe/main/receiver.d';
+import type { Params as GlobeParams, Poi as GlobePoi } from '@plugins/globe/types.d';
+import type { ExtendedDataAndParams } from '@plugins/isolines/IsolinesCanvas2D.d';
 
 type BcastTypesNonGeneric = {
   /**
@@ -97,21 +95,25 @@ export interface BasicBcastTypes<T extends keyof Plugins> {
    * Do not not use this event to start any intensive action since Windy now
    * must load and render all the data. We recommend to use `redrawFinished` instead.
    */
-  paramsChanged: [WeatherParameters, keyof WeatherParameters | undefined];
+  paramsChanged: [WeatherParameters, keyof WeatherParameters | 'path' | undefined];
 
   /**
    * Indicates that user changed any of the units (wind, temp, ...).
    */
   metricChanged: [MetricIdent | undefined, MetricItem | undefined];
 
-  /** Indicates that user added, remover or rename his fav  */
+  /** Indicates that user added, removed or rename his fav  */
   favChanged: [];
 
-  /** Indicates that user added, remover or rename his alert  */
+  /** Indicates that user added, removed or rename his alert  */
   alertChanged: [];
 
+  /** Indicates that user added or removed external plugin */
+  externalPluginChanged: [];
+
   /**
-   * Indicates, that router has parsed URL
+   * Indicates that router has parsed new route,
+   * used to trigger opening plugins based on url
    */
   routerParsed: [PluginIdent | ExternalPluginIdent | void, ParsedStartupValues | undefined];
 
@@ -137,26 +139,14 @@ export interface BasicBcastTypes<T extends keyof Plugins> {
   /** @ignore */ 'globe-zoomOut': [[number, number] | null] | [];
   /** @ignore */ 'globe-paramsChanged': [GlobeParams];
 
-  /** @ignore */ 'leaflet-zoomIn': [number | undefined, L.ZoomOptions | undefined];
-  /** @ignore */ 'leaflet-zoomOut': [number | undefined, L.ZoomOptions | undefined];
-  /** @ignore */ 'leaflet-paramsChanged': [WeatherParameters, keyof WeatherParameters | undefined];
+  /** @ignore */ 'leafletGl-zoomIn': [number | undefined, ZoomOptions | undefined];
+  /** @ignore */ 'leafletGl-zoomOut': [number | undefined, ZoomOptions | undefined];
+  /** @ignore */ 'leafletGl-paramsChanged': [WeatherParameters, keyof WeatherParameters | undefined];
 
-  /** @ignore */ 'maplibre-zoomIn': [AnimationOptions | undefined, unknown | undefined];
-  /** @ignore */ 'maplibre-zoomOut': [AnimationOptions | undefined, unknown | undefined];
-  /** @ignore */ 'maplibre-setZoom': [number, unknown | undefined];
-  /** @ignore */ 'maplibre-centerMap': [CenterOptions];
-  /** @ignore */ 'maplibre-triggerDragging': [boolean];
-  /** @ignore */ 'maplibre-fitBounds': [LngLatBoundsLike, FitBoundsOptions | undefined];
-  /** @ignore */ 'maplibre-panToOffset': [number, number, number];
-  /** @ignore */ 'maplibre-ensurePointVisibleY': [number, number, number];
-  /** @ignore */ 'maplibre-moveEnd': [];
-  /** @ignore */ 'maplibre-zoomChange': [number];
-  /** @ignore */ 'maplibre-boundsChange': [ViewportBounds];
-  /** @ignore */ 'maplibre-paramsChanged': [WeatherParameters, keyof WeatherParameters | undefined];
   /** @ignore */ 'radarPlus-open-layer': [RadarPlusLayer, boolean | undefined]; // Layer to open, whether to open layer for color editing
   /** @ignore */ detailClose: [];
-  /** @ignore */ detailRendered: []; // used only in embed, imaker indicates that detail is ready
-  /** @ignore */ stationRendered: []; // used only in embed, imaker indicates that detail is ready
+  /** @ignore */ detailRendered: []; // used only in embed indicates that detail is ready
+  /** @ignore */ stationRendered: []; // used only in embed indicates that detail is ready
   /** @ignore */ reloadFavs: [];
   /** @ignore */ notifPrefChanged: [NotificationPreferences | undefined];
   /** @ignore */ satBackupReload: [];
@@ -169,11 +159,15 @@ export interface BasicBcastTypes<T extends keyof Plugins> {
   /** @ignore */ loadingFailed: [string];
   /** @ignore */ zoomIn: [];
   /** @ignore */ zoomOut: [];
-  /** @ignore */ userReloadInfo: [];
   /** @ignore */ showSocialError: [string];
-  /** @ignore */ openCapAlerts: [PluginsOpenParams['picker']];
   /** @ignore */ openapp: [];
   /** @ignore */ openSearch: [];
+  /** @ignore */ renderersUpdated: []; // Fired once all renderers have had their params updated.
+  /** @ignore */ tileLayerParamsChanged: [FullRenderParameters];
+  /** @ignore */ glContextLost: [];
+  /** @ignore */ glContextRestored: [];
+  /** @ignore */ glRestoreContext: [];
+  /** @ignore */ glLoseContext: [];
 }
 
 interface BcastTypes<T extends keyof Plugins> extends BcastTypesNonGeneric, BasicBcastTypes<T> {}

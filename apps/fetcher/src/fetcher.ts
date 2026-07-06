@@ -1,4 +1,6 @@
-import process from 'node:process';
+// Do not use "process" because the global "process.env" is
+// replaced at build time by Vite.
+import nodeProcess from 'node:process';
 
 import {
   differentialEncodeLiveTrack,
@@ -31,7 +33,7 @@ import { syncFromDatastore } from './app/state/sync';
 import { disconnectOgnClient, resfreshTrackers } from './app/trackers/refresh';
 import { resfreshUfoFleets } from './app/ufos/refresh';
 
-const redis = getRedisClient(SECRETS.REDIS_URL);
+const redis = getRedisClient(process.env.NODE_ENV === 'development' ? SECRETS.REDIS_URL_DEV : SECRETS.REDIS_URL);
 
 program.option('-e, --exit_hours <hours>', 'restart after', '0').parse();
 
@@ -54,7 +56,7 @@ async function start(datastore: Datastore): Promise<void> {
     console.log(`Initial sync from the datastore`, status);
   }
 
-  state.nodeVersion = process.version;
+  state.nodeVersion = nodeProcess.version;
   state.numStarts++;
   state.inTick = false;
   state.numTicks = 0;
@@ -67,7 +69,7 @@ async function start(datastore: Datastore): Promise<void> {
   const ticker = setInterval(() => tick(state, datastore), LIVE_REFRESH_SEC * 1000);
 
   for (const signal of ['SIGTERM', 'SIGINT', 'SIGHUP']) {
-    process.on(signal, async () => {
+    nodeProcess.on(signal, async () => {
       clearInterval(ticker);
       await shutdown(state);
     });
@@ -89,7 +91,7 @@ async function tick(state: protos.FetcherState, datastore: Datastore) {
   state.lastTickSec = Math.round(Date.now() / 1000);
 
   try {
-    const memory = process.memoryUsage();
+    const memory = nodeProcess.memoryUsage();
     state.memHeapMb = Math.round(memory.heapTotal / 1e6);
     state.memRssMb = Math.round(memory.rss / 1e6);
 
@@ -215,7 +217,7 @@ async function shutdown(state: protos.FetcherState) {
   await redis.quit();
   disconnectOgnClient();
   console.log('Exit...');
-  process.exit();
+  nodeProcess.exit();
 }
 
 /**

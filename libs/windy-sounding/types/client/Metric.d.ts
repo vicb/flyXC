@@ -1,5 +1,4 @@
 import type { Color } from './d.ts.files/Color';
-import type { RGBString } from './d.ts.files/Color.d';
 import type {
   ConvObj,
   Legend,
@@ -8,9 +7,8 @@ import type {
   MetricIdent,
   MetricInitParams,
   MetricItem,
-  MetricKey,
 } from './d.ts.files/Metric.d';
-import type { HTMLString, NumValue, LoadedTranslations } from './d.ts.files/types.d';
+import type { NumValue, LoadedTranslations, RGBString } from './d.ts.files/types.d';
 export declare const rtrnSelf: (x: NumValue) => NumValue;
 /**
  * # @windy/Metric
@@ -23,25 +21,22 @@ export declare const rtrnSelf: (x: NumValue) => NumValue;
  */
 export declare abstract class Metric<T extends string | number = string | number> {
   /**
-   * Identifies metric
-   */
-  ident: MetricIdent;
-  /**
    * Store key
    */
-  key: MetricKey;
+  private key;
   /**
-   * Actually selected metric
+   * Keeps cohesion in between multiple metric instances. For example setting `in`
+   * in rain will set `in` in snow also
    */
-  metric: MetricItem;
+  cohesion?: {
+    [ident in MetricIdent]?: {
+      [unit in MetricItem]?: MetricItem;
+    };
+  };
   /**
    * Conversion functions
    */
   conv: ConvObj;
-  /**
-   * Backward conversion functions
-   */
-  backConv?: ConvObj;
   /**
    * number ' ' metric separator
    */
@@ -56,22 +51,25 @@ export declare abstract class Metric<T extends string | number = string | number
    */
   nativeSync: boolean;
   /**
-   * Legend description
+   * Identifies metric
    */
-  description: LegendDescription;
+  ident: MetricIdent;
+  /**
+   * Backward conversion functions
+   */
+  backConv?: ConvObj;
   /**
    * Array defining how the legend will look like
    */
   lines: LegendLines;
   /**
-   * Keeps cohesion in between multiple metric instances. For example setting `in`
-   * in rain will set `in` in snow also
+   * Actually selected metric
    */
-  cohesion?: {
-    [ident in MetricIdent]?: {
-      [unit in MetricItem]?: MetricItem;
-    };
-  };
+  metric: MetricItem;
+  /**
+   * Legend description
+   */
+  description: LegendDescription;
   /**
    * Some metrics have discrete legend.
    * If so, these labels define it, where NumValue is numerical value, to grab color from color table
@@ -90,18 +88,7 @@ export declare abstract class Metric<T extends string | number = string | number
      */
     labels: [keyof LoadedTranslations, RGBString][];
   };
-  /**
-   * Colors used to render discrete legend
-   * @param params
-   */
   constructor(params: MetricInitParams);
-  /**
-   * Returns metric value
-   */
-  getMetric(): MetricItem;
-  onMetricChanged(metric: MetricItem): void;
-  getDefault(): MetricItem;
-  setDefault(): void;
   /**
    * get value + label on a basis of user selected metric
    */
@@ -115,7 +102,7 @@ export declare abstract class Metric<T extends string | number = string | number
    */
   abstract convertNumber(value: NumValue, forcedPrecision?: number, metric?: MetricItem): T;
   /**
-   * List all avail metrics
+   * List all avail units
    */
   listMetrics(): MetricItem[];
   /**
@@ -125,25 +112,18 @@ export declare abstract class Metric<T extends string | number = string | number
   /**
    * Stores required metric into storage
    */
-  setMetric(metric: MetricItem, uiIdent?: string): void;
+  setMetric(metric: MetricItem, ignoreCohesion?: boolean): void;
   /**
    * Cycles throu different metrics (for example after clicking on a legend)
    */
-  cycleMetric(uiIdent?: string): void;
-  static getGradientLegend: (
-    col: Color | undefined,
-    legend: Legend,
-    metric: MetricItem,
-  ) => {
-    background: string;
-    content: HTMLString;
-  } | null;
+  cycleMetric(): void;
   /** color object is required for classic gradient metrics, discrete ones do not need it as colors are hardcoded for them */
   renderLegend(col: Color | undefined, el: HTMLDivElement, legend: Legend): void;
-  renderDiscreteLegend(): {
-    background: '';
-    content: HTMLString;
-  };
   protected initProperties(): void;
-  private _createKey;
+  private onMetricChanged;
+  private getDefault;
+  private setDefault;
+  private getGradientLegend;
+  private renderDiscreteLegend;
+  private createKey;
 }

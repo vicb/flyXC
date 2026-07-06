@@ -48,14 +48,14 @@ export interface HttpOptions {
   ttl?: Timestamp;
 
   /**
-   * Request timeout (in ms)
-   */
-  timeout?: Timestamp;
-
-  /**
    * Custom headers object
    */
   customHeaders?: Record<string, string>;
+
+  /**
+   * Use already prepared and ongoing fetch requests if available
+   */
+  ongoingFetchRequest?: ReturnType<typeof fetch>;
 }
 
 /**

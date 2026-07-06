@@ -6,7 +6,7 @@
  * @module broadcast
  *
  */
-import type { Broadcast } from './broadcast.d';
+import type { Broadcast } from './d.ts.files/broadcast.d';
 declare const bcast: Broadcast;
 /**
  * Major broadcast service for sending events to other parts of Windy.

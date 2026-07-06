@@ -1,43 +1,115 @@
+import type { Products } from '@windy/rootScope.d';
+import type { ISODateString, Path, Timestamp, LoadedTranslations } from '@windy/types.d';
 /**
- * Object containing timestamps and methods for given weather product
+ * Main minifest object received from backend
  */
-import type { CalendarDay, MinifestObject, Weekday } from './d.ts.files/Calendar.d';
-import type { TimeFormatFunction } from './d.ts.files/format.d';
-import type { Products } from './d.ts.files/rootScope.d';
-import type { ISODateString, Path, Timestamp, YYYYMMDDHH } from './d.ts.files/types.d';
-export type CalendarInitParams = Pick<Calendar, 'numOfHours' | 'minifestFile'> & {
+export interface MinifestObject {
   /**
-   * Ident of product that this calendar is for
+   * Version
    */
-  product: Products;
+  v: string;
+  /**
+   * Array of hour moments that contain forecast data
+   */
+  dst: number[][];
+  /**
+   * Main identifier, identifying the refTime on the backend.
+   */
+  info: string;
+  /**
+   * Reference time of forecast
+   */
+  ref: ISODateString;
+  /**
+   * Update time of the forecast
+   */
+  update: ISODateString;
+  /**
+   * In an emergency case backend can set `force` property at minifest. It breaks minifest client cache and set minifest at any circumstances
+   */
+  forced?: boolean;
+}
+/**
+ * Main Calendar Day Object
+ */
+export interface CalendarDay {
+  /**
+   * Translation ID for week day one letter/symbol abbreviation
+   */
+  displayShort: keyof LoadedTranslations;
+  /**
+   * Translation ID for week day abbreviation
+   */
+  display: keyof LoadedTranslations;
+  /**
+   * Translation ID for week day abbreviation
+   */
+  displayLong: keyof LoadedTranslations;
+  /**
+   * Start of the day
+   */
+  start: Timestamp;
+  /**
+   * End of the day
+   */
+  end: Timestamp;
+  /**
+   * Midday of the day
+   */
+  middayTs: Timestamp;
+  /**
+   * Day of the month
+   */
+  day: number;
+  /**
+   * Forecast for this day is for Premium users only
+   */
+  premium: boolean;
+  /**
+   * Forecast for this day is available
+   */
+  hasForecast: boolean;
+}
+/**
+ * Valid translation keys
+ */
+export type Weekday = 'SUN' | 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT';
+export type CalendarInitParams = {
+  /**
+   * Minifest that led to construction of this instance
+   */
+  minifest: MinifestObject;
+  /**
+   * Ident of product that this calendar is created for
+   */
+  productIdent: Products;
   /**
    * This product is a free product
    */
   freeProduct?: boolean;
   /**
-   * Optional latest timestamp (for use for offline mode for example)
+   * Minimum number of hours this calendar should cover
    */
-  lastTimestamp?: Timestamp;
+  minimumHours: number;
 };
 export declare class Calendar {
-  /**
-   * Time formatting function
-   */
-  static readonly localeHours: TimeFormatFunction;
   static readonly weekdays: Weekday[];
   /**
-   * Number of hours covered by this calendar
+   * At what day we start premium forecast
    */
-  numOfHours: number;
+  private premiumStartDay;
+  /**
+   * Ident of a product that this Calendar is associated with (just for debug purposes)
+   */
+  private productIdent;
+  /**
+   * Number of hours in the calendar
+   */
   calendarHours: number;
   /**
-   * Today midnigh in LT of user's computer
+   * Today midnight in LT of user's computer
    */
   midnight: Date;
-  /**
-   * This midnight of other defined start of timeline
-   */
-  startOfTimeline: Date;
   /**
    * startOfTimeline in the form of timestamp
    */
@@ -47,15 +119,19 @@ export declare class Calendar {
    */
   premiumStart: Timestamp | null;
   /**
+   * endOfPremiumTimeline in the form of timestamp; null if it is free in whole range
+   */
+  premiumEnd: Timestamp | null;
+  /**
    * endOfCalendar as timestamp
    */
   endOfCal: Timestamp;
   /**
-   * endOfCal or latest timestamp, whiever is smaller
+   * endOfCal or latest timestamp, whoever is smaller
    */
   end: Timestamp;
   /**
-   * Array of calendayr days to be used in UI
+   * Array of calendar days to be used in UI
    */
   days: CalendarDay[];
   /**
@@ -65,37 +141,16 @@ export declare class Calendar {
   /**
    * Array of URL paths that equal to timestamps in a form of "2021/05/27/19"
    */
-  paths: string[];
-  /**
-   * Minifest that led to construction of this instance
-   */
-  minifestFile: MinifestObject;
-  /**
-   * Is the minifest valid or emergency, created out of the air?
-   */
-  minifestValid: boolean;
-  /**
-   * Minifests's reference time is some non stndard format
-   */
-  refTime: YYYYMMDDHH;
-  /**
-   * Minifests's reference time
-   */
-  refTimeTs: Timestamp;
-  /**
-   * Minifests's reference time
-   */
-  refTimeTxt: ISODateString;
+  paths: Path[];
   /**
    * Forecast update time
    */
   updateTs: Timestamp;
   /**
-   * Forecast update time
+   * Minifests's reference time
    */
-  updateTxt: ISODateString;
-  constructor(params: CalendarInitParams);
-  initProperties(): void;
+  refTimeTs: Timestamp;
+  constructor({ productIdent, minifest, freeProduct, minimumHours }: CalendarInitParams);
   /**
    * Bound ts to be be within limit of calendar
    */
@@ -104,36 +159,15 @@ export declare class Calendar {
    * Finds closes valid path on the basis of timestamp
    */
   ts2path(ts: Timestamp): Path;
-  /**
-   * Creates timestamps out of the air, with 3h interval (fixed)
-   */
-  createTimestamps(): void;
-  prepareTimesFromMinifest(minifest: MinifestObject): boolean;
-  /**
-   * Creates timestamps & paths arrays from minifest
-   */
-  createTimestampsFromMinifest(minifest: MinifestObject): boolean;
-  /**
-   * Return YYYY/MM/DD/HH or YYYYMMDDHH on a basis of provided date
-   * we do not CHECK existence of path in minifest
-   */
-  static date2path(date: Date): YYYYMMDDHH;
-  /**
-   * Returns JavaScript date object corresponding
-   * to provided path in a form YYYY/MM/DD/HH or YYYYMMDDHH
-   */
-  static path2date(path: string): Date;
-  /**
-   * Returns nice, human readable date string out of ts
-   */
-  static ts2string(ts: string | number): string;
+  private createDays;
+  private createTimestamps;
   /**
    * Adds hours or days to date
    *
    * @example
    * date = this.add( new Date(), 13, 'days' )
    */
-  static add(date: Date, x: number, what?: 'days' | 'hours' | undefined): Date;
+  private add;
   /**
    * Return nearest midnight
    */

@@ -1,9 +1,10 @@
 import type { ReverseResult } from '@windy/dataSpecifications.d';
 import type { LatLon } from '@windy/interfaces.d';
+import type { ISOCountryCode } from '@windy/types';
 export interface ReverseHttpPayload<IncludeIds extends boolean = false> {
   city?: string;
   country?: string;
-  country_code?: string;
+  country_code?: ISOCountryCode;
   county?: string;
   district?: string;
   locality?: string;

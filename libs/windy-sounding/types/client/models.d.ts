@@ -1,4 +1,4 @@
-import type { Layers } from '@windy/Layer.d';
+import type { Layers } from '@windy/Layer';
 import type { UsedOverlays } from '@windy/Overlay';
 import type { LatLon } from '@windy/interfaces.d';
 import type { Overlays, PointProducts, Products } from '@windy/rootScope.d';
@@ -16,10 +16,6 @@ export declare const overlay2product: {
   [P in LayerOrOverlay]?: Products[];
 };
 /**
- * From list of products deduplicates icon/iconEu, iconWaves/iconEuWaves
- */
-export declare const removeModelsFromSameGroup: (productsList: Products[]) => Products[];
-/**
  * Return particular icon related model based on rqrd and avbl models
  */
 export declare const bestModelFromSameGroup: (rqrdProduct: Products, avProducts: Products[]) => Products | null;
@@ -31,8 +27,6 @@ export declare const betterProducts: <
   PT extends boolean,
   R extends PT extends true
     ?
-        | 'gfs'
-        | 'ecmwf'
         | 'icon'
         | 'namConus'
         | 'namHawaii'
@@ -45,6 +39,7 @@ export declare const betterProducts: <
         | 'aromeReunion'
         | 'canHrdps'
         | 'canRdwpsWaves'
+        | 'camsEu'
         | 'czeAladin'
         | 'iconEuWaves'
         | 'hrrrAlaska'
@@ -60,25 +55,15 @@ export declare const betterProducts: <
         | 'ukv'
         | 'jmaMsm'
         | 'jmaCwmWaves'
-        | 'mblue'
-    :
-        | 'drought'
-        | 'radar'
-        | 'satellite'
-        | 'radarPlus'
-        | 'capAlerts'
-        | 'topoMap'
         | 'gfs'
         | 'ecmwf'
-        | 'ecmwfAnalysis'
-        | 'ecmwfWaves'
-        | 'gfsWaves'
+        | 'mblue'
+    :
         | 'icon'
-        | 'cams'
-        | 'efi'
-        | 'cmems'
-        | 'fireDanger'
-        | 'activeFires'
+        | 'radar'
+        | 'satellite'
+        | 'capAlerts'
+        | 'topoMap'
         | 'nems'
         | 'namConus'
         | 'namHawaii'
@@ -107,6 +92,17 @@ export declare const betterProducts: <
         | 'ukv'
         | 'jmaMsm'
         | 'jmaCwmWaves'
+        | 'gfs'
+        | 'ecmwf'
+        | 'ecmwfAnalysis'
+        | 'ecmwfWaves'
+        | 'gfsWaves'
+        | 'cams'
+        | 'efi'
+        | 'cmems'
+        | 'drought'
+        | 'fireDanger'
+        | 'activeFires'
         | 'mblue',
 >(
   latLon: T,

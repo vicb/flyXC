@@ -14,7 +14,6 @@ import { Consent, DetailExtendedLatLon, GeolocationInfo, HomeLocation, LatLon } 
 
 import {
   MenuItems,
-  Path,
   PickerMobileTimeout,
   ShowableError,
   SubTier,
@@ -23,17 +22,21 @@ import {
   RouteMotionSpeed,
   UsedMapLibrary,
   UserInterest,
+  type ISOCountryCode,
+  type AnimationSpeed,
 } from '@windy/types.d';
 
 import { MetricItem } from '@windy/Metric.d';
 
 import type { LoginAndFinishAction, User } from '@windy/user.d';
 
-import type { SubscriptionInfo } from '@plugins/_shared/subscription-services/subscription-services.d';
-import type RadarCalendar from '@plugins/radar/calendar/RadarCalendar';
-import type SatelliteCalendar from '@plugins/satellite/calendar/SatelliteCalendar';
+import type { SubscriptionInfo } from '@plugins/shared/subscription-services/subscription-services.d';
+import type RadarCalendar from '@plugins/radar-plus/calendar/radarCalendar';
+import type { SatelliteCalendar } from '@plugins/radar-plus/calendar/satelliteCalendar';
 import type { NumberRange } from '@windy/alerts.d';
-import type { FavTypeNew } from '@windy/favs.d';
+import type { FavType } from '@windy/favs.d';
+import type { Range } from '@plugins/shared/radsat/context';
+import type { TiledPoiClasses } from '@plugins/poi-libs/poi-libs.d';
 
 /**
  * Custom animation particles settings
@@ -67,6 +70,7 @@ export interface ReverseResult extends LatLon {
   lang: string;
   region?: string;
   country?: string;
+  cc?: ISOCountryCode;
   name: string;
   nameValid?: boolean;
 }
@@ -97,7 +101,7 @@ export interface DataSpecificationsObject<T> {
   allowed: Readonly<T[]> | ((d: T) => boolean);
 
   /**
-   * Peristent item. Save this item to localStorage
+   * Persistent item. Save this item to localStorage
    */
   save?: boolean;
 
@@ -144,11 +148,22 @@ export interface DataSpecificationsObject<T> {
    * Setter function - asynchronous (will be run before value is set)
    */
   asyncSet?: (...args: unknown[]) => Promise<T>;
+
+  /**
+   * This item can be set only by syncSet or asyncSet (so basically it is derived store)
+   * This so far does not do anything, it's merely a flag for developer
+   */
+  readOnly?: boolean;
+
+  /**
+   * This item can be used by Premium only users. Free users get always default value,
+   * so additional checks before using store.get('item') are not necessary.
+   */
+  premiumOnly?: boolean;
 }
 
 export interface FeatureFlags {
-  disableSatellitePlus: boolean;
-  disableNewRadarPlusGui: boolean;
+  useNewGui: boolean;
 }
 
 /**
@@ -206,12 +221,6 @@ export interface DataSpecifications {
   timestamp: DataSpecificationsObject<Timestamp>;
 
   /**
-   * Read only value! UTC string containing time of actually rendered data that are available for current overlay and weather model.
-   * @ignore
-   */
-  path: DataSpecificationsObject<Path | null>;
-
-  /**
    * Which type of isolines to render
    */
   isolinesType: DataSpecificationsObject<Isolines>;
@@ -252,6 +261,11 @@ export interface DataSpecifications {
   animation: DataSpecificationsObject<boolean>;
 
   /**
+   * Animation playback speed (normal = legacy speed)
+   */
+  animationSpeed: DataSpecificationsObject<AnimationSpeed>;
+
+  /**
    * Actual calendar (instance of `Calendar`) for selected overlay/product (if it has calendar)
    */
   calendar: DataSpecificationsObject<import('@windy/Calendar').Calendar | null>;
@@ -267,11 +281,6 @@ export interface DataSpecifications {
   particlesAnim: DataSpecificationsObject<'on' | 'off' | 'intensive'>;
 
   /**
-   * Last modified timestamp of just rendered data (read only)
-   */
-  lastModified: DataSpecificationsObject<Timestamp>;
-
-  /**
    * Display graticule over the map
    */
   graticule: DataSpecificationsObject<boolean>;
@@ -285,6 +294,11 @@ export interface DataSpecifications {
    * Display altitude on picker
    */
   showPickerElevation: DataSpecificationsObject<boolean>;
+
+  /**
+   * Whether picker is being dragged
+   */
+  pickerDragging: DataSpecificationsObject<boolean>;
 
   /**
    * Desired language for Windy. By default is determined by user's browser setting and set to `auto`.
@@ -315,12 +329,12 @@ export interface DataSpecifications {
   /**
    * 2 letter lowercase Country Code
    */
-  country: DataSpecificationsObject<string>;
+  country: DataSpecificationsObject<ISOCountryCode | 'xx'>;
 
   /**
-   * Is imperial as default settings (computed property)
+   * Default units setting (computed on the first visit based on GeoIP)
    */
-  isImperial: DataSpecificationsObject<boolean>;
+  defaultUnits: DataSpecificationsObject<'unset' | 'imperial' | 'metric'>;
 
   /**
    * Type of map tiles map shown in detail
@@ -338,16 +352,6 @@ export interface DataSpecifications {
   showWeather: DataSpecificationsObject<boolean>;
 
   stormSettingsLightning: DataSpecificationsObject<boolean>;
-
-  /**
-   * Is WebGL disabled?
-   */
-  disableWebGL: DataSpecificationsObject<boolean>;
-
-  /**
-   * Indicates whether glParticles are on or off
-   */
-  glParticlesOn: DataSpecificationsObject<boolean>;
 
   /**
    * Finally used language (the one which is successfully loaded in trans module)
@@ -471,11 +475,6 @@ export interface DataSpecifications {
   detail1h: DataSpecificationsObject<boolean>;
 
   /**
-   * Timestamp of detail's progress bar or middleFrame
-   */
-  detailTimestamp: DataSpecificationsObject<Timestamp>;
-
-  /**
    * Detail keeps its 10+ days expanded forecast
    */
   detailExtended: DataSpecificationsObject<boolean>;
@@ -490,12 +489,8 @@ export interface DataSpecifications {
    */
   camsPreviews: DataSpecificationsObject<boolean>;
 
-  //
-  // CAP alerts
-  //
-
   /**
-   * Today, tomm, later
+   * Today, tomorrow, later
    */
   capDisplay: DataSpecificationsObject<'all' | 'today' | 'tomm' | 'later'>;
 
@@ -520,6 +515,11 @@ export interface DataSpecifications {
   blitzSoundOn: DataSpecificationsObject<boolean>;
 
   /**
+   * Whether to render baseLayer using tiles with thick borders
+   */
+  showThickBorders: DataSpecificationsObject<boolean>;
+
+  /**
    * Timestamp in ms
    */
   satelliteTimestamp: DataSpecificationsObject<Timestamp>;
@@ -535,14 +535,9 @@ export interface DataSpecifications {
   radSatFlowOn: DataSpecificationsObject<boolean>;
 
   /**
-   * Extrapolate satellite images to future
+   * Render precipitation type pattern on radar
    */
-  satelliteExtraOn: DataSpecificationsObject<boolean>;
-
-  /**
-   * this override is needed for video capture
-   */
-  satelliteInterpolationOverride: DataSpecificationsObject<boolean>;
+  radarRenderPType: DataSpecificationsObject<boolean>;
 
   /**
    * Satellite/Radar archive on
@@ -558,11 +553,6 @@ export interface DataSpecifications {
    * Archive time range in hours
    */
   archiveRange: DataSpecificationsObject<number>;
-
-  /**
-   * Information, if startup weather box is shown or not
-   */
-  startupWeatherShown: DataSpecificationsObject<boolean>;
 
   /**
    * pois layer that user selected
@@ -618,7 +608,7 @@ export interface DataSpecifications {
   zuluMode: DataSpecificationsObject<boolean>;
 
   /**
-   * Sorting of nearest weater stations
+   * Sorting of nearest weather stations
    * @ignore
    */
   stationsSort: DataSpecificationsObject<'profi' | 'distance'>;
@@ -700,7 +690,8 @@ export interface DataSpecifications {
   lastPoiLocation: DataSpecificationsObject<(LatLon & { type?: string }) | null>;
 
   /**
-   * Picker last location
+   * Picker last location, to be consumed by location service to enhance URL
+   * Used only on desktop device
    */
   pickerLocation: DataSpecificationsObject<LatLon | null>;
 
@@ -784,7 +775,7 @@ export interface DataSpecifications {
   pickerMobileTimeout: DataSpecificationsObject<PickerMobileTimeout>;
 
   /**
-   * Endable/dissable change of detail location, when map is dragged
+   * Enable/disable change of detail location, when map is dragged
    */
   changeDetailOnMapDrag: DataSpecificationsObject<boolean>;
 
@@ -848,11 +839,6 @@ export interface DataSpecifications {
    */
   rhMenuArrangeMode: DataSpecificationsObject<boolean>;
 
-  /*
-   * If startup widgets should persist
-   */
-  persistentWidgets: DataSpecificationsObject<boolean>;
-
   /**
    * List of interests user has, based on onboarding picker
    */
@@ -871,7 +857,7 @@ export interface DataSpecifications {
   /**
    * If user wants to display just some type of favs in favs plugin
    */
-  favsFilter: DataSpecificationsObject<FavTypeNew[]>;
+  favsFilter: DataSpecificationsObject<FavType[]>;
 
   /**
    * Contains information, that registration hash for pushNotifications has been
@@ -879,7 +865,7 @@ export interface DataSpecifications {
    */
   pushNotificationsReady: DataSpecificationsObject<boolean>;
 
-  /**
+  /*
    * Feature flags to enable/disable features without the need to re-release the client
    */
   featureFlags: DataSpecificationsObject<FeatureFlags>;
@@ -894,6 +880,36 @@ export interface DataSpecifications {
    * User has enabled advanced features in debug console
    */
   advancedDebugConsole: DataSpecificationsObject<boolean>;
+
+  /**
+   * Active tab in pin menu (fav-layers plugin)
+   */
+  pinMenuActiveTab: DataSpecificationsObject<'models' | 'layers'>;
+
+  /*
+   * Range of the currently used segment
+   */
+  radarPlusSegmentRange: DataSpecificationsObject<Range>;
+
+  /**
+   * Whether the debug performance overlay (frametimes & FPS) is enabled (DEBUG type setting)
+   */
+  perfOverlayEnabled: DataSpecificationsObject<boolean>;
+
+  /*
+   * Instance of TIlePoi, that is used to display POIs
+   */
+  tiledPoiLayer: DataSpecificationsObject<TiledPoiClasses | null>;
+
+  /**
+   * Whether to multisample pType composite when rendering pType (to smooth-out transition between precipitation categories)
+   */
+  pTypeMultiSampled: DataSpecificationsObject<boolean>;
+
+  /**
+   * Whether to DEBUG airport related stuff
+   */
+  airportDebugMode: DataSpecificationsObject<boolean>;
 }
 
 /**

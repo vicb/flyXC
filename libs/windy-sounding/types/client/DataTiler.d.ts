@@ -1,6 +1,6 @@
 import { dataLoader } from '@windy/dataLoader';
-import type { FullRenderParameters } from './d.ts.files/Layer.d';
-import type { DataTile } from './d.ts.files/dataLoader';
+import type { FullRenderParameters } from '@windy/interfaces';
+import type { DataTile } from '@windy/dataLoader';
 import type { ExtendedTileParams } from './DataTiler.d';
 export interface TilePoint {
   x: number;
