@@ -8,12 +8,17 @@ import './tracking3d-element';
 import Basemap from '@arcgis/core/Basemap';
 import esriConfig from '@arcgis/core/config';
 import * as arcgisDecorators from '@arcgis/core/core/accessorSupport/decorators.js';
+import type { AbortOptions } from '@arcgis/core/core/promiseUtils';
 import { watch } from '@arcgis/core/core/reactiveUtils.js';
 import Point from '@arcgis/core/geometry/Point';
-import BaseElevationLayer from '@arcgis/core/layers/BaseElevationLayer';
+import BaseElevationLayer, {
+  type BaseElevationLayerProperties,
+  type FetchTileOptions,
+} from '@arcgis/core/layers/BaseElevationLayer';
 import ElevationLayer from '@arcgis/core/layers/ElevationLayer';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import SceneLayer from '@arcgis/core/layers/SceneLayer';
+import type { ElevationTileData } from '@arcgis/core/layers/support/types';
 import TileLayer from '@arcgis/core/layers/TileLayer';
 import VectorTileLayer from '@arcgis/core/layers/VectorTileLayer';
 import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
@@ -210,9 +215,9 @@ export class Map3dElement extends connect(store)(LitElement) {
         }
       },
     );
-    if (view.popup) {
-      view.popup.viewModel.includeDefaultActions = false;
-    }
+    // if (view.popup) {
+    //   view.popup.viewModel.includeDefaultActions = false;
+    // }
     view.ui.remove('zoom');
 
     const controls = document.createElement('controls3d-element');
@@ -455,35 +460,29 @@ class ExaggeratedElevationLayer extends BaseElevationLayer {
   @arcgisDecorators.property()
   _elevation: ElevationLayer | undefined;
 
-  constructor(properties: __esri.BaseElevationLayerProperties & { multiplier: number }) {
+  constructor(properties: BaseElevationLayerProperties & { multiplier: number }) {
     super(properties);
     this.multiplier = properties.multiplier;
   }
 
-  load(): Promise<void> {
+  async load(options?: AbortOptions | null | undefined): Promise<this> {
     this._elevation = new ElevationLayer({
       url: 'https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer',
     });
-    const loadPromise = this._elevation.load();
+    const loadPromise = this._elevation.load(options);
     this.addResolvingPromise(loadPromise);
-    return loadPromise;
+    return this;
   }
 
-  async fetchTile(
-    level: number,
-    row: number,
-    col: number,
-    options?: __esri.BaseElevationLayerFetchTileOptions,
-  ): Promise<__esri.ElevationTileData> {
+  async fetchTile(level: number, row: number, col: number, options?: FetchTileOptions): Promise<ElevationTileData> {
     if (!this._elevation) {
       return {} as any;
     }
     const data = await this._elevation.fetchTile(level, row, col, options);
-    if (data.values) {
-      for (let i = 0; i < data.values.length; i++) {
-        data.values[i] *= this.multiplier;
-      }
+    const outData: number[] = [];
+    for (let i = 0; i < data.values.length; i++) {
+      outData[i] = data.values[i] * this.multiplier;
     }
-    return data;
+    return { ...data, values: outData };
   }
 }

@@ -93,7 +93,7 @@
   },
   "dependencies": {
     "@alenaksu/json-viewer": "^2.1.2",
-    "@arcgis/core": "^4.34.8",
+    "@arcgis/core": "^5.1.0",
     "@date-fns/tz": "^1.4.1",
     "@dotenvx/dotenvx": "^1.51.4",
     "@dr.pogodin/csurf": "^1.16.7",
