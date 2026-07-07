@@ -479,10 +479,10 @@ class ExaggeratedElevationLayer extends BaseElevationLayer {
       return {} as any;
     }
     const data = await this._elevation.fetchTile(level, row, col, options);
-    const outData: number[] = [];
     for (let i = 0; i < data.values.length; i++) {
-      outData[i] = data.values[i] * this.multiplier;
+      // Cast to make it writable, as the type is readonly.
+      (data.values as any)[i] *= this.multiplier;
     }
-    return { ...data, values: outData };
+    return data;
   }
 }
