@@ -215,9 +215,9 @@ export class Map3dElement extends connect(store)(LitElement) {
         }
       },
     );
-    // if (view.popup) {
-    //   view.popup.viewModel.includeDefaultActions = false;
-    // }
+    if (view.popup) {
+      view.popup.viewModel.includeDefaultActions = false;
+    }
     view.ui.remove('zoom');
 
     const controls = document.createElement('controls3d-element');
