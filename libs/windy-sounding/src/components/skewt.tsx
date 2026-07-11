@@ -201,16 +201,19 @@ export function SkewT(props: SkewTProps) {
 const LAYERS = [
   {
     name: 'clouds',
+    label: 'Clouds',
     paths: [
       'm16 7 1.5.2a8 8 0 0 1 6.4 6.3l.2 1.3 1.4.3a5.5 5.5 0 0 1-1 10.9h-17a5.5 5.5 0 0 1-1-11l1.3-.2.3-1.3A8 8 0 0 1 16 7m0-2a10 10 0 0 0-9.8 8.1A7.5 7.5 0 0 0 7.5 28h17a7.5 7.5 0 0 0 1.3-14.9 10 10 0 0 0-8-8z',
     ],
   },
   {
     name: 'wind',
+    label: 'Wind',
     paths: ['M21 15H8v-2h13a3 3 0 1 0-3-3h-2a5 5 0 1 1 5 5m2 13a5 5 0 0 1-5-5h2a3 3 0 1 0 3-3H4v-2h19a5 5 0 0 1 0 10'],
   },
   {
     name: 'rain',
+    label: 'Rain',
     paths: [
       'M16 24v-2a3.3 3.3 0 0 0 3-3h2a5.3 5.3 0 0 1-5 5',
       'M16 28a9 9 0 0 1-9-9 10 10 0 0 1 1.5-5l6.7-10.6a1 1 0 0 1 1.6 0L23.5 14a10 10 0 0 1 1.5 5 9 9 0 0 1-9 9m0-22.2-5.8 9.3A8 8 0 0 0 9 19a7 7 0 0 0 14 0 8 8 0 0 0-1.2-4Z',
@@ -218,6 +221,7 @@ const LAYERS = [
   },
   {
     name: 'ccl',
+    label: 'Convective Condensation Level (CCL)',
     paths: [
       'm11 18 1.4 1.4 2.6-2.6V29h2V16.8l2.6 2.6L21 18l-5-5z',
       'M23.5 22H23v-2h.5a4.5 4.5 0 0 0 .4-9H23l-.1-.8a7 7 0 0 0-13.9 0v.8h-.9a4.5 4.5 0 0 0 .4 9H9v2h-.5A6.5 6.5 0 0 1 7.2 9.1a9 9 0 0 1 17.6 0A6.5 6.5 0 0 1 23.5 22',
@@ -246,12 +250,22 @@ function LayerSwitcher({ width, y }: { width: number; y: number }) {
 
   return (
     <g transform={`translate(0, ${y})`}>
-      {LAYERS.map(({ name, paths }, idx) => (
+      {LAYERS.map(({ name, label, paths }, idx) => (
         <g
           key={name}
           transform={`translate(${startX + idx * (32 + padding)})`}
           className={`layer-icon ${overlay === name ? 'active' : ''}`}
           onPointerDown={() => W.store.set('overlay', name)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              W.store.set('overlay', name);
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label={label}
+          aria-pressed={overlay === name}
         >
           <rect width={32} height={32} />
           {paths.map((d, pathIdx) => (
