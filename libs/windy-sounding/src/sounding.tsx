@@ -137,7 +137,7 @@ export const destroyPlugin = () => {
 function setSizeFrom(container: HTMLElement) {
   const padding = W.rootScope.isMobileOrTablet ? 0 : 50;
   const width = container.clientWidth - padding;
-  const height = Math.min(width, window.innerHeight * 0.7);
+  const height = Math.round(Math.min(width, window.innerHeight * 0.7));
   store.dispatch(pluginSlice.setWidth(width));
   store.dispatch(pluginSlice.setHeight(height));
 }
