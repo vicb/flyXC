@@ -382,7 +382,10 @@
   width: 32px;
   height: 32px;
   opacity: 0.3;
-  pointer-events: bounding-box;
+
+  rect {
+    fill: transparent;
+  }
 
   &:hover {
     opacity: 0.8;
@@ -390,7 +393,10 @@
 
   &.active {
     opacity: 1;
-    fill: var(--color-orange);
+
+    path {
+      fill: var(--color-orange);
+    }
   }
 }
 
