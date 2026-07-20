@@ -8,9 +8,9 @@ import {
   removeBeforeFromLiveTrack,
   simplifyLiveTrack,
 } from '@flyxc/common';
+import type { RedisClient, RedisClientMultiCmd } from '@flyxc/common-node';
 import { pushListCap } from '@flyxc/common-node';
 import type { Datastore } from '@google-cloud/datastore';
-import type { ChainableCommander, Redis } from 'ioredis';
 
 import { patchLastFixAGL } from '../elevation/elevation';
 import { addElevationLogs } from '../redis';
@@ -46,9 +46,9 @@ export function disconnectOgnClient() {
  * @param datastore - The Datastore instance for storing data.
  */
 export async function resfreshTrackers(
-  pipeline: ChainableCommander,
+  pipeline: RedisClientMultiCmd,
   state: protos.FetcherState,
-  redis: Redis,
+  redis: RedisClient,
   datastore: Datastore,
 ) {
   const fetchers = [
@@ -118,7 +118,7 @@ export async function resfreshTrackers(
 
 // Logs updates for a tracker type.
 export function addTrackerLogs(
-  pipeline: ChainableCommander,
+  pipeline: RedisClientMultiCmd,
   updates: TrackerUpdates,
   state: protos.FetcherState,
 ): void {

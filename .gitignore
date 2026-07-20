@@ -7,6 +7,8 @@ tmp
 
 # dependencies
 node_modules
+.pnpm-store
+pnpm-debug.log
 
 # IDEs and editors
 /.idea
@@ -31,10 +33,11 @@ node_modules
 /libpeerconnection.log
 npm-debug.log
 yarn-error.log
+pnpm-debug.log
 testem.log
 /typings
 /.nx-container
-/stats.html
+stats.html
 migrations.json
 
 # System Files
@@ -49,3 +52,9 @@ vite.config.*.timestamp*
 vitest.config.*.timestamp*
 
 *.env.local
+.claude/worktrees
+.nx/polygraph
+.nx/self-healing
+.nx/migrate-runs
+/tools/ai-migrations/@nx/*
+.claude/settings.local.json

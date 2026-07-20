@@ -1,10 +1,13 @@
 import { readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { getAppFolderFromDist } from '../util';
 
-const assetsFolder = resolve(join(getAppFolderFromDist(__dirname), '/assets'));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
+const assetsFolder = resolve(join(getAppFolderFromDist(__dirname), '/assets'));
 const airspaces = JSON.parse(readFileSync(join(assetsFolder, 'openaip.json'), 'utf-8'));
 
 const classes = new Map([

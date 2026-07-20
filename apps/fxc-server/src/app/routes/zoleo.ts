@@ -1,5 +1,5 @@
 import { fetchResponse, Keys, round } from '@flyxc/common';
-import type { ZoleoMessage } from '@flyxc/common-node';
+import type { RedisClient, ZoleoMessage } from '@flyxc/common-node';
 import {
   getDatastore,
   LIVE_TRACK_TABLE,
@@ -12,7 +12,6 @@ import { Datastore } from '@google-cloud/datastore';
 import type { Request, Response } from 'express';
 import { Router } from 'express';
 import basicAuth from 'express-basic-auth';
-import type Redis from 'ioredis';
 import { pathGet } from 'object-standard-path';
 
 import { getUserInfo, isLoggedIn } from './session';
@@ -23,7 +22,7 @@ const auth = basicAuth({
   },
 });
 
-export function getZoleoRouter(redis: Redis): Router {
+export function getZoleoRouter(redis: RedisClient): Router {
   const router = Router();
 
   // Update the entity when a zoleo is linked.
@@ -134,7 +133,7 @@ export function getZoleoRouter(redis: Redis): Router {
       if (json != null) {
         const pipeline = redis.pipeline();
         pushListCap(pipeline, Keys.zoleoMsgQueue, [json], ZOLEO_MAX_MSG, ZOLEO_MAX_MSG_SIZE);
-        await pipeline.exec();
+        await pipeline.execTyped(true);
       }
       res.sendStatus(200);
     } catch (e) {

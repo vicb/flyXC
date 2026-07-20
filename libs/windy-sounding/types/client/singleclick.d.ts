@@ -38,10 +38,7 @@ export declare const singleclick: Evented<SingleclickTypes>;
  * Well configured plugins do not need to use this method, as they are automatically
  * released, by Windy's plugin system when they are closed.
  */
-export declare const register: (
-  ident: PluginIdent,
-  priority: ListeningPriority,
-) => keyof import('../pluginSystem/plugins').Plugins;
+export declare const register: (ident: PluginIdent, priority: ListeningPriority) => keyof import("../pluginSystem/plugins").Plugins;
 /**
  * Release the plugin from the list of singleclick events. Well configured plugins
  * do not need to use this method, as they are automatically released, by Windy's
@@ -52,4 +49,4 @@ export declare const release: (ident: PluginIdent, priority: ListeningPriority) 
  * Handles all singleclick events from instance of Leaflet map
  * @ignore
  */
-export declare const opener: (ev: L.LeafletMouseEvent) => void;
+export declare const opener: (ev: LeafletMouseEvent) => void;

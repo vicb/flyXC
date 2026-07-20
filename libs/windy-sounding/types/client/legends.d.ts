@@ -1,6 +1,6 @@
-import type { Layers } from '@windy/Layer.d';
+import type { Layers } from '@windy/Layer';
 import type { Legend } from '@windy/Metric.d';
 declare const customLegends: {
-  [P in Layers]?: Legend;
+    [P in Layers]?: Legend;
 };
 export default customLegends;

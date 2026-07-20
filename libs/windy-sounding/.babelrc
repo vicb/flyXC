@@ -1,9 +1,18 @@
 {
   "presets": [
     [
-      "@nx/js/babel",
+      "@babel/preset-typescript",
       {
-        "useBuiltIns": "usage"
+        "isTSX": true,
+        "allExtensions": true
+      }
+    ],
+    [
+      "@babel/preset-env",
+      {
+        "modules": false,
+        "useBuiltIns": "usage",
+        "corejs": 3
       }
     ]
   ]

@@ -4,7 +4,7 @@
     "rootDir": ".",
     "sourceMap": true,
     "declaration": false,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "importHelpers": true,
@@ -16,19 +16,18 @@
     "baseUrl": ".",
     "resolveJsonModule": true,
     "paths": {
-      "@flyxc/common": ["libs/common/src/index.ts"],
-      "@flyxc/common-node": ["libs/common-node/src/index.ts"],
-      "@flyxc/optimizer/*": ["libs/optimizer/src/*"],
-      "@flyxc/secrets": ["dist/libs/secrets/main.js"],
-      "@vaadin/dom": ["libs/vaadin-dom/src/index.ts"],
-      "@vaadin/nodom": ["libs/vaadin-nodom/src/index.ts"],
       "@windy/*": [
         "libs/windy-sounding/types/*",
         "libs/windy-sounding/types/client/*",
         "libs/windy-sounding/types/client/d.ts.files/*"
       ],
       "windy-sounding": ["libs/windy-sounding/src/index.ts"]
-    }
+    },
+    "strict": false,
+    "noUncheckedSideEffectImports": false,
+    "types": ["*"],
+    "esModuleInterop": false,
+    "ignoreDeprecations": "6.0"
   },
   "exclude": ["node_modules", "tmp"]
 }

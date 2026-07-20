@@ -1,0 +1,10 @@
+{
+  "name": "vaadin-dom",
+  "version": "0.0.1",
+  "type": "module",
+  "dependencies": {
+    "lit": "catalog:default",
+    "tslib": "catalog:default",
+    "vaadin-nodom": "workspace:*"
+  }
+}

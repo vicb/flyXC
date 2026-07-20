@@ -1,5 +1,4 @@
 /// <reference types='vitest' />
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import preact from '@preact/preset-vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import type { UserConfig } from 'vite';
@@ -7,21 +6,24 @@ import { defineConfig } from 'vite';
 
 import { certificatePEM, keyPEM } from './https';
 
-export default defineConfig(
-  ({ mode }): UserConfig => ({
-    root: __dirname,
-    cacheDir: '../../node_modules/.vite/libs/windy-sounding',
+export default defineConfig(({ mode }): UserConfig => {
+  const isConfigBuild = process.env.BUILD_PLUGIN_CONFIG === 'true';
 
-    plugins: [
-      svelte(),
-      nxViteTsPaths(),
-      preact({
-        prefreshEnabled: false,
-        babel: {
-          babelrc: true,
-        },
-      }),
-    ],
+  return {
+    root: __dirname,
+    cacheDir: './node_modules/.vite',
+
+    plugins: isConfigBuild
+      ? []
+      : [
+          svelte(),
+          preact({
+            prefreshEnabled: false,
+            babel: {
+              babelrc: true,
+            },
+          }),
+        ],
 
     server: {
       port: 9999,
@@ -29,9 +31,6 @@ export default defineConfig(
       https: {
         key: keyPEM,
         cert: certificatePEM,
-      },
-      fs: {
-        allow: ['../..'],
       },
     },
 
@@ -42,11 +41,12 @@ export default defineConfig(
         key: keyPEM,
         cert: certificatePEM,
       },
+      open: false,
     },
 
     // See: https://vitejs.dev/guide/build.html#library-mode
     build: {
-      outDir: '../../dist/libs/windy-sounding',
+      outDir: './dist',
       emptyOutDir: false,
       reportCompressedSize: true,
       target: 'esnext',
@@ -68,6 +68,11 @@ export default defineConfig(
               fileName: mode === 'production' ? 'plugin.min' : 'plugin',
               formats: ['es'],
             },
+      rolldownOptions: {
+        output: {
+          inlineDynamicImports: true,
+        },
+      },
     },
 
     define: {
@@ -83,9 +88,9 @@ export default defineConfig(
       include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
       reporters: ['default'],
       coverage: {
-        reportsDirectory: '../../coverage/libs/windy-sounding',
+        reportsDirectory: './coverage',
         provider: 'v8',
       },
     },
-  }),
-);
+  };
+});

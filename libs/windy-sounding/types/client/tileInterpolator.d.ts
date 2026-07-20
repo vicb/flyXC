@@ -12,19 +12,16 @@ import { DataTiler } from '@windy/DataTiler';
 import type { PixelInterpolationFun, CoordsInterpolationFun } from '@windy/interpolatorTypes';
 import type { DataTile } from './dataLoader';
 import type { ExtendedTileParams } from '@windy/DataTiler.d';
-import type { FullRenderParameters } from '@windy/Layer.d';
+import type { FullRenderParameters } from '@windy/interfaces';
 export declare class TileInterpolator extends DataTiler {
-  cb<T extends true | false>(
-    f1: CoordsInterpolationFun, // async interpolator does not use fakeFun with null return type
-    f2: PixelInterpolationFun | (() => null),
-    isAsync?: T & (true | false),
-  ): void;
-  /**
-   * Request to build interpolate function for purpose of picker & other stuff
-   * and since DataTiler is async, returns this function
-   * in a callback
-   */
-  createFun(this: this, cb: this['cb']): void;
-  tilesReady(dTiles: DataTile[][], mapParams: ExtendedTileParams, params: FullRenderParameters): void;
+    cb<T extends true | false>(f1: CoordsInterpolationFun, // async interpolator does not use fakeFun with null return type
+    f2: PixelInterpolationFun | (() => null), isAsync?: T & (true | false)): void;
+    /**
+     * Request to build interpolate function for purpose of picker & other stuff
+     * and since DataTiler is async, returns this function
+     * in a callback
+     */
+    createFun(this: this, cb: this['cb']): void;
+    tilesReady(dTiles: DataTile[][], mapParams: ExtendedTileParams, params: FullRenderParameters): void;
 }
 export declare const tileInterpolator: TileInterpolator;

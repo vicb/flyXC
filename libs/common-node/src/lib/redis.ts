@@ -1,13 +1,16 @@
-import type { ChainableCommander } from 'ioredis';
-import Redis from 'ioredis';
+import { createClient, type RedisClientType } from 'redis';
+
+export type RedisClient = RedisClientType<any, any, any, any>;
+export type RedisClientMultiCmd = ReturnType<RedisClient['multi']>;
 
 // lazily created client.
-let redis: Redis | undefined;
+let redis: RedisClient | undefined;
 
-export function getRedisClient(url: string): Redis {
+export function getRedisClient(url: string): RedisClient {
   if (!redis) {
-    const keyPrefix = process.env.NODE_ENV == 'development' ? 'dev:' : undefined;
-    redis = new Redis(url, { keyPrefix });
+    redis = createClient({ url });
+    redis.on('error', (err) => console.error('Redis Client Error', err));
+    redis.connect().catch((err) => console.error('Redis connection failed', err));
   }
   return redis;
 }
@@ -20,18 +23,21 @@ export function getRedisClient(url: string): Redis {
 // - each value is limited to maxLength chars,
 // - most recent list elements should be last (head is dropped first).
 export function pushListCap(
-  pipeline: ChainableCommander,
+  pipeline: RedisClientMultiCmd,
   key: string,
   list: Array<string | number>,
   capacity: number,
   maxLength = 400,
-): ChainableCommander {
+): RedisClientMultiCmd {
   const len = list.length;
   if (len == 0 || capacity <= 0) {
-    return;
+    return pipeline;
   }
   const elements = list.slice(-capacity);
   return pipeline
-    .lpush(key, ...elements.map((v) => v.toString().substring(0, maxLength)))
-    .ltrim(key, 0, Math.max(0, capacity - 1));
+    .lPush(
+      key,
+      elements.map((v) => v.toString().substring(0, maxLength)),
+    )
+    .lTrim(key, 0, Math.max(0, capacity - 1));
 }

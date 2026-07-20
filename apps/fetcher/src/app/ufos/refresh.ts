@@ -8,13 +8,13 @@ import {
   removeBeforeFromLiveTrack,
   simplifyLiveTrack,
 } from '@flyxc/common';
+import type { RedisClientMultiCmd } from '@flyxc/common-node';
 import { pushListCap } from '@flyxc/common-node';
-import type { ChainableCommander } from 'ioredis';
 
 import { AviantFetcher } from './aviant';
 import type { UfoFleetUpdates } from './ufo';
 
-export async function resfreshUfoFleets(pipeline: ChainableCommander, state: protos.FetcherState) {
+export async function resfreshUfoFleets(pipeline: RedisClientMultiCmd, state: protos.FetcherState) {
   const fetchers = [new AviantFetcher(state, pipeline)];
 
   const updatePromises = await Promise.allSettled(fetchers.map((f) => f.refresh(LIVE_FETCH_TIMEOUT_SEC)));

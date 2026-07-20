@@ -4,30 +4,38 @@ import type { Overlays } from '@windy/rootScope.d';
 import type { RGBNumValues } from '@windy/interpolatorTypes';
 import type { LoadedTranslations } from '@windy/types';
 export declare class CurrentOverlay<I extends Overlays = Overlays> extends Overlay<I> {
-  hidePickerElevation: boolean;
-  createPickerHTML(values: RGBNumValues, formatDir: DirectionFunction): string;
+    hidePickerElevation: boolean;
+    createPickerHTML(values: RGBNumValues, formatDir: DirectionFunction): string;
 }
 export declare class WaveOverlay<I extends Overlays = Overlays> extends Overlay<I> {
-  hidePickerElevation: boolean;
-  createPickerHTML(values: RGBNumValues, formatDir: DirectionFunction): string;
+    hidePickerElevation: boolean;
+    createPickerHTML(values: RGBNumValues, formatDir: DirectionFunction): string;
 }
 export declare class AwpOverlay<I extends Overlays = Overlays> extends Overlay<I> {
-  labels: {
-    [value: number]: keyof LoadedTranslations;
-  };
-  createPickerHTML(values: RGBNumValues): string;
+    labels: {
+        [value: number]: keyof LoadedTranslations;
+    };
+    createPickerHTML(values: RGBNumValues): string;
 }
 export declare class FwiOverlay<I extends Overlays = Overlays> extends Overlay<I> {
-  labels: {
-    [value: number]: keyof LoadedTranslations;
-  };
-  createPickerHTML(values: RGBNumValues): string;
+    labels: {
+        [value: number]: keyof LoadedTranslations;
+    };
+    createPickerHTML(values: RGBNumValues): string;
 }
 export declare class RainPtypeOverlay<I extends Overlays = Overlays> extends Overlay<I> {
-  hidePickerElevation: boolean;
-  createPickerHTML(values: RGBNumValues): string;
+    hidePickerElevation: boolean;
+    createPickerHTML(values: RGBNumValues): string;
 }
 export declare class CloudsOverlay<I extends Overlays = Overlays> extends Overlay<I> {
-  hidePickerElevation: boolean;
-  createPickerHTML(values: RGBNumValues): string;
+    hidePickerElevation: boolean;
+    createPickerHTML(values: RGBNumValues): string;
+}
+export declare class AqiOverlay<I extends Overlays = Overlays> extends Overlay<I> {
+    hidePickerElevation: boolean;
+    labels: {
+        [value: number]: keyof LoadedTranslations;
+    };
+    getAirQLabel(aqi: number): string;
+    createPickerHTML(values: RGBNumValues): string;
 }

@@ -4,25 +4,30 @@ import { Pixel, ExternalPluginIdent } from '@windy/types.d';
 import { PluginIdent } from '@windy/Plugin';
 
 export interface SingleClickParams extends LatLon {
-  x: Pixel;
-  y: Pixel;
-  source: 'singleclick';
+    x: Pixel;
+    y: Pixel;
+    source: 'singleclick';
 }
 
+type PoiKeys = `poi-${Pois | 'stations' | 'label'}`;
+
 type SingleclickPoiTypes = {
-  [key in `poi-${Pois | 'stations' | 'label'}`]: [HTMLElement];
+    [key in PoiKeys]: [HTMLElement];
 };
 
 export type SingleclickPluginTypes = {
-  [key in PluginIdent]: [SingleClickParams];
+    [key in Exclude<PluginIdent, PoiKeys>]: [SingleClickParams];
 };
 
 export type SingleclickEternalPluginTypes = {
-  [key in ExternalPluginIdent]: [SingleClickParams];
+    [key in ExternalPluginIdent]: [SingleClickParams];
 };
 
-export interface SingleclickTypes extends SingleclickPoiTypes, SingleclickPluginTypes, SingleclickEternalPluginTypes {
-  click: [SingleClickParams];
+export interface SingleclickTypes
+    extends SingleclickPoiTypes,
+        SingleclickPluginTypes,
+        SingleclickEternalPluginTypes {
+    click: [SingleClickParams];
 }
 
 export type ListeningPriority = 'high' | 'low';

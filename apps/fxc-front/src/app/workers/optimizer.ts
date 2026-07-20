@@ -1,5 +1,5 @@
-import type { ScoringRequest, ScoringResult } from '@flyxc/optimizer/lib/optimizer';
-import { getOptimizer } from '@flyxc/optimizer/lib/optimizer';
+import type { ScoringRequest, ScoringResult } from '@flyxc/optimizer/src/lib/optimizer';
+import { getOptimizer } from '@flyxc/optimizer/src/lib/optimizer';
 
 export interface Request {
   request: ScoringRequest;

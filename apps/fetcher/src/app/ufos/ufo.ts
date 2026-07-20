@@ -1,6 +1,6 @@
 import type { UfoFleetNames } from '@flyxc/common';
 import { LIVE_REFRESH_SEC, protos } from '@flyxc/common';
-import type { ChainableCommander } from 'ioredis';
+import type { RedisClientMultiCmd } from '@flyxc/common-node';
 
 // Updates for a tick of a tracker type (InReach, Spot, ...).
 export interface UfoFleetUpdates {
@@ -15,7 +15,7 @@ export interface UfoFleetUpdates {
 }
 
 export class UfoFleetFetcher {
-  constructor(protected state: protos.FetcherState, protected pipeline: ChainableCommander) {}
+  constructor(protected state: protos.FetcherState, protected pipeline: RedisClientMultiCmd) {}
 
   // Fetches the delta and update tracker properties:
   // - requests and errors,

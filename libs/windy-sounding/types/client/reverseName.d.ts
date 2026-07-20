@@ -1,16 +1,17 @@
 import type { ReverseResult } from '@windy/dataSpecifications.d';
 import type { LatLon } from '@windy/interfaces.d';
+import type { ISOCountryCode } from '@windy/types';
 export interface ReverseHttpPayload<IncludeIds extends boolean = false> {
-  city?: string;
-  country?: string;
-  country_code?: string;
-  county?: string;
-  district?: string;
-  locality?: string;
-  state?: string;
-  suburb?: string;
-  island?: string;
-  ids: IncludeIds extends true ? ReverseHttpPayload : never;
+    city?: string;
+    country?: string;
+    country_code?: ISOCountryCode;
+    county?: string;
+    district?: string;
+    locality?: string;
+    state?: string;
+    suburb?: string;
+    island?: string;
+    ids: IncludeIds extends true ? ReverseHttpPayload : never;
 }
 /**
  * Returns reverse data for given lat,lon

@@ -3,12 +3,6 @@
  */
 import type { HttpOptions, HttpPayload } from './d.ts.files/http.d';
 /**
- * Type of the string, that will be added to the header in Accept line to increase stealing protection a little bit
- *
- * Target mobile: Use legacy header format until mobile apps start sending correct origin to pass CORS check on the server
- */
-export declare const acceptHeader: string;
-/**
  * Enhances URL with server, tokens and auth counter
  */
 export declare const getURL: (url: string) => string;

@@ -3,8 +3,7 @@
 
 import type { protos, TrackerNames } from '@flyxc/common';
 import { findIndexes, Keys, removeBeforeFromLiveTrack, validateMeshBirAccount } from '@flyxc/common';
-import type { MeshBirMessage } from '@flyxc/common-node';
-import type { ChainableCommander, Redis } from 'ioredis';
+import type { MeshBirMessage, RedisClient, RedisClientMultiCmd } from '@flyxc/common-node';
 
 import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
@@ -17,7 +16,7 @@ const KEEP_HISTORY_MIN = 20;
 const MESSAGE_AFFINITY_MIN = 10;
 
 export class MeshBirFetcher extends TrackerFetcher {
-  constructor(state: protos.FetcherState, pipeline: ChainableCommander, protected redis: Redis) {
+  constructor(state: protos.FetcherState, pipeline: RedisClientMultiCmd, protected redis: RedisClient) {
     super(state, pipeline);
   }
 
@@ -146,13 +145,13 @@ export function parse(
 }
 
 // Returns and empty the message queue.
-async function flushMessageQueue(redis: Redis): Promise<MeshBirMessage[]> {
+async function flushMessageQueue(redis: RedisClient): Promise<MeshBirMessage[]> {
   try {
-    const [[_, messages]] = await redis
+    const [messages] = await redis
       .multi()
-      .lrange(Keys.meshBirMsgQueue, 0, -1)
-      .ltrim(Keys.meshBirMsgQueue, 1, 0)
-      .exec();
+      .lRange(Keys.meshBirMsgQueue, 0, -1)
+      .lTrim(Keys.meshBirMsgQueue, 1, 0)
+      .execTyped(true);
 
     // Return older messages first
     return (messages as string[])

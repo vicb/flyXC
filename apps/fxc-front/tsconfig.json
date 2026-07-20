@@ -4,9 +4,9 @@
   "compilerOptions": {
     "target": "ES2022",
     "useDefineForClassFields": false,
-    "module": "ES2020",
+    "module": "esnext",
     "lib": ["ES2022", "DOM", "WebWorker"],
-    "moduleResolution": "Bundler",
+    "moduleResolution": "bundler",
     "strict": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -16,9 +16,11 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "skipLibCheck": true,
-    "types": ["vite/client", "vite-plugin-pwa/vanillajs", "vite-plugin-pwa/info"]
+    "types": ["vite/client", "vite-plugin-pwa/vanillajs", "vite-plugin-pwa/info"],
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src"],
+  "exclude": ["node_modules", "../../node_modules"],
   "references": [
     {
       "path": "./tsconfig.app.json"

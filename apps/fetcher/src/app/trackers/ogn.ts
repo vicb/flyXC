@@ -4,7 +4,7 @@
 
 import type { protos, TrackerNames } from '@flyxc/common';
 import { validateOgnAccount } from '@flyxc/common';
-import type { ChainableCommander } from 'ioredis';
+import type { RedisClientMultiCmd } from '@flyxc/common-node';
 
 import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
@@ -17,7 +17,7 @@ import { TrackerFetcher } from './tracker';
 let ognPusher: OgnPusher | undefined;
 
 export class OgnFetcher extends TrackerFetcher {
-  constructor(protected client: OgnClient, state: protos.FetcherState, pipeline: ChainableCommander) {
+  constructor(protected client: OgnClient, state: protos.FetcherState, pipeline: RedisClientMultiCmd) {
     super(state, pipeline);
     if (ognPusher == null) {
       ognPusher = new OgnPusher(this.client, this.state);

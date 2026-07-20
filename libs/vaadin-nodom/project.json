@@ -4,6 +4,16 @@
   "sourceRoot": "libs/vaadin-nodom/src",
   "projectType": "library",
   "tags": [],
-  "// targets": "to see all targets run: nx show project vaadin-nodom --web",
-  "targets": {}
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "libs/vaadin-nodom/dist",
+        "main": "libs/vaadin-nodom/index.ts",
+        "generateExportsField": true,
+        "tsConfig": "libs/vaadin-nodom/tsconfig.lib.json"
+      }
+    }
+  }
 }

@@ -1,5 +1,5 @@
 import type { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
-import { findClosestFix, pixelCoordinates } from '@flyxc/common';
+import { findClosestFix, getPixelCoordinates } from '@flyxc/common';
 import * as gMapLoader from '@googlemaps/js-api-loader';
 import type { PropertyValues, TemplateResult } from 'lit';
 import { html, LitElement, svg } from 'lit';
@@ -129,12 +129,12 @@ export class MapElement extends connect(store)(LitElement) {
         this.lockPanBefore = now + 50;
         const zoom = this.map.getZoom() as number;
         const currentPosition = sel.getTrackLatLonAlt(store.getState())(this.timeSec) as LatLonAlt;
-        const { x, y } = pixelCoordinates(currentPosition, zoom, 256).world;
+        const { x, y } = getPixelCoordinates(currentPosition, zoom, 256).world;
         const bounds = this.map.getBounds() as google.maps.LatLngBounds;
         const sw = bounds.getSouthWest();
-        const { x: minX, y: maxY } = pixelCoordinates({ lat: sw.lat(), lon: sw.lng() }, zoom, 256).world;
+        const { x: minX, y: maxY } = getPixelCoordinates({ lat: sw.lat(), lon: sw.lng() }, zoom, 256).world;
         const ne = bounds.getNorthEast();
-        const { x: maxX, y: minY } = pixelCoordinates({ lat: ne.lat(), lon: ne.lng() }, zoom, 256).world;
+        const { x: maxX, y: minY } = getPixelCoordinates({ lat: ne.lat(), lon: ne.lng() }, zoom, 256).world;
 
         if (x - minX < 100 || y - minY < 100 || maxX - x < 100 || maxY - y < 100) {
           this.map.panTo({ lat: currentPosition.lat, lng: currentPosition.lon });

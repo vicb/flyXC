@@ -1,6 +1,5 @@
+import feed from './fixtures/inreach-feed.kml?raw';
 import { parse } from './inreach';
-
-const feed = require('./fixtures/inreach-feed.kml');
 
 describe('Parse kml feed', () => {
   it('Should parse a valid feed', () => {
@@ -88,6 +87,6 @@ describe('Parse kml feed', () => {
   });
 
   it('should throw on invalid feed', () => {
-    expect(() => parse('<')).toThrowError(/^Invalid InReach feed \(\[xmldom error\]/);
+    expect(() => parse('<')).toThrow(/^Invalid InReach feed \(\[xmldom error\]/);
   });
 });

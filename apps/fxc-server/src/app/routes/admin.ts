@@ -2,11 +2,12 @@ import zlib from 'node:zlib';
 
 import csurf from '@dr.pogodin/csurf';
 import { AccountFormModel, Keys, trackerNames, ufoFleetNames } from '@flyxc/common';
+import type { RedisClient } from '@flyxc/common-node';
 import { retrieveLiveTrackById, retrieveRecentTracks, TRACK_TABLE } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import type { NextFunction, Request, Response } from 'express';
 import { Router } from 'express';
-import type { Redis } from 'ioredis';
+import { RESP_TYPES } from 'redis';
 
 import { createOrUpdateLiveTrack } from './live-track';
 import { isAdmin } from './session';
@@ -14,7 +15,7 @@ import { isAdmin } from './session';
 // Store the token in the session.
 const csrfProtection = csurf();
 
-export function getAdminRouter(redis: Redis, datastore: Datastore): Router {
+export function getAdminRouter(redis: RedisClient, datastore: Datastore): Router {
   const router = Router();
 
   // Restrict routes to admin users.
@@ -34,7 +35,10 @@ export function getAdminRouter(redis: Redis, datastore: Datastore): Router {
     res.set('Cache-Control', 'no-store');
 
     try {
-      const state = await redis.getBuffer(Keys.fetcherStateBrotli);
+      const bufferRedis = redis.withTypeMapping({
+        [RESP_TYPES.BLOB_STRING]: Buffer,
+      });
+      const state = await bufferRedis.get(Keys.fetcherStateBrotli);
       if (state) {
         return res.send(zlib.brotliDecompressSync(state));
       }
@@ -49,11 +53,11 @@ export function getAdminRouter(redis: Redis, datastore: Datastore): Router {
     switch (req.params.cmd) {
       case Keys.fetcherCmdCaptureState:
         await redis.del(Keys.fetcherStateBrotli);
-        await redis.set(Keys.fetcherCmdCaptureState, 'admin', 'EX', 3 * 60);
+        await redis.set(Keys.fetcherCmdCaptureState, 'admin', { EX: 3 * 60 });
         break;
       case Keys.fetcherCmdSyncFull:
       case Keys.fetcherCmdExportFile:
-        await redis.set(req.params.cmd, 'admin', 'EX', 3 * 60);
+        await redis.set(req.params.cmd, 'admin', { EX: 3 * 60 });
         break;
       case Keys.fetcherCmdSyncIncCount:
         await redis.incr(Keys.fetcherCmdSyncIncCount);
@@ -118,7 +122,7 @@ export function getAdminRouter(redis: Redis, datastore: Datastore): Router {
 }
 
 // Returns all the values needed for the dashboard (from REDIS).
-async function getDashboardValues(redis: Redis, datastore: Datastore): Promise<unknown> {
+async function getDashboardValues(redis: RedisClient, datastore: Datastore): Promise<unknown> {
   const query = datastore.createQuery(TRACK_TABLE);
   const countQuery = datastore.createAggregationQuery(query).count('numTracks');
   const [[countEntity]]: any = await datastore.runAggregationQuery(countQuery);
@@ -190,23 +194,23 @@ async function getDashboardValues(redis: Redis, datastore: Datastore): Promise<u
     typeByKey[Keys.trackerFetchDuration.replace('{name}', name)] = 'L';
   }
 
-  const pipeline = redis.pipeline();
+  const pipeline = redis.multi();
 
   for (const [key, cmd] of Object.entries(typeByKey)) {
     if (cmd === 'S') {
       pipeline.get(key);
     }
     if (cmd === 'L') {
-      pipeline.lrange(key, 0, -1);
+      pipeline.lRange(key, 0, -1);
     }
   }
 
-  const result = await pipeline.exec();
+  const result = await pipeline.execTyped(true);
 
   const values: { [key: string]: string | string[] } = {};
 
   Object.keys(typeByKey).forEach((key, i) => {
-    values[key] = result![i][1] as string | string[];
+    values[key] = result![i] as string | string[];
   });
 
   return values;

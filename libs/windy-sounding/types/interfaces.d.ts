@@ -1,46 +1,52 @@
 /**
  * Main Windy interfaces
  */
-import { Weekday } from '@windy/Calendar.d';
-import { ExtendedTileParams } from '@windy/DataTiler.d';
+import { Weekday } from '@windy/Calendar';
 import { FavId } from '@windy/favs';
-import { FullRenderParameters } from '@windy/Layer.d';
-import { Particles } from '@windy/Particles';
-import { PluginsOpenParams, PluginOpenEventSource, PluginsQsParams } from '@windy/plugin-params.d';
+import { Layers } from '@windy/Layer';
+import { PluginOpenEventSource, PluginsOpenParams, PluginsQsParams } from '@windy/plugin-params.d';
 import { Plugins } from '@windy/plugins.d';
+import { DataQuality } from '@windy/Product';
 import { Isolines, Levels, Overlays, PointProducts, Products } from '@windy/rootScope.d';
 import {
-  BatteryPreferences,
-  CapAlertInfo,
-  CapAlertSeverity,
-  CapAlertType,
-  DetailDisplayType,
-  DetailRows,
-  Directions,
-  GoogleServicesPreferences,
-  GpsPreferences,
-  ISODateString,
-  LocationPreferences,
-  MeteogramLayers,
-  MeteogramLevels,
-  NotificationPreferences,
-  NumOrNull,
-  NumValue,
-  Path,
-  Pixel,
-  Platform,
-  Timestamp,
-  WidgetNotificationPreferences,
-  WidgetType,
-  YearMonthDay,
-  Hours,
-  Minutes,
-  SubTier,
-  CustomAppIcon,
+    BatteryPreferences,
+    CapAlertInfo,
+    CapAlertSeverity,
+    CapAlertType,
+    CustomAppIcon,
+    DetailDisplayType,
+    DetailRows,
+    Directions,
+    GoogleServicesPreferences,
+    GpsPreferences,
+    Hours,
+    ISODateString,
+    ISOCountryCode,
+    LocationPreferences,
+    MeteogramLayers,
+    MeteogramLevels,
+    Minutes,
+    NotificationPreferences,
+    NumOrNull,
+    NumValue,
+    ParticlesIdent,
+    Path,
+    PatternType,
+    Pixel,
+    Platform,
+    RenderChannels,
+    SubTier,
+    Timestamp,
+    TransformFunction,
+    WidgetNotificationPreferences,
+    WidgetType,
+    YearMonthDay,
+    type SemVersion,
 } from '@windy/types.d';
+import type { LatLng, Marker, PaddingOptions, RequireAtLeastOne } from '@leafletGl';
 
 export interface ExportedObj {
-  default?: unknown;
+    default?: unknown;
 }
 
 /**
@@ -51,33 +57,33 @@ export interface ExportedObj {
  * Although Leaflet uses `{ lat, lng }` we use `{ lat, lon }`.
  */
 export interface LatLon {
-  /**
-   * Latitude.
-   *
-   * While typed as number, due to some parsing, it can be string in some cases.
-   */
-  lat: number;
+    /**
+     * Latitude.
+     *
+     * While typed as number, due to some parsing, it can be string in some cases.
+     */
+    lat: number;
 
-  /**
-   * Longitude.
-   *
-   * While typed as number, due to some parsing, it can be string in some cases.
-   */
-  lon: number;
+    /**
+     * Longitude.
+     *
+     * While typed as number, due to some parsing, it can be string in some cases.
+     */
+    lon: number;
 }
 
 export interface Coords extends LatLon {
-  zoom: number;
+    zoom: number;
 }
 
 export interface PickerCoords extends LatLon {
-  zoom?: number;
-  noEmit?: boolean;
+    zoom?: number;
+    noEmit?: boolean;
 }
 
 export interface BcastHistory {
-  ts: Timestamp;
-  txt: string;
+    ts: Timestamp;
+    txt: string;
 }
 
 /**
@@ -86,540 +92,548 @@ export interface BcastHistory {
  * Represents information about user's location.
  */
 export interface GeolocationInfo extends LatLon {
-  /**
-   * Which source was used to get the last location
-   */
-  source: 'fallback' | 'gps' | 'ip' | 'meta' | 'api' | 'last';
+    /**
+     * Which source was used to get the last location
+     */
+    source: 'fallback' | 'gps' | 'ip' | 'meta' | 'api' | 'last';
 
-  /**
-   * Recommended map zoom level based on precision of the location.
-   *
-   * Higher precision means higher zoom level, we can offer to the user.
-   */
-  zoom?: number;
+    /**
+     * Recommended map zoom level based on precision of the location.
+     *
+     * Higher precision means higher zoom level, we can offer to the user.
+     */
+    zoom?: number;
 
-  /**
-   * Optional lowercase 2 letter ISO country code
-   */
-  cc?: string;
+    /**
+     * Optional lowercase 2 letter ISO country code
+     */
+    cc?: ISOCountryCode;
 
-  /**
-   * Optional name of the place
-   */
-  name?: string;
+    /**
+     * Optional name of the place
+     */
+    name?: string;
 
-  /**
-   * Time of the last update of location info
-   */
-  ts: Timestamp;
+    /**
+     * Time of the last update of location info
+     */
+    ts: Timestamp;
 }
 
 /**
  * TODO: This is basically copied favorite
  */
 export interface HomeLocation extends LatLon {
-  id: FavId;
-  title: string;
+    id: FavId;
+    title: string;
 }
 
 export interface Alert {
-  /**
-   * Is alert temporarily disabled (true) or not (false)
-   */
-  suspended: boolean;
+    /**
+     * Is alert temporarily disabled (true) or not (false)
+     */
+    suspended: boolean;
 
-  /**
-   * If email alerts are active, address where to send an alert
-   */
-  email?: string;
+    /**
+     * If email alerts are active, address where to send an alert
+     */
+    email?: string;
 
-  /**
-   * Since client v29 we moved to Capacitor and new backend notification pusher had to be used.
-   * This is filled by client to recognize which pusher should be used.
-   */
-  version?: number;
+    /**
+     * Since client v29 we moved to Capacitor and new backend notification pusher had to be used.
+     * This is filled by client to recognize which pusher should be used.
+     */
+    version?: number;
 
-  /**
-   * Wind conditions for the alert
-   */
-  wind: {
-    active: boolean;
-    min: number;
-    max: number;
-    directions: Directions[];
-  };
+    /**
+     * Wind conditions for the alert
+     */
+    wind: {
+        active: boolean;
+        min: number;
+        max: number;
+        directions: Directions[];
+    };
 
-  /**
-   * Swell conditions for the alert
-   */
-  swell: Alert['wind']; // same as wind
+    /**
+     * Swell conditions for the alert
+     */
+    swell: Alert['wind']; // same as wind
 
-  /**
-   * Snow conditions for the alert
-   */
-  snow: {
-    active: boolean;
-    min: number;
-    max: number;
-  };
+    /**
+     * Snow conditions for the alert
+     */
+    snow: {
+        active: boolean;
+        min: number;
+        max: number;
+    };
 
-  /**
-   * Rain conditions for the alert.
-   * WARNING: This is the only option which is missing for some items in DB
-   */
-  rain: {
-    active: boolean;
-    min: number;
-    max: number;
-    hours: 3 | 6 | 12 | 24 | 48;
-  };
+    /**
+     * Rain conditions for the alert.
+     * WARNING: This is the only option which is missing for some items in DB
+     */
+    rain: {
+        active: boolean;
+        min: number;
+        max: number;
+        hours: 3 | 6 | 12 | 24 | 48;
+    };
 
-  /**
-   * Temperature conditions for the alert
-   */
-  temp: {
-    active: boolean;
-    min: number;
-    max: number;
-    weather: ('OVC' | 'BKN' | 'FEW' | 'SKC')[];
-  };
+    /**
+     * Temperature conditions for the alert
+     */
+    temp: {
+        active: boolean;
+        min: number;
+        max: number;
+        weather: ('OVC' | 'BKN' | 'FEW' | 'SKC')[];
+    };
 
-  /**
-   * Time and terms conditions for the alert
-   */
-  time: {
-    active: boolean;
-    occurence: number;
-    days: ('mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun')[];
-    hours: ('00' | '03' | '06' | '09' | '12' | '15' | '18' | '21')[];
-  };
+    /**
+     * Time and terms conditions for the alert
+     */
+    time: {
+        active: boolean;
+        occurence: number;
+        days: ('mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun')[];
+        hours: ('00' | '03' | '06' | '09' | '12' | '15' | '18' | '21')[];
+    };
 
-  /**
-   * Model conditions for the alert
-   * WARNING: This had been disabled in favor of ECMWF, but some old alerts still use GFS. Backend needs this value so it is presented in all alerts.
-   */
-  model: {
-    active: boolean;
-    model: 'ecmwf' | 'gfs';
-  };
+    /**
+     * Model conditions for the alert
+     * WARNING: This had been disabled in favor of ECMWF, but some old alerts still use GFS. Backend needs this value so it is presented in all alerts.
+     */
+    model: {
+        active: boolean;
+        model: 'ecmwf' | 'gfs';
+    };
 
-  /**
-   * Which lang shoud be used for the alert (en is default)
-   */
-  lang?: string;
+    /**
+     * Which lang shoud be used for the alert (en is default)
+     */
+    lang?: string;
 
-  /**
-   * Time zone offset of the user. It is used to send the alert in the midday
-   */
-  userTZoffset?: number;
+    /**
+     * Time zone offset of the user. It is used to send the alert in the midday
+     */
+    userTZoffset?: number;
 
-  /**
-   * Which metrics shoud be used for the alert
-   */
-  metrics?: {
-    wind: string; // TODO - improve with correct types after metrics refactor
-    temp: string; // TODO - improve with correct types after metrics refactor
-    waves: string; // TODO - improve with correct types after metrics refactor
-    rain: string; // TODO - improve with correct types after metrics refactor
-    snow: string; // TODO - improve with correct types after metrics refactor
-  };
+    /**
+     * Which metrics shoud be used for the alert
+     */
+    metrics?: {
+        wind: string; // TODO - improve with correct types after metrics refactor
+        temp: string; // TODO - improve with correct types after metrics refactor
+        waves: string; // TODO - improve with correct types after metrics refactor
+        rain: string; // TODO - improve with correct types after metrics refactor
+        snow: string; // TODO - improve with correct types after metrics refactor
+    };
 
-  // TODO - check if these properties really exist in DB or are added in client
-  tzName?: string;
-  utcOffset?: number;
+    // TODO - check if these properties really exist in DB or are added in client
+    tzName?: string;
+    utcOffset?: number;
 }
 
 export interface AlertProps {
-  /**
-   * Timestamps when the alert is active
-   */
-  timestamps: Timestamp[];
+    /**
+     * Timestamps when the alert is active
+     */
+    timestamps: Timestamp[];
 
-  /**
-   * Timestamp where the state of the alert has been checked on server last time
-   */
-  checked: Timestamp;
+    /**
+     * Timestamp where the state of the alert has been checked on server last time
+     */
+    checked: Timestamp;
 
-  // TODO - it seems it is not use anywhere, remove?
-  seen: number;
+    // TODO - it seems it is not use anywhere, remove?
+    seen: number;
 
-  /** Whether alert is active (true) or not (false) */
-  triggered: boolean;
+    /** Whether alert is active (true) or not (false) */
+    triggered: boolean;
 
-  /** Weather alert is temporarily disabled (true) or not (false) */
-  suspended?: boolean;
+    /** Weather alert is temporarily disabled (true) or not (false) */
+    suspended?: boolean;
 }
 
 export interface WeatherParameters {
-  acRange: Timestamp;
-  overlay: Overlays;
-  level: Levels;
-  isolinesType: Isolines;
-  isolinesOn: boolean;
-  path: Path;
-  product: Products;
+    acRange: Hours;
+    overlay: Overlays;
+    level: Levels;
+    isolinesType: Isolines;
+    isolinesOn: boolean;
+    product: Products;
 }
 
 export interface InputTarget extends EventTarget {
-  value: string;
+    value: string;
 }
 
 export interface HTMLInputElementKeyEvent extends KeyboardEvent {
-  target: InputTarget;
+    target: InputTarget;
 }
 
 /**
  * Last device info sent to backend for purpose of pushNotifications
  */
 export interface LastSentDevice {
-  deviceID: string;
-  platform: string;
-  target: string;
-  version: string;
-  subscription: SubTier;
-  cc: string;
-  deactivated?: boolean;
-  updated?: number;
-  screen?: {
-    width: number;
-    height: number;
-    devicePixelRatio: number;
-  };
-  registrationHash?: string;
-  notifPluginVersion?: 1 | 2;
+    deviceID: string;
+    platform: string;
+    target: string;
+    version: SemVersion;
+    subscription: SubTier;
+    cc: ISOCountryCode | 'xx';
+    deactivated?: boolean;
+    updated?: number;
+    screen?: {
+        width: number;
+        height: number;
+        devicePixelRatio: number;
+    };
+    registrationHash?: string;
+    notifPluginVersion?: 1 | 2;
 }
 
 export interface Bounds {
-  west: number;
-  east: number;
-  north: number;
-  south: number;
+    west: number;
+    east: number;
+    north: number;
+    south: number;
 }
 
 /**
  * Leaflet's tilePoint
  */
 export interface TilePoint {
-  x: number;
-  y: number;
-  z: number;
+    x: number;
+    y: number;
+    z: number;
+}
+
+/**
+ * Timezone information as received from backend
+ */
+export interface TZinfo {
+    /**
+     * Time zone abbreviation (for instance CEST)
+     */
+    TZabbrev: string;
+
+    /**
+     * Time zone name (for instance 'Europe/Luxembourg)
+     */
+    TZname: string;
+
+    /**
+     * TZ offset in hours
+     */
+    TZoffset: Hours;
+
+    /**
+     * TZ offset nicely formatted
+     */
+    TZoffsetFormatted: string;
+
+    /**
+     * TZ offset in minutes
+     */
+    TZoffsetMin: Minutes;
+
+    /**
+     * Type of TZ type t..terrestrial, n..nautical
+     */
+    TZtype: 't' | 'n';
 }
 
 /**
  * Celestial object as received from backend
  */
-export interface Celestial {
-  /**
-   * Time zone abbreviation (for instance CEST)
-   */
-  TZabbrev: string;
+export interface Celestial extends TZinfo {
+    /**
+     * Determines probability if the location is at sea or not as number from 1..0
+     * Unfortunately the number is inverted, so 1 means land, and 0 means sea
+     */
+    atSea: number;
 
-  /**
-   * Time zone name (for instance 'Europe/Luxembourg)
-   */
-  TZname: string;
+    /**
+     * Formatted time of dusk
+     */
+    dusk: `${number}:${number}`;
+    duskTs: Timestamp;
 
-  /**
-   * TZ offset in hours
-   */
-  TZoffset: Hours;
+    /**
+     * Current time is night or not
+     */
+    isDay: boolean;
 
-  /**
-   * TZ offset nicely formatted
-   */
-  TZoffsetFormatted: string;
+    /**
+     * When the night starts
+     */
+    night: ISODateString;
 
-  /**
-   * TZ offset in minutes
-   */
-  TZoffsetMin: Minutes;
+    /**
+     * Monet when, the data object was created (for check of being obsolete)
+     */
+    nowObserved: ISODateString;
 
-  /**
-   * Type of TZ type t..terrestrial, n..nautical
-   */
-  TZtype: 't' | 'n';
-
-  /**
-   * Determines probability if the location is at sea or not as number from 1..0
-   * Unfortunately the number is inverted, so 1 means land, and 0 means sea
-   */
-  atSea: number;
-
-  /**
-   * Formatted time of dusk
-   */
-  dusk: `${number}:${number}`;
-  duskTs: Timestamp;
-
-  /**
-   * Current time is night or not
-   */
-  isDay: boolean;
-
-  /**
-   * When the night starts
-   */
-  night: ISODateString;
-
-  /**
-   * Monet when, the data object was created (for check of being obsolete)
-   */
-  nowObserved: ISODateString;
-
-  sunrise: `${number}:${number}`;
-  sunriseTs: Timestamp;
-  sunset: `${number}:${number}`;
-  sunsetTs: Timestamp;
+    sunrise: `${number}:${number}`;
+    sunriseTs: Timestamp;
+    sunset: `${number}:${number}`;
+    sunsetTs: Timestamp;
 }
+
+export type CelestialWithoutTimezone = Pick<
+    Celestial,
+    'night' | 'sunsetTs' | 'sunriseTs' | 'duskTs' | 'isDay' | 'atSea'
+>;
 
 /**
  * Summary day as received from backend
  */
 export interface CalendarSummaryDay {
-  /**
-   * Identifier of the day
-   */
-  date: YearMonthDay;
+    /**
+     * Identifier of the day
+     */
+    date: YearMonthDay;
 
-  /**
-   * Day of the month (starting with 1)
-   */
-  day: number;
+    /**
+     * Day of the month (starting with 1)
+     */
+    day: number;
 
-  /**
-   * Timestamp of midnight when the segment starts
-   */
-  timestamp: Timestamp;
+    /**
+     * Timestamp of midnight when the segment starts
+     */
+    timestamp: Timestamp;
 
-  /**
-   * Translation string for weekday
-   */
-  weekday: Weekday;
+    /**
+     * Translation string for weekday
+     */
+    weekday: Weekday;
 }
 
 /**
  * Summary day as received from backend
  */
 export interface SummaryDay extends CalendarSummaryDay {
-  /**
-   * Weather icon identifier
-   */
-  icon: number;
+    /**
+     * Weather icon identifier
+     */
+    icon: number;
 
-  /**
-   * At which index, in the data table, the day starts
-   */
-  index: number;
+    /**
+     * At which index, in the data table, the day starts
+     */
+    index: number;
 
-  /**
-   * How many segments, in the data table, the forecast has
-   */
-  segments: number;
+    /**
+     * How many segments, in the data table, the forecast has
+     */
+    segments: number;
 
-  /**
-   * Max temp in K
-   */
-  tempMax: NumValue;
+    /**
+     * Max temp in K
+     */
+    tempMax: NumValue;
 
-  /**
-   * Min temp in K
-   */
-  tempMin: NumValue;
+    /**
+     * Min temp in K
+     */
+    tempMin: NumValue;
 
-  /**
-   * Mean/Average Wind force
-   */
-  wind: NumValue;
+    /**
+     * Mean/Average Wind force
+     */
+    wind: NumValue;
 
-  /**
-   * Prevailing wind direction
-   */
-  windDir: NumValue;
+    /**
+     * Prevailing wind direction
+     */
+    windDir: NumValue;
 
-  /**
-   * CAP Alert warning identifier as two letter designator
-   */
-  warning?: string;
+    /**
+     * CAP Alert warning identifier as two letter designator
+     */
+    warning?: string;
 
-  /**
-   * Indicates that these data are fake, just for purpose to
-   * show non-premium users how the extended fcst looks like
-   */
-  isFake?: boolean;
+    /**
+     * Indicates that these data are fake, just for purpose to
+     * show non-premium users how the extended fcst looks like
+     */
+    isFake?: boolean;
 }
 
 /**
  * Weather data object as received from backend (compacted version)
  */
 export interface SummaryDataHash {
-  /**
-   * Precip amount
-   */
-  mm: NumValue[];
+    /**
+     * Precip amount
+     */
+    mm: NumValue[];
 
-  /**
-   * Is the precipitation in a form fo snow?
-   */
-  snow: (1 | 0)[];
+    /**
+     * Is the precipitation in a form fo snow?
+     */
+    snow: (1 | 0)[];
 
-  /**
-   * Temp in K
-   */
-  temp: NumValue[];
+    /**
+     * Temp in K
+     */
+    temp: NumValue[];
 
-  /**
-   * Timestamp of beginning of segment
-   */
-  ts: Timestamp[];
+    /**
+     * Timestamp of beginning of segment
+     */
+    ts: Timestamp[];
 
-  /**
-   * Wind force
-   */
-  wind: NumValue[];
+    /**
+     * Wind force
+     */
+    wind: NumValue[];
 }
 
 export interface IsDay {
-  /**
-   * Is the segment day/night or sunrise/sunset as 0,1 or day/night ratio
-   */
-  isDay: (0 | 1 | number)[];
+    /**
+     * Is the segment day/night or sunrise/sunset as 0,1 or day/night ratio
+     */
+    isDay: (0 | 1 | number)[];
 }
 
 /**
  * Weather data object as received from backend (full version)
  */
-
 export interface DataHash extends SummaryDataHash, IsDay {
-  /**
-   * Day identifier
-   */
-  day: YearMonthDay[];
+    /**
+     * Day identifier
+     */
+    day: YearMonthDay[];
 
-  /**
-   * Feeling temperature
-   */
-  feelTemp?: NumValue[];
+    /**
+     * Feeling temperature
+     */
+    feelTemp?: NumValue[];
 
-  /**
-   * Wind gust
-   */
-  gust: NumValue[];
+    /**
+     * Wind gust
+     */
+    gust: NumValue[];
 
-  /**
-   * Local Time hour for given place in 24h format
-   */
-  hour: number[];
+    /**
+     * Local Time hour for given place in 24h format
+     */
+    hour: Hours[];
 
-  /**
-   * Weather icon identifier
-   */
-  icon: number[];
+    /**
+     * Weather icon identifier
+     */
+    icon: number[];
 
-  /**
-   * Moon phase icon identifier
-   */
-  moonPhase: number[];
+    /**
+     * Moon phase icon identifier
+     */
+    moonPhase: number[];
 
-  /**
-   * ?????
-   */
-  //precipitation: NumValue[];
+    /**
+     * ?????
+     */
+    //precipitation: NumValue[];
 
-  /**
-   * Surface air pressure
-   */
-  pressure: NumValue[];
+    /**
+     * Surface air pressure
+     */
+    pressure: NumValue[];
 
-  /**
-   * Relative humidity
-   */
-  rh: NumValue[];
+    /**
+     * Relative humidity
+     */
+    rh: NumValue[];
 
-  /**
-   * Is the forecasted precipitation rain?
-   */
-  rain: (0 | 1)[];
+    /**
+     * Is the forecasted precipitation rain?
+     */
+    rain: (0 | 1)[];
 
-  /**
-   * ????
-   */
-  //snowFraction: NumValue[];
+    /**
+     * ????
+     */
+    //snowFraction: NumValue[];
 
-  /**
-   * Amount of snow precipitation
-   */
-  snowPrecip: NumValue[];
+    /**
+     * Amount of snow precipitation
+     */
+    snowPrecip: NumValue[];
 
-  /**
-   * Amount of convective precipitation
-   */
-  convPrecip?: NumValue[];
+    /**
+     * Amount of convective precipitation
+     */
+    convPrecip?: NumValue[];
 
-  /**
-   * Weather code, that explains used weather icon
-   */
-  weathercode: string[];
+    /**
+     * Weather code, that explains used weather icon
+     */
+    weathercode: string[];
 
-  /**
-   * Wind direction
-   */
-  windDir: NumValue[];
+    /**
+     * Wind direction
+     */
+    windDir: NumValue[];
 
-  /**
-   * Dew point
-   */
-  dewPoint: NumValue[];
+    /**
+     * Dew point
+     */
+    dewPoint: NumValue[];
 
-  /**
-   * CAP warnings as a string /^[MSE][Type]/
-   * can be easilly typed later on
-   */
-  warnings?: string[];
+    /**
+     * CAP warnings as a string /^[MSE][Type]/
+     * can be easilly typed later on
+     */
+    warnings?: string[];
 
-  /**
-   * Cloud base
-   */
-  cbase?: NumValue[];
+    /**
+     * Cloud base
+     */
+    cbase?: NumValue[];
 
-  /**
-   * These properties are prosent, onoy in certail modelsin the sea or nearby of sea
-   */
-  swell?: NumValue[];
-  swellDir?: NumValue[];
-  swellPeriod?: NumValue[];
+    /**
+     * These properties are prosent, onoy in certail modelsin the sea or nearby of sea
+     */
+    swell?: NumValue[];
+    swellDir?: NumValue[];
+    swellPeriod?: NumValue[];
 
-  swell1?: NumValue[];
-  swell1Dir?: NumValue[];
-  swell1Period?: NumValue[];
+    swell1?: NumValue[];
+    swell1Dir?: NumValue[];
+    swell1Period?: NumValue[];
 
-  swell2?: NumValue[];
-  swell2Dir?: NumValue[];
-  swell2Period?: NumValue[];
+    swell2?: NumValue[];
+    swell2Dir?: NumValue[];
+    swell2Period?: NumValue[];
 
-  waves?: NumValue[];
-  wavesDir?: NumValue[];
-  wavesPeriod?: NumValue[];
+    waves?: NumValue[];
+    wavesDir?: NumValue[];
+    wavesPeriod?: NumValue[];
 
-  /**
-   * These properties are monkey patched to data table by detail plugin
-   * TODO: put in diff type
-   */
-  [key: `${string}/wind`]: NumValue[];
-  [key: `${string}/windDir`]: NumValue[];
-  [key: `${string}/gust`]: NumValue[];
+    /**
+     * These properties are monkey patched to data table by detail plugin
+     * TODO: put in diff type
+     */
+    [key: `${string}/wind`]: NumValue[];
+    [key: `${string}/windDir`]: NumValue[];
+    [key: `${string}/gust`]: NumValue[];
 
-  /**
-   * TODO This is ugly. Plugin station renames `mm` to `precip` property just to suit its rendering
-   */
-  precip?: NumValue[];
+    /**
+     * TODO This is ugly. Plugin station renames `mm` to `precip` property just to suit its rendering
+     */
+    precip?: NumValue[];
 
-  turbulence?: NumValue[];
-  icing?: NumValue[];
+    turbulence?: NumValue[];
+    icing?: NumValue[];
 
-  /**
-   * Indicates, that these data are fake, just for purpose to show non-premium users how the extended fcst looks like
-   */
-  isFake?: boolean[];
+    /**
+     * Indicates, that these data are fake, just for purpose to show non-premium users how the extended fcst looks like
+     */
+    isFake?: boolean[];
 }
 
 /**
@@ -631,130 +645,204 @@ export interface DataHash extends SummaryDataHash, IsDay {
  * PickDataHashPropsByType<string, false> even with `warnings`, because the could be undefined and undefined does not extend number[]
  */
 export type PickDataHashPropsByType<U, Strict = true> = Pick<
-  DataHash,
-  {
-    [P in keyof Required<DataHash>]: Strict extends true
-      ? DataHash[P] extends U
-        ? U extends DataHash[P]
-          ? P
-          : never
-        : never
-      : U extends DataHash[P]
-      ? P
-      : never;
-  }[keyof DataHash]
+    DataHash,
+    {
+        [P in keyof Required<DataHash>]: Strict extends true
+            ? DataHash[P] extends U
+                ? U extends DataHash[P]
+                    ? P
+                    : never
+                : never
+            : U extends DataHash[P]
+              ? P
+              : never;
+    }[keyof DataHash]
 >;
+
+export interface AirQDataHash extends IsDay {
+    /**
+     * Timestamp of beginning of segment
+     */
+    ts: Timestamp[];
+
+    /**
+     * Day identifier
+     */
+    day: YearMonthDay[];
+
+    /**
+     * Local Time hour for given place in 24h format
+     */
+    hour: Hours[];
+
+    /**
+     * CAMS airq properties
+     */
+    aqiUs: NumValue[];
+    /**
+     * Concentration of carbon monoxide (CO) in the air.
+     */
+    chemsCosc: NumValue[];
+    /**
+     * Concentration of dust particles (coarse particulate matter) in the air.
+     */
+    chemsDustsm: NumValue[];
+    /**
+     * Concentration of sulfur dioxide (SO2) in the air.
+     */
+    chemsSo2sm: NumValue[];
+    /**
+     * Ground-level ozone (O3) concentration.
+     */
+    go3: NumValue[];
+    /**
+     * Nitrogen dioxide (NO2) concentration.
+     */
+    no2: NumValue[];
+    /**
+     * Particulate matter with a diameter of 10 micrometers or less.
+     */
+    pm10: NumValue[];
+    /**
+     * Particulate matter with a diameter of 2.5 micrometers or less.
+     */
+    pm2p5: NumValue[];
+    /**
+     * Concentration of Alder pollen.
+     */
+    pollenAlder?: NumValue[];
+    /**
+     * Concentration of Birch pollen.
+     */
+    pollenBirch?: NumValue[];
+    /**
+     * Concentration of Grass pollen.
+     */
+    pollenGrass?: NumValue[];
+    /**
+     * Concentration of Mugwort pollen.
+     */
+    pollenMugwort?: NumValue[];
+    /**
+     * Concentration of Olive pollen.
+     */
+    pollenOlive?: NumValue[];
+    /**
+     * Concentration of Ragweed pollen.
+     */
+    pollenRagweed?: NumValue[];
+}
 
 /**
  * node-forecast header object
  */
 export interface NodeForecastHeader {
-  /**
-   * Quality of served data
-   */
-  cache: 'nearbyHit' | 'proximitiHit' | 'miss';
+    /**
+     * Quality of served data
+     */
+    cache: 'nearbyHit' | 'proximitiHit' | 'miss';
 
-  /**
-   * Elevation above sea level
-   */
-  elevation: number;
+    /**
+     * Elevation above sea level
+     */
+    elevation: number;
 
-  /**
-   * Height of something (it is possible, that value is monkey patched from weatherTableRender FIXME:)
-   */
-  height?: number;
+    /**
+     * Height of something (it is possible, that value is monkey patched from weatherTableRender FIXME:)
+     */
+    height?: number;
 
-  /**
-   * Data contain info about waves
-   */
-  hasWaves?: number;
+    /**
+     * Data contain info about waves
+     */
+    hasWaves?: number;
 
-  /**
-   * Number of available days in forecast
-   */
-  daysAvail: number;
+    /**
+     * Number of available days in forecast
+     */
+    daysAvail: number;
 
-  /**
-   * Served model
-   */
-  model: Products;
+    /**
+     * Served model
+     */
+    model: Products;
 
-  /**
-   * Ref time in format "2021-09-11"
-   */
-  refTime: YearMonthDay;
+    /**
+     * Ref time in format "2021-09-11"
+     */
+    refTime: YearMonthDay;
 
-  /**
-   * Ref time as timestamp
-   */
-  refTimeOrig: Timestamp;
+    /**
+     * Ref time as timestamp
+     */
+    refTimeOrig: Timestamp;
 
-  /**
-   * Hour model step
-   */
-  step: 1 | 3;
+    /**
+     * Hour model step
+     */
+    step: 1 | 3;
 
-  /**
-   * Update time of weather model
-   */
-  update: ISODateString;
+    /**
+     * Update time of weather model
+     */
+    update: ISODateString;
 
-  /**
-   * Update time of weather model
-   */
-  updateTs: Timestamp;
+    /**
+     * Update time of weather model
+     */
+    updateTs: Timestamp;
 
-  /**
-   * Some basic celestial stuff (why is it here???)
-   */
-  sunrise: Timestamp;
-  sunset: Timestamp;
-  tzName: string;
+    /**
+     * Some basic celestial stuff (why is it here???)
+     */
+    sunrise: Timestamp;
+    sunset: Timestamp;
+    tzName: string;
 
-  /**
-   * Resulted data table consist of two merged models together
-   */
-  merged: boolean;
+    /**
+     * Resulted data table consist of two merged models together
+     */
+    merged: boolean;
 
-  /**
-   * Which model was merged with previous
-   */
-  mergedModel: Products;
+    /**
+     * Which model was merged with previous
+     */
+    mergedModel: Products;
 
-  /**
-   * Human readable merged model name
-   */
-  mergedModelName: string;
+    /**
+     * Human readable merged model name
+     */
+    mergedModelName: string;
 
-  /**
-   * Ref time of merged model
-   */
-  mergedModelRefTime: ISODateString;
+    /**
+     * Ref time of merged model
+     */
+    mergedModelRefTime: ISODateString;
 
-  /**
-   * [DEPRECATED, use mergedModelStartTs instead] At which table index, merged model starts
-   */
-  mergedModelStart: number;
+    /**
+     * [DEPRECATED, use mergedModelStartTs instead] At which table index, merged model starts
+     */
+    mergedModelStart: number;
 
-  /**
-   * Timestamp where the merged model starts
-   */
-  mergedModelStartTs: number;
+    /**
+     * Timestamp where the merged model starts
+     */
+    mergedModelStartTs: number;
 
-  /**
-   * Elevation of model grid
-   */
-  modelElevation?: number;
+    /**
+     * Elevation of model grid
+     */
+    modelElevation?: number;
 
-  /**
-   * UTC offset in hours
-   */
-  utcOffset: number;
+    /**
+     * UTC offset in hours
+     */
+    utcOffset: number;
 
-  /**
-   * Surface sea temperature
-   */
-  sst?: number;
+    /**
+     * Surface sea temperature
+     */
+    sst?: number;
 }
 
 /**
@@ -762,430 +850,436 @@ export interface NodeForecastHeader {
  */
 
 export interface WeatherDataNow {
-  icon: number;
-  temp: NumValue;
-  wind: NumValue;
-  windDir: NumValue;
-  moonPhase: NumValue;
+    icon: number;
+    temp: NumValue;
+    wind: NumValue;
+    windDir: NumValue;
+    moonPhase: NumValue;
 }
 
 /**
  * Weather data or Summary Weather data JSON as received from node-forecast
  */
-export interface WeatherDataPayload<T extends DataHash | SummaryDataHash> {
-  header: NodeForecastHeader;
-  celestial: Celestial;
-  summary: Record<YearMonthDay, SummaryDay>;
-  data: T;
-  now?: T extends SummaryDataHash ? WeatherDataNow : never;
+export interface WeatherDataPayload<
+    T extends DataHash | SummaryDataHash | AirQDataHash = DataHash,
+> {
+    header: NodeForecastHeader;
+    celestial: Celestial;
+    summary: Record<YearMonthDay, SummaryDay>;
+    data: T;
+    now?: T extends SummaryDataHash ? WeatherDataNow : never;
 }
 
 export interface DetailExtendedLatLon extends LatLon {
-  /**
-   * Optional name of the location
-   */
-  name?: string;
+    /**
+     * Optional name of the location
+     */
+    name?: string;
 
-  /**
-   * id of city label that was was clicked on (if any)
-   */
-  cityLabelId?: string;
+    /**
+     * id of city label that was was clicked on (if any)
+     */
+    cityLabelId?: string;
 
-  /**
-   * id of surf spot that was clicked on (if any)
-   */
-  surfSpotId?: string;
+    /**
+     * id of surf spot that was clicked on (if any)
+     */
+    surfSpotId?: string;
 
-  /**
-   * id of pg spot that was clicked on (if any)
-   */
-  pgSpotId?: string;
+    /**
+     * id of pg spot that was clicked on (if any)
+     */
+    pgSpotId?: string;
 
-  /**
-   * id if tide station that was clicked on (if any)
-   */
-  tideStationId?: string;
+    /**
+     * id if tide station that was clicked on (if any)
+     */
+    tideStationId?: string;
 
-  /**
-   * Source, which led to opening the detail
-   */
-  source?: PluginOpenEventSource;
+    /**
+     * Source, which led to opening the detail
+     */
+    source?: PluginOpenEventSource;
 
-  /**
-   * Indicates, that the detail was just opened
-   */
-  externalOpen?: boolean;
+    /**
+     * Indicates, that the detail was just opened
+     */
+    externalOpen?: boolean;
 
-  /**
-   * Array of timestamps, that arrived from Alert notification, that should be shown
-   */
-  timestamps?: Timestamp[] | null;
+    /**
+     * Array of timestamps, that arrived from Alert notification, that should be shown
+     */
+    timestamps?: Timestamp[] | null;
 
-  /**
-   * Timestamp to which we should scroll detail
-   */
-  scrollToTimestamp?: Timestamp;
+    /**
+     * Timestamp to which we should scroll detail
+     */
+    scrollToTimestamp?: Timestamp;
 }
 
 export type WeatherTableRenderingOptions = {
-  /**
-   * Width of table element
-   */
-  tdWidth: number;
+    /**
+     * Width of table element
+     */
+    tdWidth: number;
 
-  /**
-   * Should we use 12h format for time?
-   */
-  is12hFormat?: boolean;
-} & Pick<DetailParams, 'display' | 'step' | 'rows' | 'days'>;
+    /**
+     * Should we use 12h format for time?
+     */
+    is12hFormat?: boolean;
+} & Pick<DetailParams, 'display' | 'step' | 'days'>;
 
 /**
  * Parameters used for displaying detail (point forecast)
  */
 export interface DetailParams extends DetailExtendedLatLon {
-  /**
-   * Optional name of the spot
-   */
-  name?: string;
+    /**
+     * Optional name of the spot
+     */
+    name?: string;
 
-  /**
-   * Type of display
-   */
-  display: DetailDisplayType;
+    /**
+     * Type of display
+     */
+    display: DetailDisplayType;
 
-  /**
-   * Should we display extended 10hours forecast?
-   */
-  extended: boolean;
+    /**
+     * Should we display extended 10hours forecast?
+     */
+    extended: boolean;
 
-  /**
-   * Required point product
-   */
-  model: Products;
+    /**
+     * Required point product
+     */
+    model: Products;
 
-  /**
-   * Required multiple point products
-   */
-  models?: Products[];
+    /**
+     * Required multiple point products
+     */
+    models?: Products[];
 
-  /**
-   * Always incrementing synchronization number, that enables
-   * to cancel async tasks, if we will have new version of params
-   * available
-   */
-  syncCounter: number;
+    /**
+     * Always incrementing synchronization number, that enables
+     * to cancel async tasks, if we will have new version of params
+     * available
+     */
+    syncCounter: number;
 
-  /**
-   * Which rows to render
-   */
-  rows: DetailRows[];
+    /**
+     * Which rows to render
+     */
+    rows: DetailRows[];
 
-  /**
-   * 1h or 3h step
-   */
-  step: 1 | 3;
+    /**
+     * 1h or 3h step
+     */
+    step: 1 | 3;
 
-  /**
-   * How many days to display
-   */
-  days: number;
+    /**
+     * How many days to display
+     */
+    days: number;
 }
 
 /**
  * Multiple weather models loaded by multiLoad.ts
  */
 export interface MultiLoadPayload {
-  model: PointProducts;
-  fcst: WeatherDataPayload<DataHash>;
+    model: PointProducts;
+    fcst: WeatherDataPayload<DataHash>;
 }
 
 export type MeteogramDataHash = {
-  [data in `${MeteogramLayers}-${MeteogramLevels}`]: NumValue[];
+    [data in `${MeteogramLayers}-${MeteogramLevels}`]: NumValue[];
 } & {
-  'gh-surface': null[];
-  hours: Timestamp[];
+    'gh-surface': null[];
+    hours: Timestamp[];
 };
 
 export interface MeteogramDataPayload {
-  header: NodeForecastHeader;
-  celestial: Celestial;
-  data: MeteogramDataHash;
-}
-
-/**
- * Particle animation parameters
- */
-export interface ExtendedRenderParams extends ExtendedTileParams, FullRenderParameters {
-  canvas: HTMLCanvasElement;
-
-  /**
-   * Actual instance of particles
-   */
-  partObj: Particles;
-
-  /**
-   * Pointer to dest table
-   */
-  vectors: Float32Array;
-
-  speed2pixel: number;
+    header: NodeForecastHeader;
+    celestial: Celestial;
+    data: MeteogramDataHash;
 }
 
 /**
  * How good are observations by this AD or WX station?
  */
 export interface ObservationInfo {
-  avgDelayMin: number;
-  avgFreqMin: number;
-  latestObs: ISODateString;
-  records: number;
+    avgDelayMin: number;
+    avgFreqMin: number;
+    latestObs: ISODateString;
+    records: number;
 }
 
 export interface ServiceGeoipResponse {
-  country: string;
-  region: `${number}`;
-  eu: '0' | '1';
-  timezone: string;
-  city: string;
-  ll: [number, number];
-  metro: number;
-  area: number;
-  ip: string;
-
-  /**
-   * @deprecated
-   */
-  hash: 'oiurouoweruouoiuou';
+    country: ISOCountryCode;
+    region: `${number}`;
+    eu: '0' | '1';
+    timezone: string;
+    city: string;
+    ll: [number, number];
+    metro: number;
+    area: number;
+    ip: string;
 }
 
 export interface BillingPluginMinimalProduct {
-  productId: string;
-  isSubscription: boolean;
+    productId: string;
+    isSubscription: boolean;
 }
 
 export interface BillingPlugin {
-  /** Retrieves a list of full product data from Apple/Google. This function must be called before making purchases. */
-  getProducts: (opts: { products: BillingPluginMinimalProduct[] }) => Promise<{
-    values: import('@plugins/_shared/subscription-services/subscription-services.d').IAPProduct[];
-  }>;
+    /** Retrieves a list of full product data from Apple/Google. This function must be called before making purchases. */
+    getProducts: (opts: { products: BillingPluginMinimalProduct[] }) => Promise<{
+        values: import('@plugins/_shared/subscription-services/subscription-services.d').IAPProduct[];
+    }>;
 
-  /** Buy the one-time product */
-  buy: (opts: {
-    productId: string;
-  }) => Promise<import('@plugins/_shared/subscription-services/subscription-services.d').IAPBuyResponse>;
+    /** Buy the one-time product */
+    buy: (opts: {
+        productId: string;
+    }) => Promise<
+        import('@plugins/_shared/subscription-services/subscription-services.d').IAPBuyResponse
+    >;
 
-  /** Buy the subscription */
-  subscribe: (opts: {
-    productId: string;
-    offerToken?: string;
-  }) => Promise<import('@plugins/_shared/subscription-services/subscription-services.d').IAPBuyResponse>;
+    /** Buy the subscription */
+    subscribe: (opts: {
+        productId: string;
+        offerToken?: string;
+    }) => Promise<
+        import('@plugins/_shared/subscription-services/subscription-services.d').IAPBuyResponse
+    >;
 
-  /**
-   * This function is only relevant to Android purchases. On Android, you must consume products that you want to let the user purchase multiple times.
-   * All 3 parameters are returned by the buy() or restorePurchases() functions.
-   */
-  consume: (opts: { purchaseToken: string; transactionId: string; productId: string }) => Promise<void>;
+    /**
+     * This function is only relevant to Android purchases. On Android, you must consume products that you want to let the user purchase multiple times.
+     * All 3 parameters are returned by the buy() or restorePurchases() functions.
+     */
+    consume: (opts: {
+        purchaseToken: string;
+        transactionId: string;
+        productId: string;
+    }) => Promise<void>;
 
-  restorePurchases: () => Promise<{
-    values: string;
-  }>;
+    restorePurchases: () => Promise<{
+        values: string;
+    }>;
 
-  /**
-   * On iOS, you can get the receipt at any moment by calling the getReceipt() function. Note that on iOS the receipt can contain multiple transactions. If successful, the promise returned by this function will resolve to a string with the receipt.
-   * On Android this function will always return an empty string since it's not needed for Android purchases.
-   */
-  getReceipt: () => Promise<string>;
+    /**
+     * On iOS, you can get the receipt at any moment by calling the getReceipt() function. Note that on iOS the receipt can contain multiple transactions. If successful, the promise returned by this function will resolve to a string with the receipt.
+     * On Android this function will always return an empty string since it's not needed for Android purchases.
+     */
+    getReceipt: () => Promise<string>;
 }
 
 export interface TimeLocal {
-  weekday: Weekday;
-  day: string;
-  month?: string;
-  year?: string;
-  /** '09' */
-  hour: string;
+    weekday: Weekday;
+    day: string;
+    month?: string;
+    year?: string;
+    /** '09' */
+    hour: string;
 }
 
 export interface CapAlertHeadline {
-  id: string;
-  start: Timestamp;
-  end: Timestamp;
-  type: CapAlertType;
-  severity: CapAlertSeverity;
-  headline?: string;
-  event: string;
-  startLocal: TimeLocal;
-  endLocal: TimeLocal;
+    id: string;
+    start: Timestamp;
+    end: Timestamp;
+    type: CapAlertType;
+    severity: CapAlertSeverity;
+    headline?: string;
+    event: string;
+    startLocal: TimeLocal;
+    endLocal: TimeLocal;
 }
 
 export interface ExtendedCapLine extends CapAlertHeadline {
-  id: string;
-  startDay: string;
-  endDay: string;
-  shortenedEvent: string;
-  color: string;
+    id: string;
+    startDay: string;
+    endDay: string;
+    shortenedEvent: string;
+    color: string;
 }
 
 export interface CapAlertData extends CapAlertHeadline {
-  id: string;
-  ident: string;
-  info: CapAlertInfo;
-  lat: number;
-  lon: number;
-  areaDesc: string;
-  languages: string[];
-  senderName: string;
-  updated: Timestamp;
-  author: string;
-  certainty: string;
+    id: string;
+    ident: string;
+    info: CapAlertInfo;
+    lat: number;
+    lon: number;
+    areaDesc: string;
+    languages: string[];
+    senderName: string;
+    updated: Timestamp;
+    author: string;
+    certainty: string;
 }
 
 export interface CapAlertPayload {
-  version: number;
-  celestial: Celestial;
-  data: CapAlertData[];
+    version: number;
+    celestial: Celestial;
+    data: CapAlertData[];
 }
 
 export interface CapAlertTags {
-  start: Timestamp;
-  end: Timestamp;
-  id: string;
+    start: Timestamp;
+    end: Timestamp;
+    id: string;
 
-  /**
-   * '-' is an invalid type.
-   * TODO: Client should not get invalid values. Fix it on the server side.
-   */
-  type: CapAlertType | '-';
-  severity: CapAlertSeverity;
-  lat: number;
-  lon: number;
-  info: CapAlertInfo;
+    /**
+     * '-' is an invalid type.
+     * TODO: Client should not get invalid values. Fix it on the server side.
+     */
+    type: CapAlertType | '-';
+    severity: CapAlertSeverity;
+    lat: number;
+    lon: number;
+    info: CapAlertInfo;
 
-  /**
-   * monkey patched prop
-   */
-  x: number;
+    /**
+     * monkey patched prop
+     */
+    x: number;
 
-  /**
-   * monkey patched prop
-   */
-  y: number;
+    /**
+     * monkey patched prop
+     */
+    y: number;
 }
 
 type GeometryPoints = [number, number][];
 type GeometryPolygons = GeometryPoints[];
 
 export interface CapAlertTile {
-  features: {
-    /**
-     * Array that contains EITHER array of arrays with two elements = GeometryPolygons
-     * f.ex.: [
-     *          [
-     *              [0, 1],
-     *              [2, 3],
-     *              ...
-     *          ],
-     *          ...
-     *     ]
-     * OR it is just array of arrays with two element = GeometryPoints
-     *     [
-     *          [0, 1],
-     *          [2, 3],
-     *          ...
-     *     ],
-     */
-    geometry: GeometryPoints | GeometryPolygons;
-    tags: CapAlertTags;
-    type: number;
-  }[];
+    features: {
+        /**
+         * Array that contains EITHER array of arrays with two elements = GeometryPolygons
+         * f.ex.: [
+         *          [
+         *              [0, 1],
+         *              [2, 3],
+         *              ...
+         *          ],
+         *          ...
+         *     ]
+         * OR it is just array of arrays with two element = GeometryPoints
+         *     [
+         *          [0, 1],
+         *          [2, 3],
+         *          ...
+         *     ],
+         */
+        geometry: GeometryPoints | GeometryPolygons;
+        tags: CapAlertTags;
+        type: number;
+    }[];
 }
 
 export interface IsAppleWatchPairedResult {
-  value: boolean;
+    value: boolean;
 }
 
 export interface IsAppleWatchCompanionAppInstalledResult {
-  value: boolean;
+    value: boolean;
 }
 
 export interface WatchConnectObject {
-  key: string;
-  value: string;
+    key: string;
+    value: string;
 }
 
 export interface WindyWatchPlugin {
-  /**
-   * Returns void, because this method only leave message to system
-   * for sending and returns void, when message is saved, not delivered to watch
-   * @param {WatchConnectObject} arg Object for save
-   */
-  sendDataToWatch(arg: WatchConnectObject): Promise<void>;
-  /**
-   * Watch conditions for the alert
-   */
-  isPaired: () => Promise<IsAppleWatchPairedResult>;
-  isWatchAppInstalled: () => Promise<IsAppleWatchCompanionAppInstalledResult>;
-  addWatchFace: () => Promise<unknown>;
+    /**
+     * Returns void, because this method only leave message to system
+     * for sending and returns void, when message is saved, not delivered to watch
+     * @param {WatchConnectObject} arg Object for save
+     */
+    sendDataToWatch(arg: WatchConnectObject): Promise<void>;
+    /**
+     * Watch conditions for the alert
+     */
+    isPaired: () => Promise<IsAppleWatchPairedResult>;
+    isWatchAppInstalled: () => Promise<IsAppleWatchCompanionAppInstalledResult>;
+    addWatchFace: () => Promise<unknown>;
 }
 
-export interface WindyServicePlugin {
-  openSettings: () => Promise<void | string>;
-  getLocationPermissions: () => Promise<LocationPreferences>;
-  getNotificationPermissions: () => Promise<NotificationPreferences>;
-  openApplicationSettings: () => Promise<void | string>;
-  isGpsEnabled: () => Promise<GpsPreferences>;
-  getBatteryUsagePermissions: () => Promise<BatteryPreferences>;
-  openBatterySettings: () => Promise<void>;
-  getGoogleServicesAvailability: () => Promise<GoogleServicesPreferences>;
-  getWidgetNotificationPermissions: () => Promise<WidgetNotificationPreferences>;
-  openWidgetNotificationSettings: () => Promise<void>;
-  getBackgroundLocationPermission: () => Promise<GpsPreferences>;
-  openBackgroundLocationSettings: () => Promise<void>;
-  logError: (arg: { moduleName: string; msg: string; error?: string }) => Promise<void>;
-  getId: () => Promise<{ identifier: string }>;
-  getAppsflyerCredentials: () => Promise<{ devKey: string | undefined; appId: string }>;
-  addWidget: (arg: WidgetType) => Promise<void>;
-  isGarminAppInstalled: () => Promise<{ value: boolean }>;
-  setAppIcon(arg: { iconName: CustomAppIcon }): Promise<void>;
-  getAppIcon(): Promise<{ iconName: CustomAppIcon | null }>;
+export interface WindyServicesPlugin {
+    openSettings: () => Promise<void | string>;
+    getLocationPermissions: () => Promise<LocationPreferences>;
+    getNotificationPermissions: () => Promise<NotificationPreferences>;
+    openApplicationSettings: () => Promise<void | string>;
+    isGpsEnabled: () => Promise<GpsPreferences>;
+    /**
+     * Android-only function that checks whether the app has battery usage permissions.
+     *
+     * - If the user has no widget installed, it always resolves to "authorized".
+     * - Otherwise, it may resolve to:
+     * - "authorized" → permission granted
+     * - "denied" → permission restricted
+     *
+     * May be undefined on non-Android platforms.
+     *
+     * @returns {Promise<BatteryPreferences>} A promise resolving to "authorized" or "denied".
+     * */
+    getBatteryUsagePermissions?: () => Promise<BatteryPreferences>;
+    openBatterySettings: () => Promise<void>;
+    getGoogleServicesAvailability: () => Promise<GoogleServicesPreferences>;
+    getWidgetNotificationPermissions: () => Promise<WidgetNotificationPreferences>;
+    openWidgetNotificationSettings: () => Promise<void>;
+    getBackgroundLocationPermission: () => Promise<GpsPreferences>;
+    /**
+     * Android-only function that checks whether the app has battery usage permissions.
+     *
+     * May be undefined on non-Android platforms.
+     *
+     * @returns {Promise<BatteryPreferences>} A promise resolving to "authorized" or "denied".
+     */
+    getBatteryStatus?: () => Promise<BatteryPreferences>;
+    openBackgroundLocationSettings: () => Promise<void>;
+    logError: (arg: { moduleName: string; msg: string; error?: string }) => Promise<void>;
+    getId: () => Promise<{ identifier: string }>;
+    getAppsflyerCredentials: () => Promise<{ devKey: string | undefined; appId: string }>;
+    addWidget: (arg: WidgetType) => Promise<void>;
+    isGarminAppInstalled: () => Promise<{ value: boolean }>;
+    setAppIcon(arg: { iconName: CustomAppIcon }): Promise<void>;
+    getAppIcon(): Promise<{ iconName: CustomAppIcon | null }>;
 }
 
 export interface NotificationLocationInfo {
-  locationEntityId: string;
-  deviceToken: string | null;
-  isRunning: boolean;
+    locationEntityId: string;
+    deviceToken: string | null;
+    isRunning: boolean;
 }
 
 export interface WindyNotificationLocationPlugin {
-  getInfo: () => Promise<NotificationLocationInfo>;
-  startUpdateService: () => Promise<NotificationLocationInfo>;
-  stopUpdateService: () => Promise<NotificationLocationInfo>;
-  // Only for testing purposes
-  getDebugLog: () => Promise<{ lastLocationUpdates: string }>;
-  useCustomLocation: (arg: LatLon) => Promise<void>;
+    getInfo: () => Promise<NotificationLocationInfo>;
+    startUpdateService: () => Promise<NotificationLocationInfo>;
+    stopUpdateService: () => Promise<NotificationLocationInfo>;
+    // Only for testing purposes
+    getDebugLog: () => Promise<{ lastLocationUpdates: string }>;
+    useCustomLocation: (arg: LatLon) => Promise<void>;
 }
 
 export interface WindyLocalNotificationPlugin {
-  schedule: (arg: {
-    title: string;
-    subtitle: string | null;
-    body: string;
-    timeInterval: number; // in seconds
-  }) => Promise<{ id: string }>; // id of the scheduled notification
-  cancel: (arg: { id: string }) => Promise<void>;
-  cancelAll: () => Promise<void>;
-  getPending: () => Promise<{ pending: string[] }>; // array of ids of pending notifications
-  registerRetentionNotification: (arg: {
-    title: string;
-    subtitle: string | null;
-    body: string;
-    marketingId: string | null; // is used for analytics
-    deepLink: string | null; // deepLink to open when the notification is clicked
-    showAfter: number; // in seconds
-    showUntil: number; // in seconds
-  }) => Promise<{ status: 'notStarted' | 'scheduled' | 'delivered' | 'opened' | 'expired' }>; // status of the registration
-  sendTestRetentionNotification: () => Promise<{ id: string }>;
-  resetRetentionNotification: () => Promise<void>;
+    schedule: (arg: {
+        title: string;
+        subtitle: string | null;
+        body: string;
+        timeInterval: number; // in seconds
+    }) => Promise<{ id: string }>; // id of the scheduled notification
+    cancel: (arg: { id: string }) => Promise<void>;
+    cancelAll: () => Promise<void>;
+    getPending: () => Promise<{ pending: string[] }>; // array of ids of pending notifications
+    registerRetentionNotification: (arg: {
+        title: string;
+        subtitle: string | null;
+        body: string;
+        marketingId: string | null; // is used for analytics
+        deepLink: string | null; // deepLink to open when the notification is clicked
+        showAfter: number; // in seconds
+        showUntil: number; // in seconds
+    }) => Promise<{ status: 'notStarted' | 'scheduled' | 'delivered' | 'opened' | 'expired' }>; // status of the registration
+    sendTestRetentionNotification: () => Promise<{ id: string }>;
+    resetRetentionNotification: () => Promise<void>;
 }
 
 /**
@@ -1201,69 +1295,137 @@ export interface WindyLocalNotificationPlugin {
  * - Scheme: capacitor (for iOS)
  */
 export interface WindyMigrationPlugin {
-  /**
-   * Returns the paths to old local storage based on the system. The iOS16 version is preferred if available.
-   */
-  findPathOldLocalStorages(): Promise<{ ios14: string | null; ios16: string | null }>;
-  /**
-   * Checks if at least one old local storage was found.
-   */
-  findOldLocalStorage: () => Promise<{ result: boolean }>;
-  /**
-   * Returns the file and directory structure from '/Libraries/WebKit' on iOS.
-   */
-  getWebKitHierarchy: () => Promise<{ result: [string] }>;
-  /**
-   * Initiates the migration process and natively restarts the app upon successful completion.
-   * Note: This method does not control if the migration was previously done.
-   */
-  migrate: () => Promise<void>;
-  /**
-   * Will return [String:String?]? dictionary from old database
-   */
-  getOldLocalStorageData: () => Promise<[string: string | null] | null>;
-  /**
-   * Returns the timestamp of the latest migration or null if the migration hasn't been executed yet.
-   */
-  lastMigration: () => Promise<{ result: number | null }>;
-  /**
-   * Marks migration as completed and restart WebView from origin
-   */
-  markMigrationCompleted: (opts: { reload: boolean }) => Promise<void>;
-  /**
-   * Sends migration data to native layer
-   */
-  setMigrationData: (opts: { data: string }) => Promise<void>;
-  /**
-   * Returns old localStorage data (sent to native layer via setMigrationData function)
-   */
-  getOldLocalStorageDataAndroid: () => Promise<{ result: string | null }>;
+    /**
+     * Returns the paths to old local storage based on the system. The iOS16 version is preferred if available.
+     */
+    findPathOldLocalStorages(): Promise<{ ios14: string | null; ios16: string | null }>;
+    /**
+     * Checks if at least one old local storage was found.
+     */
+    findOldLocalStorage: () => Promise<{ result: boolean }>;
+    /**
+     * Returns the file and directory structure from '/Libraries/WebKit' on iOS.
+     */
+    getWebKitHierarchy: () => Promise<{ result: [string] }>;
+    /**
+     * Initiates the migration process and natively restarts the app upon successful completion.
+     * Note: This method does not control if the migration was previously done.
+     */
+    migrate: () => Promise<void>;
+    /**
+     * Will return [String:String?]? dictionary from old database
+     */
+    getOldLocalStorageData: () => Promise<[string: string | null] | null>;
+    /**
+     * Returns the timestamp of the latest migration or null if the migration hasn't been executed yet.
+     */
+    lastMigration: () => Promise<{ result: number | null }>;
+    /**
+     * Marks migration as completed and restart WebView from origin
+     */
+    markMigrationCompleted: (opts: { reload: boolean }) => Promise<void>;
+    /**
+     * Sends migration data to native layer
+     */
+    setMigrationData: (opts: { data: string }) => Promise<void>;
+    /**
+     * Returns old localStorage data (sent to native layer via setMigrationData function)
+     */
+    getOldLocalStorageDataAndroid: () => Promise<{ result: string | null }>;
+}
+
+export interface ImageOptions {
+    maxWidth?: number;
+    maxHeight?: number;
+    quality?: number; // 0..1
+    format?: 'jpeg' | 'png'; // default 'jpeg'
+}
+
+export interface VideoOptions {
+    preset?: 'medium' | 'low' | 'h264_720p' | 'h264_1080p' | 'passthrough'; // Medium is default
+}
+
+export interface CompressOptions {
+    imageOptions?: ImageOptions;
+    videoOptions?: VideoOptions;
+}
+
+export interface OneCompressOptions extends CompressOptions {
+    id: string;
+}
+
+export interface PickedItem {
+    id: string;
+    kind: 'image' | 'video' | 'unknown';
+    filename?: string;
+    mimeType?: string;
+    originalPath?: string; // POSIX path to original temp file
+    width?: number;
+    height?: number;
+    duration?: number;
+    size?: number; // bytes
+}
+
+export interface CompressedItem extends PickedItem {
+    compressedPath: string; // POSIX path to compressed file
+    compressedSize: number; // bytes
+}
+
+/**
+ * Extended MediaItem type that supports both native compressed items
+ * and web-based items with blob references
+ */
+export interface MediaItem extends PickedItem {
+    compressedPath?: string; // For native plugin
+    compressedSize?: number;
+    blob?: Blob; // For web fallback (full-size, no compression)
+    blobUrl?: string; // Object URL for preview
+}
+
+type PickOptions = {
+    selectionLimit?: number;
+};
+
+// iOS only
+export interface WindyMediaPlugin {
+    pick(options?: PickOptions): Promise<{ items: PickedItem[] }>;
+    getPicked(): Promise<{ items: PickedItem[] }>;
+    removeFromPicked(id: string): Promise<{ success: boolean }>;
+    pickAndCompress(options?: PickOptions): Promise<{ items: CompressedItem[] }>;
+    compressOne(arg: OneCompressOptions): Promise<{ item: CompressedItem }>;
+    // CompressAll - if compress options are not provided, default options will be used
+    compressAll(arg: CompressOptions | undefined): Promise<{ items: CompressedItem[] }>;
+    clearAll(): Promise<void>;
+    addListener(
+        eventName: 'compressionProgress',
+        listener: (payload: { total: number; done: number; percent: number }) => void,
+    ): { remove: () => void };
 }
 
 export interface SocialLoginParams {
-  purpose: string;
-  deviceId: string;
-  clientLang: string;
-  targetMobile: boolean;
-  platform: Platform;
-  redirectUrl: string;
+    purpose: string;
+    deviceId: string;
+    clientLang: string;
+    targetMobile: boolean;
+    platform: Platform;
+    redirectUrl: string;
 }
 
 /**
  * Observation Weather Summary used in station plugin
  */
 export interface ObservationSummaryRecord {
-  date: YearMonthDay;
-  day: number;
-  end: Timestamp;
-  index: number;
-  segments: number;
-  tempMax: NumOrNull;
-  tempMaxTs: Timestamp;
-  tempMin: NumOrNull;
-  tempMinTs: Timestamp;
-  timestamp: Timestamp;
-  weekday: Weekday;
+    date: YearMonthDay;
+    day: number;
+    end: Timestamp;
+    index: number;
+    segments: number;
+    tempMax: NumOrNull;
+    tempMaxTs: Timestamp;
+    tempMin: NumOrNull;
+    tempMinTs: Timestamp;
+    timestamp: Timestamp;
+    weekday: Weekday;
 }
 
 export type ObservationSummaryHash = Record<YearMonthDay, ObservationSummaryRecord>;
@@ -1272,107 +1434,107 @@ export type ObservationSummaryHash = Record<YearMonthDay, ObservationSummaryReco
  * Opening options for Window class
  */
 export interface WindowOpeningOptions {
-  /**
-   * Should we open the window without animation?
-   */
-  disableOpeningAnimation?: boolean;
+    /**
+     * Should we open the window without animation?
+     */
+    disableOpeningAnimation?: boolean;
 }
 
 /**
  * Closing options for Window class
  */
 export interface WindowClosingOptions {
-  /**
-   * Should we close the window without animation?
-   */
-  disableClosingAnimation?: boolean;
+    /**
+     * Should we close the window without animation?
+     */
+    disableClosingAnimation?: boolean;
 
-  /**
-   * Event that led to closing
-   */
-  ev?: MouseEvent | KeyboardEvent | TouchEvent;
+    /**
+     * Event that led to closing
+     */
+    ev?: MouseEvent | KeyboardEvent | TouchEvent;
 }
 
 /**
  * Opening parameters for WindowPlugin opening
  */
 export interface PluginOpeningOptions<P extends keyof Plugins> extends WindowOpeningOptions {
-  /**
-   * Opening parameters
-   */
-  params?: PluginsOpenParams[P];
+    /**
+     * Opening parameters
+     */
+    params?: PluginsOpenParams[P];
 
-  /**
-   * Additional query string passed from URL
-   */
-  qs?: PluginsQsParams[P];
+    /**
+     * Additional query string passed from URL
+     */
+    qs?: PluginsQsParams[P];
 }
 
 /**
  * Point used in rplanner
  */
 export interface RplannerPoint {
-  ident: number;
-  marker: L.Marker;
-  position: L.LatLng;
+    ident: number;
+    marker: Marker;
+    position: LatLng;
 }
 
 /**
  * Waypoint used in rplanner
  */
 export interface RplannerWaypoint {
-  distance?: number;
-  ident?: number;
-  initialBearing?: number;
-  point: L.LatLng;
-  rads?: {
-    cosInitialBearing: number;
-    cosLat: number;
-    lng: number;
-    sinInitialBearing: number;
-    sinLat: number;
-  };
+    distance?: number;
+    ident?: number;
+    initialBearing?: number;
+    point: LatLng;
+    rads?: {
+        cosInitialBearing: number;
+        cosLat: number;
+        lng: number;
+        sinInitialBearing: number;
+        sinLat: number;
+    };
 }
 
 /**
  * Handy utility to calculate scales (inspired by D3 library)
  */
 export interface LinearScale {
-  get: (val: NumValue) => Pixel;
-  invert: (val: NumValue) => Pixel;
+    get: (val: NumValue) => Pixel;
+    invert: (val: NumValue) => Pixel;
 }
 
 /**
  * Main GDPR, privacy or cookie consent object
  */
 export interface Consent {
-  /**
-   * Version of the consent user agreed on. Use form 'YYYY/MM'
-   *
-   *  If the text on consent window will have to evolve and we will HAVE to show
-   *  new version to the user.
-   */
-  version: string;
+    /**
+     * Version of the consent user agreed on. Use form 'YYYY/MM'
+     *
+     *  If the text on consent window will have to evolve and we will HAVE to show
+     *  new version to the user.
+     */
+    version: string;
 
-  /**
-   * Last time when user clicked on YES or NO button
-   */
-  timestamp: Timestamp;
+    /**
+     * Last time when user clicked on YES or NO button
+     */
+    timestamp: Timestamp;
 
-  /**
-   * User agreed on anonymous analytics
-   */
-  analytics: boolean;
+    /**
+     * User agreed on anonymous analytics
+     */
+    analytics: boolean;
 
-  /**
-   * Was the consent explicit or just not required
-   */
-  explicit: boolean;
+    /**
+     * Was the consent explicit or just not required
+     */
+    explicit: boolean;
 }
 
 export interface LocationState {
-  url: string;
-  search: string;
+    url: string;
+    search: string;
 }
 
 /**
@@ -1400,302 +1562,350 @@ export interface LocationState {
  *```
  */
 export interface ExternalPluginConfig {
-  /**
-   * Name of the plugin, that (in order to separate external and
-   * our internal plugins) MUST contain `windy-plugin-` prefix
-   *
-   * @example 'windy-plugin-hello-world'
-   */
-  name: `windy-plugin-${string}`;
+    /**
+     * Name of the plugin, that (in order to separate external and
+     * our internal plugins) MUST contain `windy-plugin-` prefix
+     *
+     * @example 'windy-plugin-hello-world'
+     */
+    name: `windy-plugin-${string}`;
 
-  /**
-   * If set, indicates, that plugin is private and should not be
-   * offered to other users in plugins gallery. Companies and
-   * institutions, can display their sensitive data on Windy.com
-   * without any fear, that their API endpoints will be exposed.
-   */
-  private?: boolean;
+    /**
+     * If set, indicates, that plugin is private and should not be
+     * offered to other users in plugins gallery. Companies and
+     * institutions, can display their sensitive data on Windy.com
+     * without any fear, that their API endpoints will be exposed.
+     */
+    private?: boolean;
 
-  /**
-   * Optional path to be used for routing and displaying of plugin's
-   * path as URL in browser. Must have form of SEO friendly string,
-   * with express.js inspired parameters.
-   *
-   * If defined installed plugins can user access via URL
-   * https://www.windy.com/plugin/hello-world
-   *
-   * @example '/hello-world'
-   * @example '/hello-world/:lat/:lon'
-   * @example '/hello-world/:optional?'
-   */
-  routerPath?: `/${string}`;
+    /**
+     * Optional path to be used for routing and displaying of plugin's
+     * path as URL in browser. Must have form of SEO friendly string,
+     * with express.js inspired parameters.
+     *
+     * If defined installed plugins can user access via URL
+     * https://www.windy.com/plugin/hello-world
+     *
+     * @example '/hello-world'
+     * @example '/hello-world/:lat/:lon'
+     * @example '/hello-world/:optional?'
+     */
+    routerPath?: `/${string}`;
 
-  /**
-   * Version of the plugin in semver format.
-   *
-   * @example '1.0.0'
-   */
-  version: string;
+    /**
+     * Version of the plugin in semver format.
+     *
+     * @example '1.0.0'
+     */
+    version: SemVersion;
 
-  /**
-   * Official title of the plugin, that will be displayed as a browser title,
-   * when plugin will be opened
-   *
-   * @example 'Hello World plugin'
-   */
-  title: string;
+    /**
+     * Official title of the plugin, that will be displayed as a browser title,
+     * when plugin will be opened
+     *
+     * @example 'Hello World plugin'
+     */
+    title: string;
 
-  /**
-   * Unicode emoji icon, that will be displayed in plugins gallery
-   * and in menu associated with this plugin
-   *
-   * @example '👋'
-   */
-  icon: string;
+    /**
+     * Unicode emoji icon, that will be displayed in plugins gallery
+     * and in menu associated with this plugin
+     *
+     * @example '👋'
+     */
+    icon: string;
 
-  /**
-   * Optional plugin description that will be displayed in plugins gallery
-   *
-   * @example 'This plugin demonstrates capabilities of Windy Plugin System'
-   */
-  description?: string;
+    /**
+     * Optional plugin description that will be displayed in plugins gallery
+     *
+     * @example 'This plugin demonstrates capabilities of Windy Plugin System'
+     */
+    description?: string;
 
-  /**
-   * Plugin's author name
-   *
-   * @example 'John Doe (optional company name)'
-   */
-  author: string;
+    /**
+     * Plugin's author name
+     *
+     * @example 'John Doe (optional company name)'
+     */
+    author: string;
 
-  /**
-   * Location of repository, with source code of the plugin
-   *
-   * @example 'https://github.com/windycom/hello-world-plugin'
-   */
-  repository?: string;
+    /**
+     * Location of repository, with source code of the plugin
+     *
+     * @example 'https://github.com/windycom/hello-world-plugin'
+     */
+    repository?: string;
 
-  /**
-   * Optional homepage, where plugin is described in more details
-   *
-   * @example 'https://www.company.com/about-our-plugin
-   */
-  homepage?: string;
+    /**
+     * Optional homepage, where plugin is described in more details
+     *
+     * @example 'https://www.company.com/about-our-plugin
+     */
+    homepage?: string;
 
-  /**
-   * If user can open plugin from context menu on map (RH button mouse click)
-   * so plugin can be opened with lat, lon parameters.
-   */
-  addToContextmenu?: boolean;
+    /**
+     * If user can open plugin from context menu on map (RH button mouse click)
+     * so plugin can be opened with lat, lon parameters.
+     */
+    addToContextmenu?: boolean;
 
-  /**
-   * Whether plugin (if opened) want to receive singleclick events
-   * from map.
-   */
-  listenToSingleclick?: boolean;
+    /**
+     * Whether plugin (if opened) want to receive singleclick events
+     * from map.
+     */
+    listenToSingleclick?: boolean;
 
-  /**
-   * Plugin behavior on desktop and tablet devices
-   *
-   * `rhpane` plugins occupy RH pane on desktop, which provides
-   * enormous amount of space, and enables to scroll down, but
-   * results in automatic closing or the plugin, when any other
-   * UI element opens from right side (menu, settings etc...).
-   *
-   * Simply put only one rhpane plugin can be opened at the same time.
-   *
-   * You can use `embedded` position, whose space is limited, but plugin
-   * is embedded into main page and stays open.
-   */
-  desktopUI: 'rhpane' | 'embedded';
+    /**
+     * Plugin behavior on desktop and tablet devices
+     *
+     * `rhpane` plugins occupy RH pane on desktop, which provides
+     * enormous amount of space, and enables to scroll down, but
+     * results in automatic closing or the plugin, when any other
+     * UI element opens from right side (menu, settings etc...).
+     *
+     * Simply put only one rhpane plugin can be opened at the same time.
+     *
+     * You can use `embedded` position, whose space is limited, but plugin
+     * is embedded into main page and stays open.
+     */
+    desktopUI: 'rhpane' | 'embedded';
 
-  /**
-   * Width of `rhpane` plugin in pixels (default is 400).
-   */
-  desktopWidth?: number;
+    /**
+     * Width of `rhpane` plugin in pixels (default is 400).
+     */
+    desktopWidth?: number;
 
-  /**
-   * Plugin behavior on mobile devices
-   *
-   * `fullscreen` plugin occupies whole screen, while `small` takes only minimum
-   * space on the bottom of the screen.
-   */
-  mobileUI: 'fullscreen' | 'small';
+    /**
+     * Plugin behavior on mobile devices
+     *
+     * `fullscreen` plugin occupies whole screen, while `small` takes only minimum
+     * space on the bottom of the screen.
+     */
+    mobileUI: 'fullscreen' | 'small';
 
-  /**
-   * The plugin has NO LINK in the main menu, can be open only programmatically
-   * and its installation is not persistent.
-   */
-  internal?: boolean;
+    /**
+     * The plugin has NO LINK in the main menu, can be open only programmatically
+     * and its installation is not persistent.
+     */
+    internal?: boolean;
 }
 
 export interface CompiledExternalPluginConfig extends ExternalPluginConfig {
-  /**
-   * When was this plugin built
-   */
-  built: Timestamp;
-  builtReadable: ISODateString;
+    /**
+     * When was this plugin built
+     */
+    built: Timestamp;
+    builtReadable: ISODateString;
 
-  /**
-   * If the final build contains screenshot, they are stored here
-   */
-  screenshot?: string;
+    /**
+     * If the final build contains screenshot, they are stored here
+     */
+    screenshot?: string;
 
-  /**
-   * User ID of the author of the plugin
-   */
-  windyUserId: number;
+    /**
+     * User ID of the author of the plugin
+     */
+    windyUserId: number;
 
-  /**
-   * URL of users profile
-   */
-  communityProfileUrl: string;
+    /**
+     * URL of users profile
+     */
+    communityProfileUrl: string;
 }
 
 /**
  * Already installed external plugin
  */
 export interface InstalledExternalPluginConfig extends CompiledExternalPluginConfig {
-  /**
-   * URL of the plugin is used as unique identifier
-   */
-  url: string;
+    /**
+     * ID must be present to enable backend cloud sync
+     */
+    id: string;
 
-  /**
-   * From which process was plugin installed
-   */
-  installedBy: 'dev' | 'gallery' | 'url' | 'patch';
+    /**
+     * URL of the plugin is used as unique identifier
+     */
+    url: string;
 
-  /**
-   * When was this plugin installed by specific user
-   */
-  installed: Timestamp;
+    /**
+     * From which process was plugin installed
+     */
+    installedBy: 'dev' | 'gallery' | 'url';
+
+    /**
+     * When was this plugin installed by specific user
+     */
+    installed: Timestamp;
 }
 
 interface PromoFilteringParams {
-  isLoggedIn: boolean;
-  sessionCounter: number;
-  isPremium: boolean;
-}
-
-/**
- * Main promo object, used in `client-patch`
- */
-interface PromoObj {
-  /**
-   * Main ID of the promo. This key is also used in `promo` object in localStorage
-   */
-  readonly id: string;
-
-  /**
-   * ISO date, when the promo expires
-   */
-  readonly end: string;
-
-  /**
-   * How many times display promo to the user (respective on one device)
-   */
-  counter: number;
-
-  /**
-   * How often to display promo on particular device (in ms)
-   */
-  delay: number;
-
-  /**
-   * Any others filters, deciding whether to display promo or not
-   */
-  filter: () => boolean;
-
-  /**
-   * Should we display HP articles together with promo
-   * @deprecated
-   */
-  loadArticles?: boolean;
-
-  /**
-   * Required method to be run, when promo is executed. In this stage we can also
-   * do some additional checks, if promo should be displayed or not, so we must
-   * call `promo.hitCounter()` method ourselves.
-   */
-  readonly run: () => void;
-
-  /**
-   * Optional HTML code to be used internally in `run` method
-   */
-  html?: string;
-}
-
-/**
- * Client patch object
- */
-interface ClientPatch {
-  __version: string;
-  __css: string;
-  exclusivePromos: PromoObj[];
-  otherPromos: PromoObj[];
+    isLoggedIn: boolean;
+    sessionCounter: number;
+    isPremium: boolean;
 }
 
 /**
  * Amount of active hurricanes as returnd from hurricane tracker backend
  */
 export interface ActiveStormCountPayload {
-  activeStormCount: number;
+    activeStormCount: number;
 }
 
 /**
+ * These properties are passed directly to renderer by enhancing returned params
+ */
+interface RenderParams {
+    /**
+     * Which channels contain tile rendering data
+     */
+    renderFrom?: RenderChannels;
+
+    /**
+     * Not confirmed: Display map as a sea, meaning the sea layers are below surface layers
+     */
+    sea?: boolean;
+
+    /**
+     * Display map as a land, meaning the sea area is hidden with mask
+     */
+    landOnly?: boolean;
+
+    /**
+     * Identifier of particle type
+     */
+    particlesIdent?: ParticlesIdent;
+
+    /**
+     * Uses two instances of Color for rendering
+     */
+    isMultiColor?: boolean;
+
+    /**
+     * Should green channel be interpolated to nearest discreet value
+     */
+    interpolateNearestG?: boolean;
+
+    /**
+     * Name of interpolator method
+     */
+    interpolate?: 'interpolateOverlay' | 'interpolateWaves';
+
+    /**
+     * Used patternator
+     */
+    pattern?: PatternType;
+}
+
+/**
+ * Set of params required to render the layer
+ */
+interface FullRenderParameters extends WeatherParameters, RenderParams {
+    layer: Layers;
+    JPGtransparency?: boolean;
+    PNGtransparency?: boolean;
+    transformR?: TransformFunction;
+    transformG?: TransformFunction;
+    transformB?: TransformFunction;
+    directory: string;
+
+    /**
+     * Specify zoom of mercator data tiles in dependence of map zoom
+     */
+    dataQuality?: DataQuality;
+    maxTileZoom?: {
+        free: number;
+        premium: number;
+    };
+
+    /**
+     * bump data quality by 1 level for particular overlay/layer
+     */
+    upgradeDataQuality?: boolean;
+
+    /**
+     * Force to select particular zoom of data tiles
+     */
+    dataTilesZoom?: number;
+
+    level: Levels;
+    refTime: Path;
+    fullPath: string;
+    path: Path;
+
+    /**
+     * Optional accumulation range in hours
+     */
+    acRangeInHours?: number;
+
+    // TODO: Why this does not use FileSuffix type?
+    fileSuffix?: 'png' | 'jpg' | 'json';
+}
+
+/*
  * Cap alert was slided from left to right on startup screen
  */
 export interface CapAlertSlided {
-  id: string;
-  expire: Timestamp;
+    id: string;
+    expire: Timestamp;
 }
 
 /**
  * Handy payload or reusable data that helps to render Forecast Table
  */
-export interface WeatherTableRenderingData {
-  /**
-   * Day identifiers, that were used in data object (above)
-   */
-  usedDays: YearMonthDay[];
+export interface WeatherTableRenderingData<T extends DataHash | AirQDataHash = DataHash> {
+    /**
+     * Day identifiers, that were used in data object (above)
+     */
+    usedDays: YearMonthDay[];
 
-  /**
-   * Loaded data.data (modified later by splicing data arrays)
-   */
-  data: DataHash;
+    /**
+     * Loaded data.data (modified later by splicing data arrays)
+     */
+    data: T;
 
-  /**
-   * Length of used forecast as a umber of TD segments
-   */
-  dataLength: number;
+    /**
+     * Type of the data above
+     */
+    dataType: 'forecast' | 'airq';
 
-  /**
-   * Start of timeline
-   */
-  start: Timestamp;
-  end: Timestamp;
+    /**
+     * Length of used forecast as a umber of TD segments
+     */
+    dataLength: number;
 
-  tsWidth: Timestamp;
-  pxWidth: Pixel;
-  px2ts: number;
+    /**
+     * Start of timeline
+     */
+    start: Timestamp;
+    end: Timestamp;
 
-  /**
-   * UTC offset in hours
-   */
-  utcOffset: Hours;
+    tsWidth: Timestamp;
+    pxWidth: Pixel;
+    px2ts: number;
+    tdWidth: Pixel;
 
-  /**
-   * UTC offset in minutes
-   */
-  utcOffsetMinutes: Minutes;
+    /**
+     * UTC offset in hours
+     */
+    utcOffset: Hours;
 
-  /**
-   * Indicates that data payload has waves
-   */
-  hasWaves: boolean;
+    /**
+     * UTC offset in minutes
+     */
+    utcOffsetMinutes: Minutes;
 
-  /**
-   * Summary of days used
-   */
-  summary: Record<YearMonthDay, SummaryDay>;
+    /**
+     * Indicates that data payload has waves
+     */
+    hasWaves: boolean;
+
+    /**
+     * Summary of days used
+     */
+    summary: Record<YearMonthDay, SummaryDay>;
+}
+
+export interface SimplifiedGetBoundsOptions {
+    animate?: boolean;
+    padding?: RequireAtLeastOne<PaddingOptions>;
 }

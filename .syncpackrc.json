@@ -1,0 +1,4 @@
+{
+  "sourceMode": "extend",
+  "source": ["!libs/windy-sounding/package.json"]
+}
