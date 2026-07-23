@@ -52,7 +52,11 @@ export declare function resetTitle(): void;
  * @param pluginParams parameters of the plugin. Same parameters as plugin receives in its onopen method
  * @param seoPrefix SEO prefix of the URL
  */
-export declare const setUrl: <P extends keyof WindowPlugins>(pluginId: `windy-plugin-${string}` | P, pluginParams?: PluginsOpenParams[P], seoPrefix?: string) => void;
+export declare const setUrl: <P extends keyof WindowPlugins>(
+  pluginId: `windy-plugin-${string}` | P,
+  pluginParams?: PluginsOpenParams[P],
+  seoPrefix?: string,
+) => void;
 /**
  * Sets browser's title of a page
  */

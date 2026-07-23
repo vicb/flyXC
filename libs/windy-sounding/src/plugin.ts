@@ -6,6 +6,7 @@
  */
 
 import { mount, unmount } from 'svelte';
+
 import { pluginConfig } from './config';
 import PluginSvelte from './Plugin.svelte';
 

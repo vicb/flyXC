@@ -6,9 +6,9 @@
 import { Evented } from '@windy/Evented';
 import type { PluginIdent } from '@windy/Plugin';
 interface KeyEvents {
-    keydown: [KeyboardEvent];
-    requestFocus: [];
-    inputBlurred: [e: Event];
+  keydown: [KeyboardEvent];
+  requestFocus: [];
+  inputBlurred: [e: Event];
 }
 /** Just emits keyboard events */
 export declare const emitter: Evented<KeyEvents>;

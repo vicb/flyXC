@@ -5,53 +5,53 @@ import { NumValue } from '@windy/types.d';
  * List of all supported metric identifiers
  */
 export type MetricItem =
-    | 'K'
-    | '°C'
-    | '°F'
-    | 'kt'
-    | 'bft'
-    | 'm/s'
-    | 'mph'
-    | 'km/h'
-    | '%'
-    | 'rules'
-    | 'hPa'
-    | 'inHg'
-    | 'mmHg'
-    | 'mm'
-    | 'in'
-    | 'cm'
-    | 'in'
-    | 'J/kg'
-    | 'DU'
-    | 'AOD'
-    | 'µg/m³'
-    | 'mg/m²'
-    | 'm'
-    | 'ft'
-    | 'km'
-    | 'mi'
-    | 'NM'
-    | 'sm'
-    | 'ppbv'
-    | 'dBZ'
-    | 'ptype'
-    | 'type'
-    | 'l/km²'
-    | 'W/m²'
-    | 'kW/m'
-    | 'drought'
-    | 'fwi'
-    | 'mm/h'
-    | 'in/h'
-    | 'uvindex'
-    | 'EDR'
-    | 'km²'
-    | 'acres'
-    | 'AQI'
-    | 'gr./m³'
-    | 'fallback'
-    | 's.';
+  | 'K'
+  | '°C'
+  | '°F'
+  | 'kt'
+  | 'bft'
+  | 'm/s'
+  | 'mph'
+  | 'km/h'
+  | '%'
+  | 'rules'
+  | 'hPa'
+  | 'inHg'
+  | 'mmHg'
+  | 'mm'
+  | 'in'
+  | 'cm'
+  | 'in'
+  | 'J/kg'
+  | 'DU'
+  | 'AOD'
+  | 'µg/m³'
+  | 'mg/m²'
+  | 'm'
+  | 'ft'
+  | 'km'
+  | 'mi'
+  | 'NM'
+  | 'sm'
+  | 'ppbv'
+  | 'dBZ'
+  | 'ptype'
+  | 'type'
+  | 'l/km²'
+  | 'W/m²'
+  | 'kW/m'
+  | 'drought'
+  | 'fwi'
+  | 'mm/h'
+  | 'in/h'
+  | 'uvindex'
+  | 'EDR'
+  | 'km²'
+  | 'acres'
+  | 'AQI'
+  | 'gr./m³'
+  | 'fallback'
+  | 's.';
 
 /**
  * # @windy/metrics
@@ -73,80 +73,80 @@ export type MetricItem =
  * Complete list of Windy's supported metrics
  */
 export type MetricIdent =
-    | 'temp'
-    | 'wind'
-    | 'rh'
-    | 'clouds'
-    | 'pressure'
-    | 'rain'
-    | 'snow'
-    | 'cape'
-    | 'gtco3'
-    | 'aod550'
-    | 'pm2p5'
-    | 'no2'
-    | 'tcso2'
-    | 'go3'
-    | 'altitude'
-    | 'elevation'
-    | 'distance'
-    | 'speed'
-    | 'waves'
-    | 'currents'
-    | 'visibility'
-    | 'visibilityNoRules'
-    | 'so2'
-    | 'dust'
-    | 'cosc'
-    | 'radar'
-    | 'satellite'
-    | 'ptype'
-    | 'radarPType'
-    | 'gh'
-    | 'fog'
-    | 'lightDensity'
-    | 'efiWind'
-    | 'efiTemp'
-    | 'efiRain'
-    | 'drought'
-    | 'moistureAnom40'
-    | 'moistureAnom100'
-    | 'fwi'
-    | 'dfm10h'
-    | 'solarpower'
-    | 'wavePower'
-    | 'uvindex'
-    | 'turbulence'
-    | 'icing'
-    | 'area'
-    | 'aqi'
-    | 'pollen'
-    | 'fallback'
-    | 'period';
+  | 'temp'
+  | 'wind'
+  | 'rh'
+  | 'clouds'
+  | 'pressure'
+  | 'rain'
+  | 'snow'
+  | 'cape'
+  | 'gtco3'
+  | 'aod550'
+  | 'pm2p5'
+  | 'no2'
+  | 'tcso2'
+  | 'go3'
+  | 'altitude'
+  | 'elevation'
+  | 'distance'
+  | 'speed'
+  | 'waves'
+  | 'currents'
+  | 'visibility'
+  | 'visibilityNoRules'
+  | 'so2'
+  | 'dust'
+  | 'cosc'
+  | 'radar'
+  | 'satellite'
+  | 'ptype'
+  | 'radarPType'
+  | 'gh'
+  | 'fog'
+  | 'lightDensity'
+  | 'efiWind'
+  | 'efiTemp'
+  | 'efiRain'
+  | 'drought'
+  | 'moistureAnom40'
+  | 'moistureAnom100'
+  | 'fwi'
+  | 'dfm10h'
+  | 'solarpower'
+  | 'wavePower'
+  | 'uvindex'
+  | 'turbulence'
+  | 'icing'
+  | 'area'
+  | 'aqi'
+  | 'pollen'
+  | 'fallback'
+  | 'period';
 
 /** @ignore */
 export type MetricKey = `metric_${MetricIdent}`;
 
 export interface Conversion {
-    /**
-     * Conversion function
-     */
-    conversion: (x: NumValue) => NumValue;
+  /**
+   * Conversion function
+   */
+  conversion: (x: NumValue) => NumValue;
 
-    /**
-     * Decimal precision
-     */
-    precision: number;
+  /**
+   * Decimal precision
+   */
+  precision: number;
 
-    /**
-     * How should we mark Not Available in packer
-     */
-    na?: string;
+  /**
+   * How should we mark Not Available in packer
+   */
+  na?: string;
 
-    /**
-     * Optional label
-     */
-    label?: string;
+  /**
+   * Optional label
+   */
+  label?: string;
 }
 
 /** @ignore */
@@ -154,9 +154,4 @@ export type ConvObj = { [K in MetricItem]?: Conversion };
 
 /** @ignore */
 export type MetricInitParams = Pick<Metric, 'ident'> &
-    Partial<
-        Pick<
-            Metric,
-            'conv' | 'backConv' | 'defaults' | 'cohesion' | 'nativeSync' | 'separator' | 'legend'
-        >
-    >;
+  Partial<Pick<Metric, 'conv' | 'backConv' | 'defaults' | 'cohesion' | 'nativeSync' | 'separator' | 'legend'>>;

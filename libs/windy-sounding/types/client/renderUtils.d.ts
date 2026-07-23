@@ -5,15 +5,15 @@ import { Evented } from '@windy/Evented';
 import type { DataQuality } from '@windy/Product';
 import type { FullRenderParameters, WeatherParameters } from '@windy/interfaces.d';
 interface Events {
-    rendered: ['particles' | 'isolines' | 'map' | 'radar' | 'satellite' | 'tileLayer'];
-    glParticlesFailed: [];
-    toggleSeaMask: [boolean];
-    toggleLandMask: [boolean];
-    toggleLandSeaMaskColored: [boolean];
-    updateStateChange: ['move' | 'time'];
-    tileLayerRendererInitialized: [];
-    contextLost: [];
-    contextRestored: [];
+  rendered: ['particles' | 'isolines' | 'map' | 'radar' | 'satellite' | 'tileLayer'];
+  glParticlesFailed: [];
+  toggleSeaMask: [boolean];
+  toggleLandMask: [boolean];
+  toggleLandSeaMaskColored: [boolean];
+  updateStateChange: ['move' | 'time'];
+  tileLayerRendererInitialized: [];
+  contextLost: [];
+  contextRestored: [];
 }
 export declare const emitter: Evented<Events>;
 import type { Timestamp } from '@windy/types';
@@ -50,5 +50,9 @@ export declare const getDataZoom: (params: FullRenderParameters, tileZoom: numbe
 /**
  * Creates RenderingParameters
  */
-export declare const createFullRenderingParams: (layerIdent: Layers, weatherParams: WeatherParameters, timestamp: Timestamp) => Promise<FullRenderParameters>;
+export declare const createFullRenderingParams: (
+  layerIdent: Layers,
+  weatherParams: WeatherParameters,
+  timestamp: Timestamp,
+) => Promise<FullRenderParameters>;
 export {};

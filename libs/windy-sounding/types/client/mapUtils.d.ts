@@ -3,9 +3,9 @@ import type { LatLngBounds, LngLatBoundsLike } from '@leafletGl';
 import type { BoxBounds2D } from './d.ts.files/math';
 export declare const MAPLIBRE_TILE_SIZE = 512;
 export declare const utils: {
-    isWebGl2: boolean;
-    /** WebGL context type key - used to access context-relevant shaders sources */
-    context: "WGL1" | "WGL2";
+  isWebGl2: boolean;
+  /** WebGL context type key - used to access context-relevant shaders sources */
+  context: 'WGL1' | 'WGL2';
 };
 /**
  * @summary Computes nearest integer zoom w.r.t the supplied zoom offset (in case of different tile size than 512px) and optional upper bound

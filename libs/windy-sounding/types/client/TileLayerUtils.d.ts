@@ -3,21 +3,21 @@ import { type Color } from '@windy/Color';
 import type { DataQuality } from '@windy/Product';
 import type { Vector2 } from '@windy/math';
 export type TileHeader = {
-    decoderRstep: number;
-    decoderRmin: number;
-    decoderGstep: number;
-    decoderGmin: number;
-    decoderBstep: number;
-    decoderBmin: number;
+  decoderRstep: number;
+  decoderRmin: number;
+  decoderGstep: number;
+  decoderGmin: number;
+  decoderBstep: number;
+  decoderBmin: number;
 };
 /**
  * TileLayer min-max zoom - affects all tileLayer-based layers (tileLayer, accumulations, etc)
  */
 export declare const tileLayerZoomBounds: Vector2;
 export type GradientProps = {
-    texture: GlTexture | null;
-    mul: number;
-    add: number;
+  texture: GlTexture | null;
+  mul: number;
+  add: number;
 } | null;
 export declare function decodeHeader(imageData: Uint8Array | Uint8ClampedArray, width: number): Float32Array;
 export declare function processHeader(decodedHeader: Float32Array): TileHeader;
@@ -27,7 +27,10 @@ export declare function imageBitmapToUint8Array(imageBitmap: ImageBitmap): Uint8
  * @param colorObj Color instance
  * @returns texture with additional params
  */
-export declare function createGradientObject(gl: WebGL2RenderingContext | WebGLRenderingContext, colorObj: Color): GradientProps;
+export declare function createGradientObject(
+  gl: WebGL2RenderingContext | WebGLRenderingContext,
+  colorObj: Color,
+): GradientProps;
 export declare function prepareRainPattern(gl: WebGL2RenderingContext | WebGLRenderingContext): GlTexture;
 /**
  * @summary Returns data zoom offset for the supplied data quality

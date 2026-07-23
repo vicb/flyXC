@@ -4,15 +4,21 @@ export declare function getAlertTimestamps(alertId: string): Promise<AlertCheckR
 export declare function getAlerts(): Promise<AlertResponse[]>;
 export declare function getAlert(alertId: string): Promise<AlertResponse | null>;
 export declare function createAlert(data: AlertRequest): Promise<void>;
-export declare function updateAlert(data: AlertRequest & {
+export declare function updateAlert(
+  data: AlertRequest & {
     id: AlertId;
-}): Promise<AlertRequest & {
+  },
+): Promise<
+  AlertRequest & {
     id: AlertId;
-}>;
+  }
+>;
 export declare function deleteAlert(alertId: string): Promise<void>;
 export declare function getNearAlert(location: LatLon): Promise<AlertResponse | undefined>;
 export declare function getNearAlerts(location: LatLon): Promise<AlertResponse[]>;
-export declare function add(latLonAndName: LatLon & {
+export declare function add(
+  latLonAndName: LatLon & {
     locationName?: string;
-}): void;
+  },
+): void;
 export declare function userHasAnyAlerts(): Promise<boolean>;

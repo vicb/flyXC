@@ -16,33 +16,33 @@ type LegendDescription = MetricItem[]; // It is possible that some legends have 
 type LegendLines = [number, LegendItem, ...LegendItem[]][];
 
 export interface Legend {
-    isDiscrete?: false;
+  isDiscrete?: false;
 
-    /**
-     * Legend description
-     */
-    description: LegendDescription;
+  /**
+   * Legend description
+   */
+  description: LegendDescription;
 
-    /**
-     * Array defining how the legend will look like
-     */
-    lines: LegendLines;
+  /**
+   * Array defining how the legend will look like
+   */
+  lines: LegendLines;
 }
 
 export interface DiscreteLegend {
-    isDiscrete: true;
+  isDiscrete: true;
 
-    /**
-     * Should all items in legend have same width?
-     */
-    hasEqualItemsWidth?: boolean;
+  /**
+   * Should all items in legend have same width?
+   */
+  hasEqualItemsWidth?: boolean;
 
-    /**
-     * Array of trans strings and clored string.
-     *
-     * For simplicity of solution, the legned colors are hardcoded
-     * thus they do not react on 'users' defined color. This will
-     * be know bug and we will not handle this case.
-     */
-    labels: [keyof LoadedTranslations, RGBString][];
+  /**
+   * Array of trans strings and clored string.
+   *
+   * For simplicity of solution, the legned colors are hardcoded
+   * thus they do not react on 'users' defined color. This will
+   * be know bug and we will not handle this case.
+   */
+  labels: [keyof LoadedTranslations, RGBString][];
 }

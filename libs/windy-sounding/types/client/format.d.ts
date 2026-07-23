@@ -66,9 +66,12 @@ export declare const obsoleteClass: (updatedSecAgo: number, limitInMins?: number
  * @returns '5 days', '5 days ago', '4 hours 15 minutes' etc... Empty string if any error occurs
  */
 export declare const howOld: (options: HowOldOptions) => string;
-export declare const countdown: (ts: Timestamp, options?: {
+export declare const countdown: (
+  ts: Timestamp,
+  options?: {
     showSeconds?: boolean;
-}) => string;
+  },
+) => string;
 /**
  * Miliseconds to "1h 30m" format
  */

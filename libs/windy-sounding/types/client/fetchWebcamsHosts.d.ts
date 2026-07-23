@@ -15,9 +15,14 @@ export declare const getWebcamDetailUrl: (id: string | number, imageSize: Webcam
  * @returns URL for getting list of webcams nearby lat and lon
  * @ignore
  */
-export declare const getWebcamsListUrl: <T extends LatLon & {
+export declare const getWebcamsListUrl: <
+  T extends LatLon & {
     limit?: number;
-}>({ lat, lon, limit }: T, imageSize?: WebcamImageSize) => string;
+  },
+>(
+  { lat, lon, limit }: T,
+  imageSize?: WebcamImageSize,
+) => string;
 /**
  * Returns URL for webcam archive by id
  *
@@ -27,7 +32,11 @@ export declare const getWebcamsListUrl: <T extends LatLon & {
  * @returns URL for getting webcam archive
  * @ignore
  */
-export declare const getWebcamArchiveUrl: (id: string | number, imageSize: WebcamImageSize, archiveType: WebcamArchiveInterval) => string;
+export declare const getWebcamArchiveUrl: (
+  id: string | number,
+  imageSize: WebcamImageSize,
+  archiveType: WebcamArchiveInterval,
+) => string;
 /**
  * Returns URL for webcam hourly archive by id
  * All images are in 'thumbnail' size

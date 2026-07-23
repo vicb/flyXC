@@ -3,11 +3,11 @@ import type { Coords, PickerCoords } from '@windy/interfaces.d';
 import type { Overlays, Products } from '@windy/rootScope.d';
 import type { ExternalPluginIdent, ParsedQueryString } from '@windy/types';
 export type ParsedStartupValues = {
-    sharedCoords: Coords | null;
-    pickerCoords: PickerCoords | null;
-    overlay: Overlays | null;
-    product: Products | null;
-    hideStartupWeather?: boolean;
+  sharedCoords: Coords | null;
+  pickerCoords: PickerCoords | null;
+  overlay: Overlays | null;
+  product: Products | null;
+  hideStartupWeather?: boolean;
 };
 /**
  * Parse URL to plugin and its parameters (if any)
@@ -18,10 +18,14 @@ export type ParsedStartupValues = {
  * @returns ident of matched plugin for purpose of stats
  */
 type RouteResult = {
-    ident: PluginIdent | ExternalPluginIdent;
-    params?: unknown;
+  ident: PluginIdent | ExternalPluginIdent;
+  params?: unknown;
 };
-export declare function resolveRoute(purl: string, source: 'url' | 'back-button', parsedQs?: ParsedQueryString): RouteResult | Promise<RouteResult | null> | null;
+export declare function resolveRoute(
+  purl: string,
+  source: 'url' | 'back-button',
+  parsedQs?: ParsedQueryString,
+): RouteResult | Promise<RouteResult | null> | null;
 /**
  * Parse search part of the URL
  * eg: https://www.windy.com/?overlay,level,lat,lon,zoom,marker
@@ -38,6 +42,119 @@ export declare function parseSearch(searchQuery: string | undefined): ParsedStar
  */
 export declare const sharedCoords: Coords;
 export declare const hideStartupWeather: boolean;
-export declare const parsedOverlay: "visibility" | "go3" | "no2" | "pm2p5" | "radar" | "satellite" | "wind" | "gust" | "gustAccu" | "turbulence" | "icing" | "rain" | "rainAccu" | "snowAccu" | "snowcover" | "ptype" | "thunder" | "temp" | "dewpoint" | "rh" | "deg0" | "wetbulbtemp" | "solarpower" | "uvindex" | "clouds" | "hclouds" | "mclouds" | "lclouds" | "fog" | "cloudtop" | "cbase" | "cape" | "ccl" | "waves" | "swell1" | "swell2" | "swell3" | "wwaves" | "sst" | "currents" | "currentsTide" | "wavePower" | "aqi" | "aod550" | "gtco3" | "tcso2" | "cosc" | "dustsm" | "pressure" | "efiTemp" | "efiWind" | "efiRain" | "capAlerts" | "avalancheDanger" | "soilMoisture40" | "soilMoisture100" | "moistureAnom40" | "moistureAnom100" | "drought40" | "drought100" | "fwi" | "dfm10h" | "dfm100h" | "dfm1000h" | "heatmaps" | "topoMap" | "hurricanes";
-export declare const parsedProduct: "icon" | "ecmwfWaves" | "gfsWaves" | "iconEuWaves" | "jmaCwmWaves" | "canRdwpsWaves" | "mblue" | "gfs" | "ecmwf" | "namConus" | "namHawaii" | "namAlaska" | "iconD2" | "iconEu" | "arome" | "aromeAntilles" | "aromeFrance" | "aromeReunion" | "canHrdps" | "camsEu" | "czeAladin" | "hrrrAlaska" | "hrrrConus" | "bomAccess" | "bomAccessAd" | "bomAccessBn" | "bomAccessDn" | "bomAccessNq" | "bomAccessPh" | "bomAccessSy" | "bomAccessVt" | "ukv" | "jmaMsm" | "cams" | "radar" | "satellite" | "capAlerts" | "avalancheDanger" | "topoMap" | "nems" | "ecmwfAnalysis" | "efi" | "cmems" | "drought" | "fireDanger" | "activeFires";
+export declare const parsedOverlay:
+  | 'visibility'
+  | 'go3'
+  | 'no2'
+  | 'pm2p5'
+  | 'radar'
+  | 'satellite'
+  | 'wind'
+  | 'gust'
+  | 'gustAccu'
+  | 'turbulence'
+  | 'icing'
+  | 'rain'
+  | 'rainAccu'
+  | 'snowAccu'
+  | 'snowcover'
+  | 'ptype'
+  | 'thunder'
+  | 'temp'
+  | 'dewpoint'
+  | 'rh'
+  | 'deg0'
+  | 'wetbulbtemp'
+  | 'solarpower'
+  | 'uvindex'
+  | 'clouds'
+  | 'hclouds'
+  | 'mclouds'
+  | 'lclouds'
+  | 'fog'
+  | 'cloudtop'
+  | 'cbase'
+  | 'cape'
+  | 'ccl'
+  | 'waves'
+  | 'swell1'
+  | 'swell2'
+  | 'swell3'
+  | 'wwaves'
+  | 'sst'
+  | 'currents'
+  | 'currentsTide'
+  | 'wavePower'
+  | 'aqi'
+  | 'aod550'
+  | 'gtco3'
+  | 'tcso2'
+  | 'cosc'
+  | 'dustsm'
+  | 'pressure'
+  | 'efiTemp'
+  | 'efiWind'
+  | 'efiRain'
+  | 'capAlerts'
+  | 'avalancheDanger'
+  | 'soilMoisture40'
+  | 'soilMoisture100'
+  | 'moistureAnom40'
+  | 'moistureAnom100'
+  | 'drought40'
+  | 'drought100'
+  | 'fwi'
+  | 'dfm10h'
+  | 'dfm100h'
+  | 'dfm1000h'
+  | 'heatmaps'
+  | 'topoMap'
+  | 'hurricanes';
+export declare const parsedProduct:
+  | 'icon'
+  | 'ecmwfWaves'
+  | 'gfsWaves'
+  | 'iconEuWaves'
+  | 'jmaCwmWaves'
+  | 'canRdwpsWaves'
+  | 'mblue'
+  | 'gfs'
+  | 'ecmwf'
+  | 'namConus'
+  | 'namHawaii'
+  | 'namAlaska'
+  | 'iconD2'
+  | 'iconEu'
+  | 'arome'
+  | 'aromeAntilles'
+  | 'aromeFrance'
+  | 'aromeReunion'
+  | 'canHrdps'
+  | 'camsEu'
+  | 'czeAladin'
+  | 'hrrrAlaska'
+  | 'hrrrConus'
+  | 'bomAccess'
+  | 'bomAccessAd'
+  | 'bomAccessBn'
+  | 'bomAccessDn'
+  | 'bomAccessNq'
+  | 'bomAccessPh'
+  | 'bomAccessSy'
+  | 'bomAccessVt'
+  | 'ukv'
+  | 'jmaMsm'
+  | 'cams'
+  | 'radar'
+  | 'satellite'
+  | 'capAlerts'
+  | 'avalancheDanger'
+  | 'topoMap'
+  | 'nems'
+  | 'ecmwfAnalysis'
+  | 'efi'
+  | 'cmems'
+  | 'drought'
+  | 'fireDanger'
+  | 'activeFires';
 export {};

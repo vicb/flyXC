@@ -4,7 +4,22 @@ import type { RegistrationError } from '@capacitor/push-notifications';
 import type { QueryStringSource } from '@windy/http.d';
 import type { LatLon, LinearScale, TilePoint } from '@windy/interfaces.d';
 import type { RGBNumValues } from '@windy/interpolatorTypes';
-import type { ExtendedStationType, HTMLString, NumOrNull, NumValue, Path, Timestamp, TimeRangeMs, ParsedQueryString, RGBAString, RGBString, ColorGradientString, RGBA, Hours, YearMonthDay } from '@windy/types.d';
+import type {
+  ExtendedStationType,
+  HTMLString,
+  NumOrNull,
+  NumValue,
+  Path,
+  Timestamp,
+  TimeRangeMs,
+  ParsedQueryString,
+  RGBAString,
+  RGBString,
+  ColorGradientString,
+  RGBA,
+  Hours,
+  YearMonthDay,
+} from '@windy/types.d';
 import type { Vector3 } from '@windy/math';
 import type { Readable, Subscriber, Unsubscriber } from 'svelte/store';
 /**
@@ -72,7 +87,7 @@ export declare const emptyFun: () => void;
  *
  * @type {string}
  */
-export declare const emptyGIF = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+export declare const emptyGIF = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 /**
  * Checks if the given object is empty (has no keys).
  */
@@ -99,7 +114,10 @@ export declare const normalizeLatLon: (str: string | number) => string;
  * @param items Object to iterate
  * @param cb Callback called every single iteration
  */
-export declare const each: <K extends string | number | symbol, V>(items: { [P in K]?: V; }, cb: (item: V, key: K) => unknown) => void;
+export declare const each: <K extends string | number | symbol, V>(
+  items: { [P in K]?: V },
+  cb: (item: V, key: K) => unknown,
+) => void;
 /**
  * Makes a deep clone of an Object. Optional @propertis
  * can contain  list of @properties {Array} that will be copied.
@@ -131,7 +149,11 @@ export declare const radToDeg = 57.2957795;
  * @param immediate Should be function trigger on the leading edge or on the trailing
  * @returns Debounced function
  */
-export declare const debounce: <Args extends unknown[], F extends (...args: Args) => void>(func: (this: ThisParameterType<F>, ...args: Args & Parameters<F>) => void, waitTill: number, immediate?: boolean) => (this: ThisParameterType<F>, ...args: Args & Parameters<F>) => void;
+export declare const debounce: <Args extends unknown[], F extends (...args: Args) => void>(
+  func: (this: ThisParameterType<F>, ...args: Args & Parameters<F>) => void,
+  waitTill: number,
+  immediate?: boolean,
+) => (this: ThisParameterType<F>, ...args: Args & Parameters<F>) => void;
 /**
  * Returns a throttled variant of the input function, using a timer to limit calls of the input function.
  * If the throttled function is called and the timer is not running, the input function is executed immediatelly and a timer is started.
@@ -144,7 +166,11 @@ export declare const debounce: <Args extends unknown[], F extends (...args: Args
  * @param time Throttle time in ms.
  * @returns Throttled function
  */
-export declare const throttle: <Args extends unknown[], F extends (...argmtns: Args) => void>(this: ThisParameterType<F>, fn: (this: ThisParameterType<F>, ...argmtns: Args & Parameters<F>) => void, time: number) => (this: ThisParameterType<F>, ...argmtns: Args & Parameters<F>) => void;
+export declare const throttle: <Args extends unknown[], F extends (...argmtns: Args) => void>(
+  this: ThisParameterType<F>,
+  fn: (this: ThisParameterType<F>, ...argmtns: Args & Parameters<F>) => void,
+  time: number,
+) => (this: ThisParameterType<F>, ...argmtns: Args & Parameters<F>) => void;
 /**
  * Pad leading zeroes to the number
  *
@@ -163,12 +189,12 @@ export declare const pad: (num: number, size?: number) => string;
  */
 export declare const template: (str: string, data?: Record<string, unknown>) => string;
 export interface DirObject {
-    /** Direction of wind. Backend for POI detail can return VAR here, but it should never pass into this type */
-    dir: number;
+  /** Direction of wind. Backend for POI detail can return VAR here, but it should never pass into this type */
+  dir: number;
 }
 export interface WindObject extends DirObject {
-    wind: number;
-    gust?: number | null;
+  wind: number;
+  gust?: number | null;
 }
 /**
  * Return magnitude and angle from U,V vectors for wind
@@ -176,13 +202,10 @@ export interface WindObject extends DirObject {
  * @param v Vector [u,v]
  * @returns Object { wind, dir }
  */
-export declare const wind2obj: ([u, v]: [
-    number,
-    number
-] | RGBNumValues) => WindObject;
+export declare const wind2obj: ([u, v]: [number, number] | RGBNumValues) => WindObject;
 export interface WaveObject extends DirObject {
-    period: number;
-    size: number;
+  period: number;
+  size: number;
 }
 /**
  * Return magnitude, period and angle from U,V vectors for waves
@@ -197,9 +220,11 @@ export declare const wave2obj: ([u, v, size]: RGBNumValues) => WaveObject;
  * @param wx Wind object
  * @returns True if object has a valid direction, false otherwise
  */
-export declare const hasDirection: <T extends Partial<WindObject>>(wx: T) => wx is {
-    dir: number;
-    wind: number;
+export declare const hasDirection: <T extends Partial<WindObject>>(
+  wx: T,
+) => wx is {
+  dir: number;
+  wind: number;
 } & T;
 /**
  * Ruturn piece of html with rotated wind arrow
@@ -296,7 +321,51 @@ export declare const getAdjustedNow: (syncTime?: number) => number;
  * @param lang Language code
  * @returns True if language is supported, false otherwise
  */
-export declare const isValidLang: (lang: string) => lang is "en" | "zh-TW" | "zh" | "ja" | "fr" | "ko" | "it" | "ru" | "nl" | "cs" | "tr" | "pl" | "sv" | "fi" | "ro" | "el" | "hu" | "hr" | "ca" | "da" | "ar" | "fa" | "hi" | "ta" | "sk" | "uk" | "bg" | "he" | "is" | "lt" | "et" | "vi" | "sl" | "sr" | "id" | "th" | "sq" | "pt" | "nb" | "es" | "de" | "bn";
+export declare const isValidLang: (
+  lang: string,
+) => lang is
+  | 'en'
+  | 'zh-TW'
+  | 'zh'
+  | 'ja'
+  | 'fr'
+  | 'ko'
+  | 'it'
+  | 'ru'
+  | 'nl'
+  | 'cs'
+  | 'tr'
+  | 'pl'
+  | 'sv'
+  | 'fi'
+  | 'ro'
+  | 'el'
+  | 'hu'
+  | 'hr'
+  | 'ca'
+  | 'da'
+  | 'ar'
+  | 'fa'
+  | 'hi'
+  | 'ta'
+  | 'sk'
+  | 'uk'
+  | 'bg'
+  | 'he'
+  | 'is'
+  | 'lt'
+  | 'et'
+  | 'vi'
+  | 'sl'
+  | 'sr'
+  | 'id'
+  | 'th'
+  | 'sq'
+  | 'pt'
+  | 'nb'
+  | 'es'
+  | 'de'
+  | 'bn';
 /**
  * Safely joins server name and path
  *
@@ -395,28 +464,30 @@ export declare const lerpColor256: (a: RGBA, b: RGBA, f: number) => RGBA;
  * Finds all [data-ref] references in DOM and returns standard
  * refs object
  */
-export declare const getRefs: <N extends HTMLElement, R extends Record<string, HTMLElement | SVGElement>>(selectorOrNode: string | N) => {
-    node: N;
-    refs: R;
+export declare const getRefs: <N extends HTMLElement, R extends Record<string, HTMLElement | SVGElement>>(
+  selectorOrNode: string | N,
+) => {
+  node: N;
+  refs: R;
 };
 /**
  * Sanitizes HTML code, escape all XSS dangerous characters
  */
 export declare const sanitizeHTML: (s: string) => string;
 export interface LogErrorDetail {
-    moduleName: string;
-    msg: string;
-    errorObject?: Error | HttpError | Event | ErrorEvent | RegistrationError;
-    additionalInfo?: {
-        /**
-         * Any additional data you want to log alongside the error to provide more context
-         */
-        extra?: Record<string, unknown>;
-        /**
-         * Key-value pairs to use as tags in GlitchTip
-         */
-        tags?: Record<string, string>;
-    };
+  moduleName: string;
+  msg: string;
+  errorObject?: Error | HttpError | Event | ErrorEvent | RegistrationError;
+  additionalInfo?: {
+    /**
+     * Any additional data you want to log alongside the error to provide more context
+     */
+    extra?: Record<string, unknown>;
+    /**
+     * Key-value pairs to use as tags in GlitchTip
+     */
+    tags?: Record<string, string>;
+  };
 }
 /**
  * Custom error logging function.
@@ -428,17 +499,26 @@ export interface LogErrorDetail {
  * @param msg Message to report, the main body of the error
  * @param errObj Whole error object to stringification. It is sent to Kibana under 'error' property
  */
-export declare function logError(moduleName: string, msg: string, errorObject?: Error | HttpError | Event | ErrorEvent | RegistrationError, additionalInfo?: LogErrorDetail['additionalInfo']): void;
+export declare function logError(
+  moduleName: string,
+  msg: string,
+  errorObject?: Error | HttpError | Event | ErrorEvent | RegistrationError,
+  additionalInfo?: LogErrorDetail['additionalInfo'],
+): void;
 /**
  * Same as scale linear from d3 library except with different params
  * https://d3js.org/d3-scale/linear
  * @param Object { domain: [  ], range: [] }
  * @returns Object { get, invert }
  */
-export declare const scaleLinear: ({ domain, range, clip, }: {
-    domain: [number, number];
-    range: [number, number];
-    clip?: boolean;
+export declare const scaleLinear: ({
+  domain,
+  range,
+  clip,
+}: {
+  domain: [number, number];
+  range: [number, number];
+  clip?: boolean;
 }) => LinearScale;
 export declare const maxCanvasRatio = 2;
 /**
@@ -508,8 +588,8 @@ export declare const seoLangRegex: RegExp;
  *
  */
 export declare const parseSeoUrl: (url: string) => {
-    purl: string;
-    overlay: string;
+  purl: string;
+  overlay: string;
 };
 /**
  * Safely URL decoded startup pathname
@@ -520,7 +600,10 @@ export declare const getErrorMessage: (error: unknown) => string;
 /**
  * Creates a color gradient from array of prepared ones
  */
-export declare const createColorGradient: (gradient: (RGBAString | RGBString)[], numValues: NumValue[]) => ColorGradientString;
+export declare const createColorGradient: (
+  gradient: (RGBAString | RGBString)[],
+  numValues: NumValue[],
+) => ColorGradientString;
 /**
  * preventDefault wrapper for event handlers
  */
@@ -529,12 +612,15 @@ export declare const openInApp: () => void;
 /**
  * Given the UTC offset returns local time
  */
-export declare const toLocalTime: (ts: Timestamp, utcOffset: Hours) => {
-    h: Hours;
-    m: number;
-    day: number;
-    weekDay: number;
-    yearMonthDay: YearMonthDay;
+export declare const toLocalTime: (
+  ts: Timestamp,
+  utcOffset: Hours,
+) => {
+  h: Hours;
+  m: number;
+  day: number;
+  weekDay: number;
+  yearMonthDay: YearMonthDay;
 };
 /**
  * @summary Extracts positions of the tile coordinates in the per-tile request urls to enabled coordinates extraction

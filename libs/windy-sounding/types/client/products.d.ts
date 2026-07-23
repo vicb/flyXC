@@ -1,9 +1,19 @@
 import { Product } from '@windy/Product';
-import { AromeProduct, AccessProduct, AccessCProduct, EcmwfForecastProduct, EcmwfProduct, SatAndRadarPlusProduct, FakeCalendarProduct } from '@windy/ProductClasses';
+import {
+  AromeProduct,
+  AccessProduct,
+  AccessCProduct,
+  EcmwfForecastProduct,
+  EcmwfProduct,
+  SatAndRadarPlusProduct,
+  FakeCalendarProduct,
+} from '@windy/ProductClasses';
 import type { Products } from '@windy/rootScope.d';
-type AllExportedProducts = Implements<{
+type AllExportedProducts = Implements<
+  {
     [P in Products]: Product;
-}, {
+  },
+  {
     bomAccess: AccessProduct;
     bomAccessAd: AccessCProduct;
     bomAccessBn: AccessCProduct;
@@ -50,6 +60,7 @@ type AllExportedProducts = Implements<{
     jmaCwmWaves: Product;
     topoMap: Product;
     avalancheDanger: FakeCalendarProduct;
-}>;
+  }
+>;
 declare const products: AllExportedProducts;
 export default products;

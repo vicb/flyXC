@@ -1,7508 +1,7508 @@
 // !!! Automatically generated file by make/langs.ts !!!
 
 export interface AccumulationsLangFile {
-    /**
-     * accumulations: {{num}} days
-     */
-    ACC_DAYS: string;
-    /**
-     * accumulations: Duration of the accumulation:
-     */
-    ACC_DURATION: string;
-    /**
-     * accumulations: {{num}} hours
-     */
-    ACC_HOURS: string;
+  /**
+   * accumulations: {{num}} days
+   */
+  ACC_DAYS: string;
+  /**
+   * accumulations: Duration of the accumulation:
+   */
+  ACC_DURATION: string;
+  /**
+   * accumulations: {{num}} hours
+   */
+  ACC_HOURS: string;
 }
 
 export interface AirportLangFile {
-    /**
-     * airport: Helipads
-     */
-    AIRPORT_HELIPADS: string;
-    /**
-     * airport: Lighted
-     */
-    AIRPORT_LIGHTED: string;
-    /**
-     * airport: Lock map
-     */
-    AIRPORT_MAP_LOCK: string;
-    /**
-     * airport: Detailed forecast for {{icao}}
-     */
-    AIRPORT_METARS_DETAILED_FORECAST: string;
-    /**
-     * airport: Display {{icao}} as weather station
-     */
-    AIRPORT_METARS_DISPLAY_AS_STATION: string;
-    /**
-     * airport: Airport name
-     */
-    AIRPORT_NAME: string;
-    /**
-     * airport: Surface
-     */
-    AIRPORT_SURFACE: string;
-    /**
-     * airport: Show on map
-     */
-    DISPLAY_AIRPORT2: string;
-    /**
-     * airport: Nearest METARs
-     */
-    NEAREST_METARS: string;
-    /**
-     * airport: Runways
-     */
-    RUNWAYS: string;
-    /**
-     * airport: Time info
-     */
-    TIME_INFO: string;
+  /**
+   * airport: Helipads
+   */
+  AIRPORT_HELIPADS: string;
+  /**
+   * airport: Lighted
+   */
+  AIRPORT_LIGHTED: string;
+  /**
+   * airport: Lock map
+   */
+  AIRPORT_MAP_LOCK: string;
+  /**
+   * airport: Detailed forecast for {{icao}}
+   */
+  AIRPORT_METARS_DETAILED_FORECAST: string;
+  /**
+   * airport: Display {{icao}} as weather station
+   */
+  AIRPORT_METARS_DISPLAY_AS_STATION: string;
+  /**
+   * airport: Airport name
+   */
+  AIRPORT_NAME: string;
+  /**
+   * airport: Surface
+   */
+  AIRPORT_SURFACE: string;
+  /**
+   * airport: Show on map
+   */
+  DISPLAY_AIRPORT2: string;
+  /**
+   * airport: Nearest METARs
+   */
+  NEAREST_METARS: string;
+  /**
+   * airport: Runways
+   */
+  RUNWAYS: string;
+  /**
+   * airport: Time info
+   */
+  TIME_INFO: string;
 }
 
 export interface AlertsLangFile {
-    /**
-     * alerts: Processing
-     */
-    ALERTS_ASSIGNING: string;
-    /**
-     * alerts: Close
-     */
-    ALERTS_CLOSE: string;
-    /**
-     * alerts: Confirm changes
-     */
-    ALERTS_CONFIRM: string;
-    /**
-     * alerts: Go back
-     */
-    ALERTS_GO_BACK: string;
-    /**
-     * alerts: No alerts found
-     */
-    ALERTS_NOTHING_FOUND: string;
-    /**
-     * alerts: Select all
-     */
-    ALERTS_SELECT_ALL: string;
-    /**
-     * alerts: Unselect all
-     */
-    ALERTS_SELECT_NONE: string;
-    /**
-     * alerts: These alerts will be assigned to your account:
-     */
-    ALERTS_TO_ASSIGN: string;
-    /**
-     * alerts: These alerts will be deleted:
-     */
-    ALERTS_TO_DELETE: string;
-    /**
-     * alerts: I agree with Windy's <a href="{{link}}" target="_blank">conditions</a> for alert handling.
-     */
-    ALERT_ANALYTICS_CONSENT: string;
-    /**
-     * alerts: Air quality (AQI)
-     */
-    ALERT_AQI: string;
-    /**
-     * alerts: Air quality (AQI): {{from}} - {{to}}
-     */
-    ALERT_AQI_DESCRIPTION: string;
-    /**
-     * alerts: AQI from <b>{{from}}</b> to <b>{{to}}</b>
-     */
-    ALERT_AQI_RANGE: string;
-    /**
-     * alerts: Which alerts do you want to assign to your user account? The other alerts will be deleted!
-     */
-    ALERT_ASSIGNING_DESC: string;
-    /**
-     * alerts: Assign alerts to account
-     */
-    ALERT_ASSIGN_HEADING: string;
-    /**
-     * alerts: This operation will remove all the unselected alerts.
-     */
-    ALERT_ASSIGN_WARNING: string;
-    /**
-     * alerts: at least {{hour}}h
-     */
-    ALERT_AT_LEAST: string;
-    /**
-     * alerts: App only
-     */
-    ALERT_BADGE_APP_ONLY: string;
-    /**
-     * alerts: Notifications disabled
-     */
-    ALERT_BADGE_NOTIFICATIONS_DISABLED: string;
-    /**
-     * alerts: Finish migration
-     */
-    ALERT_BUTTON_FINISH_MIGRATION: string;
-    /**
-     * alerts: Next
-     */
-    ALERT_BUTTON_NEXT: string;
-    /**
-     * alerts: Previous
-     */
-    ALERT_BUTTON_PREVIOUS: string;
-    /**
-     * alerts: change
-     */
-    ALERT_CHANGE: string;
-    /**
-     * alerts: Check The Actual Forecast
-     */
-    ALERT_CHECK: string;
-    /**
-     * alerts: Cloudiness
-     */
-    ALERT_CLOUDINESS: string;
-    /**
-     * alerts: Click on icons to select maximum amount of clouds
-     */
-    ALERT_CLOUDS: string;
-    /**
-     * alerts: cloudy
-     */
-    ALERT_CLOUDS_BKN: string;
-    /**
-     * alerts: partly cloudy
-     */
-    ALERT_CLOUDS_FEW: string;
-    /**
-     * alerts: overcast
-     */
-    ALERT_CLOUDS_OVC: string;
-    /**
-     * alerts: scattered
-     */
-    ALERT_CLOUDS_SCT: string;
-    /**
-     * alerts: sky clear
-     */
-    ALERT_CLOUDS_SKC: string;
-    /**
-     * alerts: It seems alert with an id <em>{{alertId}}</em> is corrupted. Please, delete it and create a new one.
-     */
-    ALERT_CORRUPTED: string;
-    /**
-     * alerts: Delete this corrupted alert
-     */
-    ALERT_CORRUPTED_ACTION: string;
-    /**
-     * alerts: Delete alert
-     */
-    ALERT_DELETE2: string;
-    /**
-     * alerts: Assigning was completed
-     */
-    ALERT_DONE: string;
-    /**
-     * alerts: We have assigned the selected alerts to your account. Now you can close this window.
-     */
-    ALERT_DONE_P: string;
-    /**
-     * alerts: <a href="{{editLink}}">Edit</a> / <a href="{{removeLink}}">Unsubscribe</a> this alert.
-     */
-    ALERT_EDIT: string;
-    /**
-     * alerts: WOW seems like your email is not correct
-     */
-    ALERT_EMAIL_ERROR: string;
-    /**
-     * alerts: <p>Hi buddy,</p><p>BIG day at {{name}} is coming</p>
-     */
-    ALERT_EMAIL_PEREX: string;
-    /**
-     * alerts: An unexpected error has occurred for alert with an id <em>{{alertId}}</em>. Try again later.
-     */
-    ALERT_ERROR: string;
-    /**
-     * alerts: The server refused to process your request. Please, try again later.
-     */
-    ALERT_ERROR_400: string;
-    /**
-     * alerts: You need to be logged in. Please, log in and try again.
-     */
-    ALERT_ERROR_403: string;
-    /**
-     * alerts: No alert with an id "{{id}}" found for your account. It is probably assigned to a different account.
-     */
-    ALERT_ERROR_404: string;
-    /**
-     * alerts: This alert is already assigned to a different user.
-     */
-    ALERT_ERROR_409: string;
-    /**
-     * alerts: An unexpected error has occurred :-(
-     */
-    ALERT_ERROR_ANY: string;
-    /**
-     * alerts: Assigning failed. Please try again.
-     */
-    ALERT_ERROR_ASGN: string;
-    /**
-     * alerts: Cannot fetch alerts
-     */
-    ALERT_ERROR_FETCH: string;
-    /**
-     * alerts: Link to this page is broken. We could not validate your token.
-     */
-    ALERT_ERROR_JWT: string;
-    /**
-     * alerts: Nothing selected.
-     */
-    ALERT_ERROR_SELECT: string;
-    /**
-     * alerts: This token was already used.
-     */
-    ALERT_ERROR_USED_JWT: string;
-    /**
-     * alerts: Alert triggers when all selected conditions are met simultaneously.
-     */
-    ALERT_FORECAST_CONDITIONS_HINT: string;
-    /**
-     * alerts: Good luck and stay safe!
-     */
-    ALERT_GOOD_LUCK: string;
-    /**
-     * alerts: Hours, days, duration
-     */
-    ALERT_HOURS_DAYS: string;
-    /**
-     * alerts: How to set-up a new alert? Open the weather picker or detailed forecast for any spot, and click on a link "{{linkTxt}}".
-     */
-    ALERT_HOW_ADD: string;
-    /**
-     * alerts: ID of this alert:
-     */
-    ALERT_ID: string;
-    /**
-     * alerts: Latitude
-     */
-    ALERT_LAT: string;
-    /**
-     * alerts: No services enabled
-     */
-    ALERT_LIVE_NO_SERVICES: string;
-    /**
-     * alerts: Alerts issued by local authorities via the Common Alerting Protocol. Coverage varies by country — you only receive alerts where a feed is available.
-     */
-    ALERT_LIVE_SERVICE_CAP_DESCRIPTION: string;
-    /**
-     * alerts: Notifies you when intense rainfall is approaching the location.
-     */
-    ALERT_LIVE_SERVICE_RAIN_DESCRIPTION: string;
-    /**
-     * alerts: Detects lightning near the selected location and notifies you when a thunderstorm is approaching.
-     */
-    ALERT_LIVE_SERVICE_STORMS_DESCRIPTION: string;
-    /**
-     * alerts: Notifies you when a tropical cyclone is forecast to affect the selected location.
-     */
-    ALERT_LIVE_SERVICE_TC_DESCRIPTION: string;
-    /**
-     * alerts: <b>Live alerts</b> currently work only on the Windy mobile app with notifications enabled.
-     */
-    ALERT_LIVE_WARNING: string;
-    /**
-     * alerts: We will use local time of this location
-     */
-    ALERT_LOCAL_TIME: string;
-    /**
-     * alerts: Windy Alerts are available only for registered users. Please <b>login</b> or <b>register</b> first.
-     */
-    ALERT_LOGGED_ONLY: string;
-    /**
-     * alerts: You need to be logged in.
-     */
-    ALERT_LOGIN: string;
-    /**
-     * alerts: Longitude
-     */
-    ALERT_LON: string;
-    /**
-     * alerts: Best model for given location
-     */
-    ALERT_MODEL_BEST: string;
-    /**
-     * alerts: Name of the alert
-     */
-    ALERT_NAME: string;
-    /**
-     * alerts: Text of the notification
-     */
-    ALERT_NOTIFICATION_TEXT: string;
-    /**
-     * alerts: Not considered
-     */
-    ALERT_NOT_CONS: string;
-    /**
-     * alerts: Alert with an id <em>{{alertId}}</em> was not found in our database. It has probably been deleted in the past.
-     */
-    ALERT_NOT_FOUND: string;
-    /**
-     * alerts: Delete from my favorites if it doesn't exist anymore
-     */
-    ALERT_NOT_FOUND_ACTION: string;
-    /**
-     * alerts: Part of a day I am interested in
-     */
-    ALERT_PART_DAY: string;
-    /**
-     * alerts: Please note that ‘day 1’ refers to the first day of the current forecast, not necessarily the first day of the week.
-     */
-    ALERT_PART_RANGE_DESCRIPTION: string;
-    /**
-     * alerts: <b>{{min}}</b> to <b>{{max}}</b> days of the forecast
-     */
-    ALERT_PART_RANGE_LONG: string;
-    /**
-     * alerts: Only day <b>{{value}}</b> of the forecast
-     */
-    ALERT_PART_RANGE_SHORT: string;
-    /**
-     * alerts: Part of a week I am interested in
-     */
-    ALERT_PART_WEEK: string;
-    /**
-     * alerts: Pollen
-     */
-    ALERT_POLLEN: string;
-    /**
-     * alerts: How long must the conditions prevail to receive an alert
-     */
-    ALERT_PREVAIL: string;
-    /**
-     * alerts: <b>{{min}}</b> to <b>{{max}}</b> {{metric}} of rain must accumulate...
-     */
-    ALERT_RAIN2: string;
-    /**
-     * alerts: Amount of convective rain (storms, rainshowers) is unpredictable
-     */
-    ALERT_RAIN_NOTE: string;
-    /**
-     * alerts: ...within period of <b>{{hours}}</b> hours
-     */
-    ALERT_RAIN_PERIOD: string;
-    /**
-     * alerts: resume alert
-     */
-    ALERT_RESUME: string;
-    /**
-     * alerts: <p>Your live alert has been saved.</p><p>Live alerts are delivered only as push notifications on the Windy mobile app — make sure notifications are enabled on your phone.</p>
-     */
-    ALERT_SAVED_LIVE: string;
-    /**
-     * alerts: Assign
-     */
-    ALERT_SELECT: string;
-    /**
-     * alerts: Assign selected alerts
-     */
-    ALERT_SEND_BTN: string;
-    /**
-     * alerts: Alerts are sent to
-     */
-    ALERT_SENT_TO: string;
-    /**
-     * alerts: <b>{{min}}</b> to <b>{{max}}</b> {{metric}} of snow must fall in the previous 3 days
-     */
-    ALERT_SNOW2: string;
-    /**
-     * alerts: Activity
-     */
-    ALERT_STEP_ACTIVITY: string;
-    /**
-     * alerts: Conditions
-     */
-    ALERT_STEP_CONDITIONS: string;
-    /**
-     * alerts: Customization
-     */
-    ALERT_STEP_CUSTOMIZATION: string;
-    /**
-     * alerts: Location
-     */
-    ALERT_STEP_LOCATION: string;
-    /**
-     * alerts: Type
-     */
-    ALERT_STEP_TYPE: string;
-    /**
-     * alerts: suspend alert for some time
-     */
-    ALERT_SUSPEND: string;
-    /**
-     * alerts: Swell size from <b>{{min}}</b> to <b>{{max}}</b>
-     */
-    ALERT_SWELL: string;
-    /**
-     * alerts: Temperature
-     */
-    ALERT_TEMP: string;
-    /**
-     * alerts: Temperature from <b>{{min}}</b> to <b>{{max}}</b>
-     */
-    ALERT_TEMP_FROM: string;
-    /**
-     * alerts: Temperature, weather
-     */
-    ALERT_TEMP_WX: string;
-    /**
-     * alerts: Your conditions for {{name}} are here. Check forecast at {{linkTxt}}
-     */
-    ALERT_TXT_EMAIL: string;
-    /**
-     * alerts: Forecast alert
-     */
-    ALERT_TYPE_FORECAST: string;
-    /**
-     * alerts: Watches the forecast and notifies you when conditions you choose (wind, rain, temperature, etc.) are expected.
-     */
-    ALERT_TYPE_FORECAST_DESCRIPTION: string;
-    /**
-     * alerts: Live alert
-     */
-    ALERT_TYPE_LIVE: string;
-    /**
-     * alerts: Notifies you when storms, heavy rain, or other live phenomena are detected at your location.
-     */
-    ALERT_TYPE_LIVE_DESCRIPTION: string;
-    /**
-     * alerts: <b>You are not allowed to edit or view this alert</b>, because it is assigned to a different user. In case you created this alert under another account of yours, please delete it using a link in a footer of the last notification email you have received for this alert. And create a new one under your current account.
-     */
-    ALERT_UNAUTHORIZED: string;
-    /**
-     * alerts: Forecast is updated every {{hrs}} hours, so check often if the conditions prevail.
-     */
-    ALERT_UPDATE: string;
-    /**
-     * alerts: Accept Windy's conditions to save the alert.
-     */
-    ALERT_VALIDATION_ACCEPT_CONDITIONS: string;
-    /**
-     * alerts: Description cannot be empty.
-     */
-    ALERT_VALIDATION_DESCRIPTION_REQUIRED: string;
-    /**
-     * alerts: Some enabled conditions need more input.
-     */
-    ALERT_VALIDATION_FORECAST_INCOMPLETE: string;
-    /**
-     * alerts: Pick at least one condition.
-     */
-    ALERT_VALIDATION_FORECAST_PICK_CONDITION: string;
-    /**
-     * alerts: Enable at least one service.
-     */
-    ALERT_VALIDATION_LIVE_PICK_SERVICE: string;
-    /**
-     * alerts: Select at least one cloud cover level.
-     */
-    ALERT_VALIDATION_PICK_CLOUDINESS: string;
-    /**
-     * alerts: Select at least one day of the week.
-     */
-    ALERT_VALIDATION_PICK_DAYS: string;
-    /**
-     * alerts: Select at least one direction.
-     */
-    ALERT_VALIDATION_PICK_DIRECTIONS: string;
-    /**
-     * alerts: Select at least one hour range.
-     */
-    ALERT_VALIDATION_PICK_HOURS: string;
-    /**
-     * alerts: Select at least one pollen species.
-     */
-    ALERT_VALIDATION_PICK_POLLEN: string;
-    /**
-     * alerts: Strength from <b>{{min}}</b> to <b>{{max}}</b>
-     */
-    ALERT_WIND: string;
-    /**
-     * alerts: Your email adress
-     */
-    ALERT_YOUR_EMAIL: string;
+  /**
+   * alerts: Processing
+   */
+  ALERTS_ASSIGNING: string;
+  /**
+   * alerts: Close
+   */
+  ALERTS_CLOSE: string;
+  /**
+   * alerts: Confirm changes
+   */
+  ALERTS_CONFIRM: string;
+  /**
+   * alerts: Go back
+   */
+  ALERTS_GO_BACK: string;
+  /**
+   * alerts: No alerts found
+   */
+  ALERTS_NOTHING_FOUND: string;
+  /**
+   * alerts: Select all
+   */
+  ALERTS_SELECT_ALL: string;
+  /**
+   * alerts: Unselect all
+   */
+  ALERTS_SELECT_NONE: string;
+  /**
+   * alerts: These alerts will be assigned to your account:
+   */
+  ALERTS_TO_ASSIGN: string;
+  /**
+   * alerts: These alerts will be deleted:
+   */
+  ALERTS_TO_DELETE: string;
+  /**
+   * alerts: I agree with Windy's <a href="{{link}}" target="_blank">conditions</a> for alert handling.
+   */
+  ALERT_ANALYTICS_CONSENT: string;
+  /**
+   * alerts: Air quality (AQI)
+   */
+  ALERT_AQI: string;
+  /**
+   * alerts: Air quality (AQI): {{from}} - {{to}}
+   */
+  ALERT_AQI_DESCRIPTION: string;
+  /**
+   * alerts: AQI from <b>{{from}}</b> to <b>{{to}}</b>
+   */
+  ALERT_AQI_RANGE: string;
+  /**
+   * alerts: Which alerts do you want to assign to your user account? The other alerts will be deleted!
+   */
+  ALERT_ASSIGNING_DESC: string;
+  /**
+   * alerts: Assign alerts to account
+   */
+  ALERT_ASSIGN_HEADING: string;
+  /**
+   * alerts: This operation will remove all the unselected alerts.
+   */
+  ALERT_ASSIGN_WARNING: string;
+  /**
+   * alerts: at least {{hour}}h
+   */
+  ALERT_AT_LEAST: string;
+  /**
+   * alerts: App only
+   */
+  ALERT_BADGE_APP_ONLY: string;
+  /**
+   * alerts: Notifications disabled
+   */
+  ALERT_BADGE_NOTIFICATIONS_DISABLED: string;
+  /**
+   * alerts: Finish migration
+   */
+  ALERT_BUTTON_FINISH_MIGRATION: string;
+  /**
+   * alerts: Next
+   */
+  ALERT_BUTTON_NEXT: string;
+  /**
+   * alerts: Previous
+   */
+  ALERT_BUTTON_PREVIOUS: string;
+  /**
+   * alerts: change
+   */
+  ALERT_CHANGE: string;
+  /**
+   * alerts: Check The Actual Forecast
+   */
+  ALERT_CHECK: string;
+  /**
+   * alerts: Cloudiness
+   */
+  ALERT_CLOUDINESS: string;
+  /**
+   * alerts: Click on icons to select maximum amount of clouds
+   */
+  ALERT_CLOUDS: string;
+  /**
+   * alerts: cloudy
+   */
+  ALERT_CLOUDS_BKN: string;
+  /**
+   * alerts: partly cloudy
+   */
+  ALERT_CLOUDS_FEW: string;
+  /**
+   * alerts: overcast
+   */
+  ALERT_CLOUDS_OVC: string;
+  /**
+   * alerts: scattered
+   */
+  ALERT_CLOUDS_SCT: string;
+  /**
+   * alerts: sky clear
+   */
+  ALERT_CLOUDS_SKC: string;
+  /**
+   * alerts: It seems alert with an id <em>{{alertId}}</em> is corrupted. Please, delete it and create a new one.
+   */
+  ALERT_CORRUPTED: string;
+  /**
+   * alerts: Delete this corrupted alert
+   */
+  ALERT_CORRUPTED_ACTION: string;
+  /**
+   * alerts: Delete alert
+   */
+  ALERT_DELETE2: string;
+  /**
+   * alerts: Assigning was completed
+   */
+  ALERT_DONE: string;
+  /**
+   * alerts: We have assigned the selected alerts to your account. Now you can close this window.
+   */
+  ALERT_DONE_P: string;
+  /**
+   * alerts: <a href="{{editLink}}">Edit</a> / <a href="{{removeLink}}">Unsubscribe</a> this alert.
+   */
+  ALERT_EDIT: string;
+  /**
+   * alerts: WOW seems like your email is not correct
+   */
+  ALERT_EMAIL_ERROR: string;
+  /**
+   * alerts: <p>Hi buddy,</p><p>BIG day at {{name}} is coming</p>
+   */
+  ALERT_EMAIL_PEREX: string;
+  /**
+   * alerts: An unexpected error has occurred for alert with an id <em>{{alertId}}</em>. Try again later.
+   */
+  ALERT_ERROR: string;
+  /**
+   * alerts: The server refused to process your request. Please, try again later.
+   */
+  ALERT_ERROR_400: string;
+  /**
+   * alerts: You need to be logged in. Please, log in and try again.
+   */
+  ALERT_ERROR_403: string;
+  /**
+   * alerts: No alert with an id "{{id}}" found for your account. It is probably assigned to a different account.
+   */
+  ALERT_ERROR_404: string;
+  /**
+   * alerts: This alert is already assigned to a different user.
+   */
+  ALERT_ERROR_409: string;
+  /**
+   * alerts: An unexpected error has occurred :-(
+   */
+  ALERT_ERROR_ANY: string;
+  /**
+   * alerts: Assigning failed. Please try again.
+   */
+  ALERT_ERROR_ASGN: string;
+  /**
+   * alerts: Cannot fetch alerts
+   */
+  ALERT_ERROR_FETCH: string;
+  /**
+   * alerts: Link to this page is broken. We could not validate your token.
+   */
+  ALERT_ERROR_JWT: string;
+  /**
+   * alerts: Nothing selected.
+   */
+  ALERT_ERROR_SELECT: string;
+  /**
+   * alerts: This token was already used.
+   */
+  ALERT_ERROR_USED_JWT: string;
+  /**
+   * alerts: Alert triggers when all selected conditions are met simultaneously.
+   */
+  ALERT_FORECAST_CONDITIONS_HINT: string;
+  /**
+   * alerts: Good luck and stay safe!
+   */
+  ALERT_GOOD_LUCK: string;
+  /**
+   * alerts: Hours, days, duration
+   */
+  ALERT_HOURS_DAYS: string;
+  /**
+   * alerts: How to set-up a new alert? Open the weather picker or detailed forecast for any spot, and click on a link "{{linkTxt}}".
+   */
+  ALERT_HOW_ADD: string;
+  /**
+   * alerts: ID of this alert:
+   */
+  ALERT_ID: string;
+  /**
+   * alerts: Latitude
+   */
+  ALERT_LAT: string;
+  /**
+   * alerts: No services enabled
+   */
+  ALERT_LIVE_NO_SERVICES: string;
+  /**
+   * alerts: Alerts issued by local authorities via the Common Alerting Protocol. Coverage varies by country — you only receive alerts where a feed is available.
+   */
+  ALERT_LIVE_SERVICE_CAP_DESCRIPTION: string;
+  /**
+   * alerts: Notifies you when intense rainfall is approaching the location.
+   */
+  ALERT_LIVE_SERVICE_RAIN_DESCRIPTION: string;
+  /**
+   * alerts: Detects lightning near the selected location and notifies you when a thunderstorm is approaching.
+   */
+  ALERT_LIVE_SERVICE_STORMS_DESCRIPTION: string;
+  /**
+   * alerts: Notifies you when a tropical cyclone is forecast to affect the selected location.
+   */
+  ALERT_LIVE_SERVICE_TC_DESCRIPTION: string;
+  /**
+   * alerts: <b>Live alerts</b> currently work only on the Windy mobile app with notifications enabled.
+   */
+  ALERT_LIVE_WARNING: string;
+  /**
+   * alerts: We will use local time of this location
+   */
+  ALERT_LOCAL_TIME: string;
+  /**
+   * alerts: Windy Alerts are available only for registered users. Please <b>login</b> or <b>register</b> first.
+   */
+  ALERT_LOGGED_ONLY: string;
+  /**
+   * alerts: You need to be logged in.
+   */
+  ALERT_LOGIN: string;
+  /**
+   * alerts: Longitude
+   */
+  ALERT_LON: string;
+  /**
+   * alerts: Best model for given location
+   */
+  ALERT_MODEL_BEST: string;
+  /**
+   * alerts: Name of the alert
+   */
+  ALERT_NAME: string;
+  /**
+   * alerts: Text of the notification
+   */
+  ALERT_NOTIFICATION_TEXT: string;
+  /**
+   * alerts: Not considered
+   */
+  ALERT_NOT_CONS: string;
+  /**
+   * alerts: Alert with an id <em>{{alertId}}</em> was not found in our database. It has probably been deleted in the past.
+   */
+  ALERT_NOT_FOUND: string;
+  /**
+   * alerts: Delete from my favorites if it doesn't exist anymore
+   */
+  ALERT_NOT_FOUND_ACTION: string;
+  /**
+   * alerts: Part of a day I am interested in
+   */
+  ALERT_PART_DAY: string;
+  /**
+   * alerts: Please note that ‘day 1’ refers to the first day of the current forecast, not necessarily the first day of the week.
+   */
+  ALERT_PART_RANGE_DESCRIPTION: string;
+  /**
+   * alerts: <b>{{min}}</b> to <b>{{max}}</b> days of the forecast
+   */
+  ALERT_PART_RANGE_LONG: string;
+  /**
+   * alerts: Only day <b>{{value}}</b> of the forecast
+   */
+  ALERT_PART_RANGE_SHORT: string;
+  /**
+   * alerts: Part of a week I am interested in
+   */
+  ALERT_PART_WEEK: string;
+  /**
+   * alerts: Pollen
+   */
+  ALERT_POLLEN: string;
+  /**
+   * alerts: How long must the conditions prevail to receive an alert
+   */
+  ALERT_PREVAIL: string;
+  /**
+   * alerts: <b>{{min}}</b> to <b>{{max}}</b> {{metric}} of rain must accumulate...
+   */
+  ALERT_RAIN2: string;
+  /**
+   * alerts: Amount of convective rain (storms, rainshowers) is unpredictable
+   */
+  ALERT_RAIN_NOTE: string;
+  /**
+   * alerts: ...within period of <b>{{hours}}</b> hours
+   */
+  ALERT_RAIN_PERIOD: string;
+  /**
+   * alerts: resume alert
+   */
+  ALERT_RESUME: string;
+  /**
+   * alerts: <p>Your live alert has been saved.</p><p>Live alerts are delivered only as push notifications on the Windy mobile app — make sure notifications are enabled on your phone.</p>
+   */
+  ALERT_SAVED_LIVE: string;
+  /**
+   * alerts: Assign
+   */
+  ALERT_SELECT: string;
+  /**
+   * alerts: Assign selected alerts
+   */
+  ALERT_SEND_BTN: string;
+  /**
+   * alerts: Alerts are sent to
+   */
+  ALERT_SENT_TO: string;
+  /**
+   * alerts: <b>{{min}}</b> to <b>{{max}}</b> {{metric}} of snow must fall in the previous 3 days
+   */
+  ALERT_SNOW2: string;
+  /**
+   * alerts: Activity
+   */
+  ALERT_STEP_ACTIVITY: string;
+  /**
+   * alerts: Conditions
+   */
+  ALERT_STEP_CONDITIONS: string;
+  /**
+   * alerts: Customization
+   */
+  ALERT_STEP_CUSTOMIZATION: string;
+  /**
+   * alerts: Location
+   */
+  ALERT_STEP_LOCATION: string;
+  /**
+   * alerts: Type
+   */
+  ALERT_STEP_TYPE: string;
+  /**
+   * alerts: suspend alert for some time
+   */
+  ALERT_SUSPEND: string;
+  /**
+   * alerts: Swell size from <b>{{min}}</b> to <b>{{max}}</b>
+   */
+  ALERT_SWELL: string;
+  /**
+   * alerts: Temperature
+   */
+  ALERT_TEMP: string;
+  /**
+   * alerts: Temperature from <b>{{min}}</b> to <b>{{max}}</b>
+   */
+  ALERT_TEMP_FROM: string;
+  /**
+   * alerts: Temperature, weather
+   */
+  ALERT_TEMP_WX: string;
+  /**
+   * alerts: Your conditions for {{name}} are here. Check forecast at {{linkTxt}}
+   */
+  ALERT_TXT_EMAIL: string;
+  /**
+   * alerts: Forecast alert
+   */
+  ALERT_TYPE_FORECAST: string;
+  /**
+   * alerts: Watches the forecast and notifies you when conditions you choose (wind, rain, temperature, etc.) are expected.
+   */
+  ALERT_TYPE_FORECAST_DESCRIPTION: string;
+  /**
+   * alerts: Live alert
+   */
+  ALERT_TYPE_LIVE: string;
+  /**
+   * alerts: Notifies you when storms, heavy rain, or other live phenomena are detected at your location.
+   */
+  ALERT_TYPE_LIVE_DESCRIPTION: string;
+  /**
+   * alerts: <b>You are not allowed to edit or view this alert</b>, because it is assigned to a different user. In case you created this alert under another account of yours, please delete it using a link in a footer of the last notification email you have received for this alert. And create a new one under your current account.
+   */
+  ALERT_UNAUTHORIZED: string;
+  /**
+   * alerts: Forecast is updated every {{hrs}} hours, so check often if the conditions prevail.
+   */
+  ALERT_UPDATE: string;
+  /**
+   * alerts: Accept Windy's conditions to save the alert.
+   */
+  ALERT_VALIDATION_ACCEPT_CONDITIONS: string;
+  /**
+   * alerts: Description cannot be empty.
+   */
+  ALERT_VALIDATION_DESCRIPTION_REQUIRED: string;
+  /**
+   * alerts: Some enabled conditions need more input.
+   */
+  ALERT_VALIDATION_FORECAST_INCOMPLETE: string;
+  /**
+   * alerts: Pick at least one condition.
+   */
+  ALERT_VALIDATION_FORECAST_PICK_CONDITION: string;
+  /**
+   * alerts: Enable at least one service.
+   */
+  ALERT_VALIDATION_LIVE_PICK_SERVICE: string;
+  /**
+   * alerts: Select at least one cloud cover level.
+   */
+  ALERT_VALIDATION_PICK_CLOUDINESS: string;
+  /**
+   * alerts: Select at least one day of the week.
+   */
+  ALERT_VALIDATION_PICK_DAYS: string;
+  /**
+   * alerts: Select at least one direction.
+   */
+  ALERT_VALIDATION_PICK_DIRECTIONS: string;
+  /**
+   * alerts: Select at least one hour range.
+   */
+  ALERT_VALIDATION_PICK_HOURS: string;
+  /**
+   * alerts: Select at least one pollen species.
+   */
+  ALERT_VALIDATION_PICK_POLLEN: string;
+  /**
+   * alerts: Strength from <b>{{min}}</b> to <b>{{max}}</b>
+   */
+  ALERT_WIND: string;
+  /**
+   * alerts: Your email adress
+   */
+  ALERT_YOUR_EMAIL: string;
 }
 
 export interface AppreviewLangFile {
-    /**
-     * appreview: I have a suggestion
-     */
-    INTROPAGE_BTN_IMPROOVEMENT: string;
-    /**
-     * appreview: I love it!
-     */
-    INTROPAGE_BTN_LIKE: string;
-    /**
-     * appreview: Hi
-     */
-    INTROPAGE_TITLE_HELLO: string;
-    /**
-     * appreview: Hi {userName},
-     */
-    INTROPAGE_TITLE_HELLO_USER: string;
-    /**
-     * appreview: how is your Windy experience??
-     */
-    INTROPAGE_TITLE_QUESTION: string;
-    /**
-     * appreview: Bugs
-     */
-    POROBLEMS_BUGS: string;
-    /**
-     * appreview: Forecast accuracy
-     */
-    POROBLEMS_FORECASTPRECISION: string;
-    /**
-     * appreview: Incorrect location
-     */
-    POROBLEMS_LOCATION: string;
-    /**
-     * appreview: A mistake on the map
-     */
-    POROBLEMS_MAP: string;
-    /**
-     * appreview: Missing functionality
-     */
-    POROBLEMS_MISSINGFUNCTIONALITY: string;
-    /**
-     * appreview: Other suggestions
-     */
-    PROBLEMPAGE_BTN_OTHER: string;
-    /**
-     * appreview: Submit
-     */
-    PROBLEMPAGE_BTN_SUBMIT: string;
-    /**
-     * appreview: Please write your suggestion
-     */
-    PROBLEMPAGE_TEXTFIEL_PLACEHOLDER: string;
-    /**
-     * appreview: What can we improve?
-     */
-    PROBLEMPAGE_TITLE_QUESTION: string;
-    /**
-     * appreview: Maybe later
-     */
-    REVIEW_LEAVE_TEXT: string;
-    /**
-     * appreview: Write a review on
-     */
-    REVIEW_RATEUS_TEXT: string;
-    /**
-     * appreview: We'd greatly appreciate it if you could take a moment to leave us a review on the store.
-     */
-    REVIEW_TEXT: string;
-    /**
-     * appreview: We are glad to hear that!
-     */
-    REVIEW_TITLE: string;
-    /**
-     * appreview: For more information please visit
-     */
-    THANKYOUPAGE_TEXT_MOREINFO: string;
-    /**
-     * appreview: Thank you & have a lovely day
-     */
-    THANKYOUPAGE_TITLE: string;
+  /**
+   * appreview: I have a suggestion
+   */
+  INTROPAGE_BTN_IMPROOVEMENT: string;
+  /**
+   * appreview: I love it!
+   */
+  INTROPAGE_BTN_LIKE: string;
+  /**
+   * appreview: Hi
+   */
+  INTROPAGE_TITLE_HELLO: string;
+  /**
+   * appreview: Hi {userName},
+   */
+  INTROPAGE_TITLE_HELLO_USER: string;
+  /**
+   * appreview: how is your Windy experience??
+   */
+  INTROPAGE_TITLE_QUESTION: string;
+  /**
+   * appreview: Bugs
+   */
+  POROBLEMS_BUGS: string;
+  /**
+   * appreview: Forecast accuracy
+   */
+  POROBLEMS_FORECASTPRECISION: string;
+  /**
+   * appreview: Incorrect location
+   */
+  POROBLEMS_LOCATION: string;
+  /**
+   * appreview: A mistake on the map
+   */
+  POROBLEMS_MAP: string;
+  /**
+   * appreview: Missing functionality
+   */
+  POROBLEMS_MISSINGFUNCTIONALITY: string;
+  /**
+   * appreview: Other suggestions
+   */
+  PROBLEMPAGE_BTN_OTHER: string;
+  /**
+   * appreview: Submit
+   */
+  PROBLEMPAGE_BTN_SUBMIT: string;
+  /**
+   * appreview: Please write your suggestion
+   */
+  PROBLEMPAGE_TEXTFIEL_PLACEHOLDER: string;
+  /**
+   * appreview: What can we improve?
+   */
+  PROBLEMPAGE_TITLE_QUESTION: string;
+  /**
+   * appreview: Maybe later
+   */
+  REVIEW_LEAVE_TEXT: string;
+  /**
+   * appreview: Write a review on
+   */
+  REVIEW_RATEUS_TEXT: string;
+  /**
+   * appreview: We'd greatly appreciate it if you could take a moment to leave us a review on the store.
+   */
+  REVIEW_TEXT: string;
+  /**
+   * appreview: We are glad to hear that!
+   */
+  REVIEW_TITLE: string;
+  /**
+   * appreview: For more information please visit
+   */
+  THANKYOUPAGE_TEXT_MOREINFO: string;
+  /**
+   * appreview: Thank you & have a lovely day
+   */
+  THANKYOUPAGE_TITLE: string;
 }
 
 export interface ArticlesLangFile {
-    /**
-     * articles: Accept cookies
-     */
-    ARTICLES_ACCEPT_COOKIES: string;
-    /**
-     * articles: clap
-     */
-    ARTICLES_CLAP: string;
-    /**
-     * articles: claps
-     */
-    ARTICLES_CLAPS: string;
-    /**
-     * articles: Comments
-     */
-    ARTICLES_COMMENTS: string;
-    /**
-     * articles: Comment sent
-     */
-    ARTICLES_COMMENT_SENT: string;
-    /**
-     * articles: Hide replies
-     */
-    ARTICLES_HIDE_REPLIES: string;
-    /**
-     * articles: Load more
-     */
-    ARTICLES_LOAD_MORE: string;
-    /**
-     * articles: Load replies
-     */
-    ARTICLES_LOAD_REPLIES: string;
-    /**
-     * articles: Log in to comment
-     */
-    ARTICLES_LOGIN_TO_COMMENT: string;
-    /**
-     * articles: Max 500 characters
-     */
-    ARTICLES_MAX_CHARS: string;
-    /**
-     * articles: Order by:
-     */
-    ARTICLES_ORDER_BY: string;
-    /**
-     * articles: Date
-     */
-    ARTICLES_ORDER_DATE: string;
-    /**
-     * articles: Upvotes
-     */
-    ARTICLES_ORDER_UPVOTES: string;
-    /**
-     * articles: replies
-     */
-    ARTICLES_REPLIES: string;
-    /**
-     * articles: Reply
-     */
-    ARTICLES_REPLY: string;
-    /**
-     * articles: Report
-     */
-    ARTICLES_REPORT: string;
-    /**
-     * articles: Child Exploitation
-     */
-    ARTICLES_REPORT_CHILD_EXPLOITATION: string;
-    /**
-     * articles: Report comment
-     */
-    ARTICLES_REPORT_COMMENT: string;
-    /**
-     * articles: Copyright or Intellectual Property Violation
-     */
-    ARTICLES_REPORT_COPYRIGHT_VIOLATION: string;
-    /**
-     * articles: Cultural or Religious Insensitivity
-     */
-    ARTICLES_REPORT_CULTURAL_INSENSITIVITY: string;
-    /**
-     * articles: Harassment or Bullying
-     */
-    ARTICLES_REPORT_HARASSMENT_OR_BULLYING: string;
-    /**
-     * articles: Hate Speech
-     */
-    ARTICLES_REPORT_HATE_SPEECH: string;
-    /**
-     * articles: Illegal Activities
-     */
-    ARTICLES_REPORT_ILLEGAL_ACTIVITIES: string;
-    /**
-     * articles: Misinformation or Disinformation
-     */
-    ARTICLES_REPORT_MISINFORMATION: string;
-    /**
-     * articles: Offensive Language
-     */
-    ARTICLES_REPORT_OFFENSIVE_LANGUAGE: string;
-    /**
-     * articles: Privacy Violation
-     */
-    ARTICLES_REPORT_PRIVACY_VIOLATION: string;
-    /**
-     * articles: Self-Harm or Suicide Promotion
-     */
-    ARTICLES_REPORT_SELF_HARM_OR_SUICIDE: string;
-    /**
-     * articles: Report sent
-     */
-    ARTICLES_REPORT_SENT: string;
-    /**
-     * articles: Sexual Content or Nudity
-     */
-    ARTICLES_REPORT_SEXUAL_CONTENT_OR_NUDITY: string;
-    /**
-     * articles: Spam or Misleading Content
-     */
-    ARTICLES_REPORT_SPAM_OR_MISLEADING: string;
-    /**
-     * articles: Terrorism or Extremism
-     */
-    ARTICLES_REPORT_TERRORISM_OR_EXTREMISM: string;
-    /**
-     * articles: Uncategorized
-     */
-    ARTICLES_REPORT_UNCATEGORIZED: string;
-    /**
-     * articles: Violence or Threats
-     */
-    ARTICLES_REPORT_VIOLENCE_OR_THREATS: string;
-    /**
-     * articles: Reward the author with clap
-     */
-    ARTICLES_REWARD_WITH_CLAP: string;
-    /**
-     * articles: Send
-     */
-    ARTICLES_SEND: string;
-    /**
-     * articles: Share
-     */
-    ARTICLES_SHARE: string;
-    /**
-     * articles: To see this post, you need to accept the cookies required by X.
-     */
-    ARTICLES_TWITTER_COOKIE_CONSENT: string;
-    /**
-     * articles: updated
-     */
-    ARTICLES_UPDATED: string;
-    /**
-     * articles: Write a comment...
-     */
-    ARTICLES_WRITE_COMMENT: string;
-    /**
-     * articles: Your comments
-     */
-    ARTICLES_YOUR_COMMENTS: string;
-    /**
-     * articles: To watch this video, you need to accept the cookies required by YouTube.
-     */
-    ARTICLES_YOUTUBE_COOKIE_CONSENT: string;
+  /**
+   * articles: Accept cookies
+   */
+  ARTICLES_ACCEPT_COOKIES: string;
+  /**
+   * articles: clap
+   */
+  ARTICLES_CLAP: string;
+  /**
+   * articles: claps
+   */
+  ARTICLES_CLAPS: string;
+  /**
+   * articles: Comments
+   */
+  ARTICLES_COMMENTS: string;
+  /**
+   * articles: Comment sent
+   */
+  ARTICLES_COMMENT_SENT: string;
+  /**
+   * articles: Hide replies
+   */
+  ARTICLES_HIDE_REPLIES: string;
+  /**
+   * articles: Load more
+   */
+  ARTICLES_LOAD_MORE: string;
+  /**
+   * articles: Load replies
+   */
+  ARTICLES_LOAD_REPLIES: string;
+  /**
+   * articles: Log in to comment
+   */
+  ARTICLES_LOGIN_TO_COMMENT: string;
+  /**
+   * articles: Max 500 characters
+   */
+  ARTICLES_MAX_CHARS: string;
+  /**
+   * articles: Order by:
+   */
+  ARTICLES_ORDER_BY: string;
+  /**
+   * articles: Date
+   */
+  ARTICLES_ORDER_DATE: string;
+  /**
+   * articles: Upvotes
+   */
+  ARTICLES_ORDER_UPVOTES: string;
+  /**
+   * articles: replies
+   */
+  ARTICLES_REPLIES: string;
+  /**
+   * articles: Reply
+   */
+  ARTICLES_REPLY: string;
+  /**
+   * articles: Report
+   */
+  ARTICLES_REPORT: string;
+  /**
+   * articles: Child Exploitation
+   */
+  ARTICLES_REPORT_CHILD_EXPLOITATION: string;
+  /**
+   * articles: Report comment
+   */
+  ARTICLES_REPORT_COMMENT: string;
+  /**
+   * articles: Copyright or Intellectual Property Violation
+   */
+  ARTICLES_REPORT_COPYRIGHT_VIOLATION: string;
+  /**
+   * articles: Cultural or Religious Insensitivity
+   */
+  ARTICLES_REPORT_CULTURAL_INSENSITIVITY: string;
+  /**
+   * articles: Harassment or Bullying
+   */
+  ARTICLES_REPORT_HARASSMENT_OR_BULLYING: string;
+  /**
+   * articles: Hate Speech
+   */
+  ARTICLES_REPORT_HATE_SPEECH: string;
+  /**
+   * articles: Illegal Activities
+   */
+  ARTICLES_REPORT_ILLEGAL_ACTIVITIES: string;
+  /**
+   * articles: Misinformation or Disinformation
+   */
+  ARTICLES_REPORT_MISINFORMATION: string;
+  /**
+   * articles: Offensive Language
+   */
+  ARTICLES_REPORT_OFFENSIVE_LANGUAGE: string;
+  /**
+   * articles: Privacy Violation
+   */
+  ARTICLES_REPORT_PRIVACY_VIOLATION: string;
+  /**
+   * articles: Self-Harm or Suicide Promotion
+   */
+  ARTICLES_REPORT_SELF_HARM_OR_SUICIDE: string;
+  /**
+   * articles: Report sent
+   */
+  ARTICLES_REPORT_SENT: string;
+  /**
+   * articles: Sexual Content or Nudity
+   */
+  ARTICLES_REPORT_SEXUAL_CONTENT_OR_NUDITY: string;
+  /**
+   * articles: Spam or Misleading Content
+   */
+  ARTICLES_REPORT_SPAM_OR_MISLEADING: string;
+  /**
+   * articles: Terrorism or Extremism
+   */
+  ARTICLES_REPORT_TERRORISM_OR_EXTREMISM: string;
+  /**
+   * articles: Uncategorized
+   */
+  ARTICLES_REPORT_UNCATEGORIZED: string;
+  /**
+   * articles: Violence or Threats
+   */
+  ARTICLES_REPORT_VIOLENCE_OR_THREATS: string;
+  /**
+   * articles: Reward the author with clap
+   */
+  ARTICLES_REWARD_WITH_CLAP: string;
+  /**
+   * articles: Send
+   */
+  ARTICLES_SEND: string;
+  /**
+   * articles: Share
+   */
+  ARTICLES_SHARE: string;
+  /**
+   * articles: To see this post, you need to accept the cookies required by X.
+   */
+  ARTICLES_TWITTER_COOKIE_CONSENT: string;
+  /**
+   * articles: updated
+   */
+  ARTICLES_UPDATED: string;
+  /**
+   * articles: Write a comment...
+   */
+  ARTICLES_WRITE_COMMENT: string;
+  /**
+   * articles: Your comments
+   */
+  ARTICLES_YOUR_COMMENTS: string;
+  /**
+   * articles: To watch this video, you need to accept the cookies required by YouTube.
+   */
+  ARTICLES_YOUTUBE_COOKIE_CONSENT: string;
 }
 
 export interface ConsentLangFile {
-    /**
-     * consent: Allow anonymous analytics
-     */
-    CONSENT_CTA_ACCEPT: string;
-    /**
-     * consent: Change settings
-     */
-    CONSENT_CTA_CHANGE_SETTING: string;
-    /**
-     * consent: Ok
-     */
-    CONSENT_CTA_OK: string;
-    /**
-     * consent: Reject
-     */
-    CONSENT_CTA_REJECT: string;
-    /**
-     * consent: You have allowed anonymous analytics.
-     */
-    CONSENT_DECIDED_TO_ALLOW: string;
-    /**
-     * consent: You have rejected anonymous analytics.
-     */
-    CONSENT_DECIDED_TO_REJECT: string;
-    /**
-     * consent: <li>We do not use tracking cookies.</li><li>We do not sell advertisements.</li><li>We do not sell user data.</li>
-     */
-    CONSENT_REASONS_FACTS: string;
-    /**
-     * consent: Windy.com uses only <strong>anonymous analytics</strong> data which help us to protect and improve our services.
-     */
-    CONSENT_REASONS_FACT_SUMMARY: string;
-    /**
-     * consent: Thank you for helping to make Windy.com better.
-     */
-    CONSENT_REASONS_THANKS: string;
-    /**
-     * consent: We respect your decision. We take privacy very seriously. That is why we keep all analytical data strictly anonymized.
-     */
-    CONSENT_REJECTION_INTRO: string;
-    /**
-     * consent: <strong>To run Windy.com for free and without analytics, you must be logged in.</strong> This is the only way we are able to ensure our services to everyone's satisfaction and keep Windy.com safe.
-     */
-    CONSENT_REJECTION_LOGIN: string;
-    /**
-     * consent: However, we must be able to secure our services from bots, thieves, scrapers, DDoS attacks and other threats.
-     */
-    CONSENT_REJECTION_SAFETY: string;
-    /**
-     * consent: Thank you for your understanding.
-     */
-    CONSENT_REJECTION_THANKS: string;
-    /**
-     * consent: We value your privacy
-     */
-    CONSENT_TITLE: string;
+  /**
+   * consent: Allow anonymous analytics
+   */
+  CONSENT_CTA_ACCEPT: string;
+  /**
+   * consent: Change settings
+   */
+  CONSENT_CTA_CHANGE_SETTING: string;
+  /**
+   * consent: Ok
+   */
+  CONSENT_CTA_OK: string;
+  /**
+   * consent: Reject
+   */
+  CONSENT_CTA_REJECT: string;
+  /**
+   * consent: You have allowed anonymous analytics.
+   */
+  CONSENT_DECIDED_TO_ALLOW: string;
+  /**
+   * consent: You have rejected anonymous analytics.
+   */
+  CONSENT_DECIDED_TO_REJECT: string;
+  /**
+   * consent: <li>We do not use tracking cookies.</li><li>We do not sell advertisements.</li><li>We do not sell user data.</li>
+   */
+  CONSENT_REASONS_FACTS: string;
+  /**
+   * consent: Windy.com uses only <strong>anonymous analytics</strong> data which help us to protect and improve our services.
+   */
+  CONSENT_REASONS_FACT_SUMMARY: string;
+  /**
+   * consent: Thank you for helping to make Windy.com better.
+   */
+  CONSENT_REASONS_THANKS: string;
+  /**
+   * consent: We respect your decision. We take privacy very seriously. That is why we keep all analytical data strictly anonymized.
+   */
+  CONSENT_REJECTION_INTRO: string;
+  /**
+   * consent: <strong>To run Windy.com for free and without analytics, you must be logged in.</strong> This is the only way we are able to ensure our services to everyone's satisfaction and keep Windy.com safe.
+   */
+  CONSENT_REJECTION_LOGIN: string;
+  /**
+   * consent: However, we must be able to secure our services from bots, thieves, scrapers, DDoS attacks and other threats.
+   */
+  CONSENT_REJECTION_SAFETY: string;
+  /**
+   * consent: Thank you for your understanding.
+   */
+  CONSENT_REJECTION_THANKS: string;
+  /**
+   * consent: We value your privacy
+   */
+  CONSENT_TITLE: string;
 }
 
 export interface DefaultmodelselectorLangFile {
-    /**
-     * defaultmodelselector: Recommended
-     */
-    DMS_BADGE_RECOMMENDED: string;
-    /**
-     * defaultmodelselector: Combines multiple weather data sources with real-time radar and satellite observations for a more precise local result. Powered by {meteoblue}, continuously improved since 2018.
-     */
-    DMS_OPTION_AI_DESC: string;
-    /**
-     * defaultmodelselector: AI-enhanced forecast
-     */
-    DMS_OPTION_AI_NAME: string;
-    /**
-     * defaultmodelselector: Direct output from a global weather model. Updated four times a day.
-     */
-    DMS_OPTION_CLASSIC_DESC: string;
-    /**
-     * defaultmodelselector: Classic forecast (current selection)
-     */
-    DMS_OPTION_CLASSIC_NAME: string;
-    /**
-     * defaultmodelselector: How should we serve you a location forecast?
-     */
-    DMS_TITLE: string;
+  /**
+   * defaultmodelselector: Recommended
+   */
+  DMS_BADGE_RECOMMENDED: string;
+  /**
+   * defaultmodelselector: Combines multiple weather data sources with real-time radar and satellite observations for a more precise local result. Powered by {meteoblue}, continuously improved since 2018.
+   */
+  DMS_OPTION_AI_DESC: string;
+  /**
+   * defaultmodelselector: AI-enhanced forecast
+   */
+  DMS_OPTION_AI_NAME: string;
+  /**
+   * defaultmodelselector: Direct output from a global weather model. Updated four times a day.
+   */
+  DMS_OPTION_CLASSIC_DESC: string;
+  /**
+   * defaultmodelselector: Classic forecast (current selection)
+   */
+  DMS_OPTION_CLASSIC_NAME: string;
+  /**
+   * defaultmodelselector: How should we serve you a location forecast?
+   */
+  DMS_TITLE: string;
 }
 
 export interface DetailLangFile {
-    /**
-     * detail: Always open as
-     */
-    DETAIL_ALWAYS_OPEN_AS: string;
-    /**
-     * detail: Close settings
-     */
-    DETAIL_CLOSE_SETTINGS: string;
-    /**
-     * detail: Move the map to change the forecast location
-     */
-    DETAIL_DRAG_CHECKBOX: string;
-    /**
-     * detail: Error loading wind data for this model
-     */
-    DETAIL_ERROR_LOADING_WIND_DATA: string;
-    /**
-     * detail: forecast for
-     */
-    DETAIL_FORECAST_FOR: string;
-    /**
-     * detail: Retry
-     */
-    DETAIL_FORECAST_RETRY: string;
-    /**
-     * detail: forecast with
-     */
-    DETAIL_FORECAST_WITH: string;
-    /**
-     * detail: for high resolution meteogram
-     */
-    DETAIL_PREMIUM_TEXT_METEOGRAM: string;
-    /**
-     * detail: 14 days
-     */
-    DETAIL_RANGE_14_DAYS: string;
-    /**
-     * detail: 7 days
-     */
-    DETAIL_RANGE_7_DAYS: string;
-    /**
-     * detail: {{count}} days
-     */
-    DETAIL_RANGE_DAYS: string;
-    /**
-     * detail: Settings for location fcst.
-     */
-    DETAIL_SETTINGS_TITLE: string;
-    /**
-     * detail: Set up Windy Alert for this location and never miss your desired conditions.
-     */
-    DETAIL_SET_UP_ALERT: string;
-    /**
-     * detail: 1h
-     */
-    DETAIL_STEP_1H: string;
-    /**
-     * detail: 3h
-     */
-    DETAIL_STEP_3H: string;
-    /**
-     * detail: Sync forecast time with map
-     */
-    DETAIL_SYNC_TIME_CHECKBOX: string;
-    /**
-     * detail: We do not provide tide forecast for this location
-     */
-    DETAIL_TIDE_FORECAST_NOT_AVAILABLE: string;
-    /**
-     * detail: Time of forecast on map
-     */
-    DETAIL_TIME_ON_MAP: string;
-    /**
-     * detail: About location
-     */
-    D_ABOUT_LOC2: string;
-    /**
-     * detail: {{duration}} days forecast
-     */
-    D_FORECAST_FOR: string;
-    /**
-     * detail: Show sun position on map
-     */
-    D_SHOW_SUN_POSITION: string;
-    /**
-     * detail: forecast
-     */
-    D_STEPS_FORECAST: string;
-    /**
-     * detail: Model elevation
-     */
-    MODEL_ELEVATION: string;
-    /**
-     * detail: 15 days
-     */
-    MULTIMODEL_15_DAYS: string;
-    /**
-     * detail: 5 days
-     */
-    MULTIMODEL_5_DAYS: string;
-    /**
-     * detail: Hide this model
-     */
-    MULTIMODEL_HIDE_MODEL: string;
-    /**
-     * detail: Pin to top
-     */
-    MULTIMODEL_PIN: string;
-    /**
-     * detail: Show this model
-     */
-    MULTIMODEL_SHOW_MODEL: string;
-    /**
-     * detail: Unpin from top
-     */
-    MULTIMODEL_UNPIN: string;
-    /**
-     * detail: Basic
-     */
-    ND_DISPLAY_BASIC: string;
-    /**
-     * detail: Paragliding forecast for {{name}}
-     */
-    PARAGLIDING_BROWSER_TITLE: string;
-    /**
-     * detail: Pollen&AirQ
-     */
-    POLLEN_AIRQ: string;
-    /**
-     * detail: Pollen & Air Quality
-     */
-    POLLEN_AIRQ_LONG: string;
-    /**
-     * detail: Subscribe to Windy Premium to get access to extended weather forecast.
-     */
-    SUB_EXTENDED: string;
-    /**
-     * detail: Water temp.
-     */
-    WATER_TEMP: string;
-    /**
-     * detail: Wave&Tide
-     */
-    WAVESTIDES: string;
-    /**
-     * detail: Wave and tide forecast for {{name}}
-     */
-    WAVESTIDES_BROWSER_TITLE: string;
-    /**
-     * detail: Waves & Tides
-     */
-    WAVESTIDES_LONG: string;
-    /**
-     * detail: weather forecast
-     */
-    WFORECAST: string;
-    /**
-     * detail: Wind and kitesurfing forecast for {{name}}
-     */
-    WIND_BROWSER_TITLE: string;
+  /**
+   * detail: Always open as
+   */
+  DETAIL_ALWAYS_OPEN_AS: string;
+  /**
+   * detail: Close settings
+   */
+  DETAIL_CLOSE_SETTINGS: string;
+  /**
+   * detail: Move the map to change the forecast location
+   */
+  DETAIL_DRAG_CHECKBOX: string;
+  /**
+   * detail: Error loading wind data for this model
+   */
+  DETAIL_ERROR_LOADING_WIND_DATA: string;
+  /**
+   * detail: forecast for
+   */
+  DETAIL_FORECAST_FOR: string;
+  /**
+   * detail: Retry
+   */
+  DETAIL_FORECAST_RETRY: string;
+  /**
+   * detail: forecast with
+   */
+  DETAIL_FORECAST_WITH: string;
+  /**
+   * detail: for high resolution meteogram
+   */
+  DETAIL_PREMIUM_TEXT_METEOGRAM: string;
+  /**
+   * detail: 14 days
+   */
+  DETAIL_RANGE_14_DAYS: string;
+  /**
+   * detail: 7 days
+   */
+  DETAIL_RANGE_7_DAYS: string;
+  /**
+   * detail: {{count}} days
+   */
+  DETAIL_RANGE_DAYS: string;
+  /**
+   * detail: Settings for location fcst.
+   */
+  DETAIL_SETTINGS_TITLE: string;
+  /**
+   * detail: Set up Windy Alert for this location and never miss your desired conditions.
+   */
+  DETAIL_SET_UP_ALERT: string;
+  /**
+   * detail: 1h
+   */
+  DETAIL_STEP_1H: string;
+  /**
+   * detail: 3h
+   */
+  DETAIL_STEP_3H: string;
+  /**
+   * detail: Sync forecast time with map
+   */
+  DETAIL_SYNC_TIME_CHECKBOX: string;
+  /**
+   * detail: We do not provide tide forecast for this location
+   */
+  DETAIL_TIDE_FORECAST_NOT_AVAILABLE: string;
+  /**
+   * detail: Time of forecast on map
+   */
+  DETAIL_TIME_ON_MAP: string;
+  /**
+   * detail: About location
+   */
+  D_ABOUT_LOC2: string;
+  /**
+   * detail: {{duration}} days forecast
+   */
+  D_FORECAST_FOR: string;
+  /**
+   * detail: Show sun position on map
+   */
+  D_SHOW_SUN_POSITION: string;
+  /**
+   * detail: forecast
+   */
+  D_STEPS_FORECAST: string;
+  /**
+   * detail: Model elevation
+   */
+  MODEL_ELEVATION: string;
+  /**
+   * detail: 15 days
+   */
+  MULTIMODEL_15_DAYS: string;
+  /**
+   * detail: 5 days
+   */
+  MULTIMODEL_5_DAYS: string;
+  /**
+   * detail: Hide this model
+   */
+  MULTIMODEL_HIDE_MODEL: string;
+  /**
+   * detail: Pin to top
+   */
+  MULTIMODEL_PIN: string;
+  /**
+   * detail: Show this model
+   */
+  MULTIMODEL_SHOW_MODEL: string;
+  /**
+   * detail: Unpin from top
+   */
+  MULTIMODEL_UNPIN: string;
+  /**
+   * detail: Basic
+   */
+  ND_DISPLAY_BASIC: string;
+  /**
+   * detail: Paragliding forecast for {{name}}
+   */
+  PARAGLIDING_BROWSER_TITLE: string;
+  /**
+   * detail: Pollen&AirQ
+   */
+  POLLEN_AIRQ: string;
+  /**
+   * detail: Pollen & Air Quality
+   */
+  POLLEN_AIRQ_LONG: string;
+  /**
+   * detail: Subscribe to Windy Premium to get access to extended weather forecast.
+   */
+  SUB_EXTENDED: string;
+  /**
+   * detail: Water temp.
+   */
+  WATER_TEMP: string;
+  /**
+   * detail: Wave&Tide
+   */
+  WAVESTIDES: string;
+  /**
+   * detail: Wave and tide forecast for {{name}}
+   */
+  WAVESTIDES_BROWSER_TITLE: string;
+  /**
+   * detail: Waves & Tides
+   */
+  WAVESTIDES_LONG: string;
+  /**
+   * detail: weather forecast
+   */
+  WFORECAST: string;
+  /**
+   * detail: Wind and kitesurfing forecast for {{name}}
+   */
+  WIND_BROWSER_TITLE: string;
 }
 
 export interface DistanceLangFile {
-    /**
-     * distance: Add waypoint
-     */
-    DST_ADD_WAYPOINT: string;
-    /**
-     * distance: Boat
-     */
-    DST_BOAT: string;
-    /**
-     * distance: Car/hike
-     */
-    DST_CAR: string;
-    /**
-     * distance: Click on the map to add more waypoints
-     */
-    DST_CLICK_ADD: string;
-    /**
-     * distance: Edit
-     */
-    DST_EDIT: string;
-    /**
-     * distance: Export GPX
-     */
-    DST_EXPORT: string;
-    /**
-     * distance: End measurement
-     */
-    DST_FINISH: string;
-    /**
-     * distance: Finish
-     */
-    DST_FINISH_TRIP: string;
-    /**
-     * distance: Hide coords
-     */
-    DST_HIDE_COORDS: string;
-    /**
-     * distance: Map is not in sync<small>Route planner supports only the ECMWF forecast model, but you are displaying a different model on the map.</small>
-     */
-    DST_MAP_NOT_SYNC: string;
-    /**
-     * distance: More options...
-     */
-    DST_MORE_OPTIONS: string;
-    /**
-     * distance: No elevation at all. It seems to be a boat trip.
-     */
-    DST_NO_ELEV: string;
-    /**
-     * distance: Ok
-     */
-    DST_OK: string;
-    /**
-     * distance: Remove from your favorites
-     */
-    DST_REMOVE_FAV: string;
-    /**
-     * distance: Remove last waypoint
-     */
-    DST_REMOVE_LAST: string;
-    /**
-     * distance: Reset
-     */
-    DST_RESET: string;
-    /**
-     * distance: Display route forecast for:
-     */
-    DST_RPLANNER: string;
-    /**
-     * distance: Save route to favorites
-     */
-    DST_SAVE: string;
-    /**
-     * distance: Share route
-     */
-    DST_SHARE: string;
-    /**
-     * distance: Show coords
-     */
-    DST_SHOW_COORDS: string;
-    /**
-     * distance: Speed:
-     */
-    DST_SPEED: string;
-    /**
-     * distance: Start
-     */
-    DST_START_TRIP: string;
-    /**
-     * distance: Switch to ECMWF
-     */
-    DST_SWITCH_ECMWF: string;
-    /**
-     * distance: select .gpx file
-     */
-    RPLANNER_SELECT_GPX_BTN: string;
-    /**
-     * distance: to import route (you can also drop file here).
-     */
-    RPLANNER_SELECT_GPX_TEXT: string;
-    /**
-     * distance: <strong>VFR</strong>, <strong>IFR</strong>, <strong>Airgram</strong> and <strong>Boat</strong> with in-depth data.
-     */
-    SUB_RPLANNER_FEATURES: string;
-    /**
-     * distance: Access <strong>Route Planner</strong> and plan your next trip with <strong>precision</strong>.
-     */
-    SUB_RPLANNER_TRIP: string;
+  /**
+   * distance: Add waypoint
+   */
+  DST_ADD_WAYPOINT: string;
+  /**
+   * distance: Boat
+   */
+  DST_BOAT: string;
+  /**
+   * distance: Car/hike
+   */
+  DST_CAR: string;
+  /**
+   * distance: Click on the map to add more waypoints
+   */
+  DST_CLICK_ADD: string;
+  /**
+   * distance: Edit
+   */
+  DST_EDIT: string;
+  /**
+   * distance: Export GPX
+   */
+  DST_EXPORT: string;
+  /**
+   * distance: End measurement
+   */
+  DST_FINISH: string;
+  /**
+   * distance: Finish
+   */
+  DST_FINISH_TRIP: string;
+  /**
+   * distance: Hide coords
+   */
+  DST_HIDE_COORDS: string;
+  /**
+   * distance: Map is not in sync<small>Route planner supports only the ECMWF forecast model, but you are displaying a different model on the map.</small>
+   */
+  DST_MAP_NOT_SYNC: string;
+  /**
+   * distance: More options...
+   */
+  DST_MORE_OPTIONS: string;
+  /**
+   * distance: No elevation at all. It seems to be a boat trip.
+   */
+  DST_NO_ELEV: string;
+  /**
+   * distance: Ok
+   */
+  DST_OK: string;
+  /**
+   * distance: Remove from your favorites
+   */
+  DST_REMOVE_FAV: string;
+  /**
+   * distance: Remove last waypoint
+   */
+  DST_REMOVE_LAST: string;
+  /**
+   * distance: Reset
+   */
+  DST_RESET: string;
+  /**
+   * distance: Display route forecast for:
+   */
+  DST_RPLANNER: string;
+  /**
+   * distance: Save route to favorites
+   */
+  DST_SAVE: string;
+  /**
+   * distance: Share route
+   */
+  DST_SHARE: string;
+  /**
+   * distance: Show coords
+   */
+  DST_SHOW_COORDS: string;
+  /**
+   * distance: Speed:
+   */
+  DST_SPEED: string;
+  /**
+   * distance: Start
+   */
+  DST_START_TRIP: string;
+  /**
+   * distance: Switch to ECMWF
+   */
+  DST_SWITCH_ECMWF: string;
+  /**
+   * distance: select .gpx file
+   */
+  RPLANNER_SELECT_GPX_BTN: string;
+  /**
+   * distance: to import route (you can also drop file here).
+   */
+  RPLANNER_SELECT_GPX_TEXT: string;
+  /**
+   * distance: <strong>VFR</strong>, <strong>IFR</strong>, <strong>Airgram</strong> and <strong>Boat</strong> with in-depth data.
+   */
+  SUB_RPLANNER_FEATURES: string;
+  /**
+   * distance: Access <strong>Route Planner</strong> and plan your next trip with <strong>precision</strong>.
+   */
+  SUB_RPLANNER_TRIP: string;
 }
 
 export interface FavsLangFile {
-    /**
-     * favs: Alert has been deleted.
-     */
-    FAVS_ALERT_DELETED: string;
-    /**
-     * favs: <p>Your Alert has been saved</p><p>Windy will send you notification or an email several days ahead, if your conditions are met.</p>
-     */
-    FAVS_ALERT_SAVED: string;
-    /**
-     * favs: Airports
-     */
-    FAVS_FILTER_AIRPORTS: string;
-    /**
-     * favs: All
-     */
-    FAVS_FILTER_ALL: string;
-    /**
-     * favs: Places
-     */
-    FAVS_FILTER_PLACES: string;
-    /**
-     * favs: Routes
-     */
-    FAVS_FILTER_ROUTES: string;
-    /**
-     * favs: Stations
-     */
-    FAVS_FILTER_STATIONS: string;
-    /**
-     * favs: Webcams
-     */
-    FAVS_FILTER_WEBCAMS: string;
-    /**
-     * favs: <b>How to add a favorite:</b><br />1) Click anywhere on a map or open detailed forecast for a location<br />2) Click on "{{icon}}" icon right of a search input
-     */
-    FAVS_HOW_TO_ADD: string;
-    /**
-     * favs: Error loading your fav item. Try again later.
-     */
-    FAVS_LOADING_ERROR: string;
-    /**
-     * favs: Not saved
-     */
-    FAVS_NOT_IN_SYNC2: string;
-    /**
-     * favs: Pin favorite...
-     */
-    FAVS_PIN: string;
-    /**
-     * favs: Pin to top
-     */
-    FAVS_PIN_TOP: string;
-    /**
-     * favs: Rename
-     */
-    FAVS_RENAME: string;
-    /**
-     * favs: It seems our servers are not available at the moment. Try again later.
-     */
-    FAVS_RENAME_ERROR: string;
-    /**
-     * favs: An unexpected error has occurred. Try again later.
-     */
-    FAVS_RENAME_GENERAL_ERROR: string;
-    /**
-     * favs: The name must be at least 3 characters long
-     */
-    FAVS_RENAME_SHORT: string;
-    /**
-     * favs: Save to cloud
-     */
-    FAVS_SAVE_TO_CLOUD: string;
-    /**
-     * favs: Unpin from top
-     */
-    FAVS_UNPIN_TOP: string;
-    /**
-     * favs: Search favorites...
-     */
-    SEARCH_FAVOURITE: string;
+  /**
+   * favs: Alert has been deleted.
+   */
+  FAVS_ALERT_DELETED: string;
+  /**
+   * favs: <p>Your Alert has been saved</p><p>Windy will send you notification or an email several days ahead, if your conditions are met.</p>
+   */
+  FAVS_ALERT_SAVED: string;
+  /**
+   * favs: Airports
+   */
+  FAVS_FILTER_AIRPORTS: string;
+  /**
+   * favs: All
+   */
+  FAVS_FILTER_ALL: string;
+  /**
+   * favs: Places
+   */
+  FAVS_FILTER_PLACES: string;
+  /**
+   * favs: Routes
+   */
+  FAVS_FILTER_ROUTES: string;
+  /**
+   * favs: Stations
+   */
+  FAVS_FILTER_STATIONS: string;
+  /**
+   * favs: Webcams
+   */
+  FAVS_FILTER_WEBCAMS: string;
+  /**
+   * favs: <b>How to add a favorite:</b><br />1) Click anywhere on a map or open detailed forecast for a location<br />2) Click on "{{icon}}" icon right of a search input
+   */
+  FAVS_HOW_TO_ADD: string;
+  /**
+   * favs: Error loading your fav item. Try again later.
+   */
+  FAVS_LOADING_ERROR: string;
+  /**
+   * favs: Not saved
+   */
+  FAVS_NOT_IN_SYNC2: string;
+  /**
+   * favs: Pin favorite...
+   */
+  FAVS_PIN: string;
+  /**
+   * favs: Pin to top
+   */
+  FAVS_PIN_TOP: string;
+  /**
+   * favs: Rename
+   */
+  FAVS_RENAME: string;
+  /**
+   * favs: It seems our servers are not available at the moment. Try again later.
+   */
+  FAVS_RENAME_ERROR: string;
+  /**
+   * favs: An unexpected error has occurred. Try again later.
+   */
+  FAVS_RENAME_GENERAL_ERROR: string;
+  /**
+   * favs: The name must be at least 3 characters long
+   */
+  FAVS_RENAME_SHORT: string;
+  /**
+   * favs: Save to cloud
+   */
+  FAVS_SAVE_TO_CLOUD: string;
+  /**
+   * favs: Unpin from top
+   */
+  FAVS_UNPIN_TOP: string;
+  /**
+   * favs: Search favorites...
+   */
+  SEARCH_FAVOURITE: string;
 }
 
 export interface GarminLangFile {
-    /**
-     * garmin: Install the Data Field
-     */
-    GARMIN_DATAFIELD_BTN_STORE: string;
-    /**
-     * garmin: Don't forget to toggle on the Screen after finishing the set up.
-     */
-    GARMIN_DATAFIELD_HOW_TO: string;
-    /**
-     * garmin: How to set the Windy Data Field for your chosen activity
-     */
-    GARMIN_DATAFIELD_HOW_TO_TITLE: string;
-    /**
-     * garmin: Allow which activities will have Windy Data Field
-     */
-    GARMIN_DATAFIELD_INITIAL: string;
-    /**
-     * garmin: Initial Phase
-     */
-    GARMIN_DATAFIELD_INITIAL_TITLE: string;
-    /**
-     * garmin: Option with 4 or less Data fields
-     */
-    GARMIN_DATAFIELD_OPTION_4_TITLE: string;
-    /**
-     * garmin: Option for Full-screen mode
-     */
-    GARMIN_DATAFIELD_OPTION_FULL_SCREEN_TITLE: string;
-    /**
-     * garmin: Customise your data field by setting up the forecast model, radar, relative wind, units, and location settings.
-     */
-    GARMIN_DATAFIELD_SETTINGS_01: string;
-    /**
-     * garmin: Settings are accessible via the Connect IQ mobile app.
-     */
-    GARMIN_DATAFIELD_SETTINGS_02: string;
-    /**
-     * garmin: Data Field Settings
-     */
-    GARMIN_DATAFIELD_SETTINGS_TITLE: string;
-    /**
-     * garmin: See live weather as you move. Get forecasts while running, cycling, or hiking — alongside your activity stats or in full-screen radar with a forecast.
-     */
-    GARMIN_DATAFIELD_SUBTITLE: string;
-    /**
-     * garmin: Windy Data Field
-     */
-    GARMIN_DATAFIELD_TITLE: string;
-    /**
-     * garmin: Install the Data Field
-     */
-    GARMIN_EDGE_DATAFIELD_BTN_STORE: string;
-    /**
-     * garmin: Setting Up the Data Field on Edge
-     */
-    GARMIN_EDGE_DATAFIELD_SETUP_TITLE: string;
-    /**
-     * garmin: See live weather as you ride. Get forecasts and radar alongside your cycling stats — and always know what's coming down the road.
-     */
-    GARMIN_EDGE_DATAFIELD_SUBTITLE: string;
-    /**
-     * garmin: Windy Data Field
-     */
-    GARMIN_EDGE_DATAFIELD_TITLE: string;
-    /**
-     * garmin: Install the Widget Lite
-     */
-    GARMIN_LITE_BTN_STORE: string;
-    /**
-     * garmin: Customise your widget by settings up the forecast model, units, and location settings.
-     */
-    GARMIN_LITE_SETTINGS_01: string;
-    /**
-     * garmin: Settings are accessible via the Connect IQ mobile app.
-     */
-    GARMIN_LITE_SETTINGS_02: string;
-    /**
-     * garmin: Widget Lite Settings
-     */
-    GARMIN_LITE_SETTINGS_TITLE: string;
-    /**
-     * garmin: All the essentials for older Garmin models and monochromatic displays — radar, 4-day forecast, and hourly updates — in the lighter Windy Widget Lite.
-     */
-    GARMIN_LITE_SUBTITLE: string;
-    /**
-     * garmin: Weather Widget Lite
-     */
-    GARMIN_LITE_TITLE: string;
-    /**
-     * garmin: Install the METAR Widget
-     */
-    GARMIN_METAR_BTN_STORE: string;
-    /**
-     * garmin: Customise your METAR widget settings via the Connect IQ mobile app.
-     */
-    GARMIN_METAR_SETTINGS_01: string;
-    /**
-     * garmin: METAR Widget Settings
-     */
-    GARMIN_METAR_SETTINGS_TITLE: string;
-    /**
-     * garmin: Real-time METARs from nearby airports, right on your wrist. Add any airport by ICAO code and get raw data or a decoded summary at a glance.
-     */
-    GARMIN_METAR_SUBTITLE: string;
-    /**
-     * garmin: METAR Widget
-     */
-    GARMIN_METAR_TITLE: string;
-    /**
-     * garmin: Garmin Devices
-     */
-    GARMIN_PLUGIN_TITLE: string;
-    /**
-     * garmin: Data Field
-     */
-    GARMIN_SWITCH_DATAFIELD_BTN: string;
-    /**
-     * garmin: Widget Lite
-     */
-    GARMIN_SWITCH_LITE_BTN: string;
-    /**
-     * garmin: METAR
-     */
-    GARMIN_SWITCH_METAR_BTN: string;
-    /**
-     * garmin: Watch Face
-     */
-    GARMIN_SWITCH_WATCHFACE_BTN: string;
-    /**
-     * garmin: Widget
-     */
-    GARMIN_SWITCH_WIDGET_BTN: string;
-    /**
-     * garmin: For troubleshooting, please visit our
-     */
-    GARMIN_TROUBLESHOOTING_PART_1: string;
-    /**
-     * garmin: community forum
-     */
-    GARMIN_TROUBLESHOOTING_PART_2: string;
-    /**
-     * garmin: Installing the app
-     */
-    GARMIN_VIDEO_INSTALLATION_TITLE: string;
-    /**
-     * garmin: Install the Watch Face
-     */
-    GARMIN_WATCHFACE_BTN_STORE: string;
-    /**
-     * garmin: Customise your watch face by setting up the forecast type, model, units, and location settings.
-     */
-    GARMIN_WATCHFACE_SETTINGS_01: string;
-    /**
-     * garmin: Two types of weather forecasts are available.
-     */
-    GARMIN_WATCHFACE_SETTINGS_02: string;
-    /**
-     * garmin: Useful settings are available in the Watch Face app.
-     */
-    GARMIN_WATCHFACE_SETTINGS_03: string;
-    /**
-     * garmin: Complete settings are accessible via the Connect IQ mobile app.
-     */
-    GARMIN_WATCHFACE_SETTINGS_04: string;
-    /**
-     * garmin: Watch Face Settings
-     */
-    GARMIN_WATCHFACE_SETTINGS_TITLE: string;
-    /**
-     * garmin: Have essential weather data at a glance — from live radar to forecasts for the next hours or days.
-     */
-    GARMIN_WATCHFACE_SUBTITLE: string;
-    /**
-     * garmin: Windy Watch Face
-     */
-    GARMIN_WATCHFACE_TITLE: string;
-    /**
-     * garmin: Install the Widget
-     */
-    GARMIN_WIDGET_BTN_STORE: string;
-    /**
-     * garmin: Customise your widget by settings up the forecast model, units, and location settings.
-     */
-    GARMIN_WIDGET_SETTINGS_01: string;
-    /**
-     * garmin: Settings are accessible via the Connect IQ mobile app.
-     */
-    GARMIN_WIDGET_SETTINGS_02: string;
-    /**
-     * garmin: Widget Settings
-     */
-    GARMIN_WIDGET_SETTINGS_TITLE: string;
-    /**
-     * garmin: Stay ahead with a quick view of the radar, 4-day forecast, upcoming hours, or today’s weather detail - all directly in your Windy widget.
-     */
-    GARMIN_WIDGET_SUBTITLE: string;
-    /**
-     * garmin: Weather Widget
-     */
-    GARMIN_WIDGET_TITLE: string;
+  /**
+   * garmin: Install the Data Field
+   */
+  GARMIN_DATAFIELD_BTN_STORE: string;
+  /**
+   * garmin: Don't forget to toggle on the Screen after finishing the set up.
+   */
+  GARMIN_DATAFIELD_HOW_TO: string;
+  /**
+   * garmin: How to set the Windy Data Field for your chosen activity
+   */
+  GARMIN_DATAFIELD_HOW_TO_TITLE: string;
+  /**
+   * garmin: Allow which activities will have Windy Data Field
+   */
+  GARMIN_DATAFIELD_INITIAL: string;
+  /**
+   * garmin: Initial Phase
+   */
+  GARMIN_DATAFIELD_INITIAL_TITLE: string;
+  /**
+   * garmin: Option with 4 or less Data fields
+   */
+  GARMIN_DATAFIELD_OPTION_4_TITLE: string;
+  /**
+   * garmin: Option for Full-screen mode
+   */
+  GARMIN_DATAFIELD_OPTION_FULL_SCREEN_TITLE: string;
+  /**
+   * garmin: Customise your data field by setting up the forecast model, radar, relative wind, units, and location settings.
+   */
+  GARMIN_DATAFIELD_SETTINGS_01: string;
+  /**
+   * garmin: Settings are accessible via the Connect IQ mobile app.
+   */
+  GARMIN_DATAFIELD_SETTINGS_02: string;
+  /**
+   * garmin: Data Field Settings
+   */
+  GARMIN_DATAFIELD_SETTINGS_TITLE: string;
+  /**
+   * garmin: See live weather as you move. Get forecasts while running, cycling, or hiking — alongside your activity stats or in full-screen radar with a forecast.
+   */
+  GARMIN_DATAFIELD_SUBTITLE: string;
+  /**
+   * garmin: Windy Data Field
+   */
+  GARMIN_DATAFIELD_TITLE: string;
+  /**
+   * garmin: Install the Data Field
+   */
+  GARMIN_EDGE_DATAFIELD_BTN_STORE: string;
+  /**
+   * garmin: Setting Up the Data Field on Edge
+   */
+  GARMIN_EDGE_DATAFIELD_SETUP_TITLE: string;
+  /**
+   * garmin: See live weather as you ride. Get forecasts and radar alongside your cycling stats — and always know what's coming down the road.
+   */
+  GARMIN_EDGE_DATAFIELD_SUBTITLE: string;
+  /**
+   * garmin: Windy Data Field
+   */
+  GARMIN_EDGE_DATAFIELD_TITLE: string;
+  /**
+   * garmin: Install the Widget Lite
+   */
+  GARMIN_LITE_BTN_STORE: string;
+  /**
+   * garmin: Customise your widget by settings up the forecast model, units, and location settings.
+   */
+  GARMIN_LITE_SETTINGS_01: string;
+  /**
+   * garmin: Settings are accessible via the Connect IQ mobile app.
+   */
+  GARMIN_LITE_SETTINGS_02: string;
+  /**
+   * garmin: Widget Lite Settings
+   */
+  GARMIN_LITE_SETTINGS_TITLE: string;
+  /**
+   * garmin: All the essentials for older Garmin models and monochromatic displays — radar, 4-day forecast, and hourly updates — in the lighter Windy Widget Lite.
+   */
+  GARMIN_LITE_SUBTITLE: string;
+  /**
+   * garmin: Weather Widget Lite
+   */
+  GARMIN_LITE_TITLE: string;
+  /**
+   * garmin: Install the METAR Widget
+   */
+  GARMIN_METAR_BTN_STORE: string;
+  /**
+   * garmin: Customise your METAR widget settings via the Connect IQ mobile app.
+   */
+  GARMIN_METAR_SETTINGS_01: string;
+  /**
+   * garmin: METAR Widget Settings
+   */
+  GARMIN_METAR_SETTINGS_TITLE: string;
+  /**
+   * garmin: Real-time METARs from nearby airports, right on your wrist. Add any airport by ICAO code and get raw data or a decoded summary at a glance.
+   */
+  GARMIN_METAR_SUBTITLE: string;
+  /**
+   * garmin: METAR Widget
+   */
+  GARMIN_METAR_TITLE: string;
+  /**
+   * garmin: Garmin Devices
+   */
+  GARMIN_PLUGIN_TITLE: string;
+  /**
+   * garmin: Data Field
+   */
+  GARMIN_SWITCH_DATAFIELD_BTN: string;
+  /**
+   * garmin: Widget Lite
+   */
+  GARMIN_SWITCH_LITE_BTN: string;
+  /**
+   * garmin: METAR
+   */
+  GARMIN_SWITCH_METAR_BTN: string;
+  /**
+   * garmin: Watch Face
+   */
+  GARMIN_SWITCH_WATCHFACE_BTN: string;
+  /**
+   * garmin: Widget
+   */
+  GARMIN_SWITCH_WIDGET_BTN: string;
+  /**
+   * garmin: For troubleshooting, please visit our
+   */
+  GARMIN_TROUBLESHOOTING_PART_1: string;
+  /**
+   * garmin: community forum
+   */
+  GARMIN_TROUBLESHOOTING_PART_2: string;
+  /**
+   * garmin: Installing the app
+   */
+  GARMIN_VIDEO_INSTALLATION_TITLE: string;
+  /**
+   * garmin: Install the Watch Face
+   */
+  GARMIN_WATCHFACE_BTN_STORE: string;
+  /**
+   * garmin: Customise your watch face by setting up the forecast type, model, units, and location settings.
+   */
+  GARMIN_WATCHFACE_SETTINGS_01: string;
+  /**
+   * garmin: Two types of weather forecasts are available.
+   */
+  GARMIN_WATCHFACE_SETTINGS_02: string;
+  /**
+   * garmin: Useful settings are available in the Watch Face app.
+   */
+  GARMIN_WATCHFACE_SETTINGS_03: string;
+  /**
+   * garmin: Complete settings are accessible via the Connect IQ mobile app.
+   */
+  GARMIN_WATCHFACE_SETTINGS_04: string;
+  /**
+   * garmin: Watch Face Settings
+   */
+  GARMIN_WATCHFACE_SETTINGS_TITLE: string;
+  /**
+   * garmin: Have essential weather data at a glance — from live radar to forecasts for the next hours or days.
+   */
+  GARMIN_WATCHFACE_SUBTITLE: string;
+  /**
+   * garmin: Windy Watch Face
+   */
+  GARMIN_WATCHFACE_TITLE: string;
+  /**
+   * garmin: Install the Widget
+   */
+  GARMIN_WIDGET_BTN_STORE: string;
+  /**
+   * garmin: Customise your widget by settings up the forecast model, units, and location settings.
+   */
+  GARMIN_WIDGET_SETTINGS_01: string;
+  /**
+   * garmin: Settings are accessible via the Connect IQ mobile app.
+   */
+  GARMIN_WIDGET_SETTINGS_02: string;
+  /**
+   * garmin: Widget Settings
+   */
+  GARMIN_WIDGET_SETTINGS_TITLE: string;
+  /**
+   * garmin: Stay ahead with a quick view of the radar, 4-day forecast, upcoming hours, or today’s weather detail - all directly in your Windy widget.
+   */
+  GARMIN_WIDGET_SUBTITLE: string;
+  /**
+   * garmin: Weather Widget
+   */
+  GARMIN_WIDGET_TITLE: string;
 }
 
 export interface HurricanesLangFile {
-    /**
-     * hurricanes: Cyclone
-     */
-    HURR_CYCLONE: string;
-    /**
-     * hurricanes: Cyclone category
-     */
-    HURR_CYCLONE_CAT: string;
-    /**
-     * hurricanes: Unable to retrieve data from our server. We apologize for the inconvenience. Please try again later.
-     */
-    HURR_FETCH_ERROR: string;
-    /**
-     * hurricanes: Hurricane
-     */
-    HURR_HURRICANE: string;
-    /**
-     * hurricanes: Hurricane category
-     */
-    HURR_HURRICANE_CAT: string;
-    /**
-     * hurricanes: Last update
-     */
-    HURR_LAST_UPDATE: string;
-    /**
-     * hurricanes: nearest to your location
-     */
-    HURR_NEAREST: string;
-    /**
-     * hurricanes: No forecast available
-     */
-    HURR_NO_FORECAST: string;
-    /**
-     * hurricanes: There is no tropical storm known to us raging right now and none is predicted.
-     */
-    HURR_NO_STORMS: string;
-    /**
-     * hurricanes: Prediction radius
-     */
-    HURR_PREDICTED_RADIUS: string;
-    /**
-     * hurricanes: SSHWS category {{category}}
-     */
-    HURR_SSHWS_CAT_TOOLTIP: string;
-    /**
-     * hurricanes: Intensity categorized using <a href="https://www.nhc.noaa.gov/aboutsshws.php" target="_blank">Saffir-Simpson Hurricane Wind Scale (SSHWS)</a>
-     */
-    HURR_SSHWS_INFO: string;
-    /**
-     * hurricanes: Tropical depression
-     */
-    HURR_TROPICAL_DEPRESSION: string;
-    /**
-     * hurricanes: Tropical storm
-     */
-    HURR_TROPICAL_STORM: string;
-    /**
-     * hurricanes: Typhoon
-     */
-    HURR_TYPHOON: string;
-    /**
-     * hurricanes: Typhoon category
-     */
-    HURR_TYPHOON_CAT: string;
-    /**
-     * hurricanes: Unnamed storm
-     */
-    HURR_UNNAMED: string;
-    /**
-     * hurricanes: Yesterday
-     */
-    YESTERDAY: string;
+  /**
+   * hurricanes: Cyclone
+   */
+  HURR_CYCLONE: string;
+  /**
+   * hurricanes: Cyclone category
+   */
+  HURR_CYCLONE_CAT: string;
+  /**
+   * hurricanes: Unable to retrieve data from our server. We apologize for the inconvenience. Please try again later.
+   */
+  HURR_FETCH_ERROR: string;
+  /**
+   * hurricanes: Hurricane
+   */
+  HURR_HURRICANE: string;
+  /**
+   * hurricanes: Hurricane category
+   */
+  HURR_HURRICANE_CAT: string;
+  /**
+   * hurricanes: Last update
+   */
+  HURR_LAST_UPDATE: string;
+  /**
+   * hurricanes: nearest to your location
+   */
+  HURR_NEAREST: string;
+  /**
+   * hurricanes: No forecast available
+   */
+  HURR_NO_FORECAST: string;
+  /**
+   * hurricanes: There is no tropical storm known to us raging right now and none is predicted.
+   */
+  HURR_NO_STORMS: string;
+  /**
+   * hurricanes: Prediction radius
+   */
+  HURR_PREDICTED_RADIUS: string;
+  /**
+   * hurricanes: SSHWS category {{category}}
+   */
+  HURR_SSHWS_CAT_TOOLTIP: string;
+  /**
+   * hurricanes: Intensity categorized using <a href="https://www.nhc.noaa.gov/aboutsshws.php" target="_blank">Saffir-Simpson Hurricane Wind Scale (SSHWS)</a>
+   */
+  HURR_SSHWS_INFO: string;
+  /**
+   * hurricanes: Tropical depression
+   */
+  HURR_TROPICAL_DEPRESSION: string;
+  /**
+   * hurricanes: Tropical storm
+   */
+  HURR_TROPICAL_STORM: string;
+  /**
+   * hurricanes: Typhoon
+   */
+  HURR_TYPHOON: string;
+  /**
+   * hurricanes: Typhoon category
+   */
+  HURR_TYPHOON_CAT: string;
+  /**
+   * hurricanes: Unnamed storm
+   */
+  HURR_UNNAMED: string;
+  /**
+   * hurricanes: Yesterday
+   */
+  YESTERDAY: string;
 }
 
 export interface InfoLangFile {
-    /**
-     * info: activate updates every {{number}}h
-     */
-    ACTIVATE_PREMIUM_UPDATE: string;
-    /**
-     * info: Your forecast will be updated in up to {{nextFreeUpdate}}.
-     */
-    FREE_UPDATE: string;
-    /**
-     * info: in
-     */
-    IN: string;
-    /**
-     * info: Your forecast was updated {{lastFreeUpdate}} ago already.
-     */
-    LAST_FREE_UPDATE: string;
-    /**
-     * info: now at any moment
-     */
-    NOW_AT_ANY_MOMENT: string;
-    /**
-     * info: Get frequent forecast updates
-     */
-    SUB_ACTIVATE_FREQ: string;
-    /**
-     * info: Premium users get forecast updates every {{premiumInterval}} hours.
-     */
-    SUB_INTERVAL: string;
-    /**
-     * info: The last Premium update was {{lastPremiumUpdate}} ago.
-     */
-    SUB_LAST_PREMIUM: string;
-    /**
-     * info: They will receive a new forecast update in just {{nextPremiumUpdate}}.
-     */
-    SUB_NEXT_UPDATE: string;
+  /**
+   * info: activate updates every {{number}}h
+   */
+  ACTIVATE_PREMIUM_UPDATE: string;
+  /**
+   * info: Your forecast will be updated in up to {{nextFreeUpdate}}.
+   */
+  FREE_UPDATE: string;
+  /**
+   * info: in
+   */
+  IN: string;
+  /**
+   * info: Your forecast was updated {{lastFreeUpdate}} ago already.
+   */
+  LAST_FREE_UPDATE: string;
+  /**
+   * info: now at any moment
+   */
+  NOW_AT_ANY_MOMENT: string;
+  /**
+   * info: Get frequent forecast updates
+   */
+  SUB_ACTIVATE_FREQ: string;
+  /**
+   * info: Premium users get forecast updates every {{premiumInterval}} hours.
+   */
+  SUB_INTERVAL: string;
+  /**
+   * info: The last Premium update was {{lastPremiumUpdate}} ago.
+   */
+  SUB_LAST_PREMIUM: string;
+  /**
+   * info: They will receive a new forecast update in just {{nextPremiumUpdate}}.
+   */
+  SUB_NEXT_UPDATE: string;
 }
 
 export interface MainLangFile {
-    /**
-     * About these data
-     */
-    ABOUT_DATA: string;
-    /**
-     * About
-     */
-    ABOUT_OVERLAY: string;
-    /**
-     * Accumulations
-     */
-    ACCU: string;
-    /**
-     * Activate
-     */
-    ACTIVATE: string;
-    /**
-     * active alerts
-     */
-    ACTIVE_ALERTS: string;
-    /**
-     * Active fires
-     */
-    ACTIVE_FIRES: string;
-    /**
-     * Actual temperature
-     */
-    ACTUAL_TEMP: string;
-    /**
-     * Create alert
-     */
-    ADD_ALERT: string;
-    /**
-     * Good
-     */
-    AIRQ_RANGE_GOOD: string;
-    /**
-     * Hazardous
-     */
-    AIRQ_RANGE_HAZARDOUS: string;
-    /**
-     * Moderate
-     */
-    AIRQ_RANGE_MODERATE: string;
-    /**
-     * Unhealthy
-     */
-    AIRQ_RANGE_UNHEALTHY: string;
-    /**
-     * Unhealthy for sensitive
-     */
-    AIRQ_RANGE_UNHEALTHY_SENSITIVE: string;
-    /**
-     * Very unhealthy
-     */
-    AIRQ_RANGE_VERY_UNHEALTHY: string;
-    /**
-     * Air quality
-     */
-    AIR_QUALITY: string;
-    /**
-     * Alert for this spot
-     */
-    ALERTS_LINK_SHORT: string;
-    /**
-     * Migrate alert
-     */
-    ALERT_MIGRATE: string;
-    /**
-     * All
-     */
-    ALL: string;
-    /**
-     * All waves
-     */
-    ALL_WAVES: string;
-    /**
-     * Any Layer unit can be changed by clicking on color legend
-     */
-    ALTERNATIVE_UNIT_CHANGE: string;
-    /**
-     * Altitude
-     */
-    ALTITUDE: string;
-    /**
-     * Aerosol
-     */
-    AOD550: string;
-    /**
-     * Air quality index
-     */
-    AQI: string;
-    /**
-     * Archive
-     */
-    ARCHIVE: string;
-    /**
-     * Area
-     */
-    AREA: string;
-    /**
-     * Articles
-     */
-    ARTICLES: string;
-    /**
-     * Author
-     */
-    AUTHOR: string;
-    /**
-     * Available for:
-     */
-    AVAIL_FOR: string;
-    /**
-     * Avalanche danger
-     */
-    AVALANCHE_DANGER: string;
-    /**
-     * Considerable
-     */
-    AVAL_CONSIDERABLE: string;
-    /**
-     * High
-     */
-    AVAL_HIGH: string;
-    /**
-     * Low
-     */
-    AVAL_LOW: string;
-    /**
-     * Moderate
-     */
-    AVAL_MODERATE: string;
-    /**
-     * No data
-     */
-    AVAL_NO_DATA: string;
-    /**
-     * Very high
-     */
-    AVAL_VERY_HIGH: string;
-    /**
-     * Show lightning
-     */
-    BLITZ_ON: string;
-    /**
-     * Your {{platform}} does not support {{technology}}. Some features may not work correctly.
-     */
-    BROWSER_SUPPORT_ERROR: string;
-    /**
-     * By distance
-     */
-    BY_DISTANCE: string;
-    /**
-     * Webcams previews
-     */
-    CAMS_PREVIEWS: string;
-    /**
-     * Cancel search
-     */
-    CANCEL_SEARCH: string;
-    /**
-     * CAPE Index
-     */
-    CAPE: string;
-    /**
-     * Thermals
-     */
-    CCL: string;
-    /**
-     * Choose a file
-     */
-    CHOOSE_A_FILE: string;
-    /**
-     * Click to change units
-     */
-    CLICK_ON_LEGEND: string;
-    /**
-     * Close archive
-     */
-    CLOSE_ARCHIVE: string;
-    /**
-     * Clouds, rain
-     */
-    CLOUDS: string;
-    /**
-     * Clouds
-     */
-    CLOUDS2: string;
-    /**
-     * Clouds, aviation
-     */
-    CLOUDS_AND_AVIATION: string;
-    /**
-     * Cloud base
-     */
-    CLOUD_ALT: string;
-    /**
-     * Compare
-     */
-    COMPARE: string;
-    /**
-     * Cookie consent
-     */
-    CONSENT: string;
-    /**
-     * Convective r.
-     */
-    CONVECTIVE_RAIN: string;
-    /**
-     * Copy link
-     */
-    COPY_LINK: string;
-    /**
-     * Copy to clipboard
-     */
-    COPY_TO_C: string;
-    /**
-     * CO concentration
-     */
-    COSC: string;
-    /**
-     * Cloud tops
-     */
-    CTOP: string;
-    /**
-     * Currents
-     */
-    CURRENT: string;
-    /**
-     * Tidal currents
-     */
-    CURRENT_TIDE: string;
-    /**
-     * Data not available for this location
-     */
-    DATA_NOT_AVBL: string;
-    /**
-     * {{daysago}} days ago:
-     */
-    DAYS_AGO: string;
-    /**
-     * Deactivate
-     */
-    DEACTIVATE: string;
-    /**
-     * Default units
-     */
-    DEFAULT_UNITS: string;
-    /**
-     * Delete
-     */
-    DELETE: string;
-    /**
-     * Description
-     */
-    DESCRIPTION: string;
-    /**
-     * Detailed forecast for this location
-     */
-    DETAILED: string;
-    /**
-     * Error loading forecast for {{model}}
-     */
-    DETAIL_FORECAST_LOADING_FAILED: string;
-    /**
-     * Selected model ({{model}}) is unavailable in current location. Reverting to previous model ({{prevModel}}).
-     */
-    DETAIL_MODEL_UNAVAILABLE: string;
-    /**
-     * Developed with
-     */
-    DEVELOPED: string;
-    /**
-     * Develop your own plugin
-     */
-    DEVELOP_PLUGIN: string;
-    /**
-     * Dew point
-     */
-    DEW_POINT: string;
-    /**
-     * Dew point spread
-     */
-    DEW_POINT_SPREAD: string;
-    /**
-     * Directions
-     */
-    DIRECTIONS: string;
-    /**
-     * Any direction
-     */
-    DIRECTIONS_ANY: string;
-    /**
-     * Select directions
-     */
-    DIRECTIONS_SELECT: string;
-    /**
-     * E
-     */
-    DIRECTION_E: string;
-    /**
-     * N
-     */
-    DIRECTION_N: string;
-    /**
-     * NE
-     */
-    DIRECTION_NE: string;
-    /**
-     * NW
-     */
-    DIRECTION_NW: string;
-    /**
-     * S
-     */
-    DIRECTION_S: string;
-    /**
-     * SE
-     */
-    DIRECTION_SE: string;
-    /**
-     * SW
-     */
-    DIRECTION_SW: string;
-    /**
-     * W
-     */
-    DIRECTION_W: string;
-    /**
-     * Display style
-     */
-    DISPLAY_STYLE: string;
-    /**
-     * Distance
-     */
-    DISTANCE: string;
-    /**
-     * Done
-     */
-    DONE: string;
-    /**
-     * Don't have an account?
-     */
-    DONT_HAVE_ACCOUNT: string;
-    /**
-     * Download file
-     */
-    DOWNLOAD_FILE: string;
-    /**
-     * Duration
-     */
-    DURATION: string;
-    /**
-     * {hours}h
-     */
-    DURATION_HOURS: string;
-    /**
-     * {hours}h {minutes}m
-     */
-    DURATION_H_M: string;
-    /**
-     * {minutes}m
-     */
-    DURATION_MIN: string;
-    /**
-     * Dust mass
-     */
-    DUSTSM: string;
-    /**
-     * Dust
-     */
-    DUSTSM_SHORT: string;
-    /**
-     * 1h forecast
-     */
-    D_1H_FORECAST: string;
-    /**
-     * About this location
-     */
-    D_ABOUT_LOC: string;
-    /**
-     * image during daylight
-     */
-    D_DAYLIGHT: string;
-    /**
-     * Display as:
-     */
-    D_DISPLAY_AS: string;
-    /**
-     * distance
-     */
-    D_DISTANCE: string;
-    /**
-     * dusk
-     */
-    D_DUSK: string;
-    /**
-     * Add to Favorites
-     */
-    D_FAVORITES: string;
-    /**
-     * Remove from Favorites
-     */
-    D_FAVORITES2: string;
-    /**
-     * Forecast for this location
-     */
-    D_FCST: string;
-    /**
-     * Hours
-     */
-    D_HOURS: string;
-    /**
-     * local time
-     */
-    D_LT2: string;
-    /**
-     * miles
-     */
-    D_MILES: string;
-    /**
-     * {{duration}} minutes ago
-     */
-    D_MIN_AGO: string;
-    /**
-     * Add new webcam
-     */
-    D_MISSING_CAM: string;
-    /**
-     * more than hour ago
-     */
-    D_MORE_THAN_HOUR: string;
-    /**
-     * There are no webcams around this location (or we don't know about them)
-     */
-    D_NO_WEBCAMS: string;
-    /**
-     * Polar night
-     */
-    D_POLAR_NIGHT: string;
-    /**
-     * Precip.
-     */
-    D_PRECI: string;
-    /**
-     * Nearest weather stations
-     */
-    D_STATIONS: string;
-    /**
-     * 1 hour
-     */
-    D_STEPS_1_HOUR: string;
-    /**
-     * 3 hours
-     */
-    D_STEPS_3_HOURS: string;
-    /**
-     * Sunrise
-     */
-    D_SUNRISE: string;
-    /**
-     * sunset
-     */
-    D_SUNSET: string;
-    /**
-     * Sun never set
-     */
-    D_SUN_NEVER_SET: string;
-    /**
-     * Temp.
-     */
-    D_TEMP2: string;
-    /**
-     * Timezone
-     */
-    D_TIMEZONE: string;
-    /**
-     * Waves and sea
-     */
-    D_WAVE_FCST2: string;
-    /**
-     * Webcams in vicinity
-     */
-    D_WEBCAMS: string;
-    /**
-     * Show last 24 hours
-     */
-    D_WEBCAMS_24: string;
-    /**
-     * Ebb tide
-     */
-    EBB_TIDE: string;
-    /**
-     * Edit alert
-     */
-    EDIT_ALERT: string;
-    /**
-     * Extreme forecast
-     */
-    EFORECAST: string;
-    /**
-     * Elevation
-     */
-    ELEVATION: string;
-    /**
-     * Embed widget on page
-     */
-    EMBED: string;
-    /**
-     * Embed widget
-     */
-    EMBED2: string;
-    /**
-     * Awesome weather forecast at
-     */
-    E_MESSAGE: string;
-    /**
-     * Far future
-     */
-    FAR_FUTURE: string;
-    /**
-     * Pin to homepage
-     */
-    FAVS_PIN_HOMEPAGE: string;
-    /**
-     * Favorites sync error
-     */
-    FAVS_SYNCHRO_ERROR_TITLE: string;
-    /**
-     * Unpin from homepage
-     */
-    FAVS_UNPIN_HOMEPAGE: string;
-    /**
-     * Feels like
-     */
-    FEEL_TEMP: string;
-    /**
-     * This field can't be empty
-     */
-    FIELD_CANNOT_BE_EMPTY: string;
-    /**
-     * This doesn't look like an email address
-     */
-    FIELD_INVALID_EMAIL: string;
-    /**
-     * File
-     */
-    FILE: string;
-    /**
-     * File name
-     */
-    FILE_NAME: string;
-    /**
-     * Filter
-     */
-    FILTER: string;
-    /**
-     * Fire
-     */
-    FIRE: string;
-    /**
-     * Fire intensity
-     */
-    FIRE_INTENSITY: string;
-    /**
-     * Flight rules
-     */
-    FLIGHT_RULES: string;
-    /**
-     * Flood
-     */
-    FLOOD: string;
-    /**
-     * Flood tide
-     */
-    FLOOD_TIDE: string;
-    /**
-     * Fog
-     */
-    FOG: string;
-    /**
-     * Fog and rime
-     */
-    FOG_RIME: string;
-    /**
-     * Follow us
-     */
-    FOLLOW: string;
-    /**
-     * Forecast for
-     */
-    FORECAST_FOR: string;
-    /**
-     * Freezing altitude
-     */
-    FREEZING: string;
-    /**
-     * Friday
-     */
-    FRI: string;
-    /**
-     * Fri
-     */
-    FRI2: string;
-    /**
-     * F
-     */
-    FRI3: string;
-    /**
-     * Freezing rain
-     */
-    FZ_RAIN: string;
-    /**
-     * Garmin Edge
-     */
-    GARMIN_PLUGIN_TITLE_EDGE: string;
-    /**
-     * Garmin Watch
-     */
-    GARMIN_PLUGIN_TITLE_WATCH: string;
-    /**
-     * Getting your location...
-     */
-    GETTING_LOCATION: string;
-    /**
-     * Failed to determine your location. Make sure Windy.com has permission to access your location
-     */
-    GETTING_LOCATION_ERROR: string;
-    /**
-     * Unable to get current location, using your last known position
-     */
-    GETTING_LOCATION_FALLBACK: string;
-    /**
-     * Failed to determine your location
-     */
-    GETTING_LOCATION_TIMEOUT: string;
-    /**
-     * Surface Ozone
-     */
-    GO3: string;
-    /**
-     * Wind gusts
-     */
-    GUST: string;
-    /**
-     * Wind accumulation
-     */
-    GUSTACCU: string;
-    /**
-     * Hail
-     */
-    HAIL: string;
-    /**
-     * Haze
-     */
-    HAZE: string;
-    /**
-     * City heatmaps
-     */
-    HEATMAP: string;
-    /**
-     * Heavy thunder
-     */
-    HEAVY_THUNDER: string;
-    /**
-     * Height
-     */
-    HEIGHT: string;
-    /**
-     * High clouds
-     */
-    HIGH_CLOUDS: string;
-    /**
-     * Outdoor map
-     */
-    HMAP: string;
-    /**
-     * Home
-     */
-    HOME: string;
-    /**
-     * hrs
-     */
-    HOURS_SHORT: string;
-    /**
-     * Hurricane tracker
-     */
-    HURR_TRACKER: string;
-    /**
-     * Hurr. tracker
-     */
-    HURR_TRACKER_SHORT: string;
-    /**
-     * Icing
-     */
-    ICING2: string;
-    /**
-     * Light
-     */
-    ICING_LIGHT2: string;
-    /**
-     * Moderate
-     */
-    ICING_MODERATE2: string;
-    /**
-     * Severe
-     */
-    ICING_SEVERE2: string;
-    /**
-     * Trace
-     */
-    ICING_TRACE2: string;
-    /**
-     * installed
-     */
-    INSTALLED: string;
-    /**
-     * Drought monitoring
-     */
-    INTERSUCHO: string;
-    /**
-     * 0-100cm
-     */
-    INTERSUCHO_100: string;
-    /**
-     * 0-40cm
-     */
-    INTERSUCHO_40: string;
-    /**
-     * Moisture anomaly
-     */
-    INTERSUCHO_AWD: string;
-    /**
-     * Drought intensity
-     */
-    INTERSUCHO_AWP: string;
-    /**
-     * No risk
-     */
-    INTERSUCHO_AWP_0: string;
-    /**
-     * Minor
-     */
-    INTERSUCHO_AWP_1: string;
-    /**
-     * Mild
-     */
-    INTERSUCHO_AWP_2: string;
-    /**
-     * Moderate
-     */
-    INTERSUCHO_AWP_3: string;
-    /**
-     * Severe
-     */
-    INTERSUCHO_AWP_4: string;
-    /**
-     * Exceptional
-     */
-    INTERSUCHO_AWP_5: string;
-    /**
-     * Extreme
-     */
-    INTERSUCHO_AWP_6: string;
-    /**
-     * Soil moisture
-     */
-    INTERSUCHO_AWR: string;
-    /**
-     * Fuel moisture
-     */
-    INTERSUCHO_DFM: string;
-    /**
-     * 1000h
-     */
-    INTERSUCHO_DFM_1000H: string;
-    /**
-     * 100h
-     */
-    INTERSUCHO_DFM_100H: string;
-    /**
-     * 10h
-     */
-    INTERSUCHO_DFM_10H: string;
-    /**
-     * Fire danger
-     */
-    INTERSUCHO_FIRE_DANGER: string;
-    /**
-     * Fire spread
-     */
-    INTERSUCHO_FWI: string;
-    /**
-     * Very low
-     */
-    INTERSUCHO_FWI_1: string;
-    /**
-     * Low
-     */
-    INTERSUCHO_FWI_2: string;
-    /**
-     * Moderate
-     */
-    INTERSUCHO_FWI_3: string;
-    /**
-     * High
-     */
-    INTERSUCHO_FWI_4: string;
-    /**
-     * Very high
-     */
-    INTERSUCHO_FWI_5: string;
-    /**
-     * Extreme
-     */
-    INTERSUCHO_FWI_6: string;
-    /**
-     * ISA difference
-     */
-    ISA_DIFFERENCE: string;
-    /**
-     * Embed
-     */
-    JUST_EMBED: string;
-    /**
-     * Login
-     */
-    JUST_LOGIN: string;
-    /**
-     * Rain
-     */
-    JUST_RAIN: string;
-    /**
-     * Search
-     */
-    JUST_SEARCH: string;
-    /**
-     * Later
-     */
-    LATER: string;
-    /**
-     * Latest files from Community
-     */
-    LATEST_FILES_FROM_COMMUNITY: string;
-    /**
-     * Less
-     */
-    LESS: string;
-    /**
-     * Licence
-     */
-    LICENCE: string;
-    /**
-     * Light thunder
-     */
-    LIGHT_THUNDER: string;
-    /**
-     * Loading elevation...
-     */
-    LOADING_ELEVATION: string;
-    /**
-     * Loading more uploads
-     */
-    LOADING_MORE_UPLOADS: string;
-    /**
-     * Low clouds
-     */
-    LOW_CLOUDS: string;
-    /**
-     * Low predictability of forecast
-     */
-    LOW_PREDICT: string;
-    /**
-     * Make data private
-     */
-    MAKE_DATA_PRIVATE: string;
-    /**
-     * Map
-     */
-    MAP: string;
-    /**
-     * VFR airspaces map
-     */
-    MAP_AIRSPACES: string;
-    /**
-     * Max Ebb
-     */
-    MAX_EBB: string;
-    /**
-     * Max Flood
-     */
-    MAX_FLOOD: string;
-    /**
-     * Medium clouds
-     */
-    MEDIUM_CLOUDS: string;
-    /**
-     * Menu
-     */
-    MENU: string;
-    /**
-     * About us
-     */
-    MENU_ABOUT: string;
-    /**
-     * Alerts
-     */
-    MENU_ALERTS: string;
-    /**
-     * Distance & planning
-     */
-    MENU_DISTANCE: string;
-    /**
-     * Next update expected at:
-     */
-    MENU_D_NEXT_UPDATE: string;
-    /**
-     * Reference time
-     */
-    MENU_D_REFTIME: string;
-    /**
-     * Updated
-     */
-    MENU_D_UPDATED: string;
-    /**
-     * Error console
-     */
-    MENU_ERROR: string;
-    /**
-     * Favorites
-     */
-    MENU_FAVS: string;
-    /**
-     * Feedback
-     */
-    MENU_FEEDBACK: string;
-    /**
-     * Fullscreen mode
-     */
-    MENU_FULLSCREEN: string;
-    /**
-     * Data
-     */
-    MENU_F_MODEL: string;
-    /**
-     * Help
-     */
-    MENU_HELP: string;
-    /**
-     * Find my location
-     */
-    MENU_LOCATION: string;
-    /**
-     * Download App
-     */
-    MENU_MOBILE: string;
-    /**
-     * Weather news
-     */
-    MENU_NEWS: string;
-    /**
-     * Settings
-     */
-    MENU_SETTINGS: string;
-    /**
-     * Sun/Moon position
-     */
-    MENU_SUN_MOON: string;
-    /**
-     * App add-ons
-     */
-    MENU_TITLE_ADDONS: string;
-    /**
-     * Tutorials
-     */
-    MENU_TUTORIALS: string;
-    /**
-     * Update interval
-     */
-    MENU_U_INTERVAL: string;
-    /**
-     * Create video or animated GIF
-     */
-    MENU_VIDEO: string;
-    /**
-     * Apple Watch Faces
-     */
-    MENU_WATCHFACES: string;
-    /**
-     * Widgets
-     */
-    MENU_WIDGETS: string;
-    /**
-     * Wind trajectories
-     */
-    MENU_WIND_TRAJECTORIES: string;
-    /**
-     * {DURATION} days ago
-     */
-    METARS_DAYS_AGO: string;
-    /**
-     * in {DURATION} days
-     */
-    METARS_DAYS_LATER: string;
-    /**
-     * {DURATION}h {DURATIONM}m ago
-     */
-    METARS_H_M_AGO: string;
-    /**
-     * in {DURATION}h {DURATIONM}m
-     */
-    METARS_H_M_LATER: string;
-    /**
-     * Display heliports
-     */
-    METAR_HELIPORTS: string;
-    /**
-     * {DURATION}h ago
-     */
-    METAR_HOURS_AGO: string;
-    /**
-     * in {DURATION}h
-     */
-    METAR_HOURS_LATER: string;
-    /**
-     * {DURATION}m ago
-     */
-    METAR_MIN_AGO: string;
-    /**
-     * in {DURATION}m
-     */
-    METAR_MIN_LATER: string;
-    /**
-     * Variable
-     */
-    METAR_VAR: string;
-    /**
-     * Min Ebb
-     */
-    MIN_EBB: string;
-    /**
-     * Min Flood
-     */
-    MIN_FLOOD: string;
-    /**
-     * Forecast model
-     */
-    MODEL: string;
-    /**
-     * Switch 2D / 3D mode
-     */
-    MODE_2D3D: string;
-    /**
-     * Monday
-     */
-    MON: string;
-    /**
-     * Mon
-     */
-    MON2: string;
-    /**
-     * M
-     */
-    MON3: string;
-    /**
-     * More
-     */
-    MORE: string;
-    /**
-     * More layers...
-     */
-    MORE_LAYERS: string;
-    /**
-     * {{count}} more
-     */
-    MORE_PRODUCTS: string;
-    /**
-     * Unfortunately, plugin {{title}} was unpublished by the author and is no longer available.
-     */
-    MSG_EXTERNAL_PLUGIN_UNPUBLISHED: string;
-    /**
-     * New version of the plugin {{title}} is available. Do you want to update?
-     */
-    MSG_EXTERNAL_PLUGIN_UPDATE_AVAILABLE: string;
-    /**
-     * Close other Windy.com tabs and reload to update to the new version
-     */
-    MSG_INSTALLING_NEW_VERSION: string;
-    /**
-     * You have successfully logged in!
-     */
-    MSG_LOGIN_SUCCESFULL: string;
-    /**
-     * WOW it appears that you are offline :-(
-     */
-    MSG_OFFLINE: string;
-    /**
-     * Online again, click here to reload app :-)
-     */
-    MSG_ONLINE_APP: string;
-    /**
-     * Mixed ice
-     */
-    MX_ICE: string;
-    /**
-     * My account
-     */
-    MY_ACCOUNT: string;
-    /**
-     * My Alerts
-     */
-    MY_ALERTS: string;
-    /**
-     * My Favorites
-     */
-    MY_FAVS: string;
-    /**
-     * My files
-     */
-    MY_FILES: string;
-    /**
-     * Live alerts
-     */
-    MY_LIVE_ALERTS: string;
-    /**
-     * My location
-     */
-    MY_LOCATION: string;
-    /**
-     * My subscription
-     */
-    MY_SUBSCRIPTION: string;
-    /**
-     * Compare forecasts
-     */
-    ND_COMPARE: string;
-    /**
-     * Display
-     */
-    ND_DISPLAY: string;
-    /**
-     * Forecast model
-     */
-    ND_MODEL: string;
-    /**
-     * New!
-     */
-    NEW: string;
-    /**
-     * Subscribe to newsletter
-     */
-    NEWSLETTER_CONSENT: string;
-    /**
-     * New snow
-     */
-    NEWSNOW: string;
-    /**
-     * Next results...
-     */
-    NEXT: string;
-    /**
-     * No
-     */
-    NO: string;
-    /**
-     * NO₂
-     */
-    NO22: string;
-    /**
-     * None
-     */
-    NONE: string;
-    /**
-     * Nothing found
-     */
-    NOTHING_FOUND: string;
-    /**
-     * Notifications
-     */
-    NOTIFICATIONS: string;
-    /**
-     * Not now
-     */
-    NOTIF_NOT_NOW: string;
-    /**
-     * <strong>Don't lose access to your Windy account.</strong> Please verify <strong>{email}</strong> to secure your data.
-     */
-    NOTIF_VERIFY_EMAIL_BANNER: string;
-    /**
-     * Verify now
-     */
-    NOTIF_VERIFY_NOW: string;
-    /**
-     * Now
-     */
-    NOW: string;
-    /**
-     * No fog
-     */
-    NO_FOG: string;
-    /**
-     * Open in route planner
-     */
-    OPEN_IN_RPLANNER: string;
-    /**
-     * Open plugin
-     */
-    OPEN_PLUGIN: string;
-    /**
-     * or
-     */
-    OR: string;
-    /**
-     * or drop file here.
-     */
-    OR_DROP_FILE_HERE: string;
-    /**
-     * Outdated
-     */
-    OUTDATED: string;
-    /**
-     * Layer
-     */
-    OVERLAY: string;
-    /**
-     * All
-     */
-    OVR_ALL: string;
-    /**
-     * Flying
-     */
-    OVR_FLYING: string;
-    /**
-     * Recommended for:
-     */
-    OVR_RECOMENDED: string;
-    /**
-     * Ski
-     */
-    OVR_SKI: string;
-    /**
-     * Water
-     */
-    OVR_WATER: string;
-    /**
-     * Ozone layer
-     */
-    OZONE: string;
-    /**
-     * Paragliding forecast for {{name}}
-     */
-    PARAGLIDING_BROWSER_TITLE: string;
-    /**
-     * Particles animation
-     */
-    PART_ANIMATION: string;
-    /**
-     * Password and confirmation don't match
-     */
-    PASSWORD_DO_NOT_MATCH: string;
-    /**
-     * Password can't be empty
-     */
-    PASSWORD_EMPTY: string;
-    /**
-     * Password is missing a digit (0-9)
-     */
-    PASSWORD_MISSING_DIGIT: string;
-    /**
-     * Password is missing a lowercase letter (a-z)
-     */
-    PASSWORD_MISSING_LOWERCASE: string;
-    /**
-     * Password is missing an uppercase letter (A-Z)
-     */
-    PASSWORD_MISSING_UPPERCASE: string;
-    /**
-     * Password is too short
-     */
-    PASSWORD_SHORT: string;
-    /**
-     * Ice pellets
-     */
-    PELLETS: string;
-    /**
-     * Period
-     */
-    PERIOD: string;
-    /**
-     * Play with forecast
-     */
-    PLAY_WITH_FORECAST: string;
-    /**
-     * Are you sure you want to uninstall this plugin?
-     */
-    PLUGINS_CONFIRM_UNINSTALL: string;
-    /**
-     * Windy Plugins discussion
-     */
-    PLUGINS_DISCUSSION: string;
-    /**
-     * Error installing plugin
-     */
-    PLUGINS_ERROR_INSTALLING: string;
-    /**
-     * Install plugin
-     */
-    PLUGINS_INSTALL: string;
-    /**
-     * Your plugin was installed and added to the main menu
-     */
-    PLUGINS_INSTALLED: string;
-    /**
-     * Install untrusted plugin
-     */
-    PLUGINS_INSTALL_UNTRUSTED: string;
-    /**
-     * Load plugin directly from URL
-     */
-    PLUGINS_LOAD_URL: string;
-    /**
-     * Name
-     */
-    PLUGINS_NAME: string;
-    /**
-     * Uninstall plugin
-     */
-    PLUGINS_UNINSTALL: string;
-    /**
-     * Installing plugins from untrusted sources can be dangerous. Install plugins only from sources you trust.
-     */
-    PLUGINS_UNTRUSTED: string;
-    /**
-     * URL of the plugin
-     */
-    PLUGINS_URL: string;
-    /**
-     * PM2.5
-     */
-    PM2P5: string;
-    /**
-     * Airports
-     */
-    POI_AD: string;
-    /**
-     * Air quality stations
-     */
-    POI_AIRQ: string;
-    /**
-     * Webcams
-     */
-    POI_CAMS: string;
-    /**
-     * Empty map
-     */
-    POI_EMPTY: string;
-    /**
-     * My favorites
-     */
-    POI_FAVS: string;
-    /**
-     * Forecasted weather
-     */
-    POI_FCST: string;
-    /**
-     * Kite/WS spots
-     */
-    POI_KITE: string;
-    /**
-     * Maximum is {{num}} favorite layers. Remove some to add new ones.
-     */
-    POI_MAX_LAYERS: string;
-    /**
-     * Paragliding spots
-     */
-    POI_PG: string;
-    /**
-     * Recent precip.
-     */
-    POI_PRECIP: string;
-    /**
-     * Precipitation
-     */
-    POI_PRECIP_SHORT: string;
-    /**
-     * Radiosondes
-     */
-    POI_RADIOSONDE: string;
-    /**
-     * Weather stations
-     */
-    POI_STATIONS: string;
-    /**
-     * Surfing spots
-     */
-    POI_SURF: string;
-    /**
-     * Reported temp.
-     */
-    POI_TEMP: string;
-    /**
-     * Temperature
-     */
-    POI_TEMP_SHORT: string;
-    /**
-     * Tide forecast
-     */
-    POI_TIDE: string;
-    /**
-     * Reported wind
-     */
-    POI_WIND: string;
-    /**
-     * Wind
-     */
-    POI_WIND_SHORT: string;
-    /**
-     * Alder pollen
-     */
-    POLLEN_ALDER: string;
-    /**
-     * Alder
-     */
-    POLLEN_ALDER_SHORT: string;
-    /**
-     * Birch pollen
-     */
-    POLLEN_BIRCH: string;
-    /**
-     * Birch
-     */
-    POLLEN_BIRCH_SHORT: string;
-    /**
-     * Grass pollen
-     */
-    POLLEN_GRASS: string;
-    /**
-     * Grass
-     */
-    POLLEN_GRASS_SHORT: string;
-    /**
-     * Mugwort pol.
-     */
-    POLLEN_MUGWORT: string;
-    /**
-     * Mugwort
-     */
-    POLLEN_MUGWORT_SHORT: string;
-    /**
-     * Olive pollen
-     */
-    POLLEN_OLIVE: string;
-    /**
-     * Olive
-     */
-    POLLEN_OLIVE_SHORT: string;
-    /**
-     * Ragweed pol.
-     */
-    POLLEN_RAGWEED: string;
-    /**
-     * Ragwe.
-     */
-    POLLEN_RAGWEED_SHORT: string;
-    /**
-     * Position
-     */
-    POSITION: string;
-    /**
-     * predictability
-     */
-    PREDICTABILITY: string;
-    /**
-     * Pressure
-     */
-    PRESS: string;
-    /**
-     * Pressure isolines
-     */
-    PRESS_ISOLINES: string;
-    /**
-     * Privacy protection
-     */
-    PRIVACY: string;
-    /**
-     * Privacy policy
-     */
-    PRIVACY_POLICY: string;
-    /**
-     * Professional first
-     */
-    PROFESSIONAL_FIRST: string;
-    /**
-     * Use <strong>long tap</strong> on home button to open detailed forecast for your location.
-     */
-    PROMO_LONG_PRESS_HOME: string;
-    /**
-     * <span class="dotted">Open Settings</span> to change the auto closing time of weather picker.
-     */
-    PROMO_PICKER: string;
-    /**
-     * Provider
-     */
-    PROVIDER: string;
-    /**
-     * Precipitation type
-     */
-    PTYPE: string;
-    /**
-     * Windy for Android, free on Google Play
-     */
-    P_ANDROID_APP: string;
-    /**
-     * Please allow Windy to use location services (GPS) while using the app, so we can show weather at your location. We do not store your location at our servers.
-     */
-    P_LOCATION: string;
-    /**
-     * Station pressure
-     */
-    QFE: string;
-    /**
-     * Rain accumulation
-     */
-    RACCU: string;
-    /**
-     * Rain accu.
-     */
-    RACCU_SHORT: string;
-    /**
-     * Weather radar
-     */
-    RADAR: string;
-    /**
-     * Radar, lightning
-     */
-    RADAR_BLITZ: string;
-    /**
-     * Radar
-     */
-    RADAR_SHORT: string;
-    /**
-     * Rain, snow
-     */
-    RAIN: string;
-    /**
-     * Precip. past 3h
-     */
-    RAIN3H: string;
-    /**
-     * RAIN ACCUMULATION
-     */
-    RAINACCU: string;
-    /**
-     * Max. rain rate
-     */
-    RAINRATE: string;
-    /**
-     * Rain, thunder
-     */
-    RAIN_THUNDER: string;
-    /**
-     * Rain with snow
-     */
-    RA_SN: string;
-    /**
-     * Register
-     */
-    REGISTER: string;
-    /**
-     * Register here
-     */
-    REGISTER_HERE: string;
-    /**
-     * Report Issue
-     */
-    REPORT_ISSUE: string;
-    /**
-     * Requires Premium
-     */
-    REQUIRES_PREMIUM: string;
-    /**
-     * Humidity
-     */
-    RH: string;
-    /**
-     * Route planner
-     */
-    RPLANNER: string;
-    /**
-     * Time range
-     */
-    R_TIME_RANGE: string;
-    /**
-     * Snow accumulation
-     */
-    SACCU: string;
-    /**
-     * Saturday
-     */
-    SAT: string;
-    /**
-     * Sat
-     */
-    SAT2: string;
-    /**
-     * S
-     */
-    SAT3: string;
-    /**
-     * Satellite
-     */
-    SATELLITE: string;
-    /**
-     * There is an outage of our data source for some satellites.
-     */
-    SATELLITE_OUTAGE_MESSAGE: string;
-    /**
-     * Save file to cloud
-     */
-    SAVE_FILE_TO_CLOUD: string;
-    /**
-     * Search layer...
-     */
-    SEARCH_LAYER: string;
-    /**
-     * Send
-     */
-    SEND: string;
-    /**
-     * Set notifications
-     */
-    SET_NOTIFICATIONS: string;
-    /**
-     * Surface
-     */
-    SFC: string;
-    /**
-     * Share
-     */
-    SHARE: string;
-    /**
-     * Share on {{name}}
-     */
-    SHARE_ON: string;
-    /**
-     * Show actual forecast
-     */
-    SHOW_ACTUAL: string;
-    /**
-     * force of wind gusts
-     */
-    SHOW_GUST: string;
-    /**
-     * Display on map
-     */
-    SHOW_ON_MAP: string;
-    /**
-     * Show weather picker
-     */
-    SHOW_PICKER: string;
-    /**
-     * Show speed in map
-     */
-    SHOW_SPEED_IN_MAP: string;
-    /**
-     * Size
-     */
-    SIZE: string;
-    /**
-     * Slack, Ebb Begins
-     */
-    SLACK_EBB: string;
-    /**
-     * Slack, Flood Begins
-     */
-    SLACK_FLOOD: string;
-    /**
-     * Pressure (sea l.)
-     */
-    SLP: string;
-    /**
-     * Jan
-     */
-    SMON01: string;
-    /**
-     * Feb
-     */
-    SMON02: string;
-    /**
-     * Mar
-     */
-    SMON03: string;
-    /**
-     * Apr
-     */
-    SMON04: string;
-    /**
-     * May
-     */
-    SMON05: string;
-    /**
-     * Jun
-     */
-    SMON06: string;
-    /**
-     * Jul
-     */
-    SMON07: string;
-    /**
-     * Aug
-     */
-    SMON08: string;
-    /**
-     * Sep
-     */
-    SMON09: string;
-    /**
-     * Oct
-     */
-    SMON10: string;
-    /**
-     * Nov
-     */
-    SMON11: string;
-    /**
-     * Dec
-     */
-    SMON12: string;
-    /**
-     * Snow
-     */
-    SNOW: string;
-    /**
-     * SNOW ACCUMULATION
-     */
-    SNOWACCU: string;
-    /**
-     * Actual Snow Cover
-     */
-    SNOWCOVER: string;
-    /**
-     * Snow density
-     */
-    SNOWDENSITY: string;
-    /**
-     * Snow depth
-     */
-    SNOWDEPTH: string;
-    /**
-     * Soil profile depth
-     */
-    SOIL_PROFILE_DEPTH: string;
-    /**
-     * Solar power
-     */
-    SOLARPOWER: string;
-    /**
-     * Sounding
-     */
-    SOUNDING: string;
-    /**
-     * Sound
-     */
-    SOUND_ON: string;
-    /**
-     * Source
-     */
-    SOURCE: string;
-    /**
-     * Source code
-     */
-    SOURCE_CODE: string;
-    /**
-     * Surface sea temperature
-     */
-    SST: string;
-    /**
-     * Sea temperature
-     */
-    SST2: string;
-    /**
-     * Average sea temperature
-     */
-    SSTAVG: string;
-    /**
-     * Subscription
-     */
-    SUBSCRIPTION: string;
-    /**
-     * Your subscription ends soon
-     */
-    SUB_CUFFS_CANCELED_1: string;
-    /**
-     * Your subscription ends in {{count}} days
-     */
-    SUB_CUFFS_CANCELED_2: string;
-    /**
-     * Your subscription ends in {{count}} hours
-     */
-    SUB_CUFFS_CANCELED_3: string;
-    /**
-     * Your subscription ends at any moment
-     */
-    SUB_CUFFS_CANCELED_4: string;
-    /**
-     * Soon, you will no longer have access to this feature.
-     */
-    SUB_CUFFS_FEATURE: string;
-    /**
-     * Soon, you will no longer have access to 10-day forecast
-     */
-    SUB_CUFFS_FORECAST: string;
-    /**
-     * We're having issues with renewing your subscription
-     */
-    SUB_CUFFS_GRACED: string;
-    /**
-     * Your Premium is paused
-     */
-    SUB_CUFFS_PAUSED: string;
-    /**
-     * Full version of 3D mode is available only to Premium users.
-     */
-    SUB_GLOBE_FREE_LIMIT: string;
-    /**
-     * Go Premium
-     */
-    SUB_GO: string;
-    /**
-     * Premium users have just received a new forecast update
-     */
-    SUB_HAVE_REFTIME: string;
-    /**
-     * And many other <strong>benefits</strong>
-     */
-    SUB_OTHER_BENEFITS: string;
-    /**
-     * Forecast <strong>updates</strong> at least <strong>4 times a day</strong>
-     */
-    SUB_REASON_FREQUENCY: string;
-    /**
-     * <strong>1-hour</strong> forecast step
-     */
-    SUB_REASON_GRANULARITY: string;
-    /**
-     * <strong>10-day forecast</strong> outlook
-     */
-    SUB_REASON_LONGTERM: string;
-    /**
-     * <strong>Tide forecast</strong> anywhere in the world
-     */
-    SUB_REASON_TIDES: string;
-    /**
-     * Renew Premium
-     */
-    SUB_RENEW: string;
-    /**
-     * See details
-     */
-    SUB_SEE_DETAILS: string;
-    /**
-     * Sunday
-     */
-    SUN: string;
-    /**
-     * Sun
-     */
-    SUN2: string;
-    /**
-     * S
-     */
-    SUN3: string;
-    /**
-     * Surface visibility
-     */
-    SURFACE_VISIBILITY: string;
-    /**
-     * Swell
-     */
-    SWELL: string;
-    /**
-     * Swell 1
-     */
-    SWELL1: string;
-    /**
-     * Swell 2
-     */
-    SWELL2: string;
-    /**
-     * Swell 3
-     */
-    SWELL3: string;
-    /**
-     * Swell period
-     */
-    SWELLPER: string;
-    /**
-     * Advanced settings
-     */
-    S_ADVANCED_SETTINGS: string;
-    /**
-     * Customize color scale
-     */
-    S_COLORS: string;
-    /**
-     * Delete all my data from this device
-     */
-    S_DELETE_INFO: string;
-    /**
-     * Save
-     */
-    S_SAVE: string;
-    /**
-     * Login/Register to save all your settings to the cloud
-     */
-    S_SAVE2: string;
-    /**
-     * Speed
-     */
-    S_SPEED: string;
-    /**
-     * SO₂
-     */
-    TCSO2: string;
-    /**
-     * Temperature
-     */
-    TEMP: string;
-    /**
-     * Terms of Use
-     */
-    TERMS_OF_USE: string;
-    /**
-     * Thursday
-     */
-    THU: string;
-    /**
-     * Thu
-     */
-    THU2: string;
-    /**
-     * T
-     */
-    THU3: string;
-    /**
-     * Thunderstorms
-     */
-    THUNDER: string;
-    /**
-     * Tides
-     */
-    TIDES: string;
-    /**
-     * High Tide
-     */
-    TIDE_HIGH: string;
-    /**
-     * Low Tide
-     */
-    TIDE_LOW: string;
-    /**
-     * Time
-     */
-    TIME: string;
-    /**
-     * Wind map & weather forecast
-     */
-    TITLE: string;
-    /**
-     * Terms and conditions
-     */
-    TOC: string;
-    /**
-     * Today
-     */
-    TODAY: string;
-    /**
-     * Tomorrow
-     */
-    TOMORROW: string;
-    /**
-     * animation
-     */
-    TOOLBOX_ANIMATION: string;
-    /**
-     * info
-     */
-    TOOLBOX_INFO: string;
-    /**
-     * Hide/show animated particles
-     */
-    TOOLBOX_START: string;
-    /**
-     * Total clouds
-     */
-    TOTAL_CLOUDS: string;
-    /**
-     * Failed to fetch wind trajectories.
-     */
-    TRAJECTORIES_FETCH_ERROR: string;
-    /**
-     * Data for some altitude levels is missing, try changing parameters (model, timestamp, levels)
-     */
-    TRAJECTORIES_INCOMPLETE_DATA: string;
-    /**
-     * Go Premium for longer paths
-     */
-    TRAJECTORIES_PREMIUM_PROMO: string;
-    /**
-     * Wind trajectories are not available on this layer.
-     */
-    TRAJECTORIES_UNSUPPORTED_LAYER: string;
-    /**
-     * Tuesday
-     */
-    TUE: string;
-    /**
-     * Tue
-     */
-    TUE2: string;
-    /**
-     * T
-     */
-    TUE3: string;
-    /**
-     * Clear air turbulence
-     */
-    TURBULENCE: string;
-    /**
-     * Extreme
-     */
-    TURBULENCE_EXTREME2: string;
-    /**
-     * Light
-     */
-    TURBULENCE_LIGHT2: string;
-    /**
-     * Moderate
-     */
-    TURBULENCE_MODERATE2: string;
-    /**
-     * Severe
-     */
-    TURBULENCE_SEVERE2: string;
-    /**
-     * Type
-     */
-    TYPE: string;
-    /**
-     * Updated
-     */
-    UPDATED: string;
-    /**
-     * Uploaded
-     */
-    UPLOADED: string;
-    /**
-     * Your upload is being processed.
-     */
-    UPLOAD_BEING_PROCESSED: string;
-    /**
-     * Describe content of your file (required)
-     */
-    UPLOAD_DESCRIBE_FILE: string;
-    /**
-     * Supported extensions: .geojson, .json, .gpx, .kml, .xml
-     */
-    UPLOAD_EXTENSIONS: string;
-    /**
-     * Upload, display and share your KML, GPX or GeoJSON.
-     */
-    UPLOAD_KML_GPX: string;
-    /**
-     * Files larger than 5MB cannot be uploaded to the cloud.
-     */
-    UPLOAD_SIZE_LIMIT: string;
-    /**
-     * UV Index
-     */
-    UVINDEX: string;
-    /**
-     * Extreme
-     */
-    UV_EXTREME: string;
-    /**
-     * High
-     */
-    UV_HIGH: string;
-    /**
-     * Highest
-     */
-    UV_HIGHEST: string;
-    /**
-     * Low
-     */
-    UV_LOW: string;
-    /**
-     * Moderate
-     */
-    UV_MODERATE: string;
-    /**
-     * Very high
-     */
-    UV_VERY_HIGH: string;
-    /**
-     * Login
-     */
-    U_LOGIN: string;
-    /**
-     * Logout
-     */
-    U_LOGOUT: string;
-    /**
-     * My profile
-     */
-    U_PROFILE: string;
-    /**
-     * Version
-     */
-    VERSION: string;
-    /**
-     * Vibrate
-     */
-    VIBRATE: string;
-    /**
-     * views
-     */
-    VIEWS: string;
-    /**
-     * Visibility
-     */
-    VISIBILITY: string;
-    /**
-     * Warnings
-     */
-    WARNINGS: string;
-    /**
-     * Waves
-     */
-    WAVES: string;
-    /**
-     * Waves, sea
-     */
-    WAVES2: string;
-    /**
-     * Wave and tide forecast for {{name}}
-     */
-    WAVESTIDES_BROWSER_TITLE: string;
-    /**
-     * Wave power
-     */
-    WAVE_POWER: string;
-    /**
-     * Wednesday
-     */
-    WED: string;
-    /**
-     * Wed
-     */
-    WED2: string;
-    /**
-     * W
-     */
-    WED3: string;
-    /**
-     * Wet-bulb temperature
-     */
-    WETBULB_TEMP: string;
-    /**
-     * Wet snow
-     */
-    WET_SN: string;
-    /**
-     * Thank you for using <b>Windy Premium</b> 👑.<br />Awesome people like you make <b>Windy.com</b> possible!
-     */
-    WHATS_NEW_THANK_YOU: string;
-    /**
-     * Upgrade to Windy Premium and enjoy 3× more daily updates, a 15-day weather forecast, full-year access to radar and satellite history, plus detailed wave and tide forecasts.
-     */
-    WHATS_NEW_UPGRADE: string;
-    /**
-     * What is new:
-     */
-    WHAT_IS_NEW: string;
-    /**
-     * Width
-     */
-    WIDTH: string;
-    /**
-     * Wind
-     */
-    WIND: string;
-    /**
-     * Wind and kitesurfing forecast for {{name}}
-     */
-    WIND_BROWSER_TITLE: string;
-    /**
-     * Wind dir.
-     */
-    WIND_DIR: string;
-    /**
-     * Wind speed
-     */
-    WIND_SPEED: string;
-    /**
-     * Wind waves
-     */
-    WWAVES: string;
-    /**
-     * Weather warnings
-     */
-    WX_WARNINGS: string;
-    /**
-     * Yes
-     */
-    YES: string;
-    /**
-     * Zoom in
-     */
-    ZOOM_IN: string;
-    /**
-     * Zoom level
-     */
-    ZOOM_LEVEL: string;
-    /**
-     * Zoom out
-     */
-    ZOOM_OUT: string;
+  /**
+   * About these data
+   */
+  ABOUT_DATA: string;
+  /**
+   * About
+   */
+  ABOUT_OVERLAY: string;
+  /**
+   * Accumulations
+   */
+  ACCU: string;
+  /**
+   * Activate
+   */
+  ACTIVATE: string;
+  /**
+   * active alerts
+   */
+  ACTIVE_ALERTS: string;
+  /**
+   * Active fires
+   */
+  ACTIVE_FIRES: string;
+  /**
+   * Actual temperature
+   */
+  ACTUAL_TEMP: string;
+  /**
+   * Create alert
+   */
+  ADD_ALERT: string;
+  /**
+   * Good
+   */
+  AIRQ_RANGE_GOOD: string;
+  /**
+   * Hazardous
+   */
+  AIRQ_RANGE_HAZARDOUS: string;
+  /**
+   * Moderate
+   */
+  AIRQ_RANGE_MODERATE: string;
+  /**
+   * Unhealthy
+   */
+  AIRQ_RANGE_UNHEALTHY: string;
+  /**
+   * Unhealthy for sensitive
+   */
+  AIRQ_RANGE_UNHEALTHY_SENSITIVE: string;
+  /**
+   * Very unhealthy
+   */
+  AIRQ_RANGE_VERY_UNHEALTHY: string;
+  /**
+   * Air quality
+   */
+  AIR_QUALITY: string;
+  /**
+   * Alert for this spot
+   */
+  ALERTS_LINK_SHORT: string;
+  /**
+   * Migrate alert
+   */
+  ALERT_MIGRATE: string;
+  /**
+   * All
+   */
+  ALL: string;
+  /**
+   * All waves
+   */
+  ALL_WAVES: string;
+  /**
+   * Any Layer unit can be changed by clicking on color legend
+   */
+  ALTERNATIVE_UNIT_CHANGE: string;
+  /**
+   * Altitude
+   */
+  ALTITUDE: string;
+  /**
+   * Aerosol
+   */
+  AOD550: string;
+  /**
+   * Air quality index
+   */
+  AQI: string;
+  /**
+   * Archive
+   */
+  ARCHIVE: string;
+  /**
+   * Area
+   */
+  AREA: string;
+  /**
+   * Articles
+   */
+  ARTICLES: string;
+  /**
+   * Author
+   */
+  AUTHOR: string;
+  /**
+   * Available for:
+   */
+  AVAIL_FOR: string;
+  /**
+   * Avalanche danger
+   */
+  AVALANCHE_DANGER: string;
+  /**
+   * Considerable
+   */
+  AVAL_CONSIDERABLE: string;
+  /**
+   * High
+   */
+  AVAL_HIGH: string;
+  /**
+   * Low
+   */
+  AVAL_LOW: string;
+  /**
+   * Moderate
+   */
+  AVAL_MODERATE: string;
+  /**
+   * No data
+   */
+  AVAL_NO_DATA: string;
+  /**
+   * Very high
+   */
+  AVAL_VERY_HIGH: string;
+  /**
+   * Show lightning
+   */
+  BLITZ_ON: string;
+  /**
+   * Your {{platform}} does not support {{technology}}. Some features may not work correctly.
+   */
+  BROWSER_SUPPORT_ERROR: string;
+  /**
+   * By distance
+   */
+  BY_DISTANCE: string;
+  /**
+   * Webcams previews
+   */
+  CAMS_PREVIEWS: string;
+  /**
+   * Cancel search
+   */
+  CANCEL_SEARCH: string;
+  /**
+   * CAPE Index
+   */
+  CAPE: string;
+  /**
+   * Thermals
+   */
+  CCL: string;
+  /**
+   * Choose a file
+   */
+  CHOOSE_A_FILE: string;
+  /**
+   * Click to change units
+   */
+  CLICK_ON_LEGEND: string;
+  /**
+   * Close archive
+   */
+  CLOSE_ARCHIVE: string;
+  /**
+   * Clouds, rain
+   */
+  CLOUDS: string;
+  /**
+   * Clouds
+   */
+  CLOUDS2: string;
+  /**
+   * Clouds, aviation
+   */
+  CLOUDS_AND_AVIATION: string;
+  /**
+   * Cloud base
+   */
+  CLOUD_ALT: string;
+  /**
+   * Compare
+   */
+  COMPARE: string;
+  /**
+   * Cookie consent
+   */
+  CONSENT: string;
+  /**
+   * Convective r.
+   */
+  CONVECTIVE_RAIN: string;
+  /**
+   * Copy link
+   */
+  COPY_LINK: string;
+  /**
+   * Copy to clipboard
+   */
+  COPY_TO_C: string;
+  /**
+   * CO concentration
+   */
+  COSC: string;
+  /**
+   * Cloud tops
+   */
+  CTOP: string;
+  /**
+   * Currents
+   */
+  CURRENT: string;
+  /**
+   * Tidal currents
+   */
+  CURRENT_TIDE: string;
+  /**
+   * Data not available for this location
+   */
+  DATA_NOT_AVBL: string;
+  /**
+   * {{daysago}} days ago:
+   */
+  DAYS_AGO: string;
+  /**
+   * Deactivate
+   */
+  DEACTIVATE: string;
+  /**
+   * Default units
+   */
+  DEFAULT_UNITS: string;
+  /**
+   * Delete
+   */
+  DELETE: string;
+  /**
+   * Description
+   */
+  DESCRIPTION: string;
+  /**
+   * Detailed forecast for this location
+   */
+  DETAILED: string;
+  /**
+   * Error loading forecast for {{model}}
+   */
+  DETAIL_FORECAST_LOADING_FAILED: string;
+  /**
+   * Selected model ({{model}}) is unavailable in current location. Reverting to previous model ({{prevModel}}).
+   */
+  DETAIL_MODEL_UNAVAILABLE: string;
+  /**
+   * Developed with
+   */
+  DEVELOPED: string;
+  /**
+   * Develop your own plugin
+   */
+  DEVELOP_PLUGIN: string;
+  /**
+   * Dew point
+   */
+  DEW_POINT: string;
+  /**
+   * Dew point spread
+   */
+  DEW_POINT_SPREAD: string;
+  /**
+   * Directions
+   */
+  DIRECTIONS: string;
+  /**
+   * Any direction
+   */
+  DIRECTIONS_ANY: string;
+  /**
+   * Select directions
+   */
+  DIRECTIONS_SELECT: string;
+  /**
+   * E
+   */
+  DIRECTION_E: string;
+  /**
+   * N
+   */
+  DIRECTION_N: string;
+  /**
+   * NE
+   */
+  DIRECTION_NE: string;
+  /**
+   * NW
+   */
+  DIRECTION_NW: string;
+  /**
+   * S
+   */
+  DIRECTION_S: string;
+  /**
+   * SE
+   */
+  DIRECTION_SE: string;
+  /**
+   * SW
+   */
+  DIRECTION_SW: string;
+  /**
+   * W
+   */
+  DIRECTION_W: string;
+  /**
+   * Display style
+   */
+  DISPLAY_STYLE: string;
+  /**
+   * Distance
+   */
+  DISTANCE: string;
+  /**
+   * Done
+   */
+  DONE: string;
+  /**
+   * Don't have an account?
+   */
+  DONT_HAVE_ACCOUNT: string;
+  /**
+   * Download file
+   */
+  DOWNLOAD_FILE: string;
+  /**
+   * Duration
+   */
+  DURATION: string;
+  /**
+   * {hours}h
+   */
+  DURATION_HOURS: string;
+  /**
+   * {hours}h {minutes}m
+   */
+  DURATION_H_M: string;
+  /**
+   * {minutes}m
+   */
+  DURATION_MIN: string;
+  /**
+   * Dust mass
+   */
+  DUSTSM: string;
+  /**
+   * Dust
+   */
+  DUSTSM_SHORT: string;
+  /**
+   * 1h forecast
+   */
+  D_1H_FORECAST: string;
+  /**
+   * About this location
+   */
+  D_ABOUT_LOC: string;
+  /**
+   * image during daylight
+   */
+  D_DAYLIGHT: string;
+  /**
+   * Display as:
+   */
+  D_DISPLAY_AS: string;
+  /**
+   * distance
+   */
+  D_DISTANCE: string;
+  /**
+   * dusk
+   */
+  D_DUSK: string;
+  /**
+   * Add to Favorites
+   */
+  D_FAVORITES: string;
+  /**
+   * Remove from Favorites
+   */
+  D_FAVORITES2: string;
+  /**
+   * Forecast for this location
+   */
+  D_FCST: string;
+  /**
+   * Hours
+   */
+  D_HOURS: string;
+  /**
+   * local time
+   */
+  D_LT2: string;
+  /**
+   * miles
+   */
+  D_MILES: string;
+  /**
+   * {{duration}} minutes ago
+   */
+  D_MIN_AGO: string;
+  /**
+   * Add new webcam
+   */
+  D_MISSING_CAM: string;
+  /**
+   * more than hour ago
+   */
+  D_MORE_THAN_HOUR: string;
+  /**
+   * There are no webcams around this location (or we don't know about them)
+   */
+  D_NO_WEBCAMS: string;
+  /**
+   * Polar night
+   */
+  D_POLAR_NIGHT: string;
+  /**
+   * Precip.
+   */
+  D_PRECI: string;
+  /**
+   * Nearest weather stations
+   */
+  D_STATIONS: string;
+  /**
+   * 1 hour
+   */
+  D_STEPS_1_HOUR: string;
+  /**
+   * 3 hours
+   */
+  D_STEPS_3_HOURS: string;
+  /**
+   * Sunrise
+   */
+  D_SUNRISE: string;
+  /**
+   * sunset
+   */
+  D_SUNSET: string;
+  /**
+   * Sun never set
+   */
+  D_SUN_NEVER_SET: string;
+  /**
+   * Temp.
+   */
+  D_TEMP2: string;
+  /**
+   * Timezone
+   */
+  D_TIMEZONE: string;
+  /**
+   * Waves and sea
+   */
+  D_WAVE_FCST2: string;
+  /**
+   * Webcams in vicinity
+   */
+  D_WEBCAMS: string;
+  /**
+   * Show last 24 hours
+   */
+  D_WEBCAMS_24: string;
+  /**
+   * Ebb tide
+   */
+  EBB_TIDE: string;
+  /**
+   * Edit alert
+   */
+  EDIT_ALERT: string;
+  /**
+   * Extreme forecast
+   */
+  EFORECAST: string;
+  /**
+   * Elevation
+   */
+  ELEVATION: string;
+  /**
+   * Embed widget on page
+   */
+  EMBED: string;
+  /**
+   * Embed widget
+   */
+  EMBED2: string;
+  /**
+   * Awesome weather forecast at
+   */
+  E_MESSAGE: string;
+  /**
+   * Far future
+   */
+  FAR_FUTURE: string;
+  /**
+   * Pin to homepage
+   */
+  FAVS_PIN_HOMEPAGE: string;
+  /**
+   * Favorites sync error
+   */
+  FAVS_SYNCHRO_ERROR_TITLE: string;
+  /**
+   * Unpin from homepage
+   */
+  FAVS_UNPIN_HOMEPAGE: string;
+  /**
+   * Feels like
+   */
+  FEEL_TEMP: string;
+  /**
+   * This field can't be empty
+   */
+  FIELD_CANNOT_BE_EMPTY: string;
+  /**
+   * This doesn't look like an email address
+   */
+  FIELD_INVALID_EMAIL: string;
+  /**
+   * File
+   */
+  FILE: string;
+  /**
+   * File name
+   */
+  FILE_NAME: string;
+  /**
+   * Filter
+   */
+  FILTER: string;
+  /**
+   * Fire
+   */
+  FIRE: string;
+  /**
+   * Fire intensity
+   */
+  FIRE_INTENSITY: string;
+  /**
+   * Flight rules
+   */
+  FLIGHT_RULES: string;
+  /**
+   * Flood
+   */
+  FLOOD: string;
+  /**
+   * Flood tide
+   */
+  FLOOD_TIDE: string;
+  /**
+   * Fog
+   */
+  FOG: string;
+  /**
+   * Fog and rime
+   */
+  FOG_RIME: string;
+  /**
+   * Follow us
+   */
+  FOLLOW: string;
+  /**
+   * Forecast for
+   */
+  FORECAST_FOR: string;
+  /**
+   * Freezing altitude
+   */
+  FREEZING: string;
+  /**
+   * Friday
+   */
+  FRI: string;
+  /**
+   * Fri
+   */
+  FRI2: string;
+  /**
+   * F
+   */
+  FRI3: string;
+  /**
+   * Freezing rain
+   */
+  FZ_RAIN: string;
+  /**
+   * Garmin Edge
+   */
+  GARMIN_PLUGIN_TITLE_EDGE: string;
+  /**
+   * Garmin Watch
+   */
+  GARMIN_PLUGIN_TITLE_WATCH: string;
+  /**
+   * Getting your location...
+   */
+  GETTING_LOCATION: string;
+  /**
+   * Failed to determine your location. Make sure Windy.com has permission to access your location
+   */
+  GETTING_LOCATION_ERROR: string;
+  /**
+   * Unable to get current location, using your last known position
+   */
+  GETTING_LOCATION_FALLBACK: string;
+  /**
+   * Failed to determine your location
+   */
+  GETTING_LOCATION_TIMEOUT: string;
+  /**
+   * Surface Ozone
+   */
+  GO3: string;
+  /**
+   * Wind gusts
+   */
+  GUST: string;
+  /**
+   * Wind accumulation
+   */
+  GUSTACCU: string;
+  /**
+   * Hail
+   */
+  HAIL: string;
+  /**
+   * Haze
+   */
+  HAZE: string;
+  /**
+   * City heatmaps
+   */
+  HEATMAP: string;
+  /**
+   * Heavy thunder
+   */
+  HEAVY_THUNDER: string;
+  /**
+   * Height
+   */
+  HEIGHT: string;
+  /**
+   * High clouds
+   */
+  HIGH_CLOUDS: string;
+  /**
+   * Outdoor map
+   */
+  HMAP: string;
+  /**
+   * Home
+   */
+  HOME: string;
+  /**
+   * hrs
+   */
+  HOURS_SHORT: string;
+  /**
+   * Hurricane tracker
+   */
+  HURR_TRACKER: string;
+  /**
+   * Hurr. tracker
+   */
+  HURR_TRACKER_SHORT: string;
+  /**
+   * Icing
+   */
+  ICING2: string;
+  /**
+   * Light
+   */
+  ICING_LIGHT2: string;
+  /**
+   * Moderate
+   */
+  ICING_MODERATE2: string;
+  /**
+   * Severe
+   */
+  ICING_SEVERE2: string;
+  /**
+   * Trace
+   */
+  ICING_TRACE2: string;
+  /**
+   * installed
+   */
+  INSTALLED: string;
+  /**
+   * Drought monitoring
+   */
+  INTERSUCHO: string;
+  /**
+   * 0-100cm
+   */
+  INTERSUCHO_100: string;
+  /**
+   * 0-40cm
+   */
+  INTERSUCHO_40: string;
+  /**
+   * Moisture anomaly
+   */
+  INTERSUCHO_AWD: string;
+  /**
+   * Drought intensity
+   */
+  INTERSUCHO_AWP: string;
+  /**
+   * No risk
+   */
+  INTERSUCHO_AWP_0: string;
+  /**
+   * Minor
+   */
+  INTERSUCHO_AWP_1: string;
+  /**
+   * Mild
+   */
+  INTERSUCHO_AWP_2: string;
+  /**
+   * Moderate
+   */
+  INTERSUCHO_AWP_3: string;
+  /**
+   * Severe
+   */
+  INTERSUCHO_AWP_4: string;
+  /**
+   * Exceptional
+   */
+  INTERSUCHO_AWP_5: string;
+  /**
+   * Extreme
+   */
+  INTERSUCHO_AWP_6: string;
+  /**
+   * Soil moisture
+   */
+  INTERSUCHO_AWR: string;
+  /**
+   * Fuel moisture
+   */
+  INTERSUCHO_DFM: string;
+  /**
+   * 1000h
+   */
+  INTERSUCHO_DFM_1000H: string;
+  /**
+   * 100h
+   */
+  INTERSUCHO_DFM_100H: string;
+  /**
+   * 10h
+   */
+  INTERSUCHO_DFM_10H: string;
+  /**
+   * Fire danger
+   */
+  INTERSUCHO_FIRE_DANGER: string;
+  /**
+   * Fire spread
+   */
+  INTERSUCHO_FWI: string;
+  /**
+   * Very low
+   */
+  INTERSUCHO_FWI_1: string;
+  /**
+   * Low
+   */
+  INTERSUCHO_FWI_2: string;
+  /**
+   * Moderate
+   */
+  INTERSUCHO_FWI_3: string;
+  /**
+   * High
+   */
+  INTERSUCHO_FWI_4: string;
+  /**
+   * Very high
+   */
+  INTERSUCHO_FWI_5: string;
+  /**
+   * Extreme
+   */
+  INTERSUCHO_FWI_6: string;
+  /**
+   * ISA difference
+   */
+  ISA_DIFFERENCE: string;
+  /**
+   * Embed
+   */
+  JUST_EMBED: string;
+  /**
+   * Login
+   */
+  JUST_LOGIN: string;
+  /**
+   * Rain
+   */
+  JUST_RAIN: string;
+  /**
+   * Search
+   */
+  JUST_SEARCH: string;
+  /**
+   * Later
+   */
+  LATER: string;
+  /**
+   * Latest files from Community
+   */
+  LATEST_FILES_FROM_COMMUNITY: string;
+  /**
+   * Less
+   */
+  LESS: string;
+  /**
+   * Licence
+   */
+  LICENCE: string;
+  /**
+   * Light thunder
+   */
+  LIGHT_THUNDER: string;
+  /**
+   * Loading elevation...
+   */
+  LOADING_ELEVATION: string;
+  /**
+   * Loading more uploads
+   */
+  LOADING_MORE_UPLOADS: string;
+  /**
+   * Low clouds
+   */
+  LOW_CLOUDS: string;
+  /**
+   * Low predictability of forecast
+   */
+  LOW_PREDICT: string;
+  /**
+   * Make data private
+   */
+  MAKE_DATA_PRIVATE: string;
+  /**
+   * Map
+   */
+  MAP: string;
+  /**
+   * VFR airspaces map
+   */
+  MAP_AIRSPACES: string;
+  /**
+   * Max Ebb
+   */
+  MAX_EBB: string;
+  /**
+   * Max Flood
+   */
+  MAX_FLOOD: string;
+  /**
+   * Medium clouds
+   */
+  MEDIUM_CLOUDS: string;
+  /**
+   * Menu
+   */
+  MENU: string;
+  /**
+   * About us
+   */
+  MENU_ABOUT: string;
+  /**
+   * Alerts
+   */
+  MENU_ALERTS: string;
+  /**
+   * Distance & planning
+   */
+  MENU_DISTANCE: string;
+  /**
+   * Next update expected at:
+   */
+  MENU_D_NEXT_UPDATE: string;
+  /**
+   * Reference time
+   */
+  MENU_D_REFTIME: string;
+  /**
+   * Updated
+   */
+  MENU_D_UPDATED: string;
+  /**
+   * Error console
+   */
+  MENU_ERROR: string;
+  /**
+   * Favorites
+   */
+  MENU_FAVS: string;
+  /**
+   * Feedback
+   */
+  MENU_FEEDBACK: string;
+  /**
+   * Fullscreen mode
+   */
+  MENU_FULLSCREEN: string;
+  /**
+   * Data
+   */
+  MENU_F_MODEL: string;
+  /**
+   * Help
+   */
+  MENU_HELP: string;
+  /**
+   * Find my location
+   */
+  MENU_LOCATION: string;
+  /**
+   * Download App
+   */
+  MENU_MOBILE: string;
+  /**
+   * Weather news
+   */
+  MENU_NEWS: string;
+  /**
+   * Settings
+   */
+  MENU_SETTINGS: string;
+  /**
+   * Sun/Moon position
+   */
+  MENU_SUN_MOON: string;
+  /**
+   * App add-ons
+   */
+  MENU_TITLE_ADDONS: string;
+  /**
+   * Tutorials
+   */
+  MENU_TUTORIALS: string;
+  /**
+   * Update interval
+   */
+  MENU_U_INTERVAL: string;
+  /**
+   * Create video or animated GIF
+   */
+  MENU_VIDEO: string;
+  /**
+   * Apple Watch Faces
+   */
+  MENU_WATCHFACES: string;
+  /**
+   * Widgets
+   */
+  MENU_WIDGETS: string;
+  /**
+   * Wind trajectories
+   */
+  MENU_WIND_TRAJECTORIES: string;
+  /**
+   * {DURATION} days ago
+   */
+  METARS_DAYS_AGO: string;
+  /**
+   * in {DURATION} days
+   */
+  METARS_DAYS_LATER: string;
+  /**
+   * {DURATION}h {DURATIONM}m ago
+   */
+  METARS_H_M_AGO: string;
+  /**
+   * in {DURATION}h {DURATIONM}m
+   */
+  METARS_H_M_LATER: string;
+  /**
+   * Display heliports
+   */
+  METAR_HELIPORTS: string;
+  /**
+   * {DURATION}h ago
+   */
+  METAR_HOURS_AGO: string;
+  /**
+   * in {DURATION}h
+   */
+  METAR_HOURS_LATER: string;
+  /**
+   * {DURATION}m ago
+   */
+  METAR_MIN_AGO: string;
+  /**
+   * in {DURATION}m
+   */
+  METAR_MIN_LATER: string;
+  /**
+   * Variable
+   */
+  METAR_VAR: string;
+  /**
+   * Min Ebb
+   */
+  MIN_EBB: string;
+  /**
+   * Min Flood
+   */
+  MIN_FLOOD: string;
+  /**
+   * Forecast model
+   */
+  MODEL: string;
+  /**
+   * Switch 2D / 3D mode
+   */
+  MODE_2D3D: string;
+  /**
+   * Monday
+   */
+  MON: string;
+  /**
+   * Mon
+   */
+  MON2: string;
+  /**
+   * M
+   */
+  MON3: string;
+  /**
+   * More
+   */
+  MORE: string;
+  /**
+   * More layers...
+   */
+  MORE_LAYERS: string;
+  /**
+   * {{count}} more
+   */
+  MORE_PRODUCTS: string;
+  /**
+   * Unfortunately, plugin {{title}} was unpublished by the author and is no longer available.
+   */
+  MSG_EXTERNAL_PLUGIN_UNPUBLISHED: string;
+  /**
+   * New version of the plugin {{title}} is available. Do you want to update?
+   */
+  MSG_EXTERNAL_PLUGIN_UPDATE_AVAILABLE: string;
+  /**
+   * Close other Windy.com tabs and reload to update to the new version
+   */
+  MSG_INSTALLING_NEW_VERSION: string;
+  /**
+   * You have successfully logged in!
+   */
+  MSG_LOGIN_SUCCESFULL: string;
+  /**
+   * WOW it appears that you are offline :-(
+   */
+  MSG_OFFLINE: string;
+  /**
+   * Online again, click here to reload app :-)
+   */
+  MSG_ONLINE_APP: string;
+  /**
+   * Mixed ice
+   */
+  MX_ICE: string;
+  /**
+   * My account
+   */
+  MY_ACCOUNT: string;
+  /**
+   * My Alerts
+   */
+  MY_ALERTS: string;
+  /**
+   * My Favorites
+   */
+  MY_FAVS: string;
+  /**
+   * My files
+   */
+  MY_FILES: string;
+  /**
+   * Live alerts
+   */
+  MY_LIVE_ALERTS: string;
+  /**
+   * My location
+   */
+  MY_LOCATION: string;
+  /**
+   * My subscription
+   */
+  MY_SUBSCRIPTION: string;
+  /**
+   * Compare forecasts
+   */
+  ND_COMPARE: string;
+  /**
+   * Display
+   */
+  ND_DISPLAY: string;
+  /**
+   * Forecast model
+   */
+  ND_MODEL: string;
+  /**
+   * New!
+   */
+  NEW: string;
+  /**
+   * Subscribe to newsletter
+   */
+  NEWSLETTER_CONSENT: string;
+  /**
+   * New snow
+   */
+  NEWSNOW: string;
+  /**
+   * Next results...
+   */
+  NEXT: string;
+  /**
+   * No
+   */
+  NO: string;
+  /**
+   * NO₂
+   */
+  NO22: string;
+  /**
+   * None
+   */
+  NONE: string;
+  /**
+   * Nothing found
+   */
+  NOTHING_FOUND: string;
+  /**
+   * Notifications
+   */
+  NOTIFICATIONS: string;
+  /**
+   * Not now
+   */
+  NOTIF_NOT_NOW: string;
+  /**
+   * <strong>Don't lose access to your Windy account.</strong> Please verify <strong>{email}</strong> to secure your data.
+   */
+  NOTIF_VERIFY_EMAIL_BANNER: string;
+  /**
+   * Verify now
+   */
+  NOTIF_VERIFY_NOW: string;
+  /**
+   * Now
+   */
+  NOW: string;
+  /**
+   * No fog
+   */
+  NO_FOG: string;
+  /**
+   * Open in route planner
+   */
+  OPEN_IN_RPLANNER: string;
+  /**
+   * Open plugin
+   */
+  OPEN_PLUGIN: string;
+  /**
+   * or
+   */
+  OR: string;
+  /**
+   * or drop file here.
+   */
+  OR_DROP_FILE_HERE: string;
+  /**
+   * Outdated
+   */
+  OUTDATED: string;
+  /**
+   * Layer
+   */
+  OVERLAY: string;
+  /**
+   * All
+   */
+  OVR_ALL: string;
+  /**
+   * Flying
+   */
+  OVR_FLYING: string;
+  /**
+   * Recommended for:
+   */
+  OVR_RECOMENDED: string;
+  /**
+   * Ski
+   */
+  OVR_SKI: string;
+  /**
+   * Water
+   */
+  OVR_WATER: string;
+  /**
+   * Ozone layer
+   */
+  OZONE: string;
+  /**
+   * Paragliding forecast for {{name}}
+   */
+  PARAGLIDING_BROWSER_TITLE: string;
+  /**
+   * Particles animation
+   */
+  PART_ANIMATION: string;
+  /**
+   * Password and confirmation don't match
+   */
+  PASSWORD_DO_NOT_MATCH: string;
+  /**
+   * Password can't be empty
+   */
+  PASSWORD_EMPTY: string;
+  /**
+   * Password is missing a digit (0-9)
+   */
+  PASSWORD_MISSING_DIGIT: string;
+  /**
+   * Password is missing a lowercase letter (a-z)
+   */
+  PASSWORD_MISSING_LOWERCASE: string;
+  /**
+   * Password is missing an uppercase letter (A-Z)
+   */
+  PASSWORD_MISSING_UPPERCASE: string;
+  /**
+   * Password is too short
+   */
+  PASSWORD_SHORT: string;
+  /**
+   * Ice pellets
+   */
+  PELLETS: string;
+  /**
+   * Period
+   */
+  PERIOD: string;
+  /**
+   * Play with forecast
+   */
+  PLAY_WITH_FORECAST: string;
+  /**
+   * Are you sure you want to uninstall this plugin?
+   */
+  PLUGINS_CONFIRM_UNINSTALL: string;
+  /**
+   * Windy Plugins discussion
+   */
+  PLUGINS_DISCUSSION: string;
+  /**
+   * Error installing plugin
+   */
+  PLUGINS_ERROR_INSTALLING: string;
+  /**
+   * Install plugin
+   */
+  PLUGINS_INSTALL: string;
+  /**
+   * Your plugin was installed and added to the main menu
+   */
+  PLUGINS_INSTALLED: string;
+  /**
+   * Install untrusted plugin
+   */
+  PLUGINS_INSTALL_UNTRUSTED: string;
+  /**
+   * Load plugin directly from URL
+   */
+  PLUGINS_LOAD_URL: string;
+  /**
+   * Name
+   */
+  PLUGINS_NAME: string;
+  /**
+   * Uninstall plugin
+   */
+  PLUGINS_UNINSTALL: string;
+  /**
+   * Installing plugins from untrusted sources can be dangerous. Install plugins only from sources you trust.
+   */
+  PLUGINS_UNTRUSTED: string;
+  /**
+   * URL of the plugin
+   */
+  PLUGINS_URL: string;
+  /**
+   * PM2.5
+   */
+  PM2P5: string;
+  /**
+   * Airports
+   */
+  POI_AD: string;
+  /**
+   * Air quality stations
+   */
+  POI_AIRQ: string;
+  /**
+   * Webcams
+   */
+  POI_CAMS: string;
+  /**
+   * Empty map
+   */
+  POI_EMPTY: string;
+  /**
+   * My favorites
+   */
+  POI_FAVS: string;
+  /**
+   * Forecasted weather
+   */
+  POI_FCST: string;
+  /**
+   * Kite/WS spots
+   */
+  POI_KITE: string;
+  /**
+   * Maximum is {{num}} favorite layers. Remove some to add new ones.
+   */
+  POI_MAX_LAYERS: string;
+  /**
+   * Paragliding spots
+   */
+  POI_PG: string;
+  /**
+   * Recent precip.
+   */
+  POI_PRECIP: string;
+  /**
+   * Precipitation
+   */
+  POI_PRECIP_SHORT: string;
+  /**
+   * Radiosondes
+   */
+  POI_RADIOSONDE: string;
+  /**
+   * Weather stations
+   */
+  POI_STATIONS: string;
+  /**
+   * Surfing spots
+   */
+  POI_SURF: string;
+  /**
+   * Reported temp.
+   */
+  POI_TEMP: string;
+  /**
+   * Temperature
+   */
+  POI_TEMP_SHORT: string;
+  /**
+   * Tide forecast
+   */
+  POI_TIDE: string;
+  /**
+   * Reported wind
+   */
+  POI_WIND: string;
+  /**
+   * Wind
+   */
+  POI_WIND_SHORT: string;
+  /**
+   * Alder pollen
+   */
+  POLLEN_ALDER: string;
+  /**
+   * Alder
+   */
+  POLLEN_ALDER_SHORT: string;
+  /**
+   * Birch pollen
+   */
+  POLLEN_BIRCH: string;
+  /**
+   * Birch
+   */
+  POLLEN_BIRCH_SHORT: string;
+  /**
+   * Grass pollen
+   */
+  POLLEN_GRASS: string;
+  /**
+   * Grass
+   */
+  POLLEN_GRASS_SHORT: string;
+  /**
+   * Mugwort pol.
+   */
+  POLLEN_MUGWORT: string;
+  /**
+   * Mugwort
+   */
+  POLLEN_MUGWORT_SHORT: string;
+  /**
+   * Olive pollen
+   */
+  POLLEN_OLIVE: string;
+  /**
+   * Olive
+   */
+  POLLEN_OLIVE_SHORT: string;
+  /**
+   * Ragweed pol.
+   */
+  POLLEN_RAGWEED: string;
+  /**
+   * Ragwe.
+   */
+  POLLEN_RAGWEED_SHORT: string;
+  /**
+   * Position
+   */
+  POSITION: string;
+  /**
+   * predictability
+   */
+  PREDICTABILITY: string;
+  /**
+   * Pressure
+   */
+  PRESS: string;
+  /**
+   * Pressure isolines
+   */
+  PRESS_ISOLINES: string;
+  /**
+   * Privacy protection
+   */
+  PRIVACY: string;
+  /**
+   * Privacy policy
+   */
+  PRIVACY_POLICY: string;
+  /**
+   * Professional first
+   */
+  PROFESSIONAL_FIRST: string;
+  /**
+   * Use <strong>long tap</strong> on home button to open detailed forecast for your location.
+   */
+  PROMO_LONG_PRESS_HOME: string;
+  /**
+   * <span class="dotted">Open Settings</span> to change the auto closing time of weather picker.
+   */
+  PROMO_PICKER: string;
+  /**
+   * Provider
+   */
+  PROVIDER: string;
+  /**
+   * Precipitation type
+   */
+  PTYPE: string;
+  /**
+   * Windy for Android, free on Google Play
+   */
+  P_ANDROID_APP: string;
+  /**
+   * Please allow Windy to use location services (GPS) while using the app, so we can show weather at your location. We do not store your location at our servers.
+   */
+  P_LOCATION: string;
+  /**
+   * Station pressure
+   */
+  QFE: string;
+  /**
+   * Rain accumulation
+   */
+  RACCU: string;
+  /**
+   * Rain accu.
+   */
+  RACCU_SHORT: string;
+  /**
+   * Weather radar
+   */
+  RADAR: string;
+  /**
+   * Radar, lightning
+   */
+  RADAR_BLITZ: string;
+  /**
+   * Radar
+   */
+  RADAR_SHORT: string;
+  /**
+   * Rain, snow
+   */
+  RAIN: string;
+  /**
+   * Precip. past 3h
+   */
+  RAIN3H: string;
+  /**
+   * RAIN ACCUMULATION
+   */
+  RAINACCU: string;
+  /**
+   * Max. rain rate
+   */
+  RAINRATE: string;
+  /**
+   * Rain, thunder
+   */
+  RAIN_THUNDER: string;
+  /**
+   * Rain with snow
+   */
+  RA_SN: string;
+  /**
+   * Register
+   */
+  REGISTER: string;
+  /**
+   * Register here
+   */
+  REGISTER_HERE: string;
+  /**
+   * Report Issue
+   */
+  REPORT_ISSUE: string;
+  /**
+   * Requires Premium
+   */
+  REQUIRES_PREMIUM: string;
+  /**
+   * Humidity
+   */
+  RH: string;
+  /**
+   * Route planner
+   */
+  RPLANNER: string;
+  /**
+   * Time range
+   */
+  R_TIME_RANGE: string;
+  /**
+   * Snow accumulation
+   */
+  SACCU: string;
+  /**
+   * Saturday
+   */
+  SAT: string;
+  /**
+   * Sat
+   */
+  SAT2: string;
+  /**
+   * S
+   */
+  SAT3: string;
+  /**
+   * Satellite
+   */
+  SATELLITE: string;
+  /**
+   * There is an outage of our data source for some satellites.
+   */
+  SATELLITE_OUTAGE_MESSAGE: string;
+  /**
+   * Save file to cloud
+   */
+  SAVE_FILE_TO_CLOUD: string;
+  /**
+   * Search layer...
+   */
+  SEARCH_LAYER: string;
+  /**
+   * Send
+   */
+  SEND: string;
+  /**
+   * Set notifications
+   */
+  SET_NOTIFICATIONS: string;
+  /**
+   * Surface
+   */
+  SFC: string;
+  /**
+   * Share
+   */
+  SHARE: string;
+  /**
+   * Share on {{name}}
+   */
+  SHARE_ON: string;
+  /**
+   * Show actual forecast
+   */
+  SHOW_ACTUAL: string;
+  /**
+   * force of wind gusts
+   */
+  SHOW_GUST: string;
+  /**
+   * Display on map
+   */
+  SHOW_ON_MAP: string;
+  /**
+   * Show weather picker
+   */
+  SHOW_PICKER: string;
+  /**
+   * Show speed in map
+   */
+  SHOW_SPEED_IN_MAP: string;
+  /**
+   * Size
+   */
+  SIZE: string;
+  /**
+   * Slack, Ebb Begins
+   */
+  SLACK_EBB: string;
+  /**
+   * Slack, Flood Begins
+   */
+  SLACK_FLOOD: string;
+  /**
+   * Pressure (sea l.)
+   */
+  SLP: string;
+  /**
+   * Jan
+   */
+  SMON01: string;
+  /**
+   * Feb
+   */
+  SMON02: string;
+  /**
+   * Mar
+   */
+  SMON03: string;
+  /**
+   * Apr
+   */
+  SMON04: string;
+  /**
+   * May
+   */
+  SMON05: string;
+  /**
+   * Jun
+   */
+  SMON06: string;
+  /**
+   * Jul
+   */
+  SMON07: string;
+  /**
+   * Aug
+   */
+  SMON08: string;
+  /**
+   * Sep
+   */
+  SMON09: string;
+  /**
+   * Oct
+   */
+  SMON10: string;
+  /**
+   * Nov
+   */
+  SMON11: string;
+  /**
+   * Dec
+   */
+  SMON12: string;
+  /**
+   * Snow
+   */
+  SNOW: string;
+  /**
+   * SNOW ACCUMULATION
+   */
+  SNOWACCU: string;
+  /**
+   * Actual Snow Cover
+   */
+  SNOWCOVER: string;
+  /**
+   * Snow density
+   */
+  SNOWDENSITY: string;
+  /**
+   * Snow depth
+   */
+  SNOWDEPTH: string;
+  /**
+   * Soil profile depth
+   */
+  SOIL_PROFILE_DEPTH: string;
+  /**
+   * Solar power
+   */
+  SOLARPOWER: string;
+  /**
+   * Sounding
+   */
+  SOUNDING: string;
+  /**
+   * Sound
+   */
+  SOUND_ON: string;
+  /**
+   * Source
+   */
+  SOURCE: string;
+  /**
+   * Source code
+   */
+  SOURCE_CODE: string;
+  /**
+   * Surface sea temperature
+   */
+  SST: string;
+  /**
+   * Sea temperature
+   */
+  SST2: string;
+  /**
+   * Average sea temperature
+   */
+  SSTAVG: string;
+  /**
+   * Subscription
+   */
+  SUBSCRIPTION: string;
+  /**
+   * Your subscription ends soon
+   */
+  SUB_CUFFS_CANCELED_1: string;
+  /**
+   * Your subscription ends in {{count}} days
+   */
+  SUB_CUFFS_CANCELED_2: string;
+  /**
+   * Your subscription ends in {{count}} hours
+   */
+  SUB_CUFFS_CANCELED_3: string;
+  /**
+   * Your subscription ends at any moment
+   */
+  SUB_CUFFS_CANCELED_4: string;
+  /**
+   * Soon, you will no longer have access to this feature.
+   */
+  SUB_CUFFS_FEATURE: string;
+  /**
+   * Soon, you will no longer have access to 10-day forecast
+   */
+  SUB_CUFFS_FORECAST: string;
+  /**
+   * We're having issues with renewing your subscription
+   */
+  SUB_CUFFS_GRACED: string;
+  /**
+   * Your Premium is paused
+   */
+  SUB_CUFFS_PAUSED: string;
+  /**
+   * Full version of 3D mode is available only to Premium users.
+   */
+  SUB_GLOBE_FREE_LIMIT: string;
+  /**
+   * Go Premium
+   */
+  SUB_GO: string;
+  /**
+   * Premium users have just received a new forecast update
+   */
+  SUB_HAVE_REFTIME: string;
+  /**
+   * And many other <strong>benefits</strong>
+   */
+  SUB_OTHER_BENEFITS: string;
+  /**
+   * Forecast <strong>updates</strong> at least <strong>4 times a day</strong>
+   */
+  SUB_REASON_FREQUENCY: string;
+  /**
+   * <strong>1-hour</strong> forecast step
+   */
+  SUB_REASON_GRANULARITY: string;
+  /**
+   * <strong>10-day forecast</strong> outlook
+   */
+  SUB_REASON_LONGTERM: string;
+  /**
+   * <strong>Tide forecast</strong> anywhere in the world
+   */
+  SUB_REASON_TIDES: string;
+  /**
+   * Renew Premium
+   */
+  SUB_RENEW: string;
+  /**
+   * See details
+   */
+  SUB_SEE_DETAILS: string;
+  /**
+   * Sunday
+   */
+  SUN: string;
+  /**
+   * Sun
+   */
+  SUN2: string;
+  /**
+   * S
+   */
+  SUN3: string;
+  /**
+   * Surface visibility
+   */
+  SURFACE_VISIBILITY: string;
+  /**
+   * Swell
+   */
+  SWELL: string;
+  /**
+   * Swell 1
+   */
+  SWELL1: string;
+  /**
+   * Swell 2
+   */
+  SWELL2: string;
+  /**
+   * Swell 3
+   */
+  SWELL3: string;
+  /**
+   * Swell period
+   */
+  SWELLPER: string;
+  /**
+   * Advanced settings
+   */
+  S_ADVANCED_SETTINGS: string;
+  /**
+   * Customize color scale
+   */
+  S_COLORS: string;
+  /**
+   * Delete all my data from this device
+   */
+  S_DELETE_INFO: string;
+  /**
+   * Save
+   */
+  S_SAVE: string;
+  /**
+   * Login/Register to save all your settings to the cloud
+   */
+  S_SAVE2: string;
+  /**
+   * Speed
+   */
+  S_SPEED: string;
+  /**
+   * SO₂
+   */
+  TCSO2: string;
+  /**
+   * Temperature
+   */
+  TEMP: string;
+  /**
+   * Terms of Use
+   */
+  TERMS_OF_USE: string;
+  /**
+   * Thursday
+   */
+  THU: string;
+  /**
+   * Thu
+   */
+  THU2: string;
+  /**
+   * T
+   */
+  THU3: string;
+  /**
+   * Thunderstorms
+   */
+  THUNDER: string;
+  /**
+   * Tides
+   */
+  TIDES: string;
+  /**
+   * High Tide
+   */
+  TIDE_HIGH: string;
+  /**
+   * Low Tide
+   */
+  TIDE_LOW: string;
+  /**
+   * Time
+   */
+  TIME: string;
+  /**
+   * Wind map & weather forecast
+   */
+  TITLE: string;
+  /**
+   * Terms and conditions
+   */
+  TOC: string;
+  /**
+   * Today
+   */
+  TODAY: string;
+  /**
+   * Tomorrow
+   */
+  TOMORROW: string;
+  /**
+   * animation
+   */
+  TOOLBOX_ANIMATION: string;
+  /**
+   * info
+   */
+  TOOLBOX_INFO: string;
+  /**
+   * Hide/show animated particles
+   */
+  TOOLBOX_START: string;
+  /**
+   * Total clouds
+   */
+  TOTAL_CLOUDS: string;
+  /**
+   * Failed to fetch wind trajectories.
+   */
+  TRAJECTORIES_FETCH_ERROR: string;
+  /**
+   * Data for some altitude levels is missing, try changing parameters (model, timestamp, levels)
+   */
+  TRAJECTORIES_INCOMPLETE_DATA: string;
+  /**
+   * Go Premium for longer paths
+   */
+  TRAJECTORIES_PREMIUM_PROMO: string;
+  /**
+   * Wind trajectories are not available on this layer.
+   */
+  TRAJECTORIES_UNSUPPORTED_LAYER: string;
+  /**
+   * Tuesday
+   */
+  TUE: string;
+  /**
+   * Tue
+   */
+  TUE2: string;
+  /**
+   * T
+   */
+  TUE3: string;
+  /**
+   * Clear air turbulence
+   */
+  TURBULENCE: string;
+  /**
+   * Extreme
+   */
+  TURBULENCE_EXTREME2: string;
+  /**
+   * Light
+   */
+  TURBULENCE_LIGHT2: string;
+  /**
+   * Moderate
+   */
+  TURBULENCE_MODERATE2: string;
+  /**
+   * Severe
+   */
+  TURBULENCE_SEVERE2: string;
+  /**
+   * Type
+   */
+  TYPE: string;
+  /**
+   * Updated
+   */
+  UPDATED: string;
+  /**
+   * Uploaded
+   */
+  UPLOADED: string;
+  /**
+   * Your upload is being processed.
+   */
+  UPLOAD_BEING_PROCESSED: string;
+  /**
+   * Describe content of your file (required)
+   */
+  UPLOAD_DESCRIBE_FILE: string;
+  /**
+   * Supported extensions: .geojson, .json, .gpx, .kml, .xml
+   */
+  UPLOAD_EXTENSIONS: string;
+  /**
+   * Upload, display and share your KML, GPX or GeoJSON.
+   */
+  UPLOAD_KML_GPX: string;
+  /**
+   * Files larger than 5MB cannot be uploaded to the cloud.
+   */
+  UPLOAD_SIZE_LIMIT: string;
+  /**
+   * UV Index
+   */
+  UVINDEX: string;
+  /**
+   * Extreme
+   */
+  UV_EXTREME: string;
+  /**
+   * High
+   */
+  UV_HIGH: string;
+  /**
+   * Highest
+   */
+  UV_HIGHEST: string;
+  /**
+   * Low
+   */
+  UV_LOW: string;
+  /**
+   * Moderate
+   */
+  UV_MODERATE: string;
+  /**
+   * Very high
+   */
+  UV_VERY_HIGH: string;
+  /**
+   * Login
+   */
+  U_LOGIN: string;
+  /**
+   * Logout
+   */
+  U_LOGOUT: string;
+  /**
+   * My profile
+   */
+  U_PROFILE: string;
+  /**
+   * Version
+   */
+  VERSION: string;
+  /**
+   * Vibrate
+   */
+  VIBRATE: string;
+  /**
+   * views
+   */
+  VIEWS: string;
+  /**
+   * Visibility
+   */
+  VISIBILITY: string;
+  /**
+   * Warnings
+   */
+  WARNINGS: string;
+  /**
+   * Waves
+   */
+  WAVES: string;
+  /**
+   * Waves, sea
+   */
+  WAVES2: string;
+  /**
+   * Wave and tide forecast for {{name}}
+   */
+  WAVESTIDES_BROWSER_TITLE: string;
+  /**
+   * Wave power
+   */
+  WAVE_POWER: string;
+  /**
+   * Wednesday
+   */
+  WED: string;
+  /**
+   * Wed
+   */
+  WED2: string;
+  /**
+   * W
+   */
+  WED3: string;
+  /**
+   * Wet-bulb temperature
+   */
+  WETBULB_TEMP: string;
+  /**
+   * Wet snow
+   */
+  WET_SN: string;
+  /**
+   * Thank you for using <b>Windy Premium</b> 👑.<br />Awesome people like you make <b>Windy.com</b> possible!
+   */
+  WHATS_NEW_THANK_YOU: string;
+  /**
+   * Upgrade to Windy Premium and enjoy 3× more daily updates, a 15-day weather forecast, full-year access to radar and satellite history, plus detailed wave and tide forecasts.
+   */
+  WHATS_NEW_UPGRADE: string;
+  /**
+   * What is new:
+   */
+  WHAT_IS_NEW: string;
+  /**
+   * Width
+   */
+  WIDTH: string;
+  /**
+   * Wind
+   */
+  WIND: string;
+  /**
+   * Wind and kitesurfing forecast for {{name}}
+   */
+  WIND_BROWSER_TITLE: string;
+  /**
+   * Wind dir.
+   */
+  WIND_DIR: string;
+  /**
+   * Wind speed
+   */
+  WIND_SPEED: string;
+  /**
+   * Wind waves
+   */
+  WWAVES: string;
+  /**
+   * Weather warnings
+   */
+  WX_WARNINGS: string;
+  /**
+   * Yes
+   */
+  YES: string;
+  /**
+   * Zoom in
+   */
+  ZOOM_IN: string;
+  /**
+   * Zoom level
+   */
+  ZOOM_LEVEL: string;
+  /**
+   * Zoom out
+   */
+  ZOOM_OUT: string;
 }
 
 export interface LibLangFile {
-    /**
-     * lib: close
-     */
-    CLOSE: string;
-    /**
-     * lib: Or download the official mobile app:
-     */
-    DOWNLOAD_APP: string;
-    /**
-     * lib: Do you like this map?
-     */
-    DO_YOU_LIKE_THIS_MAP: string;
-    /**
-     * lib: Go to the original website:
-     */
-    GO_TO_THE_ORIGINAL_WEBSITE: string;
+  /**
+   * lib: close
+   */
+  CLOSE: string;
+  /**
+   * lib: Or download the official mobile app:
+   */
+  DOWNLOAD_APP: string;
+  /**
+   * lib: Do you like this map?
+   */
+  DO_YOU_LIKE_THIS_MAP: string;
+  /**
+   * lib: Go to the original website:
+   */
+  GO_TO_THE_ORIGINAL_WEBSITE: string;
 }
 
 export interface LivealertsLangFile {
-    /**
-     * livealerts: Live alerts
-     */
-    LIVE_ALERTS: string;
-    /**
-     * livealerts: Background location permission is required.
-     */
-    LIVE_ALERTS_ANDROID_ERROR_PERMISSION_LOCATION: string;
-    /**
-     * livealerts: Notification permission is required.
-     */
-    LIVE_ALERTS_ANDROID_ERROR_PERMISSION_NOTIFICATIONS: string;
-    /**
-     * livealerts: Enable location access
-     */
-    LIVE_ALERTS_BUTTON_OPEN_LOCATION_DIALOG: string;
-    /**
-     * livealerts: Enable notifications
-     */
-    LIVE_ALERTS_BUTTON_OPEN_NOTIFICATION_DIALOG: string;
-    /**
-     * livealerts: Open application settings
-     */
-    LIVE_ALERTS_BUTTON_OPEN_SETTINGS: string;
-    /**
-     * livealerts: Download the app here
-     */
-    LIVE_ALERTS_DOWNLOAD_APP: string;
-    /**
-     * livealerts: To get alerts for your area, allow unrestricted battery usage in settings.
-     */
-    LIVE_ALERTS_ERROR_BATTERY_PERMISSION: string;
-    /**
-     * livealerts: Enable location access to receive live alerts for your current area.
-     */
-    LIVE_ALERTS_ERROR_NOT_DETERMINED_LOCATION: string;
-    /**
-     * livealerts: Enable notifications to get live alerts
-     */
-    LIVE_ALERTS_ERROR_NOT_DETERMINED_NOTIFICATIONS: string;
-    /**
-     * livealerts: Live alerts are supported only on native Windy.com app
-     */
-    LIVE_ALERTS_ERROR_PLATFORM: string;
-    /**
-     * livealerts: How it works
-     */
-    LIVE_ALERTS_HOW_IT_WORKS_BUTTON: string;
-    /**
-     * livealerts: Windy checks storms, heavy rain, tropical cyclones, and local-authority alerts near your device location. Enable location access and notifications in the Windy app to receive alerts where data is available.
-     */
-    LIVE_ALERTS_HOW_IT_WORKS_TEXT: string;
-    /**
-     * livealerts: To get alerts for your area, allow Location > Always in settings.
-     */
-    LIVE_ALERTS_IOS_ERROR_PERMISSION_LOCATION: string;
-    /**
-     * livealerts: To get alerts, allow notifications in your system settings.
-     */
-    LIVE_ALERTS_IOS_ERROR_PERMISSION_NOTIFICATIONS: string;
-    /**
-     * livealerts: Live alerts for my location
-     */
-    LIVE_ALERTS_MY_LOCATION_HEADING: string;
-    /**
-     * livealerts: CAP
-     */
-    LIVE_ALERTS_SERVICE_CAP: string;
-    /**
-     * livealerts: Heavy rain
-     */
-    LIVE_ALERTS_SERVICE_HEAVY_RAIN: string;
-    /**
-     * livealerts: Storms
-     */
-    LIVE_ALERTS_SERVICE_STORMS: string;
-    /**
-     * livealerts: Tropical cyclones
-     */
-    LIVE_ALERTS_SERVICE_TC: string;
+  /**
+   * livealerts: Live alerts
+   */
+  LIVE_ALERTS: string;
+  /**
+   * livealerts: Background location permission is required.
+   */
+  LIVE_ALERTS_ANDROID_ERROR_PERMISSION_LOCATION: string;
+  /**
+   * livealerts: Notification permission is required.
+   */
+  LIVE_ALERTS_ANDROID_ERROR_PERMISSION_NOTIFICATIONS: string;
+  /**
+   * livealerts: Enable location access
+   */
+  LIVE_ALERTS_BUTTON_OPEN_LOCATION_DIALOG: string;
+  /**
+   * livealerts: Enable notifications
+   */
+  LIVE_ALERTS_BUTTON_OPEN_NOTIFICATION_DIALOG: string;
+  /**
+   * livealerts: Open application settings
+   */
+  LIVE_ALERTS_BUTTON_OPEN_SETTINGS: string;
+  /**
+   * livealerts: Download the app here
+   */
+  LIVE_ALERTS_DOWNLOAD_APP: string;
+  /**
+   * livealerts: To get alerts for your area, allow unrestricted battery usage in settings.
+   */
+  LIVE_ALERTS_ERROR_BATTERY_PERMISSION: string;
+  /**
+   * livealerts: Enable location access to receive live alerts for your current area.
+   */
+  LIVE_ALERTS_ERROR_NOT_DETERMINED_LOCATION: string;
+  /**
+   * livealerts: Enable notifications to get live alerts
+   */
+  LIVE_ALERTS_ERROR_NOT_DETERMINED_NOTIFICATIONS: string;
+  /**
+   * livealerts: Live alerts are supported only on native Windy.com app
+   */
+  LIVE_ALERTS_ERROR_PLATFORM: string;
+  /**
+   * livealerts: How it works
+   */
+  LIVE_ALERTS_HOW_IT_WORKS_BUTTON: string;
+  /**
+   * livealerts: Windy checks storms, heavy rain, tropical cyclones, and local-authority alerts near your device location. Enable location access and notifications in the Windy app to receive alerts where data is available.
+   */
+  LIVE_ALERTS_HOW_IT_WORKS_TEXT: string;
+  /**
+   * livealerts: To get alerts for your area, allow Location > Always in settings.
+   */
+  LIVE_ALERTS_IOS_ERROR_PERMISSION_LOCATION: string;
+  /**
+   * livealerts: To get alerts, allow notifications in your system settings.
+   */
+  LIVE_ALERTS_IOS_ERROR_PERMISSION_NOTIFICATIONS: string;
+  /**
+   * livealerts: Live alerts for my location
+   */
+  LIVE_ALERTS_MY_LOCATION_HEADING: string;
+  /**
+   * livealerts: CAP
+   */
+  LIVE_ALERTS_SERVICE_CAP: string;
+  /**
+   * livealerts: Heavy rain
+   */
+  LIVE_ALERTS_SERVICE_HEAVY_RAIN: string;
+  /**
+   * livealerts: Storms
+   */
+  LIVE_ALERTS_SERVICE_STORMS: string;
+  /**
+   * livealerts: Tropical cyclones
+   */
+  LIVE_ALERTS_SERVICE_TC: string;
 }
 
 export interface MenuLangFile {
-    /**
-     * menu: Arrange layers
-     */
-    MM_ARRANGE: string;
-    /**
-     * menu: Drag your favorite layers and pin them to homepage
-     */
-    MM_ARRANGE_INFO: string;
-    /**
-     * menu: As you are logged in, you can delete your account here: {accountLink}. That action will delete your Windy account and the data on Windy Community forum. But your local settings will be preserved.
-     */
-    MM_DELETE_ACCOUNT_INFO: string;
-    /**
-     * menu: Delete your account
-     */
-    MM_DELETE_ACCOUNT_LINK: string;
-    /**
-     * menu: Failed to delete local data: user logged in.
-     */
-    MM_DELETE_FAILED_LOGGED_IN: string;
-    /**
-     * menu: Delete information
-     */
-    MM_DELETE_INFO: string;
-    /**
-     * menu: This form will delete your local settings. Once you delete all your data, there is no way back. Press the delete button {count} times to confirm.
-     */
-    MM_DELETE_LOCAL_INFO: string;
-    /**
-     * menu: All your data were deleted. Reloading...
-     */
-    MM_DELETE_SUCCESS: string;
-    /**
-     * menu: Display less layers
-     */
-    MM_DISPLAY_LESS: string;
-    /**
-     * menu: Display more layers
-     */
-    MM_DISPLAY_MORE: string;
-    /**
-     * menu: Drought
-     */
-    MM_DROUGHT: string;
-    /**
-     * menu: Error console
-     */
-    MM_ERROR: string;
-    /**
-     * menu: Extend your Windy
-     */
-    MM_EXTEND: string;
-    /**
-     * menu: Forecast updated
-     */
-    MM_FORECAST_UPDATED: string;
-    /**
-     * menu: freezing alt.
-     */
-    MM_FREEZING: string;
-    /**
-     * menu: freezing altitude
-     */
-    MM_FREEZING_LONG: string;
-    /**
-     * menu: geopot. h.
-     */
-    MM_GH: string;
-    /**
-     * menu: geopotential height
-     */
-    MM_GH_LONG: string;
-    /**
-     * menu: in {{hours}}h {{minutes}}m {{seconds}}s
-     */
-    MM_IN: string;
-    /**
-     * menu: Isolines of
-     */
-    MM_ISOLINES_OF: string;
-    /**
-     * menu: Log out
-     */
-    MM_LOG_OUT: string;
-    /**
-     * menu: to be able to delete your local settings data.
-     */
-    MM_LOG_OUT_TO_DELETE: string;
-    /**
-     * menu: Long tap your favourite weather map to pin it to the quick menu
-     */
-    MM_LONG_TAP: string;
-    /**
-     * menu: Long tap favourite items to pin them to the quick menu
-     */
-    MM_LONG_TAP_PIN: string;
-    /**
-     * menu: My pinned features:
-     */
-    MM_MY_PINED: string;
-    /**
-     * menu: My pinned map items:
-     */
-    MM_MY_PINED_ITEMS: string;
-    /**
-     * menu: Update expected at
-     */
-    MM_NEXT_FORECAST: string;
-    /**
-     * menu: usually not more than 6 minutes
-     */
-    MM_NOT_MORE: string;
-    /**
-     * menu: Weather now & new layers
-     */
-    MM_NOWCAST: string;
-    /**
-     * menu: Open the main menu and use <strong>long tap</strong> to pin your favorite features here.
-     */
-    MM_OPEN_MAIN_MENU: string;
-    /**
-     * menu: Open the <span class="menu-icon">main menu</span> and use <strong>long tap</strong> to pin or remove your favourite features.
-     */
-    MM_OPEN_MAIN_MENU_SMALL: string;
-    /**
-     * menu: Pin to homepage
-     */
-    MM_PIN_HOMEPAGE: string;
-    /**
-     * menu: Layers & POIs
-     */
-    MM_PIN_SWITCH_LAYERS: string;
-    /**
-     * menu: Forecast models
-     */
-    MM_PIN_SWITCH_MODELS: string;
-    /**
-     * menu: Install Windy Plugin
-     */
-    MM_PLUGIN: string;
-    /**
-     * menu: pressure
-     */
-    MM_PRESS: string;
-    /**
-     * menu: pressure
-     */
-    MM_PRESS_LONG: string;
-    /**
-     * menu: Search layers
-     */
-    MM_SEARCH_LAYER: string;
-    /**
-     * menu: Get <span class="dotted">Windy Premium</span> for more frequent updates.
-     */
-    MM_SUBSCRIBE: string;
-    /**
-     * menu: temp.
-     */
-    MM_TEMP: string;
-    /**
-     * menu: temperature
-     */
-    MM_TEMP_LONG: string;
-    /**
-     * menu: Update expected every {{productInterval}}min
-     */
-    MM_UPDATE_EXPECTED: string;
-    /**
-     * menu: Display KML, GPX, ...
-     */
-    MM_UPLOAD: string;
-    /**
-     * menu: Warnings
-     */
-    MM_WARNINGS: string;
-    /**
-     * menu: Drought and warnings
-     */
-    MM_WARNINGS2: string;
-    /**
-     * menu: You are logged in.
-     */
-    MM_YOU_ARE_LOGGED_IN: string;
+  /**
+   * menu: Arrange layers
+   */
+  MM_ARRANGE: string;
+  /**
+   * menu: Drag your favorite layers and pin them to homepage
+   */
+  MM_ARRANGE_INFO: string;
+  /**
+   * menu: As you are logged in, you can delete your account here: {accountLink}. That action will delete your Windy account and the data on Windy Community forum. But your local settings will be preserved.
+   */
+  MM_DELETE_ACCOUNT_INFO: string;
+  /**
+   * menu: Delete your account
+   */
+  MM_DELETE_ACCOUNT_LINK: string;
+  /**
+   * menu: Failed to delete local data: user logged in.
+   */
+  MM_DELETE_FAILED_LOGGED_IN: string;
+  /**
+   * menu: Delete information
+   */
+  MM_DELETE_INFO: string;
+  /**
+   * menu: This form will delete your local settings. Once you delete all your data, there is no way back. Press the delete button {count} times to confirm.
+   */
+  MM_DELETE_LOCAL_INFO: string;
+  /**
+   * menu: All your data were deleted. Reloading...
+   */
+  MM_DELETE_SUCCESS: string;
+  /**
+   * menu: Display less layers
+   */
+  MM_DISPLAY_LESS: string;
+  /**
+   * menu: Display more layers
+   */
+  MM_DISPLAY_MORE: string;
+  /**
+   * menu: Drought
+   */
+  MM_DROUGHT: string;
+  /**
+   * menu: Error console
+   */
+  MM_ERROR: string;
+  /**
+   * menu: Extend your Windy
+   */
+  MM_EXTEND: string;
+  /**
+   * menu: Forecast updated
+   */
+  MM_FORECAST_UPDATED: string;
+  /**
+   * menu: freezing alt.
+   */
+  MM_FREEZING: string;
+  /**
+   * menu: freezing altitude
+   */
+  MM_FREEZING_LONG: string;
+  /**
+   * menu: geopot. h.
+   */
+  MM_GH: string;
+  /**
+   * menu: geopotential height
+   */
+  MM_GH_LONG: string;
+  /**
+   * menu: in {{hours}}h {{minutes}}m {{seconds}}s
+   */
+  MM_IN: string;
+  /**
+   * menu: Isolines of
+   */
+  MM_ISOLINES_OF: string;
+  /**
+   * menu: Log out
+   */
+  MM_LOG_OUT: string;
+  /**
+   * menu: to be able to delete your local settings data.
+   */
+  MM_LOG_OUT_TO_DELETE: string;
+  /**
+   * menu: Long tap your favourite weather map to pin it to the quick menu
+   */
+  MM_LONG_TAP: string;
+  /**
+   * menu: Long tap favourite items to pin them to the quick menu
+   */
+  MM_LONG_TAP_PIN: string;
+  /**
+   * menu: My pinned features:
+   */
+  MM_MY_PINED: string;
+  /**
+   * menu: My pinned map items:
+   */
+  MM_MY_PINED_ITEMS: string;
+  /**
+   * menu: Update expected at
+   */
+  MM_NEXT_FORECAST: string;
+  /**
+   * menu: usually not more than 6 minutes
+   */
+  MM_NOT_MORE: string;
+  /**
+   * menu: Weather now & new layers
+   */
+  MM_NOWCAST: string;
+  /**
+   * menu: Open the main menu and use <strong>long tap</strong> to pin your favorite features here.
+   */
+  MM_OPEN_MAIN_MENU: string;
+  /**
+   * menu: Open the <span class="menu-icon">main menu</span> and use <strong>long tap</strong> to pin or remove your favourite features.
+   */
+  MM_OPEN_MAIN_MENU_SMALL: string;
+  /**
+   * menu: Pin to homepage
+   */
+  MM_PIN_HOMEPAGE: string;
+  /**
+   * menu: Layers & POIs
+   */
+  MM_PIN_SWITCH_LAYERS: string;
+  /**
+   * menu: Forecast models
+   */
+  MM_PIN_SWITCH_MODELS: string;
+  /**
+   * menu: Install Windy Plugin
+   */
+  MM_PLUGIN: string;
+  /**
+   * menu: pressure
+   */
+  MM_PRESS: string;
+  /**
+   * menu: pressure
+   */
+  MM_PRESS_LONG: string;
+  /**
+   * menu: Search layers
+   */
+  MM_SEARCH_LAYER: string;
+  /**
+   * menu: Get <span class="dotted">Windy Premium</span> for more frequent updates.
+   */
+  MM_SUBSCRIBE: string;
+  /**
+   * menu: temp.
+   */
+  MM_TEMP: string;
+  /**
+   * menu: temperature
+   */
+  MM_TEMP_LONG: string;
+  /**
+   * menu: Update expected every {{productInterval}}min
+   */
+  MM_UPDATE_EXPECTED: string;
+  /**
+   * menu: Display KML, GPX, ...
+   */
+  MM_UPLOAD: string;
+  /**
+   * menu: Warnings
+   */
+  MM_WARNINGS: string;
+  /**
+   * menu: Drought and warnings
+   */
+  MM_WARNINGS2: string;
+  /**
+   * menu: You are logged in.
+   */
+  MM_YOU_ARE_LOGGED_IN: string;
 }
 
 export interface MenudescLangFile {
-    /**
-     * menudesc: Aerosol Optical Depth at 550 nm — how much atmospheric aerosols block sunlight.
-     */
-    MM_DESC_AOD550: string;
-    /**
-     * menudesc: US Air Quality Index — overall measure of air pollution and its health risk.
-     */
-    MM_DESC_AQI: string;
-    /**
-     * menudesc: Regional avalanche danger ratings, with bulletins from national services.
-     */
-    MM_DESC_AVALANCHEDANGER: string;
-    /**
-     * menudesc: Weather warnings issued by national agencies via Common Alerting Protocol.
-     */
-    MM_DESC_CAPALERTS: string;
-    /**
-     * menudesc: Convective Available Potential Energy. Higher values can indicate forming of thunderstorms.
-     */
-    MM_DESC_CAPE: string;
-    /**
-     * menudesc: Altitude of the lowest cloud base above the ground.
-     */
-    MM_DESC_CBASE: string;
-    /**
-     * menudesc: Forecast of thermals and cumuli for gliding and paragliding.
-     */
-    MM_DESC_CCL: string;
-    /**
-     * menudesc: Cloud cover with rain or snow accumulation.
-     */
-    MM_DESC_CLOUDS: string;
-    /**
-     * menudesc: Altitude of the cloud peaks.
-     */
-    MM_DESC_CLOUDTOP: string;
-    /**
-     * menudesc: Carbon monoxide (CO) concentration in the lower atmosphere.
-     */
-    MM_DESC_COSC: string;
-    /**
-     * menudesc: Surface ocean currents (upper 400 meters) transporting heat and shaping regional climates.
-     */
-    MM_DESC_CURRENTS: string;
-    /**
-     * menudesc: Tidal currents driven by the Moon and Sun, alternating between flood and ebb.
-     */
-    MM_DESC_CURRENTSTIDE: string;
-    /**
-     * menudesc: Altitude of the freezing level (0 °C isotherm).
-     */
-    MM_DESC_DEG0: string;
-    /**
-     * menudesc: Temperature at which water vapor in the air condenses into dew — a measure of moisture.
-     */
-    MM_DESC_DEWPOINT: string;
-    /**
-     * menudesc: Drought intensity, soil moisture, and moisture anomaly at 0–40 and 0–100 cm soil depth.
-     */
-    MM_DESC_DROUGHT40: string;
-    /**
-     * menudesc: Concentration of airborne dust particles at the surface.
-     */
-    MM_DESC_DUSTSM: string;
-    /**
-     * menudesc: Probability of unusually extreme temperature, wind, or rain for the day (ECMWF EFI).
-     */
-    MM_DESC_EFITEMP: string;
-    /**
-     * menudesc: Suspended water droplets or ice crystals near the surface — fog.
-     */
-    MM_DESC_FOG: string;
-    /**
-     * menudesc: Wildfire risk — spread danger (Canadian FWI) and dead fuel moisture.
-     */
-    MM_DESC_FWI: string;
-    /**
-     * menudesc: Near-surface ozone concentration — a respiratory and cardiovascular irritant (the less the better).
-     */
-    MM_DESC_GO3: string;
-    /**
-     * menudesc: Total atmospheric ozone column, shielding from harmful UV radiation (the more the better).
-     */
-    MM_DESC_GTCO3: string;
-    /**
-     * menudesc: Maximum wind gust at 10 m above the surface.
-     */
-    MM_DESC_GUST: string;
-    /**
-     * menudesc: Strongest wind gust expected over the selected period.
-     */
-    MM_DESC_GUSTACCU: string;
-    /**
-     * menudesc: High-altitude cloud cover (above ~6500 m / 20k ft), given in percent.
-     */
-    MM_DESC_HCLOUDS: string;
-    /**
-     * menudesc: Long-term climate heatmaps for cities (opens meteoblue.com).
-     */
-    MM_DESC_HEATMAPS: string;
-    /**
-     * menudesc: Active tropical cyclones worldwide.
-     */
-    MM_DESC_HURRICANES: string;
-    /**
-     * menudesc: Probability of in-flight icing conditions for aviation in selected altitude.
-     */
-    MM_DESC_ICING: string;
-    /**
-     * menudesc: Low-altitude cloud cover (surface to ~2000 m / 6.5k ft), given in percent.
-     */
-    MM_DESC_LCLOUDS: string;
-    /**
-     * menudesc: Mid-altitude cloud cover (~2000–6500 m / 6.5k–20k ft), given in percent.
-     */
-    MM_DESC_MCLOUDS: string;
-    /**
-     * menudesc: Concentration of nitrogen dioxide (NO₂), a toxic respiratory irritant.
-     */
-    MM_DESC_NO2: string;
-    /**
-     * menudesc: Concentration of fine particulate matter (2.5 µm or less) near the surface.
-     */
-    MM_DESC_PM2P5: string;
-    /**
-     * menudesc: Mean atmospheric pressure at sea level (MSLP).
-     */
-    MM_DESC_PRESSURE: string;
-    /**
-     * menudesc: Type of precipitation: rain, freezing rain, ice pellets, snow, etc.
-     */
-    MM_DESC_PTYPE: string;
-    /**
-     * menudesc: Doppler radar reflectivity. Indicates actual rain, snow, and hail.
-     */
-    MM_DESC_RADAR: string;
-    /**
-     * menudesc: Rain or snow forecast.
-     */
-    MM_DESC_RAIN: string;
-    /**
-     * menudesc: Total rain expected to accumulate over the selected time period.
-     */
-    MM_DESC_RAINACCU: string;
-    /**
-     * menudesc: Relative humidity 2 m above the surface, or at the selected pressure level.
-     */
-    MM_DESC_RH: string;
-    /**
-     * menudesc: Current cloud cover from geostationary satellites.
-     */
-    MM_DESC_SATELLITE: string;
-    /**
-     * menudesc: Total snow expected to accumulate over the selected time period.
-     */
-    MM_DESC_SNOWACCU: string;
-    /**
-     * menudesc: Forecasted snow depth and density.
-     */
-    MM_DESC_SNOWCOVER: string;
-    /**
-     * menudesc: Total solar radiation (direct and diffuse) reaching a horizontal surface on the ground.
-     */
-    MM_DESC_SOLARPOWER: string;
-    /**
-     * menudesc: Water temperature close to the ocean surface.
-     */
-    MM_DESC_SST: string;
-    /**
-     * menudesc: Primary swell — wind-generated waves arriving from a distant source.
-     */
-    MM_DESC_SWELL1: string;
-    /**
-     * menudesc: Secondary swell — a wave train from a different source than the primary swell.
-     */
-    MM_DESC_SWELL2: string;
-    /**
-     * menudesc: Tertiary swell — a further wave train, distinct from swell 1 and 2.
-     */
-    MM_DESC_SWELL3: string;
-    /**
-     * menudesc: Total atmospheric column of sulphur dioxide (SO₂).
-     */
-    MM_DESC_TCSO2: string;
-    /**
-     * menudesc: Air temperature at 2 m above the surface, or at the selected pressure level.
-     */
-    MM_DESC_TEMP: string;
-    /**
-     * menudesc: Lightning flash count per square kilometer per day.
-     */
-    MM_DESC_THUNDER: string;
-    /**
-     * menudesc: Topographic outdoor maps from Mapy.com
-     */
-    MM_DESC_TOPOMAP: string;
-    /**
-     * menudesc: Forecast of clear-air turbulence (CAT) intensity at the selected pressure level.
-     */
-    MM_DESC_TURBULENCE: string;
-    /**
-     * menudesc: Strength of sunburn-causing UV radiation. Higher values mean a shorter time to sunburn.
-     */
-    MM_DESC_UVINDEX: string;
-    /**
-     * menudesc: Distance at which objects can be clearly seen through the air.
-     */
-    MM_DESC_VISIBILITY: string;
-    /**
-     * menudesc: Energy carried by ocean waves, combining wind waves and swell.
-     */
-    MM_DESC_WAVEPOWER: string;
-    /**
-     * menudesc: Mean wave height and period combining swell and wind waves.
-     */
-    MM_DESC_WAVES: string;
-    /**
-     * menudesc: Lowest temperature reachable by evaporative cooling. Values above 35 °C (95 °F) are dangerous to humans.
-     */
-    MM_DESC_WETBULBTEMP: string;
-    /**
-     * menudesc: Average wind speed at 10 m above the surface, or at the selected pressure level.
-     */
-    MM_DESC_WIND: string;
-    /**
-     * menudesc: Waves generated by local wind blowing over the water surface.
-     */
-    MM_DESC_WWAVES: string;
+  /**
+   * menudesc: Aerosol Optical Depth at 550 nm — how much atmospheric aerosols block sunlight.
+   */
+  MM_DESC_AOD550: string;
+  /**
+   * menudesc: US Air Quality Index — overall measure of air pollution and its health risk.
+   */
+  MM_DESC_AQI: string;
+  /**
+   * menudesc: Regional avalanche danger ratings, with bulletins from national services.
+   */
+  MM_DESC_AVALANCHEDANGER: string;
+  /**
+   * menudesc: Weather warnings issued by national agencies via Common Alerting Protocol.
+   */
+  MM_DESC_CAPALERTS: string;
+  /**
+   * menudesc: Convective Available Potential Energy. Higher values can indicate forming of thunderstorms.
+   */
+  MM_DESC_CAPE: string;
+  /**
+   * menudesc: Altitude of the lowest cloud base above the ground.
+   */
+  MM_DESC_CBASE: string;
+  /**
+   * menudesc: Forecast of thermals and cumuli for gliding and paragliding.
+   */
+  MM_DESC_CCL: string;
+  /**
+   * menudesc: Cloud cover with rain or snow accumulation.
+   */
+  MM_DESC_CLOUDS: string;
+  /**
+   * menudesc: Altitude of the cloud peaks.
+   */
+  MM_DESC_CLOUDTOP: string;
+  /**
+   * menudesc: Carbon monoxide (CO) concentration in the lower atmosphere.
+   */
+  MM_DESC_COSC: string;
+  /**
+   * menudesc: Surface ocean currents (upper 400 meters) transporting heat and shaping regional climates.
+   */
+  MM_DESC_CURRENTS: string;
+  /**
+   * menudesc: Tidal currents driven by the Moon and Sun, alternating between flood and ebb.
+   */
+  MM_DESC_CURRENTSTIDE: string;
+  /**
+   * menudesc: Altitude of the freezing level (0 °C isotherm).
+   */
+  MM_DESC_DEG0: string;
+  /**
+   * menudesc: Temperature at which water vapor in the air condenses into dew — a measure of moisture.
+   */
+  MM_DESC_DEWPOINT: string;
+  /**
+   * menudesc: Drought intensity, soil moisture, and moisture anomaly at 0–40 and 0–100 cm soil depth.
+   */
+  MM_DESC_DROUGHT40: string;
+  /**
+   * menudesc: Concentration of airborne dust particles at the surface.
+   */
+  MM_DESC_DUSTSM: string;
+  /**
+   * menudesc: Probability of unusually extreme temperature, wind, or rain for the day (ECMWF EFI).
+   */
+  MM_DESC_EFITEMP: string;
+  /**
+   * menudesc: Suspended water droplets or ice crystals near the surface — fog.
+   */
+  MM_DESC_FOG: string;
+  /**
+   * menudesc: Wildfire risk — spread danger (Canadian FWI) and dead fuel moisture.
+   */
+  MM_DESC_FWI: string;
+  /**
+   * menudesc: Near-surface ozone concentration — a respiratory and cardiovascular irritant (the less the better).
+   */
+  MM_DESC_GO3: string;
+  /**
+   * menudesc: Total atmospheric ozone column, shielding from harmful UV radiation (the more the better).
+   */
+  MM_DESC_GTCO3: string;
+  /**
+   * menudesc: Maximum wind gust at 10 m above the surface.
+   */
+  MM_DESC_GUST: string;
+  /**
+   * menudesc: Strongest wind gust expected over the selected period.
+   */
+  MM_DESC_GUSTACCU: string;
+  /**
+   * menudesc: High-altitude cloud cover (above ~6500 m / 20k ft), given in percent.
+   */
+  MM_DESC_HCLOUDS: string;
+  /**
+   * menudesc: Long-term climate heatmaps for cities (opens meteoblue.com).
+   */
+  MM_DESC_HEATMAPS: string;
+  /**
+   * menudesc: Active tropical cyclones worldwide.
+   */
+  MM_DESC_HURRICANES: string;
+  /**
+   * menudesc: Probability of in-flight icing conditions for aviation in selected altitude.
+   */
+  MM_DESC_ICING: string;
+  /**
+   * menudesc: Low-altitude cloud cover (surface to ~2000 m / 6.5k ft), given in percent.
+   */
+  MM_DESC_LCLOUDS: string;
+  /**
+   * menudesc: Mid-altitude cloud cover (~2000–6500 m / 6.5k–20k ft), given in percent.
+   */
+  MM_DESC_MCLOUDS: string;
+  /**
+   * menudesc: Concentration of nitrogen dioxide (NO₂), a toxic respiratory irritant.
+   */
+  MM_DESC_NO2: string;
+  /**
+   * menudesc: Concentration of fine particulate matter (2.5 µm or less) near the surface.
+   */
+  MM_DESC_PM2P5: string;
+  /**
+   * menudesc: Mean atmospheric pressure at sea level (MSLP).
+   */
+  MM_DESC_PRESSURE: string;
+  /**
+   * menudesc: Type of precipitation: rain, freezing rain, ice pellets, snow, etc.
+   */
+  MM_DESC_PTYPE: string;
+  /**
+   * menudesc: Doppler radar reflectivity. Indicates actual rain, snow, and hail.
+   */
+  MM_DESC_RADAR: string;
+  /**
+   * menudesc: Rain or snow forecast.
+   */
+  MM_DESC_RAIN: string;
+  /**
+   * menudesc: Total rain expected to accumulate over the selected time period.
+   */
+  MM_DESC_RAINACCU: string;
+  /**
+   * menudesc: Relative humidity 2 m above the surface, or at the selected pressure level.
+   */
+  MM_DESC_RH: string;
+  /**
+   * menudesc: Current cloud cover from geostationary satellites.
+   */
+  MM_DESC_SATELLITE: string;
+  /**
+   * menudesc: Total snow expected to accumulate over the selected time period.
+   */
+  MM_DESC_SNOWACCU: string;
+  /**
+   * menudesc: Forecasted snow depth and density.
+   */
+  MM_DESC_SNOWCOVER: string;
+  /**
+   * menudesc: Total solar radiation (direct and diffuse) reaching a horizontal surface on the ground.
+   */
+  MM_DESC_SOLARPOWER: string;
+  /**
+   * menudesc: Water temperature close to the ocean surface.
+   */
+  MM_DESC_SST: string;
+  /**
+   * menudesc: Primary swell — wind-generated waves arriving from a distant source.
+   */
+  MM_DESC_SWELL1: string;
+  /**
+   * menudesc: Secondary swell — a wave train from a different source than the primary swell.
+   */
+  MM_DESC_SWELL2: string;
+  /**
+   * menudesc: Tertiary swell — a further wave train, distinct from swell 1 and 2.
+   */
+  MM_DESC_SWELL3: string;
+  /**
+   * menudesc: Total atmospheric column of sulphur dioxide (SO₂).
+   */
+  MM_DESC_TCSO2: string;
+  /**
+   * menudesc: Air temperature at 2 m above the surface, or at the selected pressure level.
+   */
+  MM_DESC_TEMP: string;
+  /**
+   * menudesc: Lightning flash count per square kilometer per day.
+   */
+  MM_DESC_THUNDER: string;
+  /**
+   * menudesc: Topographic outdoor maps from Mapy.com
+   */
+  MM_DESC_TOPOMAP: string;
+  /**
+   * menudesc: Forecast of clear-air turbulence (CAT) intensity at the selected pressure level.
+   */
+  MM_DESC_TURBULENCE: string;
+  /**
+   * menudesc: Strength of sunburn-causing UV radiation. Higher values mean a shorter time to sunburn.
+   */
+  MM_DESC_UVINDEX: string;
+  /**
+   * menudesc: Distance at which objects can be clearly seen through the air.
+   */
+  MM_DESC_VISIBILITY: string;
+  /**
+   * menudesc: Energy carried by ocean waves, combining wind waves and swell.
+   */
+  MM_DESC_WAVEPOWER: string;
+  /**
+   * menudesc: Mean wave height and period combining swell and wind waves.
+   */
+  MM_DESC_WAVES: string;
+  /**
+   * menudesc: Lowest temperature reachable by evaporative cooling. Values above 35 °C (95 °F) are dangerous to humans.
+   */
+  MM_DESC_WETBULBTEMP: string;
+  /**
+   * menudesc: Average wind speed at 10 m above the surface, or at the selected pressure level.
+   */
+  MM_DESC_WIND: string;
+  /**
+   * menudesc: Waves generated by local wind blowing over the water surface.
+   */
+  MM_DESC_WWAVES: string;
 }
 
 export interface NotificationsLangFile {
-    /**
-     * notifications: Add new alert for this location
-     */
-    NOTIF_ADD_ALERT: string;
-    /**
-     * notifications: How to add an alert:
-     */
-    NOTIF_ALERT_HOW_TO_ADD_HEADING: string;
-    /**
-     * notifications: Click anywhere on the map or open the detailed forecast for a location
-     */
-    NOTIF_ALERT_HOW_TO_ADD_STEP_1: string;
-    /**
-     * notifications: Click on the "{{item}}" icon to the right of the search input
-     */
-    NOTIF_ALERT_HOW_TO_ADD_STEP_2: string;
-    /**
-     * notifications: Alert successfully migrated
-     */
-    NOTIF_ALERT_MIGRATED: string;
-    /**
-     * notifications: {title} - active on {date}
-     */
-    NOTIF_ALERT_TITLE: string;
-    /**
-     * notifications: Change email
-     */
-    NOTIF_CHANGE_EMAIL: string;
-    /**
-     * notifications: An error occurred while changing the email
-     */
-    NOTIF_CHANGE_EMAIL_ERROR: string;
-    /**
-     * notifications: Close
-     */
-    NOTIF_CLOSE: string;
-    /**
-     * notifications: Send daily mobile notifications
-     */
-    NOTIF_DAILY_MOBILE_NOTIFICATIONS: string;
-    /**
-     * notifications: You will receive a notification every day with the forecast for your current location.
-     */
-    NOTIF_DAILY_MOBILE_NOTIFICATIONS_INFO: string;
-    /**
-     * notifications: Day
-     */
-    NOTIF_DAY: string;
-    /**
-     * notifications: {{count}} days
-     */
-    NOTIF_DAYS: string;
-    /**
-     * notifications: An error occurred while sending the verification email
-     */
-    NOTIF_EMAIL_ERROR: string;
-    /**
-     * notifications: Send email notifications
-     */
-    NOTIF_EMAIL_NOTIFICATIONS: string;
-    /**
-     * notifications: Email address was saved.
-     */
-    NOTIF_EMAIL_SAVED: string;
-    /**
-     * notifications: Cannot load data from server.
-     */
-    NOTIF_LOAD_FAILED: string;
-    /**
-     * notifications: Load more
-     */
-    NOTIF_LOAD_MORE: string;
-    /**
-     * notifications: Due to technical reasons, it is currently not possible to send notifications to Huawei devices. We are working on a solution. Thank you for your understanding and patience.
-     */
-    NOTIF_MOBILE_HUAWEI_INFO: string;
-    /**
-     * notifications: Send mobile notifications
-     */
-    NOTIF_MOBILE_NOTIFICATIONS: string;
-    /**
-     * notifications: Manage this option in Windy.com App to receive notifications on your mobile phone.
-     */
-    NOTIF_MOBILE_NOTIFICATIONS_INFO: string;
-    /**
-     * notifications: We should send notifications every
-     */
-    NOTIF_NOTIFICATION_FREQUENCY: string;
-    /**
-     * notifications: What time should we send you notifications
-     */
-    NOTIF_NOTIFICATION_TIME: string;
-    /**
-     * notifications: What timezone should we use to send you notifications
-     */
-    NOTIF_NOTIFICATION_TIMEZONE: string;
-    /**
-     * notifications: Your email address is <strong>not verified</strong>. If you don't verify your address, we won't be able to send you emails.
-     */
-    NOTIF_NOT_VERIFIED_EMAIL: string;
-    /**
-     * notifications: Notifications preferences
-     */
-    NOTIF_PREF: string;
-    /**
-     * notifications: Save profile email
-     */
-    NOTIF_SAVE_EMAIL: string;
-    /**
-     * notifications: You need to be logged in.
-     */
-    NOTIF_UNAUTHENTICATED_MSG: string;
-    /**
-     * notifications: Verification email was sent. Check your inbox.
-     */
-    NOTIF_VERIFICATION_SENT: string;
-    /**
-     * notifications: Your email address is <strong>verified.</strong>
-     */
-    NOTIF_VERIFIED_EMAIL: string;
-    /**
-     * notifications: Verify email
-     */
-    NOTIF_VERIFY_EMAIL: string;
+  /**
+   * notifications: Add new alert for this location
+   */
+  NOTIF_ADD_ALERT: string;
+  /**
+   * notifications: How to add an alert:
+   */
+  NOTIF_ALERT_HOW_TO_ADD_HEADING: string;
+  /**
+   * notifications: Click anywhere on the map or open the detailed forecast for a location
+   */
+  NOTIF_ALERT_HOW_TO_ADD_STEP_1: string;
+  /**
+   * notifications: Click on the "{{item}}" icon to the right of the search input
+   */
+  NOTIF_ALERT_HOW_TO_ADD_STEP_2: string;
+  /**
+   * notifications: Alert successfully migrated
+   */
+  NOTIF_ALERT_MIGRATED: string;
+  /**
+   * notifications: {title} - active on {date}
+   */
+  NOTIF_ALERT_TITLE: string;
+  /**
+   * notifications: Change email
+   */
+  NOTIF_CHANGE_EMAIL: string;
+  /**
+   * notifications: An error occurred while changing the email
+   */
+  NOTIF_CHANGE_EMAIL_ERROR: string;
+  /**
+   * notifications: Close
+   */
+  NOTIF_CLOSE: string;
+  /**
+   * notifications: Send daily mobile notifications
+   */
+  NOTIF_DAILY_MOBILE_NOTIFICATIONS: string;
+  /**
+   * notifications: You will receive a notification every day with the forecast for your current location.
+   */
+  NOTIF_DAILY_MOBILE_NOTIFICATIONS_INFO: string;
+  /**
+   * notifications: Day
+   */
+  NOTIF_DAY: string;
+  /**
+   * notifications: {{count}} days
+   */
+  NOTIF_DAYS: string;
+  /**
+   * notifications: An error occurred while sending the verification email
+   */
+  NOTIF_EMAIL_ERROR: string;
+  /**
+   * notifications: Send email notifications
+   */
+  NOTIF_EMAIL_NOTIFICATIONS: string;
+  /**
+   * notifications: Email address was saved.
+   */
+  NOTIF_EMAIL_SAVED: string;
+  /**
+   * notifications: Cannot load data from server.
+   */
+  NOTIF_LOAD_FAILED: string;
+  /**
+   * notifications: Load more
+   */
+  NOTIF_LOAD_MORE: string;
+  /**
+   * notifications: Due to technical reasons, it is currently not possible to send notifications to Huawei devices. We are working on a solution. Thank you for your understanding and patience.
+   */
+  NOTIF_MOBILE_HUAWEI_INFO: string;
+  /**
+   * notifications: Send mobile notifications
+   */
+  NOTIF_MOBILE_NOTIFICATIONS: string;
+  /**
+   * notifications: Manage this option in Windy.com App to receive notifications on your mobile phone.
+   */
+  NOTIF_MOBILE_NOTIFICATIONS_INFO: string;
+  /**
+   * notifications: We should send notifications every
+   */
+  NOTIF_NOTIFICATION_FREQUENCY: string;
+  /**
+   * notifications: What time should we send you notifications
+   */
+  NOTIF_NOTIFICATION_TIME: string;
+  /**
+   * notifications: What timezone should we use to send you notifications
+   */
+  NOTIF_NOTIFICATION_TIMEZONE: string;
+  /**
+   * notifications: Your email address is <strong>not verified</strong>. If you don't verify your address, we won't be able to send you emails.
+   */
+  NOTIF_NOT_VERIFIED_EMAIL: string;
+  /**
+   * notifications: Notifications preferences
+   */
+  NOTIF_PREF: string;
+  /**
+   * notifications: Save profile email
+   */
+  NOTIF_SAVE_EMAIL: string;
+  /**
+   * notifications: You need to be logged in.
+   */
+  NOTIF_UNAUTHENTICATED_MSG: string;
+  /**
+   * notifications: Verification email was sent. Check your inbox.
+   */
+  NOTIF_VERIFICATION_SENT: string;
+  /**
+   * notifications: Your email address is <strong>verified.</strong>
+   */
+  NOTIF_VERIFIED_EMAIL: string;
+  /**
+   * notifications: Verify email
+   */
+  NOTIF_VERIFY_EMAIL: string;
 }
 
 export interface OnboardingLangFile {
-    /**
-     * onboarding: Don't show again
-     */
-    LOCATION_BTN_NOT_SHOW_AGAIN: string;
-    /**
-     * onboarding: Allow location permission to get accurate weather updates based on your current location.
-     */
-    LOCATION_SUBTITLE: string;
-    /**
-     * onboarding: This feature requires location permission
-     */
-    LOCATION_TITLE: string;
-    /**
-     * onboarding: Accept
-     */
-    ONBOARDING_ACCEPT: string;
-    /**
-     * onboarding: Allow
-     */
-    ONBOARDING_ALLOW: string;
-    /**
-     * onboarding: <p>We do not sell advertisement, <b>we do not use cookies or trackers</b> and we fully respect you privacy.</p><p>Our application uses anonymous analytics to provide the best possible user experience. It help us optimize and develop Windy to your preferences.</p><p>By clicking 'Allow', you agree to the use of fully anonymous analytics. For more information on how we use analytics or to change your settings, please visit "Main Menu - Privacy Protection".</p>
-     */
-    ONBOARDING_ANALYTICS_DESC: string;
-    /**
-     * onboarding: Allow anonymous analytics
-     */
-    ONBOARDING_ANALYTICS_TITLE: string;
-    /**
-     * onboarding: Before we start...
-     */
-    ONBOARDING_BEFORE_WE_START: string;
-    /**
-     * onboarding: Confirm
-     */
-    ONBOARDING_CONFIRM: string;
-    /**
-     * onboarding: Continue
-     */
-    ONBOARDING_CONTINUE: string;
-    /**
-     * onboarding: Don't allow
-     */
-    ONBOARDING_DONT_ALLOW: string;
-    /**
-     * onboarding: <p>So we can develop Windy for you.</p>
-     */
-    ONBOARDING_INTERESTS_DESC: string;
-    /**
-     * onboarding: Agriculture
-     */
-    ONBOARDING_INTERESTS_ITEM_AGRICULTURE: string;
-    /**
-     * onboarding: Aviation
-     */
-    ONBOARDING_INTERESTS_ITEM_AVIATION: string;
-    /**
-     * onboarding: Boating
-     */
-    ONBOARDING_INTERESTS_ITEM_BOATING: string;
-    /**
-     * onboarding: Meteorologist,<br>scientist
-     */
-    ONBOARDING_INTERESTS_ITEM_METEOROLOGIST: string;
-    /**
-     * onboarding: Other
-     */
-    ONBOARDING_INTERESTS_ITEM_OTHER: string;
-    /**
-     * onboarding: Outdoor activities
-     */
-    ONBOARDING_INTERESTS_ITEM_OUTDOOR_ACTIVITIES: string;
-    /**
-     * onboarding: Water sports
-     */
-    ONBOARDING_INTERESTS_ITEM_WATER_SPORTS: string;
-    /**
-     * onboarding: Wind sports
-     */
-    ONBOARDING_INTERESTS_ITEM_WIND_SPORTS: string;
-    /**
-     * onboarding: Winter sports
-     */
-    ONBOARDING_INTERESTS_ITEM_WINTER_SPORTS: string;
-    /**
-     * onboarding: Tell us about yourself
-     */
-    ONBOARDING_INTERESTS_TITLE: string;
-    /**
-     * onboarding: <p>We do not sell advertisement, <b>we do not store or share you location</b> and we fully respect you privacy.</p><p>If you allow location services, we can provide you with better weather data based on your position.</p>
-     */
-    ONBOARDING_LOCATION_DESC: string;
-    /**
-     * onboarding: Allow location services
-     */
-    ONBOARDING_LOCATION_TITLE: string;
-    /**
-     * onboarding: Reject
-     */
-    ONBOARDING_REJECT: string;
-    /**
-     * onboarding: Save
-     */
-    ONBOARDING_SAVE: string;
-    /**
-     * onboarding: Set units
-     */
-    ONBOARDING_SET_UNITS: string;
-    /**
-     * onboarding: Set up later
-     */
-    ONBOARDING_SET_UP_LATER: string;
-    /**
-     * onboarding: Set up your units
-     */
-    ONBOARDING_UNITS_TITLE: string;
-    /**
-     * onboarding: Today’s forecast is ready — check it now in Windy!.
-     */
-    RETENTION_DEFAULT_BODY: string;
-    /**
-     * onboarding: What’s the Weather Today? ☀️ 🌧️
-     */
-    RETENTION_DEFAULT_TITLE: string;
-    /**
-     * onboarding: See how different weather models stack up in Windy
-     */
-    RETENTION_FORECAST_BODY: string;
-    /**
-     * onboarding: Not the Forecast You Hoped For? 🤔
-     */
-    RETENTION_FORECAST_TITLE: string;
-    /**
-     * onboarding: 50+ layers to explore — wind, radar, storms & more!
-     */
-    RETENTION_LAYERS_BODY: string;
-    /**
-     * onboarding: Dive Deeper into Weather 🌍
-     */
-    RETENTION_LAYERS_TITLE: string;
+  /**
+   * onboarding: Don't show again
+   */
+  LOCATION_BTN_NOT_SHOW_AGAIN: string;
+  /**
+   * onboarding: Allow location permission to get accurate weather updates based on your current location.
+   */
+  LOCATION_SUBTITLE: string;
+  /**
+   * onboarding: This feature requires location permission
+   */
+  LOCATION_TITLE: string;
+  /**
+   * onboarding: Accept
+   */
+  ONBOARDING_ACCEPT: string;
+  /**
+   * onboarding: Allow
+   */
+  ONBOARDING_ALLOW: string;
+  /**
+   * onboarding: <p>We do not sell advertisement, <b>we do not use cookies or trackers</b> and we fully respect you privacy.</p><p>Our application uses anonymous analytics to provide the best possible user experience. It help us optimize and develop Windy to your preferences.</p><p>By clicking 'Allow', you agree to the use of fully anonymous analytics. For more information on how we use analytics or to change your settings, please visit "Main Menu - Privacy Protection".</p>
+   */
+  ONBOARDING_ANALYTICS_DESC: string;
+  /**
+   * onboarding: Allow anonymous analytics
+   */
+  ONBOARDING_ANALYTICS_TITLE: string;
+  /**
+   * onboarding: Before we start...
+   */
+  ONBOARDING_BEFORE_WE_START: string;
+  /**
+   * onboarding: Confirm
+   */
+  ONBOARDING_CONFIRM: string;
+  /**
+   * onboarding: Continue
+   */
+  ONBOARDING_CONTINUE: string;
+  /**
+   * onboarding: Don't allow
+   */
+  ONBOARDING_DONT_ALLOW: string;
+  /**
+   * onboarding: <p>So we can develop Windy for you.</p>
+   */
+  ONBOARDING_INTERESTS_DESC: string;
+  /**
+   * onboarding: Agriculture
+   */
+  ONBOARDING_INTERESTS_ITEM_AGRICULTURE: string;
+  /**
+   * onboarding: Aviation
+   */
+  ONBOARDING_INTERESTS_ITEM_AVIATION: string;
+  /**
+   * onboarding: Boating
+   */
+  ONBOARDING_INTERESTS_ITEM_BOATING: string;
+  /**
+   * onboarding: Meteorologist,<br>scientist
+   */
+  ONBOARDING_INTERESTS_ITEM_METEOROLOGIST: string;
+  /**
+   * onboarding: Other
+   */
+  ONBOARDING_INTERESTS_ITEM_OTHER: string;
+  /**
+   * onboarding: Outdoor activities
+   */
+  ONBOARDING_INTERESTS_ITEM_OUTDOOR_ACTIVITIES: string;
+  /**
+   * onboarding: Water sports
+   */
+  ONBOARDING_INTERESTS_ITEM_WATER_SPORTS: string;
+  /**
+   * onboarding: Wind sports
+   */
+  ONBOARDING_INTERESTS_ITEM_WIND_SPORTS: string;
+  /**
+   * onboarding: Winter sports
+   */
+  ONBOARDING_INTERESTS_ITEM_WINTER_SPORTS: string;
+  /**
+   * onboarding: Tell us about yourself
+   */
+  ONBOARDING_INTERESTS_TITLE: string;
+  /**
+   * onboarding: <p>We do not sell advertisement, <b>we do not store or share you location</b> and we fully respect you privacy.</p><p>If you allow location services, we can provide you with better weather data based on your position.</p>
+   */
+  ONBOARDING_LOCATION_DESC: string;
+  /**
+   * onboarding: Allow location services
+   */
+  ONBOARDING_LOCATION_TITLE: string;
+  /**
+   * onboarding: Reject
+   */
+  ONBOARDING_REJECT: string;
+  /**
+   * onboarding: Save
+   */
+  ONBOARDING_SAVE: string;
+  /**
+   * onboarding: Set units
+   */
+  ONBOARDING_SET_UNITS: string;
+  /**
+   * onboarding: Set up later
+   */
+  ONBOARDING_SET_UP_LATER: string;
+  /**
+   * onboarding: Set up your units
+   */
+  ONBOARDING_UNITS_TITLE: string;
+  /**
+   * onboarding: Today’s forecast is ready — check it now in Windy!.
+   */
+  RETENTION_DEFAULT_BODY: string;
+  /**
+   * onboarding: What’s the Weather Today? ☀️ 🌧️
+   */
+  RETENTION_DEFAULT_TITLE: string;
+  /**
+   * onboarding: See how different weather models stack up in Windy
+   */
+  RETENTION_FORECAST_BODY: string;
+  /**
+   * onboarding: Not the Forecast You Hoped For? 🤔
+   */
+  RETENTION_FORECAST_TITLE: string;
+  /**
+   * onboarding: 50+ layers to explore — wind, radar, storms & more!
+   */
+  RETENTION_LAYERS_BODY: string;
+  /**
+   * onboarding: Dive Deeper into Weather 🌍
+   */
+  RETENTION_LAYERS_TITLE: string;
 }
 
 export interface PickerLangFile {
-    /**
-     * picker: About data
-     */
-    PICKER_ABOUT: string;
-    /**
-     * picker: Always on
-     */
-    PICKER_ALWAYS_ON: string;
-    /**
-     * picker: Display coordinates & elevation
-     */
-    PICKER_COORDS_ELEV: string;
-    /**
-     * picker: Display directions as
-     */
-    PICKER_DIRECTION: string;
-    /**
-     * picker: Distance<small>& route plan</small>
-     */
-    PICKER_DISTANCE: string;
-    /**
-     * picker: Forecast<small>for this point</small>
-     */
-    PICKER_FORECAST: string;
-    /**
-     * picker: Loading...
-     */
-    PICKER_LOADING: string;
-    /**
-     * picker: number
-     */
-    PICKER_NUMBER: string;
-    /**
-     * picker: {{value}} seconds
-     */
-    PICKER_SECONDS: string;
-    /**
-     * picker: Settings<small>for picker</small>
-     */
-    PICKER_SETTINGS: string;
-    /**
-     * picker: Share<small>this map</small>
-     */
-    PICKER_SHARE: string;
-    /**
-     * picker: Sounding<small>for this point</small>
-     */
-    PICKER_SOUNDING: string;
-    /**
-     * picker: string
-     */
-    PICKER_STRING: string;
-    /**
-     * picker: Sun/Moon<small>position</small>
-     */
-    PICKER_SUN_MOON: string;
-    /**
-     * picker: Support<small>Windy.com</small>
-     */
-    PICKER_SUPPORT: string;
-    /**
-     * picker: Autoclose picker in
-     */
-    PICKER_TIMEOUT: string;
-    /**
-     * picker: Warnings<small>for this point</small>
-     */
-    PICKER_WARNINGS: string;
-    /**
-     * picker: Wind<small>trajectories</small>
-     */
-    PICKER_WIND_TRAJECTORIES: string;
+  /**
+   * picker: About data
+   */
+  PICKER_ABOUT: string;
+  /**
+   * picker: Always on
+   */
+  PICKER_ALWAYS_ON: string;
+  /**
+   * picker: Display coordinates & elevation
+   */
+  PICKER_COORDS_ELEV: string;
+  /**
+   * picker: Display directions as
+   */
+  PICKER_DIRECTION: string;
+  /**
+   * picker: Distance<small>& route plan</small>
+   */
+  PICKER_DISTANCE: string;
+  /**
+   * picker: Forecast<small>for this point</small>
+   */
+  PICKER_FORECAST: string;
+  /**
+   * picker: Loading...
+   */
+  PICKER_LOADING: string;
+  /**
+   * picker: number
+   */
+  PICKER_NUMBER: string;
+  /**
+   * picker: {{value}} seconds
+   */
+  PICKER_SECONDS: string;
+  /**
+   * picker: Settings<small>for picker</small>
+   */
+  PICKER_SETTINGS: string;
+  /**
+   * picker: Share<small>this map</small>
+   */
+  PICKER_SHARE: string;
+  /**
+   * picker: Sounding<small>for this point</small>
+   */
+  PICKER_SOUNDING: string;
+  /**
+   * picker: string
+   */
+  PICKER_STRING: string;
+  /**
+   * picker: Sun/Moon<small>position</small>
+   */
+  PICKER_SUN_MOON: string;
+  /**
+   * picker: Support<small>Windy.com</small>
+   */
+  PICKER_SUPPORT: string;
+  /**
+   * picker: Autoclose picker in
+   */
+  PICKER_TIMEOUT: string;
+  /**
+   * picker: Warnings<small>for this point</small>
+   */
+  PICKER_WARNINGS: string;
+  /**
+   * picker: Wind<small>trajectories</small>
+   */
+  PICKER_WIND_TRAJECTORIES: string;
 }
 
 export interface ProductsLangFile {
-    /**
-     * products: Weather warnings issued by national weather agencies in a form of "CAP Alerts".
-     */
-    capAlerts: string;
-    /**
-     * products: Convective available potential energy, represents potential energy of atmosphere and can be indicator of forming convective clouds and storms. Values from 1000 to 2000 can indicate forming of moderate thunderstorms, and over 2000 severe ones.
-     */
-    cape: string;
-    /**
-     * products: Cloud base height is the height of the lowest cloud base above the ground, especially important for pilots. Model of terrain is simplified, so be cautious to use this values in mountains. On large areas, forecast model is NOT ABLE TO CALCULATE CLOUD BASE.
-     */
-    cbase: string;
-    /**
-     * products: Clouds and rain/snow accumulation in the last 3 hours. Please note, that rain from convective clouds cannot be included in this value, therefore observe CAPE index.
-     */
-    clouds: string;
-    /**
-     * products: Cloud tops height is the altitude of the cloud peak.
-     */
-    cloudtop: string;
-    /**
-     * products: Carbon monoxide is a colorless, odorless, and tasteless gas that is slightly less dense than air. The level of CO concentration in the troposphere is measured by a system called Parts Per Billion by Volume (PPBV).
-     */
-    cosc: string;
-    /**
-     * products: The freezing level, or 0 °C (zero-degree) isotherm, represents the altitude in which the temperature is at 0 °C (the freezing point of water).
-     */
-    deg0: string;
-    /**
-     * products: Temperature at 2m above surface (or at selected level) at which a water vapor in air will form dew. It is a measure of atmospheric moisture.
-     */
-    dewpoint: string;
-    /**
-     * products: Dust generally consists of particles in the atmosphere that come from various sources such as soil, dust lifted by weather, volcanic eruptions, and air pollution. The level of dust concentration is given in micrograms (one-millionth of a gram) per cubic meter air or µg/m3 at the surface.
-     */
-    dustsm: string;
-    /**
-     * products: Fog is a visible aerosol consisting of minute water droplets or ice crystals suspended in the air at or near the Earths surface. Fog is heavily influenced by nearby bodies of water, topography, and wind conditions.
-     */
-    fog: string;
-    /**
-     * products: Wind gusts 10 meters above the surface in the last 3 hours. Actual wind at the ground is influenced by so many factors like mountains, cities and thermal effects. ECMWF model has  different method of Wind Gusts computation, resulting in higher values, than other models.
-     */
-    gust: string;
-    /**
-     * products: High clouds is cloud coverage at an altitude between circa 6500m and the cloud tops. Cloud cover is given in percent.
-     */
-    hclouds: string;
-    /**
-     * products: Precise, street level map of temperatures in cities.
-     */
-    heatmaps: string;
-    /**
-     * products: Low clouds is cloud coverage at an altitude between the surface and circa 2000m.  Cloud cover is given in percent.
-     */
-    lclouds: string;
-    /**
-     * products: Topographic map of the World, based on OSM data.
-     */
-    map: string;
-    /**
-     * products: Medium clouds is cloud coverage at an altitude between circa 2000m and circa 6500m. Cloud cover is given in percent.
-     */
-    mclouds: string;
-    /**
-     * products: The mean sea-level pressure (MSLP) is the average atmospheric pressure at sea level. Atmospheric pressure, sometimes also called barometric pressure, is the pressure within the atmosphere of Earth (or that of another planet). In most circumstances atmospheric pressure is closely approximated by the hydrostatic pressure caused by the weight of air above the measurement point.
-     */
-    pressure: string;
-    /**
-     * products: Precipitation types can include the character or phase of the precipitation which is falling to ground level. Precipitation can fall in either liquid or solid phases, or transition between them. Rain, Freezing rain, Mixed ice, Snow, Wet snow, Rain with snow, Ice pellets.
-     */
-    ptype: string;
-    /**
-     * products: Reflectivity measured with doppler radar, indicating actual rain/snow/hail or amount of predicable water in clouds. Weather radar, also called Doppler weather radar, is a type of radar used to locate precipitation, calculate its motion, and estimate its type (rain, snow, hail etc.) or amount of predicable water in clouds Return echoes from targets ("reflectivity") are analyzed for their intensities to establish the precipitation rate in the scanned volume.
-     */
-    radar: string;
-    /**
-     * products: Actual doppler radar & satellite imagery
-     */
-    radarSat: string;
-    /**
-     * products: Rain/snow accumulation in the last 3 hours.
-     */
-    rain: string;
-    /**
-     * products: Total rain accumulation in the next hours or days.
-     */
-    rainAccu: string;
-    /**
-     * products: Relative humidity 2m above the surface (or at selected pressure level).
-     */
-    rh: string;
-    /**
-     * products: A global picture of the current state of cloud cover from geostationary satellites.
-     */
-    satellite: string;
-    /**
-     * products: Total snow accumulation in the next hours or days. To estimate snow depth, we use ratio: 1 mm of rain = 1 cm of snow.
-     */
-    snowAccu: string;
-    /**
-     * products: Forecasted depth and density of snow in next days. Actual snow depth will be influenced by many factors like orography, cities and so on.
-     */
-    snowcover: string;
-    /**
-     * products: Sea surface temperature is the water temperature close to the oceans surface. Close to the shoreline, the actual value is influenced by the shape of the shoreline and the sea bottom, and also by wind and waves.
-     */
-    sst: string;
-    /**
-     * products: A swell consists of wind-generated waves that are not significantly affected by the local wind at that time. They have been generated elsewhere or some time ago.
-     */
-    swell1: string;
-    /**
-     * products: Secondary swell is produced also by winds far away but in other places than Swell1. It has different heights, directions and periods than Swell1.
-     */
-    swell2: string;
-    /**
-     * products: Another secondary swell, with different heights, directions and periods than Swell1 and Swell2.
-     */
-    swell3: string;
-    /**
-     * products: Temperature 2m above the surface (or at the selected pressure level). Actual temperature is influenced by many factors like mountains, convective clouds and cities.
-     */
-    temp: string;
-    /**
-     * products: Defined as number of lighting flashes in the area of one square kilometer, in one day.
-     */
-    thunder: string;
-    /**
-     * products: Visibility is a measure of the distance at which an object or light can be clearly discerned. Meteorological visibility refers to transparency of air: in dark, meteorological visibility is still the same as in daylight for the same air.
-     */
-    visibility: string;
-    /**
-     * products: Significant wave height and its period of all wave types combined (swell and wind waves). Close to the shoreline, the actual height is influenced by the shape of the sea bottom.
-     */
-    waves: string;
-    /**
-     * products: Average wind speed 10 meters above the surface (or at selected pressure level). Actual wind at the ground is influenced by many factors like mountains, cities, convective clouds and thermal effects.
-     */
-    wind: string;
-    /**
-     * products: Wind waves, or wind-generated waves, are surface waves that occur on the free surface of bodies of water (like oceans, seas, lakes, etc.). They result from the wind blowing over an area of water surface. Wind waves are generated by the immediate local wind – which gives them the direction. After the wind ceases to blow, wind waves are called swells.
-     */
-    wwaves: string;
+  /**
+   * products: Weather warnings issued by national weather agencies in a form of "CAP Alerts".
+   */
+  capAlerts: string;
+  /**
+   * products: Convective available potential energy, represents potential energy of atmosphere and can be indicator of forming convective clouds and storms. Values from 1000 to 2000 can indicate forming of moderate thunderstorms, and over 2000 severe ones.
+   */
+  cape: string;
+  /**
+   * products: Cloud base height is the height of the lowest cloud base above the ground, especially important for pilots. Model of terrain is simplified, so be cautious to use this values in mountains. On large areas, forecast model is NOT ABLE TO CALCULATE CLOUD BASE.
+   */
+  cbase: string;
+  /**
+   * products: Clouds and rain/snow accumulation in the last 3 hours. Please note, that rain from convective clouds cannot be included in this value, therefore observe CAPE index.
+   */
+  clouds: string;
+  /**
+   * products: Cloud tops height is the altitude of the cloud peak.
+   */
+  cloudtop: string;
+  /**
+   * products: Carbon monoxide is a colorless, odorless, and tasteless gas that is slightly less dense than air. The level of CO concentration in the troposphere is measured by a system called Parts Per Billion by Volume (PPBV).
+   */
+  cosc: string;
+  /**
+   * products: The freezing level, or 0 °C (zero-degree) isotherm, represents the altitude in which the temperature is at 0 °C (the freezing point of water).
+   */
+  deg0: string;
+  /**
+   * products: Temperature at 2m above surface (or at selected level) at which a water vapor in air will form dew. It is a measure of atmospheric moisture.
+   */
+  dewpoint: string;
+  /**
+   * products: Dust generally consists of particles in the atmosphere that come from various sources such as soil, dust lifted by weather, volcanic eruptions, and air pollution. The level of dust concentration is given in micrograms (one-millionth of a gram) per cubic meter air or µg/m3 at the surface.
+   */
+  dustsm: string;
+  /**
+   * products: Fog is a visible aerosol consisting of minute water droplets or ice crystals suspended in the air at or near the Earths surface. Fog is heavily influenced by nearby bodies of water, topography, and wind conditions.
+   */
+  fog: string;
+  /**
+   * products: Wind gusts 10 meters above the surface in the last 3 hours. Actual wind at the ground is influenced by so many factors like mountains, cities and thermal effects. ECMWF model has  different method of Wind Gusts computation, resulting in higher values, than other models.
+   */
+  gust: string;
+  /**
+   * products: High clouds is cloud coverage at an altitude between circa 6500m and the cloud tops. Cloud cover is given in percent.
+   */
+  hclouds: string;
+  /**
+   * products: Precise, street level map of temperatures in cities.
+   */
+  heatmaps: string;
+  /**
+   * products: Low clouds is cloud coverage at an altitude between the surface and circa 2000m.  Cloud cover is given in percent.
+   */
+  lclouds: string;
+  /**
+   * products: Topographic map of the World, based on OSM data.
+   */
+  map: string;
+  /**
+   * products: Medium clouds is cloud coverage at an altitude between circa 2000m and circa 6500m. Cloud cover is given in percent.
+   */
+  mclouds: string;
+  /**
+   * products: The mean sea-level pressure (MSLP) is the average atmospheric pressure at sea level. Atmospheric pressure, sometimes also called barometric pressure, is the pressure within the atmosphere of Earth (or that of another planet). In most circumstances atmospheric pressure is closely approximated by the hydrostatic pressure caused by the weight of air above the measurement point.
+   */
+  pressure: string;
+  /**
+   * products: Precipitation types can include the character or phase of the precipitation which is falling to ground level. Precipitation can fall in either liquid or solid phases, or transition between them. Rain, Freezing rain, Mixed ice, Snow, Wet snow, Rain with snow, Ice pellets.
+   */
+  ptype: string;
+  /**
+   * products: Reflectivity measured with doppler radar, indicating actual rain/snow/hail or amount of predicable water in clouds. Weather radar, also called Doppler weather radar, is a type of radar used to locate precipitation, calculate its motion, and estimate its type (rain, snow, hail etc.) or amount of predicable water in clouds Return echoes from targets ("reflectivity") are analyzed for their intensities to establish the precipitation rate in the scanned volume.
+   */
+  radar: string;
+  /**
+   * products: Actual doppler radar & satellite imagery
+   */
+  radarSat: string;
+  /**
+   * products: Rain/snow accumulation in the last 3 hours.
+   */
+  rain: string;
+  /**
+   * products: Total rain accumulation in the next hours or days.
+   */
+  rainAccu: string;
+  /**
+   * products: Relative humidity 2m above the surface (or at selected pressure level).
+   */
+  rh: string;
+  /**
+   * products: A global picture of the current state of cloud cover from geostationary satellites.
+   */
+  satellite: string;
+  /**
+   * products: Total snow accumulation in the next hours or days. To estimate snow depth, we use ratio: 1 mm of rain = 1 cm of snow.
+   */
+  snowAccu: string;
+  /**
+   * products: Forecasted depth and density of snow in next days. Actual snow depth will be influenced by many factors like orography, cities and so on.
+   */
+  snowcover: string;
+  /**
+   * products: Sea surface temperature is the water temperature close to the oceans surface. Close to the shoreline, the actual value is influenced by the shape of the shoreline and the sea bottom, and also by wind and waves.
+   */
+  sst: string;
+  /**
+   * products: A swell consists of wind-generated waves that are not significantly affected by the local wind at that time. They have been generated elsewhere or some time ago.
+   */
+  swell1: string;
+  /**
+   * products: Secondary swell is produced also by winds far away but in other places than Swell1. It has different heights, directions and periods than Swell1.
+   */
+  swell2: string;
+  /**
+   * products: Another secondary swell, with different heights, directions and periods than Swell1 and Swell2.
+   */
+  swell3: string;
+  /**
+   * products: Temperature 2m above the surface (or at the selected pressure level). Actual temperature is influenced by many factors like mountains, convective clouds and cities.
+   */
+  temp: string;
+  /**
+   * products: Defined as number of lighting flashes in the area of one square kilometer, in one day.
+   */
+  thunder: string;
+  /**
+   * products: Visibility is a measure of the distance at which an object or light can be clearly discerned. Meteorological visibility refers to transparency of air: in dark, meteorological visibility is still the same as in daylight for the same air.
+   */
+  visibility: string;
+  /**
+   * products: Significant wave height and its period of all wave types combined (swell and wind waves). Close to the shoreline, the actual height is influenced by the shape of the sea bottom.
+   */
+  waves: string;
+  /**
+   * products: Average wind speed 10 meters above the surface (or at selected pressure level). Actual wind at the ground is influenced by many factors like mountains, cities, convective clouds and thermal effects.
+   */
+  wind: string;
+  /**
+   * products: Wind waves, or wind-generated waves, are surface waves that occur on the free surface of bodies of water (like oceans, seas, lakes, etc.). They result from the wind blowing over an area of water surface. Wind waves are generated by the immediate local wind – which gives them the direction. After the wind ceases to blow, wind waves are called swells.
+   */
+  wwaves: string;
 }
 
 export interface RadsatLangFile {
-    /**
-     * radsat: OK, got it
-     */
-    RADAR_ISSUE_OK: string;
-    /**
-     * radsat: We're testing new radar rendering. If something looks wrong, please let us know using the <span data-icon="{{bugIcon}}"></span> <b>Report Issue</b> tool in the <span data-icon="{{optionsIcon}}"></span> radar menu.
-     */
-    RADAR_ISSUE_PROMO: string;
-    /**
-     * radsat: Blue
-     */
-    RADSAT_BLUE: string;
-    /**
-     * radsat: Infra
-     */
-    RADSAT_INFRA: string;
-    /**
-     * radsat: More...
-     */
-    RADSAT_JUST_MORE: string;
-    /**
-     * radsat: More options...
-     */
-    RADSAT_MORE: string;
-    /**
-     * radsat: Next {hour}h
-     */
-    RADSAT_NEXT_X_HOUR: string;
-    /**
-     * radsat: Overlay with radar
-     */
-    RADSAT_OVERLAY_WITH_RADAR: string;
-    /**
-     * radsat: Overlay with satellite
-     */
-    RADSAT_OVERLAY_WITH_SATELLITE: string;
-    /**
-     * radsat: Play with forecast
-     */
-    RADSAT_PLAY_WITH_FORECAST: string;
-    /**
-     * radsat: RAD
-     */
-    RADSAT_RAD: string;
-    /**
-     * radsat: SAT
-     */
-    RADSAT_SAT: string;
-    /**
-     * radsat: There is outage of data in regions: {regions}.
-     */
-    RADSAT_SATELLITE_OUTAGE_MESSAGE: string;
-    /**
-     * radsat: Africa, Europe
-     */
-    RADSAT_SATELLITE_OUTAGE_REGION_AFRICA_EUROPE: string;
-    /**
-     * radsat: East America
-     */
-    RADSAT_SATELLITE_OUTAGE_REGION_AMERICA_EAST: string;
-    /**
-     * radsat: West America
-     */
-    RADSAT_SATELLITE_OUTAGE_REGION_AMERICA_WEST: string;
-    /**
-     * radsat: East Asia
-     */
-    RADSAT_SATELLITE_OUTAGE_REGION_ASIA_EAST: string;
-    /**
-     * radsat: West Asia
-     */
-    RADSAT_SATELLITE_OUTAGE_REGION_ASIA_WEST: string;
-    /**
-     * radsat: Visible
-     */
-    RADSAT_VISIBLE: string;
-    /**
-     * radsat: {hour}h ago
-     */
-    RADSAT_X_HOUR_AGO: string;
+  /**
+   * radsat: OK, got it
+   */
+  RADAR_ISSUE_OK: string;
+  /**
+   * radsat: We're testing new radar rendering. If something looks wrong, please let us know using the <span data-icon="{{bugIcon}}"></span> <b>Report Issue</b> tool in the <span data-icon="{{optionsIcon}}"></span> radar menu.
+   */
+  RADAR_ISSUE_PROMO: string;
+  /**
+   * radsat: Blue
+   */
+  RADSAT_BLUE: string;
+  /**
+   * radsat: Infra
+   */
+  RADSAT_INFRA: string;
+  /**
+   * radsat: More...
+   */
+  RADSAT_JUST_MORE: string;
+  /**
+   * radsat: More options...
+   */
+  RADSAT_MORE: string;
+  /**
+   * radsat: Next {hour}h
+   */
+  RADSAT_NEXT_X_HOUR: string;
+  /**
+   * radsat: Overlay with radar
+   */
+  RADSAT_OVERLAY_WITH_RADAR: string;
+  /**
+   * radsat: Overlay with satellite
+   */
+  RADSAT_OVERLAY_WITH_SATELLITE: string;
+  /**
+   * radsat: Play with forecast
+   */
+  RADSAT_PLAY_WITH_FORECAST: string;
+  /**
+   * radsat: RAD
+   */
+  RADSAT_RAD: string;
+  /**
+   * radsat: SAT
+   */
+  RADSAT_SAT: string;
+  /**
+   * radsat: There is outage of data in regions: {regions}.
+   */
+  RADSAT_SATELLITE_OUTAGE_MESSAGE: string;
+  /**
+   * radsat: Africa, Europe
+   */
+  RADSAT_SATELLITE_OUTAGE_REGION_AFRICA_EUROPE: string;
+  /**
+   * radsat: East America
+   */
+  RADSAT_SATELLITE_OUTAGE_REGION_AMERICA_EAST: string;
+  /**
+   * radsat: West America
+   */
+  RADSAT_SATELLITE_OUTAGE_REGION_AMERICA_WEST: string;
+  /**
+   * radsat: East Asia
+   */
+  RADSAT_SATELLITE_OUTAGE_REGION_ASIA_EAST: string;
+  /**
+   * radsat: West Asia
+   */
+  RADSAT_SATELLITE_OUTAGE_REGION_ASIA_WEST: string;
+  /**
+   * radsat: Visible
+   */
+  RADSAT_VISIBLE: string;
+  /**
+   * radsat: {hour}h ago
+   */
+  RADSAT_X_HOUR_AGO: string;
 }
 
 export interface RegisterLangFile {
-    /**
-     * register: Already registered?
-     */
-    ALREADY_REGISTERED: string;
-    /**
-     * register: Please complete recaptcha to continue
-     */
-    COMPLETE_RECAPTCHA: string;
-    /**
-     * register: Confirm Password
-     */
-    CONFIRM_PASSWD: string;
-    /**
-     * register: Email Address
-     */
-    EMAIL: string;
-    /**
-     * register: Failed to login with [provider]. Please try again or use another option.
-     */
-    FAILED_TO_LOGIN_WITH: string;
-    /**
-     * register: Forgot Password?
-     */
-    FORGOT_PASSWORD: string;
-    /**
-     * register: An unexpected error has occurred. Try again later.
-     */
-    GENERAL_LOGIN_REGISTER_ERROR: string;
-    /**
-     * register: Login here
-     */
-    GOTO_LOGIN: string;
-    /**
-     * register: Login
-     */
-    LOGIN: string;
-    /**
-     * register: Login failed.
-     */
-    LOGIN_FAILED: string;
-    /**
-     * register: Having troubles with [provider] login. Trying it again, please wait.
-     */
-    LOGIN_TROUBLES: string;
-    /**
-     * register: This email address is already taken
-     */
-    MSG_EMAILADDRESS_TAKEN: string;
-    /**
-     * register: Email address is required
-     */
-    MSG_EMAIL_REQUIRED: string;
-    /**
-     * register: This doesn't look like an email address
-     */
-    MSG_INVALID_EMAILADDRESS: string;
-    /**
-     * register: Invalid Password
-     */
-    MSG_INVALID_PASSWORD: string;
-    /**
-     * register: Invalid username
-     */
-    MSG_INVALID_USERNAME: string;
-    /**
-     * register: Password and confirmation don't match
-     */
-    MSG_PASSWORDS_DONT_MATCH: string;
-    /**
-     * register: Password confirmation is required
-     */
-    MSG_PASSWORD_CONFIRM_REQUIRED: string;
-    /**
-     * register: Password is required
-     */
-    MSG_PASSWORD_REQUIRED: string;
-    /**
-     * register: Password is too long
-     */
-    MSG_PASSWORD_TOO_LONG: string;
-    /**
-     * register: Password is too short
-     */
-    MSG_PASSWORD_TOO_SHORT: string;
-    /**
-     * register: Password is too weak
-     */
-    MSG_PASSWORD_TOO_WEAK: string;
-    /**
-     * register: Username contains bad characters
-     */
-    MSG_USERNAME_BAD_CHARACTERS: string;
-    /**
-     * register: Username is required
-     */
-    MSG_USERNAME_REQUIRED: string;
-    /**
-     * register: This username is already taken
-     */
-    MSG_USERNAME_TAKEN: string;
-    /**
-     * register: Username is too long
-     */
-    MSG_USERNAME_TOO_LONG: string;
-    /**
-     * register: Username is too short
-     */
-    MSG_USERNAME_TOO_SHORT: string;
-    /**
-     * register: Password
-     */
-    PASSWD: string;
-    /**
-     * register: Register Now
-     */
-    REGISTER_NOW: string;
-    /**
-     * register: By creating an account, you agree to the Windy <a href="https://account.windy.com/agreements/windy-terms-of-use" target="_blank">Terms of Service</a> and <a href="https://account.windy.com/agreements/windy-privacy-policy" target="_blank">Privacy policy</a>.
-     */
-    REGISTRATION_AGREEMENTS: string;
-    /**
-     * register: Registration failed.
-     */
-    REGISTRATION_FAILED: string;
-    /**
-     * register: Log in with Apple
-     */
-    SIGN_IN_WITH_APPLE: string;
-    /**
-     * register: Log in with Facebook
-     */
-    SIGN_IN_WITH_FACEBOOK: string;
-    /**
-     * register: Log in with Google
-     */
-    SIGN_IN_WITH_GOOGLE: string;
-    /**
-     * register: Sign up with Apple
-     */
-    SIGN_UP_WITH_APPLE: string;
-    /**
-     * register: Sign up with Facebook
-     */
-    SIGN_UP_WITH_FACEBOOK: string;
-    /**
-     * register: Sign up with Google
-     */
-    SIGN_UP_WITH_GOOGLE: string;
-    /**
-     * register: Username
-     */
-    USERNAME: string;
-    /**
-     * register: Register
-     */
-    U_REGISTER: string;
-    /**
-     * register: You must agree to continue
-     */
-    YOU_MUST_AGREE: string;
+  /**
+   * register: Already registered?
+   */
+  ALREADY_REGISTERED: string;
+  /**
+   * register: Please complete recaptcha to continue
+   */
+  COMPLETE_RECAPTCHA: string;
+  /**
+   * register: Confirm Password
+   */
+  CONFIRM_PASSWD: string;
+  /**
+   * register: Email Address
+   */
+  EMAIL: string;
+  /**
+   * register: Failed to login with [provider]. Please try again or use another option.
+   */
+  FAILED_TO_LOGIN_WITH: string;
+  /**
+   * register: Forgot Password?
+   */
+  FORGOT_PASSWORD: string;
+  /**
+   * register: An unexpected error has occurred. Try again later.
+   */
+  GENERAL_LOGIN_REGISTER_ERROR: string;
+  /**
+   * register: Login here
+   */
+  GOTO_LOGIN: string;
+  /**
+   * register: Login
+   */
+  LOGIN: string;
+  /**
+   * register: Login failed.
+   */
+  LOGIN_FAILED: string;
+  /**
+   * register: Having troubles with [provider] login. Trying it again, please wait.
+   */
+  LOGIN_TROUBLES: string;
+  /**
+   * register: This email address is already taken
+   */
+  MSG_EMAILADDRESS_TAKEN: string;
+  /**
+   * register: Email address is required
+   */
+  MSG_EMAIL_REQUIRED: string;
+  /**
+   * register: This doesn't look like an email address
+   */
+  MSG_INVALID_EMAILADDRESS: string;
+  /**
+   * register: Invalid Password
+   */
+  MSG_INVALID_PASSWORD: string;
+  /**
+   * register: Invalid username
+   */
+  MSG_INVALID_USERNAME: string;
+  /**
+   * register: Password and confirmation don't match
+   */
+  MSG_PASSWORDS_DONT_MATCH: string;
+  /**
+   * register: Password confirmation is required
+   */
+  MSG_PASSWORD_CONFIRM_REQUIRED: string;
+  /**
+   * register: Password is required
+   */
+  MSG_PASSWORD_REQUIRED: string;
+  /**
+   * register: Password is too long
+   */
+  MSG_PASSWORD_TOO_LONG: string;
+  /**
+   * register: Password is too short
+   */
+  MSG_PASSWORD_TOO_SHORT: string;
+  /**
+   * register: Password is too weak
+   */
+  MSG_PASSWORD_TOO_WEAK: string;
+  /**
+   * register: Username contains bad characters
+   */
+  MSG_USERNAME_BAD_CHARACTERS: string;
+  /**
+   * register: Username is required
+   */
+  MSG_USERNAME_REQUIRED: string;
+  /**
+   * register: This username is already taken
+   */
+  MSG_USERNAME_TAKEN: string;
+  /**
+   * register: Username is too long
+   */
+  MSG_USERNAME_TOO_LONG: string;
+  /**
+   * register: Username is too short
+   */
+  MSG_USERNAME_TOO_SHORT: string;
+  /**
+   * register: Password
+   */
+  PASSWD: string;
+  /**
+   * register: Register Now
+   */
+  REGISTER_NOW: string;
+  /**
+   * register: By creating an account, you agree to the Windy <a href="https://account.windy.com/agreements/windy-terms-of-use" target="_blank">Terms of Service</a> and <a href="https://account.windy.com/agreements/windy-privacy-policy" target="_blank">Privacy policy</a>.
+   */
+  REGISTRATION_AGREEMENTS: string;
+  /**
+   * register: Registration failed.
+   */
+  REGISTRATION_FAILED: string;
+  /**
+   * register: Log in with Apple
+   */
+  SIGN_IN_WITH_APPLE: string;
+  /**
+   * register: Log in with Facebook
+   */
+  SIGN_IN_WITH_FACEBOOK: string;
+  /**
+   * register: Log in with Google
+   */
+  SIGN_IN_WITH_GOOGLE: string;
+  /**
+   * register: Sign up with Apple
+   */
+  SIGN_UP_WITH_APPLE: string;
+  /**
+   * register: Sign up with Facebook
+   */
+  SIGN_UP_WITH_FACEBOOK: string;
+  /**
+   * register: Sign up with Google
+   */
+  SIGN_UP_WITH_GOOGLE: string;
+  /**
+   * register: Username
+   */
+  USERNAME: string;
+  /**
+   * register: Register
+   */
+  U_REGISTER: string;
+  /**
+   * register: You must agree to continue
+   */
+  YOU_MUST_AGREE: string;
 }
 
 export interface ReportissueLangFile {
-    /**
-     * reportissue: Attach screenshot or video
-     */
-    REPORT_ISSUE_ATTACH: string;
-    /**
-     * reportissue: The best way to describe issue is to send us screenshots or video, which illustrate the problem, together with a short description of what is wrong and how to reproduce it.
-     */
-    REPORT_ISSUE_DESCRIPTION: string;
-    /**
-     * reportissue: Fullscreen preview
-     */
-    REPORT_ISSUE_FULLSCREEN_PREVIEW: string;
-    /**
-     * reportissue: Maximum file size is 20MB
-     */
-    REPORT_ISSUE_MAX_SIZE: string;
-    /**
-     * reportissue: Describe the issue you encountered...
-     */
-    REPORT_ISSUE_PLACEHOLDER: string;
-    /**
-     * reportissue: Send us error report
-     */
-    REPORT_ISSUE_SEND: string;
-    /**
-     * reportissue: Send new report
-     */
-    REPORT_ISSUE_SEND_NEW: string;
-    /**
-     * reportissue: Thank you for the report! We'll look into it.
-     */
-    REPORT_ISSUE_SUCCESS: string;
-    /**
-     * reportissue: Uploading files:
-     */
-    REPORT_ISSUE_UPLOADING: string;
+  /**
+   * reportissue: Attach screenshot or video
+   */
+  REPORT_ISSUE_ATTACH: string;
+  /**
+   * reportissue: The best way to describe issue is to send us screenshots or video, which illustrate the problem, together with a short description of what is wrong and how to reproduce it.
+   */
+  REPORT_ISSUE_DESCRIPTION: string;
+  /**
+   * reportissue: Fullscreen preview
+   */
+  REPORT_ISSUE_FULLSCREEN_PREVIEW: string;
+  /**
+   * reportissue: Maximum file size is 20MB
+   */
+  REPORT_ISSUE_MAX_SIZE: string;
+  /**
+   * reportissue: Describe the issue you encountered...
+   */
+  REPORT_ISSUE_PLACEHOLDER: string;
+  /**
+   * reportissue: Send us error report
+   */
+  REPORT_ISSUE_SEND: string;
+  /**
+   * reportissue: Send new report
+   */
+  REPORT_ISSUE_SEND_NEW: string;
+  /**
+   * reportissue: Thank you for the report! We'll look into it.
+   */
+  REPORT_ISSUE_SUCCESS: string;
+  /**
+   * reportissue: Uploading files:
+   */
+  REPORT_ISSUE_UPLOADING: string;
 }
 
 export interface SearchLangFile {
-    /**
-     * search: Clear search history
-     */
-    SEARCH_CLEAR_HISTORY: string;
-    /**
-     * search: Paragliding spots provided by <a href="https://paraglidingearth.com/" target="_blank">Paragliding Earth</a>
-     */
-    SEARCH_DATA_PG_PROVIDER: string;
-    /**
-     * search: Surfing spots provided by <a href="https://www.stormrider.surf/" target="_blank">Stormrider</a>
-     */
-    SEARCH_DATA_SURF_PROVIDER: string;
-    /**
-     * search: Airports
-     */
-    SEARCH_FILTER_AIRPORTS: string;
-    /**
-     * search: All
-     */
-    SEARCH_FILTER_ALL: string;
-    /**
-     * search: Kite, Surf, WS
-     */
-    SEARCH_FILTER_KITE_SURF_WS: string;
-    /**
-     * search: Paragl.
-     */
-    SEARCH_FILTER_PARAGLIDING: string;
-    /**
-     * search: Webcams
-     */
-    SEARCH_FILTER_WEBCAMS: string;
-    /**
-     * search: Wx Stations
-     */
-    SEARCH_FILTER_WX_STATIONS: string;
-    /**
-     * search: No results found
-     */
-    SEARCH_NO_RESULTS_FOUND: string;
-    /**
-     * search: No results found for
-     */
-    SEARCH_NO_RESULTS_FOUND_FOR: string;
-    /**
-     * search: Airports can be found by <b>ICAO</b> or <b>IATA</b> code
-     */
-    SEARCH_TIP_AIRPORT: string;
-    /**
-     * search: Search for coordinates to display location on a map
-     */
-    SEARCH_TIP_COORDS: string;
-    /**
-     * search: Search for name of active <b>hurricane</b> or <b>tropical cyclone</b>
-     */
-    SEARCH_TIP_HURRICANE: string;
-    /**
-     * search: Use e.g. <b>"LAX JFK"</b> or <b>"LKPR LSZS"</b> to display flying route
-     */
-    SEARCH_TIP_ROUTE: string;
+  /**
+   * search: Clear search history
+   */
+  SEARCH_CLEAR_HISTORY: string;
+  /**
+   * search: Paragliding spots provided by <a href="https://paraglidingearth.com/" target="_blank">Paragliding Earth</a>
+   */
+  SEARCH_DATA_PG_PROVIDER: string;
+  /**
+   * search: Surfing spots provided by <a href="https://www.stormrider.surf/" target="_blank">Stormrider</a>
+   */
+  SEARCH_DATA_SURF_PROVIDER: string;
+  /**
+   * search: Airports
+   */
+  SEARCH_FILTER_AIRPORTS: string;
+  /**
+   * search: All
+   */
+  SEARCH_FILTER_ALL: string;
+  /**
+   * search: Kite, Surf, WS
+   */
+  SEARCH_FILTER_KITE_SURF_WS: string;
+  /**
+   * search: Paragl.
+   */
+  SEARCH_FILTER_PARAGLIDING: string;
+  /**
+   * search: Webcams
+   */
+  SEARCH_FILTER_WEBCAMS: string;
+  /**
+   * search: Wx Stations
+   */
+  SEARCH_FILTER_WX_STATIONS: string;
+  /**
+   * search: No results found
+   */
+  SEARCH_NO_RESULTS_FOUND: string;
+  /**
+   * search: No results found for
+   */
+  SEARCH_NO_RESULTS_FOUND_FOR: string;
+  /**
+   * search: Airports can be found by <b>ICAO</b> or <b>IATA</b> code
+   */
+  SEARCH_TIP_AIRPORT: string;
+  /**
+   * search: Search for coordinates to display location on a map
+   */
+  SEARCH_TIP_COORDS: string;
+  /**
+   * search: Search for name of active <b>hurricane</b> or <b>tropical cyclone</b>
+   */
+  SEARCH_TIP_HURRICANE: string;
+  /**
+   * search: Use e.g. <b>"LAX JFK"</b> or <b>"LKPR LSZS"</b> to display flying route
+   */
+  SEARCH_TIP_ROUTE: string;
 }
 
 export interface SettingsLangFile {
-    /**
-     * settings: Widgets cannot access the location from the background. Please allow background location usage.
-     */
-    ERROR_BACKGROUND_LOCATION_1_DESCRIPTION: string;
-    /**
-     * settings: Background location access is restricted
-     */
-    ERROR_BACKGROUND_LOCATION_1_TITLE: string;
-    /**
-     * settings: Widgets cannot be updated automatically. Please set battery settings for Windy applicaton to Unrestricted.
-     */
-    ERROR_BATTERY_1_DESCRIPTION: string;
-    /**
-     * settings: Battery usage is restricted
-     */
-    ERROR_BATTERY_1_TITLE: string;
-    /**
-     * settings: We can't sync your settings and favorites between your device and Apple Watch. Consider deleting some items in your iCloud.
-     */
-    ERROR_ICLOUD_25_DESCRIPTION: string;
-    /**
-     * settings: iCloud is full
-     */
-    ERROR_ICLOUD_25_TITLE: string;
-    /**
-     * settings: We can't sync your settings and favorites between your device and Apple Watch. Please enable iCloud for Windy.com in your phone's settings.
-     */
-    ERROR_ICLOUD_9_DESCRIPTION: string;
-    /**
-     * settings: iCloud is denied
-     */
-    ERROR_ICLOUD_9_TITLE: string;
-    /**
-     * settings: We can't show weather informations for your location. Please enable location services in device settings
-     */
-    ERROR_LOC_1_DESCRIPTION: string;
-    /**
-     * settings: Location services are disabled
-     */
-    ERROR_LOC_1_TITLE: string;
-    /**
-     * settings: We can't show weather informations for your location. Please allow Windy to access this device's location
-     */
-    ERROR_LOC_2_DESCRIPTION: string;
-    /**
-     * settings: Location permission is required
-     */
-    ERROR_LOC_2_TITLE: string;
-    /**
-     * settings: We cannot send you notifications for your saved alerts. Please enable notifications in your device settings.
-     */
-    ERROR_NOTIF_1_DESCRIPTION: string;
-    /**
-     * settings: Notification services are disabled
-     */
-    ERROR_NOTIF_1_TITLE: string;
-    /**
-     * settings: Widgets cannot be updated automatically. Please allow notifications for the Windy application.
-     */
-    ERROR_WIDGET_NOTIFICATION_1_DESCRIPTION: string;
-    /**
-     * settings: Notifications are disabled
-     */
-    ERROR_WIDGET_NOTIFICATION_1_TITLE: string;
-    /**
-     * settings: Open application settings
-     */
-    E_BUTTON_APPLICATION_SETTINGS: string;
-    /**
-     * settings: Open device settings
-     */
-    E_BUTTON_DEVICE_SETTINGS: string;
-    /**
-     * settings: Show lat, lon grid
-     */
-    MENU_LATLON: string;
-    /**
-     * settings: Change background map
-     */
-    MENU_MAP: string;
-    /**
-     * settings: ...in very detailed zoom levels
-     */
-    MENU_MAP2: string;
-    /**
-     * settings: Show 4 day weather at startup
-     */
-    MENU_W_STARTUP: string;
-    /**
-     * settings: Add any location to your favorites to see it in the list
-     */
-    S_ADD_LOC: string;
-    /**
-     * settings: Always on
-     */
-    S_ALWAYS_ON: string;
-    /**
-     * settings: Speed of animation
-     */
-    S_ANIMATION_SPEED: string;
-    /**
-     * settings: Customize Windy App icon
-     */
-    S_APP_ICON: string;
-    /**
-     * settings: Requires Premium subscription
-     */
-    S_APP_ICON_PREMIUM: string;
-    /**
-     * settings: Now, restart the app to change the icon
-     */
-    S_APP_ICON_RELOAD: string;
-    /**
-     * settings: automatic
-     */
-    S_AUTOMATIC: string;
-    /**
-     * settings: Contrast
-     */
-    S_CONTRAST: string;
-    /**
-     * settings: Density
-     */
-    S_DENSITY: string;
-    /**
-     * settings: Display directions as
-     */
-    S_DIRECTION: string;
-    /**
-     * settings: Disable webGL
-     */
-    S_DISABLE_WEBGL: string;
-    /**
-     * settings: English map labels
-     */
-    S_EN_LABELS: string;
-    /**
-     * settings: Satellite future extrapolation
-     */
-    S_EXTRA_SAT: string;
-    /**
-     * settings: Fast
-     */
-    S_FAST: string;
-    /**
-     * settings: High
-     */
-    S_HIGH: string;
-    /**
-     * settings: Start-up location
-     */
-    S_HOME: string;
-    /**
-     * settings: Use GPS
-     */
-    S_HOME_GPS: string;
-    /**
-     * settings: Determine by my IP
-     */
-    S_HOME_IP: string;
-    /**
-     * settings: Use last location
-     */
-    S_HOME_LAST: string;
-    /**
-     * settings: Use last overlay
-     */
-    S_HOME_OVERLAY_LAST: string;
-    /**
-     * settings: Intensive
-     */
-    S_INTENSIVE: string;
-    /**
-     * settings: Language
-     */
-    S_LANG: string;
-    /**
-     * settings: Weather picker contains lat,lon
-     */
-    S_LAT_LON: string;
-    /**
-     * settings: Start-up layer
-     */
-    S_LAYER: string;
-    /**
-     * settings: Start-up layer and location
-     */
-    S_LAYER_LOCATION: string;
-    /**
-     * settings: Length
-     */
-    S_LENGTH: string;
-    /**
-     * settings: Normal
-     */
-    S_NORMAL: string;
-    /**
-     * settings: number
-     */
-    S_NUMBER: string;
-    /**
-     * settings: Animation of wind
-     */
-    S_PARTICLES: string;
-    /**
-     * settings: Show elevation in weather picker
-     */
-    S_PICKER_ELEVATION: string;
-    /**
-     * settings: Autoclose weather picker in:
-     */
-    S_PICKER_TIMEOUT: string;
-    /**
-     * settings: Predefined
-     */
-    S_PREDEFINED: string;
-    /**
-     * settings: Show precipitation type on radar
-     */
-    S_RADAR_RENDER_P_TYPE: string;
-    /**
-     * settings: Smooth radar and satellite animation
-     */
-    S_RADSAT_INTERPOLATE: string;
-    /**
-     * settings: ...reload Windy to take effect
-     */
-    S_RELOAD: string;
-    /**
-     * settings: Current value
-     */
-    S_SAVED_1H: string;
-    /**
-     * settings: Saved location
-     */
-    S_SAVED_LOCATION: string;
-    /**
-     * settings: Saved overlay
-     */
-    S_SAVED_OVERLAY: string;
-    /**
-     * settings: {{value}} seconds
-     */
-    S_SECONDS: string;
-    /**
-     * settings: Slow
-     */
-    S_SLOW: string;
-    /**
-     * settings: Smooth satellite animation
-     */
-    S_SMOOTH_SAT: string;
-    /**
-     * settings: Start-up zoom level
-     */
-    S_STARTUP_ZOOM: string;
-    /**
-     * settings: string
-     */
-    S_STRING: string;
-    /**
-     * settings: Time format
-     */
-    S_TIME_FORMAT: string;
-    /**
-     * settings: Very fast
-     */
-    S_VERY_FAST: string;
-    /**
-     * settings: Size
-     */
-    S_WIDTH: string;
-    /**
-     * settings: Display all times in UTC
-     */
-    S_ZULU_MODE: string;
+  /**
+   * settings: Widgets cannot access the location from the background. Please allow background location usage.
+   */
+  ERROR_BACKGROUND_LOCATION_1_DESCRIPTION: string;
+  /**
+   * settings: Background location access is restricted
+   */
+  ERROR_BACKGROUND_LOCATION_1_TITLE: string;
+  /**
+   * settings: Widgets cannot be updated automatically. Please set battery settings for Windy applicaton to Unrestricted.
+   */
+  ERROR_BATTERY_1_DESCRIPTION: string;
+  /**
+   * settings: Battery usage is restricted
+   */
+  ERROR_BATTERY_1_TITLE: string;
+  /**
+   * settings: We can't sync your settings and favorites between your device and Apple Watch. Consider deleting some items in your iCloud.
+   */
+  ERROR_ICLOUD_25_DESCRIPTION: string;
+  /**
+   * settings: iCloud is full
+   */
+  ERROR_ICLOUD_25_TITLE: string;
+  /**
+   * settings: We can't sync your settings and favorites between your device and Apple Watch. Please enable iCloud for Windy.com in your phone's settings.
+   */
+  ERROR_ICLOUD_9_DESCRIPTION: string;
+  /**
+   * settings: iCloud is denied
+   */
+  ERROR_ICLOUD_9_TITLE: string;
+  /**
+   * settings: We can't show weather informations for your location. Please enable location services in device settings
+   */
+  ERROR_LOC_1_DESCRIPTION: string;
+  /**
+   * settings: Location services are disabled
+   */
+  ERROR_LOC_1_TITLE: string;
+  /**
+   * settings: We can't show weather informations for your location. Please allow Windy to access this device's location
+   */
+  ERROR_LOC_2_DESCRIPTION: string;
+  /**
+   * settings: Location permission is required
+   */
+  ERROR_LOC_2_TITLE: string;
+  /**
+   * settings: We cannot send you notifications for your saved alerts. Please enable notifications in your device settings.
+   */
+  ERROR_NOTIF_1_DESCRIPTION: string;
+  /**
+   * settings: Notification services are disabled
+   */
+  ERROR_NOTIF_1_TITLE: string;
+  /**
+   * settings: Widgets cannot be updated automatically. Please allow notifications for the Windy application.
+   */
+  ERROR_WIDGET_NOTIFICATION_1_DESCRIPTION: string;
+  /**
+   * settings: Notifications are disabled
+   */
+  ERROR_WIDGET_NOTIFICATION_1_TITLE: string;
+  /**
+   * settings: Open application settings
+   */
+  E_BUTTON_APPLICATION_SETTINGS: string;
+  /**
+   * settings: Open device settings
+   */
+  E_BUTTON_DEVICE_SETTINGS: string;
+  /**
+   * settings: Show lat, lon grid
+   */
+  MENU_LATLON: string;
+  /**
+   * settings: Change background map
+   */
+  MENU_MAP: string;
+  /**
+   * settings: ...in very detailed zoom levels
+   */
+  MENU_MAP2: string;
+  /**
+   * settings: Show 4 day weather at startup
+   */
+  MENU_W_STARTUP: string;
+  /**
+   * settings: Add any location to your favorites to see it in the list
+   */
+  S_ADD_LOC: string;
+  /**
+   * settings: Always on
+   */
+  S_ALWAYS_ON: string;
+  /**
+   * settings: Speed of animation
+   */
+  S_ANIMATION_SPEED: string;
+  /**
+   * settings: Customize Windy App icon
+   */
+  S_APP_ICON: string;
+  /**
+   * settings: Requires Premium subscription
+   */
+  S_APP_ICON_PREMIUM: string;
+  /**
+   * settings: Now, restart the app to change the icon
+   */
+  S_APP_ICON_RELOAD: string;
+  /**
+   * settings: automatic
+   */
+  S_AUTOMATIC: string;
+  /**
+   * settings: Contrast
+   */
+  S_CONTRAST: string;
+  /**
+   * settings: Density
+   */
+  S_DENSITY: string;
+  /**
+   * settings: Display directions as
+   */
+  S_DIRECTION: string;
+  /**
+   * settings: Disable webGL
+   */
+  S_DISABLE_WEBGL: string;
+  /**
+   * settings: English map labels
+   */
+  S_EN_LABELS: string;
+  /**
+   * settings: Satellite future extrapolation
+   */
+  S_EXTRA_SAT: string;
+  /**
+   * settings: Fast
+   */
+  S_FAST: string;
+  /**
+   * settings: High
+   */
+  S_HIGH: string;
+  /**
+   * settings: Start-up location
+   */
+  S_HOME: string;
+  /**
+   * settings: Use GPS
+   */
+  S_HOME_GPS: string;
+  /**
+   * settings: Determine by my IP
+   */
+  S_HOME_IP: string;
+  /**
+   * settings: Use last location
+   */
+  S_HOME_LAST: string;
+  /**
+   * settings: Use last overlay
+   */
+  S_HOME_OVERLAY_LAST: string;
+  /**
+   * settings: Intensive
+   */
+  S_INTENSIVE: string;
+  /**
+   * settings: Language
+   */
+  S_LANG: string;
+  /**
+   * settings: Weather picker contains lat,lon
+   */
+  S_LAT_LON: string;
+  /**
+   * settings: Start-up layer
+   */
+  S_LAYER: string;
+  /**
+   * settings: Start-up layer and location
+   */
+  S_LAYER_LOCATION: string;
+  /**
+   * settings: Length
+   */
+  S_LENGTH: string;
+  /**
+   * settings: Normal
+   */
+  S_NORMAL: string;
+  /**
+   * settings: number
+   */
+  S_NUMBER: string;
+  /**
+   * settings: Animation of wind
+   */
+  S_PARTICLES: string;
+  /**
+   * settings: Show elevation in weather picker
+   */
+  S_PICKER_ELEVATION: string;
+  /**
+   * settings: Autoclose weather picker in:
+   */
+  S_PICKER_TIMEOUT: string;
+  /**
+   * settings: Predefined
+   */
+  S_PREDEFINED: string;
+  /**
+   * settings: Show precipitation type on radar
+   */
+  S_RADAR_RENDER_P_TYPE: string;
+  /**
+   * settings: Smooth radar and satellite animation
+   */
+  S_RADSAT_INTERPOLATE: string;
+  /**
+   * settings: ...reload Windy to take effect
+   */
+  S_RELOAD: string;
+  /**
+   * settings: Current value
+   */
+  S_SAVED_1H: string;
+  /**
+   * settings: Saved location
+   */
+  S_SAVED_LOCATION: string;
+  /**
+   * settings: Saved overlay
+   */
+  S_SAVED_OVERLAY: string;
+  /**
+   * settings: {{value}} seconds
+   */
+  S_SECONDS: string;
+  /**
+   * settings: Slow
+   */
+  S_SLOW: string;
+  /**
+   * settings: Smooth satellite animation
+   */
+  S_SMOOTH_SAT: string;
+  /**
+   * settings: Start-up zoom level
+   */
+  S_STARTUP_ZOOM: string;
+  /**
+   * settings: string
+   */
+  S_STRING: string;
+  /**
+   * settings: Time format
+   */
+  S_TIME_FORMAT: string;
+  /**
+   * settings: Very fast
+   */
+  S_VERY_FAST: string;
+  /**
+   * settings: Size
+   */
+  S_WIDTH: string;
+  /**
+   * settings: Display all times in UTC
+   */
+  S_ZULU_MODE: string;
 }
 
 export interface SoundingLangFile {
-    /**
-     * sounding: gas
-     */
-    RADIOSONDE_BALLOON_GAS: string;
-    /**
-     * sounding: gas weight
-     */
-    RADIOSONDE_BALLOON_GAS_WEIGHT: string;
-    /**
-     * sounding: manufacturer
-     */
-    RADIOSONDE_BALLOON_MANUFACTURER: string;
-    /**
-     * sounding: Balloon
-     */
-    RADIOSONDE_BALLOON_TITLE: string;
-    /**
-     * sounding: type
-     */
-    RADIOSONDE_BALLOON_TYPE: string;
-    /**
-     * sounding: weight
-     */
-    RADIOSONDE_BALLOON_WEIGHT: string;
-    /**
-     * sounding: Measurement detail
-     */
-    RADIOSONDE_MEASUREMENT_DETAIL: string;
-    /**
-     * sounding: Download measurement GeoJSON data
-     */
-    RADIOSONDE_MEASUREMENT_DOWNLOAD: string;
-    /**
-     * sounding: format
-     */
-    RADIOSONDE_MEASUREMENT_FORMAT: string;
-    /**
-     * sounding: maximum height
-     */
-    RADIOSONDE_MEASUREMENT_MAX_HEIGHT: string;
-    /**
-     * sounding: number of samples
-     */
-    RADIOSONDE_MEASUREMENT_NUM_OF_SAMPLES: string;
-    /**
-     * sounding: release time
-     */
-    RADIOSONDE_MEASUREMENT_RELEASE_TIME: string;
-    /**
-     * sounding: source
-     */
-    RADIOSONDE_MEASUREMENT_SOURCE: string;
-    /**
-     * sounding: track source
-     */
-    RADIOSONDE_MEASUREMENT_TRACK_SOURCE: string;
-    /**
-     * sounding: transmit frequency
-     */
-    RADIOSONDE_SONDE_FREQUENCY: string;
-    /**
-     * sounding: geopotential height
-     */
-    RADIOSONDE_SONDE_GH: string;
-    /**
-     * sounding: humidity correction
-     */
-    RADIOSONDE_SONDE_HUM_CORRECTION: string;
-    /**
-     * sounding: humidity sensor
-     */
-    RADIOSONDE_SONDE_HUM_SENSOR: string;
-    /**
-     * sounding: pressure sensor
-     */
-    RADIOSONDE_SONDE_PRESS_SENSOR: string;
-    /**
-     * sounding: serial number
-     */
-    RADIOSONDE_SONDE_SERAIL_NUMBER: string;
-    /**
-     * sounding: SW version
-     */
-    RADIOSONDE_SONDE_SW: string;
-    /**
-     * sounding: temperature sensor
-     */
-    RADIOSONDE_SONDE_TEMP_SENSOR: string;
-    /**
-     * sounding: termination reason
-     */
-    RADIOSONDE_SONDE_TERMINATION: string;
-    /**
-     * sounding: Sonde
-     */
-    RADIOSONDE_SONDE_TITLE: string;
-    /**
-     * sounding: type
-     */
-    RADIOSONDE_SONDE_TYPE: string;
-    /**
-     * sounding: Radiosonde measurement
-     */
-    RADIOSONDE_TITLE: string;
-    /**
-     * sounding: Higher altitudes measurements missing on this ascent
-     */
-    RADIOSONDE_WARNING_DATA_CROPPED: string;
-    /**
-     * sounding: Ascents
-     */
-    SOUNDING_ASCENTS: string;
-    /**
-     * sounding: elevation
-     */
-    SOUNDING_ELEVATION: string;
-    /**
-     * sounding: hover over (or touch) the graph to see the parcel laps rate
-     */
-    SOUNDING_HINT_1: string;
-    /**
-     * sounding: scroll over (or pinch/stretch) the graph to zoom
-     */
-    SOUNDING_HINT_2: string;
-    /**
-     * sounding: when zoom is active, the graph can be dragged in the direction of the temperature axis
-     */
-    SOUNDING_HINT_3: string;
-    /**
-     * sounding: Let us know how the sounding works for you!
-     */
-    SOUNDING_HINT_FEEDBACK: string;
-    /**
-     * sounding: location
-     */
-    SOUNDING_LOCATION: string;
-    /**
-     * sounding: model
-     */
-    SOUNDING_MODEL: string;
-    /**
-     * sounding: model elevation
-     */
-    SOUNDING_MODEL_ELEVATION: string;
-    /**
-     * sounding: Nearest radiosonde measurements
-     */
-    SOUNDING_NEAREST_RADIOSONDES: string;
-    /**
-     * sounding: selected
-     */
-    SOUNDING_SELECTED: string;
-    /**
-     * sounding: Sounding forecast
-     */
-    SOUNDING_TITLE: string;
-    /**
-     * sounding: {{forced}} data is displayed, as {{wanted}} is not supported.
-     */
-    SOUNDING_UNSUPPORTED_MODEL: string;
+  /**
+   * sounding: gas
+   */
+  RADIOSONDE_BALLOON_GAS: string;
+  /**
+   * sounding: gas weight
+   */
+  RADIOSONDE_BALLOON_GAS_WEIGHT: string;
+  /**
+   * sounding: manufacturer
+   */
+  RADIOSONDE_BALLOON_MANUFACTURER: string;
+  /**
+   * sounding: Balloon
+   */
+  RADIOSONDE_BALLOON_TITLE: string;
+  /**
+   * sounding: type
+   */
+  RADIOSONDE_BALLOON_TYPE: string;
+  /**
+   * sounding: weight
+   */
+  RADIOSONDE_BALLOON_WEIGHT: string;
+  /**
+   * sounding: Measurement detail
+   */
+  RADIOSONDE_MEASUREMENT_DETAIL: string;
+  /**
+   * sounding: Download measurement GeoJSON data
+   */
+  RADIOSONDE_MEASUREMENT_DOWNLOAD: string;
+  /**
+   * sounding: format
+   */
+  RADIOSONDE_MEASUREMENT_FORMAT: string;
+  /**
+   * sounding: maximum height
+   */
+  RADIOSONDE_MEASUREMENT_MAX_HEIGHT: string;
+  /**
+   * sounding: number of samples
+   */
+  RADIOSONDE_MEASUREMENT_NUM_OF_SAMPLES: string;
+  /**
+   * sounding: release time
+   */
+  RADIOSONDE_MEASUREMENT_RELEASE_TIME: string;
+  /**
+   * sounding: source
+   */
+  RADIOSONDE_MEASUREMENT_SOURCE: string;
+  /**
+   * sounding: track source
+   */
+  RADIOSONDE_MEASUREMENT_TRACK_SOURCE: string;
+  /**
+   * sounding: transmit frequency
+   */
+  RADIOSONDE_SONDE_FREQUENCY: string;
+  /**
+   * sounding: geopotential height
+   */
+  RADIOSONDE_SONDE_GH: string;
+  /**
+   * sounding: humidity correction
+   */
+  RADIOSONDE_SONDE_HUM_CORRECTION: string;
+  /**
+   * sounding: humidity sensor
+   */
+  RADIOSONDE_SONDE_HUM_SENSOR: string;
+  /**
+   * sounding: pressure sensor
+   */
+  RADIOSONDE_SONDE_PRESS_SENSOR: string;
+  /**
+   * sounding: serial number
+   */
+  RADIOSONDE_SONDE_SERAIL_NUMBER: string;
+  /**
+   * sounding: SW version
+   */
+  RADIOSONDE_SONDE_SW: string;
+  /**
+   * sounding: temperature sensor
+   */
+  RADIOSONDE_SONDE_TEMP_SENSOR: string;
+  /**
+   * sounding: termination reason
+   */
+  RADIOSONDE_SONDE_TERMINATION: string;
+  /**
+   * sounding: Sonde
+   */
+  RADIOSONDE_SONDE_TITLE: string;
+  /**
+   * sounding: type
+   */
+  RADIOSONDE_SONDE_TYPE: string;
+  /**
+   * sounding: Radiosonde measurement
+   */
+  RADIOSONDE_TITLE: string;
+  /**
+   * sounding: Higher altitudes measurements missing on this ascent
+   */
+  RADIOSONDE_WARNING_DATA_CROPPED: string;
+  /**
+   * sounding: Ascents
+   */
+  SOUNDING_ASCENTS: string;
+  /**
+   * sounding: elevation
+   */
+  SOUNDING_ELEVATION: string;
+  /**
+   * sounding: hover over (or touch) the graph to see the parcel laps rate
+   */
+  SOUNDING_HINT_1: string;
+  /**
+   * sounding: scroll over (or pinch/stretch) the graph to zoom
+   */
+  SOUNDING_HINT_2: string;
+  /**
+   * sounding: when zoom is active, the graph can be dragged in the direction of the temperature axis
+   */
+  SOUNDING_HINT_3: string;
+  /**
+   * sounding: Let us know how the sounding works for you!
+   */
+  SOUNDING_HINT_FEEDBACK: string;
+  /**
+   * sounding: location
+   */
+  SOUNDING_LOCATION: string;
+  /**
+   * sounding: model
+   */
+  SOUNDING_MODEL: string;
+  /**
+   * sounding: model elevation
+   */
+  SOUNDING_MODEL_ELEVATION: string;
+  /**
+   * sounding: Nearest radiosonde measurements
+   */
+  SOUNDING_NEAREST_RADIOSONDES: string;
+  /**
+   * sounding: selected
+   */
+  SOUNDING_SELECTED: string;
+  /**
+   * sounding: Sounding forecast
+   */
+  SOUNDING_TITLE: string;
+  /**
+   * sounding: {{forced}} data is displayed, as {{wanted}} is not supported.
+   */
+  SOUNDING_UNSUPPORTED_MODEL: string;
 }
 
 export interface StartuppromosLangFile {
-    /**
-     * startuppromos: This version of Windy.com App is <b>obsolete</b> and will stop working soon. Please <b>update your Windy.com App</b> to the latest version.
-     */
-    STARTUP_OBSOLETE_APP: string;
+  /**
+   * startuppromos: This version of Windy.com App is <b>obsolete</b> and will stop working soon. Please <b>update your Windy.com App</b> to the latest version.
+   */
+  STARTUP_OBSOLETE_APP: string;
 }
 
 export interface StationLangFile {
-    /**
-     * station: Health recommendations
-     */
-    AIRQ_HEALTH_REC_HEADER: string;
-    /**
-     * station: Black carbon is formed through the incomplete combustion of fossil fuels, biofuel, and biomass, and is emitted in both anthropogenic and naturally occurring soot. Black carbon causes human morbidity and premature mortality.
-     */
-    AIRQ_INFO_BC: string;
-    /**
-     * station: Carbon monoxide is a colorless, odorless, and tasteless gas that is less dense than air. It is toxic to animals that use hemoglobin as an oxygen carrier when encountered in high concentrations. CO is produced naturally and also as a byproduct of the oxygen-starved combustion of fuel.
-     */
-    AIRQ_INFO_CO: string;
-    /**
-     * station: Carbon dioxide is a colorless and odorless gas with a density higher than air. CO2 is a natural byproduct of human and animal respiration, fermentation, chemical reactions, and combustion of fossil fuels and wood.
-     */
-    AIRQ_INFO_CO2: string;
-    /**
-     * station: Nitric oxide, or nitrogen oxide, or nitrogen monoxide is a colorless gas. It is produced naturally from a lightning strike, from fuel combustion, or from coal fired power plants.
-     */
-    AIRQ_INFO_NO: string;
-    /**
-     * station: Nitrogen dioxide is a reddish-brown gas with a pungent, acrid odor. It is natural byproduct of bacterial respiration, volcanos, and lightning. Chronic exposure to NO₂ can cause respiratory effects. NO₂ creates ozone.
-     */
-    AIRQ_INFO_NO2: string;
-    /**
-     * station: Nitrogen oxides react to form smog and acid rain as well as being central to the formation of fine particles (PM) and ground level ozone. NOₓ is produced during combustion, especially at high temperatures.
-     */
-    AIRQ_INFO_NOX: string;
-    /**
-     * station: Ozone is a pale blue gas with a distinctively pungent smell. Ozone is formed by the reaction of sunlight on air containing hydrocarbons and nitrogen oxides.
-     */
-    AIRQ_INFO_O3: string;
-    /**
-     * station: Particulate matter 10µm or less in diameter make up a large proportion of dust that can be drawn deep into the lungs. Larger particles tend to be trapped in the nose, mouth or throat.
-     */
-    AIRQ_INFO_PM10: string;
-    /**
-     * station: Particulate matter 2.5µm or less in diameter make up a large proportion of dust that can be drawn deep into the lungs. Larger particles tend to be trapped in the nose, mouth or throat.
-     */
-    AIRQ_INFO_PM25: string;
-    /**
-     * station: Sulfur dioxide is a toxic gas responsible for the smell of burnt matches. It is released naturally by volcanic activity and is produced as a by-product of copper extraction and the burning of fossil fuels.
-     */
-    AIRQ_INFO_SO2: string;
-    /**
-     * station: {value} µg/m³
-     */
-    AIRQ_MEASURED_VALUE_UGM3: string;
-    /**
-     * station: We are sorry, we received no fresh data from the station.
-     */
-    AIRQ_NO_DATA: string;
-    /**
-     * station: People with heart disease, such as angina, should avoid exertion and sources of CO, such as heavy traffic; everyone else should limit heavy exertion.
-     */
-    AIRQ_REC_CO_HAZARDOUS: string;
-    /**
-     * station: People with heart disease, such as angina, should limit moderate exertion and avoid sources of CO, such as heavy traffic.
-     */
-    AIRQ_REC_CO_UNHEALTHY: string;
-    /**
-     * station: People with heart disease, such as angina, should limit heavy exertion and avoid sources of CO, such as heavy traffic.
-     */
-    AIRQ_REC_CO_UNHEALTHY_SENSITIVE: string;
-    /**
-     * station: People with heart disease, such as angina, should avoid exertion and sources of CO, such as heavy traffic.
-     */
-    AIRQ_REC_CO_VERY_UNHEALTHY: string;
-    /**
-     * station: People with asthma, children and older adults should remain indoors; everyone else should avoid all outdoor exertion.
-     */
-    AIRQ_REC_NO2_HAZARDOUS: string;
-    /**
-     * station: Unusually sensitive individuals should consider limiting prolonged exertion especially near busy roads.
-     */
-    AIRQ_REC_NO2_MODERATE: string;
-    /**
-     * station: People with asthma, children and older adults should avoid prolonged exertion near roadways; everyone else should limit prolonged exertion especially near busy roads.
-     */
-    AIRQ_REC_NO2_UNHEALTHY: string;
-    /**
-     * station: People with asthma, children and older adults should limit prolonged exertion especially near busy roads.
-     */
-    AIRQ_REC_NO2_UNHEALTHY_SENSITIVE: string;
-    /**
-     * station: People with asthma, children and older adults should avoid all outdoor exertion; everyone else should avoid prolonged exertion especially near busy roads.
-     */
-    AIRQ_REC_NO2_VERY_UNHEALTHY: string;
-    /**
-     * station: Everyone should avoid all outdoor exertion.
-     */
-    AIRQ_REC_O3_HAZARDOUS: string;
-    /**
-     * station: Unusually sensitive people should consider reducing prolonged or heavy outdoor exertion.
-     */
-    AIRQ_REC_O3_MODERATE: string;
-    /**
-     * station: People with lung disease (such as asthma), children, older adults, people who are active outdoors (including outdoor workers), people with certain genetic variants, and people with diets limited in certain nutrients should avoid prolonged or heavy outdoor exertion; everyone else should reduce prolonged or heavy outdoor exertion.
-     */
-    AIRQ_REC_O3_UNHEALTHY: string;
-    /**
-     * station: People with lung disease (such as asthma), children, older adults, people who are active outdoors (including outdoor workers), people with certain genetic variants, and people with diets limited in certain nutrients should reduce prolonged or heavy outdoor exertion.
-     */
-    AIRQ_REC_O3_UNHEALTHY_SENSITIVE: string;
-    /**
-     * station: People with lung disease (such as asthma), children, older adults, people who are active outdoors (including outdoor workers), people with certain genetic variants, and people with diets limited in certain nutrients should avoid all outdoor exertion; everyone else should reduce outdoor exertion.
-     */
-    AIRQ_REC_O3_VERY_UNHEALTHY: string;
-    /**
-     * station: Everyone should avoid all physical activity outdoors; people with heart or lung disease, older adults, and children should remain indoors and keep activity levels low.
-     */
-    AIRQ_REC_PM_HAZARDOUS: string;
-    /**
-     * station: Unusually sensitive people should consider reducing prolonged or heavy exertion.
-     */
-    AIRQ_REC_PM_MODERATE: string;
-    /**
-     * station: People with heart or lung disease, older adults, and children should avoid prolonged or heavy exertion; everyone else should reduce prolonged or heavy exertion.
-     */
-    AIRQ_REC_PM_UNHEALTHY: string;
-    /**
-     * station: People with heart or lung disease, older adults, and children should reduce prolonged or heavy exertion.
-     */
-    AIRQ_REC_PM_UNHEALTHY_SENSITIVE: string;
-    /**
-     * station: People with heart or lung disease, older adults, and children should avoid all physical activity outdoors. Everyone else should avoid prolonged or heavy exertion.
-     */
-    AIRQ_REC_PM_VERY_UNHEALTHY: string;
-    /**
-     * station: Children, people with asthma, or other lung diseases, should remain indoors; everyone else should avoid outdoor exertion.
-     */
-    AIRQ_REC_SO2_HAZARDOUS: string;
-    /**
-     * station: Children, people with asthma, or other lung diseases, should limit outdoor exertion.
-     */
-    AIRQ_REC_SO2_UNHEALTHY: string;
-    /**
-     * station: People with asthma should consider limiting outdoor exertion.
-     */
-    AIRQ_REC_SO2_UNHEALTHY_SENSITIVE: string;
-    /**
-     * station: Children, people with asthma, or other lung diseases should avoid outdoor exertion; everyone else should reduce outdoor exertion.
-     */
-    AIRQ_REC_SO2_VERY_UNHEALTHY: string;
-    /**
-     * station: Air quality station
-     */
-    AIRQ_STATION: string;
-    /**
-     * station: US Air Quality Index
-     */
-    AIRQ_US_AIR_QUALITY_INDEX: string;
-    /**
-     * station: About this station
-     */
-    STATION_ABOUT: string;
-    /**
-     * station: Add your station to Windy
-     */
-    STATION_ADD: string;
-    /**
-     * station: US Air Quality index is based on the EPA standard, which is the highest AQI value for any pollutant.
-     */
-    STATION_AQI_NOTE: string;
-    /**
-     * station: Online {{value}}% of time
-     */
-    STATION_AVAILABILITY: string;
-    /**
-     * station: Add to compare
-     */
-    STATION_COMPARE_ADD: string;
-    /**
-     * station: Compare models
-     */
-    STATION_COMPARE_MODELS: string;
-    /**
-     * station: Median temp error
-     */
-    STATION_COMPARE_TEMP_ERROR: string;
-    /**
-     * station: Median wind error
-     */
-    STATION_COMPARE_WIND_ERROR: string;
-    /**
-     * station: Temperatures, dew points and precip. accum are enhanced from a duplicate station.
-     */
-    STATION_DUPLICATE_ENHANCED: string;
-    /**
-     * station: Precip. accumulations are enhanced from a duplicate station.
-     */
-    STATION_DUPLICATE_ENHANCED_PRECIP: string;
-    /**
-     * station: Temperatures and dew points are enhanced from a duplicate station.
-     */
-    STATION_DUPLICATE_ENHANCED_TEMP: string;
-    /**
-     * station: There is a duplicate station
-     */
-    STATION_DUPLICATE_EXISTS: string;
-    /**
-     * station: Health recommendations
-     */
-    STATION_HEALTH_RECCOMENDATION: string;
-    /**
-     * station: Max
-     */
-    STATION_LABEL_MAX: string;
-    /**
-     * station: Air Quality Index
-     */
-    STATION_LEGEND_AIRQ: string;
-    /**
-     * station: Black carbon
-     */
-    STATION_LEGEND_CARBON: string;
-    /**
-     * station: Carbon monox.
-     */
-    STATION_LEGEND_CARBON_CO: string;
-    /**
-     * station: Carbon diox.
-     */
-    STATION_LEGEND_CO2: string;
-    /**
-     * station: Flight rules and visibility
-     */
-    STATION_LEGEND_FLIGHT_RULES: string;
-    /**
-     * station: Nitric oxide
-     */
-    STATION_LEGEND_NO: string;
-    /**
-     * station: Nitrogen diox.
-     */
-    STATION_LEGEND_NO2: string;
-    /**
-     * station: Nitrogen oxides
-     */
-    STATION_LEGEND_NOX: string;
-    /**
-     * station: Partic. 10µm
-     */
-    STATION_LEGEND_PM10: string;
-    /**
-     * station: Partic. 2.5µm
-     */
-    STATION_LEGEND_PM25: string;
-    /**
-     * station: Solar rad.
-     */
-    STATION_LEGEND_SOLAR_RADIATION: string;
-    /**
-     * station: Sulphur diox.
-     */
-    STATION_LEGEND_SULPHUR: string;
-    /**
-     * station: Time
-     */
-    STATION_LEGEND_TIME: string;
-    /**
-     * station: Observation station {{id}} does not report any data for this period
-     */
-    STATION_LOADING_ERROR_204: string;
-    /**
-     * station: Requested station {{id}} not found
-     */
-    STATION_LOADING_ERROR_400: string;
-    /**
-     * station: WOW it seems like our server error. Try to reload page.
-     */
-    STATION_LOADING_ERROR_500: string;
-    /**
-     * station: Unknown error {{status}}
-     */
-    STATION_LOADING_ERROR_XXX: string;
-    /**
-     * station: Loading observation data...
-     */
-    STATION_LOADING_OBS: string;
-    /**
-     * station: Mag declination
-     */
-    STATION_MAGNETIC_DECLINATION: string;
-    /**
-     * station: observations
-     */
-    STATION_OBS: string;
-    /**
-     * station: 1h observations
-     */
-    STATION_OBS_1HOUR: string;
-    /**
-     * station: Latest observation
-     */
-    STATION_OBS_LATEST: string;
-    /**
-     * station: This station does not report:
-     */
-    STATION_OBS_MISSING: string;
-    /**
-     * station: Observed
-     */
-    STATION_OBS_PAST: string;
-    /**
-     * station: Observation was updated
-     */
-    STATION_OBS_UPDATED: string;
-    /**
-     * station: Observed weather
-     */
-    STATION_OBS_WEATHER: string;
-    /**
-     * station: Other stations
-     */
-    STATION_OTHER: string;
-    /**
-     * station: Pollutants
-     */
-    STATION_POLLUTANTS: string;
-    /**
-     * station: Precipitation
-     */
-    STATION_PRECIPITATION: string;
-    /**
-     * station: Subscribe to Windy Premium to compare forecast models and see which one is the most accurate for this location.
-     */
-    STATION_PREMIUM_COMPARE: string;
-    /**
-     * station: Subscribe to Windy Premium to get webcams history
-     */
-    STATION_PREMIUM_WEBCAMS: string;
-    /**
-     * station: avg delay
-     */
-    STATION_REPORTING_DELAY: string;
-    /**
-     * station: Reporting time
-     */
-    STATION_REPORTING_TIME: string;
-    /**
-     * station: Observation vs. forecast
-     */
-    STATION_SWITCHER_OBS_VS_FCST: string;
-    /**
-     * station: Temperature detail
-     */
-    STATION_SWITCHER_TEMP: string;
-    /**
-     * station: Wind detail
-     */
-    STATION_SWITCHER_WIND: string;
-    /**
-     * station: Station type
-     */
-    STATION_TYPE: string;
-    /**
-     * station: air quality monitoring station
-     */
-    STATION_TYPE_AQI: string;
-    /**
-     * station: weather station
-     */
-    STATION_TYPE_WEATHER: string;
-    /**
-     * station: Gust
-     */
-    STATION_WIND_GUST: string;
+  /**
+   * station: Health recommendations
+   */
+  AIRQ_HEALTH_REC_HEADER: string;
+  /**
+   * station: Black carbon is formed through the incomplete combustion of fossil fuels, biofuel, and biomass, and is emitted in both anthropogenic and naturally occurring soot. Black carbon causes human morbidity and premature mortality.
+   */
+  AIRQ_INFO_BC: string;
+  /**
+   * station: Carbon monoxide is a colorless, odorless, and tasteless gas that is less dense than air. It is toxic to animals that use hemoglobin as an oxygen carrier when encountered in high concentrations. CO is produced naturally and also as a byproduct of the oxygen-starved combustion of fuel.
+   */
+  AIRQ_INFO_CO: string;
+  /**
+   * station: Carbon dioxide is a colorless and odorless gas with a density higher than air. CO2 is a natural byproduct of human and animal respiration, fermentation, chemical reactions, and combustion of fossil fuels and wood.
+   */
+  AIRQ_INFO_CO2: string;
+  /**
+   * station: Nitric oxide, or nitrogen oxide, or nitrogen monoxide is a colorless gas. It is produced naturally from a lightning strike, from fuel combustion, or from coal fired power plants.
+   */
+  AIRQ_INFO_NO: string;
+  /**
+   * station: Nitrogen dioxide is a reddish-brown gas with a pungent, acrid odor. It is natural byproduct of bacterial respiration, volcanos, and lightning. Chronic exposure to NO₂ can cause respiratory effects. NO₂ creates ozone.
+   */
+  AIRQ_INFO_NO2: string;
+  /**
+   * station: Nitrogen oxides react to form smog and acid rain as well as being central to the formation of fine particles (PM) and ground level ozone. NOₓ is produced during combustion, especially at high temperatures.
+   */
+  AIRQ_INFO_NOX: string;
+  /**
+   * station: Ozone is a pale blue gas with a distinctively pungent smell. Ozone is formed by the reaction of sunlight on air containing hydrocarbons and nitrogen oxides.
+   */
+  AIRQ_INFO_O3: string;
+  /**
+   * station: Particulate matter 10µm or less in diameter make up a large proportion of dust that can be drawn deep into the lungs. Larger particles tend to be trapped in the nose, mouth or throat.
+   */
+  AIRQ_INFO_PM10: string;
+  /**
+   * station: Particulate matter 2.5µm or less in diameter make up a large proportion of dust that can be drawn deep into the lungs. Larger particles tend to be trapped in the nose, mouth or throat.
+   */
+  AIRQ_INFO_PM25: string;
+  /**
+   * station: Sulfur dioxide is a toxic gas responsible for the smell of burnt matches. It is released naturally by volcanic activity and is produced as a by-product of copper extraction and the burning of fossil fuels.
+   */
+  AIRQ_INFO_SO2: string;
+  /**
+   * station: {value} µg/m³
+   */
+  AIRQ_MEASURED_VALUE_UGM3: string;
+  /**
+   * station: We are sorry, we received no fresh data from the station.
+   */
+  AIRQ_NO_DATA: string;
+  /**
+   * station: People with heart disease, such as angina, should avoid exertion and sources of CO, such as heavy traffic; everyone else should limit heavy exertion.
+   */
+  AIRQ_REC_CO_HAZARDOUS: string;
+  /**
+   * station: People with heart disease, such as angina, should limit moderate exertion and avoid sources of CO, such as heavy traffic.
+   */
+  AIRQ_REC_CO_UNHEALTHY: string;
+  /**
+   * station: People with heart disease, such as angina, should limit heavy exertion and avoid sources of CO, such as heavy traffic.
+   */
+  AIRQ_REC_CO_UNHEALTHY_SENSITIVE: string;
+  /**
+   * station: People with heart disease, such as angina, should avoid exertion and sources of CO, such as heavy traffic.
+   */
+  AIRQ_REC_CO_VERY_UNHEALTHY: string;
+  /**
+   * station: People with asthma, children and older adults should remain indoors; everyone else should avoid all outdoor exertion.
+   */
+  AIRQ_REC_NO2_HAZARDOUS: string;
+  /**
+   * station: Unusually sensitive individuals should consider limiting prolonged exertion especially near busy roads.
+   */
+  AIRQ_REC_NO2_MODERATE: string;
+  /**
+   * station: People with asthma, children and older adults should avoid prolonged exertion near roadways; everyone else should limit prolonged exertion especially near busy roads.
+   */
+  AIRQ_REC_NO2_UNHEALTHY: string;
+  /**
+   * station: People with asthma, children and older adults should limit prolonged exertion especially near busy roads.
+   */
+  AIRQ_REC_NO2_UNHEALTHY_SENSITIVE: string;
+  /**
+   * station: People with asthma, children and older adults should avoid all outdoor exertion; everyone else should avoid prolonged exertion especially near busy roads.
+   */
+  AIRQ_REC_NO2_VERY_UNHEALTHY: string;
+  /**
+   * station: Everyone should avoid all outdoor exertion.
+   */
+  AIRQ_REC_O3_HAZARDOUS: string;
+  /**
+   * station: Unusually sensitive people should consider reducing prolonged or heavy outdoor exertion.
+   */
+  AIRQ_REC_O3_MODERATE: string;
+  /**
+   * station: People with lung disease (such as asthma), children, older adults, people who are active outdoors (including outdoor workers), people with certain genetic variants, and people with diets limited in certain nutrients should avoid prolonged or heavy outdoor exertion; everyone else should reduce prolonged or heavy outdoor exertion.
+   */
+  AIRQ_REC_O3_UNHEALTHY: string;
+  /**
+   * station: People with lung disease (such as asthma), children, older adults, people who are active outdoors (including outdoor workers), people with certain genetic variants, and people with diets limited in certain nutrients should reduce prolonged or heavy outdoor exertion.
+   */
+  AIRQ_REC_O3_UNHEALTHY_SENSITIVE: string;
+  /**
+   * station: People with lung disease (such as asthma), children, older adults, people who are active outdoors (including outdoor workers), people with certain genetic variants, and people with diets limited in certain nutrients should avoid all outdoor exertion; everyone else should reduce outdoor exertion.
+   */
+  AIRQ_REC_O3_VERY_UNHEALTHY: string;
+  /**
+   * station: Everyone should avoid all physical activity outdoors; people with heart or lung disease, older adults, and children should remain indoors and keep activity levels low.
+   */
+  AIRQ_REC_PM_HAZARDOUS: string;
+  /**
+   * station: Unusually sensitive people should consider reducing prolonged or heavy exertion.
+   */
+  AIRQ_REC_PM_MODERATE: string;
+  /**
+   * station: People with heart or lung disease, older adults, and children should avoid prolonged or heavy exertion; everyone else should reduce prolonged or heavy exertion.
+   */
+  AIRQ_REC_PM_UNHEALTHY: string;
+  /**
+   * station: People with heart or lung disease, older adults, and children should reduce prolonged or heavy exertion.
+   */
+  AIRQ_REC_PM_UNHEALTHY_SENSITIVE: string;
+  /**
+   * station: People with heart or lung disease, older adults, and children should avoid all physical activity outdoors. Everyone else should avoid prolonged or heavy exertion.
+   */
+  AIRQ_REC_PM_VERY_UNHEALTHY: string;
+  /**
+   * station: Children, people with asthma, or other lung diseases, should remain indoors; everyone else should avoid outdoor exertion.
+   */
+  AIRQ_REC_SO2_HAZARDOUS: string;
+  /**
+   * station: Children, people with asthma, or other lung diseases, should limit outdoor exertion.
+   */
+  AIRQ_REC_SO2_UNHEALTHY: string;
+  /**
+   * station: People with asthma should consider limiting outdoor exertion.
+   */
+  AIRQ_REC_SO2_UNHEALTHY_SENSITIVE: string;
+  /**
+   * station: Children, people with asthma, or other lung diseases should avoid outdoor exertion; everyone else should reduce outdoor exertion.
+   */
+  AIRQ_REC_SO2_VERY_UNHEALTHY: string;
+  /**
+   * station: Air quality station
+   */
+  AIRQ_STATION: string;
+  /**
+   * station: US Air Quality Index
+   */
+  AIRQ_US_AIR_QUALITY_INDEX: string;
+  /**
+   * station: About this station
+   */
+  STATION_ABOUT: string;
+  /**
+   * station: Add your station to Windy
+   */
+  STATION_ADD: string;
+  /**
+   * station: US Air Quality index is based on the EPA standard, which is the highest AQI value for any pollutant.
+   */
+  STATION_AQI_NOTE: string;
+  /**
+   * station: Online {{value}}% of time
+   */
+  STATION_AVAILABILITY: string;
+  /**
+   * station: Add to compare
+   */
+  STATION_COMPARE_ADD: string;
+  /**
+   * station: Compare models
+   */
+  STATION_COMPARE_MODELS: string;
+  /**
+   * station: Median temp error
+   */
+  STATION_COMPARE_TEMP_ERROR: string;
+  /**
+   * station: Median wind error
+   */
+  STATION_COMPARE_WIND_ERROR: string;
+  /**
+   * station: Temperatures, dew points and precip. accum are enhanced from a duplicate station.
+   */
+  STATION_DUPLICATE_ENHANCED: string;
+  /**
+   * station: Precip. accumulations are enhanced from a duplicate station.
+   */
+  STATION_DUPLICATE_ENHANCED_PRECIP: string;
+  /**
+   * station: Temperatures and dew points are enhanced from a duplicate station.
+   */
+  STATION_DUPLICATE_ENHANCED_TEMP: string;
+  /**
+   * station: There is a duplicate station
+   */
+  STATION_DUPLICATE_EXISTS: string;
+  /**
+   * station: Health recommendations
+   */
+  STATION_HEALTH_RECCOMENDATION: string;
+  /**
+   * station: Max
+   */
+  STATION_LABEL_MAX: string;
+  /**
+   * station: Air Quality Index
+   */
+  STATION_LEGEND_AIRQ: string;
+  /**
+   * station: Black carbon
+   */
+  STATION_LEGEND_CARBON: string;
+  /**
+   * station: Carbon monox.
+   */
+  STATION_LEGEND_CARBON_CO: string;
+  /**
+   * station: Carbon diox.
+   */
+  STATION_LEGEND_CO2: string;
+  /**
+   * station: Flight rules and visibility
+   */
+  STATION_LEGEND_FLIGHT_RULES: string;
+  /**
+   * station: Nitric oxide
+   */
+  STATION_LEGEND_NO: string;
+  /**
+   * station: Nitrogen diox.
+   */
+  STATION_LEGEND_NO2: string;
+  /**
+   * station: Nitrogen oxides
+   */
+  STATION_LEGEND_NOX: string;
+  /**
+   * station: Partic. 10µm
+   */
+  STATION_LEGEND_PM10: string;
+  /**
+   * station: Partic. 2.5µm
+   */
+  STATION_LEGEND_PM25: string;
+  /**
+   * station: Solar rad.
+   */
+  STATION_LEGEND_SOLAR_RADIATION: string;
+  /**
+   * station: Sulphur diox.
+   */
+  STATION_LEGEND_SULPHUR: string;
+  /**
+   * station: Time
+   */
+  STATION_LEGEND_TIME: string;
+  /**
+   * station: Observation station {{id}} does not report any data for this period
+   */
+  STATION_LOADING_ERROR_204: string;
+  /**
+   * station: Requested station {{id}} not found
+   */
+  STATION_LOADING_ERROR_400: string;
+  /**
+   * station: WOW it seems like our server error. Try to reload page.
+   */
+  STATION_LOADING_ERROR_500: string;
+  /**
+   * station: Unknown error {{status}}
+   */
+  STATION_LOADING_ERROR_XXX: string;
+  /**
+   * station: Loading observation data...
+   */
+  STATION_LOADING_OBS: string;
+  /**
+   * station: Mag declination
+   */
+  STATION_MAGNETIC_DECLINATION: string;
+  /**
+   * station: observations
+   */
+  STATION_OBS: string;
+  /**
+   * station: 1h observations
+   */
+  STATION_OBS_1HOUR: string;
+  /**
+   * station: Latest observation
+   */
+  STATION_OBS_LATEST: string;
+  /**
+   * station: This station does not report:
+   */
+  STATION_OBS_MISSING: string;
+  /**
+   * station: Observed
+   */
+  STATION_OBS_PAST: string;
+  /**
+   * station: Observation was updated
+   */
+  STATION_OBS_UPDATED: string;
+  /**
+   * station: Observed weather
+   */
+  STATION_OBS_WEATHER: string;
+  /**
+   * station: Other stations
+   */
+  STATION_OTHER: string;
+  /**
+   * station: Pollutants
+   */
+  STATION_POLLUTANTS: string;
+  /**
+   * station: Precipitation
+   */
+  STATION_PRECIPITATION: string;
+  /**
+   * station: Subscribe to Windy Premium to compare forecast models and see which one is the most accurate for this location.
+   */
+  STATION_PREMIUM_COMPARE: string;
+  /**
+   * station: Subscribe to Windy Premium to get webcams history
+   */
+  STATION_PREMIUM_WEBCAMS: string;
+  /**
+   * station: avg delay
+   */
+  STATION_REPORTING_DELAY: string;
+  /**
+   * station: Reporting time
+   */
+  STATION_REPORTING_TIME: string;
+  /**
+   * station: Observation vs. forecast
+   */
+  STATION_SWITCHER_OBS_VS_FCST: string;
+  /**
+   * station: Temperature detail
+   */
+  STATION_SWITCHER_TEMP: string;
+  /**
+   * station: Wind detail
+   */
+  STATION_SWITCHER_WIND: string;
+  /**
+   * station: Station type
+   */
+  STATION_TYPE: string;
+  /**
+   * station: air quality monitoring station
+   */
+  STATION_TYPE_AQI: string;
+  /**
+   * station: weather station
+   */
+  STATION_TYPE_WEATHER: string;
+  /**
+   * station: Gust
+   */
+  STATION_WIND_GUST: string;
 }
 
 export interface SubscriptionLangFile {
-    /**
-     * subscription: Buy for one year
-     */
-    SUB_1_YEAR: string;
-    /**
-     * subscription: One-time payment, no commitment
-     */
-    SUB_1_YEAR_NOTE: string;
-    /**
-     * subscription: Your subscription is fully functional. Enjoy the benefits!
-     */
-    SUB_ACTIVE: string;
-    /**
-     * subscription: By purchasing the product, you accept the [terms_of_use] & acknowledge the [privacy_policy].
-     */
-    SUB_AGREEMENTS_TEXT: string;
-    /**
-     * subscription: Your account is already associated with an active Windy Premium, valid until {{date}}, purchased through {{provider}}.
-     */
-    SUB_ALREADY_ACTIVE: string;
-    /**
-     * subscription: We recommend you ask {{provider}} for a refund for your newly purchased Windy Premium. Alternatively, you can assign it to a different account.
-     */
-    SUB_ALREADY_ACTIVE_RECOMMENDATION: string;
-    /**
-     * subscription: Already expired
-     */
-    SUB_ALREADY_EXPIRED: string;
-    /**
-     * subscription: You are already Premium
-     */
-    SUB_ALREADY_PREMIUM: string;
-    /**
-     * subscription: Already subscribed to [tier]?
-     */
-    SUB_ALREADY_SUBSCRIBED: string;
-    /**
-     * subscription: ... and more
-     */
-    SUB_AND_MORE: string;
-    /**
-     * subscription: Annual subscription
-     */
-    SUB_ANNUAL: string;
-    /**
-     * subscription: {{amount}} / year
-     */
-    SUB_ANNUAL_PRICE: string;
-    /**
-     * subscription: Automatically renewed every year. You can cancel your subscription anytime.
-     */
-    SUB_ANNUAL_STORE_REQUIREMENT: string;
-    /**
-     * subscription: Your Windy Premium subscription has expired. Renew the subscription to continue using all its benefits.
-     */
-    SUB_CANCELED_EXPIRED_HELP: string;
-    /**
-     * subscription: Your Windy Premium subscription is currently canceled and will not be renewed automatically. Renew the subscription to keep all its benefits.
-     */
-    SUB_CANCELED_HELP: string;
-    /**
-     * subscription: Save [value]
-     */
-    SUB_CHEAPER: string;
-    /**
-     * subscription: Subscription automatically renews unless Auto-Renew is turned off at least 24-hours before the end of the current period. Subscriptions may be managed by the user and Auto-Renew may be turned off by going to the iTunes Account Settings after purchase.
-     */
-    SUB_CONDITIONS_IOS: string;
-    /**
-     * subscription: Subscribe user <i>{{username}}</i> for Premium.
-     */
-    SUB_CURRENT_USER: string;
-    /**
-     * subscription: Your subscription expired
-     */
-    SUB_ENDS: string;
-    /**
-     * subscription: Your subscription ends in:
-     */
-    SUB_ENDS_IN: string;
-    /**
-     * subscription: Your subscription will end soon
-     */
-    SUB_ENDS_SOON: string;
-    /**
-     * subscription: Fix payment methods
-     */
-    SUB_FIX_PAYMENT: string;
-    /**
-     * subscription: To keep the Windy Premium subscription active, you must fix your payment method by clicking the button below.
-     */
-    SUB_GRACED_HELP: string;
-    /**
-     * subscription: Your subscription is active
-     */
-    SUB_IS_ACTIVE: string;
-    /**
-     * subscription: We're sorry, but something went wrong. Please try again later.
-     */
-    SUB_LOADING_ERROR: string;
-    /**
-     * subscription: Cannot get any information about available products. Please ensure you are logged in with your {{platform}} account on the {{store}}.
-     */
-    SUB_LOADING_NO_PRODUCTS: string;
-    /**
-     * subscription: Manage subscription
-     */
-    SUB_MANAGE: string;
-    /**
-     * subscription: The most detailed forecast available!
-     */
-    SUB_MOST_DETAILED: string;
-    /**
-     * subscription: To reactivate the Windy Premium subscription, click the button below. Before proceeding, please check that you have sufficient funds to complete the transaction.
-     */
-    SUB_ONHOLD_HELP: string;
-    /**
-     * subscription: Your subscription is paused
-     */
-    SUB_PAUSED: string;
-    /**
-     * subscription: You currently do not have access to any of the Premium features. Unpause your subscription to continue using all the benefits of Windy Premium.
-     */
-    SUB_PAUSED_HELP: string;
-    /**
-     * subscription: We could not verify your payment.
-     */
-    SUB_PAYMENT_INVALID_ERROR_HEADING: string;
-    /**
-     * subscription: Please make sure that the purchase has actually taken place and you have the receipt. If you think this is a mistake, ask [vendor] for a refund and try again.
-     */
-    SUB_PAYMENT_INVALID_ERROR_TEXT: string;
-    /**
-     * subscription: Oops! We received your payment, but something went wrong.
-     */
-    SUB_PAYMENT_SAVE_ERROR_HEADING: string;
-    /**
-     * subscription: Don’t worry, it can be easily fixed. Please follow the steps in the article [article].
-     */
-    SUB_PAYMENT_SAVE_ERROR_TEXT_LINK: string;
-    /**
-     * subscription: Failed to redeem subscription. Please follow the steps in the article [article].
-     */
-    SUB_PENDING_ERROR_LINK: string;
-    /**
-     * subscription: To redeem your subscription, please login to your account.
-     */
-    SUB_PENDING_NOTIFICATION: string;
-    /**
-     * subscription: Windy Premium includes premium support on our [community]
-     */
-    SUB_PENDING_POINT_1: string;
-    /**
-     * subscription: you can access Windy Premium from any other devices and platforms
-     */
-    SUB_PENDING_POINT_2: string;
-    /**
-     * subscription: we are able to sync your settings and favorites to cloud across all your devices and our systems
-     */
-    SUB_PENDING_POINT_3: string;
-    /**
-     * subscription: you will not accidentally buy Windy Premium multiple times
-     */
-    SUB_PENDING_POINT_4: string;
-    /**
-     * subscription: All you have to do is log in to your account. Why is this necessary?
-     */
-    SUB_PENDING_TEXT: string;
-    /**
-     * subscription: Save [value]%
-     */
-    SUB_PERCENT_CHEAPER: string;
-    /**
-     * subscription: Premium includes:
-     */
-    SUB_PREMIUM_INCLUDES: string;
-    /**
-     * subscription: Current subscription is prepaid until:
-     */
-    SUB_PREPAID: string;
-    /**
-     * subscription: Something went wrong
-     */
-    SUB_PURCHASE_ERROR_HEADING: string;
-    /**
-     * subscription: We are sorry, but there was an error processing your subscription. Please follow the steps in the article [article].
-     */
-    SUB_PURCHASE_ERROR_TEXT_LINK: string;
-    /**
-     * subscription: <strong>Extra settings</strong>
-     */
-    SUB_REASON_EXTRA_SETTINGS: string;
-    /**
-     * subscription: <strong>3D globe</strong> display
-     */
-    SUB_REASON_GLOBE: string;
-    /**
-     * subscription: Additional <strong>mobile widgets</strong>
-     */
-    SUB_REASON_MOBILE_WIDGETS: string;
-    /**
-     * subscription: <strong>Radar and Satellite archives</strong> going back <strong>1 year</strong>
-     */
-    SUB_REASON_RADSAT_HISTORY: string;
-    /**
-     * subscription: <strong>12-hour</strong> loop for <strong>Radar</strong> and <strong>Satellite</strong>
-     */
-    SUB_REASON_RADSAT_LOOP: string;
-    /**
-     * subscription: <strong>Route Planner</strong> for planning tasks
-     */
-    SUB_REASON_RPLANNER: string;
-    /**
-     * subscription: Unlimited <strong>Favorites</strong> and <strong>Alerts</strong>
-     */
-    SUB_REASON_UNLIMITED_FAVS: string;
-    /**
-     * subscription: <strong>More detailed</strong> forecast <strong>maps</strong>
-     */
-    SUB_REASON_ZOOM_LEVELS: string;
-    /**
-     * subscription: We were unable to process the payment.
-     */
-    SUB_RENEW_FAILED: string;
-    /**
-     * subscription: Your subscription is already assigned to an account [redeemedBy]. Please [loginLink]log in[/loginLink] with this account. If your subscription has been stolen, send us the invoice you received with your purchase at [mailAddress].
-     */
-    SUB_RESTORE_ASSIGNED_TEXT: string;
-    /**
-     * subscription: Restore purchases
-     */
-    SUB_RESTORE_CTA: string;
-    /**
-     * subscription: If you are having trouble with your subscription, you can restore your purchases using your order reference.
-     */
-    SUB_RESTORE_DESKTOP_DESCRIPTION: string;
-    /**
-     * subscription: If you paid through <strong>FastSpring</strong>, the order reference looks like <code>WINDY123456-1234-12345</code> and can be found in <strong>emails</strong> from FastSpring.
-     */
-    SUB_RESTORE_DESKTOP_DESCRIPTION_FS: string;
-    /**
-     * subscription: If you paid through <strong>Paddle</strong>, the order reference starts with <code>txn_</code> and can be found on your Paddle <strong>invoice</strong>.
-     */
-    SUB_RESTORE_DESKTOP_DESCRIPTION_PADDLE: string;
-    /**
-     * subscription: Your subscription is no longer active. It has probably expired or been cancelled at your initiative. If you think it is a mistake, send us the invoice you received with your purchase at [mailAddress].
-     */
-    SUB_RESTORE_DESKTOP_ERROR_EXPIRED: string;
-    /**
-     * subscription: Your subscription is not valid. Please check the invoice you received with your purchase carefully to ensure you are trying to restore Windy Premium. Or send it to us at [mailAddress].
-     */
-    SUB_RESTORE_DESKTOP_ERROR_INVALID: string;
-    /**
-     * subscription: Please enter a valid order reference
-     */
-    SUB_RESTORE_DESKTOP_REFERENCE_INVALID: string;
-    /**
-     * subscription: Order reference
-     */
-    SUB_RESTORE_DESKTOP_REFERENCE_LABEL: string;
-    /**
-     * subscription: Failed to restore purchases, please try again or follow the steps in the article [article].
-     */
-    SUB_RESTORE_ERROR_LINK: string;
-    /**
-     * subscription: We didn't find any purchases to restore.
-     */
-    SUB_RESTORE_NOTHING_TO_RESTORE: string;
-    /**
-     * subscription: All purchases are linked to your [platform] account. Make sure you are trying to restore your purchases on a device with the same [platform] account you purchased your subscription with.
-     */
-    SUB_RESTORE_NOTHING_TO_RESTORE_DESC: string;
-    /**
-     * subscription: Temporarily unavailable:
-     */
-    SUB_TEMP_UNAVAILABLE: string;
-    /**
-     * subscription: Thank you for subscribing!
-     */
-    SUB_THANK_YOU_HEADING: string;
-    /**
-     * subscription: Unpause Premium
-     */
-    SUB_UNPAUSE: string;
-    /**
-     * subscription: You lost:
-     */
-    SUB_YOU_LOST: string;
-    /**
-     * subscription: You will lose:
-     */
-    SUB_YOU_WILL_LOSE: string;
+  /**
+   * subscription: Buy for one year
+   */
+  SUB_1_YEAR: string;
+  /**
+   * subscription: One-time payment, no commitment
+   */
+  SUB_1_YEAR_NOTE: string;
+  /**
+   * subscription: Your subscription is fully functional. Enjoy the benefits!
+   */
+  SUB_ACTIVE: string;
+  /**
+   * subscription: By purchasing the product, you accept the [terms_of_use] & acknowledge the [privacy_policy].
+   */
+  SUB_AGREEMENTS_TEXT: string;
+  /**
+   * subscription: Your account is already associated with an active Windy Premium, valid until {{date}}, purchased through {{provider}}.
+   */
+  SUB_ALREADY_ACTIVE: string;
+  /**
+   * subscription: We recommend you ask {{provider}} for a refund for your newly purchased Windy Premium. Alternatively, you can assign it to a different account.
+   */
+  SUB_ALREADY_ACTIVE_RECOMMENDATION: string;
+  /**
+   * subscription: Already expired
+   */
+  SUB_ALREADY_EXPIRED: string;
+  /**
+   * subscription: You are already Premium
+   */
+  SUB_ALREADY_PREMIUM: string;
+  /**
+   * subscription: Already subscribed to [tier]?
+   */
+  SUB_ALREADY_SUBSCRIBED: string;
+  /**
+   * subscription: ... and more
+   */
+  SUB_AND_MORE: string;
+  /**
+   * subscription: Annual subscription
+   */
+  SUB_ANNUAL: string;
+  /**
+   * subscription: {{amount}} / year
+   */
+  SUB_ANNUAL_PRICE: string;
+  /**
+   * subscription: Automatically renewed every year. You can cancel your subscription anytime.
+   */
+  SUB_ANNUAL_STORE_REQUIREMENT: string;
+  /**
+   * subscription: Your Windy Premium subscription has expired. Renew the subscription to continue using all its benefits.
+   */
+  SUB_CANCELED_EXPIRED_HELP: string;
+  /**
+   * subscription: Your Windy Premium subscription is currently canceled and will not be renewed automatically. Renew the subscription to keep all its benefits.
+   */
+  SUB_CANCELED_HELP: string;
+  /**
+   * subscription: Save [value]
+   */
+  SUB_CHEAPER: string;
+  /**
+   * subscription: Subscription automatically renews unless Auto-Renew is turned off at least 24-hours before the end of the current period. Subscriptions may be managed by the user and Auto-Renew may be turned off by going to the iTunes Account Settings after purchase.
+   */
+  SUB_CONDITIONS_IOS: string;
+  /**
+   * subscription: Subscribe user <i>{{username}}</i> for Premium.
+   */
+  SUB_CURRENT_USER: string;
+  /**
+   * subscription: Your subscription expired
+   */
+  SUB_ENDS: string;
+  /**
+   * subscription: Your subscription ends in:
+   */
+  SUB_ENDS_IN: string;
+  /**
+   * subscription: Your subscription will end soon
+   */
+  SUB_ENDS_SOON: string;
+  /**
+   * subscription: Fix payment methods
+   */
+  SUB_FIX_PAYMENT: string;
+  /**
+   * subscription: To keep the Windy Premium subscription active, you must fix your payment method by clicking the button below.
+   */
+  SUB_GRACED_HELP: string;
+  /**
+   * subscription: Your subscription is active
+   */
+  SUB_IS_ACTIVE: string;
+  /**
+   * subscription: We're sorry, but something went wrong. Please try again later.
+   */
+  SUB_LOADING_ERROR: string;
+  /**
+   * subscription: Cannot get any information about available products. Please ensure you are logged in with your {{platform}} account on the {{store}}.
+   */
+  SUB_LOADING_NO_PRODUCTS: string;
+  /**
+   * subscription: Manage subscription
+   */
+  SUB_MANAGE: string;
+  /**
+   * subscription: The most detailed forecast available!
+   */
+  SUB_MOST_DETAILED: string;
+  /**
+   * subscription: To reactivate the Windy Premium subscription, click the button below. Before proceeding, please check that you have sufficient funds to complete the transaction.
+   */
+  SUB_ONHOLD_HELP: string;
+  /**
+   * subscription: Your subscription is paused
+   */
+  SUB_PAUSED: string;
+  /**
+   * subscription: You currently do not have access to any of the Premium features. Unpause your subscription to continue using all the benefits of Windy Premium.
+   */
+  SUB_PAUSED_HELP: string;
+  /**
+   * subscription: We could not verify your payment.
+   */
+  SUB_PAYMENT_INVALID_ERROR_HEADING: string;
+  /**
+   * subscription: Please make sure that the purchase has actually taken place and you have the receipt. If you think this is a mistake, ask [vendor] for a refund and try again.
+   */
+  SUB_PAYMENT_INVALID_ERROR_TEXT: string;
+  /**
+   * subscription: Oops! We received your payment, but something went wrong.
+   */
+  SUB_PAYMENT_SAVE_ERROR_HEADING: string;
+  /**
+   * subscription: Don’t worry, it can be easily fixed. Please follow the steps in the article [article].
+   */
+  SUB_PAYMENT_SAVE_ERROR_TEXT_LINK: string;
+  /**
+   * subscription: Failed to redeem subscription. Please follow the steps in the article [article].
+   */
+  SUB_PENDING_ERROR_LINK: string;
+  /**
+   * subscription: To redeem your subscription, please login to your account.
+   */
+  SUB_PENDING_NOTIFICATION: string;
+  /**
+   * subscription: Windy Premium includes premium support on our [community]
+   */
+  SUB_PENDING_POINT_1: string;
+  /**
+   * subscription: you can access Windy Premium from any other devices and platforms
+   */
+  SUB_PENDING_POINT_2: string;
+  /**
+   * subscription: we are able to sync your settings and favorites to cloud across all your devices and our systems
+   */
+  SUB_PENDING_POINT_3: string;
+  /**
+   * subscription: you will not accidentally buy Windy Premium multiple times
+   */
+  SUB_PENDING_POINT_4: string;
+  /**
+   * subscription: All you have to do is log in to your account. Why is this necessary?
+   */
+  SUB_PENDING_TEXT: string;
+  /**
+   * subscription: Save [value]%
+   */
+  SUB_PERCENT_CHEAPER: string;
+  /**
+   * subscription: Premium includes:
+   */
+  SUB_PREMIUM_INCLUDES: string;
+  /**
+   * subscription: Current subscription is prepaid until:
+   */
+  SUB_PREPAID: string;
+  /**
+   * subscription: Something went wrong
+   */
+  SUB_PURCHASE_ERROR_HEADING: string;
+  /**
+   * subscription: We are sorry, but there was an error processing your subscription. Please follow the steps in the article [article].
+   */
+  SUB_PURCHASE_ERROR_TEXT_LINK: string;
+  /**
+   * subscription: <strong>Extra settings</strong>
+   */
+  SUB_REASON_EXTRA_SETTINGS: string;
+  /**
+   * subscription: <strong>3D globe</strong> display
+   */
+  SUB_REASON_GLOBE: string;
+  /**
+   * subscription: Additional <strong>mobile widgets</strong>
+   */
+  SUB_REASON_MOBILE_WIDGETS: string;
+  /**
+   * subscription: <strong>Radar and Satellite archives</strong> going back <strong>1 year</strong>
+   */
+  SUB_REASON_RADSAT_HISTORY: string;
+  /**
+   * subscription: <strong>12-hour</strong> loop for <strong>Radar</strong> and <strong>Satellite</strong>
+   */
+  SUB_REASON_RADSAT_LOOP: string;
+  /**
+   * subscription: <strong>Route Planner</strong> for planning tasks
+   */
+  SUB_REASON_RPLANNER: string;
+  /**
+   * subscription: Unlimited <strong>Favorites</strong> and <strong>Alerts</strong>
+   */
+  SUB_REASON_UNLIMITED_FAVS: string;
+  /**
+   * subscription: <strong>More detailed</strong> forecast <strong>maps</strong>
+   */
+  SUB_REASON_ZOOM_LEVELS: string;
+  /**
+   * subscription: We were unable to process the payment.
+   */
+  SUB_RENEW_FAILED: string;
+  /**
+   * subscription: Your subscription is already assigned to an account [redeemedBy]. Please [loginLink]log in[/loginLink] with this account. If your subscription has been stolen, send us the invoice you received with your purchase at [mailAddress].
+   */
+  SUB_RESTORE_ASSIGNED_TEXT: string;
+  /**
+   * subscription: Restore purchases
+   */
+  SUB_RESTORE_CTA: string;
+  /**
+   * subscription: If you are having trouble with your subscription, you can restore your purchases using your order reference.
+   */
+  SUB_RESTORE_DESKTOP_DESCRIPTION: string;
+  /**
+   * subscription: If you paid through <strong>FastSpring</strong>, the order reference looks like <code>WINDY123456-1234-12345</code> and can be found in <strong>emails</strong> from FastSpring.
+   */
+  SUB_RESTORE_DESKTOP_DESCRIPTION_FS: string;
+  /**
+   * subscription: If you paid through <strong>Paddle</strong>, the order reference starts with <code>txn_</code> and can be found on your Paddle <strong>invoice</strong>.
+   */
+  SUB_RESTORE_DESKTOP_DESCRIPTION_PADDLE: string;
+  /**
+   * subscription: Your subscription is no longer active. It has probably expired or been cancelled at your initiative. If you think it is a mistake, send us the invoice you received with your purchase at [mailAddress].
+   */
+  SUB_RESTORE_DESKTOP_ERROR_EXPIRED: string;
+  /**
+   * subscription: Your subscription is not valid. Please check the invoice you received with your purchase carefully to ensure you are trying to restore Windy Premium. Or send it to us at [mailAddress].
+   */
+  SUB_RESTORE_DESKTOP_ERROR_INVALID: string;
+  /**
+   * subscription: Please enter a valid order reference
+   */
+  SUB_RESTORE_DESKTOP_REFERENCE_INVALID: string;
+  /**
+   * subscription: Order reference
+   */
+  SUB_RESTORE_DESKTOP_REFERENCE_LABEL: string;
+  /**
+   * subscription: Failed to restore purchases, please try again or follow the steps in the article [article].
+   */
+  SUB_RESTORE_ERROR_LINK: string;
+  /**
+   * subscription: We didn't find any purchases to restore.
+   */
+  SUB_RESTORE_NOTHING_TO_RESTORE: string;
+  /**
+   * subscription: All purchases are linked to your [platform] account. Make sure you are trying to restore your purchases on a device with the same [platform] account you purchased your subscription with.
+   */
+  SUB_RESTORE_NOTHING_TO_RESTORE_DESC: string;
+  /**
+   * subscription: Temporarily unavailable:
+   */
+  SUB_TEMP_UNAVAILABLE: string;
+  /**
+   * subscription: Thank you for subscribing!
+   */
+  SUB_THANK_YOU_HEADING: string;
+  /**
+   * subscription: Unpause Premium
+   */
+  SUB_UNPAUSE: string;
+  /**
+   * subscription: You lost:
+   */
+  SUB_YOU_LOST: string;
+  /**
+   * subscription: You will lose:
+   */
+  SUB_YOU_WILL_LOSE: string;
 }
 
 export interface SunmoonLangFile {
-    /**
-     * sunmoon: above horizon
-     */
-    SUN_MOON_ABOVE_HORIZON: string;
-    /**
-     * sunmoon: below horizon
-     */
-    SUN_MOON_BELOW_HORIZON: string;
-    /**
-     * sunmoon: Moon
-     */
-    SUN_MOON_MOON: string;
-    /**
-     * sunmoon: Moonrise
-     */
-    SUN_MOON_MOONRISE: string;
-    /**
-     * sunmoon: Moonset
-     */
-    SUN_MOON_MOONSET: string;
-    /**
-     * sunmoon: Moon: Azm {{azimuth}}°, Alt {{altitude}}°
-     */
-    SUN_MOON_MOON_TOOLTIP: string;
-    /**
-     * sunmoon: {{illuminatedFraction}}% illuminated
-     */
-    SUN_MOON_PCT_ILLUMINATED: string;
-    /**
-     * sunmoon: First Quarter
-     */
-    SUN_MOON_PHASE_FIRST_QUARTER: string;
-    /**
-     * sunmoon: Full Moon
-     */
-    SUN_MOON_PHASE_FULL: string;
-    /**
-     * sunmoon: Last Quarter
-     */
-    SUN_MOON_PHASE_LAST_QUARTER: string;
-    /**
-     * sunmoon: New Moon
-     */
-    SUN_MOON_PHASE_NEW: string;
-    /**
-     * sunmoon: Waning Crescent
-     */
-    SUN_MOON_PHASE_WANING_CRESCENT: string;
-    /**
-     * sunmoon: Waning Gibbous
-     */
-    SUN_MOON_PHASE_WANING_GIBBOUS: string;
-    /**
-     * sunmoon: Waxing Crescent
-     */
-    SUN_MOON_PHASE_WAXING_CRESCENT: string;
-    /**
-     * sunmoon: Waxing Gibbous
-     */
-    SUN_MOON_PHASE_WAXING_GIBBOUS: string;
-    /**
-     * sunmoon: Sun
-     */
-    SUN_MOON_SUN: string;
-    /**
-     * sunmoon: Sunrise
-     */
-    SUN_MOON_SUNRISE: string;
-    /**
-     * sunmoon: Sunset
-     */
-    SUN_MOON_SUNSET: string;
-    /**
-     * sunmoon: Sun: Azm {{azimuth}}°, Alt {{altitude}}°
-     */
-    SUN_MOON_SUN_TOOLTIP: string;
-    /**
-     * sunmoon: Minimize
-     */
-    SUN_MOON_TAB_MINIMIZE: string;
-    /**
-     * sunmoon: Path
-     */
-    SUN_MOON_TAB_PATH: string;
-    /**
-     * sunmoon: Position
-     */
-    SUN_MOON_TAB_POSITION: string;
+  /**
+   * sunmoon: above horizon
+   */
+  SUN_MOON_ABOVE_HORIZON: string;
+  /**
+   * sunmoon: below horizon
+   */
+  SUN_MOON_BELOW_HORIZON: string;
+  /**
+   * sunmoon: Moon
+   */
+  SUN_MOON_MOON: string;
+  /**
+   * sunmoon: Moonrise
+   */
+  SUN_MOON_MOONRISE: string;
+  /**
+   * sunmoon: Moonset
+   */
+  SUN_MOON_MOONSET: string;
+  /**
+   * sunmoon: Moon: Azm {{azimuth}}°, Alt {{altitude}}°
+   */
+  SUN_MOON_MOON_TOOLTIP: string;
+  /**
+   * sunmoon: {{illuminatedFraction}}% illuminated
+   */
+  SUN_MOON_PCT_ILLUMINATED: string;
+  /**
+   * sunmoon: First Quarter
+   */
+  SUN_MOON_PHASE_FIRST_QUARTER: string;
+  /**
+   * sunmoon: Full Moon
+   */
+  SUN_MOON_PHASE_FULL: string;
+  /**
+   * sunmoon: Last Quarter
+   */
+  SUN_MOON_PHASE_LAST_QUARTER: string;
+  /**
+   * sunmoon: New Moon
+   */
+  SUN_MOON_PHASE_NEW: string;
+  /**
+   * sunmoon: Waning Crescent
+   */
+  SUN_MOON_PHASE_WANING_CRESCENT: string;
+  /**
+   * sunmoon: Waning Gibbous
+   */
+  SUN_MOON_PHASE_WANING_GIBBOUS: string;
+  /**
+   * sunmoon: Waxing Crescent
+   */
+  SUN_MOON_PHASE_WAXING_CRESCENT: string;
+  /**
+   * sunmoon: Waxing Gibbous
+   */
+  SUN_MOON_PHASE_WAXING_GIBBOUS: string;
+  /**
+   * sunmoon: Sun
+   */
+  SUN_MOON_SUN: string;
+  /**
+   * sunmoon: Sunrise
+   */
+  SUN_MOON_SUNRISE: string;
+  /**
+   * sunmoon: Sunset
+   */
+  SUN_MOON_SUNSET: string;
+  /**
+   * sunmoon: Sun: Azm {{azimuth}}°, Alt {{altitude}}°
+   */
+  SUN_MOON_SUN_TOOLTIP: string;
+  /**
+   * sunmoon: Minimize
+   */
+  SUN_MOON_TAB_MINIMIZE: string;
+  /**
+   * sunmoon: Path
+   */
+  SUN_MOON_TAB_PATH: string;
+  /**
+   * sunmoon: Position
+   */
+  SUN_MOON_TAB_POSITION: string;
 }
 
 export interface WatchfaceLangFile {
-    /**
-     * watchface: Add Apple Watch Face
-     */
-    WATCHFACES_ADDBUTTON: string;
-    /**
-     * watchface: Add a Windy Watch Face to your Apple Watch and have forecast right on your wrist.
-     */
-    WATCHFACES_SUBTITLE: string;
-    /**
-     * watchface: Windy Watch Face
-     */
-    WATCHFACES_TITLE: string;
+  /**
+   * watchface: Add Apple Watch Face
+   */
+  WATCHFACES_ADDBUTTON: string;
+  /**
+   * watchface: Add a Windy Watch Face to your Apple Watch and have forecast right on your wrist.
+   */
+  WATCHFACES_SUBTITLE: string;
+  /**
+   * watchface: Windy Watch Face
+   */
+  WATCHFACES_TITLE: string;
 }
 
 export interface WebcamsLangFile {
-    /**
-     * webcams: Details
-     */
-    CAM_ADDITIONAL_INFO: string;
-    /**
-     * webcams: It is done! Thank you, your webcam will be processed as soon as possible. We will contact you via email.
-     */
-    CAM_ADD_DONE: string;
-    /**
-     * webcams: all webcams
-     */
-    CAM_ALL: string;
-    /**
-     * webcams: API for developers
-     */
-    CAM_API_FOR_DEVELOPERS: string;
-    /**
-     * webcams: are not specified
-     */
-    CAM_ARE_NOT_SPECIFIED: string;
-    /**
-     * webcams: Back
-     */
-    CAM_BACK: string;
-    /**
-     * webcams: back to webcam detail
-     */
-    CAM_BACK_TO_DETAIL: string;
-    /**
-     * webcams: URLs
-     */
-    CAM_BASIC_INFO: string;
-    /**
-     * webcams: I don't see the webcam here
-     */
-    CAM_CANNOT_SEE_WEBCAM: string;
-    /**
-     * webcams: Category
-     */
-    CAM_CATEGORY: string;
-    /**
-     * webcams: Location
-     */
-    CAM_CHOOSE_LOCATION: string;
-    /**
-     * webcams: Image
-     */
-    CAM_CHOOSE_WEBCAM: string;
-    /**
-     * webcams: Select your webcam view.
-     */
-    CAM_CHOOSE_WEBCAM_VIEW: string;
-    /**
-     * webcams: Click to fix it.
-     */
-    CAM_CLICK_TO_FIX_IT: string;
-    /**
-     * webcams: Confirm
-     */
-    CAM_CONFIRM: string;
-    /**
-     * webcams: Current images
-     */
-    CAM_CURRENT_IMAGES: string;
-    /**
-     * webcams: Daylight images
-     */
-    CAM_DAYLIGHT_IMAGES: string;
-    /**
-     * webcams: Details
-     */
-    CAM_DETAIL: string;
-    /**
-     * webcams: Direction
-     */
-    CAM_DIRECTION: string;
-    /**
-     * webcams: E
-     */
-    CAM_DIRECTION_E: string;
-    /**
-     * webcams: N
-     */
-    CAM_DIRECTION_N: string;
-    /**
-     * webcams: NE
-     */
-    CAM_DIRECTION_NE: string;
-    /**
-     * webcams: N/A
-     */
-    CAM_DIRECTION_NO: string;
-    /**
-     * webcams: NW
-     */
-    CAM_DIRECTION_NW: string;
-    /**
-     * webcams: S
-     */
-    CAM_DIRECTION_S: string;
-    /**
-     * webcams: SE
-     */
-    CAM_DIRECTION_SE: string;
-    /**
-     * webcams: SW
-     */
-    CAM_DIRECTION_SW: string;
-    /**
-     * webcams: W
-     */
-    CAM_DIRECTION_W: string;
-    /**
-     * webcams: Edit webcam
-     */
-    CAM_EDIT: string;
-    /**
-     * webcams: e.g.
-     */
-    CAM_EG: string;
-    /**
-     * webcams: Please check the contact email which will be used when the webcam is broken.
-     */
-    CAM_EMAIL_DESCRIPTION: string;
-    /**
-     * webcams: Copy this code and paste it on your website:
-     */
-    CAM_EMBED_COPY_CODE_LABEL: string;
-    /**
-     * webcams: What would you like to embed?
-     */
-    CAM_EMBED_EMBED_CONTENT_LABEL: string;
-    /**
-     * webcams: Nearby webcams
-     */
-    CAM_EMBED_EMBED_CONTENT_NEARBY_WEBCAMS: string;
-    /**
-     * webcams: This webcam
-     */
-    CAM_EMBED_EMBED_CONTENT_SINGLE_WEBCAM: string;
-    /**
-     * webcams: Choose your embed type
-     */
-    CAM_EMBED_EMBED_TYPE_LABEL: string;
-    /**
-     * webcams: Image links
-     */
-    CAM_EMBED_EMBED_TYPE_OPTION_IMAGE_LINKS: string;
-    /**
-     * webcams: Player
-     */
-    CAM_EMBED_EMBED_TYPE_OPTION_PLAYER: string;
-    /**
-     * webcams: Text link
-     */
-    CAM_EMBED_EMBED_TYPE_OPTION_TEXT_LINK: string;
-    /**
-     * webcams: Embed webcam
-     */
-    CAM_EMBED_HEADING: string;
-    /**
-     * webcams: Here's a preview of how it will look like:
-     */
-    CAM_EMBED_PREVIEW_LABEL: string;
-    /**
-     * webcams: Choose your timespan
-     */
-    CAM_EMBED_TIMESPAN_LABEL: string;
-    /**
-     * webcams: 12 months
-     */
-    CAM_EMBED_TIMESPAN_OPTION_12_MONTHS: string;
-    /**
-     * webcams: 24 hours
-     */
-    CAM_EMBED_TIMESPAN_OPTION_24_HOURS: string;
-    /**
-     * webcams: 30 days
-     */
-    CAM_EMBED_TIMESPAN_OPTION_30_DAYS: string;
-    /**
-     * webcams: Lifetime
-     */
-    CAM_EMBED_TIMESPAN_OPTION_LIFETIME: string;
-    /**
-     * webcams: An error occurred. Try again later.
-     */
-    CAM_ERROR_COMMON: string;
-    /**
-     * webcams: Email must be in the right format
-     */
-    CAM_ERROR_EMAIL: string;
-    /**
-     * webcams: Cannot load the webcam!
-     */
-    CAM_ERROR_LOADING: string;
-    /**
-     * webcams: go to the list of all webcams
-     */
-    CAM_ERROR_LOADING_BACK: string;
-    /**
-     * webcams: Please try again later. Anyway, the problem has been automatically reported, and we will look into it as soon as possible.
-     */
-    CAM_ERROR_LOADING_NOTE: string;
-    /**
-     * webcams: We already process this webcam!
-     */
-    CAM_ERROR_MESSAGE_DUPLICATE: string;
-    /**
-     * webcams: If the problem persists, please let us know at {{email}}.
-     */
-    CAM_ERROR_NOTE: string;
-    /**
-     * webcams: Select all checkboxes to continue
-     */
-    CAM_ERROR_NOT_CONFIRMED: string;
-    /**
-     * webcams: Field must be a number
-     */
-    CAM_ERROR_NUMBER: string;
-    /**
-     * webcams: Required field
-     */
-    CAM_ERROR_REQUIRED: string;
-    /**
-     * webcams: Please use a valid URL address, which starts with http(s)://
-     */
-    CAM_ERROR_URL: string;
-    /**
-     * webcams: It is not possible to add any webcam from windy.com domain, we already have this webcam :-)
-     */
-    CAM_ERROR_URL_WINDY: string;
-    /**
-     * webcams: Filter by category
-     */
-    CAM_FILTER_BY_CATEGORY: string;
-    /**
-     * webcams: Help us to build the biggest open collection of travel webcams
-     */
-    CAM_HELP_US_BUILD: string;
-    /**
-     * webcams: Image URL
-     */
-    CAM_IMAGE_URL: string;
-    /**
-     * webcams: Specify URL address of the webcam image. You will help us if you can specify a direct URL to the webcam image.
-     */
-    CAM_IMAGE_URL_DESCRIPTION: string;
-    /**
-     * webcams: We already process this webcam. You can review the existing webcam and help us improve it.
-     */
-    CAM_IMAGE_URL_DUPLICATE: string;
-    /**
-     * webcams: Cannot get a webcam preview image!
-     */
-    CAM_IMAGE_URL_ERROR: string;
-    /**
-     * webcams: It would help us a lot if you could
-     */
-    CAM_IMAGE_URL_MANUAL: string;
-    /**
-     * webcams: If the picture shows your webcam preview, please continue using {{confirm}} button. Otherwise, please help us and
-     */
-    CAM_IMAGE_URL_MANUAL2: string;
-    /**
-     * webcams: You can continue anyway using {{cannotsee}}, we just have to check your website manually.
-     */
-    CAM_IMAGE_URL_MANUAL2_FOOTER: string;
-    /**
-     * webcams: But you can continue anyway. We just have to check your website manually.
-     */
-    CAM_IMAGE_URL_MANUAL_FOOTER: string;
-    /**
-     * webcams: check your image URL one more time from {{pstep}}
-     */
-    CAM_IMAGE_URL_MANUAL_ITEM1: string;
-    /**
-     * webcams: previous step
-     */
-    CAM_IMAGE_URL_MANUAL_ITEM1_PSTEP: string;
-    /**
-     * webcams: or select a different image from your website {{ourtool}}
-     */
-    CAM_IMAGE_URL_MANUAL_ITEM2: string;
-    /**
-     * webcams: using our tool
-     */
-    CAM_IMAGE_URL_MANUAL_ITEM2_OURTOOL: string;
-    /**
-     * webcams: Because your page is protected by username and password, we will check your website manually and finish this step on our own.
-     */
-    CAM_IMAGE_URL_NOTE: string;
-    /**
-     * webcams: No images found on the page {{url}}, but you can continue anyway.
-     */
-    CAM_IMAGE_URL_NOT_FOUND: string;
-    /**
-     * webcams: is not specified
-     */
-    CAM_IS_NOT_SPECIFIED: string;
-    /**
-     * webcams: I hereby confirm that I am the legal owner and/or operator of the respective camera(s) and I declare that I am fully authorized to share the pictures/video from the camera(s) as well as any other related data (including user credentials such as login and password) necessary for the registration of the camera(s) within the Windy Services.
-     */
-    CAM_I_AM_OWNER: string;
-    /**
-     * webcams: I hereby confirm that I have read the related {{windy-pp}} and {{windy-tou}} and {{windy-webcams}} (including the section {{section-number}})
-     */
-    CAM_I_READ_LEGAL: string;
-    /**
-     * webcams: Loading more webcams
-     */
-    CAM_LOADING_MORE_WEBCAMS: string;
-    /**
-     * webcams: Location
-     */
-    CAM_LOCATION: string;
-    /**
-     * webcams: You are not logged in. You can add a webcam even without logging in, but we recommend using {{existing_account}} or {{create_account}} before you continue.
-     */
-    CAM_LOGIN: string;
-    /**
-     * webcams: creating a new one
-     */
-    CAM_LOGIN_CREATE_ACCOUNT: string;
-    /**
-     * webcams: your existing account
-     */
-    CAM_LOGIN_EXISTING_ACCOUNT: string;
-    /**
-     * webcams: Adjust the exact location of the webcam
-     */
-    CAM_MAP: string;
-    /**
-     * webcams: Add picker to the map.
-     */
-    CAM_MAP_DESCRIPTION: string;
-    /**
-     * webcams: Location of your camera is required.
-     */
-    CAM_MAP_LOCATION_ERROR: string;
-    /**
-     * webcams: Please zoom in the map to make the camera position as accurate as possible.
-     */
-    CAM_MAP_ZOOM: string;
-    /**
-     * webcams: Please help us to process your webcam faster and add an image URL.
-     */
-    CAM_MESSAGE_IMAGE_URL: string;
-    /**
-     * webcams: Nearest webcams
-     */
-    CAM_NEAREST_WEBCAMS: string;
-    /**
-     * webcams: No webcams nearby
-     */
-    CAM_NEAREST_WEBCAMS_NOT_FOUND: string;
-    /**
-     * webcams: Next
-     */
-    CAM_NEXT: string;
-    /**
-     * webcams: was not specified
-     */
-    CAM_NOT_SPECIFIED: string;
-    /**
-     * webcams: No webcam images available for selected time period. Please change the time range or try again later, when the newer data will be processed.
-     */
-    CAM_NO_SCREEN: string;
-    /**
-     * webcams: No webcams found in this location.
-     */
-    CAM_NO_WEBCAMS: string;
-    /**
-     * webcams: No webcams found in this location for the selected category.
-     */
-    CAM_NO_WEBCAMS_AND_CATGORY: string;
-    /**
-     * webcams: open webcam detail
-     */
-    CAM_OPEN_DETAIL: string;
-    /**
-     * webcams: Webcam Operator email
-     */
-    CAM_OPERATOR_EMAIL: string;
-    /**
-     * webcams: optional
-     */
-    CAM_OPTIONAL: string;
-    /**
-     * webcams: Our webcam
-     */
-    CAM_OUR_WEBCAM: string;
-    /**
-     * webcams: Page URL
-     */
-    CAM_PAGE_URL: string;
-    /**
-     * webcams: Specify URL address of a page. The page must contain the webcam image on it somewhere.
-     */
-    CAM_PAGE_URL_DESCRIPTION: string;
-    /**
-     * webcams: Can't see your webcam? Are you going to add a new one?
-     */
-    CAM_POSSIBLE_DUPLICATE_CANT_SEE: string;
-    /**
-     * webcams: In that case, please continue with the process of adding your webcam.
-     */
-    CAM_POSSIBLE_DUPLICATE_CONTINUE: string;
-    /**
-     * webcams: Possible match
-     */
-    CAM_POSSIBLE_MATCH: string;
-    /**
-     * webcams: Preview
-     */
-    CAM_PREVIEW: string;
-    /**
-     * webcams: protected page
-     */
-    CAM_PROTECTED_PAGE: string;
-    /**
-     * webcams: provider's website
-     */
-    CAM_PROVIDER: string;
-    /**
-     * webcams: back to editing
-     */
-    CAM_REMOVE_BACK_CTA: string;
-    /**
-     * webcams: Date of discontinuation
-     */
-    CAM_REMOVE_DISCONTINUED_NO_DATE_LABEL: string;
-    /**
-     * webcams: E-mail
-     */
-    CAM_REMOVE_DISCONTINUED_NO_EMAIL_LABEL: string;
-    /**
-     * webcams: Message
-     */
-    CAM_REMOVE_DISCONTINUED_NO_MESSAGE_LABEL: string;
-    /**
-     * webcams: Name
-     */
-    CAM_REMOVE_DISCONTINUED_NO_NAME_LABEL: string;
-    /**
-     * webcams: Confirm
-     */
-    CAM_REMOVE_DISCONTINUED_NO_SUBMIT: string;
-    /**
-     * webcams: Please confirm, that this webcam service is discontinued without any public replacement in the future:
-     */
-    CAM_REMOVE_DISCONTINUED_NO_TEXT: string;
-    /**
-     * webcams: Will there be a public replacement for this specific webcam?
-     */
-    CAM_REMOVE_DISCONTINUED_REPLACEMENT_LEGEND: string;
-    /**
-     * webcams: Maybe
-     */
-    CAM_REMOVE_DISCONTINUED_REPLACEMENT_OPTION_MAYBE: string;
-    /**
-     * webcams: No
-     */
-    CAM_REMOVE_DISCONTINUED_REPLACEMENT_OPTION_NO: string;
-    /**
-     * webcams: Yes
-     */
-    CAM_REMOVE_DISCONTINUED_REPLACEMENT_OPTION_YES: string;
-    /**
-     * webcams: Edit image URL
-     */
-    CAM_REMOVE_DISCONTINUED_YES_CTA: string;
-    /**
-     * webcams: Please edit the image URL of the webcam, as soon as the replacement is ready:
-     */
-    CAM_REMOVE_DISCONTINUED_YES_TEXT: string;
-    /**
-     * webcams: Your e-mail in case further information is needed
-     */
-    CAM_REMOVE_DUPLICATE_EMAIL_LABEL: string;
-    /**
-     * webcams: Confirm
-     */
-    CAM_REMOVE_DUPLICATE_SUBMIT: string;
-    /**
-     * webcams: Please confirm, that this webcam is a duplicate of an already existing webcam:
-     */
-    CAM_REMOVE_DUPLICATE_TEXT: string;
-    /**
-     * webcams: Original URL of the same webcam
-     */
-    CAM_REMOVE_DUPLICATE_URL_LABEL: string;
-    /**
-     * webcams: We have a problem here. Please, try again later or let us know at {{email}}.
-     */
-    CAM_REMOVE_FAILED_TEXT: string;
-    /**
-     * webcams: Remove webcam
-     */
-    CAM_REMOVE_HEADING: string;
-    /**
-     * webcams: Date of privatization
-     */
-    CAM_REMOVE_PRIVATIZED_DATE_LABEL: string;
-    /**
-     * webcams: E-mail
-     */
-    CAM_REMOVE_PRIVATIZED_EMAIL_LABEL: string;
-    /**
-     * webcams: Authorized person's name
-     */
-    CAM_REMOVE_PRIVATIZED_NAME_LABEL: string;
-    /**
-     * webcams: Confirm
-     */
-    CAM_REMOVE_PRIVATIZED_SUBMIT: string;
-    /**
-     * webcams: Please confirm, that this webcam is privatized and no longer available to the public:
-     */
-    CAM_REMOVE_PRIVATIZED_TEXT: string;
-    /**
-     * webcams: Reason for removal
-     */
-    CAM_REMOVE_REASON_LEGEND: string;
-    /**
-     * webcams: Webcam discontinued
-     */
-    CAM_REMOVE_REASON_OPTION_DISCONTINUED: string;
-    /**
-     * webcams: Duplicate entry
-     */
-    CAM_REMOVE_REASON_OPTION_DUPLICATE: string;
-    /**
-     * webcams: Webcam privatized
-     */
-    CAM_REMOVE_REASON_OPTION_PRIVATIZED: string;
-    /**
-     * webcams: Publication undesired
-     */
-    CAM_REMOVE_REASON_OPTION_UNDESIRED: string;
-    /**
-     * webcams: Thank you.
-     */
-    CAM_REMOVE_THANK_YOU_HEADING: string;
-    /**
-     * webcams: Please give us a few days to process your request manually.
-     */
-    CAM_REMOVE_THANK_YOU_TEXT1: string;
-    /**
-     * webcams: We will get back to you.
-     */
-    CAM_REMOVE_THANK_YOU_TEXT2: string;
-    /**
-     * webcams: Cancel the publication of your webcams
-     */
-    CAM_REMOVE_UNDESIRED_HEADING: string;
-    /**
-     * webcams: Step
-     */
-    CAM_REMOVE_UNDESIRED_STEP: string;
-    /**
-     * webcams: OK, I give up these benefits
-     */
-    CAM_REMOVE_UNDESIRED_STEP1_CONTINUE: string;
-    /**
-     * webcams: By removing your webcam, you will automatically:
-     */
-    CAM_REMOVE_UNDESIRED_STEP1_LIST_HEADING: string;
-    /**
-     * webcams: Lose the benefit of increasing the audience of your webcam within our distribution network
-     */
-    CAM_REMOVE_UNDESIRED_STEP1_LIST_ITEM1: string;
-    /**
-     * webcams: Lose the benefit of additional user traffic from our website to your website
-     */
-    CAM_REMOVE_UNDESIRED_STEP1_LIST_ITEM2: string;
-    /**
-     * webcams: Lose the benefit of free timelapse slideshows for your webcam, showing the last 24 hours, 30 days, 24 months and lifetime
-     */
-    CAM_REMOVE_UNDESIRED_STEP1_LIST_ITEM3: string;
-    /**
-     * webcams: OK, got it
-     */
-    CAM_REMOVE_UNDESIRED_STEP2_CONTINUE: string;
-    /**
-     * webcams: Download form
-     */
-    CAM_REMOVE_UNDESIRED_STEP2_DOWNLOAD: string;
-    /**
-     * webcams: We need to be sure, that you are the legal owner of this webcam in order to prevent an unintended removal from our directory by a non-eligible person.
-     */
-    CAM_REMOVE_UNDESIRED_STEP2_TEXT1: string;
-    /**
-     * webcams: That is why we need you to download, unzip and complete this form (it contains editable fields):
-     */
-    CAM_REMOVE_UNDESIRED_STEP2_TEXT2: string;
-    /**
-     * webcams: OK, got it
-     */
-    CAM_REMOVE_UNDESIRED_STEP3_CONTINUE: string;
-    /**
-     * webcams: Sign this document with a valid digital signature; or print it out and sign it manually.
-     */
-    CAM_REMOVE_UNDESIRED_STEP3_TEXT: string;
-    /**
-     * webcams: OK, got it
-     */
-    CAM_REMOVE_UNDESIRED_STEP4_CONTINUE: string;
-    /**
-     * webcams: Send an email to {{email}} with the following contents:
-     */
-    CAM_REMOVE_UNDESIRED_STEP4_LIST_HEADING: string;
-    /**
-     * webcams: The signed document (as attachment)
-     */
-    CAM_REMOVE_UNDESIRED_STEP4_LIST_ITEM1: string;
-    /**
-     * webcams: Reason for your cancellation
-     */
-    CAM_REMOVE_UNDESIRED_STEP4_LIST_ITEM2: string;
-    /**
-     * webcams: Your email signature containing (1) your name, (2) address and (3) contact details
-     */
-    CAM_REMOVE_UNDESIRED_STEP4_LIST_ITEM3: string;
-    /**
-     * webcams: Remove webcam
-     */
-    CAM_REMOVE_WEBCAM_CTA: string;
-    /**
-     * webcams: Review webcam
-     */
-    CAM_REVIEW: string;
-    /**
-     * webcams: Select location
-     */
-    CAM_SELECT_LOCATION: string;
-    /**
-     * webcams: Please select the corresponding webcam image or click on
-     */
-    CAM_SELECT_WEBCAM_ERROR: string;
-    /**
-     * webcams: Show more images
-     */
-    CAM_SHOW_MORE: string;
-    /**
-     * webcams: live stream
-     */
-    CAM_STREAM: string;
-    /**
-     * webcams: Submit
-     */
-    CAM_SUBMIT: string;
-    /**
-     * webcams: Submit again
-     */
-    CAM_SUBMIT_AGAIN: string;
-    /**
-     * webcams: Suggestions
-     */
-    CAM_SUGGESTION: string;
-    /**
-     * webcams: Categories
-     */
-    CAM_SUGGESTION_CATEGORY: string;
-    /**
-     * webcams: Categories cannot be changed. They are generated automatically from views. If you would like to suggest a new category, kindly add a new view.
-     */
-    CAM_SUGGESTION_CATEGORY_TEXT: string;
-    /**
-     * webcams: Elevation
-     */
-    CAM_SUGGESTION_ELEVATION: string;
-    /**
-     * webcams: Meters above sea level
-     */
-    CAM_SUGGESTION_ELEVATION_DESCRIPTION: string;
-    /**
-     * webcams: Elevation has not been changed
-     */
-    CAM_SUGGESTION_ELEVATION_NOT_CHANGED: string;
-    /**
-     * webcams: Your email
-     */
-    CAM_SUGGESTION_EMAIL: string;
-    /**
-     * webcams: We have a problem here. Please, try again later or let us know at {{mail}}.
-     */
-    CAM_SUGGESTION_FAIL: string;
-    /**
-     * webcams: Image URL
-     */
-    CAM_SUGGESTION_IMAGE: string;
-    /**
-     * webcams: is not public
-     */
-    CAM_SUGGESTION_IMAGE_PRIVATE: string;
-    /**
-     * webcams: TIP
-     */
-    CAM_SUGGESTION_IMAGE_TIP: string;
-    /**
-     * webcams: Do you want to add a new webcam?
-     */
-    CAM_SUGGESTION_IMAGE_TIP_TEXT: string;
-    /**
-     * webcams: Image URL (will remain private)
-     */
-    CAM_SUGGESTION_IMAGE_URL: string;
-    /**
-     * webcams: This URL must directly point to the webcam picture
-     */
-    CAM_SUGGESTION_IMAGE_URL_DESC: string;
-    /**
-     * webcams: Other issue
-     */
-    CAM_SUGGESTION_ISSUE: string;
-    /**
-     * webcams: Archive images
-     */
-    CAM_SUGGESTION_ISSUE_ARCHIVE: string;
-    /**
-     * webcams: The only images we save are publicly available on our website as a timelapse slider. If you need additional images, please visit the official website (if presented) mentioned in every webcam detail.
-     */
-    CAM_SUGGESTION_ISSUE_ARCHIVE_TEXT: string;
-    /**
-     * webcams: I tried to edit this webcam using the suggestions above. I also carefully read this whole page, but I still haven’t found what I need.
-     */
-    CAM_SUGGESTION_ISSUE_ELSE_CONFIRMATION: string;
-    /**
-     * webcams: Your feedback
-     */
-    CAM_SUGGESTION_ISSUE_ELSE_FEEDBACK: string;
-    /**
-     * webcams: Remove this webcam
-     */
-    CAM_SUGGESTION_ISSUE_ELSE_OPTION1: string;
-    /**
-     * webcams: Something else
-     */
-    CAM_SUGGESTION_ISSUE_ELSE_OPTION2: string;
-    /**
-     * webcams: Please select what your issue is
-     */
-    CAM_SUGGESTION_ISSUE_ELSE_TITLE: string;
-    /**
-     * webcams: Wrong location
-     */
-    CAM_SUGGESTION_ISSUE_LOCATION: string;
-    /**
-     * webcams: Please correct the location in the location section. Thank you.
-     */
-    CAM_SUGGESTION_ISSUE_LOCATION_TEXT: string;
-    /**
-     * webcams: No image
-     */
-    CAM_SUGGESTION_ISSUE_NO_IMAGE: string;
-    /**
-     * webcams: This webcam just shows a blank image in a solid color, containing no content.
-     */
-    CAM_SUGGESTION_ISSUE_NO_IMAGE_TEXT: string;
-    /**
-     * webcams: Poor image
-     */
-    CAM_SUGGESTION_ISSUE_POOR_IMAGE: string;
-    /**
-     * webcams: This webcam has a poor image (blurry, dirty lens, strange angle, etc) which severely reduces the webcam enjoyment.
-     */
-    CAM_SUGGESTION_ISSUE_POOR_IMAGE_TEXT: string;
-    /**
-     * webcams: Position has not been changed.
-     */
-    CAM_SUGGESTION_LOCATION_NOT_CHANGED: string;
-    /**
-     * webcams: Thank you, your suggestion has been successfully submitted for review.
-     */
-    CAM_SUGGESTION_OK: string;
-    /**
-     * webcams: Webpage
-     */
-    CAM_SUGGESTION_PAGE: string;
-    /**
-     * webcams: This page must contain the webcam image on it somewhere
-     */
-    CAM_SUGGESTION_PAGE_DESC: string;
-    /**
-     * webcams: Webpage URL
-     */
-    CAM_SUGGESTION_PAGE_LABEL: string;
-    /**
-     * webcams: The URL has not been changed
-     */
-    CAM_SUGGESTION_PAGE_NOT_CHANGED: string;
-    /**
-     * webcams: Stream type
-     */
-    CAM_SUGGESTION_STREAM: string;
-    /**
-     * webcams: The livestream player URL must point to a website containing only the livestream, with no additional content
-     */
-    CAM_SUGGESTION_STREAM_DESC: string;
-    /**
-     * webcams: Live stream URL
-     */
-    CAM_SUGGESTION_STREAM_LABEL: string;
-    /**
-     * webcams: N/A
-     */
-    CAM_SUGGESTION_STREAM_NO: string;
-    /**
-     * webcams: The URL has not been changed
-     */
-    CAM_SUGGESTION_STREAM_NOT_CHANGED: string;
-    /**
-     * webcams: Livestream
-     */
-    CAM_SUGGESTION_STREAM_YES: string;
-    /**
-     * webcams: Title
-     */
-    CAM_SUGGESTION_TITLE: string;
-    /**
-     * webcams: The title cannot be changed. It is generated automatically from the location and views.
-     */
-    CAM_SUGGESTION_TITLE_TEXT: string;
-    /**
-     * webcams: A webcam view defines what is visible on the webcam picture.
-     */
-    CAM_SUGGESTION_VIEW: string;
-    /**
-     * webcams: Each webcam can have several views.
-     */
-    CAM_SUGGESTION_VIEW_ITEM1: string;
-    /**
-     * webcams: The webcam view is used for creating the webcam title and determining the webcam categories.
-     */
-    CAM_SUGGESTION_VIEW_ITEM2: string;
-    /**
-     * webcams: The views will automatically be translated into every available language by us.
-     */
-    CAM_SUGGESTION_VIEW_ITEM3: string;
-    /**
-     * webcams: Views have not been changed.
-     */
-    CAM_SUGGESTION_VIEW_NOT_CHANGED: string;
-    /**
-     * webcams: Summary
-     */
-    CAM_SUMMARY: string;
-    /**
-     * webcams: Terms of Use of Windy Webcam Services
-     */
-    CAM_TERMS_OF_USE: string;
-    /**
-     * webcams: Enter the name of whatever is visible on the webcam image.
-     */
-    CAM_VIEW_DESCRIPTION: string;
-    /**
-     * webcams: Google Maps places
-     */
-    CAM_VIEW_GPLACES: string;
-    /**
-     * webcams: Views
-     */
-    CAM_VIEW_LANDSCAPE: string;
-    /**
-     * webcams: We cannot find this view. Feel free to extend {{gplaces}}, then it will be available here.
-     */
-    CAM_VIEW_NOT_FOUND: string;
-    /**
-     * webcams: Location name
-     */
-    CAM_VIEW_PLACEHOLDER: string;
-    /**
-     * webcams: We already process possible duplicates of your webcam!
-     */
-    CAM_WARNING_MESSAGE_POSSIBLE_DUPLICATE: string;
-    /**
-     * webcams: webcam detail
-     */
-    CAM_WEBCAM_DETAIL: string;
-    /**
-     * webcams: Webcam feedback
-     */
-    CAM_WEBCAM_FEEDBACK: string;
-    /**
-     * webcams: Webcam provider
-     */
-    CAM_WEBCAM_PROVIDER: string;
-    /**
-     * webcams: Webpage
-     */
-    CAM_WEBPAGE: string;
-    /**
-     * webcams: Your webcam image
-     */
-    CAM_YOUR_IMAGE: string;
+  /**
+   * webcams: Details
+   */
+  CAM_ADDITIONAL_INFO: string;
+  /**
+   * webcams: It is done! Thank you, your webcam will be processed as soon as possible. We will contact you via email.
+   */
+  CAM_ADD_DONE: string;
+  /**
+   * webcams: all webcams
+   */
+  CAM_ALL: string;
+  /**
+   * webcams: API for developers
+   */
+  CAM_API_FOR_DEVELOPERS: string;
+  /**
+   * webcams: are not specified
+   */
+  CAM_ARE_NOT_SPECIFIED: string;
+  /**
+   * webcams: Back
+   */
+  CAM_BACK: string;
+  /**
+   * webcams: back to webcam detail
+   */
+  CAM_BACK_TO_DETAIL: string;
+  /**
+   * webcams: URLs
+   */
+  CAM_BASIC_INFO: string;
+  /**
+   * webcams: I don't see the webcam here
+   */
+  CAM_CANNOT_SEE_WEBCAM: string;
+  /**
+   * webcams: Category
+   */
+  CAM_CATEGORY: string;
+  /**
+   * webcams: Location
+   */
+  CAM_CHOOSE_LOCATION: string;
+  /**
+   * webcams: Image
+   */
+  CAM_CHOOSE_WEBCAM: string;
+  /**
+   * webcams: Select your webcam view.
+   */
+  CAM_CHOOSE_WEBCAM_VIEW: string;
+  /**
+   * webcams: Click to fix it.
+   */
+  CAM_CLICK_TO_FIX_IT: string;
+  /**
+   * webcams: Confirm
+   */
+  CAM_CONFIRM: string;
+  /**
+   * webcams: Current images
+   */
+  CAM_CURRENT_IMAGES: string;
+  /**
+   * webcams: Daylight images
+   */
+  CAM_DAYLIGHT_IMAGES: string;
+  /**
+   * webcams: Details
+   */
+  CAM_DETAIL: string;
+  /**
+   * webcams: Direction
+   */
+  CAM_DIRECTION: string;
+  /**
+   * webcams: E
+   */
+  CAM_DIRECTION_E: string;
+  /**
+   * webcams: N
+   */
+  CAM_DIRECTION_N: string;
+  /**
+   * webcams: NE
+   */
+  CAM_DIRECTION_NE: string;
+  /**
+   * webcams: N/A
+   */
+  CAM_DIRECTION_NO: string;
+  /**
+   * webcams: NW
+   */
+  CAM_DIRECTION_NW: string;
+  /**
+   * webcams: S
+   */
+  CAM_DIRECTION_S: string;
+  /**
+   * webcams: SE
+   */
+  CAM_DIRECTION_SE: string;
+  /**
+   * webcams: SW
+   */
+  CAM_DIRECTION_SW: string;
+  /**
+   * webcams: W
+   */
+  CAM_DIRECTION_W: string;
+  /**
+   * webcams: Edit webcam
+   */
+  CAM_EDIT: string;
+  /**
+   * webcams: e.g.
+   */
+  CAM_EG: string;
+  /**
+   * webcams: Please check the contact email which will be used when the webcam is broken.
+   */
+  CAM_EMAIL_DESCRIPTION: string;
+  /**
+   * webcams: Copy this code and paste it on your website:
+   */
+  CAM_EMBED_COPY_CODE_LABEL: string;
+  /**
+   * webcams: What would you like to embed?
+   */
+  CAM_EMBED_EMBED_CONTENT_LABEL: string;
+  /**
+   * webcams: Nearby webcams
+   */
+  CAM_EMBED_EMBED_CONTENT_NEARBY_WEBCAMS: string;
+  /**
+   * webcams: This webcam
+   */
+  CAM_EMBED_EMBED_CONTENT_SINGLE_WEBCAM: string;
+  /**
+   * webcams: Choose your embed type
+   */
+  CAM_EMBED_EMBED_TYPE_LABEL: string;
+  /**
+   * webcams: Image links
+   */
+  CAM_EMBED_EMBED_TYPE_OPTION_IMAGE_LINKS: string;
+  /**
+   * webcams: Player
+   */
+  CAM_EMBED_EMBED_TYPE_OPTION_PLAYER: string;
+  /**
+   * webcams: Text link
+   */
+  CAM_EMBED_EMBED_TYPE_OPTION_TEXT_LINK: string;
+  /**
+   * webcams: Embed webcam
+   */
+  CAM_EMBED_HEADING: string;
+  /**
+   * webcams: Here's a preview of how it will look like:
+   */
+  CAM_EMBED_PREVIEW_LABEL: string;
+  /**
+   * webcams: Choose your timespan
+   */
+  CAM_EMBED_TIMESPAN_LABEL: string;
+  /**
+   * webcams: 12 months
+   */
+  CAM_EMBED_TIMESPAN_OPTION_12_MONTHS: string;
+  /**
+   * webcams: 24 hours
+   */
+  CAM_EMBED_TIMESPAN_OPTION_24_HOURS: string;
+  /**
+   * webcams: 30 days
+   */
+  CAM_EMBED_TIMESPAN_OPTION_30_DAYS: string;
+  /**
+   * webcams: Lifetime
+   */
+  CAM_EMBED_TIMESPAN_OPTION_LIFETIME: string;
+  /**
+   * webcams: An error occurred. Try again later.
+   */
+  CAM_ERROR_COMMON: string;
+  /**
+   * webcams: Email must be in the right format
+   */
+  CAM_ERROR_EMAIL: string;
+  /**
+   * webcams: Cannot load the webcam!
+   */
+  CAM_ERROR_LOADING: string;
+  /**
+   * webcams: go to the list of all webcams
+   */
+  CAM_ERROR_LOADING_BACK: string;
+  /**
+   * webcams: Please try again later. Anyway, the problem has been automatically reported, and we will look into it as soon as possible.
+   */
+  CAM_ERROR_LOADING_NOTE: string;
+  /**
+   * webcams: We already process this webcam!
+   */
+  CAM_ERROR_MESSAGE_DUPLICATE: string;
+  /**
+   * webcams: If the problem persists, please let us know at {{email}}.
+   */
+  CAM_ERROR_NOTE: string;
+  /**
+   * webcams: Select all checkboxes to continue
+   */
+  CAM_ERROR_NOT_CONFIRMED: string;
+  /**
+   * webcams: Field must be a number
+   */
+  CAM_ERROR_NUMBER: string;
+  /**
+   * webcams: Required field
+   */
+  CAM_ERROR_REQUIRED: string;
+  /**
+   * webcams: Please use a valid URL address, which starts with http(s)://
+   */
+  CAM_ERROR_URL: string;
+  /**
+   * webcams: It is not possible to add any webcam from windy.com domain, we already have this webcam :-)
+   */
+  CAM_ERROR_URL_WINDY: string;
+  /**
+   * webcams: Filter by category
+   */
+  CAM_FILTER_BY_CATEGORY: string;
+  /**
+   * webcams: Help us to build the biggest open collection of travel webcams
+   */
+  CAM_HELP_US_BUILD: string;
+  /**
+   * webcams: Image URL
+   */
+  CAM_IMAGE_URL: string;
+  /**
+   * webcams: Specify URL address of the webcam image. You will help us if you can specify a direct URL to the webcam image.
+   */
+  CAM_IMAGE_URL_DESCRIPTION: string;
+  /**
+   * webcams: We already process this webcam. You can review the existing webcam and help us improve it.
+   */
+  CAM_IMAGE_URL_DUPLICATE: string;
+  /**
+   * webcams: Cannot get a webcam preview image!
+   */
+  CAM_IMAGE_URL_ERROR: string;
+  /**
+   * webcams: It would help us a lot if you could
+   */
+  CAM_IMAGE_URL_MANUAL: string;
+  /**
+   * webcams: If the picture shows your webcam preview, please continue using {{confirm}} button. Otherwise, please help us and
+   */
+  CAM_IMAGE_URL_MANUAL2: string;
+  /**
+   * webcams: You can continue anyway using {{cannotsee}}, we just have to check your website manually.
+   */
+  CAM_IMAGE_URL_MANUAL2_FOOTER: string;
+  /**
+   * webcams: But you can continue anyway. We just have to check your website manually.
+   */
+  CAM_IMAGE_URL_MANUAL_FOOTER: string;
+  /**
+   * webcams: check your image URL one more time from {{pstep}}
+   */
+  CAM_IMAGE_URL_MANUAL_ITEM1: string;
+  /**
+   * webcams: previous step
+   */
+  CAM_IMAGE_URL_MANUAL_ITEM1_PSTEP: string;
+  /**
+   * webcams: or select a different image from your website {{ourtool}}
+   */
+  CAM_IMAGE_URL_MANUAL_ITEM2: string;
+  /**
+   * webcams: using our tool
+   */
+  CAM_IMAGE_URL_MANUAL_ITEM2_OURTOOL: string;
+  /**
+   * webcams: Because your page is protected by username and password, we will check your website manually and finish this step on our own.
+   */
+  CAM_IMAGE_URL_NOTE: string;
+  /**
+   * webcams: No images found on the page {{url}}, but you can continue anyway.
+   */
+  CAM_IMAGE_URL_NOT_FOUND: string;
+  /**
+   * webcams: is not specified
+   */
+  CAM_IS_NOT_SPECIFIED: string;
+  /**
+   * webcams: I hereby confirm that I am the legal owner and/or operator of the respective camera(s) and I declare that I am fully authorized to share the pictures/video from the camera(s) as well as any other related data (including user credentials such as login and password) necessary for the registration of the camera(s) within the Windy Services.
+   */
+  CAM_I_AM_OWNER: string;
+  /**
+   * webcams: I hereby confirm that I have read the related {{windy-pp}} and {{windy-tou}} and {{windy-webcams}} (including the section {{section-number}})
+   */
+  CAM_I_READ_LEGAL: string;
+  /**
+   * webcams: Loading more webcams
+   */
+  CAM_LOADING_MORE_WEBCAMS: string;
+  /**
+   * webcams: Location
+   */
+  CAM_LOCATION: string;
+  /**
+   * webcams: You are not logged in. You can add a webcam even without logging in, but we recommend using {{existing_account}} or {{create_account}} before you continue.
+   */
+  CAM_LOGIN: string;
+  /**
+   * webcams: creating a new one
+   */
+  CAM_LOGIN_CREATE_ACCOUNT: string;
+  /**
+   * webcams: your existing account
+   */
+  CAM_LOGIN_EXISTING_ACCOUNT: string;
+  /**
+   * webcams: Adjust the exact location of the webcam
+   */
+  CAM_MAP: string;
+  /**
+   * webcams: Add picker to the map.
+   */
+  CAM_MAP_DESCRIPTION: string;
+  /**
+   * webcams: Location of your camera is required.
+   */
+  CAM_MAP_LOCATION_ERROR: string;
+  /**
+   * webcams: Please zoom in the map to make the camera position as accurate as possible.
+   */
+  CAM_MAP_ZOOM: string;
+  /**
+   * webcams: Please help us to process your webcam faster and add an image URL.
+   */
+  CAM_MESSAGE_IMAGE_URL: string;
+  /**
+   * webcams: Nearest webcams
+   */
+  CAM_NEAREST_WEBCAMS: string;
+  /**
+   * webcams: No webcams nearby
+   */
+  CAM_NEAREST_WEBCAMS_NOT_FOUND: string;
+  /**
+   * webcams: Next
+   */
+  CAM_NEXT: string;
+  /**
+   * webcams: was not specified
+   */
+  CAM_NOT_SPECIFIED: string;
+  /**
+   * webcams: No webcam images available for selected time period. Please change the time range or try again later, when the newer data will be processed.
+   */
+  CAM_NO_SCREEN: string;
+  /**
+   * webcams: No webcams found in this location.
+   */
+  CAM_NO_WEBCAMS: string;
+  /**
+   * webcams: No webcams found in this location for the selected category.
+   */
+  CAM_NO_WEBCAMS_AND_CATGORY: string;
+  /**
+   * webcams: open webcam detail
+   */
+  CAM_OPEN_DETAIL: string;
+  /**
+   * webcams: Webcam Operator email
+   */
+  CAM_OPERATOR_EMAIL: string;
+  /**
+   * webcams: optional
+   */
+  CAM_OPTIONAL: string;
+  /**
+   * webcams: Our webcam
+   */
+  CAM_OUR_WEBCAM: string;
+  /**
+   * webcams: Page URL
+   */
+  CAM_PAGE_URL: string;
+  /**
+   * webcams: Specify URL address of a page. The page must contain the webcam image on it somewhere.
+   */
+  CAM_PAGE_URL_DESCRIPTION: string;
+  /**
+   * webcams: Can't see your webcam? Are you going to add a new one?
+   */
+  CAM_POSSIBLE_DUPLICATE_CANT_SEE: string;
+  /**
+   * webcams: In that case, please continue with the process of adding your webcam.
+   */
+  CAM_POSSIBLE_DUPLICATE_CONTINUE: string;
+  /**
+   * webcams: Possible match
+   */
+  CAM_POSSIBLE_MATCH: string;
+  /**
+   * webcams: Preview
+   */
+  CAM_PREVIEW: string;
+  /**
+   * webcams: protected page
+   */
+  CAM_PROTECTED_PAGE: string;
+  /**
+   * webcams: provider's website
+   */
+  CAM_PROVIDER: string;
+  /**
+   * webcams: back to editing
+   */
+  CAM_REMOVE_BACK_CTA: string;
+  /**
+   * webcams: Date of discontinuation
+   */
+  CAM_REMOVE_DISCONTINUED_NO_DATE_LABEL: string;
+  /**
+   * webcams: E-mail
+   */
+  CAM_REMOVE_DISCONTINUED_NO_EMAIL_LABEL: string;
+  /**
+   * webcams: Message
+   */
+  CAM_REMOVE_DISCONTINUED_NO_MESSAGE_LABEL: string;
+  /**
+   * webcams: Name
+   */
+  CAM_REMOVE_DISCONTINUED_NO_NAME_LABEL: string;
+  /**
+   * webcams: Confirm
+   */
+  CAM_REMOVE_DISCONTINUED_NO_SUBMIT: string;
+  /**
+   * webcams: Please confirm, that this webcam service is discontinued without any public replacement in the future:
+   */
+  CAM_REMOVE_DISCONTINUED_NO_TEXT: string;
+  /**
+   * webcams: Will there be a public replacement for this specific webcam?
+   */
+  CAM_REMOVE_DISCONTINUED_REPLACEMENT_LEGEND: string;
+  /**
+   * webcams: Maybe
+   */
+  CAM_REMOVE_DISCONTINUED_REPLACEMENT_OPTION_MAYBE: string;
+  /**
+   * webcams: No
+   */
+  CAM_REMOVE_DISCONTINUED_REPLACEMENT_OPTION_NO: string;
+  /**
+   * webcams: Yes
+   */
+  CAM_REMOVE_DISCONTINUED_REPLACEMENT_OPTION_YES: string;
+  /**
+   * webcams: Edit image URL
+   */
+  CAM_REMOVE_DISCONTINUED_YES_CTA: string;
+  /**
+   * webcams: Please edit the image URL of the webcam, as soon as the replacement is ready:
+   */
+  CAM_REMOVE_DISCONTINUED_YES_TEXT: string;
+  /**
+   * webcams: Your e-mail in case further information is needed
+   */
+  CAM_REMOVE_DUPLICATE_EMAIL_LABEL: string;
+  /**
+   * webcams: Confirm
+   */
+  CAM_REMOVE_DUPLICATE_SUBMIT: string;
+  /**
+   * webcams: Please confirm, that this webcam is a duplicate of an already existing webcam:
+   */
+  CAM_REMOVE_DUPLICATE_TEXT: string;
+  /**
+   * webcams: Original URL of the same webcam
+   */
+  CAM_REMOVE_DUPLICATE_URL_LABEL: string;
+  /**
+   * webcams: We have a problem here. Please, try again later or let us know at {{email}}.
+   */
+  CAM_REMOVE_FAILED_TEXT: string;
+  /**
+   * webcams: Remove webcam
+   */
+  CAM_REMOVE_HEADING: string;
+  /**
+   * webcams: Date of privatization
+   */
+  CAM_REMOVE_PRIVATIZED_DATE_LABEL: string;
+  /**
+   * webcams: E-mail
+   */
+  CAM_REMOVE_PRIVATIZED_EMAIL_LABEL: string;
+  /**
+   * webcams: Authorized person's name
+   */
+  CAM_REMOVE_PRIVATIZED_NAME_LABEL: string;
+  /**
+   * webcams: Confirm
+   */
+  CAM_REMOVE_PRIVATIZED_SUBMIT: string;
+  /**
+   * webcams: Please confirm, that this webcam is privatized and no longer available to the public:
+   */
+  CAM_REMOVE_PRIVATIZED_TEXT: string;
+  /**
+   * webcams: Reason for removal
+   */
+  CAM_REMOVE_REASON_LEGEND: string;
+  /**
+   * webcams: Webcam discontinued
+   */
+  CAM_REMOVE_REASON_OPTION_DISCONTINUED: string;
+  /**
+   * webcams: Duplicate entry
+   */
+  CAM_REMOVE_REASON_OPTION_DUPLICATE: string;
+  /**
+   * webcams: Webcam privatized
+   */
+  CAM_REMOVE_REASON_OPTION_PRIVATIZED: string;
+  /**
+   * webcams: Publication undesired
+   */
+  CAM_REMOVE_REASON_OPTION_UNDESIRED: string;
+  /**
+   * webcams: Thank you.
+   */
+  CAM_REMOVE_THANK_YOU_HEADING: string;
+  /**
+   * webcams: Please give us a few days to process your request manually.
+   */
+  CAM_REMOVE_THANK_YOU_TEXT1: string;
+  /**
+   * webcams: We will get back to you.
+   */
+  CAM_REMOVE_THANK_YOU_TEXT2: string;
+  /**
+   * webcams: Cancel the publication of your webcams
+   */
+  CAM_REMOVE_UNDESIRED_HEADING: string;
+  /**
+   * webcams: Step
+   */
+  CAM_REMOVE_UNDESIRED_STEP: string;
+  /**
+   * webcams: OK, I give up these benefits
+   */
+  CAM_REMOVE_UNDESIRED_STEP1_CONTINUE: string;
+  /**
+   * webcams: By removing your webcam, you will automatically:
+   */
+  CAM_REMOVE_UNDESIRED_STEP1_LIST_HEADING: string;
+  /**
+   * webcams: Lose the benefit of increasing the audience of your webcam within our distribution network
+   */
+  CAM_REMOVE_UNDESIRED_STEP1_LIST_ITEM1: string;
+  /**
+   * webcams: Lose the benefit of additional user traffic from our website to your website
+   */
+  CAM_REMOVE_UNDESIRED_STEP1_LIST_ITEM2: string;
+  /**
+   * webcams: Lose the benefit of free timelapse slideshows for your webcam, showing the last 24 hours, 30 days, 24 months and lifetime
+   */
+  CAM_REMOVE_UNDESIRED_STEP1_LIST_ITEM3: string;
+  /**
+   * webcams: OK, got it
+   */
+  CAM_REMOVE_UNDESIRED_STEP2_CONTINUE: string;
+  /**
+   * webcams: Download form
+   */
+  CAM_REMOVE_UNDESIRED_STEP2_DOWNLOAD: string;
+  /**
+   * webcams: We need to be sure, that you are the legal owner of this webcam in order to prevent an unintended removal from our directory by a non-eligible person.
+   */
+  CAM_REMOVE_UNDESIRED_STEP2_TEXT1: string;
+  /**
+   * webcams: That is why we need you to download, unzip and complete this form (it contains editable fields):
+   */
+  CAM_REMOVE_UNDESIRED_STEP2_TEXT2: string;
+  /**
+   * webcams: OK, got it
+   */
+  CAM_REMOVE_UNDESIRED_STEP3_CONTINUE: string;
+  /**
+   * webcams: Sign this document with a valid digital signature; or print it out and sign it manually.
+   */
+  CAM_REMOVE_UNDESIRED_STEP3_TEXT: string;
+  /**
+   * webcams: OK, got it
+   */
+  CAM_REMOVE_UNDESIRED_STEP4_CONTINUE: string;
+  /**
+   * webcams: Send an email to {{email}} with the following contents:
+   */
+  CAM_REMOVE_UNDESIRED_STEP4_LIST_HEADING: string;
+  /**
+   * webcams: The signed document (as attachment)
+   */
+  CAM_REMOVE_UNDESIRED_STEP4_LIST_ITEM1: string;
+  /**
+   * webcams: Reason for your cancellation
+   */
+  CAM_REMOVE_UNDESIRED_STEP4_LIST_ITEM2: string;
+  /**
+   * webcams: Your email signature containing (1) your name, (2) address and (3) contact details
+   */
+  CAM_REMOVE_UNDESIRED_STEP4_LIST_ITEM3: string;
+  /**
+   * webcams: Remove webcam
+   */
+  CAM_REMOVE_WEBCAM_CTA: string;
+  /**
+   * webcams: Review webcam
+   */
+  CAM_REVIEW: string;
+  /**
+   * webcams: Select location
+   */
+  CAM_SELECT_LOCATION: string;
+  /**
+   * webcams: Please select the corresponding webcam image or click on
+   */
+  CAM_SELECT_WEBCAM_ERROR: string;
+  /**
+   * webcams: Show more images
+   */
+  CAM_SHOW_MORE: string;
+  /**
+   * webcams: live stream
+   */
+  CAM_STREAM: string;
+  /**
+   * webcams: Submit
+   */
+  CAM_SUBMIT: string;
+  /**
+   * webcams: Submit again
+   */
+  CAM_SUBMIT_AGAIN: string;
+  /**
+   * webcams: Suggestions
+   */
+  CAM_SUGGESTION: string;
+  /**
+   * webcams: Categories
+   */
+  CAM_SUGGESTION_CATEGORY: string;
+  /**
+   * webcams: Categories cannot be changed. They are generated automatically from views. If you would like to suggest a new category, kindly add a new view.
+   */
+  CAM_SUGGESTION_CATEGORY_TEXT: string;
+  /**
+   * webcams: Elevation
+   */
+  CAM_SUGGESTION_ELEVATION: string;
+  /**
+   * webcams: Meters above sea level
+   */
+  CAM_SUGGESTION_ELEVATION_DESCRIPTION: string;
+  /**
+   * webcams: Elevation has not been changed
+   */
+  CAM_SUGGESTION_ELEVATION_NOT_CHANGED: string;
+  /**
+   * webcams: Your email
+   */
+  CAM_SUGGESTION_EMAIL: string;
+  /**
+   * webcams: We have a problem here. Please, try again later or let us know at {{mail}}.
+   */
+  CAM_SUGGESTION_FAIL: string;
+  /**
+   * webcams: Image URL
+   */
+  CAM_SUGGESTION_IMAGE: string;
+  /**
+   * webcams: is not public
+   */
+  CAM_SUGGESTION_IMAGE_PRIVATE: string;
+  /**
+   * webcams: TIP
+   */
+  CAM_SUGGESTION_IMAGE_TIP: string;
+  /**
+   * webcams: Do you want to add a new webcam?
+   */
+  CAM_SUGGESTION_IMAGE_TIP_TEXT: string;
+  /**
+   * webcams: Image URL (will remain private)
+   */
+  CAM_SUGGESTION_IMAGE_URL: string;
+  /**
+   * webcams: This URL must directly point to the webcam picture
+   */
+  CAM_SUGGESTION_IMAGE_URL_DESC: string;
+  /**
+   * webcams: Other issue
+   */
+  CAM_SUGGESTION_ISSUE: string;
+  /**
+   * webcams: Archive images
+   */
+  CAM_SUGGESTION_ISSUE_ARCHIVE: string;
+  /**
+   * webcams: The only images we save are publicly available on our website as a timelapse slider. If you need additional images, please visit the official website (if presented) mentioned in every webcam detail.
+   */
+  CAM_SUGGESTION_ISSUE_ARCHIVE_TEXT: string;
+  /**
+   * webcams: I tried to edit this webcam using the suggestions above. I also carefully read this whole page, but I still haven’t found what I need.
+   */
+  CAM_SUGGESTION_ISSUE_ELSE_CONFIRMATION: string;
+  /**
+   * webcams: Your feedback
+   */
+  CAM_SUGGESTION_ISSUE_ELSE_FEEDBACK: string;
+  /**
+   * webcams: Remove this webcam
+   */
+  CAM_SUGGESTION_ISSUE_ELSE_OPTION1: string;
+  /**
+   * webcams: Something else
+   */
+  CAM_SUGGESTION_ISSUE_ELSE_OPTION2: string;
+  /**
+   * webcams: Please select what your issue is
+   */
+  CAM_SUGGESTION_ISSUE_ELSE_TITLE: string;
+  /**
+   * webcams: Wrong location
+   */
+  CAM_SUGGESTION_ISSUE_LOCATION: string;
+  /**
+   * webcams: Please correct the location in the location section. Thank you.
+   */
+  CAM_SUGGESTION_ISSUE_LOCATION_TEXT: string;
+  /**
+   * webcams: No image
+   */
+  CAM_SUGGESTION_ISSUE_NO_IMAGE: string;
+  /**
+   * webcams: This webcam just shows a blank image in a solid color, containing no content.
+   */
+  CAM_SUGGESTION_ISSUE_NO_IMAGE_TEXT: string;
+  /**
+   * webcams: Poor image
+   */
+  CAM_SUGGESTION_ISSUE_POOR_IMAGE: string;
+  /**
+   * webcams: This webcam has a poor image (blurry, dirty lens, strange angle, etc) which severely reduces the webcam enjoyment.
+   */
+  CAM_SUGGESTION_ISSUE_POOR_IMAGE_TEXT: string;
+  /**
+   * webcams: Position has not been changed.
+   */
+  CAM_SUGGESTION_LOCATION_NOT_CHANGED: string;
+  /**
+   * webcams: Thank you, your suggestion has been successfully submitted for review.
+   */
+  CAM_SUGGESTION_OK: string;
+  /**
+   * webcams: Webpage
+   */
+  CAM_SUGGESTION_PAGE: string;
+  /**
+   * webcams: This page must contain the webcam image on it somewhere
+   */
+  CAM_SUGGESTION_PAGE_DESC: string;
+  /**
+   * webcams: Webpage URL
+   */
+  CAM_SUGGESTION_PAGE_LABEL: string;
+  /**
+   * webcams: The URL has not been changed
+   */
+  CAM_SUGGESTION_PAGE_NOT_CHANGED: string;
+  /**
+   * webcams: Stream type
+   */
+  CAM_SUGGESTION_STREAM: string;
+  /**
+   * webcams: The livestream player URL must point to a website containing only the livestream, with no additional content
+   */
+  CAM_SUGGESTION_STREAM_DESC: string;
+  /**
+   * webcams: Live stream URL
+   */
+  CAM_SUGGESTION_STREAM_LABEL: string;
+  /**
+   * webcams: N/A
+   */
+  CAM_SUGGESTION_STREAM_NO: string;
+  /**
+   * webcams: The URL has not been changed
+   */
+  CAM_SUGGESTION_STREAM_NOT_CHANGED: string;
+  /**
+   * webcams: Livestream
+   */
+  CAM_SUGGESTION_STREAM_YES: string;
+  /**
+   * webcams: Title
+   */
+  CAM_SUGGESTION_TITLE: string;
+  /**
+   * webcams: The title cannot be changed. It is generated automatically from the location and views.
+   */
+  CAM_SUGGESTION_TITLE_TEXT: string;
+  /**
+   * webcams: A webcam view defines what is visible on the webcam picture.
+   */
+  CAM_SUGGESTION_VIEW: string;
+  /**
+   * webcams: Each webcam can have several views.
+   */
+  CAM_SUGGESTION_VIEW_ITEM1: string;
+  /**
+   * webcams: The webcam view is used for creating the webcam title and determining the webcam categories.
+   */
+  CAM_SUGGESTION_VIEW_ITEM2: string;
+  /**
+   * webcams: The views will automatically be translated into every available language by us.
+   */
+  CAM_SUGGESTION_VIEW_ITEM3: string;
+  /**
+   * webcams: Views have not been changed.
+   */
+  CAM_SUGGESTION_VIEW_NOT_CHANGED: string;
+  /**
+   * webcams: Summary
+   */
+  CAM_SUMMARY: string;
+  /**
+   * webcams: Terms of Use of Windy Webcam Services
+   */
+  CAM_TERMS_OF_USE: string;
+  /**
+   * webcams: Enter the name of whatever is visible on the webcam image.
+   */
+  CAM_VIEW_DESCRIPTION: string;
+  /**
+   * webcams: Google Maps places
+   */
+  CAM_VIEW_GPLACES: string;
+  /**
+   * webcams: Views
+   */
+  CAM_VIEW_LANDSCAPE: string;
+  /**
+   * webcams: We cannot find this view. Feel free to extend {{gplaces}}, then it will be available here.
+   */
+  CAM_VIEW_NOT_FOUND: string;
+  /**
+   * webcams: Location name
+   */
+  CAM_VIEW_PLACEHOLDER: string;
+  /**
+   * webcams: We already process possible duplicates of your webcam!
+   */
+  CAM_WARNING_MESSAGE_POSSIBLE_DUPLICATE: string;
+  /**
+   * webcams: webcam detail
+   */
+  CAM_WEBCAM_DETAIL: string;
+  /**
+   * webcams: Webcam feedback
+   */
+  CAM_WEBCAM_FEEDBACK: string;
+  /**
+   * webcams: Webcam provider
+   */
+  CAM_WEBCAM_PROVIDER: string;
+  /**
+   * webcams: Webpage
+   */
+  CAM_WEBPAGE: string;
+  /**
+   * webcams: Your webcam image
+   */
+  CAM_YOUR_IMAGE: string;
 }
 
 export interface WidgetspromoLangFile {
-    /**
-     * widgetspromo: Add Windy widget
-     */
-    WIDGETS_AN_HOME_BTN_ADD: string;
-    /**
-     * widgetspromo: In the widget settings, you can customize the location, toggle the visibility of specific information like weather data, and adjust the theme by modifying the font size and background transparency to suit your preferences.
-     */
-    WIDGETS_AN_HOME_SETTINGS_DESCRIPTION: string;
-    /**
-     * widgetspromo: Press and hold an empty area of your home screen until the customization options appear.
-     */
-    WIDGETS_AN_HOME_TUTORIAL_STEP_1_DESCRIPTION: string;
-    /**
-     * widgetspromo: Enter widget selection mode
-     */
-    WIDGETS_AN_HOME_TUTORIAL_STEP_1_TITLE: string;
-    /**
-     * widgetspromo: From the customization options, tap the "Widgets" button to open the widget gallery.
-     */
-    WIDGETS_AN_HOME_TUTORIAL_STEP_2_DESCRIPTION: string;
-    /**
-     * widgetspromo: Tap on "Widgets"
-     */
-    WIDGETS_AN_HOME_TUTORIAL_STEP_2_TITLE: string;
-    /**
-     * widgetspromo: This action opens the widget gallery where you can browse or search for the widget you want to add.
-     */
-    WIDGETS_AN_HOME_TUTORIAL_STEP_3_DESCRIPTION: string;
-    /**
-     * widgetspromo: Select the widget
-     */
-    WIDGETS_AN_HOME_TUTORIAL_STEP_3_TITLE: string;
-    /**
-     * widgetspromo: Scroll through the list or use the search bar to find the Windy for the widget you want to add. Tap on the widget to select it.
-     */
-    WIDGETS_AN_HOME_TUTORIAL_STEP_4_DESCRIPTION: string;
-    /**
-     * widgetspromo: Select the widget
-     */
-    WIDGETS_AN_HOME_TUTORIAL_STEP_4_TITLE: string;
-    /**
-     * widgetspromo: After dragging the widget, release it to place it on your home screen. You can move it by pressing and dragging if needed.
-     */
-    WIDGETS_AN_HOME_TUTORIAL_STEP_5_DESCRIPTION: string;
-    /**
-     * widgetspromo: Place the widget
-     */
-    WIDGETS_AN_HOME_TUTORIAL_STEP_5_TITLE: string;
-    /**
-     * widgetspromo: Some widgets offer customization options. Tap the widget after placing it to configure additional settings if available.
-     */
-    WIDGETS_AN_HOME_TUTORIAL_STEP_6_DESCRIPTION: string;
-    /**
-     * widgetspromo: Customize the widget (optional)
-     */
-    WIDGETS_AN_HOME_TUTORIAL_STEP_6_TITLE: string;
-    /**
-     * widgetspromo: Widget families
-     */
-    WIDGETS_FAMILIES_TITLE: string;
-    /**
-     * widgetspromo: Multi day forecast, weather radar, satellite view. Everything you need too stay up with weather.
-     */
-    WIDGETS_IOS_HOME_FORECAST_DESCRIPTION: string;
-    /**
-     * widgetspromo: Forecast widgets
-     */
-    WIDGETS_IOS_HOME_FORECAST_TITLE: string;
-    /**
-     * widgetspromo: Local storm, or major hurricane, radar nad satellite gives you a bigger picture of situation around new in real-time.
-     */
-    WIDGETS_IOS_HOME_RADAR_DESCRIPTION: string;
-    /**
-     * widgetspromo: Radar and Satellite widgets
-     */
-    WIDGETS_IOS_HOME_RADAR_TITLE: string;
-    /**
-     * widgetspromo: Choose your location, model, or level of detail you need for your use case. All of that in light, dark, or auto appereance
-     */
-    WIDGETS_IOS_HOME_SETTINGS_DESCRIPTION: string;
-    /**
-     * widgetspromo: Add a weather forecast widget to your home screen and stay prepared for any weather, anytime!
-     */
-    WIDGETS_IOS_HOME_SUBTITLE: string;
-    /**
-     * widgetspromo: Home screen widgets
-     */
-    WIDGETS_IOS_HOME_TITLE: string;
-    /**
-     * widgetspromo: and navigate to the home screen where you want to add the widget.
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_1_DESCRIPTION: string;
-    /**
-     * widgetspromo: Unlock your iPhone
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_1_TITLE: string;
-    /**
-     * widgetspromo: Long press on an empty area of your screen or on any app until the icons start shaking. Look for the plus (+) icon in the top-left or top-right corner of the screen.
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_2_DESCRIPTION: string;
-    /**
-     * widgetspromo: Enter jiggle mode
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_2_TITLE: string;
-    /**
-     * widgetspromo: This action opens the widget gallery where you can browse or search for the widget you want to add.
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_3_DESCRIPTION: string;
-    /**
-     * widgetspromo: Tap the plus (+) icon
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_3_TITLE: string;
-    /**
-     * widgetspromo: Find the widget you wish to use by scrolling or using the search function at the top of the gallery. Tap on the widget to choose
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_4_DESCRIPTION: string;
-    /**
-     * widgetspromo: Select the widget
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_4_TITLE: string;
-    /**
-     * widgetspromo: Swipe to see different size options for the selected widget. Once you decide on the size, tap "Add Widget".
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_5_DESCRIPTION: string;
-    /**
-     * widgetspromo: Choose the widget size
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_5_TITLE: string;
-    /**
-     * widgetspromo: After adding it, you can move the widget by dragging it to your desired location on the home screen.
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_6_DESCRIPTION: string;
-    /**
-     * widgetspromo: Place the widget
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_6_TITLE: string;
-    /**
-     * widgetspromo: Tap "Done" in the top-right corner or press the home button if your model has one to save your changes.
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_7_DESCRIPTION: string;
-    /**
-     * widgetspromo: Exit jiggle mode
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_7_TITLE: string;
-    /**
-     * widgetspromo: Some widgets offer additional settings, which can be accessed by tapping on the widget once it's on your home screen.
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_8_DESCRIPTION: string;
-    /**
-     * widgetspromo: Customize the widget
-     */
-    WIDGETS_IOS_HOME_TUTORIAL_STEP_8_TITLE: string;
-    /**
-     * widgetspromo: Forecast widget provides a 4-day forecast with daily high/low temperatures and weather icons for quick insights. Hour forecast widget offers a compact view focusing on temperature and wind conditions across different times.
-     */
-    WIDGETS_IOS_LOCK_FORECAST_DESCRIPTION: string;
-    /**
-     * widgetspromo: Forecast widgets
-     */
-    WIDGETS_IOS_LOCK_FORECAST_TITLE: string;
-    /**
-     * widgetspromo: Lock Screen widgets are also editable. Tap on the widget when in "customize" mode to bring up the widget settings.
-     */
-    WIDGETS_IOS_LOCK_SETTINGS_STEP_1_DESCRIPTION: string;
-    /**
-     * widgetspromo: You can select the current/custom location, forecast model, number of days you want the widget for (up to 5 days), and the background.
-     */
-    WIDGETS_IOS_LOCK_SETTINGS_STEP_2_DESCRIPTION: string;
-    /**
-     * widgetspromo: You can set the background for each widget, allowing you to improve readability and match the widget with a wallpaper.
-     */
-    WIDGETS_IOS_LOCK_SETTINGS_STEP_3_DESCRIPTION: string;
-    /**
-     * widgetspromo: Add a Windy widget to your Lock Screen now and always step out ready, no matter the weather!
-     */
-    WIDGETS_IOS_LOCK_SUBTITLE: string;
-    /**
-     * widgetspromo: Lock screen widgets
-     */
-    WIDGETS_IOS_LOCK_TITLE: string;
-    /**
-     * widgetspromo: Long press on the lock screen until the customization options appear.
-     */
-    WIDGETS_IOS_LOCK_TUTORIAL_STEP_1_DESCRIPTION: string;
-    /**
-     * widgetspromo: Enter Lock Screen customization mode
-     */
-    WIDGETS_IOS_LOCK_TUTORIAL_STEP_1_TITLE: string;
-    /**
-     * widgetspromo: Select the "Customize" option at the bottom of your lock screen to edit it.
-     */
-    WIDGETS_IOS_LOCK_TUTORIAL_STEP_2_DESCRIPTION: string;
-    /**
-     * widgetspromo: Tap "Customize"
-     */
-    WIDGETS_IOS_LOCK_TUTORIAL_STEP_2_TITLE: string;
-    /**
-     * widgetspromo: In the lock screen editor, tap on the widget area, which is located below the clock.
-     */
-    WIDGETS_IOS_LOCK_TUTORIAL_STEP_3_DESCRIPTION: string;
-    /**
-     * widgetspromo: Tap on the widget area
-     */
-    WIDGETS_IOS_LOCK_TUTORIAL_STEP_3_TITLE: string;
-    /**
-     * widgetspromo: Scroll through on Windy widgets or use the search bar to find the Windy for the widget you want to add. Tap the widget you want to select it.
-     */
-    WIDGETS_IOS_LOCK_TUTORIAL_STEP_4_DESCRIPTION: string;
-    /**
-     * widgetspromo: Select the widget
-     */
-    WIDGETS_IOS_LOCK_TUTORIAL_STEP_4_TITLE: string;
-    /**
-     * widgetspromo: After adding the widget, tap "Done" in the top-right corner to save your custom lock screen.
-     */
-    WIDGETS_IOS_LOCK_TUTORIAL_STEP_5_DESCRIPTION: string;
-    /**
-     * widgetspromo: Save your changes
-     */
-    WIDGETS_IOS_LOCK_TUTORIAL_STEP_5_TITLE: string;
-    /**
-     * widgetspromo: Once completed, lock your iPhone and check the lock screen to see the newly added widget.
-     */
-    WIDGETS_IOS_LOCK_TUTORIAL_STEP_6_DESCRIPTION: string;
-    /**
-     * widgetspromo: Lock your iPhone
-     */
-    WIDGETS_IOS_LOCK_TUTORIAL_STEP_6_TITLE: string;
-    /**
-     * widgetspromo: Home screen
-     */
-    WIDGETS_IOS_SWITCH_HOME_BTN: string;
-    /**
-     * widgetspromo: Lock screen
-     */
-    WIDGETS_IOS_SWITCH_LOCKSCREEN_BTN: string;
-    /**
-     * widgetspromo: Windy widgets
-     */
-    WIDGETS_PLUGIN_TITLE: string;
-    /**
-     * widgetspromo: Widget settings
-     */
-    WIDGETS_SETTINGS_TITLE: string;
-    /**
-     * widgetspromo: Step by step guide
-     */
-    WIDGETS_STEPBYSTEP_TITLE: string;
+  /**
+   * widgetspromo: Add Windy widget
+   */
+  WIDGETS_AN_HOME_BTN_ADD: string;
+  /**
+   * widgetspromo: In the widget settings, you can customize the location, toggle the visibility of specific information like weather data, and adjust the theme by modifying the font size and background transparency to suit your preferences.
+   */
+  WIDGETS_AN_HOME_SETTINGS_DESCRIPTION: string;
+  /**
+   * widgetspromo: Press and hold an empty area of your home screen until the customization options appear.
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_1_DESCRIPTION: string;
+  /**
+   * widgetspromo: Enter widget selection mode
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_1_TITLE: string;
+  /**
+   * widgetspromo: From the customization options, tap the "Widgets" button to open the widget gallery.
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_2_DESCRIPTION: string;
+  /**
+   * widgetspromo: Tap on "Widgets"
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_2_TITLE: string;
+  /**
+   * widgetspromo: This action opens the widget gallery where you can browse or search for the widget you want to add.
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_3_DESCRIPTION: string;
+  /**
+   * widgetspromo: Select the widget
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_3_TITLE: string;
+  /**
+   * widgetspromo: Scroll through the list or use the search bar to find the Windy for the widget you want to add. Tap on the widget to select it.
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_4_DESCRIPTION: string;
+  /**
+   * widgetspromo: Select the widget
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_4_TITLE: string;
+  /**
+   * widgetspromo: After dragging the widget, release it to place it on your home screen. You can move it by pressing and dragging if needed.
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_5_DESCRIPTION: string;
+  /**
+   * widgetspromo: Place the widget
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_5_TITLE: string;
+  /**
+   * widgetspromo: Some widgets offer customization options. Tap the widget after placing it to configure additional settings if available.
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_6_DESCRIPTION: string;
+  /**
+   * widgetspromo: Customize the widget (optional)
+   */
+  WIDGETS_AN_HOME_TUTORIAL_STEP_6_TITLE: string;
+  /**
+   * widgetspromo: Widget families
+   */
+  WIDGETS_FAMILIES_TITLE: string;
+  /**
+   * widgetspromo: Multi day forecast, weather radar, satellite view. Everything you need too stay up with weather.
+   */
+  WIDGETS_IOS_HOME_FORECAST_DESCRIPTION: string;
+  /**
+   * widgetspromo: Forecast widgets
+   */
+  WIDGETS_IOS_HOME_FORECAST_TITLE: string;
+  /**
+   * widgetspromo: Local storm, or major hurricane, radar nad satellite gives you a bigger picture of situation around new in real-time.
+   */
+  WIDGETS_IOS_HOME_RADAR_DESCRIPTION: string;
+  /**
+   * widgetspromo: Radar and Satellite widgets
+   */
+  WIDGETS_IOS_HOME_RADAR_TITLE: string;
+  /**
+   * widgetspromo: Choose your location, model, or level of detail you need for your use case. All of that in light, dark, or auto appereance
+   */
+  WIDGETS_IOS_HOME_SETTINGS_DESCRIPTION: string;
+  /**
+   * widgetspromo: Add a weather forecast widget to your home screen and stay prepared for any weather, anytime!
+   */
+  WIDGETS_IOS_HOME_SUBTITLE: string;
+  /**
+   * widgetspromo: Home screen widgets
+   */
+  WIDGETS_IOS_HOME_TITLE: string;
+  /**
+   * widgetspromo: and navigate to the home screen where you want to add the widget.
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_1_DESCRIPTION: string;
+  /**
+   * widgetspromo: Unlock your iPhone
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_1_TITLE: string;
+  /**
+   * widgetspromo: Long press on an empty area of your screen or on any app until the icons start shaking. Look for the plus (+) icon in the top-left or top-right corner of the screen.
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_2_DESCRIPTION: string;
+  /**
+   * widgetspromo: Enter jiggle mode
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_2_TITLE: string;
+  /**
+   * widgetspromo: This action opens the widget gallery where you can browse or search for the widget you want to add.
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_3_DESCRIPTION: string;
+  /**
+   * widgetspromo: Tap the plus (+) icon
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_3_TITLE: string;
+  /**
+   * widgetspromo: Find the widget you wish to use by scrolling or using the search function at the top of the gallery. Tap on the widget to choose
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_4_DESCRIPTION: string;
+  /**
+   * widgetspromo: Select the widget
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_4_TITLE: string;
+  /**
+   * widgetspromo: Swipe to see different size options for the selected widget. Once you decide on the size, tap "Add Widget".
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_5_DESCRIPTION: string;
+  /**
+   * widgetspromo: Choose the widget size
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_5_TITLE: string;
+  /**
+   * widgetspromo: After adding it, you can move the widget by dragging it to your desired location on the home screen.
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_6_DESCRIPTION: string;
+  /**
+   * widgetspromo: Place the widget
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_6_TITLE: string;
+  /**
+   * widgetspromo: Tap "Done" in the top-right corner or press the home button if your model has one to save your changes.
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_7_DESCRIPTION: string;
+  /**
+   * widgetspromo: Exit jiggle mode
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_7_TITLE: string;
+  /**
+   * widgetspromo: Some widgets offer additional settings, which can be accessed by tapping on the widget once it's on your home screen.
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_8_DESCRIPTION: string;
+  /**
+   * widgetspromo: Customize the widget
+   */
+  WIDGETS_IOS_HOME_TUTORIAL_STEP_8_TITLE: string;
+  /**
+   * widgetspromo: Forecast widget provides a 4-day forecast with daily high/low temperatures and weather icons for quick insights. Hour forecast widget offers a compact view focusing on temperature and wind conditions across different times.
+   */
+  WIDGETS_IOS_LOCK_FORECAST_DESCRIPTION: string;
+  /**
+   * widgetspromo: Forecast widgets
+   */
+  WIDGETS_IOS_LOCK_FORECAST_TITLE: string;
+  /**
+   * widgetspromo: Lock Screen widgets are also editable. Tap on the widget when in "customize" mode to bring up the widget settings.
+   */
+  WIDGETS_IOS_LOCK_SETTINGS_STEP_1_DESCRIPTION: string;
+  /**
+   * widgetspromo: You can select the current/custom location, forecast model, number of days you want the widget for (up to 5 days), and the background.
+   */
+  WIDGETS_IOS_LOCK_SETTINGS_STEP_2_DESCRIPTION: string;
+  /**
+   * widgetspromo: You can set the background for each widget, allowing you to improve readability and match the widget with a wallpaper.
+   */
+  WIDGETS_IOS_LOCK_SETTINGS_STEP_3_DESCRIPTION: string;
+  /**
+   * widgetspromo: Add a Windy widget to your Lock Screen now and always step out ready, no matter the weather!
+   */
+  WIDGETS_IOS_LOCK_SUBTITLE: string;
+  /**
+   * widgetspromo: Lock screen widgets
+   */
+  WIDGETS_IOS_LOCK_TITLE: string;
+  /**
+   * widgetspromo: Long press on the lock screen until the customization options appear.
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_1_DESCRIPTION: string;
+  /**
+   * widgetspromo: Enter Lock Screen customization mode
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_1_TITLE: string;
+  /**
+   * widgetspromo: Select the "Customize" option at the bottom of your lock screen to edit it.
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_2_DESCRIPTION: string;
+  /**
+   * widgetspromo: Tap "Customize"
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_2_TITLE: string;
+  /**
+   * widgetspromo: In the lock screen editor, tap on the widget area, which is located below the clock.
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_3_DESCRIPTION: string;
+  /**
+   * widgetspromo: Tap on the widget area
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_3_TITLE: string;
+  /**
+   * widgetspromo: Scroll through on Windy widgets or use the search bar to find the Windy for the widget you want to add. Tap the widget you want to select it.
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_4_DESCRIPTION: string;
+  /**
+   * widgetspromo: Select the widget
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_4_TITLE: string;
+  /**
+   * widgetspromo: After adding the widget, tap "Done" in the top-right corner to save your custom lock screen.
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_5_DESCRIPTION: string;
+  /**
+   * widgetspromo: Save your changes
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_5_TITLE: string;
+  /**
+   * widgetspromo: Once completed, lock your iPhone and check the lock screen to see the newly added widget.
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_6_DESCRIPTION: string;
+  /**
+   * widgetspromo: Lock your iPhone
+   */
+  WIDGETS_IOS_LOCK_TUTORIAL_STEP_6_TITLE: string;
+  /**
+   * widgetspromo: Home screen
+   */
+  WIDGETS_IOS_SWITCH_HOME_BTN: string;
+  /**
+   * widgetspromo: Lock screen
+   */
+  WIDGETS_IOS_SWITCH_LOCKSCREEN_BTN: string;
+  /**
+   * widgetspromo: Windy widgets
+   */
+  WIDGETS_PLUGIN_TITLE: string;
+  /**
+   * widgetspromo: Widget settings
+   */
+  WIDGETS_SETTINGS_TITLE: string;
+  /**
+   * widgetspromo: Step by step guide
+   */
+  WIDGETS_STEPBYSTEP_TITLE: string;
 }
 
 // prettier-ignore
@@ -7510,39 +7510,39 @@ export interface PluginTranslations extends AccumulationsLangFile, AirportLangFi
 export interface Translations extends MainLangFile, PluginTranslations {}
 
 export interface SupportedLangFiles {
-    accumulations: AccumulationsLangFile;
-    airport: AirportLangFile;
-    alerts: AlertsLangFile;
-    appreview: AppreviewLangFile;
-    articles: ArticlesLangFile;
-    consent: ConsentLangFile;
-    defaultmodelselector: DefaultmodelselectorLangFile;
-    detail: DetailLangFile;
-    distance: DistanceLangFile;
-    favs: FavsLangFile;
-    garmin: GarminLangFile;
-    hurricanes: HurricanesLangFile;
-    info: InfoLangFile;
-    main: MainLangFile;
-    lib: LibLangFile;
-    livealerts: LivealertsLangFile;
-    menu: MenuLangFile;
-    menudesc: MenudescLangFile;
-    notifications: NotificationsLangFile;
-    onboarding: OnboardingLangFile;
-    picker: PickerLangFile;
-    products: ProductsLangFile;
-    radsat: RadsatLangFile;
-    register: RegisterLangFile;
-    reportissue: ReportissueLangFile;
-    search: SearchLangFile;
-    settings: SettingsLangFile;
-    sounding: SoundingLangFile;
-    startuppromos: StartuppromosLangFile;
-    station: StationLangFile;
-    subscription: SubscriptionLangFile;
-    sunmoon: SunmoonLangFile;
-    watchface: WatchfaceLangFile;
-    webcams: WebcamsLangFile;
-    widgetspromo: WidgetspromoLangFile;
+  accumulations: AccumulationsLangFile;
+  airport: AirportLangFile;
+  alerts: AlertsLangFile;
+  appreview: AppreviewLangFile;
+  articles: ArticlesLangFile;
+  consent: ConsentLangFile;
+  defaultmodelselector: DefaultmodelselectorLangFile;
+  detail: DetailLangFile;
+  distance: DistanceLangFile;
+  favs: FavsLangFile;
+  garmin: GarminLangFile;
+  hurricanes: HurricanesLangFile;
+  info: InfoLangFile;
+  main: MainLangFile;
+  lib: LibLangFile;
+  livealerts: LivealertsLangFile;
+  menu: MenuLangFile;
+  menudesc: MenudescLangFile;
+  notifications: NotificationsLangFile;
+  onboarding: OnboardingLangFile;
+  picker: PickerLangFile;
+  products: ProductsLangFile;
+  radsat: RadsatLangFile;
+  register: RegisterLangFile;
+  reportissue: ReportissueLangFile;
+  search: SearchLangFile;
+  settings: SettingsLangFile;
+  sounding: SoundingLangFile;
+  startuppromos: StartuppromosLangFile;
+  station: StationLangFile;
+  subscription: SubscriptionLangFile;
+  sunmoon: SunmoonLangFile;
+  watchface: WatchfaceLangFile;
+  webcams: WebcamsLangFile;
+  widgetspromo: WidgetspromoLangFile;
 }
