@@ -77,6 +77,10 @@ export default defineConfig(({ mode }): UserConfig => {
       },
     },
 
+    esbuild: {
+      drop: mode === 'production' ? ['console', 'debugger'] : [],
+    },
+
     define: {
       'process.env.NODE_ENV': JSON.stringify(mode),
       __BUILD_TIMESTAMP__: Date.now(),
