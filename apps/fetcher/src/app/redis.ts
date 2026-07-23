@@ -1,10 +1,11 @@
+import * as os from 'node:os';
 import * as zlib from 'node:zlib';
 
 import { Keys, protos, trackerNames } from '@flyxc/common';
 import type { RedisClient, RedisClientMultiCmd } from '@flyxc/common-node';
 import { pushListCap } from '@flyxc/common-node';
 import type { Datastore } from '@google-cloud/datastore';
-import * as nos from 'node-os-utils';
+import { OSUtils } from 'node-os-utils';
 
 import type { ElevationUpdates } from './elevation/elevation';
 import { exportToStorage } from './state/serialize';
@@ -45,6 +46,8 @@ export function addElevationLogs(pipeline: RedisClientMultiCmd, updates: Elevati
   pushListCap(pipeline, Keys.elevationNumRetrieved, [updates.numRetrieved], 5);
 }
 
+const osUtils = new OSUtils({ cpu: { cacheTTL: 5 * 60 * 1000 } });
+
 let cpuUsage = 0;
 let cpuUsagePromise: Promise<number> | null = null;
 
@@ -52,19 +55,20 @@ let cpuUsagePromise: Promise<number> | null = null;
 export async function addHostInfo(pipeline: RedisClientMultiCmd): Promise<void> {
   // CPU usage over 5min.
   if (cpuUsagePromise == null) {
-    cpuUsagePromise = nos.cpu
-      .usage(5 * 60 * 1000)
-      .then((cpu) => (cpuUsage = cpu))
+    cpuUsagePromise = osUtils.cpu
+      .usage()
+      .then((res) => (cpuUsage = res.success ? res.data : 0))
       .finally(() => (cpuUsagePromise = null));
   }
 
-  const { totalMemMb, usedMemMb } = await nos.mem.info();
+  const totalMemMb = Math.round(os.totalmem() / (1024 * 1024));
+  const usedMemMb = Math.round((os.totalmem() - os.freemem()) / (1024 * 1024));
 
   pipeline
     .set(Keys.hostCpuUsage, cpuUsage)
     .set(Keys.hostMemoryUsedMb, usedMemMb)
     .set(Keys.hostMemoryTotalMb, totalMemMb)
-    .set(Keys.hostUptimeSec, nos.os.uptime());
+    .set(Keys.hostUptimeSec, Math.round(os.uptime()));
 }
 
 // Logs state variables.

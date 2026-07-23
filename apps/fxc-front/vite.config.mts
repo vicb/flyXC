@@ -3,7 +3,6 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { literalsHtmlCssMinifier } from '@literals/rollup-plugin-html-css-minifier';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { TZDate } from '@date-fns/tz';
 import { format } from 'date-fns';
 import { visualizer } from 'rollup-plugin-visualizer';
@@ -52,6 +51,10 @@ export default defineConfig(
       host: '0.0.0.0',
     },
 
+    resolve: {
+      tsconfigPaths: true,
+    },
+
     build: {
       outDir: 'apps/fxc-front/dist',
       reportCompressedSize: true,
@@ -66,10 +69,6 @@ export default defineConfig(
       },
 
       chunkSizeWarningLimit: 3900,
-
-      resolve: {
-        tsconfigPaths: true,
-      },
     },
 
     plugins: [
@@ -91,7 +90,6 @@ export default defineConfig(
     ],
 
     worker: {
-      plugins: () => [tsconfigPaths()],
       rolldownOptions: {
         output: {
           assetFileNames,
