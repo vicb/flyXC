@@ -15,7 +15,7 @@
     "@cwasm/lodepng": "^0.1.9",
     "mapbox-vector-tile": "catalog:default",
     "simplify-path": "catalog:default",
-    "tiny-lru": "^11.4.7"
+    "tiny-lru": "^13.0.0"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "catalog:default"
