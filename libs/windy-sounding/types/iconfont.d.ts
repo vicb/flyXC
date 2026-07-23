@@ -1,202 +1,422 @@
 // !!! Automatically generated file by make/iconfont.ts !!!
 
+declare global {
+    const ICON_PICTURES: "";
+    const ICON_COMMENT_O: "";
+    const ICON_UPLOAD: "";
+    const ICON_LONG_TAP: "";
+    const ICON_MOVING_CLOUD: "";
+    const ICON_UV: "";
+    const ICON_WET_BULB: "";
+    const ICON_QUESTION_CIRCLE: "";
+    const ICON_LOG_OUT: "";
+    const ICON_RADIOSONDE: "";
+    const ICON_RADIATION: "";
+    const ICON_WITHERED_FLOWER: "";
+    const ICON_DRY_SOIL: "";
+    const ICON_RAIN_DROPS_ON_SOIL: "";
+    const ICON_NO_RAIN_DROP: "";
+    const ICON_GLIDER: "";
+    const ICON_CHEVRON_LEFT: "<";
+    const ICON_CHEVRON_RIGHT: ">";
+    const ICON_CHEVRON_DOWN: "g";
+    const ICON_VIDEO_CAMERA: "l";
+    const ICON_PAUSE: "e";
+    const ICON_PLAY: "f";
+    const ICON_CHEVRON_UP: "s";
+    const ICON_CROSS_MARK: "t";
+    const ICON_MAP_PIN: "D";
+    const ICON_MOUNTAINS: "P";
+    const ICON_TRIANGLE_DOWN: "T";
+    const ICON_PLANE: "Q";
+    const ICON_BUS: "R";
+    const ICON_TRAIN: "S";
+    const ICON_LODGING: "V";
+    const ICON_RESTAURANT: "W";
+    const ICON_CALENDAR: "X";
+    const ICON_ARROW_LEFT: "Y";
+    const ICON_ARROW_RIGHT: "Z";
+    const ICON_COG_GEAR: "1";
+    const ICON_HEART: "k";
+    const ICON_HEART_OUTLINE: "m";
+    const ICON_STAR: "o";
+    const ICON_STAR_OUTLINE: "u";
+    const ICON_CHECK_MARK: "x";
+    const ICON_SUN: "z";
+    const ICON_CLOCK: "B";
+    const ICON_UMBRELLA_SMALL: "H";
+    const ICON_SKIING: "N";
+    const ICON_KEYBOARD: "0";
+    const ICON_ARROW_DOUBLED_UP: "3";
+    const ICON_ARROW_DOUBLED_DOWN: "4";
+    const ICON_FOG_SUNRISE: "5";
+    const ICON_FOG_MOON: "(";
+    const ICON_TOOLS: ")";
+    const ICON_SUN_OUTLINE: "6";
+    const ICON_MOON_OUTLINE: "!";
+    const ICON_CLOUD_RAIN: "9";
+    const ICON_CLOUD_SNOW: "8";
+    const ICON_CLOUDS: "7";
+    const ICON_CLOUD_MOON: "%";
+    const ICON_CLOUD_SUN: "&";
+    const ICON_CLOUD_LIGHTNING_SMALL: "~";
+    const ICON_X_CIRCLE: "*";
+    const ICON_DIRECTIONS: "'";
+    const ICON_FULLSCREEN: "";
+    const ICON_SETTINGS_OUTLINE: "b";
+    const ICON_EYE: "c";
+    const ICON_ARROW_SOUTH_OUTLINE: "#";
+    const ICON_ARROW_SOUTH_FULL: "\"";
+    const ICON_ARROW_NORTH_OUTLINE: "2";
+    const ICON_ARROW_NORTH_FULL: "C";
+    const ICON_WINDY_LOGO_NO_FRAME: "r";
+    const ICON_BUFFER: "w";
+    const ICON_INFO_CIRCLE: "L";
+    const ICON_FACEBOOK_SQUARE: "E";
+    const ICON_BUBBLES_TALK: "M";
+    const ICON_GLOBE: "O";
+    const ICON_MEASURE: ",";
+    const ICON_LEVEL_UP: ";";
+    const ICON_WORLD_MERIDIANS: "=";
+    const ICON_THUMBS_DOWN: "@";
+    const ICON_BACKSPACE_OUTLINE: "[";
+    const ICON_HOME: "]";
+    const ICON_MOBILE: "^";
+    const ICON_TRASH: "_";
+    const ICON_MOUSE: "`";
+    const ICON_SURFER: "{";
+    const ICON_WIND: "|";
+    const ICON_SNOW_FLAKE: "";
+    const ICON_ANGLE_DOWN: "?";
+    const ICON_ANGLE_LEFT: "}";
+    const ICON_ANGLE_RIGHT: "\\";
+    const ICON_ANGLE_UP: "";
+    const ICON_KITE: "";
+    const ICON_MINUS_CIRCLE: "";
+    const ICON_THERMOMETER_DETAILED: "";
+    const ICON_RAINDROP_BIG: "";
+    const ICON_CLOCK_GROOVED: "";
+    const ICON_AIR_SOCK: "";
+    const ICON_PARAGLIDER: "";
+    const ICON_WAVES: "";
+    const ICON_SPEEDOMETER: "";
+    const ICON_TASKS: "";
+    const ICON_LANGUAGE: "";
+    const ICON_CLOSE_MARK: "";
+    const ICON_MAP: "";
+    const ICON_GRAPH: "";
+    const ICON_INSTAGRAM_OUTLINE: "h";
+    const ICON_SNOW_MOUNTAINS: "n";
+    const ICON_BOAT: "q";
+    const ICON_RAIN_DROPS: "/";
+    const ICON_HELICOPTER: ":";
+    const ICON_THERMOMETER_RAINDROP: "";
+    const ICON_CLOUD_LIGHTNING_BIG: "";
+    const ICON_THERMOMETER_SIMPLE: "";
+    const ICON_ENTER: "p";
+    const ICON_BELL_OUTLINE: "";
+    const ICON_CLOUD_H: "";
+    const ICON_CLOUD_L: "";
+    const ICON_CLOUD_M: "";
+    const ICON_COLOR_PALETTE: "";
+    const ICON_NUMBER_ONE: "";
+    const ICON_NUMBER_TWO_CIRCLE: "";
+    const ICON_NUMBER_THREE_CIRCLE: "";
+    const ICON_STOPWATCH: "";
+    const ICON_STAR_CIRCLE: "y";
+    const ICON_DOWNLOAD: ".";
+    const ICON_REDDIT: "";
+    const ICON_MORE_SYMBOL_VERTICAL: "";
+    const ICON_FOG_CLOUD: "";
+    const ICON_BELL_SLASH_OUTLINE: "";
+    const ICON_BELL: "";
+    const ICON_SAILING_BOAT: "";
+    const ICON_GAS_MASK: "";
+    const ICON_VOLCANO: "";
+    const ICON_FACTORY: "";
+    const ICON_SEARCH: "";
+    const ICON_MORE_SYMBOL_HORIZONTAL: "";
+    const ICON_USER: "";
+    const ICON_EXCLAMATION_TRIANGLE: "";
+    const ICON_TURTLE: "";
+    const ICON_RABBIT: "";
+    const ICON_GOAT: "";
+    const ICON_MENU: "d";
+    const ICON_PLAY_CIRCLE: "";
+    const ICON_STOP_CIRCLE: "";
+    const ICON_FIRE: "";
+    const ICON_CODE: "U";
+    const ICON_EYEDROPPER: "";
+    const ICON_FULLSCREEN_EXIT: "";
+    const ICON_FOG: "$";
+    const ICON_WAVES_THERMOMETER: "";
+    const ICON_RADAR: "";
+    const ICON_CONTOUR: "";
+    const ICON_UMBRELLA_BIG: "";
+    const ICON_FUNNEL: "";
+    const ICON_SPEAKER_LOUDER: "";
+    const ICON_SPEAKER_OFF: "";
+    const ICON_TROPICAL_CYCLONE: "";
+    const ICON_ZOOM_IN: "";
+    const ICON_ZOOM_OUT: "";
+    const ICON_PLUG: "";
+    const ICON_PLUS: "+";
+    const ICON_MINUS: "-";
+    const ICON_SWITCH_FULL: "I";
+    const ICON_SWITCH_OUTLINE: "G";
+    const ICON_REFRESH: "K";
+    const ICON_CLAP: "";
+    const ICON_GLOBE_PARTICLES: "";
+    const ICON_PERSON_MASK: "";
+    const ICON_AIR_PARTICLES: "";
+    const ICON_COPY_DOCUMENT: "";
+    const ICON_SATELLITE: "";
+    const ICON_BELL_ANGLE: "";
+    const ICON_CAMERA_RETRO: "";
+    const ICON_LOCATION_ARROW: "j";
+    const ICON_ARROW_SWAP: "";
+    const ICON_AT: "";
+    const ICON_PENCIL: "a";
+    const ICON_GIFT: "";
+    const ICON_LEAF: "";
+    const ICON_THUMBS_UP: "";
+    const ICON_O3_CIRCLE: "";
+    const ICON_CROWN_KING: "";
+    const ICON_TIDE: "";
+    const ICON_CAR: "";
+    const ICON_FIND_MY_LOCATION: "";
+    const ICON_APPLE: "";
+    const ICON_WATCH_EMPTY: "";
+    const ICON_GARMIN: "";
+    const ICON_GARMIN_EDGE: "";
+    const ICON_WATCH: "";
+    const ICON_WEAROS_LOGO: "";
+    const ICON_WIDGET: "";
+    const ICON_CLOUD_LIGHTNING_BIG_PLUS: "";
+    const ICON_SHARE: "";
+    const ICON_BELL_PLUS: "";
+    const ICON_X: "";
+    const ICON_TWITTER: "";
+    const ICON_EYE_BLOCKED: "";
+    const ICON_BUG: "";
+    const ICON_HAMMER: "";
+    const ICON_GITHUB: "";
+    const ICON_LINK: "";
+    const ICON_PLANE_SNOWFLAKE: "";
+    const ICON_PLANE_WAVES: "";
+    const ICON_FIRE_WARNING: "";
+    const ICON_FIRE_MATCH: "";
+    const ICON_FIRE_WIND: "";
+    const ICON_CROSSHAIR: "";
+    const ICON_PUSHPIN: "";
+}
+
 export type Iconfont =
-    | '<!-- @echo icon-pictures -->'
-    | '<!-- @echo icon-comment-o -->'
-    | '<!-- @echo icon-upload -->'
-    | '<!-- @echo icon-long-tap -->'
-    | '<!-- @echo icon-moving-cloud -->'
-    | '<!-- @echo icon-uv -->'
-    | '<!-- @echo icon-wet-bulb -->'
-    | '<!-- @echo icon-question-circle -->'
-    | '<!-- @echo icon-log-out -->'
-    | '<!-- @echo icon-radiosonde -->'
-    | '<!-- @echo icon-radiation -->'
-    | '<!-- @echo icon-withered-flower -->'
-    | '<!-- @echo icon-dry-soil -->'
-    | '<!-- @echo icon-rain-drops-on-soil -->'
-    | '<!-- @echo icon-no-rain-drop -->'
-    | '<!-- @echo icon-glider -->'
-    | '<!-- @echo icon-chevron-left -->'
-    | '<!-- @echo icon-chevron-right -->'
-    | '<!-- @echo icon-chevron-down -->'
-    | '<!-- @echo icon-video-camera -->'
-    | '<!-- @echo icon-pause -->'
-    | '<!-- @echo icon-play -->'
-    | '<!-- @echo icon-chevron-up -->'
-    | '<!-- @echo icon-cross-mark -->'
-    | '<!-- @echo icon-map-pin -->'
-    | '<!-- @echo icon-mountains -->'
-    | '<!-- @echo icon-triangle-down -->'
-    | '<!-- @echo icon-plane -->'
-    | '<!-- @echo icon-bus -->'
-    | '<!-- @echo icon-train -->'
-    | '<!-- @echo icon-lodging -->'
-    | '<!-- @echo icon-restaurant -->'
-    | '<!-- @echo icon-calendar -->'
-    | '<!-- @echo icon-arrow-left -->'
-    | '<!-- @echo icon-arrow-right -->'
-    | '<!-- @echo icon-cog-gear -->'
-    | '<!-- @echo icon-heart -->'
-    | '<!-- @echo icon-heart-outline -->'
-    | '<!-- @echo icon-star -->'
-    | '<!-- @echo icon-star-outline -->'
-    | '<!-- @echo icon-check-mark -->'
-    | '<!-- @echo icon-sun -->'
-    | '<!-- @echo icon-clock -->'
-    | '<!-- @echo icon-umbrella-small -->'
-    | '<!-- @echo icon-skiing -->'
-    | '<!-- @echo icon-keyboard -->'
-    | '<!-- @echo icon-arrow-doubled-up -->'
-    | '<!-- @echo icon-arrow-doubled-down -->'
-    | '<!-- @echo icon-fog-sunrise -->'
-    | '<!-- @echo icon-fog-moon -->'
-    | '<!-- @echo icon-tools -->'
-    | '<!-- @echo icon-sun-outline -->'
-    | '<!-- @echo icon-moon-outline -->'
-    | '<!-- @echo icon-cloud-rain -->'
-    | '<!-- @echo icon-cloud-snow -->'
-    | '<!-- @echo icon-clouds -->'
-    | '<!-- @echo icon-cloud-moon -->'
-    | '<!-- @echo icon-cloud-sun -->'
-    | '<!-- @echo icon-cloud-lightning-small -->'
-    | '<!-- @echo icon-x-circle -->'
-    | '<!-- @echo icon-directions -->'
-    | '<!-- @echo icon-fullscreen -->'
-    | '<!-- @echo icon-settings-outline -->'
-    | '<!-- @echo icon-eye -->'
-    | '<!-- @echo icon-arrow-south-outline -->'
-    | '<!-- @echo icon-arrow-south-full -->'
-    | '<!-- @echo icon-arrow-north-outline -->'
-    | '<!-- @echo icon-arrow-north-full -->'
-    | '<!-- @echo icon-windy-logo-no-frame -->'
-    | '<!-- @echo icon-buffer -->'
-    | '<!-- @echo icon-info-circle -->'
-    | '<!-- @echo icon-facebook-square -->'
-    | '<!-- @echo icon-bubbles-talk -->'
-    | '<!-- @echo icon-globe -->'
-    | '<!-- @echo icon-measure -->'
-    | '<!-- @echo icon-level-up -->'
-    | '<!-- @echo icon-world-meridians -->'
-    | '<!-- @echo icon-thumbs-down -->'
-    | '<!-- @echo icon-backspace-outline -->'
-    | '<!-- @echo icon-home -->'
-    | '<!-- @echo icon-mobile -->'
-    | '<!-- @echo icon-trash -->'
-    | '<!-- @echo icon-mouse -->'
-    | '<!-- @echo icon-surfer -->'
-    | '<!-- @echo icon-wind -->'
-    | '<!-- @echo icon-snow-flake -->'
-    | '<!-- @echo icon-angle-down -->'
-    | '<!-- @echo icon-angle-left -->'
-    | '<!-- @echo icon-angle-right -->'
-    | '<!-- @echo icon-angle-up -->'
-    | '<!-- @echo icon-kite -->'
-    | '<!-- @echo icon-minus-circle -->'
-    | '<!-- @echo icon-thermometer-detailed -->'
-    | '<!-- @echo icon-raindrop-big -->'
-    | '<!-- @echo icon-clock-grooved -->'
-    | '<!-- @echo icon-air-sock -->'
-    | '<!-- @echo icon-paraglider -->'
-    | '<!-- @echo icon-waves -->'
-    | '<!-- @echo icon-speedometer -->'
-    | '<!-- @echo icon-tasks -->'
-    | '<!-- @echo icon-language -->'
-    | '<!-- @echo icon-close-mark -->'
-    | '<!-- @echo icon-map -->'
-    | '<!-- @echo icon-graph -->'
-    | '<!-- @echo icon-instagram-outline -->'
-    | '<!-- @echo icon-snow-mountains -->'
-    | '<!-- @echo icon-boat -->'
-    | '<!-- @echo icon-rain-drops -->'
-    | '<!-- @echo icon-helicopter -->'
-    | '<!-- @echo icon-thermometer-raindrop -->'
-    | '<!-- @echo icon-cloud-lightning-big -->'
-    | '<!-- @echo icon-thermometer-simple -->'
-    | '<!-- @echo icon-enter -->'
-    | '<!-- @echo icon-bell-outline -->'
-    | '<!-- @echo icon-cloud-h -->'
-    | '<!-- @echo icon-cloud-l -->'
-    | '<!-- @echo icon-cloud-m -->'
-    | '<!-- @echo icon-color-palette -->'
-    | '<!-- @echo icon-number-one -->'
-    | '<!-- @echo icon-number-two-circle -->'
-    | '<!-- @echo icon-number-three-circle -->'
-    | '<!-- @echo icon-stopwatch -->'
-    | '<!-- @echo icon-star-circle -->'
-    | '<!-- @echo icon-download -->'
-    | '<!-- @echo icon-reddit -->'
-    | '<!-- @echo icon-more-symbol-vertical -->'
-    | '<!-- @echo icon-fog-cloud -->'
-    | '<!-- @echo icon-bell-slash-outline -->'
-    | '<!-- @echo icon-bell -->'
-    | '<!-- @echo icon-sailing-boat -->'
-    | '<!-- @echo icon-gas-mask -->'
-    | '<!-- @echo icon-volcano -->'
-    | '<!-- @echo icon-factory -->'
-    | '<!-- @echo icon-search -->'
-    | '<!-- @echo icon-more-symbol-horizontal -->'
-    | '<!-- @echo icon-user -->'
-    | '<!-- @echo icon-exclamation-triangle -->'
-    | '<!-- @echo icon-turtle -->'
-    | '<!-- @echo icon-rabbit -->'
-    | '<!-- @echo icon-goat -->'
-    | '<!-- @echo icon-menu -->'
-    | '<!-- @echo icon-play-circle -->'
-    | '<!-- @echo icon-stop-circle -->'
-    | '<!-- @echo icon-fire -->'
-    | '<!-- @echo icon-code -->'
-    | '<!-- @echo icon-eyedropper -->'
-    | '<!-- @echo icon-fullscreen-exit -->'
-    | '<!-- @echo icon-fog -->'
-    | '<!-- @echo icon-waves-thermometer -->'
-    | '<!-- @echo icon-radar -->'
-    | '<!-- @echo icon-contour -->'
-    | '<!-- @echo icon-umbrella-big -->'
-    | '<!-- @echo icon-funnel -->'
-    | '<!-- @echo icon-speaker-louder -->'
-    | '<!-- @echo icon-speaker-off -->'
-    | '<!-- @echo icon-tropical-cyclone -->'
-    | '<!-- @echo icon-zoom-in -->'
-    | '<!-- @echo icon-zoom-out -->'
-    | '<!-- @echo icon-plug -->'
-    | '<!-- @echo icon-plus -->'
-    | '<!-- @echo icon-minus -->'
-    | '<!-- @echo icon-switch-full -->'
-    | '<!-- @echo icon-switch-outline -->'
-    | '<!-- @echo icon-refresh -->'
-    | '<!-- @echo icon-clap -->'
-    | '<!-- @echo icon-globe-particles -->'
-    | '<!-- @echo icon-person-mask -->'
-    | '<!-- @echo icon-air-particles -->'
-    | '<!-- @echo icon-copy-document -->'
-    | '<!-- @echo icon-satellite -->'
-    | '<!-- @echo icon-bell-angle -->'
-    | '<!-- @echo icon-camera-retro -->'
-    | '<!-- @echo icon-location-arrow -->'
-    | '<!-- @echo icon-arrow-swap -->'
-    | '<!-- @echo icon-at -->'
-    | '<!-- @echo icon-pencil -->'
-    | '<!-- @echo icon-gift -->'
-    | '<!-- @echo icon-leaf -->'
-    | '<!-- @echo icon-thumbs-up -->'
-    | '<!-- @echo icon-o3-circle -->'
-    | '<!-- @echo icon-crown-king -->'
-    | '<!-- @echo icon-tide -->'
-    | '<!-- @echo icon-car -->'
-    | '<!-- @echo icon-cloud-lightning-big-plus -->'
-    | '<!-- @echo icon-share -->'
-    | '<!-- @echo icon-bell-plus -->'
-    | '<!-- @echo icon-x -->'
-    | '<!-- @echo icon-twitter -->'
-    | '<!-- @echo icon-bug -->'
-    | '<!-- @echo icon-hammer -->'
-    | '<!-- @echo icon-github -->'
-    | '<!-- @echo icon-link -->'
-    | '<!-- @echo icon-plane-snowflake -->'
-    | '<!-- @echo icon-plane-waves -->'
-    | '<!-- @echo icon-fire-warning -->'
-    | '<!-- @echo icon-fire-match -->'
-    | '<!-- @echo icon-fire-wind -->'
-    | '<!-- @echo icon-crosshair -->'
-    | '<!-- @echo icon-pushpin -->';
+    | typeof ICON_PICTURES
+    | typeof ICON_COMMENT_O
+    | typeof ICON_UPLOAD
+    | typeof ICON_LONG_TAP
+    | typeof ICON_MOVING_CLOUD
+    | typeof ICON_UV
+    | typeof ICON_WET_BULB
+    | typeof ICON_QUESTION_CIRCLE
+    | typeof ICON_LOG_OUT
+    | typeof ICON_RADIOSONDE
+    | typeof ICON_RADIATION
+    | typeof ICON_WITHERED_FLOWER
+    | typeof ICON_DRY_SOIL
+    | typeof ICON_RAIN_DROPS_ON_SOIL
+    | typeof ICON_NO_RAIN_DROP
+    | typeof ICON_GLIDER
+    | typeof ICON_CHEVRON_LEFT
+    | typeof ICON_CHEVRON_RIGHT
+    | typeof ICON_CHEVRON_DOWN
+    | typeof ICON_VIDEO_CAMERA
+    | typeof ICON_PAUSE
+    | typeof ICON_PLAY
+    | typeof ICON_CHEVRON_UP
+    | typeof ICON_CROSS_MARK
+    | typeof ICON_MAP_PIN
+    | typeof ICON_MOUNTAINS
+    | typeof ICON_TRIANGLE_DOWN
+    | typeof ICON_PLANE
+    | typeof ICON_BUS
+    | typeof ICON_TRAIN
+    | typeof ICON_LODGING
+    | typeof ICON_RESTAURANT
+    | typeof ICON_CALENDAR
+    | typeof ICON_ARROW_LEFT
+    | typeof ICON_ARROW_RIGHT
+    | typeof ICON_COG_GEAR
+    | typeof ICON_HEART
+    | typeof ICON_HEART_OUTLINE
+    | typeof ICON_STAR
+    | typeof ICON_STAR_OUTLINE
+    | typeof ICON_CHECK_MARK
+    | typeof ICON_SUN
+    | typeof ICON_CLOCK
+    | typeof ICON_UMBRELLA_SMALL
+    | typeof ICON_SKIING
+    | typeof ICON_KEYBOARD
+    | typeof ICON_ARROW_DOUBLED_UP
+    | typeof ICON_ARROW_DOUBLED_DOWN
+    | typeof ICON_FOG_SUNRISE
+    | typeof ICON_FOG_MOON
+    | typeof ICON_TOOLS
+    | typeof ICON_SUN_OUTLINE
+    | typeof ICON_MOON_OUTLINE
+    | typeof ICON_CLOUD_RAIN
+    | typeof ICON_CLOUD_SNOW
+    | typeof ICON_CLOUDS
+    | typeof ICON_CLOUD_MOON
+    | typeof ICON_CLOUD_SUN
+    | typeof ICON_CLOUD_LIGHTNING_SMALL
+    | typeof ICON_X_CIRCLE
+    | typeof ICON_DIRECTIONS
+    | typeof ICON_FULLSCREEN
+    | typeof ICON_SETTINGS_OUTLINE
+    | typeof ICON_EYE
+    | typeof ICON_ARROW_SOUTH_OUTLINE
+    | typeof ICON_ARROW_SOUTH_FULL
+    | typeof ICON_ARROW_NORTH_OUTLINE
+    | typeof ICON_ARROW_NORTH_FULL
+    | typeof ICON_WINDY_LOGO_NO_FRAME
+    | typeof ICON_BUFFER
+    | typeof ICON_INFO_CIRCLE
+    | typeof ICON_FACEBOOK_SQUARE
+    | typeof ICON_BUBBLES_TALK
+    | typeof ICON_GLOBE
+    | typeof ICON_MEASURE
+    | typeof ICON_LEVEL_UP
+    | typeof ICON_WORLD_MERIDIANS
+    | typeof ICON_THUMBS_DOWN
+    | typeof ICON_BACKSPACE_OUTLINE
+    | typeof ICON_HOME
+    | typeof ICON_MOBILE
+    | typeof ICON_TRASH
+    | typeof ICON_MOUSE
+    | typeof ICON_SURFER
+    | typeof ICON_WIND
+    | typeof ICON_SNOW_FLAKE
+    | typeof ICON_ANGLE_DOWN
+    | typeof ICON_ANGLE_LEFT
+    | typeof ICON_ANGLE_RIGHT
+    | typeof ICON_ANGLE_UP
+    | typeof ICON_KITE
+    | typeof ICON_MINUS_CIRCLE
+    | typeof ICON_THERMOMETER_DETAILED
+    | typeof ICON_RAINDROP_BIG
+    | typeof ICON_CLOCK_GROOVED
+    | typeof ICON_AIR_SOCK
+    | typeof ICON_PARAGLIDER
+    | typeof ICON_WAVES
+    | typeof ICON_SPEEDOMETER
+    | typeof ICON_TASKS
+    | typeof ICON_LANGUAGE
+    | typeof ICON_CLOSE_MARK
+    | typeof ICON_MAP
+    | typeof ICON_GRAPH
+    | typeof ICON_INSTAGRAM_OUTLINE
+    | typeof ICON_SNOW_MOUNTAINS
+    | typeof ICON_BOAT
+    | typeof ICON_RAIN_DROPS
+    | typeof ICON_HELICOPTER
+    | typeof ICON_THERMOMETER_RAINDROP
+    | typeof ICON_CLOUD_LIGHTNING_BIG
+    | typeof ICON_THERMOMETER_SIMPLE
+    | typeof ICON_ENTER
+    | typeof ICON_BELL_OUTLINE
+    | typeof ICON_CLOUD_H
+    | typeof ICON_CLOUD_L
+    | typeof ICON_CLOUD_M
+    | typeof ICON_COLOR_PALETTE
+    | typeof ICON_NUMBER_ONE
+    | typeof ICON_NUMBER_TWO_CIRCLE
+    | typeof ICON_NUMBER_THREE_CIRCLE
+    | typeof ICON_STOPWATCH
+    | typeof ICON_STAR_CIRCLE
+    | typeof ICON_DOWNLOAD
+    | typeof ICON_REDDIT
+    | typeof ICON_MORE_SYMBOL_VERTICAL
+    | typeof ICON_FOG_CLOUD
+    | typeof ICON_BELL_SLASH_OUTLINE
+    | typeof ICON_BELL
+    | typeof ICON_SAILING_BOAT
+    | typeof ICON_GAS_MASK
+    | typeof ICON_VOLCANO
+    | typeof ICON_FACTORY
+    | typeof ICON_SEARCH
+    | typeof ICON_MORE_SYMBOL_HORIZONTAL
+    | typeof ICON_USER
+    | typeof ICON_EXCLAMATION_TRIANGLE
+    | typeof ICON_TURTLE
+    | typeof ICON_RABBIT
+    | typeof ICON_GOAT
+    | typeof ICON_MENU
+    | typeof ICON_PLAY_CIRCLE
+    | typeof ICON_STOP_CIRCLE
+    | typeof ICON_FIRE
+    | typeof ICON_CODE
+    | typeof ICON_EYEDROPPER
+    | typeof ICON_FULLSCREEN_EXIT
+    | typeof ICON_FOG
+    | typeof ICON_WAVES_THERMOMETER
+    | typeof ICON_RADAR
+    | typeof ICON_CONTOUR
+    | typeof ICON_UMBRELLA_BIG
+    | typeof ICON_FUNNEL
+    | typeof ICON_SPEAKER_LOUDER
+    | typeof ICON_SPEAKER_OFF
+    | typeof ICON_TROPICAL_CYCLONE
+    | typeof ICON_ZOOM_IN
+    | typeof ICON_ZOOM_OUT
+    | typeof ICON_PLUG
+    | typeof ICON_PLUS
+    | typeof ICON_MINUS
+    | typeof ICON_SWITCH_FULL
+    | typeof ICON_SWITCH_OUTLINE
+    | typeof ICON_REFRESH
+    | typeof ICON_CLAP
+    | typeof ICON_GLOBE_PARTICLES
+    | typeof ICON_PERSON_MASK
+    | typeof ICON_AIR_PARTICLES
+    | typeof ICON_COPY_DOCUMENT
+    | typeof ICON_SATELLITE
+    | typeof ICON_BELL_ANGLE
+    | typeof ICON_CAMERA_RETRO
+    | typeof ICON_LOCATION_ARROW
+    | typeof ICON_ARROW_SWAP
+    | typeof ICON_AT
+    | typeof ICON_PENCIL
+    | typeof ICON_GIFT
+    | typeof ICON_LEAF
+    | typeof ICON_THUMBS_UP
+    | typeof ICON_O3_CIRCLE
+    | typeof ICON_CROWN_KING
+    | typeof ICON_TIDE
+    | typeof ICON_CAR
+    | typeof ICON_FIND_MY_LOCATION
+    | typeof ICON_APPLE
+    | typeof ICON_WATCH_EMPTY
+    | typeof ICON_GARMIN
+    | typeof ICON_GARMIN_EDGE
+    | typeof ICON_WATCH
+    | typeof ICON_WEAROS_LOGO
+    | typeof ICON_WIDGET
+    | typeof ICON_CLOUD_LIGHTNING_BIG_PLUS
+    | typeof ICON_SHARE
+    | typeof ICON_BELL_PLUS
+    | typeof ICON_X
+    | typeof ICON_TWITTER
+    | typeof ICON_EYE_BLOCKED
+    | typeof ICON_BUG
+    | typeof ICON_HAMMER
+    | typeof ICON_GITHUB
+    | typeof ICON_LINK
+    | typeof ICON_PLANE_SNOWFLAKE
+    | typeof ICON_PLANE_WAVES
+    | typeof ICON_FIRE_WARNING
+    | typeof ICON_FIRE_MATCH
+    | typeof ICON_FIRE_WIND
+    | typeof ICON_CROSSHAIR
+    | typeof ICON_PUSHPIN;

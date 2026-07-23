@@ -1,5 +1,5 @@
 import { Product } from '@windy/Product';
-import { AromeProduct, AccessProduct, AccessCProduct, EcmwfForecastProduct, EcmwfProduct, SatAndRadarPlusProduct } from '@windy/ProductClasses';
+import { AromeProduct, AccessProduct, AccessCProduct, EcmwfForecastProduct, EcmwfProduct, SatAndRadarPlusProduct, FakeCalendarProduct } from '@windy/ProductClasses';
 import type { Products } from '@windy/rootScope.d';
 type AllExportedProducts = Implements<{
     [P in Products]: Product;
@@ -36,7 +36,7 @@ type AllExportedProducts = Implements<{
     namAlaska: Product;
     namConus: Product;
     namHawaii: Product;
-    capAlerts: Product;
+    capAlerts: FakeCalendarProduct;
     efi: Product;
     radar: Product;
     satellite: SatAndRadarPlusProduct;
@@ -49,6 +49,7 @@ type AllExportedProducts = Implements<{
     jmaMsm: Product;
     jmaCwmWaves: Product;
     topoMap: Product;
+    avalancheDanger: FakeCalendarProduct;
 }>;
 declare const products: AllExportedProducts;
 export default products;

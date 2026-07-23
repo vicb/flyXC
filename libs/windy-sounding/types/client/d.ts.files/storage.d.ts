@@ -29,6 +29,11 @@ export interface StorageData {
     rateDialogShown?: Timestamp;
 
     /**
+     * Timestamp when the unverified-email banner was last dismissed
+     */
+    unverifiedEmailBannerDismissedTs?: Timestamp;
+
+    /**
      * Used by dev plugin for plugins development
      */
     pluginsDev?: { url: string; consent: boolean };

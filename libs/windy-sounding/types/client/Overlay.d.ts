@@ -1,19 +1,19 @@
-import type { LayerMetricType, Layers, Layer } from '@windy/Layer';
+import type { Layers } from '@windy/Layer';
 import type { Metric } from '@windy/Metric';
 import type { DirectionFunction } from '@windy/format.d';
 import type { Iconfont } from '@windy/iconfont.d';
 import type { Overlays } from '@windy/rootScope.d';
 import type { RGBNumValues } from '@windy/interpolatorTypes';
 import type { LoadedTranslations, HTMLString, RGBString } from '@windy/types';
+import type { Color } from '@windy/Color';
+import type { Legend, DiscreteLegend } from '@windy/legends.d';
 export type UsedOverlays = Overlays | 'swell';
-export type OverlayInitParams = Pick<Overlay, 'ident'> & Partial<Overlay>;
-type LayerProperty<L extends Layer | undefined, P extends keyof Layer> = L extends Layer ? L[P] : undefined;
-type MetricProperty<M extends Metric | undefined, P extends keyof Metric> = M extends Metric ? M[P] : undefined;
-export declare class Overlay<I extends Overlays = Overlays, M extends I extends Layers ? LayerMetricType[I] : undefined = I extends Layers ? LayerMetricType[I] : undefined, L extends Layer<M> | undefined = I extends Layers ? Layer<M> : undefined> {
+export type OverlayInitParams = Pick<Overlay, 'ident' | 'icon' | 'trans'> & Partial<Overlay>;
+export declare class Overlay {
     /**
      * Main ident
      */
-    ident: I;
+    ident: Overlays;
     /**
      * Translation string
      */
@@ -37,20 +37,18 @@ export declare class Overlay<I extends Overlays = Overlays, M extends I extends 
     /**
      * Layers used
      */
-    layers: I extends Layers ? [...Layers[], I] | [I, ...Layers[]] : undefined;
+    layers?: Layers[];
     /**
      * Is the overlay supported in globe mode. Default: false
      */
     globeNotSupported: boolean;
     /**
-     * Show interpolated weather value over cities, when user switches to POI cities
-     * TODO: Unify property with hideWxLabels
+     * POI cities behavior:
+     * - 'full': show city markers with interpolated weather values (default)
+     * - 'markers': show city markers without weather values (e.g. waves, discrete overlays)
+     * - 'none': disable POI cities entirely (e.g. radar, satellite)
      */
-    poiInCities: boolean;
-    /**
-     * Hide interpolated weather value over cities, when user switches to POI cities
-     */
-    hideWxLabels?: boolean;
+    poiCities: 'full' | 'markers' | 'none';
     /**
      * Hide elevation in the desktop picker
      */
@@ -88,20 +86,33 @@ export declare class Overlay<I extends Overlays = Overlays, M extends I extends 
      */
     allwaysOn?: boolean;
     /**
-     * Programatically injected properties from particulat Metric instance
+     * Whether the overlay can be synchronized with the detail plugin timeline.
+     * False for non-forecast overlays like radar, satellite, accumulations, etc.
      */
-    m: M;
-    convertValue: MetricProperty<M, 'convertValue'>;
-    convertNumber: MetricProperty<M, 'convertNumber'>;
-    setMetric: MetricProperty<M, 'setMetric'>;
-    cycleMetric: MetricProperty<M, 'cycleMetric'>;
-    listMetrics: MetricProperty<M, 'listMetrics'>;
+    disableSyncWithDetail: boolean;
     /**
-     * Programatically injected properties from particulat Layer instance
+     * Programatically injected properties from particulat Metric instance
+     * by defaul we consider that these Metrics are NUmberedMetrics only (for
+     * simplicity of implementation) and string metrics legends and picker are
+     * handled by its overloaded methods
      */
-    c: LayerProperty<L, 'c'>;
-    l: LayerProperty<L, 'l'>;
-    cm: LayerProperty<L, 'cm'>;
+    convertValue: Metric['convertValue'];
+    convertNumber: Metric['convertNumber'];
+    setMetric: Metric['setMetric'];
+    cycleMetric: Metric['cycleMetric'];
+    listMetrics: Metric['listMetrics'];
+    /**
+     * Main metric associated with this overlay
+     */
+    overlayMetric: Metric;
+    /**
+     * Main color associated with this overlay (used in legend if applicable)
+     */
+    overlayColor: Color;
+    /**
+     * Alternative legend that can overload the legend used in metric
+     */
+    alternativeLegend?: Legend | DiscreteLegend;
     /**
      * Do not display this overlay in URL
      */
@@ -115,13 +126,18 @@ export declare class Overlay<I extends Overlays = Overlays, M extends I extends 
      * Optional menu image thumbnail
      */
     menuImage?: string;
+    /**
+     * Show a second picker row with ECMWF wind (speed + direction). Used by the
+     * fire-danger overlays.
+     */
+    windCompanionRow?: boolean;
     constructor(params: OverlayInitParams);
     /**
      * When clicking on overlay in menu, do the following action (ready to be overloaded)
      */
     onClick(): void;
     /**
-     * Render's overlay's legend inside  el
+     * Render's overlay's legend inside el
      */
     paintLegend(el: HTMLDivElement): void;
     /**
@@ -151,8 +167,8 @@ export declare class Overlay<I extends Overlays = Overlays, M extends I extends 
     createPickerHTML(values: RGBNumValues, _directionFormattingFunction: DirectionFunction): HTMLString;
     /**
      * Just proxy to the Metric's metric property
+     * @deprecated Change to getMetric() and remove this getter
      */
     get metric(): "" | import("./Metric").MetricItem;
     protected initProperties(): void;
 }
-export {};

@@ -1,6 +1,7 @@
 /**
  * This file is O B S O L E T E and not maintained anymore.
  */
+/// <reference types="@windy/declarations/variables" />
 import 'virtual:build-info';
 export * as errorLogger from '../utils/errorLogger';
 export * as Evented from '../utils/Evented';
@@ -25,7 +26,6 @@ export * as Overlay from '../weatherClasses/Overlay';
 export * as OverlayClasses from '../weatherClasses/OverlayClasses';
 export * as Product from '../weatherClasses/Product';
 export { default as layers } from '../weather/layers';
-export { default as legends } from '../weather/legends';
 export { default as metrics } from '../weather/metrics';
 export * as models from '../weather/models';
 export { default as overlays } from '../weather/overlays';

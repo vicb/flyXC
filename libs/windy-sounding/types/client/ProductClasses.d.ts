@@ -35,6 +35,7 @@ export declare class SatAndRadarPlusProduct extends Product {
  *  - provides timestamp array with single timestamp pair equal to the current time
  */
 export declare class FakeCalendarProduct extends Product {
+    constructor(params: ProductInitParams);
     loadMinifest(): Promise<MinifestObject>;
 }
 export declare class NamProducts extends Product {

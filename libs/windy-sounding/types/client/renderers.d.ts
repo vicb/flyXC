@@ -7,14 +7,16 @@ declare const renderers: {
      */
     tileLayer: TileLayer;
     noUserControl: TileLayer;
-    radar: Renderer;
     radarPlus: Renderer;
     capAlerts: Renderer;
+    avalancheDanger: Renderer;
     isolines: Renderer;
     particles: Renderer;
     /** Extreme forecast and intersucho layers */
     daySwitcher: TileLayer;
     accumulations: TileLayer;
+    levelsRange: TileLayer;
+    fireDanger: TileLayer;
     /** Seznam topographic Map */
     topoMap: TopoMap;
 };

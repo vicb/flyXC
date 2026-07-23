@@ -17,13 +17,14 @@ import type { AccountLoginResponse, UserInfo, User, LoginAndFinishAction } from 
  */
 export declare const isLoggedIn: () => boolean;
 export declare const getInfo: () => User | null;
-export declare const emptyAvatar = "<!-- @echo IMG_ABSOLUTE_PATH -->/avatar.jpg";
+export declare const emptyAvatar: string;
 /**
  * Safe way how to retrieve use avatar
  * @returns link to user avatar or default avatar
  */
 export declare const getAvatar: () => string;
 export declare const getEmail: () => string;
+export declare const isEmailVerified: () => boolean;
 export declare const getUsername: () => string;
 export declare const getUserId: () => number;
 export declare const isLoggedInPromise: () => Promise<boolean>;
@@ -51,4 +52,5 @@ export declare const checkAuth: (userInfoPayload: UserInfo, handleConsent: boole
  * @throws An exception when HTTP request fails
  */
 export declare const reloadInfo: () => Promise<HttpPayload<UserInfo> | null>;
+export declare function showUnverifiedEmailBanner(): void;
 export declare const handleLoginResponse: (response: HttpPayload<AccountLoginResponse>, provider: string) => Promise<void>;

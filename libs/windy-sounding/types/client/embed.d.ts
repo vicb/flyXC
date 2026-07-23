@@ -1,3 +1,19 @@
+/**
+ * Modules, that are used by plugins MUST be listed here.
+ *
+ * Modules, that are use only internally, within core,
+ * and act as dependency to some other module,
+ * do not need to be listed here.
+ *
+ * Orphaned modules, that are not imported anywhere, MUST be
+ * listed here as  otherwise they will be tree-shaken away by
+ * rollup and not executed.
+ */
+/**
+ * This module relies on being loaded as a non-async <script type="module">,
+ * which browsers defer until after DOM parsing. Do NOT add `async` to the
+ * script tag, or top-level DOM access in imported modules will break.
+ */
 import './services/params';
 import './pluginSystem/Plugin';
 import './pluginSystem/SveltePlugin';
@@ -6,7 +22,6 @@ import './pluginSystem/WindowPlugin';
 import './pluginSystem/pluginsCtrl';
 import './ui/timeAnimation';
 import './ui/visibility';
-import './render/renderTile';
 export * as detectDevice from './dummyModules/detectDevice';
 export * as log from './dummyModules/log';
 export * as promo from './dummyModules/promo';

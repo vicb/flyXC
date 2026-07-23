@@ -1,17 +1,19 @@
 import type { HttpPayload } from '@windy/http.d';
-import type { WhatsNewObsolete, WhatsNewData } from '@windy/startup.d';
 import type { LiveAlertEvent } from '@plugins/startup-live-alerts/startup-live-alerts.d';
 import type { GeolocationInfo, HomeLocation } from '@windy/interfaces';
+import type { ArticlePromoData, ArticleStartupData } from '@plugins/articles/articles';
+export declare const openObsoleteApp: () => Promise<boolean>;
 /**
- * Opens whatsNew plugin, displays app is obsolete message or does nothing
+ * Opens article with whatsNew
  *
- * @returns true if whatsNew or app is obsolete was opened
+ * @returns true if article whatsNew was opened
  */
-export declare const openWhatsNewOrObsoleteApp: (whatsNewPromise: Promise<HttpPayload<WhatsNewData | WhatsNewObsolete>>) => Promise<boolean>;
+export declare const openWhatsNewArticle: (articlePromise: Promise<HttpPayload<ArticleStartupData>>) => Promise<boolean>;
 /**
  * Determines if article should be displayed or not
  */
-export declare const loadAndOpenArticle: (coords: HomeLocation | GeolocationInfo) => Promise<boolean>;
+export declare const openArticle: (articlePromise: Promise<HttpPayload<ArticleStartupData>>) => Promise<boolean>;
+export declare const openPromo: (promoPromise: Promise<HttpPayload<ArticlePromoData>>) => Promise<boolean>;
 export declare const openLiveAlert: (coords: HomeLocation | GeolocationInfo, liveAlertsPromise: Promise<HttpPayload<{
     alerts: LiveAlertEvent[];
 }>>) => Promise<boolean>;

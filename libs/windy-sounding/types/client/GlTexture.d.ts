@@ -1,4 +1,4 @@
-import type { Vector2 } from '@windy/math';
+import { Vector2 } from '@windy/math';
 import type { GlColorFormat } from '@windy/glUtils.d';
 /**
  * @class A wrapper class for WebGL Texture
@@ -64,6 +64,7 @@ export declare class GlTexture {
      * ToDo: mip-maps, per-coordinate wrap, per mag/min filtering
      */
     updateContent(gl: WebGLRenderingContext | WebGL2RenderingContext, data: HTMLImageElement | [Uint8Array, Vector2] | [Uint8ClampedArray, Vector2] | HTMLCanvasElement | ImageBitmap, wrap?: GLenum, filter?: GLenum, premultiply?: boolean): void;
+    create(gl: WebGLRenderingContext | WebGL2RenderingContext, width: number, height: number): void;
     /**
      * @summary Binds the texture for rendering and other operations
      * @param wrap Wrap settings, how to handle texture coordinates out of <0.0, 1.0> bounds (where to read)

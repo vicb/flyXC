@@ -1,6 +1,7 @@
 import { LngLatBounds } from '@leafletGl';
 import type { LatLngBounds, LngLatBoundsLike } from '@leafletGl';
 import type { BoxBounds2D } from './d.ts.files/math';
+export declare const MAPLIBRE_TILE_SIZE = 512;
 export declare const utils: {
     isWebGl2: boolean;
     /** WebGL context type key - used to access context-relevant shaders sources */

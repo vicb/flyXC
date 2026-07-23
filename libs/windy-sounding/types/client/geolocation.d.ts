@@ -11,8 +11,7 @@ import type { PositionOptions } from '@capacitor/geolocation';
  * @returns Location got from GPS or IP, the newer is preferred
  */
 export declare const getMyLatestPos: () => GeolocationInfo;
-interface GeolocationOptions extends PositionOptions {
-    doNotShowSearchGPSMessage?: boolean;
+export interface GeolocationOptions extends PositionOptions {
     doNotShowFailureMessage?: boolean;
     getMeFallbackGps?: boolean;
 }
@@ -42,4 +41,3 @@ export declare const getFallbackName: (lat: number | string, lon: number | strin
  */
 export declare const getHomeLocation: () => Promise<GeolocationInfo | HomeLocation>;
 export declare function requestLocationPermissions(): Promise<boolean>;
-export {};

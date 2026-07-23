@@ -3,57 +3,44 @@ import { LatLon } from '@windy/interfaces.d';
 import { Timestamp } from '@windy/types.d';
 
 export type WebcamCategoryType =
-    | 'landscape'
-    | 'traffic'
-    | 'meteo'
-    | 'uncategorized'
-    | 'building'
-    | 'indoor'
-    | 'city'
-    | 'water'
-    | 'area'
-    | 'forest'
-    | 'mountain'
-    | 'island'
-    | 'beach'
     | 'airport'
-    | 'park'
-    | 'harbor'
-    | 'pool'
-    | 'golf'
-    | 'lake'
-    | 'bay'
-    | 'square'
+    | 'beach'
+    | 'building'
+    | 'city'
     | 'coast'
-    | 'sportarea'
-    | 'resort'
-    | 'camping'
-    | 'other'
-    | 'xmasmarket'
-    | 'underwater';
-
-export type WebcamPositionType = 'fix' | 'rotating' | 'ptz';
+    | 'forest'
+    | 'indoor'
+    | 'lake'
+    | 'landscape'
+    | 'meteo'
+    | 'mountain'
+    | 'observatory'
+    | 'port'
+    | 'river'
+    | 'sportArea'
+    | 'square'
+    | 'traffic'
+    | 'village';
 
 export type WebcamDirectionType =
     | ''
     | 'north'
-    | 'northeast'
+    | 'north-east'
     | 'east'
-    | 'southeast'
+    | 'south-east'
     | 'south'
-    | 'southwest'
+    | 'south-west'
     | 'west'
-    | 'northwest';
+    | 'north-west';
 
 export type WebcamStatusType =
     | 'active'
-    | 'deleted'
-    | 'disabled'
-    | 'duplicate'
     | 'inactive'
+    | 'unapproved'
+    | 'disabled'
     | 'rejected'
-    | 'revoked'
-    | 'unapproved';
+    | 'duplicate'
+    | 'merged';
 
 export interface WebcamCategory {
     id: WebcamCategoryType;
@@ -63,38 +50,24 @@ export interface WebcamCategory {
 export interface WebcamLocation extends LatLon {
     alt: number;
     city: string;
-    continent: string;
     country: string;
-    subcountry: string;
     title: string;
 }
 
-export interface WebcamImageUrls {
-    full: string;
-    icon: string;
-    normal: string;
-    original: string;
-    preview: string;
-    thumbnail: string;
-    webcam: string;
-}
-
-export type WebcamImageSize = keyof WebcamImageUrls;
+export type WebcamImageSize = 'icon' | 'thumbnail' | 'preview' | 'normal' | 'mobile' | 'full';
 
 export type WebcamTimelapseType = 'day' | 'current' | 'all';
 
 // FIXME TODO: This type does not correspond to output form a backend. Fix the type
 export interface WebcamDetail {
-    categories: WebcamCategoryType[];
-    contacts: { owner: string; caretaker: string };
     id: number;
     images: {
-        current: WebcamImageUrls;
-        daylight: WebcamImageUrls;
-        sizes: { [S in keyof WebcamImageUrls]: { width: number; height: number } };
+        current: string;
+        daylight: string;
     };
-    lastDaylight: Timestamp;
+    availableArchiveTypes: WebcamArchiveInterval[];
     lastUpdate: Timestamp;
+    lastDaylight?: Timestamp;
     location: WebcamLocation;
     pageUrl: string;
     shortTitle: string;
@@ -103,15 +76,12 @@ export interface WebcamDetail {
     views: Record<string, string>;
     viewCount: number;
     stream?: string;
-    l10n?: {
-        /** {[langIsoCode: string]: string} */
-        country: Record<string, string>;
-        /** {[langIsoCode: string]: string} */
-        subcountry: Record<string, string>;
-        /** {[langIsoCode: string]: string} */
-        city: Record<string, string>;
-        /** {[langIsoCode: string]: string} */
-        shortTitle: Record<string, string>;
+    promotion?: {
+        title: string;
+        description: string;
+        pageUrl: string;
+        logoUrl?: string;
+        imageUrl?: string;
     };
 }
 
@@ -120,14 +90,7 @@ export interface WebcamArchiveItem {
     url: string;
 }
 
-export interface WebcamArchive {
-    day: WebcamArchiveItem[];
-    month: WebcamArchiveItem[];
-    year: WebcamArchiveItem[];
-    lifetime: WebcamArchiveItem[];
-}
-
-export type WebcamArchiveInterval = keyof WebcamArchive;
+export type WebcamArchiveInterval = 'day' | 'month' | 'year' | 'lifetime';
 
 export interface WebcamsData {
     cams: WebcamDetail[];

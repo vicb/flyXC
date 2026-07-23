@@ -1,14 +1,48 @@
 import { type TileHeader } from '@windy/TileLayerUtils';
-import { type CacheAllocationToken, type Coords } from '@leafletGl';
+import { Bounds, TileCache, type CacheAllocationToken, type Coords } from '@leafletGl';
 import { GlTexture } from '@windy/glUtils';
 import { type CachedTile } from '@windy/tileLayerSource';
-import type { Cache } from '@windy/SwitchableTileCache';
 import type { FullRenderParameters } from '@windy/interfaces';
+declare const tileDebugStateMap: {
+    readonly missing: "-";
+    readonly waitingForDataTile: "W";
+    readonly dataTileFailed: "F";
+    readonly dataTileAborted: "A";
+    readonly dataTileInvalid: "I";
+    readonly contextLostDuringProcessing: "C";
+    readonly success: "S";
+    readonly deleted: "D";
+};
+type TileDebugState = keyof typeof tileDebugStateMap;
+export type TileDebugInfo = {
+    state: TileDebugState;
+    message?: string;
+    coords: Coords;
+};
+export declare function getSummaryDebugTileInfo(bounds: Bounds, z: number, infoMap: Map<string, TileDebugInfo>): string;
+type OnCacheDestroy = () => void;
+export type Cache<TTile> = {
+    cache: TileCache<TTile>;
+    /**
+     * Completely cleans up the cache: disposes of the internal TileCache, un-registers event listeners, cleans up tile preprocessor.
+     */
+    destroy: OnCacheDestroy;
+    /**
+     * Map of tile coords key string -> debug info
+     */
+    debug?: Map<string, TileDebugInfo>;
+};
 export type ReadyTile = {
     valid: true;
     tex: GlTexture;
     coords: Coords;
-    header: TileHeader;
+    dataHeader: TileHeader;
+    dataTex: WebGLTexture;
+    dataUniforms: {
+        dataTileScaleOffset: number[];
+        sizeS: number;
+        srcPixelSize: number;
+    };
     _token: CacheAllocationToken<CachedTile>;
 } | {
     valid: false;
@@ -28,8 +62,9 @@ export type ReadyTile = {
  *
  * @param params - Full render parameters for the desired layer.
  */
-export declare function makeTileLayerCache(params: FullRenderParameters): Promise<Cache<ReadyTile>>;
+export declare function makeTileLayerCache(params: FullRenderParameters): Cache<ReadyTile>;
 /**
  * Replaces {z}, {x} and {y} in the URL template with the given tile coords.
  */
 export declare function applyUrlTemplate(urlTemplate: string, coords: Coords): string;
+export {};

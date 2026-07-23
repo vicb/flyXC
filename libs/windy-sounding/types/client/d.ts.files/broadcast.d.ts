@@ -2,9 +2,8 @@
     Overall broadcasted events. We have used loose coupled components
     system before TS was used.
 
-    Now it is better to use close coupled components, with strong type control
-
-    TODO: Minimize amount of these events and reduce their usage
+    Now it is better to use close coupled components, with strong type control, so
+    minimize amount of these events and reduce their usage
 
 */
 
@@ -74,9 +73,6 @@ export interface BasicBcastTypes<T extends keyof Plugins> {
     /** Request to close plugin (either internal or external) */
     rqstClose: [T | string];
 
-    /** Request to close all opened plugins (unless plugin has noClose property) */
-    closeAllPlugins: [PluginIdent] | [];
-
     /** Plugin was successfully loaded and closed */
     pluginClosed: [PluginIdent | string];
 
@@ -112,6 +108,9 @@ export interface BasicBcastTypes<T extends keyof Plugins> {
 
     /** Indicates that user added, removed or rename his alert  */
     alertChanged: [];
+
+    /** Asks the live-alerts app-only warning banner to un-dismiss itself */
+    revealLiveAlertsWarning: [];
 
     /** Indicates that user added or removed external plugin */
     externalPluginChanged: [];
@@ -169,13 +168,13 @@ export interface BasicBcastTypes<T extends keyof Plugins> {
     /** @ignore */ zoomOut: [];
     /** @ignore */ showSocialError: [string];
     /** @ignore */ openapp: [];
-    /** @ignore */ openSearch: [];
     /** @ignore */ renderersUpdated: []; // Fired once all renderers have had their params updated.
     /** @ignore */ tileLayerParamsChanged: [FullRenderParameters];
     /** @ignore */ glContextLost: [];
     /** @ignore */ glContextRestored: [];
     /** @ignore */ glRestoreContext: [];
     /** @ignore */ glLoseContext: [];
+    /** @ignore */ debugPrintTiles: []; // Used for debugging rare tile cache issues
 }
 
 interface BcastTypes<T extends keyof Plugins> extends BcastTypesNonGeneric, BasicBcastTypes<T> {}

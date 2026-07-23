@@ -1,9 +1,14 @@
 import { MainLangFile, PluginTranslations } from '@windy/lang-files.d';
 
-import weatherTable from '@plugins/_shared/detail-render/weatherTable';
+// eslint-disable-next-line custom/no-plugins-import-in-src
+import weatherTable from '@plugins/shared/detail-render/weatherTable';
+
 import { LatLon, WeatherParameters } from '@windy/interfaces.d';
+import { Levels } from '@windy/rootScope.d';
 
 export * from '@windy/interpolatorTypes.d';
+
+export type LevelsRange = `${Levels}-${Levels}`;
 
 /**
  * ISO date string representation of the Date
@@ -39,8 +44,6 @@ export type DetailDisplayType = 'table' | 'meteogram' | 'airgram' | 'waves' | 'w
 
 export type Directions = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
 
-export type HTMLElementWithSlider = HTMLElement & { noUiSlider?: noUiSlider.noUiSlider };
-
 /**
  * Meteorological numerical value (usually in default metric as delivered from backend)
  */
@@ -54,8 +57,8 @@ export type NumOrNull = NumValue | null;
 export type YearMonthDay = string;
 
 export type StationType = 'ad' | 'wmo' | 'madis' | 'buoy' | 'dbuoy' | 'pws' | 'ship';
-export type PoiType = 'airq' | 'pgspots' | 'surfspots' | 'radiation' | 'tide';
-export type ExtendedStationType = StationType | 'radiation' | 'airq';
+export type PoiType = 'airq' | 'pgspots' | 'surfspots' | 'tide';
+export type ExtendedStationType = StationType | 'airq';
 
 export type StationId = `${ExtendedStationType}-${string}`;
 
@@ -104,6 +107,9 @@ export type SveltePluginIdent = `@plugins/${keyof import('@windy/plugins.d').Sve
 export type SveltePanePluginIdent =
     `@plugins/${keyof import('@windy/plugins.d').SveltePanePlugins}`;
 
+export type SveltePopupPluginIdent =
+    `@plugins/${keyof import('@windy/plugins.d').SveltePopupPlugins}`;
+
 export type BottomSveltePluginIdent =
     `@plugins/${keyof import('@windy/plugins.d').BottomSveltePlugins}`;
 
@@ -115,24 +121,6 @@ export type TagPluginIdent = `@plugins/${keyof import('@windy/plugins.d').TagPlu
 export type PlainPluginIdent = `@plugins/${keyof import('@windy/plugins.d').PlainPlugins}`;
 
 export type AllPluginIdent = `@plugins/${keyof import('@windy/plugins.d').Plugins}`;
-
-export type MeteogramLayers = 'dewpoint' | 'gh' | 'rh' | 'temp' | 'wind_u' | 'wind_v';
-
-export type MeteogramLevels =
-    | '950h'
-    | '925h'
-    | '900h'
-    | '850h'
-    | '800h'
-    | '700h'
-    | '600h'
-    | '500h'
-    | '400h'
-    | '300h'
-    | '200h'
-    | '150h'
-    | '1000h'
-    | 'surface';
 
 export type CapAlertSeverity =
     | 'M' /** moderate **/
@@ -295,7 +283,9 @@ export type LogPaths =
     | 'locationPermissionPopup'
     | 'widgetPromo'
     | 'storyEvent'
-    | 'garmin';
+    | 'garmin'
+    | 'routePlanner'
+    | 'garminEdge';
 
 export type LogEvents =
     | 'logout'
@@ -356,6 +346,7 @@ export type ProductIdent =
     | 'cmems'
     | 'intersucho'
     | 'intersucho-firerisk'
+    | 'intersucho-firerisk-hourly'
     | 'nasa-firms'
     | 'jma-msm'
     | 'jma-cwm';
@@ -746,3 +737,5 @@ export type Timeout = ReturnType<typeof setTimeout>;
 export type Interval = ReturnType<typeof setInterval>;
 
 export type SemVersion = `${number}.${number}.${number}`;
+
+export type DefaultPointModel = 'ecmwf' | 'mblue';

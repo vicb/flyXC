@@ -1,6 +1,6 @@
-import type { Color } from './d.ts.files/Color';
-import type { ConvObj, Legend, LegendDescription, LegendLines, MetricIdent, MetricInitParams, MetricItem } from './d.ts.files/Metric.d';
-import type { NumValue, LoadedTranslations, RGBString } from './d.ts.files/types.d';
+import type { ConvObj, MetricIdent, MetricInitParams, MetricItem } from './d.ts.files/Metric.d';
+import type { NumValue } from './d.ts.files/types.d';
+import type { DiscreteLegend, Legend } from './d.ts.files/legends.d';
 export declare const rtrnSelf: (x: NumValue) => NumValue;
 /**
  * # @windy/Metric
@@ -9,9 +9,9 @@ export declare const rtrnSelf: (x: NumValue) => NumValue;
  *
  * Enjoy methods like `convertValue`, `convertNumber`, `listMetrics`, `howManyMetrics`
  *
- * Never ever, change users selected metric without their consent.
+ * Never change users selected metric without user's action or consent.
  */
-export declare abstract class Metric<T extends string | number = string | number> {
+export declare abstract class Metric {
     /**
      * Store key
      */
@@ -51,35 +51,17 @@ export declare abstract class Metric<T extends string | number = string | number
      */
     backConv?: ConvObj;
     /**
-     * Array defining how the legend will look like
-     */
-    lines: LegendLines;
-    /**
-     * Actually selected metric
+     * Actually selected unit
      */
     metric: MetricItem;
     /**
-     * Legend description
+     * Gradiend legend associated with this metric
      */
-    description: LegendDescription;
+    legend?: Legend | DiscreteLegend;
     /**
-     * Some metrics have discrete legend.
-     * If so, these labels define it, where NumValue is numerical value, to grab color from color table
+     * convertValue for this metric returns nonsense, so use convertValue
      */
-    discreteLegend?: {
-        /**
-         * Should all items in legend have same width?
-         */
-        hasEqualItemsWidth?: boolean;
-        /**
-         * Array of trans strings and clored string.
-         *
-         * For simplicity of sloution, the legned colors are hardcoded
-         * thus they do not react on 'users' defined color. This will
-         * be know bug and we will not handle this case.
-         */
-        labels: [keyof LoadedTranslations, RGBString][];
-    };
+    useConvertValue?: boolean;
     constructor(params: MetricInitParams);
     /**
      * get value + label on a basis of user selected metric
@@ -92,7 +74,7 @@ export declare abstract class Metric<T extends string | number = string | number
     /**
      * produces converted number value without label
      */
-    abstract convertNumber(value: NumValue, forcedPrecision?: number, metric?: MetricItem): T;
+    abstract convertNumber(value: NumValue, forcedPrecision?: number, metric?: MetricItem, back?: boolean): number;
     /**
      * List all avail units
      */
@@ -109,13 +91,9 @@ export declare abstract class Metric<T extends string | number = string | number
      * Cycles throu different metrics (for example after clicking on a legend)
      */
     cycleMetric(): void;
-    /** color object is required for classic gradient metrics, discrete ones do not need it as colors are hardcoded for them */
-    renderLegend(col: Color | undefined, el: HTMLDivElement, legend: Legend): void;
     protected initProperties(): void;
     private onMetricChanged;
     private getDefault;
     private setDefault;
-    private getGradientLegend;
-    private renderDiscreteLegend;
     private createKey;
 }

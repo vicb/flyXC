@@ -1997,7 +1997,7 @@ export type LeafletBounds = [
 	LatLngExpression,
 	LatLngExpression
 ] | LatLngBounds;
-declare function requestAnimFrame(fn?: Function, context?: any): ReturnType<typeof window.requestAnimationFrame>;
+declare function requestAnimFrame(fn: Function, context?: any): ReturnType<typeof window.requestAnimationFrame>;
 declare function create<T extends keyof HTMLElementTagNameMap>(tagName: T, className?: string, container?: HTMLElement): HTMLElementTagNameMap[T];
 declare function setTransform(el: HTMLElement, offset: Point, scale?: number): void;
 declare function setPosition(el: HTMLElement, point: Point): void;
@@ -2217,9 +2217,6 @@ export type MarkerOptions = InteractiveLayerOptions & {
 export declare class Marker extends Layer implements IDraggable {
 	static defaultOptions: Required<MarkerOptions>;
 	options: Required<MarkerOptions>;
-	/**
-	 * @internal
-	 */
 	_latlng: LatLng;
 	/**
 	 * @internal
@@ -2774,7 +2771,9 @@ export declare class Polyline extends Path {
 	 * Returns the point closest to `p` on the Polyline.
 	 * If such a point exists, adds a `distance` member containing the closest points distance to `p`.
 	 */
-	closestLayerPoint(p: Point): Point | undefined;
+	closestLayerPoint(p: Point): (Point & {
+		distance: number;
+	}) | undefined;
 	/**
 	 * Returns the center ([centroid](https://en.wikipedia.org/wiki/Centroid)) of the polyline.
 	 */
@@ -2794,7 +2793,7 @@ export declare class Polyline extends Path {
 	/**
 	 * Recursively convert latlngs input into actual LatLng instances; calculate bounds along the way.
 	 */
-	protected _convertLatLngs(latlngs: LatLngExpression[] | LatLngExpression[][] | LatLngExpression[][][]): LatLng[] | LatLng[][] | LatLng[][][];
+	protected _convertLatLngs(latlngs: LatLngExpression[] | LatLngExpression[][] | LatLngExpression[][][]): LatLngShape;
 	/**
 	 * @internal
 	 */
@@ -2960,10 +2959,15 @@ export declare abstract class DivOverlay extends Layer {
 	 */
 	bringToBack(): this;
 	/**
+	 * @internal
+	 *
+	 * Prepare bound overlay to open: update latlng pos / content source (for FeatureGroup).
+	 */
+	_prepareOpen(latlng?: LatLngExpression): boolean;
+	/**
 	 * Updates the overlay content, layout and position. Useful for updating the overlay after something inside changed, e.g. image loaded.
 	 */
 	private _update;
-	private _prepareOpen;
 	private _updateContent;
 	protected _updatePosition(): void;
 	protected _getAnchor(): PointExpression;
@@ -3631,14 +3635,20 @@ export declare abstract class Layer extends LeafletEvented {
 	private _map?;
 	/**
 	 * @internal
+	 * An optional LatLng of the layer, if the layer is a logical point (such as a Marker).
+	 * Other layers should ignore this.
+	 */
+	protected _latlng?: LatLng;
+	/**
+	 * @internal
 	 * Injected from popup.ts to avoid circular dependency.
 	 */
-	static Popup: any;
+	static Popup: typeof Popup;
 	/**
 	 * @internal
 	 * Injected from tooltip.ts to avoid circular dependency.
 	 */
-	static Tooltip: any;
+	static Tooltip: typeof Tooltip;
 	/**
 	 * @internal
 	 */
@@ -3746,7 +3756,7 @@ export declare abstract class Layer extends LeafletEvented {
 	/**
 	 * Returns the popup bound to this layer.
 	 */
-	getPopup(): Popup | null;
+	getPopup(): Popup;
 	/**
 	 * @internal
 	 */
@@ -3764,7 +3774,7 @@ export declare abstract class Layer extends LeafletEvented {
 	 * necessary event listeners. If a `Function` is passed it will receive
 	 * the layer as the first argument and should return a `String` or `HTMLElement`.
 	 */
-	bindTooltip(content: ((layer: Layer) => OverlayContent) | OverlayContent | Tooltip, options?: TooltipOptions): this;
+	bindTooltip(content: OverlayContent | Tooltip, options?: TooltipOptions): this;
 	/**
 	 * Removes the tooltip previously bound with `bindTooltip`.
 	 */
@@ -3796,7 +3806,7 @@ export declare abstract class Layer extends LeafletEvented {
 	/**
 	 * Returns the tooltip bound to this layer.
 	 */
-	getTooltip(): Tooltip | null;
+	getTooltip(): Tooltip;
 	/**
 	 * @internal
 	 */
@@ -3835,18 +3845,28 @@ export declare abstract class Layer extends LeafletEvented {
 	getEvents?(): LeafletGlEventHandlerFnMap;
 	/**
 	 * @internal
+	 * Called before the layer is added to a map.
+	 *
 	 * Classes deriving from Layer may implement this method.
 	 */
 	beforeAdd?(map: LeafletGlMap): this;
 	/**
+	 * If the layer represents an object that can be bounded, such as a path,
+	 * returns its bounds.
+	 *
 	 * Optionally implemented by child classes.
 	 */
 	getBounds?(): LatLngBounds;
 	/**
+	 * If the layer represents a single point (such as a marker),
+	 * returns its location.
+	 *
 	 * Optionally implemented by child classes.
 	 */
 	getLatLng?(): LatLng;
 	/**
+	 * Returns the center of the object the layer represents, if applicable (for example for a path).
+	 *
 	 * Optionally implemented by child classes.
 	 */
 	getCenter?(): LatLng;
@@ -3900,6 +3920,7 @@ export declare abstract class CanvasLayer extends Layer {
 	private _layerObject;
 	private _lastRenderedArea;
 	private _lastRenderedZoom;
+	private _textureRefreshAbort;
 	/**
 	 * @internal
 	 */
@@ -3940,7 +3961,7 @@ export declare abstract class CanvasLayer extends Layer {
 	/**
 	 * Called when the canvas needs to be redrawn. Place your rendering code here.
 	 */
-	protected abstract _draw(tileZoom: number): void;
+	protected abstract _draw(tileZoom: number, abort: AbortSignal): Promise<void>;
 	private _getLayerId;
 	private _setEvents;
 	private _getGLContext;
@@ -3948,7 +3969,10 @@ export declare abstract class CanvasLayer extends Layer {
 	 * Schedules a GL frame render. Once a new frame is rendered, the canvas will be redrawn using `_draw()` and uploaded to a GL texture.
 	 */
 	protected _redraw(): void;
-	private _renderFrame;
+	/**
+	 * Returns true if the internal texture was updated (abort was not called, map zoom is in valid range).
+	 */
+	private _refreshCanvasTexture;
 	protected _resize(): void;
 	private _onResize;
 	private _onMapRender;
@@ -4894,7 +4918,7 @@ export type SourceClass = {
  * @returns a promise that is resolved when the source type is ready or rejected with an error.
  */
 export declare const addSourceType: (name: string, SourceType: SourceClass) => Promise<void>;
-declare class TileCache {
+declare class TileCacheMapLibre {
 	max: number;
 	data: {
 		[key: string]: Array<{
@@ -4967,7 +4991,7 @@ declare class TileCache {
 	 * @param max - the max size of the cache
 	 * @returns this cache
 	 */
-	setMaxSize(max: number): TileCache;
+	setMaxSize(max: number): TileCacheMapLibre;
 	/**
 	 * Remove entries that do not pass a filter function. Used for removing
 	 * stale tiles from the cache.
@@ -6238,7 +6262,7 @@ export declare class SourceCache extends Evented {
 		[_: string]: Tile;
 	};
 	_prevLng: number;
-	_cache: TileCache;
+	_cache: TileCacheMapLibre;
 	_timers: {
 		[_ in any]: ReturnType<typeof setTimeout>;
 	};
@@ -10559,6 +10583,9 @@ type FitBoundsOptions$1 = ZoomOptions & {
 };
 export type PanOptions = {
 	animate?: boolean | undefined;
+	/**
+	 * Duration in miliseconds of the animation
+	 */
 	duration?: number | undefined;
 	easeLinearity?: number | undefined;
 	noMoveStart?: boolean | undefined;
@@ -10704,12 +10731,12 @@ export declare class LeafletGlMap extends LeafletEvented {
 	 * @internal
 	 * Injected from popup.ts to avoid circular dependency.
 	 */
-	static Popup: any;
+	static Popup: typeof Popup;
 	/**
 	 * @internal
 	 * Injected from tooltip.ts to avoid circular dependency.
 	 */
-	static Tooltip: any;
+	static Tooltip: typeof Tooltip;
 	private _maplibreMap;
 	get maplibreMap(): MapLibreMap;
 	private _baseContainer?;
@@ -10814,11 +10841,6 @@ export declare class LeafletGlMap extends LeafletEvented {
 	 * Zooms the map while keeping a specified pixel on the map (relative to the top-left corner) stationary.
 	 */
 	setZoomAround(latlng: Point, zoom: number, options: ZoomOptions): any;
-	/**
-	 * Zooms the map while keeping a specified geographical point or pixel point on the map
-	 * stationary (e.g. used internally for scroll zoom and double-click zoom).
-	 */
-	setZoomAround(latlng: LatLng | Point, zoom: number, options: ZoomOptions): any;
 	/**
 	 * Sets a map view that contains the given geographical bounds with the
 	 * maximum zoom level possible.
@@ -10935,7 +10957,7 @@ export declare class LeafletGlMap extends LeafletEvented {
 	/**
 	 * Returns a map pane, given its name (its identity).
 	 */
-	getPane(pane: MapPaneName): HTMLElement | undefined;
+	getPane(pane: MapPaneName): HTMLElement | null;
 	/**
 	 * Returns `true` if the pane with the given name exists.
 	 */
@@ -11366,7 +11388,7 @@ export declare class TileQuadTree<T> {
 	 */
 	set(targetX: number, targetY: number, targetZ: number, payload: T | null): void;
 	/**
-	 * Deletes the quadtree entry at the given coordiantes.
+	 * Deletes the quadtree entry at the given coordinates.
 	 */
 	delete(targetX: number, targetY: number, targetZ: number): void;
 	/**
@@ -11409,7 +11431,7 @@ export type AwaitedTile<TTile> = {
  *
  * @group Tile Management
  */
-declare class TileCache$1<T> extends LeafletEvented {
+export declare class TileCache<T> extends LeafletEvented {
 	private _pendingTiles;
 	private _cachedTiles;
 	private _quadtree;
@@ -11471,6 +11493,10 @@ declare class TileCache$1<T> extends LeafletEvented {
 	 */
 	hasTile(coords: Coords): boolean;
 	/**
+	 * Execute a function for every tile currently in the cache.
+	 */
+	forEachTile(func: (coords: Coords, tile: T | null) => void): void;
+	/**
 	 * Returns a list of tiles that are loaded and cover the given bounds+zoom as best as possible.
 	 * The list is ordered from lowest zoom to highest, then from lowest to highest Y, then from lowest to highest X.
 	 * @param tileBounds - The tile bounds that should be covered. Can be outside the main world copy, eg. [x:-2, y:0 .. x:3, y:5].
@@ -11518,6 +11544,13 @@ declare class TileCache$1<T> extends LeafletEvented {
 	 * and remove it from the internal queues.
 	 */
 	awaitTile(coords: Coords, abort?: AbortSignal): Promise<AwaitedTile<T>>;
+	/**
+	 * Deletes a tile from the cache, or cancels its loading if not yet loaded.
+	 * Bypasses the deletion timeout, deletes the tile immediately.
+	 * Does nothing if the tile is not present in the cache or is not being loaded.
+	 * @param coords - Canonical coordinates of the tile to delete.
+	 */
+	forceDeleteTile(coords: Coords): void;
 	private _checkTilesForDeletion;
 	private _deleteTile;
 	private _shouldDeleteTile;
@@ -11571,9 +11604,17 @@ export declare class GridLayer<T> extends Layer {
 	protected _container?: HTMLDivElement;
 	private _level?;
 	private _zooming;
-	protected _tileCache: TileCache$1<T>;
+	protected _tileCache: TileCache<T>;
 	protected _gridTiles: Map<string, GridTile>;
+	protected _physicalTileSize: Point;
+	protected _contentScale: number;
 	constructor(options?: GridLayerOptions);
+	/**
+	 * @summary Returns tile size that should respect the desired zoom offset, computed wrt base Leaflet tile size of 256px
+	 *  - e.g. to offset data zoom by 1, we get tile size 512px
+	 * @param zoomOffset
+	 */
+	static getTileSizeForZoomOffset(zoomOffset: number): number;
 	get container(): HTMLElement | undefined;
 	get levelTransform(): LevelTransform | undefined;
 	/**
@@ -11668,7 +11709,7 @@ export declare function featureGroup(layers?: Layer[], options?: LayerOptions): 
 export type BaseGeoJsonObject = geojson.Geometry | geojson.Feature | geojson.FeatureCollection;
 export type GeoJsonObject = BaseGeoJsonObject | BaseGeoJsonObject[];
 export type GeoJsonLeaf = geojson.Geometry | geojson.Feature;
-export type GeoJSONOptions<P = any> = InteractiveLayerOptions & {
+export type GeoJSONOptions<P = unknown> = InteractiveLayerOptions & {
 	/**
 	 * A Function defining how GeoJSON points spawn Leaflet layers.
 	 * It is internally called when data is added, passing the GeoJSON point
@@ -11752,7 +11793,7 @@ export type GeoJSONOptions<P = any> = InteractiveLayerOptions & {
  * }).addTo(map);
  * ```
  */
-declare class GeoJSON$1<P = any> extends FeatureGroup {
+declare class GeoJSON$1<P = unknown> extends FeatureGroup {
 	options: Required<GeoJSONOptions<P>>;
 	/**
 	 * @internal
@@ -11786,7 +11827,7 @@ declare class GeoJSON$1<P = any> extends FeatureGroup {
  *
  * @group Factory Functions
  */
-export declare function geoJSON<P = any>(geojson: GeoJsonObject, options?: GeoJSONOptions<P>): GeoJSON$1<P>;
+export declare function geoJSON<P = unknown>(geojson: GeoJsonObject, options?: GeoJSONOptions<P>): GeoJSON$1<P>;
 export declare class Circle extends CircleMarker {
 	/**
 	 * Radius of the circle, in meters.
@@ -11919,6 +11960,10 @@ export declare class KML extends FeatureGroup {
 	protected _kml: XMLDocument;
 	_layers: Record<string, never>;
 	latLngs: LatLng[];
+	/**
+	 * Override the default image path for KML icons
+	 */
+	static set defaultImagePath(path: string);
 	constructor(kml: XMLDocument, options?: LayerOptions);
 	protected _addKML(xml: XMLDocument): void;
 	protected _parseKML(xml: XMLDocument): Layer[];
@@ -11939,7 +11984,7 @@ export declare class KML extends FeatureGroup {
 	protected _getLatLngs(xml: XMLDocument): LatLng[];
 	protected _readCoords(el: Element): LatLng[];
 	protected _readGxCoords(el: Element): LatLng[];
-	protected _parseGroundOverlay(xml: Element): RotatedImageOverlay;
+	protected _parseGroundOverlay(xml: Element): RotatedImageOverlay | null;
 }
 export type KMLAnchorUnits = "pixels" | "fraction";
 export type KMLIconOptions = IconOptions & {
@@ -12138,8 +12183,6 @@ export declare class LatLngGraticule extends Layer {
 	onRemove(map: LeafletGlMap): this;
 	addTo(map: LeafletGlMap): this;
 	setOpacity(opacity: number): this;
-	bringToFront(): this;
-	bringToBack(): this;
 	protected _initCanvas(): void;
 	protected _reset(): void;
 	protected _onCanvasLoad(): void;
@@ -12191,7 +12234,50 @@ declare class ZoomControl extends Control {
  *
  * @group Factory Functions
  */
-declare function zoom(options?: ZoomControlOptions): ZoomControl;
+export declare function zoom(options?: ZoomControlOptions): ZoomControl;
+export type DOMEventTarget = HTMLElement | Window | Document | EventTarget;
+export type StoppableEvent = Event & {
+	_stopped?: boolean;
+};
+export type DOMEvent = {
+	stopPropagation?(): void;
+	preventDefault?(): void;
+	readonly originalEvent?: StoppableEvent;
+	returnValue?: any;
+	cancelBubble?: boolean;
+	readonly relatedTarget?: DOMEventTarget;
+};
+export type HTMLElementEventHandlerMap = {
+	[key in keyof HTMLElementEventMap]: (this: HTMLElement, ev: HTMLElementEventMap[key]) => any;
+};
+declare function on(element: DOMEventTarget, type: keyof HTMLElementEventMap, func: HTMLElementEventHandlerMap[typeof type], context: object): void;
+declare function on(element: DOMEventTarget, types: string, func: Function, context: object): void;
+declare function on(element: DOMEventTarget, map: HTMLElementEventHandlerMap, context: object): void;
+declare function on(element: DOMEventTarget, types: keyof HTMLElementEventMap | HTMLElementEventHandlerMap | string, funcOrContext: Function | object, context?: object): void;
+declare function off(element: DOMEventTarget, type: keyof HTMLElementEventMap, fn: HTMLElementEventHandlerMap[typeof type], context?: object): void;
+declare function off(element: DOMEventTarget, types: string, fn: Function, context?: object): void;
+declare function off(element: DOMEventTarget, type?: HTMLElementEventHandlerMap, context?: object): void;
+declare function off(element: DOMEventTarget, type: keyof HTMLElementEventMap): void;
+declare function off(element: DOMEventTarget, types: string): void;
+declare function off(element: DOMEventTarget): void;
+declare function stopPropagation(e: DOMEvent): void;
+declare function disableScrollPropagation(el: DOMEventTarget): void;
+declare function disableClickPropagation(el: DOMEventTarget): void;
+declare function preventDefault(e: DOMEvent): void;
+declare function stop$1(e: DOMEvent): void;
+declare function isExternalTarget(el: DOMEventTarget, e: DOMEvent): boolean;
+declare const _default: {
+	on: typeof on;
+	addListener: typeof on;
+	off: typeof off;
+	removeListener: typeof off;
+	stopPropagation: typeof stopPropagation;
+	disableScrollPropagation: typeof disableScrollPropagation;
+	disableClickPropagation: typeof disableClickPropagation;
+	preventDefault: typeof preventDefault;
+	stop: typeof stop$1;
+	isExternalTarget: typeof isExternalTarget;
+};
 /**
  * Returns the unique ID of an object, assigning it one if it doesn't have it.
  */
@@ -12208,12 +12294,12 @@ export type OnTileLoadedFunc<T> = (tile: Coords, data: T) => void;
 export declare abstract class CanvasTileLayer<TileDataType> extends CanvasLayer {
 	protected _lastMovementTileUpdateTime: Date;
 	protected _moving: boolean;
-	protected _tileCache: TileCache$1<TileDataType>;
+	protected _tileCache: TileCache<TileDataType>;
 	constructor(options: CanvasLayerOptions, loadTile: LoadTileFunc$1<TileDataType>, tileLoaded?: OnTileLoadedFunc<TileDataType>);
 	onAdd(map: LeafletGlMap): this;
 	onRemove(map: LeafletGlMap): this;
 	redraw(): this;
-	protected _draw(tileZoom: number): void;
+	protected _draw(tileZoom: number, abort: AbortSignal): Promise<void>;
 	/**
 	 * Override this method to draw a single tile. Canvas creation, clearing and scissoring is handled automatically.
 	 * @param ctx  - Canvas 2D context.
@@ -12225,7 +12311,7 @@ export declare abstract class CanvasTileLayer<TileDataType> extends CanvasLayer 
 	 * @param tileWidth - Tile width in canvas pixels.
 	 * @param tileHeight - Tile height in canvas pixels.
 	 */
-	protected abstract _drawTile(ctx: CanvasRenderingContext2D, tileData: TileDataType, targetZoom: number, tileZ: number, tileStartX: number, tileStartY: number, tileWidth: number, tileHeight: number): void;
+	protected abstract _drawTile(ctx: CanvasRenderingContext2D, tileData: TileDataType, targetZoom: number, tileZ: number, tileStartX: number, tileStartY: number, tileWidth: number, tileHeight: number, abort: AbortSignal): Promise<void>;
 	private _drawTiles;
 	private _onMove;
 	private _moveStart;
@@ -12566,6 +12652,11 @@ export type DeleteFunc<TValue> = (value: TValue) => void;
  * - The returned token must be passed to the {@link free} function when you are done with the value.
  * - Values are deleted from the cache and cleaned up when all tokens referencing them have been freed.
  *
+ * Note: this class has a very specific use case, as caching of remote files is done by the browser
+ * and automatic object disposal is done by GC.
+ * Use this class when two or more consumers may want to use a resouce that requires notrivial processing to obtain.
+ * Our specific use case is caching preprocessed tiles.
+ *
  * @template TKey The type of the cache key.
  * @template TValue The type of the cached value.
  */
@@ -12763,9 +12854,8 @@ export {
 	Event$1 as Event,
 	GeoJSON$1 as GeoJSON,
 	GpxLayer as GPX,
-	TileCache$1 as TileCache,
+	_default as DomEvent,
 	toLatLng as latLng,
-	zoom as control,
 };
 
 export as namespace leafletgl;
