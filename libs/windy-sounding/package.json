@@ -45,6 +45,6 @@
     "@preact/preset-vite": "catalog:",
     "@types/geojson": "^7946.0.15",
     "core-js": "catalog:",
-    "vite": "catalog:default"
+    "vite": "^5.4.21"
   }
 }

@@ -32,6 +32,7 @@ export default defineConfig(({ mode }): UserConfig => {
         key: keyPEM,
         cert: certificatePEM,
       },
+      cors: true,
     },
 
     preview: {
@@ -42,6 +43,7 @@ export default defineConfig(({ mode }): UserConfig => {
         cert: certificatePEM,
       },
       open: false,
+      cors: true,
     },
 
     // See: https://vitejs.dev/guide/build.html#library-mode

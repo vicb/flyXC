@@ -162,7 +162,7 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
       throw new Error('Failed to fetch forecast data');
     }
 
-    const updateMs = forecast.value.data.header.updateTs;
+    const updateMs = new Date(forecast.value.data.header.update).getTime();
     const product = windyProducts[modelName];
     const updateIntervalMin = windySubscription.hasAny()
       ? product.intervalPremium ?? product.interval
@@ -290,7 +290,7 @@ function computePeriodValues(
     values.rhByTime.push(extractMeteogramParamByLevel(windyData.meteogram, 'rh', levels, tsIndex));
     values.windUByTime.push(extractMeteogramParamByLevel(windyData.meteogram, 'wind_u', levels, tsIndex));
     values.windVByTime.push(extractMeteogramParamByLevel(windyData.meteogram, 'wind_v', levels, tsIndex));
-    values.rainMmByTime.push(sampleAt(timeWeatherMs, windyData.weather.data.mm, timeMs));
+    values.rainMmByTime.push(sampleAt(timeWeatherMs, windyData.weather.data.precipAmount, timeMs));
     values.seaLevelPressureByTime.push(Math.round(seaLevelPressure));
   }
 
