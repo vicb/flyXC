@@ -72,7 +72,7 @@ export default defineConfig(({ mode }): UserConfig => {
             },
       rolldownOptions: {
         output: {
-          inlineDynamicImports: true,
+          codeSplitting: false,
         },
       },
     },

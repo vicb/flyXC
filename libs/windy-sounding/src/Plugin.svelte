@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { onDestroy, onMount } from 'svelte';
   import { openPlugin, mountPlugin, destroyPlugin } from './sounding';
   import { loadSetting, Settings } from './util/settings';
 
-  let pluginElement: HTMLElement;
+  let pluginElement = $state<HTMLElement>();
 
   export const onopen = async (parameters: any) => {
     // Legacys URL do not have the model.
@@ -34,15 +33,14 @@
     await openPlugin({ lat, lon, modelName });
   };
 
-  onMount(() => {
-    mountPlugin(pluginElement);
+  $effect(() => {
+    if (pluginElement) {
+      mountPlugin(pluginElement);
+    }
+    return () => {
+      destroyPlugin();
+    };
   });
-
-  onDestroy(() => {
-    destroyPlugin();
-  });
-
-
 </script>
 
 <section class="plugin__content" bind:this={pluginElement}></section>
