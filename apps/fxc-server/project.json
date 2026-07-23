@@ -47,7 +47,7 @@
       "executor": "nx:run-commands",
       "dependsOn": ["build", "copy-assets"],
       "options": {
-        "command": "gcloud app deploy apps/fxc-server/dist/app.yaml"
+        "command": "TMP_DIR=$(mktemp -d) && pnpm -F fxc-server deploy \"$TMP_DIR\" && cp -r apps/fxc-server/dist \"$TMP_DIR/\" && gcloud app deploy \"$TMP_DIR/dist/app.yaml\" && rm -rf \"$TMP_DIR\""
       }
     }
   }

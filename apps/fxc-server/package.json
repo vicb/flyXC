@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "license": "MIT",
   "type": "module",
-  "main": "./index.js",
+  "main": "./dist/index.js",
   "scripts": {
-    "start": "node main.js"
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@dr.pogodin/csurf": "^1.17.1",
