@@ -17,12 +17,16 @@ echo "owner=${GH_OWNER}"
 GH_INFO_FILE=$(mktemp)
 echo "{\"repositoryName\": \"${GH_REPO}\", \"commitSha\": \"${GH_SHA}\", \"repositoryOwner\": \"${GH_OWNER}\"}" > $GH_INFO_FILE
 
+# Resolve dist directory relative to script location so it works regardless of CWD (e.g. workspace root vs project dir)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DIST_DIR="${SCRIPT_DIR}/dist"
+
 PLUGIN_JSON_FILE=$(mktemp)
-cat libs/windy-sounding/dist/plugin.json > $PLUGIN_JSON_FILE
+cat "${DIST_DIR}/plugin.json" > $PLUGIN_JSON_FILE
 
-jq -s '.[0] * .[1]' $PLUGIN_JSON_FILE $GH_INFO_FILE > libs/windy-sounding/dist/plugin.json
+jq -s '.[0] * .[1]' $PLUGIN_JSON_FILE $GH_INFO_FILE > "${DIST_DIR}/plugin.json"
 
-tar cf /tmp/plugin.tar -C libs/windy-sounding/dist plugin.min.js plugin.min.js.map plugin.js plugin.json screenshot.jpg 
+tar cf /tmp/plugin.tar -C "${DIST_DIR}" plugin.min.js plugin.min.js.map plugin.js plugin.json screenshot.jpg 
 echo "# Publishing plugin..."
 
 curl -s --fail-with-body -XPOST 'https://node.windy.com/plugins/v1.0/upload' -H "x-windy-api-key: ${WINDY_API_KEY}" -F "plugin_archive=@/tmp/plugin.tar"

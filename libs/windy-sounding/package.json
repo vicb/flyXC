@@ -1,6 +1,6 @@
 {
   "name": "windy-plugin-fxc-soundings",
-  "version": "4.2.0",
+  "version": "4.2.1",
   "type": "module",
   "private": true,
   "description": "Alternative sounding graphs with custom features for PG/HG pilots.",
@@ -35,19 +35,20 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "catalog:default",
+    "@sveltejs/vite-plugin-svelte": "^7.2.0",
     "date-fns": "catalog:default",
     "geojson": "^0.5.0",
     "preact": "^10.29.7",
-    "react-redux": "^9.3.0"
+    "react-redux": "^9.3.0",
+    "jsonc-eslint-parser": "catalog:default",
+    "svelte": "^5.56.7"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
     "@babel/preset-env": "^7.29.7",
     "@babel/preset-typescript": "^7.29.7",
     "@preact/preset-vite": "catalog:",
-    "@sveltejs/vite-plugin-svelte": "^7.2.0",
     "@types/geojson": "^7946.0.15",
-    "svelte": "^5.56.7",
     "svelte-check": "^4.7.3",
     "vite": "catalog:default"
   }

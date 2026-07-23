@@ -53,4 +53,7 @@ export declare const checkAuth: (userInfoPayload: UserInfo, handleConsent: boole
  */
 export declare const reloadInfo: () => Promise<HttpPayload<UserInfo> | null>;
 export declare function showUnverifiedEmailBanner(): void;
-export declare const handleLoginResponse: (response: HttpPayload<AccountLoginResponse>, provider: string) => Promise<void>;
+export declare const handleLoginResponse: (
+  response: HttpPayload<AccountLoginResponse>,
+  provider: string,
+) => Promise<void>;

@@ -17,7 +17,7 @@ pnpm install
 Run the preview server with watch mode from the project root:
 
 ```bash
-pnpm -F windy-plugin-fxc-soundings run preview
+nx preview windy-plugin-fxc-soundings
 ```
 
 This will:
@@ -40,19 +40,19 @@ When you update the code, the builds will automatically regenerate. Click `Reloa
 Build for production:
 
 ```bash
-pnpm -F windy-plugin-fxc-soundings run build:prod
+nx build windy-plugin-fxc-soundings --prod
 ```
 
 Build for development:
 
 ```bash
-pnpm -F windy-plugin-fxc-soundings run build:dev
+nx build windy-plugin-fxc-soundings
 ```
 
 Build everything (production, development, and config files):
 
 ```bash
-pnpm -F windy-plugin-fxc-soundings run upload:prepare
+nx upload:prepare windy-plugin-fxc-soundings
 ```
 
 ### Preview
@@ -60,14 +60,14 @@ pnpm -F windy-plugin-fxc-soundings run upload:prepare
 Preview the built plugin:
 
 ```bash
-pnpm -F windy-plugin-fxc-soundings run preview
+nx preview windy-plugin-fxc-soundings
 ```
 
 ## Release
 
 1. Update the plugin version in `package.json`
-2. Build the plugin: `pnpm -F windy-plugin-fxc-soundings upload:prepare`
-3. Upload: `pnpm -F windy-plugin-fxc-soundings upload` (requires `WINDY_API_KEY` environment variable)
+2. Build the plugin: `nx upload:prepare windy-plugin-fxc-soundings`
+3. Upload: `nx upload windy-plugin-fxc-soundings` (requires `WINDY_API_KEY` environment variable)
 
 ## References
 

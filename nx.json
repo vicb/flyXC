@@ -103,7 +103,8 @@
         "apps/fxc-tiles/**/*",
         "apps/misc/**/*",
         "apps/proxy/**/*",
-        "apps/run/**/*"
+        "apps/run/**/*",
+        "libs/windy-sounding/**/*"
       ]
     }
   ],

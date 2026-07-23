@@ -1,0 +1,24 @@
+{
+  "name": "windy-plugin-fxc-soundings",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/windy-sounding/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/dist"],
+      "defaultConfiguration": "development",
+      "options": {
+        "cwd": "libs/windy-sounding"
+      },
+      "configurations": {
+        "development": {
+          "command": "vite build --mode development"
+        },
+        "production": {
+          "command": "vite build --mode production"
+        }
+      }
+    }
+  }
+}
