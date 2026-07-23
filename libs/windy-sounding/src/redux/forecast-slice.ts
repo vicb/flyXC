@@ -142,7 +142,7 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
     const [meteogram, forecast] = await Promise.allSettled([
       // extended is required to get full length forecast for pro windy users
       windyFetch.getMeteogramForecastData(modelName, { ...location, step: 1 }, { extended: 'true' }),
-      windyFetch.getPointForecastData(modelName, { ...location }),
+      windyFetch.getPointForecastData(modelName, { ...location, days: 15 }),
     ]);
 
     if (meteogram.status === 'rejected') {
