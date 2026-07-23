@@ -43,7 +43,6 @@ catalog:
   core-js: ^3.49.0
   '@ionic/core': ^8.8.14
   '@preact/preset-vite': ^2.10.6
-  svelte-check: ^4.7.3
 
 allowBuilds:
   '@parcel/watcher': false

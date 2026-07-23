@@ -1,14 +1,34 @@
 /**
  * Plugin entry point.
  *
- * This should not be edited.
- *
  * Configure your plugin in lib/plugin-config.ts.
  * Develop your plugin in lib/Plugin.svelte.
  */
 
+import { mount, unmount } from 'svelte';
 import { pluginConfig } from './config';
-import Plugin from './Plugin.svelte';
+import PluginSvelte from './Plugin.svelte';
+
+class Plugin {
+  private instance: Record<string, any>;
+
+  constructor(options: { target: HTMLElement; props?: Record<string, any> }) {
+    this.instance = mount(PluginSvelte, {
+      target: options.target,
+      props: options.props,
+    });
+  }
+
+  onopen(parameters: any) {
+    if (typeof this.instance.onopen === 'function') {
+      return this.instance.onopen(parameters);
+    }
+  }
+
+  $destroy() {
+    unmount(this.instance);
+  }
+}
 
 // Set the build timestamp on the dev server.
 if (process.env.NODE_ENV !== 'production') {
