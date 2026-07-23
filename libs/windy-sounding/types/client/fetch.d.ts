@@ -10,101 +10,27 @@
  */
 import * as http from '@windy/http';
 import type { CityTemperaturesDto } from '@windy-types/citytile2';
-import type { DataHash, LatLon, MeteogramDataPayload, WeatherDataPayload, CapAlertHeadline, ActiveStormCountPayload, AirQDataHash, TZinfo } from '@windy/interfaces.d';
-import type { Pois, Products } from '@windy/rootScope.d';
-import type { SatelliteInfoJson } from '@windy/satellite.d';
+import type { LatLon, CapAlertHeadline, ActiveStormCountPayload, TZinfo, NativeAppsReleaseInfo } from '@windy/interfaces.d';
 import type { RadarMinifest } from '@plugins/radar-plus/types';
-import type { ExtendedStationType, Pixel, StationOrPoiType, NumValue } from '@windy/types';
+import type { Pois, Products } from '@windy/rootScope.d';
+import type { SatelliteCompositeJson, SatelliteRangeJson } from '@windy/satellite.d';
+import type { ExtendedStationType, NumValue, Pixel, StationOrPoiType } from '@windy/types';
 import type { OSMMapBounds } from '@plugins/search/search.d';
 import type { HttpOptions, HttpPayload, QueryStringSource } from '@windy/http.d';
 import type { StormListJSON } from '@plugins/shared/hurricanes/types';
 import type { LiveAlertEvent } from '@plugins/startup-live-alerts/startup-live-alerts';
-import type { WhatsNewObsolete, WhatsNewData } from '@windy/startup.d';
-import type { ArticleStartupData } from '@plugins/articles/articles';
-interface LatLonStep extends LatLon {
+import type { ArticlePromoData, ArticleStartupData } from '@plugins/articles/articles';
+export * from '@windy/fetchWebcamsHosts';
+export * from '@windy/fetchForecastHosts';
+/**
+ * @deprecated Legacy `forecast/meteogram` v1.2 endpoint, superseded by the v3 `meteogram`
+ * include. Left untyped since nothing in this codebase consumes the response anymore.
+ *
+ * Used in external plugin (Contrail Finder), remove after the plugin is migrated to v3 meteogram.
+ */
+export declare const getMeteogramForecastData: (model: Products, { lat, lon, step }: LatLon & {
     step?: number;
-    interpolate?: boolean;
-}
-/**
- * Returns URL for webcam detail by id
- *
- * @param id Webcam id
- * @returns URL for getting the webcam
- * @ignore
- */
-export declare const getWebcamDetailUrl: (id: string | number) => string;
-/**
- * Returns URL for webcam list nearby lat and lon
- *
- * @param latLon Object with `lat` and `lon` properties
- * @returns URL for getting list of webcams nearby lat and lon
- * @ignore
- */
-export declare const getWebcamsListUrl: <T extends LatLon & {
-    limit?: number;
-}>({ lat, lon, limit, }: T) => string;
-/**
- * Returns URL for webcam archive by id
- *
- * @param id Webcam id
- * @returns URL for getting webcam archive
- * @ignore
- */
-export declare const getWebcamArchiveUrl: (id: string | number, hourly?: boolean) => string;
-/**
- * Returns URL for searching webcam views using Google maps places
- *
- * @param {string} textQuery search query
- * @param {LatLon} [latLon] circle center coordinates
- * @returns {string} URL for searching webcam views
- * @ignore
- */
-export declare const getSearchWebcamViewsUrl: (textQuery: string, latLon?: LatLon) => string;
-/**
- * Returns URL for webcam metric. It increases counter for the ID on backend.
- *
- * @param id Webcam id
- * @returns URL for ping webcam metrics
- * @ignore
- */
-export declare const getWebcamMetricsUrl: (id: string | number) => string;
-/**
- * Gets point forecast data URL for given location
- *
- * @param model Forecast model
- * @param params LalLon of the location and additional parameters
- * @param pointForecastOptions Additional options of point forecast API
- * @param httpOptions Additional HTTP options
- * @returns URL string for getting point forecast data
- */
-export declare const getPointForecastUrl: <T extends LatLonStep>(model: Products, { lat, lon, step, interpolate }: T, pointForecastOptions?: Record<string, string>) => Promise<string>;
-/**
- * Gets point forecast for NOWcast data for given location
- *
- * @param model Forecast model
- * @returns Promise with HTTP payload
- */
-export declare const getNowPointForecastUrl: (model: Products, { lat, lon }: LatLon) => Promise<string>;
-/**
- * Gets point forecast data for given location
- *
- * @param model Forecast model
- * @param params LalLon of the location and additional parameters
- * @param pointForecastOptions Additional options of point forecast API
- * @param httpOptions Additional HTTP options
- * @returns Promise with HTTP payload
- */
-export declare const getPointForecastData: <K extends DataHash | AirQDataHash = DataHash, T extends LatLonStep = LatLonStep>(model: Products, latLonStepInterpolate: T, pointForecastOptions?: Record<string, string>, httpOptions?: HttpOptions) => Promise<http.HttpPayload<WeatherDataPayload<K>>>;
-/**
- * Gets enhanced point forecast meteogram data for given location
- * @returns Promise with HTTP payload
- */
-export declare const getMeteogramForecastUrl: <T extends LatLonStep>(model: Products, { lat, lon, step }: T, pointForecastOptions?: Record<string, string>) => Promise<string>;
-/**
- * Gets enhanced point forecast meteogram data for given location
- * @returns Promise with HTTP payload
- */
-export declare const getMeteogramForecastData: <T extends LatLonStep>(model: Products, latLonStep: T, pointForecastOptions?: Record<string, string>, httpOptions?: HttpOptions) => Promise<HttpPayload<MeteogramDataPayload>>;
+}, pointForecastOptions?: Record<string, string>, httpOptions?: HttpOptions) => Promise<HttpPayload<any>>;
 /**
  * Returns URL for getting citytile forecast
  *
@@ -125,7 +51,7 @@ export declare const getNearestPoiItemsUrl: (type: Pois | 'stations', { lat, lon
  * Returns URL for tide forecast
  * @ignore
  */
-export declare const getTideForecastUrl: <T extends LatLonStep>({ lat, lon }: T) => string;
+export declare const getTideForecastUrl: ({ lat, lon }: LatLon) => string;
 /**
  * Returns URL for tide POI
  * @ignore
@@ -145,16 +71,13 @@ export declare const getObservationPoiUrl: (type: StationOrPoiType | 'stations' 
  */
 export declare const getCapAlertsSummary: ({ lat, lon }: LatLon, source?: 'hp' | 'detail') => Promise<http.HttpPayload<CapAlertHeadline[]>>;
 export declare const getHurricanesCount: () => Promise<HttpPayload<ActiveStormCountPayload>>;
-/**
- * Loads Satellite Product info
- */
-export declare const getSatelliteInfo: () => Promise<HttpPayload<SatelliteInfoJson>>;
+export declare const getSatelliteCompositeInfo: () => Promise<HttpPayload<SatelliteCompositeJson>>;
+export declare const getSatelliteArchiveRangeInfo: () => Promise<HttpPayload<SatelliteRangeJson>>;
 /**
  * Loads Radar Product info
  */
 export declare const getRadarInfo: () => Promise<HttpPayload<RadarMinifest>>;
 export declare const getRadarArchiveInfo: () => Promise<HttpPayload<RadarMinifest>>;
-export declare const getSatelliteArchiveInfo: () => Promise<HttpPayload<SatelliteInfoJson>>;
 export declare const getRadarCoverage: () => Promise<HttpPayload<number[]>>;
 export declare const getHurricanesList: () => Promise<HttpPayload<StormListJSON>>;
 /**
@@ -186,6 +109,6 @@ export declare const getRadarSatImageUrl: (type: 'radar' | 'satellite', { lat, l
     radarMode?: 'default' | 'radarplus';
 }) => string;
 export declare const getArticle: (latLon: LatLon) => Promise<HttpPayload<ArticleStartupData>>;
-export declare const getWhatsNew: (latLon: LatLon) => Promise<HttpPayload<WhatsNewObsolete | WhatsNewData>>;
+export declare const getPromo: (latlon: LatLon, forcedPromoId?: string) => Promise<HttpPayload<ArticlePromoData>>;
 export declare const getTimezoneInfo: (location: LatLon, datetime: string) => Promise<HttpPayload<TZinfo>>;
-export {};
+export declare const getLatestJson: () => Promise<http.HttpPayload<NativeAppsReleaseInfo>>;

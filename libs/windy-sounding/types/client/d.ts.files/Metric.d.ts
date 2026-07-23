@@ -1,11 +1,3 @@
-import {
-    FogMetric,
-    NumberedMetric,
-    PrecipMetric,
-    PtypeMetric,
-    SatelliteMetric,
-    UVIndexMetric,
-} from '@windy/MetricClasses';
 import { Metric } from '@windy/Metric';
 import { NumValue } from '@windy/types.d';
 
@@ -57,7 +49,9 @@ export type MetricItem =
     | 'km²'
     | 'acres'
     | 'AQI'
-    | 'gr./m³';
+    | 'gr./m³'
+    | 'fallback'
+    | 's.';
 
 /**
  * # @windy/metrics
@@ -78,98 +72,60 @@ export type MetricItem =
  * ```
  * Complete list of Windy's supported metrics
  */
-export interface MetricTypes {
-    temp: NumberedMetric;
-    wind: NumberedMetric;
-    rh: NumberedMetric;
-    clouds: NumberedMetric;
-    pressure: NumberedMetric;
-    rain: PrecipMetric;
-    snow: NumberedMetric;
-    cape: NumberedMetric;
-    gtco3: NumberedMetric;
-    aod550: NumberedMetric;
-    pm2p5: NumberedMetric;
-    no2: NumberedMetric;
-    tcso2: NumberedMetric;
-    go3: NumberedMetric;
-    altitude: NumberedMetric;
-    elevation: NumberedMetric;
-    distance: NumberedMetric;
-    speed: NumberedMetric;
-    waves: NumberedMetric;
-    currents: NumberedMetric;
-    visibility: NumberedMetric;
-    visibilityNoRules: NumberedMetric;
-    so2: NumberedMetric;
-    dust: NumberedMetric;
-    cosc: NumberedMetric;
-    radar: NumberedMetric;
-    radsat: SatelliteMetric;
-    satellite: SatelliteMetric;
-    ptype: PtypeMetric;
-    gh: NumberedMetric;
-    fog: FogMetric;
-    lightDensity: NumberedMetric;
-    efiWind: NumberedMetric;
-    efiTemp: NumberedMetric;
-    efiRain: NumberedMetric;
-    drought: NumberedMetric;
-    moistureAnom40: PrecipMetric;
-    moistureAnom100: PrecipMetric;
-    fwi: NumberedMetric;
-    dfm10h: NumberedMetric;
-    solarpower: NumberedMetric;
-    wavePower: NumberedMetric;
-    uvindex: UVIndexMetric;
-    capAlerts: NumberedMetric;
-    turbulence: NumberedMetric;
-    icing: NumberedMetric;
-    area: NumberedMetric;
-    aqi: NumberedMetric;
-    pollen: NumberedMetric;
-}
-
-/** @ignore */
-export type MetricIdent = keyof MetricTypes;
-
-/** @ignore */
-export type NumberedMetricIdent = keyof Pick<
-    MetricTypes,
-    {
-        [M in keyof MetricTypes]: MetricTypes[M] extends NumberedMetric ? M : never;
-    }[keyof MetricTypes]
->;
+export type MetricIdent =
+    | 'temp'
+    | 'wind'
+    | 'rh'
+    | 'clouds'
+    | 'pressure'
+    | 'rain'
+    | 'snow'
+    | 'cape'
+    | 'gtco3'
+    | 'aod550'
+    | 'pm2p5'
+    | 'no2'
+    | 'tcso2'
+    | 'go3'
+    | 'altitude'
+    | 'elevation'
+    | 'distance'
+    | 'speed'
+    | 'waves'
+    | 'currents'
+    | 'visibility'
+    | 'visibilityNoRules'
+    | 'so2'
+    | 'dust'
+    | 'cosc'
+    | 'radar'
+    | 'satellite'
+    | 'ptype'
+    | 'radarPType'
+    | 'gh'
+    | 'fog'
+    | 'lightDensity'
+    | 'efiWind'
+    | 'efiTemp'
+    | 'efiRain'
+    | 'drought'
+    | 'moistureAnom40'
+    | 'moistureAnom100'
+    | 'fwi'
+    | 'dfm10h'
+    | 'solarpower'
+    | 'wavePower'
+    | 'uvindex'
+    | 'turbulence'
+    | 'icing'
+    | 'area'
+    | 'aqi'
+    | 'pollen'
+    | 'fallback'
+    | 'period';
 
 /** @ignore */
 export type MetricKey = `metric_${MetricIdent}`;
-
-type LegendItem = number | string;
-
-type LegendDescription = MetricItem[]; // It is possible that some legends have custom desc
-
-/**
- * Lines defining the legend. First column MUST be number, but we keep te type as easy as possible
- *
- * 1st column: value,
- * 2nd column: text for first metric (°C for example)
- * 3rd column: text for second metric (°F for example)
- * 4th column: and so on
- */
-type LegendLines = [number, LegendItem, ...LegendItem[]][];
-
-/** @ignore */
-export interface Legend {
-    /**
-     * Legend description
-     */
-    description: LegendDescription;
-
-    /**
-     * Array defining how the legend will look like
-     */
-    lines: LegendLines;
-}
 
 export interface Conversion {
     /**
@@ -201,14 +157,6 @@ export type MetricInitParams = Pick<Metric, 'ident'> &
     Partial<
         Pick<
             Metric,
-            | 'lines'
-            | 'conv'
-            | 'backConv'
-            | 'defaults'
-            | 'cohesion'
-            | 'nativeSync'
-            | 'description'
-            | 'separator'
-            | 'discreteLegend'
+            'conv' | 'backConv' | 'defaults' | 'cohesion' | 'nativeSync' | 'separator' | 'legend'
         >
     >;

@@ -2,7 +2,6 @@
  * Defines openable `Window` containing HTML, CSS
  */
 import type { WindowOpeningOptions, WindowClosingOptions } from '@windy/interfaces.d';
-import type { HTMLString } from '@windy/types.d';
 export type WindowInitParams = Pick<Window, 'ident' | 'html'> & Partial<Omit<Window, 'isOpen' | 'node' | 'refs' | 'close' | 'open' | 'mount'>>;
 export declare class Window {
     private static iAm;
@@ -63,6 +62,10 @@ export declare class Window {
      * Disable opening & closing animation
      */
     noAnimation?: boolean;
+    /**
+     * Do not render the closing X
+     */
+    hideClosingX?: boolean;
     constructor(params: WindowInitParams);
     close(opts?: WindowClosingOptions): void;
     /**
@@ -84,7 +87,7 @@ export declare class Window {
     /**
      * Mounting the Window
      */
-    mount(optionalHtml?: HTMLString): void;
+    mount(): void;
     /**
      * Unmounting the Window
      */

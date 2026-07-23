@@ -9,6 +9,7 @@ import {
     SupportedLanguages,
     type PointProducts,
 } from '@windy/rootScope.d';
+import { LevelsRange } from '@windy/types.d';
 
 import {
     Consent,
@@ -28,8 +29,10 @@ import {
     RouteMotionSpeed,
     UsedMapLibrary,
     UserInterest,
+    DefaultPointModel,
     type ISOCountryCode,
     type AnimationSpeed,
+    type DetailDisplayType,
 } from '@windy/types.d';
 
 import { MetricItem } from '@windy/Metric.d';
@@ -41,7 +44,7 @@ import type RadarCalendar from '@plugins/radar-plus/calendar/radarCalendar';
 import type { SatelliteCalendar } from '@plugins/radar-plus/calendar/satelliteCalendar';
 import type { NumberRange } from '@windy/alerts.d';
 import type { FavType } from '@windy/favs.d';
-import type { Range } from '@plugins/shared/radsat/context';
+import type { Range } from '@plugins/shared/radSatGui/context';
 import type { TiledPoiClasses } from '@plugins/poi-libs/poi-libs.d';
 
 /**
@@ -168,10 +171,6 @@ export interface DataSpecificationsObject<T> {
     premiumOnly?: boolean;
 }
 
-export interface FeatureFlags {
-    useNewGui: boolean;
-}
-
 /**
  * # Properties used in @windy/store
  *
@@ -213,6 +212,11 @@ export interface DataSpecifications {
      * Rain/snow/wind accumulations time range in hours
      */
     acRange: DataSpecificationsObject<Hours>;
+
+    /**
+     * Selected flight level range for levels-range overlays (e.g. 'surface-700h', '700h-500h')
+     */
+    levelsRange: DataSpecificationsObject<LevelsRange>;
 
     /**
      * Timestamp of actual weather moment. Use freely and without hesitation. Must be valid timestamp in ms, that is
@@ -259,7 +263,7 @@ export interface DataSpecifications {
      * model. Preferred model must have also second wave
      * mode like 'ecmwf' 👉🏻 'ecmwfWaves'
      */
-    preferredProduct: DataSpecificationsObject<'ecmwf' | 'gfs' | 'icon' | 'iconEu'>;
+    preferredProduct: DataSpecificationsObject<'mblue' | 'ecmwf' | 'gfs' | 'icon' | 'iconEu'>;
 
     /**
      * If timeline animation is running
@@ -410,13 +414,6 @@ export interface DataSpecifications {
     startUpZoom: DataSpecificationsObject<number | null>;
 
     /**
-     * Save forecast resolution step to be used at startup.
-     * 1: 1h step
-     * 3: 3h step
-     */
-    startUpLastStep: DataSpecificationsObject<1 | 3 | null>;
-
-    /**
      * Last defined IP/GPS location
      */
     ipLocation: DataSpecificationsObject<GeolocationInfo | null>;
@@ -470,6 +467,11 @@ export interface DataSpecifications {
     seenRadarInfo: DataSpecificationsObject<boolean>;
 
     /**
+     * User has dismissed the "live alerts only work on mobile app" banner in the alerts list
+     */
+    liveAlertsWarningDismissed: DataSpecificationsObject<boolean>;
+
+    /**
      * Detail's location - TODO: get rid of async name property
      * @ignore
      */
@@ -478,12 +480,42 @@ export interface DataSpecifications {
     /**
      * 1h step of forecast
      */
-    detail1h: DataSpecificationsObject<boolean>;
+    detailDefault1h: DataSpecificationsObject<boolean>;
 
     /**
      * Detail keeps its 10+ days expanded forecast
      */
-    detailExtended: DataSpecificationsObject<boolean>;
+    detailDefaultExtended: DataSpecificationsObject<boolean>;
+
+    /**
+     * Whether to use saved default display and product when opening detail
+     */
+    detailDefaultEnabled: DataSpecificationsObject<boolean>;
+
+    /**
+     * Default detail display type (table, meteogram, waves, etc.)
+     */
+    detailDefaultDisplay: DataSpecificationsObject<DetailDisplayType>;
+
+    /**
+     * Default detail product/model (mblue, ecmwf, etc.) or null for auto
+     */
+    detailDefaultProduct: DataSpecificationsObject<PointProducts | null>;
+
+    /**
+     * Indicates, that deail plugin will remember last selected 1h/3h or extended forecast
+     */
+    detailRememberLast: DataSpecificationsObject<boolean>;
+
+    /**
+     * Enable/disable synchronization of forecast time with map timestamp on mobile
+     */
+    detailSyncTimeWithMap: DataSpecificationsObject<boolean>;
+
+    /**
+     * Whether to DEBUG detail related stuff
+     */
+    detailDebugMode: DataSpecificationsObject<boolean>;
 
     /**
      * display webcams on daylight
@@ -536,6 +568,11 @@ export interface DataSpecifications {
     satelliteCalendar: DataSpecificationsObject<SatelliteCalendar | null>;
 
     /**
+     * Timestamp when last satellite outage message was displayed. Used to avoid spamming user with messages.
+     */
+    satelliteLastOutageMessageTs: DataSpecificationsObject<Timestamp | null>;
+
+    /**
      * Interpolate images using vectors
      */
     radSatFlowOn: DataSpecificationsObject<boolean>;
@@ -570,6 +607,12 @@ export interface DataSpecifications {
      * `poisTemporary` that has limited lifespan
      */
     pois: DataSpecificationsObject<Pois>;
+
+    /**
+     * For every "POI group" (empty POI with sub-POIs) it stores which
+     * sub-POI was previously selected.
+     */
+    subPois: DataSpecificationsObject<Partial<Record<Pois, Pois>>>;
 
     /**
      * pois layer that was automatically activated by some plugin
@@ -875,11 +918,6 @@ export interface DataSpecifications {
      */
     pushNotificationsReady: DataSpecificationsObject<boolean>;
 
-    /*
-     * Feature flags to enable/disable features without the need to re-release the client
-     */
-    featureFlags: DataSpecificationsObject<FeatureFlags>;
-
     /**
      * Whenever fullscreen plugin is opened on mobile device suspend potential
      * sound & haptic feedback on radar/sat layers
@@ -920,6 +958,43 @@ export interface DataSpecifications {
      * Whether to DEBUG airport related stuff
      */
     airportDebugMode: DataSpecificationsObject<boolean>;
+
+    /**
+     * Determines, that showMyPosition (i.e. user position marker) is active
+     */
+    showMyPosition: DataSpecificationsObject<boolean>;
+
+    /**
+     * Contains value of search input element
+     */
+    searchInputValue: DataSpecificationsObject<string>;
+
+    /**
+     * Determines whether to show or hide search input loader
+     */
+    searchInputLoading: DataSpecificationsObject<boolean>;
+
+    /**
+     * Determines forecast model used to render sounding.
+     * This must be separate from main product, since sounding supports Meteoblue,
+     * but Meteoblue cannot be rendered into the main map, since it lacks global forecast.
+     */
+    soundingProduct: DataSpecificationsObject<Products>;
+
+    /**
+     * Point forecast models, that are pinned to top in multimodel
+     */
+    multimodelPinnedModels: DataSpecificationsObject<PointProducts[]>;
+
+    /**
+     * Point forecast models, that are blocked in multimodel
+     */
+    multimodelBlockedModels: DataSpecificationsObject<PointProducts[]>;
+
+    /**
+     * Defaul point forecast model or null. Nell menas user did not choose default model and yet
+     */
+    userSelectedPointFcstModel: DataSpecificationsObject<DefaultPointModel | null>;
 }
 
 /**

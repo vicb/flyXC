@@ -4,7 +4,7 @@
  * Various formatting utils based on user language and settings
  */
 import type { DirectionFunction, HowOldOptions, TimeFormatFunction } from './d.ts.files/format.d';
-import type { Timestamp } from './d.ts.files/types';
+import type { NumValue, Timestamp } from './d.ts.files/types';
 export declare const euTime: TimeFormatFunction;
 /**
  * Returns function for displaying hours (either 12,24h format) on a basis of locale store of a browser
@@ -70,6 +70,10 @@ export declare const countdown: (ts: Timestamp, options?: {
     showSeconds?: boolean;
 }) => string;
 /**
+ * Miliseconds to "1h 30m" format
+ */
+export declare const formatElapsedMs: (diffMs: number) => string;
+/**
  * Converts lat,lon numbers to human friendly Degrees, Minutes and Seconds format, e.g. N49°9'21", E14°7'30"
  *
  * @param lat Latitude
@@ -112,3 +116,7 @@ export declare const seoLang: (lang: string) => string;
  * @param el HTML element where animate counting and show the final number
  */
 export declare const animateViews: (viewcount: number, el: HTMLElement, useViewsText?: boolean) => void;
+/**
+ * Just shortcut that converts m to ft and applies thousands formatting
+ */
+export declare const m2feetFormatted: (m: NumValue, formatToHundreds?: boolean) => string;

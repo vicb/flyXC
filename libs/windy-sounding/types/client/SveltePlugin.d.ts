@@ -1,17 +1,16 @@
 import { WindowPlugin } from '@windy/WindowPlugin';
 import type { WindowPluginInitParams } from '@windy/WindowPlugin';
 import type { PluginsOpenParams, PluginsQsParams } from '@windy/plugin-params.d';
-import type { BottomSveltePlugins, StartupElementPlugins, SveltePanePlugins, SveltePlugins } from '@windy/plugins.d';
+import type { BottomSveltePlugins, StartupElementPlugins, SveltePanePlugins, SveltePopupPlugins, SveltePlugins } from '@windy/plugins.d';
 import type { InterpolatorFactory } from '@windy/interpolator';
 import type { FullRenderParameters } from '@windy/interfaces';
-export declare class SvelteApp<P extends keyof SveltePlugins | keyof SveltePanePlugins | keyof BottomSveltePlugins | keyof StartupElementPlugins> {
+export declare class SvelteApp<P extends keyof SveltePlugins | keyof SveltePopupPlugins | keyof SveltePanePlugins | keyof BottomSveltePlugins | keyof StartupElementPlugins> {
     interpolator?: InterpolatorFactory;
     constructor(_args: {
         target: HTMLElement;
         anchor: HTMLElement;
     });
     onopen(params?: PluginsOpenParams[P], qs?: PluginsQsParams[P]): void;
-    onclose(): void;
     paramsChanged(params?: FullRenderParameters): void;
     onRenderStart(params?: FullRenderParameters): void;
     $destroy(): void;
@@ -26,12 +25,11 @@ export declare class ExternalSvelteApp {
         anchor: HTMLElement;
     });
     onopen(params?: unknown, qs?: unknown): void;
-    onclose(): void;
     $destroy(): void;
 }
 /** Allowed params to SveltePlugin constructor (private and protected props are omited by default) */
-export type SveltePluginInitParams<P extends keyof SveltePlugins | keyof SveltePanePlugins | keyof BottomSveltePlugins | keyof StartupElementPlugins> = Omit<WindowPluginInitParams<P>, 'ident'> & Pick<SveltePlugin<P>, 'ident'> & Partial<SveltePlugin<P>>;
-export declare class SveltePlugin<P extends keyof SveltePlugins | keyof SveltePanePlugins | keyof BottomSveltePlugins | keyof StartupElementPlugins> extends WindowPlugin<P> {
+export type SveltePluginInitParams<P extends keyof SveltePlugins | keyof SveltePopupPlugins | keyof SveltePanePlugins | keyof BottomSveltePlugins | keyof StartupElementPlugins> = Omit<WindowPluginInitParams<P>, 'ident'> & Pick<SveltePlugin<P>, 'ident'> & Partial<SveltePlugin<P>>;
+export declare class SveltePlugin<P extends keyof SveltePlugins | keyof SveltePopupPlugins | keyof SveltePanePlugins | keyof BottomSveltePlugins | keyof StartupElementPlugins> extends WindowPlugin<P> {
     /**
      * Holder of SvelteApp
      */
@@ -43,7 +41,6 @@ export declare class SveltePlugin<P extends keyof SveltePlugins | keyof SveltePa
         needsPluginRoot?: boolean;
     });
     onopen(params?: PluginsOpenParams[P], _qs?: PluginsQsParams[P]): void;
-    ondestroy(): void;
     paramsChanged(params?: FullRenderParameters): void;
     onRenderStart: (params?: FullRenderParameters) => void;
     protected mount(): void;

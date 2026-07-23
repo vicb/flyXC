@@ -61,7 +61,7 @@ export declare const setTitle: (newTitle: string) => void;
  * Sets browser's search string (the part after ?)
  *
  * TODO: Only subscription plugin uses this method
- * There is potentional BUG that debounced change in some parameters
+ * There is potential BUG that debounced change in some parameters
  * will overwrite this change
  * @ignore
  */

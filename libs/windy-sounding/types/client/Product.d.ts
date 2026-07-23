@@ -3,11 +3,11 @@ import { type LeafletGlMap } from '@leafletGl';
 import type { MinifestObject } from '@windy/Calendar';
 import type { Layers } from '@windy/Layer';
 import type { LatLon } from '@windy/interfaces';
-import type { Isolines, Levels, Overlays, Products } from '@windy/rootScope.d';
+import type { FallbackAirProducts, Isolines, Levels, Overlays, Products, WaveProducts } from '@windy/rootScope.d';
 import type { ISODateString, ProductCategory, ProductIdent, Timestamp, TimeRangeMs, Path, Minutes } from '@windy/types';
 export type DataQuality = 'normal' | 'high' | 'low' | 'ultra' | 'extreme';
 export type FileSuffix = 'png' | 'jpg' | 'webp';
-export type ProductInitParams = Pick<Product, 'modelName' | 'provider' | 'interval'> & Partial<Pick<Product, 'provider' | 'ident' | 'maxTileZoom' | 'animationSpeed' | 'animationSpeed1h' | 'fileSuffix' | 'fileSuffixFallback' | 'JPGtransparency' | 'PNGtransparency' | 'dataQuality' | 'betterDataQuality' | 'animation' | 'labelsTemp' | 'overlays' | 'preferredProduct' | 'isolines' | 'directory' | 'category' | 'modelIdent' | 'intervalPremium' | 'server' | 'modelResolution' | 'levels' | 'levelsOverride' | 'logo' | 'preferredWaveProduct' | 'preferredAirProduct' | 'hasAccumulations' | 'hasMinifest' | 'freeProduct' | 'hideProductSwitch' | 'modelDescription' | 'supportsMeteogram'>> & {
+export type ProductInitParams = Pick<Product, 'modelName' | 'provider' | 'interval'> & Partial<Pick<Product, 'provider' | 'ident' | 'maxTileZoom' | 'animationSpeed' | 'animationSpeed1h' | 'fileSuffix' | 'fileSuffixFallback' | 'JPGtransparency' | 'PNGtransparency' | 'dataQuality' | 'betterDataQuality' | 'animation' | 'labelsTemp' | 'overlays' | 'preferredProduct' | 'isolines' | 'directory' | 'category' | 'modelIdent' | 'intervalPremium' | 'server' | 'modelResolution' | 'levels' | 'levelsOverride' | 'logo' | 'preferredWaveProduct' | 'preferredAirProduct' | 'hasAccumulations' | 'hasMinifest' | 'freeProduct' | 'hideProductSwitch' | 'modelDescription' | 'supportsMeteogram' | 'providerUrl' | 'providerLogoIdent'>> & {
     forecastSize?: number;
     bounds?: [number, number][][];
 };
@@ -81,6 +81,14 @@ export declare class Product {
     modelResolution?: number;
     provider?: string;
     /**
+     * URL of the provider's website
+     */
+    providerUrl?: string;
+    /**
+     * Lowercase identifier for provider logo files (e.g. 'ecmwf', 'noaa', 'dwd')
+     */
+    providerLogoIdent?: string;
+    /**
      * Optional model description
      */
     modelDescription?: string;
@@ -135,11 +143,11 @@ export declare class Product {
     /**
      * Preferred product when switching to wave layers
      */
-    preferredWaveProduct: Products;
+    preferredWaveProduct: WaveProducts;
     /**
      * Preferred product when switching to air layers
      */
-    preferredAirProduct: Products;
+    preferredAirProduct: FallbackAirProducts;
     /**
      * Holder of the latest minifest
      */

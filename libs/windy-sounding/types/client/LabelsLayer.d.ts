@@ -1,5 +1,5 @@
 import { GridLayer, LeafletGlMap, type Coords, type GridLayerOptions } from '@leafletGl';
-import type { CityDiv, CityDivId, CityLabel, CityLabelData } from './d.ts.files/LabelsLayer.d';
+import type { CityDiv, CityDivId, CityLabel, CityLabelData, CityLabelId } from './d.ts.files/LabelsLayer.d';
 import type { Products } from './d.ts.files/rootScope.d';
 import type { MetricIdent, MetricItem } from './d.ts.files/Metric.d';
 import type { CityTemperaturesDto } from '@windy-types/citytile2';
@@ -8,6 +8,10 @@ import type { CityTemperaturesDto } from '@windy-types/citytile2';
  */
 declare class LabelsLayer extends GridLayer<CityLabelData> {
     static defaultOptions: Required<GridLayerOptions>;
+    /** ID of the label that should be marked as selected */
+    private selectedLabelId;
+    /** Currently selected label element */
+    private selectedLabelEl;
     /** Currently selected product in client */
     product?: Products;
     /** Cache of leaflet tiles with labels and temperatures */
@@ -48,6 +52,10 @@ declare class LabelsLayer extends GridLayer<CityLabelData> {
     /** Returns array of all cities in a form { id, el } */
     toArray(): CityLabel[];
     getCityDivs(): CityDiv[];
+    /** Mark a city label as selected by its ID */
+    markSelected(id: CityLabelId): void;
+    /** Remove selected state from the current label */
+    unmarkSelected(): void;
     /** Fetch forecast temperature data for the tile */
     loadTileForecast(tileDiv: CityDiv): void;
     /** Callback when forecast data are retrieved */
@@ -60,10 +68,8 @@ declare class LabelsLayer extends GridLayer<CityLabelData> {
      */
     private renderTile;
     private getIndexToCityTileData;
-    /**
-     * Render forecast data for the tile, it does not fetch forecast data (called e.g. whenever refreshWeather is called)
-     * Enhances DIV with data-id="id" with loaded weather.
-     */
+    /** Apply selected class to a newly loaded tile if it contains the selected label */
+    private applySelectedToTile;
     private renderWeather;
 }
 export default LabelsLayer;

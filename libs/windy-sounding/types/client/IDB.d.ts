@@ -6,7 +6,7 @@ import type { IdbConnection } from '@windy/idbConnection';
  * remember to update this list when adding new collections
  * Collections MUST be created at once
  */
-export declare const allUsedCollections: readonly ["customColors", "installedPlugins2", "likedStoryComments", "log", "markedNotams", "popularLocations", "searchRecents2", "upvotedArticles", "seenPromos", "slidedCapAlerts", "userAlerts", "userFavs"];
+export declare const allUsedCollections: readonly ["customColors", "installedPlugins2", "log", "markedNotams", "popularLocations", "searchRecents2", "upvotedArticles", "upvotedComments", "seenPromos", "slidedCapAlerts", "userAlerts", "userFavs"];
 interface IdbEvent {
     _nativeSync: [{
         storeId: DatabaseStore;

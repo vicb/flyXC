@@ -139,9 +139,16 @@ export declare abstract class WindowPlugin<P extends keyof WindowPlugins> extend
      */
     ondestroy(): void;
     /**
-     * Ready to be overloaded: Will be called before plugin is loaded, sync action called immediately after rqstOpen is fired
+     * Ready to be overloaded: Will be called before plugin is loaded, sync action
+     * called immediately after rqstOpen is fired
+     *
+     * TODO: Relying on our @windy/http cache to create loading promises that can be
+     * reused in plugin is fragile patter, almost untestable.
+     *
+     * Rather make beforeLoad async getting parameters and returning promise that
+     * can enhance plugins parameters with ongoing plugin promise
      */
-    beforeLoad(..._args: unknown[]): void;
+    beforeLoad(params?: PluginsOpenParams[P]): PluginsOpenParams[P] | undefined;
     /**
      * Called by router when URL matches plugin's router (feel free to overload it)
      *

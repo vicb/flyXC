@@ -33,7 +33,8 @@ export declare const enum GlslDataType {
     FVec2 = 4,
     Float = 5,
     FVec3 = 6,
-    FArray = 7
+    FloatArray = 7,
+    FVec4Array = 8
 }
 export declare const glUtils: GlUtils;
 /**

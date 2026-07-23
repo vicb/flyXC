@@ -17,6 +17,18 @@ export interface AccumulationsLangFile {
 
 export interface AirportLangFile {
     /**
+     * airport: Helipads
+     */
+    AIRPORT_HELIPADS: string;
+    /**
+     * airport: Lighted
+     */
+    AIRPORT_LIGHTED: string;
+    /**
+     * airport: Lock map
+     */
+    AIRPORT_MAP_LOCK: string;
+    /**
      * airport: Detailed forecast for {{icao}}
      */
     AIRPORT_METARS_DETAILED_FORECAST: string;
@@ -28,6 +40,10 @@ export interface AirportLangFile {
      * airport: Airport name
      */
     AIRPORT_NAME: string;
+    /**
+     * airport: Surface
+     */
+    AIRPORT_SURFACE: string;
     /**
      * airport: Show on map
      */
@@ -84,13 +100,21 @@ export interface AlertsLangFile {
      */
     ALERTS_TO_DELETE: string;
     /**
-     * alerts: Choose recommended alert setting for
-     */
-    ALERT_ACTIVITY_DESCRIPTION: string;
-    /**
      * alerts: I agree with Windy's <a href="{{link}}" target="_blank">conditions</a> for alert handling.
      */
     ALERT_ANALYTICS_CONSENT: string;
+    /**
+     * alerts: Air quality (AQI)
+     */
+    ALERT_AQI: string;
+    /**
+     * alerts: Air quality (AQI): {{from}} - {{to}}
+     */
+    ALERT_AQI_DESCRIPTION: string;
+    /**
+     * alerts: AQI from <b>{{from}}</b> to <b>{{to}}</b>
+     */
+    ALERT_AQI_RANGE: string;
     /**
      * alerts: Which alerts do you want to assign to your user account? The other alerts will be deleted!
      */
@@ -107,6 +131,14 @@ export interface AlertsLangFile {
      * alerts: at least {{hour}}h
      */
     ALERT_AT_LEAST: string;
+    /**
+     * alerts: App only
+     */
+    ALERT_BADGE_APP_ONLY: string;
+    /**
+     * alerts: Notifications disabled
+     */
+    ALERT_BADGE_NOTIFICATIONS_DISABLED: string;
     /**
      * alerts: Finish migration
      */
@@ -232,6 +264,10 @@ export interface AlertsLangFile {
      */
     ALERT_ERROR_USED_JWT: string;
     /**
+     * alerts: Alert triggers when all selected conditions are met simultaneously.
+     */
+    ALERT_FORECAST_CONDITIONS_HINT: string;
+    /**
      * alerts: Good luck and stay safe!
      */
     ALERT_GOOD_LUCK: string;
@@ -251,6 +287,30 @@ export interface AlertsLangFile {
      * alerts: Latitude
      */
     ALERT_LAT: string;
+    /**
+     * alerts: No services enabled
+     */
+    ALERT_LIVE_NO_SERVICES: string;
+    /**
+     * alerts: Alerts issued by local authorities via the Common Alerting Protocol. Coverage varies by country — you only receive alerts where a feed is available.
+     */
+    ALERT_LIVE_SERVICE_CAP_DESCRIPTION: string;
+    /**
+     * alerts: Notifies you when intense rainfall is approaching the location.
+     */
+    ALERT_LIVE_SERVICE_RAIN_DESCRIPTION: string;
+    /**
+     * alerts: Detects lightning near the selected location and notifies you when a thunderstorm is approaching.
+     */
+    ALERT_LIVE_SERVICE_STORMS_DESCRIPTION: string;
+    /**
+     * alerts: Notifies you when a tropical cyclone is forecast to affect the selected location.
+     */
+    ALERT_LIVE_SERVICE_TC_DESCRIPTION: string;
+    /**
+     * alerts: <b>Live alerts</b> currently work only on the Windy mobile app with notifications enabled.
+     */
+    ALERT_LIVE_WARNING: string;
     /**
      * alerts: We will use local time of this location
      */
@@ -312,6 +372,10 @@ export interface AlertsLangFile {
      */
     ALERT_PART_WEEK: string;
     /**
+     * alerts: Pollen
+     */
+    ALERT_POLLEN: string;
+    /**
      * alerts: How long must the conditions prevail to receive an alert
      */
     ALERT_PREVAIL: string;
@@ -331,6 +395,10 @@ export interface AlertsLangFile {
      * alerts: resume alert
      */
     ALERT_RESUME: string;
+    /**
+     * alerts: <p>Your live alert has been saved.</p><p>Live alerts are delivered only as push notifications on the Windy mobile app — make sure notifications are enabled on your phone.</p>
+     */
+    ALERT_SAVED_LIVE: string;
     /**
      * alerts: Assign
      */
@@ -364,6 +432,10 @@ export interface AlertsLangFile {
      */
     ALERT_STEP_LOCATION: string;
     /**
+     * alerts: Type
+     */
+    ALERT_STEP_TYPE: string;
+    /**
      * alerts: suspend alert for some time
      */
     ALERT_SUSPEND: string;
@@ -388,6 +460,22 @@ export interface AlertsLangFile {
      */
     ALERT_TXT_EMAIL: string;
     /**
+     * alerts: Forecast alert
+     */
+    ALERT_TYPE_FORECAST: string;
+    /**
+     * alerts: Watches the forecast and notifies you when conditions you choose (wind, rain, temperature, etc.) are expected.
+     */
+    ALERT_TYPE_FORECAST_DESCRIPTION: string;
+    /**
+     * alerts: Live alert
+     */
+    ALERT_TYPE_LIVE: string;
+    /**
+     * alerts: Notifies you when storms, heavy rain, or other live phenomena are detected at your location.
+     */
+    ALERT_TYPE_LIVE_DESCRIPTION: string;
+    /**
      * alerts: <b>You are not allowed to edit or view this alert</b>, because it is assigned to a different user. In case you created this alert under another account of yours, please delete it using a link in a footer of the last notification email you have received for this alert. And create a new one under your current account.
      */
     ALERT_UNAUTHORIZED: string;
@@ -395,6 +483,46 @@ export interface AlertsLangFile {
      * alerts: Forecast is updated every {{hrs}} hours, so check often if the conditions prevail.
      */
     ALERT_UPDATE: string;
+    /**
+     * alerts: Accept Windy's conditions to save the alert.
+     */
+    ALERT_VALIDATION_ACCEPT_CONDITIONS: string;
+    /**
+     * alerts: Description cannot be empty.
+     */
+    ALERT_VALIDATION_DESCRIPTION_REQUIRED: string;
+    /**
+     * alerts: Some enabled conditions need more input.
+     */
+    ALERT_VALIDATION_FORECAST_INCOMPLETE: string;
+    /**
+     * alerts: Pick at least one condition.
+     */
+    ALERT_VALIDATION_FORECAST_PICK_CONDITION: string;
+    /**
+     * alerts: Enable at least one service.
+     */
+    ALERT_VALIDATION_LIVE_PICK_SERVICE: string;
+    /**
+     * alerts: Select at least one cloud cover level.
+     */
+    ALERT_VALIDATION_PICK_CLOUDINESS: string;
+    /**
+     * alerts: Select at least one day of the week.
+     */
+    ALERT_VALIDATION_PICK_DAYS: string;
+    /**
+     * alerts: Select at least one direction.
+     */
+    ALERT_VALIDATION_PICK_DIRECTIONS: string;
+    /**
+     * alerts: Select at least one hour range.
+     */
+    ALERT_VALIDATION_PICK_HOURS: string;
+    /**
+     * alerts: Select at least one pollen species.
+     */
+    ALERT_VALIDATION_PICK_POLLEN: string;
     /**
      * alerts: Strength from <b>{{min}}</b> to <b>{{max}}</b>
      */
@@ -418,6 +546,10 @@ export interface AppreviewLangFile {
      * appreview: Hi
      */
     INTROPAGE_TITLE_HELLO: string;
+    /**
+     * appreview: Hi {userName},
+     */
+    INTROPAGE_TITLE_HELLO_USER: string;
     /**
      * appreview: how is your Windy experience??
      */
@@ -502,9 +634,129 @@ export interface ArticlesLangFile {
      */
     ARTICLES_COMMENTS: string;
     /**
+     * articles: Comment sent
+     */
+    ARTICLES_COMMENT_SENT: string;
+    /**
+     * articles: Hide replies
+     */
+    ARTICLES_HIDE_REPLIES: string;
+    /**
+     * articles: Load more
+     */
+    ARTICLES_LOAD_MORE: string;
+    /**
+     * articles: Load replies
+     */
+    ARTICLES_LOAD_REPLIES: string;
+    /**
+     * articles: Log in to comment
+     */
+    ARTICLES_LOGIN_TO_COMMENT: string;
+    /**
+     * articles: Max 500 characters
+     */
+    ARTICLES_MAX_CHARS: string;
+    /**
+     * articles: Order by:
+     */
+    ARTICLES_ORDER_BY: string;
+    /**
+     * articles: Date
+     */
+    ARTICLES_ORDER_DATE: string;
+    /**
+     * articles: Upvotes
+     */
+    ARTICLES_ORDER_UPVOTES: string;
+    /**
+     * articles: replies
+     */
+    ARTICLES_REPLIES: string;
+    /**
+     * articles: Reply
+     */
+    ARTICLES_REPLY: string;
+    /**
+     * articles: Report
+     */
+    ARTICLES_REPORT: string;
+    /**
+     * articles: Child Exploitation
+     */
+    ARTICLES_REPORT_CHILD_EXPLOITATION: string;
+    /**
+     * articles: Report comment
+     */
+    ARTICLES_REPORT_COMMENT: string;
+    /**
+     * articles: Copyright or Intellectual Property Violation
+     */
+    ARTICLES_REPORT_COPYRIGHT_VIOLATION: string;
+    /**
+     * articles: Cultural or Religious Insensitivity
+     */
+    ARTICLES_REPORT_CULTURAL_INSENSITIVITY: string;
+    /**
+     * articles: Harassment or Bullying
+     */
+    ARTICLES_REPORT_HARASSMENT_OR_BULLYING: string;
+    /**
+     * articles: Hate Speech
+     */
+    ARTICLES_REPORT_HATE_SPEECH: string;
+    /**
+     * articles: Illegal Activities
+     */
+    ARTICLES_REPORT_ILLEGAL_ACTIVITIES: string;
+    /**
+     * articles: Misinformation or Disinformation
+     */
+    ARTICLES_REPORT_MISINFORMATION: string;
+    /**
+     * articles: Offensive Language
+     */
+    ARTICLES_REPORT_OFFENSIVE_LANGUAGE: string;
+    /**
+     * articles: Privacy Violation
+     */
+    ARTICLES_REPORT_PRIVACY_VIOLATION: string;
+    /**
+     * articles: Self-Harm or Suicide Promotion
+     */
+    ARTICLES_REPORT_SELF_HARM_OR_SUICIDE: string;
+    /**
+     * articles: Report sent
+     */
+    ARTICLES_REPORT_SENT: string;
+    /**
+     * articles: Sexual Content or Nudity
+     */
+    ARTICLES_REPORT_SEXUAL_CONTENT_OR_NUDITY: string;
+    /**
+     * articles: Spam or Misleading Content
+     */
+    ARTICLES_REPORT_SPAM_OR_MISLEADING: string;
+    /**
+     * articles: Terrorism or Extremism
+     */
+    ARTICLES_REPORT_TERRORISM_OR_EXTREMISM: string;
+    /**
+     * articles: Uncategorized
+     */
+    ARTICLES_REPORT_UNCATEGORIZED: string;
+    /**
+     * articles: Violence or Threats
+     */
+    ARTICLES_REPORT_VIOLENCE_OR_THREATS: string;
+    /**
      * articles: Reward the author with clap
      */
     ARTICLES_REWARD_WITH_CLAP: string;
+    /**
+     * articles: Send
+     */
+    ARTICLES_SEND: string;
     /**
      * articles: Share
      */
@@ -517,6 +769,10 @@ export interface ArticlesLangFile {
      * articles: updated
      */
     ARTICLES_UPDATED: string;
+    /**
+     * articles: Write a comment...
+     */
+    ARTICLES_WRITE_COMMENT: string;
     /**
      * articles: Your comments
      */
@@ -584,6 +840,196 @@ export interface ConsentLangFile {
      * consent: We value your privacy
      */
     CONSENT_TITLE: string;
+}
+
+export interface DefaultmodelselectorLangFile {
+    /**
+     * defaultmodelselector: Recommended
+     */
+    DMS_BADGE_RECOMMENDED: string;
+    /**
+     * defaultmodelselector: Combines multiple weather data sources with real-time radar and satellite observations for a more precise local result. Powered by {meteoblue}, continuously improved since 2018.
+     */
+    DMS_OPTION_AI_DESC: string;
+    /**
+     * defaultmodelselector: AI-enhanced forecast
+     */
+    DMS_OPTION_AI_NAME: string;
+    /**
+     * defaultmodelselector: Direct output from a global weather model. Updated four times a day.
+     */
+    DMS_OPTION_CLASSIC_DESC: string;
+    /**
+     * defaultmodelselector: Classic forecast (current selection)
+     */
+    DMS_OPTION_CLASSIC_NAME: string;
+    /**
+     * defaultmodelselector: How should we serve you a location forecast?
+     */
+    DMS_TITLE: string;
+}
+
+export interface DetailLangFile {
+    /**
+     * detail: Always open as
+     */
+    DETAIL_ALWAYS_OPEN_AS: string;
+    /**
+     * detail: Close settings
+     */
+    DETAIL_CLOSE_SETTINGS: string;
+    /**
+     * detail: Move the map to change the forecast location
+     */
+    DETAIL_DRAG_CHECKBOX: string;
+    /**
+     * detail: Error loading wind data for this model
+     */
+    DETAIL_ERROR_LOADING_WIND_DATA: string;
+    /**
+     * detail: forecast for
+     */
+    DETAIL_FORECAST_FOR: string;
+    /**
+     * detail: Retry
+     */
+    DETAIL_FORECAST_RETRY: string;
+    /**
+     * detail: forecast with
+     */
+    DETAIL_FORECAST_WITH: string;
+    /**
+     * detail: for high resolution meteogram
+     */
+    DETAIL_PREMIUM_TEXT_METEOGRAM: string;
+    /**
+     * detail: 14 days
+     */
+    DETAIL_RANGE_14_DAYS: string;
+    /**
+     * detail: 7 days
+     */
+    DETAIL_RANGE_7_DAYS: string;
+    /**
+     * detail: {{count}} days
+     */
+    DETAIL_RANGE_DAYS: string;
+    /**
+     * detail: Settings for location fcst.
+     */
+    DETAIL_SETTINGS_TITLE: string;
+    /**
+     * detail: Set up Windy Alert for this location and never miss your desired conditions.
+     */
+    DETAIL_SET_UP_ALERT: string;
+    /**
+     * detail: 1h
+     */
+    DETAIL_STEP_1H: string;
+    /**
+     * detail: 3h
+     */
+    DETAIL_STEP_3H: string;
+    /**
+     * detail: Sync forecast time with map
+     */
+    DETAIL_SYNC_TIME_CHECKBOX: string;
+    /**
+     * detail: We do not provide tide forecast for this location
+     */
+    DETAIL_TIDE_FORECAST_NOT_AVAILABLE: string;
+    /**
+     * detail: Time of forecast on map
+     */
+    DETAIL_TIME_ON_MAP: string;
+    /**
+     * detail: About location
+     */
+    D_ABOUT_LOC2: string;
+    /**
+     * detail: {{duration}} days forecast
+     */
+    D_FORECAST_FOR: string;
+    /**
+     * detail: Show sun position on map
+     */
+    D_SHOW_SUN_POSITION: string;
+    /**
+     * detail: forecast
+     */
+    D_STEPS_FORECAST: string;
+    /**
+     * detail: Model elevation
+     */
+    MODEL_ELEVATION: string;
+    /**
+     * detail: 15 days
+     */
+    MULTIMODEL_15_DAYS: string;
+    /**
+     * detail: 5 days
+     */
+    MULTIMODEL_5_DAYS: string;
+    /**
+     * detail: Hide this model
+     */
+    MULTIMODEL_HIDE_MODEL: string;
+    /**
+     * detail: Pin to top
+     */
+    MULTIMODEL_PIN: string;
+    /**
+     * detail: Show this model
+     */
+    MULTIMODEL_SHOW_MODEL: string;
+    /**
+     * detail: Unpin from top
+     */
+    MULTIMODEL_UNPIN: string;
+    /**
+     * detail: Basic
+     */
+    ND_DISPLAY_BASIC: string;
+    /**
+     * detail: Paragliding forecast for {{name}}
+     */
+    PARAGLIDING_BROWSER_TITLE: string;
+    /**
+     * detail: Pollen&AirQ
+     */
+    POLLEN_AIRQ: string;
+    /**
+     * detail: Pollen & Air Quality
+     */
+    POLLEN_AIRQ_LONG: string;
+    /**
+     * detail: Subscribe to Windy Premium to get access to extended weather forecast.
+     */
+    SUB_EXTENDED: string;
+    /**
+     * detail: Water temp.
+     */
+    WATER_TEMP: string;
+    /**
+     * detail: Wave&Tide
+     */
+    WAVESTIDES: string;
+    /**
+     * detail: Wave and tide forecast for {{name}}
+     */
+    WAVESTIDES_BROWSER_TITLE: string;
+    /**
+     * detail: Waves & Tides
+     */
+    WAVESTIDES_LONG: string;
+    /**
+     * detail: weather forecast
+     */
+    WFORECAST: string;
+    /**
+     * detail: Wind and kitesurfing forecast for {{name}}
+     */
+    WIND_BROWSER_TITLE: string;
 }
 
 export interface DistanceLangFile {
@@ -747,10 +1193,6 @@ export interface FavsLangFile {
      */
     FAVS_PIN: string;
     /**
-     * favs: Pin to homepage
-     */
-    FAVS_PIN_HOMEPAGE: string;
-    /**
      * favs: Pin to top
      */
     FAVS_PIN_TOP: string;
@@ -775,10 +1217,6 @@ export interface FavsLangFile {
      */
     FAVS_SAVE_TO_CLOUD: string;
     /**
-     * favs: Unpin from homepage
-     */
-    FAVS_UNPIN_HOMEPAGE: string;
-    /**
      * favs: Unpin from top
      */
     FAVS_UNPIN_TOP: string;
@@ -793,6 +1231,30 @@ export interface GarminLangFile {
      * garmin: Install the Data Field
      */
     GARMIN_DATAFIELD_BTN_STORE: string;
+    /**
+     * garmin: Don't forget to toggle on the Screen after finishing the set up.
+     */
+    GARMIN_DATAFIELD_HOW_TO: string;
+    /**
+     * garmin: How to set the Windy Data Field for your chosen activity
+     */
+    GARMIN_DATAFIELD_HOW_TO_TITLE: string;
+    /**
+     * garmin: Allow which activities will have Windy Data Field
+     */
+    GARMIN_DATAFIELD_INITIAL: string;
+    /**
+     * garmin: Initial Phase
+     */
+    GARMIN_DATAFIELD_INITIAL_TITLE: string;
+    /**
+     * garmin: Option with 4 or less Data fields
+     */
+    GARMIN_DATAFIELD_OPTION_4_TITLE: string;
+    /**
+     * garmin: Option for Full-screen mode
+     */
+    GARMIN_DATAFIELD_OPTION_FULL_SCREEN_TITLE: string;
     /**
      * garmin: Customise your data field by setting up the forecast model, radar, relative wind, units, and location settings.
      */
@@ -814,6 +1276,66 @@ export interface GarminLangFile {
      */
     GARMIN_DATAFIELD_TITLE: string;
     /**
+     * garmin: Install the Data Field
+     */
+    GARMIN_EDGE_DATAFIELD_BTN_STORE: string;
+    /**
+     * garmin: Setting Up the Data Field on Edge
+     */
+    GARMIN_EDGE_DATAFIELD_SETUP_TITLE: string;
+    /**
+     * garmin: See live weather as you ride. Get forecasts and radar alongside your cycling stats — and always know what's coming down the road.
+     */
+    GARMIN_EDGE_DATAFIELD_SUBTITLE: string;
+    /**
+     * garmin: Windy Data Field
+     */
+    GARMIN_EDGE_DATAFIELD_TITLE: string;
+    /**
+     * garmin: Install the Widget Lite
+     */
+    GARMIN_LITE_BTN_STORE: string;
+    /**
+     * garmin: Customise your widget by settings up the forecast model, units, and location settings.
+     */
+    GARMIN_LITE_SETTINGS_01: string;
+    /**
+     * garmin: Settings are accessible via the Connect IQ mobile app.
+     */
+    GARMIN_LITE_SETTINGS_02: string;
+    /**
+     * garmin: Widget Lite Settings
+     */
+    GARMIN_LITE_SETTINGS_TITLE: string;
+    /**
+     * garmin: All the essentials for older Garmin models and monochromatic displays — radar, 4-day forecast, and hourly updates — in the lighter Windy Widget Lite.
+     */
+    GARMIN_LITE_SUBTITLE: string;
+    /**
+     * garmin: Weather Widget Lite
+     */
+    GARMIN_LITE_TITLE: string;
+    /**
+     * garmin: Install the METAR Widget
+     */
+    GARMIN_METAR_BTN_STORE: string;
+    /**
+     * garmin: Customise your METAR widget settings via the Connect IQ mobile app.
+     */
+    GARMIN_METAR_SETTINGS_01: string;
+    /**
+     * garmin: METAR Widget Settings
+     */
+    GARMIN_METAR_SETTINGS_TITLE: string;
+    /**
+     * garmin: Real-time METARs from nearby airports, right on your wrist. Add any airport by ICAO code and get raw data or a decoded summary at a glance.
+     */
+    GARMIN_METAR_SUBTITLE: string;
+    /**
+     * garmin: METAR Widget
+     */
+    GARMIN_METAR_TITLE: string;
+    /**
      * garmin: Garmin Devices
      */
     GARMIN_PLUGIN_TITLE: string;
@@ -821,6 +1343,14 @@ export interface GarminLangFile {
      * garmin: Data Field
      */
     GARMIN_SWITCH_DATAFIELD_BTN: string;
+    /**
+     * garmin: Widget Lite
+     */
+    GARMIN_SWITCH_LITE_BTN: string;
+    /**
+     * garmin: METAR
+     */
+    GARMIN_SWITCH_METAR_BTN: string;
     /**
      * garmin: Watch Face
      */
@@ -837,6 +1367,10 @@ export interface GarminLangFile {
      * garmin: community forum
      */
     GARMIN_TROUBLESHOOTING_PART_2: string;
+    /**
+     * garmin: Installing the app
+     */
+    GARMIN_VIDEO_INSTALLATION_TITLE: string;
     /**
      * garmin: Install the Watch Face
      */
@@ -936,6 +1470,14 @@ export interface HurricanesLangFile {
      * hurricanes: Prediction radius
      */
     HURR_PREDICTED_RADIUS: string;
+    /**
+     * hurricanes: SSHWS category {{category}}
+     */
+    HURR_SSHWS_CAT_TOOLTIP: string;
+    /**
+     * hurricanes: Intensity categorized using <a href="https://www.nhc.noaa.gov/aboutsshws.php" target="_blank">Saffir-Simpson Hurricane Wind Scale (SSHWS)</a>
+     */
+    HURR_SSHWS_INFO: string;
     /**
      * hurricanes: Tropical depression
      */
@@ -1115,6 +1657,34 @@ export interface MainLangFile {
      */
     AVAIL_FOR: string;
     /**
+     * Avalanche danger
+     */
+    AVALANCHE_DANGER: string;
+    /**
+     * Considerable
+     */
+    AVAL_CONSIDERABLE: string;
+    /**
+     * High
+     */
+    AVAL_HIGH: string;
+    /**
+     * Low
+     */
+    AVAL_LOW: string;
+    /**
+     * Moderate
+     */
+    AVAL_MODERATE: string;
+    /**
+     * No data
+     */
+    AVAL_NO_DATA: string;
+    /**
+     * Very high
+     */
+    AVAL_VERY_HIGH: string;
+    /**
      * Show lightning
      */
     BLITZ_ON: string;
@@ -1235,37 +1805,13 @@ export interface MainLangFile {
      */
     DETAILED: string;
     /**
-     * Move the map to change the forecast location
-     */
-    DETAIL_DRAG_CHECKBOX: string;
-    /**
-     * Error loading wind data for this model
-     */
-    DETAIL_ERROR_LOADING_WIND_DATA: string;
-    /**
      * Error loading forecast for {{model}}
      */
     DETAIL_FORECAST_LOADING_FAILED: string;
     /**
-     * Retry
-     */
-    DETAIL_FORECAST_RETRY: string;
-    /**
      * Selected model ({{model}}) is unavailable in current location. Reverting to previous model ({{prevModel}}).
      */
     DETAIL_MODEL_UNAVAILABLE: string;
-    /**
-     * Set up Windy Alert for this location and never miss your desired conditions.
-     */
-    DETAIL_SET_UP_ALERT: string;
-    /**
-     * We do not provide tide forecast for this location
-     */
-    DETAIL_TIDE_FORECAST_NOT_AVAILABLE: string;
-    /**
-     * Time of forecast on map
-     */
-    DETAIL_TIME_ON_MAP: string;
     /**
      * Developed with
      */
@@ -1347,6 +1893,22 @@ export interface MainLangFile {
      */
     DOWNLOAD_FILE: string;
     /**
+     * Duration
+     */
+    DURATION: string;
+    /**
+     * {hours}h
+     */
+    DURATION_HOURS: string;
+    /**
+     * {hours}h {minutes}m
+     */
+    DURATION_H_M: string;
+    /**
+     * {minutes}m
+     */
+    DURATION_MIN: string;
+    /**
      * Dust mass
      */
     DUSTSM: string;
@@ -1362,14 +1924,6 @@ export interface MainLangFile {
      * About this location
      */
     D_ABOUT_LOC: string;
-    /**
-     * About location
-     */
-    D_ABOUT_LOC2: string;
-    /**
-     * Air quality and radiation monitoring
-     */
-    D_AQI_RADIATION: string;
     /**
      * image during daylight
      */
@@ -1398,14 +1952,6 @@ export interface MainLangFile {
      * Forecast for this location
      */
     D_FCST: string;
-    /**
-     * Fcst model:
-     */
-    D_FCST_MODEL: string;
-    /**
-     * {{duration}} days forecast
-     */
-    D_FORECAST_FOR: string;
     /**
      * Hours
      */
@@ -1443,10 +1989,6 @@ export interface MainLangFile {
      */
     D_PRECI: string;
     /**
-     * Show sun position on map
-     */
-    D_SHOW_SUN_POSITION: string;
-    /**
      * Nearest weather stations
      */
     D_STATIONS: string;
@@ -1458,10 +2000,6 @@ export interface MainLangFile {
      * 3 hours
      */
     D_STEPS_3_HOURS: string;
-    /**
-     * forecast
-     */
-    D_STEPS_FORECAST: string;
     /**
      * Sunrise
      */
@@ -1523,9 +2061,25 @@ export interface MainLangFile {
      */
     E_MESSAGE: string;
     /**
+     * Far future
+     */
+    FAR_FUTURE: string;
+    /**
+     * Pin to homepage
+     */
+    FAVS_PIN_HOMEPAGE: string;
+    /**
      * Favorites sync error
      */
     FAVS_SYNCHRO_ERROR_TITLE: string;
+    /**
+     * Unpin from homepage
+     */
+    FAVS_UNPIN_HOMEPAGE: string;
+    /**
+     * Feels like
+     */
+    FEEL_TEMP: string;
     /**
      * This field can't be empty
      */
@@ -1603,6 +2157,14 @@ export interface MainLangFile {
      */
     FZ_RAIN: string;
     /**
+     * Garmin Edge
+     */
+    GARMIN_PLUGIN_TITLE_EDGE: string;
+    /**
+     * Garmin Watch
+     */
+    GARMIN_PLUGIN_TITLE_WATCH: string;
+    /**
      * Getting your location...
      */
     GETTING_LOCATION: string;
@@ -1610,6 +2172,10 @@ export interface MainLangFile {
      * Failed to determine your location. Make sure Windy.com has permission to access your location
      */
     GETTING_LOCATION_ERROR: string;
+    /**
+     * Unable to get current location, using your last known position
+     */
+    GETTING_LOCATION_FALLBACK: string;
     /**
      * Failed to determine your location
      */
@@ -1675,25 +2241,21 @@ export interface MainLangFile {
      */
     ICING2: string;
     /**
-     * heavy
+     * Light
      */
-    ICING_HEAVY: string;
+    ICING_LIGHT2: string;
     /**
-     * light
+     * Moderate
      */
-    ICING_LIGHT: string;
+    ICING_MODERATE2: string;
     /**
-     * moderate
+     * Severe
      */
-    ICING_MODERATE: string;
+    ICING_SEVERE2: string;
     /**
-     * trace
+     * Trace
      */
-    ICING_TRACE: string;
-    /**
-     * Improve my position
-     */
-    IMPROVE_POS: string;
+    ICING_TRACE2: string;
     /**
      * installed
      */
@@ -1754,6 +2316,18 @@ export interface MainLangFile {
      * Fuel moisture
      */
     INTERSUCHO_DFM: string;
+    /**
+     * 1000h
+     */
+    INTERSUCHO_DFM_1000H: string;
+    /**
+     * 100h
+     */
+    INTERSUCHO_DFM_100H: string;
+    /**
+     * 10h
+     */
+    INTERSUCHO_DFM_10H: string;
     /**
      * Fire danger
      */
@@ -1963,6 +2537,10 @@ export interface MainLangFile {
      */
     MENU_WIDGETS: string;
     /**
+     * Wind trajectories
+     */
+    MENU_WIND_TRAJECTORIES: string;
+    /**
      * {DURATION} days ago
      */
     METARS_DAYS_AGO: string;
@@ -2014,10 +2592,6 @@ export interface MainLangFile {
      * Forecast model
      */
     MODEL: string;
-    /**
-     * Model elevation
-     */
-    MODEL_ELEVATION: string;
     /**
      * Switch 2D / 3D mode
      */
@@ -2111,10 +2685,6 @@ export interface MainLangFile {
      */
     ND_DISPLAY: string;
     /**
-     * Basic
-     */
-    ND_DISPLAY_BASIC: string;
-    /**
      * Forecast model
      */
     ND_MODEL: string;
@@ -2154,6 +2724,18 @@ export interface MainLangFile {
      * Notifications
      */
     NOTIFICATIONS: string;
+    /**
+     * Not now
+     */
+    NOTIF_NOT_NOW: string;
+    /**
+     * <strong>Don't lose access to your Windy account.</strong> Please verify <strong>{email}</strong> to secure your data.
+     */
+    NOTIF_VERIFY_EMAIL_BANNER: string;
+    /**
+     * Verify now
+     */
+    NOTIF_VERIFY_NOW: string;
     /**
      * Now
      */
@@ -2343,9 +2925,9 @@ export interface MainLangFile {
      */
     POI_PRECIP: string;
     /**
-     * Radiation
+     * Precipitation
      */
-    POI_RADIATION: string;
+    POI_PRECIP_SHORT: string;
     /**
      * Radiosondes
      */
@@ -2363,6 +2945,10 @@ export interface MainLangFile {
      */
     POI_TEMP: string;
     /**
+     * Temperature
+     */
+    POI_TEMP_SHORT: string;
+    /**
      * Tide forecast
      */
     POI_TIDE: string;
@@ -2371,13 +2957,9 @@ export interface MainLangFile {
      */
     POI_WIND: string;
     /**
-     * Pollen&AirQ
+     * Wind
      */
-    POLLEN_AIRQ: string;
-    /**
-     * Pollen & Air Quality
-     */
-    POLLEN_AIRQ_LONG: string;
+    POI_WIND_SHORT: string;
     /**
      * Alder pollen
      */
@@ -2430,6 +3012,10 @@ export interface MainLangFile {
      * Position
      */
     POSITION: string;
+    /**
+     * predictability
+     */
+    PREDICTABILITY: string;
     /**
      * Pressure
      */
@@ -2495,21 +3081,9 @@ export interface MainLangFile {
      */
     RADAR_BLITZ: string;
     /**
-     * Radar+
-     */
-    RADAR_PLUS: string;
-    /**
      * Radar
      */
     RADAR_SHORT: string;
-    /**
-     * Radiation high
-     */
-    RADIATION_HIGH: string;
-    /**
-     * Radiation OK
-     */
-    RADIATION_OK: string;
     /**
      * Rain, snow
      */
@@ -2590,10 +3164,6 @@ export interface MainLangFile {
      * Save file to cloud
      */
     SAVE_FILE_TO_CLOUD: string;
-    /**
-     * Search location...
-     */
-    SEARCH: string;
     /**
      * Search layer...
      */
@@ -2739,6 +3309,10 @@ export interface MainLangFile {
      */
     SOUND_ON: string;
     /**
+     * Source
+     */
+    SOURCE: string;
+    /**
      * Source code
      */
     SOURCE_CODE: string;
@@ -2790,10 +3364,6 @@ export interface MainLangFile {
      * Your Premium is paused
      */
     SUB_CUFFS_PAUSED: string;
-    /**
-     * Subscribe to Windy Premium to get access to extended weather forecast.
-     */
-    SUB_EXTENDED: string;
     /**
      * Full version of 3D mode is available only to Premium users.
      */
@@ -2935,6 +3505,10 @@ export interface MainLangFile {
      */
     TIDE_LOW: string;
     /**
+     * Time
+     */
+    TIME: string;
+    /**
      * Wind map & weather forecast
      */
     TITLE: string;
@@ -2967,6 +3541,22 @@ export interface MainLangFile {
      */
     TOTAL_CLOUDS: string;
     /**
+     * Failed to fetch wind trajectories.
+     */
+    TRAJECTORIES_FETCH_ERROR: string;
+    /**
+     * Data for some altitude levels is missing, try changing parameters (model, timestamp, levels)
+     */
+    TRAJECTORIES_INCOMPLETE_DATA: string;
+    /**
+     * Go Premium for longer paths
+     */
+    TRAJECTORIES_PREMIUM_PROMO: string;
+    /**
+     * Wind trajectories are not available on this layer.
+     */
+    TRAJECTORIES_UNSUPPORTED_LAYER: string;
+    /**
      * Tuesday
      */
     TUE: string;
@@ -2983,25 +3573,21 @@ export interface MainLangFile {
      */
     TURBULENCE: string;
     /**
-     * extreme
+     * Extreme
      */
-    TURBULENCE_EXTREME: string;
+    TURBULENCE_EXTREME2: string;
     /**
-     * light
+     * Light
      */
-    TURBULENCE_LIGHT: string;
+    TURBULENCE_LIGHT2: string;
     /**
-     * moderate
+     * Moderate
      */
-    TURBULENCE_MODERATE: string;
+    TURBULENCE_MODERATE2: string;
     /**
-     * none
+     * Severe
      */
-    TURBULENCE_NONE: string;
-    /**
-     * severe
-     */
-    TURBULENCE_SEVERE: string;
+    TURBULENCE_SEVERE2: string;
     /**
      * Type
      */
@@ -3095,10 +3681,6 @@ export interface MainLangFile {
      */
     WARNINGS: string;
     /**
-     * Water temp.
-     */
-    WATER_TEMP: string;
-    /**
      * Waves
      */
     WAVES: string;
@@ -3107,17 +3689,9 @@ export interface MainLangFile {
      */
     WAVES2: string;
     /**
-     * Wave&Tide
-     */
-    WAVESTIDES: string;
-    /**
      * Wave and tide forecast for {{name}}
      */
     WAVESTIDES_BROWSER_TITLE: string;
-    /**
-     * Waves & Tides
-     */
-    WAVESTIDES_LONG: string;
     /**
      * Wave power
      */
@@ -3142,10 +3716,6 @@ export interface MainLangFile {
      * Wet snow
      */
     WET_SN: string;
-    /**
-     * weather forecast
-     */
-    WFORECAST: string;
     /**
      * Thank you for using <b>Windy Premium</b> 👑.<br />Awesome people like you make <b>Windy.com</b> possible!
      */
@@ -3269,6 +3839,14 @@ export interface LivealertsLangFile {
      */
     LIVE_ALERTS_ERROR_PLATFORM: string;
     /**
+     * livealerts: How it works
+     */
+    LIVE_ALERTS_HOW_IT_WORKS_BUTTON: string;
+    /**
+     * livealerts: Windy checks storms, heavy rain, tropical cyclones, and local-authority alerts near your device location. Enable location access and notifications in the Windy app to receive alerts where data is available.
+     */
+    LIVE_ALERTS_HOW_IT_WORKS_TEXT: string;
+    /**
      * livealerts: To get alerts for your area, allow Location > Always in settings.
      */
     LIVE_ALERTS_IOS_ERROR_PERMISSION_LOCATION: string;
@@ -3276,6 +3854,10 @@ export interface LivealertsLangFile {
      * livealerts: To get alerts, allow notifications in your system settings.
      */
     LIVE_ALERTS_IOS_ERROR_PERMISSION_NOTIFICATIONS: string;
+    /**
+     * livealerts: Live alerts for my location
+     */
+    LIVE_ALERTS_MY_LOCATION_HEADING: string;
     /**
      * livealerts: CAP
      */
@@ -3303,6 +3885,30 @@ export interface MenuLangFile {
      * menu: Drag your favorite layers and pin them to homepage
      */
     MM_ARRANGE_INFO: string;
+    /**
+     * menu: As you are logged in, you can delete your account here: {accountLink}. That action will delete your Windy account and the data on Windy Community forum. But your local settings will be preserved.
+     */
+    MM_DELETE_ACCOUNT_INFO: string;
+    /**
+     * menu: Delete your account
+     */
+    MM_DELETE_ACCOUNT_LINK: string;
+    /**
+     * menu: Failed to delete local data: user logged in.
+     */
+    MM_DELETE_FAILED_LOGGED_IN: string;
+    /**
+     * menu: Delete information
+     */
+    MM_DELETE_INFO: string;
+    /**
+     * menu: This form will delete your local settings. Once you delete all your data, there is no way back. Press the delete button {count} times to confirm.
+     */
+    MM_DELETE_LOCAL_INFO: string;
+    /**
+     * menu: All your data were deleted. Reloading...
+     */
+    MM_DELETE_SUCCESS: string;
     /**
      * menu: Display less layers
      */
@@ -3351,6 +3957,14 @@ export interface MenuLangFile {
      * menu: Isolines of
      */
     MM_ISOLINES_OF: string;
+    /**
+     * menu: Log out
+     */
+    MM_LOG_OUT: string;
+    /**
+     * menu: to be able to delete your local settings data.
+     */
+    MM_LOG_OUT_TO_DELETE: string;
     /**
      * menu: Long tap your favourite weather map to pin it to the quick menu
      */
@@ -3443,6 +4057,241 @@ export interface MenuLangFile {
      * menu: Drought and warnings
      */
     MM_WARNINGS2: string;
+    /**
+     * menu: You are logged in.
+     */
+    MM_YOU_ARE_LOGGED_IN: string;
+}
+
+export interface MenudescLangFile {
+    /**
+     * menudesc: Aerosol Optical Depth at 550 nm — how much atmospheric aerosols block sunlight.
+     */
+    MM_DESC_AOD550: string;
+    /**
+     * menudesc: US Air Quality Index — overall measure of air pollution and its health risk.
+     */
+    MM_DESC_AQI: string;
+    /**
+     * menudesc: Regional avalanche danger ratings, with bulletins from national services.
+     */
+    MM_DESC_AVALANCHEDANGER: string;
+    /**
+     * menudesc: Weather warnings issued by national agencies via Common Alerting Protocol.
+     */
+    MM_DESC_CAPALERTS: string;
+    /**
+     * menudesc: Convective Available Potential Energy. Higher values can indicate forming of thunderstorms.
+     */
+    MM_DESC_CAPE: string;
+    /**
+     * menudesc: Altitude of the lowest cloud base above the ground.
+     */
+    MM_DESC_CBASE: string;
+    /**
+     * menudesc: Forecast of thermals and cumuli for gliding and paragliding.
+     */
+    MM_DESC_CCL: string;
+    /**
+     * menudesc: Cloud cover with rain or snow accumulation.
+     */
+    MM_DESC_CLOUDS: string;
+    /**
+     * menudesc: Altitude of the cloud peaks.
+     */
+    MM_DESC_CLOUDTOP: string;
+    /**
+     * menudesc: Carbon monoxide (CO) concentration in the lower atmosphere.
+     */
+    MM_DESC_COSC: string;
+    /**
+     * menudesc: Surface ocean currents (upper 400 meters) transporting heat and shaping regional climates.
+     */
+    MM_DESC_CURRENTS: string;
+    /**
+     * menudesc: Tidal currents driven by the Moon and Sun, alternating between flood and ebb.
+     */
+    MM_DESC_CURRENTSTIDE: string;
+    /**
+     * menudesc: Altitude of the freezing level (0 °C isotherm).
+     */
+    MM_DESC_DEG0: string;
+    /**
+     * menudesc: Temperature at which water vapor in the air condenses into dew — a measure of moisture.
+     */
+    MM_DESC_DEWPOINT: string;
+    /**
+     * menudesc: Drought intensity, soil moisture, and moisture anomaly at 0–40 and 0–100 cm soil depth.
+     */
+    MM_DESC_DROUGHT40: string;
+    /**
+     * menudesc: Concentration of airborne dust particles at the surface.
+     */
+    MM_DESC_DUSTSM: string;
+    /**
+     * menudesc: Probability of unusually extreme temperature, wind, or rain for the day (ECMWF EFI).
+     */
+    MM_DESC_EFITEMP: string;
+    /**
+     * menudesc: Suspended water droplets or ice crystals near the surface — fog.
+     */
+    MM_DESC_FOG: string;
+    /**
+     * menudesc: Wildfire risk — spread danger (Canadian FWI) and dead fuel moisture.
+     */
+    MM_DESC_FWI: string;
+    /**
+     * menudesc: Near-surface ozone concentration — a respiratory and cardiovascular irritant (the less the better).
+     */
+    MM_DESC_GO3: string;
+    /**
+     * menudesc: Total atmospheric ozone column, shielding from harmful UV radiation (the more the better).
+     */
+    MM_DESC_GTCO3: string;
+    /**
+     * menudesc: Maximum wind gust at 10 m above the surface.
+     */
+    MM_DESC_GUST: string;
+    /**
+     * menudesc: Strongest wind gust expected over the selected period.
+     */
+    MM_DESC_GUSTACCU: string;
+    /**
+     * menudesc: High-altitude cloud cover (above ~6500 m / 20k ft), given in percent.
+     */
+    MM_DESC_HCLOUDS: string;
+    /**
+     * menudesc: Long-term climate heatmaps for cities (opens meteoblue.com).
+     */
+    MM_DESC_HEATMAPS: string;
+    /**
+     * menudesc: Active tropical cyclones worldwide.
+     */
+    MM_DESC_HURRICANES: string;
+    /**
+     * menudesc: Probability of in-flight icing conditions for aviation in selected altitude.
+     */
+    MM_DESC_ICING: string;
+    /**
+     * menudesc: Low-altitude cloud cover (surface to ~2000 m / 6.5k ft), given in percent.
+     */
+    MM_DESC_LCLOUDS: string;
+    /**
+     * menudesc: Mid-altitude cloud cover (~2000–6500 m / 6.5k–20k ft), given in percent.
+     */
+    MM_DESC_MCLOUDS: string;
+    /**
+     * menudesc: Concentration of nitrogen dioxide (NO₂), a toxic respiratory irritant.
+     */
+    MM_DESC_NO2: string;
+    /**
+     * menudesc: Concentration of fine particulate matter (2.5 µm or less) near the surface.
+     */
+    MM_DESC_PM2P5: string;
+    /**
+     * menudesc: Mean atmospheric pressure at sea level (MSLP).
+     */
+    MM_DESC_PRESSURE: string;
+    /**
+     * menudesc: Type of precipitation: rain, freezing rain, ice pellets, snow, etc.
+     */
+    MM_DESC_PTYPE: string;
+    /**
+     * menudesc: Doppler radar reflectivity. Indicates actual rain, snow, and hail.
+     */
+    MM_DESC_RADAR: string;
+    /**
+     * menudesc: Rain or snow forecast.
+     */
+    MM_DESC_RAIN: string;
+    /**
+     * menudesc: Total rain expected to accumulate over the selected time period.
+     */
+    MM_DESC_RAINACCU: string;
+    /**
+     * menudesc: Relative humidity 2 m above the surface, or at the selected pressure level.
+     */
+    MM_DESC_RH: string;
+    /**
+     * menudesc: Current cloud cover from geostationary satellites.
+     */
+    MM_DESC_SATELLITE: string;
+    /**
+     * menudesc: Total snow expected to accumulate over the selected time period.
+     */
+    MM_DESC_SNOWACCU: string;
+    /**
+     * menudesc: Forecasted snow depth and density.
+     */
+    MM_DESC_SNOWCOVER: string;
+    /**
+     * menudesc: Total solar radiation (direct and diffuse) reaching a horizontal surface on the ground.
+     */
+    MM_DESC_SOLARPOWER: string;
+    /**
+     * menudesc: Water temperature close to the ocean surface.
+     */
+    MM_DESC_SST: string;
+    /**
+     * menudesc: Primary swell — wind-generated waves arriving from a distant source.
+     */
+    MM_DESC_SWELL1: string;
+    /**
+     * menudesc: Secondary swell — a wave train from a different source than the primary swell.
+     */
+    MM_DESC_SWELL2: string;
+    /**
+     * menudesc: Tertiary swell — a further wave train, distinct from swell 1 and 2.
+     */
+    MM_DESC_SWELL3: string;
+    /**
+     * menudesc: Total atmospheric column of sulphur dioxide (SO₂).
+     */
+    MM_DESC_TCSO2: string;
+    /**
+     * menudesc: Air temperature at 2 m above the surface, or at the selected pressure level.
+     */
+    MM_DESC_TEMP: string;
+    /**
+     * menudesc: Lightning flash count per square kilometer per day.
+     */
+    MM_DESC_THUNDER: string;
+    /**
+     * menudesc: Topographic outdoor maps from Mapy.com
+     */
+    MM_DESC_TOPOMAP: string;
+    /**
+     * menudesc: Forecast of clear-air turbulence (CAT) intensity at the selected pressure level.
+     */
+    MM_DESC_TURBULENCE: string;
+    /**
+     * menudesc: Strength of sunburn-causing UV radiation. Higher values mean a shorter time to sunburn.
+     */
+    MM_DESC_UVINDEX: string;
+    /**
+     * menudesc: Distance at which objects can be clearly seen through the air.
+     */
+    MM_DESC_VISIBILITY: string;
+    /**
+     * menudesc: Energy carried by ocean waves, combining wind waves and swell.
+     */
+    MM_DESC_WAVEPOWER: string;
+    /**
+     * menudesc: Mean wave height and period combining swell and wind waves.
+     */
+    MM_DESC_WAVES: string;
+    /**
+     * menudesc: Lowest temperature reachable by evaporative cooling. Values above 35 °C (95 °F) are dangerous to humans.
+     */
+    MM_DESC_WETBULBTEMP: string;
+    /**
+     * menudesc: Average wind speed at 10 m above the surface, or at the selected pressure level.
+     */
+    MM_DESC_WIND: string;
+    /**
+     * menudesc: Waves generated by local wind blowing over the water surface.
+     */
+    MM_DESC_WWAVES: string;
 }
 
 export interface NotificationsLangFile {
@@ -3784,6 +4633,10 @@ export interface PickerLangFile {
      * picker: Warnings<small>for this point</small>
      */
     PICKER_WARNINGS: string;
+    /**
+     * picker: Wind<small>trajectories</small>
+     */
+    PICKER_WIND_TRAJECTORIES: string;
 }
 
 export interface ProductsLangFile {
@@ -3852,14 +4705,6 @@ export interface ProductsLangFile {
      */
     mclouds: string;
     /**
-     * products: Map of airports, with latest METARs observation.
-     */
-    'pois/metars': string;
-    /**
-     * products: Latest observed avg. wind, from various weather stations.
-     */
-    'pois/wind': string;
-    /**
      * products: The mean sea-level pressure (MSLP) is the average atmospheric pressure at sea level. Atmospheric pressure, sometimes also called barometric pressure, is the pressure within the atmosphere of Earth (or that of another planet). In most circumstances atmospheric pressure is closely approximated by the hydrostatic pressure caused by the weight of air above the measurement point.
      */
     pressure: string;
@@ -3871,10 +4716,6 @@ export interface ProductsLangFile {
      * products: Reflectivity measured with doppler radar, indicating actual rain/snow/hail or amount of predicable water in clouds. Weather radar, also called Doppler weather radar, is a type of radar used to locate precipitation, calculate its motion, and estimate its type (rain, snow, hail etc.) or amount of predicable water in clouds Return echoes from targets ("reflectivity") are analyzed for their intensities to establish the precipitation rate in the scanned volume.
      */
     radar: string;
-    /**
-     * products: A combination of a global picture of the current state of cloud cover from geostationary satellites and reflectivity measured with doppler radar, indicating actual rain/snow/hail or amount of predicable water in clouds. Beta feature.
-     */
-    radarPlus: string;
     /**
      * products: Actual doppler radar & satellite imagery
      */
@@ -4003,21 +4844,21 @@ export interface RadsatLangFile {
      */
     RADSAT_SATELLITE_OUTAGE_REGION_AFRICA_EUROPE: string;
     /**
-     * radsat: Asia
+     * radsat: East America
      */
-    RADSAT_SATELLITE_OUTAGE_REGION_ASIA: string;
+    RADSAT_SATELLITE_OUTAGE_REGION_AMERICA_EAST: string;
     /**
-     * radsat: Australia
+     * radsat: West America
      */
-    RADSAT_SATELLITE_OUTAGE_REGION_AUSTRALIA: string;
+    RADSAT_SATELLITE_OUTAGE_REGION_AMERICA_WEST: string;
     /**
-     * radsat: North America
+     * radsat: East Asia
      */
-    RADSAT_SATELLITE_OUTAGE_REGION_NORTH_AMERICA: string;
+    RADSAT_SATELLITE_OUTAGE_REGION_ASIA_EAST: string;
     /**
-     * radsat: South America
+     * radsat: West Asia
      */
-    RADSAT_SATELLITE_OUTAGE_REGION_SOUTH_AMERICA: string;
+    RADSAT_SATELLITE_OUTAGE_REGION_ASIA_WEST: string;
     /**
      * radsat: Visible
      */
@@ -4535,10 +5376,6 @@ export interface SettingsLangFile {
      */
     S_SAVED_OVERLAY: string;
     /**
-     * settings: Remember 1h/3h setting
-     */
-    S_SAVE_RESOLUTION: string;
-    /**
      * settings: {{value}} seconds
      */
     S_SECONDS: string;
@@ -4741,69 +5578,9 @@ export interface SoundingLangFile {
 
 export interface StartuppromosLangFile {
     /**
-     * startuppromos: <b>Hi, I’m Ivo, the founder of Windy.com.</b><br /><br />Let me introduce you to my other project: <b class="clickable">Mapy.com</b><br /><br />An ad-free, privacy-focused 🔒 map for hikers 🥾, runners 🏃‍♂️, cyclists 🚴‍♀️, skiers 🎿, and all outdoor enthusiasts 🌲 — with full offline support.
-     */
-    MAPY_COM_DESKTOP: string;
-    /**
-     * startuppromos: From Ivo, the founder of Windy.com
-     */
-    MAPY_COM_FROM: string;
-    /**
-     * startuppromos: Please try my another project: <b>Mapy.com</b><br />A map for hikers 🥾, runners 🏃‍♂️, cyclists 🚴‍♀️, skiers 🎿, and all outdoor enthusiasts 🌲
-     */
-    MAPY_COM_MOBILE: string;
-    /**
-     * startuppromos: Visit Mapy.com
-     */
-    MAPY_COM_VISIT: string;
-    /**
      * startuppromos: This version of Windy.com App is <b>obsolete</b> and will stop working soon. Please <b>update your Windy.com App</b> to the latest version.
      */
     STARTUP_OBSOLETE_APP: string;
-    /**
-     * startuppromos: Subscribe to <b>Windy Premium</b> to get twice often updated forecast data, with three times better resolution.
-     */
-    STARTUP_PROMO_1: string;
-    /**
-     * startuppromos: 3 hour forecast resolution
-     */
-    SUB2_1_1: string;
-    /**
-     * startuppromos: High resolution 1 hour forecast
-     */
-    SUB2_1_2: string;
-    /**
-     * startuppromos: Low density forecast maps
-     */
-    SUB2_2_1: string;
-    /**
-     * startuppromos: Detailed, high density forecast maps
-     */
-    SUB2_2_2: string;
-    /**
-     * startuppromos: 7 day forecast
-     */
-    SUB2_3_1: string;
-    /**
-     * startuppromos: 15 day forecast
-     */
-    SUB2_3_2: string;
-    /**
-     * startuppromos: 1h satellite & radar archive
-     */
-    SUB2_4_1: string;
-    /**
-     * startuppromos: 365-day satellite & radar archive
-     */
-    SUB2_4_2: string;
-    /**
-     * startuppromos: Free
-     */
-    SUB2_FREE: string;
-    /**
-     * startuppromos: Subscribe to Windy Premium and get the most detailed forecast
-     */
-    SUB2_HEADING: string;
 }
 
 export interface StationLangFile {
@@ -4959,10 +5736,6 @@ export interface StationLangFile {
      * station: US Air Quality Index
      */
     AIRQ_US_AIR_QUALITY_INDEX: string;
-    /**
-     * station: Long-term exposure to levels up to 2&nbsp;000&nbsp;nSv/h is generally considered to be non-threatening to health.
-     */
-    RADIATION_SAFE_LEVEL: string;
     /**
      * station: About this station
      */
@@ -5172,10 +5945,6 @@ export interface StationLangFile {
      */
     STATION_TYPE_AQI: string;
     /**
-     * station: radiation monitoring station
-     */
-    STATION_TYPE_RADIATION: string;
-    /**
      * station: weather station
      */
     STATION_TYPE_WEATHER: string;
@@ -5254,6 +6023,10 @@ export interface SubscriptionLangFile {
      * subscription: Subscription automatically renews unless Auto-Renew is turned off at least 24-hours before the end of the current period. Subscriptions may be managed by the user and Auto-Renew may be turned off by going to the iTunes Account Settings after purchase.
      */
     SUB_CONDITIONS_IOS: string;
+    /**
+     * subscription: Subscribe user <i>{{username}}</i> for Premium.
+     */
+    SUB_CURRENT_USER: string;
     /**
      * subscription: Your subscription expired
      */
@@ -5980,37 +6753,9 @@ export interface WebcamsLangFile {
      */
     CAM_PAGE_URL: string;
     /**
-     * webcams: Page requires login information
-     */
-    CAM_PAGE_URL_CREDENTIALS: string;
-    /**
-     * webcams: Password
-     */
-    CAM_PAGE_URL_CREDENTIALS_PASSWORD: string;
-    /**
-     * webcams: Username
-     */
-    CAM_PAGE_URL_CREDENTIALS_USERNAME: string;
-    /**
      * webcams: Specify URL address of a page. The page must contain the webcam image on it somewhere.
      */
     CAM_PAGE_URL_DESCRIPTION: string;
-    /**
-     * webcams: Position
-     */
-    CAM_POSITION: string;
-    /**
-     * webcams: Controllable
-     */
-    CAM_POSITION_CONTROLLABLE: string;
-    /**
-     * webcams: Fixed
-     */
-    CAM_POSITION_FIXED: string;
-    /**
-     * webcams: Rotating
-     */
-    CAM_POSITION_ROTATING: string;
     /**
      * webcams: Can't see your webcam? Are you going to add a new one?
      */
@@ -6280,38 +7025,6 @@ export interface WebcamsLangFile {
      */
     CAM_SUGGESTION_CATEGORY_TEXT: string;
     /**
-     * webcams: Contacts
-     */
-    CAM_SUGGESTION_CONTACT: string;
-    /**
-     * webcams: Caretaker
-     */
-    CAM_SUGGESTION_CONTACT_CARETAKER: string;
-    /**
-     * webcams: Owner
-     */
-    CAM_SUGGESTION_CONTACT_OWNER: string;
-    /**
-     * webcams: If the webcam is not yet assigned to the right user account, please send us an ownership request (if possible in English) for this webcam to: {{email}}
-     */
-    CAM_SUGGESTION_CONTACT_TEXT: string;
-    /**
-     * webcams: Your email must include:
-     */
-    CAM_SUGGESTION_CONTACT_TEXT2: string;
-    /**
-     * webcams: The webcam id: {{id}}
-     */
-    CAM_SUGGESTION_CONTACT_TEXT2_ITEM1: string;
-    /**
-     * webcams: Your Windy account user name (if available)
-     */
-    CAM_SUGGESTION_CONTACT_TEXT2_ITEM2: string;
-    /**
-     * webcams: A comprehensible reason or proof why you are the legitimate owner of this webcam
-     */
-    CAM_SUGGESTION_CONTACT_TEXT2_ITEM3: string;
-    /**
      * webcams: Elevation
      */
     CAM_SUGGESTION_ELEVATION: string;
@@ -6527,6 +7240,10 @@ export interface WebcamsLangFile {
      * webcams: Webcam feedback
      */
     CAM_WEBCAM_FEEDBACK: string;
+    /**
+     * webcams: Webcam provider
+     */
+    CAM_WEBCAM_PROVIDER: string;
     /**
      * webcams: Webpage
      */
@@ -6789,7 +7506,7 @@ export interface WidgetspromoLangFile {
 }
 
 // prettier-ignore
-export interface PluginTranslations extends AccumulationsLangFile, AirportLangFile, AlertsLangFile, AppreviewLangFile, ArticlesLangFile, ConsentLangFile, DistanceLangFile, FavsLangFile, GarminLangFile, HurricanesLangFile, InfoLangFile, LibLangFile, LivealertsLangFile, MenuLangFile, NotificationsLangFile, OnboardingLangFile, PickerLangFile, ProductsLangFile, RadsatLangFile, RegisterLangFile, ReportissueLangFile, SearchLangFile, SettingsLangFile, SoundingLangFile, StartuppromosLangFile, StationLangFile, SubscriptionLangFile, SunmoonLangFile, WatchfaceLangFile, WebcamsLangFile, WidgetspromoLangFile {}
+export interface PluginTranslations extends AccumulationsLangFile, AirportLangFile, AlertsLangFile, AppreviewLangFile, ArticlesLangFile, ConsentLangFile, DefaultmodelselectorLangFile, DetailLangFile, DistanceLangFile, FavsLangFile, GarminLangFile, HurricanesLangFile, InfoLangFile, LibLangFile, LivealertsLangFile, MenuLangFile, MenudescLangFile, NotificationsLangFile, OnboardingLangFile, PickerLangFile, ProductsLangFile, RadsatLangFile, RegisterLangFile, ReportissueLangFile, SearchLangFile, SettingsLangFile, SoundingLangFile, StartuppromosLangFile, StationLangFile, SubscriptionLangFile, SunmoonLangFile, WatchfaceLangFile, WebcamsLangFile, WidgetspromoLangFile {}
 export interface Translations extends MainLangFile, PluginTranslations {}
 
 export interface SupportedLangFiles {
@@ -6799,6 +7516,8 @@ export interface SupportedLangFiles {
     appreview: AppreviewLangFile;
     articles: ArticlesLangFile;
     consent: ConsentLangFile;
+    defaultmodelselector: DefaultmodelselectorLangFile;
+    detail: DetailLangFile;
     distance: DistanceLangFile;
     favs: FavsLangFile;
     garmin: GarminLangFile;
@@ -6808,6 +7527,7 @@ export interface SupportedLangFiles {
     lib: LibLangFile;
     livealerts: LivealertsLangFile;
     menu: MenuLangFile;
+    menudesc: MenudescLangFile;
     notifications: NotificationsLangFile;
     onboarding: OnboardingLangFile;
     picker: PickerLangFile;

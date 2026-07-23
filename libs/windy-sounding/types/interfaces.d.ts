@@ -22,19 +22,16 @@ import {
     Hours,
     ISODateString,
     ISOCountryCode,
+    LevelsRange,
     LocationPreferences,
-    MeteogramLayers,
-    MeteogramLevels,
     Minutes,
     NotificationPreferences,
     NumOrNull,
     NumValue,
     ParticlesIdent,
     Path,
-    PatternType,
     Pixel,
     Platform,
-    RenderChannels,
     SubTier,
     Timestamp,
     TransformFunction,
@@ -44,6 +41,17 @@ import {
     type SemVersion,
 } from '@windy/types.d';
 import type { LatLng, Marker, PaddingOptions, RequireAtLeastOne } from '@leafletGl';
+import type { ShaderDefine } from '@windy/shaders.d';
+import type {
+    DataHash2,
+    AirQDataHash2,
+    WavesDataHash2,
+    AirgramDataHash2,
+    SummaryDayWithPredictability,
+    WeatherDataPayload2,
+    DataAndMeteogramHash2,
+    NodeForecastHeader2,
+} from '@windy/node-forecast-v3.d';
 
 export interface ExportedObj {
     default?: unknown;
@@ -260,6 +268,7 @@ export interface WeatherParameters {
     acRange: Hours;
     overlay: Overlays;
     level: Levels;
+    levelsRange: LevelsRange;
     isolinesType: Isolines;
     isolinesOn: boolean;
     product: Products;
@@ -463,411 +472,11 @@ export interface SummaryDay extends CalendarSummaryDay {
     isFake?: boolean;
 }
 
-/**
- * Weather data object as received from backend (compacted version)
- */
-export interface SummaryDataHash {
-    /**
-     * Precip amount
-     */
-    mm: NumValue[];
-
-    /**
-     * Is the precipitation in a form fo snow?
-     */
-    snow: (1 | 0)[];
-
-    /**
-     * Temp in K
-     */
-    temp: NumValue[];
-
-    /**
-     * Timestamp of beginning of segment
-     */
-    ts: Timestamp[];
-
-    /**
-     * Wind force
-     */
-    wind: NumValue[];
-}
-
 export interface IsDay {
     /**
      * Is the segment day/night or sunrise/sunset as 0,1 or day/night ratio
      */
     isDay: (0 | 1 | number)[];
-}
-
-/**
- * Weather data object as received from backend (full version)
- */
-export interface DataHash extends SummaryDataHash, IsDay {
-    /**
-     * Day identifier
-     */
-    day: YearMonthDay[];
-
-    /**
-     * Feeling temperature
-     */
-    feelTemp?: NumValue[];
-
-    /**
-     * Wind gust
-     */
-    gust: NumValue[];
-
-    /**
-     * Local Time hour for given place in 24h format
-     */
-    hour: Hours[];
-
-    /**
-     * Weather icon identifier
-     */
-    icon: number[];
-
-    /**
-     * Moon phase icon identifier
-     */
-    moonPhase: number[];
-
-    /**
-     * ?????
-     */
-    //precipitation: NumValue[];
-
-    /**
-     * Surface air pressure
-     */
-    pressure: NumValue[];
-
-    /**
-     * Relative humidity
-     */
-    rh: NumValue[];
-
-    /**
-     * Is the forecasted precipitation rain?
-     */
-    rain: (0 | 1)[];
-
-    /**
-     * ????
-     */
-    //snowFraction: NumValue[];
-
-    /**
-     * Amount of snow precipitation
-     */
-    snowPrecip: NumValue[];
-
-    /**
-     * Amount of convective precipitation
-     */
-    convPrecip?: NumValue[];
-
-    /**
-     * Weather code, that explains used weather icon
-     */
-    weathercode: string[];
-
-    /**
-     * Wind direction
-     */
-    windDir: NumValue[];
-
-    /**
-     * Dew point
-     */
-    dewPoint: NumValue[];
-
-    /**
-     * CAP warnings as a string /^[MSE][Type]/
-     * can be easilly typed later on
-     */
-    warnings?: string[];
-
-    /**
-     * Cloud base
-     */
-    cbase?: NumValue[];
-
-    /**
-     * These properties are prosent, onoy in certail modelsin the sea or nearby of sea
-     */
-    swell?: NumValue[];
-    swellDir?: NumValue[];
-    swellPeriod?: NumValue[];
-
-    swell1?: NumValue[];
-    swell1Dir?: NumValue[];
-    swell1Period?: NumValue[];
-
-    swell2?: NumValue[];
-    swell2Dir?: NumValue[];
-    swell2Period?: NumValue[];
-
-    waves?: NumValue[];
-    wavesDir?: NumValue[];
-    wavesPeriod?: NumValue[];
-
-    /**
-     * These properties are monkey patched to data table by detail plugin
-     * TODO: put in diff type
-     */
-    [key: `${string}/wind`]: NumValue[];
-    [key: `${string}/windDir`]: NumValue[];
-    [key: `${string}/gust`]: NumValue[];
-
-    /**
-     * TODO This is ugly. Plugin station renames `mm` to `precip` property just to suit its rendering
-     */
-    precip?: NumValue[];
-
-    turbulence?: NumValue[];
-    icing?: NumValue[];
-
-    /**
-     * Indicates, that these data are fake, just for purpose to show non-premium users how the extended fcst looks like
-     */
-    isFake?: boolean[];
-}
-
-/**
- * It picks all properties from DataHash which extends type passed to U parameter.
- * Strict means the extension has to be from both sides.
- *
- * @example
- * PickDataHashPropsByType<string[]> = { date: ..., weathercode: ... };
- * PickDataHashPropsByType<string, false> even with `warnings`, because the could be undefined and undefined does not extend number[]
- */
-export type PickDataHashPropsByType<U, Strict = true> = Pick<
-    DataHash,
-    {
-        [P in keyof Required<DataHash>]: Strict extends true
-            ? DataHash[P] extends U
-                ? U extends DataHash[P]
-                    ? P
-                    : never
-                : never
-            : U extends DataHash[P]
-              ? P
-              : never;
-    }[keyof DataHash]
->;
-
-export interface AirQDataHash extends IsDay {
-    /**
-     * Timestamp of beginning of segment
-     */
-    ts: Timestamp[];
-
-    /**
-     * Day identifier
-     */
-    day: YearMonthDay[];
-
-    /**
-     * Local Time hour for given place in 24h format
-     */
-    hour: Hours[];
-
-    /**
-     * CAMS airq properties
-     */
-    aqiUs: NumValue[];
-    /**
-     * Concentration of carbon monoxide (CO) in the air.
-     */
-    chemsCosc: NumValue[];
-    /**
-     * Concentration of dust particles (coarse particulate matter) in the air.
-     */
-    chemsDustsm: NumValue[];
-    /**
-     * Concentration of sulfur dioxide (SO2) in the air.
-     */
-    chemsSo2sm: NumValue[];
-    /**
-     * Ground-level ozone (O3) concentration.
-     */
-    go3: NumValue[];
-    /**
-     * Nitrogen dioxide (NO2) concentration.
-     */
-    no2: NumValue[];
-    /**
-     * Particulate matter with a diameter of 10 micrometers or less.
-     */
-    pm10: NumValue[];
-    /**
-     * Particulate matter with a diameter of 2.5 micrometers or less.
-     */
-    pm2p5: NumValue[];
-    /**
-     * Concentration of Alder pollen.
-     */
-    pollenAlder?: NumValue[];
-    /**
-     * Concentration of Birch pollen.
-     */
-    pollenBirch?: NumValue[];
-    /**
-     * Concentration of Grass pollen.
-     */
-    pollenGrass?: NumValue[];
-    /**
-     * Concentration of Mugwort pollen.
-     */
-    pollenMugwort?: NumValue[];
-    /**
-     * Concentration of Olive pollen.
-     */
-    pollenOlive?: NumValue[];
-    /**
-     * Concentration of Ragweed pollen.
-     */
-    pollenRagweed?: NumValue[];
-}
-
-/**
- * node-forecast header object
- */
-export interface NodeForecastHeader {
-    /**
-     * Quality of served data
-     */
-    cache: 'nearbyHit' | 'proximitiHit' | 'miss';
-
-    /**
-     * Elevation above sea level
-     */
-    elevation: number;
-
-    /**
-     * Height of something (it is possible, that value is monkey patched from weatherTableRender FIXME:)
-     */
-    height?: number;
-
-    /**
-     * Data contain info about waves
-     */
-    hasWaves?: number;
-
-    /**
-     * Number of available days in forecast
-     */
-    daysAvail: number;
-
-    /**
-     * Served model
-     */
-    model: Products;
-
-    /**
-     * Ref time in format "2021-09-11"
-     */
-    refTime: YearMonthDay;
-
-    /**
-     * Ref time as timestamp
-     */
-    refTimeOrig: Timestamp;
-
-    /**
-     * Hour model step
-     */
-    step: 1 | 3;
-
-    /**
-     * Update time of weather model
-     */
-    update: ISODateString;
-
-    /**
-     * Update time of weather model
-     */
-    updateTs: Timestamp;
-
-    /**
-     * Some basic celestial stuff (why is it here???)
-     */
-    sunrise: Timestamp;
-    sunset: Timestamp;
-    tzName: string;
-
-    /**
-     * Resulted data table consist of two merged models together
-     */
-    merged: boolean;
-
-    /**
-     * Which model was merged with previous
-     */
-    mergedModel: Products;
-
-    /**
-     * Human readable merged model name
-     */
-    mergedModelName: string;
-
-    /**
-     * Ref time of merged model
-     */
-    mergedModelRefTime: ISODateString;
-
-    /**
-     * [DEPRECATED, use mergedModelStartTs instead] At which table index, merged model starts
-     */
-    mergedModelStart: number;
-
-    /**
-     * Timestamp where the merged model starts
-     */
-    mergedModelStartTs: number;
-
-    /**
-     * Elevation of model grid
-     */
-    modelElevation?: number;
-
-    /**
-     * UTC offset in hours
-     */
-    utcOffset: number;
-
-    /**
-     * Surface sea temperature
-     */
-    sst?: number;
-}
-
-/**
- * Forecasted weather data for NOW
- */
-
-export interface WeatherDataNow {
-    icon: number;
-    temp: NumValue;
-    wind: NumValue;
-    windDir: NumValue;
-    moonPhase: NumValue;
-}
-
-/**
- * Weather data or Summary Weather data JSON as received from node-forecast
- */
-export interface WeatherDataPayload<
-    T extends DataHash | SummaryDataHash | AirQDataHash = DataHash,
-> {
-    header: NodeForecastHeader;
-    celestial: Celestial;
-    summary: Record<YearMonthDay, SummaryDay>;
-    data: T;
-    now?: T extends SummaryDataHash ? WeatherDataNow : never;
 }
 
 export interface DetailExtendedLatLon extends LatLon {
@@ -927,6 +536,18 @@ export type WeatherTableRenderingOptions = {
      * Should we use 12h format for time?
      */
     is12hFormat?: boolean;
+
+    /**
+     * If set, compress data to 6h steps after this many days.
+     * Used for extended forecasts where data beyond this day is less reliable.
+     */
+    compressAfterDays?: number;
+
+    /**
+     * If true, discard all data from the merged model start onward
+     * and recalculate summaries to reflect only the primary model's data.
+     */
+    cutoffAtMergedModelStart?: boolean;
 } & Pick<DetailParams, 'display' | 'step' | 'days'>;
 
 /**
@@ -951,12 +572,12 @@ export interface DetailParams extends DetailExtendedLatLon {
     /**
      * Required point product
      */
-    model: Products;
+    model: PointProducts;
 
     /**
      * Required multiple point products
      */
-    models?: Products[];
+    models?: PointProducts[];
 
     /**
      * Always incrementing synchronization number, that enables
@@ -986,20 +607,7 @@ export interface DetailParams extends DetailExtendedLatLon {
  */
 export interface MultiLoadPayload {
     model: PointProducts;
-    fcst: WeatherDataPayload<DataHash>;
-}
-
-export type MeteogramDataHash = {
-    [data in `${MeteogramLayers}-${MeteogramLevels}`]: NumValue[];
-} & {
-    'gh-surface': null[];
-    hours: Timestamp[];
-};
-
-export interface MeteogramDataPayload {
-    header: NodeForecastHeader;
-    celestial: Celestial;
-    data: MeteogramDataHash;
+    fcst: WeatherDataPayload2<DataHash2>;
 }
 
 /**
@@ -1069,6 +677,46 @@ export interface BillingPlugin {
      * On Android this function will always return an empty string since it's not needed for Android purchases.
      */
     getReceipt: () => Promise<string>;
+}
+
+export const enum StoreKitTransactionState {
+    /** Verified and currently entitled */
+    Purchased = 0,
+    /** Awaiting approval, e.g. Ask to Buy */
+    Pending = 1,
+    /** Entitlement removed, e.g. family-sharing revocation */
+    Revoked = 2,
+}
+
+export interface WindyStoreKitPlugin {
+    /** Fetches product metadata from the App Store for the given product IDs. Must be called before buy(). */
+    getProducts: (opts: { ids: string[] }) => Promise<{
+        products: import('@plugins/_shared/subscription-services/subscription-services.d').IAPProduct[];
+    }>;
+
+    /**
+     * Initiates a purchase via StoreKit2.
+     * Named "buy" rather than "subscribe" because iOS has two product types:
+     * - com.windytv.ios.premium.yearly  (auto-renewable subscription)
+     * - com.windytv.ios.premium.1year   (non-renewable subscription — "subscribe" would be misleading)
+     */
+    buy: (opts: { productId: string }) => Promise<{
+        transactionId: string;
+        /** JWS token signed by Apple — use this for backend verification */
+        signedPayload: string;
+    }>;
+
+    /** Restores all current entitlements. Non-renewable purchases are filtered to those still within their 1-year validity window. */
+    restorePurchases: () => Promise<{
+        transactions: Array<{
+            productId: string;
+            transactionId: string;
+            date: string;
+            state: StoreKitTransactionState;
+            /** JWS token signed by Apple — use this for backend verification */
+            signedPayload: string;
+        }>;
+    }>;
 }
 
 export interface TimeLocal {
@@ -1756,11 +1404,6 @@ export interface ActiveStormCountPayload {
  */
 interface RenderParams {
     /**
-     * Which channels contain tile rendering data
-     */
-    renderFrom?: RenderChannels;
-
-    /**
      * Not confirmed: Display map as a sea, meaning the sea layers are below surface layers
      */
     sea?: boolean;
@@ -1776,24 +1419,23 @@ interface RenderParams {
     particlesIdent?: ParticlesIdent;
 
     /**
-     * Uses two instances of Color for rendering
-     */
-    isMultiColor?: boolean;
-
-    /**
      * Should green channel be interpolated to nearest discreet value
+     * @deprecated used only in globe plugin
      */
     interpolateNearestG?: boolean;
 
     /**
-     * Name of interpolator method
+     * When set, the tile preprocessing shader outputs the raw decoded
+     * numerical value (normalised to [0,1] using the given [min, max] range)
+     * instead of looking up a colour gradient texture.  This lets a
+     * downstream renderer apply its own colouring / thresholding.
      */
-    interpolate?: 'interpolateOverlay' | 'interpolateWaves';
+    passthroughRange?: [number, number];
 
     /**
-     * Used patternator
+     * Additional #defines used for rendering
      */
-    pattern?: PatternType;
+    shaderDefines?: ShaderDefine[];
 }
 
 /**
@@ -1849,27 +1491,38 @@ export interface CapAlertSlided {
     expire: Timestamp;
 }
 
+export interface SummaryDayWithAccu extends SummaryDayWithPredictability {
+    rainAccu: NumValue;
+    snowAccu: NumValue;
+}
+
 /**
  * Handy payload or reusable data that helps to render Forecast Table
  */
-export interface WeatherTableRenderingData<T extends DataHash | AirQDataHash = DataHash> {
+export type WeatherTableRenderingData = (
+    | {
+          data: DataHash2;
+          dataType: 'forecast';
+      }
+    | {
+          data: AirQDataHash2;
+          dataType: 'airq';
+      }
+    | {
+          data: WavesDataHash2;
+          dataType: 'waves';
+      }
+    | {
+          data: DataAndMeteogramHash2;
+          dataType: 'meteogram';
+      }
+    | {
+          data: DataHash2 & AirgramDataHash2;
+          dataType: 'airgram';
+      }
+) & {
     /**
-     * Day identifiers, that were used in data object (above)
-     */
-    usedDays: YearMonthDay[];
-
-    /**
-     * Loaded data.data (modified later by splicing data arrays)
-     */
-    data: T;
-
-    /**
-     * Type of the data above
-     */
-    dataType: 'forecast' | 'airq';
-
-    /**
-     * Length of used forecast as a umber of TD segments
+     * Length of used forecast as a number of TD segments
      */
     dataLength: number;
 
@@ -1877,11 +1530,9 @@ export interface WeatherTableRenderingData<T extends DataHash | AirQDataHash = D
      * Start of timeline
      */
     start: Timestamp;
-    end: Timestamp;
 
     tsWidth: Timestamp;
     pxWidth: Pixel;
-    px2ts: number;
     tdWidth: Pixel;
 
     /**
@@ -1895,17 +1546,66 @@ export interface WeatherTableRenderingData<T extends DataHash | AirQDataHash = D
     utcOffsetMinutes: Minutes;
 
     /**
-     * Indicates that data payload has waves
-     */
-    hasWaves: boolean;
-
-    /**
      * Summary of days used
      */
-    summary: Record<YearMonthDay, SummaryDay>;
-}
+    summary: SummaryDayWithAccu[];
+
+    /**
+     * Optional 1h high res data for metieogram, for Premium users
+     * that can be used for more detailed meteogram rendering in 3h mode
+     */
+    highResolution1hData?: WeatherTableRenderingData & {
+        dataType: 'meteogram';
+        data: DataAndMeteogramHash2;
+    };
+
+    /**
+     * Last timestamp where full-resolution detailed model data is available.
+     * After this point, meteogram-specific data (cloud layers, geopotential heights,
+     * dew point) is not available. Only present for meteogram dataType when the
+     * meteogram time range is shorter than the main data time range.
+     */
+    lastReliableDataTs?: Timestamp;
+
+    /**
+     * Rendering options used to create this data
+     */
+    options: WeatherTableRenderingOptions;
+
+    /**
+     * Forecast header with model metadata (elevation, daysAvail, sst, etc.)
+     */
+    header: NodeForecastHeader2;
+
+    /**
+     * Celestial data (sunrise, sunset, timezone, atSea, etc.)
+     */
+    celestial: Celestial;
+};
 
 export interface SimplifiedGetBoundsOptions {
     animate?: boolean;
     padding?: RequireAtLeastOne<PaddingOptions>;
+}
+
+export interface NativeAppsReleaseInfo {
+    releasedAt: ISODateString;
+    majorVersion: number;
+}
+
+export interface CompassHeading {
+    heading: number;
+}
+
+export interface CompassOptions {
+    enableHighAccuracy?: boolean;
+}
+
+export type WatchHeadingCallback = (heading: CompassHeading | null, err?: unknown) => void;
+
+export interface WindyCompassPlugin {
+    getHeading: (options?: CompassOptions) => Promise<CompassHeading>;
+    watchHeading: (options: CompassOptions, callback: WatchHeadingCallback) => Promise<string>;
+    clearWatch: (options: { id: string }) => Promise<void>;
+    stopWatch: () => Promise<void>;
 }

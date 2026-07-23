@@ -1,5 +1,5 @@
 import { GlTexture } from '@windy/glUtils';
-import type { Color } from '@windy/Color';
+import { type Color } from '@windy/Color';
 import type { DataQuality } from '@windy/Product';
 import type { Vector2 } from '@windy/math';
 export type TileHeader = {

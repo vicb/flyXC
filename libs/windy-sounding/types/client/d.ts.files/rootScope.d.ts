@@ -25,3 +25,7 @@ export type Pois = keyof typeof import('./rootScope').pois;
 export type Isolines = (typeof import('./rootScope').isolinesType)[number];
 
 export type PollenProducts = keyof typeof import('./rootScope').pollenProducts;
+
+export type WaveProducts = (typeof import('./rootScope').waveProducts)[number];
+
+export type FallbackAirProducts = (typeof import('./rootScope').fallbackAirProducts)[number];

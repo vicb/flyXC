@@ -3,15 +3,15 @@ import type { Timestamp, TransformFunction } from '@windy/types';
 import type { Layers } from '@windy/Layer';
 import type { InterpolatorFactory } from '@windy/interpolator';
 import type { BottomSveltePlugins, Plugins, SveltePlugins } from '@windy/plugins.d';
-export type AllowedRenderPlugins = Pick<Plugins, 'radar' | 'radar-plus' | 'cap-alerts' | 'isolines' | 'gl-particles'>;
+export type AllowedRenderPlugins = Pick<Plugins, 'radar-plus' | 'cap-alerts' | 'avalanche-danger' | 'isolines' | 'gl-particles'>;
 interface DependencyModuleMap {
-    radar: WPluginModules['@plugins/radar'];
     'radar-plus': WPluginModules['@plugins/radar-plus'];
     'cap-alerts': WPluginModules['@plugins/cap-alerts'];
+    'avalanche-danger': WPluginModules['@plugins/avalanche-danger'];
     isolines: WPluginModules['@plugins/isolines'];
     'gl-particles': WPluginModules['@plugins/gl-particles'];
 }
-export type Renderers = 'tileLayer' | 'radar' | 'radarPlus' | 'capAlerts' | 'isolines' | 'particles' | 'accumulations' | 'daySwitcher' | 'noUserControl' | 'topoMap';
+export type Renderers = 'tileLayer' | 'radarPlus' | 'capAlerts' | 'avalancheDanger' | 'isolines' | 'particles' | 'accumulations' | 'levelsRange' | 'fireDanger' | 'daySwitcher' | 'noUserControl' | 'topoMap';
 export interface TileParams extends TilePoint {
     url: string;
     intX: number;

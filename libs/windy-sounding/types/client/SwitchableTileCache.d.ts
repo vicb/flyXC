@@ -1,12 +1,5 @@
-import { Bounds, LeafletGlMap, TileCache, type Coords } from '@leafletGl';
-type OnCacheDestroy = () => void;
-export type Cache<TTile> = {
-    cache: TileCache<TTile>;
-    /**
-     * Completely cleans up the cache: disposes of the internal TileCache, un-registers event listeners, cleans up tile preprocessor.
-     */
-    destroy: OnCacheDestroy;
-};
+import { Bounds, LeafletGlMap, type Coords } from '@leafletGl';
+import type { Cache } from '@windy/tileHelpers';
 /**
  * This class serves as a tile cache with the added functionality of
  * being able to swap the internal set of tiles (internal tile cache)
@@ -101,4 +94,3 @@ export declare class SwitchableTileCache<TTile> {
      */
     private _updateInternal;
 }
-export {};

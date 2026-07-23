@@ -21,6 +21,7 @@ export type CachedTile = {
 } | {
     valid: false;
     url: string;
+    _debugMessage: string;
 };
 type TileLayerSourceEvents = {
     /**
@@ -69,7 +70,13 @@ declare class TileLayerSource extends Evented<TileLayerSourceEvents> {
  * A singleton instance of a {@link TileLayerSource}.
  */
 export declare const tileLayerSource: TileLayerSource;
-export declare function fetchImageBlob(url: string, signal?: AbortSignal): Promise<Blob | null>;
+export declare function fetchImageBlob(url: string, signal?: AbortSignal): Promise<{
+    valid: true;
+    blob: Blob;
+} | {
+    valid: false;
+    message: string;
+}>;
 export declare function extractTileHeader(imageBitmapWithHeader: ImageBitmap): Promise<ImageAndHeader>;
 export type DecodedTile = {
     image: ImageBitmap | null;

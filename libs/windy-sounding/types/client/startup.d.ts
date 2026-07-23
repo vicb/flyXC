@@ -6,7 +6,7 @@
  *
  * @module startup
  */
-import type { GeolocationInfo, HomeLocation } from './d.ts.files/interfaces.d';
+import type { GeolocationInfo, HomeLocation } from '@windy/interfaces.d';
 /**
  * Capture an event so that the HP window is cleverly hidden, but
  * at the same time trigger a user action (e.g. opening a menu, etc.)
@@ -19,27 +19,24 @@ export declare function addDefaultListeners(): void;
  *
  *  1. HP weather - always displayed (contains embedded CAP alerts)
  *
- *  2. If applicable fires whats-new or display app is obsolete
+ *  2. Live alerts - displayed if there are any for users location
  *
- *  3. Live alerts - displayed if there are any for users location
+ *  3. Published article
  *
- *  4. Published article
+ *  4. Our custom promos
  *
- *  5. Our custom promos
- *
- *  6. Pin to homepage - always displayed only if user has any pinned favorites
+ *  5. Pin to homepage - always displayed only if user has any pinned favorites
  *
  * @param coords At which location show the HP
  */
 export declare function showStartupElements(coords: HomeLocation | GeolocationInfo): Promise<void>;
-export declare const searchBetterLocation: (this: unknown, ...args: [] & unknown[]) => void;
 export declare const closeAllStartupPlugins: (includingPermanentElements?: boolean) => void;
 /**
  * Hides, the weather DIV
  *
  * @param ev Event that initiated hiding
  */
-export declare function hideStartupElements(ev?: MouseEvent | KeyboardEvent | TouchEvent): void;
+export declare function hideStartupElements(): void;
 /**
  * Click on title or home button
  */

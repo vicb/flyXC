@@ -2,6 +2,7 @@ import { BottomSveltePlugin } from '@windy/BottomSveltePlugins';
 import { Plugin } from '@windy/Plugin';
 import { SveltePanePlugin } from '@windy/SveltePanePlugin';
 import { SveltePlugin } from '@windy/SveltePlugin';
+import { SveltePopupPlugin } from '@windy/SveltePopupPlugin';
 import { TagPlugin } from '@windy/TagPlugin';
 import { StartupElementPlugin } from '@windy/StartupElementPlugin';
 
@@ -10,6 +11,9 @@ export interface BottomSveltePlugins {
     'progress-bar': BottomSveltePlugin<'progress-bar'>;
     'day-switcher': BottomSveltePlugin<'day-switcher'>;
     'cap-alerts': BottomSveltePlugin<'cap-alerts'>;
+    'avalanche-danger': BottomSveltePlugin<'avalanche-danger'>;
+    'levels-range': BottomSveltePlugin<'levels-range'>;
+    'fire-danger': BottomSveltePlugin<'fire-danger'>;
     accumulations: BottomSveltePlugin<'accumulations'>;
 }
 
@@ -21,7 +25,8 @@ export interface SveltePanePlugins {
     articles: SveltePanePlugin<'articles'>;
     debug: SveltePanePlugin<'debug'>;
     hurricanes: SveltePanePlugin<'hurricanes'>;
-    'cap-alert': SveltePanePlugin<'cap-alert'>;
+    'cap-alerts-detail': SveltePanePlugin<'cap-alerts-detail'>;
+    'avalanche-danger-detail': SveltePanePlugin<'avalanche-danger-detail'>;
     'delete-info': SveltePanePlugin<'delete-info'>;
     settings: SveltePanePlugin<'settings'>;
     sounding: SveltePanePlugin<'sounding'>;
@@ -30,35 +35,31 @@ export interface SveltePanePlugins {
     info: SveltePanePlugin<'info'>;
     webcams: SveltePanePlugin<'webcams'>;
     'webcams-detail': SveltePanePlugin<'webcams-detail'>;
-    'webcams-add': SveltePanePlugin<'webcams-add'>;
-    'webcams-edit': SveltePanePlugin<'webcams-edit'>;
-    'webcams-remove': SveltePanePlugin<'webcams-remove'>;
     'report-issue': SveltePanePlugin<'report-issue'>;
     'external-plugins': SveltePanePlugin<'external-plugins'>;
 
     uploader: SveltePanePlugin<'uploader'>;
-    'whats-new': SveltePanePlugin<'whats-new'>;
+}
+
+export interface SveltePopupPlugins {
+    login: SveltePopupPlugin<'login'>;
+    subscription: SveltePopupPlugin<'subscription'>;
+    consent: SveltePopupPlugin<'consent'>;
+    'default-model-selector': SveltePopupPlugin<'default-model-selector'>;
 }
 
 export interface SveltePlugins {
-    login: SveltePlugin<'login'>;
     'nearest-webcams': SveltePlugin<'nearest-webcams'>;
     'nearest-webcams-mobile': SveltePlugin<'nearest-webcams-mobile'>;
-    'nearest-airq': SveltePlugin<'nearest-airq'>;
     'nearest-stations': SveltePlugin<'nearest-stations'>;
     share: SveltePlugin<'share'>;
     multimodel: SveltePlugin<'multimodel'>;
-    subscription: SveltePlugin<'subscription'>;
     'pending-subscription': SveltePlugin<'pending-subscription'>;
     detail: SveltePlugin<'detail'>;
     station: SveltePlugin<'station'>;
-    consent: SveltePlugin<'consent'>;
     rplanner: SveltePlugin<'rplanner'>;
     menu: SveltePlugin<'menu'>;
-    'fav-alert-menu': SveltePlugin<'fav-alert-menu'>;
-    radar: SveltePlugin<'radar'>;
     'radar-plus': SveltePlugin<'radar-plus'>;
-    'radar-plus-use-satellite': SveltePlugin<'radar-plus-use-satellite'>;
     'map-selector': SveltePlugin<'map-selector'>;
 
     // Mobile/desktop only plugins
@@ -67,6 +68,7 @@ export interface SveltePlugins {
     'app-review-dialog': SveltePlugin<'app-review-dialog'>;
     widgets: SveltePlugin<'widgets'>;
     garmin: SveltePlugin<'garmin'>;
+    'garmin-edge': SveltePlugin<'garmin-edge'>;
     'fav-layers': SveltePlugin<'fav-layers'>;
     onboarding: SveltePlugin<'onboarding'>;
     'developer-mode': SveltePlugin<'developer-mode'>;
@@ -78,12 +80,14 @@ export interface SveltePlugins {
     'mobile-ui': SveltePlugin<'mobile-ui'>;
     'embed-ui': SveltePlugin<'embed-ui'>;
     contextmenu: SveltePlugin<'contextmenu'>;
-    'beta-drop-down': SveltePlugin<'beta-drop-down'>;
     upload: SveltePlugin<'upload'>;
     search: SveltePlugin<'search'>;
+    'search-input': SveltePlugin<'search-input'>;
+    'search-my-location': SveltePlugin<'search-my-location'>;
     'picker-mobile': SveltePlugin<'picker-mobile'>; // to Svelte plugin
     'perf-overlay': SveltePlugin<'perf-overlay'>;
     'sun-moon': SveltePlugin<'sun-moon'>;
+    'wind-trajectories': SveltePlugin<'wind-trajectories'>;
 
     // Used as fake plugin for any other external plugin
     // basically we are unable to type each individual external plugin
@@ -109,14 +113,13 @@ export interface TagPlugins {
     'poi-libs': TagPlugin<'poi-libs'>;
     picker: TagPlugin<'picker'>;
     globe: TagPlugin<'globe'>;
-    'heatmaps-redirect': TagPlugin<'heatmaps-redirect'>;
-    'beta-cookie': TagPlugin<'beta-cookie'>;
 }
 
 // Includes plain plugins
 export interface Plugins
     extends TagPlugins,
         SveltePlugins,
+        SveltePopupPlugins,
         SveltePanePlugins,
         PlainPlugins,
         BottomSveltePlugins,
@@ -126,6 +129,7 @@ export interface Plugins
 export interface WindowPlugins
     extends TagPlugins,
         SveltePlugins,
+        SveltePopupPlugins,
         SveltePanePlugins,
         BottomSveltePlugins,
         StartupElementPlugins {}

@@ -22,6 +22,7 @@ export declare class ExternalSveltePlugin extends SveltePlugin<'windy-external-p
     plugin: WPluginModules[`@plugins/windy-external-plugin`] & AdditionalSvelteAssets;
     mobileConfig: Record<InstalledExternalPluginConfig['mobileUI'], Config2config>;
     desktopConfig: Record<InstalledExternalPluginConfig['desktopUI'], Config2config>;
+    tabletConfig: Record<InstalledExternalPluginConfig['desktopUI'], Config2config>;
     widthOfRhPane: number;
     version: SemVersion;
     listenToSingleclick: ExternalPluginConfig['listenToSingleclick'];

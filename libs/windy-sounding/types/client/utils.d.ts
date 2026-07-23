@@ -8,6 +8,10 @@ import type { ExtendedStationType, HTMLString, NumOrNull, NumValue, Path, Timest
 import type { Vector3 } from '@windy/math';
 import type { Readable, Subscriber, Unsubscriber } from 'svelte/store';
 /**
+ * One second duration in ms.
+ */
+export declare const tsSecond: TimeRangeMs;
+/**
  * One minute duration in ms.
  */
 export declare const tsMinute: TimeRangeMs;
@@ -41,6 +45,10 @@ export declare const char2num: (str: string) => number;
  * Size of the vector
  */
 export declare const vec2size: (x: number, y: number) => number;
+/**
+ * Direction of the vector in degrees (0–360), snapped to given precision
+ */
+export declare const vec2dir: (u: number, v: number, precision?: number) => number;
 /**
  * Takes {lat,lon} and returns nice string out of it (rounds coords to two decimals)
  *
@@ -86,6 +94,7 @@ export declare const isValidLatLonObj: <T>(item: LatLon | T) => item is T & LatL
 export declare const normalizeLatLon: (str: string | number) => string;
 /**
  * Just iterates dictionary
+ * @deprecated Use Object.entries instead
  *
  * @param items Object to iterate
  * @param cb Callback called every single iteration
@@ -287,7 +296,7 @@ export declare const getAdjustedNow: (syncTime?: number) => number;
  * @param lang Language code
  * @returns True if language is supported, false otherwise
  */
-export declare const isValidLang: (lang: string) => lang is "id" | "hr" | "th" | "tr" | "en" | "zh-TW" | "zh" | "ja" | "fr" | "ko" | "it" | "ru" | "nl" | "cs" | "pl" | "sv" | "fi" | "ro" | "el" | "hu" | "ca" | "da" | "ar" | "fa" | "hi" | "ta" | "sk" | "uk" | "bg" | "he" | "is" | "lt" | "et" | "vi" | "sl" | "sr" | "sq" | "pt" | "nb" | "es" | "de" | "bn";
+export declare const isValidLang: (lang: string) => lang is "en" | "zh-TW" | "zh" | "ja" | "fr" | "ko" | "it" | "ru" | "nl" | "cs" | "tr" | "pl" | "sv" | "fi" | "ro" | "el" | "hu" | "hr" | "ca" | "da" | "ar" | "fa" | "hi" | "ta" | "sk" | "uk" | "bg" | "he" | "is" | "lt" | "et" | "vi" | "sl" | "sr" | "id" | "th" | "sq" | "pt" | "nb" | "es" | "de" | "bn";
 /**
  * Safely joins server name and path
  *
@@ -449,18 +458,17 @@ export declare const isProfessionalStation: (type: ExtendedStationType) => boole
  */
 export declare const wrapCoords: (tilePoint: TilePoint) => TilePoint;
 /**
- * based on target and provided locatio returns URL where to load .js asset
- * @param location
- */
-export declare const getLocationOfJsAssets: (location: string) => string;
-/**
  * Is valid NumValue
  */
 export declare const isValidNumber: (d: NumOrNull | undefined) => boolean;
 /**
- * Converts C to K
+ * Converts °C to K
  */
 export declare const c2kelvin: (c: number) => number;
+/**
+ * Converts K to °C
+ */
+export declare const kelvin2c: (k: number) => number;
 /**
  * Async version of wait
  */
@@ -547,3 +555,23 @@ export declare const offsetLeafletZoom: (leafletZoom: number) => number;
  * Sometimes we only want to subscribe to changes in store and don't want to be called with initial value
  */
 export declare const subscribeToChange: <T>(store: Readable<T>, callback: Subscriber<T>) => Unsubscriber;
+/**
+ * Computes dew point from relative humidity and temperature using the Magnus formula. Input and output temperatures are in degrees Celsius.
+ * @param relativeHumidityPercent - Relative humidity, in percent (0..100).
+ * @param temperatureCelsius - Temperature, in °C.
+ * @returns Dew point, in °C.
+ */
+export declare const computeDewPointCelsius: (relativeHumidityPercent: number, temperatureCelsius: number) => number;
+/**
+ * Computes dew point from relative humidity and temperature using the Magnus formula. Input and output temperatures are in Kelvin.
+ * @param relativeHumidityPercent - Relative humidity, in percent (0..100).
+ * @param temperatureKelvin - Temperature, in degrees Kelvin.
+ * @returns Dew point, in degrees Kelvin.
+ */
+export declare const computeDewPointKelvin: (relativeHumidityPercent: number, temperatureKelvin: number) => number;
+/** Escapes special regex characters in a string so it can be used as a literal pattern */
+export declare const escapeRegExp: (str: string) => string;
+/**
+ * Stop loading HTML videos when closing article
+ */
+export declare const unloadVideo: (video: HTMLVideoElement) => void;

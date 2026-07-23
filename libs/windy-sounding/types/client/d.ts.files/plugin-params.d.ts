@@ -1,5 +1,4 @@
 import { Fav, FavId } from '@windy/favs.d';
-import { WhatsNewData } from '@windy/startup.d';
 
 import { HttpPayload } from '@windy/http.d';
 import {
@@ -8,11 +7,9 @@ import {
     HomeLocation,
     LatLon,
     PickerCoords,
-    SummaryDataHash,
-    WeatherDataPayload,
     FullRenderParameters,
 } from '@windy/interfaces.d';
-import { Pois, Products } from '@windy/rootScope.d';
+import { Pois, PointProducts } from '@windy/rootScope.d';
 import { SingleClickParams } from '@windy/singleclick.d';
 import {
     DetailDisplayType,
@@ -22,16 +19,22 @@ import {
     type Timestamp,
 } from '@windy/types.d';
 import { WebcamCategoryType } from '@windy/webcams';
-import type { Point } from '@leafletGl';
+import type { Point, GeoJsonObject } from '@leafletGl';
 
 import type { StationDisplayType } from '@plugins/station/station';
 import type { LiveAlertEvent } from '@plugins/startup-live-alerts/startup-live-alerts';
-import type { ArticleStartupData } from '@plugins/articles/articles.d';
+import type { ArticlePromoData, ArticleStartupData } from '@plugins/articles/articles.d';
+import type {
+    FragmentDataPayload,
+    WeatherDataPayload2,
+    AllPossibleDataHashes2,
+} from '@windy/node-forecast-v3.d';
 import type {
     HiddenReasonType,
     ReasonTypes,
     SubscriptionSource,
 } from '@plugins/subscription/subscription';
+import type { AvalancheRisk } from '@plugins/shared/avalanche/avalanche';
 
 /**
  * Type of source event, that led to opening any plugin
@@ -60,7 +63,9 @@ export type PluginOpenEventSource =
     | 'last'
     | 'back-button'
     | 'other'
-    | 'label';
+    | 'label'
+    | `promo-${string}`
+    | 'default-model-selector';
 
 export interface PluginSource {
     source?: PluginOpenEventSource;
@@ -76,7 +81,7 @@ export interface DetailOpenParams extends PluginSource, LatLon {
     /**
      * Product to open
      */
-    product?: Products;
+    product?: PointProducts;
 
     /**
      * Name of locality
@@ -97,6 +102,21 @@ export interface DetailOpenParams extends PluginSource, LatLon {
      * Array of timestamp, when Alert was triggered
      */
     timestamps?: Timestamp[] | null;
+
+    /**
+     * Preloaded point forecast data promise, populated in beforeLoad
+     * to start fetching data before the plugin module is loaded.
+     * Includes the request params so consumer can validate the data matches.
+     */
+    preloadedData?: DetailPreloadedData;
+}
+
+export interface DetailPreloadedData {
+    lat: number;
+    lon: number;
+    model: PointProducts;
+    display: DetailDisplayType;
+    promise: Promise<HttpPayload<WeatherDataPayload2<AllPossibleDataHashes2>>>;
 }
 
 type WebcamDetailOpenParams =
@@ -118,6 +138,10 @@ type RplannerDistanceParams =
           import: boolean;
           content: string;
       } // Uploaded GPX
+    | {
+          coords: string;
+          speed: number;
+      } // Opening from Wind Trajectories plugin by clicking on trajectory
     | undefined;
 
 export type PickerOpenParams =
@@ -127,8 +151,21 @@ export type PickerOpenParams =
           })
     | SingleClickParams;
 
+export type StartupWeatherPromises = {
+    wx: Promise<HttpPayload<FragmentDataPayload>>;
+    capAlerts: Promise<HttpPayload<CapAlertHeadline[]>>;
+    liveAlertsPromise: Promise<
+        HttpPayload<{
+            alerts: LiveAlertEvent[];
+        }>
+    >;
+    articlePromise: Promise<HttpPayload<ArticleStartupData>>;
+    promoPromise: Promise<HttpPayload<ArticlePromoData>>;
+};
+
 export type PluginsOpenParams = {
     detail: DetailOpenParams;
+    'default-model-selector': DetailOpenParams;
     picker: PickerOpenParams;
     'picker-mobile': PickerOpenParams;
     favs: PluginSource;
@@ -140,19 +177,22 @@ export type PluginsOpenParams = {
     multimodel: LatLon & PluginSource & { name?: string | null };
     webcams: (PluginSource & { category: WebcamCategoryType }) | undefined;
     'webcams-detail': PluginSource & WebcamDetailOpenParams;
-    'webcams-edit': PluginSource & WebcamDetailOpenParams;
-    'webcams-remove': PluginSource & WebcamDetailOpenParams;
     settings: PluginSource | undefined;
-    articles: (PluginSource & { id: number | string }) | undefined;
+    articles: (PluginSource & { id: number | string; autoOpened?: boolean }) | undefined;
     upload: PluginSource & { id: string };
     uploader: PluginSource & { id?: string };
-    'cap-alert': PluginSource &
+    'cap-alerts-detail': PluginSource &
         LatLon & {
             /**
              * Name of locality
              */
             name?: string;
         };
+    'avalanche-danger-detail': PluginSource & {
+        regionId: string;
+        geojson?: GeoJsonObject;
+        avalancheRisk?: AvalancheRisk;
+    };
     contextmenu: PluginSource & LatLon & { containerPoint?: Point };
     'beta-drop-down': undefined;
 
@@ -183,10 +223,10 @@ export type PluginsOpenParams = {
     rplanner: PluginSource & RplannerDistanceParams;
     airport: PluginSource & { id: string };
     share: undefined;
-    'report-issue': PluginSource & { openedFrom?: 'radar' | 'satellite' | 'betaDropDown' };
+    'report-issue': PluginSource & { openedFrom?: 'radar' | 'satellite' | 'betaDropDown' | 'menu' };
     'sun-moon': (PluginSource & LatLon) | undefined;
+    'wind-trajectories': (PluginSource & LatLon) | undefined;
     'nearest-stations': PluginSource & LatLon & { compactVersion?: boolean; includeAirq?: boolean };
-    'nearest-airq': PluginSource & LatLon;
     'nearest-webcams-mobile': PluginSource & LatLon;
     'nearest-webcams': PluginSource & LatLon;
     'external-plugins':
@@ -194,22 +234,24 @@ export type PluginsOpenParams = {
         | undefined;
     sounding: PluginSource & LatLon & { name?: string };
     radiosonde: PluginSource & { id: string; lat?: number; lon?: number };
-    'whats-new': PluginSource & { data: WhatsNewData };
     'startup-articles': PluginSource & { data: ArticleStartupData };
-    'startup-promos': PluginSource & { typeOfPromo: 'obsoleteApp' | 'premium' | 'mapyCom' };
+    'startup-promos': PluginSource &
+        (
+            | {
+                  typeOfPromo: 'obsoleteApp';
+              }
+            | { typeOfPromo: 'featured'; data: ArticlePromoData }
+        );
     'startup-weather': PluginSource & {
         coords: HomeLocation | GeolocationInfo;
-        promises: {
-            wx: Promise<HttpPayload<WeatherDataPayload<SummaryDataHash>>>;
-            capAlerts: Promise<HttpPayload<CapAlertHeadline[]>>;
-        };
+        promises: StartupWeatherPromises;
     };
     'startup-pin2hp': PluginSource;
     'startup-live-alerts': PluginSource & {
         coords: LatLon | GeolocationInfo | HomeLocation;
         alerts: LiveAlertEvent[];
     };
-    'startup-debug': PluginSource;
+    'startup-debug': PluginSource & { id?: string };
     login:
         | (PluginSource & {
               reason?: 'login' | 'register';
@@ -233,12 +275,10 @@ export type PluginsOpenParams = {
     'windy-external-plugin': PluginSource & LatLon;
     menu: PluginSource & { scrollTo?: 'pois' };
     onboarding: (PluginSource & { getUserInterests?: boolean }) | undefined;
-    'heatmaps-redirect': PluginSource & { id?: string };
-    'beta-cookie': PluginSource & { action?: 'activate' | 'remove' };
-    'radar-plus-use-satellite': PluginSource | undefined;
     info: PluginSource & {
         displayOverlayInfoFirst?: boolean;
     };
+    'search-my-location': GeolocationInfo;
 } & {
     [external: ExternalPluginIdent]:
         | (PluginSource & { query: Record<string, string> | undefined })
