@@ -1,0 +1,64 @@
+@startuml flyxc_arch
+!define GCPPuml https://raw.githubusercontent.com/Crashedmind/PlantUML-icons-GCP/master/dist
+!include GCPPuml/GCPCommon.puml
+!include GCPPuml/Compute/Cloud_Functions.puml
+'!include GCPPuml/Networking/Cloud_Firewall_Rules.puml
+!include GCPPuml/Compute/Compute_Engine.puml
+!include GCPPuml/Storage/Cloud_Storage.puml
+!include GCPPuml/Databases/Cloud_Datastore.puml
+!include GCPPuml/Databases/Cloud_Memorystore.puml
+!include GCPPuml/Compute/App_Engine.puml
+!include GCPPuml/Compute/GPU.puml
+
+
+
+
+/'
+The other icons will need to come from other stdlib libraries 
+'/
+'!include <awslib/AWSCommon>
+!include <awslib/AWSSimplified.puml>
+!include <awslib/Compute/all.puml>
+!include <awslib14/FrontEndWebMobile/all.puml>
+!include <awslib/general/all.puml>
+!include <awslib14/ApplicationIntegration/all.puml>
+
+'Elements
+Users(Users, "Users", "Users")
+FrontEndWebMobile(Mobile, "Mobile Users", "")
+Client(Desktop, "Desktop Users", "")
+
+Cloud_Datastore(Datastore, "Datastore", "Tracks, Accounts")
+Cloud_Memorystore(Redis, "Redis", "GPS Positions, Status")
+SimpleQueueServiceQueue(Message_Queue, "Message Queue (Elevation, Airspace)", "")
+Cloud_Functions(Cloud_Function, "Cloud Function [run]", "Run Queues")
+Compute_Engine(The_Server, "Compute Server [fxc-server]", "API, Static Files")
+App_Engine(The_Frontend,"Frontend [fxc-front]", "Maps")
+GPU(Airspace_Processing,"[fxc-tiles]", "Airspace Processing")
+Cloud_Storage(Cloud_Storage, "Cloud Storage", "Airspaces")
+Cloud_Memorystore(Fetcher, "Fetcher", "GPS Positions, Users")
+App_Engine(Tracking_Platforms,"Tracking Platforms", "Live Positions")
+
+
+'Relations:
+Users -down-> Mobile: 1.
+Users -down-> Desktop: 2.
+
+Mobile -down-> The_Frontend: 3.
+Desktop -down-> The_Frontend: 4.
+Airspace_Processing -right-> The_Frontend: 5.
+The_Server --> Redis: 6.
+The_Frontend -down-> The_Server: 7.
+The_Server -right-> Message_Queue: 8.
+The_Server -down-> Cloud_Storage: 9.
+The_Server -down-> Datastore: 11.
+Message_Queue -right-> Cloud_Function: 10. 
+Airspace_Processing -down-> Cloud_Storage: 12. Airspace Tiles
+Cloud_Function -down-> Datastore: 13.
+Cloud_Function -down-> Cloud_Storage: 14.
+The_Frontend -down-> Cloud_Storage: 15. Retrieve Tiles
+Fetcher --> Datastore: 16. Fetch User List
+Fetcher --> Redis: 17. Store Positions
+Fetcher -up-> Tracking_Platforms: 18. Fetch Live Positions
+
+@enduml
