@@ -13,21 +13,19 @@
     "lib": ["ES2024", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
-    "baseUrl": ".",
     "resolveJsonModule": true,
     "paths": {
       "@windy/*": [
-        "libs/windy-sounding/types/*",
-        "libs/windy-sounding/types/client/*",
-        "libs/windy-sounding/types/client/d.ts.files/*"
+        "./libs/windy-sounding/types/*",
+        "./libs/windy-sounding/types/client/*",
+        "./libs/windy-sounding/types/client/d.ts.files/*"
       ],
-      "windy-sounding": ["libs/windy-sounding/src/index.ts"]
+      "windy-sounding": ["./libs/windy-sounding/src/index.ts"]
     },
     "strict": false,
     "noUncheckedSideEffectImports": false,
     "types": ["*"],
-    "esModuleInterop": false,
-    "ignoreDeprecations": "6.0"
+    "esModuleInterop": true
   },
   "exclude": ["node_modules", "tmp"]
 }

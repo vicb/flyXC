@@ -4,7 +4,6 @@
 // - https://support.garmin.com/en-US/?faq=tdlDCyo1fJ5UxjUbA9rMY8 (offline)
 // - https://web.archive.org/web/20230328084014/https://support.garmin.com/en-US/?faq=tdlDCyo1fJ5UxjUbA9rMY8
 
-import type { TrackerNames } from '@flyxc/common';
 import {
   fetchResponse,
   formatReqError,
@@ -16,8 +15,7 @@ import {
   simplifyLiveTrack,
   validateInreachAccount,
 } from '@flyxc/common';
-import { pushListCap } from '@flyxc/common-node';
-import { DOMParser } from '@xmldom/xmldom';
+import { createXmlParser, pushListCap, sanitizeXmlInput } from '@flyxc/common-node';
 
 import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
@@ -177,12 +175,11 @@ export class InreachFetcher extends TrackerFetcher {
 export function parse(kmlFeed: string): LivePoint[] {
   const points: LivePoint[] = [];
 
-  // Strip leading UTF-8 BOM if present; otherwise xmldom fails to parse the XML declaration.
-  kmlFeed = kmlFeed.replace(/^\uFEFF/, '').trim();
-  if (kmlFeed.length == 0) {
+  const sanitized = sanitizeXmlInput(kmlFeed);
+  if (sanitized.length === 0) {
     return points;
   }
-  const parser = new DOMParser({
+  const parser = createXmlParser({
     onError: (level: string, msg: string): void => {
       if (/error/i.test(level)) {
         throw new Error(`Invalid InReach feed (${msg}) - feed: ${kmlFeed}`);
@@ -190,7 +187,7 @@ export function parse(kmlFeed: string): LivePoint[] {
     },
   });
 
-  const placemarks = parser.parseFromString(kmlFeed, 'text/xml').getElementsByTagName('Placemark');
+  const placemarks = parser.parseFromString(sanitized, 'text/xml').getElementsByTagName('Placemark');
 
   for (let p = 0; p < placemarks.length; p++) {
     const placemark = placemarks[p];

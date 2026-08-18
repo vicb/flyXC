@@ -14,7 +14,6 @@
     "@google-cloud/datastore": "catalog:default",
     "@google-cloud/pubsub": "catalog:default",
     "@tmcw/togeojson": "^7.1.2",
-    "@xmldom/xmldom": "catalog:default",
     "compression": "^1.8.1",
     "connect-redis": "9.x",
     "cors": "^2.8.6",
