@@ -63,12 +63,8 @@ export function parseXmlDocument(content: string, options?: XmlParserOptions): D
   try {
     const parser = createXmlParser(options);
     return parser.parseFromString(sanitized, 'text/xml');
-  } catch (e) {
-    if (options?.onError) {
-      options.onError('fatalError', String(e));
-    } else {
-      console.error(`${options?.label ?? 'XML'} parse error (${e})`);
-    }
+  } catch {
+    // Parse errors (including fatalError) are already reported by DOMParser via onError.
     return null;
   }
 }

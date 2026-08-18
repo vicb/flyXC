@@ -2,7 +2,7 @@
   "name": "@flyxc/common-node",
   "version": "0.0.1",
   "type": "module",
-  "peerDependencies": {
+  "dependencies": {
     "@flyxc/common": "workspace:*",
     "@google-cloud/datastore": "catalog:default",
     "@google-cloud/pubsub": "catalog:default",

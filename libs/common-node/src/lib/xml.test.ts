@@ -57,5 +57,17 @@ describe('XML utilities', () => {
       const doc = parseXmlDocument('<invalid', { label: 'Test' });
       expect(doc).toBeNull();
     });
+
+    it('should report fatal errors to onError', () => {
+      const errors: { level: string; msg: string }[] = [];
+      const doc = parseXmlDocument('<invalid', {
+        onError: (level, msg) => {
+          errors.push({ level, msg });
+        },
+      });
+      expect(doc).toBeNull();
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.some((e) => e.level === 'error' || e.level === 'fatalError')).toBe(true);
+    });
   });
 });
