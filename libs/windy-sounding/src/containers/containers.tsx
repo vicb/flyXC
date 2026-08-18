@@ -1,6 +1,6 @@
 import type { LatLon } from '@windy/interfaces';
 import { intlFormatDistance } from 'date-fns/intlFormatDistance';
-import { useCallback, useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
 import { Favorites } from '../components/favorites';
@@ -54,9 +54,11 @@ export function Plugin() {
   // Resizable height on mobile.
   const [mobileHeight, setMobileHeight] = useState<number | undefined>();
   const height = mobileHeight ?? startHeight;
-  let isDragging = false;
-  let yOnStartDrag = 0;
-  let heightOnStartDrag = 0;
+  const dragRef = useRef({
+    isDragging: false,
+    yOnStartDrag: 0,
+    heightOnStartDrag: 0,
+  });
 
   const dispatch: AppDispatch = useDispatch();
   // Fetch data when the cache has expired or model/location changes.
@@ -74,9 +76,11 @@ export function Plugin() {
 
   const startResize = useCallback(
     (e: PointerEvent) => {
-      isDragging = true;
-      yOnStartDrag = e.screenY;
-      heightOnStartDrag = height;
+      dragRef.current = {
+        isDragging: true,
+        yOnStartDrag: e.screenY,
+        heightOnStartDrag: height,
+      };
       e.preventDefault();
       e.stopImmediatePropagation();
     },
@@ -85,9 +89,9 @@ export function Plugin() {
 
   const resize = useCallback(
     (e: PointerEvent) => {
-      if (isDragging) {
+      if (dragRef.current.isDragging) {
         const height = Math.min(
-          Math.max(heightOnStartDrag + yOnStartDrag - e.screenY, startHeight / 3),
+          Math.max(dragRef.current.heightOnStartDrag + dragRef.current.yOnStartDrag - e.screenY, startHeight / 3),
           startHeight * 1.2,
         );
         setMobileHeight(Math.round(height));
@@ -99,29 +103,32 @@ export function Plugin() {
   );
 
   const endResize = useCallback((e: PointerEvent) => {
-    isDragging = false;
+    dragRef.current.isDragging = false;
     e.preventDefault();
     e.stopImmediatePropagation();
   }, []);
 
-  let ignoreWheelEventUntilMs = 0;
-  const handleWheelEvent = useCallback((e: WheelEvent) => {
-    const timeMs = Date.now();
-    if (timeMs > ignoreWheelEventUntilMs) {
-      const size = e.shiftKey || e.ctrlKey ? 'day' : 'hour';
-      const step: TimeStep = {
-        direction: Math.sign(e.deltaY) > 0 ? 'forward' : 'backward',
-        size,
-      };
-      dispatch(updateTime(step));
-      ignoreWheelEventUntilMs = timeMs + (size === 'day' ? 600 : 50);
-    } else if (ignoreWheelEventUntilMs < timeMs + 50) {
-      // Ignore bursts of events (windows/mac).
-      ignoreWheelEventUntilMs += 10;
-    }
-    e.stopImmediatePropagation();
-    e.preventDefault();
-  }, []);
+  const ignoreWheelEventUntilMsRef = useRef(0);
+  const handleWheelEvent = useCallback(
+    (e: WheelEvent) => {
+      const timeMs = Date.now();
+      if (timeMs > ignoreWheelEventUntilMsRef.current) {
+        const size = e.shiftKey || e.ctrlKey ? 'day' : 'hour';
+        const step: TimeStep = {
+          direction: Math.sign(e.deltaY) > 0 ? 'forward' : 'backward',
+          size,
+        };
+        dispatch(updateTime(step));
+        ignoreWheelEventUntilMsRef.current = timeMs + (size === 'day' ? 600 : 50);
+      } else if (ignoreWheelEventUntilMsRef.current < timeMs + 50) {
+        // Ignore bursts of events (windows/mac).
+        ignoreWheelEventUntilMsRef.current += 10;
+      }
+      e.stopImmediatePropagation();
+      e.preventDefault();
+    },
+    [dispatch],
+  );
 
   const isDev = process.env.NODE_ENV === 'development';
 
