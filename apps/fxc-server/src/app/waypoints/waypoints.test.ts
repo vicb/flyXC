@@ -1,4 +1,4 @@
-import { encodeGPXRoute } from './waypoints';
+import { encode, encodeGPXRoute } from './waypoints';
 
 describe('waypoints', () => {
   test('encodeGPXRoute', () => {
@@ -32,6 +32,30 @@ describe('waypoints', () => {
         "filename": "route.gpx",
         "mime": "application/gpx+xml",
       }
+    `);
+  });
+
+  test('encodeGPXWaypoints', () => {
+    const res = encode(
+      'gpx',
+      [
+        { lat: 1.1, lon: 2.2, alt: 100 },
+        { lat: 3.3, lon: 4.4, alt: 200 },
+      ],
+      'wpt',
+    );
+    expect(res.mime).toBe('application/gpx+xml');
+    expect(res.filename).toBe('waypoints.gpx');
+    expect(res.file).toMatchInlineSnapshot(`
+      "<?xml version="1.0" encoding="UTF-8"?>
+      <gpx creator="fabulator:gpx-builder" version="1.1" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 https://www.topografix.com/GPX/1/1/gpx.xsd">
+        <wpt lat="1.100000" lon="2.200000">
+          <name>wpt001</name>
+        </wpt>
+        <wpt lat="3.300000" lon="4.400000">
+          <name>wpt002</name>
+        </wpt>
+      </gpx>"
     `);
   });
 });
