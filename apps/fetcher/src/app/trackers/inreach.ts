@@ -177,18 +177,20 @@ export class InreachFetcher extends TrackerFetcher {
 export function parse(kmlFeed: string): LivePoint[] {
   const points: LivePoint[] = [];
 
+  // Strip leading UTF-8 BOM if present; otherwise xmldom fails to parse the XML declaration.
+  kmlFeed = kmlFeed.replace(/^\uFEFF/, '').trim();
   if (kmlFeed.length == 0) {
     return points;
   }
   const parser = new DOMParser({
-    errorHandler: (level: string, msg: string): void => {
+    onError: (level: string, msg: string): void => {
       if (/error/i.test(level)) {
         throw new Error(`Invalid InReach feed (${msg}) - feed: ${kmlFeed}`);
       }
     },
   });
 
-  const placemarks = parser.parseFromString(kmlFeed).getElementsByTagName('Placemark');
+  const placemarks = parser.parseFromString(kmlFeed, 'text/xml').getElementsByTagName('Placemark');
 
   for (let p = 0; p < placemarks.length; p++) {
     const placemark = placemarks[p];
