@@ -9,9 +9,9 @@ import { getAppFolderFromDist } from '../util';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const newInfoFile = resolve(join(getAppFolderFromDist(__dirname), '/assets/tiles-info.json'));
-const refInfoFile = resolve(join(getAppFolderFromDist(__dirname), '/assets/tiles-info-previous.json'));
-const defaultOutputFile = resolve(join(getAppFolderFromDist(__dirname), '/assets/tiles-info-diff.json'));
+const newInfoFile = resolve(join(getAppFolderFromDist(__dirname), 'assets/tiles-info.json'));
+const refInfoFile = resolve(join(getAppFolderFromDist(__dirname), 'assets/tiles-info-previous.json'));
+const defaultOutputFile = resolve(join(getAppFolderFromDist(__dirname), 'assets/tiles-info-diff.json'));
 
 program
   .option('-n, --new <file>', 'new fingerprints', newInfoFile)

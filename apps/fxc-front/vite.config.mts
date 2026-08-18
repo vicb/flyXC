@@ -10,7 +10,7 @@ import { defineConfig, type UserConfig } from 'vite';
 import { checker } from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 
-import { getPwaConfig } from './pwa.config';
+import { getPwaConfig } from './pwa.config.ts';
 
 const assetFileNames = (assetInfo: any) => {
   if (!assetInfo.name) {
@@ -28,7 +28,7 @@ const assetFileNames = (assetInfo: any) => {
 
 export default defineConfig(
   ({ mode }): UserConfig => ({
-    root: __dirname,
+    root: import.meta.dirname,
     cacheDir: 'node_modules/.vite/apps/fxc-front',
 
     server: {
@@ -125,7 +125,7 @@ export default defineConfig(
 
 // Get the airspace update date from the commit.
 function getAirspaceDate() {
-  const tileInfo = join(__dirname, '/..', '/fxc-tiles/src/assets/tiles/tiles-info.json');
+  const tileInfo = join(import.meta.dirname, '..', 'fxc-tiles/src/assets/tiles/tiles-info.json');
 
   if (existsSync(tileInfo)) {
     try {

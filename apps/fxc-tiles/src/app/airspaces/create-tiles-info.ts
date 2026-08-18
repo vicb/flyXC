@@ -12,9 +12,9 @@ import { getAppFolderFromDist, printOnCurrentLine } from '../util';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), '/assets/tiles'));
-const defaultOutputFile = resolve(join(getAppFolderFromDist(__dirname), '/assets/tiles-info.json'));
-const previousInfoFilename = resolve(join(getAppFolderFromDist(__dirname), '/assets/tiles-info-previous.json'));
+const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), 'assets/tiles'));
+const defaultOutputFile = resolve(join(getAppFolderFromDist(__dirname), 'assets/tiles-info.json'));
+const previousInfoFilename = resolve(join(getAppFolderFromDist(__dirname), 'assets/tiles-info-previous.json'));
 
 program
   .option('-i, --input <folder>', 'input folder', defaultInputFolder)

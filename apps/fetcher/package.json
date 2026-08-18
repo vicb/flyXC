@@ -8,7 +8,7 @@
     "@dotenvx/dotenvx": "catalog:default",
     "@flyxc/common": "workspace:*",
     "@flyxc/common-node": "workspace:*",
-    "@google-cloud/compute": "6.13.0",
+    "@google-cloud/compute": "catalog:default",
     "@google-cloud/datastore": "catalog:default",
     "@google-cloud/pubsub": "catalog:default",
     "@google-cloud/storage": "catalog:default",
