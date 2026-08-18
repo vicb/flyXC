@@ -318,9 +318,6 @@ importers:
       '@google-cloud/storage':
         specifier: catalog:default
         version: 8.0.0
-      '@xmldom/xmldom':
-        specifier: catalog:default
-        version: 0.9.11
       commander:
         specifier: catalog:default
         version: 15.0.0
@@ -482,9 +479,6 @@ importers:
       '@tmcw/togeojson':
         specifier: ^7.1.2
         version: 7.1.2
-      '@xmldom/xmldom':
-        specifier: catalog:default
-        version: 0.9.11
       compression:
         specifier: ^1.8.1
         version: 1.8.1
@@ -692,6 +686,9 @@ importers:
       '@google-cloud/pubsub':
         specifier: catalog:default
         version: 6.0.1
+      '@xmldom/xmldom':
+        specifier: catalog:default
+        version: 0.9.11
       redis:
         specifier: 'catalog:'
         version: 6.2.1(@opentelemetry/api@1.9.0)

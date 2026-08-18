@@ -12,7 +12,6 @@
     "@google-cloud/datastore": "catalog:default",
     "@google-cloud/pubsub": "catalog:default",
     "@google-cloud/storage": "catalog:default",
-    "@xmldom/xmldom": "catalog:default",
     "commander": "catalog:default",
     "date-fns": "catalog:default",
     "geolib": "catalog:default",

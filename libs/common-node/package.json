@@ -6,6 +6,7 @@
     "@flyxc/common": "workspace:*",
     "@google-cloud/datastore": "catalog:default",
     "@google-cloud/pubsub": "catalog:default",
+    "@xmldom/xmldom": "catalog:default",
     "redis": "catalog:",
     "tslib": "catalog:default",
     "vaadin-nodom": "workspace:*",
