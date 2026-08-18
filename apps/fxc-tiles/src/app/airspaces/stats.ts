@@ -7,7 +7,7 @@ import { getAppFolderFromDist } from '../util';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const assetsFolder = resolve(join(getAppFolderFromDist(__dirname), '/assets'));
+const assetsFolder = resolve(join(getAppFolderFromDist(__dirname), 'assets'));
 const airspaces = JSON.parse(readFileSync(join(assetsFolder, 'openaip.json'), 'utf-8'));
 
 const classes = new Map([

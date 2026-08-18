@@ -17,8 +17,8 @@ const NUM_SLOTS = 30;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), '/assets/tiles'));
-const defaultDiffFile = resolve(join(getAppFolderFromDist(__dirname), '/assets/tiles-info-diff.json'));
+const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), 'assets/tiles'));
+const defaultDiffFile = resolve(join(getAppFolderFromDist(__dirname), 'assets/tiles-info-diff.json'));
 
 program
   .option('-i, --input <folder>', 'input folder', defaultInputFolder)
