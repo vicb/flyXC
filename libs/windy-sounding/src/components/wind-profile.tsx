@@ -1,3 +1,5 @@
+import { useMemo } from 'preact/hooks';
+
 import { getPressureToGhScale } from '../util/atmosphere';
 import * as math from '../util/math';
 import { sampleAt } from '../util/math';
@@ -35,30 +37,105 @@ export function WindProfile(props: WindProfileProps) {
     yPointer,
   } = props;
 
-  const maxLevelIndex = levels.findIndex((level) => level < minPressure);
-  const keepToIndex = maxLevelIndex == -1 ? levels.length - 1 : maxLevelIndex;
-  const speedByLevel = windByLevel.map(({ speed }) => speed);
-  const directionByLevel = windByLevel.map(({ direction }) => direction);
+  const {
+    speedByLevel,
+    directionByLevel,
+    maxSpeed,
+    pressureToPxScale,
+    speedToPxScale,
+    pathGenerator,
+    ySurface,
+    surfacePressure,
+  } = useMemo(() => {
+    const maxLevelIndex = levels.findIndex((level) => level < minPressure);
+    const keepToIndex = maxLevelIndex == -1 ? levels.length - 1 : maxLevelIndex;
+    const speedByLevel = windByLevel.map(({ speed }) => speed);
+    const directionByLevel = windByLevel.map(({ direction }) => direction);
 
-  // Set the max to at least 30km/h.
-  const maxSpeed = Math.max(60 / 3.6, ...speedByLevel.slice(0, keepToIndex + 1));
+    // Set the max to at least 30km/h.
+    const maxSpeed = Math.max(60 / 3.6, ...speedByLevel.slice(0, keepToIndex + 1));
 
-  const pressureToGhScale = getPressureToGhScale(levels, ghs, seaLevelPressure);
-  const ghToPxScale = math.scaleLinear([pressureToGhScale(minPressure), pressureToGhScale(maxPressure)], [0, height]);
-  const pressureToPxScale = math.composeScales(pressureToGhScale, ghToPxScale);
+    const pressureToGhScale = getPressureToGhScale(levels, ghs, seaLevelPressure);
+    const ghToPxScale = math.scaleLinear([pressureToGhScale(minPressure), pressureToGhScale(maxPressure)], [0, height]);
+    const pressureToPxScale = math.composeScales(pressureToGhScale, ghToPxScale);
 
-  const speedToPxScale = isFixedRange
-    ? math.scaleLinear([0, 30 / 3.6, maxSpeed], [0, width / 2, width])
-    : math.scaleLinear([0, maxSpeed], [0, width]);
+    const speedToPxScale = isFixedRange
+      ? math.scaleLinear([0, 30 / 3.6, maxSpeed], [0, width / 2, width])
+      : math.scaleLinear([0, maxSpeed], [0, width]);
 
-  const pathGenerator = math.svgPath(
-    (v: [x: number, y: number]) => speedToPxScale(v[0]),
-    (v: [x: number, y: number]) => pressureToPxScale(v[1]),
+    const pathGenerator = math.svgPath(
+      (v: [x: number, y: number]) => speedToPxScale(v[0]),
+      (v: [x: number, y: number]) => pressureToPxScale(v[1]),
+    );
+
+    const ySurface = Math.min(height, Math.round(ghToPxScale(surfaceElevation)));
+    const surfacePressure = pressureToGhScale.invert(surfaceElevation);
+
+    return {
+      speedByLevel,
+      directionByLevel,
+      maxSpeed,
+      pressureToPxScale,
+      speedToPxScale,
+      pathGenerator,
+      ySurface,
+      surfacePressure,
+    };
+  }, [
+    levels,
+    minPressure,
+    windByLevel,
+    ghs,
+    seaLevelPressure,
+    maxPressure,
+    height,
+    isFixedRange,
+    width,
+    surfaceElevation,
+  ]);
+
+  const chartElements = useMemo(
+    () => (
+      <>
+        <rect width={width} height={height} className="background" />
+        <WindAxis {...{ speedToPxScale, width, height, maxSpeed, unit, format, isZoomedIn: isFixedRange }} />
+        <path className="speed line" d={pathGenerator(math.zip(speedByLevel, levels))} />
+        <g transform={`translate(${width / 2}, 0)`}>
+          {levels.map((level: number, i: number) => {
+            if (level > surfacePressure) {
+              return undefined;
+            }
+            return (
+              <WindSymbol
+                key={level}
+                direction={directionByLevel[i]}
+                speed={speedByLevel[i]}
+                y={pressureToPxScale(level)}
+              />
+            );
+          })}
+        </g>
+        <rect className="surface" y={ySurface} width={width} height={height - ySurface + 1} />
+        <rect width={width} height={height} className="border" />
+      </>
+    ),
+    [
+      width,
+      height,
+      speedToPxScale,
+      maxSpeed,
+      unit,
+      format,
+      isFixedRange,
+      pathGenerator,
+      speedByLevel,
+      levels,
+      surfacePressure,
+      directionByLevel,
+      pressureToPxScale,
+      ySurface,
+    ],
   );
-
-  const ySurface = Math.min(height, Math.round(ghToPxScale(surfaceElevation)));
-
-  const surfacePressure = pressureToGhScale.invert(surfaceElevation);
 
   let yOffsetCursor = 4;
   let cursorClass = 'top';
@@ -73,18 +150,7 @@ export function WindProfile(props: WindProfileProps) {
 
   return (
     <g className="graph wind">
-      <rect width={width} height={height} className="background" />
-      <WindAxis {...{ speedToPxScale, width, height, maxSpeed, unit, format, isZoomedIn: isFixedRange }} />
-      <path className="speed line" d={pathGenerator(math.zip(speedByLevel, levels))} />
-      <g transform={`translate(${width / 2}, 0)`}>
-        {levels.map((level: number, i: number) => {
-          if (level > surfacePressure) {
-            return undefined;
-          }
-          return <WindSymbol direction={directionByLevel[i]} speed={speedByLevel[i]} y={pressureToPxScale(level)} />;
-        })}
-      </g>
-      <rect className="surface" y={ySurface} width={width} height={height - ySurface + 1} />
+      {chartElements}
       {yPointer !== undefined && yPointer < ySurface && (
         <g className={`cursor ${cursorClass}`}>
           <text className="speed" x={width - 5} y={yPointer + yOffsetCursor}>
@@ -93,7 +159,6 @@ export function WindProfile(props: WindProfileProps) {
           <line y1={yPointer} y2={yPointer} x2={width} />
         </g>
       )}
-      <rect width={width} height={height} className="border" />
     </g>
   );
 }
