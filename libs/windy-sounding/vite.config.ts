@@ -4,13 +4,14 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import type { UserConfig } from 'vite';
 import { defineConfig } from 'vite';
 
-import { certificatePEM, keyPEM } from './https';
+import { certificatePEM, keyPEM } from './https.ts';
 
 export default defineConfig(({ mode }): UserConfig => {
   const isConfigBuild = process.env.BUILD_PLUGIN_CONFIG === 'true';
 
   return {
-    root: __dirname,
+    root: import.meta.dirname,
+
     cacheDir: './node_modules/.vite',
 
     plugins: isConfigBuild

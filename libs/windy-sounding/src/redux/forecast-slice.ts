@@ -15,7 +15,6 @@ import {
 import type { Scale } from '../util/math';
 import { sampleAt, scaleLinear } from '../util/math';
 import { latLon2Str } from '../util/utils';
-import * as pluginSlice from './plugin-slice';
 import type { AppThunkAPI, RootState } from './store';
 
 const windyUtils = W.utils;
@@ -164,9 +163,9 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
 
     const updateMs = new Date(forecast.value.data.header.update).getTime();
     const product = windyProducts[modelName];
-    const updateIntervalMin = windySubscription.hasAny()
-      ? product.intervalPremium ?? product.interval
-      : product.interval;
+    const updateIntervalMin = product
+      ? (windySubscription.hasAny() ? product.intervalPremium ?? product.interval : product.interval) ?? 360
+      : 360;
 
     return {
       forecastKey,
@@ -184,18 +183,25 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
     condition: (modelAndLocation, api: AppThunkAPI) => {
       // Prevent fetching again while loading or when data is already cached.
       const { modelName, location } = modelAndLocation;
+      // Ignore initial dummy coordinates (0, 0) before a real location is provided.
+      if (location.lat === 0 && location.lon === 0) {
+        return false;
+      }
       const state = api.getState();
-      const pluginStatus = pluginSlice.selStatus(state);
-      const windyData = selMaybeLoadedWindyData(state, modelName, location);
-      return (
-        pluginStatus === pluginSlice.PluginStatus.Ready &&
-        (windyData === undefined ||
-          !(
-            windyData.fetchStatus == FetchStatus.Loaded ||
-            windyData.fetchStatus == FetchStatus.Loading ||
-            windyData.fetchStatus === FetchStatus.ErrorOutOfBounds
-          ))
-      );
+
+      const key = windyDataKey(modelName, location);
+      const forecast = state[slice.name].data[key];
+
+      if (forecast) {
+        if (forecast.fetchStatus === FetchStatus.Loading || forecast.fetchStatus === FetchStatus.ErrorOutOfBounds) {
+          return false;
+        }
+        if (forecast.fetchStatus === FetchStatus.Loaded && isWindyDataCached(state[slice.name], key)) {
+          return false;
+        }
+      }
+
+      return true;
     },
   },
 );
