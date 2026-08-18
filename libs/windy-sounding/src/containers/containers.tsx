@@ -1,5 +1,6 @@
 import type { LatLon } from '@windy/interfaces';
 import { intlFormatDistance } from 'date-fns/intlFormatDistance';
+import { memo } from 'preact/compat';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
@@ -318,49 +319,64 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
   const skewTWidth = Math.round((width * skewTWidthPercent) / 100);
   const windWidth = width - skewTWidth - 5;
 
-  const moveCursor = useCallback(
-    (y: number | undefined) => {
-      if (y === undefined) {
-        // Do not remove the pointer on mobile.
-        if (!W.rootScope.isMobileOrTablet) {
-          setYpointer(undefined);
+  const cursorContextRef = useRef({
+    levels,
+    ghs,
+    seaLevelPressure,
+    minPressure,
+    maxPressure,
+    height,
+  });
+  cursorContextRef.current = {
+    levels,
+    ghs,
+    seaLevelPressure,
+    minPressure,
+    maxPressure,
+    height,
+  };
+
+  const moveCursor = useCallback((y: number | undefined) => {
+    if (y === undefined) {
+      // Do not remove the pointer on mobile.
+      if (!W.rootScope.isMobileOrTablet) {
+        setYpointer(undefined);
+      }
+    } else {
+      setYpointer(y);
+
+      const availLevels = W.store.get('availLevels');
+      if (availLevels && availLevels.length > 1) {
+        const { levels, ghs, seaLevelPressure, minPressure, maxPressure, height } = cursorContextRef.current;
+        const pressureToGhScale = atm.getPressureToGhScale(levels, ghs, seaLevelPressure);
+        const ghMeterToPxScale = math.scaleLinear(
+          [pressureToGhScale(minPressure), pressureToGhScale(maxPressure)],
+          [0, height],
+        );
+        const yMeters = ghMeterToPxScale.invert(y);
+
+        const levelsWithElev = availLevels
+          .filter((level) => level.endsWith('h'))
+          .map((level) => {
+            const levelPressure = parseInt(level.slice(0, -1), 10);
+            return { level, elev: pressureToGhScale(levelPressure) };
+          });
+
+        levelsWithElev.sort((a, b) => a.elev - b.elev);
+
+        let selectedLevel = levelsWithElev[0].level;
+        for (const item of levelsWithElev) {
+          if (yMeters >= item.elev) {
+            selectedLevel = item.level;
+          }
         }
-      } else {
-        setYpointer(y);
 
-        const availLevels = W.store.get('availLevels');
-        if (availLevels && availLevels.length > 1) {
-          const pressureToGhScale = atm.getPressureToGhScale(levels, ghs, seaLevelPressure);
-          const ghMeterToPxScale = math.scaleLinear(
-            [pressureToGhScale(minPressure), pressureToGhScale(maxPressure)],
-            [0, height],
-          );
-          const yMeters = ghMeterToPxScale.invert(y);
-
-          const levelsWithElev = availLevels
-            .filter((level) => level.endsWith('h'))
-            .map((level) => {
-              const levelPressure = parseInt(level.slice(0, -1), 10);
-              return { level, elev: pressureToGhScale(levelPressure) };
-            });
-
-          levelsWithElev.sort((a, b) => a.elev - b.elev);
-
-          let selectedLevel = levelsWithElev[0].level;
-          for (const item of levelsWithElev) {
-            if (yMeters >= item.elev) {
-              selectedLevel = item.level;
-            }
-          }
-
-          if (selectedLevel && W.store.get('level') !== selectedLevel) {
-            W.store.set('level', selectedLevel);
-          }
+        if (selectedLevel && W.store.get('level') !== selectedLevel) {
+          W.store.set('level', selectedLevel);
         }
       }
-    },
-    [levels, ghs, seaLevelPressure, minPressure, maxPressure, height],
-  );
+    }
+  }, []);
 
   return (
     <g
@@ -396,7 +412,7 @@ type ChildGraphProps = {
   maxPressure: number;
 };
 
-function ConnectedSkewT(props: ChildGraphProps) {
+const ConnectedSkewT = memo(function ConnectedSkewT(props: ChildGraphProps) {
   const stateProps: Omit<SkewTProps, keyof ChildGraphProps> = useSelector((state: RootState) => {
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
@@ -435,11 +451,11 @@ function ConnectedSkewT(props: ChildGraphProps) {
   }, shallowEqual);
 
   return <SkewT {...{ ...props, ...stateProps }} />;
-}
+});
 
 // Wind Profile
 
-function ConnectedWind(props: ChildGraphProps) {
+const ConnectedWind = memo(function ConnectedWind(props: ChildGraphProps) {
   const stateProps = useSelector((state: RootState) => {
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
@@ -465,7 +481,7 @@ function ConnectedWind(props: ChildGraphProps) {
   }, shallowEqual);
 
   return <WindProfile {...{ ...props, ...stateProps }} />;
-}
+});
 
 // Favorites
 
