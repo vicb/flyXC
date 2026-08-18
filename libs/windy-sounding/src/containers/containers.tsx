@@ -1,6 +1,6 @@
 import type { LatLon } from '@windy/interfaces';
 import { intlFormatDistance } from 'date-fns/intlFormatDistance';
-import { useCallback, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
 import { Favorites } from '../components/favorites';
@@ -59,8 +59,14 @@ export function Plugin() {
   let heightOnStartDrag = 0;
 
   const dispatch: AppDispatch = useDispatch();
-  // Fetch data when the cache has expired.
-  dispatch(forecastSlice.fetchForecast({ modelName, location }));
+  // Fetch data when the cache has expired or model/location changes.
+  // Ignore initial dummy coordinates (0, 0) before openPlugin sets the actual location.
+  useEffect(() => {
+    if (location.lat !== 0 || location.lon !== 0) {
+      dispatch(forecastSlice.fetchForecast({ modelName, location }));
+    }
+  }, [dispatch, modelName, location]);
+
   const selectFavorite = useCallback((location: LatLon) => {
     dispatch(changeLocation(location));
     centerMap(location);
@@ -253,34 +259,31 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
 
   const setIsZoomedIn = useCallback((expanded: boolean) => dispatch(pluginSlice.setIsZoomedIn(expanded)), []);
 
-  const { minPressure, maxPressure, isZoomedIn, levels, ghs, seaLevelPressure } = useSelector(
-    (state: RootState) => {
-      const timeMs = pluginSlice.selTimeMs(state);
-      const isZoomedIn = pluginSlice.selIsZoomedIn(state);
-      const modelName = pluginSlice.selModelName(state);
-      const location = pluginSlice.selLocation(state);
-      const elevation = forecastSlice.selElevation(state, modelName, location);
-      const minModelPressure = forecastSlice.selMinModelPressure(state, modelName, location);
-      const pressureToGhScale = forecastSlice.selPressureToGhScale(state, modelName, location, timeMs);
-      const minPressure = isZoomedIn
-        ? Math.round(Math.max(pressureToGhScale.invert(5200 + (elevation * 2) / 5), minModelPressure))
-        : minModelPressure;
-      const maxPressure = Math.min(1000, Math.round(pressureToGhScale.invert((elevation * 4) / 5)));
+  const { minPressure, maxPressure, isZoomedIn, levels, ghs, seaLevelPressure } = useSelector((state: RootState) => {
+    const timeMs = pluginSlice.selTimeMs(state);
+    const isZoomedIn = pluginSlice.selIsZoomedIn(state);
+    const modelName = pluginSlice.selModelName(state);
+    const location = pluginSlice.selLocation(state);
+    const elevation = forecastSlice.selElevation(state, modelName, location);
+    const minModelPressure = forecastSlice.selMinModelPressure(state, modelName, location);
+    const pressureToGhScale = forecastSlice.selPressureToGhScale(state, modelName, location, timeMs);
+    const minPressure = isZoomedIn
+      ? Math.round(Math.max(pressureToGhScale.invert(5200 + (elevation * 2) / 5), minModelPressure))
+      : minModelPressure;
+    const maxPressure = Math.min(1000, Math.round(pressureToGhScale.invert((elevation * 4) / 5)));
 
-      const periodValues = forecastSlice.selPeriodValues(state, modelName, location);
-      const timeValues = forecastSlice.selValuesAt(state, modelName, location, timeMs);
+    const periodValues = forecastSlice.selPeriodValues(state, modelName, location);
+    const timeValues = forecastSlice.selValuesAt(state, modelName, location, timeMs);
 
-      return {
-        isZoomedIn,
-        minPressure,
-        maxPressure,
-        levels: periodValues.levels,
-        ghs: timeValues.gh,
-        seaLevelPressure: timeValues.seaLevelPressure,
-      };
-    },
-    shallowEqual,
-  );
+    return {
+      isZoomedIn,
+      minPressure,
+      maxPressure,
+      levels: periodValues.levels,
+      ghs: timeValues.gh,
+      seaLevelPressure: timeValues.seaLevelPressure,
+    };
+  }, shallowEqual);
 
   const skewTWidth = Math.round((width * skewTWidthPercent) / 100);
   const windWidth = width - skewTWidth - 5;
