@@ -23,29 +23,14 @@ import { formatTimestamp } from '../util/utils';
 // Plugin
 
 export function Plugin() {
-  const { width, startHeight, status, fetchStatus, isWindyDataAvailableAtCurrentTime, modelName, location } =
-    useSelector((state: RootState) => {
-      const modelName = pluginSlice.selModelName(state);
-      const location = pluginSlice.selLocation(state);
-      const timeMs = pluginSlice.selTimeMs(state);
-      const fetchStatus = forecastSlice.selFetchStatus(state, modelName, location);
-      let isWindyDataAvailableAtCurrentTime;
-      try {
-        isWindyDataAvailableAtCurrentTime = forecastSlice.selIsWindyDataAvailableAt(state, modelName, location, timeMs);
-      } catch (e) {
-        isWindyDataAvailableAtCurrentTime = false;
-      }
-      return {
-        width: pluginSlice.selWidth(state),
-        startHeight: pluginSlice.selHeight(state),
-        status: pluginSlice.selStatus(state),
-        fetchStatus,
-
-        modelName,
-        location,
-        isWindyDataAvailableAtCurrentTime,
-      };
-    }, shallowEqual);
+  const { width, startHeight, modelName, location } = useSelector((state: RootState) => {
+    return {
+      width: pluginSlice.selWidth(state),
+      startHeight: pluginSlice.selHeight(state),
+      modelName: pluginSlice.selModelName(state),
+      location: pluginSlice.selLocation(state),
+    };
+  }, shallowEqual);
 
   if (startHeight === 0) {
     return;
@@ -132,6 +117,91 @@ export function Plugin() {
 
   const isDev = process.env.NODE_ENV === 'development';
 
+  return (
+    <>
+      <div
+        id="wsp-title"
+        className="plugin__title plugin__title--chevron-back desktop-only"
+        onClick={openMenu as any}
+        onKeyDown={openMenu as any}
+        role="button"
+        tabIndex={0}
+      >
+        <img id="wsp-icon" src={flyxcIcon} width="30" height="30" alt="flyXC" />
+        {isDev && (
+          <span id="wsp-dev" className="badge fg-white bg-orange size-xs">
+            dev
+          </span>
+        )}
+        {pluginConfig.title}
+        <span id="wsp-version" className="size-s">
+          v{pluginConfig.version}
+        </span>
+      </div>
+
+      <div id="wsp-sounding">
+        <section onWheel={handleWheelEvent as any}>
+          <Details />
+          <SoundingDiagram
+            {...{
+              width,
+              height,
+              startResize,
+              resize,
+              endResize,
+            }}
+          />
+        </section>
+        <section>
+          <ConnectedFavorites onSelected={selectFavorite} />
+        </section>
+        <div id="wsp-sponsor" className="bg-red desktop-only">
+          <p>Please consider sponsoring the development of this plugin</p>
+          <a href="https://www.buymeacoffee.com/vic.b" target="_blank">
+            <img
+              src="https://cdn.buymeacoffee.com/buttons/default-orange.png"
+              alt="Buy Me A Coffee"
+              height="30"
+              width="150"
+            />
+          </a>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function SoundingDiagram({
+  width,
+  height,
+  startResize,
+  resize,
+  endResize,
+}: {
+  width: number;
+  height: number;
+  startResize: (e: PointerEvent) => void;
+  resize: (e: PointerEvent) => void;
+  endResize: (e: PointerEvent) => void;
+}) {
+  const { status, fetchStatus, isWindyDataAvailableAtCurrentTime } = useSelector((state: RootState) => {
+    const modelName = pluginSlice.selModelName(state);
+    const location = pluginSlice.selLocation(state);
+    const timeMs = pluginSlice.selTimeMs(state);
+    const fetchStatus = forecastSlice.selFetchStatus(state, modelName, location);
+    let isWindyDataAvailableAtCurrentTime;
+    try {
+      isWindyDataAvailableAtCurrentTime = forecastSlice.selIsWindyDataAvailableAt(state, modelName, location, timeMs);
+    } catch (e) {
+      isWindyDataAvailableAtCurrentTime = false;
+    }
+    return {
+      status: pluginSlice.selStatus(state),
+      fetchStatus,
+      isWindyDataAvailableAtCurrentTime,
+    };
+  }, shallowEqual);
+
   const isLoading =
     status !== pluginSlice.PluginStatus.Ready ||
     fetchStatus === forecastSlice.FetchStatus.Idle ||
@@ -161,99 +231,52 @@ export function Plugin() {
       break;
   }
 
-  return (
-    <>
-      <div
-        id="wsp-title"
-        className="plugin__title plugin__title--chevron-back desktop-only"
-        onClick={openMenu as any}
-        onKeyDown={openMenu as any}
-        role="button"
-        tabIndex={0}
-      >
-        <img id="wsp-icon" src={flyxcIcon} width="30" height="30" alt="flyXC" />
-        {isDev && (
-          <span id="wsp-dev" className="badge fg-white bg-orange size-xs">
-            dev
-          </span>
-        )}
-        {pluginConfig.title}
-        <span id="wsp-version" className="size-s">
-          v{pluginConfig.version}
-        </span>
-      </div>
+  if (errorMessage && !isLoading) {
+    return <Message {...{ width, height, message: errorMessage }} />;
+  }
 
-      <div id="wsp-sounding">
-        <section onWheel={handleWheelEvent as any}>
-          <Details />
-          {errorMessage && !isLoading ? (
-            <Message {...{ width, height, message: errorMessage }} />
-          ) : (
-            <svg {...{ height, width }}>
-              <defs>
-                <pattern
-                  id="hatch"
-                  patternUnits="userSpaceOnUse"
-                  width="8"
-                  height="8"
-                  patternTransform="rotate(45 2 2)"
-                >
-                  <rect width="8" height="8" fill="lightyellow" opacity="0.4" />
-                  <path d="M 0,-1 L 0,11" stroke="gray" strokeWidth="1" />
-                </pattern>
-                <filter id="outline" colorInterpolationFilters="sRGB">
-                  <feMorphology in="SourceAlpha" result="morph" operator="dilate" radius="2" />
-                  <feColorMatrix
-                    in="morph"
-                    result="whitened"
-                    type="matrix"
-                    values="-1 0 0 0 1, 0 -1 0 0 1, 0 0 -1 0 1, 0 0 0 1 0"
-                  />
-                  <feMerge>
-                    <feMergeNode in="whitened" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              {isLoading ? (
-                <LoadingIndicator {...{ width, height }} />
-              ) : (
-                <>
-                  <Graph {...{ width, height, skewTWidthPercent: 80 }} />
-                  {W.rootScope.isMobileOrTablet && (
-                    <g
-                      id="wsp-resize"
-                      onPointerDown={(e: any) => startResize(e)}
-                      onPointerUp={(e: any) => endResize(e)}
-                      onPointerLeave={(e: any) => endResize(e)}
-                      onPointerMove={(e: any) => resize(e)}
-                    >
-                      <rect width="50" height="20" x={Math.round((width - 50) / 2)} y="-5" rx="5" ry="5" />
-                      <line x1="-18" x2="18" y1="5" y2="5" transform={`translate(${Math.round(width / 2)} 0)`} />
-                      <line x1="-18" x2="18" y1="10" y2="10" transform={`translate(${Math.round(width / 2)} 0)`} />
-                    </g>
-                  )}
-                </>
-              )}
-            </svg>
+  return (
+    <svg {...{ height, width }}>
+      <defs>
+        <pattern id="hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45 2 2)">
+          <rect width="8" height="8" fill="lightyellow" opacity="0.4" />
+          <path d="M 0,-1 L 0,11" stroke="gray" strokeWidth="1" />
+        </pattern>
+        <filter id="outline" colorInterpolationFilters="sRGB">
+          <feMorphology in="SourceAlpha" result="morph" operator="dilate" radius="2" />
+          <feColorMatrix
+            in="morph"
+            result="whitened"
+            type="matrix"
+            values="-1 0 0 0 1, 0 -1 0 0 1, 0 0 -1 0 1, 0 0 0 1 0"
+          />
+          <feMerge>
+            <feMergeNode in="whitened" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      {isLoading ? (
+        <LoadingIndicator {...{ width, height }} />
+      ) : (
+        <>
+          <Graph {...{ width, height, skewTWidthPercent: 80 }} />
+          {W.rootScope.isMobileOrTablet && (
+            <g
+              id="wsp-resize"
+              onPointerDown={(e: any) => startResize(e)}
+              onPointerUp={(e: any) => endResize(e)}
+              onPointerLeave={(e: any) => endResize(e)}
+              onPointerMove={(e: any) => resize(e)}
+            >
+              <rect width="50" height="20" x={Math.round((width - 50) / 2)} y="-5" rx="5" ry="5" />
+              <line x1="-18" x2="18" y1="5" y2="5" transform={`translate(${Math.round(width / 2)} 0)`} />
+              <line x1="-18" x2="18" y1="10" y2="10" transform={`translate(${Math.round(width / 2)} 0)`} />
+            </g>
           )}
-        </section>
-        <section>
-          <ConnectedFavorites onSelected={selectFavorite} />
-        </section>
-        <div id="wsp-sponsor" className="bg-red desktop-only">
-          <p>Please consider sponsoring the development of this plugin</p>
-          <a href="https://www.buymeacoffee.com/vic.b" target="_blank">
-            <img
-              src="https://cdn.buymeacoffee.com/buttons/default-orange.png"
-              alt="Buy Me A Coffee"
-              height="30"
-              width="150"
-            />
-          </a>
-        </div>
-      </div>
-    </>
+        </>
+      )}
+    </svg>
   );
 }
 
