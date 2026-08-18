@@ -8,7 +8,7 @@ export const MESHBIR_MAX_MSG = Math.floor(1e6 / MESHBIR_MAX_MSG_SIZE);
 export const positionSchema = z
   .object({
     type: z.literal('position'),
-    user_id: z.string().uuid(),
+    user_id: z.string().guid(),
     latitude: z.number(),
     longitude: z.number(),
     altitude: z.number(),
@@ -20,7 +20,7 @@ export const positionSchema = z
 export const textSchema = z
   .object({
     type: z.literal('message'),
-    user_id: z.string().uuid(),
+    user_id: z.string().guid(),
     time: z.number(),
     message: z.string(),
   })
