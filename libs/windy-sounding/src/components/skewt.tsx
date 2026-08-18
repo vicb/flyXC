@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 
 import { Watermark } from '../containers/containers.jsx';
 import * as atm from '../util/atmosphere.js';
@@ -58,27 +58,160 @@ export function SkewT(props: SkewTProps) {
     yPointer,
   } = props;
 
-  // The full height include the ticks at the bottom.
+  const {
+    pressureToGhScale,
+    ghMeterToPxScale,
+    ghAxisToPxScale,
+    pressureToPxScale,
+    tempToPxScale,
+    skew,
+    pathGenerator,
+    ySurface,
+  } = useMemo(() => {
+    const pressureToGhScale = atm.getPressureToGhScale(levels, ghs, seaLevelPressure);
+    const ghMeterToPxScale = math.scaleLinear(
+      [pressureToGhScale(minPressure), pressureToGhScale(maxPressure)],
+      [0, height],
+    );
+    const ghAxisToPxScale =
+      ghUnit === 'm' ? ghMeterToPxScale : math.composeScales(math.scaleLinear([0, 1], [0, 0.3048]), ghMeterToPxScale);
+    const pressureToPxScale = math.composeScales(pressureToGhScale, ghMeterToPxScale);
 
-  const pressureToGhScale = atm.getPressureToGhScale(levels, ghs, seaLevelPressure);
-  const ghMeterToPxScale = math.scaleLinear(
-    [pressureToGhScale(minPressure), pressureToGhScale(maxPressure)],
-    [0, height],
+    const tempToPxScale = math.scaleLinear([minTemp, maxTemp], [0, width]);
+
+    const skew = (75 * (width / height) * Math.log10(maxPressure / minPressure)) / (maxTemp - minTemp);
+
+    const pathGenerator = math.svgPath(
+      (point: [x: number, y: number]): number =>
+        tempToPxScale(point[0]) + skew * (height - pressureToPxScale(point[1])),
+      (point: [x: number, y: number]): number => pressureToPxScale(point[1]),
+    );
+
+    const ySurface = Math.min(height, Math.round(ghMeterToPxScale(surfaceElevation)));
+
+    return {
+      pressureToGhScale,
+      ghMeterToPxScale,
+      ghAxisToPxScale,
+      pressureToPxScale,
+      tempToPxScale,
+      skew,
+      pathGenerator,
+      ySurface,
+    };
+  }, [
+    levels,
+    ghs,
+    seaLevelPressure,
+    minPressure,
+    maxPressure,
+    height,
+    ghUnit,
+    minTemp,
+    maxTemp,
+    width,
+    surfaceElevation,
+  ]);
+
+  const axisElement = useMemo(
+    () => (
+      <g className="axis">
+        <g className="dry-adiabatic">
+          {[-20, -10, 0, 10, 20, 30, 40, 50, 60, 70, 80].map((temp) => (
+            <DryAdiabatic
+              key={temp}
+              {...{ temp: temp + 273.15, pressure: maxPressure, height, pressureToPxScale, pathGenerator }}
+            />
+          ))}
+        </g>
+        <g className="wet-adiabatic">
+          {[-20, -10, 0, 5, 10, 15, 20, 25, 30, 35].map((temp) => (
+            <WetAdiabatic
+              key={temp}
+              {...{ temp: temp + 273.15, pressure: maxPressure, height, pressureToPxScale, pathGenerator }}
+            />
+          ))}
+        </g>
+        <g className="isohume">
+          {[-20, -15, -10, -5, 0, 5, 10, 15, 20].map((temp) => (
+            <IsoHume
+              key={temp}
+              {...{ temp: temp + 273.15, pressure: maxPressure, height, pressureToPxScale, pathGenerator }}
+            />
+          ))}
+        </g>
+        <g className="isotherm">
+          {[-70, -60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40].map((temp) => (
+            <IsoTherm
+              key={temp}
+              {...{
+                temp: temp + 273.15,
+                height,
+                pressureToPxScale,
+                pathGenerator,
+                tempToPxScale,
+                unit: tempUnit,
+                skew,
+                surfacePx: ySurface,
+                format: formatTemp,
+              }}
+            />
+          ))}
+        </g>
+        <AltitudeAxis
+          {...{
+            width,
+            ghToPxScale: ghAxisToPxScale,
+            step: ghAxisStep,
+            unit: ghUnit,
+          }}
+        />
+      </g>
+    ),
+    [
+      maxPressure,
+      height,
+      pressureToPxScale,
+      pathGenerator,
+      tempToPxScale,
+      tempUnit,
+      skew,
+      ySurface,
+      formatTemp,
+      width,
+      ghAxisToPxScale,
+      ghAxisStep,
+      ghUnit,
+    ],
   );
-  const ghAxisToPxScale =
-    ghUnit === 'm' ? ghMeterToPxScale : math.composeScales(math.scaleLinear([0, 1], [0, 0.3048]), ghMeterToPxScale);
-  const pressureToPxScale = math.composeScales(pressureToGhScale, ghMeterToPxScale);
 
-  const tempToPxScale = math.scaleLinear([minTemp, maxTemp], [0, width]);
-
-  const skew = (75 * (width / height) * Math.log10(maxPressure / minPressure)) / (maxTemp - minTemp);
-
-  const pathGenerator = math.svgPath(
-    (point: [x: number, y: number]): number => tempToPxScale(point[0]) + skew * (height - pressureToPxScale(point[1])),
-    (point: [x: number, y: number]): number => pressureToPxScale(point[1]),
+  const cloudsElement = useMemo(
+    () => (
+      <g className="cloud">
+        <Clouds
+          {...{
+            width,
+            cloudCover,
+            pressureToPxScale,
+            surfacePressure: pressureToGhScale.invert(surfaceElevation),
+            showUpperClouds,
+          }}
+        />
+      </g>
+    ),
+    [width, cloudCover, pressureToPxScale, pressureToGhScale, surfaceElevation, showUpperClouds],
   );
 
-  const ySurface = Math.min(height, Math.round(ghMeterToPxScale(surfaceElevation)));
+  const linesElement = useMemo(
+    () => (
+      <g className="line">
+        {parcel && <Parcel {...{ parcel, width, height, pathGenerator, pressureToPxScale, formatAltitude }} />}
+        <path className="temperature" d={pathGenerator(math.zip(temps, levels))} />
+        <path className="dewpoint" d={pathGenerator(math.zip(dewpoints, levels))} />
+      </g>
+    ),
+    [parcel, width, height, pathGenerator, pressureToPxScale, formatAltitude, temps, dewpoints, levels],
+  );
 
   let tempAtCursor = 0;
   let dewPointAtCursor = 0;
@@ -98,70 +231,9 @@ export function SkewT(props: SkewTProps) {
       <g className="graph skewt">
         <rect width={width} height={height} className="background" />
         <Watermark x={Math.round(width / 2)} y={Math.round(height / 2)} />
-        <g className="axis">
-          <g className="dry-adiabatic">
-            {[-20, -10, 0, 10, 20, 30, 40, 50, 60, 70, 80].map((temp) => (
-              <DryAdiabatic
-                {...{ temp: temp + 273.15, pressure: maxPressure, height, pressureToPxScale, pathGenerator }}
-              />
-            ))}
-          </g>
-          <g className="wet-adiabatic">
-            {[-20, -10, 0, 5, 10, 15, 20, 25, 30, 35].map((temp) => (
-              <WetAdiabatic
-                {...{ temp: temp + 273.15, pressure: maxPressure, height, pressureToPxScale, pathGenerator }}
-              />
-            ))}
-          </g>
-          <g className="isohume">
-            {[-20, -15, -10, -5, 0, 5, 10, 15, 20].map((temp) => (
-              <IsoHume
-                {...{ temp: temp + 273.15, pressure: maxPressure, height: height, pressureToPxScale, pathGenerator }}
-              />
-            ))}
-          </g>
-          <g className="isotherm">
-            {[-70, -60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40].map((temp) => (
-              <IsoTherm
-                {...{
-                  temp: temp + 273.15,
-                  height,
-                  pressureToPxScale,
-                  pathGenerator,
-                  tempToPxScale,
-                  unit: tempUnit,
-                  skew,
-                  surfacePx: ySurface,
-                  format: formatTemp,
-                }}
-              />
-            ))}
-          </g>
-          <AltitudeAxis
-            {...{
-              width,
-              ghToPxScale: ghAxisToPxScale,
-              step: ghAxisStep,
-              unit: ghUnit,
-            }}
-          />
-        </g>
-        <g className="cloud">
-          <Clouds
-            {...{
-              width,
-              cloudCover,
-              pressureToPxScale,
-              surfacePressure: pressureToGhScale.invert(surfaceElevation),
-              showUpperClouds,
-            }}
-          />
-        </g>
-        <g className="line">
-          {parcel && <Parcel {...{ parcel, width, height, pathGenerator, pressureToPxScale, formatAltitude }} />}
-          <path className="temperature" d={pathGenerator(math.zip(temps, levels))} />
-          <path className="dewpoint" d={pathGenerator(math.zip(dewpoints, levels))} />
-        </g>
+        {axisElement}
+        {cloudsElement}
+        {linesElement}
         <rect className="surface" y={ySurface} width={width} height={height - ySurface + 1} />
         {yPointer !== undefined && yPointer < ySurface && (
           <g className={`cursor ${cursorClass}`}>
