@@ -43,6 +43,7 @@
     display: grid;
     grid-gap: 4px 16px;
     grid-template-columns: max-content;
+    align-items: center;
   }
 
   dt {
@@ -52,6 +53,23 @@
   dd {
     font-weight: 500;
     grid-column-start: 2;
+  }
+
+  select {
+    background: inherit;
+    color: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    padding: 2px 4px;
+    font-size: inherit;
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+
+    option {
+      background: #333;
+      color: #fff;
+    }
   }
 }
 
