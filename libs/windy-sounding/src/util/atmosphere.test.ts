@@ -2,7 +2,9 @@ import {
   dewpoint,
   dryLapse,
   getElevation,
+  getPressureToGhScale,
   mixingRatio,
+  parcelTrajectory,
   saturationMixingRatio,
   saturationVaporPressure,
   vaporPressure,
@@ -106,6 +108,78 @@ describe('atmosphere', () => {
         const seaLevelPressure = 1020; // hPa
         const expectedElevation = getElevation(pressure, seaLevelPressure);
         expect(expectedElevation).toBeCloseTo(1043, 0);
+      });
+    });
+
+    describe('getPressureToGhScale', () => {
+      it('should create a valid pressure to gh scale with sea level pressure', () => {
+        const levels = [1000, 850, 700, 500];
+        const ghByLevel = [110, 1450, 3000, 5500];
+        const seaLevelPressure = 1013.25;
+
+        const scale = getPressureToGhScale(levels, ghByLevel, seaLevelPressure);
+        expect(scale(seaLevelPressure)).toBeCloseTo(0, 1);
+        expect(scale(850)).toBeCloseTo(1450, 1);
+        expect(scale.invert(3000)).toBeCloseTo(700, 1);
+      });
+
+      it('should create a valid scale when seaLevelPressure is <= max level', () => {
+        const levels = [1000, 850, 700];
+        const ghByLevel = [100, 1450, 3000];
+        const seaLevelPressure = 990;
+
+        const scale = getPressureToGhScale(levels, ghByLevel, seaLevelPressure);
+        expect(scale(1000)).toBeCloseTo(100, 1);
+        expect(scale(850)).toBeCloseTo(1450, 1);
+      });
+    });
+
+    describe('parcelTrajectory', () => {
+      it('should compute dry parcel trajectory and thermal top', () => {
+        const levels = [1000, 950, 900, 850, 800, 700, 600, 500];
+        const ghByLevel = [100, 500, 1000, 1500, 2000, 3000, 4200, 5600];
+        const tempByLevel = [293.15, 290.15, 287.15, 284.15, 281.15, 273.15, 263.15, 250.15];
+        const thermalDeltaTemp = 3;
+        const surfaceElevation = 100;
+        const surfaceDewpoint = 270.15;
+        const steps = 50;
+
+        const result = parcelTrajectory(
+          levels,
+          ghByLevel,
+          tempByLevel,
+          thermalDeltaTemp,
+          surfaceElevation,
+          surfaceDewpoint,
+          steps,
+        );
+
+        expect(result.thermalTopElev).toBeGreaterThan(surfaceElevation);
+        expect(result.thermalTopPressure).toBeLessThan(levels[0]);
+        expect(result.dry.length).toBeGreaterThan(0);
+      });
+
+      it('should return empty parcel when no thermal intersection exists', () => {
+        const levels = [1000, 850, 700];
+        const ghByLevel = [100, 1500, 3000];
+        const tempByLevel = [290, 295, 300]; // Inversion where start temp is cooler than ambient
+        const thermalDeltaTemp = -10;
+        const surfaceElevation = 100;
+        const surfaceDewpoint = 270;
+        const steps = 20;
+
+        const result = parcelTrajectory(
+          levels,
+          ghByLevel,
+          tempByLevel,
+          thermalDeltaTemp,
+          surfaceElevation,
+          surfaceDewpoint,
+          steps,
+        );
+
+        expect(result.thermalTopElev).toBe(0);
+        expect(result.dry).toEqual([]);
       });
     });
   });
