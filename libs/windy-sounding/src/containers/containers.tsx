@@ -1,7 +1,7 @@
 import type { LatLon } from '@windy/interfaces';
 import { intlFormatDistance } from 'date-fns/intlFormatDistance';
 import { memo } from 'preact/compat';
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
 import { Favorites } from '../components/favorites';
@@ -19,7 +19,7 @@ import { type AppDispatch, type RootState } from '../redux/store';
 import * as unitsSlice from '../redux/units-slice';
 import * as atm from '../util/atmosphere';
 import * as math from '../util/math';
-import { formatTimestamp } from '../util/utils';
+import { formatTimestamp, isSupportedModelName } from '../util/utils';
 
 // Plugin
 
@@ -532,20 +532,31 @@ const Details = memo(function Details() {
   // Periodically refresh current time to update relative distance to next model run
   const nowMs = useCurrentTimeMs();
 
-  const { modelName, updateMs, nextUpdateMs, timeMs, isWindyDataAvailable } = useSelector((state: RootState) => {
-    const modelName = pluginSlice.selModelName(state);
-    const location = pluginSlice.selLocation(state);
-    const timeMs = pluginSlice.selTimeMs(state);
-    const isWindyDataAvailable = forecastSlice.selIsWindyDataAvailable(state, modelName, location);
+  const { modelName, location, updateMs, nextUpdateMs, timeMs, isWindyDataAvailable } = useSelector(
+    (state: RootState) => {
+      const modelName = pluginSlice.selModelName(state);
+      const location = pluginSlice.selLocation(state);
+      const timeMs = pluginSlice.selTimeMs(state);
+      const isWindyDataAvailable = forecastSlice.selIsWindyDataAvailable(state, modelName, location);
 
-    return {
-      modelName: pluginSlice.selModelName(state),
-      updateMs: isWindyDataAvailable ? forecastSlice.selModelUpdateTimeMs(state, modelName, location) : 0,
-      nextUpdateMs: isWindyDataAvailable ? forecastSlice.selModelNextUpdateTimeMs(state, modelName, location) : 0,
-      timeMs,
-      isWindyDataAvailable,
-    };
-  }, shallowEqual);
+      return {
+        modelName,
+        location,
+        updateMs: isWindyDataAvailable ? forecastSlice.selModelUpdateTimeMs(state, modelName, location) : 0,
+        nextUpdateMs: isWindyDataAvailable ? forecastSlice.selModelNextUpdateTimeMs(state, modelName, location) : 0,
+        timeMs,
+        isWindyDataAvailable,
+      };
+    },
+    shallowEqual,
+  );
+
+  const models: string[] = useMemo(() => {
+    return W.models
+      .getAllPointProducts(location)
+      .filter((model: string) => isSupportedModelName(model))
+      .sort();
+  }, [location.lat, location.lon]);
 
   const distanceString = isWindyDataAvailable ? intlFormatDistance(nextUpdateMs, nowMs) : '';
 
@@ -553,7 +564,21 @@ const Details = memo(function Details() {
     <div id="wsp-model" className="desktop-only">
       <dl>
         <dt>Model</dt>
-        <dd>{W.products[modelName].modelName}</dd>
+        <dd>
+          <select
+            value={modelName}
+            onChange={(e) => {
+              const nextModel = (e.target as HTMLSelectElement).value;
+              W.store.set('product', nextModel);
+            }}
+          >
+            {models.map((model: string) => (
+              <option key={model} value={model}>
+                {W.products[model]?.modelName ?? model}
+              </option>
+            ))}
+          </select>
+        </dd>
         <dt>Run</dt>
         <dd>
           {isWindyDataAvailable
