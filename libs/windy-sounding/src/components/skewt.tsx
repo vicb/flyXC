@@ -1,4 +1,3 @@
-import { memo } from 'preact/compat';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
 import { Watermark } from '../containers/containers.jsx';
@@ -33,7 +32,7 @@ export type SkewTProps = {
   showUpperClouds: boolean;
 };
 
-export const SkewT = memo(function SkewT(props: SkewTProps) {
+export function SkewT(props: SkewTProps) {
   const {
     width,
     height,
@@ -266,7 +265,7 @@ export const SkewT = memo(function SkewT(props: SkewTProps) {
       </g>
     </svg>
   );
-});
+}
 
 /**
  * Icons from https://www.svgrepo.com/collection/carbon-design-line-icons/

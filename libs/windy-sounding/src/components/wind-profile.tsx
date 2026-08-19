@@ -1,4 +1,3 @@
-import { memo } from 'preact/compat';
 import { useMemo } from 'preact/hooks';
 
 import { getPressureToGhScale } from '../util/atmosphere';
@@ -21,7 +20,7 @@ export type WindProfileProps = {
   yPointer: number | undefined;
 };
 
-export const WindProfile = memo(function WindProfile(props: WindProfileProps) {
+export function WindProfile(props: WindProfileProps) {
   const {
     width,
     height,
@@ -162,7 +161,7 @@ export const WindProfile = memo(function WindProfile(props: WindProfileProps) {
       )}
     </g>
   );
-});
+}
 
 function WindAxis({
   height,

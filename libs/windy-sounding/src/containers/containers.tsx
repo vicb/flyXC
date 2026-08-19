@@ -190,12 +190,12 @@ function SoundingDiagram({
     const location = pluginSlice.selLocation(state);
     const timeMs = pluginSlice.selTimeMs(state);
     const fetchStatus = forecastSlice.selFetchStatus(state, modelName, location);
-    let isWindyDataAvailableAtCurrentTime;
-    try {
-      isWindyDataAvailableAtCurrentTime = forecastSlice.selIsWindyDataAvailableAt(state, modelName, location, timeMs);
-    } catch (e) {
-      isWindyDataAvailableAtCurrentTime = false;
-    }
+    const isWindyDataAvailableAtCurrentTime = forecastSlice.selIsWindyDataAvailableAt(
+      state,
+      modelName,
+      location,
+      timeMs,
+    );
     return {
       status: pluginSlice.selStatus(state),
       fetchStatus,
@@ -536,13 +536,7 @@ const Details = memo(function Details() {
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
     const timeMs = pluginSlice.selTimeMs(state);
-
-    let isWindyDataAvailable;
-    try {
-      isWindyDataAvailable = forecastSlice.selLoadedWindyDataOrThrow(state, modelName, location);
-    } catch (e) {
-      isWindyDataAvailable = false;
-    }
+    const isWindyDataAvailable = forecastSlice.selIsWindyDataAvailable(state, modelName, location);
 
     return {
       modelName: pluginSlice.selModelName(state),
