@@ -156,12 +156,14 @@
     .background {
       fill: white;
       stroke: none;
+      shape-rendering: crispEdges;
     }
 
     .border {
       fill: none;
       stroke: gray;
       stroke-width: 1;
+      shape-rendering: crispEdges;
     }
 
     text {
@@ -175,6 +177,7 @@
       line {
         stroke: darkgray;
         stroke-dasharray: 2;
+        shape-rendering: crispEdges;
       }
 
       text {
@@ -193,6 +196,7 @@
 
     .surface {
       fill: #8f6d4d;
+      shape-rendering: crispEdges;
     }
 
     .line {
@@ -207,6 +211,7 @@
     .boundary {
       stroke: darkgray;
       stroke-width: 0.5px;
+      shape-rendering: crispEdges;
     }
 
     &.skewt {
@@ -291,6 +296,10 @@
 
         .altitude {
           stroke: lightgray;
+
+          line {
+            shape-rendering: crispEdges;
+          }
         }
 
         .isohume {
@@ -307,6 +316,10 @@
       }
 
       .cloud {
+        rect {
+          shape-rendering: crispEdges;
+        }
+
         .cirrus {
           filter: url(#outline);
         }
@@ -337,6 +350,7 @@
         rect.cumulus {
           opacity: 0.8;
           fill: url(#hatch);
+          shape-rendering: crispEdges;
         }
       }
     }
@@ -355,6 +369,10 @@
       .axis {
         .speed {
           stroke: lightgray;
+        }
+
+        line {
+          shape-rendering: crispEdges;
         }
       }
     }
