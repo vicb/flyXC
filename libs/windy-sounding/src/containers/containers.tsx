@@ -499,16 +499,39 @@ function ConnectedFavorites({ onSelected }: { onSelected: (location: LatLon) => 
   return <Favorites {...{ ...props, onSelected }} />;
 }
 
+// Refresh interval (15 minutes) for relative timestamp displays (e.g. next model run / overdue).
+const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
+
+/**
+ * Periodically provides the current timestamp to keep relative time strings
+ * (e.g. "next in X min", "overdue") fresh when the plugin is kept open for long sessions.
+ */
+function useCurrentTimeMs(intervalMs = FIFTEEN_MINUTES_MS): number {
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNowMs(Date.now());
+    }, intervalMs);
+    return () => clearInterval(timer);
+  }, [intervalMs]);
+
+  return nowMs;
+}
+
 // Details (model info)
 
 /**
  * Display sounding details
  *
  * - Weather model
- * - Run timestamp and duration before next run
+ * - Run timestamp and duration before next run (refreshed periodically)
  * - Current time
  */
-function Details() {
+const Details = memo(function Details() {
+  // Periodically refresh current time to update relative distance to next model run
+  const nowMs = useCurrentTimeMs();
+
   const { modelName, updateMs, nextUpdateMs, timeMs, isWindyDataAvailable } = useSelector((state: RootState) => {
     const modelName = pluginSlice.selModelName(state);
     const location = pluginSlice.selLocation(state);
@@ -530,7 +553,6 @@ function Details() {
     };
   }, shallowEqual);
 
-  const nowMs = Date.now();
   const distanceString = isWindyDataAvailable ? intlFormatDistance(nextUpdateMs, nowMs) : '';
 
   return (
@@ -551,12 +573,16 @@ function Details() {
       </dl>
     </div>
   );
-}
+});
 
 // Watermark
 
-export function Watermark({ x, y }: { x: number; y: number }) {
-  const nowMs = Date.now();
+/**
+ * Display watermark with model run and next run timestamps (refreshed periodically).
+ */
+export const Watermark = memo(function Watermark({ x, y }: { x: number; y: number }) {
+  // Periodically refresh current time to update relative distance to next model run
+  const nowMs = useCurrentTimeMs();
 
   const { updateMs, nextUpdateMs } = useSelector((state: RootState) => {
     const modelName = pluginSlice.selModelName(state);
@@ -579,7 +605,7 @@ export function Watermark({ x, y }: { x: number; y: number }) {
       </text>
     </g>
   );
-}
+});
 
 function openMenu(e: KeyboardEvent | MouseEvent) {
   if (!('key' in e) || e.key == 'Enter') {
