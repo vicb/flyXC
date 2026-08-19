@@ -15,6 +15,7 @@ import {
 import type { Scale } from '../util/math';
 import { sampleAt, scaleLinear } from '../util/math';
 import { latLon2Str } from '../util/utils';
+import * as pluginSlice from './plugin-slice';
 import type { AppThunkAPI, RootState } from './store';
 
 const windyUtils = W.utils;
@@ -181,13 +182,16 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
   },
   {
     condition: (modelAndLocation, api: AppThunkAPI) => {
-      // Prevent fetching again while loading or when data is already cached.
+      // Prevent fetching again while loading, when data is already cached, or when plugin is not ready.
       const { modelName, location } = modelAndLocation;
       // Ignore initial dummy coordinates (0, 0) before a real location is provided.
       if (location.lat === 0 && location.lon === 0) {
         return false;
       }
       const state = api.getState();
+      if (pluginSlice.selStatus(state) !== pluginSlice.PluginStatus.Ready) {
+        return false;
+      }
 
       const key = windyDataKey(modelName, location);
       const forecast = state[slice.name].data[key];
@@ -450,7 +454,10 @@ export const selIsWindyDataAvailableAt = (
   location: LatLon,
   timeMs: number,
 ): boolean => {
-  const windyData = selLoadedWindyDataOrThrow(state, modelName, location);
+  const windyData = selMaybeLoadedWindyData(state, modelName, location);
+  if (!windyData || windyData.fetchStatus !== FetchStatus.Loaded) {
+    return false;
+  }
   const maxTimeMs = Math.min(
     ...[windyData.meteogram.data.hours.at(-1), windyData.weather.data.ts.at(-1)].filter((v) => v !== undefined),
   );
