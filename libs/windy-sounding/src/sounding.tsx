@@ -18,7 +18,8 @@ import {
 import * as pluginSlice from './redux/plugin-slice';
 import { store } from './redux/store';
 import styles from './styles.less?inline';
-import { injectStyles } from './util/utils';
+import { saveSetting, Settings } from './util/settings';
+import { DEFAULT_MODEL, getSupportedModelName, injectStyles, METEOBLUE_AI_MODEL } from './util/utils';
 
 const windyStore = W.store;
 const windyUtils = W.utils;
@@ -82,7 +83,16 @@ export const mountPlugin = (container: HTMLElement) => {
   addSubscription(() => windyStore.off(timeChangedEventId));
 
   const productChangedEventId = windyStore.on('product', () => {
-    dispatch(changeModel(windyStore.get('product')));
+    const product = windyStore.get('product');
+    const currentModel = pluginSlice.selModelName(store.getState());
+    const supportedProduct = getSupportedModelName(product);
+    if (
+      currentModel === supportedProduct ||
+      (currentModel === METEOBLUE_AI_MODEL && supportedProduct === DEFAULT_MODEL)
+    ) {
+      return;
+    }
+    dispatch(changeModel(product));
   });
   addSubscription(() => windyStore.off(productChangedEventId));
 
@@ -138,9 +148,13 @@ export const openPlugin = async ({ lat, lon, modelName }: { lat: number; lon: nu
   centerMap(location);
 
   dispatch(pluginSlice.setFavorites(await favs.getAll()));
-  // Force change to always trigger the state sync.
-  windyStore.set('product', modelName, { forceChange: true });
+  const tileProduct = modelName === METEOBLUE_AI_MODEL ? DEFAULT_MODEL : modelName;
+  if (windyStore.get('product') !== tileProduct) {
+    windyStore.set('product', tileProduct);
+  }
   dispatch(pluginSlice.setTimeMs(windyStore.get('timestamp')));
+  dispatch(pluginSlice.setModelName(modelName));
+  saveSetting(Settings.model, modelName);
   dispatch(changeLocation(location));
   setSizeFrom(appContainer);
 

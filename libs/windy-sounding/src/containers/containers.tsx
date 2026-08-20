@@ -13,7 +13,7 @@ import { pluginConfig } from '../config';
 import flyxcIcon from '../img/jumoplane.svg';
 import * as forecastSlice from '../redux/forecast-slice';
 import type { TimeStep } from '../redux/meta';
-import { centerMap, changeLocation, updateTime } from '../redux/meta';
+import { centerMap, changeLocation, changeModel, updateTime } from '../redux/meta';
 import * as pluginSlice from '../redux/plugin-slice';
 import { type AppDispatch, type RootState } from '../redux/store';
 import * as unitsSlice from '../redux/units-slice';
@@ -487,6 +487,14 @@ const ConnectedWind = memo(function ConnectedWind(props: ChildGraphProps) {
 // Favorites
 
 function ConnectedFavorites({ onSelected }: { onSelected: (location: LatLon) => void }) {
+  const dispatch: AppDispatch = useDispatch();
+  const selectModel = useCallback(
+    (modelName: string) => {
+      dispatch(changeModel(modelName));
+    },
+    [dispatch],
+  );
+
   const props = useSelector((state: RootState) => {
     const S = pluginSlice;
     return {
@@ -497,7 +505,7 @@ function ConnectedFavorites({ onSelected }: { onSelected: (location: LatLon) => 
     };
   }, shallowEqual);
 
-  return <Favorites {...{ ...props, onSelected }} />;
+  return <Favorites {...{ ...props, onSelected, onSelectModel: selectModel }} />;
 }
 
 // Refresh interval (15 minutes) for relative timestamp displays (e.g. next model run / overdue).
@@ -532,6 +540,7 @@ function useCurrentTimeMs(intervalMs = FIFTEEN_MINUTES_MS): number {
 const Details = memo(function Details() {
   // Periodically refresh current time to update relative distance to next model run
   const nowMs = useCurrentTimeMs();
+  const dispatch: AppDispatch = useDispatch();
 
   const { modelName, location, updateMs, nextUpdateMs, timeMs, isWindyDataAvailable } = useSelector(
     (state: RootState) => {
@@ -565,7 +574,7 @@ const Details = memo(function Details() {
             value={modelName}
             onChange={(e) => {
               const nextModel = (e.target as HTMLSelectElement).value;
-              W.store.set('product', nextModel);
+              dispatch(changeModel(nextModel));
             }}
           >
             {models.map((model: string) => (

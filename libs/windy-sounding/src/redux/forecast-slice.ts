@@ -434,12 +434,14 @@ export const selSunsetMs = (state: RootState, modelName: string, location: LatLo
 
 /**
  * Available pressure levels in the model in descending order in hPa (e.g. [1000, 950, 925, ...]).
+ *
+ * Note: `windyData.forecast.header.availableLevels` might contain levels not on the sounding.
  */
 export const selDescendingLevels = createSelector(selLoadedWindyDataOrThrow, (windyData): number[] =>
-  windyData.forecast.header.availableLevels
-    .filter((level: string) => level.endsWith('h'))
-    .map((level: string) => Number(level.slice(0, -1)))
-    .sort((a, b) => b - a),
+  Object.keys(windyData.forecast.sounding ?? {})
+    .filter((key: string) => key.startsWith('temp-') && key.endsWith('h'))
+    .map((key: string) => parseInt(key.slice(5, -1), 10))
+    .sort((a: number, b: number) => b - a),
 );
 
 export const selMaxModelPressure = createSelector(

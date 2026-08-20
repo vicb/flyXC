@@ -9,10 +9,11 @@ export type FavoriteProps = {
   location: LatLon;
   isMobile: boolean;
   onSelected: (location: LatLon) => void;
+  onSelectModel?: (model: string) => void;
   modelName: string;
 };
 
-export function Favorites({ favorites, location, isMobile, onSelected, modelName }: FavoriteProps) {
+export function Favorites({ favorites, location, isMobile, onSelected, onSelectModel, modelName }: FavoriteProps) {
   const locationStr = latLon2Str(location);
   const [isModelExpanded, setIsModelExpanded] = useState(false);
   const [isLocationExpanded, setIsLocationExpanded] = useState(false);
@@ -58,7 +59,7 @@ export function Favorites({ favorites, location, isMobile, onSelected, modelName
             data-icon-after="g"
             onClick={toggleModelSelect}
           >
-            <small className="size-m">{modelName}</small>
+            <small className="size-m">{W.products[modelName]?.modelName ?? modelName}</small>
           </div>
           <div
             className={`select ${isLocationExpanded ? 'active' : ''}`}
@@ -76,8 +77,15 @@ export function Favorites({ favorites, location, isMobile, onSelected, modelName
         {isModelExpanded && (
           <div className="options">
             {models.map((model: string) => (
-              <span className={model == modelName ? 'selected' : ''} onClick={() => W.store.set('product', model)}>
-                {model}
+              <span
+                key={model}
+                className={model == modelName ? 'selected' : ''}
+                onClick={() => {
+                  onSelectModel?.(model);
+                  setIsModelExpanded(false);
+                }}
+              >
+                {W.products[model]?.modelName ?? model}
               </span>
             ))}
           </div>
