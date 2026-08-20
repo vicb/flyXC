@@ -527,9 +527,9 @@ function Clouds({ width, levels, clouds, pressureToPxScale, surfacePressure, sho
     const upperCoverMax = Math.max(0, ...levels.map((level, i) => (level <= upperPressure ? clouds[i] ?? 0 : 0)));
 
     if (upperCoverMax >= 5) {
-      const upperCover = Math.round(255 - (upperCoverMax / 100) * 160);
+      const opacity = (upperCoverMax / 100) * 0.75;
       rects.push(
-        <Cloud key="upper" y={0} width={width} height={30} cover={upperCover} />,
+        <Cloud key="upper" y={0} width={width} height={30} opacity={opacity} />,
         <text className="tick" y={30 - 12} x={width - 28} textAnchor="end">
           Upper
         </text>,
@@ -544,31 +544,28 @@ function Clouds({ width, levels, clouds, pressureToPxScale, surfacePressure, sho
   while (y < surfaceY) {
     const startY = y;
     const cloudPct = Math.max(0, Math.min(100, pressureToCloudScale(pressureToPxScale.invert(y))));
-    const cover = cloudPct < 5 ? 255 : Math.round(255 - (cloudPct / 100) * 160);
     let layerHeight = 1;
     while (y++ < surfaceY) {
       const nextPct = Math.max(0, Math.min(100, pressureToCloudScale(pressureToPxScale.invert(y))));
-      const nextCover = nextPct < 5 ? 255 : Math.round(255 - (nextPct / 100) * 160);
-      if (Math.abs(nextCover - cover) > 2) {
+      if (Math.abs(nextPct - cloudPct) > 2 || nextPct >= 5 !== cloudPct >= 5) {
         break;
       }
       layerHeight++;
     }
-    if (cover < 255) {
-      rects.push(<Cloud key={startY} y={startY} width={width} height={layerHeight} cover={cover} />);
+    if (cloudPct >= 5) {
+      const opacity = (cloudPct / 100) * 0.75;
+      rects.push(<Cloud key={startY} y={startY} width={width} height={layerHeight} opacity={opacity} />);
     }
   }
 
   return <g>{rects}</g>;
 }
 
-function Cloud({ y, height, width, cover }: { y: number; height: number; width: number; cover: number }) {
-  if (cover >= 255) {
-    // We do not want to display a white background for no cloud but nothing.
-    // It is more efficient than setting opacity to 0.
+function Cloud({ y, height, width, opacity }: { y: number; height: number; width: number; opacity: number }) {
+  if (opacity <= 0) {
     return;
   }
-  return <rect {...{ y, height, width }} fill={`rgba(${cover}, ${cover}, ${cover}, 0.7)`} />;
+  return <rect {...{ y, height, width }} fill={`rgba(100, 100, 100, ${opacity})`} />;
 }
 
 function Cirrus({ x, y, scale }: { x: number; y: number; scale: number }) {
