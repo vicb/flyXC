@@ -1,8 +1,22 @@
 import type { Fav } from '@windy/favs';
 
-import { formatTimestamp, getFavLabel, getSupportedModelName, isSupportedModelName } from './utils';
+import { formatTimestamp, getAvailableModels, getFavLabel, getSupportedModelName, isSupportedModelName } from './utils';
 
 describe('utils', () => {
+  describe('getAvailableModels', () => {
+    it('should return sorted supported models for location', () => {
+      // Mock W.models.getAllPointProducts
+      (globalThis as any).W = {
+        models: {
+          getAllPointProducts: vi.fn().mockReturnValue(['icon', 'arome', 'ecmwf', 'unknown', 'iconD2', 'gfs']),
+        },
+      };
+
+      const models = getAvailableModels({ lat: 45, lon: 6 });
+      expect(models).toEqual(['ecmwf', 'gfs', 'icon', 'iconD2']);
+    });
+  });
+
   describe('isSupportedModelName', () => {
     it('should return true for supported models', () => {
       expect(isSupportedModelName('ecmwf')).toBe(true);

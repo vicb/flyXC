@@ -1,4 +1,5 @@
 import type { Fav } from '@windy/favs';
+import type { LatLon } from '@windy/interfaces';
 
 // Some models do not have the required parameters for soundings (i.e. surface only)
 const SUPPORTED_MODELS = [
@@ -53,6 +54,16 @@ export function getSupportedModelName(windyModelName: string): string {
  */
 export function isSupportedModelName(windyModelName: string): boolean {
   return SUPPORTED_MODELS.some((prefix) => prefix.test(windyModelName));
+}
+
+/**
+ * Returns the sorted list of supported model names for soundings at a given location.
+ */
+export function getAvailableModels(location: LatLon): string[] {
+  return W.models
+    .getAllPointProducts(location)
+    .filter((model: string) => isSupportedModelName(model))
+    .sort();
 }
 
 /**

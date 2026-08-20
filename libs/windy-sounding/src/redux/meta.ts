@@ -3,7 +3,7 @@ import type { LatLon } from '@windy/interfaces';
 
 import { pluginConfig } from '../config';
 import { saveSetting, Settings } from '../util/settings';
-import { getSupportedModelName } from '../util/utils';
+import { DEFAULT_MODEL, getAvailableModels, getSupportedModelName } from '../util/utils';
 import * as forecastSlice from './forecast-slice';
 import * as pluginSlice from './plugin-slice';
 import type { RootState } from './store';
@@ -63,7 +63,14 @@ export const updateTime =
 export const changeLocation =
   (location: LatLon): ThunkAction<void, RootState, unknown, UnknownAction> =>
   (dispatch, getState) => {
-    const modelName = pluginSlice.selModelName(getState());
+    let modelName = pluginSlice.selModelName(getState());
+    const availableModels = getAvailableModels(location);
+    if (availableModels.length > 0 && !availableModels.includes(modelName)) {
+      modelName = availableModels.includes(DEFAULT_MODEL) ? DEFAULT_MODEL : availableModels[0];
+      dispatch(pluginSlice.setModelName(modelName));
+      saveSetting(Settings.model, modelName);
+      W.store.set('product', modelName);
+    }
     dispatch(forecastSlice.fetchForecast({ modelName, location }));
     dispatch(pluginSlice.setLocation(location));
     saveSetting(Settings.location, JSON.stringify(location));

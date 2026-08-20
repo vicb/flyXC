@@ -19,7 +19,7 @@ import { type AppDispatch, type RootState } from '../redux/store';
 import * as unitsSlice from '../redux/units-slice';
 import * as atm from '../util/atmosphere';
 import * as math from '../util/math';
-import { formatTimestamp, isSupportedModelName } from '../util/utils';
+import { formatTimestamp, getAvailableModels } from '../util/utils';
 
 // Plugin
 
@@ -552,12 +552,7 @@ const Details = memo(function Details() {
     shallowEqual,
   );
 
-  const models: string[] = useMemo(() => {
-    return W.models
-      .getAllPointProducts(location)
-      .filter((model: string) => isSupportedModelName(model))
-      .sort();
-  }, [location.lat, location.lon]);
+  const models: string[] = useMemo(() => getAvailableModels(location), [location.lat, location.lon]);
 
   const distanceString = isWindyDataAvailable ? intlFormatDistance(nextUpdateMs, nowMs) : '';
 
