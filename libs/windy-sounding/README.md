@@ -46,20 +46,9 @@ Installed plugins persist across visits so you only have to install them once pe
 
 ## How to install the plugin on a mobile phone
 
-First open "<https://www.windy.com/plugins>" from **a browser** on your phone.
+You can now install the plugin in the mobile apps on Android and iOS.
 
-> [!IMPORTANT]
-> Clicking on a link does not work, you have to type or copy paste the URL in a browser
-
-Find the "flyXC Soundings" plugin and click on "Install" and "Open"
-
-![Install](docs/1-mob-install.png)
-
-Once the plugin is installed on your phone, you can navigate to "<https://www.windy.com/plugin/sdg>" to open the plugin the next time (it's a good idea to bookmark the URL).
-
-![flyXC Soundings](docs/2-mob-sdg.png)
-
-The windy team is working on improving the user experience on mobiles. They will also add plugin support in the native apps - you soon won't have to open windy.com in a browser to see the plugin.
+The procedure is the same as installing it on a computer.
 
 ## Notes
 
