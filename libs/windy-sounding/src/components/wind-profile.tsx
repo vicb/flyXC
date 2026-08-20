@@ -12,7 +12,8 @@ export type WindProfileProps = {
   minPressure: number;
   maxPressure: number;
   seaLevelPressure: number;
-  windByLevel: { speed: number; direction: number }[];
+  speeds: number[];
+  directions: number[];
   unit: string;
   format: (windSpeed: number) => number;
   surfaceElevation: number;
@@ -29,7 +30,8 @@ export function WindProfile(props: WindProfileProps) {
     minPressure,
     maxPressure,
     seaLevelPressure,
-    windByLevel,
+    speeds,
+    directions,
     unit,
     format,
     surfaceElevation,
@@ -37,23 +39,12 @@ export function WindProfile(props: WindProfileProps) {
     yPointer,
   } = props;
 
-  const {
-    speedByLevel,
-    directionByLevel,
-    maxSpeed,
-    pressureToPxScale,
-    speedToPxScale,
-    pathGenerator,
-    ySurface,
-    surfacePressure,
-  } = useMemo(() => {
+  const { maxSpeed, pressureToPxScale, speedToPxScale, pathGenerator, ySurface, surfacePressure } = useMemo(() => {
     const maxLevelIndex = levels.findIndex((level) => level < minPressure);
     const keepToIndex = maxLevelIndex == -1 ? levels.length - 1 : maxLevelIndex;
-    const speedByLevel = windByLevel.map(({ speed }) => speed);
-    const directionByLevel = windByLevel.map(({ direction }) => direction);
 
     // Set the max to at least 30km/h.
-    const maxSpeed = Math.max(60 / 3.6, ...speedByLevel.slice(0, keepToIndex + 1));
+    const maxSpeed = Math.max(60 / 3.6, ...speeds.slice(0, keepToIndex + 1));
 
     const pressureToGhScale = getPressureToGhScale(levels, ghs, seaLevelPressure);
     const ghToPxScale = math.scaleLinear([pressureToGhScale(minPressure), pressureToGhScale(maxPressure)], [0, height]);
@@ -72,8 +63,6 @@ export function WindProfile(props: WindProfileProps) {
     const surfacePressure = pressureToGhScale.invert(surfaceElevation);
 
     return {
-      speedByLevel,
-      directionByLevel,
       maxSpeed,
       pressureToPxScale,
       speedToPxScale,
@@ -81,38 +70,20 @@ export function WindProfile(props: WindProfileProps) {
       ySurface,
       surfacePressure,
     };
-  }, [
-    levels,
-    minPressure,
-    windByLevel,
-    ghs,
-    seaLevelPressure,
-    maxPressure,
-    height,
-    isFixedRange,
-    width,
-    surfaceElevation,
-  ]);
+  }, [levels, minPressure, speeds, ghs, seaLevelPressure, maxPressure, height, isFixedRange, width, surfaceElevation]);
 
   const chartElements = useMemo(
     () => (
       <>
         <rect width={width} height={height} className="background" />
         <WindAxis {...{ speedToPxScale, width, height, maxSpeed, unit, format, isZoomedIn: isFixedRange }} />
-        <path className="speed line" d={pathGenerator(math.zip(speedByLevel, levels))} />
+        <path className="speed line" d={pathGenerator(math.zip(speeds, levels))} />
         <g transform={`translate(${width / 2}, 0)`}>
           {levels.map((level: number, i: number) => {
             if (level > surfacePressure) {
               return undefined;
             }
-            return (
-              <WindSymbol
-                key={level}
-                direction={directionByLevel[i]}
-                speed={speedByLevel[i]}
-                y={pressureToPxScale(level)}
-              />
-            );
+            return <WindSymbol key={level} direction={directions[i]} speed={speeds[i]} y={pressureToPxScale(level)} />;
           })}
         </g>
         <rect className="surface" y={ySurface} width={width} height={height - ySurface + 1} />
@@ -128,10 +99,10 @@ export function WindProfile(props: WindProfileProps) {
       format,
       isFixedRange,
       pathGenerator,
-      speedByLevel,
+      speeds,
       levels,
       surfacePressure,
-      directionByLevel,
+      directions,
       pressureToPxScale,
       ySurface,
     ],
@@ -141,7 +112,7 @@ export function WindProfile(props: WindProfileProps) {
   let cursorClass = 'top';
   let windAtCursor = 0;
   if (yPointer !== undefined) {
-    windAtCursor = sampleAt(levels, speedByLevel, pressureToPxScale.invert(yPointer));
+    windAtCursor = sampleAt(levels, speeds, pressureToPxScale.invert(yPointer));
     if (yPointer > height / 2) {
       yOffsetCursor = -4;
       cursorClass = 'bottom';

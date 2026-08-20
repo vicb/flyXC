@@ -446,7 +446,7 @@ const ConnectedSkewT = memo(function ConnectedSkewT(props: ChildGraphProps) {
       ghUnit: unitsSlice.selAltitudeUnit(state),
       ghAxisStep: unitsSlice.selAltitudeUnit(state) === 'm' ? 1000 : 3000,
       showUpperClouds: isZoomedIn,
-      cloudCover: forecastSlice.selGetCloudCoverGenerator(state, modelName, location, timeMs),
+      clouds: timeValues.cloud,
     };
   }, shallowEqual);
 
@@ -472,7 +472,8 @@ const ConnectedWind = memo(function ConnectedWind(props: ChildGraphProps) {
       seaLevelPressure: timeValues.seaLevelPressure,
       levels: periodValues.levels,
       ghs: timeValues.gh,
-      windByLevel: forecastSlice.selWindDetailsByLevel(state, modelName, location, timeMs),
+      speeds: timeValues.wind,
+      directions: timeValues.windDir,
       format: unitsSlice.selWindSpeedFormatter(state),
       unit: unitsSlice.selWindSpeedUnit(state),
       surfaceElevation: forecastSlice.selElevation(state, modelName, location),

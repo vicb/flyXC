@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 
 import { Watermark } from '../containers/containers.jsx';
 import * as atm from '../util/atmosphere.js';
-import type { CloudCoverGenerator } from '../util/clouds.js';
 import type { Scale } from '../util/math.js';
 import * as math from '../util/math.js';
 import { Parcel } from './parcel.jsx';
@@ -20,7 +19,7 @@ export type SkewTProps = {
   maxPressure: number;
   minTemp: number;
   maxTemp: number;
-  cloudCover: CloudCoverGenerator;
+  clouds: number[];
   surfaceElevation: number;
   parcel: atm.ParcelData | undefined;
   formatAltitude: (altitude: number) => number;
@@ -45,7 +44,7 @@ export function SkewT(props: SkewTProps) {
     seaLevelPressure,
     minTemp,
     maxTemp,
-    cloudCover,
+    clouds,
     surfaceElevation,
     parcel,
     formatAltitude,
@@ -191,7 +190,8 @@ export function SkewT(props: SkewTProps) {
         <Clouds
           {...{
             width,
-            cloudCover,
+            levels,
+            clouds,
             pressureToPxScale,
             surfacePressure: pressureToGhScale.invert(surfaceElevation),
             showUpperClouds,
@@ -199,7 +199,7 @@ export function SkewT(props: SkewTProps) {
         />
       </g>
     ),
-    [width, cloudCover, pressureToPxScale, pressureToGhScale, surfaceElevation, showUpperClouds],
+    [width, levels, clouds, pressureToPxScale, pressureToGhScale, surfaceElevation, showUpperClouds],
   );
 
   const linesElement = useMemo(
@@ -508,25 +508,28 @@ function AltitudeAxis({
 
 export type CloudsProp = {
   width: number;
-  cloudCover: CloudCoverGenerator;
+  levels: number[];
+  clouds: number[];
   pressureToPxScale: Scale;
   surfacePressure: number;
   showUpperClouds: boolean;
 };
 
-function Clouds({ width, cloudCover, pressureToPxScale, surfacePressure, showUpperClouds }: CloudsProp) {
+function Clouds({ width, levels, clouds, pressureToPxScale, surfacePressure, showUpperClouds }: CloudsProp) {
   const rects = [];
+  const pressureToCloudScale = math.scaleLinear(levels, clouds);
 
   let y = 0;
 
   if (showUpperClouds) {
     y = 30;
     const upperPressure = pressureToPxScale.invert(y);
-    const upperCover = cloudCover(upperPressure, 150);
+    const upperCoverMax = Math.max(0, ...levels.map((level, i) => (level <= upperPressure ? clouds[i] ?? 0 : 0)));
 
-    if (upperCover < 255) {
+    if (upperCoverMax >= 5) {
+      const upperCover = Math.round(255 - (upperCoverMax / 100) * 160);
       rects.push(
-        <Cloud y={0} width={width} height={30} cover={upperCover} />,
+        <Cloud key="upper" y={0} width={width} height={30} cover={upperCover} />,
         <text className="tick" y={30 - 12} x={width - 28} textAnchor="end">
           Upper
         </text>,
@@ -540,19 +543,27 @@ function Clouds({ width, cloudCover, pressureToPxScale, surfacePressure, showUpp
   const surfaceY = pressureToPxScale(surfacePressure);
   while (y < surfaceY) {
     const startY = y;
-    const cover = cloudCover(pressureToPxScale.invert(y));
+    const cloudPct = Math.max(0, Math.min(100, pressureToCloudScale(pressureToPxScale.invert(y))));
+    const cover = cloudPct < 5 ? 255 : Math.round(255 - (cloudPct / 100) * 160);
     let layerHeight = 1;
-    while (y++ < surfaceY && cloudCover(pressureToPxScale.invert(y)) == cover) {
+    while (y++ < surfaceY) {
+      const nextPct = Math.max(0, Math.min(100, pressureToCloudScale(pressureToPxScale.invert(y))));
+      const nextCover = nextPct < 5 ? 255 : Math.round(255 - (nextPct / 100) * 160);
+      if (Math.abs(nextCover - cover) > 2) {
+        break;
+      }
       layerHeight++;
     }
-    rects.push(<Cloud y={startY} width={100} height={layerHeight} cover={cover} />);
+    if (cover < 255) {
+      rects.push(<Cloud key={startY} y={startY} width={width} height={layerHeight} cover={cover} />);
+    }
   }
 
   return <g>{rects}</g>;
 }
 
 function Cloud({ y, height, width, cover }: { y: number; height: number; width: number; cover: number }) {
-  if (cover == 255) {
+  if (cover >= 255) {
     // We do not want to display a white background for no cloud but nothing.
     // It is more efficient than setting opacity to 0.
     return;
