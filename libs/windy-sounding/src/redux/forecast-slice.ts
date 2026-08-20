@@ -435,14 +435,31 @@ export const selSunsetMs = (state: RootState, modelName: string, location: LatLo
 /**
  * Available pressure levels in the model in descending order in hPa (e.g. [1000, 950, 925, ...]).
  *
- * Note: `windyData.forecast.header.availableLevels` might contain levels not on the sounding.
+ * Note:
+ * - `windyData.forecast.header.availableLevels` might contain levels not present on the sounding.
+ * - In some high-resolution models (e.g. ICON-D2), near-surface pressure levels (like 975h or 1000h)
+ *   can contain `null` entries when the level is subterranean (below ground due to terrain elevation
+ *   or diurnal pressure drops). We only include levels that have complete, non-null data across all
+ *   timestamps to avoid runtime errors during sounding calculations.
  */
-export const selDescendingLevels = createSelector(selLoadedWindyDataOrThrow, (windyData): number[] =>
-  Object.keys(windyData.forecast.sounding ?? {})
-    .filter((key: string) => key.startsWith('temp-') && key.endsWith('h'))
-    .map((key: string) => parseInt(key.slice(5, -1), 10))
-    .sort((a: number, b: number) => b - a),
-);
+export const selDescendingLevels = createSelector(selLoadedWindyDataOrThrow, (windyData): number[] => {
+  const sounding = windyData.forecast.sounding;
+  if (!sounding?.ts) {
+    return [];
+  }
+  const numTimestamps = sounding.ts.length;
+  return (
+    Object.keys(sounding)
+      .filter((key: string) => key.startsWith('temp-') && key.endsWith('h'))
+      // Only keep levels with non-null values for all timestamps (filters out subterranean/partial levels)
+      .filter((key: string) => {
+        const values = (sounding as Record<string, unknown>)[key];
+        return Array.isArray(values) && values.length >= numTimestamps && values.every((v) => v != null);
+      })
+      .map((key: string) => parseInt(key.slice(5, -1), 10))
+      .sort((a: number, b: number) => b - a)
+  );
+});
 
 export const selMaxModelPressure = createSelector(
   selDescendingLevels,
