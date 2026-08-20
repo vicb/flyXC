@@ -1,10 +1,17 @@
 import type { Fav } from '@windy/favs';
 
-import { formatTimestamp, getAvailableModels, getFavLabel, getSupportedModelName, isSupportedModelName } from './utils';
+import {
+  formatTimestamp,
+  getAvailableModels,
+  getFavLabel,
+  getSupportedModelName,
+  isSupportedModelName,
+  METEOBLUE_AI_MODEL,
+} from './utils';
 
 describe('utils', () => {
   describe('getAvailableModels', () => {
-    it('should return sorted supported models for location', () => {
+    it('should return sorted supported models for location including mblue', () => {
       // Mock W.models.getAllPointProducts
       (globalThis as any).W = {
         models: {
@@ -13,7 +20,7 @@ describe('utils', () => {
       };
 
       const models = getAvailableModels({ lat: 45, lon: 6 });
-      expect(models).toEqual(['ecmwf', 'gfs', 'icon', 'iconD2']);
+      expect(models).toEqual(['ecmwf', 'gfs', 'icon', 'iconD2', METEOBLUE_AI_MODEL]);
     });
   });
 
@@ -30,6 +37,7 @@ describe('utils', () => {
       expect(isSupportedModelName('aromeFrance')).toBe(true);
       expect(isSupportedModelName('czeAladin')).toBe(true);
       expect(isSupportedModelName('canHrdps')).toBe(true);
+      expect(isSupportedModelName(METEOBLUE_AI_MODEL)).toBe(true);
     });
 
     it('should return false for unsupported models', () => {

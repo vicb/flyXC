@@ -3,7 +3,7 @@ import type { LatLon } from '@windy/interfaces';
 
 import { pluginConfig } from '../config';
 import { saveSetting, Settings } from '../util/settings';
-import { DEFAULT_MODEL, getAvailableModels, getSupportedModelName } from '../util/utils';
+import { DEFAULT_MODEL, getAvailableModels, getSupportedModelName, METEOBLUE_AI_MODEL } from '../util/utils';
 import * as forecastSlice from './forecast-slice';
 import * as pluginSlice from './plugin-slice';
 import type { RootState } from './store';
@@ -69,7 +69,10 @@ export const changeLocation =
       modelName = availableModels.includes(DEFAULT_MODEL) ? DEFAULT_MODEL : availableModels[0];
       dispatch(pluginSlice.setModelName(modelName));
       saveSetting(Settings.model, modelName);
-      W.store.set('product', modelName);
+    }
+    const tileProduct = modelName === METEOBLUE_AI_MODEL ? DEFAULT_MODEL : modelName;
+    if (W.store.get('product') !== tileProduct) {
+      W.store.set('product', tileProduct);
     }
     dispatch(forecastSlice.fetchForecast({ modelName, location }));
     dispatch(pluginSlice.setLocation(location));
@@ -83,10 +86,19 @@ export const changeLocation =
 export const changeModel =
   (modelName: string): ThunkAction<void, RootState, unknown, UnknownAction> =>
   (dispatch, getState) => {
-    saveSetting(Settings.model, modelName);
+    const currentModel = pluginSlice.selModelName(getState());
+    const supportedModel = getSupportedModelName(modelName);
+    if (currentModel === supportedModel) {
+      return;
+    }
+    saveSetting(Settings.model, supportedModel);
+    const tileProduct = supportedModel === METEOBLUE_AI_MODEL ? DEFAULT_MODEL : supportedModel;
+    if (W.store.get('product') !== tileProduct) {
+      W.store.set('product', tileProduct);
+    }
     const location = pluginSlice.selLocation(getState());
-    dispatch(forecastSlice.fetchForecast({ modelName, location }));
-    dispatch(pluginSlice.setModelName(getSupportedModelName(modelName)));
+    dispatch(forecastSlice.fetchForecast({ modelName: supportedModel, location }));
+    dispatch(pluginSlice.setModelName(supportedModel));
     updateUrl(getState());
   };
 

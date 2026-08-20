@@ -1,6 +1,9 @@
 import type { Fav } from '@windy/favs';
 import type { LatLon } from '@windy/interfaces';
 
+export const METEOBLUE_AI_MODEL = 'mblue';
+export const DEFAULT_MODEL = 'ecmwf';
+
 // Some models do not have the required parameters for soundings (i.e. surface only)
 const SUPPORTED_MODELS = [
   /^ecmwf$/,
@@ -12,8 +15,8 @@ const SUPPORTED_MODELS = [
   /^arome\w+/, // "arome" is unsupported
   /^czeAladin$/,
   /^canHrdps$/,
+  /^mblue$/,
 ];
-export const DEFAULT_MODEL = 'ecmwf';
 
 export function injectStyles(styles: string) {
   const { head } = document;
@@ -60,10 +63,11 @@ export function isSupportedModelName(windyModelName: string): boolean {
  * Returns the sorted list of supported model names for soundings at a given location.
  */
 export function getAvailableModels(location: LatLon): string[] {
-  return W.models
-    .getAllPointProducts(location)
-    .filter((model: string) => isSupportedModelName(model))
-    .sort();
+  const models = W.models.getAllPointProducts(location).filter((model: string) => isSupportedModelName(model));
+  if (!models.includes(METEOBLUE_AI_MODEL)) {
+    models.push(METEOBLUE_AI_MODEL);
+  }
+  return models.sort();
 }
 
 /**
