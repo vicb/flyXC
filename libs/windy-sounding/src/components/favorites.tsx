@@ -98,8 +98,11 @@ export function Favorites({ favorites, location, isMobile, onSelected, onSelectM
             ) : (
               favorites.map((favorite: Fav) => (
                 <span
+                  key={latLon2Str(favorite)}
                   className={latLon2Str(favorite) == locationStr ? 'selected' : ''}
-                  onClick={() => onSelected({ lat: favorite.lat, lon: favorite.lon })}
+                  onClick={() => {
+                    onSelected({ lat: favorite.lat, lon: favorite.lon });
+                  }}
                 >
                   {getFavLabel(favorite)}
                 </span>

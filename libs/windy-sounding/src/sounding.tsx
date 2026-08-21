@@ -115,28 +115,6 @@ export const mountPlugin = (container: HTMLElement) => {
     dispatch(pluginSlice.setFavorites(await favs.getAll()));
   });
   addSubscription(() => broadcast.off(favChangedEventId));
-
-  // Debounce map moveend to avoid excessive forecast fetches on frequent panning
-  let moveEndTimeout: number | undefined;
-
-  const mapMoveEndHandler = () => {
-    if (moveEndTimeout) {
-      clearTimeout(moveEndTimeout);
-    }
-
-    moveEndTimeout = window.setTimeout(() => {
-      const center = windyMap.getCenter();
-      dispatch(changeLocation({ lat: center.lat, lon: center.lng }));
-    }, 100);
-  };
-
-  windyMap.on('moveend', mapMoveEndHandler);
-  addSubscription(() => {
-    windyMap.off('moveend', mapMoveEndHandler);
-    if (moveEndTimeout) {
-      clearTimeout(moveEndTimeout);
-    }
-  });
 };
 
 // Called when the plugin is opened

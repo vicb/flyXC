@@ -6,6 +6,7 @@ import {
   getFavLabel,
   getSupportedModelName,
   isSupportedModelName,
+  latLon2Str,
   METEOBLUE_AI_MODEL,
 } from './utils';
 
@@ -79,6 +80,18 @@ describe('utils', () => {
       const formatted = formatTimestamp(ts);
       expect(typeof formatted).toBe('string');
       expect(formatted.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('latLon2Str', () => {
+    it('should convert lat/lon to string using W.utils.latLon2str', () => {
+      (globalThis as any).W = {
+        utils: {
+          latLon2str: vi.fn().mockImplementation(({ lat, lon }: any) => `${lat},${lon}`),
+        },
+      };
+      expect(latLon2Str({ lat: 45.83, lon: 6.86 })).toBe('45.83,6.86');
+      expect(latLon2Str({ lat: '45.83', lon: '6.86' })).toBe('45.83,6.86');
     });
   });
 });
