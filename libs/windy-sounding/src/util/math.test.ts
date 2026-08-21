@@ -2,6 +2,7 @@ import {
   composeScales,
   firstIntersection,
   lerp,
+  lerpAngleDegree,
   linearInterpolate,
   round,
   sampleAt,
@@ -27,6 +28,42 @@ describe('lerp', () => {
   it('should return the correct value for any weight', () => {
     expect(lerp(10, 20, 0.25)).toEqual(12.5);
     expect(lerp(10, 20, 0.75)).toEqual(17.5);
+  });
+});
+
+describe('lerpAngleDegree', () => {
+  it('should return a when weight is 0', () => {
+    expect(lerpAngleDegree(350, 10, 0)).toEqual(350);
+    expect(lerpAngleDegree(0, 90, 0)).toEqual(0);
+  });
+
+  it('should return b when weight is 1', () => {
+    expect(lerpAngleDegree(350, 10, 1)).toEqual(10);
+    expect(lerpAngleDegree(0, 90, 1)).toEqual(90);
+  });
+
+  it('should interpolate standard angles without crossing 0 boundary', () => {
+    expect(lerpAngleDegree(0, 90, 0.5)).toEqual(45);
+    expect(lerpAngleDegree(100, 200, 0.5)).toEqual(150);
+  });
+
+  it('should take the shortest arc across the 360/0 boundary (clockwise)', () => {
+    // 350 to 10 is +20 deg clockwise, midpoint is 0 / 360 -> 0
+    expect(lerpAngleDegree(350, 10, 0.5)).toEqual(0);
+    expect(lerpAngleDegree(350, 10, 0.25)).toEqual(355);
+    expect(lerpAngleDegree(350, 10, 0.75)).toEqual(5);
+  });
+
+  it('should take the shortest arc across the 360/0 boundary (counter-clockwise)', () => {
+    // 10 to 350 is -20 deg counter-clockwise, midpoint is 0
+    expect(lerpAngleDegree(10, 350, 0.5)).toEqual(0);
+    expect(lerpAngleDegree(10, 350, 0.25)).toEqual(5);
+    expect(lerpAngleDegree(10, 350, 0.75)).toEqual(355);
+  });
+
+  it('should handle inputs outside [0, 360) and normalize the output', () => {
+    expect(lerpAngleDegree(-10, 10, 0.5)).toEqual(0);
+    expect(lerpAngleDegree(710, 370, 0.5)).toEqual(0);
   });
 });
 
@@ -71,6 +108,16 @@ describe('linearInterpolate', () => {
       expect(linearInterpolate(3, [4, 5], 1, [2, 3], 1.5)).toEqual([2.5, 3.5]);
       expect(linearInterpolate(1, [2, 3], 3, [4, 5], 2.5)).toEqual([3.5, 4.5]);
       expect(linearInterpolate(3, [4, 5], 1, [2, 3], 2.5)).toEqual([3.5, 4.5]);
+    });
+
+    it('should support custom lerpFn for arrays', () => {
+      expect(linearInterpolate(1, [350, 10], 3, [10, 350], 2, lerpAngleDegree)).toEqual([0, 0]);
+    });
+  });
+
+  describe('custom lerpFn', () => {
+    it('should support lerpAngleDegree for scalar values', () => {
+      expect(linearInterpolate(1, 350, 3, 10, 2, lerpAngleDegree)).toEqual(0);
     });
   });
 });
@@ -124,6 +171,16 @@ describe('sampleAt', () => {
     const ys = [10, 20, 30, 40];
     expect(sampleAt(xs, ys, 0)).toEqual(0);
     expect(sampleAt(xs, ys, 5)).toEqual(50);
+  });
+
+  it('should interpolate angles with lerpAngleDegree over time on 2D arrays (e.g. windDirByTime)', () => {
+    const timesMs = [1000, 2000];
+    // Level 1: 350 -> 10 (midpoint 0), Level 2: 10 -> 350 (midpoint 0)
+    const windDirByTime = [
+      [350, 10],
+      [10, 350],
+    ];
+    expect(sampleAt(timesMs, windDirByTime, 1500, lerpAngleDegree)).toEqual([0, 0]);
   });
 });
 

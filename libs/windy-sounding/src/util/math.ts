@@ -1,4 +1,9 @@
 /**
+ * Function type for linearly interpolating between two numeric values with a given weight.
+ */
+export type LerpFn = (v0: number, v1: number, weight: number) => number;
+
+/**
  * Linearly interpolates between two values or arrays of values.
  *
  * When ys are arrays they must have the same length.
@@ -8,6 +13,7 @@
  * @param x2 - The x-coordinate of the second point.
  * @param y2 - The y-coordinate or array of y-coordinates of the second point.
  * @param x - The x-coordinate at which to interpolate.
+ * @param lerpFn - Optional custom interpolation function (defaults to `lerp`).
  * @returns The interpolated value or array of values.
  *
  * @example
@@ -16,14 +22,22 @@
  * linearInterpolate(0, [10, 20], 10, [30, 40], 5); // [20, 30]
  * ```
  */
-export function linearInterpolate(x1: number, y1: number, x2: number, y2: number, x: number): number;
-export function linearInterpolate(x1: number, y1: number[], x2: number, y2: number[], x: number): number[];
+export function linearInterpolate(x1: number, y1: number, x2: number, y2: number, x: number, lerpFn?: LerpFn): number;
+export function linearInterpolate(
+  x1: number,
+  y1: number[],
+  x2: number,
+  y2: number[],
+  x: number,
+  lerpFn?: LerpFn,
+): number[];
 export function linearInterpolate(
   x1: number,
   y1: number | number[],
   x2: number,
   y2: number | number[],
   x: number,
+  lerpFn: LerpFn = lerp,
 ): number | number[] {
   if (x1 == x2) {
     return y1;
@@ -37,13 +51,13 @@ export function linearInterpolate(
     const len = Math.min(y1.length, y2.length);
     const ys: number[] = [];
     for (let i = 0; i < len; i++) {
-      ys.push(lerp(y1[i], y2[i], w));
+      ys.push(lerpFn(y1[i], y2[i], w));
     }
     return ys;
   }
 
   if (!isArrayY1 && !isArrayY2) {
-    return lerp(y1, y2, w);
+    return lerpFn(y1, y2, w);
   }
 
   throw new Error('Invalid arguments');
@@ -55,6 +69,7 @@ export function linearInterpolate(
  * @param xs - The x-coordinates of the data points. Must be sorted in ascending or descending order.
  * @param ys - The y-coordinates or arrays of y-coordinates of the data points. Must have the same length as `xs`.
  * @param targetXs - The x-coordinate or array of x-coordinates at which to sample.
+ * @param lerpFn - Optional custom interpolation function (defaults to `lerp`).
  * @returns The sampled value or array of values.
  *
  * @example
@@ -65,14 +80,15 @@ export function linearInterpolate(
  * sampleAt(xs, ys, [5, 15]); // [15, 25]
  * ```
  */
-export function sampleAt(xs: number[], ys: number[], targetXs: number): number;
-export function sampleAt(xs: number[], ys: number[][], targetXs: number): number[];
-export function sampleAt(xs: number[], ys: number[], targetXs: number[]): number[];
-export function sampleAt(xs: number[], ys: number[][], targetXs: number[]): number[][];
+export function sampleAt(xs: number[], ys: number[], targetXs: number, lerpFn?: LerpFn): number;
+export function sampleAt(xs: number[], ys: number[][], targetXs: number, lerpFn?: LerpFn): number[];
+export function sampleAt(xs: number[], ys: number[], targetXs: number[], lerpFn?: LerpFn): number[];
+export function sampleAt(xs: number[], ys: number[][], targetXs: number[], lerpFn?: LerpFn): number[][];
 export function sampleAt(
   xs: number[],
   ys: number[] | number[][],
   targetXs: number | number[],
+  lerpFn: LerpFn = lerp,
 ): number | number[] | number[][] {
   const descOrder = xs[0] > xs[1];
   const xsIsArray = Array.isArray(targetXs);
@@ -85,7 +101,7 @@ export function sampleAt(
       index = 1;
     }
     // y1 and y2 can be number | number[] but TS doesn't seem to understand they have the same type.
-    return linearInterpolate(xs[index - 1], ys[index - 1] as number, xs[index], ys[index] as number, tx);
+    return linearInterpolate(xs[index - 1], ys[index - 1] as number, xs[index], ys[index] as number, tx, lerpFn);
   });
   return xsIsArray ? values : values[0];
 }
@@ -280,6 +296,32 @@ export function svgPath(
  */
 export function lerp(v0: number, v1: number, weight: number): number {
   return v0 + weight * (v1 - v0);
+}
+
+/**
+ * Linearly interpolates between two angles in degrees along the shortest angular distance (shortest arc)
+ *
+ * Notes:
+ * - This function handles wrapping around 360 degrees.
+ * - The return value is normalized to the range [0, 360).
+ * *
+ * @param a - Starting angle in degrees.
+ * @param b - Ending angle in degrees.
+ * @param weight - Interpolation weight, where 0 returns `a` and 1 returns `b`.
+ * @returns The interpolated angle in degrees, normalized to [0, 360).
+ */
+export function lerpAngleDegree(a: number, b: number, weight: number): number {
+  // Difference between the target and start angles in the range (-360, 360).
+  const rawDiff = (b - a) % 360;
+
+  // Shortest arc in the range [-180, 180).
+  const wrappedDiff0To360 = (rawDiff + 540) % 360;
+  const shortestArcDelta = wrappedDiff0To360 - 180;
+
+  const interpolatedAngle = a + shortestArcDelta * weight;
+
+  // Normalize the interpolated angle to [0, 360).
+  return ((interpolatedAngle % 360) + 360) % 360;
 }
 
 /**
