@@ -12,7 +12,7 @@ import {
   saturationVaporPressure,
 } from '../util/atmosphere';
 import type { Scale } from '../util/math';
-import { sampleAt, scaleLinear } from '../util/math';
+import { lerpAngleDegree, sampleAt, scaleLinear } from '../util/math';
 import { latLon2Str } from '../util/utils';
 import * as pluginSlice from './plugin-slice';
 import type { AppThunkAPI, RootState } from './store';
@@ -515,7 +515,7 @@ export const selValuesAt = createSelector(
       gh: sampleAt(timesMs, periodValues.ghByTime, timeMs),
       rh: sampleAt(timesMs, periodValues.rhByTime, timeMs),
       wind: sampleAt(timesMs, periodValues.windByTime, timeMs),
-      windDir: sampleAt(timesMs, periodValues.windDirByTime, timeMs),
+      windDir: sampleAt(timesMs, periodValues.windDirByTime, timeMs, lerpAngleDegree),
       cloud: sampleAt(timesMs, periodValues.cloudByTime, timeMs),
       rainMm: sampleAt(timesMs, periodValues.rainMmByTime, timeMs),
       seaLevelPressure: sampleAt(timesMs, periodValues.seaLevelPressureByTime, timeMs),
