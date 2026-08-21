@@ -111,6 +111,9 @@ function updateUrl(state: RootState) {
 let marker: L.Marker | undefined;
 
 export function maybeCreateAndMoveMarker(location: LatLon) {
+  if (location.lat === 0 && location.lon === 0) {
+    return;
+  }
   const { lon: lng, lat } = location;
   if (marker) {
     marker.setLatLng({ lat, lng });
