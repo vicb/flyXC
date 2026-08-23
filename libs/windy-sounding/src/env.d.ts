@@ -28,10 +28,3 @@ declare const W: {
 };
 
 /* eslint-enable */
-
-declare module '*.svelte' {
-  import type { ComponentType } from 'svelte';
-
-  const component: ComponentType;
-  export default component;
-}

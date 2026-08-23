@@ -145,6 +145,9 @@ export const openPlugin = async ({ lat, lon, modelName }: { lat: number; lon: nu
 export const destroyPlugin = () => {
   cancelAllSubscriptions();
   maybeRemoveMarker();
+  if (appContainer) {
+    render(null, appContainer);
+  }
 };
 
 function setSizeFrom(container: HTMLElement) {

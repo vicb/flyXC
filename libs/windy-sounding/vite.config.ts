@@ -1,6 +1,5 @@
 /// <reference types='vitest' />
 import preact from '@preact/preset-vite';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
 import type { UserConfig } from 'vite';
 import { defineConfig } from 'vite';
 
@@ -17,7 +16,6 @@ export default defineConfig(({ mode }): UserConfig => {
     plugins: isConfigBuild
       ? []
       : [
-          svelte(),
           preact({
             prefreshEnabled: false,
             babel: {
