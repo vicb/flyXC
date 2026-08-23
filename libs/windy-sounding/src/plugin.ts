@@ -36,26 +36,14 @@ class Plugin implements ExternalSvelteApp {
    * @see https://docs.windy-plugins.com/getting-started/#opening-plugin-with-parameters
    */
   onopen(parameters: any) {
-    // Legacy URLs do not have the model.
-    // old format /:lat/:lon
-    // new format /:model/:lat/:lon
-    const isNumeric = (value: string) => (value as any) == parseFloat(value);
-    if (isNumeric(parameters?.modelName) && isNumeric(parameters?.lat)) {
-      [parameters.lat, parameters.lon, parameters.modelName] = [
-        parameters.modelName,
-        parameters.lat,
-        W.store.get('product'),
-      ];
-    }
-
     let lat = parameters?.lat;
     let lon = parameters?.lon;
 
     if (lat === undefined || lon === undefined) {
       try {
         const location = JSON.parse(loadSetting(Settings.location));
-        lat = location.lat;
-        lon = location.lon;
+        lat ??= location.lat;
+        lon ??= location.lon;
       } catch {
         // empty
       }
