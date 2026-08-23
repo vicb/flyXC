@@ -23,7 +23,6 @@ class Plugin implements ExternalSvelteApp {
    * @param options.target The parent DOM element provided by Windy.
    */
   constructor(options: { target: HTMLElement }) {
-    console.log({ options });
     this.contentEl = document.createElement('section');
     this.contentEl.className = 'plugin__content';
     options.target.appendChild(this.contentEl);
@@ -36,7 +35,7 @@ class Plugin implements ExternalSvelteApp {
    *
    * @see https://docs.windy-plugins.com/getting-started/#opening-plugin-with-parameters
    */
-  async onopen(parameters: any) {
+  onopen(parameters: any) {
     // Legacy URLs do not have the model.
     // old format /:lat/:lon
     // new format /:model/:lat/:lon
@@ -66,7 +65,7 @@ class Plugin implements ExternalSvelteApp {
     lat = Number(lat ?? mapCenter.lat);
     lon = Number(lon ?? mapCenter.lng);
     const modelName = parameters?.modelName ?? loadSetting(Settings.model) ?? W.store.get('product');
-    await openPlugin({ lat, lon, modelName });
+    openPlugin({ lat, lon, modelName });
   }
 
   /**

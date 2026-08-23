@@ -118,14 +118,13 @@ export const mountPlugin = (container: HTMLElement) => {
 };
 
 // Called when the plugin is opened
-export const openPlugin = async ({ lat, lon, modelName }: { lat: number; lon: number; modelName: string }) => {
+export const openPlugin = ({ lat, lon, modelName }: { lat: number; lon: number; modelName: string }) => {
   const { dispatch } = store;
   const location = { lat, lon };
 
   windyMap.setZoom(10, { animate: false });
   centerMap(location);
 
-  dispatch(pluginSlice.setFavorites(await favs.getAll()));
   const tileProduct = modelName === METEOBLUE_AI_MODEL ? DEFAULT_MODEL : modelName;
   if (windyStore.get('product') !== tileProduct) {
     windyStore.set('product', tileProduct);
@@ -139,6 +138,8 @@ export const openPlugin = async ({ lat, lon, modelName }: { lat: number; lon: nu
   if (pluginSlice.selStatus(store.getState()) === pluginSlice.PluginStatus.Idle) {
     dispatch(pluginSlice.setStatus(pluginSlice.PluginStatus.Ready));
   }
+
+  favs.getAll().then((favorites) => dispatch(pluginSlice.setFavorites(favorites)));
 };
 
 // Called when closed
