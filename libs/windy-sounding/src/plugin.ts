@@ -1,33 +1,79 @@
 /**
- * Plugin entry point.
+ * Main entry point for the Windy plugin.
  *
- * Configure your plugin in lib/plugin-config.ts.
- * Develop your plugin in lib/Plugin.svelte.
+ * Windy plugins are loaded as ES modules expecting:
+ * - A default export class implementing the plugin lifecycle (`constructor`, `onopen`, `$destroy`).
+ * - A named export `__pluginConfig` containing plugin metadata.
+ *
+ * @see https://docs.windy-plugins.com/getting-started/
+ * @see https://docs.windy-plugins.com/getting-started/#lifecycle-of-the-plugin
  */
 
-import { mount, unmount } from 'svelte';
+import type { ExternalSvelteApp } from '@windy/client/SveltePlugin';
 
 import { pluginConfig } from './config';
-import PluginSvelte from './Plugin.svelte';
+import { destroyPlugin, mountPlugin, openPlugin } from './sounding';
+import { loadSetting, Settings } from './util/settings';
 
-class Plugin {
-  private instance: Record<string, any>;
+class Plugin implements ExternalSvelteApp {
+  private contentEl: HTMLElement;
 
-  constructor(options: { target: HTMLElement; props?: Record<string, any> }) {
-    this.instance = mount(PluginSvelte, {
-      target: options.target,
-      props: options.props,
-    });
+  /**
+   * Called once when Windy mounts the plugin pane into the DOM.
+   * @param options.target The parent DOM element provided by Windy.
+   */
+  constructor(options: { target: HTMLElement }) {
+    this.contentEl = document.createElement('section');
+    this.contentEl.className = 'plugin__content';
+    options.target.appendChild(this.contentEl);
+    mountPlugin(this.contentEl);
   }
 
+  /**
+   * Called whenever the plugin is opened (via URL router or context menu).
+   * Note: This method can be called multiple times during the plugin's lifecycle.
+   *
+   * @see https://docs.windy-plugins.com/getting-started/#opening-plugin-with-parameters
+   */
   onopen(parameters: any) {
-    if (typeof this.instance.onopen === 'function') {
-      return this.instance.onopen(parameters);
+    // Legacy URLs do not have the model.
+    // old format /:lat/:lon
+    // new format /:model/:lat/:lon
+    const isNumeric = (value: string) => (value as any) == parseFloat(value);
+    if (isNumeric(parameters?.modelName) && isNumeric(parameters?.lat)) {
+      [parameters.lat, parameters.lon, parameters.modelName] = [
+        parameters.modelName,
+        parameters.lat,
+        W.store.get('product'),
+      ];
     }
+
+    let lat = parameters?.lat;
+    let lon = parameters?.lon;
+
+    if (lat === undefined || lon === undefined) {
+      try {
+        const location = JSON.parse(loadSetting(Settings.location));
+        lat = location.lat;
+        lon = location.lon;
+      } catch {
+        // empty
+      }
+    }
+
+    const mapCenter = W.map.map.getCenter();
+    lat = Number(lat ?? mapCenter.lat);
+    lon = Number(lon ?? mapCenter.lng);
+    const modelName = parameters?.modelName ?? loadSetting(Settings.model) ?? W.store.get('product');
+    openPlugin({ lat, lon, modelName });
   }
 
+  /**
+   * Called once when the plugin is closed or unloaded by Windy.
+   */
   $destroy() {
-    unmount(this.instance);
+    destroyPlugin();
+    this.contentEl.remove();
   }
 }
 

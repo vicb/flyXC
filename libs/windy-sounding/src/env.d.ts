@@ -1,7 +1,3 @@
-/// <reference types="vite/client" />
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="leaflet.d.ts" />
-
 declare const __BUILD_TIMESTAMP__: number;
 
 declare const SwipeListener: any;
@@ -26,12 +22,4 @@ declare const W: {
   http: typeof import('@windy/client/http');
   user: typeof import('@windy/client/user');
 };
-
 /* eslint-enable */
-
-declare module '*.svelte' {
-  import type { ComponentType } from 'svelte';
-
-  const component: ComponentType;
-  export default component;
-}
