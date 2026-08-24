@@ -347,7 +347,7 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
 
       // Only update the active map level for overlays that support multiple altitude levels
       // (e.g. wind, temp) to avoid unnecessary or invalid level changes on surface-only layers (e.g. rain, radar).
-      const overlay = W.store.get('overlay') as keyof typeof W.overlays;
+      const overlay: keyof typeof W.overlays = W.store.get('overlay');
       const supportsLevels = W.overlays[overlay].hasMoreLevels;
       const availLevels = W.store.get('availLevels');
       if (supportsLevels && availLevels.length > 1) {
@@ -433,6 +433,7 @@ const ConnectedSkewT = memo(function ConnectedSkewT(props: ChildGraphProps) {
 
     return {
       levels: periodValues.levels,
+      cloudLevels: periodValues.cloudLevels,
       temps: timeValues.temp,
       dewPoints: timeValues.dewPoint,
       ghs: timeValues.gh,
