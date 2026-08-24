@@ -12,7 +12,7 @@ export type SkewTProps = {
   yPointer: number | undefined;
   levels: number[];
   temps: number[];
-  dewpoints: number[];
+  dewPoints: number[];
   ghs: number[];
   seaLevelPressure: number;
   minPressure: number;
@@ -38,7 +38,7 @@ export function SkewT(props: SkewTProps) {
     levels,
     temps,
     ghs,
-    dewpoints,
+    dewPoints,
     minPressure,
     maxPressure,
     seaLevelPressure,
@@ -207,10 +207,10 @@ export function SkewT(props: SkewTProps) {
       <g className="line">
         {parcel && <Parcel {...{ parcel, width, height, pathGenerator, pressureToPxScale, formatAltitude }} />}
         <path className="temperature" d={pathGenerator(math.zip(temps, levels))} />
-        <path className="dewpoint" d={pathGenerator(math.zip(dewpoints, levels))} />
+        <path className="dewpoint" d={pathGenerator(math.zip(dewPoints, levels))} />
       </g>
     ),
-    [parcel, width, height, pathGenerator, pressureToPxScale, formatAltitude, temps, dewpoints, levels],
+    [parcel, width, height, pathGenerator, pressureToPxScale, formatAltitude, temps, dewPoints, levels],
   );
 
   let tempAtCursor = 0;
@@ -219,7 +219,7 @@ export function SkewT(props: SkewTProps) {
   let cursorClass = 'top';
   if (yPointer !== undefined) {
     tempAtCursor = math.sampleAt(levels, temps, pressureToPxScale.invert(yPointer));
-    dewPointAtCursor = math.sampleAt(levels, dewpoints, pressureToPxScale.invert(yPointer));
+    dewPointAtCursor = math.sampleAt(levels, dewPoints, pressureToPxScale.invert(yPointer));
     if (yPointer > height / 2) {
       yOffsetCursor = -4;
       cursorClass = 'bottom';
