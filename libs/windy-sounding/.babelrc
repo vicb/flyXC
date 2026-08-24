@@ -1,20 +1,12 @@
 {
   "presets": [
-    [
-      "@babel/preset-typescript",
-      {
-        "isTSX": true,
-        "allExtensions": true
-      }
-    ],
+    "@babel/preset-typescript",
     [
       "@babel/preset-env",
       {
-        "modules": false,
-        "targets": {
-          "esmodules": true
-        }
+        "modules": false
       }
     ]
   ]
 }
+
