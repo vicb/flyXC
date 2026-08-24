@@ -37,16 +37,16 @@
     "@reduxjs/toolkit": "catalog:default",
     "date-fns": "catalog:default",
     "geojson": "^0.5.0",
-    "preact": "^10.29.7",
+    "preact": "^10.29.8",
     "react-redux": "^9.3.0",
     "jsonc-eslint-parser": "catalog:default"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.7",
-    "@babel/preset-env": "^7.29.7",
-    "@babel/preset-typescript": "^7.29.7",
+    "@babel/core": "^8.0.1",
+    "@babel/preset-env": "^8.0.2",
+    "@babel/preset-typescript": "^8.0.1",
     "@preact/preset-vite": "catalog:",
-    "@types/geojson": "^7946.0.15",
+    "@types/geojson": "^7946.0.16",
     "vite": "catalog:default"
   }
 }
