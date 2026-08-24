@@ -29,26 +29,40 @@ export enum FetchStatus {
 }
 
 // Those properties varies with the altitude level.
-const _levelProps = ['temp', 'dewPoint', 'gh', 'wind', 'windDir', 'rh', 'cloud'] as const;
+// All are defined at the same levels (the `PeriodValue.levels` array).
+const _levelProps = ['temp', 'dewPoint', 'gh', 'wind', 'windDir', 'rh'] as const;
 type LevelProp = (typeof _levelProps)[number];
 type LevelPropByTime = `${LevelProp}ByTime`;
+
+// Those properties varies with the cloud altitude level.
+// All are defined at the same levels (the `PeriodValue.cloudLevels` array).
+// Note that `PeriodValue.levels` and `PeriodValue.cloudLevels` can have different sizes/values.
+const _cloudLevelProps = ['cloud'] as const;
+type CloudLevelProp = (typeof _cloudLevelProps)[number];
+type CloudLevelPropByTime = `${CloudLevelProp}ByTime`;
 
 // Those properties do not vary with altitude.
 const _sfcProps = ['rainMm', 'seaLevelPressure'] as const;
 type SfcProps = (typeof _sfcProps)[number];
 type SfcPropsByTime = `${SfcProps}ByTime`;
 
-type TimeValue = Record<LevelProp, number[]> & Record<SfcProps, number>;
+// Values for a given time step.
+type TimeValue = Record<LevelProp | CloudLevelProp, number[]> & Record<SfcProps, number>;
 
 type ForecastType = WeatherDataPayload2<DataHash2>;
 
+// Values aggregated over all time steps (e.g. max/min over time)
 export type PeriodValue = {
   maxTemp: number;
   minTemp: number;
   maxSeaLevelPressure: number;
+  // Levels for `LevelProp`
   levels: number[];
+  // Levels for `CloudLevelProp`
+  cloudLevels: number[];
   timesMs: number[];
 } & Record<LevelPropByTime, number[][]> & // By time then by level
+  Record<CloudLevelPropByTime, number[][]> & // By time then by cloud level
   // By time only
   Record<SfcPropsByTime, number[]>;
 
@@ -244,7 +258,7 @@ function isWindyDataCached(state: ForecastState, key: string) {
  */
 function extractSoundingParamByLevel(
   sounding: SoundingDataHash2,
-  paramName: LevelProp,
+  paramName: LevelProp | CloudLevelProp,
   levels: number[],
   tsIndex: number,
 ): number[] {
@@ -282,7 +296,7 @@ function extractSoundingParamByLevel(
         value = sounding[`windDir-${levelKey}`]?.[tsIndex];
         break;
       case 'cloud':
-        value = sounding[`cloud-${levelKey}`]?.[tsIndex] ?? 0;
+        value = sounding[`cloud-${levelKey}`]?.[tsIndex];
         break;
     }
 
@@ -303,6 +317,7 @@ function computePeriodValues(
     fetchStatus: FetchStatus.Loaded;
   },
   levels: number[],
+  cloudLevels: number[],
 ): PeriodValue {
   if (!windyData.forecast.sounding?.ts) {
     throw new Error('Invalid forecast data: No sounding timestamps found.');
@@ -315,7 +330,9 @@ function computePeriodValues(
   let minTemp: number = Number.MAX_VALUE;
   let maxSeaLevelPressure: number = Number.MIN_VALUE;
 
-  const values: Record<LevelPropByTime, number[][]> & Record<SfcPropsByTime, number[]> = {
+  const values: Record<LevelPropByTime, number[][]> &
+    Record<CloudLevelPropByTime, number[][]> &
+    Record<SfcPropsByTime, number[]> = {
     dewPointByTime: [],
     ghByTime: [],
     rhByTime: [],
@@ -340,7 +357,7 @@ function computePeriodValues(
     values.rhByTime.push(extractSoundingParamByLevel(soundingData, 'rh', levels, tsIndex));
     values.windByTime.push(extractSoundingParamByLevel(soundingData, 'wind', levels, tsIndex));
     values.windDirByTime.push(extractSoundingParamByLevel(soundingData, 'windDir', levels, tsIndex));
-    values.cloudByTime.push(extractSoundingParamByLevel(soundingData, 'cloud', levels, tsIndex));
+    values.cloudByTime.push(extractSoundingParamByLevel(soundingData, 'cloud', cloudLevels, tsIndex));
     values.rainMmByTime.push(sampleAt(soundingTimeMs, windyData.forecast.data.precipAmount, timeMs));
     values.seaLevelPressureByTime.push(Math.round(seaLevelPressure));
   }
@@ -348,6 +365,7 @@ function computePeriodValues(
   return {
     timesMs: soundingTimeMs,
     levels,
+    cloudLevels,
     maxTemp,
     minTemp,
     maxSeaLevelPressure,
@@ -454,6 +472,25 @@ export const selDescendingLevels = createSelector(selLoadedWindyDataOrThrow, (wi
   );
 });
 
+export const selCloudDescendingLevels = createSelector(selLoadedWindyDataOrThrow, (windyData): number[] => {
+  const sounding = windyData.forecast.sounding;
+  if (!sounding?.ts) {
+    return [];
+  }
+  const numTimestamps = sounding.ts.length;
+  return (
+    Object.keys(sounding)
+      .filter((key: string) => key.startsWith('cloud-') && key.endsWith('h'))
+      // Only keep levels with non-null values for all timestamps
+      .filter((key: string) => {
+        const values = (sounding as Record<string, unknown>)[key];
+        return Array.isArray(values) && values.length >= numTimestamps && values.every((v) => v != null);
+      })
+      .map((key: string) => parseInt(key.slice(6, -1), 10))
+      .sort((a: number, b: number) => b - a)
+  );
+});
+
 export const selMaxModelPressure = createSelector(
   selDescendingLevels,
   (descendingLevels): number => descendingLevels[0],
@@ -467,7 +504,8 @@ export const selMinModelPressure = createSelector(
 export const selPeriodValues = createSelector(
   selLoadedWindyDataOrThrow,
   selDescendingLevels,
-  (windyData, levels): PeriodValue => computePeriodValues(windyData, levels),
+  selCloudDescendingLevels,
+  (windyData, levels, cloudLevels): PeriodValue => computePeriodValues(windyData, levels, cloudLevels),
 );
 
 export const selMaxPeriodTemp = createSelector(selPeriodValues, (periodValues): number => periodValues.maxTemp);

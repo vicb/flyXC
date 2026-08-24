@@ -11,6 +11,7 @@ export type SkewTProps = {
   height: number;
   yPointer: number | undefined;
   levels: number[];
+  cloudLevels: number[];
   temps: number[];
   dewPoints: number[];
   ghs: number[];
@@ -36,6 +37,7 @@ export function SkewT(props: SkewTProps) {
     width,
     height,
     levels,
+    cloudLevels,
     temps,
     ghs,
     dewPoints,
@@ -190,7 +192,7 @@ export function SkewT(props: SkewTProps) {
         <Clouds
           {...{
             width,
-            levels,
+            cloudLevels,
             clouds,
             pressureToPxScale,
             surfacePressure: pressureToGhScale.invert(surfaceElevation),
@@ -199,7 +201,7 @@ export function SkewT(props: SkewTProps) {
         />
       </g>
     ),
-    [width, levels, clouds, pressureToPxScale, pressureToGhScale, surfaceElevation, showUpperClouds],
+    [width, cloudLevels, clouds, pressureToPxScale, pressureToGhScale, surfaceElevation, showUpperClouds],
   );
 
   const linesElement = useMemo(
@@ -508,23 +510,29 @@ function AltitudeAxis({
 
 export type CloudsProp = {
   width: number;
-  levels: number[];
+  cloudLevels: number[];
   clouds: number[];
   pressureToPxScale: Scale;
   surfacePressure: number;
   showUpperClouds: boolean;
 };
 
-function Clouds({ width, levels, clouds, pressureToPxScale, surfacePressure, showUpperClouds }: CloudsProp) {
+function Clouds({ width, cloudLevels, clouds, pressureToPxScale, surfacePressure, showUpperClouds }: CloudsProp) {
+  if (cloudLevels.length === 0 || clouds.length === 0) {
+    return null;
+  }
   const rects = [];
-  const pressureToCloudScale = math.scaleLinear(levels, clouds);
+  const pressureToCloudScale = math.scaleLog(cloudLevels, clouds);
 
   let y = 0;
 
   if (showUpperClouds) {
     y = 30;
     const upperPressure = pressureToPxScale.invert(y);
-    const upperCoverMax = Math.max(0, ...levels.map((level, i) => (level <= upperPressure ? clouds[i] ?? 0 : 0)));
+    const upperCoverMax = Math.max(
+      0,
+      ...cloudLevels.map((level, i) => (level <= upperPressure ? clouds[i] ?? 0 : 0)),
+    );
 
     if (upperCoverMax >= 5) {
       const opacity = (upperCoverMax / 100) * 0.75;
