@@ -21,5 +21,6 @@ declare const W: {
   broadcast: typeof import('@windy/client/broadcast').default;
   http: typeof import('@windy/client/http');
   user: typeof import('@windy/client/user');
+  overlays: typeof import('@windy/client/overlays').default;
 };
 /* eslint-enable */

@@ -345,8 +345,12 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
     } else {
       setYpointer(y);
 
+      // Only update the active map level for overlays that support multiple altitude levels
+      // (e.g. wind, temp) to avoid unnecessary or invalid level changes on surface-only layers (e.g. rain, radar).
+      const overlay = W.store.get('overlay') as keyof typeof W.overlays;
+      const supportsLevels = W.overlays[overlay].hasMoreLevels;
       const availLevels = W.store.get('availLevels');
-      if (availLevels && availLevels.length > 1) {
+      if (supportsLevels && availLevels.length > 1) {
         const { levels, ghs, seaLevelPressure, minPressure, maxPressure, height } = cursorContextRef.current;
         const pressureToGhScale = atm.getPressureToGhScale(levels, ghs, seaLevelPressure);
         const ghMeterToPxScale = math.scaleLinear(
