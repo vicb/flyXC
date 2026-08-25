@@ -517,63 +517,85 @@ export type CloudsProp = {
   showUpperClouds: boolean;
 };
 
+const CLOUD_COLOR = '#666';
+const MIN_UPPER_CLOUD_COVER = 5;
+const MAX_OPACITY = 0.75;
+
+/**
+ * Calculate the opacity of a cloud based on its cloud cover.
+ * @param cloudCover The cloud cover, as a percentage.
+ * @returns The opacity of the cloud, as a string between 0.00 and MAX_OPACITY with 2 decimals precision.
+ */
+function cloudOpacity(cloudCover: number): string {
+  return ((cloudCover / 100) * MAX_OPACITY).toFixed(2);
+}
+
 function Clouds({ width, cloudLevels, clouds, pressureToPxScale, surfacePressure, showUpperClouds }: CloudsProp) {
   if (cloudLevels.length === 0 || clouds.length === 0) {
     return null;
   }
-  const rects = [];
+  const elements = [];
   const pressureToCloudScale = math.scaleLog(cloudLevels, clouds);
 
-  let y = 0;
+  let yStart = 0;
 
   if (showUpperClouds) {
-    y = 30;
-    const upperPressure = pressureToPxScale.invert(y);
-    const upperCoverMax = Math.max(
-      0,
-      ...cloudLevels.map((level, i) => (level <= upperPressure ? clouds[i] ?? 0 : 0)),
-    );
+    yStart = 30;
+    const upperPressure = pressureToPxScale.invert(yStart);
+    const upperCoverMax = Math.max(0, ...cloudLevels.map((level, i) => (level <= upperPressure ? clouds[i] ?? 0 : 0)));
 
-    if (upperCoverMax >= 5) {
-      const opacity = (upperCoverMax / 100) * 0.75;
-      rects.push(
-        <Cloud key="upper" y={0} width={width} height={30} opacity={opacity} />,
-        <text className="tick" y={30 - 12} x={width - 28} textAnchor="end">
+    if (upperCoverMax >= MIN_UPPER_CLOUD_COVER) {
+      elements.push(
+        <rect key="upper" y={0} width={width} height={30} fill={CLOUD_COLOR} opacity={cloudOpacity(upperCoverMax)} />,
+        <text key="upper-text" className="tick" y={30 - 12} x={width - 28} textAnchor="end">
           Upper
         </text>,
-        <Cirrus x={width - 20} y={10} scale={0.4}></Cirrus>,
-        <line y1="30" y2="30" x2={width} className="boundary" />,
+        <Cirrus key="upper-cirrus" x={width - 20} y={10} scale={0.4} />,
+        <line key="upper-line" y1="30" y2="30" x2={width} className="boundary" />,
       );
     }
   }
 
-  // Then respect the y scale
-  const surfaceY = pressureToPxScale(surfacePressure);
-  while (y < surfaceY) {
-    const startY = y;
-    const cloudPct = Math.max(0, Math.min(100, pressureToCloudScale(pressureToPxScale.invert(y))));
-    let layerHeight = 1;
-    while (y++ < surfaceY) {
-      const nextPct = Math.max(0, Math.min(100, pressureToCloudScale(pressureToPxScale.invert(y))));
-      if (Math.abs(nextPct - cloudPct) > 2 || nextPct >= 5 !== cloudPct >= 5) {
-        break;
-      }
-      layerHeight++;
-    }
-    if (cloudPct >= 5) {
-      const opacity = (cloudPct / 100) * 0.75;
-      rects.push(<Cloud key={startY} y={startY} width={width} height={layerHeight} opacity={opacity} />);
+  // Render cloud column using a linear gradient with stops at each pressure level.
+  const surfaceY = Math.round(pressureToPxScale(surfacePressure));
+  const columnHeight = surfaceY - yStart;
+
+  if (columnHeight > 0) {
+    const intermediatePoints = cloudLevels
+      .map((pressure) => ({ pressure, y: pressureToPxScale(pressure) }))
+      .filter(({ y }) => y >= yStart + 1 && y <= surfaceY - 1)
+      .sort((a, b) => a.y - b.y);
+
+    const columnPoints = [
+      { pressure: pressureToPxScale.invert(yStart), y: yStart },
+      ...intermediatePoints,
+      { pressure: surfacePressure, y: surfaceY },
+    ];
+
+    const stops = columnPoints.map(({ pressure, y }) => {
+      const cloudCover = Math.max(0, Math.min(100, pressureToCloudScale(pressure)));
+      return {
+        offset: (y - yStart) / columnHeight,
+        opacity: cloudOpacity(cloudCover),
+      };
+    });
+
+    // Only render the cloud rectangle if there is visible cloud cover
+    if (stops.some((s) => s.opacity > 0)) {
+      elements.push(
+        <defs key="cloud-gradient-defs">
+          <linearGradient id="cloud-gradient" x1="0" y1="0" x2="0" y2="100%">
+            {stops.map((stop, idx) => (
+              <stop key={idx} offset={stop.offset.toFixed(3)} stopColor={CLOUD_COLOR} stopOpacity={stop.opacity} />
+            ))}
+          </linearGradient>
+        </defs>,
+        <rect key="cloud-column" y={yStart} width={width} height={columnHeight} fill="url(#cloud-gradient)" />,
+      );
     }
   }
 
-  return <g>{rects}</g>;
-}
-
-function Cloud({ y, height, width, opacity }: { y: number; height: number; width: number; opacity: number }) {
-  if (opacity <= 0) {
-    return;
-  }
-  return <rect {...{ y, height, width }} fill={`rgba(100, 100, 100, ${opacity})`} />;
+  return <g>{elements}</g>;
 }
 
 function Cirrus({ x, y, scale }: { x: number; y: number; scale: number }) {
