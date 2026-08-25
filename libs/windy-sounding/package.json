@@ -1,6 +1,6 @@
 {
   "name": "windy-plugin-fxc-soundings",
-  "version": "5.0.5",
+  "version": "5.0.6",
   "type": "module",
   "private": true,
   "description": "Alternative sounding graphs with custom features for PG/HG pilots.",
