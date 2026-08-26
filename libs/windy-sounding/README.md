@@ -57,7 +57,7 @@ The procedure is the same as installing it on a computer.
 - The blue line shows the dewpoint,
 - The red line shows air temperature,
 - The green line shows the temperature of an ascending parcel,
-- The hatched area across the graph shows the convective layer (cumulus clouds),
+- The cumulus clouds across the graph show the convective layer,
 - The left area shows clouds (excluding cumulus),
 - The top-most area show upper level clouds (i.e. up to ~15km),
 - The wind graph shows wind from 0-30km/h in the left part (white background) and from 30 to max speed in right part (red background),
