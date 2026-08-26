@@ -228,8 +228,38 @@
 
     .boundary {
       stroke: darkgray;
-      stroke-width: 0.5px;
+      stroke-width: 1px;
       shape-rendering: crispEdges;
+    }
+
+    path.cumulus {
+      stroke: #030104;
+      fill: lightyellow;
+      stroke-width: 2;
+      vector-effect: non-scaling-stroke;
+
+      &.bg {
+        stroke-width: 1;
+        opacity: 0.7;
+        vector-effect: non-scaling-stroke;
+      }
+    }
+
+    @keyframes cumulus-drift {
+      from {
+        transform: translate3d(0, 0, 0);
+      }
+      to {
+        transform: translate3d(340px, 0, 0);
+      }
+    }
+
+    .cumulus-drift-slow {
+      animation: cumulus-drift 80s linear infinite;
+    }
+
+    .cumulus-drift-fast {
+      animation: cumulus-drift 60s linear infinite;
     }
 
     &.skewt {
@@ -363,12 +393,11 @@
           stroke: #030104;
           fill: lightyellow;
           stroke-width: 2;
-        }
 
-        rect.cumulus {
-          opacity: 0.8;
-          fill: url(#hatch);
-          shape-rendering: crispEdges;
+          &.bg {
+            stroke-width: 1;
+            opacity: 0.7;
+          }
         }
       }
     }

@@ -7,6 +7,7 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { Favorites } from '../components/favorites';
 import { LoadingIndicator } from '../components/loading';
 import { Message } from '../components/message';
+import { CumulusPattern } from '../components/parcel';
 import { SkewT, type SkewTProps } from '../components/skewt';
 import { WindProfile } from '../components/wind-profile';
 import { pluginConfig } from '../config';
@@ -239,10 +240,7 @@ function SoundingDiagram({
   return (
     <svg {...{ height, width }}>
       <defs>
-        <pattern id="hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45 2 2)">
-          <rect width="8" height="8" fill="lightyellow" opacity="0.4" />
-          <path d="M 0,-1 L 0,11" stroke="gray" strokeWidth="1" />
-        </pattern>
+        <CumulusPattern />
         <filter id="outline" colorInterpolationFilters="sRGB">
           <feMorphology in="SourceAlpha" result="morph" operator="dilate" radius="2" />
           <feColorMatrix
