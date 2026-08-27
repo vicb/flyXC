@@ -80,7 +80,7 @@ export function Parcel({ parcel, width, pathGenerator, pressureToPxScale, format
           </clipPath>
         </defs>
         <rect
-          className="cumulus-drift-slow"
+          className="cumulus-drift slow"
           x={-340}
           y={cloudTopY}
           width={width + 340}
@@ -88,7 +88,7 @@ export function Parcel({ parcel, width, pathGenerator, pressureToPxScale, format
           fill="url(#cumulus-pattern-slow)"
         />
         <rect
-          className="cumulus-drift-fast"
+          className="cumulus-drift fast"
           x={-340}
           y={cloudTopY}
           width={width + 340}
