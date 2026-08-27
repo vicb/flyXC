@@ -254,12 +254,17 @@
       }
     }
 
-    .cumulus-drift-slow {
-      animation: cumulus-drift 80s linear infinite;
-    }
+    .cumulus-drift {
+      animation: cumulus-drift linear infinite;
+      opacity: 0.5;
 
-    .cumulus-drift-fast {
-      animation: cumulus-drift 60s linear infinite;
+      &.slow {
+        animation-duration: 80s;
+      }
+
+      &.fast {
+        animation-duration: 60s;
+      }
     }
 
     &.skewt {
