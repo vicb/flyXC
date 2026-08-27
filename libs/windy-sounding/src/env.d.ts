@@ -22,5 +22,7 @@ declare const W: {
   http: typeof import('@windy/client/http');
   user: typeof import('@windy/client/user');
   overlays: typeof import('@windy/client/overlays').default;
+  reverseName: typeof import('@windy/client/reverseName');
+  geolocation: typeof import('@windy/client/geolocation');
 };
 /* eslint-enable */

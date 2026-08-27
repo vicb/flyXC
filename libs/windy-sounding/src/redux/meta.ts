@@ -11,6 +11,19 @@ import type { RootState } from './store';
 const { map: windyMap, markers } = W.map;
 const windyRootScope = W.rootScope;
 
+// Pending in-flight location name request that can be aborted when location changes.
+let inFlightLocationPromise: { abort: () => void } | undefined;
+
+/**
+ * Dispatches fetchLocationName to retrieve reverse-geocoded name, aborting any prior pending request.
+ */
+export const updateLocationName =
+  (location: LatLon): ThunkAction<void, RootState, unknown, UnknownAction> =>
+  (dispatch) => {
+    inFlightLocationPromise?.abort();
+    inFlightLocationPromise = dispatch(pluginSlice.fetchLocationName(location));
+  };
+
 // Cross slice thunks
 
 export type TimeStep = {
@@ -169,6 +182,10 @@ export function addSubscription(fn: Subscription) {
 }
 
 export function cancelAllSubscriptions() {
+  if (inFlightLocationPromise) {
+    inFlightLocationPromise.abort();
+    inFlightLocationPromise = undefined;
+  }
   for (const fn of subscriptions) {
     fn();
   }
