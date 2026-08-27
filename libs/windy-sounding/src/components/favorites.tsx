@@ -1,19 +1,27 @@
 import type { Fav, LatLon } from '@windy/interfaces';
 import { useState } from 'preact/hooks';
 
-import { round } from '../util/math';
 import { getAvailableModels, getFavLabel, latLon2Str } from '../util/utils';
 
 export type FavoriteProps = {
   favorites: Fav[];
   location: LatLon;
+  locationLabel: string;
   isMobile: boolean;
   onSelected: (location: LatLon) => void;
   onSelectModel?: (model: string) => void;
   modelName: string;
 };
 
-export function Favorites({ favorites, location, isMobile, onSelected, onSelectModel, modelName }: FavoriteProps) {
+export function Favorites({
+  favorites,
+  location,
+  locationLabel,
+  isMobile,
+  onSelected,
+  onSelectModel,
+  modelName,
+}: FavoriteProps) {
   const locationStr = latLon2Str(location);
   const [isModelExpanded, setIsModelExpanded] = useState(false);
   const [isLocationExpanded, setIsLocationExpanded] = useState(false);
@@ -37,19 +45,6 @@ export function Favorites({ favorites, location, isMobile, onSelected, onSelectM
   if (isMobile) {
     const models: string[] = getAvailableModels(location);
 
-    const { lat, lon } = location;
-
-    let currentFavorite = `${round(Math.abs(lat), 1)}${lat >= 0 ? 'N' : 'S'} ${round(Math.abs(lon), 1)}${
-      lon >= 0 ? 'E' : 'W'
-    }`;
-    for (const favorite of favorites) {
-      const favLocationStr = latLon2Str(favorite);
-      if (favLocationStr === locationStr) {
-        currentFavorite = getFavLabel(favorite);
-        break;
-      }
-    }
-
     return (
       <>
         <section id="wsp-favorite">
@@ -67,7 +62,7 @@ export function Favorites({ favorites, location, isMobile, onSelected, onSelectM
             data-icon-after="g"
             onClick={toggleLocationSelect}
           >
-            <small className="size-m">{currentFavorite}</small>
+            <small className="size-m">{locationLabel}</small>
           </div>
           <a style={{ margin: '0 10px 3px 5px' }} href="https://buymeacoffee.com/vic.b" target="_blank">
             ☕️

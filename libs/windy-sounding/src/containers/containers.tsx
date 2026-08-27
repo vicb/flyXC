@@ -14,7 +14,7 @@ import { pluginConfig } from '../config';
 import flyxcIcon from '../img/jumoplane.svg';
 import * as forecastSlice from '../redux/forecast-slice';
 import type { TimeStep } from '../redux/meta';
-import { centerMap, changeLocation, changeModel, updateTime } from '../redux/meta';
+import { centerMap, changeLocation, changeModel, updateLocationName, updateTime } from '../redux/meta';
 import * as pluginSlice from '../redux/plugin-slice';
 import { type AppDispatch, type RootState } from '../redux/store';
 import * as unitsSlice from '../redux/units-slice';
@@ -503,10 +503,18 @@ function ConnectedFavorites({ onSelected }: { onSelected: (location: LatLon) => 
     return {
       favorites: S.selFavorites(state),
       location: S.selLocation(state),
+      locationLabel: S.selLocationLabel(state),
       isMobile: W.rootScope.isMobileOrTablet,
       modelName: S.selModelName(state),
     };
   }, shallowEqual);
+
+  // Only fetch reverse-geocoded location names on mobile/tablet where it is used.
+  useEffect(() => {
+    if (props.isMobile) {
+      dispatch(updateLocationName(props.location));
+    }
+  }, [dispatch, props.isMobile, props.location]);
 
   return <Favorites {...{ ...props, onSelected, onSelectModel: selectModel }} />;
 }
