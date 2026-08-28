@@ -361,7 +361,7 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
           .filter((level) => level.endsWith('h'))
           .map((level) => {
             const levelPressure = parseInt(level.slice(0, -1), 10);
-            return { level, elev: pressureToGhScale(levelPressure) };
+            return { level, elev: atm.getElevation(levelPressure) };
           });
 
         levelsWithElev.sort((a, b) => a.elev - b.elev);
