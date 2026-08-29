@@ -1,0 +1,101 @@
+// Desktop-Specific Styles
+
+// Windy container overrides for desktop.
+#device-desktop #plugin-windy-plugin-fxc-soundings .plugin__content {
+  padding: 25px !important;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+// Plugin title bar in desktop header.
+#wsp-title {
+  #wsp-icon {
+    position: relative;
+    top: -3px;
+    margin-right: 0.3em;
+    vertical-align: middle;
+  }
+
+  #wsp-dev {
+    position: absolute;
+    bottom: -3px;
+    left: 35px;
+  }
+
+  #wsp-version {
+    margin-left: 0.5em;
+  }
+}
+
+#wsp-sounding {
+  // Desktop grid layout for diagram, favorite shortcuts, and sponsor banner.
+  #device-desktop & {
+    display: grid;
+    justify-items: stretch;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  // Weather model selector & metadata (desktop only).
+  #wsp-model {
+    padding: 0 0 1em;
+
+    dl {
+      display: grid;
+      grid-gap: 4px 16px;
+      grid-template-columns: max-content;
+      align-items: center;
+    }
+
+    dt {
+      font-style: italic;
+    }
+
+    dd {
+      font-weight: 500;
+      grid-column-start: 2;
+    }
+
+    select {
+      background: inherit;
+      color: inherit;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 2em;
+      padding: 2px 4px;
+      font-size: inherit;
+      font-family: inherit;
+      font-weight: 500;
+      cursor: pointer;
+
+      option {
+        background: #333;
+        color: #fff;
+      }
+    }
+  }
+
+  // Favorite location shortcut buttons (desktop only).
+  #wsp-flyto {
+    padding-top: 0.5em;
+
+    .button {
+      line-height: 1em;
+      padding: 0.3em 0.6em;
+      margin: 0.1em 0.2em;
+
+      &:hover {
+        background-color: var(--color-gray);
+      }
+
+      &.selected {
+        background-color: var(--color-orange);
+      }
+    }
+  }
+
+  // Sponsor banner (desktop only).
+  #wsp-sponsor {
+    padding: 0.5em;
+    text-align: center;
+    background-color: var(--color-gray-dark);
+  }
+}
