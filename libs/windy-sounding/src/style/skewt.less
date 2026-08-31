@@ -1,0 +1,349 @@
+// Sounding Graph Styles
+
+#wsp-sounding {
+  // Base SVG rendering & colors
+  svg {
+    touch-action: none;
+
+    text {
+      fill: var(--color-text-primary);
+
+      a {
+        fill: var(--color-text-link);
+      }
+    }
+  }
+
+  // Error / Status message box
+  .wsp-message {
+    display: grid;
+    align-items: center;
+    text-align: center;
+    border: 1px solid lightgray;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Interactive Controls & Overlays
+  // ---------------------------------------------------------------------------
+
+  // Zoom in / out toggle button (desktop & mobile).
+  #wsp-zoom {
+    cursor: pointer;
+    transform: scale(1.2);
+
+    rect {
+      fill: #fff;
+    }
+
+    path {
+      fill: var(--color-orange);
+    }
+  }
+
+  // Map overlay layer switcher icons (Clouds, Wind, Rain, CCL).
+  .layer-icon {
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    opacity: 0.3;
+
+    rect {
+      fill: transparent;
+    }
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    &.active {
+      opacity: 1;
+
+      path {
+        fill: var(--color-orange);
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Base Graph Container
+  // ---------------------------------------------------------------------------
+
+  .graph {
+    shape-rendering: geometricprecision;
+
+    // Background canvas & borders
+    .background {
+      fill: white;
+      stroke: none;
+      shape-rendering: crispedges;
+    }
+
+    .border {
+      fill: none;
+      stroke: gray;
+      stroke-width: 1;
+      shape-rendering: crispedges;
+    }
+
+    // Default graph text labels with outline filter for legibility
+    text {
+      fill: black;
+      stroke: none;
+      filter: url(#outline);
+      font-size: 13px;
+    }
+
+    // Ground elevation block
+    .surface {
+      fill: #8f6d4d;
+      shape-rendering: crispedges;
+    }
+
+    // Default profile lines and boundary dividers
+    .line {
+      stroke-width: 3;
+    }
+
+    path {
+      fill: none;
+      stroke-linejoin: round;
+    }
+
+    .boundary {
+      stroke: darkgray;
+      stroke-width: 1px;
+      shape-rendering: crispedges;
+    }
+
+    // Interactive hover / touch crosshair cursor
+    .cursor {
+      line {
+        stroke: darkgray;
+        stroke-dasharray: 2;
+        shape-rendering: crispedges;
+      }
+
+      text {
+        dominant-baseline: hanging;
+
+        &.altitude,
+        &.speed {
+          text-anchor: end;
+        }
+      }
+
+      &.bottom text {
+        dominant-baseline: auto;
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Cloud Visualizations & Animations
+    // -------------------------------------------------------------------------
+
+    // Convective cumulus cloud icon and pattern rendering
+    path.cumulus {
+      stroke: #030104;
+      fill: lightyellow;
+      stroke-width: 2;
+      vector-effect: non-scaling-stroke;
+
+      &.bg {
+        stroke-width: 1;
+        opacity: 0.7;
+        vector-effect: non-scaling-stroke;
+      }
+    }
+
+    @keyframes cumulus-drift {
+      from {
+        transform: translate3d(0, 0, 0);
+      }
+      to {
+        transform: translate3d(340px, 0, 0);
+      }
+    }
+
+    // Drifting animated background clouds in convective layer
+    .cumulus-drift {
+      animation: cumulus-drift linear infinite;
+      opacity: 0.5;
+
+      &.slow {
+        animation-duration: 80s;
+      }
+
+      &.fast {
+        animation-duration: 60s;
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Skew-T Log-P Thermodynamic Diagram
+    // -------------------------------------------------------------------------
+
+    &.skewt {
+      // Center watermark (model update timestamp)
+      #wsp-watermark {
+        text {
+          text-anchor: middle;
+        }
+
+        .title {
+          fill: #ddd;
+          font-size: 30px;
+          dominant-baseline: auto;
+        }
+
+        .subtitle {
+          fill: #999;
+          font-size: 13px;
+          dominant-baseline: hanging;
+        }
+
+        #device-desktop & {
+          text {
+            fill: #eee;
+          }
+
+          .title {
+            dominant-baseline: middle;
+          }
+
+          .subtitle {
+            fill: none;
+          }
+        }
+      }
+
+      // Cursor readout values
+      text.temperature {
+        fill: red;
+      }
+
+      text.dewpoint {
+        fill: steelblue;
+      }
+
+      // Atmospheric sounding profile curves (Temperature & Dewpoint)
+      .line {
+        .temperature {
+          stroke: red;
+        }
+
+        .dewpoint {
+          stroke: steelblue;
+        }
+      }
+
+      // Reference Grid & Meteorological Curves
+      .axis {
+        path {
+          stroke-width: 0.3;
+        }
+
+        // Dry adiabats (constant potential temperature)
+        .dry-adiabatic {
+          stroke: green;
+        }
+
+        // Saturated / Pseudo-adiabats (equivalent potential temperature)
+        .wet-adiabatic {
+          stroke: green;
+          stroke-dasharray: 4 6;
+        }
+
+        // Isotherms (constant temperature lines)
+        .isotherm {
+          stroke: darkred;
+
+          .zero {
+            stroke-width: 1;
+            font-weight: bold;
+          }
+        }
+
+        // Isohumes (lines of constant saturation mixing ratio)
+        .isohume {
+          stroke: blue;
+          stroke-dasharray: 4 6;
+        }
+
+        // Geopotential height / altitude horizontal grid lines
+        .altitude {
+          stroke: lightgray;
+
+          line {
+            shape-rendering: crispedges;
+          }
+        }
+      }
+
+      // Isotherm temperature labels
+      .isotherm text {
+        fill: darkred;
+      }
+
+      // Upper cloud coverage indicator and column gradient
+      .cloud {
+        rect {
+          shape-rendering: crispedges;
+        }
+
+        .cirrus {
+          filter: url(#outline);
+        }
+      }
+
+      // Surface convective thermal parcel ascent
+      .parcel {
+        // Parcel dry & wet adiabatic trajectory
+        .line {
+          stroke: green;
+        }
+
+        // Mixing ratio line from surface dew point
+        .isohume {
+          stroke: steelblue;
+          stroke-width: 1px;
+          stroke-dasharray: 3;
+        }
+
+        // Top of thermal elevation label
+        text {
+          text-anchor: end;
+          dominant-baseline: hanging;
+        }
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Vertical Wind Profile Diagram
+    // -------------------------------------------------------------------------
+
+    &.wind {
+      // Cursor wind speed readout
+      text.speed {
+        fill: purple;
+      }
+
+      // Wind speed curve
+      .line {
+        &.speed {
+          stroke: purple;
+        }
+      }
+
+      // Wind speed grid axis
+      .axis {
+        .speed {
+          stroke: lightgray;
+        }
+
+        line {
+          shape-rendering: crispedges;
+        }
+      }
+    }
+  }
+}

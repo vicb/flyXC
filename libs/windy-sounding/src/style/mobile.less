@@ -1,0 +1,103 @@
+// Mobile-Specific Styles
+
+// Windy container overrides for mobile.
+#device-mobile #plugin-windy-plugin-fxc-soundings .plugin__content {
+  pointer-events: initial;
+}
+
+#plugin-windy-plugin-fxc-soundings {
+  // Mobile bottom sheet container.
+  &.plugin-mobile-bottom-small {
+    padding: 0;
+    max-height: fit-content !important;
+
+    .desktop-only {
+      display: none;
+    }
+
+    .plugin__content {
+      position: initial;
+    }
+  }
+}
+
+#wsp-sounding {
+  // Drag handle for resizing the mobile sounding diagram.
+  #wsp-resize {
+    cursor: move;
+
+    rect {
+      fill: lightgray;
+      stroke: black;
+      stroke-width: 0.3px;
+    }
+
+    line {
+      stroke: darkgrey;
+      stroke-width: 2px;
+    }
+  }
+
+  // Mobile bottom bar selector (model & favorite location).
+  #wsp-favorite {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    padding: 10px 0;
+    margin: 0;
+    background-color: var(--color-red);
+
+    & > div {
+      cursor: pointer;
+    }
+
+    .select {
+      width: 100%;
+      text-align: center;
+      white-space: nowrap;
+
+      &:before,
+      &:after {
+        display: inline-block;
+        position: relative;
+        top: -2px;
+      }
+
+      &:after {
+        transform-origin: center center;
+        transition: transform 0.3s;
+        transform: rotate(-90deg);
+      }
+
+      &.active::after {
+        transform: rotate(0);
+      }
+
+      small {
+        padding: 0 5px;
+        display: inline-block;
+        max-width: 120px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+    }
+  }
+
+  // Dropdown list options for model / favorites (mobile only).
+  .options {
+    padding: 5px;
+    width: 100%;
+    background-color: var(--color-red);
+    text-align: center;
+
+    & > span {
+      display: inline-block;
+      border-radius: 1em;
+      padding: 2px 5px;
+      margin: 0 5px;
+
+      &.selected {
+        background-color: var(--color-red-light);
+      }
+    }
+  }
+}

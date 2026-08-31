@@ -7,6 +7,7 @@
 
 /apps/fxc-front/public
 /apps/fxc-tiles/src/assets/airspaces
+/libs/windy-sounding/types
 /.nx/cache
 /.nx/workspace-data
 
