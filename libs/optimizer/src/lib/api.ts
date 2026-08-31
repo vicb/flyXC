@@ -17,11 +17,12 @@ export const scoringRuleNames = [
   'WorldXC',
 ] as const;
 
-export enum CircuitType {
+export const enum CircuitType {
   OpenDistance = 'Open distance',
   FlatTriangle = 'Flat triangle',
   FaiTriangle = 'Fai triangle',
   OutAndReturn = 'Out and return',
+  Quad = 'Quad',
 }
 
 export type ScoringRuleName = (typeof scoringRuleNames)[number];

@@ -1,0 +1,4 @@
+[submodule "apps/fxc-front/rustigc"]
+	path = apps/fxc-front/rustigc
+	url = https://github.com/vicb/rustigc.git
+	branch = dev-quads
