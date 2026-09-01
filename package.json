@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
+    "prepare": "git submodule update --init --recursive",
     "dev": "nx run-many --target=serve --projects=fxc-front,fxc-server,fxc-tiles --configuration=development",
     "check": "syncpack lint && pnpm run fixlint && nx format && nx run-many --targets=test,lint,build --parallel 6",
     "fixlint": "nx run-many -t lint --fix --parallel 6"
