@@ -6,6 +6,7 @@
 /libs/*/dist
 
 /apps/fxc-front/public
+/apps/fxc-front/rustigc
 /apps/fxc-tiles/src/assets/airspaces
 /libs/windy-sounding/types
 /.nx/cache
