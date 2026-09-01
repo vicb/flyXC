@@ -1,4 +1,5 @@
 import {
+  InreachAccountSyncValidator,
   validateFlymasterAccount,
   validateInreachAccount,
   validateMeshBirAccount,
@@ -72,6 +73,28 @@ describe('Validate Inreach account', () => {
     expect(validateInreachAccount('user')).toEqual(false);
     expect(validateInreachAccount('https://share.gmin.com/user')).toEqual(false);
     expect(validateInreachAccount('https://share.garmin/com/user')).toEqual(false);
+    expect(validateInreachAccount('https://live.garmin.com/session/123')).toEqual(false);
+    expect(validateInreachAccount('https://live.garmin.com/user')).toEqual(false);
+    expect(validateInreachAccount('live.garmin.com/user')).toEqual(false);
+  });
+
+  test('InreachAccountSyncValidator', async () => {
+    const validator = new InreachAccountSyncValidator();
+    expect(await validator.validate({ enabled: false, account: 'https://live.garmin.com/user' })).toBe(true);
+
+    expect(await validator.validate({ enabled: true, account: 'https://live.garmin.com/user' })).toEqual({
+      property: 'account',
+    });
+    expect(validator.message).toContain('LiveTrack is not supported');
+    expect(validator.message).toContain('share.garmin.com');
+    expect(validator.message).toContain('https://explore.garmin.com/Social');
+
+    expect(await validator.validate({ enabled: true, account: 'invalid-url' })).toEqual({
+      property: 'account',
+    });
+    expect(validator.message).toBe('This InReach URL is invalid');
+
+    expect(await validator.validate({ enabled: true, account: 'https://share.garmin.com/user' })).toBe(true);
   });
 });
 
