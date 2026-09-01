@@ -86,8 +86,12 @@ describe('Validate Inreach account', () => {
       property: 'account',
     });
     expect(validator.message).toContain('LiveTrack is not supported');
-    expect(validator.message).toContain('share.garmin.com');
-    expect(validator.message).toContain('https://explore.garmin.com/Social');
+    expect(await validator.validate({ enabled: true, account: 'https://live.garmin.com.attacker.com/user' })).toEqual(
+      {
+        property: 'account',
+      },
+    );
+    expect(validator.message).toBe('This InReach URL is invalid');
 
     expect(await validator.validate({ enabled: true, account: 'invalid-url' })).toEqual({
       property: 'account',

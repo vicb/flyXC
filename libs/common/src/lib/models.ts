@@ -124,6 +124,16 @@ export class AccountSyncValidator implements Validator<TrackerModel> {
   }
 }
 
+// Returns whether the URL points to the live.garmin.com LiveTrack domain.
+function isLiveGarminUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url.includes('://') ? url : `https://${url}`);
+    return parsed.hostname.toLowerCase().endsWith('live.garmin.com');
+  } catch {
+    return false;
+  }
+}
+
 // Makes sure the account is not a LiveTrack URL and is a valid InReach URL.
 //
 // LiveTrack URLs on live.garmin.com are not supported; MapShare URLs on share.garmin.com must be used instead.
@@ -135,7 +145,7 @@ export class InreachAccountSyncValidator extends AccountSyncValidator {
 
   override async validate(tracker: TrackerModel) {
     if (tracker.enabled) {
-      if (/live\.garmin\.com/i.test(tracker.account)) {
+      if (isLiveGarminUrl(tracker.account)) {
         this.message =
           'LiveTrack is not supported. ' +
           'Use MapShare instead (URL starts with share.garmin.com). ' +
@@ -198,7 +208,7 @@ export function validateInreachAccount(url: string): string | false {
 
   // Reject LiveTrack urls (on live.garmin.com domain).
   // See https://support.garmin.com/en-US/?faq=2DeeJYxoOf9EUQ1jjCGCZA
-  if (/live\.garmin\.com/i.test(url)) {
+  if (isLiveGarminUrl(url)) {
     return false;
   }
 
