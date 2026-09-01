@@ -113,7 +113,7 @@ export class TrackerFormModel extends ObjectModel<TrackerModel> {
 }
 
 // Validates a TrackerModel using a callback.
-class AccountSyncValidator implements Validator<TrackerModel> {
+export class AccountSyncValidator implements Validator<TrackerModel> {
   constructor(public message: string, public callback: (account: string) => string | false) {}
 
   async validate(tracker: TrackerModel) {
@@ -124,9 +124,46 @@ class AccountSyncValidator implements Validator<TrackerModel> {
   }
 }
 
+// Returns whether the URL points to the live.garmin.com LiveTrack domain.
+function isLiveGarminUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url.includes('://') ? url : `https://${url}`);
+    return parsed.hostname.toLowerCase().endsWith('live.garmin.com');
+  } catch {
+    return false;
+  }
+}
+
+// Makes sure the account is not a LiveTrack URL and is a valid InReach URL.
+//
+// LiveTrack URLs on live.garmin.com are not supported; MapShare URLs on share.garmin.com must be used instead.
+// See https://support.garmin.com/en-US/?faq=2DeeJYxoOf9EUQ1jjCGCZA
+export class InreachAccountSyncValidator extends AccountSyncValidator {
+  constructor() {
+    super('This InReach URL is invalid', validateInreachAccount);
+  }
+
+  override async validate(tracker: TrackerModel) {
+    if (tracker.enabled) {
+      if (isLiveGarminUrl(tracker.account)) {
+        this.message =
+          'LiveTrack is not supported. ' +
+          'Use MapShare instead (URL starts with share.garmin.com). ' +
+          'Configure this at https://explore.garmin.com/Social';
+        return { property: 'account' };
+      }
+      this.message = 'This InReach URL is invalid';
+      if (this.callback(tracker.account) === false) {
+        return { property: 'account' };
+      }
+    }
+    return true;
+  }
+}
+
 // Validators used on both the client and server sides.
 export const trackerValidators: Readonly<Record<TrackerNames, AccountSyncValidator[]>> = {
-  inreach: [new AccountSyncValidator('This InReach URL is invalid', validateInreachAccount)],
+  inreach: [new InreachAccountSyncValidator()],
   spot: [new AccountSyncValidator('This Spot ID is invalid', validateSpotAccount)],
   skylines: [new AccountSyncValidator('This Skylines ID is invalid', validateSkylinesAccount)],
   flyme: [],
@@ -163,14 +200,23 @@ export function validateSkylinesAccount(id: string): string | false {
 // 'share' could also be 'eur.inreach', 'aur-share.inreach'.
 //
 // urls are transformed to the second form (with '/Feed/Share/').
+//
+// LiveTrack urls (on live.garmin.com) are not supported.
+// See https://support.garmin.com/en-US/?faq=2DeeJYxoOf9EUQ1jjCGCZA
 export function validateInreachAccount(url: string): string | false {
   url = url.trim();
+
+  // Reject LiveTrack urls (on live.garmin.com domain).
+  // See https://support.garmin.com/en-US/?faq=2DeeJYxoOf9EUQ1jjCGCZA
+  if (isLiveGarminUrl(url)) {
+    return false;
+  }
 
   // Insert '/Feed/Share' when missing.
   if (!/Feed\/Share/i.test(url)) {
     const lastSlash = url.lastIndexOf('/');
     if (lastSlash > -1) {
-      url = url.substring(0, lastSlash) + '/Feed/Share' + url.substr(lastSlash);
+      url = url.substring(0, lastSlash) + '/Feed/Share' + url.substring(lastSlash);
     }
   }
 
