@@ -5,12 +5,8 @@
   "sourceRoot": "apps/fxc-front/src",
   "tags": [],
   "targets": {
-    "build-wasm": {
-      "command": "PATH=\"$HOME/.cargo/bin:$PATH\"; if command -v wasm-pack >/dev/null 2>&1; then wasm-pack build apps/fxc-front/rustigc/rustigc-wasm --target web; elif [ -f apps/fxc-front/rustigc/rustigc-wasm/pkg/rustigc_wasm_bg.wasm ]; then echo \"Using prebuilt rustigc-wasm package\"; else echo \"wasm-pack not found and no prebuilt wasm package available\" && exit 1; fi",
-      "outputs": ["{projectRoot}/rustigc/rustigc-wasm/pkg"]
-    },
     "build": {
-      "dependsOn": ["optimizer", "build-wasm"],
+      "dependsOn": ["optimizer"],
       "outputs": ["{projectRoot}/{options.outDir}", "{projectRoot}/apps/fxc-front/dist"],
       "defaultConfiguration": "production",
       "options": {
@@ -27,7 +23,6 @@
       }
     },
     "serve": {
-      "dependsOn": ["build-wasm"],
       "defaultConfiguration": "development",
       "configurations": {
         "development": {},
@@ -35,7 +30,6 @@
       }
     },
     "preview": {
-      "dependsOn": ["build-wasm"],
       "defaultConfiguration": "development",
       "configurations": {
         "development": {},
