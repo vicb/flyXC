@@ -5,12 +5,19 @@ import type { File } from '@google-cloud/storage';
 import { Storage } from '@google-cloud/storage';
 import { isBefore, lightFormat, parse, sub } from 'date-fns';
 
+// Shared Google Cloud Storage client instance.
+// Reusing a single client avoids instantiating new connections, authentication checks,
+// and internal event listeners on every periodic state export/import cycle.
+let storage: Storage | undefined;
+function getStorage(): Storage {
+  return (storage ??= new Storage());
+}
+
 // Loads the state from the storage.
 //
 // Throws if an error is encountered.
 export async function importFromStorage(bucketName: string, filePath: string): Promise<protos.FetcherState> {
-  const storage = new Storage();
-  const bucket = storage.bucket(bucketName);
+  const bucket = getStorage().bucket(bucketName);
   const [stateBuffer] = await bucket.file(filePath).download();
   return protos.FetcherState.fromBinary(zlib.brotliDecompressSync(stateBuffer));
 }
@@ -25,8 +32,7 @@ export async function exportToStorage(
 ): Promise<boolean> {
   let success = true;
   try {
-    const storage = new Storage();
-    const bucket = storage.bucket(bucketName);
+    const bucket = getStorage().bucket(bucketName);
     const buffer = Buffer.from(protos.FetcherState.toBinary(state));
     await bucket.file(filePath).save(zlib.brotliCompressSync(buffer));
   } catch (e) {
@@ -53,8 +59,7 @@ export async function createStateArchive(
   await exportToStorage(state, bucketName, `${folderName}/${fileName}`);
   // Delete old archives.
   try {
-    const storage = new Storage();
-    const bucket = storage.bucket(bucketName);
+    const bucket = getStorage().bucket(bucketName);
     const [files] = await bucket.getFiles({ prefix: `${folderName}/` });
     const oldestDateToKeep = sub(now, { days: 30 });
     const filesToDelete: File[] = [];
