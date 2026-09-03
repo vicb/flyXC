@@ -1,5 +1,5 @@
 # Stage 1: Build & Deploy workspace project
-FROM docker.io/node:current-slim AS installer
+FROM docker.io/node:lts-slim AS installer
 
 RUN npm install -g pnpm@11.10.0
 
@@ -10,7 +10,7 @@ COPY . .
 RUN pnpm -F fetcher deploy /tmp/fetcher
 
 # Stage 2: Production runner stage
-FROM docker.io/node:current-slim
+FROM docker.io/node:lts-slim
 
 ENV NODE_ENV=production
 
