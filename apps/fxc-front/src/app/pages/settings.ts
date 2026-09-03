@@ -27,7 +27,7 @@ export class SettingsPage extends LitElement {
   // Remove the zoleo event listener.
   private zoleoEventAbortController?: AbortController;
   // Zoleo alert dialog.
-  private zoleoAlert?: HTMLIonAlertElement;
+  private zoleoWaitConsentAlert?: HTMLIonAlertElement;
 
   @queryAll('device-card')
   private trackerPanels?: NodeListOf<TrackerPanel>;
@@ -233,20 +233,31 @@ export class SettingsPage extends LitElement {
                   <flow-ion-check label="Enabled" labelOff="Disabled" ...=${field(
                     this.binder.model.zoleo.enabled,
                   )}></flow-ion-check>
-                  ${when(this.binder.model.zoleo.enabled.valueOf(), () =>
-                    when(
-                      this.binder.model.zoleo.account.valueOf().length == 0,
-                      () => html`<ion-item lines="full">
-                        <ion-button size="default" @click=${async () => await this.startZoleoShareFlow()}
-                          ><i class="las la-link la-lg"></i> Link a device</ion-button
-                        >
-                      </ion-item>`,
-                      () => html`<ion-item lines="full">
-                        <ion-button size="default" @click=${async () => await this.unlinkZoleo()}
-                          ><i class="las la-unlink la-lg"></i>Unlink your device</ion-button
-                        >
-                      </ion-item>`,
-                    ),
+                  ${when(
+                    this.binder.model.zoleo.enabled.valueOf(),
+                    () => html`
+                      <ion-text class="ion-padding-horizontal ion-padding-top block">
+                        Messages sent to <strong>zoleo@flyxc.app</strong> will be displayed flyXC.
+                        ${when(
+                          this.binder.model.zoleo.account.valueOf().length > 0 &&
+                            this.binder.model.zoleo.imei.valueOf().length == 0,
+                          () => html`<p>The consent must be confirmed via the email from zoleo.</p>`,
+                        )}
+                      </ion-text>
+                      ${when(
+                        this.binder.model.zoleo.account.valueOf().length == 0,
+                        () => html`<ion-item lines="full">
+                          <ion-button size="default" @click=${async () => await this.openZoleoWebWidget()}
+                            ><i class="las la-link la-lg"></i> Link a device</ion-button
+                          >
+                        </ion-item>`,
+                        () => html`<ion-item lines="full">
+                          <ion-button size="default" @click=${async () => await this.unlinkZoleo()}
+                            ><i class="las la-unlink la-lg"></i>Unlink your device</ion-button
+                          >
+                        </ion-item>`,
+                      )}
+                    `,
                   )}
                 </ion-card>
               </ion-col>
@@ -295,6 +306,9 @@ export class SettingsPage extends LitElement {
     `;
   }
 
+  /**
+   * POST a request to the server to unlink the Zoleo device.
+   */
   private async unlinkZoleo() {
     const binderNode = this.binder.for(this.binder.model.zoleo.account);
     binderNode.value = '';
@@ -305,7 +319,14 @@ export class SettingsPage extends LitElement {
     });
   }
 
-  private async startZoleoShareFlow() {
+  /**
+   * Open the Zoleo Web Widget to ask for user consent to link their Zoleo account.
+   *
+   * @see https://developers.zoleo.com/docs/guides/integrations-guides-consent
+   */
+  private async openZoleoWebWidget() {
+    const ZOLEO_PARTNER_ID = '2671b64b-a93d-4620-a4ee-3c961bd26328';
+
     // Add event listener
     this.zoleoEventAbortController = new AbortController();
     const { signal } = this.zoleoEventAbortController;
@@ -313,17 +334,18 @@ export class SettingsPage extends LitElement {
 
     // Open the zoleo page
     const params = new URLSearchParams({
-      partnerID: 'fa7b8762-0166-42dd-b2df-f3c958153570',
+      partnerID: ZOLEO_PARTNER_ID,
       username: this.binder.model.name.valueOf(),
       partnerURL: 'https://flyxc.app',
     });
 
-    window.open(`https://www.link.zoleo.com?${params.toString()}`, '_blank');
+    window.open(`https://www.link.zoleo.com?${params}`, '_blank');
 
     // Display dialog (with cancel)
-    this.zoleoAlert = await alertController.create({
-      header: 'zoleo',
-      message: 'Waiting for confirmation from zoleo...',
+    this.zoleoWaitConsentAlert = await alertController.create({
+      header: 'Zoleo',
+      // TODO: message should be more user-friendly and informative
+      message: `Waiting for confirmation from zoleo...`,
       buttons: [
         {
           text: 'Cancel',
@@ -334,15 +356,22 @@ export class SettingsPage extends LitElement {
       ],
       backdropDismiss: false,
     });
-    await this.zoleoAlert.present();
+    await this.zoleoWaitConsentAlert.present();
   }
 
+  /**
+   * Handle events from the Zoleo Web Widget.
+   *
+   * This function handles the message event from the Zoleo Web Widget and links the Zoleo account if successful.
+   *
+   * @see openZoleoWebWidget
+   */
   private async zoleoMessageListener(event: MessageEvent) {
-    this.zoleoEventAbortController?.abort();
     if (event.origin !== 'https://www.link.zoleo.com') {
-      console.error('Invalid event origin.');
       return;
     }
+
+    this.zoleoEventAbortController?.abort();
 
     if (event.data.status !== 200) {
       console.error(`Zoleo error status ${event.data.status}`);
@@ -353,20 +382,51 @@ export class SettingsPage extends LitElement {
     if (partnerDeviceID) {
       const zoleoModel = this.binder.model.zoleo;
       const binderNode = this.binder.for(zoleoModel.account);
-      binderNode.value = partnerDeviceID;
-      binderNode.visited = true;
       const payload = {
         name: this.binder.model.name.valueOf(),
-        account: partnerDeviceID,
+        deviceId: partnerDeviceID,
         enabled: zoleoModel.enabled.valueOf(),
       };
-      await fetchResponse(`${import.meta.env.VITE_API_SERVER}/api/zoleo/link`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        credentials: 'include',
-      });
-      await this.zoleoAlert?.dismiss();
+
+      let linked = false;
+      try {
+        const response = await fetchResponse(`${import.meta.env.VITE_API_SERVER}/api/zoleo/link`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          credentials: 'include',
+        });
+        linked = response.ok;
+      } catch (e) {
+        console.error('Failed to link zoleo device', e);
+      } finally {
+        await this.zoleoWaitConsentAlert?.dismiss();
+      }
+
+      if (linked) {
+        binderNode.value = partnerDeviceID;
+        binderNode.visited = true;
+
+        const alert = await alertController.create({
+          header: 'zoleo',
+          message: 'Please confirm your Zoleo consent via the email you have received from Zoleo.',
+          buttons: [
+            {
+              text: 'Ok',
+            },
+          ],
+          backdropDismiss: false,
+        });
+        await alert.present();
+      } else {
+        binderNode.value = '';
+        const alert = await alertController.create({
+          header: 'zoleo',
+          message: 'Failed to link your Zoleo device. Please try again.',
+          buttons: [{ text: 'Ok' }],
+        });
+        await alert.present();
+      }
     }
   }
 

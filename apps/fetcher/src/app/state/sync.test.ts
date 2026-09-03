@@ -15,7 +15,7 @@ const FLYME = '001';
 const SKYLINES = '002';
 const FLYMASTER = '003';
 const OGN = `123456`;
-const ZOLEO = `012345678912345`;
+const ZOLEO = `12345678-1234-1234-1234-123456789012`;
 const XCONTEST = `a123456789012345678901234567`;
 const MESHBIR = `12345678-1234-1234-1234-123456789012`;
 
@@ -243,7 +243,7 @@ describe('sync', () => {
         flyme: createTrackerEntity('invalid', { type: 'flyme' }),
         flymaster: createTrackerEntity('invalid'),
         ogn: createTrackerEntity('invalid'),
-        zoleo: createTrackerEntity('invalid', { type: 'zoleo' }),
+        zoleo: createTrackerEntity('', { type: 'zoleo' }),
         xcontest: createTrackerEntity('invalid'),
         meshbir: createTrackerEntity('invalid'),
       });
@@ -311,8 +311,9 @@ function createTrackerEntity(
       entity.account_resolved = account;
       break;
     case 'zoleo':
-      entity.account = 'deviceId';
-      entity.imei = account;
+      entity.account = account;
+      entity.imei = '012345678912345';
+      break;
   }
   return entity;
 }
