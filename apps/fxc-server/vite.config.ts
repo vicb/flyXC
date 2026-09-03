@@ -90,6 +90,10 @@ export default defineConfig(({ mode }) => {
       external: ['@google-cloud/datastore', '@google-cloud/storage', '@google-cloud/pubsub', '@google-cloud/compute'],
     },
 
+    server: {
+      allowedHosts: ['.flyxc.app'],
+    },
+
     // Vitest configuration
     test: {
       globals: true,

@@ -55,6 +55,10 @@ export class AccountFormModel extends ObjectModel<AccountModel> {
       if (trackerEntity.account_resolved != null) {
         trackerModels[prop].account_resolved = trackerEntity.account_resolved;
       }
+      // Copy the optional imei property (zoleo).
+      if (trackerEntity.imei != null) {
+        trackerModels[prop].imei = trackerEntity.imei;
+      }
     }
 
     return {
@@ -96,6 +100,8 @@ export interface TrackerModel {
   enabled: boolean;
   // Account resolved on entity persisted (flyme).
   account_resolved?: string;
+  // IMEI used by zoleo (populated after users consent to data sharing).
+  imei?: string;
 }
 
 // Form model for a client side tracker.
@@ -110,6 +116,7 @@ export class TrackerFormModel extends ObjectModel<TrackerModel> {
   readonly enabled: BooleanModel = this[_getPropertyModel]('enabled', BooleanModel, [false, new NotNull()]);
   readonly account: StringModel = this[_getPropertyModel]('account', StringModel, [false, new Size({ max: 150 })]);
   readonly account_resolved: StringModel = this[_getPropertyModel]('account_resolved', StringModel, [true]);
+  readonly imei: StringModel = this[_getPropertyModel]('imei', StringModel, [true]);
 }
 
 // Validates a TrackerModel using a callback.
@@ -258,10 +265,10 @@ export function validateOgnAccount(id: string): string | false {
   return /^[0-9a-f]{6}$/i.test(id) ? id.toUpperCase() : false;
 }
 
-// Validates a zoleo IMEI.
-export function validateZoleoAccount(imei: string): string | false {
-  imei = imei.trim();
-  return /^\d{15}$/i.test(imei) ? imei : false;
+// Validates a zoleo device ID.
+export function validateZoleoAccount(id: string): string | false {
+  id = id.trim();
+  return id.length > 0 ? id : false;
 }
 
 // Validates a XContest UUID.

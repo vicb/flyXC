@@ -22,11 +22,22 @@ const auth = basicAuth({
   },
 });
 
+export const ZOLEO_API_URL = 'https://api.cloudconnect.zoleo.com';
+
 export function getZoleoRouter(redis: RedisClient): Router {
   const router = Router();
 
-  // Update the entity when a zoleo is linked.
-  // So that users do not have to save the form.
+  /**
+   * Saves the Zoleo device ID to the user's entity in the datastore (in the account field).
+   *
+   * This is called by the frontend when the user consent to sharing info.
+   *
+   * Notes:
+   * - This is different from the Zoleo link API which is not used.
+   * - The devices becomes linked via a push message when users consents to sharing their info
+   *   via the email link or via their zoleo account at myzoleo.com. The IMEI is populated at
+   *   that point.
+   */
   router.post('/link', async (req: Request, res: Response) => {
     try {
       if (!isLoggedIn(req)) {
@@ -49,10 +60,11 @@ export function getZoleoRouter(redis: RedisClient): Router {
           enabled: true,
         } as any;
       }
-      const { name = '', account = '', enabled = true } = req.body;
+      const { name = '', deviceId = '', enabled = true } = req.body;
       entity.name = name;
       entity.updated = new Date();
-      entity.zoleo = { account, enabled, imei: '' };
+      const imei = entity.zoleo?.account === deviceId ? entity.zoleo.imei ?? '' : '';
+      entity.zoleo = { account: deviceId, enabled, imei };
 
       await datastore.save({
         key: entity[Datastore.KEY] ?? datastore.key([LIVE_TRACK_TABLE]),
@@ -68,12 +80,17 @@ export function getZoleoRouter(redis: RedisClient): Router {
     }
   });
 
-  // Unlink:
-  // - update the entity so that users do not have to save the form,
-  // - send an unlink request to zoleo.
+  /**
+   * Unlinks the Zoleo device from the user's account.
+   *
+   * This is called by the frontend when the user wants to unlink their Zoleo device.
+   *
+   * The entity is updated first to reflect the unlinking.
+   * Then a request is sent to the Zoleo Cloud Connect unlink API.
+   */
   router.post('/unlink', async (req: Request, res: Response) => {
-    let status = 200;
     let deviceId: string;
+    console.log('zoleo unlink', { body: req.body });
     try {
       if (!isLoggedIn(req)) {
         return res.sendStatus(403);
@@ -87,75 +104,92 @@ export function getZoleoRouter(redis: RedisClient): Router {
       const datastore = getDatastore();
       const { token } = userInfo;
       const entity = await retrieveLiveTrackByGoogleId(datastore, token);
-
-      if (entity.zoleo) {
-        entity.updated = new Date();
-        deviceId = entity.zoleo.account;
-        entity.zoleo.account = '';
-        entity.zoleo.imei = '';
-        await datastore.save({
-          key: entity[Datastore.KEY],
-          data: entity,
-        });
-        await redis.incr(Keys.fetcherCmdSyncIncCount);
+      if (!entity?.zoleo?.account) {
+        return res.sendStatus(204);
       }
+
+      // Update the entity first so that users do not have to save the form even if the zoleo API call fails below.
+      deviceId = entity.zoleo.account;
+      entity.updated = new Date();
+      entity.zoleo.account = '';
+      entity.zoleo.imei = '';
+      entity.zoleo.enabled = false;
+      await datastore.save({
+        key: entity[Datastore.KEY],
+        data: entity,
+      });
+      await redis.incr(Keys.fetcherCmdSyncIncCount);
     } catch (e) {
-      console.error(`Error unlink zoleo`, e);
-      status = 500;
+      console.error(`Failed to unlink zoleo device in datastore`, e);
+      return res.sendStatus(500);
     }
 
     try {
-      const url = SECRETS.ZOLEO_UNLINK_URL.replace('{deviceId}', deviceId);
+      const url = `${ZOLEO_API_URL}/devices/${encodeURIComponent(deviceId)}/link`;
       const response = await fetchResponse(url, {
-        method: 'PUT',
+        method: 'DELETE',
         headers: {
-          'x-api-key': SECRETS.ZOLEO_UNLINK_API_KEY,
-          'Content-Type': 'application/json',
+          'x-api-key': SECRETS.ZOLEO_API_KEY,
         },
-        body: JSON.stringify({ status: 'inactive' }),
+        timeoutS: 10,
       });
-      if (!response.ok || (await response.json()).statusCode != 200) {
-        status = 500;
-        console.error(`Error unlinking zoleo`);
+      if (!response.ok) {
+        console.error(`Error unlinking zoleo device ${deviceId}: ${response.status}`);
+        return res.sendStatus(502);
       }
     } catch (e) {
-      console.error(`Error unlinking zoleo`, e);
-      status = 500;
+      console.error(`Failed to unlink zoleo device via API`, e);
+      return res.sendStatus(502);
     }
 
-    res.sendStatus(status);
+    return res.sendStatus(200);
   });
 
-  // Hook called by zoleo.
+  /**
+   * Receives push messages from Zoleo.
+   *
+   * This endpoint is called by the Zoleo Data Feed whenever there is a new message for the linked devices.
+   * The messages are parsed and pushed to a Redis queue to the fetcher.
+   */
   router.post('/push', auth, async (req: Request, res: Response) => {
     try {
-      const json = JSON.stringify(parseMessage(req.body));
-      if (json != null) {
+      const parsed = parseMessage(req.body);
+      if (parsed != null) {
+        const json = JSON.stringify(parsed);
         const pipeline = redis.multi();
         pushListCap(pipeline, Keys.zoleoMsgQueue, [json], ZOLEO_MAX_MSG, ZOLEO_MAX_MSG_SIZE);
         await pipeline.execTyped(true);
       }
-      res.sendStatus(200);
     } catch (e) {
-      console.error(e);
-      res.sendStatus(500);
+      console.error('Error processing zoleo webhook:', e);
     }
+    // Always respond with 200 OK as required by Zoleo Data Feed specifications.
+    res.sendStatus(200);
   });
 
   return router;
 }
 
-// Parses zoleo message in a lighter format.
+/**
+ * Parses a raw Zoleo message into a structured ZoleoMessage object.
+ *
+ * @see https://developers.zoleo.com/docs/guides/integration-guides-data-feed#message-types
+ */
 export function parseMessage(message: any): ZoleoMessage | null {
+  if (message == null || typeof message !== 'object') {
+    return null;
+  }
+
+  // Handle consent approval notification / device registration.
   if ('IMEI' in message) {
     if (message.IMEI && message.partnerDeviceID) {
       return {
         type: 'imei',
         id: message.partnerDeviceID,
-        imei: message.IMEI,
+        imei: String(message.IMEI),
       };
     } else {
-      throw new Error(`Invalid IMEI message`);
+      return null;
     }
   }
 
@@ -164,39 +198,51 @@ export function parseMessage(message: any): ZoleoMessage | null {
   const speedKph = pathGet(message, 'Location.Speed') ?? 0;
   const altitudeM = pathGet(message, 'Location.Altitude') ?? 0;
   const imei = message.DeviceIMEI;
+  const id = message.DeviceId;
   const timeMs = pathGet(message, 'Properties.EpochMiliseconds');
   const batteryPercent = Number(pathGet(message, 'Properties.Battery') ?? 100);
 
-  if (lat == null || lon == null || timeMs == null || imei == null) {
+  if (lat == null || lon == null || timeMs == null || imei == null || id == null) {
     return null;
   }
 
-  const zoleMessage: ZoleoMessage = {
+  const zoleoMessage: ZoleoMessage = {
     type: 'msg',
+    id: String(id),
     lat: round(lat, 5),
     lon: round(lon, 5),
     speedKph: round(speedKph, 0),
     altitudeM: round(altitudeM, 0),
     batteryPercent: round(batteryPercent, 0),
     timeMs: Number(timeMs),
-    imei,
+    imei: String(imei),
   };
 
   switch (message.MessageType) {
     case 'CheckIn':
-      zoleMessage.message = 'Check-In';
+      zoleoMessage.message = 'Check-In';
       break;
     case 'LS_start':
     case 'LS_location':
     case 'LS_end':
+    case 'PingLocation':
       break;
     case 'SOSInitiated':
-      zoleMessage.message = 'SOS';
-      zoleMessage.emergency = true;
+      zoleoMessage.message = 'SOS';
+      zoleoMessage.emergency = true;
       break;
+    case 'SOSCancelled':
+      zoleoMessage.message = 'SOS Cancelled';
+      zoleoMessage.emergency = false;
+      break;
+    case 'EmailMessage':
+    case 'AppMessage':
+      // Informational messaging, return null for live tracking
+      return null;
     default:
-      throw new Error(`Unsupported message type (${message.MessageType})`);
+      console.warn(`Ignored unknown zoleo message type: ${message.MessageType}`);
+      return null;
   }
 
-  return zoleMessage;
+  return zoleoMessage;
 }

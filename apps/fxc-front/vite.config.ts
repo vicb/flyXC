@@ -43,6 +43,7 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 8080,
       host: '0.0.0.0',
+      allowedHosts: ['.flyxc.app'],
       proxy: {
         '/api': {
           target: 'http://localhost:8082',
