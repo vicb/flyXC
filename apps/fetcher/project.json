@@ -7,7 +7,7 @@
   "targets": {
     "build": {
       "outputs": ["{projectRoot}/{options.outDir}", "{projectRoot}/dist"],
-      "defaultConfiguration": "development",
+      "defaultConfiguration": "production",
       "options": {
         "outDir": "./dist"
       },
@@ -32,9 +32,35 @@
         }
       }
     },
+    "prune-lockfile": {
+      "dependsOn": ["build"],
+      "cache": true,
+      "executor": "@nx/js:prune-lockfile",
+      "outputs": [
+        "{workspaceRoot}/apps/fetcher/dist/package.json",
+        "{workspaceRoot}/apps/fetcher/dist/pnpm-lock.yaml",
+        "{workspaceRoot}/apps/fetcher/dist/pnpm-workspace.yaml"
+      ],
+      "options": {
+        "buildTarget": "build"
+      }
+    },
+    "copy-workspace-modules": {
+      "dependsOn": ["build"],
+      "cache": true,
+      "outputs": ["{workspaceRoot}/apps/fetcher/dist/workspace_modules"],
+      "executor": "@nx/js:copy-workspace-modules",
+      "options": {
+        "buildTarget": "build"
+      }
+    },
+    "prune": {
+      "dependsOn": ["prune-lockfile", "copy-workspace-modules"],
+      "executor": "nx:noop"
+    },
     "container": {
       "executor": "@nx-tools/nx-container:build",
-      "dependsOn": ["build"],
+      "dependsOn": ["prune"],
       "options": {
         "file": "apps/fetcher/Dockerfile",
         "platforms": ["linux/amd64", "linux/arm64"],

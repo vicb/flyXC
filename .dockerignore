@@ -1,0 +1,7 @@
+.git
+.github
+.nx
+node_modules
+coverage
+tmp
+secrets.env*
