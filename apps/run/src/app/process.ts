@@ -3,7 +3,7 @@ import type { TrackEntity } from '@flyxc/common-node';
 import { retrieveTrackById, saveTrack } from '@flyxc/common-node';
 import type { Datastore } from '@google-cloud/datastore';
 import async from 'async';
-import * as polyline from 'google-polyline';
+import polyline from 'google-polyline';
 import simplify from 'simplify-path';
 
 import { fetchAirspaces } from './airspace';

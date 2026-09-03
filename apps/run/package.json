@@ -11,7 +11,7 @@
     "@google-cloud/pubsub": "catalog:default",
     "async": "^3.2.6",
     "express": "catalog:default",
-    "google-polyline": "^1.0.3",
+    "google-polyline": "^2.0.0",
     "@cwasm/lodepng": "^0.1.9",
     "mapbox-vector-tile": "catalog:default",
     "simplify-path": "catalog:default",

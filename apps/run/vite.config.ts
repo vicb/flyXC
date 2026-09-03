@@ -46,7 +46,7 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       emptyOutDir: true,
       reportCompressedSize: true,
-      target: 'node22',
+      target: 'node24',
       minify: mode === 'production',
       sourcemap: mode === 'production',
       ssr: true,

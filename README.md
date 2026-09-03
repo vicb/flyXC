@@ -26,10 +26,6 @@ Any contribution is greatly appreciated!
 
 This is an Nx monorepo using pnpm as the package manager.
 
-### Prerequisites
-
-- Node.js 22.x
-- pnpm 10.22.0 or later
 
 ### Installation
 

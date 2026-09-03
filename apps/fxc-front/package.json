@@ -5,7 +5,7 @@
   "private": true,
   "dependencies": {
     "@alenaksu/json-viewer": "^2.1.2",
-    "@arcgis/core": "^5.1.20",
+    "@arcgis/core": "^5.1.21",
     "@esri/arcgis-rest-geocoding": "^4.11.1",
     "@esri/arcgis-rest-request": "^4.11.1",
     "@flyxc/common": "workspace:*",
@@ -15,7 +15,7 @@
     "@literals/rollup-plugin-html-css-minifier": "^4.0.2",
     "@popperjs/core": "^2.11.8",
     "@reduxjs/toolkit": "catalog:",
-    "@stencil/core": "^4.44.0",
+    "@stencil/core": "^4.44.2",
     "d3-array": "^3.2.4",
     "geolib": "catalog:default",
     "jsonc-eslint-parser": "catalog:default",
