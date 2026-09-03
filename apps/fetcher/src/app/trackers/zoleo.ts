@@ -1,3 +1,9 @@
+// Zoleo tracker fetcher implementation.
+//
+// - Dashboard: https://www.myzoleo.com/dashboard
+// - Data Feed docs: https://developers.zoleo.com/docs/guides/integration-guides-data-feed
+// - Cloud Connect: https://cloudconnect.zoleo.com/
+
 import type { protos, TrackerNames } from '@flyxc/common';
 import { Keys, validateZoleoAccount } from '@flyxc/common';
 import type { RedisClient, RedisClientMultiCmd, ZoleoMessage } from '@flyxc/common-node';
@@ -31,14 +37,14 @@ export class ZoleoFetcher extends TrackerFetcher {
     }
 
     // Add new devices.
-    const addedDevices = await addNewDevices(this.datastore, messages);
+    const addedDevices = await confirmZoleoConsent(this.datastore, messages);
     if (addedDevices > 0) {
       // Sync added devices
       this.pipeline.incr(Keys.fetcherCmdSyncIncCount);
     }
 
-    // Maps IMEI to datastore ids.
-    const imeiToDsId = new Map<string, number>();
+    // Maps device ID to datastore ids.
+    const idToDsId = new Map<string, number>();
     for (const dsId of devices) {
       const tracker = this.getTracker(dsId);
       if (tracker == null) {
@@ -49,12 +55,12 @@ export class ZoleoFetcher extends TrackerFetcher {
         updates.trackerErrors.set(dsId, `Invalid account ${tracker.account}`);
         continue;
       }
-      imeiToDsId.set(tracker.account, dsId);
+      idToDsId.set(tracker.account, dsId);
     }
 
-    const pointsByImei = parse(messages);
-    for (const [imei, points] of pointsByImei.entries()) {
-      const dsId = imeiToDsId.get(imei);
+    const pointsById = parse(messages);
+    for (const [id, points] of pointsById.entries()) {
+      const dsId = idToDsId.get(id);
       if (dsId != null) {
         updates.trackerDeltas.set(dsId, makeLiveTrack(points));
       }
@@ -68,7 +74,7 @@ export class ZoleoFetcher extends TrackerFetcher {
 }
 
 export function parse(messages: ZoleoMessage[]): Map<string, LivePoint[]> {
-  const pointsByImei = new Map<string, LivePoint[]>();
+  const pointsById = new Map<string, LivePoint[]>();
   for (const msg of messages) {
     if (msg.type != 'msg') {
       continue;
@@ -86,14 +92,17 @@ export function parse(messages: ZoleoMessage[]): Map<string, LivePoint[]> {
     if (msg.batteryPercent < 20) {
       point.lowBattery = true;
     }
-    const points = pointsByImei.get(msg.imei) ?? [];
+    const points = pointsById.get(msg.id) ?? [];
     points.push(point);
-    pointsByImei.set(msg.imei, points);
+    pointsById.set(msg.id, points);
   }
-  return pointsByImei;
+  return pointsById;
 }
 
-async function addNewDevices(datastore: Datastore, messages: ZoleoMessage[]): Promise<number> {
+/**
+ * Populates the IMEI when a consent confirmation message is received.
+ */
+async function confirmZoleoConsent(datastore: Datastore, messages: ZoleoMessage[]): Promise<number> {
   // add new devices.
   let addedDevices = 0;
   for (const msg of messages) {

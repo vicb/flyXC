@@ -6,7 +6,8 @@ export interface TrackerEntity {
   account: string;
   // Resolved account (i.e. the id retrieved from the account for flyme).
   account_resolved?: string;
-  // IMEI (zoleo).
+  // IMEI used by zoleo.
+  // For zoleo devices, the id is in account and the IMEI is populated after users consent to data sharing.
   imei?: string;
 }
 

@@ -12,12 +12,10 @@ declare const SECRETS: {
   AVIANT_URL: string;
   APRS_USER: string;
   APRS_PASSWORD: string;
-  ZOLEO_UNLINK_URL: string;
-  ZOLEO_UNLINK_API_KEY: string;
+  ZOLEO_API_KEY?: string;
   ZOLEO_PUSH_USER: string;
   ZOLEO_PUSH_PWD: string;
   XCONTEST_JWT: string;
-  BUY_ME_A_COFFEE_TOKEN: string;
   FLYMASTER_GROUP_ID: string;
   FLYMASTER_GROUP_TOKEN: string;
   MAILERSEND_TOKEN: string;

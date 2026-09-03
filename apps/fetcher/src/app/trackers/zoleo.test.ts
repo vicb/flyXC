@@ -5,9 +5,10 @@ import { parse } from './zoleo';
 describe('parse', () => {
   it('should parse messages', () => {
     const zoleoMsgs: ZoleoMessage[] = [
-      { type: 'imei', id: 'fake-id', imei: '012345678912345' },
+      { type: 'imei', id: '12345678-1234-1234-1234-123456789012', imei: '012345678912345' },
       {
         type: 'msg',
+        id: '12345678-1234-1234-1234-123456789012',
         lat: 37.38525,
         lon: -122.02778,
         speedKph: 12,
@@ -19,6 +20,7 @@ describe('parse', () => {
       },
       {
         type: 'msg',
+        id: '12345678-1234-1234-1234-123456789012',
         lat: 37.38525,
         lon: -122.02778,
         speedKph: 13,
@@ -29,6 +31,7 @@ describe('parse', () => {
       },
       {
         type: 'msg',
+        id: '12345678-1234-1234-1234-123456789012',
         lat: 37.38532,
         lon: -122.02776,
         speedKph: 14,
@@ -39,6 +42,7 @@ describe('parse', () => {
       },
       {
         type: 'msg',
+        id: '12345678-1234-1234-1234-123456789012',
         lat: 37.38718,
         lon: -122.02649,
         speedKph: 15,
@@ -49,6 +53,7 @@ describe('parse', () => {
       },
       {
         type: 'msg',
+        id: '12345678-1234-1234-1234-123456789012',
         lat: 37.38475,
         lon: -122.02825,
         speedKph: 16,
@@ -61,7 +66,7 @@ describe('parse', () => {
 
     expect(parse(zoleoMsgs)).toMatchInlineSnapshot(`
       Map {
-        "012345678912345" => [
+        "12345678-1234-1234-1234-123456789012" => [
           {
             "alt": 321,
             "emergency": undefined,

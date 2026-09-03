@@ -152,12 +152,13 @@ function createPilotFromEntity(liveTrack: LiveTrackEntity): protos.Pilot {
     }
   }
 
+  // zoleo is not in trackerValidators to avoid frontend form validation errors when not yet linked.
   const zoleo = createDefaultTracker();
   if (liveTrack.zoleo) {
-    const imei = validateZoleoAccount(liveTrack.zoleo.imei ?? '');
-    if (imei != false) {
+    const id = validateZoleoAccount(liveTrack.zoleo.account ?? '');
+    if (id != false) {
       zoleo.enabled = liveTrack.zoleo.enabled;
-      zoleo.account = liveTrack.zoleo.imei;
+      zoleo.account = id;
     }
   }
 
