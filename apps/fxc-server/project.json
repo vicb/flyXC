@@ -7,7 +7,7 @@
   "targets": {
     "build": {
       "outputs": ["{projectRoot}/{options.outDir}", "{projectRoot}/dist"],
-      "defaultConfiguration": "development",
+      "defaultConfiguration": "production",
       "options": {
         "outDir": "./dist"
       },
@@ -60,8 +60,9 @@
     },
     "deploy": {
       "executor": "nx:run-commands",
+      "dependsOn": ["prune"],
       "options": {
-        "command": "pnpm nx run fxc-server:prune:production && gcloud app deploy apps/fxc-server/dist/app.yaml"
+        "command": "gcloud app deploy apps/fxc-server/dist/app.yaml"
       }
     }
   }
