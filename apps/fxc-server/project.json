@@ -7,7 +7,7 @@
   "targets": {
     "build": {
       "outputs": ["{projectRoot}/{options.outDir}", "{projectRoot}/dist"],
-      "defaultConfiguration": "development",
+      "defaultConfiguration": "production",
       "options": {
         "outDir": "./dist"
       },
@@ -18,17 +18,6 @@
         "production": {
           "mode": "production"
         }
-      }
-    },
-    "copy-assets": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": [
-          "cp apps/fxc-server/src/app.yaml apps/fxc-server/dist/",
-          "cp apps/fxc-server/src/index.yaml apps/fxc-server/dist/",
-          "cp apps/fxc-server/src/.gcloudignore apps/fxc-server/dist/"
-        ],
-        "parallel": false
       }
     },
     "serve": {
@@ -43,9 +32,35 @@
         }
       }
     },
+    "prune-lockfile": {
+      "dependsOn": ["build"],
+      "cache": true,
+      "executor": "@nx/js:prune-lockfile",
+      "outputs": [
+        "{workspaceRoot}/apps/fxc-server/dist/package.json",
+        "{workspaceRoot}/apps/fxc-server/dist/pnpm-lock.yaml",
+        "{workspaceRoot}/apps/fxc-server/dist/pnpm-workspace.yaml"
+      ],
+      "options": {
+        "buildTarget": "build"
+      }
+    },
+    "copy-workspace-modules": {
+      "dependsOn": ["build"],
+      "cache": true,
+      "outputs": ["{workspaceRoot}/apps/fxc-server/dist/workspace_modules"],
+      "executor": "@nx/js:copy-workspace-modules",
+      "options": {
+        "buildTarget": "build"
+      }
+    },
+    "prune": {
+      "dependsOn": ["prune-lockfile", "copy-workspace-modules"],
+      "executor": "nx:noop"
+    },
     "deploy": {
       "executor": "nx:run-commands",
-      "dependsOn": ["build", "copy-assets"],
+      "dependsOn": ["prune"],
       "options": {
         "command": "gcloud app deploy apps/fxc-server/dist/app.yaml"
       }

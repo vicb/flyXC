@@ -1,4 +1,4 @@
-runtime: nodejs24
+runtime: nodejs26
 
 instance_class: F1
 

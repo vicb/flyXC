@@ -14,3 +14,4 @@ node_modules/
 /app.yaml
 /3rdpartylicenses.txt
 /main.js.map
+/index.js.map

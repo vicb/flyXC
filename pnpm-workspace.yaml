@@ -44,6 +44,7 @@ catalog:
   core-js: ^3.50.0
   '@ionic/core': ^8.8.19
   '@preact/preset-vite': ^2.10.6
+  vite-plugin-static-copy: ^4.1.1
 
 allowBuilds:
   '@parcel/watcher': false

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { parse } from '@dotenvx/dotenvx';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { defineConfig } from 'vitest/config';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -39,7 +40,18 @@ export default defineConfig(({ mode }) => {
     root: __dirname,
     cacheDir: '../../node_modules/.vite/apps/fxc-server',
 
-    plugins: [],
+    plugins: [
+      viteStaticCopy({
+        environment: 'ssr',
+        targets: [
+          {
+            src: ['src/app.yaml', 'src/index.yaml', 'src/.gcloudignore'],
+            dest: '.',
+            rename: { stripBase: true },
+          },
+        ],
+      }),
+    ],
 
     // Configuration for Node.js application
     build: {
