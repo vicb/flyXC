@@ -104,6 +104,14 @@ export function round(value: number, numDigits: number): number {
   return Math.round(value * multiplier) / multiplier;
 }
 
+// 32-bit integer boundaries for clamping encoded differential values.
+// Standard JavaScript `Number` only provides MAX_SAFE_INTEGER / MIN_SAFE_INTEGER (53-bit),
+// so explicit 32-bit signed and unsigned limits are defined here.
+const INT32_MIN = -2147483648; // -2^31
+const INT32_MAX = 2147483647; // 2^31 - 1
+const UINT32_MIN = 0;
+const UINT32_MAX = 4294967295; // 2^32 - 1
+
 // Differential encoding of an array.
 // The value is multiplied by the given `multiplier`.
 // The first value is then stored unchanged followed by the deltas only.
@@ -111,27 +119,74 @@ export function round(value: number, numDigits: number): number {
 // `signed == false` makes sure the value can not be less than 0.
 // It is used to sanitize some values (i.e. time should always be increasing).
 export function diffEncodeArray32bit(data: number[], multiplier = 1, signed = true): number[] {
-  let previousValue: number;
-  return data.map((v: number, i: number) => {
-    v = Math.round(v * multiplier);
-    const res = Math.round(i == 0 ? v : v - previousValue);
-    previousValue = v;
-    if (signed) {
-      const cappedInt32Res = Math.max(-2147483648, Math.min(2147483647, res));
-      return cappedInt32Res;
+  const len = data.length;
+  if (len === 0) {
+    return [];
+  }
+
+  const out = new Array<number>(len);
+  let previousValue = multiplier === 1 ? Math.round(data[0]) : Math.round(data[0] * multiplier);
+
+  if (signed) {
+    out[0] = previousValue < INT32_MIN ? INT32_MIN : previousValue > INT32_MAX ? INT32_MAX : previousValue;
+    if (multiplier === 1) {
+      for (let i = 1; i < len; i++) {
+        const v = Math.round(data[i]);
+        const res = v - previousValue;
+        previousValue = v;
+        out[i] = res < INT32_MIN ? INT32_MIN : res > INT32_MAX ? INT32_MAX : res;
+      }
+    } else {
+      for (let i = 1; i < len; i++) {
+        const v = Math.round(data[i] * multiplier);
+        const res = v - previousValue;
+        previousValue = v;
+        out[i] = res < INT32_MIN ? INT32_MIN : res > INT32_MAX ? INT32_MAX : res;
+      }
     }
-    const cappedUIn32Res = Math.max(0, Math.min(4294967295, res));
-    return cappedUIn32Res;
-  });
+  } else {
+    out[0] = previousValue < UINT32_MIN ? UINT32_MIN : previousValue > UINT32_MAX ? UINT32_MAX : previousValue;
+    if (multiplier === 1) {
+      for (let i = 1; i < len; i++) {
+        const v = Math.round(data[i]);
+        const res = v - previousValue;
+        previousValue = v;
+        out[i] = res < UINT32_MIN ? UINT32_MIN : res > UINT32_MAX ? UINT32_MAX : res;
+      }
+    } else {
+      for (let i = 1; i < len; i++) {
+        const v = Math.round(data[i] * multiplier);
+        const res = v - previousValue;
+        previousValue = v;
+        out[i] = res < UINT32_MIN ? UINT32_MIN : res > UINT32_MAX ? UINT32_MAX : res;
+      }
+    }
+  }
+
+  return out;
 }
 
 // Decodes a differential encoded array.
 //
 // See `diffEncodeArray`.
 export function diffDecodeArray(data: number[], multiplier = 1): number[] {
-  let value: number;
-  return data.map((delta: number, i: number) => {
-    value = i == 0 ? delta : value + delta;
-    return value / multiplier;
-  });
+  const len = data.length;
+  if (len === 0) {
+    return [];
+  }
+  const out = new Array<number>(len);
+  let value = data[0];
+  out[0] = value / multiplier;
+  if (multiplier === 1) {
+    for (let i = 1; i < len; i++) {
+      value += data[i];
+      out[i] = value;
+    }
+  } else {
+    for (let i = 1; i < len; i++) {
+      value += data[i];
+      out[i] = value / multiplier;
+    }
+  }
+  return out;
 }
