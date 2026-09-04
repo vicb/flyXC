@@ -249,18 +249,55 @@ export function removeDeviceFromLiveTrack(track: LiveTrack, device: TrackerNames
   return outTrack;
 }
 
-// Some points should never be removed:
-// - The first and last point of a track - unless an UFO,
-// - Emergency,
-// - Points with messages
-//
-// `start` and `end` indexes could be passed to operate on a portion of the track only.
+/**
+ * Finds the largest index where ascendingList[i] <= value using binary search.
+ *
+ * @param ascendingList - List of numbers in ascending order.
+ * @param value - Search value.
+ * @returns The largest index where ascendingList[i] <= value, or -1 if value is less than the first element.
+ */
+export function findLastIndexLessOrEqual(ascendingList: number[], value: number): number {
+  const len = ascendingList.length;
+  if (len === 0 || value < ascendingList[0]) {
+    return -1;
+  }
+  if (value >= ascendingList[len - 1]) {
+    return len - 1;
+  }
+  let low = 0;
+  let high = len - 1;
+  while (low < high) {
+    const mid = (low + high + 1) >> 1;
+    if (ascendingList[mid] <= value) {
+      low = mid;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return low;
+}
+
+/**
+ * Checks whether a fix at the given index can be simplified (removed).
+ *
+ * Some points should never be removed:
+ * - The first and last point of a track - unless a UFO,
+ * - Emergency,
+ * - Points with messages.
+ *
+ * `start` and `end` indexes could be passed to operate on a portion of the track only.
+ *
+ * @param track - The live track.
+ * @param index - Index of the fix to check.
+ * @param start - Starting boundary index (default 0).
+ * @param end - Ending boundary index (default last fix index).
+ * @returns True if the fix can be simplified.
+ */
 export function IsSimplifiableFix(track: LiveTrack, index: number, start = 0, end = track.timeSec.length - 1): boolean {
-  const ufo = isUfo(track.flags[index]);
-  if ((!ufo && index == start) || index == end) {
+  const flags = track.flags[index];
+  if ((!isUfo(flags) && index === start) || index === end) {
     return false;
   }
-  const flags = track.flags[index];
   if (isEmergencyFix(flags)) {
     return false;
   }
@@ -270,57 +307,106 @@ export function IsSimplifiableFix(track: LiveTrack, index: number, start = 0, en
   return true;
 }
 
-// Removes simplifiable points that are less than `intervalSec` apart.
-// Notes:
-// - Points from startSec inclusive are simplified.
-// - The track is simplified in place.
+/**
+ * Removes simplifiable points that are less than `intervalSec` apart.
+ *
+ * Notes:
+ * - Points from startSec inclusive are simplified.
+ * - The track is simplified in place.
+ *
+ * Performance notes:
+ * This function is invoked in the hot path across thousands of pilot tracks every minute (e.g. 4 times per
+ * pilot per tick in the fetcher). It is optimized to:
+ * 1. Avoid object allocations in boundary lookups (factored findLastIndexLessOrEqual instead of findIndexes()).
+ * 2. Avoid array allocations and mutations when no points are removed (guarded .splice()).
+ * 3. Prevent V8 object de-optimization by checking if extra is populated before accessing/deleting keys.
+ *
+ * @param track - The live track to simplify in place.
+ * @param intervalSec - Minimum interval between kept fixes in seconds.
+ * @param time - Optional time range boundaries ({ fromSec, toSec }).
+ */
 export function simplifyLiveTrack(
   track: LiveTrack,
   intervalSec: number,
   time?: { fromSec?: number; toSec?: number },
 ): void {
-  if (track.timeSec.length == 0) {
+  const len = track.timeSec.length;
+  // Fast path: tracks with 0 or 1 fix can never be simplified (boundary fixes are always preserved).
+  if (len <= 1) {
     return;
   }
 
+  const timeSecs = track.timeSec;
+  const lastTime = timeSecs[len - 1];
+
   let startIndex = 0;
-  if (time?.fromSec != undefined) {
-    const indexes = findIndexes(track.timeSec, time.fromSec);
-    if (indexes.afterAll) {
+  if (time?.fromSec != null) {
+    const fromSec = time.fromSec;
+    if (fromSec > lastTime) {
       return;
     }
-    startIndex = Math.max(startIndex, indexes.beforeIndex);
+    const idx = findLastIndexLessOrEqual(timeSecs, fromSec);
+    startIndex = Math.max(0, idx);
   }
-  let simplifyUntilIndex = track.timeSec.length;
-  if (time?.toSec != undefined) {
-    const indexes = findIndexes(track.timeSec, time.toSec);
-    if (indexes.beforeAll) {
+
+  let simplifyUntilIndex = len - 1;
+  if (time?.toSec != null) {
+    const idx = findLastIndexLessOrEqual(timeSecs, time.toSec);
+    if (idx < 0) {
       return;
     }
-    simplifyUntilIndex = Math.min(simplifyUntilIndex, indexes.beforeIndex);
+    simplifyUntilIndex = idx;
   }
+
+  // If the target interval is out of range or only targets the last point (which is never simplifiable), exit early.
+  if (startIndex > simplifyUntilIndex || startIndex >= len - 1) {
+    return;
+  }
+
+  // Check if extra contains any properties using a fast for..in loop without allocating an array via Object.keys().
+  // Most tracks have an empty extra object ({}). Bypassing property accesses and repeated `delete` calls on empty
+  // objects keeps V8 objects in fast shape mode rather than de-optimizing them into slow dictionary mode.
+  let hasExtra = false;
+  for (const _ in track.extra) {
+    hasExtra = true;
+    break;
+  }
+
   let dstIndex = startIndex;
-  let previousTimeSec = track.timeSec[startIndex] - 2 * intervalSec;
-  for (let index = startIndex; index < track.timeSec.length; index++) {
-    const timeSec = track.timeSec[index];
-    if (index <= simplifyUntilIndex && IsSimplifiableFix(track, index) && timeSec - previousTimeSec < intervalSec) {
-      delete track.extra[index];
+  let previousTimeSec = timeSecs[startIndex] - 2 * intervalSec;
+
+  for (let index = startIndex; index < len; index++) {
+    const timeSec = timeSecs[index];
+    if (index <= simplifyUntilIndex && timeSec - previousTimeSec < intervalSec && IsSimplifiableFix(track, index)) {
+      if (hasExtra && index in track.extra) {
+        delete track.extra[index];
+      }
       continue;
     }
-    // Nothing to do if dstIndex == index.
+
+    // Point is kept: copy forward if preceding points were removed (index > dstIndex).
     if (index > dstIndex) {
       copyFix(track, index, track, dstIndex);
-      delete track.extra[index];
+      // Only touch extra if present to avoid dictionary mode degradation.
+      if (hasExtra && index in track.extra) {
+        delete track.extra[index];
+      }
     }
+
     dstIndex++;
     previousTimeSec = timeSec;
   }
-  // Remove excess points.
-  track.lat.splice(dstIndex);
-  track.lon.splice(dstIndex);
-  track.alt.splice(dstIndex);
-  track.timeSec.splice(dstIndex);
-  track.flags.splice(dstIndex);
+
+  // Only mutate/truncate arrays if points were actually removed.
+  // In JavaScript, arr.splice(len) creates and returns a new empty array []. Avoiding splice when dstIndex === len
+  // prevents tens of thousands of useless array allocations and GC passes per minute.
+  if (dstIndex < len) {
+    track.lat.splice(dstIndex);
+    track.lon.splice(dstIndex);
+    track.alt.splice(dstIndex);
+    timeSecs.splice(dstIndex);
+    track.flags.splice(dstIndex);
+  }
 }
 
 // Copies a fix from a track to an other.

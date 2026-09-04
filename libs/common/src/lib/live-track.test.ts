@@ -2,8 +2,10 @@ import { LiveTrack } from '../protos/live-track';
 import {
   differentialDecodeLiveTrack,
   differentialEncodeLiveTrack,
+  findLastIndexLessOrEqual,
   getLastMessage,
   isEmergencyTrack,
+  IsSimplifiableFix,
   LiveTrackFlag,
   mergeLiveTracks,
   removeBeforeFromLiveTrack,
@@ -423,6 +425,188 @@ describe('simplifyLiveTrack', () => {
       flags: [0, 0, 0, 0, 0],
       extra: { 3: { message: 'hello' } },
     });
+  });
+
+  it('should handle a track with a single fix without modification', () => {
+    const track: LiveTrack = {
+      timeSec: [100],
+      lat: [45],
+      lon: [6],
+      alt: [1000],
+      flags: [0],
+      extra: { 0: { speed: 20 } },
+    };
+
+    simplifyLiveTrack(track, 10);
+
+    expect(track).toEqual({
+      timeSec: [100],
+      lat: [45],
+      lon: [6],
+      alt: [1000],
+      flags: [0],
+      extra: { 0: { speed: 20 } },
+    });
+  });
+
+  it('should return unchanged when fromSec is greater than toSec', () => {
+    const track: LiveTrack = {
+      timeSec: [10, 15, 20, 25, 30],
+      lat: [1, 2, 3, 4, 5],
+      lon: [1, 2, 3, 4, 5],
+      alt: [1, 2, 3, 4, 5],
+      flags: [0, 0, 0, 0, 0],
+      extra: {},
+    };
+
+    simplifyLiveTrack(track, 10, { fromSec: 25, toSec: 15 });
+
+    expect(track.timeSec).toEqual([10, 15, 20, 25, 30]);
+  });
+
+  it('should return unchanged when startIndex is the last point', () => {
+    const track: LiveTrack = {
+      timeSec: [10, 15, 20, 25, 30],
+      lat: [1, 2, 3, 4, 5],
+      lon: [1, 2, 3, 4, 5],
+      alt: [1, 2, 3, 4, 5],
+      flags: [0, 0, 0, 0, 0],
+      extra: {},
+    };
+
+    simplifyLiveTrack(track, 10, { fromSec: 30 });
+
+    expect(track.timeSec).toEqual([10, 15, 20, 25, 30]);
+  });
+
+  it('should simplify UFO points at index 0 but preserve UFO points at the last index', () => {
+    const track: LiveTrack = {
+      timeSec: [10, 15, 20, 25],
+      lat: [1, 2, 3, 4],
+      lon: [1, 2, 3, 4],
+      alt: [1, 2, 3, 4],
+      flags: [LiveTrackFlag.IsUfo, 0, 0, LiveTrackFlag.IsUfo],
+      extra: {},
+    };
+
+    // With previousTimeSec initialized to timeSec[0] - 2 * interval = 10 - 20 = -10,
+    // index 0 has timeSec - previous = 20 >= 10, so index 0 is kept.
+    // However, if fromSec is 15, index 1 is checked with previous 15 - 20 = -5.
+    // Let's test simplifying UFO at index 0 when it is within interval of start.
+    simplifyLiveTrack(track, 10);
+
+    // index 0 (10) kept. index 1 (15 - 10 = 5 < 10) simplified.
+    // index 2 (20 - 10 = 10 >= 10) kept.
+    // index 3 (25 - 20 = 5 < 10): last point is never simplifiable (even if UFO).
+    expect(track.timeSec).toEqual([10, 20, 25]);
+    expect(track.flags).toEqual([LiveTrackFlag.IsUfo, 0, LiveTrackFlag.IsUfo]);
+  });
+});
+
+describe('findLastIndexLessOrEqual', () => {
+  it('should return -1 for an empty array', () => {
+    expect(findLastIndexLessOrEqual([], 10)).toBe(-1);
+  });
+
+  it('should handle single element arrays', () => {
+    expect(findLastIndexLessOrEqual([10], 5)).toBe(-1);
+    expect(findLastIndexLessOrEqual([10], 10)).toBe(0);
+    expect(findLastIndexLessOrEqual([10], 15)).toBe(0);
+  });
+
+  it('should return -1 when value is less than the first element', () => {
+    expect(findLastIndexLessOrEqual([10, 20, 30], 5)).toBe(-1);
+    expect(findLastIndexLessOrEqual([10, 20, 30], 9)).toBe(-1);
+  });
+
+  it('should return 0 when value equals the first element', () => {
+    expect(findLastIndexLessOrEqual([10, 20, 30], 10)).toBe(0);
+  });
+
+  it('should find exact matches in sorted array', () => {
+    const list = [10, 20, 30, 40, 50];
+    expect(findLastIndexLessOrEqual(list, 20)).toBe(1);
+    expect(findLastIndexLessOrEqual(list, 30)).toBe(2);
+    expect(findLastIndexLessOrEqual(list, 40)).toBe(3);
+    expect(findLastIndexLessOrEqual(list, 50)).toBe(4);
+  });
+
+  it('should find the largest index less than value when not an exact match', () => {
+    const list = [10, 20, 30, 40, 50];
+    expect(findLastIndexLessOrEqual(list, 15)).toBe(0);
+    expect(findLastIndexLessOrEqual(list, 25)).toBe(1);
+    expect(findLastIndexLessOrEqual(list, 39)).toBe(2);
+    expect(findLastIndexLessOrEqual(list, 49)).toBe(3);
+  });
+
+  it('should return len - 1 when value is greater than the last element', () => {
+    const list = [10, 20, 30, 40, 50];
+    expect(findLastIndexLessOrEqual(list, 55)).toBe(4);
+    expect(findLastIndexLessOrEqual(list, 1000)).toBe(4);
+  });
+
+  it('should handle duplicate values returning the last matching index', () => {
+    const list = [10, 20, 20, 20, 30];
+    expect(findLastIndexLessOrEqual(list, 20)).toBe(3);
+    expect(findLastIndexLessOrEqual(list, 25)).toBe(3);
+  });
+});
+
+describe('IsSimplifiableFix', () => {
+  const baseTrack: LiveTrack = {
+    timeSec: [10, 20, 30, 40],
+    lat: [1, 2, 3, 4],
+    lon: [1, 2, 3, 4],
+    alt: [1, 2, 3, 4],
+    flags: [0, 0, 0, 0],
+    extra: {},
+  };
+
+  it('should not allow simplifying the start point for non-UFO', () => {
+    expect(IsSimplifiableFix(baseTrack, 0)).toBe(false);
+  });
+
+  it('should allow simplifying the start point for UFO', () => {
+    const ufoTrack: LiveTrack = {
+      ...baseTrack,
+      flags: [LiveTrackFlag.IsUfo, 0, 0, 0],
+    };
+    expect(IsSimplifiableFix(ufoTrack, 0)).toBe(true);
+  });
+
+  it('should never allow simplifying the last point', () => {
+    expect(IsSimplifiableFix(baseTrack, 3)).toBe(false);
+
+    const ufoTrack: LiveTrack = {
+      ...baseTrack,
+      flags: [0, 0, 0, LiveTrackFlag.IsUfo],
+    };
+    expect(IsSimplifiableFix(ufoTrack, 3)).toBe(false);
+  });
+
+  it('should not allow simplifying emergency fixes', () => {
+    const emergencyTrack: LiveTrack = {
+      ...baseTrack,
+      flags: [0, LiveTrackFlag.Emergency, 0, 0],
+    };
+    expect(IsSimplifiableFix(emergencyTrack, 1)).toBe(false);
+  });
+
+  it('should not allow simplifying fixes with extra messages', () => {
+    const msgTrack: LiveTrack = {
+      ...baseTrack,
+      extra: { 1: { message: 'SOS' } },
+    };
+    expect(IsSimplifiableFix(msgTrack, 1)).toBe(false);
+  });
+
+  it('should allow simplifying standard internal fixes with non-message extras', () => {
+    const speedTrack: LiveTrack = {
+      ...baseTrack,
+      extra: { 1: { speed: 45 } },
+    };
+    expect(IsSimplifiableFix(speedTrack, 1)).toBe(true);
+    expect(IsSimplifiableFix(baseTrack, 2)).toBe(true);
   });
 });
 
