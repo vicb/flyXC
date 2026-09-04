@@ -65,7 +65,9 @@ describe('applyTrackerUpdates', () => {
       endFetchSec: nowSec,
     };
 
-    applyTrackerUpdates(state, [updates], nowSec);
+    const updatedIds = applyTrackerUpdates(state, [updates], nowSec);
+
+    expect(updatedIds).toEqual(new Set([1]));
 
     // Pilot 1 was updated: delta merged and simplified
     // Points within intervalSec (5s) are decimated:
