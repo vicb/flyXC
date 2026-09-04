@@ -1,7 +1,6 @@
 import type { LiveDifferentialTrack, LiveExtra } from '../protos/live-track';
 import { LiveTrack } from '../protos/live-track';
 import { diffDecodeArray, diffEncodeArray32bit, findIndexes } from './math';
-import { deepCopy } from './util';
 
 // Number of bits reserved for device names.
 const DEVICE_TYPE_NUM_BITS = 5;
@@ -204,34 +203,56 @@ export function getTrackerFlags(value: {
 // Note:
 // - A new track is returned.
 export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): LiveTrack {
-  track = deepCopy(track);
-  if (track.timeSec.length == 0) {
-    return track;
+  const len = track.timeSec.length;
+  if (len === 0) {
+    return LiveTrack.create({ name: track.name, id: track.id, idStr: track.idStr });
   }
-  const indexes = findIndexes(track.timeSec, timeSec);
-  if (indexes.beforeAll) {
-    return track;
-  }
-  let numToDelete = indexes.afterIndex;
-  if (indexes.afterAll) {
-    numToDelete = track.timeSec.length + 1;
-  }
-  track.lat.splice(0, numToDelete);
-  track.lon.splice(0, numToDelete);
-  track.alt.splice(0, numToDelete);
-  track.timeSec.splice(0, numToDelete);
-  track.flags.splice(0, numToDelete);
-  if (numToDelete > 0) {
+
+  // Fast boundary checks in O(1):
+  // 1. If timeSec is before or at the first fix, no fixes are strictly before timeSec.
+  //    Return a new track with sliced arrays and cloned extra entries.
+  if (timeSec <= track.timeSec[0]) {
     const extra: { [key: string]: LiveExtra } = {};
-    for (const [index, value] of Object.entries(track.extra)) {
-      const newIndex = Number(index) - numToDelete;
-      if (newIndex >= 0) {
-        extra[newIndex] = value;
-      }
+    for (const index in track.extra) {
+      extra[index] = { ...track.extra[index] };
     }
-    track.extra = extra;
+    return {
+      ...track,
+      timeSec: track.timeSec.slice(),
+      lat: track.lat.slice(),
+      lon: track.lon.slice(),
+      alt: track.alt.slice(),
+      flags: track.flags.slice(),
+      extra,
+    };
   }
-  return track;
+
+  // 2. If timeSec is strictly after the last fix, all fixes are dropped.
+  if (timeSec > track.timeSec[len - 1]) {
+    return LiveTrack.create({ name: track.name, id: track.id, idStr: track.idStr });
+  }
+
+  // Find the first index whose time is >= timeSec.
+  const indexes = findIndexes(track.timeSec, timeSec);
+  const numToDelete = indexes.afterIndex;
+
+  const extra: { [key: string]: LiveExtra } = {};
+  for (const index in track.extra) {
+    const newIndex = Number(index) - numToDelete;
+    if (newIndex >= 0) {
+      extra[newIndex] = { ...track.extra[index] };
+    }
+  }
+
+  return {
+    ...track,
+    timeSec: track.timeSec.slice(numToDelete),
+    lat: track.lat.slice(numToDelete),
+    lon: track.lon.slice(numToDelete),
+    alt: track.alt.slice(numToDelete),
+    flags: track.flags.slice(numToDelete),
+    extra,
+  };
 }
 
 // Delete all the fixes from the specified device.

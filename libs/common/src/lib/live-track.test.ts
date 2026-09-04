@@ -90,6 +90,127 @@ describe('removeBeforeFromLiveTrack', () => {
     const track = LiveTrack.create();
     expect(removeBeforeFromLiveTrack(track, 45)).toEqual(LiveTrack.create());
   });
+
+  it('should handle single-point tracks correctly', () => {
+    const singleTrack: LiveTrack = {
+      name: 'pilot1',
+      id: 123,
+      timeSec: [100],
+      lat: [45],
+      lon: [6],
+      alt: [1000],
+      flags: [0],
+      extra: { 0: { speed: 25 } },
+    };
+
+    // Before fix: kept
+    expect(removeBeforeFromLiveTrack(singleTrack, 90)).toEqual(singleTrack);
+    // At fix: kept
+    expect(removeBeforeFromLiveTrack(singleTrack, 100)).toEqual(singleTrack);
+    // After fix: dropped
+    expect(removeBeforeFromLiveTrack(singleTrack, 101)).toEqual(LiveTrack.create({ name: 'pilot1', id: 123 }));
+  });
+
+  it('should preserve track metadata (name and id) across all branches', () => {
+    const namedTrack: LiveTrack = {
+      name: 'Pilot John',
+      id: 42,
+      timeSec: [10, 20, 30],
+      lat: [1, 2, 3],
+      lon: [4, 5, 6],
+      alt: [7, 8, 9],
+      flags: [0, 0, 0],
+      extra: {},
+    };
+
+    // Branch 1: timeSec <= firstFix (nothing deleted)
+    const res1 = removeBeforeFromLiveTrack(namedTrack, 5);
+    expect(res1.name).toBe('Pilot John');
+    expect(res1.id).toBe(42);
+
+    // Branch 2: in-between (partially deleted)
+    const res2 = removeBeforeFromLiveTrack(namedTrack, 20);
+    expect(res2.name).toBe('Pilot John');
+    expect(res2.id).toBe(42);
+    expect(res2.timeSec).toEqual([20, 30]);
+
+    // Branch 3: timeSec > lastFix (all deleted)
+    const res3 = removeBeforeFromLiveTrack(namedTrack, 50);
+    expect(res3.name).toBe('Pilot John');
+    expect(res3.id).toBe(42);
+    expect(res3.timeSec).toEqual([]);
+
+    // Branch 4: empty track with metadata
+    const emptyNamedTrack = LiveTrack.create({ name: 'Pilot Jane', id: 99 });
+    const res4 = removeBeforeFromLiveTrack(emptyNamedTrack, 50);
+    expect(res4.name).toBe('Pilot Jane');
+    expect(res4.id).toBe(99);
+    expect(res4.timeSec).toEqual([]);
+  });
+
+  it('should ensure immutability: modifying returned track arrays and extra objects does not affect input track', () => {
+    const originalTrack: LiveTrack = {
+      timeSec: [10, 20, 30],
+      lat: [1, 2, 3],
+      lon: [4, 5, 6],
+      alt: [7, 8, 9],
+      flags: [0, 0, 0],
+      extra: { 0: { speed: 10, message: 'orig' } },
+    };
+
+    // Case 1: when 0 points are removed (timeSec <= firstFix)
+    const returned1 = removeBeforeFromLiveTrack(originalTrack, 5);
+    returned1.timeSec.push(40);
+    returned1.lat.push(4);
+    returned1.extra[0].speed = 999;
+    returned1.extra[1] = { speed: 20 };
+
+    expect(originalTrack.timeSec).toEqual([10, 20, 30]);
+    expect(originalTrack.lat).toEqual([1, 2, 3]);
+    expect(originalTrack.extra[0].speed).toBe(10);
+    expect(originalTrack.extra[1]).toBeUndefined();
+
+    // Case 2: when points are pruned (timeSec > firstFix)
+    const originalTrack2: LiveTrack = {
+      timeSec: [10, 20, 30],
+      lat: [1, 2, 3],
+      lon: [4, 5, 6],
+      alt: [7, 8, 9],
+      flags: [0, 0, 0],
+      extra: { 1: { speed: 100 } },
+    };
+
+    const returned2 = removeBeforeFromLiveTrack(originalTrack2, 20);
+    returned2.extra[0].speed = 555;
+
+    expect(originalTrack2.extra[1].speed).toBe(100);
+  });
+
+  it('should remap and filter extra metadata indexes correctly', () => {
+    const trackWithExtra: LiveTrack = {
+      timeSec: [10, 20, 30, 40, 50],
+      lat: [1, 2, 3, 4, 5],
+      lon: [1, 2, 3, 4, 5],
+      alt: [1, 2, 3, 4, 5],
+      flags: [0, 0, 0, 0, 0],
+      extra: {
+        0: { message: 'start' },
+        2: { speed: 30 },
+        4: { message: 'end' },
+      },
+    };
+
+    // Delete fixes before 30 (deletes index 0 and index 1 -> numToDelete = 2)
+    const pruned = removeBeforeFromLiveTrack(trackWithExtra, 30);
+    expect(pruned.timeSec).toEqual([30, 40, 50]);
+    // Index 0 was before numToDelete, so dropped
+    // Index 2 is remapped to 2 - 2 = 0
+    // Index 4 is remapped to 4 - 2 = 2
+    expect(pruned.extra).toEqual({
+      0: { speed: 30 },
+      2: { message: 'end' },
+    });
+  });
 });
 
 describe('removeDeviceFromLiveTrack', () => {
