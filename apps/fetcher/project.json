@@ -27,9 +27,22 @@
         "command": "node apps/fetcher/dist/index.js"
       },
       "configurations": {
+        "development": {
+          "env": {
+            "NODE_ENV": "development"
+          }
+        },
         "production": {
-          "command": "node apps/fetcher/dist/index.js"
+          "env": {
+            "NODE_ENV": "production"
+          }
         }
+      }
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "nx serve fetcher --configuration=development"
       }
     },
     "prune-lockfile": {
