@@ -68,8 +68,7 @@
     "vite-plugin-eslint": "^1.8.1",
     "vite-plugin-pwa": "^1.3.0",
     "vite-plugin-static-copy": "catalog:",
-    "vitest": "4.1.11",
-    "wrangler": "catalog:default"
+    "vitest": "4.1.11"
   },
   "dependencies": {
     "@swc-node/register": "1.11.1",

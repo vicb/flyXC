@@ -303,9 +303,6 @@ importers:
       vitest:
         specifier: 4.1.11
         version: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@26.4.1)(@vitest/coverage-v8@4.1.11)(@vitest/ui@4.1.11)(jsdom@30.0.1(@noble/hashes@1.8.0))(vite@8.2.2(@types/node@26.4.1)(esbuild@0.28.1)(jiti@2.7.0)(less@4.1.3)(sass@1.97.1)(stylus@0.64.0)(terser@5.49.0)(yaml@2.9.0))
-      wrangler:
-        specifier: catalog:default
-        version: 4.129.0
 
   apps/fetcher:
     dependencies:
