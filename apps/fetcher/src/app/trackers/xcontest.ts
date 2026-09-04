@@ -132,7 +132,11 @@ export class XcontestFetcher extends TrackerFetcher {
 }
 
 export function parseLiveUsers(users: any, idToLastFlight: Map<string, XContestFlight>, keepFromMs: number) {
-  for (const [userUuid, data] of Object.entries(users.users)) {
+  if (!users?.users) {
+    return;
+  }
+  for (const userUuid in users.users) {
+    const data = users.users[userUuid];
     if (Array.isArray((data as any).flights) && (data as any).flights.length > 0) {
       const flight = (data as any).flights.at(-1);
       const [_lon, _lat, _alt, details] = flight.lastFix;

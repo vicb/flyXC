@@ -121,7 +121,8 @@ export function applyTrackerUpdates(
   }
 
   // Drop points older than max retention for all tracks that have outdated points.
-  for (const pilot of Object.values(state.pilots)) {
+  for (const id in state.pilots) {
+    const pilot = state.pilots[id];
     if (pilot.track.timeSec.length > 0 && pilot.track.timeSec[0] < dropBeforeSec) {
       pilot.track = removeBeforeFromLiveTrack(pilot.track, dropBeforeSec);
     }

@@ -71,7 +71,8 @@ export class FlymasterFetcher extends TrackerFetcher {
         updates.errors.push(`Error ${formatReqError(e)} for url ${url}`);
       }
 
-      Object.entries(flights).forEach(([id, flight]) => {
+      for (const id in flights) {
+        const flight = flights[id];
         const flmId = Number(id);
         const dsId = flmIdToDsId.get(flmId) as number;
         // Get an extra 5min of data that might not have been received (when no network coverage).
@@ -80,7 +81,7 @@ export class FlymasterFetcher extends TrackerFetcher {
         track = removeBeforeFromLiveTrack(track, fetchSecond - 300);
         simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
         updates.trackerDeltas.set(dsId, track);
-      });
+      }
 
       if (Date.now() >= deadlineMs) {
         updates.errors.push(`Fetch timeout`);
