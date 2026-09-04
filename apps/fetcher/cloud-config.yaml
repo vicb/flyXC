@@ -1,14 +1,45 @@
 #cloud-config
 
 write_files:
+  # Limit systemd-journald in-memory buffer.
+  # On Container-Optimized OS, journald buffers logs in tmpfs (/run/log/journal/) which
+  # can consume 50-100+ MB of RAM on small instances. Capping RuntimeMaxUse to 16M frees
+  # RAM for the workload without losing logs (fluent-bit streams them to Cloud Logging).
+  - path: /etc/systemd/journald.conf.d/10-limits.conf
+    permissions: '0644'
+    owner: root
+    content: |
+      [Journal]
+      RuntimeMaxUse=16M
+      SystemMaxUse=32M
+
+  # Systemd swap unit to automatically mount /var/swapfile on boot.
+  # GCE micro instances have no swap configured by default, causing sudden OOM kills
+  # during memory spikes. A 1GB swapfile on the persistent disk (/var) provides a buffer.
+  - path: /etc/systemd/system/var-swapfile.swap
+    permissions: '0644'
+    owner: root
+    content: |
+      [Unit]
+      Description=1GB Swap File
+      ConditionPathExists=/var/swapfile
+
+      [Swap]
+      What=/var/swapfile
+      Priority=1
+
+      [Install]
+      WantedBy=multi-user.target
+
   - path: /etc/systemd/system/fetcher.service
-    permissions: "0644"
+    permissions: '0644'
     owner: root
     content: |
       [Unit]
       Description=FlyXC Fetcher Container
-      After=docker.service
+      After=docker.service var-swapfile.swap
       Requires=docker.service
+      BindsTo=var-swapfile.swap
 
       [Service]
       TimeoutStartSec=0
@@ -26,5 +57,15 @@ write_files:
       WantedBy=multi-user.target
 
 runcmd:
+  # Apply journald memory limits immediately
+  - systemctl restart systemd-journald
+  # Idempotently allocate and format the swapfile on /var (stateful partition) if missing, then ensure 0600 root permissions
+  - [
+      sh,
+      -c,
+      'if [ ! -f /var/swapfile ]; then (fallocate -l 1G /var/swapfile || dd if=/dev/zero of=/var/swapfile bs=1M count=1024 status=none) && mkswap /var/swapfile; fi && chown root:root /var/swapfile && chmod 600 /var/swapfile',
+    ]
   - systemctl daemon-reload
+  # Enable and activate swap before starting the container
+  - systemctl enable --now var-swapfile.swap
   - systemctl enable --now fetcher.service
