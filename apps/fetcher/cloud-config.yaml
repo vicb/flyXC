@@ -22,6 +22,9 @@ write_files:
       ExecStart=/usr/bin/docker run --name fetcher --rm us-docker.pkg.dev/fly-xc/docker/fetcher:latest
       ExecStop=/usr/bin/docker stop fetcher
 
+      [Install]
+      WantedBy=multi-user.target
+
 runcmd:
   - systemctl daemon-reload
-  - systemctl restart fetcher.service
+  - systemctl enable --now fetcher.service

@@ -1,6 +1,6 @@
 # FlyXC Proxy
 
-The Proxy service runs in a container on temporary Google Compute Engine VMs using Container-Optimized OS (COS). Proxy VMs are created and terminated dynamically by `fetcher` ([`apps/fetcher/src/app/trackers/proxies.ts`](file:///home/victor/code/flyXC/apps/fetcher/src/app/trackers/proxies.ts)) using the `proxy-tmpl` instance template.
+The Proxy service runs in a container on temporary Google Compute Engine VMs using Container-Optimized OS (COS). Proxy VMs are created and terminated dynamically by `fetcher` ([`apps/fetcher/src/app/trackers/proxies.ts`](../fetcher/src/app/trackers/proxies.ts)) using the `proxy-tmpl` instance template.
 
 ## Build & Deploy Image
 
