@@ -8,7 +8,13 @@ export const config =
         cookieDomain: '.flyxc.app',
         cookieName: 'fxc-session',
         // Allowed domains.
-        corsAllowList: ['flyxc.app', '.flyxc.pages.dev'],
+        corsAllowList: [
+          'flyxc.app',
+          '.flyxc.pages.dev',
+          '.flyxc.workers.dev',
+          'flyxc-workers.workers.dev',
+          '.flyxc-workers.workers.dev',
+        ],
       }
     : {
         production: false,

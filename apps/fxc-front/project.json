@@ -35,6 +35,14 @@
         "development": {},
         "production": {}
       }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "wrangler deploy",
+        "cwd": "apps/fxc-front"
+      }
     }
   }
 }

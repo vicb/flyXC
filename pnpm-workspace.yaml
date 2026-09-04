@@ -45,6 +45,7 @@ catalog:
   '@ionic/core': ^8.8.19
   '@preact/preset-vite': ^2.10.6
   vite-plugin-static-copy: ^4.1.1
+  wrangler: ^4.129.0
 
 allowBuilds:
   '@parcel/watcher': false
@@ -58,6 +59,7 @@ allowBuilds:
   protobufjs: false
   sharp: false
   unrs-resolver: false
+  workerd: false
 
 packageExtensions:
   servez-lib@*:
