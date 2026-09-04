@@ -7,10 +7,10 @@
   "targets": {
     "build": {
       "dependsOn": ["optimizer"],
-      "outputs": ["{projectRoot}/{options.outDir}", "{projectRoot}/apps/fxc-front/dist"],
+      "outputs": ["{projectRoot}/{options.outDir}"],
       "defaultConfiguration": "production",
       "options": {
-        "target": "es2020",
+        "target": "es2022",
         "outDir": "./dist"
       },
       "configurations": {
@@ -34,6 +34,20 @@
       "configurations": {
         "development": {},
         "production": {}
+      }
+    },
+    "visualizer": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "VISUALIZER=1 pnpm nx build fxc-front --skip-nx-cache"
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "wrangler deploy",
+        "cwd": "{projectRoot}"
       }
     }
   }

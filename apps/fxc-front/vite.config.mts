@@ -77,10 +77,15 @@ export default defineConfig(
       literalsHtmlCssMinifier({
         exclude: ['**/node_modules/@esri/calcite-components/**'],
       }),
-      {
-        ...visualizer(),
-        apply: 'build',
-      },
+      // Enabled by `nx visualizer fxc-front` (sets VISUALIZER env var)
+      ...(process.env.VISUALIZER
+        ? [
+            {
+              ...visualizer(),
+              apply: 'build' as const,
+            },
+          ]
+        : []),
       checker({
         typescript: {
           root: process.cwd(),
