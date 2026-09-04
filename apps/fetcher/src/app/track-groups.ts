@@ -16,6 +16,13 @@ export interface LiveTrackGroups {
 }
 
 /**
+ * Converts a serialized protobuf Uint8Array payload into a zero-copy Node.js Buffer view.
+ */
+export function protoToBuffer(bytes: Uint8Array): Buffer {
+  return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+}
+
+/**
  * Conditionally adds a live track to a track group after removing outdated points.
  *
  * NOTE: pilots use numerical ids while UFOs use string ids.

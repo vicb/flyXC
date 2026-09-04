@@ -1,7 +1,35 @@
 import { LiveDataRetentionSec, protos, trackerIdByName } from '@flyxc/common';
 import { describe, expect, it } from 'vitest';
 
-import { createLiveTrackGroups, maybePushTrack } from './track-groups';
+import { createLiveTrackGroups, maybePushTrack, protoToBuffer } from './track-groups';
+
+describe('protoToBuffer', () => {
+  it('should create a zero-copy Buffer view over the Uint8Array', () => {
+    const bytes = new Uint8Array([10, 20, 30, 40, 50]);
+    const buf = protoToBuffer(bytes);
+
+    expect(Buffer.isBuffer(buf)).toBe(true);
+    expect(buf.buffer).toBe(bytes.buffer);
+    expect(buf.byteOffset).toBe(bytes.byteOffset);
+    expect(buf.byteLength).toBe(bytes.byteLength);
+    expect(Array.from(buf)).toEqual([10, 20, 30, 40, 50]);
+
+    // Modifying bytes is directly reflected in buf (zero-copy view sharing memory)
+    bytes[0] = 99;
+    expect(buf[0]).toBe(99);
+  });
+
+  it('should handle sliced Uint8Array with byteOffset correctly', () => {
+    const underlying = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+    const sliced = underlying.subarray(2, 6); // [3, 4, 5, 6], offset=2, length=4
+    const buf = protoToBuffer(sliced);
+
+    expect(buf.buffer).toBe(underlying.buffer);
+    expect(buf.byteOffset).toBe(2);
+    expect(buf.byteLength).toBe(4);
+    expect(Array.from(buf)).toEqual([3, 4, 5, 6]);
+  });
+});
 
 describe('maybePushTrack', () => {
   const nowSec = 1700000000;
