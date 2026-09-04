@@ -31,7 +31,14 @@ export async function resfreshUfoFleets(pipeline: RedisClientMultiCmd, state: pr
     }
   }
 
-  const nowSec = Math.round(Date.now() / 1000);
+  applyUfoFleetUpdates(state, fleetUpdates);
+}
+
+export function applyUfoFleetUpdates(
+  state: protos.FetcherState,
+  fleetUpdates: UfoFleetUpdates[],
+  nowSec = Math.round(Date.now() / 1000),
+): void {
   const ufoStartSec = nowSec - LiveDataRetentionSec.Ufo;
 
   for (const fleetUpdate of fleetUpdates) {
@@ -46,12 +53,14 @@ export async function resfreshUfoFleets(pipeline: RedisClientMultiCmd, state: pr
       }
     }
 
-    // eslint-disable-next-line prefer-const
-    for (let [id, track] of Object.entries(ufoTracks)) {
+    for (const id in ufoTracks) {
+      let track = ufoTracks[id];
       simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
       track = removeBeforeFromLiveTrack(track, ufoStartSec);
-      if (track.timeSec.length == 0) {
+      if (track.timeSec.length === 0) {
         delete ufoTracks[id];
+      } else {
+        ufoTracks[id] = track;
       }
     }
   }

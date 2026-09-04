@@ -149,12 +149,12 @@ export class TrackerFetcher {
     const devices: { id: number; nextFetchSec: number }[] = [];
 
     // Get all the trackers that are enabled and need to be fetched.
-    for (const [idStr, pilot] of Object.entries(this.state.pilots)) {
-      const id = Number(idStr);
+    for (const idStr in this.state.pilots) {
+      const pilot = this.state.pilots[idStr];
       if (pilot.enabled) {
         const tracker = pilot[propName];
         if (tracker?.enabled && this.shouldFetch(tracker)) {
-          devices.push({ id, nextFetchSec: tracker.nextFetchSec });
+          devices.push({ id: Number(idStr), nextFetchSec: tracker.nextFetchSec });
         }
       }
     }
