@@ -1,0 +1,30 @@
+#cloud-config
+
+write_files:
+  - path: /etc/systemd/system/fetcher.service
+    permissions: "0644"
+    owner: root
+    content: |
+      [Unit]
+      Description=FlyXC Fetcher Container
+      After=docker.service
+      Requires=docker.service
+
+      [Service]
+      TimeoutStartSec=0
+      Restart=always
+      Environment="DOCKER_CONFIG=/var/lib/docker-config"
+      ExecStartPre=/bin/mkdir -p /var/lib/docker-config
+      ExecStartPre=/usr/bin/docker-credential-gcr configure-docker --registries us-docker.pkg.dev
+      ExecStartPre=-/usr/bin/docker stop fetcher
+      ExecStartPre=-/usr/bin/docker rm fetcher
+      ExecStartPre=/usr/bin/docker pull us-docker.pkg.dev/fly-xc/docker/fetcher:latest
+      ExecStart=/usr/bin/docker run --name fetcher --rm us-docker.pkg.dev/fly-xc/docker/fetcher:latest
+      ExecStop=/usr/bin/docker stop fetcher
+
+      [Install]
+      WantedBy=multi-user.target
+
+runcmd:
+  - systemctl daemon-reload
+  - systemctl enable --now fetcher.service

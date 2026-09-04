@@ -70,11 +70,23 @@
         "tags": ["us-docker.pkg.dev/fly-xc/docker/fetcher"]
       }
     },
+    "create-template": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "gcloud compute instance-templates delete fetcher-tmpl --quiet || true && gcloud compute instance-templates create fetcher-tmpl --machine-type=e2-micro --image-family=cos-stable --image-project=cos-cloud --boot-disk-size=10GB --boot-disk-type=pd-balanced --scopes=cloud-platform --metadata=google-logging-enabled=true,google-logging-use-fluentbit=true --metadata-from-file=user-data=apps/fetcher/cloud-config.yaml"
+      }
+    },
+    "create-vm": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "gcloud compute instances create fetcher --source-instance-template=fetcher-tmpl --zone=us-central1-a"
+      }
+    },
     "deploy": {
       "executor": "nx:run-commands",
       "dependsOn": ["container"],
       "options": {
-        "command": "gcloud compute instances update-container fetcher --container-image=us-docker.pkg.dev/fly-xc/docker/fetcher"
+        "command": "gcloud compute ssh fetcher --zone=us-central1-a --command=\"sudo systemctl restart fetcher.service\""
       }
     }
   }
