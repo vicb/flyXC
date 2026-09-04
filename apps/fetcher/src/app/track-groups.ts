@@ -75,7 +75,8 @@ export function createLiveTrackGroups(
   const flymeTracks = protos.LiveDifferentialTrackGroup.create();
 
   // Add pilots.
-  for (const [pilotId, pilot] of Object.entries(state.pilots)) {
+  for (const pilotId in state.pilots) {
+    const pilot = state.pilots[pilotId];
     // Pilots use numerical ids, UFOs use string ids.
     const pilotIdNum = Number(pilotId);
     const name = pilot.name || 'unknown';
@@ -116,8 +117,13 @@ export function createLiveTrackGroups(
   }
 
   // Add UFOs.
-  for (const [name, fleet] of Object.entries(state.ufoFleets)) {
-    for (const [ufoId, track] of Object.entries(fleet.ufos)) {
+  for (const name in state.ufoFleets) {
+    const fleet = state.ufoFleets[name];
+    if (!fleet?.ufos) {
+      continue;
+    }
+    for (const ufoId in fleet.ufos) {
+      const track = fleet.ufos[ufoId];
       const ufoIdStr = `${name}-${ufoId}`;
       if (track.timeSec.length > 0) {
         fullTracksH48.tracks.push(differentialEncodeLiveTrack(track, ufoIdStr));

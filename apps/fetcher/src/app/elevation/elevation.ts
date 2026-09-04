@@ -32,16 +32,14 @@ export async function patchLastFixAGL(
     numRetrieved: 0,
   };
 
-  const pilotIds = updatedPilotIds ?? Object.keys(state.pilots);
-
-  for (const id of pilotIds) {
+  const checkTrack = (id: number | string) => {
     const pilot = state.pilots[id];
     if (!pilot) {
-      continue;
+      return;
     }
     const track = pilot.track;
     if (!track) {
-      continue;
+      return;
     }
     if (track.lat.length > 0) {
       const index = track.lat.length - 1;
@@ -49,6 +47,16 @@ export async function patchLastFixAGL(
         tracks.push(track);
         points.push({ lat: track.lat[index], lon: track.lon[index] });
       }
+    }
+  };
+
+  if (updatedPilotIds) {
+    for (const id of updatedPilotIds) {
+      checkTrack(id);
+    }
+  } else {
+    for (const id in state.pilots) {
+      checkTrack(id);
     }
   }
 
