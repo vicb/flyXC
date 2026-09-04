@@ -58,3 +58,5 @@ vitest.config.*.timestamp*
 .nx/migrate-runs
 /tools/ai-migrations/@nx/*
 .claude/settings.local.json
+
+.wrangler
