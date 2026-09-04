@@ -27,8 +27,15 @@
         "command": "node apps/run/dist/index.js"
       },
       "configurations": {
+        "development": {
+          "env": {
+            "NODE_ENV": "development"
+          }
+        },
         "production": {
-          "command": "node apps/run/dist/index.js"
+          "env": {
+            "NODE_ENV": "production"
+          }
         }
       }
     },
