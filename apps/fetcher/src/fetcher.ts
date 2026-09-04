@@ -23,7 +23,7 @@ import {
   SHUTDOWN_STATE_PATH,
 } from './app/state/state';
 import { syncFromDatastore } from './app/state/sync';
-import { createLiveTrackGroups } from './app/track-groups';
+import { createLiveTrackGroups, protoToBuffer } from './app/track-groups';
 import { disconnectOgnClient, resfreshTrackers } from './app/trackers/refresh';
 import { resfreshUfoFleets } from './app/ufos/refresh';
 
@@ -151,16 +151,16 @@ async function updateAll(pipeline: RedisClientMultiCmd, state: protos.FetcherSta
       createLiveTrackGroups(state, nowSec);
 
     pipeline
-      .set(Keys.fetcherFullProtoH12, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH12)))
-      .set(Keys.fetcherFullProtoH24, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH24)))
-      .set(Keys.fetcherFullProtoH48, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH48)))
+      .set(Keys.fetcherFullProtoH12, protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH12)))
+      .set(Keys.fetcherFullProtoH24, protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH24)))
+      .set(Keys.fetcherFullProtoH48, protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH48)))
       .set(Keys.fetcherFullNumTracksH12, fullTracksH12.tracks.length)
       .set(Keys.fetcherFullNumTracksH24, fullTracksH24.tracks.length)
       .set(Keys.fetcherFullNumTracksH48, fullTracksH48.tracks.length)
-      .set(Keys.fetcherLongIncrementalProto, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(longIncTracks)))
-      .set(Keys.fetcherShortIncrementalProto, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(shortIncTracks)))
+      .set(Keys.fetcherLongIncrementalProto, protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(longIncTracks)))
+      .set(Keys.fetcherShortIncrementalProto, protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(shortIncTracks)))
       .set(Keys.fetcherIncrementalNumTracksLong, longIncTracks.tracks.length)
-      .set(Keys.fetcherExportFlymeProto, Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(flymeTracks)));
+      .set(Keys.fetcherExportFlymeProto, protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(flymeTracks)));
   } catch (e) {
     console.log(`tick error ${e}`);
   } finally {
