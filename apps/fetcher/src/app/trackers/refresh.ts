@@ -84,10 +84,10 @@ export async function resfreshTrackers(
   const nowSec = Math.round(Date.now() / 1000);
 
   // Apply the updates.
-  applyTrackerUpdates(state, trackerUpdates, nowSec);
+  const updatedPilotIds = applyTrackerUpdates(state, trackerUpdates, nowSec);
 
   // Add the elevation for the last fix of every tracks when not present.
-  const elevationUpdates = await patchLastFixAGL(state);
+  const elevationUpdates = await patchLastFixAGL(state, updatedPilotIds);
   addElevationLogs(pipeline, elevationUpdates, state.lastTickSec);
 }
 
@@ -105,7 +105,7 @@ export function applyTrackerUpdates(
   state: protos.FetcherState,
   trackerUpdates: TrackerUpdates[],
   nowSec = Math.round(Date.now() / 1000),
-): void {
+): Set<number> {
   const dropBeforeSec = nowSec - LiveDataRetentionSec.Max;
 
   // Merge updates only for pilots that have deltas in this cycle.
@@ -147,6 +147,7 @@ export function applyTrackerUpdates(
       });
     }
   }
+  return updatedPilotIds;
 }
 
 /**

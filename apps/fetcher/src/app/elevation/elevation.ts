@@ -20,7 +20,10 @@ export interface ElevationUpdates {
 // Note:
 // - some trackers add the AGL,
 // - or the AGL might already have been populated.
-export async function patchLastFixAGL(state: protos.FetcherState): Promise<ElevationUpdates> {
+export async function patchLastFixAGL(
+  state: protos.FetcherState,
+  updatedPilotIds?: Iterable<number>,
+): Promise<ElevationUpdates> {
   const points: LatLon[] = [];
   let tracks: protos.LiveTrack[] = [];
   const updates: ElevationUpdates = {
@@ -29,7 +32,13 @@ export async function patchLastFixAGL(state: protos.FetcherState): Promise<Eleva
     numRetrieved: 0,
   };
 
-  for (const pilot of Object.values(state.pilots)) {
+  const pilotIds = updatedPilotIds ?? Object.keys(state.pilots);
+
+  for (const id of pilotIds) {
+    const pilot = state.pilots[id];
+    if (!pilot) {
+      continue;
+    }
     const track = pilot.track;
     if (!track) {
       continue;
