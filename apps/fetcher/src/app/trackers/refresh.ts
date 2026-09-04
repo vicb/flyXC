@@ -28,7 +28,10 @@ import { ZoleoFetcher } from './zoleo';
 
 const ognClient = new OgnClient(OGN_HOST, OGN_PORT, SECRETS.APRS_USER, SECRETS.APRS_PASSWORD);
 
-export function disconnectOgnClient() {
+/**
+ * Disconnects the OGN APRS client.
+ */
+export function disconnectOgnClient(): void {
   ognClient.disconnect();
 }
 
@@ -79,44 +82,80 @@ export async function resfreshTrackers(
 
   // Drop points older than the max retention.
   const nowSec = Math.round(Date.now() / 1000);
-  const dropBeforeSec = nowSec - LiveDataRetentionSec.Max;
 
   // Apply the updates.
-  for (const [idStr, pilot] of Object.entries(state.pilots)) {
-    const id = Number(idStr);
-    // Merge updates
-    for (const updates of trackerUpdates) {
-      if (updates.trackerDeltas.has(id)) {
-        pilot.track = mergeLiveTracks(pilot.track, updates.trackerDeltas.get(id));
-      }
-    }
-
-    // Remove outdated points
-    pilot.track = removeBeforeFromLiveTrack(pilot.track, dropBeforeSec);
-
-    // Decimates points according to their age.
-    simplifyLiveTrack(pilot.track, LiveDataIntervalSec.AfterH24, {
-      toSec: nowSec - 24 * 3600,
-    });
-    simplifyLiveTrack(pilot.track, LiveDataIntervalSec.H12ToH24, {
-      fromSec: nowSec - 24 * 3600,
-      toSec: nowSec - 12 * 3600,
-    });
-    simplifyLiveTrack(pilot.track, LiveDataIntervalSec.H6ToH12, {
-      fromSec: nowSec - 12 * 3600,
-      toSec: nowSec - 6 * 3600,
-    });
-    simplifyLiveTrack(pilot.track, LiveDataIntervalSec.Recent, {
-      fromSec: nowSec - 6 * 3600,
-    });
-  }
+  applyTrackerUpdates(state, trackerUpdates, nowSec);
 
   // Add the elevation for the last fix of every tracks when not present.
   const elevationUpdates = await patchLastFixAGL(state);
   addElevationLogs(pipeline, elevationUpdates, state.lastTickSec);
 }
 
-// Logs updates for a tracker type.
+/**
+ * Applies tracker updates to the pilots in state:
+ * - Merges incoming tracker deltas only for updated pilots.
+ * - Drops points older than max retention for all tracks.
+ * - Decimates/simplifies only the tracks of pilots that were updated in this cycle.
+ *
+ * @param state - The FetcherState object containing current state information.
+ * @param trackerUpdates - Array of updates from tracker fetches.
+ * @param nowSec - Current timestamp in seconds (defaults to now).
+ */
+export function applyTrackerUpdates(
+  state: protos.FetcherState,
+  trackerUpdates: TrackerUpdates[],
+  nowSec = Math.round(Date.now() / 1000),
+): void {
+  const dropBeforeSec = nowSec - LiveDataRetentionSec.Max;
+
+  // Merge updates only for pilots that have deltas in this cycle.
+  const updatedPilotIds = new Set<number>();
+  for (const updates of trackerUpdates) {
+    for (const [id, delta] of updates.trackerDeltas.entries()) {
+      const pilot = state.pilots[id];
+      if (pilot) {
+        pilot.track = mergeLiveTracks(pilot.track, delta);
+        updatedPilotIds.add(id);
+      }
+    }
+  }
+
+  // Drop points older than max retention for all tracks that have outdated points.
+  for (const pilot of Object.values(state.pilots)) {
+    if (pilot.track.timeSec.length > 0 && pilot.track.timeSec[0] < dropBeforeSec) {
+      pilot.track = removeBeforeFromLiveTrack(pilot.track, dropBeforeSec);
+    }
+  }
+
+  // Only simplify and decimate tracks for pilots that were updated in the current cycle.
+  for (const id of updatedPilotIds) {
+    const pilot = state.pilots[id];
+    if (pilot) {
+      simplifyLiveTrack(pilot.track, LiveDataIntervalSec.AfterH24, {
+        toSec: nowSec - 24 * 3600,
+      });
+      simplifyLiveTrack(pilot.track, LiveDataIntervalSec.H12ToH24, {
+        fromSec: nowSec - 24 * 3600,
+        toSec: nowSec - 12 * 3600,
+      });
+      simplifyLiveTrack(pilot.track, LiveDataIntervalSec.H6ToH12, {
+        fromSec: nowSec - 12 * 3600,
+        toSec: nowSec - 6 * 3600,
+      });
+      simplifyLiveTrack(pilot.track, LiveDataIntervalSec.Recent, {
+        fromSec: nowSec - 6 * 3600,
+      });
+    }
+  }
+}
+
+/**
+ * Logs updates for a tracker type.
+ *
+ * @param pipeline - Redis multi command pipeline.
+ * @param updates - Updates from the tracker fetch.
+ * @param state - Current fetcher state.
+ */
 export function addTrackerLogs(
   pipeline: RedisClientMultiCmd,
   updates: TrackerUpdates,
