@@ -1,0 +1,27 @@
+#cloud-config
+
+write_files:
+  - path: /etc/systemd/system/proxy.service
+    permissions: "0644"
+    owner: root
+    content: |
+      [Unit]
+      Description=FlyXC Proxy Container
+      After=docker.service
+      Requires=docker.service
+
+      [Service]
+      TimeoutStartSec=0
+      Restart=always
+      Environment="DOCKER_CONFIG=/var/lib/docker-config"
+      ExecStartPre=/bin/mkdir -p /var/lib/docker-config
+      ExecStartPre=/usr/bin/docker-credential-gcr configure-docker --registries us-docker.pkg.dev
+      ExecStartPre=-/usr/bin/docker stop proxy
+      ExecStartPre=-/usr/bin/docker rm proxy
+      ExecStartPre=/usr/bin/docker pull us-docker.pkg.dev/fly-xc/docker/proxy:latest
+      ExecStart=/usr/bin/docker run --name proxy --rm -p 80:80 us-docker.pkg.dev/fly-xc/docker/proxy:latest
+      ExecStop=/usr/bin/docker stop proxy
+
+runcmd:
+  - systemctl daemon-reload
+  - systemctl restart proxy.service
