@@ -4,7 +4,15 @@ import { Keys, LiveDataRetentionSec } from '@flyxc/common';
 import type { Request, Response } from 'express';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ensureDecompressed, isGzip, resolveLiveTrackKey, sendProtobufResponse } from './live-track';
+import {
+  clearProtoCache,
+  ensureDecompressed,
+  getCachedProto,
+  isGzip,
+  LIVE_TRACK_CACHE_TTL_MS,
+  resolveLiveTrackKey,
+  sendProtobufResponse,
+} from './live-track';
 
 describe('live-track routes and helpers', () => {
   const rawData = Buffer.from('hello-live-track-data');
@@ -70,6 +78,49 @@ describe('live-track routes and helpers', () => {
     it('should default to FullProtoH12 for full requests', () => {
       const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalLong + 100);
       expect(resolveLiveTrackKey(lastUpdateSec, 0, nowSec)).toBe(Keys.fetcherFullProtoH12);
+    });
+  });
+
+  describe('getCachedProto', () => {
+    beforeEach(() => {
+      clearProtoCache();
+    });
+
+    it('should fetch from Redis on cache miss and return cached value on subsequent calls within TTL', async () => {
+      const mockRedis = {
+        get: vi.fn().mockResolvedValue(gzippedData),
+      } as any;
+
+      const baseTimeMs = 1_000_000;
+
+      // 1. Initial call (cache miss)
+      const res1 = await getCachedProto(mockRedis, 'test:key', LIVE_TRACK_CACHE_TTL_MS, baseTimeMs);
+      expect(res1).toBe(gzippedData);
+      expect(mockRedis.get).toHaveBeenCalledTimes(1);
+
+      // 2. Second call within TTL (cache hit)
+      const res2 = await getCachedProto(mockRedis, 'test:key', LIVE_TRACK_CACHE_TTL_MS, baseTimeMs + 10_000);
+      expect(res2).toBe(gzippedData);
+      expect(mockRedis.get).toHaveBeenCalledTimes(1);
+
+      // 3. Third call after TTL expires (cache expired -> re-fetch)
+      const res3 = await getCachedProto(mockRedis, 'test:key', LIVE_TRACK_CACHE_TTL_MS, baseTimeMs + 21_000);
+      expect(res3).toBe(gzippedData);
+      expect(mockRedis.get).toHaveBeenCalledTimes(2);
+    });
+
+    it('should clear cache on clearProtoCache()', async () => {
+      const mockRedis = {
+        get: vi.fn().mockResolvedValue(rawData),
+      } as any;
+
+      await getCachedProto(mockRedis, 'test:key');
+      expect(mockRedis.get).toHaveBeenCalledTimes(1);
+
+      clearProtoCache();
+
+      await getCachedProto(mockRedis, 'test:key');
+      expect(mockRedis.get).toHaveBeenCalledTimes(2);
     });
   });
 
