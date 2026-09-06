@@ -36,7 +36,7 @@ export function getTrackerRouter(redis: RedisClient, datastore: Datastore): Rout
     if (token) {
       switch (token) {
         case SECRETS.FLYME_TOKEN: {
-          const groupProto = await bufferRedis.get(Keys.fetcherExportFlymeProto);
+          const groupProto = (await bufferRedis.get(Keys.fetcherExportFlymeProto)) as Buffer | null;
           if (req.header('accept') == 'application/json') {
             const track = protos.LiveDifferentialTrackGroup.fromBinary(groupProto!);
             res.json(protos.LiveDifferentialTrackGroup.toJson(track));
@@ -48,7 +48,7 @@ export function getTrackerRouter(redis: RedisClient, datastore: Datastore): Rout
         }
         case SECRETS.WING_TOKEN:
         case SECRETS.ZIPLINE_TOKEN: {
-          const liveGroupProto = await bufferRedis.get(Keys.fetcherFullProtoH12);
+          const liveGroupProto = (await bufferRedis.get(Keys.fetcherFullProtoH12)) as Buffer | null;
 
           const liveGroup = liveGroupProto
             ? protos.LiveDifferentialTrackGroup.fromBinary(liveGroupProto)

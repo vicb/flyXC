@@ -131,7 +131,7 @@ export function getZoleoRouter(redis: RedisClient): Router {
     try {
       const json = JSON.stringify(parseMessage(req.body));
       if (json != null) {
-        const pipeline = redis.pipeline();
+        const pipeline = redis.multi();
         pushListCap(pipeline, Keys.zoleoMsgQueue, [json], ZOLEO_MAX_MSG, ZOLEO_MAX_MSG_SIZE);
         await pipeline.execTyped(true);
       }
