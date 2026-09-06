@@ -3,11 +3,10 @@ import zlib from 'node:zlib';
 import csurf from '@dr.pogodin/csurf';
 import { AccountFormModel, Keys, trackerNames, ufoFleetNames } from '@flyxc/common';
 import type { RedisClient } from '@flyxc/common-node';
-import { retrieveLiveTrackById, retrieveRecentTracks, TRACK_TABLE } from '@flyxc/common-node';
+import { getBufferRedisClient, retrieveLiveTrackById, retrieveRecentTracks, TRACK_TABLE } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
 import type { NextFunction, Request, Response } from 'express';
 import { Router } from 'express';
-import { RESP_TYPES } from 'redis';
 
 import { createOrUpdateLiveTrack } from './live-track';
 import { isAdmin } from './session';
@@ -35,9 +34,7 @@ export function getAdminRouter(redis: RedisClient, datastore: Datastore): Router
     res.set('Cache-Control', 'no-store');
 
     try {
-      const bufferRedis = redis.withTypeMapping({
-        [RESP_TYPES.BLOB_STRING]: Buffer,
-      });
+      const bufferRedis = getBufferRedisClient(redis);
       const state = (await bufferRedis.get(Keys.fetcherStateBrotli)) as Buffer | null;
       if (state) {
         return res.send(zlib.brotliDecompressSync(state));

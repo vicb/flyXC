@@ -1,7 +1,20 @@
-import { createClient, type RedisClientType } from 'redis';
+import { createClient, type RedisClientType, RESP_TYPES } from 'redis';
 
 export type RedisClient = RedisClientType;
 export type RedisClientMultiCmd = ReturnType<RedisClient['multi']>;
+export type BufferRedisClient = ReturnType<RedisClient['withTypeMapping']>;
+
+/**
+ * Returns a Redis client configured to return binary Buffers for blob strings.
+ *
+ * @param client - The standard RedisClient instance.
+ * @returns The buffer-mapped RedisClient.
+ */
+export function getBufferRedisClient(client: RedisClient): BufferRedisClient {
+  return client.withTypeMapping({
+    [RESP_TYPES.BLOB_STRING]: Buffer,
+  });
+}
 
 // lazily created client.
 let redis: RedisClient | undefined;
