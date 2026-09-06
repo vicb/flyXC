@@ -527,9 +527,6 @@ importers:
       printf:
         specifier: ^0.6.1
         version: 0.6.1
-      redis:
-        specifier: catalog:default
-        version: 6.2.1(@opentelemetry/api@1.9.0)
       vaadin-nodom:
         specifier: workspace:*
         version: link:../../libs/vaadin-nodom

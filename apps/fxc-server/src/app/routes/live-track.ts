@@ -1,11 +1,13 @@
 import crypto from 'node:crypto';
+import * as zlib from 'node:zlib';
 
 import csurf from '@dr.pogodin/csurf';
 import type { AccountModel, LiveTrackEntity } from '@flyxc/common';
-import { AccountFormModel, differentialDecodeLiveTrack, Keys, LiveDataRetentionSec, protos } from '@flyxc/common';
-import type { RedisClient } from '@flyxc/common-node';
+import { AccountFormModel, Keys, LiveDataRetentionSec, protos } from '@flyxc/common';
+import type { BufferRedisClient, RedisClient } from '@flyxc/common-node';
 import {
   FlyMeValidator,
+  getBufferRedisClient,
   InreachValidator,
   LIVE_TRACK_TABLE,
   retrieveLiveTrackByGoogleId,
@@ -15,7 +17,6 @@ import {
 import { Datastore } from '@google-cloud/datastore';
 import type { Request, Response } from 'express';
 import { Router } from 'express';
-import { RESP_TYPES } from 'redis';
 import { NoDomBinder } from 'vaadin-nodom';
 
 import { getUserInfo, isLoggedIn, logout } from './session';
@@ -23,99 +24,197 @@ import { getUserInfo, isLoggedIn, logout } from './session';
 // Store the token in the session.
 const csrfProtection = csurf();
 
+/**
+ * Checks if the buffer starts with the standard Gzip magic bytes (0x1f, 0x8b).
+ *
+ * @param buffer - The buffer or Uint8Array to test.
+ * @returns `true` if the buffer has a Gzip magic header, `false` otherwise.
+ */
+export function isGzip(buffer: Buffer | Uint8Array | null | undefined): boolean {
+  return buffer != null && buffer.length >= 2 && buffer[0] === 0x1f && buffer[1] === 0x8b;
+}
+
+/**
+ * Decompresses a buffer if it is gzip-compressed; otherwise returns it as-is.
+ *
+ * @param buffer - The raw or compressed buffer from Redis.
+ * @returns The uncompressed buffer, or `null` if the input was null.
+ */
+export function ensureDecompressed(buffer: Buffer | null): Buffer | null {
+  if (!buffer) {
+    return null;
+  }
+  return isGzip(buffer) ? zlib.gunzipSync(buffer) : buffer;
+}
+
+/**
+ * Resolves the appropriate Redis key for live tracks based on the client's last
+ * update timestamp delta and requested history duration (in minutes).
+ *
+ * @param lastUpdateSec - Timestamp in seconds of the client's last update.
+ * @param fetchMinutes - Requested duration of track history in minutes.
+ * @param nowSec - Current timestamp in seconds (defaults to current time).
+ * @returns The matching Redis key for incremental or full track data.
+ */
+export function resolveLiveTrackKey(
+  lastUpdateSec: number,
+  fetchMinutes: number,
+  nowSec = Math.round(Date.now() / 1000),
+): Keys {
+  const deltaSec = nowSec - lastUpdateSec;
+
+  // Pick the incremental proto if the last request was recent.
+  if (deltaSec < LiveDataRetentionSec.IncrementalShort) {
+    return Keys.fetcherShortIncrementalProto;
+  }
+  if (deltaSec < LiveDataRetentionSec.IncrementalLong) {
+    return Keys.fetcherLongIncrementalProto;
+  }
+
+  // Otherwise, return full tracks for the requested history range.
+  switch (fetchMinutes) {
+    case 24 * 60:
+      return Keys.fetcherFullProtoH24;
+    case 48 * 60:
+      return Keys.fetcherFullProtoH48;
+    default:
+      return Keys.fetcherFullProtoH12;
+  }
+}
+
+/**
+ * Sends a protobuf buffer to the client, handling Gzip transparently:
+ * - If the buffer from Redis is gzipped and the client accepts gzip, sends with `Content-Encoding: gzip` (no server CPU decompression).
+ * - If the buffer from Redis is gzipped and the client does not accept gzip, decompresses on-the-fly.
+ * - If the buffer from Redis is uncompressed (legacy format during migration), sends as raw protobuf.
+ *
+ * @param req - Express request object used to check accepted encodings.
+ * @param res - Express response object.
+ * @param buffer - The protobuf buffer (gzipped, raw, or null).
+ */
+export function sendProtobufResponse(req: Request, res: Response, buffer: Buffer | null): void {
+  res.set('Content-Type', 'application/x-protobuf');
+
+  if (!buffer) {
+    res.send(Buffer.alloc(0));
+    return;
+  }
+
+  if (isGzip(buffer)) {
+    if (req.acceptsEncodings('gzip') === 'gzip') {
+      res.set('Content-Encoding', 'gzip');
+      res.send(buffer);
+    } else {
+      res.send(zlib.gunzipSync(buffer));
+    }
+  } else {
+    res.send(buffer);
+  }
+}
+
+/**
+ * Handles authorized partner token requests (e.g. FlyMe, Wing, Zipline).
+ *
+ * @param req - Express request object.
+ * @param res - Express response object.
+ * @param token - The partner authorization token.
+ * @param bufferRedis - Redis client configured for binary buffers.
+ */
+export async function handlePartnerTokenRequest(
+  req: Request,
+  res: Response,
+  token: string,
+  bufferRedis: BufferRedisClient,
+): Promise<void> {
+  switch (token) {
+    case SECRETS.FLYME_TOKEN: {
+      const groupProto = (await bufferRedis.get(Keys.fetcherExportFlymeProto)) as Buffer | null;
+      if (req.header('accept') === 'application/json') {
+        const uncompressed = ensureDecompressed(groupProto);
+        const track = uncompressed
+          ? protos.LiveDifferentialTrackGroup.fromBinary(uncompressed)
+          : protos.LiveDifferentialTrackGroup.create();
+        res.json(protos.LiveDifferentialTrackGroup.toJson(track));
+      } else {
+        sendProtobufResponse(req, res, groupProto);
+      }
+      break;
+    }
+    case SECRETS.WING_TOKEN:
+    case SECRETS.ZIPLINE_TOKEN: {
+      const liveGroupProto = (await bufferRedis.get(Keys.fetcherFullProtoH12)) as Buffer | null;
+      const uncompressed = ensureDecompressed(liveGroupProto);
+
+      const liveGroup = uncompressed
+        ? protos.LiveDifferentialTrackGroup.fromBinary(uncompressed)
+        : protos.LiveDifferentialTrackGroup.create();
+
+      const anonTracks: protos.LiveDifferentialTrack[] = liveGroup.tracks.map(
+        ({ lat, lon, alt, timeSec, id, idStr }) => {
+          // Anonymizes the track by hashing the id with a salt.
+          const sha1 = crypto.createHash('sha1');
+          sha1.update(String(idStr ?? id) + SECRETS.EXPORT_ID_SALT);
+
+          return {
+            idStr: sha1.digest('hex'),
+            name: '',
+            flags: [],
+            extra: {},
+            lat,
+            lon,
+            alt,
+            timeSec,
+          };
+        },
+      );
+      const anonGroup: protos.LiveDifferentialTrackGroup = {
+        tracks: anonTracks,
+        incremental: false,
+        remoteId: [],
+      };
+
+      if (req.header('accept') === 'application/json') {
+        res.json(protos.LiveDifferentialTrackGroup.toJson(anonGroup));
+      } else {
+        res.set('Content-Type', 'application/x-protobuf');
+        res.send(protos.LiveDifferentialTrackGroup.toBinary(anonGroup));
+      }
+      break;
+    }
+    default:
+      res.sendStatus(400);
+  }
+}
+
+/**
+ * Creates and configures the Express router for live tracking endpoints.
+ *
+ * @param redis - Redis client instance.
+ * @param datastore - Google Cloud Datastore client instance.
+ * @returns Configured Express Router.
+ */
 export function getTrackerRouter(redis: RedisClient, datastore: Datastore): Router {
   const router = Router();
-  const bufferRedis = redis.withTypeMapping({
-    [RESP_TYPES.BLOB_STRING]: Buffer,
-  });
+  const bufferRedis = getBufferRedisClient(redis);
 
-  // Get the geojson for the currently active trackers.
+  // Get the live tracks (in protobuf or JSON format).
   router.get('/tracks.pbf', async (req: Request, res: Response) => {
     res.set('Cache-Control', 'no-store');
+
+    // 1. Handle partner token requests (e.g. FlyMe, Wing, Zipline).
     const token = req.header('token');
     if (token) {
-      switch (token) {
-        case SECRETS.FLYME_TOKEN: {
-          const groupProto = (await bufferRedis.get(Keys.fetcherExportFlymeProto)) as Buffer | null;
-          if (req.header('accept') == 'application/json') {
-            const track = protos.LiveDifferentialTrackGroup.fromBinary(groupProto!);
-            res.json(protos.LiveDifferentialTrackGroup.toJson(track));
-          } else {
-            res.set('Content-Type', 'application/x-protobuf');
-            res.send(groupProto);
-          }
-          break;
-        }
-        case SECRETS.WING_TOKEN:
-        case SECRETS.ZIPLINE_TOKEN: {
-          const liveGroupProto = (await bufferRedis.get(Keys.fetcherFullProtoH12)) as Buffer | null;
-
-          const liveGroup = liveGroupProto
-            ? protos.LiveDifferentialTrackGroup.fromBinary(liveGroupProto)
-            : protos.LiveDifferentialTrackGroup.create();
-
-          const anonTracks: protos.LiveDifferentialTrack[] = liveGroup.tracks.map(
-            ({ lat, lon, alt, timeSec, id, idStr }) => {
-              // Anonymizes the track by hashing the id with a salt.
-              const sha1 = crypto.createHash('sha1');
-              sha1.update(String(idStr ?? id) + SECRETS.EXPORT_ID_SALT);
-
-              return {
-                idStr: sha1.digest('hex'),
-                name: '',
-                flags: [],
-                extra: {},
-                lat,
-                lon,
-                alt,
-                timeSec,
-              };
-            },
-          );
-          const anonGroup: protos.LiveDifferentialTrackGroup = {
-            tracks: anonTracks,
-            incremental: false,
-            remoteId: [],
-          };
-
-          if (req.header('accept') == 'application/json') {
-            res.json(protos.LiveDifferentialTrackGroup.toJson(anonGroup));
-          } else {
-            res.set('Content-Type', 'application/x-protobuf');
-            res.send(protos.LiveDifferentialTrackGroup.toBinary(anonGroup));
-          }
-          break;
-        }
-        default:
-          res.sendStatus(400);
-      }
-    } else {
-      let key: Keys;
-      const lastUpdateSec = Number(req.query.s ?? 0);
-      const nowSec = Math.round(Date.now() / 1000);
-      const deltaSec = nowSec - lastUpdateSec;
-      // Pick the incremental proto if last request was recent.
-      if (deltaSec < LiveDataRetentionSec.IncrementalShort) {
-        key = Keys.fetcherShortIncrementalProto;
-      } else if (deltaSec < LiveDataRetentionSec.IncrementalLong) {
-        key = Keys.fetcherLongIncrementalProto;
-      } else {
-        switch (Number(req.query.fm ?? 0)) {
-          case 24 * 60:
-            key = Keys.fetcherFullProtoH24;
-            break;
-
-          case 48 * 60:
-            key = Keys.fetcherFullProtoH48;
-            break;
-
-          default:
-            key = Keys.fetcherFullProtoH12;
-        }
-      }
-      res.set('Content-Type', 'application/x-protobuf');
-      res.send(await bufferRedis.get(key));
+      await handlePartnerTokenRequest(req, res, token, bufferRedis);
+      return;
     }
+
+    // 2. Handle public live track requests based on client time delta and history range.
+    const lastUpdateSec = Number(req.query.s ?? 0);
+    const fetchMin = Number(req.query.fm ?? 0);
+    const key = resolveLiveTrackKey(lastUpdateSec, fetchMin);
+
+    const protoBuffer = (await bufferRedis.get(key)) as Buffer | null;
+    sendProtobufResponse(req, res, protoBuffer);
   });
 
   // Get the account information.
@@ -175,7 +274,18 @@ export function getTrackerRouter(redis: RedisClient, datastore: Datastore): Rout
   return router;
 }
 
-// Create or update a LiveTrack entity from the form POST data.
+/**
+ * Creates or updates a LiveTrack entity from validated form POST data.
+ *
+ * @param datastore - Google Cloud Datastore client instance.
+ * @param entity - Existing LiveTrack entity if available.
+ * @param req - Express request object.
+ * @param res - Express response object.
+ * @param email - User email address.
+ * @param googleId - User Google ID token.
+ * @param redis - Redis client instance.
+ * @returns JSON response indicating success or validation/server errors.
+ */
 export async function createOrUpdateLiveTrack(
   datastore: Datastore,
   entity: LiveTrackEntity | undefined,

@@ -2,6 +2,7 @@ import { EventEmitter } from 'node:events';
 // Do not use "process" because the global "process.env" is
 // replaced at build time by Vite.
 import nodeProcess from 'node:process';
+import * as zlib from 'node:zlib';
 
 import { Keys, LIVE_REFRESH_SEC, protos } from '@flyxc/common';
 import type { RedisClientMultiCmd } from '@flyxc/common-node';
@@ -151,16 +152,34 @@ async function updateAll(pipeline: RedisClientMultiCmd, state: protos.FetcherSta
       createLiveTrackGroups(state, nowSec);
 
     pipeline
-      .set(Keys.fetcherFullProtoH12, protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH12)))
-      .set(Keys.fetcherFullProtoH24, protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH24)))
-      .set(Keys.fetcherFullProtoH48, protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH48)))
+      .set(
+        Keys.fetcherFullProtoH12,
+        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH12))),
+      )
+      .set(
+        Keys.fetcherFullProtoH24,
+        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH24))),
+      )
+      .set(
+        Keys.fetcherFullProtoH48,
+        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH48))),
+      )
       .set(Keys.fetcherFullNumTracksH12, fullTracksH12.tracks.length)
       .set(Keys.fetcherFullNumTracksH24, fullTracksH24.tracks.length)
       .set(Keys.fetcherFullNumTracksH48, fullTracksH48.tracks.length)
-      .set(Keys.fetcherLongIncrementalProto, protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(longIncTracks)))
-      .set(Keys.fetcherShortIncrementalProto, protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(shortIncTracks)))
+      .set(
+        Keys.fetcherLongIncrementalProto,
+        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(longIncTracks))),
+      )
+      .set(
+        Keys.fetcherShortIncrementalProto,
+        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(shortIncTracks))),
+      )
       .set(Keys.fetcherIncrementalNumTracksLong, longIncTracks.tracks.length)
-      .set(Keys.fetcherExportFlymeProto, protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(flymeTracks)));
+      .set(
+        Keys.fetcherExportFlymeProto,
+        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(flymeTracks))),
+      );
   } catch (e) {
     console.log(`tick error ${e}`);
   } finally {
