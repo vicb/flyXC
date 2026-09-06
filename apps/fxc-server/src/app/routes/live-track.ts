@@ -25,26 +25,13 @@ import { getUserInfo, isLoggedIn, logout } from './session';
 const csrfProtection = csurf();
 
 /**
- * Checks if the buffer starts with the standard Gzip magic bytes (0x1f, 0x8b).
+ * Decompresses a gzipped protobuf buffer from Redis.
  *
- * @param buffer - The buffer or Uint8Array to test.
- * @returns `true` if the buffer has a Gzip magic header, `false` otherwise.
+ * @param buffer - Gzip-compressed buffer from Redis.
+ * @returns Decompressed buffer, or `null` if the input was null.
  */
-export function isGzip(buffer: Buffer | Uint8Array | null | undefined): boolean {
-  return buffer != null && buffer.length >= 2 && buffer[0] === 0x1f && buffer[1] === 0x8b;
-}
-
-/**
- * Decompresses a buffer if it is gzip-compressed; otherwise returns it as-is.
- *
- * @param buffer - The raw or compressed buffer from Redis.
- * @returns The uncompressed buffer, or `null` if the input was null.
- */
-export function ensureDecompressed(buffer: Buffer | null): Buffer | null {
-  if (!buffer) {
-    return null;
-  }
-  return isGzip(buffer) ? zlib.gunzipSync(buffer) : buffer;
+export function decompressProto(buffer: Buffer | null): Buffer | null {
+  return buffer ? zlib.gunzipSync(buffer) : null;
 }
 
 /**
@@ -83,14 +70,13 @@ export function resolveLiveTrackKey(
 }
 
 /**
- * Sends a protobuf buffer to the client, handling Gzip transparently:
- * - If the buffer from Redis is gzipped and the client accepts gzip, sends with `Content-Encoding: gzip` (no server CPU decompression).
- * - If the buffer from Redis is gzipped and the client does not accept gzip, decompresses on-the-fly.
- * - If the buffer from Redis is uncompressed (legacy format during migration), sends as raw protobuf.
+ * Sends a gzipped protobuf buffer to the client:
+ * - If the client accepts gzip, sends with `Content-Encoding: gzip` directly (zero server CPU decompression).
+ * - If the client does not accept gzip, decompresses on the fly.
  *
  * @param req - Express request object used to check accepted encodings.
  * @param res - Express response object.
- * @param buffer - The protobuf buffer (gzipped, raw, or null).
+ * @param buffer - The gzipped protobuf buffer (or null).
  */
 export function sendProtobufResponse(req: Request, res: Response, buffer: Buffer | null): void {
   res.set('Content-Type', 'application/x-protobuf');
@@ -100,15 +86,11 @@ export function sendProtobufResponse(req: Request, res: Response, buffer: Buffer
     return;
   }
 
-  if (isGzip(buffer)) {
-    if (req.acceptsEncodings('gzip') === 'gzip') {
-      res.set('Content-Encoding', 'gzip');
-      res.send(buffer);
-    } else {
-      res.send(zlib.gunzipSync(buffer));
-    }
-  } else {
+  if (req.acceptsEncodings('gzip') === 'gzip') {
+    res.set('Content-Encoding', 'gzip');
     res.send(buffer);
+  } else {
+    res.send(zlib.gunzipSync(buffer));
   }
 }
 
@@ -185,7 +167,7 @@ export async function handlePartnerTokenRequest(
     case SECRETS.FLYME_TOKEN: {
       const groupProto = await getCachedProto(bufferRedis, Keys.fetcherExportFlymeProto);
       if (req.header('accept') === 'application/json') {
-        const uncompressed = ensureDecompressed(groupProto);
+        const uncompressed = decompressProto(groupProto);
         const track = uncompressed
           ? protos.LiveDifferentialTrackGroup.fromBinary(uncompressed)
           : protos.LiveDifferentialTrackGroup.create();
@@ -198,7 +180,7 @@ export async function handlePartnerTokenRequest(
     case SECRETS.WING_TOKEN:
     case SECRETS.ZIPLINE_TOKEN: {
       const liveGroupProto = await getCachedProto(bufferRedis, Keys.fetcherFullProtoH12);
-      const uncompressed = ensureDecompressed(liveGroupProto);
+      const uncompressed = decompressProto(liveGroupProto);
 
       const liveGroup = uncompressed
         ? protos.LiveDifferentialTrackGroup.fromBinary(uncompressed)

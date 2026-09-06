@@ -6,9 +6,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   clearProtoCache,
-  ensureDecompressed,
+  decompressProto,
   getCachedProto,
-  isGzip,
   LIVE_TRACK_CACHE_TTL_MS,
   resolveLiveTrackKey,
   sendProtobufResponse,
@@ -18,37 +17,15 @@ describe('live-track routes and helpers', () => {
   const rawData = Buffer.from('hello-live-track-data');
   const gzippedData = zlib.gzipSync(rawData);
 
-  describe('isGzip', () => {
-    it('should detect valid gzip buffers with magic header (0x1f, 0x8b)', () => {
-      expect(isGzip(gzippedData)).toBe(true);
-    });
-
-    it('should return false for uncompressed buffers', () => {
-      expect(isGzip(rawData)).toBe(false);
-    });
-
-    it('should return false for short or null/undefined buffers', () => {
-      expect(isGzip(null)).toBe(false);
-      expect(isGzip(undefined)).toBe(false);
-      expect(isGzip(Buffer.from([0x1f]))).toBe(false);
-      expect(isGzip(Buffer.alloc(0))).toBe(false);
-    });
-  });
-
-  describe('ensureDecompressed', () => {
+  describe('decompressProto', () => {
     it('should decompress gzipped buffers', () => {
-      const result = ensureDecompressed(gzippedData);
+      const result = decompressProto(gzippedData);
       expect(result).not.toBeNull();
       expect(result?.toString()).toBe('hello-live-track-data');
     });
 
-    it('should return uncompressed buffers unchanged', () => {
-      const result = ensureDecompressed(rawData);
-      expect(result).toBe(rawData);
-    });
-
     it('should return null for null input', () => {
-      expect(ensureDecompressed(null)).toBeNull();
+      expect(decompressProto(null)).toBeNull();
     });
   });
 
@@ -199,19 +176,6 @@ describe('live-track routes and helpers', () => {
 
       const { res, headers } = createMockRes();
       sendProtobufResponse(req, res, gzippedData);
-
-      expect(res.set).toHaveBeenCalledWith('Content-Type', 'application/x-protobuf');
-      expect(headers['Content-Encoding']).toBeUndefined();
-      expect(res.send).toHaveBeenCalledWith(rawData);
-    });
-
-    it('should serve uncompressed buffer as-is', () => {
-      const req = {
-        acceptsEncodings: vi.fn((encoding: string) => (encoding === 'gzip' ? 'gzip' : false)),
-      } as unknown as Request;
-
-      const { res, headers } = createMockRes();
-      sendProtobufResponse(req, res, rawData);
 
       expect(res.set).toHaveBeenCalledWith('Content-Type', 'application/x-protobuf');
       expect(headers['Content-Encoding']).toBeUndefined();
