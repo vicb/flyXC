@@ -43,7 +43,7 @@ export function applyUfoFleetUpdates(
 
   for (const fleetUpdate of fleetUpdates) {
     const { fleetName } = fleetUpdate;
-    const ufoTracks = state.ufoFleets[fleetName].ufos ?? {};
+    const ufoTracks = (state.ufoFleets[fleetName].ufos ??= {});
 
     for (const [id, track] of fleetUpdate.deltas.entries()) {
       if (ufoTracks[id] != null) {
