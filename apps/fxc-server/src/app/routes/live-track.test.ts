@@ -122,6 +122,46 @@ describe('live-track routes and helpers', () => {
       await getCachedProto(mockRedis, 'test:key');
       expect(mockRedis.get).toHaveBeenCalledTimes(2);
     });
+
+    it('should deduplicate concurrent in-flight requests for the same key', async () => {
+      let resolveRedis: (val: Buffer) => void;
+      const delayedPromise = new Promise<Buffer>((resolve) => {
+        resolveRedis = resolve;
+      });
+
+      const mockRedis = {
+        get: vi.fn().mockReturnValue(delayedPromise),
+      } as any;
+
+      // Start multiple concurrent requests simultaneously
+      const req1 = getCachedProto(mockRedis, 'concurrent:key');
+      const req2 = getCachedProto(mockRedis, 'concurrent:key');
+      const req3 = getCachedProto(mockRedis, 'concurrent:key');
+
+      expect(mockRedis.get).toHaveBeenCalledTimes(1);
+
+      resolveRedis!(gzippedData);
+
+      const [res1, res2, res3] = await Promise.all([req1, req2, req3]);
+      expect(res1).toBe(gzippedData);
+      expect(res2).toBe(gzippedData);
+      expect(res3).toBe(gzippedData);
+      expect(mockRedis.get).toHaveBeenCalledTimes(1);
+    });
+
+    it('should delete in-flight cache entry when Redis call fails and allow subsequent retries', async () => {
+      const mockRedis = {
+        get: vi.fn().mockRejectedValueOnce(new Error('Redis connection failed')).mockResolvedValueOnce(gzippedData),
+      } as any;
+
+      await expect(getCachedProto(mockRedis, 'error:key')).rejects.toThrow('Redis connection failed');
+      expect(mockRedis.get).toHaveBeenCalledTimes(1);
+
+      // Subsequent call should retry and succeed
+      const retryRes = await getCachedProto(mockRedis, 'error:key');
+      expect(retryRes).toBe(gzippedData);
+      expect(mockRedis.get).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('sendProtobufResponse', () => {

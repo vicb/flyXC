@@ -115,10 +115,13 @@ export function sendProtobufResponse(req: Request, res: Response, buffer: Buffer
 /** In-memory cache TTL for live track protobuf buffers in milliseconds. */
 export const LIVE_TRACK_CACHE_TTL_MS = 20 * 1000;
 
-const protoCache = new Map<string, { data: Buffer | null; expiresAtMs: number }>();
+type CacheEntry = { data: Buffer | null; expiresAtMs: number } | { inFlight: Promise<Buffer | null> };
+
+const protoCache = new Map<string, CacheEntry>();
 
 /**
  * Retrieves a live track buffer from the in-memory cache or falls back to Redis.
+ * Deduplicates concurrent in-flight requests for the same key.
  *
  * @param bufferRedis - Redis client configured for binary buffers.
  * @param key - Redis key to retrieve.
@@ -133,12 +136,28 @@ export async function getCachedProto(
   nowMs = Date.now(),
 ): Promise<Buffer | null> {
   const cached = protoCache.get(key);
-  if (cached && cached.expiresAtMs > nowMs) {
-    return cached.data;
+  if (cached) {
+    if ('data' in cached && cached.expiresAtMs > nowMs) {
+      return cached.data;
+    }
+    if ('inFlight' in cached) {
+      return cached.inFlight;
+    }
   }
-  const data = (await bufferRedis.get(key)) as Buffer | null;
-  protoCache.set(key, { data, expiresAtMs: nowMs + ttlMs });
-  return data;
+
+  const inFlightPromise = (async () => {
+    try {
+      const data = (await bufferRedis.get(key)) as Buffer | null;
+      protoCache.set(key, { data, expiresAtMs: nowMs + ttlMs });
+      return data;
+    } catch (err) {
+      protoCache.delete(key);
+      throw err;
+    }
+  })();
+
+  protoCache.set(key, { inFlight: inFlightPromise });
+  return inFlightPromise;
 }
 
 /**
