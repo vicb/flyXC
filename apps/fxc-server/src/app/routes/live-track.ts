@@ -112,6 +112,42 @@ export function sendProtobufResponse(req: Request, res: Response, buffer: Buffer
   }
 }
 
+/** In-memory cache TTL for live track protobuf buffers in milliseconds. */
+export const LIVE_TRACK_CACHE_TTL_MS = 20 * 1000;
+
+const protoCache = new Map<string, { data: Buffer | null; expiresAtMs: number }>();
+
+/**
+ * Retrieves a live track buffer from the in-memory cache or falls back to Redis.
+ *
+ * @param bufferRedis - Redis client configured for binary buffers.
+ * @param key - Redis key to retrieve.
+ * @param ttlMs - Cache TTL in milliseconds (defaults to 20s).
+ * @param nowMs - Current timestamp in milliseconds (defaults to Date.now()).
+ * @returns The protobuf buffer or null.
+ */
+export async function getCachedProto(
+  bufferRedis: BufferRedisClient,
+  key: string,
+  ttlMs = LIVE_TRACK_CACHE_TTL_MS,
+  nowMs = Date.now(),
+): Promise<Buffer | null> {
+  const cached = protoCache.get(key);
+  if (cached && cached.expiresAtMs > nowMs) {
+    return cached.data;
+  }
+  const data = (await bufferRedis.get(key)) as Buffer | null;
+  protoCache.set(key, { data, expiresAtMs: nowMs + ttlMs });
+  return data;
+}
+
+/**
+ * Clears the in-memory live track buffer cache. Useful for testing.
+ */
+export function clearProtoCache(): void {
+  protoCache.clear();
+}
+
 /**
  * Handles authorized partner token requests (e.g. FlyMe, Wing, Zipline).
  *
@@ -128,7 +164,7 @@ export async function handlePartnerTokenRequest(
 ): Promise<void> {
   switch (token) {
     case SECRETS.FLYME_TOKEN: {
-      const groupProto = (await bufferRedis.get(Keys.fetcherExportFlymeProto)) as Buffer | null;
+      const groupProto = await getCachedProto(bufferRedis, Keys.fetcherExportFlymeProto);
       if (req.header('accept') === 'application/json') {
         const uncompressed = ensureDecompressed(groupProto);
         const track = uncompressed
@@ -142,7 +178,7 @@ export async function handlePartnerTokenRequest(
     }
     case SECRETS.WING_TOKEN:
     case SECRETS.ZIPLINE_TOKEN: {
-      const liveGroupProto = (await bufferRedis.get(Keys.fetcherFullProtoH12)) as Buffer | null;
+      const liveGroupProto = await getCachedProto(bufferRedis, Keys.fetcherFullProtoH12);
       const uncompressed = ensureDecompressed(liveGroupProto);
 
       const liveGroup = uncompressed
@@ -212,8 +248,7 @@ export function getTrackerRouter(redis: RedisClient, datastore: Datastore): Rout
     const lastUpdateSec = Number(req.query.s ?? 0);
     const fetchMin = Number(req.query.fm ?? 0);
     const key = resolveLiveTrackKey(lastUpdateSec, fetchMin);
-
-    const protoBuffer = (await bufferRedis.get(key)) as Buffer | null;
+    const protoBuffer = await getCachedProto(bufferRedis, key);
     sendProtobufResponse(req, res, protoBuffer);
   });
 
