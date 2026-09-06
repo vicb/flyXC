@@ -38,7 +38,7 @@ export function getAdminRouter(redis: RedisClient, datastore: Datastore): Router
       const bufferRedis = redis.withTypeMapping({
         [RESP_TYPES.BLOB_STRING]: Buffer,
       });
-      const state = await bufferRedis.get(Keys.fetcherStateBrotli);
+      const state = (await bufferRedis.get(Keys.fetcherStateBrotli)) as Buffer | null;
       if (state) {
         return res.send(zlib.brotliDecompressSync(state));
       }

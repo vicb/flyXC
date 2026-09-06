@@ -1,6 +1,6 @@
 import { createClient, type RedisClientType } from 'redis';
 
-export type RedisClient = RedisClientType<any, any, any, any>;
+export type RedisClient = RedisClientType;
 export type RedisClientMultiCmd = ReturnType<RedisClient['multi']>;
 
 // lazily created client.
