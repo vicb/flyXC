@@ -8,6 +8,7 @@
     "dev": "nx serve fetcher --configuration=development"
   },
   "dependencies": {
+    "@cwasm/lodepng": "catalog:default",
     "@dotenvx/dotenvx": "catalog:default",
     "@flyxc/common": "workspace:*",
     "@flyxc/common-node": "workspace:*",

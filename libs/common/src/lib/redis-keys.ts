@@ -109,6 +109,9 @@ export enum Keys {
   elevationNumFetched = 'f:elev:fetched',
   // [List]
   elevationNumRetrieved = 'f:elev:retrieved',
+  // [List]
+  elevationDurationSec = 'f:elev:duration',
+  elevationCache = 'f:elev:cache',
 
   // [List]
   proxyInreach = 'p:inreach:logs',

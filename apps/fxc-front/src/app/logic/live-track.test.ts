@@ -249,6 +249,28 @@ describe('Create GeoJSON features', () => {
       });
     });
 
+    it('should use gndAlt from extra when available', () => {
+      const track: protos.LiveTrack = {
+        id: 123,
+        timeSec: [1, 10, 20],
+        lon: [11, 12, 13],
+        lat: [21, 22, 23],
+        alt: [31, 32, 33],
+        flags: [trackerIdByName.flyme, trackerIdByName.flyme, trackerIdByName.flyme],
+        extra: {
+          0: { gndAlt: 99 },
+          1: { gndAlt: 200, message: 'p1' },
+          2: { gndAlt: 300 },
+        },
+      };
+
+      const features = trackToFeatures(track, 10).filter((f) => f.geometry.type === 'Point');
+      expect(features).toHaveLength(3);
+      expect(features[0].properties.gndAlt).toBe(99);
+      expect(features[1].properties.gndAlt).toBe(200);
+      expect(features[2].properties.gndAlt).toBe(300);
+    });
+
     it('should add points for messages', () => {
       const track: protos.LiveTrack = {
         id: 123,

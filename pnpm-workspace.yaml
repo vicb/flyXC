@@ -1,5 +1,6 @@
 overrides:
   typescript: '6.0.3'
+  '@protobuf-ts/plugin>typescript': '~3.9.10'
 
 packages:
   - apps/*

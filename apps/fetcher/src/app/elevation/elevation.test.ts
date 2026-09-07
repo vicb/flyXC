@@ -1,83 +1,50 @@
-import type * as common from '@flyxc/common';
-import { fetchResponse, protos } from '@flyxc/common';
+import { NO_GROUND_ALTITUDE, type protos } from '@flyxc/common';
+import type { AltitudeResult } from '@flyxc/common-node';
+import { ElevationService } from '@flyxc/common-node';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { patchLastFixAGL } from './elevation';
+import { ELEVATION_BATCH_SIZE, ELEVATION_FETCH_TIMEOUT_MS, patchTracksElevation } from './elevation';
 
-vi.mock('@flyxc/common', async (importOriginal) => {
-  const actual = await importOriginal<typeof common>();
-  return {
-    ...actual,
-    fetchResponse: vi.fn(),
-  };
-});
+describe('patchTracksElevation', () => {
+  let mockElevationService: ElevationService;
 
-function createArcgisResponse(points: { lat: number; lon: number; alt: number }[]) {
-  const paths: [number, number, number][] = [];
-  for (const p of points) {
-    paths.push([p.lon, p.lat, p.alt]);
-    paths.push([-15, -15, 0]);
-  }
-  return {
-    results: [
-      {
-        paramName: 'OutputProfile',
-        value: {
-          features: [
-            {
-              geometry: {
-                paths: [paths],
-              },
-            },
-          ],
-        },
-      },
-    ],
-  };
-}
-
-describe('patchLastFixAGL', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockElevationService = new ElevationService({ cacheCapacity: 10, zoom: 10 });
   });
 
-  it('should return immediately when updatedPilotIds is empty', async () => {
-    const state = protos.FetcherState.create({
-      pilots: {
-        1: {
-          track: {
-            timeSec: [1000],
-            lat: [45.0],
-            lon: [6.0],
-            alt: [1000],
-            flags: [0],
-            extra: {},
-          },
-        },
-      },
-    });
-
-    const updates = await patchLastFixAGL(state, new Set());
+  it('should return immediately when tracks list is empty', async () => {
+    const fetchSpy = vi.spyOn(mockElevationService, 'fetchCoordinatesAltitude');
+    const updates = await patchTracksElevation([], mockElevationService);
 
     expect(updates.numFetched).toBe(0);
     expect(updates.numRetrieved).toBe(0);
     expect(updates.errors).toHaveLength(0);
-    expect(fetchResponse).not.toHaveBeenCalled();
+    expect(updates.cache).toEqual({
+      size: 0,
+      max: 10,
+      sizeMb: 0,
+      maxMb: 3,
+    });
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it('should only check updated pilots when updatedPilotIds is provided', async () => {
-    // Pilot 1: updated, missing gndAlt
-    const pilot1Track: protos.LiveTrack = {
-      timeSec: [1000],
-      lat: [45.0],
-      lon: [6.0],
-      alt: [1000],
-      flags: [0],
+  it('should fetch elevation for all points in update tracks', async () => {
+    const fetchSpy = vi.spyOn(mockElevationService, 'fetchCoordinatesAltitude').mockResolvedValueOnce({
+      altitudes: [500, 520, 600],
+      hasErrors: false,
+    });
+
+    const delta1: protos.LiveTrack = {
+      timeSec: [1000, 1010],
+      lat: [45.0, 45.01],
+      lon: [6.0, 6.01],
+      alt: [1000, 1050],
+      flags: [0, 0],
       extra: {},
     };
 
-    // Pilot 2: NOT updated, missing gndAlt
-    const pilot2Track: protos.LiveTrack = {
+    const delta2: protos.LiveTrack = {
       timeSec: [1000],
       lat: [46.0],
       lon: [7.0],
@@ -86,91 +53,52 @@ describe('patchLastFixAGL', () => {
       extra: {},
     };
 
-    // Pilot 3: updated, but ALREADY has gndAlt
-    const pilot3Track: protos.LiveTrack = {
-      timeSec: [1000],
-      lat: [47.0],
-      lon: [8.0],
-      alt: [1500],
-      flags: [0],
-      extra: { 0: { gndAlt: 850 } },
-    };
+    const updates = await patchTracksElevation([delta1, delta2], mockElevationService);
 
-    const state = protos.FetcherState.create({
-      pilots: {
-        1: { track: pilot1Track },
-        2: { track: pilot2Track },
-        3: { track: pilot3Track },
-      },
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).toHaveBeenCalledWith([45.0, 45.01, 46.0], [6.0, 6.01, 7.0]);
+    expect(updates.numFetched).toBe(3);
+    expect(updates.numRetrieved).toBe(3);
+    expect(updates.errors).toHaveLength(0);
+    expect(delta1.extra[0]?.gndAlt).toBe(500);
+    expect(delta1.extra[1]?.gndAlt).toBe(520);
+    expect(delta2.extra[0]?.gndAlt).toBe(600);
+  });
+
+  it('should preserve valid existing altitudes in extra and only fetch missing points', async () => {
+    const fetchSpy = vi.spyOn(mockElevationService, 'fetchCoordinatesAltitude').mockResolvedValue({
+      altitudes: [750],
+      hasErrors: false,
     });
 
-    const arcgisJson = createArcgisResponse([{ lat: 45.0, lon: 6.0, alt: 420.4 }]);
-    vi.mocked(fetchResponse).mockResolvedValueOnce({
-      ok: true,
-      json: async () => arcgisJson,
-    } as any);
+    const delta: protos.LiveTrack = {
+      timeSec: [1000, 1010],
+      lat: [45.0, 45.01],
+      lon: [6.0, 6.01],
+      alt: [1000, 1050],
+      flags: [0, 0],
+      extra: {
+        0: { gndAlt: 400 }, // index 0 already has valid altitude
+      },
+    };
 
-    // Only pilot 1 and 3 are in updatedPilotIds
-    const updates = await patchLastFixAGL(state, new Set([1, 3]));
+    const updates = await patchTracksElevation([delta], mockElevationService);
 
-    expect(fetchResponse).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).toHaveBeenCalledWith([45.01], [6.01]);
     expect(updates.numFetched).toBe(1);
     expect(updates.numRetrieved).toBe(1);
-
-    // Pilot 1 had gndAlt patched
-    expect(state.pilots[1].track.extra[0]?.gndAlt).toBe(420);
-
-    // Pilot 2 was NOT updated: gndAlt remains undefined
-    expect(state.pilots[2].track.extra[0]?.gndAlt).toBeUndefined();
-
-    // Pilot 3 already had gndAlt: remains unchanged
-    expect(state.pilots[3].track.extra[0]?.gndAlt).toBe(850);
+    expect(delta.extra[0]?.gndAlt).toBe(400);
+    expect(delta.extra[1]?.gndAlt).toBe(750);
   });
 
-  it('should check all pilots when updatedPilotIds is not provided', async () => {
-    const pilot1Track: protos.LiveTrack = {
-      timeSec: [1000],
-      lat: [45.0],
-      lon: [6.0],
-      alt: [1000],
-      flags: [0],
-      extra: {},
-    };
-    const pilot2Track: protos.LiveTrack = {
-      timeSec: [1000],
-      lat: [46.0],
-      lon: [7.0],
-      alt: [1200],
-      flags: [0],
-      extra: {},
-    };
+  it('handles errors gracefully', async () => {
+    vi.spyOn(mockElevationService, 'fetchCoordinatesAltitude').mockResolvedValueOnce({
+      altitudes: [NO_GROUND_ALTITUDE],
+      hasErrors: true,
+    } as AltitudeResult);
 
-    const state = protos.FetcherState.create({
-      pilots: {
-        1: { track: pilot1Track },
-        2: { track: pilot2Track },
-      },
-    });
-
-    const arcgisJson = createArcgisResponse([
-      { lat: 45.0, lon: 6.0, alt: 420 },
-      { lat: 46.0, lon: 7.0, alt: 530 },
-    ]);
-    vi.mocked(fetchResponse).mockResolvedValueOnce({
-      ok: true,
-      json: async () => arcgisJson,
-    } as any);
-
-    const updates = await patchLastFixAGL(state);
-
-    expect(updates.numFetched).toBe(2);
-    expect(updates.numRetrieved).toBe(2);
-    expect(state.pilots[1].track.extra[0]?.gndAlt).toBe(420);
-    expect(state.pilots[2].track.extra[0]?.gndAlt).toBe(530);
-  });
-
-  it('handles transient network failure gracefully and leaves gndAlt unset for future retries', async () => {
-    const pilotTrack: protos.LiveTrack = {
+    const delta: protos.LiveTrack = {
       timeSec: [1000],
       lat: [45.0],
       lon: [6.0],
@@ -179,34 +107,115 @@ describe('patchLastFixAGL', () => {
       extra: {},
     };
 
-    const state = protos.FetcherState.create({
-      pilots: {
-        1: { track: pilotTrack },
-      },
-    });
-
-    vi.mocked(fetchResponse).mockRejectedValueOnce(new Error('Network timeout'));
-
-    const updates = await patchLastFixAGL(state, new Set([1]));
+    const updates = await patchTracksElevation([delta], mockElevationService);
 
     expect(updates.numFetched).toBe(1);
     expect(updates.numRetrieved).toBe(0);
-    expect(updates.errors).toHaveLength(1);
-    expect(updates.errors[0]).toContain('Network timeout');
+    expect(updates.errors.length).toBeGreaterThan(0);
+    expect(delta.extra[0]?.gndAlt).toBeUndefined();
+    expect(updates.durationSec).toBeGreaterThanOrEqual(0);
+  });
 
-    // gndAlt remains unset so it can be retried when pilot is updated
-    expect(state.pilots[1].track.extra[0]?.gndAlt).toBeUndefined();
+  it('retries points with NO_GROUND_ALTITUDE', async () => {
+    const fetchSpy = vi.spyOn(mockElevationService, 'fetchCoordinatesAltitude').mockResolvedValueOnce({
+      altitudes: [650],
+      hasErrors: false,
+    });
 
-    // In a subsequent cycle where pilot 1 is updated again, retry succeeds
-    const arcgisJson = createArcgisResponse([{ lat: 45.0, lon: 6.0, alt: 420 }]);
-    vi.mocked(fetchResponse).mockResolvedValueOnce({
-      ok: true,
-      json: async () => arcgisJson,
-    } as any);
+    const delta: protos.LiveTrack = {
+      timeSec: [1000],
+      lat: [45.0],
+      lon: [6.0],
+      alt: [1000],
+      flags: [0],
+      extra: { 0: { gndAlt: NO_GROUND_ALTITUDE } },
+    };
 
-    const retryUpdates = await patchLastFixAGL(state, new Set([1]));
-    expect(retryUpdates.numFetched).toBe(1);
-    expect(retryUpdates.numRetrieved).toBe(1);
-    expect(state.pilots[1].track.extra[0]?.gndAlt).toBe(420);
+    const updates = await patchTracksElevation([delta], mockElevationService);
+
+    expect(fetchSpy).toHaveBeenCalledWith([45.0], [6.0]);
+    expect(updates.numFetched).toBe(1);
+    expect(updates.numRetrieved).toBe(1);
+    expect(delta.extra[0]?.gndAlt).toBe(650);
+  });
+
+  it('should record duration in seconds', async () => {
+    vi.useFakeTimers();
+    try {
+      const delta: protos.LiveTrack = {
+        timeSec: [1000],
+        lat: [45.0],
+        lon: [6.0],
+        alt: [1000],
+        flags: [0],
+        extra: {},
+      };
+
+      vi.spyOn(mockElevationService, 'fetchCoordinatesAltitude').mockImplementation(async () => {
+        vi.advanceTimersByTime(2000);
+        return { altitudes: [500], hasErrors: false };
+      });
+
+      const promise = patchTracksElevation([delta], mockElevationService);
+      await vi.runAllTimersAsync();
+      const updates = await promise;
+
+      expect(updates.durationSec).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('should split queries into batches of at most ELEVATION_BATCH_SIZE', async () => {
+    const fetchSpy = vi.spyOn(mockElevationService, 'fetchCoordinatesAltitude').mockResolvedValue({
+      altitudes: new Array(ELEVATION_BATCH_SIZE).fill(500),
+      hasErrors: false,
+    });
+
+    const delta: protos.LiveTrack = {
+      timeSec: new Array(ELEVATION_BATCH_SIZE + 10).fill(1000),
+      lat: new Array(ELEVATION_BATCH_SIZE + 10).fill(45.0),
+      lon: new Array(ELEVATION_BATCH_SIZE + 10).fill(6.0),
+      alt: new Array(ELEVATION_BATCH_SIZE + 10).fill(1000),
+      flags: new Array(ELEVATION_BATCH_SIZE + 10).fill(0),
+      extra: {},
+    };
+
+    const updates = await patchTracksElevation([delta], mockElevationService);
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(updates.numFetched).toBe(ELEVATION_BATCH_SIZE + 10);
+    expect((fetchSpy.mock.calls[0][0] as number[]).length).toBe(ELEVATION_BATCH_SIZE);
+    expect((fetchSpy.mock.calls[1][0] as number[]).length).toBe(10);
+  });
+
+  it('should stop processing batches when timeout is reached', async () => {
+    vi.useFakeTimers();
+    try {
+      const delta: protos.LiveTrack = {
+        timeSec: new Array(ELEVATION_BATCH_SIZE + 10).fill(1000),
+        lat: new Array(ELEVATION_BATCH_SIZE + 10).fill(45.0),
+        lon: new Array(ELEVATION_BATCH_SIZE + 10).fill(6.0),
+        alt: new Array(ELEVATION_BATCH_SIZE + 10).fill(1000),
+        flags: new Array(ELEVATION_BATCH_SIZE + 10).fill(0),
+        extra: {},
+      };
+
+      const fetchSpy = vi.spyOn(mockElevationService, 'fetchCoordinatesAltitude').mockImplementation(async () => {
+        vi.advanceTimersByTime(ELEVATION_FETCH_TIMEOUT_MS + 100);
+        return { altitudes: new Array(ELEVATION_BATCH_SIZE).fill(500), hasErrors: false };
+      });
+
+      const promise = patchTracksElevation([delta], mockElevationService);
+      await vi.runAllTimersAsync();
+      const updates = await promise;
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(updates.errors).toContain('Timeout fetching elevation for tracks');
+      expect(updates.numFetched).toBe(ELEVATION_BATCH_SIZE);
+      expect(updates.numRetrieved).toBe(ELEVATION_BATCH_SIZE);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

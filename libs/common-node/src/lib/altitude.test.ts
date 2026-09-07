@@ -223,7 +223,7 @@ describe('Altitude in common-node', () => {
 
       const result = await elevationService.fetchCoordinatesAltitude([45.83], [6.86]);
       expect(result.hasErrors).toBe(true);
-      expect(result.altitudes).toEqual([0]);
+      expect(result.altitudes).toEqual([common.NO_GROUND_ALTITUDE]);
 
       // Verify URL was not stored in cache
       const tileUrl = getElevationTileUrl(531, 364, 10);
@@ -305,6 +305,26 @@ describe('Altitude in common-node', () => {
 
       serviceA.getCache().clear();
       expect(serviceA.getCache().has(tileUrl)).toBe(false);
+    });
+
+    it('returns cache statistics including size and MB', () => {
+      const service = new ElevationService({ cacheSizeMb: 50, zoom: 10 });
+      expect(service.getCacheStats()).toEqual({
+        size: 0,
+        max: 191,
+        sizeMb: 0,
+        maxMb: 50,
+      });
+
+      const dummyTile = new Uint8ClampedArray(256 * 256 * 4);
+      service.getCache().set('tile1', dummyTile);
+      service.getCache().set('tile2', dummyTile);
+
+      const stats = service.getCacheStats();
+      expect(stats.size).toBe(2);
+      expect(stats.max).toBe(191);
+      expect(stats.sizeMb).toBe(1); // 2 * 262144 / 1e6 ~ 0.52 -> rounds to 1
+      expect(stats.maxMb).toBe(50);
     });
   });
 });
