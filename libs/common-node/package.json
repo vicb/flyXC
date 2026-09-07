@@ -2,6 +2,7 @@
   "name": "@flyxc/common-node",
   "version": "0.0.1",
   "type": "module",
+  "sideEffects": false,
   "dependencies": {
     "@cwasm/lodepng": "catalog:default",
     "@flyxc/common": "workspace:*",

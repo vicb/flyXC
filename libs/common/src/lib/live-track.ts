@@ -49,6 +49,15 @@ export const TRACK_GAP_MIN = 60;
 // Export to partners.
 export const EXPORT_UPDATE_SEC = 5 * 60;
 
+// Sentinel value representing a missing ground altitude or an error during elevation lookup.
+//
+// The maximum value that can be encoded as 2 bytes in Protobuf varint is 16383.
+export const NO_GROUND_ALTITUDE = 9999;
+
+export function isGroundAltitudeValid(gndAlt?: number): boolean {
+  return gndAlt != null && gndAlt !== NO_GROUND_ALTITUDE && !isNaN(gndAlt);
+}
+
 export const trackerNames = [
   'inreach',
   'spot',
@@ -244,7 +253,7 @@ export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): Li
     }
   }
 
-  return {
+  const result: LiveTrack = {
     ...track,
     timeSec: track.timeSec.slice(numToDelete),
     lat: track.lat.slice(numToDelete),
@@ -253,6 +262,7 @@ export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): Li
     flags: track.flags.slice(numToDelete),
     extra,
   };
+  return result;
 }
 
 // Delete all the fixes from the specified device.
@@ -430,7 +440,15 @@ export function simplifyLiveTrack(
   }
 }
 
-// Copies a fix from a track to an other.
+/**
+ * Copies a single fix (coordinates, timestamp, flags, and extras)
+ * from a source track to a destination track at specific indices.
+ *
+ * @param fromTrack - The source track to copy the fix from.
+ * @param fromIndex - The index of the fix in the source track.
+ * @param toTrack - The destination track where the fix should be written.
+ * @param toIndex - The index in the destination track to write to.
+ */
 function copyFix(fromTrack: LiveTrack, fromIndex: number, toTrack: LiveTrack, toIndex: number): void {
   toTrack.lat[toIndex] = fromTrack.lat[fromIndex];
   toTrack.lon[toIndex] = fromTrack.lon[fromIndex];
@@ -438,7 +456,7 @@ function copyFix(fromTrack: LiveTrack, fromIndex: number, toTrack: LiveTrack, to
   toTrack.timeSec[toIndex] = fromTrack.timeSec[fromIndex];
   toTrack.flags[toIndex] = fromTrack.flags[fromIndex];
   if (fromIndex in fromTrack.extra) {
-    toTrack.extra[toIndex] = fromTrack.extra[fromIndex];
+    toTrack.extra[toIndex] = { ...fromTrack.extra[fromIndex] };
   }
 }
 
@@ -497,11 +515,17 @@ export function mergeLiveTracks(track1: LiveTrack, track2: LiveTrack): LiveTrack
         const extra2 = track2.extra[index2];
         if (toIndex in toTrack.extra) {
           const toExtra = toTrack.extra[toIndex];
-          toExtra.speed = toExtra.speed ?? extra2.speed;
-          toExtra.message = toExtra.message ?? extra2.message;
-          toExtra.gndAlt = toExtra.gndAlt ?? extra2.gndAlt;
+          if (extra2.speed != null) {
+            toExtra.speed = extra2.speed;
+          }
+          if (extra2.message != null) {
+            toExtra.message = extra2.message;
+          }
+          if (isGroundAltitudeValid(extra2.gndAlt)) {
+            toExtra.gndAlt = extra2.gndAlt;
+          }
         } else {
-          toTrack.extra[toIndex] = extra2;
+          toTrack.extra[toIndex] = { ...extra2 };
         }
       }
       // Merge flags.
@@ -529,7 +553,14 @@ export function differentialEncodeLiveTrack(
   const timeSec = diffEncodeArray32bit(track.timeSec, 1, false);
   const alt = diffEncodeArray32bit(track.alt);
 
-  const diffTrack = { ...track, lat, lon, timeSec, alt, name: track.name ?? name ?? '' };
+  const diffTrack: LiveDifferentialTrack = {
+    ...track,
+    lat,
+    lon,
+    timeSec,
+    alt,
+    name: track.name ?? name ?? '',
+  };
   if (typeof id === 'string') {
     diffTrack.idStr = id;
   } else {

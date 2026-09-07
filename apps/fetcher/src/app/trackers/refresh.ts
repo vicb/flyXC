@@ -12,7 +12,7 @@ import type { RedisClient, RedisClientMultiCmd } from '@flyxc/common-node';
 import { pushListCap } from '@flyxc/common-node';
 import type { Datastore } from '@google-cloud/datastore';
 
-import { patchLastFixAGL } from '../elevation/elevation';
+import { patchTracksElevation } from '../elevation/elevation';
 import { addElevationLogs } from '../redis';
 import { FlymasterFetcher } from './flymaster';
 import { FlymeFetcher } from './flyme';
@@ -80,15 +80,18 @@ export async function resfreshTrackers(
     }
   }
 
-  // Drop points older than the max retention.
-  const nowSec = Math.round(Date.now() / 1000);
-
-  // Apply the updates.
-  const updatedPilotIds = applyTrackerUpdates(state, trackerUpdates, nowSec);
-
-  // Add the elevation for the last fix of every tracks when not present.
-  const elevationUpdates = await patchLastFixAGL(state, updatedPilotIds);
+  // Fetch ground elevation for newly added points in tracker updates.
+  const deltas: protos.LiveTrack[] = [];
+  for (const updates of trackerUpdates) {
+    for (const delta of updates.trackerDeltas.values()) {
+      deltas.push(delta);
+    }
+  }
+  const elevationUpdates = await patchTracksElevation(deltas);
   addElevationLogs(pipeline, elevationUpdates, state.lastTickSec);
+
+  const nowSec = Math.round(Date.now() / 1000);
+  applyTrackerUpdates(state, trackerUpdates, nowSec);
 }
 
 /**

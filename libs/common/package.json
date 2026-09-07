@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "protos": "protoc --ts_out src/protos  --ts_opt long_type_number --ts_opt force_optimize_code_size --proto_path src/protos --experimental_allow_proto3_optional track.proto live-track.proto fetcher-state.proto proxy.proto"
+    "protos": "pnpm exec protoc --ts_out src/protos --ts_opt long_type_number --ts_opt force_optimize_code_size --proto_path src/protos --experimental_allow_proto3_optional track.proto live-track.proto fetcher-state.proto proxy.proto"
   },
   "dependencies": {
     "@date-fns/tz": "catalog:default",
@@ -15,5 +15,9 @@
     "mapbox-vector-tile": "catalog:default",
     "tslib": "catalog:default",
     "vaadin-nodom": "workspace:*"
+  },
+  "devDependencies": {
+    "@protobuf-ts/plugin": "^2.11.1",
+    "@protobuf-ts/protoc": "^2.11.1"
   }
 }

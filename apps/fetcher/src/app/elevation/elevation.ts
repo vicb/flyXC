@@ -1,11 +1,5 @@
-// Fetches the elevation for the last fix of the updates.
-//
-// We mostly care about the AGL of the last fix.
-
-import type { LatLon, protos } from '@flyxc/common';
-import { fetchResponse, formatReqError } from '@flyxc/common';
-
-import { getElevationUrl, parseElevationResponse } from './arcgis';
+import { isGroundAltitudeValid, type protos } from '@flyxc/common';
+import { type ElevationCacheStats, ElevationService } from '@flyxc/common-node';
 
 export interface ElevationUpdates {
   errors: string[];
@@ -13,79 +7,118 @@ export interface ElevationUpdates {
   numFetched: number;
   // Number of elevation retrieved.
   numRetrieved: number;
+  // Duration in seconds.
+  durationSec: number;
+  // LRU cache statistics.
+  cache?: ElevationCacheStats;
 }
 
-// Add the last fix altitude where it is missing.
-//
-// Note:
-// - some trackers add the AGL,
-// - or the AGL might already have been populated.
-export async function patchLastFixAGL(
-  state: protos.FetcherState,
-  updatedPilotIds?: Iterable<number>,
+// Maximum number of points to query per batch.
+export const ELEVATION_BATCH_SIZE = 50;
+
+// Timeout in milliseconds for fetching elevations across all tracks.
+export const ELEVATION_FETCH_TIMEOUT_MS = 10_000;
+
+const defaultElevationService = new ElevationService({ cacheSizeMb: 50, zoom: 10 });
+
+/**
+ * Populates ground altitudes for newly added points in update tracks (deltas).
+ *
+ * Missing points across all tracks are batched in chunks of up to ELEVATION_BATCH_SIZE.
+ * After each batch, execution time is checked against ELEVATION_FETCH_TIMEOUT_MS to stop early.
+ *
+ * @param tracks - Update tracks containing points from the current cycle.
+ * @param elevationService - Elevation service instance (defaults to shared module instance).
+ * @returns Summary of fetched points, retrieved elevations, duration, and errors.
+ */
+export async function patchTracksElevation(
+  tracks: Iterable<protos.LiveTrack>,
+  elevationService = defaultElevationService,
 ): Promise<ElevationUpdates> {
-  const points: LatLon[] = [];
-  let tracks: protos.LiveTrack[] = [];
+  const startMs = Date.now();
   const updates: ElevationUpdates = {
     errors: [],
     numFetched: 0,
     numRetrieved: 0,
+    durationSec: 0,
+    cache: elevationService.getCacheStats(),
   };
 
-  const checkTrack = (id: number | string) => {
-    const pilot = state.pilots[id];
-    if (!pilot) {
-      return;
+  type Target = {
+    track: protos.LiveTrack;
+    idx: number;
+  };
+
+  const targets: Target[] = [];
+  const allLats: number[] = [];
+  const allLons: number[] = [];
+
+  for (const track of tracks) {
+    if (!track || track.lat.length === 0) {
+      continue;
     }
-    const track = pilot.track;
-    if (!track) {
-      return;
-    }
-    if (track.lat.length > 0) {
-      const index = track.lat.length - 1;
-      if (track.extra[index]?.gndAlt == null) {
-        tracks.push(track);
-        points.push({ lat: track.lat[index], lon: track.lon[index] });
+
+    for (let i = 0; i < track.lat.length; i++) {
+      if (!isGroundAltitudeValid(track.extra[i]?.gndAlt)) {
+        targets.push({ track, idx: i });
+        allLats.push(track.lat[i]);
+        allLons.push(track.lon[i]);
       }
-    }
-  };
-
-  if (updatedPilotIds) {
-    for (const id of updatedPilotIds) {
-      checkTrack(id);
-    }
-  } else {
-    for (const id in state.pilots) {
-      checkTrack(id);
     }
   }
 
-  if (points.length == 0) {
+  if (targets.length === 0) {
+    updates.durationSec = Math.round((Date.now() - startMs) / 1000);
     return updates;
   }
 
-  updates.numFetched = points.length;
+  let hasErrors = false;
 
-  try {
-    const url = getElevationUrl(points);
-    const response = await fetchResponse(url, { timeoutS: 10 });
-    if (response.ok) {
-      const elevations = parseElevationResponse(await response.json(), points);
-      updates.numRetrieved = elevations.length;
-      let elevationIndex = 0;
-      tracks = tracks.slice(0, elevations.length);
-      for (const track of tracks) {
-        const index = track.lat.length - 1;
-        track.extra[index] ??= {};
-        track.extra[index].gndAlt = Math.round(elevations[elevationIndex]);
-        elevationIndex++;
-      }
-    } else {
-      throw new Error(`HTTP Status = ${response.status} for ${url}`);
+  for (let offset = 0; offset < targets.length; offset += ELEVATION_BATCH_SIZE) {
+    if (Date.now() - startMs >= ELEVATION_FETCH_TIMEOUT_MS) {
+      hasErrors = true;
+      updates.errors.push('Timeout fetching elevation for tracks');
+      break;
     }
-  } catch (e) {
-    updates.errors.push(formatReqError(e));
+
+    const batchTargets = targets.slice(offset, offset + ELEVATION_BATCH_SIZE);
+    const batchLats = allLats.slice(offset, offset + ELEVATION_BATCH_SIZE);
+    const batchLons = allLons.slice(offset, offset + ELEVATION_BATCH_SIZE);
+
+    updates.numFetched += batchTargets.length;
+
+    try {
+      const result = await elevationService.fetchCoordinatesAltitude(batchLats, batchLons);
+      if (result.hasErrors) {
+        hasErrors = true;
+      }
+      for (let i = 0; i < batchTargets.length; i++) {
+        const alt = result.altitudes[i];
+        if (isGroundAltitudeValid(alt)) {
+          const { track, idx } = batchTargets[i];
+          track.extra[idx] ??= {};
+          track.extra[idx].gndAlt = Math.round(alt);
+          updates.numRetrieved++;
+        }
+      }
+    } catch (e) {
+      hasErrors = true;
+      updates.errors.push(e instanceof Error ? e.message : String(e));
+    }
+
+    if (offset + ELEVATION_BATCH_SIZE < targets.length && Date.now() - startMs >= ELEVATION_FETCH_TIMEOUT_MS) {
+      hasErrors = true;
+      updates.errors.push('Timeout fetching elevation for tracks');
+      break;
+    }
   }
+
+  if (hasErrors && updates.errors.length === 0) {
+    updates.errors.push('Failed to retrieve ground elevation for some coordinates');
+  }
+
+  updates.durationSec = Math.round((Date.now() - startMs) / 1000);
+  updates.cache = elevationService.getCacheStats();
 
   return updates;
 }

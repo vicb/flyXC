@@ -8,6 +8,7 @@ import {
   IsSimplifiableFix,
   LiveTrackFlag,
   mergeLiveTracks,
+  NO_GROUND_ALTITUDE,
   removeBeforeFromLiveTrack,
   removeDeviceFromLiveTrack,
   simplifyLiveTrack,
@@ -756,6 +757,32 @@ describe('mergeLiveTracks', () => {
     expect(mergeLiveTracks(emptyTrack, track)).toEqual(track);
   });
 
+  it('should merge gndAlt in extra picking valid over undefined', () => {
+    const track1: LiveTrack = {
+      timeSec: [10, 20],
+      lat: [11, 12],
+      lon: [21, 22],
+      alt: [31, 32],
+      flags: [trackerIdByName.inreach, trackerIdByName.inreach],
+      extra: { 0: { gndAlt: 100 } },
+    };
+
+    const track2: LiveTrack = {
+      timeSec: [20, 30],
+      lat: [12, 13],
+      lon: [22, 23],
+      alt: [32, 33],
+      flags: [trackerIdByName.spot | LiveTrackFlag.Valid, trackerIdByName.spot | LiveTrackFlag.Valid],
+      extra: { 0: { gndAlt: 250 }, 1: { gndAlt: 350 } },
+    };
+
+    const merged = mergeLiveTracks(track1, track2);
+    expect(merged.timeSec).toEqual([10, 20, 30]);
+    expect(merged.extra[0]?.gndAlt).toBe(100);
+    expect(merged.extra[1]?.gndAlt).toBe(250);
+    expect(merged.extra[2]?.gndAlt).toBe(350);
+  });
+
   it('should merge non-overlapping tracks', () => {
     const track1: LiveTrack = {
       timeSec: [1, 2, 3],
@@ -1034,6 +1061,98 @@ describe('mergeLiveTracks', () => {
       expect(mergeLiveTracks(track2, track1)).toMatchObject({
         id: 123,
       });
+    });
+
+    it('should pick the valid ground altitude when merging fixes with the same timestamp', () => {
+      const track1 = LiveTrack.create({
+        lat: [10],
+        lon: [20],
+        alt: [1000],
+        timeSec: [100],
+        flags: [0],
+        extra: {},
+      });
+      const track2 = LiveTrack.create({
+        lat: [10],
+        lon: [20],
+        alt: [1000],
+        timeSec: [100],
+        flags: [0],
+        extra: { 0: { gndAlt: 450 } },
+      });
+
+      expect(mergeLiveTracks(track1, track2).extra[0]?.gndAlt).toBe(450);
+      expect(mergeLiveTracks(track2, track1).extra[0]?.gndAlt).toBe(450);
+    });
+
+    it('should preserve ground altitude in extra when merging update', () => {
+      const initialTrack = LiveTrack.create({
+        lat: [45.0, 45.1, 45.2],
+        lon: [6.0, 6.1, 6.2],
+        alt: [1000, 1100, 1200],
+        timeSec: [100, 200, 300],
+        flags: [0, 0, 0],
+        extra: {},
+      });
+      const updateTrack = LiveTrack.create({
+        lat: [45.3, 45.4],
+        lon: [6.3, 6.4],
+        alt: [1300, 1400],
+        timeSec: [400, 500],
+        flags: [0, 0],
+        extra: { 0: { gndAlt: 550 }, 1: { gndAlt: 560 } },
+      });
+
+      const merged = mergeLiveTracks(initialTrack, updateTrack);
+      expect(merged.extra[0]?.gndAlt).toBeUndefined();
+      expect(merged.extra[3]?.gndAlt).toBe(550);
+      expect(merged.extra[4]?.gndAlt).toBe(560);
+    });
+
+    it('should preserve existing valid ground altitude when incoming is NO_GROUND_ALTITUDE', () => {
+      const trackWithValid = LiveTrack.create({
+        lat: [10],
+        lon: [20],
+        alt: [1000],
+        timeSec: [100],
+        flags: [0],
+        extra: { 0: { gndAlt: 450 } },
+      });
+      const trackWithSentinel = LiveTrack.create({
+        lat: [10],
+        lon: [20],
+        alt: [1000],
+        timeSec: [100],
+        flags: [0],
+        extra: { 0: { gndAlt: NO_GROUND_ALTITUDE } },
+      });
+
+      expect(mergeLiveTracks(trackWithValid, trackWithSentinel).extra[0]?.gndAlt).toBe(450);
+      expect(mergeLiveTracks(trackWithSentinel, trackWithValid).extra[0]?.gndAlt).toBe(450);
+    });
+
+    it('should not mutate input tracks when merging equal-timestamp fixes with extras', () => {
+      const track1 = LiveTrack.create({
+        lat: [10],
+        lon: [20],
+        alt: [1000],
+        timeSec: [100],
+        flags: [0],
+        extra: { 0: { speed: 10, message: 'm1', gndAlt: 400 } },
+      });
+      const track2 = LiveTrack.create({
+        lat: [10],
+        lon: [20],
+        alt: [1000],
+        timeSec: [100],
+        flags: [0],
+        extra: { 0: { speed: 20, message: 'm2', gndAlt: 500 } },
+      });
+
+      const merged = mergeLiveTracks(track1, track2);
+      expect(merged.extra[0]).toEqual({ speed: 20, message: 'm2', gndAlt: 500 });
+      expect(track1.extra[0]).toEqual({ speed: 10, message: 'm1', gndAlt: 400 });
+      expect(track2.extra[0]).toEqual({ speed: 20, message: 'm2', gndAlt: 500 });
     });
   });
 });

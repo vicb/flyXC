@@ -384,8 +384,10 @@ export class DashElevation extends LitElement {
         <ion-card-title><i class="las la-mountain"></i> Elevation</ion-card-title>
       </ion-card-header>
 
+      ${item('Duration (sec)', (this.values[common.Keys.elevationDurationSec] ?? []).join(', '))}
       ${item('Num fetched', this.values[common.Keys.elevationNumFetched].join(', '))}
       ${item('Num Retrieved', this.values[common.Keys.elevationNumRetrieved].join(', '))}
+      ${item('LRU Cache', this.values[common.Keys.elevationCache] ?? '-')}
       ${this.values[common.Keys.elevationErrors].map((e: string) => item(formatLogEntry(e)))}
     </ion-card>`;
   }

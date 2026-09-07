@@ -42,8 +42,15 @@ export function addElevationLogs(pipeline: RedisClientMultiCmd, updates: Elevati
     updates.errors.map((e) => `[${timeSec}] ${e}`),
     5,
   );
+  pushListCap(pipeline, Keys.elevationDurationSec, [updates.durationSec], 5);
   pushListCap(pipeline, Keys.elevationNumFetched, [updates.numFetched], 5);
   pushListCap(pipeline, Keys.elevationNumRetrieved, [updates.numRetrieved], 5);
+  if (updates.cache) {
+    pipeline.set(
+      Keys.elevationCache,
+      `${updates.cache.size} / ${updates.cache.max} (${updates.cache.sizeMb} / ${updates.cache.maxMb} MB)`,
+    );
+  }
 }
 
 const osUtils = new OSUtils({ cpu: { cacheTTL: 5 * 60 * 1000 } });

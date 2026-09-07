@@ -149,6 +149,7 @@ async function getDashboardValues(redis: RedisClient, datastore: Datastore): Pro
     [Keys.fetcherIncrementalNumTracksLong]: 'S',
     [Keys.trackerNum]: 'S',
     [Keys.trackNum]: 'S',
+    [Keys.elevationCache]: 'S',
 
     // Lists
     [Keys.stateSyncErrors.replace('{type}', 'full')]: 'L',
@@ -159,6 +160,7 @@ async function getDashboardValues(redis: RedisClient, datastore: Datastore): Pro
     [Keys.elevationErrors]: 'L',
     [Keys.elevationNumFetched]: 'L',
     [Keys.elevationNumRetrieved]: 'L',
+    [Keys.elevationDurationSec]: 'L',
     [Keys.fetcherLastTicksSec]: 'L',
     [Keys.proxyInreach]: 'L',
   };

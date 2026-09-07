@@ -7,7 +7,7 @@
 // - https://www.mapzen.com/blog/terrain-tile-service/
 
 import lodepng from '@cwasm/lodepng';
-import { fetchResponse } from '@flyxc/common';
+import { fetchResponse, NO_GROUND_ALTITUDE } from '@flyxc/common';
 import type { LRU } from 'tiny-lru';
 import { lru } from 'tiny-lru';
 
@@ -94,6 +94,20 @@ export type ElevationOptions = {
 );
 
 /**
+ * Cache metrics for ElevationService LRU cache.
+ */
+export interface ElevationCacheStats {
+  /** Current number of tiles in the cache. */
+  size: number;
+  /** Maximum number of tiles the cache can hold. */
+  max: number;
+  /** Estimated memory size of cached tiles in MB. */
+  sizeMb: number;
+  /** Maximum memory capacity in MB. */
+  maxMb: number;
+}
+
+/**
  * Service for downloading, caching, and sampling elevations from AWS Terrarium DEM tiles.
  */
 export class ElevationService {
@@ -132,6 +146,19 @@ export class ElevationService {
    */
   getCache(): LRU<Uint8ClampedArray> {
     return this.cache;
+  }
+
+  /**
+   * Returns current LRU cache statistics (entries count and memory size in MB).
+   *
+   * @returns Cache statistics including current and maximum entries and MB.
+   */
+  getCacheStats(): ElevationCacheStats {
+    const size = this.cache.size;
+    const max = this.cache.max;
+    const sizeMb = Math.round((size * BYTES_PER_TILE) / 1e6);
+    const maxMb = Math.round((max * BYTES_PER_TILE) / 1e6);
+    return { size, max, sizeMb, maxMb };
   }
 
   /**
@@ -283,7 +310,7 @@ export class ElevationService {
       if (rgba != null) {
         altitudes[i] = getAltitudeFromRgba(rgba, coords[2], coords[3]);
       } else {
-        altitudes[i] = 0;
+        altitudes[i] = NO_GROUND_ALTITUDE;
         hasErrors = true;
       }
     }
