@@ -48,6 +48,7 @@ module.exports = [
         },
       ],
       'no-extra-semi': 'error',
+      curly: 'error',
     },
   },
   ...nxTypescript.configs.typescript.map((config) => ({

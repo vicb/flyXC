@@ -7,6 +7,9 @@ settings:
 
 catalogs:
   default:
+    '@cwasm/lodepng':
+      specifier: ^0.1.9
+      version: 0.1.9
     '@date-fns/tz':
       specifier: 1.5.0
       version: 1.5.0
@@ -109,6 +112,9 @@ catalogs:
     simplify-path:
       specifier: ^1.1.0
       version: 1.1.0
+    tiny-lru:
+      specifier: ^13.0.0
+      version: 13.0.0
     tslib:
       specifier: ^2.8.1
       version: 2.8.1
@@ -616,9 +622,6 @@ importers:
 
   apps/run:
     dependencies:
-      '@cwasm/lodepng':
-        specifier: ^0.1.9
-        version: 0.1.9
       '@flyxc/common':
         specifier: workspace:*
         version: link:../../libs/common
@@ -647,9 +650,12 @@ importers:
         specifier: catalog:default
         version: 1.1.0
       tiny-lru:
-        specifier: ^13.0.0
+        specifier: catalog:default
         version: 13.0.0
     devDependencies:
+      '@cwasm/lodepng':
+        specifier: catalog:default
+        version: 0.1.9
       '@dotenvx/dotenvx':
         specifier: catalog:default
         version: 2.23.0
@@ -686,6 +692,9 @@ importers:
 
   libs/common-node:
     dependencies:
+      '@cwasm/lodepng':
+        specifier: catalog:default
+        version: 0.1.9
       '@flyxc/common':
         specifier: workspace:*
         version: link:../common
@@ -701,6 +710,9 @@ importers:
       redis:
         specifier: 'catalog:'
         version: 6.2.1(@opentelemetry/api@1.9.0)
+      tiny-lru:
+        specifier: catalog:default
+        version: 13.0.0
       tslib:
         specifier: catalog:default
         version: 2.8.1

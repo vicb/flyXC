@@ -3,11 +3,13 @@
   "version": "0.0.1",
   "type": "module",
   "dependencies": {
+    "@cwasm/lodepng": "catalog:default",
     "@flyxc/common": "workspace:*",
     "@google-cloud/datastore": "catalog:default",
     "@google-cloud/pubsub": "catalog:default",
     "@xmldom/xmldom": "catalog:default",
     "redis": "catalog:",
+    "tiny-lru": "catalog:default",
     "tslib": "catalog:default",
     "vaadin-nodom": "workspace:*",
     "zod": "catalog:default"

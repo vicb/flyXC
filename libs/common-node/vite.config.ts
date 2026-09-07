@@ -5,6 +5,11 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    server: {
+      deps: {
+        external: ['@cwasm/lodepng'],
+      },
+    },
     coverage: {
       reportsDirectory: '../../coverage/libs/common-node',
       provider: 'v8',
