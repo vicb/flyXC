@@ -1,3 +1,4 @@
+export * from './lib/altitude';
 export { getDatastore } from './lib/datastore';
 export * from './lib/live-track-entity';
 export { MESHBIR_MAX_MSG, MESHBIR_MAX_MSG_SIZE, type MeshBirMessage, positionSchema, textSchema } from './lib/meshtbir';

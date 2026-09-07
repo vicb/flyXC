@@ -12,12 +12,12 @@
     "async": "^3.2.6",
     "express": "catalog:default",
     "google-polyline": "^2.0.0",
-    "@cwasm/lodepng": "^0.1.9",
     "mapbox-vector-tile": "catalog:default",
     "simplify-path": "catalog:default",
-    "tiny-lru": "^13.0.0"
+    "tiny-lru": "catalog:default"
   },
   "devDependencies": {
+    "@cwasm/lodepng": "catalog:default",
     "@dotenvx/dotenvx": "catalog:default"
   }
 }
