@@ -22,4 +22,7 @@ ENTRYPOINT ["/usr/bin/tini", "--"]
 USER node
 
 # Restart the fetcher periodically to mitigate memory leaks.
-CMD [ "node", "dist/index.js", "-e", "240" ]
+# --max-semi-space-size=64 prevents V8 from shrinking young generation on 1GB VMs,
+# avoiding premature promotion to old space and reducing GC thrashing during bursts.
+# --max-old-space-size=512 sets a 512MB heap limit appropriate for a 1GB machine with swap.
+CMD [ "node", "--max-semi-space-size=64", "--max-old-space-size=512", "dist/index.js", "-e", "240" ]
