@@ -76,8 +76,6 @@ module.exports = [
       '**/.cache/',
       '**/node_modules/',
       '**/apps/fxc-tiles/src/assets/airspaces/',
-      '**/apps/fxc-front/rustigc/',
-      '**/rustigc/',
       '**/vite.config.*.timestamp*',
       '**/vitest.config.*.timestamp*',
       '**/dist/',
