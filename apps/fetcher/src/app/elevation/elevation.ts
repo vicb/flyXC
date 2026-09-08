@@ -69,7 +69,7 @@ export async function patchTracksElevation(
 
     const startIdx =
       fromSec != null && track.timeSec?.length > 0
-        ? findFirstIndex(track.timeSec, fromSec, { comparison: Comparison.GREATER_EQUAL })
+        ? findFirstIndex(track.timeSec, fromSec, Comparison.GREATER_EQUAL)
         : 0;
 
     for (let i = startIdx; i < track.lat.length; i++) {

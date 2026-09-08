@@ -131,9 +131,14 @@ export function applyTrackerUpdates(
   }
 
   // Drop points older than max retention for all tracks that have outdated points.
+  // Guard check: removeBeforeFromLiveTrack clones all arrays and extra objects to ensure immutability.
+  // Checking pilot.track.timeSec[0] < dropBeforeSec avoids expensive allocations and GC overhead
+  // for the vast majority of pilots whose tracks have no points older than 48 hours.
   for (const id in state.pilots) {
     const pilot = state.pilots[id];
-    pilot.track = removeBeforeFromLiveTrack(pilot.track, dropBeforeSec);
+    if (pilot.track.timeSec.length > 0 && pilot.track.timeSec[0] < dropBeforeSec) {
+      pilot.track = removeBeforeFromLiveTrack(pilot.track, dropBeforeSec);
+    }
   }
 
   // Only simplify and decimate tracks for pilots that were updated in the current cycle.
