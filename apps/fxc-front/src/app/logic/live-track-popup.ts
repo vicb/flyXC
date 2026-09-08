@@ -1,4 +1,11 @@
-import { getFixMessage, getTrackerDisplayName, isEmergencyFix, isLowBatFix, isValidFix } from '@flyxc/common';
+import {
+  getFixMessage,
+  getTrackerDisplayName,
+  isEmergencyFix,
+  isGroundAltitudeValid,
+  isLowBatFix,
+  isValidFix,
+} from '@flyxc/common';
 
 import { liveTrackSelectors } from '../redux/live-track-slice';
 import { store } from '../redux/store';
@@ -19,7 +26,7 @@ export function popupContent(
   const flags = track.flags[index];
   const alt = track.alt[index];
   const speed = track.extra[index]?.speed;
-  const gndAlt = track.extra[index]?.gndAlt;
+  const gndAlt = isGroundAltitudeValid(track.gndAlt[index]) ? track.gndAlt[index] : undefined;
   const date = new Date(track.timeSec[index] * 1000);
 
   const content: string[] = [

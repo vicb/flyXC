@@ -71,6 +71,13 @@
       "options": {
         "command": "gcloud app deploy apps/fxc-server/dist/app.yaml"
       }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit"
+      }
     }
   }
 }

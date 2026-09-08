@@ -4,6 +4,7 @@
 // - https://support.garmin.com/en-US/?faq=tdlDCyo1fJ5UxjUbA9rMY8 (offline)
 // - https://web.archive.org/web/20230328084014/https://support.garmin.com/en-US/?faq=tdlDCyo1fJ5UxjUbA9rMY8
 
+import type { TrackerNames } from '@flyxc/common';
 import {
   fetchResponse,
   formatReqError,
@@ -226,7 +227,7 @@ export function parse(kmlFeed: string): LivePoint[] {
 }
 
 // Returns a child node by "." delimited path.
-function getChildNode(nodeList: NodeListOf<ChildNode>, tagPath: string): ChildNode | null {
+function getChildNode(nodeList: ArrayLike<any>, tagPath: string): ChildNode | null {
   const tagName = tagPath.split('.')[0];
   for (let i = 0; i < nodeList.length; i++) {
     const el = nodeList[i] as Element;

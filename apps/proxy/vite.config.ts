@@ -3,12 +3,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { parse } from '@dotenvx/dotenvx';
-import type { UserConfig } from 'vitest/config';
 import { defineConfig } from 'vitest/config';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig(({ mode }): UserConfig => {
+export default defineConfig(({ mode }) => {
   // Load secrets from secrets.env and secrets.env.local files
   const secretsPath = path.join(__dirname, '../../secrets.env');
   const secretsLocalPath = path.join(__dirname, '../../secrets.env.local');

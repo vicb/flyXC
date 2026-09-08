@@ -217,6 +217,10 @@ export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): Li
     return LiveTrack.create({ name: track.name, id: track.id, idStr: track.idStr });
   }
 
+  if (track.gndAlt?.length !== track.lat.length) {
+    track.gndAlt = Array(track.lat.length).fill(NO_GROUND_ALTITUDE);
+  }
+
   // Fast boundary checks in O(1):
   // 1. If timeSec is before or at the first fix, no fixes are strictly before timeSec.
   //    Return a new track with sliced arrays and cloned extra entries.
@@ -231,6 +235,7 @@ export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): Li
       lat: track.lat.slice(),
       lon: track.lon.slice(),
       alt: track.alt.slice(),
+      gndAlt: track.gndAlt.slice(),
       flags: track.flags.slice(),
       extra,
     };
@@ -259,6 +264,7 @@ export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): Li
     lat: track.lat.slice(numToDelete),
     lon: track.lon.slice(numToDelete),
     alt: track.alt.slice(numToDelete),
+    gndAlt: track.gndAlt.slice(numToDelete),
     flags: track.flags.slice(numToDelete),
     extra,
   };
@@ -267,6 +273,9 @@ export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): Li
 
 // Delete all the fixes from the specified device.
 export function removeDeviceFromLiveTrack(track: LiveTrack, device: TrackerNames | UfoFleetNames): LiveTrack {
+  if (track.gndAlt?.length !== track.lat.length) {
+    track.gndAlt = Array(track.lat.length).fill(NO_GROUND_ALTITUDE);
+  }
   const outTrack = LiveTrack.create();
 
   let dstIdx = 0;
@@ -362,6 +371,11 @@ export function simplifyLiveTrack(
   time?: { fromSec?: number; toSec?: number },
 ): void {
   const len = track.timeSec.length;
+
+  if (track.gndAlt?.length !== track.lat.length) {
+    track.gndAlt = Array(track.lat.length).fill(NO_GROUND_ALTITUDE);
+  }
+
   // Fast path: tracks with 0 or 1 fix can never be simplified (boundary fixes are always preserved).
   if (len <= 1) {
     return;
@@ -435,6 +449,7 @@ export function simplifyLiveTrack(
     track.lat.splice(dstIndex);
     track.lon.splice(dstIndex);
     track.alt.splice(dstIndex);
+    track.gndAlt.splice(dstIndex);
     timeSecs.splice(dstIndex);
     track.flags.splice(dstIndex);
   }
@@ -453,6 +468,7 @@ function copyFix(fromTrack: LiveTrack, fromIndex: number, toTrack: LiveTrack, to
   toTrack.lat[toIndex] = fromTrack.lat[fromIndex];
   toTrack.lon[toIndex] = fromTrack.lon[fromIndex];
   toTrack.alt[toIndex] = fromTrack.alt[fromIndex];
+  toTrack.gndAlt[toIndex] = fromTrack.gndAlt[fromIndex];
   toTrack.timeSec[toIndex] = fromTrack.timeSec[fromIndex];
   toTrack.flags[toIndex] = fromTrack.flags[fromIndex];
   if (fromIndex in fromTrack.extra) {
@@ -463,6 +479,13 @@ function copyFix(fromTrack: LiveTrack, fromIndex: number, toTrack: LiveTrack, to
 // Merges two tracks.
 // Keep messages, emergency and low battery.
 export function mergeLiveTracks(track1: LiveTrack, track2: LiveTrack): LiveTrack {
+  if (track1.gndAlt?.length !== track1.lat.length) {
+    track1.gndAlt = Array(track1.lat.length).fill(NO_GROUND_ALTITUDE);
+  }
+  if (track2.gndAlt?.length !== track2.lat.length) {
+    track2.gndAlt = Array(track2.lat.length).fill(NO_GROUND_ALTITUDE);
+  }
+
   const toTrack = LiveTrack.create({ name: track1.name ?? track2.name, id: track1.id ?? track2.id });
 
   let index1 = 0;
@@ -509,6 +532,9 @@ export function mergeLiveTracks(track1: LiveTrack, track2: LiveTrack): LiveTrack
         toTrack.lat[toIndex] = track2.lat[index2];
         toTrack.lon[toIndex] = track2.lon[index2];
         toTrack.alt[toIndex] = track2.alt[index2];
+        toTrack.gndAlt[toIndex] = track2.gndAlt[index2];
+      } else if (!isGroundAltitudeValid(toTrack.gndAlt[toIndex]) && isGroundAltitudeValid(track2.gndAlt[index2])) {
+        toTrack.gndAlt[toIndex] = track2.gndAlt[index2];
       }
       // Merge extras field by field.
       if (index2 in track2.extra) {
@@ -520,9 +546,6 @@ export function mergeLiveTracks(track1: LiveTrack, track2: LiveTrack): LiveTrack
           }
           if (extra2.message != null) {
             toExtra.message = extra2.message;
-          }
-          if (isGroundAltitudeValid(extra2.gndAlt)) {
-            toExtra.gndAlt = extra2.gndAlt;
           }
         } else {
           toTrack.extra[toIndex] = { ...extra2 };
@@ -548,10 +571,14 @@ export function differentialEncodeLiveTrack(
   id: number | string,
   name?: string,
 ): LiveDifferentialTrack {
+  if (track.gndAlt?.length !== track.lat.length) {
+    track.gndAlt = Array(track.lat.length).fill(NO_GROUND_ALTITUDE);
+  }
   const lon = diffEncodeArray32bit(track.lon, 1e5);
   const lat = diffEncodeArray32bit(track.lat, 1e5);
   const timeSec = diffEncodeArray32bit(track.timeSec, 1, false);
   const alt = diffEncodeArray32bit(track.alt);
+  const gndAlt = diffEncodeArray32bit(track.gndAlt);
 
   const diffTrack: LiveDifferentialTrack = {
     ...track,
@@ -559,6 +586,7 @@ export function differentialEncodeLiveTrack(
     lon,
     timeSec,
     alt,
+    gndAlt,
     name: track.name ?? name ?? '',
   };
   if (typeof id === 'string') {
@@ -575,6 +603,10 @@ export function differentialDecodeLiveTrack(diffTrack: LiveDifferentialTrack): L
   const lat = diffDecodeArray(diffTrack.lat, 1e5);
   const timeSec = diffDecodeArray(diffTrack.timeSec);
   const alt = diffDecodeArray(diffTrack.alt);
+  let gndAlt = diffTrack.gndAlt ? diffDecodeArray(diffTrack.gndAlt) : [];
+  if (gndAlt.length !== lat.length) {
+    gndAlt = Array(lat.length).fill(NO_GROUND_ALTITUDE);
+  }
 
-  return { ...diffTrack, lat, lon, timeSec, alt };
+  return { ...diffTrack, lat, lon, timeSec, alt, gndAlt };
 }

@@ -17,9 +17,12 @@ export interface LiveExtra {
    */
   speed?: number;
   /**
-   * @generated from protobuf field: optional int32 gnd_alt = 3
+   * Deprecated: moved to LiveTrack and LiveDifferentialTrack.
+   *
+   * @deprecated
+   * @generated from protobuf field: optional int32 deprecated_gnd_alt = 3 [deprecated = true]
    */
-  gndAlt?: number;
+  deprecatedGndAlt?: number;
 }
 /**
  * All the points for a tracker.
@@ -70,6 +73,10 @@ export interface LiveTrack {
   extra: {
     [key: number]: LiveExtra;
   };
+  /**
+   * @generated from protobuf field: repeated int32 gnd_alt = 10
+   */
+  gndAlt: number[];
 }
 /**
  * All the points for a tracker.
@@ -119,6 +126,10 @@ export interface LiveDifferentialTrack {
   extra: {
     [key: number]: LiveExtra;
   };
+  /**
+   * @generated from protobuf field: repeated sint32 gnd_alt = 10
+   */
+  gndAlt: number[];
 }
 /**
  * All active trackers.
@@ -149,7 +160,7 @@ class LiveExtra$Type extends MessageType<LiveExtra> {
     super('LiveExtra', [
       { no: 1, name: 'message', kind: 'scalar', opt: true, T: 9 /*ScalarType.STRING*/ },
       { no: 2, name: 'speed', kind: 'scalar', opt: true, T: 13 /*ScalarType.UINT32*/ },
-      { no: 3, name: 'gnd_alt', kind: 'scalar', opt: true, T: 5 /*ScalarType.INT32*/ },
+      { no: 3, name: 'deprecated_gnd_alt', kind: 'scalar', opt: true, T: 5 /*ScalarType.INT32*/ },
     ]);
   }
 }
@@ -170,6 +181,7 @@ class LiveTrack$Type extends MessageType<LiveTrack> {
       { no: 6, name: 'time_sec', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 5 /*ScalarType.INT32*/ },
       { no: 7, name: 'flags', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 13 /*ScalarType.UINT32*/ },
       { no: 8, name: 'extra', kind: 'map', K: 13 /*ScalarType.UINT32*/, V: { kind: 'message', T: () => LiveExtra } },
+      { no: 10, name: 'gnd_alt', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 5 /*ScalarType.INT32*/ },
     ]);
   }
 }
@@ -190,6 +202,7 @@ class LiveDifferentialTrack$Type extends MessageType<LiveDifferentialTrack> {
       { no: 6, name: 'time_sec', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 13 /*ScalarType.UINT32*/ },
       { no: 7, name: 'flags', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 13 /*ScalarType.UINT32*/ },
       { no: 8, name: 'extra', kind: 'map', K: 13 /*ScalarType.UINT32*/, V: { kind: 'message', T: () => LiveExtra } },
+      { no: 10, name: 'gnd_alt', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
     ]);
   }
 }

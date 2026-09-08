@@ -82,6 +82,13 @@
       "options": {
         "command": "gcloud compute instance-templates delete proxy-tmpl --quiet || true && gcloud compute instance-templates create proxy-tmpl --machine-type=f1-micro --image-family=cos-stable --image-project=cos-cloud --boot-disk-size=10GB --boot-disk-type=pd-balanced --tags=http-server --scopes=cloud-platform --metadata=google-logging-enabled=true,google-logging-use-fluentbit=true --metadata-from-file=user-data=apps/proxy/cloud-config.yaml"
       }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit"
+      }
     }
   }
 }

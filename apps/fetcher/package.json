@@ -5,7 +5,7 @@
   "type": "module",
   "main": "./index.js",
   "scripts": {
-    "dev": "nx serve fetcher --configuration=development"
+    "dev": "pnpm nx serve fetcher --configuration=development"
   },
   "dependencies": {
     "@cwasm/lodepng": "catalog:default",

@@ -13,6 +13,7 @@ describe('applyUfoFleetUpdates', () => {
       lat: [60.0],
       lon: [10.0],
       alt: [200],
+      gndAlt: [100],
       flags: [0],
       extra: {},
     };
@@ -32,6 +33,7 @@ describe('applyUfoFleetUpdates', () => {
       lat: [60.01, 60.011, 60.02],
       lon: [10.01, 10.011, 10.02],
       alt: [210, 211, 220],
+      gndAlt: [110, 111, 120],
       flags: [0, 0, 0],
       extra: {},
     };
@@ -41,6 +43,7 @@ describe('applyUfoFleetUpdates', () => {
       lat: [61.0],
       lon: [11.0],
       alt: [300],
+      gndAlt: [150],
       flags: [0],
       extra: {},
     };
@@ -76,6 +79,7 @@ describe('applyUfoFleetUpdates', () => {
       lat: [60.0],
       lon: [10.0],
       alt: [200],
+      gndAlt: [100],
       flags: [0],
       extra: {},
     };
@@ -85,6 +89,7 @@ describe('applyUfoFleetUpdates', () => {
       lat: [61.0],
       lon: [11.0],
       alt: [300],
+      gndAlt: [150],
       flags: [0],
       extra: {},
     };
@@ -114,5 +119,33 @@ describe('applyUfoFleetUpdates', () => {
     expect(ufos.droneOld).toBeUndefined();
     expect(ufos.droneRecent).toBeDefined();
     expect(ufos.droneRecent.timeSec).toEqual([nowSec - 500]);
+  });
+
+  it('should normalize UFO tracks with missing gndAlt', () => {
+    const nowSec = 1700000000;
+    const trackWithoutGndAlt = {
+      timeSec: [nowSec - 100],
+      lat: [60.0],
+      lon: [10.0],
+      alt: [200],
+      flags: [0],
+      extra: {},
+    } as any;
+
+    const state = protos.FetcherState.create({
+      ufoFleets: {
+        aviant: {
+          ufos: {
+            drone1: trackWithoutGndAlt,
+          },
+        },
+      },
+    });
+
+    applyUfoFleetUpdates(state, [], nowSec);
+
+    const ufoTrack = state.ufoFleets.aviant.ufos.drone1;
+    expect(ufoTrack).toBeDefined();
+    expect(ufoTrack.gndAlt).toEqual([9999]);
   });
 });

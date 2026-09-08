@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
     "module": "esnext",
+    "allowImportingTsExtensions": true,
     "types": ["vitest/globals", "node"]
   },
   "include": ["vite.config.mts", "src/**/*.test.ts", "src/**/*.spec.ts", "src/**/*.d.ts"]

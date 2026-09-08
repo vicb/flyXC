@@ -4,7 +4,8 @@ syntax = "proto3";
 message LiveExtra {
   optional string message = 1;
   optional uint32 speed = 2;
-  optional int32 gnd_alt = 3;
+  // Deprecated: moved to LiveTrack and LiveDifferentialTrack.
+  optional int32 deprecated_gnd_alt = 3 [deprecated = true];
 }
 
 // All the points for a tracker.
@@ -21,6 +22,7 @@ message LiveTrack {
   repeated uint32 flags = 7;
   // map from an index to extra info.
   map<uint32, LiveExtra> extra = 8;
+  repeated int32 gnd_alt = 10;
 }
 
 // All the points for a tracker.
@@ -37,6 +39,7 @@ message LiveDifferentialTrack {
   repeated uint32 flags = 7;
   // map from an index to extra info.
   map<uint32, LiveExtra> extra = 8;
+  repeated sint32 gnd_alt = 10;
 }
 
 // All active trackers.

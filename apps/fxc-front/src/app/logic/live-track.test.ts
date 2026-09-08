@@ -1,4 +1,4 @@
-import { differentialEncodeLiveTrack, LiveTrackFlag, protos, trackerIdByName } from '@flyxc/common';
+import { differentialEncodeLiveTrack, LiveTrackFlag, NO_GROUND_ALTITUDE, protos, trackerIdByName } from '@flyxc/common';
 
 import { FixType, trackToFeatures, updateLiveTracks } from './live-track';
 
@@ -15,6 +15,7 @@ describe('Create GeoJSON features', () => {
         lon: [11],
         lat: [21],
         alt: [31],
+        gndAlt: [NO_GROUND_ALTITUDE],
         flags: [trackerIdByName.flyme],
         extra: {},
       };
@@ -55,6 +56,7 @@ describe('Create GeoJSON features', () => {
         lon: [11, 110, 120, 130, 140, 150, 160],
         lat: [21, 210, 220, 230, 240, 250, 260],
         alt: [31, 310, 320, 330, 340, 350, 360],
+        gndAlt: Array(7).fill(NO_GROUND_ALTITUDE),
         flags: [
           trackerIdByName.flyme,
           trackerIdByName.flyme,
@@ -177,6 +179,7 @@ describe('Create GeoJSON features', () => {
         lon: [11, 110, 120, 130, 140, 150, 160],
         lat: [21, 210, 220, 230, 240, 250, 260],
         alt: [31, 310, 320, 330, 340, 350, 360],
+        gndAlt: Array(7).fill(NO_GROUND_ALTITUDE),
         flags: [
           trackerIdByName.flyme,
           trackerIdByName.flyme,
@@ -249,18 +252,17 @@ describe('Create GeoJSON features', () => {
       });
     });
 
-    it('should use gndAlt from extra when available', () => {
+    it('should use gndAlt from LiveTrack when available', () => {
       const track: protos.LiveTrack = {
         id: 123,
         timeSec: [1, 10, 20],
         lon: [11, 12, 13],
         lat: [21, 22, 23],
         alt: [31, 32, 33],
+        gndAlt: [99, 200, 300],
         flags: [trackerIdByName.flyme, trackerIdByName.flyme, trackerIdByName.flyme],
         extra: {
-          0: { gndAlt: 99 },
-          1: { gndAlt: 200, message: 'p1' },
-          2: { gndAlt: 300 },
+          1: { message: 'p1' },
         },
       };
 
@@ -278,6 +280,7 @@ describe('Create GeoJSON features', () => {
         lon: [11, 110, 120, 130, 140, 150, 160],
         lat: [21, 210, 220, 230, 240, 250, 260],
         alt: [31, 310, 320, 330, 340, 350, 360],
+        gndAlt: Array(7).fill(NO_GROUND_ALTITUDE),
         flags: [
           trackerIdByName.flyme,
           trackerIdByName.flyme,
@@ -321,6 +324,7 @@ describe('Create GeoJSON features', () => {
         lon: [11, 110, 120, 130, 140, 150, 160],
         lat: [21, 210, 220, 230, 240, 250, 260],
         alt: [31, 310, 320, 330, 340, 350, 360],
+        gndAlt: Array(7).fill(NO_GROUND_ALTITUDE),
         flags: [
           trackerIdByName.flyme,
           trackerIdByName.flyme | LiveTrackFlag.Emergency,
@@ -362,6 +366,7 @@ describe('Create GeoJSON features', () => {
         lon: [11, 110, 120, 130, 140, 150, 160],
         lat: [21, 210, 220, 230, 240, 250, 260],
         alt: [31, 310, 320, 330, 340, 350, 360],
+        gndAlt: Array(7).fill(NO_GROUND_ALTITUDE),
         flags: [
           trackerIdByName.flyme,
           trackerIdByName.flyme,
@@ -550,6 +555,7 @@ describe('Update live tracks', () => {
         lat: [11, 21, 31],
         lon: [12, 22, 32],
         alt: [13, 23, 33],
+        gndAlt: [0, 0, 0],
         flags: [1, 1, 1],
         extra: {},
       };
@@ -559,6 +565,7 @@ describe('Update live tracks', () => {
         lat: [11, 21, 31],
         lon: [12, 22, 32],
         alt: [13, 23, 33],
+        gndAlt: [0, 0, 0],
         flags: [1, 1, 1],
         extra: {},
       };
@@ -579,6 +586,7 @@ describe('Update live tracks', () => {
         lat: [11, 21, 31],
         lon: [12, 22, 32],
         alt: [13, 23, 33],
+        gndAlt: [0, 0, 0],
         flags: [1, 1, 1],
         extra: {},
       };
@@ -588,6 +596,7 @@ describe('Update live tracks', () => {
         lat: [111, 121, 132],
         lon: [112, 122, 132],
         alt: [113, 123, 133],
+        gndAlt: [0, 0, 0],
         flags: [2, 2, 2],
         extra: {},
       };
@@ -616,6 +625,7 @@ describe('Update live tracks', () => {
         lat: [11, 21, 31],
         lon: [12, 22, 32],
         alt: [13, 23, 33],
+        gndAlt: [0, 0, 0],
         flags: [1, 1, 1],
         extra: {},
       };
@@ -625,6 +635,7 @@ describe('Update live tracks', () => {
         lat: [110, 210, 310],
         lon: [120, 220, 320],
         alt: [130, 230, 330],
+        gndAlt: [0, 0, 0],
         flags: [2, 2, 2],
         extra: { 0: { message: 'test' } },
       };
@@ -636,6 +647,7 @@ describe('Update live tracks', () => {
         lat: [11, 21, 32],
         lon: [12, 22, 32],
         alt: [13, 23, 33],
+        gndAlt: [0, 0, 0],
         flags: [1, 1, 1],
         extra: {},
       };
@@ -645,6 +657,7 @@ describe('Update live tracks', () => {
         lat: [111, 121, 132],
         lon: [112, 122, 132],
         alt: [113, 123, 133],
+        gndAlt: [0, 0, 0],
         flags: [2, 2, 2],
         extra: {},
       };
@@ -662,6 +675,7 @@ describe('Update live tracks', () => {
           lat: [11, 21, 110, 31, 210, 310],
           lon: [12, 22, 120, 32, 220, 320],
           alt: [13, 23, 130, 33, 230, 330],
+          gndAlt: [0, 0, 0, 0, 0, 0],
           flags: [1, 1, 2, 1, 2, 2],
           extra: { 2: { message: 'test' } },
         },

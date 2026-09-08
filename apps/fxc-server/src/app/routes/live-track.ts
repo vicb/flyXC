@@ -187,7 +187,7 @@ export async function handlePartnerTokenRequest(
         : protos.LiveDifferentialTrackGroup.create();
 
       const anonTracks: protos.LiveDifferentialTrack[] = liveGroup.tracks.map(
-        ({ lat, lon, alt, timeSec, id, idStr }) => {
+        ({ lat, lon, alt, gndAlt, timeSec, id, idStr }) => {
           // Anonymizes the track by hashing the id with a salt.
           const sha1 = crypto.createHash('sha1');
           sha1.update(String(idStr ?? id) + SECRETS.EXPORT_ID_SALT);
@@ -200,6 +200,7 @@ export async function handlePartnerTokenRequest(
             lat,
             lon,
             alt,
+            gndAlt,
             timeSec,
           };
         },

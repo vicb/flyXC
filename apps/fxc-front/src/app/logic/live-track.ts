@@ -4,6 +4,7 @@ import {
   getFixMessage,
   isEmergencyFix,
   isEmergencyTrack,
+  isGroundAltitudeValid,
   IsSimplifiableFix,
   isUfo,
   LiveDataIntervalSec,
@@ -163,7 +164,7 @@ function addPoint(pointsByIndex: Map<number, any>, track: protos.LiveTrack, inde
     fixType,
     isUfo: isUfo(track.flags[index]),
     alt: track.alt[index],
-    gndAlt: track.extra[index]?.gndAlt == null ? undefined : Number(track.extra[index]?.gndAlt),
+    gndAlt: isGroundAltitudeValid(track.gndAlt[index]) ? track.gndAlt[index] : undefined,
     timeSec: track.timeSec[index],
     name: track.name,
   };

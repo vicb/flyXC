@@ -29,6 +29,10 @@
     "@nx/vitest:test": {
       "cache": true,
       "inputs": ["default", "^production"]
+    },
+    "typecheck": {
+      "cache": true,
+      "inputs": ["default", "^production"]
     }
   },
   "namedInputs": {
@@ -94,7 +98,7 @@
         "previewTargetName": "preview",
         "serveStaticTargetName": "serve-static",
         "devTargetName": "dev",
-        "typecheckTargetName": "typecheck"
+        "typecheckTargetName": "typecheck-vite"
       },
       "include": [
         "apps/fetcher/**/*",

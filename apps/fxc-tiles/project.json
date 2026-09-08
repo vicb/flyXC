@@ -26,6 +26,13 @@
       "options": {
         "command": "npx servez -p 8084 -q apps/fxc-tiles/assets/tiles"
       }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit"
+      }
     }
   }
 }

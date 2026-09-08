@@ -40,6 +40,7 @@ describe('patchTracksElevation', () => {
       lat: [45.0, 45.01],
       lon: [6.0, 6.01],
       alt: [1000, 1050],
+      gndAlt: [NO_GROUND_ALTITUDE, NO_GROUND_ALTITUDE],
       flags: [0, 0],
       extra: {},
     };
@@ -49,6 +50,7 @@ describe('patchTracksElevation', () => {
       lat: [46.0],
       lon: [7.0],
       alt: [1200],
+      gndAlt: [NO_GROUND_ALTITUDE],
       flags: [0],
       extra: {},
     };
@@ -60,12 +62,12 @@ describe('patchTracksElevation', () => {
     expect(updates.numFetched).toBe(3);
     expect(updates.numRetrieved).toBe(3);
     expect(updates.errors).toHaveLength(0);
-    expect(delta1.extra[0]?.gndAlt).toBe(500);
-    expect(delta1.extra[1]?.gndAlt).toBe(520);
-    expect(delta2.extra[0]?.gndAlt).toBe(600);
+    expect(delta1.gndAlt[0]).toBe(500);
+    expect(delta1.gndAlt[1]).toBe(520);
+    expect(delta2.gndAlt[0]).toBe(600);
   });
 
-  it('should preserve valid existing altitudes in extra and only fetch missing points', async () => {
+  it('should preserve valid existing altitudes and only fetch missing points', async () => {
     const fetchSpy = vi.spyOn(mockElevationService, 'fetchCoordinatesAltitude').mockResolvedValue({
       altitudes: [750],
       hasErrors: false,
@@ -76,10 +78,9 @@ describe('patchTracksElevation', () => {
       lat: [45.0, 45.01],
       lon: [6.0, 6.01],
       alt: [1000, 1050],
+      gndAlt: [400, NO_GROUND_ALTITUDE],
       flags: [0, 0],
-      extra: {
-        0: { gndAlt: 400 }, // index 0 already has valid altitude
-      },
+      extra: {},
     };
 
     const updates = await patchTracksElevation([delta], mockElevationService);
@@ -88,8 +89,8 @@ describe('patchTracksElevation', () => {
     expect(fetchSpy).toHaveBeenCalledWith([45.01], [6.01]);
     expect(updates.numFetched).toBe(1);
     expect(updates.numRetrieved).toBe(1);
-    expect(delta.extra[0]?.gndAlt).toBe(400);
-    expect(delta.extra[1]?.gndAlt).toBe(750);
+    expect(delta.gndAlt[0]).toBe(400);
+    expect(delta.gndAlt[1]).toBe(750);
   });
 
   it('handles errors gracefully', async () => {
@@ -103,6 +104,7 @@ describe('patchTracksElevation', () => {
       lat: [45.0],
       lon: [6.0],
       alt: [1000],
+      gndAlt: [NO_GROUND_ALTITUDE],
       flags: [0],
       extra: {},
     };
@@ -112,7 +114,7 @@ describe('patchTracksElevation', () => {
     expect(updates.numFetched).toBe(1);
     expect(updates.numRetrieved).toBe(0);
     expect(updates.errors.length).toBeGreaterThan(0);
-    expect(delta.extra[0]?.gndAlt).toBeUndefined();
+    expect(delta.gndAlt[0]).toBe(NO_GROUND_ALTITUDE);
     expect(updates.durationSec).toBeGreaterThanOrEqual(0);
   });
 
@@ -127,8 +129,9 @@ describe('patchTracksElevation', () => {
       lat: [45.0],
       lon: [6.0],
       alt: [1000],
+      gndAlt: [NO_GROUND_ALTITUDE],
       flags: [0],
-      extra: { 0: { gndAlt: NO_GROUND_ALTITUDE } },
+      extra: {},
     };
 
     const updates = await patchTracksElevation([delta], mockElevationService);
@@ -136,7 +139,7 @@ describe('patchTracksElevation', () => {
     expect(fetchSpy).toHaveBeenCalledWith([45.0], [6.0]);
     expect(updates.numFetched).toBe(1);
     expect(updates.numRetrieved).toBe(1);
-    expect(delta.extra[0]?.gndAlt).toBe(650);
+    expect(delta.gndAlt[0]).toBe(650);
   });
 
   it('should record duration in seconds', async () => {
@@ -147,6 +150,7 @@ describe('patchTracksElevation', () => {
         lat: [45.0],
         lon: [6.0],
         alt: [1000],
+        gndAlt: [NO_GROUND_ALTITUDE],
         flags: [0],
         extra: {},
       };
@@ -177,6 +181,7 @@ describe('patchTracksElevation', () => {
       lat: new Array(ELEVATION_BATCH_SIZE + 10).fill(45.0),
       lon: new Array(ELEVATION_BATCH_SIZE + 10).fill(6.0),
       alt: new Array(ELEVATION_BATCH_SIZE + 10).fill(1000),
+      gndAlt: new Array(ELEVATION_BATCH_SIZE + 10).fill(NO_GROUND_ALTITUDE),
       flags: new Array(ELEVATION_BATCH_SIZE + 10).fill(0),
       extra: {},
     };
@@ -197,6 +202,7 @@ describe('patchTracksElevation', () => {
         lat: new Array(ELEVATION_BATCH_SIZE + 10).fill(45.0),
         lon: new Array(ELEVATION_BATCH_SIZE + 10).fill(6.0),
         alt: new Array(ELEVATION_BATCH_SIZE + 10).fill(1000),
+        gndAlt: new Array(ELEVATION_BATCH_SIZE + 10).fill(NO_GROUND_ALTITUDE),
         flags: new Array(ELEVATION_BATCH_SIZE + 10).fill(0),
         extra: {},
       };

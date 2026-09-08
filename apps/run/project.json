@@ -83,6 +83,13 @@
       "options": {
         "command": "gcloud run deploy trackers --image us-docker.pkg.dev/fly-xc/docker/run --platform managed"
       }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit"
+      }
     }
   }
 }
