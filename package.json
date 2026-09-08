@@ -2,6 +2,7 @@
   "name": "flyxc",
   "version": "0.0.1",
   "license": "MIT",
+  "type": "module",
   "scripts": {
     "prepare": "git submodule update --init --recursive",
     "dev": "pnpm nx run-many --target=serve --projects=fxc-front,fxc-server,fxc-tiles --configuration=development",
