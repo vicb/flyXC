@@ -23,8 +23,7 @@ export class ZoleoFetcher extends TrackerFetcher {
     return 'zoleo';
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected async fetch(devices: number[], updates: TrackerUpdates, timeoutSec: number): Promise<void> {
+  protected async fetch(devices: number[], updates: TrackerUpdates, _timeoutSec: number): Promise<void> {
     const messages = (await flushMessageQueue(this.redis)).filter((m) => m != null);
 
     if (messages.length == 0) {

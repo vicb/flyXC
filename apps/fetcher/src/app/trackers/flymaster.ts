@@ -78,7 +78,7 @@ export class FlymasterFetcher extends TrackerFetcher {
         // Get an extra 5min of data that might not have been received (when no network coverage).
         const points = parse(flight);
         let track = makeLiveTrack(points);
-        track = removeBeforeFromLiveTrack(track, fetchSecond - 300);
+        track = removeBeforeFromLiveTrack(track, fetchSecond - 5 * 60);
         simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
         updates.trackerDeltas.set(dsId, track);
       }

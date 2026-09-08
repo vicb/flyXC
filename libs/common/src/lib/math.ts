@@ -29,18 +29,67 @@ export function sampleAt(xs: number[], ys: number[], targetX: number): number {
   return linearInterpolate(xs[beforeIndex], ys[beforeIndex], xs[afterIndex], ys[afterIndex], targetX);
 }
 
-// Finds the two indexes left and right of the value.
-//
-// The output contains the following properties:
-// - beforeAll: true when the value is less than any element in the list,
-// - beforeIndex and afterIndex: indexes before and after the value. They are equal to the index of the value when
-//   it is in the list.
-// - afterAll: true when the value is greater than any element in the list.
+export const enum Comparison {
+  GREATER,
+  GREATER_EQUAL,
+}
+
+/**
+ * Binary search to find the partition point in an ascending array.
+ *
+ * @param ascendingList - List of numbers in ascending order.
+ * @param value - Search value.
+ * @param options - Search options specifying Comparison.GREATER (>) or Comparison.GREATER_EQUAL (>=).
+ * @returns Index in [0, ascendingList.length].
+ */
+export function findFirstIndex(ascendingList: number[], value: number, options: { comparison: Comparison }): number {
+  const len = ascendingList.length;
+  if (len === 0) {
+    return 0;
+  }
+  const isGreater = options.comparison === Comparison.GREATER;
+  const first = ascendingList[0];
+  if (isGreater ? first > value : first >= value) {
+    return 0;
+  }
+  const last = ascendingList[len - 1];
+  if (isGreater ? last <= value : last < value) {
+    return len;
+  }
+
+  let low = 0;
+  let high = len - 1;
+  let result = len;
+  while (low <= high) {
+    const mid = (low + high) >> 1;
+    if (isGreater ? ascendingList[mid] > value : ascendingList[mid] >= value) {
+      result = mid;
+      high = mid - 1;
+    } else {
+      low = mid + 1;
+    }
+  }
+  return result;
+}
+
+/**
+ * Finds the two indexes left and right of the value in an ascending list.
+ *
+ * The output contains the following properties:
+ * - beforeAll: true when the value is less than any element in the list,
+ * - beforeIndex and afterIndex: indexes before and after the value. They are equal to the index of the value when
+ *   it is in the list.
+ * - afterAll: true when the value is greater than any element in the list.
+ *
+ * @param ascendingList - List of numbers in ascending order (must not be empty).
+ * @param value - Search value.
+ */
 export function findIndexes(
   ascendingList: number[],
   value: number,
 ): { beforeAll: boolean; afterAll: boolean; beforeIndex: number; afterIndex: number } {
-  if (ascendingList.length == 0) {
+  const len = ascendingList.length;
+  if (len === 0) {
     throw new Error('The list must contain at least 1 element');
   }
 
@@ -53,48 +102,23 @@ export function findIndexes(
     };
   }
 
-  let afterIndex = ascendingList.length - 1;
-
-  if (value > ascendingList[ascendingList.length - 1]) {
+  if (value > ascendingList[len - 1]) {
     return {
       beforeAll: false,
-      beforeIndex: afterIndex,
+      beforeIndex: len - 1,
       afterAll: true,
-      afterIndex: afterIndex,
+      afterIndex: len - 1,
     };
   }
 
-  if (afterIndex == 0) {
-    return {
-      beforeAll: false,
-      beforeIndex: 0,
-      afterAll: false,
-      afterIndex: 0,
-    };
-  }
-
-  let beforeIndex = 0;
-
-  while (afterIndex - beforeIndex > 1) {
-    const m = Math.round((beforeIndex + afterIndex) / 2);
-    if (ascendingList[m] > value) {
-      afterIndex = m;
-    } else {
-      beforeIndex = m;
-    }
-  }
-
-  if (ascendingList[afterIndex - 1] == value) {
-    afterIndex = afterIndex - 1;
-  } else if (ascendingList[beforeIndex + 1] == value) {
-    beforeIndex = beforeIndex + 1;
-  }
+  const idx = findFirstIndex(ascendingList, value, { comparison: Comparison.GREATER }) - 1;
+  const isExact = ascendingList[idx] === value;
 
   return {
     beforeAll: false,
-    afterIndex,
+    beforeIndex: idx,
     afterAll: false,
-    beforeIndex,
+    afterIndex: isExact ? idx : idx + 1,
   };
 }
 

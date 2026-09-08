@@ -2,7 +2,6 @@ import { LiveTrack } from '../protos/live-track';
 import {
   differentialDecodeLiveTrack,
   differentialEncodeLiveTrack,
-  findLastIndexLessOrEqual,
   getLastMessage,
   isEmergencyTrack,
   IsSimplifiableFix,
@@ -703,55 +702,6 @@ describe('simplifyLiveTrack', () => {
     } as any;
     simplifyLiveTrack(track, 10);
     expect(track.gndAlt).toEqual([NO_GROUND_ALTITUDE, NO_GROUND_ALTITUDE]);
-  });
-});
-
-describe('findLastIndexLessOrEqual', () => {
-  it('should return -1 for an empty array', () => {
-    expect(findLastIndexLessOrEqual([], 10)).toBe(-1);
-  });
-
-  it('should handle single element arrays', () => {
-    expect(findLastIndexLessOrEqual([10], 5)).toBe(-1);
-    expect(findLastIndexLessOrEqual([10], 10)).toBe(0);
-    expect(findLastIndexLessOrEqual([10], 15)).toBe(0);
-  });
-
-  it('should return -1 when value is less than the first element', () => {
-    expect(findLastIndexLessOrEqual([10, 20, 30], 5)).toBe(-1);
-    expect(findLastIndexLessOrEqual([10, 20, 30], 9)).toBe(-1);
-  });
-
-  it('should return 0 when value equals the first element', () => {
-    expect(findLastIndexLessOrEqual([10, 20, 30], 10)).toBe(0);
-  });
-
-  it('should find exact matches in sorted array', () => {
-    const list = [10, 20, 30, 40, 50];
-    expect(findLastIndexLessOrEqual(list, 20)).toBe(1);
-    expect(findLastIndexLessOrEqual(list, 30)).toBe(2);
-    expect(findLastIndexLessOrEqual(list, 40)).toBe(3);
-    expect(findLastIndexLessOrEqual(list, 50)).toBe(4);
-  });
-
-  it('should find the largest index less than value when not an exact match', () => {
-    const list = [10, 20, 30, 40, 50];
-    expect(findLastIndexLessOrEqual(list, 15)).toBe(0);
-    expect(findLastIndexLessOrEqual(list, 25)).toBe(1);
-    expect(findLastIndexLessOrEqual(list, 39)).toBe(2);
-    expect(findLastIndexLessOrEqual(list, 49)).toBe(3);
-  });
-
-  it('should return len - 1 when value is greater than the last element', () => {
-    const list = [10, 20, 30, 40, 50];
-    expect(findLastIndexLessOrEqual(list, 55)).toBe(4);
-    expect(findLastIndexLessOrEqual(list, 1000)).toBe(4);
-  });
-
-  it('should handle duplicate values returning the last matching index', () => {
-    const list = [10, 20, 20, 20, 30];
-    expect(findLastIndexLessOrEqual(list, 20)).toBe(3);
-    expect(findLastIndexLessOrEqual(list, 25)).toBe(3);
   });
 });
 

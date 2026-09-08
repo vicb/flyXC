@@ -1,6 +1,8 @@
 import type { LiveDifferentialTrack, LiveExtra } from '../protos/live-track';
 import { LiveTrack } from '../protos/live-track';
-import { diffDecodeArray, diffEncodeArray32bit, findIndexes } from './math';
+import { Comparison, diffDecodeArray, diffEncodeArray32bit, findFirstIndex } from './math';
+
+export { Comparison, findFirstIndex } from './math';
 
 // Number of bits reserved for device names.
 const DEVICE_TYPE_NUM_BITS = 5;
@@ -247,8 +249,7 @@ export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): Li
   }
 
   // Find the first index whose time is >= timeSec.
-  const indexes = findIndexes(track.timeSec, timeSec);
-  const numToDelete = indexes.afterIndex;
+  const numToDelete = findFirstIndex(track.timeSec, timeSec, { comparison: Comparison.GREATER_EQUAL });
 
   const extra: { [key: string]: LiveExtra } = {};
   for (const index in track.extra) {
@@ -287,34 +288,6 @@ export function removeDeviceFromLiveTrack(track: LiveTrack, device: TrackerNames
   }
 
   return outTrack;
-}
-
-/**
- * Finds the largest index where ascendingList[i] <= value using binary search.
- *
- * @param ascendingList - List of numbers in ascending order.
- * @param value - Search value.
- * @returns The largest index where ascendingList[i] <= value, or -1 if value is less than the first element.
- */
-export function findLastIndexLessOrEqual(ascendingList: number[], value: number): number {
-  const len = ascendingList.length;
-  if (len === 0 || value < ascendingList[0]) {
-    return -1;
-  }
-  if (value >= ascendingList[len - 1]) {
-    return len - 1;
-  }
-  let low = 0;
-  let high = len - 1;
-  while (low < high) {
-    const mid = (low + high + 1) >> 1;
-    if (ascendingList[mid] <= value) {
-      low = mid;
-    } else {
-      high = mid - 1;
-    }
-  }
-  return low;
 }
 
 /**
@@ -390,13 +363,13 @@ export function simplifyLiveTrack(
     if (fromSec > lastTime) {
       return;
     }
-    const idx = findLastIndexLessOrEqual(timeSecs, fromSec);
+    const idx = findFirstIndex(timeSecs, fromSec, { comparison: Comparison.GREATER }) - 1;
     startIndex = Math.max(0, idx);
   }
 
   let simplifyUntilIndex = len - 1;
   if (time?.toSec != null) {
-    const idx = findLastIndexLessOrEqual(timeSecs, time.toSec);
+    const idx = findFirstIndex(timeSecs, time.toSec, { comparison: Comparison.GREATER }) - 1;
     if (idx < 0) {
       return;
     }
