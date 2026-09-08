@@ -7,7 +7,7 @@
 // - https://www.mapzen.com/blog/terrain-tile-service/
 
 import lodepng from '@cwasm/lodepng';
-import { fetchResponse, NO_GROUND_ALTITUDE } from '@flyxc/common';
+import { fetchResponse, NO_GROUND_ALTITUDE, parallelTasksWithTimeout } from '@flyxc/common';
 import type { LRU } from 'tiny-lru';
 import { lru } from 'tiny-lru';
 
@@ -19,6 +19,9 @@ export const BYTES_PER_TILE = TILE_SIZE_PX * TILE_SIZE_PX * 4;
 
 // Default concurrency for tile downloads.
 export const DOWNLOAD_CONCURRENCY_DEFAULT = 5;
+
+// Default timeout in seconds for tile downloads.
+export const TIMEOUT_SEC_DEFAULT = 10;
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -80,6 +83,8 @@ export type ElevationOptions = {
   zoom: number;
   /** Default concurrency for tile downloads (defaults to DOWNLOAD_CONCURRENCY_DEFAULT). */
   concurrency?: number;
+  /** Timeout in seconds for tile downloads (defaults to TIMEOUT_SEC_DEFAULT). */
+  timeoutSec?: number;
 } & (
   | {
       /** Size of the in-memory tile cache in megabytes. */
@@ -114,13 +119,14 @@ export class ElevationService {
   private readonly cache: LRU<Uint8ClampedArray>;
   private readonly inFlightDownloads = new Map<string, Promise<Uint8ClampedArray | null>>();
   private readonly concurrency: number;
+  private readonly timeoutSec: number;
   private readonly zoomConstants: ZoomConstants;
 
   /**
    * Initializes a new ElevationService instance.
    * Callers must provide zoom and either cacheSizeMb or cacheCapacity.
    *
-   * @param options - Configuration options specifying zoom, cache size/capacity, and optional concurrency.
+   * @param options - Configuration options specifying zoom, cache size/capacity, and optional concurrency/timeoutSec.
    */
   constructor(options: ElevationOptions) {
     let capacity: number;
@@ -133,6 +139,7 @@ export class ElevationService {
     }
     this.cache = lru<Uint8ClampedArray>(capacity);
     this.concurrency = options.concurrency ?? DOWNLOAD_CONCURRENCY_DEFAULT;
+    this.timeoutSec = options.timeoutSec ?? TIMEOUT_SEC_DEFAULT;
     this.zoomConstants = createZoomConstants(options.zoom);
   }
 
@@ -240,12 +247,14 @@ export class ElevationService {
    * @param lat - Array-like collection of latitudes in degrees.
    * @param lon - Array-like collection of longitudes in degrees.
    * @param concurrency - Maximum number of simultaneous tile downloads.
+   * @param timeoutSec - Timeout in seconds for tile downloads (defaults to service's timeoutSec).
    * @returns Object containing the altitude array (in meters) and whether any errors occurred.
    */
   async fetchCoordinatesAltitude(
     lat: ArrayLike<number>,
     lon: ArrayLike<number>,
     concurrency = this.concurrency,
+    timeoutSec = this.timeoutSec,
   ): Promise<AltitudeResult> {
     const len = Math.min(lat.length, lon.length);
     if (len === 0) {
@@ -265,22 +274,23 @@ export class ElevationService {
 
     let hasErrors = false;
 
-    // Fetch uncached tiles using a lightweight bounded worker pool.
+    // Fetch uncached tiles in parallel with optional timeout.
     if (urlsToFetch.length > 0) {
-      const poolSize = Math.min(concurrency, urlsToFetch.length);
-      let nextIndex = 0;
-
-      const worker = async () => {
-        while (nextIndex < urlsToFetch.length) {
-          const url = urlsToFetch[nextIndex++];
+      const timeoutMs = timeoutSec != null && timeoutSec > 0 ? timeoutSec * 1000 : 0;
+      const { isTimeout } = await parallelTasksWithTimeout(
+        concurrency,
+        urlsToFetch,
+        async (url) => {
           const result = await this.fetchTile(url);
           if (result.hasError) {
             hasErrors = true;
           }
-        }
-      };
-
-      await Promise.all(Array.from({ length: poolSize }, worker));
+        },
+        timeoutMs,
+      );
+      if (isTimeout) {
+        hasErrors = true;
+      }
     }
 
     // Pre-allocate altitudes array to avoid resizing.
@@ -326,11 +336,13 @@ export class ElevationService {
    *
    * @param points - Array of `{ lat, lon }` coordinate objects.
    * @param concurrency - Maximum number of simultaneous tile downloads.
+   * @param timeoutSec - Timeout in seconds for tile downloads (defaults to service's timeoutSec).
    * @returns Object containing the altitude array (in meters) and whether any errors occurred.
    */
   async fetchPointsAltitude(
     points: Array<{ lat: number; lon: number }>,
     concurrency = this.concurrency,
+    timeoutSec = this.timeoutSec,
   ): Promise<AltitudeResult> {
     const len = points.length;
     if (len === 0) {
@@ -342,17 +354,23 @@ export class ElevationService {
       lats[i] = points[i].lat;
       lons[i] = points[i].lon;
     }
-    return this.fetchCoordinatesAltitude(lats, lons, concurrency);
+    return this.fetchCoordinatesAltitude(lats, lons, concurrency, timeoutSec);
   }
 
   /**
    * Returns ground altitudes for a track object or coordinate series.
    *
    * @param track - Object containing latitude and longitude arrays.
+   * @param concurrency - Maximum number of simultaneous tile downloads.
+   * @param timeoutSec - Timeout in seconds for tile downloads (defaults to service's timeoutSec).
    * @returns Object containing altitudes array (in meters) and error flag.
    */
-  async fetchGroundAltitude(track: TrackCoordinates): Promise<AltitudeResult> {
-    return this.fetchCoordinatesAltitude(track.lat, track.lon);
+  async fetchGroundAltitude(
+    track: TrackCoordinates,
+    concurrency = this.concurrency,
+    timeoutSec = this.timeoutSec,
+  ): Promise<AltitudeResult> {
+    return this.fetchCoordinatesAltitude(track.lat, track.lon, concurrency, timeoutSec);
   }
 
   /**
