@@ -5,6 +5,13 @@ GH_SHA="${GITHUB_SHA:-local}"
 GH_OWNER="${GITHUB_REPOSITORY_OWNER:-flyxc}"
 
 if [ -z "$WINDY_API_KEY" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    if [ -f "${SCRIPT_DIR}/.env" ]; then
+        WINDY_API_KEY=$(pnpm --dir "${SCRIPT_DIR}" exec dotenvx get WINDY_API_KEY -f "${SCRIPT_DIR}/.env" -fk "${SCRIPT_DIR}/../../.env.keys" 2>/dev/null)
+    fi
+fi
+
+if [ -z "$WINDY_API_KEY" ]; then
     echo "WINDY_API_KEY is not configured" >&2
     exit 1
 fi

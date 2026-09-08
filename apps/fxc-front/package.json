@@ -46,6 +46,7 @@
     "@types/react": "catalog:default",
     "@types/react-redux": "catalog:default",
     "date-fns": "catalog:default",
+    "@dotenvx/dotenvx": "catalog:default",
     "wrangler": "catalog:default"
   }
 }

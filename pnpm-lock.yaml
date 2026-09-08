@@ -465,6 +465,9 @@ importers:
       '@date-fns/tz':
         specifier: catalog:default
         version: 1.5.0
+      '@dotenvx/dotenvx':
+        specifier: catalog:default
+        version: 2.23.0
       '@types/d3-array':
         specifier: catalog:default
         version: 3.2.2
@@ -805,6 +808,9 @@ importers:
       '@babel/preset-typescript':
         specifier: ^8.0.1
         version: 8.0.1(@babel/core@8.0.1)
+      '@dotenvx/dotenvx':
+        specifier: catalog:default
+        version: 2.23.0
       '@preact/preset-vite':
         specifier: 'catalog:'
         version: 2.10.6(@babel/core@8.0.1)(preact@10.29.8)(rollup@4.54.0)(supports-color@8.1.1)(vite@8.2.2(@types/node@26.4.1)(esbuild@0.28.1)(jiti@2.7.0)(less@4.1.3)(sass@1.97.1)(stylus@0.64.0)(terser@5.49.0)(yaml@2.9.0))
