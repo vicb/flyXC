@@ -12,7 +12,7 @@ export default [
       '@nx/dependency-checks': [
         'error',
         {
-          ignoredFiles: ['{projectRoot}/vite.config.ts', 'vite.config.ts'],
+          ignoredFiles: [],
           ignoredDependencies: [
             '@date-fns/tz',
             '@nx/vite',
@@ -23,6 +23,7 @@ export default [
             'vitest',
             `@stencil/core`,
             `workbox-window`,
+            'jsonc-eslint-parser',
           ],
           checkMissingDependencies: true,
           checkObsoleteDependencies: true,

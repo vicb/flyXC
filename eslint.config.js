@@ -1,12 +1,12 @@
-const nxEslintPlugin = require('@nx/eslint-plugin');
-const eslintPluginRequireNodeImportPrefix = require('eslint-plugin-require-node-import-prefix');
-const eslintPluginSimpleImportSort = require('eslint-plugin-simple-import-sort');
-const eslintPluginImport = require('eslint-plugin-import');
-const eslintPluginWc = require('eslint-plugin-wc');
-const eslintPluginLit = require('eslint-plugin-lit');
-const nxTypescript = require('@nx/eslint-plugin/typescript');
+import nxEslintPlugin from '@nx/eslint-plugin';
+import nxTypescript from '@nx/eslint-plugin/typescript';
+import eslintPluginImport from 'eslint-plugin-import';
+import eslintPluginLit from 'eslint-plugin-lit';
+import eslintPluginRequireNodeImportPrefix from 'eslint-plugin-require-node-import-prefix';
+import eslintPluginSimpleImportSort from 'eslint-plugin-simple-import-sort';
+import eslintPluginWc from 'eslint-plugin-wc';
 
-module.exports = [
+export default [
   {
     plugins: {
       '@nx': nxEslintPlugin,
@@ -79,6 +79,7 @@ module.exports = [
       '**/vite.config.*.timestamp*',
       '**/vitest.config.*.timestamp*',
       '**/dist/',
+      '**/eslint.config.js',
     ],
   },
 ];

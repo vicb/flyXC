@@ -2,13 +2,13 @@ import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { literalsHtmlCssMinifier } from '@literals/rollup-plugin-html-css-minifier';
 import { TZDate } from '@date-fns/tz';
+import { literalsHtmlCssMinifier } from '@literals/rollup-plugin-html-css-minifier';
 import { format } from 'date-fns';
 import { visualizer } from 'rollup-plugin-visualizer';
-import { defineConfig } from 'vitest/config';
 import { checker } from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
+import { defineConfig } from 'vitest/config';
 
 import { getPwaConfig } from './pwa.config.ts';
 
