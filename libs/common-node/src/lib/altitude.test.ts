@@ -11,6 +11,7 @@ import {
   getUrlList,
   projectLatLonFast,
   TILE_SIZE_PX,
+  TIMEOUT_SEC_DEFAULT,
 } from './altitude';
 
 describe('Altitude in common-node', () => {
@@ -325,6 +326,85 @@ describe('Altitude in common-node', () => {
       expect(stats.max).toBe(191);
       expect(stats.sizeMb).toBe(1); // 2 * 262144 / 1e6 ~ 0.52 -> rounds to 1
       expect(stats.maxMb).toBe(50);
+    });
+  });
+
+  describe('Timeout handling', () => {
+    it('fills missing coordinates with NO_GROUND_ALTITUDE when a timeout occurs', async () => {
+      const service = new ElevationService({ cacheCapacity: 10, zoom: 10, timeoutSec: 0.05 });
+
+      // Point 1 in tile (531, 364)
+      const lat1 = 45.8326;
+      const lon1 = 6.8652;
+      // Point 2 in a different tile
+      const lat2 = 45.0;
+      const lon2 = 6.0;
+
+      // Pre-cache tile for Point 1 with 1000m elevation
+      const dummyTile = new Uint8ClampedArray(256 * 256 * 4);
+      for (let i = 0; i < 256 * 256; i++) {
+        dummyTile[i * 4] = 131;
+        dummyTile[i * 4 + 1] = 232;
+        dummyTile[i * 4 + 3] = 255;
+      }
+      const coords: [number, number, number, number] = [0, 0, 0, 0];
+      service.projectLatLonFast(lat1, lon1, coords);
+      service.getCache().set(getElevationTileUrl(coords[0], coords[1], 10), dummyTile);
+
+      // Mock fetchResponse to hang longer than timeoutSec (50ms)
+      const fetchSpy = vi.spyOn(common, 'fetchResponse').mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(
+              () =>
+                resolve({
+                  ok: false,
+                  status: 504,
+                } as any),
+              150,
+            );
+          }),
+      );
+
+      const result = await service.fetchCoordinatesAltitude([lat1, lat2], [lon1, lon2]);
+      expect(result.hasErrors).toBe(true);
+      // First point is from cached tile -> 1000m
+      expect(result.altitudes[0]).toBe(1000);
+      // Second point timed out and is missing -> NO_GROUND_ALTITUDE
+      expect(result.altitudes[1]).toBe(common.NO_GROUND_ALTITUDE);
+
+      fetchSpy.mockRestore();
+    });
+
+    it('allows timeoutSec override per call', async () => {
+      const service = new ElevationService({ cacheCapacity: 10, zoom: 10 });
+
+      const fetchSpy = vi.spyOn(common, 'fetchResponse').mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(
+              () =>
+                resolve({
+                  ok: false,
+                  status: 504,
+                } as any),
+              150,
+            );
+          }),
+      );
+
+      const result = await service.fetchCoordinatesAltitude([45.0], [6.0], 5, 0.05);
+      expect(result.hasErrors).toBe(true);
+      expect(result.altitudes[0]).toBe(common.NO_GROUND_ALTITUDE);
+
+      fetchSpy.mockRestore();
+    });
+
+    it('has default timeout constant set to 10 seconds', () => {
+      expect(TIMEOUT_SEC_DEFAULT).toBe(10);
+      const service = new ElevationService({ cacheCapacity: 10, zoom: 10 });
+      // Access private timeoutSec for verification
+      expect((service as any).timeoutSec).toBe(10);
     });
   });
 });
