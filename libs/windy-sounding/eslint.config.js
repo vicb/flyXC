@@ -1,6 +1,8 @@
-const baseConfig = require('../../eslint.config.js');
+import * as jsoncParser from 'jsonc-eslint-parser';
 
-module.exports = [
+import baseConfig from '../../eslint.config.js';
+
+export default [
   ...baseConfig,
   {
     ignores: ['dist/**'],
@@ -26,12 +28,12 @@ module.exports = [
         'error',
         {
           ignoredFiles: ['{projectRoot}/vite.config.ts', 'vite.config.*'],
-          ignoredDependencies: ['react-redux', 'preact'],
+          ignoredDependencies: ['react-redux', 'preact', 'jsonc-eslint-parser'],
         },
       ],
     },
     languageOptions: {
-      parser: require('jsonc-eslint-parser'),
+      parser: jsoncParser,
     },
   },
   {
