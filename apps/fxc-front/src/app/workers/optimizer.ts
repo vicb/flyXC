@@ -1,10 +1,9 @@
 import { CircuitType } from '@flyxc/optimizer/src/lib/api';
 import type { LatLon, Leg, ScoringRequest, ScoringResult, ScoringTrack } from '@flyxc/optimizer/src/lib/optimizer';
 import { getOptimizer } from '@flyxc/optimizer/src/lib/optimizer';
-
-import type { Score } from '../../../rustigc/rustigc-wasm/pkg/rustigc_wasm.js';
-import initRustigc, { Scorer } from '../../../rustigc/rustigc-wasm/pkg/rustigc_wasm.js';
-import wasmUrl from '../../../rustigc/rustigc-wasm/pkg/rustigc_wasm_bg.wasm?url';
+import type { Score } from 'rustigc-wasm';
+import initRustigc, { Scorer } from 'rustigc-wasm';
+import wasmUrl from 'rustigc-wasm/rustigc_wasm_bg.wasm?url';
 
 export interface Request {
   request: ScoringRequest;
@@ -165,7 +164,7 @@ addEventListener('message', async (event: MessageEvent<Request>) => {
   let rustigc: ScoringResult | undefined;
   if (request.ruleName === 'FFVL') {
     try {
-      rustigc = await scoreWithRustigc(request.track, 'cfd');
+      rustigc = await scoreWithRustigc(request.track, 'cfd-preview');
     } catch (e) {
       console.error('[Optimizer Worker] rustigc scoring error:', e);
     }

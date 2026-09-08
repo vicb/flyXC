@@ -4,7 +4,7 @@ import * as jsoncParser from 'jsonc-eslint-parser';
 export default [
   ...baseConfig,
   {
-    ignores: ['dist/**', '**/.vite', '**/node_modules', '**/.cache', 'rustigc/**', '**/rustigc/**'],
+    ignores: ['dist/**', '**/.vite', '**/node_modules', '**/.cache'],
   },
   {
     files: ['**/{package,project}.json'],
