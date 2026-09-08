@@ -23,6 +23,7 @@ describe('removeBeforeFromLiveTrack', () => {
       lat: [11, 21, 31, 41],
       lon: [12, 22, 32, 42],
       alt: [13, 23, 33, 43],
+      gndAlt: [15, 25, 35, 45],
       flags: [14, 24, 34, 44],
       extra: { 1: { speed: 10 }, 2: { message: 'hello' } },
     };
@@ -34,6 +35,7 @@ describe('removeBeforeFromLiveTrack', () => {
       lat: [11, 21, 31, 41],
       lon: [12, 22, 32, 42],
       alt: [13, 23, 33, 43],
+      gndAlt: [15, 25, 35, 45],
       flags: [14, 24, 34, 44],
       extra: { 1: { speed: 10 }, 2: { message: 'hello' } },
     });
@@ -45,6 +47,7 @@ describe('removeBeforeFromLiveTrack', () => {
       lat: [11, 21, 31, 41],
       lon: [12, 22, 32, 42],
       alt: [13, 23, 33, 43],
+      gndAlt: [15, 25, 35, 45],
       flags: [14, 24, 34, 44],
       extra: { 1: { speed: 10 }, 2: { message: 'hello' } },
     });
@@ -56,6 +59,7 @@ describe('removeBeforeFromLiveTrack', () => {
       lat: [31, 41],
       lon: [32, 42],
       alt: [33, 43],
+      gndAlt: [35, 45],
       flags: [34, 44],
       extra: { 0: { message: 'hello' } },
     });
@@ -67,6 +71,7 @@ describe('removeBeforeFromLiveTrack', () => {
       lat: [31, 41],
       lon: [32, 42],
       alt: [33, 43],
+      gndAlt: [35, 45],
       flags: [34, 44],
       extra: { 0: { message: 'hello' } },
     });
@@ -78,6 +83,7 @@ describe('removeBeforeFromLiveTrack', () => {
       lat: [41],
       lon: [42],
       alt: [43],
+      gndAlt: [45],
       flags: [44],
       extra: {},
     });
@@ -92,6 +98,19 @@ describe('removeBeforeFromLiveTrack', () => {
     expect(removeBeforeFromLiveTrack(track, 45)).toEqual(LiveTrack.create());
   });
 
+  it('should normalize missing gndAlt when removing before', () => {
+    const track = {
+      timeSec: [10, 20],
+      lat: [1, 2],
+      lon: [3, 4],
+      alt: [5, 6],
+      flags: [0, 0],
+      extra: {},
+    } as any;
+    const result = removeBeforeFromLiveTrack(track, 15);
+    expect(result.gndAlt).toEqual([NO_GROUND_ALTITUDE]);
+  });
+
   it('should handle single-point tracks correctly', () => {
     const singleTrack: LiveTrack = {
       name: 'pilot1',
@@ -100,6 +119,7 @@ describe('removeBeforeFromLiveTrack', () => {
       lat: [45],
       lon: [6],
       alt: [1000],
+      gndAlt: [500],
       flags: [0],
       extra: { 0: { speed: 25 } },
     };
@@ -120,6 +140,7 @@ describe('removeBeforeFromLiveTrack', () => {
       lat: [1, 2, 3],
       lon: [4, 5, 6],
       alt: [7, 8, 9],
+      gndAlt: [10, 11, 12],
       flags: [0, 0, 0],
       extra: {},
     };
@@ -155,6 +176,7 @@ describe('removeBeforeFromLiveTrack', () => {
       lat: [1, 2, 3],
       lon: [4, 5, 6],
       alt: [7, 8, 9],
+      gndAlt: [10, 11, 12],
       flags: [0, 0, 0],
       extra: { 0: { speed: 10, message: 'orig' } },
     };
@@ -177,6 +199,7 @@ describe('removeBeforeFromLiveTrack', () => {
       lat: [1, 2, 3],
       lon: [4, 5, 6],
       alt: [7, 8, 9],
+      gndAlt: [10, 11, 12],
       flags: [0, 0, 0],
       extra: { 1: { speed: 100 } },
     };
@@ -193,6 +216,7 @@ describe('removeBeforeFromLiveTrack', () => {
       lat: [1, 2, 3, 4, 5],
       lon: [1, 2, 3, 4, 5],
       alt: [1, 2, 3, 4, 5],
+      gndAlt: [10, 20, 30, 40, 50],
       flags: [0, 0, 0, 0, 0],
       extra: {
         0: { message: 'start' },
@@ -222,6 +246,7 @@ describe('removeDeviceFromLiveTrack', () => {
       lat: [11, 21, 31, 41],
       lon: [12, 22, 32, 42],
       alt: [13, 23, 33, 43],
+      gndAlt: [15, 25, 35, 45],
       flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.flyme, trackerIdByName.flyme],
       extra: { 1: { speed: 10 }, 2: { message: 'hello' } },
     };
@@ -238,6 +263,7 @@ describe('removeDeviceFromLiveTrack', () => {
       lat: [11, 21],
       lon: [12, 22],
       alt: [13, 23],
+      gndAlt: [15, 25],
       flags: [trackerIdByName.inreach, trackerIdByName.inreach],
       extra: { 1: { speed: 10 } },
     });
@@ -247,6 +273,7 @@ describe('removeDeviceFromLiveTrack', () => {
       lat: [31, 41],
       lon: [32, 42],
       alt: [33, 43],
+      gndAlt: [35, 45],
       flags: [trackerIdByName.flyme, trackerIdByName.flyme],
       extra: { 0: { message: 'hello' } },
     });
@@ -258,9 +285,23 @@ describe('removeDeviceFromLiveTrack', () => {
       lat: [11, 21, 31, 41],
       lon: [12, 22, 32, 42],
       alt: [13, 23, 33, 43],
+      gndAlt: [15, 25, 35, 45],
       flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.flyme, trackerIdByName.flyme],
       extra: { 1: { speed: 10 }, 2: { message: 'hello' } },
     });
+  });
+
+  it('should normalize missing gndAlt when removing device', () => {
+    const track = {
+      timeSec: [10, 20],
+      lat: [1, 2],
+      lon: [3, 4],
+      alt: [5, 6],
+      flags: [trackerIdByName.inreach, trackerIdByName.flyme],
+      extra: {},
+    } as any;
+    const result = removeDeviceFromLiveTrack(track, 'flyme');
+    expect(result.gndAlt).toEqual([NO_GROUND_ALTITUDE]);
   });
 });
 
@@ -271,6 +312,7 @@ describe('simplifyLiveTrack', () => {
       lat: [2, 11, 21, 26, 31, 36, 41, 46],
       lon: [3, 12, 22, 27, 32, 37, 42, 47],
       alt: [4, 13, 23, 28, 33, 38, 43, 48],
+      gndAlt: [5, 14, 24, 29, 34, 39, 44, 49],
       flags: [0, 0, 0, 0, 0, 0, 0, 0],
       extra: {},
     };
@@ -282,6 +324,7 @@ describe('simplifyLiveTrack', () => {
       lat: [2, 21, 31, 41, 46],
       lon: [3, 22, 32, 42, 47],
       alt: [4, 23, 33, 43, 48],
+      gndAlt: [5, 24, 34, 44, 49],
       flags: [0, 0, 0, 0, 0],
       extra: {},
     });
@@ -293,6 +336,7 @@ describe('simplifyLiveTrack', () => {
       lat: [2, 11, 21, 26, 31, 36, 41, 46],
       lon: [3, 12, 22, 27, 32, 37, 42, 47],
       alt: [4, 13, 23, 28, 33, 38, 43, 48],
+      gndAlt: [5, 14, 24, 29, 34, 39, 44, 49],
       flags: [0, 0, 0, 0, 0, 0, 0, 0],
       extra: { 3: { message: 'hello' } },
     };
@@ -304,6 +348,7 @@ describe('simplifyLiveTrack', () => {
       lat: [2, 11, 21, 26, 31, 36, 41, 46],
       lon: [3, 12, 22, 27, 32, 37, 42, 47],
       alt: [4, 13, 23, 28, 33, 38, 43, 48],
+      gndAlt: [5, 14, 24, 29, 34, 39, 44, 49],
       flags: [0, 0, 0, 0, 0, 0, 0, 0],
       extra: { 3: { message: 'hello' } },
     });
@@ -315,6 +360,7 @@ describe('simplifyLiveTrack', () => {
       lat: [0, 0, 0, 0, 0],
       lon: [0, 0, 0, 0, 0],
       alt: [0, 0, 0, 0, 0],
+      gndAlt: [0, 0, 0, 0, 0],
       flags: [0, 0, 0, 0, 0],
       extra: {
         2: { message: 'hello' },
@@ -339,6 +385,7 @@ describe('simplifyLiveTrack', () => {
       lat: [0, 0, 0, 0],
       lon: [0, 0, 0, 0],
       alt: [0, 0, 0, 0],
+      gndAlt: [0, 0, 0, 0],
       flags: [0, 0, 0, 0],
       extra: {
         1: { speed: 10 },
@@ -361,6 +408,7 @@ describe('simplifyLiveTrack', () => {
       lat: [0, 0, 0, 0],
       lon: [0, 0, 0, 0],
       alt: [0, 0, 0, 0],
+      gndAlt: [0, 0, 0, 0],
       flags: [0, LiveTrackFlag.Emergency, LiveTrackFlag.Emergency, 0],
       extra: {
         1: { message: 'hello' },
@@ -381,6 +429,7 @@ describe('simplifyLiveTrack', () => {
       lat: [0, 0, 0, 0, 0],
       lon: [0, 0, 0, 0, 0],
       alt: [0, 0, 0, 0, 0],
+      gndAlt: [0, 0, 0, 0, 0],
       flags: [0, 0, LiveTrackFlag.LowBat, 0, 0],
       extra: {
         1: { message: 'hello' },
@@ -401,6 +450,7 @@ describe('simplifyLiveTrack', () => {
       lat: [2, 11, 21, 26, 31, 36, 41, 46],
       lon: [3, 12, 22, 27, 32, 37, 42, 47],
       alt: [4, 13, 23, 28, 33, 38, 43, 48],
+      gndAlt: [5, 14, 24, 29, 34, 39, 44, 49],
       flags: [0, 0, 0, 0, 0, 0, 0, 0],
       extra: { 4: { message: 'hello' } },
     };
@@ -412,6 +462,7 @@ describe('simplifyLiveTrack', () => {
       lat: [2, 11, 21, 26, 31, 41, 46],
       lon: [3, 12, 22, 27, 32, 42, 47],
       alt: [4, 13, 23, 28, 33, 43, 48],
+      gndAlt: [5, 14, 24, 29, 34, 44, 49],
       flags: [0, 0, 0, 0, 0, 0, 0],
       extra: { 4: { message: 'hello' } },
     });
@@ -423,6 +474,7 @@ describe('simplifyLiveTrack', () => {
       lat: [],
       lon: [],
       alt: [],
+      gndAlt: [],
       flags: [],
       extra: {},
     };
@@ -434,6 +486,7 @@ describe('simplifyLiveTrack', () => {
       lat: [],
       lon: [],
       alt: [],
+      gndAlt: [],
       flags: [],
       extra: {},
     });
@@ -445,6 +498,7 @@ describe('simplifyLiveTrack', () => {
       lat: [2, 11, 21, 26, 31, 36, 41, 46],
       lon: [3, 12, 22, 27, 32, 37, 42, 47],
       alt: [4, 13, 23, 28, 33, 38, 43, 48],
+      gndAlt: [5, 14, 24, 29, 34, 39, 44, 49],
       flags: [0, 0, 0, 0, 0, 0, 0, 0],
       extra: { 4: { message: 'hello' } },
     };
@@ -456,6 +510,7 @@ describe('simplifyLiveTrack', () => {
       lat: [2, 11, 21, 26, 31, 36, 41, 46],
       lon: [3, 12, 22, 27, 32, 37, 42, 47],
       alt: [4, 13, 23, 28, 33, 38, 43, 48],
+      gndAlt: [5, 14, 24, 29, 34, 39, 44, 49],
       flags: [0, 0, 0, 0, 0, 0, 0, 0],
       extra: { 4: { message: 'hello' } },
     });
@@ -467,6 +522,7 @@ describe('simplifyLiveTrack', () => {
       lat: [2, 11, 21, 26, 31, 36, 41, 46],
       lon: [3, 12, 22, 27, 32, 37, 42, 47],
       alt: [4, 13, 23, 28, 33, 38, 43, 48],
+      gndAlt: [5, 14, 24, 29, 34, 39, 44, 49],
       flags: [0, 0, 0, 0, 0, 0, 0, 0],
       extra: { 4: { message: 'hello' } },
     };
@@ -478,6 +534,7 @@ describe('simplifyLiveTrack', () => {
       lat: [2, 21, 31, 36, 41, 46],
       lon: [3, 22, 32, 37, 42, 47],
       alt: [4, 23, 33, 38, 43, 48],
+      gndAlt: [5, 24, 34, 39, 44, 49],
       flags: [0, 0, 0, 0, 0, 0],
       extra: { 2: { message: 'hello' } },
     });
@@ -489,6 +546,7 @@ describe('simplifyLiveTrack', () => {
       lat: [],
       lon: [],
       alt: [],
+      gndAlt: [],
       flags: [],
       extra: {},
     };
@@ -500,6 +558,7 @@ describe('simplifyLiveTrack', () => {
       lat: [],
       lon: [],
       alt: [],
+      gndAlt: [],
       flags: [],
       extra: {},
     });
@@ -511,6 +570,7 @@ describe('simplifyLiveTrack', () => {
       lat: [2, 11, 21, 26, 31, 36, 41, 46],
       lon: [3, 12, 22, 27, 32, 37, 42, 47],
       alt: [4, 13, 23, 28, 33, 38, 43, 48],
+      gndAlt: [5, 14, 24, 29, 34, 39, 44, 49],
       flags: [0, 0, 0, 0, 0, 0, 0, 0],
       extra: { 4: { message: 'hello' } },
     };
@@ -522,6 +582,7 @@ describe('simplifyLiveTrack', () => {
       lat: [2, 11, 21, 26, 31, 36, 41, 46],
       lon: [3, 12, 22, 27, 32, 37, 42, 47],
       alt: [4, 13, 23, 28, 33, 38, 43, 48],
+      gndAlt: [5, 14, 24, 29, 34, 39, 44, 49],
       flags: [0, 0, 0, 0, 0, 0, 0, 0],
       extra: { 4: { message: 'hello' } },
     });
@@ -533,6 +594,7 @@ describe('simplifyLiveTrack', () => {
       lat: [2, 11, 21, 26, 31, 36, 41, 46],
       lon: [3, 12, 22, 27, 32, 37, 42, 47],
       alt: [4, 13, 23, 28, 33, 38, 43, 48],
+      gndAlt: [5, 14, 24, 29, 34, 39, 44, 49],
       flags: [0, 0, 0, 0, 0, 0, 0, 0],
       extra: { 4: { message: 'hello' } },
     };
@@ -544,6 +606,7 @@ describe('simplifyLiveTrack', () => {
       lat: [2, 11, 21, 31, 46],
       lon: [3, 12, 22, 32, 47],
       alt: [4, 13, 23, 33, 48],
+      gndAlt: [5, 14, 24, 34, 49],
       flags: [0, 0, 0, 0, 0],
       extra: { 3: { message: 'hello' } },
     });
@@ -555,6 +618,7 @@ describe('simplifyLiveTrack', () => {
       lat: [45],
       lon: [6],
       alt: [1000],
+      gndAlt: [500],
       flags: [0],
       extra: { 0: { speed: 20 } },
     };
@@ -566,6 +630,7 @@ describe('simplifyLiveTrack', () => {
       lat: [45],
       lon: [6],
       alt: [1000],
+      gndAlt: [500],
       flags: [0],
       extra: { 0: { speed: 20 } },
     });
@@ -577,6 +642,7 @@ describe('simplifyLiveTrack', () => {
       lat: [1, 2, 3, 4, 5],
       lon: [1, 2, 3, 4, 5],
       alt: [1, 2, 3, 4, 5],
+      gndAlt: [1, 2, 3, 4, 5],
       flags: [0, 0, 0, 0, 0],
       extra: {},
     };
@@ -592,6 +658,7 @@ describe('simplifyLiveTrack', () => {
       lat: [1, 2, 3, 4, 5],
       lon: [1, 2, 3, 4, 5],
       alt: [1, 2, 3, 4, 5],
+      gndAlt: [1, 2, 3, 4, 5],
       flags: [0, 0, 0, 0, 0],
       extra: {},
     };
@@ -607,6 +674,7 @@ describe('simplifyLiveTrack', () => {
       lat: [1, 2, 3, 4],
       lon: [1, 2, 3, 4],
       alt: [1, 2, 3, 4],
+      gndAlt: [1, 2, 3, 4],
       flags: [LiveTrackFlag.IsUfo, 0, 0, LiveTrackFlag.IsUfo],
       extra: {},
     };
@@ -622,6 +690,19 @@ describe('simplifyLiveTrack', () => {
     // index 3 (25 - 20 = 5 < 10): last point is never simplifiable (even if UFO).
     expect(track.timeSec).toEqual([10, 20, 25]);
     expect(track.flags).toEqual([LiveTrackFlag.IsUfo, 0, LiveTrackFlag.IsUfo]);
+  });
+
+  it('should normalize missing gndAlt when simplifying', () => {
+    const track = {
+      timeSec: [10, 20],
+      lat: [1, 2],
+      lon: [3, 4],
+      alt: [5, 6],
+      flags: [0, 0],
+      extra: {},
+    } as any;
+    simplifyLiveTrack(track, 10);
+    expect(track.gndAlt).toEqual([NO_GROUND_ALTITUDE, NO_GROUND_ALTITUDE]);
   });
 });
 
@@ -680,6 +761,7 @@ describe('IsSimplifiableFix', () => {
     lat: [1, 2, 3, 4],
     lon: [1, 2, 3, 4],
     alt: [1, 2, 3, 4],
+    gndAlt: [1, 2, 3, 4],
     flags: [0, 0, 0, 0],
     extra: {},
   };
@@ -744,6 +826,7 @@ describe('mergeLiveTracks', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
+      gndAlt: [51, 52, 53],
       flags: [41, 42, 43],
       extra: {
         0: { message: 'hello' },
@@ -757,14 +840,15 @@ describe('mergeLiveTracks', () => {
     expect(mergeLiveTracks(emptyTrack, track)).toEqual(track);
   });
 
-  it('should merge gndAlt in extra picking valid over undefined', () => {
+  it('should merge gndAlt picking valid over sentinel', () => {
     const track1: LiveTrack = {
       timeSec: [10, 20],
       lat: [11, 12],
       lon: [21, 22],
       alt: [31, 32],
+      gndAlt: [100, NO_GROUND_ALTITUDE],
       flags: [trackerIdByName.inreach, trackerIdByName.inreach],
-      extra: { 0: { gndAlt: 100 } },
+      extra: {},
     };
 
     const track2: LiveTrack = {
@@ -772,15 +856,35 @@ describe('mergeLiveTracks', () => {
       lat: [12, 13],
       lon: [22, 23],
       alt: [32, 33],
+      gndAlt: [250, 350],
       flags: [trackerIdByName.spot | LiveTrackFlag.Valid, trackerIdByName.spot | LiveTrackFlag.Valid],
-      extra: { 0: { gndAlt: 250 }, 1: { gndAlt: 350 } },
+      extra: {},
     };
 
     const merged = mergeLiveTracks(track1, track2);
     expect(merged.timeSec).toEqual([10, 20, 30]);
-    expect(merged.extra[0]?.gndAlt).toBe(100);
-    expect(merged.extra[1]?.gndAlt).toBe(250);
-    expect(merged.extra[2]?.gndAlt).toBe(350);
+    expect(merged.gndAlt).toEqual([100, 250, 350]);
+  });
+
+  it('should populate gndAlt with sentinel if tracks have missing gndAlt', () => {
+    const track1 = {
+      timeSec: [10],
+      lat: [11],
+      lon: [21],
+      alt: [31],
+      flags: [1],
+      extra: {},
+    } as any;
+    const track2 = {
+      timeSec: [20],
+      lat: [12],
+      lon: [22],
+      alt: [32],
+      flags: [1],
+      extra: {},
+    } as any;
+    const merged = mergeLiveTracks(track1, track2);
+    expect(merged.gndAlt).toEqual([NO_GROUND_ALTITUDE, NO_GROUND_ALTITUDE]);
   });
 
   it('should merge non-overlapping tracks', () => {
@@ -789,6 +893,7 @@ describe('mergeLiveTracks', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
+      gndAlt: [51, 52, 53],
       flags: [41, 42, 43],
       extra: {
         0: { message: 'hello' },
@@ -801,6 +906,7 @@ describe('mergeLiveTracks', () => {
       lat: [14, 15, 16],
       lon: [24, 25, 26],
       alt: [34, 35, 36],
+      gndAlt: [54, 55, 56],
       flags: [44, 45, 46],
       extra: {
         0: { message: 'olleh' },
@@ -814,6 +920,7 @@ describe('mergeLiveTracks', () => {
       lat: [11, 12, 13, 14, 15, 16],
       lon: [21, 22, 23, 24, 25, 26],
       alt: [31, 32, 33, 34, 35, 36],
+      gndAlt: [51, 52, 53, 54, 55, 56],
       flags: [41, 42, 43, 44, 45, 46],
       extra: {
         0: { message: 'hello' },
@@ -830,6 +937,7 @@ describe('mergeLiveTracks', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
+      gndAlt: [51, 52, 53],
       flags: [41, 42, 43],
       extra: {
         0: { message: 'hello' },
@@ -842,6 +950,7 @@ describe('mergeLiveTracks', () => {
       lat: [14, 15, 16],
       lon: [24, 25, 26],
       alt: [34, 35, 36],
+      gndAlt: [54, 55, 56],
       flags: [44, 45, 46],
       extra: {
         0: { message: 'olleh' },
@@ -856,6 +965,7 @@ describe('mergeLiveTracks', () => {
       lat: [11, 14, 12, 15, 13, 16],
       lon: [21, 24, 22, 25, 23, 26],
       alt: [31, 34, 32, 35, 33, 36],
+      gndAlt: [51, 54, 52, 55, 53, 56],
       flags: [41, 44, 42, 45, 43, 46],
       extra: {
         0: { message: 'hello' },
@@ -872,6 +982,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13],
         lon: [21, 22, 23],
         alt: [31, 32, 33],
+        gndAlt: [51, 52, 53],
         flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
@@ -884,6 +995,7 @@ describe('mergeLiveTracks', () => {
         lat: [0],
         lon: [0],
         alt: [0],
+        gndAlt: [0],
         flags: [trackerIdByName.spot | LiveTrackFlag.Emergency],
         extra: {
           0: { message: 'world' },
@@ -895,6 +1007,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13],
         lon: [21, 22, 23],
         alt: [31, 32, 33],
+        gndAlt: [51, 52, 53],
         flags: [trackerIdByName.inreach, trackerIdByName.inreach | LiveTrackFlag.Emergency, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
@@ -910,6 +1023,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13],
         lon: [21, 22, 23],
         alt: [31, 32, 33],
+        gndAlt: [51, 52, 53],
         flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
@@ -922,6 +1036,7 @@ describe('mergeLiveTracks', () => {
         lat: [0],
         lon: [0],
         alt: [0],
+        gndAlt: [0],
         flags: [trackerIdByName.spot | LiveTrackFlag.LowBat],
         extra: {
           0: { message: 'world' },
@@ -933,6 +1048,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13],
         lon: [21, 22, 23],
         alt: [31, 32, 33],
+        gndAlt: [51, 52, 53],
         flags: [trackerIdByName.inreach, trackerIdByName.inreach | LiveTrackFlag.LowBat, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
@@ -948,6 +1064,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 0, 13],
         lon: [21, 0, 23],
         alt: [31, 0, 33],
+        gndAlt: [51, NO_GROUND_ALTITUDE, 53],
         flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
@@ -960,6 +1077,7 @@ describe('mergeLiveTracks', () => {
         lat: [12],
         lon: [22],
         alt: [32],
+        gndAlt: [52],
         flags: [trackerIdByName.spot | LiveTrackFlag.Valid],
         extra: {
           0: { message: 'world' },
@@ -971,6 +1089,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13],
         lon: [21, 22, 23],
         alt: [31, 32, 33],
+        gndAlt: [51, 52, 53],
         flags: [trackerIdByName.inreach, trackerIdByName.spot | LiveTrackFlag.Valid, trackerIdByName.inreach],
         extra: {
           0: { message: 'hello' },
@@ -986,6 +1105,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13, 14, 15],
         lon: [21, 22, 23, 24, 25],
         alt: [31, 32, 33, 34, 35],
+        gndAlt: [51, 52, 53, 54, 55],
         flags: [
           trackerIdByName.spot | LiveTrackFlag.Valid,
           trackerIdByName.spot | LiveTrackFlag.Valid,
@@ -1005,6 +1125,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13, 14],
         lon: [21, 22, 23, 24],
         alt: [31, 32, 33, 34],
+        gndAlt: [51, 52, 53, 54],
         flags: [
           trackerIdByName.spot | LiveTrackFlag.Valid,
           trackerIdByName.spot | LiveTrackFlag.Valid,
@@ -1014,7 +1135,7 @@ describe('mergeLiveTracks', () => {
         extra: {
           0: { speed: 2 },
           1: { message: 'olleh' },
-          3: { message: '2', speed: 2, gndAlt: 100 },
+          3: { message: '2', speed: 2 },
         },
       };
 
@@ -1023,6 +1144,7 @@ describe('mergeLiveTracks', () => {
         lat: [11, 12, 13, 14, 15],
         lon: [21, 22, 23, 24, 25],
         alt: [31, 32, 33, 34, 35],
+        gndAlt: [51, 52, 53, 54, 55],
         flags: [
           trackerIdByName.spot | LiveTrackFlag.Valid,
           trackerIdByName.spot | LiveTrackFlag.Valid,
@@ -1034,7 +1156,7 @@ describe('mergeLiveTracks', () => {
           0: { message: 'hello', speed: 2 },
           1: { message: 'olleh', speed: 1 },
           2: { message: '1', speed: 1 },
-          3: { message: '2', speed: 2, gndAlt: 100 },
+          3: { message: '2', speed: 2 },
         },
       });
     });
@@ -1070,6 +1192,7 @@ describe('mergeLiveTracks', () => {
         alt: [1000],
         timeSec: [100],
         flags: [0],
+        gndAlt: [NO_GROUND_ALTITUDE],
         extra: {},
       });
       const track2 = LiveTrack.create({
@@ -1078,20 +1201,22 @@ describe('mergeLiveTracks', () => {
         alt: [1000],
         timeSec: [100],
         flags: [0],
-        extra: { 0: { gndAlt: 450 } },
+        gndAlt: [450],
+        extra: {},
       });
 
-      expect(mergeLiveTracks(track1, track2).extra[0]?.gndAlt).toBe(450);
-      expect(mergeLiveTracks(track2, track1).extra[0]?.gndAlt).toBe(450);
+      expect(mergeLiveTracks(track1, track2).gndAlt[0]).toBe(450);
+      expect(mergeLiveTracks(track2, track1).gndAlt[0]).toBe(450);
     });
 
-    it('should preserve ground altitude in extra when merging update', () => {
+    it('should preserve ground altitude when merging update', () => {
       const initialTrack = LiveTrack.create({
         lat: [45.0, 45.1, 45.2],
         lon: [6.0, 6.1, 6.2],
         alt: [1000, 1100, 1200],
         timeSec: [100, 200, 300],
         flags: [0, 0, 0],
+        gndAlt: [NO_GROUND_ALTITUDE, NO_GROUND_ALTITUDE, NO_GROUND_ALTITUDE],
         extra: {},
       });
       const updateTrack = LiveTrack.create({
@@ -1100,13 +1225,14 @@ describe('mergeLiveTracks', () => {
         alt: [1300, 1400],
         timeSec: [400, 500],
         flags: [0, 0],
-        extra: { 0: { gndAlt: 550 }, 1: { gndAlt: 560 } },
+        gndAlt: [550, 560],
+        extra: {},
       });
 
       const merged = mergeLiveTracks(initialTrack, updateTrack);
-      expect(merged.extra[0]?.gndAlt).toBeUndefined();
-      expect(merged.extra[3]?.gndAlt).toBe(550);
-      expect(merged.extra[4]?.gndAlt).toBe(560);
+      expect(merged.gndAlt[0]).toBe(NO_GROUND_ALTITUDE);
+      expect(merged.gndAlt[3]).toBe(550);
+      expect(merged.gndAlt[4]).toBe(560);
     });
 
     it('should preserve existing valid ground altitude when incoming is NO_GROUND_ALTITUDE', () => {
@@ -1116,7 +1242,8 @@ describe('mergeLiveTracks', () => {
         alt: [1000],
         timeSec: [100],
         flags: [0],
-        extra: { 0: { gndAlt: 450 } },
+        gndAlt: [450],
+        extra: {},
       });
       const trackWithSentinel = LiveTrack.create({
         lat: [10],
@@ -1124,11 +1251,12 @@ describe('mergeLiveTracks', () => {
         alt: [1000],
         timeSec: [100],
         flags: [0],
-        extra: { 0: { gndAlt: NO_GROUND_ALTITUDE } },
+        gndAlt: [NO_GROUND_ALTITUDE],
+        extra: {},
       });
 
-      expect(mergeLiveTracks(trackWithValid, trackWithSentinel).extra[0]?.gndAlt).toBe(450);
-      expect(mergeLiveTracks(trackWithSentinel, trackWithValid).extra[0]?.gndAlt).toBe(450);
+      expect(mergeLiveTracks(trackWithValid, trackWithSentinel).gndAlt[0]).toBe(450);
+      expect(mergeLiveTracks(trackWithSentinel, trackWithValid).gndAlt[0]).toBe(450);
     });
 
     it('should not mutate input tracks when merging equal-timestamp fixes with extras', () => {
@@ -1138,7 +1266,7 @@ describe('mergeLiveTracks', () => {
         alt: [1000],
         timeSec: [100],
         flags: [0],
-        extra: { 0: { speed: 10, message: 'm1', gndAlt: 400 } },
+        extra: { 0: { speed: 10, message: 'm1' } },
       });
       const track2 = LiveTrack.create({
         lat: [10],
@@ -1146,13 +1274,13 @@ describe('mergeLiveTracks', () => {
         alt: [1000],
         timeSec: [100],
         flags: [0],
-        extra: { 0: { speed: 20, message: 'm2', gndAlt: 500 } },
+        extra: { 0: { speed: 20, message: 'm2' } },
       });
 
       const merged = mergeLiveTracks(track1, track2);
-      expect(merged.extra[0]).toEqual({ speed: 20, message: 'm2', gndAlt: 500 });
-      expect(track1.extra[0]).toEqual({ speed: 10, message: 'm1', gndAlt: 400 });
-      expect(track2.extra[0]).toEqual({ speed: 20, message: 'm2', gndAlt: 500 });
+      expect(merged.extra[0]).toEqual({ speed: 20, message: 'm2' });
+      expect(track1.extra[0]).toEqual({ speed: 10, message: 'm1' });
+      expect(track2.extra[0]).toEqual({ speed: 20, message: 'm2' });
     });
   });
 });
@@ -1163,20 +1291,21 @@ describe('differential', () => {
       lat: [10.00001, 10.0000234, 10.00012, 10.00112],
       lon: [10.00001, 10.00001, 10.00001, 10.00001],
       alt: [100, 200, 300, 1300],
+      gndAlt: [50, 150, 250, 1250],
       timeSec: [1, 2, 12, 112],
       flags: [1, 2, 10, 20],
       extra: {
-        1: { message: 'hello', speed: 100, gndAlt: 123 },
+        1: { message: 'hello', speed: 100 },
       },
     };
 
     expect(differentialEncodeLiveTrack(track, 321, 'name')).toEqual({
       alt: [100, 100, 100, 1000],
+      gndAlt: [50, 100, 100, 1000],
       extra: {
         '1': {
           message: 'hello',
           speed: 100,
-          gndAlt: 123,
         },
       },
       id: 321,
@@ -1191,11 +1320,11 @@ describe('differential', () => {
   it('should decode', () => {
     const diffTrack = {
       alt: [100, 100, 100, 1000],
+      gndAlt: [50, 100, 100, 1000],
       extra: {
         '1': {
           message: 'hello',
           speed: 100,
-          gndAlt: 321,
         },
       },
       id: 321,
@@ -1212,12 +1341,29 @@ describe('differential', () => {
       lat: [10.00001, 10.00002, 10.00012, 10.00112],
       lon: [10.00001, 10.00001, 10.00001, 10.00001],
       alt: [100, 200, 300, 1300],
+      gndAlt: [50, 150, 250, 1250],
       timeSec: [1, 2, 12, 112],
       flags: [1, 2, 10, 20],
       extra: {
-        1: { message: 'hello', speed: 100, gndAlt: 321 },
+        1: { message: 'hello', speed: 100 },
       },
     });
+  });
+
+  it('should fill gndAlt with sentinel if missing in diffTrack', () => {
+    const diffTrack = {
+      alt: [100, 100],
+      extra: {},
+      id: 321,
+      lat: [1000001, 1],
+      lon: [1000001, 0],
+      name: 'name',
+      flags: [1, 2],
+      timeSec: [1, 1],
+    };
+
+    const decoded = differentialDecodeLiveTrack(diffTrack as any);
+    expect(decoded.gndAlt).toEqual([NO_GROUND_ALTITUDE, NO_GROUND_ALTITUDE]);
   });
 });
 
@@ -1228,6 +1374,7 @@ describe('isEmergencyTrack', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
+      gndAlt: [21, 22, 23],
       flags: [trackerIdByName.inreach, trackerIdByName.inreach | LiveTrackFlag.Emergency, trackerIdByName.inreach],
       extra: {
         0: { message: 'hello' },
@@ -1244,6 +1391,7 @@ describe('isEmergencyTrack', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
+      gndAlt: [21, 22, 23],
       flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.inreach],
       extra: {
         0: { message: 'hello' },
@@ -1262,6 +1410,7 @@ describe('getLastMessage', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
+      gndAlt: [21, 22, 23],
       flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.inreach],
       extra: {
         0: { speed: 5 },
@@ -1278,6 +1427,7 @@ describe('getLastMessage', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
+      gndAlt: [21, 22, 23],
       flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.inreach],
       extra: {
         0: { message: 'hello' },
@@ -1294,6 +1444,7 @@ describe('getLastMessage', () => {
       lat: [11, 12, 13],
       lon: [21, 22, 23],
       alt: [31, 32, 33],
+      gndAlt: [21, 22, 23],
       flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.inreach],
       extra: {
         0: { message: 'first' },

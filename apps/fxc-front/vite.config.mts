@@ -6,7 +6,7 @@ import { literalsHtmlCssMinifier } from '@literals/rollup-plugin-html-css-minifi
 import { TZDate } from '@date-fns/tz';
 import { format } from 'date-fns';
 import { visualizer } from 'rollup-plugin-visualizer';
-import { defineConfig, type UserConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import { checker } from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 
@@ -26,107 +26,105 @@ const assetFileNames = (assetInfo: any) => {
   return `static/${extType}/[name]-[hash][extname]`;
 };
 
-export default defineConfig(
-  ({ mode }): UserConfig => ({
-    root: import.meta.dirname,
-    cacheDir: 'node_modules/.vite/apps/fxc-front',
+export default defineConfig(({ mode }) => ({
+  root: import.meta.dirname,
+  cacheDir: 'node_modules/.vite/apps/fxc-front',
 
-    server: {
-      port: 8080,
-      host: '0.0.0.0',
-      proxy: {
-        '/api': {
-          target: 'http://localhost:8082',
-          secure: false,
-        },
-        '/oauth': {
-          target: 'http://localhost:8082',
-          secure: false,
-        },
+  server: {
+    port: 8080,
+    host: '0.0.0.0',
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8082',
+        secure: false,
+      },
+      '/oauth': {
+        target: 'http://localhost:8082',
+        secure: false,
+      },
+    },
+  },
+
+  preview: {
+    port: 8080,
+    host: '0.0.0.0',
+  },
+
+  resolve: {
+    tsconfigPaths: true,
+  },
+
+  build: {
+    outDir: 'apps/fxc-front/dist',
+    reportCompressedSize: true,
+    commonjsOptions: { transformMixedEsModules: true },
+    emptyOutDir: true,
+    rolldownOptions: {
+      output: {
+        assetFileNames,
+        chunkFileNames: 'static/js/[name]-[hash].js',
+        entryFileNames: 'static/js/[name]-[hash].js',
       },
     },
 
-    preview: {
-      port: 8080,
-      host: '0.0.0.0',
-    },
+    chunkSizeWarningLimit: 3900,
+  },
 
-    resolve: {
-      tsconfigPaths: true,
-    },
-
-    build: {
-      outDir: 'apps/fxc-front/dist',
-      reportCompressedSize: true,
-      commonjsOptions: { transformMixedEsModules: true },
-      emptyOutDir: true,
-      rolldownOptions: {
-        output: {
-          assetFileNames,
-          chunkFileNames: 'static/js/[name]-[hash].js',
-          entryFileNames: 'static/js/[name]-[hash].js',
-        },
+  plugins: [
+    VitePWA(getPwaConfig(mode)),
+    // Exclude @esri/calcite-components because its dynamic Lit properties (e.g. .ariaBusy=) fail the html minifier parse check.
+    literalsHtmlCssMinifier({
+      exclude: ['**/node_modules/@esri/calcite-components/**'],
+    }),
+    // Enabled by `nx visualizer fxc-front` (sets VISUALIZER env var)
+    ...(process.env.VISUALIZER
+      ? [
+          {
+            ...visualizer(),
+            apply: 'build' as const,
+          },
+        ]
+      : []),
+    checker({
+      typescript: {
+        root: process.cwd(),
+        tsconfigPath: 'tsconfig.app.json',
       },
+    }),
+  ],
 
-      chunkSizeWarningLimit: 3900,
-    },
-
-    plugins: [
-      VitePWA(getPwaConfig(mode)),
-      // Exclude @esri/calcite-components because its dynamic Lit properties (e.g. .ariaBusy=) fail the html minifier parse check.
-      literalsHtmlCssMinifier({
-        exclude: ['**/node_modules/@esri/calcite-components/**'],
-      }),
-      // Enabled by `nx visualizer fxc-front` (sets VISUALIZER env var)
-      ...(process.env.VISUALIZER
-        ? [
-            {
-              ...visualizer(),
-              apply: 'build' as const,
-            },
-          ]
-        : []),
-      checker({
-        typescript: {
-          root: process.cwd(),
-          tsconfigPath: 'tsconfig.app.json',
-        },
-      }),
-    ],
-
-    worker: {
-      rolldownOptions: {
-        output: {
-          assetFileNames,
-          chunkFileNames: 'static/js/worker/[name]-[hash].js',
-          entryFileNames: 'static/js/worker/[name]-[hash].js',
-        },
+  worker: {
+    rolldownOptions: {
+      output: {
+        assetFileNames,
+        chunkFileNames: 'static/js/worker/[name]-[hash].js',
+        entryFileNames: 'static/js/worker/[name]-[hash].js',
       },
     },
+  },
 
-    define: {
-      __BUILD_TIMESTAMP__: JSON.stringify(format(new TZDate(new Date(), 'Europe/Paris'), 'yyyyMMdd-HHmm')),
-      __AIRSPACE_DATE__: JSON.stringify(getAirspaceDate()),
-      'process.env.NODE_ENV': JSON.stringify(mode),
-      // Vite does not define global.
-      // Required for a dependency of igc-xc-score.
-      // See https://stackoverflow.com/questions/72114775/vite-global-is-not-defined/73208485#73208485
-      global: {},
-    },
+  define: {
+    __BUILD_TIMESTAMP__: JSON.stringify(format(new TZDate(new Date(), 'Europe/Paris'), 'yyyyMMdd-HHmm')),
+    __AIRSPACE_DATE__: JSON.stringify(getAirspaceDate()),
+    'process.env.NODE_ENV': JSON.stringify(mode),
+    // Vite does not define global.
+    // Required for a dependency of igc-xc-score.
+    // See https://stackoverflow.com/questions/72114775/vite-global-is-not-defined/73208485#73208485
+    global: {},
+  },
 
-    // Vitest configuration
-    test: {
-      globals: true,
-      environment: 'jsdom',
-      include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-      coverage: {
-        reportsDirectory: '../../coverage/apps/fxc-front',
-        provider: 'v8',
-      },
-      passWithNoTests: true,
+  // Vitest configuration
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    coverage: {
+      reportsDirectory: '../../coverage/apps/fxc-front',
+      provider: 'v8',
     },
-  }),
-);
+    passWithNoTests: true,
+  },
+}));
 
 // Get the airspace update date from the commit.
 function getAirspaceDate() {

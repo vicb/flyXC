@@ -52,7 +52,13 @@ export function applyUfoFleetUpdates(
         ufoTracks[id] = track;
       }
     }
+  }
 
+  for (const fleetName in state.ufoFleets) {
+    const ufoTracks = state.ufoFleets[fleetName]?.ufos;
+    if (!ufoTracks) {
+      continue;
+    }
     for (const id in ufoTracks) {
       let track = ufoTracks[id];
       simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
@@ -67,7 +73,7 @@ export function applyUfoFleetUpdates(
 }
 
 export function addUfoFleetLogs(
-  pipeline: ChainableCommander,
+  pipeline: RedisClientMultiCmd,
   updates: UfoFleetUpdates,
   _state: protos.FetcherState,
 ): void {

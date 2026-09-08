@@ -20,6 +20,13 @@
         "tsConfig": "libs/optimizer/tsconfig.lib.json",
         "assets": ["libs/optimizer/*.md"]
       }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "tsc -p tsconfig.lib.json --noEmit && tsc -p tsconfig.spec.json --noEmit"
+      }
     }
   }
 }

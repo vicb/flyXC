@@ -1,5 +1,11 @@
 import type { TrackerNames, UfoFleetNames } from '@flyxc/common';
-import { getTrackerFlags as getLiveTrackFlags, protos, round } from '@flyxc/common';
+import {
+  getTrackerFlags as getLiveTrackFlags,
+  isGroundAltitudeValid,
+  NO_GROUND_ALTITUDE,
+  protos,
+  round,
+} from '@flyxc/common';
 import { getDistance } from 'geolib';
 
 export interface LivePoint {
@@ -32,6 +38,7 @@ export function makeLiveTrack(points: LivePoint[]): protos.LiveTrack {
     track.lat.push(round(point.lat, 5));
     track.lon.push(round(point.lon, 5));
     track.alt.push(Math.round(point.alt));
+    track.gndAlt.push(isGroundAltitudeValid(point.gndAlt) ? Math.round(point.gndAlt) : NO_GROUND_ALTITUDE);
     track.timeSec.push(Math.round(point.timeMs / 1000));
     track.flags.push(
       getLiveTrackFlags({
@@ -49,10 +56,6 @@ export function makeLiveTrack(points: LivePoint[]): protos.LiveTrack {
     }
     if (point.message != null) {
       extra.message = point.message;
-      hasExtra = true;
-    }
-    if (point.gndAlt != null) {
-      extra.gndAlt = Math.round(point.gndAlt);
       hasExtra = true;
     }
     if (hasExtra) {

@@ -1,5 +1,5 @@
 import type { LatLonAlt, protos } from '@flyxc/common';
-import { getLastMessage, isEmergencyTrack } from '@flyxc/common';
+import { getLastMessage, isEmergencyTrack, isGroundAltitudeValid } from '@flyxc/common';
 import type { EntityState, PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk, createEntityAdapter, createSelector, createSlice } from '@reduxjs/toolkit';
 
@@ -160,7 +160,7 @@ export const getLivePilots = createSelector(liveTrackSelectors.selectAll, (track
         lon: track.lon[lastIndex],
         alt: track.alt[lastIndex],
       },
-      gndAlt: extra?.gndAlt,
+      gndAlt: isGroundAltitudeValid(track.gndAlt[lastIndex]) ? track.gndAlt[lastIndex] : undefined,
       speed: extra?.speed,
       timeSec: track.timeSec[lastIndex],
       isEmergency: isEmergencyTrack(track),

@@ -14,6 +14,7 @@ describe('applyTrackerUpdates', () => {
       lat: [45.0],
       lon: [6.0],
       alt: [1000],
+      gndAlt: [500],
       flags: [0],
       extra: {},
     };
@@ -24,6 +25,7 @@ describe('applyTrackerUpdates', () => {
       lat: [46.0, 46.1, 46.2],
       lon: [7.0, 7.1, 7.2],
       alt: [1200, 1210, 1220],
+      gndAlt: [600, 610, 620],
       flags: [0, 0, 0],
       extra: {},
     };
@@ -34,6 +36,7 @@ describe('applyTrackerUpdates', () => {
       lat: [],
       lon: [],
       alt: [],
+      gndAlt: [],
       flags: [],
       extra: {},
     };
@@ -51,6 +54,7 @@ describe('applyTrackerUpdates', () => {
       lat: [45.1, 45.2, 45.3],
       lon: [6.1, 6.2, 6.3],
       alt: [1050, 1060, 1070],
+      gndAlt: [550, 560, 570],
       flags: [0, 0, 0],
       extra: {},
     };
@@ -90,6 +94,7 @@ describe('applyTrackerUpdates', () => {
       lat: [45.0, 45.1],
       lon: [6.0, 6.1],
       alt: [1000, 1100],
+      gndAlt: [500, 600],
       flags: [0, 0],
       extra: {},
     };
@@ -115,6 +120,7 @@ describe('applyTrackerUpdates', () => {
       lat: [45.0, 45.1],
       lon: [6.0, 6.1],
       alt: [1000, 1100],
+      gndAlt: [500, 600],
       flags: [0, 0],
       extra: {},
     };
@@ -130,6 +136,7 @@ describe('applyTrackerUpdates', () => {
       lat: [45.2],
       lon: [6.2],
       alt: [1200],
+      gndAlt: [600],
       flags: [0],
       extra: {},
     };

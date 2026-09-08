@@ -1,4 +1,4 @@
-import { isGroundAltitudeValid, type protos } from '@flyxc/common';
+import { isGroundAltitudeValid, NO_GROUND_ALTITUDE, type protos } from '@flyxc/common';
 import { type ElevationCacheStats, ElevationService } from '@flyxc/common-node';
 
 export interface ElevationUpdates {
@@ -58,8 +58,12 @@ export async function patchTracksElevation(
       continue;
     }
 
+    if (track.gndAlt?.length !== track.lat.length) {
+      track.gndAlt = Array(track.lat.length).fill(NO_GROUND_ALTITUDE);
+    }
+
     for (let i = 0; i < track.lat.length; i++) {
-      if (!isGroundAltitudeValid(track.extra[i]?.gndAlt)) {
+      if (!isGroundAltitudeValid(track.gndAlt[i])) {
         targets.push({ track, idx: i });
         allLats.push(track.lat[i]);
         allLons.push(track.lon[i]);
@@ -96,8 +100,7 @@ export async function patchTracksElevation(
         const alt = result.altitudes[i];
         if (isGroundAltitudeValid(alt)) {
           const { track, idx } = batchTargets[i];
-          track.extra[idx] ??= {};
-          track.extra[idx].gndAlt = Math.round(alt);
+          track.gndAlt[idx] = Math.round(alt);
           updates.numRetrieved++;
         }
       }

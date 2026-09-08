@@ -51,6 +51,7 @@ describe('maybePushTrack', () => {
       lat: [45, 45.1],
       lon: [6, 6.1],
       alt: [1000, 1100],
+      gndAlt: [500, 600],
       flags: [0, 0],
       extra: {},
     };
@@ -68,6 +69,7 @@ describe('maybePushTrack', () => {
       lat: [45, 45.1],
       lon: [6, 6.1],
       alt: [1000, 1100],
+      gndAlt: [500, 600],
       flags: [0, 0],
       extra: {},
     };
@@ -87,6 +89,7 @@ describe('maybePushTrack', () => {
       lat: [45],
       lon: [6],
       alt: [1000],
+      gndAlt: [500],
       flags: [0],
       extra: {},
     };
@@ -107,6 +110,7 @@ describe('createLiveTrackGroups', () => {
       lat: [45],
       lon: [6],
       alt: [1000],
+      gndAlt: [500],
       flags: [extraDevice],
       extra: {},
     });

@@ -124,12 +124,16 @@ export class Proxies {
     try {
       const instancesClient = new InstancesClient();
 
-      const aggListRequest = instancesClient.aggregatedListAsync({
-        project: PROJECT,
-        maxResults: 10,
-        filter: `labels.proxy:${this.label}`,
-        autoPaginate: false,
-      });
+      const aggListRequest = instancesClient.aggregatedListAsync(
+        {
+          project: PROJECT,
+          maxResults: 10,
+          filter: `labels.proxy:${this.label}`,
+        },
+        {
+          autoPaginate: false,
+        },
+      );
 
       for await (const [_, instancesObject] of aggListRequest) {
         const instances = instancesObject.instances;

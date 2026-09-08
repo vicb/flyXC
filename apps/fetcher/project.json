@@ -101,6 +101,13 @@
       "options": {
         "command": "gcloud compute ssh fetcher --zone=us-central1-a --command=\"sudo systemctl restart fetcher.service\""
       }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit"
+      }
     }
   }
 }

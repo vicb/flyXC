@@ -1,4 +1,12 @@
-import { getTrackerName, isEmergencyFix, isLowBatFix, isValidFix, LiveTrackFlag, trackerIdByName } from '@flyxc/common';
+import {
+  getTrackerName,
+  isEmergencyFix,
+  isLowBatFix,
+  isValidFix,
+  LiveTrackFlag,
+  NO_GROUND_ALTITUDE,
+  trackerIdByName,
+} from '@flyxc/common';
 import { computeDestinationPoint } from 'geolib';
 
 import type { LivePoint } from './live-track';
@@ -27,6 +35,7 @@ describe('makeLiveTrack', () => {
 
     expect(makeLiveTrack(points)).toEqual({
       alt: [200, 100],
+      gndAlt: [NO_GROUND_ALTITUDE, NO_GROUND_ALTITUDE],
       extra: {},
       lat: [11.12346, 10.12346],
       lon: [-13.12346, -12.12346],
@@ -79,7 +88,7 @@ describe('makeLiveTrack', () => {
       },
     ]);
 
-    expect(track.extra[0].gndAlt).toBe(80);
+    expect(track.gndAlt[0]).toBe(80);
   });
 
   it('should convert the timestamp to seconds', () => {
@@ -138,13 +147,14 @@ describe('makeLiveTrack', () => {
     expect(track.extra).toEqual({ 1: { message: 'hello' } });
   });
 
-  it('should add extra for ground altitude', () => {
+  it('should populate ground altitude in track.gndAlt and not extra', () => {
     const track = makeLiveTrack([
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 1000000, valid: false },
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 2000000, valid: false, gndAlt: 32 },
     ]);
 
-    expect(track.extra).toEqual({ 1: { gndAlt: 32 } });
+    expect(track.gndAlt).toEqual([NO_GROUND_ALTITUDE, 32]);
+    expect(track.extra).toEqual({});
   });
 
   it('should compute the speed for the last point as an uint32', () => {

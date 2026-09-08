@@ -14,6 +14,13 @@
         "generateExportsField": true,
         "tsConfig": "libs/vaadin-dom/tsconfig.lib.json"
       }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "tsc -p tsconfig.lib.json --noEmit && tsc -p tsconfig.spec.json --noEmit"
+      }
     }
   }
 }
