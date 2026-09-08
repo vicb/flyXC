@@ -10,6 +10,8 @@ To build the container image and restart the service on the running VM:
 pnpm nx deploy fetcher
 ```
 
+> **Note:** On every deployment and service restart, the service automatically pulls the latest image and prunes previous dangling images to reclaim disk space.
+
 ## Infrastructure & VM Management
 
 ### 1. Create or Update the Instance Template
@@ -75,6 +77,35 @@ gcloud compute ssh fetcher --zone=us-central1-a
 # Restart the service (pulls latest image and starts container)
 gcloud compute ssh fetcher --zone=us-central1-a --command="sudo systemctl restart fetcher.service"
 
+# List Docker images
+gcloud compute ssh fetcher --zone=us-central1-a --command="sudo docker images"
+
+# Check Docker disk space usage
+gcloud compute ssh fetcher --zone=us-central1-a --command="sudo docker system df"
+
+# Reclaim space manually by deleting old/dangling images
+# Note: also done automatically on every deployment
+gcloud compute ssh fetcher --zone=us-central1-a --command="sudo docker image prune -f"
+
 # Delete the VM instance
 gcloud compute instances delete fetcher --zone=us-central1-a --quiet
+```
+
+### 5. Roll Back to an Older Image
+
+Because the VM pulls `:latest`, the cleanest way to roll back is to re-tag the desired older image digest as `latest` in Artifact Registry:
+
+```bash
+# 1. List available image digests sorted by date
+gcloud artifacts docker images list us-docker.pkg.dev/fly-xc/docker/fetcher \
+  --sort-by=~UPDATE_TIME \
+  --include-tags
+
+# 2. Re-tag the chosen older digest as 'latest'
+gcloud artifacts docker tags add \
+  us-docker.pkg.dev/fly-xc/docker/fetcher@sha256:<DIGEST> \
+  us-docker.pkg.dev/fly-xc/docker/fetcher:latest
+
+# 3. Restart the service on the VM to pull and run it
+gcloud compute ssh fetcher --zone=us-central1-a --command="sudo systemctl restart fetcher.service"
 ```
