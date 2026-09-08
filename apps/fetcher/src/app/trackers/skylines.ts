@@ -57,7 +57,7 @@ export class SkylinesFetcher extends TrackerFetcher {
               const sklId = Number(flight.sfid);
               const dsId = sklIdToDsId.get(sklId) as number;
               // Get an extra 10min of data that might not have been received (when no network coverage).
-              const keepFromSec = this.getTrackerFetchFromSec(dsId, updates.startFetchSec, 600);
+              const keepFromSec = this.getTrackerFetchFromSec(dsId, updates.startFetchSec, 10 * 60);
               const points = parse(flight);
               let track = makeLiveTrack(points);
               track = removeBeforeFromLiveTrack(track, keepFromSec);

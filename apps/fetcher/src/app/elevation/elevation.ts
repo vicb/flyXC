@@ -1,4 +1,4 @@
-import { isGroundAltitudeValid, NO_GROUND_ALTITUDE, type protos } from '@flyxc/common';
+import { Comparison, findFirstIndex, isGroundAltitudeValid, NO_GROUND_ALTITUDE, type protos } from '@flyxc/common';
 import { type ElevationCacheStats, ElevationService } from '@flyxc/common-node';
 
 export interface ElevationUpdates {
@@ -21,18 +21,23 @@ export const ELEVATION_FETCH_TIMEOUT_MS = 10_000;
 
 const defaultElevationService = new ElevationService({ cacheSizeMb: 50, zoom: 10 });
 
+export interface TrackElevationPatch {
+  track: protos.LiveTrack;
+  fromSec?: number;
+}
+
 /**
- * Populates ground altitudes for newly added points in update tracks (deltas).
+ * Populates ground altitudes for newly added points in tracks.
  *
  * Missing points across all tracks are batched in chunks of up to ELEVATION_BATCH_SIZE.
  * After each batch, execution time is checked against ELEVATION_FETCH_TIMEOUT_MS to stop early.
  *
- * @param tracks - Update tracks containing points from the current cycle.
+ * @param tracks - Tracks or patch objects with optional `fromSec` timestamp.
  * @param elevationService - Elevation service instance (defaults to shared module instance).
  * @returns Summary of fetched points, retrieved elevations, duration, and errors.
  */
 export async function patchTracksElevation(
-  tracks: Iterable<protos.LiveTrack>,
+  tracks: Iterable<TrackElevationPatch>,
   elevationService = defaultElevationService,
 ): Promise<ElevationUpdates> {
   const startMs = Date.now();
@@ -53,7 +58,7 @@ export async function patchTracksElevation(
   const allLats: number[] = [];
   const allLons: number[] = [];
 
-  for (const track of tracks) {
+  for (const { track, fromSec } of tracks) {
     if (!track || track.lat.length === 0) {
       continue;
     }
@@ -62,7 +67,12 @@ export async function patchTracksElevation(
       track.gndAlt = Array(track.lat.length).fill(NO_GROUND_ALTITUDE);
     }
 
-    for (let i = 0; i < track.lat.length; i++) {
+    const startIdx =
+      fromSec != null && track.timeSec?.length > 0
+        ? findFirstIndex(track.timeSec, fromSec, { comparison: Comparison.GREATER_EQUAL })
+        : 0;
+
+    for (let i = startIdx; i < track.lat.length; i++) {
       if (!isGroundAltitudeValid(track.gndAlt[i])) {
         targets.push({ track, idx: i });
         allLats.push(track.lat[i]);

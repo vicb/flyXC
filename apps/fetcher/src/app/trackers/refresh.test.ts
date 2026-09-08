@@ -71,7 +71,7 @@ describe('applyTrackerUpdates', () => {
 
     const updatedIds = applyTrackerUpdates(state, [updates], nowSec);
 
-    expect(updatedIds).toEqual(new Set([1]));
+    expect(updatedIds).toEqual(new Map([[1, nowSec - 30]]));
 
     // Pilot 1 was updated: delta merged and simplified
     // Points within intervalSec (5s) are decimated:
@@ -83,6 +83,73 @@ describe('applyTrackerUpdates', () => {
 
     // Pilot 3 had no updates: track remains empty
     expect(state.pilots[3].track.timeSec).toEqual([]);
+  });
+
+  it('should record the earliest timestamp when multiple patches update the same pilot', () => {
+    const nowSec = 1700000000;
+    const pilot1Track: protos.LiveTrack = {
+      timeSec: [nowSec - 200],
+      lat: [45.0],
+      lon: [6.0],
+      alt: [1000],
+      gndAlt: [500],
+      flags: [0],
+      extra: {},
+    };
+    const state = protos.FetcherState.create({
+      pilots: {
+        1: { track: pilot1Track },
+      },
+    });
+
+    const update1: TrackerUpdates = {
+      name: 'inreach',
+      trackerDeltas: new Map([
+        [
+          1,
+          {
+            timeSec: [nowSec - 50, nowSec - 30],
+            lat: [45.1, 45.2],
+            lon: [6.1, 6.2],
+            alt: [1050, 1060],
+            gndAlt: [0, 0],
+            flags: [0, 0],
+            extra: {},
+          },
+        ],
+      ]),
+      trackerErrors: new Map(),
+      errors: [],
+      fetchedTracker: new Set([1]),
+      startFetchSec: nowSec - 5,
+      endFetchSec: nowSec,
+    };
+
+    const update2: TrackerUpdates = {
+      name: 'ogn',
+      trackerDeltas: new Map([
+        [
+          1,
+          {
+            timeSec: [nowSec - 80, nowSec - 40],
+            lat: [45.05, 45.15],
+            lon: [6.05, 6.15],
+            alt: [1020, 1055],
+            gndAlt: [0, 0],
+            flags: [0, 0],
+            extra: {},
+          },
+        ],
+      ]),
+      trackerErrors: new Map(),
+      errors: [],
+      fetchedTracker: new Set([1]),
+      startFetchSec: nowSec - 5,
+      endFetchSec: nowSec,
+    };
+
+    const updatedPilots = applyTrackerUpdates(state, [update1, update2], nowSec);
+    expect(updatedPilots).toEqual(new Map([[1, nowSec - 80]]));
   });
 
   it('should drop outdated points (> 48h) for non-updated pilots', () => {

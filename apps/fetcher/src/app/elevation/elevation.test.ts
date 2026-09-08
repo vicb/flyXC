@@ -1,4 +1,4 @@
-import { NO_GROUND_ALTITUDE, type protos } from '@flyxc/common';
+import { Comparison, findFirstIndex, NO_GROUND_ALTITUDE, type protos } from '@flyxc/common';
 import type { AltitudeResult } from '@flyxc/common-node';
 import { ElevationService } from '@flyxc/common-node';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -55,7 +55,7 @@ describe('patchTracksElevation', () => {
       extra: {},
     };
 
-    const updates = await patchTracksElevation([delta1, delta2], mockElevationService);
+    const updates = await patchTracksElevation([{ track: delta1 }, { track: delta2 }], mockElevationService);
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     expect(fetchSpy).toHaveBeenCalledWith([45.0, 45.01, 46.0], [6.0, 6.01, 7.0]);
@@ -83,7 +83,7 @@ describe('patchTracksElevation', () => {
       extra: {},
     };
 
-    const updates = await patchTracksElevation([delta], mockElevationService);
+    const updates = await patchTracksElevation([{ track: delta }], mockElevationService);
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     expect(fetchSpy).toHaveBeenCalledWith([45.01], [6.01]);
@@ -91,6 +91,50 @@ describe('patchTracksElevation', () => {
     expect(updates.numRetrieved).toBe(1);
     expect(delta.gndAlt[0]).toBe(400);
     expect(delta.gndAlt[1]).toBe(750);
+  });
+
+  it('should only check points on or after fromSec when fromSec is provided', async () => {
+    const fetchSpy = vi.spyOn(mockElevationService, 'fetchCoordinatesAltitude').mockResolvedValue({
+      altitudes: [850],
+      hasErrors: false,
+    });
+
+    const track: protos.LiveTrack = {
+      timeSec: [100, 200, 300],
+      lat: [45.0, 45.1, 45.2],
+      lon: [6.0, 6.1, 6.2],
+      alt: [1000, 1050, 1100],
+      gndAlt: [NO_GROUND_ALTITUDE, 500, NO_GROUND_ALTITUDE],
+      flags: [0, 0, 0],
+      extra: {},
+    };
+
+    // fromSec = 200:
+    // index 0 (timeSec 100): < 200 -> ignored even though gndAlt is invalid
+    // index 1 (timeSec 200): >= 200 -> gndAlt is valid (500) -> skipped
+    // index 2 (timeSec 300): >= 200 -> gndAlt is invalid -> fetched
+    const updates = await patchTracksElevation([{ track, fromSec: 200 }], mockElevationService);
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).toHaveBeenCalledWith([45.2], [6.2]);
+    expect(updates.numFetched).toBe(1);
+    expect(updates.numRetrieved).toBe(1);
+    expect(track.gndAlt[0]).toBe(NO_GROUND_ALTITUDE);
+    expect(track.gndAlt[1]).toBe(500);
+    expect(track.gndAlt[2]).toBe(850);
+  });
+
+  it('should find the first index greater or equal correctly', () => {
+    const arr = [100, 200, 300];
+    const opts = { comparison: Comparison.GREATER_EQUAL };
+    expect(findFirstIndex(arr, 50, opts)).toBe(0);
+    expect(findFirstIndex(arr, 100, opts)).toBe(0);
+    expect(findFirstIndex(arr, 150, opts)).toBe(1);
+    expect(findFirstIndex(arr, 200, opts)).toBe(1);
+    expect(findFirstIndex(arr, 250, opts)).toBe(2);
+    expect(findFirstIndex(arr, 300, opts)).toBe(2);
+    expect(findFirstIndex(arr, 350, opts)).toBe(3);
+    expect(findFirstIndex([], 100, opts)).toBe(0);
   });
 
   it('handles errors gracefully', async () => {
@@ -109,7 +153,7 @@ describe('patchTracksElevation', () => {
       extra: {},
     };
 
-    const updates = await patchTracksElevation([delta], mockElevationService);
+    const updates = await patchTracksElevation([{ track: delta }], mockElevationService);
 
     expect(updates.numFetched).toBe(1);
     expect(updates.numRetrieved).toBe(0);
@@ -134,7 +178,7 @@ describe('patchTracksElevation', () => {
       extra: {},
     };
 
-    const updates = await patchTracksElevation([delta], mockElevationService);
+    const updates = await patchTracksElevation([{ track: delta }], mockElevationService);
 
     expect(fetchSpy).toHaveBeenCalledWith([45.0], [6.0]);
     expect(updates.numFetched).toBe(1);
@@ -160,7 +204,7 @@ describe('patchTracksElevation', () => {
         return { altitudes: [500], hasErrors: false };
       });
 
-      const promise = patchTracksElevation([delta], mockElevationService);
+      const promise = patchTracksElevation([{ track: delta }], mockElevationService);
       await vi.runAllTimersAsync();
       const updates = await promise;
 
@@ -186,7 +230,7 @@ describe('patchTracksElevation', () => {
       extra: {},
     };
 
-    const updates = await patchTracksElevation([delta], mockElevationService);
+    const updates = await patchTracksElevation([{ track: delta }], mockElevationService);
 
     expect(fetchSpy).toHaveBeenCalledTimes(2);
     expect(updates.numFetched).toBe(ELEVATION_BATCH_SIZE + 10);
@@ -212,7 +256,7 @@ describe('patchTracksElevation', () => {
         return { altitudes: new Array(ELEVATION_BATCH_SIZE).fill(500), hasErrors: false };
       });
 
-      const promise = patchTracksElevation([delta], mockElevationService);
+      const promise = patchTracksElevation([{ track: delta }], mockElevationService);
       await vi.runAllTimersAsync();
       const updates = await promise;
 

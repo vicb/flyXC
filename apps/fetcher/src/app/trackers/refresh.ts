@@ -12,7 +12,7 @@ import type { RedisClient, RedisClientMultiCmd } from '@flyxc/common-node';
 import { pushListCap } from '@flyxc/common-node';
 import type { Datastore } from '@google-cloud/datastore';
 
-import { patchTracksElevation } from '../elevation/elevation';
+import { patchTracksElevation, type TrackElevationPatch } from '../elevation/elevation';
 import { addElevationLogs } from '../redis';
 import { FlymasterFetcher } from './flymaster';
 import { FlymeFetcher } from './flyme';
@@ -80,18 +80,19 @@ export async function resfreshTrackers(
     }
   }
 
+  const nowSec = Math.round(Date.now() / 1000);
+  const updatedPilots = applyTrackerUpdates(state, trackerUpdates, nowSec);
+
   // Fetch ground elevation for newly added points in tracker updates.
-  const deltas: protos.LiveTrack[] = [];
-  for (const updates of trackerUpdates) {
-    for (const delta of updates.trackerDeltas.values()) {
-      deltas.push(delta);
+  const tracksToPatch: TrackElevationPatch[] = [];
+  for (const [id, fromSec] of updatedPilots) {
+    const pilot = state.pilots[id];
+    if (pilot?.track) {
+      tracksToPatch.push({ track: pilot.track, fromSec });
     }
   }
-  const elevationUpdates = await patchTracksElevation(deltas);
+  const elevationUpdates = await patchTracksElevation(tracksToPatch);
   addElevationLogs(pipeline, elevationUpdates, state.lastTickSec);
-
-  const nowSec = Math.round(Date.now() / 1000);
-  applyTrackerUpdates(state, trackerUpdates, nowSec);
 }
 
 /**
@@ -103,22 +104,28 @@ export async function resfreshTrackers(
  * @param state - The FetcherState object containing current state information.
  * @param trackerUpdates - Array of updates from tracker fetches.
  * @param nowSec - Current timestamp in seconds (defaults to now).
+ * @returns Map of updated pilot IDs to their earliest patch timestamp in seconds.
  */
 export function applyTrackerUpdates(
   state: protos.FetcherState,
   trackerUpdates: TrackerUpdates[],
   nowSec = Math.round(Date.now() / 1000),
-): Set<number> {
+): Map<number, number> {
   const dropBeforeSec = nowSec - LiveDataRetentionSec.Max;
 
   // Merge updates only for pilots that have deltas in this cycle.
-  const updatedPilotIds = new Set<number>();
+  // Record the earliest timestamp of all patches for each updated pilot.
+  const updatedPilots = new Map<number, number>();
   for (const updates of trackerUpdates) {
     for (const [id, delta] of updates.trackerDeltas.entries()) {
       const pilot = state.pilots[id];
       if (pilot) {
         pilot.track = mergeLiveTracks(pilot.track, delta);
-        updatedPilotIds.add(id);
+        if (delta.timeSec.length > 0) {
+          const deltaMinSec = delta.timeSec[0];
+          const currentMinSec = updatedPilots.get(id);
+          updatedPilots.set(id, currentMinSec != null ? Math.min(currentMinSec, deltaMinSec) : deltaMinSec);
+        }
       }
     }
   }
@@ -126,13 +133,11 @@ export function applyTrackerUpdates(
   // Drop points older than max retention for all tracks that have outdated points.
   for (const id in state.pilots) {
     const pilot = state.pilots[id];
-    if (pilot.track.timeSec.length > 0 && pilot.track.timeSec[0] < dropBeforeSec) {
-      pilot.track = removeBeforeFromLiveTrack(pilot.track, dropBeforeSec);
-    }
+    pilot.track = removeBeforeFromLiveTrack(pilot.track, dropBeforeSec);
   }
 
   // Only simplify and decimate tracks for pilots that were updated in the current cycle.
-  for (const id of updatedPilotIds) {
+  for (const id of updatedPilots.keys()) {
     const pilot = state.pilots[id];
     if (pilot) {
       simplifyLiveTrack(pilot.track, LiveDataIntervalSec.AfterH24, {
@@ -151,7 +156,7 @@ export function applyTrackerUpdates(
       });
     }
   }
-  return updatedPilotIds;
+  return updatedPilots;
 }
 
 /**

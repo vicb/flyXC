@@ -1,4 +1,4 @@
-import { diffDecodeArray, diffEncodeArray32bit, findIndexes } from './math';
+import { Comparison, diffDecodeArray, diffEncodeArray32bit, findFirstIndex, findIndexes } from './math';
 
 describe('findIndexes', () => {
   test('throws when the lis is empty', () => {
@@ -130,5 +130,70 @@ describe('diffDecodeArray', () => {
     for (let i = 0; i < original.length; i++) {
       expect(decoded[i]).toBeCloseTo(original[i], 5);
     }
+  });
+});
+
+describe('findFirstIndex', () => {
+  describe('Comparison.GREATER_EQUAL', () => {
+    const opts = { comparison: Comparison.GREATER_EQUAL };
+
+    it('should return 0 for empty arrays', () => {
+      expect(findFirstIndex([], 100, opts)).toBe(0);
+    });
+
+    it('should handle single element arrays', () => {
+      expect(findFirstIndex([10], 5, opts)).toBe(0);
+      expect(findFirstIndex([10], 10, opts)).toBe(0);
+      expect(findFirstIndex([10], 15, opts)).toBe(1);
+    });
+
+    it('should find lower bound in multi-element arrays', () => {
+      const arr = [100, 200, 300];
+      expect(findFirstIndex(arr, 50, opts)).toBe(0);
+      expect(findFirstIndex(arr, 100, opts)).toBe(0);
+      expect(findFirstIndex(arr, 150, opts)).toBe(1);
+      expect(findFirstIndex(arr, 200, opts)).toBe(1);
+      expect(findFirstIndex(arr, 250, opts)).toBe(2);
+      expect(findFirstIndex(arr, 300, opts)).toBe(2);
+      expect(findFirstIndex(arr, 350, opts)).toBe(3);
+    });
+
+    it('should return first index when duplicate values exist', () => {
+      const arr = [10, 20, 20, 20, 30];
+      expect(findFirstIndex(arr, 20, opts)).toBe(1);
+    });
+  });
+
+  describe('Comparison.GREATER', () => {
+    const opts = { comparison: Comparison.GREATER };
+
+    it('should return 0 for empty arrays', () => {
+      expect(findFirstIndex([], 100, opts)).toBe(0);
+    });
+
+    it('should handle single element arrays', () => {
+      expect(findFirstIndex([10], 5, opts)).toBe(0);
+      expect(findFirstIndex([10], 10, opts)).toBe(1);
+      expect(findFirstIndex([10], 15, opts)).toBe(1);
+    });
+
+    it('should find upper bound in multi-element arrays', () => {
+      const list = [10, 20, 30, 40, 50];
+      expect(findFirstIndex(list, 5, opts)).toBe(0);
+      expect(findFirstIndex(list, 10, opts)).toBe(1);
+      expect(findFirstIndex(list, 15, opts)).toBe(1);
+      expect(findFirstIndex(list, 20, opts)).toBe(2);
+      expect(findFirstIndex(list, 25, opts)).toBe(2);
+      expect(findFirstIndex(list, 30, opts)).toBe(3);
+      expect(findFirstIndex(list, 40, opts)).toBe(4);
+      expect(findFirstIndex(list, 50, opts)).toBe(5);
+      expect(findFirstIndex(list, 55, opts)).toBe(5);
+    });
+
+    it('should return index after duplicates when duplicate values exist', () => {
+      const list = [10, 20, 20, 20, 30];
+      expect(findFirstIndex(list, 20, opts)).toBe(4);
+      expect(findFirstIndex(list, 25, opts)).toBe(4);
+    });
   });
 });
