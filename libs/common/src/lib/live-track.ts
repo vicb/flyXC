@@ -212,11 +212,11 @@ export function getTrackerFlags(value: {
 
 // Delete all the fixes strictly before timeSec from the track.
 // Note:
-// - A new track is returned.
+// - Returns the original track if no fixes are removed.
 export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): LiveTrack {
   const len = track.timeSec.length;
   if (len === 0) {
-    return LiveTrack.create({ name: track.name, id: track.id, idStr: track.idStr });
+    return track;
   }
 
   if (track.gndAlt?.length !== track.lat.length) {
@@ -225,22 +225,8 @@ export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): Li
 
   // Fast boundary checks in O(1):
   // 1. If timeSec is before or at the first fix, no fixes are strictly before timeSec.
-  //    Return a new track with sliced arrays and cloned extra entries.
   if (timeSec <= track.timeSec[0]) {
-    const extra: { [key: string]: LiveExtra } = {};
-    for (const index in track.extra) {
-      extra[index] = { ...track.extra[index] };
-    }
-    return {
-      ...track,
-      timeSec: track.timeSec.slice(),
-      lat: track.lat.slice(),
-      lon: track.lon.slice(),
-      alt: track.alt.slice(),
-      gndAlt: track.gndAlt.slice(),
-      flags: track.flags.slice(),
-      extra,
-    };
+    return track;
   }
 
   // 2. If timeSec is strictly after the last fix, all fixes are dropped.
@@ -249,7 +235,7 @@ export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): Li
   }
 
   // Find the first index whose time is >= timeSec.
-  const numToDelete = findFirstIndex(track.timeSec, timeSec, { comparison: Comparison.GREATER_EQUAL });
+  const numToDelete = findFirstIndex(track.timeSec, timeSec, Comparison.GREATER_EQUAL);
 
   const extra: { [key: string]: LiveExtra } = {};
   for (const index in track.extra) {
@@ -363,13 +349,13 @@ export function simplifyLiveTrack(
     if (fromSec > lastTime) {
       return;
     }
-    const idx = findFirstIndex(timeSecs, fromSec, { comparison: Comparison.GREATER }) - 1;
+    const idx = findFirstIndex(timeSecs, fromSec, Comparison.GREATER) - 1;
     startIndex = Math.max(0, idx);
   }
 
   let simplifyUntilIndex = len - 1;
   if (time?.toSec != null) {
-    const idx = findFirstIndex(timeSecs, time.toSec, { comparison: Comparison.GREATER }) - 1;
+    const idx = findFirstIndex(timeSecs, time.toSec, Comparison.GREATER) - 1;
     if (idx < 0) {
       return;
     }

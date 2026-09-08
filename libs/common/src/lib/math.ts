@@ -39,15 +39,19 @@ export const enum Comparison {
  *
  * @param ascendingList - List of numbers in ascending order.
  * @param value - Search value.
- * @param options - Search options specifying Comparison.GREATER (>) or Comparison.GREATER_EQUAL (>=).
+ * @param comparison - Search comparison mode (Comparison.GREATER or Comparison.GREATER_EQUAL).
  * @returns Index in [0, ascendingList.length].
  */
-export function findFirstIndex(ascendingList: number[], value: number, options: { comparison: Comparison }): number {
+export function findFirstIndex(
+  ascendingList: number[],
+  value: number,
+  comparison: Comparison = Comparison.GREATER_EQUAL,
+): number {
   const len = ascendingList.length;
   if (len === 0) {
     return 0;
   }
-  const isGreater = options.comparison === Comparison.GREATER;
+  const isGreater = comparison === Comparison.GREATER;
   const first = ascendingList[0];
   if (isGreater ? first > value : first >= value) {
     return 0;
@@ -111,7 +115,7 @@ export function findIndexes(
     };
   }
 
-  const idx = findFirstIndex(ascendingList, value, { comparison: Comparison.GREATER }) - 1;
+  const idx = findFirstIndex(ascendingList, value, Comparison.GREATER) - 1;
   const isExact = ascendingList[idx] === value;
 
   return {

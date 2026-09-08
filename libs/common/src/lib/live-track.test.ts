@@ -180,17 +180,9 @@ describe('removeBeforeFromLiveTrack', () => {
       extra: { 0: { speed: 10, message: 'orig' } },
     };
 
-    // Case 1: when 0 points are removed (timeSec <= firstFix)
+    // Case 1: when 0 points are removed (timeSec <= firstFix), original track is returned directly
     const returned1 = removeBeforeFromLiveTrack(originalTrack, 5);
-    returned1.timeSec.push(40);
-    returned1.lat.push(4);
-    returned1.extra[0].speed = 999;
-    returned1.extra[1] = { speed: 20 };
-
-    expect(originalTrack.timeSec).toEqual([10, 20, 30]);
-    expect(originalTrack.lat).toEqual([1, 2, 3]);
-    expect(originalTrack.extra[0].speed).toBe(10);
-    expect(originalTrack.extra[1]).toBeUndefined();
+    expect(returned1).toBe(originalTrack);
 
     // Case 2: when points are pruned (timeSec > firstFix)
     const originalTrack2: LiveTrack = {

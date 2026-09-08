@@ -126,15 +126,15 @@ describe('patchTracksElevation', () => {
 
   it('should find the first index greater or equal correctly', () => {
     const arr = [100, 200, 300];
-    const opts = { comparison: Comparison.GREATER_EQUAL };
-    expect(findFirstIndex(arr, 50, opts)).toBe(0);
-    expect(findFirstIndex(arr, 100, opts)).toBe(0);
-    expect(findFirstIndex(arr, 150, opts)).toBe(1);
-    expect(findFirstIndex(arr, 200, opts)).toBe(1);
-    expect(findFirstIndex(arr, 250, opts)).toBe(2);
-    expect(findFirstIndex(arr, 300, opts)).toBe(2);
-    expect(findFirstIndex(arr, 350, opts)).toBe(3);
-    expect(findFirstIndex([], 100, opts)).toBe(0);
+    const cmp = Comparison.GREATER_EQUAL;
+    expect(findFirstIndex(arr, 50, cmp)).toBe(0);
+    expect(findFirstIndex(arr, 100, cmp)).toBe(0);
+    expect(findFirstIndex(arr, 150, cmp)).toBe(1);
+    expect(findFirstIndex(arr, 200, cmp)).toBe(1);
+    expect(findFirstIndex(arr, 250, cmp)).toBe(2);
+    expect(findFirstIndex(arr, 300, cmp)).toBe(2);
+    expect(findFirstIndex(arr, 350, cmp)).toBe(3);
+    expect(findFirstIndex([], 100, cmp)).toBe(0);
   });
 
   it('handles errors gracefully', async () => {
