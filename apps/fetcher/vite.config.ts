@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { parse } from '@dotenvx/dotenvx';
+import dotenvx from '@dotenvx/dotenvx';
 import { defineConfig } from 'vite';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
   const secretsDefine: Record<string, string> = {};
 
   /**
-   * Loads secrets from the first existing file in the provided list.
+   * Loads and decrypts secrets from the first existing file in the provided list via dotenvx / OS keyring.
    *
    * @param filePaths - The list of file paths to check in order.
    * @throws {Error} If none of the files exist.
@@ -23,8 +23,11 @@ export default defineConfig(({ mode }) => {
   const loadSecrets = (...filePaths: string[]) => {
     for (const filePath of filePaths) {
       if (fs.existsSync(filePath)) {
-        const envConfig = parse(fs.readFileSync(filePath, 'utf-8'));
-        for (const [key, value] of Object.entries(envConfig)) {
+        const { parsed } = dotenvx.config({ path: filePath, processEnv: { ...process.env } });
+        for (const [key, value] of Object.entries(parsed)) {
+          if (key.startsWith('DOTENV_')) {
+            continue;
+          }
           secretsDefine[`SECRETS.${key}`] = JSON.stringify(value);
         }
         return;

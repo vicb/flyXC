@@ -15,6 +15,7 @@ export default [
           ignoredFiles: [],
           ignoredDependencies: [
             '@date-fns/tz',
+            '@dotenvx/dotenvx',
             '@nx/vite',
             'd3-array',
             'date-fns',

@@ -52,6 +52,7 @@ vite.config.*.timestamp*
 vitest.config.*.timestamp*
 
 *.env.local
+.env.keys
 .claude/worktrees
 .nx/polygraph
 .nx/self-healing
