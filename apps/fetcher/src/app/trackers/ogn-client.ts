@@ -96,7 +96,28 @@ export class OgnClient {
         this.log(`Socket closed`);
         this.cleanup();
       });
+      // Handle socket errors (e.g. ECONNRESET, ECONNREFUSED, network drops) to prevent
+      // an unhandled 'error' event from terminating the process.
+      this.socket.on('error', (err) => {
+        this.log(`Socket error: ${err.message}`);
+        this.cleanup();
+      });
       this.readline = readline.createInterface({ input: this.socket });
+      // The readline Interface forwards errors emitted by its input stream.
+      // Registering an error listener here ensures stream reset errors (like ECONNRESET)
+      // do not bubble up as unhandled exceptions in Node.js.
+      this.readline.on('error', (err) => {
+        this.log(`Readline error: ${err.message}`);
+        this.cleanup();
+      });
+      this.readline.on('line', (line) => {
+        // Skip keep alive lines.
+        if (line.startsWith('#')) {
+          this.rxKeepAliveSec = Date.now() / 1000;
+        } else {
+          this.onLine(line);
+        }
+      });
       this.txKeepAliveTimer = setInterval(() => this.keepAlive(), TX_KEEP_ALIVE_MIN * 60 * 1000);
       this.rxKeepAliveSec = Date.now() / 1000;
     }
@@ -104,14 +125,6 @@ export class OgnClient {
       this.log(`Socket connected`);
       this.isConnected = true;
       this.write(`user ${this.user} pass ${this.password} vers flyxc ${VERSION} filter t/p`);
-    });
-    this.readline.on('line', (line) => {
-      // Skip keep alive lines.
-      if (line.startsWith('#')) {
-        this.rxKeepAliveSec = Date.now() / 1000;
-      } else {
-        this.onLine(line);
-      }
     });
   }
 
