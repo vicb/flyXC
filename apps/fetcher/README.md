@@ -10,7 +10,7 @@ To build the container image and restart the service on the running VM:
 pnpm nx deploy fetcher
 ```
 
-> **Note:** On every deployment and service restart, the service automatically pulls the latest image and prunes previous dangling images to reclaim disk space.
+> **Note:** Deployments (`pnpm nx deploy fetcher`) automatically pull the latest image, restart the service, and prune old dangling images. In contrast, automatic service restarts on the VM (e.g. following a crash or process exit) restart the container immediately from the local image cache without re-pulling or pruning.
 
 ## Infrastructure & VM Management
 
@@ -91,7 +91,7 @@ gcloud compute ssh fetcher --zone=us-central1-a --command="sudo journalctl -u fe
 # SSH into the VM
 gcloud compute ssh fetcher --zone=us-central1-a
 
-# Restart the service (pulls latest image and starts container)
+# Restart the service using the local image (instant restart without pulling)
 gcloud compute ssh fetcher --zone=us-central1-a --command="sudo systemctl restart fetcher.service"
 
 # List Docker images
@@ -123,6 +123,6 @@ gcloud artifacts docker tags add \
   us-docker.pkg.dev/fly-xc/docker/fetcher@sha256:<DIGEST> \
   us-docker.pkg.dev/fly-xc/docker/fetcher:latest
 
-# 3. Restart the service on the VM to pull and run it
-gcloud compute ssh fetcher --zone=us-central1-a --command="sudo systemctl restart fetcher.service"
+# 3. Pull the updated 'latest' image and restart the service on the VM
+gcloud compute ssh fetcher --zone=us-central1-a --command="sudo DOCKER_CONFIG=/var/lib/docker-config docker pull us-docker.pkg.dev/fly-xc/docker/fetcher:latest && sudo systemctl restart fetcher.service && sudo docker image prune -f"
 ```

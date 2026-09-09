@@ -18,9 +18,6 @@ write_files:
       ExecStartPre=/usr/bin/docker-credential-gcr configure-docker --registries us-docker.pkg.dev
       ExecStartPre=-/usr/bin/docker stop fetcher
       ExecStartPre=-/usr/bin/docker rm fetcher
-      ExecStartPre=/usr/bin/docker pull us-docker.pkg.dev/fly-xc/docker/fetcher:latest
-      # Clean up dangling images left over from previous deployments
-      ExecStartPre=-/usr/bin/docker image prune -f
       ExecStart=/usr/bin/docker run --name fetcher --rm us-docker.pkg.dev/fly-xc/docker/fetcher:latest
       ExecStop=/usr/bin/docker stop fetcher
 
