@@ -1,29 +1,15 @@
-import { fetchResponse, protos } from '@flyxc/common';
-import type { Request, Response } from 'express';
-import express from 'express';
+import type http from 'node:http';
+import { createServer } from 'node:http';
 
-const app = express().use(express.raw());
+import { createProxy } from 'proxy';
 
-app.post('/get', async (req: Request, res: Response) => {
-  const r = protos.Request.fromBinary(req.body);
+const server = createProxy(createServer());
 
-  if (r.key != SECRETS.PROXY_KEY) {
-    return res.status(400).send(`[proxy] Invalid key`);
-  }
+server.authenticate = (req: http.IncomingMessage) => {
+  const auth = req.headers['proxy-authorization'];
+  return auth === `Bearer ${SECRETS.PROXY_KEY}`;
+};
 
-  try {
-    const response = await fetchResponse(r.url, {
-      retry: r.retry,
-      timeoutS: r.timeoutS,
-      retryOnTimeout: r.retryOnTimeout,
-    });
+const port = Number(process.env.PORT) || 80;
 
-    return res.status(response.status).send(await response.text());
-  } catch (e) {
-    return res.status(500).send(`[proxy] ${JSON.stringify(e)}`);
-  }
-});
-
-const port = process.env.PORT || 80;
-
-app.listen(port, () => console.info(`Started server on port ${port}.`));
+server.listen(port, () => console.info(`Started proxy on port ${port}.`));

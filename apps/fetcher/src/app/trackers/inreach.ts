@@ -4,7 +4,7 @@
 // - https://support.garmin.com/en-US/?faq=tdlDCyo1fJ5UxjUbA9rMY8 (offline)
 // - https://web.archive.org/web/20230328084014/https://support.garmin.com/en-US/?faq=tdlDCyo1fJ5UxjUbA9rMY8
 
-import type { TrackerNames } from '@flyxc/common';
+import type { protos, TrackerNames } from '@flyxc/common';
 import {
   fetchResponse,
   formatReqError,
@@ -12,7 +12,6 @@ import {
   LiveDataIntervalSec,
   parallelTasksWithTimeout,
   parseRetryAfterS,
-  protos,
   simplifyLiveTrack,
   validateInreachAccount,
 } from '@flyxc/common';
@@ -20,7 +19,7 @@ import { createXmlParser, pushListCap, sanitizeXmlInput } from '@flyxc/common-no
 
 import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
-import { Proxies } from './proxies';
+import { Proxy } from './proxy';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';
 
@@ -28,7 +27,7 @@ import { TrackerFetcher } from './tracker';
 let useProxyUntilS = 0;
 let checkProxyZombiesAfterS = 0;
 const CHECK_ZOMBIES_EVERY_MIN = 20;
-const proxies = new Proxies('inreach');
+const proxies = new Proxy('inreach');
 
 export class InreachFetcher extends TrackerFetcher {
   protected getTrackerName(): TrackerNames {
@@ -38,6 +37,12 @@ export class InreachFetcher extends TrackerFetcher {
   protected async fetch(devices: number[], updates: TrackerUpdates, timeoutSec: number): Promise<void> {
     const useProxy = Date.now() / 1000 < useProxyUntilS;
     let isRateLimited = false;
+
+    // When no longer rate-limited, detach the active proxy and trigger immediate
+    // zombie cleanup to terminate the unused GCE VM.
+    if (!useProxy && proxies.detachCurrent()) {
+      checkProxyZombiesAfterS = 0;
+    }
 
     const fetchSingle = async (id: number): Promise<void> => {
       if (isRateLimited) {
@@ -61,32 +66,12 @@ export class InreachFetcher extends TrackerFetcher {
 
       try {
         updates.fetchedTracker.add(id);
-        let response: Response;
-        if (useProxy) {
-          response = await fetchResponse(`http://${proxies.getIp()}/get`, {
-            retry: 1,
-            timeoutS: 8,
-            method: 'POST',
-            headers: { 'Content-Type': 'application/octet-stream' },
-            body: Buffer.from(
-              protos.Request.toBinary({
-                url,
-                retry: 1,
-                timeoutS: 5,
-                retryOnTimeout: false,
-                key: SECRETS.PROXY_KEY,
-              }),
-            ),
-          });
-        } else {
-          if (proxies.detachCurrent()) {
-            checkProxyZombiesAfterS = 0;
-          }
-          response = await fetchResponse(url, {
-            retry: 1,
-            timeoutS: 7,
-          });
-        }
+        const dispatcher = useProxy ? proxies.getDispatcher() : undefined;
+        const response = await fetchResponse(url, {
+          retry: 1,
+          timeoutS: 8,
+          dispatcher,
+        });
         if (response.ok) {
           try {
             const points = parse(await response.text());

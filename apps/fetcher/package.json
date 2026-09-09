@@ -20,7 +20,8 @@
     "date-fns": "catalog:default",
     "geolib": "catalog:default",
     "node-os-utils": "^2.0.4",
-    "redis": "catalog:default"
+    "redis": "catalog:default",
+    "undici": "catalog:default"
   },
   "devDependencies": {
     "@types/node-os-utils": "catalog:default"

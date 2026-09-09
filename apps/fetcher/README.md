@@ -16,7 +16,18 @@ pnpm nx deploy fetcher
 
 ### 1. Create or Update the Instance Template
 
-The instance template uses `cloud-config.yaml` to define the `systemd` service:
+The instance template uses `cloud-config.yaml` to define the VM specification and `systemd` service.
+
+#### When to Update the Template
+
+You only need to update the instance template when changing **VM-level infrastructure or boot configuration**:
+
+- Modifying [`apps/fetcher/cloud-config.yaml`](cloud-config.yaml) (systemd service settings, restart policies, or Docker arguments).
+- Changing VM machine type (e.g., from `e2-micro` to `e2-small`).
+- Updating base OS image family (`cos-stable`), disk size/type, service account scopes, or logging options.
+- Initial setup in a new GCP environment where `fetcher-tmpl` does not yet exist.
+
+> **Important:** Because `fetcher` runs on a persistent VM, updating `fetcher-tmpl` does **not** modify the existing running VM. To apply template or `cloud-config.yaml` changes, delete the existing instance and recreate it (`pnpm nx create-vm fetcher`). For application code changes, use `pnpm nx deploy fetcher` instead.
 
 ```bash
 pnpm nx create-template fetcher
@@ -39,7 +50,7 @@ gcloud compute instance-templates create fetcher-tmpl \
 
 ### 2. Create the VM
 
-To spin up a new VM instance from the template:
+To spin up a new VM instance from the `fetcher-tmpl` template:
 
 ```bash
 pnpm nx create-vm fetcher
@@ -52,6 +63,12 @@ gcloud compute instances create fetcher \
   --source-instance-template=fetcher-tmpl \
   --zone=us-central1-a
 ```
+
+#### When to Run This
+
+- **Initial Setup**: First-time deployment in a new GCP environment.
+- **Disaster Recovery**: Recreating the VM if it was terminated or suffered an unrecoverable failure.
+- **Applying Infrastructure Updates**: When you modified `fetcher-tmpl` (e.g. changed machine type, disk size, or `cloud-config.yaml`) and need a fresh VM to inherit those changes.
 
 ### 3. Verify It's Running
 

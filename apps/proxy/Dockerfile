@@ -1,11 +1,10 @@
-FROM docker.io/node:lts-slim
+FROM docker.io/node:lts-alpine
 
 ENV NODE_ENV=production
 
-ARG DEBIAN_FRONTEND="noninteractive"
-RUN apt-get update -y \
-	&& apt-get install -y tini libcap2-bin \
-	&& setcap cap_net_bind_service=+ep `readlink -f \`which node\``
+# Allow the unprivileged 'node' user to bind to privileged port 80
+RUN apk add --no-cache tini libcap \
+	&& setcap cap_net_bind_service=+ep $(readlink -f $(which node))
 
 RUN npm install -g pnpm@11.10.0
 
@@ -18,7 +17,7 @@ RUN pnpm install --prod --frozen-lockfile --config.minimum-release-age=0
 
 COPY --chown=node:node apps/proxy/dist/ ./dist/
 
-ENTRYPOINT ["/usr/bin/tini", "--"]
+ENTRYPOINT ["/sbin/tini", "--"]
 
 USER node
 
