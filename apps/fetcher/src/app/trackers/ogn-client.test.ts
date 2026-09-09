@@ -76,6 +76,14 @@ class TestOgnClient extends OgnClient {
   public getReadline() {
     return this.readline;
   }
+
+  public setRxKeepAliveSec(sec: number) {
+    this.rxKeepAliveSec = sec;
+  }
+
+  public testKeepAlive() {
+    this.keepAlive();
+  }
 }
 
 describe('OgnClient onLine parsing', () => {
@@ -160,6 +168,74 @@ describe('OgnClient error handling', () => {
     expect(client.getSocket()).toBeUndefined();
     expect(client.getReadline()).toBeUndefined();
     expect(client.getAndClearLogs()).toContain('Readline error: read ECONNRESET');
+
+    vi.restoreAllMocks();
+  });
+
+  it('should handle socket timeout event and cleanup resources', () => {
+    vi.spyOn(Socket.prototype, 'connect').mockImplementation(function (this: Socket) {
+      return this;
+    });
+
+    const client = new TestOgnClient('localhost', 14580, 'user', 'pass');
+    client.maybeConnect();
+
+    const socket = client.getSocket();
+    expect(socket).toBeDefined();
+
+    expect(() => {
+      socket?.emit('timeout');
+    }).not.toThrow();
+
+    expect(client.getSocket()).toBeUndefined();
+    expect(client.getReadline()).toBeUndefined();
+    expect(client.getAndClearLogs()).toContain('Connection timeout');
+
+    vi.restoreAllMocks();
+  });
+
+  it('should handle socket end event and cleanup resources', () => {
+    vi.spyOn(Socket.prototype, 'connect').mockImplementation(function (this: Socket) {
+      return this;
+    });
+
+    const client = new TestOgnClient('localhost', 14580, 'user', 'pass');
+    client.maybeConnect();
+
+    const socket = client.getSocket();
+    expect(socket).toBeDefined();
+
+    expect(() => {
+      socket?.emit('end');
+    }).not.toThrow();
+
+    expect(client.getSocket()).toBeUndefined();
+    expect(client.getReadline()).toBeUndefined();
+    expect(client.getAndClearLogs()).toContain('Socket ended');
+
+    vi.restoreAllMocks();
+  });
+
+  it('should detect rx keepalive timeout in keepAlive and cleanup', () => {
+    vi.spyOn(Socket.prototype, 'connect').mockImplementation(function (this: Socket, ...args: any[]) {
+      const cb = typeof args[1] === 'function' ? args[1] : typeof args[2] === 'function' ? args[2] : null;
+      if (cb) cb();
+      return this;
+    });
+
+    const client = new TestOgnClient('localhost', 14580, 'user', 'pass');
+    client.maybeConnect();
+
+    expect(client.getSocket()).toBeDefined();
+
+    // Set rxKeepAliveSec older than 90s
+    client.setRxKeepAliveSec(Date.now() / 1000 - 120);
+
+    client.testKeepAlive();
+
+    expect(client.getSocket()).toBeUndefined();
+    expect(client.getReadline()).toBeUndefined();
+    expect(client.getAndClearLogs()).toContain('Keep alive timeout');
 
     vi.restoreAllMocks();
   });

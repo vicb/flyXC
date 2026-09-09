@@ -66,9 +66,30 @@ export function fastExtractId(line: string): string | undefined {
 
   return undefined;
 }
-const TX_KEEP_ALIVE_MIN = 10;
+// Heartbeat interval sent to the APRS server to keep the connection and intermediate NAT states alive.
+const TX_KEEP_ALIVE_SEC = 30;
+// Maximum duration without receiving any packet/heartbeat from the server before assuming the connection is dead.
+const RX_TIMEOUT_SEC = 90;
+// Connection handshake timeout (DNS + TCP connect) to fail over quickly if a pool IP is unresponsive.
+const CONNECT_TIMEOUT_MS = 10_000;
 const MAX_LOG_ENTRIES = 50;
 
+/**
+ * Canonical OGN APRS-IS server host and port.
+ *
+ * - Host: `aprs.glidernet.org` is a DNS alias pointing to `aprs-pool.glidernet.org`,
+ *   which load-balances traffic across active core APRSC cluster servers in Europe
+ *   (e.g. glidern1 through glidern5). OGN guidelines advise using the pool rather than
+ *   hardcoding individual nodes for redundancy and failover.
+ * - Port: `14580` is the standard port for client applications utilizing user-defined
+ *   server-side filters (such as `filter t/p`). The other open pool port (`10152`)
+ *   streams the entire unfiltered feed (telemetry, weather, status, messages),
+ *   which adds substantial bandwidth without benefit.
+ *
+ * References:
+ * - Subscribing to OGN data: https://wiki.glidernet.org/wiki:subscribing-to-ogn-data
+ * - OGN APRS protocol: https://wiki.glidernet.org/wiki:ogn-aprs-protocol
+ */
 export const OGN_HOST = 'aprs.glidernet.org';
 export const OGN_PORT = 14580;
 
@@ -92,6 +113,22 @@ export class OgnClient {
     if (!this.socket) {
       this.log(`Socket created`);
       this.socket = new Socket();
+      // Enable TCP keep-alive probes at the OS level to detect dead connections across routers/NATs.
+      this.socket.setKeepAlive(true, 30_000);
+      // Disable Nagle's algorithm for low-latency transmission.
+      this.socket.setNoDelay(true);
+      // Fail over quickly if an IP from the pool is unreachable.
+      this.socket.setTimeout(CONNECT_TIMEOUT_MS);
+      this.socket.once('timeout', () => {
+        this.log(`Connection timeout`);
+        this.cleanup();
+      });
+
+      this.socket.on('end', () => {
+        this.log(`Socket ended`);
+        this.cleanup();
+      });
+
       this.socket.on('close', () => {
         this.log(`Socket closed`);
         this.cleanup();
@@ -114,14 +151,19 @@ export class OgnClient {
         // Skip keep alive lines.
         if (line.startsWith('#')) {
           this.rxKeepAliveSec = Date.now() / 1000;
+          if (line.includes('unverified') || line.includes('error') || line.includes('closing')) {
+            this.log(`Server notice: ${line.trim()}`);
+          }
         } else {
           this.onLine(line);
         }
       });
-      this.txKeepAliveTimer = setInterval(() => this.keepAlive(), TX_KEEP_ALIVE_MIN * 60 * 1000);
+      this.txKeepAliveTimer = setInterval(() => this.keepAlive(), TX_KEEP_ALIVE_SEC * 1000);
       this.rxKeepAliveSec = Date.now() / 1000;
     }
     this.socket.connect(this.port, this.host, () => {
+      // Clear handshake timeout once connected (keepAlive timer and read stream handle ongoing liveness).
+      this.socket?.setTimeout(0);
       this.log(`Socket connected`);
       this.isConnected = true;
       this.write(`user ${this.user} pass ${this.password} vers flyxc ${VERSION} filter t/p`);
@@ -135,12 +177,16 @@ export class OgnClient {
 
   // Send a line to the server.
   write(line: string) {
-    if (this.rxKeepAliveSec < Date.now() / 1000 - 2 * 60) {
-      // We should receive a keep alive every 20 seconds
+    if (this.rxKeepAliveSec < Date.now() / 1000 - RX_TIMEOUT_SEC) {
       this.log(`Keep alive timeout`);
       this.cleanup();
     } else if (this.isConnected) {
-      this.socket?.write(line.trim() + '\n');
+      this.socket?.write(line.trim() + '\n', (err) => {
+        if (err) {
+          this.log(`Socket write error: ${err.message}`);
+          this.cleanup();
+        }
+      });
     } else {
       this.log(`Trying to write while not connected`);
     }
@@ -205,6 +251,11 @@ export class OgnClient {
   }
 
   protected keepAlive() {
+    if (this.isConnected && this.rxKeepAliveSec < Date.now() / 1000 - RX_TIMEOUT_SEC) {
+      this.log(`Keep alive timeout`);
+      this.cleanup();
+      return;
+    }
     this.write('# flyxc.app');
   }
 
