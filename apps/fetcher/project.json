@@ -99,7 +99,7 @@
       "executor": "nx:run-commands",
       "dependsOn": ["container"],
       "options": {
-        "command": "gcloud compute ssh fetcher --zone=us-central1-a --command=\"sudo systemctl restart fetcher.service\""
+        "command": "gcloud compute ssh fetcher --zone=us-central1-a --command=\"sudo DOCKER_CONFIG=/var/lib/docker-config docker pull us-docker.pkg.dev/fly-xc/docker/fetcher:latest && sudo systemctl restart fetcher.service && sudo docker image prune -f\""
       }
     },
     "typecheck": {
