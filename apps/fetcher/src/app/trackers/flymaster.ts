@@ -32,7 +32,7 @@ export class FlymasterFetcher extends TrackerFetcher {
       // Flymaster id to Datastore id.
       const flmIdToDsId = new Map<number, number>();
       // Retrieve positions from at least 5min ago (system latency).
-      const fetchSecond = updates.startFetchSec - FLYMASTER_LATENCY_SEC;
+      const fetchFromSecond = updates.startFetchSec - FLYMASTER_LATENCY_SEC;
       const trackersParam: { [id: string]: number } = {};
 
       // Fetch up to 10 devices at once.
@@ -47,7 +47,7 @@ export class FlymasterFetcher extends TrackerFetcher {
         }
         const flmId = Number(tracker.account);
         flmIdToDsId.set(flmId, dsId);
-        trackersParam[String(flmId)] = fetchSecond;
+        trackersParam[String(flmId)] = fetchFromSecond;
       }
 
       let flights: { [id: string]: any } = {};
@@ -78,7 +78,7 @@ export class FlymasterFetcher extends TrackerFetcher {
         // Get an extra 5min of data that might not have been received (when no network coverage).
         const points = parse(flight);
         let track = makeLiveTrack(points);
-        track = removeBeforeFromLiveTrack(track, fetchSecond - 5 * 60);
+        track = removeBeforeFromLiveTrack(track, fetchFromSecond - 5 * 60);
         simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
         updates.trackerDeltas.set(dsId, track);
       }
