@@ -101,4 +101,15 @@ describe('fetchResponse', () => {
     );
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   });
+
+  it('should use custom fetch function when provided in options', async () => {
+    const customResponse = new Response('custom', { status: 200 });
+    const customFetch = vi.fn().mockResolvedValue(customResponse);
+    globalThis.fetch = vi.fn();
+
+    const res = await fetchResponse('https://example.com/test', { fetch: customFetch });
+    expect(res).toBe(customResponse);
+    expect(customFetch).toHaveBeenCalledTimes(1);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
 });

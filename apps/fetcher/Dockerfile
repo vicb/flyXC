@@ -1,4 +1,9 @@
-FROM docker.io/node:lts-slim
+# Pin to node:24-slim to match "engines": { "node": "^24.15" } in package.json.
+# Using a specific major version rather than floating "lts-slim" guarantees the container runtime
+# matches local development and prevents silent upgrades to future Node versions upon rebuilding.
+# This also ensures Node's embedded Undici version (process.versions.undici) stays aligned with
+# the "undici" dependency pinned in pnpm-workspace.yaml.
+FROM docker.io/node:24-slim
 
 ENV NODE_ENV=production
 

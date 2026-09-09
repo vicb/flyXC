@@ -16,6 +16,7 @@ import {
   validateInreachAccount,
 } from '@flyxc/common';
 import { createXmlParser, pushListCap, sanitizeXmlInput } from '@flyxc/common-node';
+import { fetch as undiciFetch } from 'undici';
 
 import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
@@ -67,10 +68,17 @@ export class InreachFetcher extends TrackerFetcher {
       try {
         updates.fetchedTracker.add(id);
         const dispatcher = useProxy ? proxies.getDispatcher() : undefined;
+
+        // When routing via proxy dispatcher, use Undici's own `fetch` instead of Node's `globalThis.fetch`.
+        // Node embeds its own internal copy of Undici which can drift in major versions from the npm `undici`
+        // package (e.g. when Node is upgraded in Docker while dependencies are pinned, or vice-versa).
+        // Since both `undici.fetch` and `ProxyAgent` originate from the exact same npm package, their internal
+        // dispatcher interface (e.g. `onRequestStart`) is guaranteed to match regardless of the host Node version.
         const response = await fetchResponse(url, {
           retry: 1,
           timeoutS: 8,
           dispatcher,
+          fetch: dispatcher ? (undiciFetch as any) : undefined,
         });
         if (response.ok) {
           try {

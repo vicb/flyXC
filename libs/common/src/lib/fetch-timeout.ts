@@ -71,7 +71,10 @@ export interface FetchResponseOptions {
   credentials?: RequestCredentials;
 
   /**
-   * Optional custom dispatcher (e.g. Undici ProxyAgent in Node.js).
+   * Optional custom dispatcher (e.g. Undici ProxyAgent or Agent).
+   *
+   * Note: This is specific to Node.js / Undici and has no effect in browser environments,
+   * where `window.fetch` does not support custom dispatchers.
    */
   dispatcher?: any;
 
@@ -80,6 +83,21 @@ export interface FetchResponseOptions {
    * If aborted by the caller, the error is rethrown immediately without retrying.
    */
   signal?: AbortSignal;
+
+  /**
+   * Optional custom `fetch` implementation (e.g. `undici.fetch` in Node.js).
+   *
+   * ### Why use this:
+   * When using custom Undici dispatchers (like `ProxyAgent`), pairing `undici.fetch`
+   * with `undici.ProxyAgent` ensures both share the exact same internal dispatcher
+   * protocol from the installed npm package. This completely decouples requests
+   * from the Node.js runtime's embedded Undici version, preventing runtime crashes
+   * (e.g. "invalid onRequestStart method") across different environments (local vs.
+   * Docker vs. production VM).
+   *
+   * Defaults to `globalThis.fetch`.
+   */
+  fetch?: (input: any, init?: any) => Promise<Response>;
 }
 
 /**
@@ -118,6 +136,7 @@ export async function fetchResponse(url: string, options?: FetchResponseOptions)
     credentials = undefined,
     dispatcher = undefined,
     signal: externalSignal = undefined,
+    fetch: fetchOverride = undefined,
   } = options ?? {};
 
   let error = new Error(`Retried ${retry} times`);
@@ -125,6 +144,8 @@ export async function fetchResponse(url: string, options?: FetchResponseOptions)
 
   /* eslint-disable @typescript-eslint/no-unused-expressions */
   log && console.log(`Start fetch, timeout = ${timeoutS}s`);
+
+  const fetchFn = fetchOverride ?? globalThis.fetch;
 
   for (let numRetry = 0; numRetry < retry; numRetry++) {
     const timeoutSignal = AbortSignal.timeout(timeoutS * 1000);
@@ -136,7 +157,7 @@ export async function fetchResponse(url: string, options?: FetchResponseOptions)
     const attemptSignal = externalSignal ? AbortSignal.any([externalSignal, timeoutSignal]) : timeoutSignal;
 
     try {
-      const response = await fetch(url, {
+      const response = await fetchFn(url, {
         signal: attemptSignal,
         method,
         headers,
