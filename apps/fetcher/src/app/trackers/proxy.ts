@@ -1,3 +1,6 @@
+import { once } from 'node:events';
+import net from 'node:net';
+
 import { InstancesClient, InstanceTemplatesClient, ZoneOperationsClient } from '@google-cloud/compute';
 import { format } from 'date-fns';
 import { ProxyAgent } from 'undici';
@@ -48,6 +51,12 @@ export class Proxy {
   /** Cached ProxyAgent dispatcher pointing to the active proxy instance. */
   private dispatcher: ProxyAgent | null = null;
 
+  /** Whether the proxy container is confirmed to be accepting connections on port 80. */
+  private isReady = false;
+
+  /** Monotonically increasing lifecycle generation to detect and discard stale probe results. */
+  private generation = 0;
+
   /** Buffered log messages for Redis/diagnostic inspection. */
   private logs: string[] = [];
 
@@ -80,6 +89,8 @@ export class Proxy {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       this.name = format(new Date(), "'proxy-'yyyyMMdd-HHmmss");
       this.ip = null;
+      this.isReady = false;
+      this.generation++;
       this.closeDispatcher();
       const zone = this.getNextZone();
 
@@ -245,14 +256,20 @@ export class Proxy {
   }
 
   /**
-   * Checks whether the proxy is ready to handle requests.
+   * Checks whether the proxy is ready to handle requests without blocking.
    *
-   * If no proxy has been requested yet (`name == null`), triggers {@link start}
-   * asynchronously and returns `false`.
+   * 1. If no proxy has been requested yet (`name == null`), triggers {@link start}
+   *    asynchronously in the background and returns `false`.
+   * 2. If the VM is still being provisioned by GCE (`ip == null`), returns `false`.
+   * 3. If already verified ready, returns `true` immediately.
+   * 4. If the IP is known but not yet verified, performs a single non-blocking
+   *    TCP connection probe to port 80 (timeout: 1000ms).
+   *    - If port 80 connects: sets `isReady = true`, logs readiness, returns `true`.
+   *    - If refused or timed out: logs unreachable and returns `false`.
    *
-   * @returns `true` if the VM is running and its IP address is known; `false` otherwise.
+   * @returns `true` if the VM is running and its proxy container is accepting connections on port 80; `false` otherwise.
    */
-  public isReadyOrStart(): boolean {
+  public async isReadyOrStart(): Promise<boolean> {
     if (this.name == null) {
       // No proxy starting, start one.
       this.start();
@@ -262,7 +279,40 @@ export class Proxy {
       // Waiting for a proxy to be ready.
       return false;
     }
-    return true;
+    if (this.isReady) {
+      return true;
+    }
+
+    return await this.checkProxyReady();
+  }
+
+  /**
+   * Probes whether the proxy is accepting TCP connections and updates `isReady`.
+   *
+   * @param port - Port to connect to (default 80).
+   * @param timeoutMs - Connection timeout in milliseconds (default 1000).
+   * @returns `true` if connected successfully; `false` on error or timeout.
+   */
+  protected async checkProxyReady(port = 80, timeoutMs = 1000): Promise<boolean> {
+    if (!this.ip) {
+      return false;
+    }
+    const expectedGeneration = this.generation;
+    const socket = net.connect({ host: this.ip, port });
+    try {
+      await once(socket, 'connect', { signal: AbortSignal.timeout(timeoutMs) });
+      if (this.generation === expectedGeneration) {
+        this.isReady = true;
+      }
+    } catch {
+      if (this.generation === expectedGeneration) {
+        this.isReady = false;
+        this.log(`Proxy ${this.name} (${this.ip}) unreachable`);
+      }
+    } finally {
+      socket.destroy();
+    }
+    return this.generation === expectedGeneration && this.isReady;
   }
 
   /**
@@ -293,6 +343,8 @@ export class Proxy {
     const hasCurrent = this.name != null;
     this.name = null;
     this.ip = null;
+    this.isReady = false;
+    this.generation++;
     this.closeDispatcher();
     return hasCurrent;
   }

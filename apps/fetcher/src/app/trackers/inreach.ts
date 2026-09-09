@@ -38,85 +38,90 @@ export class InreachFetcher extends TrackerFetcher {
   protected async fetch(devices: number[], updates: TrackerUpdates, timeoutSec: number): Promise<void> {
     const useProxy = Date.now() / 1000 < useProxyUntilS;
     let isRateLimited = false;
+    let fetchTrackers = true;
 
-    // When no longer rate-limited, detach the active proxy and trigger immediate
-    // zombie cleanup to terminate the unused GCE VM.
-    if (!useProxy && proxies.detachCurrent()) {
+    if (useProxy) {
+      fetchTrackers = await proxies.isReadyOrStart();
+      if (!fetchTrackers) {
+        updates.errors.push('Proxy unreachable');
+      }
+    } else if (proxies.detachCurrent()) {
+      // When no longer rate-limited, detach the active proxy and trigger immediate
+      // zombie cleanup to terminate the unused GCE VM.
       checkProxyZombiesAfterS = 0;
     }
 
-    const fetchSingle = async (id: number): Promise<void> => {
-      if (isRateLimited) {
-        return;
-      }
-      if (useProxy && !proxies.isReadyOrStart()) {
-        return;
-      }
-
-      const tracker = this.getTracker(id);
-      if (tracker == null) {
-        return;
-      }
-      if (validateInreachAccount(tracker.account) === false) {
-        updates.trackerErrors.set(id, `Invalid account ${tracker.account}`);
-        return;
-      }
-
-      const fetchFromSec = this.getTrackerFetchFromSec(id, updates.startFetchSec, 2 * 3600);
-      const url = `${tracker.account}?d1=${new Date(fetchFromSec * 1000).toISOString()}`;
-
-      try {
-        updates.fetchedTracker.add(id);
-        const dispatcher = useProxy ? proxies.getDispatcher() : undefined;
-
-        // When routing via proxy dispatcher, use Undici's own `fetch` instead of Node's `globalThis.fetch`.
-        // Node embeds its own internal copy of Undici which can drift in major versions from the npm `undici`
-        // package (e.g. when Node is upgraded in Docker while dependencies are pinned, or vice-versa).
-        // Since both `undici.fetch` and `ProxyAgent` originate from the exact same npm package, their internal
-        // dispatcher interface (e.g. `onRequestStart`) is guaranteed to match regardless of the host Node version.
-        const response = await fetchResponse(url, {
-          retry: 1,
-          timeoutS: 8,
-          dispatcher,
-          fetch: dispatcher ? (undiciFetch as any) : undefined,
-        });
-        if (response.ok) {
-          try {
-            const points = parse(await response.text());
-            const track = makeLiveTrack(points);
-            simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
-            if (track.timeSec.length > 0) {
-              updates.trackerDeltas.set(id, track);
-            }
-          } catch (e) {
-            updates.trackerErrors.set(id, `Error parsing the kml for ${id}\n${e}`);
-          }
-        } else {
-          updates.trackerErrors.set(id, `HTTP Status = ${response.status} for ${url}`);
-          if (response.status == 429) {
-            if (!isRateLimited && !useProxy) {
-              // Only update `proxyUntilS` for the main server.
-              useProxyUntilS = parseRetryAfterS(response.headers.get('Retry-After') ?? '600');
-            }
-            isRateLimited = true;
-            return;
-          }
+    if (fetchTrackers) {
+      const fetchSingle = async (id: number): Promise<void> => {
+        if (isRateLimited) {
+          return;
         }
-      } catch (e) {
-        updates.trackerErrors.set(id, `Error ${formatReqError(e)} for url ${url}`);
+
+        const tracker = this.getTracker(id);
+        if (tracker == null) {
+          return;
+        }
+        if (validateInreachAccount(tracker.account) === false) {
+          updates.trackerErrors.set(id, `Invalid account ${tracker.account}`);
+          return;
+        }
+
+        const fetchFromSec = this.getTrackerFetchFromSec(id, updates.startFetchSec, 2 * 3600);
+        const url = `${tracker.account}?d1=${new Date(fetchFromSec * 1000).toISOString()}`;
+
+        try {
+          updates.fetchedTracker.add(id);
+          const dispatcher = useProxy ? proxies.getDispatcher() : undefined;
+
+          // When routing via proxy dispatcher, use Undici's own `fetch` instead of Node's `globalThis.fetch`.
+          // Node embeds its own internal copy of Undici which can drift in major versions from the npm `undici`
+          // package (e.g. when Node is upgraded in Docker while dependencies are pinned, or vice-versa).
+          // Since both `undici.fetch` and `ProxyAgent` originate from the exact same npm package, their internal
+          // dispatcher interface (e.g. `onRequestStart`) is guaranteed to match regardless of the host Node version.
+          const response = await fetchResponse(url, {
+            retry: 1,
+            timeoutS: 8,
+            dispatcher,
+            fetch: dispatcher ? (undiciFetch as any) : undefined,
+          });
+          if (response.ok) {
+            try {
+              const points = parse(await response.text());
+              const track = makeLiveTrack(points);
+              simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
+              if (track.timeSec.length > 0) {
+                updates.trackerDeltas.set(id, track);
+              }
+            } catch (e) {
+              updates.trackerErrors.set(id, `Error parsing the kml for ${id}\n${e}`);
+            }
+          } else {
+            updates.trackerErrors.set(id, `HTTP Status = ${response.status} for ${url}`);
+            if (response.status == 429) {
+              if (!isRateLimited && !useProxy) {
+                // Only update `proxyUntilS` for the main server.
+                useProxyUntilS = parseRetryAfterS(response.headers.get('Retry-After') ?? '600');
+              }
+              isRateLimited = true;
+              return;
+            }
+          }
+        } catch (e) {
+          updates.trackerErrors.set(id, `Error ${formatReqError(e)} for url ${url}`);
+        }
+      };
+
+      const { isTimeout } = await parallelTasksWithTimeout(4, devices, fetchSingle, timeoutSec * 1000);
+
+      if (isTimeout) {
+        updates.errors.push(`Fetch timeout`);
       }
-    };
 
-    const { isTimeout } = await parallelTasksWithTimeout(4, devices, fetchSingle, timeoutSec * 1000);
-
-    if (isTimeout) {
-      updates.errors.push(`Fetch timeout`);
-    }
-
-    if (isRateLimited) {
-      // Start another proxy when the current server is rate-limited.
-      proxies.start();
-      checkProxyZombiesAfterS = 0;
+      if (isRateLimited) {
+        // Start another proxy when the current server is rate-limited.
+        proxies.start();
+        checkProxyZombiesAfterS = 0;
+      }
     }
 
     if (Date.now() / 1000 > checkProxyZombiesAfterS) {
