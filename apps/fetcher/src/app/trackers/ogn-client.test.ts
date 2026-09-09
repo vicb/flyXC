@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { Socket } from 'node:net';
+
+import { describe, expect, it, vi } from 'vitest';
 
 import { fastExtractId, OgnClient } from './ogn-client';
 
@@ -66,6 +68,14 @@ class TestOgnClient extends OgnClient {
   public testOnLine(line: string) {
     this.onLine(line);
   }
+
+  public getSocket() {
+    return this.socket;
+  }
+
+  public getReadline() {
+    return this.readline;
+  }
 }
 
 describe('OgnClient onLine parsing', () => {
@@ -106,5 +116,51 @@ describe('OgnClient onLine parsing', () => {
 
     const positions = client.getAndClearPositions().get('3C6742');
     expect(positions).toHaveLength(2);
+  });
+});
+
+describe('OgnClient error handling', () => {
+  it('should handle socket error events without throwing and cleanup resources', () => {
+    vi.spyOn(Socket.prototype, 'connect').mockImplementation(function (this: Socket) {
+      return this;
+    });
+
+    const client = new TestOgnClient('localhost', 14580, 'user', 'pass');
+    client.maybeConnect();
+
+    const socket = client.getSocket();
+    expect(socket).toBeDefined();
+
+    expect(() => {
+      socket?.emit('error', new Error('read ECONNRESET'));
+    }).not.toThrow();
+
+    expect(client.getSocket()).toBeUndefined();
+    expect(client.getReadline()).toBeUndefined();
+    expect(client.getAndClearLogs()).toContain('Socket error: read ECONNRESET');
+
+    vi.restoreAllMocks();
+  });
+
+  it('should handle readline error events without throwing and cleanup resources', () => {
+    vi.spyOn(Socket.prototype, 'connect').mockImplementation(function (this: Socket) {
+      return this;
+    });
+
+    const client = new TestOgnClient('localhost', 14580, 'user', 'pass');
+    client.maybeConnect();
+
+    const rl = client.getReadline();
+    expect(rl).toBeDefined();
+
+    expect(() => {
+      rl?.emit('error', new Error('read ECONNRESET'));
+    }).not.toThrow();
+
+    expect(client.getSocket()).toBeUndefined();
+    expect(client.getReadline()).toBeUndefined();
+    expect(client.getAndClearLogs()).toContain('Readline error: read ECONNRESET');
+
+    vi.restoreAllMocks();
   });
 });
