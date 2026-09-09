@@ -5,6 +5,10 @@ export function formatReqError(error: any): string {
   }
   if (error != null) {
     if (error instanceof Error) {
+      const code = (error as any)?.code ?? (error as any)?.cause?.code;
+      if (code) {
+        return `${code} (${error.message})`;
+      }
       return error.message;
     }
     if (typeof error === 'object') {
