@@ -1,4 +1,4 @@
-import { useMemo } from 'preact/hooks';
+import { useMemo, useState } from 'preact/hooks';
 
 import { getPressureToGhScale } from '../util/atmosphere';
 import * as math from '../util/math';
@@ -72,12 +72,38 @@ export function WindProfile(props: WindProfileProps) {
     };
   }, [levels, minPressure, speeds, ghs, seaLevelPressure, maxPressure, height, isFixedRange, width, surfaceElevation]);
 
+  const [{ gradientMinSpeed, gradientMaxSpeed, gradientSpeedStops }] = useState(() => {
+    const gradient = W.colors.wind.getColorGradient();
+    const gradientMinSpeed = gradient[0][0];
+    const gradientMaxSpeed = gradient[gradient.length - 1][0];
+    const gradientSpeedStops = gradient.map(([speed, color]) => ({
+      offset: math.round((speed - gradientMinSpeed) / (gradientMaxSpeed - gradientMinSpeed), 2),
+      color: `rgb(${color[0]}, ${color[1]}, ${color[2]})`,
+    }));
+
+    return { gradientMinSpeed, gradientMaxSpeed, gradientSpeedStops };
+  });
+
   const chartElements = useMemo(
     () => (
       <>
         <rect width={width} height={height} className="background" />
         <WindAxis {...{ speedToPxScale, width, height, maxSpeed, unit, format, isZoomedIn: isFixedRange }} />
-        <path className="speed line" d={pathGenerator(math.zip(speeds, levels))} />
+        <defs>
+          <linearGradient
+            id="windGrad"
+            gradientUnits="userSpaceOnUse"
+            x1={speedToPxScale(gradientMinSpeed)}
+            y1="0"
+            x2={speedToPxScale(gradientMaxSpeed)}
+            y2="0"
+          >
+            {gradientSpeedStops.map(({ offset, color }) => (
+              <stop key={offset} offset={offset} stop-color={color} />
+            ))}
+          </linearGradient>
+        </defs>
+        <path className="speed line" stroke="url(#windGrad)" d={pathGenerator(math.zip(speeds, levels))} />
         <g transform={`translate(${width / 2}, 0)`}>
           {levels.map((level: number, i: number) => {
             if (level > surfacePressure) {

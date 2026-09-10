@@ -114,6 +114,18 @@ export function SkewT(props: SkewTProps) {
     surfaceElevation,
   ]);
 
+  const [{ gradientMinTemp, gradientMaxTemp, gradientTempStops }] = useState(() => {
+    const gradient = W.colors.temp.getColorGradient();
+    const gradientMinTemp = gradient[0][0];
+    const gradientMaxTemp = gradient[gradient.length - 1][0];
+    const gradientTempStops = gradient.map(([temp, color]) => ({
+      offset: math.round((temp - gradientMinTemp) / (gradientMaxTemp - gradientMinTemp), 2),
+      color: `rgb(${color[0]}, ${color[1]}, ${color[2]})`,
+    }));
+
+    return { gradientMinTemp, gradientMaxTemp, gradientTempStops };
+  });
+
   const axisElement = useMemo(
     () => (
       <g className="axis">
@@ -208,11 +220,39 @@ export function SkewT(props: SkewTProps) {
     () => (
       <g className="line">
         {parcel && <Parcel {...{ parcel, width, height, pathGenerator, pressureToPxScale, formatAltitude }} />}
-        <path className="temperature" d={pathGenerator(math.zip(temps, levels))} />
+        <defs>
+          <linearGradient
+            id="tempGrad"
+            gradientUnits="userSpaceOnUse"
+            x1={tempToPxScale(gradientMinTemp)}
+            y1="0"
+            x2={tempToPxScale(gradientMaxTemp)}
+            y2="0"
+          >
+            {gradientTempStops.map(({ offset, color }) => (
+              <stop key={offset} offset={offset} stop-color={color} />
+            ))}
+          </linearGradient>
+        </defs>
+        <path className="temperature" stroke="url(#tempGrad)" d={pathGenerator(math.zip(temps, levels))} />
         <path className="dewpoint" d={pathGenerator(math.zip(dewPoints, levels))} />
       </g>
     ),
-    [parcel, width, height, pathGenerator, pressureToPxScale, formatAltitude, temps, dewPoints, levels],
+    [
+      parcel,
+      width,
+      height,
+      pathGenerator,
+      pressureToPxScale,
+      formatAltitude,
+      temps,
+      dewPoints,
+      levels,
+      tempToPxScale,
+      gradientMinTemp,
+      gradientMaxTemp,
+      gradientTempStops,
+    ],
   );
 
   let tempAtCursor = 0;
