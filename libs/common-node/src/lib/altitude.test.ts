@@ -407,4 +407,22 @@ describe('Altitude in common-node', () => {
       expect((service as any).timeoutSec).toBe(10);
     });
   });
+
+  describe('getAltitudeFromRgba', () => {
+    it.each([
+      { r: 0, g: 0, b: 0, expected: -32768 },
+      { r: 255, g: 255, b: 255, expected: 32768 },
+      { r: 128, g: 128, b: 128, expected: 129 },
+      { r: 64, g: 128, b: 192, expected: -16255 },
+      { r: 10, g: 20, b: 30, expected: -30188 },
+    ])('computes correct values for standard inputs %#', ({ r, g, b, expected }) => {
+      const pixels = new Uint8ClampedArray([r, g, b, 255]);
+      expect(getAltitudeFromRgba(pixels, 0, 0)).toBe(expected);
+    });
+
+    it('correctly handles the rounding boundary for blue (127 vs 128)', () => {
+      expect(getAltitudeFromRgba(new Uint8ClampedArray([0, 0, 128, 255]), 0, 0)).toBe(-32767);
+      expect(getAltitudeFromRgba(new Uint8ClampedArray([0, 0, 127, 255]), 0, 0)).toBe(-32768);
+    });
+  });
 });

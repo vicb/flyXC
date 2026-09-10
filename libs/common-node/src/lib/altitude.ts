@@ -512,5 +512,5 @@ export function getAltitudeFromRgba(rgba: Uint8ClampedArray, pxX: number, pxY: n
   const red = rgba[offset];
   const green = rgba[offset + 1];
   const blue = rgba[offset + 2];
-  return Math.round(red * 256 + green + blue / 256 - 32768);
+  return (red << 8) + green + (blue >> 7) - 32768;
 }
