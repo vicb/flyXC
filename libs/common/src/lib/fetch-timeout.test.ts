@@ -48,6 +48,31 @@ describe('fetchResponse', () => {
     expect(globalThis.fetch).toHaveBeenCalledTimes(2);
   });
 
+  it('should cancel response body when retrying transient status to release socket to pool', async () => {
+    const res500 = new Response('error', { status: 500 });
+    const res200 = new Response('ok', { status: 200 });
+
+    let resolveCancel!: () => void;
+    const cancelPromise = new Promise<void>((resolve) => {
+      resolveCancel = resolve;
+    });
+    const cancelSpy = vi.spyOn(res500.body!, 'cancel').mockReturnValue(cancelPromise);
+    const retryFetchSpy = vi.fn().mockResolvedValueOnce(res200);
+    globalThis.fetch = vi.fn().mockResolvedValueOnce(res500).mockImplementationOnce(retryFetchSpy);
+
+    const fetchPromise = fetchResponse('https://example.com/test', { retry: 3 });
+
+    // Flush one microtask tick so the first fetch resolves and cancel() is called, but cancelPromise is still pending.
+    await Promise.resolve();
+    expect(cancelSpy).toHaveBeenCalled();
+    expect(retryFetchSpy).not.toHaveBeenCalled();
+
+    resolveCancel();
+    const res = await fetchPromise;
+    expect(res.status).toBe(200);
+    expect(retryFetchSpy).toHaveBeenCalled();
+  });
+
   it('should throw when retries are exhausted on status 503', async () => {
     const res503 = new Response('unavailable', { status: 503 });
     globalThis.fetch = vi.fn().mockResolvedValue(res503);

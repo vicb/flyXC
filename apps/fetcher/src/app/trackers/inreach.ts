@@ -96,6 +96,8 @@ export class InreachFetcher extends TrackerFetcher {
               updates.trackerErrors.set(id, `Error parsing the kml for ${id}\n${e}`);
             }
           } else {
+            // Cancel the unconsumed response body to immediately release the underlying socket back to the connection pool.
+            await response.body?.cancel();
             updates.trackerErrors.set(id, `HTTP Status = ${response.status} for ${url}`);
             if (response.status == 429) {
               if (!isRateLimited && !useProxy) {

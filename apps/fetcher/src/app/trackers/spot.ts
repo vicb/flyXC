@@ -51,6 +51,8 @@ export class SpotFetcher extends TrackerFetcher {
             updates.trackerErrors.set(id, `Error parsing the json for ${id}\n${e}`);
           }
         } else {
+          // Cancel the unconsumed response body to immediately release the underlying socket back to the connection pool.
+          await response.body?.cancel();
           updates.trackerErrors.set(id, `HTTP Status = ${response.status} for ${url}`);
         }
       } catch (e) {

@@ -174,6 +174,8 @@ export async function fetchResponse(url: string, options?: FetchResponseOptions)
       }
 
       if (retryOnStatus.has(response.status)) {
+        // Cancel the unconsumed response body to immediately release the underlying socket back to the connection pool before retrying.
+        await response.body?.cancel();
         log && console.log(`retry on status ${response.status} ${(Date.now() / 1000 - start).toFixed(1)}s`);
         error = new Error(`Status = ${response.status}`);
         continue;

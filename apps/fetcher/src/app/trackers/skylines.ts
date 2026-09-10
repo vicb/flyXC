@@ -69,6 +69,8 @@ export class SkylinesFetcher extends TrackerFetcher {
             updates.errors.push(`Error parsing the json for ${url}\n${e}`);
           }
         } else {
+          // Cancel the unconsumed response body to immediately release the underlying socket back to the connection pool.
+          await response.body?.cancel();
           updates.errors.push(`HTTP Status = ${response.status} for ${url}`);
         }
       } catch (e) {
