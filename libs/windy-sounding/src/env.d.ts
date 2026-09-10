@@ -24,5 +24,6 @@ declare const W: {
   overlays: typeof import('@windy/client/overlays').default;
   reverseName: typeof import('@windy/client/reverseName');
   geolocation: typeof import('@windy/client/geolocation');
+  colors: typeof import('@windy/client/colors').default;
 };
 /* eslint-enable */
