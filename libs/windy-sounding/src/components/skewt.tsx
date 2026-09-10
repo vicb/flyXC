@@ -5,6 +5,7 @@ import * as atm from '../util/atmosphere.js';
 import type { Scale } from '../util/math.js';
 import * as math from '../util/math.js';
 import { Parcel } from './parcel.jsx';
+import { TemperatureGradient } from './temperature-gradient';
 
 export type SkewTProps = {
   width: number;
@@ -221,18 +222,9 @@ export function SkewT(props: SkewTProps) {
       <g className="line">
         {parcel && <Parcel {...{ parcel, width, height, pathGenerator, pressureToPxScale, formatAltitude }} />}
         <defs>
-          <linearGradient
-            id="tempGrad"
-            gradientUnits="userSpaceOnUse"
-            x1={tempToPxScale(gradientMinTemp)}
-            y1="0"
-            x2={tempToPxScale(gradientMaxTemp)}
-            y2="0"
-          >
-            {gradientTempStops.map(({ offset, color }) => (
-              <stop key={offset} offset={offset} stop-color={color} />
-            ))}
-          </linearGradient>
+          <TemperatureGradient
+            {...{ tempToPxScale, gradientMinTemp, gradientMaxTemp, height, skew, gradientTempStops }}
+          />
         </defs>
         <path className="temperature" stroke="url(#tempGrad)" d={pathGenerator(math.zip(temps, levels))} />
         <path className="dewpoint" d={pathGenerator(math.zip(dewPoints, levels))} />
