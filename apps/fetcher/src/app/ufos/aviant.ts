@@ -28,6 +28,8 @@ export class AviantFetcher extends UfoFleetFetcher {
           }
         }
       } else {
+        // Cancel the unconsumed response body to immediately release the underlying socket back to the connection pool.
+        await response.body?.cancel();
         updates.errors.push(`HTTP status ${response.status}`);
       }
     } catch (e) {

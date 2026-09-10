@@ -61,6 +61,8 @@ export class XcontestFetcher extends TrackerFetcher {
           updates.errors.push(`Error parsing JSON ${response.body}\n${e}`);
         }
       } else {
+        // Cancel the unconsumed response body to immediately release the underlying socket back to the connection pool.
+        await response.body?.cancel();
         updates.errors.push(`HTTP status ${response.status}`);
       }
     } catch (e) {
@@ -116,6 +118,8 @@ export class XcontestFetcher extends TrackerFetcher {
             updates.trackerErrors.set(deviceId, `Error parsing JSON ${response.body}\n${e}`);
           }
         } else {
+          // Cancel the unconsumed response body to immediately release the underlying socket back to the connection pool.
+          await response.body?.cancel();
           updates.trackerErrors.set(deviceId, `HTTP status ${response.status}`);
         }
       } catch (e) {
