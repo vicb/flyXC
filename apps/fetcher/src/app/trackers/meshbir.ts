@@ -90,13 +90,15 @@ export function parse(
       const meshId = validateMeshBirAccount(msg.user_id);
       if (meshId !== false) {
         const points = pointsByMeshId.get(meshId) ?? [];
-        points.push(point);
         pointsByMeshId.set(meshId, points);
+        points.push(point);
       }
     }
   }
 
   // Parse messages
+  // Messages do not have an attached position,
+  // so we need to associate them with the latest known location if available.
   for (const msg of messages) {
     if (msg.type === 'message') {
       const text = msg.message.trim();
@@ -109,13 +111,16 @@ export function parse(
       }
       // Add the message on a position retrieved in the current cycle
       const points = pointsByMeshId.get(meshId) ?? [];
+      pointsByMeshId.set(meshId, points);
+
       if (points.length > 0) {
         const timesMs = points.map((p) => p.timeMs);
         const index = findIndexes(timesMs, msg.time).beforeIndex;
         points[index].message = text;
         continue;
       }
-      // Get the position from the latest known location
+
+      // Get the position from the latest known location when there is no position in the current cycle
       const dsId = meshIdToDsId.get(meshId);
       if (dsId === undefined) {
         continue;
@@ -137,7 +142,6 @@ export function parse(
         name: 'meshbir',
         message: text,
       });
-      pointsByMeshId.set(meshId, points);
     }
   }
 

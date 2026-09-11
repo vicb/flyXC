@@ -15,6 +15,8 @@ import { makeLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';
 
+const MESSAGE_AFFINITY_MIN = 15;
+
 export class ZoleoFetcher extends TrackerFetcher {
   constructor(
     state: protos.FetcherState,
@@ -59,6 +61,7 @@ export class ZoleoFetcher extends TrackerFetcher {
     }
 
     const pointsById = parse(messages);
+    handleLocationlessMessage(messages, pointsById, idToDsId, this.state.pilots, MESSAGE_AFFINITY_MIN);
     for (const [id, points] of pointsById.entries()) {
       const dsId = idToDsId.get(id);
       if (dsId != null) {
@@ -73,30 +76,109 @@ export class ZoleoFetcher extends TrackerFetcher {
   }
 }
 
+/**
+ * Converts queued Zoleo messages into live-track points grouped by device ID.
+ *
+ * Only location updates and messages that include coordinates become points.
+ * Location-less messages are handled separately after all locations are parsed.
+ *
+ * @param messages Queued Zoleo messages to convert.
+ * @returns Live-track points grouped by Zoleo device ID.
+ */
 export function parse(messages: ZoleoMessage[]): Map<string, LivePoint[]> {
   const pointsById = new Map<string, LivePoint[]>();
+
   for (const msg of messages) {
-    if (msg.type != 'msg') {
+    if (msg.type === 'location') {
+      const points = pointsById.get(msg.id) ?? [];
+      pointsById.set(msg.id, points);
+      const point: LivePoint = {
+        lat: msg.lat,
+        lon: msg.lon,
+        alt: msg.altitudeM,
+        timeMs: msg.timeMs,
+        name: 'zoleo',
+      };
+      if (msg.emergency) {
+        point.emergency = msg.emergency;
+      }
+      if (msg.message != null) {
+        point.message = msg.message;
+      }
+      if (msg.batteryPercent < 20) {
+        point.lowBattery = true;
+      }
+      points.push(point);
+    } else if (msg.type === 'message' && msg.lat != null && msg.lon != null) {
+      const points = pointsById.get(msg.id) ?? [];
+      pointsById.set(msg.id, points);
+      const point: LivePoint = {
+        lat: msg.lat,
+        lon: msg.lon,
+        alt: msg.altitudeM ?? 0,
+        timeMs: msg.timeMs,
+        name: 'zoleo',
+        message: msg.message,
+      };
+      if (msg.batteryPercent < 20) {
+        point.lowBattery = true;
+      }
+      points.push(point);
+    }
+  }
+
+  return pointsById;
+}
+
+/**
+ * Associates a location-less Zoleo message with the device's recent known point.
+ *
+ * Messages without a location are discarded when no tracker is known or when
+ * the tracker's latest fix is older than the affinity window.
+ *
+ * @param messages Queued Zoleo messages to reconcile.
+ * @param pointsById Points collected for each Zoleo device in this cycle.
+ * @param idToDsId Mapping from Zoleo device IDs to datastore IDs.
+ * @param pilots Current pilot tracks used to resolve location-less messages.
+ * @param messageAffinityMin Maximum age, in minutes, of a fix used for a message.
+ */
+export function handleLocationlessMessage(
+  messages: ZoleoMessage[],
+  pointsById: Map<string, LivePoint[]>,
+  idToDsId: Map<string, number>,
+  pilots: Record<string, protos.Pilot>,
+  messageAffinityMin: number,
+): void {
+  for (const msg of messages) {
+    if (msg.type !== 'message' || (msg.lat != null && msg.lon != null)) {
       continue;
     }
-    const point: LivePoint = {
-      lat: msg.lat,
-      lon: msg.lon,
-      alt: msg.altitudeM,
-      speed: msg.speedKph,
+
+    const dsId = idToDsId.get(msg.id);
+    if (dsId == null) {
+      continue;
+    }
+    const track = pilots[dsId]?.track;
+    if (track == null || track.timeSec.length === 0) {
+      continue;
+    }
+
+    const lastFixAgeSec = msg.timeMs / 1000 - track.timeSec.at(-1);
+    if (lastFixAgeSec > messageAffinityMin * 60) {
+      continue;
+    }
+
+    const points = pointsById.get(msg.id) ?? [];
+    pointsById.set(msg.id, points);
+    points.push({
+      lat: track.lat.at(-1),
+      lon: track.lon.at(-1),
+      alt: track.alt.at(-1),
       timeMs: msg.timeMs,
       name: 'zoleo',
-      emergency: msg.emergency,
       message: msg.message,
-    };
-    if (msg.batteryPercent < 20) {
-      point.lowBattery = true;
-    }
-    const points = pointsById.get(msg.id) ?? [];
-    points.push(point);
-    pointsById.set(msg.id, points);
+    });
   }
-  return pointsById;
 }
 
 /**

@@ -353,7 +353,11 @@ describe('parse', () => {
           },
           1,
         ),
-      ).toMatchInlineSnapshot(`Map {}`);
+      ).toMatchInlineSnapshot(`
+        Map {
+          "12345678-1234-1234-1234-123456789012" => [],
+        }
+      `);
     });
   });
 });
