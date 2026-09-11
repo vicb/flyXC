@@ -546,9 +546,6 @@ importers:
       igc-parser:
         specifier: ^2.0.0
         version: 2.0.0
-      object-standard-path:
-        specifier: ^0.3.1
-        version: 0.3.1
       printf:
         specifier: ^0.6.1
         version: 0.6.1
@@ -6128,6 +6125,7 @@ packages:
   eslint@9.39.5:
     resolution: {integrity: sha512-DgZS62aPLXKlnxILS/AYCoRvHaZeXceIzlXPkkGGzJWSow1aEk0lbTlxUSlyjC8jcaKxAdOnTDz+o1JFSBsyjw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -7818,9 +7816,6 @@ packages:
   object-keys@1.1.1:
     resolution: {integrity: sha512-NuAESUOUMrlIXOfHKzD6bpPu3tYt3xvjNdRIQ+FeT0lNb4K8WR70CaDxhuNguS2XG+GjkyMwOzsN5ZktImfhLA==}
     engines: {node: '>= 0.4'}
-
-  object-standard-path@0.3.1:
-    resolution: {integrity: sha512-QbUdHZjCPNJJReaRV8xXm5M4yTgcZZFn1YZrFbgML1WsVO+gjzwtWVlXubHmDM9AG8K3cGf/5PufaH8bqVEPLw==}
 
   object.assign@4.1.7:
     resolution: {integrity: sha512-nK28WOo+QIjBkDduTINE4JkF/UJJKyf2EJxvJKfblDpyg0Q+pkOHNTL0Qwy6NP6FhE/EnzV73BxxqcJaXY9anw==}
@@ -17865,8 +17860,6 @@ snapshots:
   object-inspect@1.13.4: {}
 
   object-keys@1.1.1: {}
-
-  object-standard-path@0.3.1: {}
 
   object.assign@4.1.7:
     dependencies:

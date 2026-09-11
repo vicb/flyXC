@@ -1,8 +1,9 @@
-import { fetchResponse, Keys, round } from '@flyxc/common';
-import type { RedisClient, ZoleoMessage } from '@flyxc/common-node';
+import { fetchResponse, Keys, type LiveTrackEntity } from '@flyxc/common';
+import type { RedisClient } from '@flyxc/common-node';
 import {
   getDatastore,
   LIVE_TRACK_TABLE,
+  parseMessage,
   pushListCap,
   retrieveLiveTrackByGoogleId,
   ZOLEO_MAX_MSG,
@@ -12,7 +13,6 @@ import { Datastore } from '@google-cloud/datastore';
 import type { Request, Response } from 'express';
 import { Router } from 'express';
 import basicAuth from 'express-basic-auth';
-import { pathGet } from 'object-standard-path';
 
 import { getUserInfo, isLoggedIn } from './session';
 
@@ -48,26 +48,19 @@ export function getZoleoRouter(redis: RedisClient): Router {
       if (!userInfo) {
         return res.sendStatus(500);
       }
-      const { email, token } = userInfo;
-      const datastore = getDatastore();
-      let entity = await retrieveLiveTrackByGoogleId(datastore, token);
-      if (entity == null) {
-        entity = {
-          email,
-          google_id: token,
-          created: new Date(),
-          share: true,
-          enabled: true,
-        } as any;
-      }
       const { name = '', deviceId = '', enabled = true } = req.body;
+      const datastore = getDatastore();
+      const entity: LiveTrackEntity = await retrieveLiveTrackByGoogleId(datastore, userInfo.token);
+      if (!entity) {
+        return res.sendStatus(404);
+      }
       entity.name = name;
       entity.updated = new Date();
-      const imei = entity.zoleo?.account === deviceId ? entity.zoleo.imei ?? '' : '';
+      const imei = entity.zoleo?.account === deviceId ? entity.zoleo?.imei ?? '' : '';
       entity.zoleo = { account: deviceId, enabled, imei };
 
       await datastore.save({
-        key: entity[Datastore.KEY] ?? datastore.key([LIVE_TRACK_TABLE]),
+        key: entity[Datastore.KEY],
         data: entity,
       });
 
@@ -111,9 +104,7 @@ export function getZoleoRouter(redis: RedisClient): Router {
       // Update the entity first so that users do not have to save the form even if the zoleo API call fails below.
       deviceId = entity.zoleo.account;
       entity.updated = new Date();
-      entity.zoleo.account = '';
-      entity.zoleo.imei = '';
-      entity.zoleo.enabled = false;
+      entity.zoleo = { account: '', imei: '', enabled: false };
       await datastore.save({
         key: entity[Datastore.KEY],
         data: entity,
@@ -168,81 +159,4 @@ export function getZoleoRouter(redis: RedisClient): Router {
   });
 
   return router;
-}
-
-/**
- * Parses a raw Zoleo message into a structured ZoleoMessage object.
- *
- * @see https://developers.zoleo.com/docs/guides/integration-guides-data-feed#message-types
- */
-export function parseMessage(message: any): ZoleoMessage | null {
-  if (message == null || typeof message !== 'object') {
-    return null;
-  }
-
-  // Handle consent approval notification / device registration.
-  if ('IMEI' in message) {
-    if (message.IMEI && message.partnerDeviceID) {
-      return {
-        type: 'imei',
-        id: message.partnerDeviceID,
-        imei: String(message.IMEI),
-      };
-    } else {
-      return null;
-    }
-  }
-
-  const lat = pathGet(message, 'Location.Latitude');
-  const lon = pathGet(message, 'Location.Longitude');
-  const speedKph = pathGet(message, 'Location.Speed') ?? 0;
-  const altitudeM = pathGet(message, 'Location.Altitude') ?? 0;
-  const imei = message.DeviceIMEI;
-  const id = message.DeviceId;
-  const timeMs = pathGet(message, 'Properties.EpochMiliseconds');
-  const batteryPercent = Number(pathGet(message, 'Properties.Battery') ?? 100);
-
-  if (lat == null || lon == null || timeMs == null || imei == null || id == null) {
-    return null;
-  }
-
-  const zoleoMessage: ZoleoMessage = {
-    type: 'msg',
-    id: String(id),
-    lat: round(lat, 5),
-    lon: round(lon, 5),
-    speedKph: round(speedKph, 0),
-    altitudeM: round(altitudeM, 0),
-    batteryPercent: round(batteryPercent, 0),
-    timeMs: Number(timeMs),
-    imei: String(imei),
-  };
-
-  switch (message.MessageType) {
-    case 'CheckIn':
-      zoleoMessage.message = 'Check-In';
-      break;
-    case 'LS_start':
-    case 'LS_location':
-    case 'LS_end':
-    case 'PingLocation':
-      break;
-    case 'SOSInitiated':
-      zoleoMessage.message = 'SOS';
-      zoleoMessage.emergency = true;
-      break;
-    case 'SOSCancelled':
-      zoleoMessage.message = 'SOS Cancelled';
-      zoleoMessage.emergency = false;
-      break;
-    case 'EmailMessage':
-    case 'AppMessage':
-      // Informational messaging, return null for live tracking
-      return null;
-    default:
-      console.warn(`Ignored unknown zoleo message type: ${message.MessageType}`);
-      return null;
-  }
-
-  return zoleoMessage;
 }
