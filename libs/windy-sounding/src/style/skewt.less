@@ -1,5 +1,10 @@
 // Sounding Graph Styles
 
+@isotherm-color: darkred;
+@dewpoint-color: steelblue;
+@adiabatic-color: green;
+@temperature-color: red;
+
 #wsp-sounding {
   // Base SVG rendering & colors
   svg {
@@ -218,17 +223,20 @@
 
       // Cursor readout values
       text.temperature {
-        fill: red;
+        fill: @temperature-color;
       }
 
       text.dewpoint {
-        fill: steelblue;
+        fill: @dewpoint-color;
       }
 
       // Atmospheric sounding profile curves (Temperature & Dewpoint)
       .line {
+        .temperature {
+          stroke: @temperature-color;
+        }
         .dewpoint {
-          stroke: steelblue;
+          stroke: @dewpoint-color;
         }
       }
 
@@ -240,18 +248,18 @@
 
         // Dry adiabats (constant potential temperature)
         .dry-adiabatic {
-          stroke: green;
+          stroke: @adiabatic-color;
         }
 
         // Saturated / Pseudo-adiabats (equivalent potential temperature)
         .wet-adiabatic {
-          stroke: green;
+          stroke: @adiabatic-color;
           stroke-dasharray: 4 6;
         }
 
         // Isotherms (constant temperature lines)
         .isotherm {
-          stroke: darkred;
+          stroke: @isotherm-color;
 
           .zero {
             stroke-width: 1;
@@ -277,7 +285,7 @@
 
       // Isotherm temperature labels
       .isotherm text {
-        fill: darkred;
+        fill: @isotherm-color;
       }
 
       // Upper cloud coverage indicator and column gradient
@@ -295,7 +303,7 @@
       .parcel {
         // Parcel dry & wet adiabatic trajectory
         .line {
-          stroke: green;
+          stroke: @adiabatic-color;
         }
 
         // Mixing ratio line from surface dew point
