@@ -36,7 +36,7 @@ describe('Valid messages', () => {
       message: 'Check-In',
       speedKph: 0,
       timeMs: 1687633329628,
-      type: 'msg',
+      type: 'location',
     });
   });
 
@@ -67,7 +67,7 @@ describe('Valid messages', () => {
       message: 'Check-In',
       speedKph: 12,
       timeMs: 1687633329628,
-      type: 'msg',
+      type: 'location',
     });
   });
 
@@ -107,7 +107,7 @@ describe('Valid messages', () => {
       lon: -122.02716,
       speedKph: 0,
       timeMs: 1687633443207,
-      type: 'msg',
+      type: 'location',
     });
   });
 
@@ -132,7 +132,7 @@ describe('Valid messages', () => {
       lon: -122.0293,
       speedKph: 0,
       timeMs: 1687633832016,
-      type: 'msg',
+      type: 'location',
     });
   });
 
@@ -157,7 +157,7 @@ describe('Valid messages', () => {
       lon: -122.02787,
       speedKph: 0,
       timeMs: 1687634449094,
-      type: 'msg',
+      type: 'location',
     });
   });
 
@@ -191,7 +191,7 @@ describe('Valid messages', () => {
       message: 'SOS',
       speedKph: 0,
       timeMs: 1660875540343,
-      type: 'msg',
+      type: 'location',
     });
   });
 
@@ -216,7 +216,7 @@ describe('Valid messages', () => {
       lon: 6.54321,
       speedKph: 15,
       timeMs: 1687633329628,
-      type: 'msg',
+      type: 'location',
     });
   });
 
@@ -243,11 +243,11 @@ describe('Valid messages', () => {
       message: 'SOS Cancelled',
       speedKph: 0,
       timeMs: 1660875540343,
-      type: 'msg',
+      type: 'location',
     });
   });
 
-  it('should return null for EmailMessage and unknown message types', () => {
+  it('should parse EmailMessage without a location', () => {
     expect(
       parseMessage({
         MessageId: '2516131960493289999',
@@ -257,12 +257,68 @@ describe('Valid messages', () => {
         RecipientEmailAddress: 'zoleo@flyxc.app',
         Message: 'Test message',
         ReceivedAtServer: '2026-09-11T05:32:34Z',
-        SentFromDevice: '2026-09-11T05:32:30.671Z',
-        Location: { Latitude: 43.62469, Longitude: -79.505033 },
+        Location: {},
         Properties: { EpochMiliseconds: '1789104750671', Source: 'Cellular' },
       }),
-    ).toBeNull();
+    ).toEqual({
+      altitudeM: 0,
+      batteryPercent: 100,
+      id: '12345678-1234-1234-1234-123456789012',
+      imei: '123456789012345',
+      message: 'Test message',
+      speedKph: 0,
+      timeMs: 1789104750671,
+      type: 'message',
+    });
+  });
 
+  it('should parse EmailMessage with a location', () => {
+    expect(
+      parseMessage({
+        MessageType: 'EmailMessage',
+        DeviceIMEI: '123456789012345',
+        DeviceId: '12345678-1234-1234-1234-123456789012',
+        Message: 'Test message',
+        Location: { Latitude: 43.62469, Longitude: -79.505033 },
+        Properties: { EpochMiliseconds: '1660875540343' },
+      }),
+    ).toEqual({
+      altitudeM: 0,
+      batteryPercent: 100,
+      id: '12345678-1234-1234-1234-123456789012',
+      imei: '123456789012345',
+      lat: 43.62469,
+      lon: -79.50503,
+      message: 'Test message',
+      speedKph: 0,
+      timeMs: 1660875540343,
+      type: 'message',
+    });
+  });
+
+  it('should truncate an EmailMessage longer than 200 characters', () => {
+    expect(
+      parseMessage({
+        MessageType: 'EmailMessage',
+        DeviceIMEI: '123456789012345',
+        DeviceId: '12345678-1234-1234-1234-123456789012',
+        Message: 'x'.repeat(201),
+        Location: {},
+        Properties: { EpochMiliseconds: '1789104750671', Source: 'Cellular' },
+      }),
+    ).toEqual({
+      altitudeM: 0,
+      batteryPercent: 100,
+      id: '12345678-1234-1234-1234-123456789012',
+      imei: '123456789012345',
+      message: 'x'.repeat(200),
+      speedKph: 0,
+      timeMs: 1789104750671,
+      type: 'message',
+    });
+  });
+
+  it('should return null for unknown message types', () => {
     expect(
       parseMessage({
         MessageType: 'SomeFutureMessageType',
@@ -270,6 +326,19 @@ describe('Valid messages', () => {
         DeviceId: '12345678-1234-1234-1234-123456789012',
         Location: { Latitude: 43.62469, Longitude: -79.505033 },
         Properties: { EpochMiliseconds: '1660875540343' },
+      }),
+    ).toBeNull();
+  });
+
+  it('should return null for an EmailMessage without an epoch timestamp', () => {
+    expect(
+      parseMessage({
+        MessageType: 'EmailMessage',
+        DeviceIMEI: '123456789012345',
+        DeviceId: '12345678-1234-1234-1234-123456789012',
+        Message: 'Test message',
+        Location: {},
+        Properties: { Source: 'Cellular' },
       }),
     ).toBeNull();
   });
@@ -283,6 +352,21 @@ describe('Valid messages', () => {
         ReceivedAtServer: '2023-06-24T19:02:40Z',
         SentFromDevice: '2023-06-24T19:02:09.628Z',
         Location: { Latitude: 12.3456789, Longitude: -23.456789 },
+        Properties: { EpochMiliseconds: '1687633329628', TimeZoneId: 'Pacific Standard Time', Source: 'Satellite' },
+      }),
+    ).toBeNull();
+  });
+
+  it('should return null for malformed numeric fields', () => {
+    expect(
+      parseMessage({
+        MessageId: '2517146674703719999',
+        MessageType: 'CheckIn',
+        DeviceIMEI: '123456789012345',
+        DeviceId: '12345678-1234-1234-1234-123456789012',
+        ReceivedAtServer: '2023-06-24T19:02:40Z',
+        SentFromDevice: '2023-06-24T19:02:09.628Z',
+        Location: { Latitude: 12.3456789, Longitude: -23.456789, Speed: 'bad-speed' },
         Properties: { EpochMiliseconds: '1687633329628', TimeZoneId: 'Pacific Standard Time', Source: 'Satellite' },
       }),
     ).toBeNull();

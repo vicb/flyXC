@@ -15,6 +15,8 @@ import { makeLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';
 
+const MESSAGE_AFFINITY_MIN = 15;
+
 export class ZoleoFetcher extends TrackerFetcher {
   constructor(
     state: protos.FetcherState,
@@ -58,7 +60,7 @@ export class ZoleoFetcher extends TrackerFetcher {
       idToDsId.set(tracker.account, dsId);
     }
 
-    const pointsById = parse(messages);
+    const pointsById = parse(messages, idToDsId, this.state.pilots);
     for (const [id, points] of pointsById.entries()) {
       const dsId = idToDsId.get(id);
       if (dsId != null) {
@@ -73,30 +75,115 @@ export class ZoleoFetcher extends TrackerFetcher {
   }
 }
 
-export function parse(messages: ZoleoMessage[]): Map<string, LivePoint[]> {
+/**
+ * Converts queued Zoleo messages into live-track points grouped by device ID.
+ *
+ * Messages with coordinates become new points; location-less messages are
+ * associated with a recent known position when possible.
+ *
+ * @param messages Queued Zoleo messages to convert.
+ * @param idToDsId Mapping from Zoleo device IDs to datastore IDs.
+ * @param pilots Current pilot tracks used to resolve location-less messages.
+ * @param messageAffinityMin Maximum age, in minutes, of a fix used for a message.
+ * @returns Live-track points grouped by Zoleo device ID.
+ */
+export function parse(
+  messages: ZoleoMessage[],
+  idToDsId = new Map<string, number>(),
+  pilots: Record<string, protos.Pilot> = {},
+  messageAffinityMin = MESSAGE_AFFINITY_MIN,
+): Map<string, LivePoint[]> {
   const pointsById = new Map<string, LivePoint[]>();
   for (const msg of messages) {
-    if (msg.type != 'msg') {
-      continue;
+    if (msg.type === 'message') {
+      handleMessages(msg, pointsById, idToDsId, pilots, messageAffinityMin);
+    } else if (msg.type === 'location') {
+      const point: LivePoint = {
+        lat: msg.lat,
+        lon: msg.lon,
+        alt: msg.altitudeM,
+        speed: msg.speedKph,
+        timeMs: msg.timeMs,
+        name: 'zoleo',
+        emergency: msg.emergency,
+        message: msg.message,
+      };
+      if (msg.batteryPercent < 20) {
+        point.lowBattery = true;
+      }
+      const points = pointsById.get(msg.id) ?? [];
+      pointsById.set(msg.id, points);
+      points.push(point);
     }
-    const point: LivePoint = {
+  }
+  return pointsById;
+}
+
+/**
+ * Adds a Zoleo message as a point, or associates it with a recent known point
+ * when the message does not include its own location.
+ *
+ * Messages without a location are discarded when no tracker is known or when
+ * the tracker's latest fix is older than the affinity window.
+ *
+ * @param msg Zoleo message to handle.
+ * @param pointsById Points collected for each Zoleo device in this cycle.
+ * @param idToDsId Mapping from Zoleo device IDs to datastore IDs.
+ * @param pilots Current pilot tracks used to resolve location-less messages.
+ * @param messageAffinityMin Maximum age, in minutes, of a fix used for a message.
+ */
+function handleMessages(
+  msg: Extract<ZoleoMessage, { type: 'message' }>,
+  pointsById: Map<string, LivePoint[]>,
+  idToDsId: Map<string, number>,
+  pilots: Record<string, protos.Pilot>,
+  messageAffinityMin: number,
+): void {
+  if (msg.message == null) {
+    return;
+  }
+
+  // If the message contains a location, create a new point for it.
+  if (msg.lat != null && msg.lon != null) {
+    const points = pointsById.get(msg.id) ?? [];
+    pointsById.set(msg.id, points);
+    points.push({
       lat: msg.lat,
       lon: msg.lon,
       alt: msg.altitudeM,
       speed: msg.speedKph,
       timeMs: msg.timeMs,
       name: 'zoleo',
-      emergency: msg.emergency,
       message: msg.message,
-    };
-    if (msg.batteryPercent < 20) {
-      point.lowBattery = true;
-    }
-    const points = pointsById.get(msg.id) ?? [];
-    points.push(point);
-    pointsById.set(msg.id, points);
+    });
+    return;
   }
-  return pointsById;
+
+  const dsId = idToDsId.get(msg.id);
+  if (dsId == null) {
+    return;
+  }
+  const track = pilots[dsId]?.track;
+  if (track == null || track.timeSec.length === 0) {
+    return;
+  }
+
+  const lastFixAgeSec = Math.round(Date.now() / 1000) - track.timeSec.at(-1);
+  if (lastFixAgeSec > messageAffinityMin * 60) {
+    return;
+  }
+
+  const lastIndex = track.timeSec.length - 1;
+  pointsById.set(msg.id, [
+    {
+      lat: track.lat[lastIndex],
+      lon: track.lon[lastIndex],
+      alt: track.alt[lastIndex],
+      timeMs: msg.timeMs,
+      name: 'zoleo',
+      message: msg.message,
+    },
+  ]);
 }
 
 /**

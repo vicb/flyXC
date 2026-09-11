@@ -24,7 +24,6 @@
     "gpx-builder": "^6.0.0",
     "grant": "catalog:default",
     "igc-parser": "^2.0.0",
-    "object-standard-path": "^0.3.1",
     "printf": "^0.6.1",
     "vaadin-nodom": "workspace:*",
     "xmlbuilder": "^15.1.1",

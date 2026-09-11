@@ -5,6 +5,7 @@ import {
   LIVE_TRACK_TABLE,
   pushListCap,
   retrieveLiveTrackByGoogleId,
+  ZOLEO_MAX_MESSAGE_SIZE,
   ZOLEO_MAX_MSG,
   ZOLEO_MAX_MSG_SIZE,
 } from '@flyxc/common-node';
@@ -12,7 +13,7 @@ import { Datastore } from '@google-cloud/datastore';
 import type { Request, Response } from 'express';
 import { Router } from 'express';
 import basicAuth from 'express-basic-auth';
-import { pathGet } from 'object-standard-path';
+import { z } from 'zod';
 
 import { getUserInfo, isLoggedIn } from './session';
 
@@ -23,6 +24,64 @@ const auth = basicAuth({
 });
 
 export const ZOLEO_API_URL = 'https://api.cloudconnect.zoleo.com';
+
+const zoleoImeiMessageSchema = z
+  .object({
+    IMEI: z.string().min(1),
+    partnerDeviceID: z.string().min(1),
+  })
+  .loose()
+  .transform((message) => ({
+    type: 'imei' as const,
+    id: message.partnerDeviceID,
+    imei: message.IMEI,
+  }));
+
+const zoleoLocationSchema = z
+  .object({
+    Latitude: z.number(),
+    Longitude: z.number(),
+    Speed: z.number().default(0),
+    Altitude: z.number().default(0),
+  })
+  .loose();
+
+const zoleoPropertiesSchema = z
+  .object({
+    /* The typo is from the Zoleo API, it should be "EpochMilliseconds" */
+    EpochMiliseconds: z.coerce.number(),
+    Battery: z.coerce.number().default(100),
+  })
+  .loose();
+
+const zoleoEmailMessageSchema = z
+  .object({
+    MessageType: z.literal('EmailMessage'),
+    DeviceIMEI: z.string().min(1),
+    DeviceId: z.string().min(1),
+    Message: z.string().transform((message) => message.slice(0, ZOLEO_MAX_MESSAGE_SIZE)),
+    Location: z
+      .object({
+        Latitude: z.number().optional(),
+        Longitude: z.number().optional(),
+        Speed: z.number().optional().default(0),
+        Altitude: z.number().optional().default(0),
+      })
+      .loose(),
+    Properties: zoleoPropertiesSchema,
+  })
+  .loose();
+
+const zoleoLocationMessageSchema = z
+  .object({
+    MessageType: z.string(),
+    DeviceIMEI: z.string().min(1),
+    DeviceId: z.string().min(1),
+    Location: zoleoLocationSchema,
+    Properties: zoleoPropertiesSchema,
+    Message: z.string().optional(),
+  })
+  .loose();
 
 export function getZoleoRouter(redis: RedisClient): Router {
   const router = Router();
@@ -173,52 +232,66 @@ export function getZoleoRouter(redis: RedisClient): Router {
 /**
  * Parses a raw Zoleo message into a structured ZoleoMessage object.
  *
+ * The webhook payload has two supported shapes: a consent/registration payload and
+ * a device message payload. Email messages may omit the location; the fetcher then
+ * attaches them to the nearest available position.
+ *
  * @see https://developers.zoleo.com/docs/guides/integration-guides-data-feed#message-types
  */
-export function parseMessage(message: any): ZoleoMessage | null {
-  if (message == null || typeof message !== 'object') {
+export function parseMessage(message: unknown): ZoleoMessage | null {
+  const imeiParse = zoleoImeiMessageSchema.safeParse(message);
+  if (imeiParse.success) {
+    return imeiParse.data;
+  }
+
+  const emailParse = zoleoEmailMessageSchema.safeParse(message);
+  if (emailParse.success) {
+    const { DeviceId, DeviceIMEI, Location, Message, Properties } = emailParse.data;
+    const parsedMessage: ZoleoMessage = {
+      type: 'message',
+      id: DeviceId,
+      timeMs: Properties.EpochMiliseconds,
+      imei: DeviceIMEI,
+      batteryPercent: Properties.Battery,
+      speedKph: Math.round(Location.Speed),
+      altitudeM: Math.round(Location.Altitude),
+      message: Message,
+    };
+    return parsedMessage;
+  }
+
+  const payload = zoleoLocationMessageSchema.safeParse(message);
+  if (!payload.success) {
     return null;
   }
 
-  // Handle consent approval notification / device registration.
-  if ('IMEI' in message) {
-    if (message.IMEI && message.partnerDeviceID) {
-      return {
-        type: 'imei',
-        id: message.partnerDeviceID,
-        imei: String(message.IMEI),
-      };
-    } else {
-      return null;
-    }
-  }
+  const { MessageType, DeviceIMEI, DeviceId, Location, Properties, Message } = payload.data;
+  const { Battery: batteryPercent, EpochMiliseconds: timeMs } = Properties;
 
-  const lat = pathGet(message, 'Location.Latitude');
-  const lon = pathGet(message, 'Location.Longitude');
-  const speedKph = pathGet(message, 'Location.Speed') ?? 0;
-  const altitudeM = pathGet(message, 'Location.Altitude') ?? 0;
-  const imei = message.DeviceIMEI;
-  const id = message.DeviceId;
-  const timeMs = pathGet(message, 'Properties.EpochMiliseconds');
-  const batteryPercent = Number(pathGet(message, 'Properties.Battery') ?? 100);
-
-  if (lat == null || lon == null || timeMs == null || imei == null || id == null) {
+  if (timeMs == null || !Number.isFinite(batteryPercent)) {
     return null;
   }
+
+  if (Location == null) {
+    return null;
+  }
+
+  const { Speed: speedKph, Altitude: altitudeM } = Location;
 
   const zoleoMessage: ZoleoMessage = {
-    type: 'msg',
-    id: String(id),
-    lat: round(lat, 5),
-    lon: round(lon, 5),
+    type: 'location',
+    id: String(DeviceId),
+    lat: round(Location.Latitude, 5),
+    lon: round(Location.Longitude, 5),
+    batteryPercent: round(batteryPercent, 0),
+    timeMs,
+    imei: String(DeviceIMEI),
     speedKph: round(speedKph, 0),
     altitudeM: round(altitudeM, 0),
-    batteryPercent: round(batteryPercent, 0),
-    timeMs: Number(timeMs),
-    imei: String(imei),
+    message: Message,
   };
 
-  switch (message.MessageType) {
+  switch (MessageType) {
     case 'CheckIn':
       zoleoMessage.message = 'Check-In';
       break;
@@ -235,12 +308,8 @@ export function parseMessage(message: any): ZoleoMessage | null {
       zoleoMessage.message = 'SOS Cancelled';
       zoleoMessage.emergency = false;
       break;
-    case 'EmailMessage':
-    case 'AppMessage':
-      // Informational messaging, return null for live tracking
-      return null;
     default:
-      console.warn(`Ignored unknown zoleo message type: ${message.MessageType}`);
+      console.warn(`Ignored unknown zoleo message type: ${MessageType}`);
       return null;
   }
 
