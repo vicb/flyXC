@@ -23,43 +23,69 @@ export async function retrieveLiveTrackById(datastore: Datastore, id: string): P
   return entity;
 }
 
-// Updates a live track entity with user edits.
+/**
+ * Updates a Datastore `LiveTrackEntity` with data from a user-submitted `AccountModel` (or initializes a new one).
+ *
+ * **What it does**:
+ * - Populates or updates basic account properties (`name`, `share`, `enabled`, and `updated` timestamp;
+ *   sets `email`, `google_id`, and `created` timestamp when creating a new entity).
+ * - Copies `enabled` and `account` settings for each supported tracker.
+ * - Handles `zoleo` specially: only updates its `enabled` status while preserving existing `account` (IMEI)
+ *   and `device_id`, since Zoleo device linking is handled out-of-band via dedicated `/api/zoleo/link`,
+ *   `/api/zoleo/unlink`, and push consent webhooks.
+ *
+ * **When it is called**:
+ * - Called by the server in `createOrUpdateLiveTrack` when processing user settings form submissions
+ *   (`POST /api/live/account.json`), right after form validation and immediately before saving the entity
+ *   to Datastore and notifying the fetcher to sync.
+ *
+ * @param entity - The existing Datastore entity, or `undefined` if this is the user's first time saving settings.
+ * @param accountModel - The validated account settings submitted from the client.
+ * @param email - The authenticated user's email address.
+ * @param googleId - The authenticated user's Google OAuth ID (subject).
+ * @returns The updated `LiveTrackEntity` ready to be saved to Datastore.
+ */
 export function updateLiveTrackEntityFromModel(
   entity: LiveTrackEntity | undefined,
-  account: AccountModel,
+  accountModel: AccountModel,
   email: string,
   googleId: string,
 ): LiveTrackEntity {
-  const liveTrack: Partial<LiveTrackEntity> = entity ?? {
+  entity ??= {
     email,
     google_id: googleId,
     created: new Date(),
-  };
+  } as LiveTrackEntity;
 
   // Update the entity.
-  liveTrack.name = account.name;
-  liveTrack.share = account.share;
-  liveTrack.enabled = account.enabled;
-  liveTrack.updated = new Date();
+  entity.name = accountModel.name;
+  entity.share = accountModel.share;
+  entity.enabled = accountModel.enabled;
+  entity.updated = new Date();
 
-  for (const tracker of trackerNames) {
-    const model = account[tracker];
-    // Preserve the current zoleo device ID.
-    let deviceId: string | undefined;
-    if (tracker == 'zoleo') {
-      deviceId = model.device_id ?? liveTrack[tracker]?.device_id ?? '';
-    }
-    liveTrack[tracker] = {
-      enabled: model.enabled,
-      account: model.account,
-    };
-    if (model.account_resolved != null) {
-      liveTrack[tracker].account_resolved = model.account_resolved;
-    }
-    if (deviceId != null) {
-      liveTrack[tracker].device_id = deviceId;
+  for (const trackerName of trackerNames) {
+    const trackerModel = accountModel[trackerName];
+    if (trackerName === 'zoleo') {
+      // Zoleo account (IMEI) and device_id are managed out-of-band by /link, /unlink, and consent webhooks.
+      // Saving the account form should only update the enabled state and never overwrite account or device_id.
+      entity.zoleo = {
+        account: entity.zoleo?.account ?? '',
+        device_id: entity.zoleo?.device_id ?? '',
+        enabled: trackerModel.enabled,
+      };
+    } else if (trackerName === 'flyme') {
+      entity[trackerName] = {
+        account: trackerModel.account,
+        enabled: trackerModel.enabled,
+        account_resolved: trackerModel.account_resolved ?? '',
+      };
+    } else {
+      entity[trackerName] = {
+        account: trackerModel.account,
+        enabled: trackerModel.enabled,
+      };
     }
   }
 
-  return liveTrack as LiveTrackEntity;
+  return entity;
 }
