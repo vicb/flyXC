@@ -51,6 +51,7 @@ catalog:
   '@preact/preset-vite': ^2.10.6
   vite-plugin-static-copy: ^4.1.1
   wrangler: ^4.129.0
+  eslint-plugin-unused-imports: ^4.4.1
 
 allowBuilds:
   '@parcel/watcher': false
