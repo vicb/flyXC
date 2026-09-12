@@ -239,13 +239,13 @@ export class SettingsPage extends LitElement {
                       <ion-text class="ion-padding-horizontal ion-padding-top block">
                         Messages sent to <strong>zoleo@flyxc.app</strong> will be displayed flyXC.
                         ${when(
-                          this.binder.model.zoleo.account.valueOf().length > 0 &&
-                            this.binder.model.zoleo.imei.valueOf().length == 0,
+                          this.binder.model.zoleo.device_id.valueOf().length > 0 &&
+                            this.binder.model.zoleo.account.valueOf().length == 0,
                           () => html`<p>The consent must be confirmed via the email from zoleo.</p>`,
                         )}
                       </ion-text>
                       ${when(
-                        this.binder.model.zoleo.account.valueOf().length == 0,
+                        this.binder.model.zoleo.device_id.valueOf().length == 0,
                         () => html`<ion-item lines="full">
                           <ion-button size="default" @click=${async () => await this.openZoleoWebWidget()}
                             ><i class="las la-link la-lg"></i> Link a device</ion-button
@@ -310,9 +310,14 @@ export class SettingsPage extends LitElement {
    * POST a request to the server to unlink the Zoleo device.
    */
   private async unlinkZoleo() {
-    const binderNode = this.binder.for(this.binder.model.zoleo.account);
-    binderNode.value = '';
-    binderNode.visited = true;
+    // Clear the form model so the UI immediately shows "Link a device" and any subsequent
+    // form save preserves the unlinked state.
+    const deviceIdNode = this.binder.for(this.binder.model.zoleo.device_id);
+    deviceIdNode.value = '';
+    deviceIdNode.visited = true;
+    const accountNode = this.binder.for(this.binder.model.zoleo.account);
+    accountNode.value = '';
+    accountNode.visited = true;
     await fetchResponse(`${import.meta.env.VITE_API_SERVER}/api/zoleo/unlink`, {
       method: 'POST',
       credentials: 'include',
@@ -384,7 +389,8 @@ export class SettingsPage extends LitElement {
     const { partnerDeviceID } = event.data;
     if (partnerDeviceID) {
       const zoleoModel = this.binder.model.zoleo;
-      const binderNode = this.binder.for(zoleoModel.account);
+      const deviceIdNode = this.binder.for(zoleoModel.device_id);
+      const accountNode = this.binder.for(zoleoModel.account);
       const payload = {
         name: this.binder.model.name.valueOf(),
         deviceId: partnerDeviceID,
@@ -407,8 +413,10 @@ export class SettingsPage extends LitElement {
       }
 
       if (linked) {
-        binderNode.value = partnerDeviceID;
-        binderNode.visited = true;
+        deviceIdNode.value = partnerDeviceID;
+        deviceIdNode.visited = true;
+        accountNode.value = '';
+        accountNode.visited = true;
 
         const alert = await alertController.create({
           header: 'zoleo',
@@ -422,7 +430,10 @@ export class SettingsPage extends LitElement {
         });
         await alert.present();
       } else {
-        binderNode.value = '';
+        deviceIdNode.value = '';
+        deviceIdNode.visited = true;
+        accountNode.value = '';
+        accountNode.visited = true;
         const alert = await alertController.create({
           header: 'zoleo',
           message: 'Failed to link your Zoleo device. Please try again.',

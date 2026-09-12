@@ -164,19 +164,15 @@ describe('Validate OGN accounts', () => {
 
 describe('Validate zoleo accounts', () => {
   test('Valid ids', () => {
-    expect(validateZoleoAccount('12345678-1234-1234-1234-123456789012')).toBe('12345678-1234-1234-1234-123456789012');
-    expect(validateZoleoAccount('  12345678-1234-1234-1234-123456789012  ')).toBe(
-      '12345678-1234-1234-1234-123456789012',
-    );
-    expect(validateZoleoAccount('c5acc06a-c6f0-40c2-8987-e1a5ac53f6d9')).toBe('c5acc06a-c6f0-40c2-8987-e1a5ac53f6d9');
     expect(validateZoleoAccount('012345678912345')).toBe('012345678912345');
     expect(validateZoleoAccount('  012345678912345  ')).toBe('012345678912345');
-    expect(validateZoleoAccount('device-123')).toBe('device-123');
   });
 
   test('Invalid ids', () => {
     expect(validateZoleoAccount('')).toEqual(false);
-    expect(validateZoleoAccount('   ')).toEqual(false);
+    expect(validateZoleoAccount('01234567891234')).toEqual(false);
+    expect(validateZoleoAccount('0123456789123456')).toEqual(false);
+    expect(validateZoleoAccount('random')).toEqual(false);
   });
 });
 

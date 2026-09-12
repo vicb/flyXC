@@ -27,7 +27,7 @@ export function getZoleoRouter(redis: RedisClient): Router {
   const router = Router();
 
   /**
-   * Saves the Zoleo device ID to the user's entity in the datastore (in the account field).
+   * Saves the Zoleo device ID to the user's entity in the datastore (in the device_id field).
    *
    * This is called by the frontend when the user consent to sharing info.
    *
@@ -35,7 +35,7 @@ export function getZoleoRouter(redis: RedisClient): Router {
    * - This is different from the Zoleo link API which is not used.
    * - The devices becomes linked via a push message when users consents to sharing their info
    *   via the email link or via their zoleo account at myzoleo.com. The IMEI is populated at
-   *   that point.
+   *   that point (in the account field).
    */
   router.post('/link', async (req: Request, res: Response) => {
     try {
@@ -55,8 +55,8 @@ export function getZoleoRouter(redis: RedisClient): Router {
       }
       entity.name = name;
       entity.updated = new Date();
-      const imei = entity.zoleo?.account === deviceId ? entity.zoleo?.imei ?? '' : '';
-      entity.zoleo = { account: deviceId, enabled, imei };
+      const account = entity.zoleo?.device_id === deviceId ? entity.zoleo?.account ?? '' : '';
+      entity.zoleo = { account, device_id: deviceId, enabled };
 
       await datastore.save({
         key: entity[Datastore.KEY],
@@ -96,14 +96,14 @@ export function getZoleoRouter(redis: RedisClient): Router {
       const datastore = getDatastore();
       const { token } = userInfo;
       const entity = await retrieveLiveTrackByGoogleId(datastore, token);
-      if (!entity?.zoleo?.account) {
+      if (!entity?.zoleo?.device_id) {
         return res.sendStatus(204);
       }
 
       // Update the entity first so that users do not have to save the form even if the zoleo API call fails below.
-      deviceId = entity.zoleo.account;
+      deviceId = entity.zoleo.device_id;
       entity.updated = new Date();
-      entity.zoleo = { account: '', imei: '', enabled: false };
+      entity.zoleo = { account: '', device_id: '', enabled: false };
       await datastore.save({
         key: entity[Datastore.KEY],
         data: entity,

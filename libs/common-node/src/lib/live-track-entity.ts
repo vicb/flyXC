@@ -44,10 +44,10 @@ export function updateLiveTrackEntityFromModel(
 
   for (const tracker of trackerNames) {
     const model = account[tracker];
-    // Preserve the current zoleo IMEI.
-    let imei: string | undefined;
+    // Preserve the current zoleo device ID.
+    let deviceId: string | undefined;
     if (tracker == 'zoleo') {
-      imei = liveTrack[tracker]?.imei ?? '';
+      deviceId = model.device_id ?? liveTrack[tracker]?.device_id ?? '';
     }
     liveTrack[tracker] = {
       enabled: model.enabled,
@@ -56,8 +56,8 @@ export function updateLiveTrackEntityFromModel(
     if (model.account_resolved != null) {
       liveTrack[tracker].account_resolved = model.account_resolved;
     }
-    if (imei != null) {
-      liveTrack[tracker].imei = imei ?? '';
+    if (deviceId != null) {
+      liveTrack[tracker].device_id = deviceId;
     }
   }
 

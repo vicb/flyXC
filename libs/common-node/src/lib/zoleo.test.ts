@@ -9,7 +9,7 @@ describe('parseMessage', () => {
 
   it('parses an IMEI consent message', () => {
     expect(parseMessage({ IMEI: '123456789012345', partnerDeviceID: device.DeviceId })).toEqual({
-      id: device.DeviceId,
+      device_id: device.DeviceId,
       imei: '123456789012345',
       type: 'imei',
     });
@@ -26,7 +26,6 @@ describe('parseMessage', () => {
     ).toEqual({
       altitudeM: 0,
       batteryPercent: 100,
-      id: device.DeviceId,
       imei: device.DeviceIMEI,
       lat: 12.34568,
       lon: -23.45679,
@@ -60,7 +59,6 @@ describe('parseMessage', () => {
         Properties: properties,
       }),
     ).toMatchObject({
-      id: device.DeviceId,
       lat: 37.38762,
       lon: -122.02716,
       timeMs: 1687633329628,
@@ -93,7 +91,6 @@ describe('parseMessage', () => {
       }),
     ).toEqual({
       batteryPercent: 100,
-      id: device.DeviceId,
       imei: device.DeviceIMEI,
       message: 'Test message',
       timeMs: 1789104750671,
@@ -113,7 +110,6 @@ describe('parseMessage', () => {
     ).toEqual({
       altitudeM: 0,
       batteryPercent: 100,
-      id: device.DeviceId,
       imei: device.DeviceIMEI,
       lat: 43.62469,
       lon: -79.50503,
@@ -156,7 +152,7 @@ describe('parseMessage', () => {
     expect(
       parseMessage({
         MessageType: 'CheckIn',
-        DeviceIMEI: device.DeviceIMEI,
+        DeviceId: device.DeviceId,
         Location: { Latitude: 12.3456789, Longitude: -23.456789 },
         Properties: properties,
       }),
