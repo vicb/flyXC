@@ -15,7 +15,10 @@ import { makeLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';
 
-const MESSAGE_AFFINITY_MIN = 15;
+
+// Email messages will be attached to live-track points if they are within MESSAGE_AFFINITY_MIN minutes of the message time.
+// This period is long because Zoleo tracking intervals are too.
+const MESSAGE_AFFINITY_MIN = 80;
 
 export class ZoleoFetcher extends TrackerFetcher {
   constructor(
