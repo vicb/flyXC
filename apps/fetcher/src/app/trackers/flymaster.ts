@@ -79,7 +79,7 @@ export class FlymasterFetcher extends TrackerFetcher {
         const dsId = flmIdToDsId.get(flmId) as number;
         // Get an extra 5min of data that might not have been received (when no network coverage).
         const points = parse(flight);
-        let track = makeLiveTrack(points);
+        let track = makeLiveTrack(points, this.getTrackerName());
         track = removeBeforeFromLiveTrack(track, fetchFromSecond - 5 * 60);
         simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
         updates.trackerDeltas.set(dsId, track);
@@ -105,7 +105,6 @@ export class FlymasterFetcher extends TrackerFetcher {
 export function parse(flight: any): LivePoint[] {
   return flight.map(
     (fix: any): LivePoint => ({
-      name: 'flymaster',
       lat: fix.ai / 60000,
       lon: fix.oi / 60000,
       alt: fix.h,

@@ -42,7 +42,7 @@ export class SpotFetcher extends TrackerFetcher {
         if (response.ok) {
           try {
             const points = parse(await response.text());
-            const track = makeLiveTrack(points);
+            const track = makeLiveTrack(points, this.getTrackerName());
             simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
             if (track.timeSec.length > 0) {
               updates.trackerDeltas.set(id, track);
@@ -125,7 +125,6 @@ export function parse(jsonFeed: string): LivePoint[] {
   if (Array.isArray(fixes)) {
     fixes.forEach((fix: any) => {
       points.push({
-        name: 'spot',
         lon: fix.longitude,
         lat: fix.latitude,
         alt: fix.altitude,

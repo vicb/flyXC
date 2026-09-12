@@ -13,6 +13,32 @@ import type { LivePoint } from './live-track';
 import { makeLiveTrack } from './live-track';
 
 describe('makeLiveTrack', () => {
+  it('should return an empty live track when given no points', () => {
+    expect(makeLiveTrack([])).toEqual({
+      alt: [],
+      extra: {},
+      flags: [],
+      gndAlt: [],
+      lat: [],
+      lon: [],
+      timeSec: [],
+    });
+  });
+
+  it('should reject an unknown tracker name', () => {
+    expect(() =>
+      makeLiveTrack([
+        {
+          name: 'unknown' as any,
+          lat: 10,
+          lon: -12,
+          alt: 100,
+          timeMs: 1000000,
+        },
+      ]),
+    ).toThrow('Unknown tracker name: unknown');
+  });
+
   it('should order the points in chronological order', () => {
     const points: LivePoint[] = [
       {
@@ -42,6 +68,22 @@ describe('makeLiveTrack', () => {
       flags: [LiveTrackFlag.Valid | trackerIdByName.skylines, trackerIdByName.inreach],
       timeSec: [1000, 2000],
     });
+  });
+
+  it('should use the default tracker name when a point has no name', () => {
+    const track = makeLiveTrack(
+      [
+        {
+          lat: 10,
+          lon: -12,
+          alt: 100,
+          timeMs: 1000000,
+        },
+      ],
+      'inreach',
+    );
+
+    expect(getTrackerName(track.flags[0])).toBe('inreach');
   });
 
   it('should keep 5 digits for lat and lon', () => {

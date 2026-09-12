@@ -20,9 +20,9 @@ export class AviantFetcher extends UfoFleetFetcher {
       if (response.ok) {
         const positions = await response.json();
         for (const position of positions) {
-          const points = parse(position, this.getFleetName());
+          const points = parse(position);
           if (points.length > 0) {
-            const track = makeLiveTrack(points);
+            const track = makeLiveTrack(points, this.getFleetName());
             track.name = position.call_sign;
             updates.deltas.set(position.serial_nr, track);
           }
@@ -38,7 +38,7 @@ export class AviantFetcher extends UfoFleetFetcher {
   }
 }
 
-export function parse(position: any, fleetName: UfoFleetNames): LivePoint[] {
+export function parse(position: any): LivePoint[] {
   if (!position.in_air) {
     return [];
   }
@@ -51,7 +51,6 @@ export function parse(position: any, fleetName: UfoFleetNames): LivePoint[] {
     lon,
     alt: Math.round(alt),
     timeMs: Date.parse(timestamp),
-    name: fleetName,
     speed: Math.round(vel * 3.6),
   };
   return [point];

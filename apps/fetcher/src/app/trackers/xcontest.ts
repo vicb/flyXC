@@ -112,7 +112,7 @@ export class XcontestFetcher extends TrackerFetcher {
             const points = parseLiveTrack(track);
             updates.fetchedTracker.add(deviceId);
             if (points.length > 0) {
-              updates.trackerDeltas.set(deviceId, makeLiveTrack(points));
+              updates.trackerDeltas.set(deviceId, makeLiveTrack(points, this.getTrackerName()));
             }
           } catch (e) {
             updates.trackerErrors.set(deviceId, `Error parsing JSON ${response.body}\n${e}`);
@@ -161,7 +161,7 @@ export function parseLiveTrack(track: any) {
   for (const fix of track.flight.geometry.coordinates) {
     const [lon, lat, alt, details] = fix;
     timeMs += (details?.dt ?? 1) * 1000;
-    points.push({ lat, lon, alt, timeMs, name: 'xcontest' });
+    points.push({ lat, lon, alt, timeMs });
   }
   return points;
 }

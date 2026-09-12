@@ -1,8 +1,7 @@
+import xcontestTrack from './fixtures/xcontest-live-track.json';
+import xcontestUsers from './fixtures/xcontest-live-users.json';
 import type { XContestFlight } from './xcontest';
 import { parseLiveTrack, parseLiveUsers } from './xcontest';
-
-const xcontestUsers = require('./fixtures/xcontest-live-users.json');
-const xcontestTrack = require('./fixtures/xcontest-live-track.json');
 
 describe('Parse XContest json', () => {
   test('it should parse users', () => {
@@ -32,21 +31,18 @@ describe('Parse XContest json', () => {
           "alt": 210,
           "lat": 46.154038,
           "lon": 7.602978,
-          "name": "xcontest",
           "timeMs": 1649081971000,
         },
         {
           "alt": 211,
           "lat": 46.154038,
           "lon": 7.602978,
-          "name": "xcontest",
           "timeMs": 1649081972000,
         },
         {
           "alt": 212,
           "lat": 46.154038,
           "lon": 7.602978,
-          "name": "xcontest",
           "timeMs": 1649081973000,
         },
       ]
