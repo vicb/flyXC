@@ -5,15 +5,19 @@ import {
   NO_GROUND_ALTITUDE,
   protos,
   round,
+  trackerNames,
+  ufoFleetNames,
 } from '@flyxc/common';
 import { getDistance } from 'geolib';
+
+const deviceNames = new Set<TrackerNames | UfoFleetNames>([...trackerNames, ...ufoFleetNames]);
 
 export interface LivePoint {
   lat: number;
   lon: number;
   alt: number;
   timeMs: number;
-  name: TrackerNames | UfoFleetNames;
+  name?: TrackerNames | UfoFleetNames;
   // Whether the gps fix is invalid.
   // undefined or null is considered valid (only false is invalid).
   valid?: boolean | null;
@@ -27,14 +31,33 @@ export interface LivePoint {
   lowBattery?: boolean | null;
 }
 
-// Makes a track for a list of points.
-// The track is in chronological order (oldest point first).
-export function makeLiveTrack(points: LivePoint[]): protos.LiveTrack {
+/**
+ * Converts points into a live track in chronological order.
+ *
+ * @param points Points to convert. Each point may override the default tracker name.
+ * @param defaultTrackerName Tracker name used when a point does not provide one.
+ * @returns A live track containing the converted points.
+ */
+export function makeLiveTrack(
+  points: LivePoint[],
+  defaultTrackerName?: TrackerNames | UfoFleetNames,
+): protos.LiveTrack {
+  if (points.length === 0) {
+    return protos.LiveTrack.create();
+  }
+
   points.sort((a, b) => a.timeMs - b.timeMs);
 
   const track = protos.LiveTrack.create();
 
   points.forEach((point, index) => {
+    const device = point.name ?? defaultTrackerName;
+    if (device == null) {
+      throw new Error('A tracker name is required for every live point');
+    }
+    if (!deviceNames.has(device)) {
+      throw new Error(`Unknown tracker name: ${device}`);
+    }
     track.lat.push(round(point.lat, 5));
     track.lon.push(round(point.lon, 5));
     track.alt.push(Math.round(point.alt));
@@ -45,7 +68,7 @@ export function makeLiveTrack(points: LivePoint[]): protos.LiveTrack {
         valid: point.valid !== false,
         emergency: point.emergency === true,
         lowBat: point.lowBattery === true,
-        device: point.name,
+        device,
       }),
     );
     let hasExtra = false;

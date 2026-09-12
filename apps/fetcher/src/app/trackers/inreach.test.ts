@@ -4,52 +4,54 @@ import { parse } from './inreach';
 describe('Parse kml feed', () => {
   it('Should parse a valid feed', () => {
     const points = parse(feed);
-    expect(points).toEqual([
-      {
-        name: 'inreach',
-        alt: 8,
-        emergency: false,
-        lat: 37.385005,
-        lon: -122.027765,
-        message: 'Starting my trip. Follow me on where.vicb.fr',
-        speed: 0,
-        timeMs: 1571510460000,
-        valid: true,
-      },
-      {
-        name: 'inreach',
-        alt: 8,
-        emergency: true,
-        lat: 37.385015,
-        lon: -122.027785,
-        message: undefined,
-        speed: 0,
-        timeMs: 1571510490000,
-        valid: true,
-      },
-      {
-        name: 'inreach',
-        alt: 19,
-        emergency: false,
-        lat: 37.384993,
-        lon: -122.027721,
-        message: undefined,
-        speed: 6,
-        timeMs: 1571511090000,
-        valid: false,
-      },
-      {
-        name: 'inreach',
-        alt: 10,
-        emergency: false,
-        lat: 37.385058,
-        lon: -122.027765,
-        message: undefined,
-        speed: 0,
-        timeMs: 1571511405000,
-        valid: true,
-      },
-    ]);
+    expect(points).toEqual(
+      [
+        {
+          name: 'inreach',
+          alt: 8,
+          emergency: false,
+          lat: 37.385005,
+          lon: -122.027765,
+          message: 'Starting my trip. Follow me on where.vicb.fr',
+          speed: 0,
+          timeMs: 1571510460000,
+          valid: true,
+        },
+        {
+          name: 'inreach',
+          alt: 8,
+          emergency: true,
+          lat: 37.385015,
+          lon: -122.027785,
+          message: undefined,
+          speed: 0,
+          timeMs: 1571510490000,
+          valid: true,
+        },
+        {
+          name: 'inreach',
+          alt: 19,
+          emergency: false,
+          lat: 37.384993,
+          lon: -122.027721,
+          message: undefined,
+          speed: 6,
+          timeMs: 1571511090000,
+          valid: false,
+        },
+        {
+          name: 'inreach',
+          alt: 10,
+          emergency: false,
+          lat: 37.385058,
+          lon: -122.027765,
+          message: undefined,
+          speed: 0,
+          timeMs: 1571511405000,
+          valid: true,
+        },
+      ].map(({ name: _, ...point }) => point),
+    );
   });
 
   it('should parse the coordinates', () => {

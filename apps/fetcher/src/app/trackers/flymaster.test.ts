@@ -1,7 +1,6 @@
+import flymaster from './fixtures/flymaster.json';
+import flymasterTrack from './fixtures/flymaster-track.json';
 import { parse } from './flymaster';
-
-const flymaster = require('./fixtures/flymaster.json');
-const flymasterTrack = require('./fixtures/flymaster-track.json');
 
 describe('Parse Flymaster json', () => {
   test('it should parse a flight', () => {

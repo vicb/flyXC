@@ -101,7 +101,6 @@ describe('parse', () => {
             "lat": 37.38525,
             "lon": -122.02778,
             "message": "Check-In",
-            "name": "zoleo",
             "timeMs": 1687735167893,
           },
           {
@@ -109,14 +108,12 @@ describe('parse', () => {
             "lat": 37.3855,
             "lon": -122.0275,
             "message": "Email with location",
-            "name": "zoleo",
             "timeMs": 1687735169000,
           },
           {
             "alt": 322,
             "lat": 37.38525,
             "lon": -122.02778,
-            "name": "zoleo",
             "timeMs": 1687735170324,
           },
           {
@@ -124,7 +121,6 @@ describe('parse', () => {
             "lat": 37.38532,
             "lon": -122.02776,
             "lowBattery": true,
-            "name": "zoleo",
             "timeMs": 1687735352016,
           },
           {
@@ -132,7 +128,6 @@ describe('parse', () => {
             "lat": 37.38718,
             "lon": -122.02649,
             "lowBattery": true,
-            "name": "zoleo",
             "timeMs": 1687735712035,
           },
           {
@@ -140,7 +135,6 @@ describe('parse', () => {
             "lat": 37.38475,
             "lon": -122.02825,
             "lowBattery": true,
-            "name": "zoleo",
             "timeMs": 1687735999608,
           },
           {
@@ -148,7 +142,6 @@ describe('parse', () => {
             "lat": 37.384,
             "lon": -122.028,
             "message": "Email without location",
-            "name": "zoleo",
             "timeMs": 1687736000000,
           },
         ],
@@ -195,7 +188,6 @@ describe('parse', () => {
               lon: 31,
               alt: 11,
               timeMs: 234440,
-              name: 'zoleo',
               message: 'Email message',
             },
           ],
@@ -229,7 +221,6 @@ describe('parse', () => {
               lon: 5.73797,
               alt: 0,
               timeMs: 234500,
-              name: 'zoleo',
               message: 'Email message',
             },
           ],

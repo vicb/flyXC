@@ -87,7 +87,7 @@ export class InreachFetcher extends TrackerFetcher {
           if (response.ok) {
             try {
               const points = parse(await response.text());
-              const track = makeLiveTrack(points);
+              const track = makeLiveTrack(points, this.getTrackerName());
               simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
               if (track.timeSec.length > 0) {
                 updates.trackerDeltas.set(id, track);
@@ -210,7 +210,6 @@ export function parse(kmlFeed: string): LivePoint[] {
         .map((v: string) => Number(v));
 
       points.push({
-        name: 'inreach',
         lon,
         lat,
         alt: Math.round(alt),

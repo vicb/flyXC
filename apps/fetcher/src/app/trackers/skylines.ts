@@ -59,7 +59,7 @@ export class SkylinesFetcher extends TrackerFetcher {
               // Get an extra 10min of data that might not have been received (when no network coverage).
               const keepFromSec = this.getTrackerFetchFromSec(dsId, updates.startFetchSec, 10 * 60);
               const points = parse(flight);
-              let track = makeLiveTrack(points);
+              let track = makeLiveTrack(points, this.getTrackerName());
               track = removeBeforeFromLiveTrack(track, keepFromSec);
               simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
               updates.trackerDeltas.set(dsId, track);
@@ -118,7 +118,6 @@ export function parse(flight: any, nowMillis = Date.now()): LivePoint[] {
   return time.map((seconds: number, i: number): LivePoint => {
     const timeSec = startTimestampSeconds + seconds - startSeconds;
     return {
-      name: 'skylines',
       lat: lonlat[i * 2],
       lon: lonlat[i * 2 + 1],
       alt: alt[i] - (flight.geoid ?? 0),

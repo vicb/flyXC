@@ -62,14 +62,13 @@ export class FlymeFetcher extends TrackerFetcher {
       if (fix) {
         const livePoints: LivePoint[] = [
           {
-            name: 'flyme',
             lat: fix[1],
             lon: fix[2],
             alt: fix[3],
             timeMs: fix[4] * 1000,
           },
         ];
-        updates.trackerDeltas.set(id, makeLiveTrack(livePoints));
+        updates.trackerDeltas.set(id, makeLiveTrack(livePoints, this.getTrackerName()));
       }
     }
   }

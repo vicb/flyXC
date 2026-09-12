@@ -53,7 +53,7 @@ export class MeshBirFetcher extends TrackerFetcher {
       const dsId = meshIdToDsId.get(meshId);
       if (dsId != null) {
         const liveTrack = removeBeforeFromLiveTrack(
-          makeLiveTrack(points),
+          makeLiveTrack(points, this.getTrackerName()),
           Math.round(Date.now() / 1000) - KEEP_HISTORY_MIN * 60,
         );
         if (liveTrack.timeSec.length > 0) {
@@ -85,7 +85,6 @@ export function parse(
         alt: msg.altitude,
         speed: msg.ground_speed,
         timeMs: msg.time,
-        name: 'meshbir',
       };
       const meshId = validateMeshBirAccount(msg.user_id);
       if (meshId !== false) {
@@ -139,7 +138,6 @@ export function parse(
         lon: track.lon.at(-1),
         alt: track.alt.at(-1),
         timeMs: nowMs,
-        name: 'meshbir',
         message: text,
       });
     }

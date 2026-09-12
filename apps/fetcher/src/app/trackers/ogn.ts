@@ -63,12 +63,11 @@ export class OgnFetcher extends TrackerFetcher {
           lon: p.lon,
           alt: p.alt,
           timeMs: p.timeSec * 1000,
-          name: 'ogn',
           speed: p.speed,
         }));
 
       if (points.length > 0) {
-        const track = makeLiveTrack(points);
+        const track = makeLiveTrack(points, this.getTrackerName());
         updates.trackerDeltas.set(dsId, track);
       }
     }

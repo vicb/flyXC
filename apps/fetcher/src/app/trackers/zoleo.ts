@@ -65,7 +65,7 @@ export class ZoleoFetcher extends TrackerFetcher {
     for (const [imei, points] of pointsByImei.entries()) {
       const dsId = imeiToDsId.get(imei);
       if (dsId != null) {
-        updates.trackerDeltas.set(dsId, makeLiveTrack(points));
+        updates.trackerDeltas.set(dsId, makeLiveTrack(points, this.getTrackerName()));
       }
     }
   }
@@ -97,7 +97,6 @@ export function parse(messages: ZoleoMessage[]): Map<string, LivePoint[]> {
         lon: msg.lon,
         alt: msg.altitudeM,
         timeMs: msg.timeMs,
-        name: 'zoleo',
       };
       if (msg.emergency) {
         point.emergency = msg.emergency;
@@ -117,7 +116,6 @@ export function parse(messages: ZoleoMessage[]): Map<string, LivePoint[]> {
         lon: msg.lon,
         alt: msg.altitudeM ?? 0,
         timeMs: msg.timeMs,
-        name: 'zoleo',
         message: msg.message,
       };
       if (msg.batteryPercent < 20) {
@@ -175,7 +173,6 @@ export function handleLocationlessMessage(
       lon: track.lon.at(-1),
       alt: track.alt.at(-1),
       timeMs: msg.timeMs,
-      name: 'zoleo',
       message: msg.message,
     });
   }

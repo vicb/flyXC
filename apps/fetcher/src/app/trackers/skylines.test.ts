@@ -1,7 +1,6 @@
+import skyline from './fixtures/skylines.json';
+import skylineTrack from './fixtures/skylines-track.json';
 import { parse } from './skylines';
-
-const skyline = require('./fixtures/skylines.json');
-const skylineTrack = require('./fixtures/skylines-track.json');
 
 describe('Parse Skylines json', () => {
   test('it should parse a flight', () => {
