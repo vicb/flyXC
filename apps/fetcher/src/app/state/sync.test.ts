@@ -15,7 +15,7 @@ const FLYME = '001';
 const SKYLINES = '002';
 const FLYMASTER = '003';
 const OGN = `123456`;
-const ZOLEO = `12345678-1234-1234-1234-123456789012`;
+const ZOLEO = `012345678912345`;
 const XCONTEST = `a123456789012345678901234567`;
 const MESHBIR = `12345678-1234-1234-1234-123456789012`;
 
@@ -312,7 +312,7 @@ function createTrackerEntity(
       break;
     case 'zoleo':
       entity.account = account;
-      entity.imei = '012345678912345';
+      entity.device_id = '12345678-1234-1234-1234-123456789012';
       break;
   }
   return entity;

@@ -6,86 +6,80 @@ import { handleLocationlessMessage, parse } from './zoleo';
 describe('parse', () => {
   it('should parse messages', () => {
     vi.useFakeTimers({ now: 1687736000000 });
-    const id = '12345678-1234-1234-1234-123456789012';
+    const device_id = '12345678-1234-1234-1234-123456789012';
+    const imei = '012345678912345';
     const zoleoMsgs: ZoleoMessage[] = [
-      { type: 'imei', id, imei: '012345678912345' },
+      { type: 'imei', device_id, imei },
       {
         type: 'location',
-        id: '12345678-1234-1234-1234-123456789012',
         lat: 37.38525,
         lon: -122.02778,
         altitudeM: 321,
         batteryPercent: 25,
         timeMs: 1687735167893,
-        imei: '012345678912345',
+        imei,
         message: 'Check-In',
       },
       {
         type: 'message',
-        id,
         lat: 37.3855,
         lon: -122.0275,
         altitudeM: 320,
         timeMs: 1687735169000,
-        imei: '012345678912345',
+        imei,
         batteryPercent: 100,
         message: 'Email with location',
       },
       {
         type: 'message',
-        id,
         timeMs: 1687736000000,
-        imei: '012345678912345',
+        imei,
         batteryPercent: 100,
         message: 'Email without location',
       },
       {
         type: 'location',
-        id: '12345678-1234-1234-1234-123456789012',
         lat: 37.38525,
         lon: -122.02778,
         altitudeM: 322,
         batteryPercent: 20,
         timeMs: 1687735170324,
-        imei: '012345678912345',
+        imei,
       },
       {
         type: 'location',
-        id: '12345678-1234-1234-1234-123456789012',
         lat: 37.38532,
         lon: -122.02776,
         altitudeM: 323,
         batteryPercent: 15,
         timeMs: 1687735352016,
-        imei: '012345678912345',
+        imei,
       },
       {
         type: 'location',
-        id: '12345678-1234-1234-1234-123456789012',
         lat: 37.38718,
         lon: -122.02649,
         altitudeM: 324,
         batteryPercent: 10,
         timeMs: 1687735712035,
-        imei: '012345678912345',
+        imei,
       },
       {
         type: 'location',
-        id: '12345678-1234-1234-1234-123456789012',
         lat: 37.38475,
         lon: -122.02825,
         altitudeM: 325,
         batteryPercent: 5,
         timeMs: 1687735999608,
-        imei: '012345678912345',
+        imei,
       },
     ];
 
-    const pointsById = parse(zoleoMsgs);
+    const pointsByImei = parse(zoleoMsgs);
     handleLocationlessMessage(
       zoleoMsgs,
-      pointsById,
-      new Map([[id, 10]]),
+      pointsByImei,
+      new Map([[imei, 10]]),
       {
         '10': protos.Pilot.create({
           track: protos.LiveTrack.create({
@@ -99,9 +93,9 @@ describe('parse', () => {
       15,
     );
 
-    expect(pointsById).toMatchInlineSnapshot(`
+    expect(pointsByImei).toMatchInlineSnapshot(`
       Map {
-        "12345678-1234-1234-1234-123456789012" => [
+        "012345678912345" => [
           {
             "alt": 321,
             "lat": 37.38525,
@@ -164,21 +158,20 @@ describe('parse', () => {
 
   it('should attach a location-less message to a recent known position', () => {
     vi.useFakeTimers({ now: 234500 });
-    const id = '12345678-1234-1234-1234-123456789012';
+    const imei = '012345678912345';
 
     const message: ZoleoMessage = {
       type: 'message',
-      id,
       timeMs: 234440,
-      imei: '012345678912345',
+      imei,
       batteryPercent: 100,
       message: 'Email message',
     };
-    const pointsById = parse([message]);
+    const pointsByImei = parse([message]);
     handleLocationlessMessage(
       [message],
-      pointsById,
-      new Map([[id, 10]]),
+      pointsByImei,
+      new Map([[imei, 10]]),
       {
         '10': protos.Pilot.create({
           track: protos.LiveTrack.create({
@@ -192,10 +185,10 @@ describe('parse', () => {
       1,
     );
 
-    expect(pointsById).toEqual(
+    expect(pointsByImei).toEqual(
       new Map([
         [
-          id,
+          imei,
           [
             {
               lat: 21,
@@ -212,17 +205,16 @@ describe('parse', () => {
   });
 
   it('should add a message with a location as a new point', () => {
-    const id = '12345678-1234-1234-1234-123456789012';
+    const imei = '012345678912345';
 
     expect(
       parse([
         {
           type: 'message',
-          id,
           lat: 45.182,
           lon: 5.73797,
           timeMs: 234500,
-          imei: '012345678912345',
+          imei,
           batteryPercent: 100,
           message: 'Email message',
         },
@@ -230,7 +222,7 @@ describe('parse', () => {
     ).toEqual(
       new Map([
         [
-          id,
+          imei,
           [
             {
               lat: 45.182,

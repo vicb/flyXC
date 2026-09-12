@@ -39,14 +39,14 @@ export class ZoleoFetcher extends TrackerFetcher {
     }
 
     // Add new devices.
-    const addedDevices = await confirmZoleoConsent(this.datastore, messages);
+    const addedDevices = await handleZoleoConsent(this.datastore, messages);
     if (addedDevices > 0) {
       // Sync added devices
       this.pipeline.incr(Keys.fetcherCmdSyncIncCount);
     }
 
-    // Maps device ID to datastore ids.
-    const idToDsId = new Map<string, number>();
+    // Maps IMEI to datastore ids.
+    const imeiToDsId = new Map<string, number>();
     for (const dsId of devices) {
       const tracker = this.getTracker(dsId);
       if (tracker == null) {
@@ -57,13 +57,13 @@ export class ZoleoFetcher extends TrackerFetcher {
         updates.trackerErrors.set(dsId, `Invalid account ${tracker.account}`);
         continue;
       }
-      idToDsId.set(tracker.account, dsId);
+      imeiToDsId.set(tracker.account, dsId);
     }
 
-    const pointsById = parse(messages);
-    handleLocationlessMessage(messages, pointsById, idToDsId, this.state.pilots, MESSAGE_AFFINITY_MIN);
-    for (const [id, points] of pointsById.entries()) {
-      const dsId = idToDsId.get(id);
+    const pointsByImei = parse(messages);
+    handleLocationlessMessage(messages, pointsByImei, imeiToDsId, this.state.pilots, MESSAGE_AFFINITY_MIN);
+    for (const [imei, points] of pointsByImei.entries()) {
+      const dsId = imeiToDsId.get(imei);
       if (dsId != null) {
         updates.trackerDeltas.set(dsId, makeLiveTrack(points));
       }
@@ -77,21 +77,21 @@ export class ZoleoFetcher extends TrackerFetcher {
 }
 
 /**
- * Converts queued Zoleo messages into live-track points grouped by device ID.
+ * Converts queued Zoleo messages into live-track points grouped by IMEI.
  *
  * Only location updates and messages that include coordinates become points.
  * Location-less messages are handled separately after all locations are parsed.
  *
  * @param messages Queued Zoleo messages to convert.
- * @returns Live-track points grouped by Zoleo device ID.
+ * @returns Live-track points grouped by Zoleo IMEI.
  */
 export function parse(messages: ZoleoMessage[]): Map<string, LivePoint[]> {
-  const pointsById = new Map<string, LivePoint[]>();
+  const pointsByImei = new Map<string, LivePoint[]>();
 
   for (const msg of messages) {
     if (msg.type === 'location') {
-      const points = pointsById.get(msg.id) ?? [];
-      pointsById.set(msg.id, points);
+      const points = pointsByImei.get(msg.imei) ?? [];
+      pointsByImei.set(msg.imei, points);
       const point: LivePoint = {
         lat: msg.lat,
         lon: msg.lon,
@@ -110,8 +110,8 @@ export function parse(messages: ZoleoMessage[]): Map<string, LivePoint[]> {
       }
       points.push(point);
     } else if (msg.type === 'message' && msg.lat != null && msg.lon != null) {
-      const points = pointsById.get(msg.id) ?? [];
-      pointsById.set(msg.id, points);
+      const points = pointsByImei.get(msg.imei) ?? [];
+      pointsByImei.set(msg.imei, points);
       const point: LivePoint = {
         lat: msg.lat,
         lon: msg.lon,
@@ -127,7 +127,7 @@ export function parse(messages: ZoleoMessage[]): Map<string, LivePoint[]> {
     }
   }
 
-  return pointsById;
+  return pointsByImei;
 }
 
 /**
@@ -137,15 +137,15 @@ export function parse(messages: ZoleoMessage[]): Map<string, LivePoint[]> {
  * the tracker's latest fix is older than the affinity window.
  *
  * @param messages Queued Zoleo messages to reconcile.
- * @param pointsById Points collected for each Zoleo device in this cycle.
- * @param idToDsId Mapping from Zoleo device IDs to datastore IDs.
+ * @param pointsByImei Points collected for each Zoleo device in this cycle.
+ * @param imeiToDsId Mapping from Zoleo IMEIs to datastore IDs.
  * @param pilots Current pilot tracks used to resolve location-less messages.
  * @param messageAffinityMin Maximum age, in minutes, of a fix used for a message.
  */
 export function handleLocationlessMessage(
   messages: ZoleoMessage[],
-  pointsById: Map<string, LivePoint[]>,
-  idToDsId: Map<string, number>,
+  pointsByImei: Map<string, LivePoint[]>,
+  imeiToDsId: Map<string, number>,
   pilots: Record<string, protos.Pilot>,
   messageAffinityMin: number,
 ): void {
@@ -154,7 +154,7 @@ export function handleLocationlessMessage(
       continue;
     }
 
-    const dsId = idToDsId.get(msg.id);
+    const dsId = imeiToDsId.get(msg.imei);
     if (dsId == null) {
       continue;
     }
@@ -168,8 +168,8 @@ export function handleLocationlessMessage(
       continue;
     }
 
-    const points = pointsById.get(msg.id) ?? [];
-    pointsById.set(msg.id, points);
+    const points = pointsByImei.get(msg.imei) ?? [];
+    pointsByImei.set(msg.imei, points);
     points.push({
       lat: track.lat.at(-1),
       lon: track.lon.at(-1),
@@ -182,9 +182,9 @@ export function handleLocationlessMessage(
 }
 
 /**
- * Populates the IMEI when a consent confirmation message is received.
+ * Populates the account with the IMEI when a consent confirmation message is received.
  */
-async function confirmZoleoConsent(datastore: Datastore, messages: ZoleoMessage[]): Promise<number> {
+async function handleZoleoConsent(datastore: Datastore, messages: ZoleoMessage[]): Promise<number> {
   // add new devices.
   let addedDevices = 0;
   for (const msg of messages) {
@@ -192,15 +192,15 @@ async function confirmZoleoConsent(datastore: Datastore, messages: ZoleoMessage[
       continue;
     }
     try {
-      const query = datastore.createQuery(LIVE_TRACK_TABLE).filter('zoleo.account', msg.id).limit(1);
+      const query = datastore.createQuery(LIVE_TRACK_TABLE).filter('zoleo.device_id', msg.device_id).limit(1);
       const [trackers] = await datastore.runQuery(query);
       if (trackers.length == 0) {
-        console.error(`Can not find zoleo id = ${msg.id}`);
+        console.error(`Can not find zoleo device_id = ${msg.device_id}`);
         continue;
       }
       const tracker = trackers[0];
       tracker.updated = new Date();
-      tracker.zoleo.imei = msg.imei;
+      tracker.zoleo.account = msg.imei;
 
       await datastore.save({
         key: tracker[Datastore.KEY],

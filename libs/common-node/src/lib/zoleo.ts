@@ -10,7 +10,6 @@ export const ZOLEO_MAX_MESSAGE_SIZE = 200;
 export const ZOLEO_MAX_MSG = Math.floor((1_024 * 1024) / ZOLEO_MAX_MSG_SIZE);
 
 type ZoleoCommon = {
-  id: string;
   timeMs: number;
   imei: string;
   batteryPercent: number;
@@ -42,7 +41,7 @@ export type ZoleoMessage =
   /** Message sent when user consents to data sharing (via email link or myzoleo.com) */
   | {
       type: 'imei';
-      id: string;
+      device_id: string;
       imei: string;
     };
 
@@ -54,7 +53,7 @@ const zoleoImeiMessageSchema = z
   .loose()
   .transform((message) => ({
     type: 'imei' as const,
-    id: message.partnerDeviceID,
+    device_id: message.partnerDeviceID,
     imei: message.IMEI,
   }));
 
@@ -81,7 +80,6 @@ const zoleoEmailMessageSchema = z
   .object({
     MessageType: z.literal('EmailMessage'),
     DeviceIMEI: z.string().min(1),
-    DeviceId: z.string().min(1),
     Message: z.string().transform((message) => message.slice(0, ZOLEO_MAX_MESSAGE_SIZE)),
     Location: z
       .object({
@@ -98,7 +96,6 @@ const zoleoLocationMessageSchema = z
   .object({
     MessageType: z.string(),
     DeviceIMEI: z.string().min(1),
-    DeviceId: z.string().min(1),
     Location: zoleoLocationSchema,
     Properties: zoleoPropertiesSchema,
   })
@@ -118,10 +115,9 @@ export function parseMessage(message: unknown): ZoleoMessage | null {
 
   const emailParse = zoleoEmailMessageSchema.safeParse(message);
   if (emailParse.success) {
-    const { DeviceId, DeviceIMEI, Location, Message, Properties } = emailParse.data;
+    const { DeviceIMEI, Location, Message, Properties } = emailParse.data;
     const parsedMessage: ZoleoMessage = {
       type: 'message',
-      id: DeviceId,
       imei: DeviceIMEI,
       timeMs: Properties.EpochMiliseconds,
       batteryPercent: Properties.Battery,
@@ -140,10 +136,9 @@ export function parseMessage(message: unknown): ZoleoMessage | null {
     return null;
   }
 
-  const { MessageType, DeviceIMEI, DeviceId, Location, Properties } = payload.data;
+  const { MessageType, DeviceIMEI, Location, Properties } = payload.data;
   const zoleoMessage: ZoleoMessage = {
     type: 'location',
-    id: DeviceId,
     lat: Location.Latitude,
     lon: Location.Longitude,
     batteryPercent: Properties.Battery,
