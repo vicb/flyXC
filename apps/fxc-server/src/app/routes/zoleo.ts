@@ -2,7 +2,6 @@ import { fetchResponse, Keys, type LiveTrackEntity } from '@flyxc/common';
 import type { RedisClient } from '@flyxc/common-node';
 import {
   getDatastore,
-  LIVE_TRACK_TABLE,
   parseMessage,
   pushListCap,
   retrieveLiveTrackByGoogleId,

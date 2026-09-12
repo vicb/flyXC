@@ -4,6 +4,7 @@ import eslintPluginImport from 'eslint-plugin-import';
 import eslintPluginLit from 'eslint-plugin-lit';
 import eslintPluginRequireNodeImportPrefix from 'eslint-plugin-require-node-import-prefix';
 import eslintPluginSimpleImportSort from 'eslint-plugin-simple-import-sort';
+import eslintPluginUnusedImports from 'eslint-plugin-unused-imports';
 import eslintPluginWc from 'eslint-plugin-wc';
 
 export default [
@@ -12,6 +13,7 @@ export default [
       '@nx': nxEslintPlugin,
       'require-node-import-prefix': eslintPluginRequireNodeImportPrefix,
       'simple-import-sort': eslintPluginSimpleImportSort,
+      'unused-imports': eslintPluginUnusedImports,
       import: eslintPluginImport,
     },
   },
@@ -38,6 +40,7 @@ export default [
       'import/first': 'error',
       'import/newline-after-import': 'error',
       'import/no-duplicates': 'error',
+      'unused-imports/no-unused-imports': 'error',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
