@@ -9,7 +9,6 @@ import {
   mergeLiveTracks,
   NO_GROUND_ALTITUDE,
   removeBeforeFromLiveTrack,
-  removeDeviceFromLiveTrack,
   simplifyLiveTrack,
   trackerIdByName,
 } from './live-track';
@@ -226,73 +225,6 @@ describe('removeBeforeFromLiveTrack', () => {
       0: { speed: 30 },
       2: { message: 'end' },
     });
-  });
-});
-
-describe('removeDeviceFromLiveTrack', () => {
-  let track: LiveTrack;
-  beforeAll(() => {
-    track = {
-      timeSec: [10, 20, 30, 40],
-      lat: [11, 21, 31, 41],
-      lon: [12, 22, 32, 42],
-      alt: [13, 23, 33, 43],
-      gndAlt: [15, 25, 35, 45],
-      flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.flyme, trackerIdByName.flyme],
-      extra: { 1: { speed: 10 }, 2: { message: 'hello' } },
-    };
-  });
-
-  it('should accept an empty track', () => {
-    const emptyTrack = LiveTrack.create({});
-    expect(removeDeviceFromLiveTrack(emptyTrack, 'flyme')).toEqual(emptyTrack);
-  });
-
-  it('should remove the passed device', () => {
-    expect(removeDeviceFromLiveTrack(track, 'flyme')).toEqual({
-      timeSec: [10, 20],
-      lat: [11, 21],
-      lon: [12, 22],
-      alt: [13, 23],
-      gndAlt: [15, 25],
-      flags: [trackerIdByName.inreach, trackerIdByName.inreach],
-      extra: { 1: { speed: 10 } },
-    });
-
-    expect(removeDeviceFromLiveTrack(track, 'inreach')).toEqual({
-      timeSec: [30, 40],
-      lat: [31, 41],
-      lon: [32, 42],
-      alt: [33, 43],
-      gndAlt: [35, 45],
-      flags: [trackerIdByName.flyme, trackerIdByName.flyme],
-      extra: { 0: { message: 'hello' } },
-    });
-  });
-
-  it('should leave the track unchanged if devices is not used', () => {
-    expect(removeDeviceFromLiveTrack(track, 'spot')).toEqual({
-      timeSec: [10, 20, 30, 40],
-      lat: [11, 21, 31, 41],
-      lon: [12, 22, 32, 42],
-      alt: [13, 23, 33, 43],
-      gndAlt: [15, 25, 35, 45],
-      flags: [trackerIdByName.inreach, trackerIdByName.inreach, trackerIdByName.flyme, trackerIdByName.flyme],
-      extra: { 1: { speed: 10 }, 2: { message: 'hello' } },
-    });
-  });
-
-  it('should normalize missing gndAlt when removing device', () => {
-    const track = {
-      timeSec: [10, 20],
-      lat: [1, 2],
-      lon: [3, 4],
-      alt: [5, 6],
-      flags: [trackerIdByName.inreach, trackerIdByName.flyme],
-      extra: {},
-    } as any;
-    const result = removeDeviceFromLiveTrack(track, 'flyme');
-    expect(result.gndAlt).toEqual([NO_GROUND_ALTITUDE]);
   });
 });
 

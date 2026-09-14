@@ -1,6 +1,6 @@
 import * as zlib from 'node:zlib';
 
-import { Keys, LiveDataRetentionSec } from '@flyxc/common';
+import { Keys, LiveDataRetentionSec, protos } from '@flyxc/common';
 import type { Request, Response } from 'express';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -8,6 +8,7 @@ import {
   clearProtoCache,
   decompressProto,
   getCachedProto,
+  handlePartnerTokenRequest,
   LIVE_TRACK_CACHE_TTL_MS,
   resolveLiveTrackKey,
   sendProtobufResponse,
@@ -33,27 +34,27 @@ describe('live-track routes and helpers', () => {
     const nowSec = 100000;
 
     it('should return ShortIncremental key when lastUpdate is very recent', () => {
-      const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalShort - 10);
-      expect(resolveLiveTrackKey(lastUpdateSec, 0, nowSec)).toBe(Keys.fetcherShortIncrementalProto);
+      const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalM5 - 10);
+      expect(resolveLiveTrackKey(lastUpdateSec, 0, nowSec)).toBe(Keys.fetcherIncrementalProtoM5);
     });
 
     it('should return LongIncremental key when lastUpdate is moderately recent', () => {
-      const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalLong - 10);
-      expect(resolveLiveTrackKey(lastUpdateSec, 0, nowSec)).toBe(Keys.fetcherLongIncrementalProto);
+      const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalM20 - 10);
+      expect(resolveLiveTrackKey(lastUpdateSec, 0, nowSec)).toBe(Keys.fetcherIncrementalProtoM20);
     });
 
     it('should return FullProtoH24 when fm is 24 * 60', () => {
-      const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalLong + 100);
+      const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalM20 + 100);
       expect(resolveLiveTrackKey(lastUpdateSec, 24 * 60, nowSec)).toBe(Keys.fetcherFullProtoH24);
     });
 
     it('should return FullProtoH48 when fm is 48 * 60', () => {
-      const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalLong + 100);
+      const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalM20 + 100);
       expect(resolveLiveTrackKey(lastUpdateSec, 48 * 60, nowSec)).toBe(Keys.fetcherFullProtoH48);
     });
 
     it('should default to FullProtoH12 for full requests', () => {
-      const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalLong + 100);
+      const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalM20 + 100);
       expect(resolveLiveTrackKey(lastUpdateSec, 0, nowSec)).toBe(Keys.fetcherFullProtoH12);
     });
   });
@@ -161,7 +162,7 @@ describe('live-track routes and helpers', () => {
         acceptsEncodings: vi.fn((encoding: string) => (encoding === 'gzip' ? 'gzip' : false)),
       } as unknown as Request;
 
-      const { res, headers } = createMockRes();
+      const { res } = createMockRes();
       sendProtobufResponse(req, res, gzippedData);
 
       expect(res.set).toHaveBeenCalledWith('Content-Type', 'application/x-protobuf');
@@ -192,6 +193,118 @@ describe('live-track routes and helpers', () => {
 
       expect(res.set).toHaveBeenCalledWith('Content-Type', 'application/x-protobuf');
       expect(res.send).toHaveBeenCalledWith(Buffer.alloc(0));
+    });
+  });
+
+  describe('handlePartnerTokenRequest', () => {
+    beforeEach(() => {
+      clearProtoCache();
+    });
+
+    it('should return 400 for an unknown partner token', async () => {
+      const req = {} as Request;
+      const res = {
+        sendStatus: vi.fn(),
+      } as unknown as Response;
+      const bufferRedis = {} as any;
+
+      await handlePartnerTokenRequest(req, res, 'invalid-token', bufferRedis);
+      expect(res.sendStatus).toHaveBeenCalledWith(400);
+    });
+
+    it('should fetch Keys.fetcherPartnersProtoM30 and return anonymized tracks for valid partner tokens', async () => {
+      const sampleGroup = protos.LiveDifferentialTrackGroup.create({
+        tracks: [
+          {
+            id: 123,
+            name: 'John Doe',
+            flags: [1],
+            extra: { 0: { speed: 20 } },
+            lat: [100],
+            lon: [200],
+            alt: [300],
+            gndAlt: [400],
+            timeSec: [1000],
+          },
+        ],
+      });
+      const gzippedProto = zlib.gzipSync(Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(sampleGroup)));
+
+      const mockRedis = {
+        get: vi.fn().mockResolvedValue(gzippedProto),
+      } as any;
+
+      const req = {
+        header: vi.fn().mockReturnValue(undefined), // not json
+      } as unknown as Request;
+
+      let sentBody: any = null;
+      const res = {
+        set: vi.fn().mockReturnThis(),
+        send: vi.fn((body) => {
+          sentBody = body;
+          return res;
+        }),
+      } as unknown as Response;
+
+      await handlePartnerTokenRequest(req, res, SECRETS.WING_TOKEN, mockRedis);
+
+      expect(mockRedis.get).toHaveBeenCalledWith(Keys.fetcherPartnersProtoM30);
+      expect(res.set).toHaveBeenCalledWith('Content-Type', 'application/x-protobuf');
+
+      const parsedAnonGroup = protos.LiveDifferentialTrackGroup.fromBinary(sentBody);
+      expect(parsedAnonGroup.tracks).toHaveLength(1);
+      const track = parsedAnonGroup.tracks[0];
+      expect(track.id).toBeUndefined();
+      expect(typeof track.idStr).toBe('string');
+      expect(track.idStr).not.toBe('123');
+      expect(track.name).toBe('');
+      expect(track.flags).toEqual([]);
+      expect(track.extra).toEqual({});
+      expect(track.lat).toEqual([100]);
+    });
+
+    it('should return JSON when accept header is application/json', async () => {
+      const sampleGroup = protos.LiveDifferentialTrackGroup.create({
+        tracks: [
+          {
+            id: 456,
+            name: 'Jane Doe',
+            flags: [2],
+            extra: {},
+            lat: [50],
+            lon: [60],
+            alt: [700],
+            gndAlt: [800],
+            timeSec: [2000],
+          },
+        ],
+      });
+      const gzippedProto = zlib.gzipSync(Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(sampleGroup)));
+
+      const mockRedis = {
+        get: vi.fn().mockResolvedValue(gzippedProto),
+      } as any;
+
+      const req = {
+        header: vi.fn((name: string) => (name === 'accept' ? 'application/json' : undefined)),
+      } as unknown as Request;
+
+      let jsonBody: any = null;
+      const res = {
+        json: vi.fn((body) => {
+          jsonBody = body;
+          return res;
+        }),
+      } as unknown as Response;
+
+      await handlePartnerTokenRequest(req, res, SECRETS.FLYME_TOKEN, mockRedis);
+
+      expect(mockRedis.get).toHaveBeenCalledWith(Keys.fetcherPartnersProtoM30);
+      expect(res.json).toHaveBeenCalled();
+      expect(jsonBody.tracks).toHaveLength(1);
+      expect(jsonBody.tracks[0].name).toBeFalsy();
+      expect(jsonBody.tracks[0].idStr).toBeDefined();
     });
   });
 });

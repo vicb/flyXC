@@ -25,8 +25,8 @@ import {
 } from './app/state/state';
 import { syncFromDatastore } from './app/state/sync';
 import { createLiveTrackGroups, protoToBuffer } from './app/track-groups';
-import { disconnectOgnClient, resfreshTrackers } from './app/trackers/refresh';
-import { resfreshUfoFleets } from './app/ufos/refresh';
+import { disconnectOgnClient, refreshTrackers } from './app/trackers/refresh';
+import { refreshUfoFleets } from './app/ufos/refresh';
 
 // @google-cloud/storage v8 internal streams (PassThroughShim in file.js) attach 11 close/error
 // listeners during pipeline uploads/downloads (e.g. for CRC32C, retry handling, and duplexify).
@@ -144,41 +144,40 @@ async function tick(state: protos.FetcherState, datastore: Datastore) {
 // Update every tick.
 async function updateAll(pipeline: RedisClientMultiCmd, state: protos.FetcherState, datastore: Datastore) {
   try {
-    await Promise.allSettled([resfreshTrackers(pipeline, state, redis, datastore), resfreshUfoFleets(pipeline, state)]);
+    await Promise.allSettled([refreshTrackers(pipeline, state, redis, datastore), refreshUfoFleets(pipeline, state)]);
 
     // Create the binary proto output.
     const nowSec = Math.round(Date.now() / 1000);
-    const { fullTracksH12, fullTracksH24, fullTracksH48, longIncTracks, shortIncTracks, flymeTracks } =
-      createLiveTrackGroups(state, nowSec);
+    const trackGroups = createLiveTrackGroups(state, nowSec);
 
     pipeline
       .set(
         Keys.fetcherFullProtoH12,
-        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH12))),
+        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(trackGroups.fullH12))),
       )
       .set(
         Keys.fetcherFullProtoH24,
-        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH24))),
+        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(trackGroups.fullH24))),
       )
       .set(
         Keys.fetcherFullProtoH48,
-        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(fullTracksH48))),
+        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(trackGroups.fullH48))),
       )
-      .set(Keys.fetcherFullNumTracksH12, fullTracksH12.tracks.length)
-      .set(Keys.fetcherFullNumTracksH24, fullTracksH24.tracks.length)
-      .set(Keys.fetcherFullNumTracksH48, fullTracksH48.tracks.length)
+      .set(Keys.fetcherFullNumTracksH12, trackGroups.fullH12.tracks.length)
+      .set(Keys.fetcherFullNumTracksH24, trackGroups.fullH24.tracks.length)
+      .set(Keys.fetcherFullNumTracksH48, trackGroups.fullH48.tracks.length)
       .set(
-        Keys.fetcherLongIncrementalProto,
-        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(longIncTracks))),
+        Keys.fetcherIncrementalProtoM20,
+        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(trackGroups.incM20))),
       )
       .set(
-        Keys.fetcherShortIncrementalProto,
-        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(shortIncTracks))),
+        Keys.fetcherIncrementalProtoM5,
+        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(trackGroups.incM5))),
       )
-      .set(Keys.fetcherIncrementalNumTracksLong, longIncTracks.tracks.length)
+      .set(Keys.fetcherIncrementalNumTracksM20, trackGroups.incM20.tracks.length)
       .set(
-        Keys.fetcherExportFlymeProto,
-        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(flymeTracks))),
+        Keys.fetcherPartnersProtoM30,
+        zlib.gzipSync(protoToBuffer(protos.LiveDifferentialTrackGroup.toBinary(trackGroups.partnersM30))),
       );
   } catch (e) {
     console.log(`tick error ${e}`);

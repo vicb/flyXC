@@ -120,7 +120,7 @@ export class SettingsPage extends LitElement {
                 ></flow-ion-check>
                 <flow-ion-input label="Your name as displayed on the map" ...=${field(model.name)}> </flow-ion-input>
                 <flow-ion-check
-                  label="Share my positions across flyXC live tracking providers (Only used by FlyMe at the moment)"
+                  label="Share my positions with flyXC partners (FlyMe and drone operators)"
                   ...=${field(model.share)}
                 ></flow-ion-check>
               </ion-card>

@@ -178,12 +178,12 @@ export class DashSummary extends LitElement {
   }
 
   render(): TemplateResult {
-    const trackerM20 = this.values[common.Keys.fetcherIncrementalNumTracksLong];
+    const numTrackerM20 = this.values[common.Keys.fetcherIncrementalNumTracksM20];
     const nextStopSec = this.values[common.Keys.fetcherNextStopSec];
     const lastStopSec = this.values[common.Keys.fetcherStoppedSec];
 
     if (this.link) {
-      this.link.href = `data:image/svg+xml;base64,${btoa(FAVICON_SVG(trackerM20))}`;
+      this.link.href = `data:image/svg+xml;base64,${btoa(FAVICON_SVG(numTrackerM20))}`;
     }
     return html`<link
         rel="stylesheet"
@@ -199,7 +199,7 @@ export class DashSummary extends LitElement {
           'https://console.cloud.google.com/datastore/entities;kind=LiveTrack;ns=__$DEFAULT$__;sortCol=created;sortDir=DESCENDING/query/kind?project=fly-xc',
         )}
         ${singleLineItem('Trackers h24', this.values[common.Keys.fetcherFullNumTracksH24])}
-        ${singleLineItem('Trackers m20', trackerM20)}
+        ${singleLineItem('Trackers m20', numTrackerM20)}
         ${singleLineItem(
           'Last device updated',
           relativeTime(this.values[common.Keys.fetcherLastDeviceUpdatedMs] / 1000),
