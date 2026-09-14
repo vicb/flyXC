@@ -236,7 +236,7 @@ export function getTrackerRouter(redis: RedisClient, datastore: Datastore): Rout
     }
 
     // 2. Handle public live track requests based on requested duration in seconds.
-    res.set('Cache-Control', 'public, max-age=30');
+    res.set('Cache-Control', 'public, max-age=30').vary('Accept-Encoding');
     const sec = Number(req.query.sec ?? 0);
     const key = resolveLiveTrackKey(sec);
     const protoBuffer = await getCachedProto(bufferRedis, key);

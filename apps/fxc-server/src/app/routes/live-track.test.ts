@@ -334,6 +334,10 @@ describe('live-track routes and helpers', () => {
           headers[k] = v;
           return res;
         }),
+        vary: vi.fn((field: string) => {
+          headers['Vary'] = field;
+          return res;
+        }),
         send: vi.fn((data) => {
           sentData = data;
           return res;
@@ -344,6 +348,7 @@ describe('live-track routes and helpers', () => {
       await vi.waitFor(() => expect(res.send).toHaveBeenCalled());
 
       expect(headers['Cache-Control']).toBe(`public, max-age=30`);
+      expect(headers['Vary']).toBe('Accept-Encoding');
       expect(mockRedis.get).toHaveBeenCalledWith(Keys.fetcherIncrementalProtoM5);
       expect(sentData).toBe(gzippedData);
     });
