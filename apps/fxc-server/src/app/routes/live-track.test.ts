@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import * as zlib from 'node:zlib';
 
-import { Keys, LiveDataRetentionSec, protos } from '@flyxc/common';
+import { Keys, LiveTrackDurationSec, protos } from '@flyxc/common';
 import type { Request, Response } from 'express';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -8,6 +9,7 @@ import {
   clearProtoCache,
   decompressProto,
   getCachedProto,
+  getTrackerRouter,
   handlePartnerTokenRequest,
   LIVE_TRACK_CACHE_TTL_MS,
   resolveLiveTrackKey,
@@ -31,31 +33,25 @@ describe('live-track routes and helpers', () => {
   });
 
   describe('resolveLiveTrackKey', () => {
-    const nowSec = 100000;
-
-    it('should return ShortIncremental key when lastUpdate is very recent', () => {
-      const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalM5 - 10);
-      expect(resolveLiveTrackKey(lastUpdateSec, 0, nowSec)).toBe(Keys.fetcherIncrementalProtoM5);
+    it('should return ShortIncremental key when sec is M5', () => {
+      expect(resolveLiveTrackKey(LiveTrackDurationSec.M5)).toBe(Keys.fetcherIncrementalProtoM5);
     });
 
-    it('should return LongIncremental key when lastUpdate is moderately recent', () => {
-      const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalM20 - 10);
-      expect(resolveLiveTrackKey(lastUpdateSec, 0, nowSec)).toBe(Keys.fetcherIncrementalProtoM20);
+    it('should return LongIncremental key when sec is M20', () => {
+      expect(resolveLiveTrackKey(LiveTrackDurationSec.M20)).toBe(Keys.fetcherIncrementalProtoM20);
     });
 
-    it('should return FullProtoH24 when fm is 24 * 60', () => {
-      const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalM20 + 100);
-      expect(resolveLiveTrackKey(lastUpdateSec, 24 * 60, nowSec)).toBe(Keys.fetcherFullProtoH24);
+    it('should return FullProtoH24 when sec is H24', () => {
+      expect(resolveLiveTrackKey(LiveTrackDurationSec.H24)).toBe(Keys.fetcherFullProtoH24);
     });
 
-    it('should return FullProtoH48 when fm is 48 * 60', () => {
-      const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalM20 + 100);
-      expect(resolveLiveTrackKey(lastUpdateSec, 48 * 60, nowSec)).toBe(Keys.fetcherFullProtoH48);
+    it('should return FullProtoH48 when sec is H48', () => {
+      expect(resolveLiveTrackKey(LiveTrackDurationSec.H48)).toBe(Keys.fetcherFullProtoH48);
     });
 
-    it('should default to FullProtoH12 for full requests', () => {
-      const lastUpdateSec = nowSec - (LiveDataRetentionSec.IncrementalM20 + 100);
-      expect(resolveLiveTrackKey(lastUpdateSec, 0, nowSec)).toBe(Keys.fetcherFullProtoH12);
+    it('should default to FullProtoH12 for H12 or other values', () => {
+      expect(resolveLiveTrackKey(LiveTrackDurationSec.H12)).toBe(Keys.fetcherFullProtoH12);
+      expect(resolveLiveTrackKey(0)).toBe(Keys.fetcherFullProtoH12);
     });
   });
 
@@ -82,7 +78,12 @@ describe('live-track routes and helpers', () => {
       expect(mockRedis.get).toHaveBeenCalledTimes(1);
 
       // 3. Third call after TTL expires (cache expired -> re-fetch)
-      const res3 = await getCachedProto(mockRedis, 'test:key', LIVE_TRACK_CACHE_TTL_MS, baseTimeMs + 21_000);
+      const res3 = await getCachedProto(
+        mockRedis,
+        'test:key',
+        LIVE_TRACK_CACHE_TTL_MS,
+        baseTimeMs + LIVE_TRACK_CACHE_TTL_MS + 1000,
+      );
       expect(res3).toBe(gzippedData);
       expect(mockRedis.get).toHaveBeenCalledTimes(2);
     });
@@ -305,6 +306,76 @@ describe('live-track routes and helpers', () => {
       expect(jsonBody.tracks).toHaveLength(1);
       expect(jsonBody.tracks[0].name).toBeFalsy();
       expect(jsonBody.tracks[0].idStr).toBeDefined();
+    });
+  });
+
+  describe('/tracks.pbf route', () => {
+    beforeEach(() => {
+      clearProtoCache();
+    });
+
+    it('should set public Cache-Control header and resolve key based on sec query param', async () => {
+      const mockRedis = {
+        get: vi.fn().mockResolvedValue(gzippedData),
+        withTypeMapping: vi.fn().mockReturnThis(),
+      } as any;
+      const router = getTrackerRouter(mockRedis, {} as any);
+      const headers: Record<string, string> = {};
+      const req = {
+        method: 'GET',
+        url: `/tracks.pbf?sec=${LiveTrackDurationSec.M5}`,
+        query: { sec: String(LiveTrackDurationSec.M5) },
+        header: vi.fn().mockReturnValue(undefined),
+        acceptsEncodings: vi.fn().mockReturnValue('gzip'),
+      } as any;
+      let sentData: any = null;
+      const res = {
+        set: vi.fn((k: string, v: string) => {
+          headers[k] = v;
+          return res;
+        }),
+        send: vi.fn((data) => {
+          sentData = data;
+          return res;
+        }),
+      } as any;
+
+      router(req, res, () => {});
+      await vi.waitFor(() => expect(res.send).toHaveBeenCalled());
+
+      expect(headers['Cache-Control']).toBe(`public, max-age=30}`);
+      expect(mockRedis.get).toHaveBeenCalledWith(Keys.fetcherIncrementalProtoM5);
+      expect(sentData).toBe(gzippedData);
+    });
+
+    it('should set no-store Cache-Control header for partner token requests', async () => {
+      const emptyGroupGzip = zlib.gzipSync(
+        Buffer.from(protos.LiveDifferentialTrackGroup.toBinary(protos.LiveDifferentialTrackGroup.create())),
+      );
+      const mockRedis = {
+        get: vi.fn().mockResolvedValue(emptyGroupGzip),
+        withTypeMapping: vi.fn().mockReturnThis(),
+      } as any;
+      const router = getTrackerRouter(mockRedis, {} as any);
+      const headers: Record<string, string> = {};
+      const req = {
+        method: 'GET',
+        url: '/tracks.pbf',
+        header: vi.fn((name: string) => (name === 'token' ? SECRETS.WING_TOKEN : undefined)),
+        acceptsEncodings: vi.fn().mockReturnValue('gzip'),
+      } as any;
+      const res = {
+        set: vi.fn((k: string, v: string) => {
+          headers[k] = v;
+          return res;
+        }),
+        send: vi.fn().mockReturnThis(),
+      } as any;
+
+      router(req, res, () => {});
+      await vi.waitFor(() => expect(res.send).toHaveBeenCalled());
+
+      expect(headers['Cache-Control']).toBe('no-store');
     });
   });
 });

@@ -6,7 +6,7 @@ import './supporter-modal';
 
 import { geocode } from '@esri/arcgis-rest-geocoding';
 import { setDefaultRequestOptions } from '@esri/arcgis-rest-request';
-import { Class, getClassName, getTypeName, Type } from '@flyxc/common';
+import { Class, getClassName, getTypeName, LiveTrackDurationSec, Type } from '@flyxc/common';
 import type { SearchbarCustomEvent, ToggleCustomEvent } from '@ionic/core/components';
 import { modalController, toastController } from '@ionic/core/components';
 import type { TemplateResult } from 'lit';
@@ -33,7 +33,7 @@ import {
   getLivePilots,
   setDisplayLabels as setDisplayLiveLabels,
   setFetchMillis,
-  setHistoryMin,
+  setHistorySec,
   setReturnUrl,
   updateTrackers,
 } from '../../redux/live-track-slice';
@@ -687,12 +687,12 @@ export class LiveTrackItems extends connect(store)(LitElement) {
   @state()
   private pilots: LivePilot[] = [];
   @state()
-  private historyMin = 0;
+  private historySec = LiveTrackDurationSec.H12;
 
   stateChanged(state: RootState): void {
     this.displayLabels = state.liveTrack.displayLabels;
     this.pilots = getLivePilots(state);
-    this.historyMin = state.liveTrack.historyMin;
+    this.historySec = state.liveTrack.historySec;
   }
 
   render(): TemplateResult {
@@ -720,13 +720,13 @@ export class LiveTrackItems extends connect(store)(LitElement) {
           id="history-select"
           placeholder="length"
           interface="popover"
-          value=${this.historyMin}
+          value=${this.historySec}
           @ionChange=${this.handleHistory}
         >
-          <ion-select-option value=${40}>40min</ion-select-option>
-          <ion-select-option value=${12 * 60}>12h</ion-select-option>
-          <ion-select-option value=${24 * 60}>24h</ion-select-option>
-          <ion-select-option value=${48 * 60}>48h</ion-select-option>
+          <ion-select-option value=${40 * 60}>40min</ion-select-option>
+          <ion-select-option value=${LiveTrackDurationSec.H12}>12h</ion-select-option>
+          <ion-select-option value=${LiveTrackDurationSec.H24}>24h</ion-select-option>
+          <ion-select-option value=${LiveTrackDurationSec.H48}>48h</ion-select-option>
         </ion-select>
       </ion-item> `;
   }
@@ -746,7 +746,7 @@ export class LiveTrackItems extends connect(store)(LitElement) {
   }
 
   private handleHistory(e: CustomEvent): void {
-    store.dispatch(setHistoryMin(Number(e.detail.value)));
+    store.dispatch(setHistorySec(Number(e.detail.value)));
     store.dispatch(setFetchMillis(0));
     store.dispatch(updateTrackers());
   }

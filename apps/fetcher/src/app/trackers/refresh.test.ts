@@ -1,4 +1,4 @@
-import { LiveDataRetentionSec, protos } from '@flyxc/common';
+import { LiveTrackDurationSec, protos } from '@flyxc/common';
 import { describe, expect, it } from 'vitest';
 
 import { applyTrackerUpdates } from './refresh';
@@ -154,7 +154,7 @@ describe('applyTrackerUpdates', () => {
 
   it('should drop outdated points (> 48h) for non-updated pilots', () => {
     const nowSec = 1700000000;
-    const oldSec = nowSec - LiveDataRetentionSec.Max - 1000;
+    const oldSec = nowSec - LiveTrackDurationSec.Max - 1000;
 
     const pilotTrack: protos.LiveTrack = {
       timeSec: [oldSec, nowSec - 100],
@@ -180,7 +180,7 @@ describe('applyTrackerUpdates', () => {
 
   it('should drop outdated points (> 48h) for updated pilots as well', () => {
     const nowSec = 1700000000;
-    const oldSec = nowSec - LiveDataRetentionSec.Max - 1000;
+    const oldSec = nowSec - LiveTrackDurationSec.Max - 1000;
 
     const pilotTrack: protos.LiveTrack = {
       timeSec: [oldSec, nowSec - 100],

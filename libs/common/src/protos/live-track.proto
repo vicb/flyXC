@@ -13,7 +13,7 @@ message LiveExtra {
 message LiveTrack {
   // Only one of id/idStr is populated
   optional int64 id = 1;
-  optional string idStr = 9;
+  optional string id_str = 9;
   optional string name = 2;
   repeated float lat = 3;
   repeated float lon = 4;
@@ -30,7 +30,7 @@ message LiveTrack {
 // See `differentialDecodeLiveTrack(...)` for decoding the values.
 message LiveDifferentialTrack {
   optional int64 id = 1;
-  optional string idStr = 9;
+  optional string id_str = 9;
   string name = 2;
   repeated sint32 lat = 3;
   repeated sint32 lon = 4;
@@ -46,7 +46,7 @@ message LiveDifferentialTrack {
 message LiveDifferentialTrackGroup {
   repeated LiveDifferentialTrack tracks = 1;
   // Whether this is a incremental update (vs full update).
-  bool incremental = 2;
+  bool deprecated_incremental = 2 [deprecated = true];
   // Remote IDs populated for export.
-  repeated string remoteId = 3;
+  repeated string deprecated_remote_id = 3 [deprecated = true];
 }

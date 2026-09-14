@@ -2,8 +2,8 @@ import type { protos } from '@flyxc/common';
 import {
   Keys,
   LIVE_FETCH_TIMEOUT_SEC,
-  LiveDataIntervalSec,
-  LiveDataRetentionSec,
+  LiveTrackDurationSec,
+  LiveTrackPointIntervalSec,
   mergeLiveTracks,
   removeBeforeFromLiveTrack,
   simplifyLiveTrack,
@@ -39,7 +39,7 @@ export function applyUfoFleetUpdates(
   fleetUpdates: UfoFleetUpdates[],
   nowSec = Math.round(Date.now() / 1000),
 ): void {
-  const ufoStartSec = nowSec - LiveDataRetentionSec.Ufo;
+  const ufoStartSec = nowSec - LiveTrackDurationSec.UfoH1;
 
   for (const fleetUpdate of fleetUpdates) {
     const { fleetName } = fleetUpdate;
@@ -61,7 +61,7 @@ export function applyUfoFleetUpdates(
     }
     for (const id in ufoTracks) {
       let track = ufoTracks[id];
-      simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
+      simplifyLiveTrack(track, LiveTrackPointIntervalSec.Recent);
       track = removeBeforeFromLiveTrack(track, ufoStartSec);
       if (track.timeSec.length === 0) {
         delete ufoTracks[id];

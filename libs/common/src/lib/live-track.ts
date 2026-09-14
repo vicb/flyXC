@@ -10,23 +10,22 @@ const DEVICE_TYPE_NUM_BITS = 5;
 const MAX_NUM_DEVICES = 2 ** DEVICE_TYPE_NUM_BITS - 1;
 const DEVICE_TYPE_BITMASK = 2 ** DEVICE_TYPE_NUM_BITS - 1;
 
-export enum LiveDataRetentionSec {
-  // Incremental updates
-  IncrementalM5 = 5 * 60,
-  IncrementalM20 = 20 * 60,
-  // Partners
-  PartnersM30 = 30 * 60,
-  // Full updates
-  FullH12 = 12 * 3600,
-  FullH24 = 24 * 3600,
-  FullH48 = 48 * 3600,
-  Max = FullH48,
-  // UFO updates
-  Ufo = 3600,
-}
+/**
+ * Duration of the live track groups
+ */
+export const LiveTrackDurationSec = {
+  M5: 5 * 60,
+  M20: 20 * 60,
+  PartnersM30: 30 * 60,
+  UfoH1: 3600,
+  H12: 12 * 3600,
+  H24: 24 * 3600,
+  H48: 48 * 3600,
+  Max: 48 * 3600,
+} as const;
 
 // Minium track point intervals for each segments of live tracks.
-export enum LiveDataIntervalSec {
+export enum LiveTrackPointIntervalSec {
   Recent = 5,
   H6ToH12 = 60,
   H12ToH24 = 3 * 60,
