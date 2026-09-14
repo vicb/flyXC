@@ -48,7 +48,7 @@ export function disconnectOgnClient(): void {
  * @param redis - The Redis client for caching data.
  * @param datastore - The Datastore instance for storing data.
  */
-export async function resfreshTrackers(
+export async function refreshTrackers(
   pipeline: RedisClientMultiCmd,
   state: protos.FetcherState,
   redis: RedisClient,

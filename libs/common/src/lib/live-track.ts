@@ -12,8 +12,10 @@ const DEVICE_TYPE_BITMASK = 2 ** DEVICE_TYPE_NUM_BITS - 1;
 
 export enum LiveDataRetentionSec {
   // Incremental updates
-  IncrementalShort = 5 * 60,
-  IncrementalLong = 20 * 60,
+  IncrementalM5 = 5 * 60,
+  IncrementalM20 = 20 * 60,
+  // Partners
+  PartnersM30 = 30 * 60,
   // Full updates
   FullH12 = 12 * 3600,
   FullH24 = 24 * 3600,
@@ -21,11 +23,9 @@ export enum LiveDataRetentionSec {
   Max = FullH48,
   // UFO updates
   Ufo = 3600,
-  // Export to partners (max H12)
-  ExportToPartners = 5 * 60,
 }
 
-// Minium track point intervals.
+// Minium track point intervals for each segments of live tracks.
 export enum LiveDataIntervalSec {
   Recent = 5,
   H6ToH12 = 60,
@@ -239,9 +239,10 @@ export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): Li
 
   const extra: { [key: string]: LiveExtra } = {};
   for (const index in track.extra) {
-    const newIndex = Number(index) - numToDelete;
-    if (newIndex >= 0) {
-      extra[newIndex] = { ...track.extra[index] };
+    const srcIndex = Number(index);
+    if (srcIndex >= numToDelete) {
+      const dstIndex = srcIndex - numToDelete;
+      extra[dstIndex] = { ...track.extra[srcIndex] };
     }
   }
 
@@ -256,24 +257,6 @@ export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): Li
     extra,
   };
   return result;
-}
-
-// Delete all the fixes from the specified device.
-export function removeDeviceFromLiveTrack(track: LiveTrack, device: TrackerNames | UfoFleetNames): LiveTrack {
-  if (track.gndAlt?.length !== track.lat.length) {
-    track.gndAlt = Array(track.lat.length).fill(NO_GROUND_ALTITUDE);
-  }
-  const outTrack = LiveTrack.create();
-
-  let dstIdx = 0;
-  for (let srcIdx = 0; srcIdx < track.timeSec.length; srcIdx++) {
-    const flags = track.flags[srcIdx];
-    if (getTrackerName(flags) != device) {
-      copyFix(track, srcIdx, outTrack, dstIdx++);
-    }
-  }
-
-  return outTrack;
 }
 
 /**

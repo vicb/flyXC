@@ -51,11 +51,11 @@ export function resolveLiveTrackKey(
   const deltaSec = nowSec - lastUpdateSec;
 
   // Pick the incremental proto if the last request was recent.
-  if (deltaSec < LiveDataRetentionSec.IncrementalShort) {
-    return Keys.fetcherShortIncrementalProto;
+  if (deltaSec < LiveDataRetentionSec.IncrementalM5) {
+    return Keys.fetcherIncrementalProtoM5;
   }
-  if (deltaSec < LiveDataRetentionSec.IncrementalLong) {
-    return Keys.fetcherLongIncrementalProto;
+  if (deltaSec < LiveDataRetentionSec.IncrementalM20) {
+    return Keys.fetcherIncrementalProtoM20;
   }
 
   // Otherwise, return full tracks for the requested history range.
@@ -162,38 +162,24 @@ export async function handlePartnerTokenRequest(
   res: Response,
   token: string,
   bufferRedis: BufferRedisClient,
-): Promise<void> {
+): Promise<Response> {
   switch (token) {
-    case SECRETS.FLYME_TOKEN: {
-      const groupProto = await getCachedProto(bufferRedis, Keys.fetcherExportFlymeProto);
-      if (req.header('accept') === 'application/json') {
-        const uncompressed = decompressProto(groupProto);
-        const track = uncompressed
-          ? protos.LiveDifferentialTrackGroup.fromBinary(uncompressed)
-          : protos.LiveDifferentialTrackGroup.create();
-        res.json(protos.LiveDifferentialTrackGroup.toJson(track));
-      } else {
-        sendProtobufResponse(req, res, groupProto);
-      }
-      break;
-    }
+    case SECRETS.FLYME_TOKEN:
     case SECRETS.WING_TOKEN:
     case SECRETS.ZIPLINE_TOKEN: {
-      const liveGroupProto = await getCachedProto(bufferRedis, Keys.fetcherFullProtoH12);
-      const uncompressed = decompressProto(liveGroupProto);
+      const liveGroupProtoGzip = await getCachedProto(bufferRedis, Keys.fetcherPartnersProtoM30);
+      const liveGroupProto = decompressProto(liveGroupProtoGzip);
 
-      const liveGroup = uncompressed
-        ? protos.LiveDifferentialTrackGroup.fromBinary(uncompressed)
+      const liveGroup = liveGroupProto
+        ? protos.LiveDifferentialTrackGroup.fromBinary(liveGroupProto)
         : protos.LiveDifferentialTrackGroup.create();
+
+      const idToSha = new Map<string, string>();
 
       const anonTracks: protos.LiveDifferentialTrack[] = liveGroup.tracks.map(
         ({ lat, lon, alt, gndAlt, timeSec, id, idStr }) => {
-          // Anonymizes the track by hashing the id with a salt.
-          const sha1 = crypto.createHash('sha1');
-          sha1.update(String(idStr ?? id) + SECRETS.EXPORT_ID_SALT);
-
           return {
-            idStr: sha1.digest('hex'),
+            idStr: anonymizeId(idStr ?? id, idToSha),
             name: '',
             flags: [],
             extra: {},
@@ -212,16 +198,35 @@ export async function handlePartnerTokenRequest(
       };
 
       if (req.header('accept') === 'application/json') {
-        res.json(protos.LiveDifferentialTrackGroup.toJson(anonGroup));
-      } else {
-        res.set('Content-Type', 'application/x-protobuf');
-        res.send(protos.LiveDifferentialTrackGroup.toBinary(anonGroup));
+        return res.json(protos.LiveDifferentialTrackGroup.toJson(anonGroup));
       }
-      break;
+
+      return res
+        .set('Content-Type', 'application/x-protobuf')
+        .send(protos.LiveDifferentialTrackGroup.toBinary(anonGroup));
     }
     default:
-      res.sendStatus(400);
+      return res.sendStatus(400);
   }
+}
+
+/**
+ * Anonymizes a track ID by hashing it with a salt to ensure privacy.
+ *
+ * @param id - The original track ID (string or number).
+ * @param idToSha - A map storing previously anonymized IDs to avoid recomputation.
+ * @returns The anonymized ID as a string.
+ */
+function anonymizeId(id: string | number, idToSha: Map<string, string>): string {
+  const idStr = String(id);
+  if (idToSha.has(idStr)) {
+    return idToSha.get(idStr)!;
+  }
+  const sha1 = crypto.createHash('sha1');
+  sha1.update(idStr + SECRETS.EXPORT_ID_SALT);
+  const hashed = sha1.digest('hex');
+  idToSha.set(idStr, hashed);
+  return hashed;
 }
 
 /**
@@ -242,8 +247,7 @@ export function getTrackerRouter(redis: RedisClient, datastore: Datastore): Rout
     // 1. Handle partner token requests (e.g. FlyMe, Wing, Zipline).
     const token = req.header('token');
     if (token) {
-      await handlePartnerTokenRequest(req, res, token, bufferRedis);
-      return;
+      return await handlePartnerTokenRequest(req, res, token, bufferRedis);
     }
 
     // 2. Handle public live track requests based on client time delta and history range.

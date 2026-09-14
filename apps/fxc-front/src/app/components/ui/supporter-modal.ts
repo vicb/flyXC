@@ -18,7 +18,7 @@ export class SupporterModal extends LitElement {
             <a href="https://github.com/vicb/visugps" target="_blank">open-source</a> and free to use since 2007.
           </p>
           <p>
-            The development effort represents hundreds of hours per year and hosting flyXC costs around $10 a month.
+            The development effort represents hundreds of hours per year and hosting flyXC costs up to $200 a month.
           </p>
           <p>
             If you can afford it, please consider supporting flyXC with a small donation by clicking the button below.

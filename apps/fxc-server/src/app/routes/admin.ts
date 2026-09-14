@@ -146,7 +146,7 @@ async function getDashboardValues(redis: RedisClient, datastore: Datastore): Pro
     [Keys.hostMemoryTotalMb]: 'S',
     [Keys.hostNode]: 'S',
     [Keys.fetcherFullNumTracksH24]: 'S',
-    [Keys.fetcherIncrementalNumTracksLong]: 'S',
+    [Keys.fetcherIncrementalNumTracksM20]: 'S',
     [Keys.trackerNum]: 'S',
     [Keys.trackNum]: 'S',
     [Keys.elevationCache]: 'S',

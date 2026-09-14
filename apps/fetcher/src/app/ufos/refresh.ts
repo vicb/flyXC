@@ -14,7 +14,7 @@ import { pushListCap } from '@flyxc/common-node';
 import { AviantFetcher } from './aviant';
 import type { UfoFleetUpdates } from './ufo';
 
-export async function resfreshUfoFleets(pipeline: RedisClientMultiCmd, state: protos.FetcherState) {
+export async function refreshUfoFleets(pipeline: RedisClientMultiCmd, state: protos.FetcherState) {
   const fetchers = [new AviantFetcher(state, pipeline)];
 
   const updatePromises = await Promise.allSettled(fetchers.map((f) => f.refresh(LIVE_FETCH_TIMEOUT_SEC)));

@@ -153,6 +153,12 @@ describe('createLiveTrackGroups', () => {
           share: false,
           track: protos.LiveTrack.create(),
         },
+        // Pilot 7: flew 45 minutes ago with share=true (in H12, but NOT in partnersM30 because > 30m)
+        7: {
+          name: 'Pilot 45m',
+          share: true,
+          track: createTrack(45 * 60),
+        },
       },
       ufoFleets: {
         aviant: {
@@ -169,73 +175,85 @@ describe('createLiveTrackGroups', () => {
     const groups = createLiveTrackGroups(state, nowSec);
 
     // H48 should contain:
-    // Pilots: 1, 2, 3, 4, 5 (all except 6)
+    // Pilots: 1, 2, 3, 4, 5, 7 (all except 6)
     // UFOs: drone1, drone2
-    const h48Ids = groups.fullTracksH48.tracks.map((t) => t.id ?? t.idStr);
+    const h48Ids = groups.fullH48.tracks.map((t) => t.id ?? t.idStr);
     expect(h48Ids).toContain(1);
     expect(h48Ids).toContain(2);
     expect(h48Ids).toContain(3);
     expect(h48Ids).toContain(4);
     expect(h48Ids).toContain(5);
     expect(h48Ids).not.toContain(6);
+    expect(h48Ids).toContain(7);
     expect(h48Ids).toContain('aviant-drone1');
     expect(h48Ids).toContain('aviant-drone2');
-    expect(groups.fullTracksH48.tracks).toHaveLength(7);
+    expect(groups.fullH48.tracks).toHaveLength(8);
 
     // H24 should contain:
-    // Pilots: 2, 3, 4, 5 (Pilot 1 skipped)
+    // Pilots: 2, 3, 4, 5, 7 (Pilot 1 skipped)
     // UFOs: drone1, drone2
-    const h24Ids = groups.fullTracksH24.tracks.map((t) => t.id ?? t.idStr);
+    const h24Ids = groups.fullH24.tracks.map((t) => t.id ?? t.idStr);
     expect(h24Ids).not.toContain(1);
     expect(h24Ids).toContain(2);
     expect(h24Ids).toContain(3);
     expect(h24Ids).toContain(4);
     expect(h24Ids).toContain(5);
+    expect(h24Ids).toContain(7);
     expect(h24Ids).toContain('aviant-drone1');
     expect(h24Ids).toContain('aviant-drone2');
-    expect(groups.fullTracksH24.tracks).toHaveLength(6);
+    expect(groups.fullH24.tracks).toHaveLength(7);
 
     // H12 should contain:
-    // Pilots: 3, 4, 5 (Pilots 1 and 2 skipped)
+    // Pilots: 3, 4, 5, 7 (Pilots 1 and 2 skipped)
     // UFOs: drone1 (drone2 skipped)
-    const h12Ids = groups.fullTracksH12.tracks.map((t) => t.id ?? t.idStr);
+    const h12Ids = groups.fullH12.tracks.map((t) => t.id ?? t.idStr);
     expect(h12Ids).not.toContain(1);
     expect(h12Ids).not.toContain(2);
     expect(h12Ids).toContain(3);
     expect(h12Ids).toContain(4);
     expect(h12Ids).toContain(5);
+    expect(h12Ids).toContain(7);
     expect(h12Ids).toContain('aviant-drone1');
     expect(h12Ids).not.toContain('aviant-drone2');
-    expect(groups.fullTracksH12.tracks).toHaveLength(4);
+    expect(groups.fullH12.tracks).toHaveLength(5);
 
     // Long incremental (20m) should contain:
-    // Pilots: 4, 5 (Pilots 1, 2, 3 skipped)
+    // Pilots: 4, 5 (Pilots 1, 2, 3, 7 skipped)
     // UFOs: drone1
-    const longIds = groups.longIncTracks.tracks.map((t) => t.id ?? t.idStr);
+    const longIds = groups.incM20.tracks.map((t) => t.id ?? t.idStr);
     expect(longIds).not.toContain(1);
     expect(longIds).not.toContain(2);
     expect(longIds).not.toContain(3);
     expect(longIds).toContain(4);
     expect(longIds).toContain(5);
+    expect(longIds).not.toContain(7);
     expect(longIds).toContain('aviant-drone1');
-    expect(groups.longIncTracks.tracks).toHaveLength(3);
+    expect(groups.incM20.tracks).toHaveLength(3);
 
     // Short incremental (5m) should contain:
-    // Pilots: 5 (Pilots 1, 2, 3, 4 skipped)
+    // Pilots: 5 (Pilots 1, 2, 3, 4, 7 skipped)
     // UFOs: drone1
-    const shortIds = groups.shortIncTracks.tracks.map((t) => t.id ?? t.idStr);
+    const shortIds = groups.incM5.tracks.map((t) => t.id ?? t.idStr);
     expect(shortIds).not.toContain(1);
     expect(shortIds).not.toContain(2);
     expect(shortIds).not.toContain(3);
     expect(shortIds).not.toContain(4);
     expect(shortIds).toContain(5);
+    expect(shortIds).not.toContain(7);
     expect(shortIds).toContain('aviant-drone1');
-    expect(groups.shortIncTracks.tracks).toHaveLength(2);
+    expect(groups.incM5.tracks).toHaveLength(2);
 
-    // Flyme (share=true, max 5m, flyme fixes stripped):
-    // Pilot 5 has share=true and point in last 5m -> included
-    const flymeIds = groups.flymeTracks.tracks.map((t) => t.id);
-    expect(flymeIds).toContain(5);
-    expect(groups.flymeTracks.tracks).toHaveLength(1);
+    // Partners (30m, share=true only):
+    // Pilot 5 has share=true and point in last 30m -> included
+    // Pilot 4 has point in last 10m but share=false -> excluded
+    // Pilot 7 has share=true but point is 45m ago -> excluded
+    // UFOs -> excluded
+    const partnerIds = groups.partnersM30.tracks.map((t) => t.id ?? t.idStr);
+    expect(partnerIds).toContain(5);
+    expect(partnerIds).not.toContain(4);
+    expect(partnerIds).not.toContain(7);
+    expect(partnerIds).not.toContain('aviant-drone1');
+    expect(groups.partnersM30.tracks).toHaveLength(1);
+    expect(groups.partnersM30.incremental).toBeFalsy();
   });
 });
