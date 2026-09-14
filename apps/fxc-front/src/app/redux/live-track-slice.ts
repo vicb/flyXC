@@ -119,8 +119,6 @@ export const updateTrackers = createAsyncThunk('liveTrack/fetch', async (_: unde
   }
 });
 
-export { getFetchParameters };
-
 export function handleVisibility(): void {
   const visible = document.visibilityState == 'visible';
   if (visible) {
