@@ -343,7 +343,7 @@ describe('live-track routes and helpers', () => {
       router(req, res, () => {});
       await vi.waitFor(() => expect(res.send).toHaveBeenCalled());
 
-      expect(headers['Cache-Control']).toBe(`public, max-age=30}`);
+      expect(headers['Cache-Control']).toBe(`public, max-age=30`);
       expect(mockRedis.get).toHaveBeenCalledWith(Keys.fetcherIncrementalProtoM5);
       expect(sentData).toBe(gzippedData);
     });
