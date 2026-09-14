@@ -1,4 +1,4 @@
-import { LiveDataRetentionSec, protos } from '@flyxc/common';
+import { LiveTrackDurationSec, protos } from '@flyxc/common';
 import { describe, expect, it } from 'vitest';
 
 import { applyUfoFleetUpdates } from './refresh';
@@ -72,7 +72,7 @@ describe('applyUfoFleetUpdates', () => {
 
   it('should remove UFOs whose tracks are completely older than UFO retention window', () => {
     const nowSec = 1700000000;
-    const oldSec = nowSec - LiveDataRetentionSec.Ufo - 500;
+    const oldSec = nowSec - LiveTrackDurationSec.UfoH1 - 500;
 
     const oldTrack: protos.LiveTrack = {
       timeSec: [oldSec],

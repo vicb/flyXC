@@ -1,4 +1,4 @@
-import { differentialEncodeLiveTrack, LiveDataRetentionSec, protos, removeBeforeFromLiveTrack } from '@flyxc/common';
+import { differentialEncodeLiveTrack, LiveTrackDurationSec, protos, removeBeforeFromLiveTrack } from '@flyxc/common';
 
 /**
  * Represents groups of live tracks categorized by their retention windows.
@@ -61,8 +61,8 @@ export function createLiveTrackGroups(
   nowSec = Math.round(Date.now() / 1000),
 ): LiveTrackGroups {
   const trackGroups = {
-    incM5: protos.LiveDifferentialTrackGroup.create({ incremental: true }),
-    incM20: protos.LiveDifferentialTrackGroup.create({ incremental: true }),
+    incM5: protos.LiveDifferentialTrackGroup.create(),
+    incM20: protos.LiveDifferentialTrackGroup.create(),
     partnersM30: protos.LiveDifferentialTrackGroup.create(),
     fullH12: protos.LiveDifferentialTrackGroup.create(),
     fullH24: protos.LiveDifferentialTrackGroup.create(),
@@ -84,31 +84,17 @@ export function createLiveTrackGroups(
     const fullH24 = maybePushTrack(
       trackGroups.fullH24,
       pilot.track,
-      LiveDataRetentionSec.FullH24,
+      LiveTrackDurationSec.H24,
       pilotIdNum,
       name,
       nowSec,
     );
-    const fullH12 = maybePushTrack(
-      trackGroups.fullH12,
-      fullH24,
-      LiveDataRetentionSec.FullH12,
-      pilotIdNum,
-      name,
-      nowSec,
-    );
+    const fullH12 = maybePushTrack(trackGroups.fullH12, fullH24, LiveTrackDurationSec.H12, pilotIdNum, name, nowSec);
     if (pilot.share) {
-      maybePushTrack(trackGroups.partnersM30, fullH12, LiveDataRetentionSec.PartnersM30, pilotIdNum, name, nowSec);
+      maybePushTrack(trackGroups.partnersM30, fullH12, LiveTrackDurationSec.PartnersM30, pilotIdNum, name, nowSec);
     }
-    const incM20 = maybePushTrack(
-      trackGroups.incM20,
-      fullH12,
-      LiveDataRetentionSec.IncrementalM20,
-      pilotIdNum,
-      name,
-      nowSec,
-    );
-    maybePushTrack(trackGroups.incM5, incM20, LiveDataRetentionSec.IncrementalM5, pilotIdNum, name, nowSec);
+    const incM20 = maybePushTrack(trackGroups.incM20, fullH12, LiveTrackDurationSec.M20, pilotIdNum, name, nowSec);
+    maybePushTrack(trackGroups.incM5, incM20, LiveTrackDurationSec.M5, pilotIdNum, name, nowSec);
   }
 
   // Add UFOs.
@@ -125,31 +111,17 @@ export function createLiveTrackGroups(
       const ufoIdStr = `${name}-${ufoId}`;
       trackGroups.fullH48.tracks.push(differentialEncodeLiveTrack(track, ufoIdStr));
 
-      const fullH24 = maybePushTrack(
-        trackGroups.fullH24,
-        track,
-        LiveDataRetentionSec.FullH24,
-        ufoIdStr,
-        undefined,
-        nowSec,
-      );
+      const fullH24 = maybePushTrack(trackGroups.fullH24, track, LiveTrackDurationSec.H24, ufoIdStr, undefined, nowSec);
       const fullH12 = maybePushTrack(
         trackGroups.fullH12,
         fullH24,
-        LiveDataRetentionSec.FullH12,
+        LiveTrackDurationSec.H12,
         ufoIdStr,
         undefined,
         nowSec,
       );
-      const incM20 = maybePushTrack(
-        trackGroups.incM20,
-        fullH12,
-        LiveDataRetentionSec.IncrementalM20,
-        ufoIdStr,
-        undefined,
-        nowSec,
-      );
-      maybePushTrack(trackGroups.incM5, incM20, LiveDataRetentionSec.IncrementalM5, ufoIdStr, undefined, nowSec);
+      const incM20 = maybePushTrack(trackGroups.incM20, fullH12, LiveTrackDurationSec.M20, ufoIdStr, undefined, nowSec);
+      maybePushTrack(trackGroups.incM5, incM20, LiveTrackDurationSec.M5, ufoIdStr, undefined, nowSec);
     }
   }
 

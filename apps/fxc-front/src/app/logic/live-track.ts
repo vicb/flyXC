@@ -7,7 +7,8 @@ import {
   isGroundAltitudeValid,
   IsSimplifiableFix,
   isUfo,
-  LiveDataIntervalSec,
+  LiveTrackDurationSec,
+  LiveTrackPointIntervalSec,
   mergeLiveTracks,
   simplifyLiveTrack,
 } from '@flyxc/common';
@@ -179,15 +180,23 @@ function addPoint(pointsByIndex: Map<number, any>, track: protos.LiveTrack, inde
   });
 }
 
-// Handles the live track updates from the server.
-//
-// For full (i.e. not incremental updates) the track received from the server are returned.
-//
-// For incremental updates, the updates are merged with the tracks and old fixes are removed.
-// The returned tracks contain the updated tracks and the old tracks that still have some fixes.
+/**
+ * Handles the live track updates from the server.
+ *
+ * For full updates (not incremental), the tracks received from the server are returned.
+ *
+ * For incremental updates, the updates are merged with the current tracks and old fixes are removed.
+ * The returned tracks contain the updated tracks and the old tracks that still have fixes.
+ *
+ * @param tracks The current tracks indexed by ID.
+ * @param updates The differential track group updates received from the server.
+ * @param isIncremental Whether the updates are incremental or a full refresh.
+ * @returns The array of updated live tracks.
+ */
 export function updateLiveTracks(
   tracks: { [id: string]: protos.LiveTrack },
   updates: protos.LiveDifferentialTrackGroup,
+  isIncremental: boolean,
 ): protos.LiveTrack[] {
   // Tracks received from the server (either full or incremental).
   const updatedTracks: { [id: string]: protos.LiveTrack } = {};
@@ -199,7 +208,7 @@ export function updateLiveTracks(
     }
   });
 
-  if (updates.incremental) {
+  if (isIncremental) {
     // Update the current tracks by:
     // - patching the deltas,
     // - removing old points,
@@ -211,11 +220,37 @@ export function updateLiveTracks(
       }
       if (id in updatedTracks) {
         track = mergeLiveTracks(track, updatedTracks[id]);
-        simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
+        simplifyLiveTrack(track, LiveTrackPointIntervalSec.Recent);
       }
       updatedTracks[id] = track;
     }
   }
 
   return Object.values(updatedTracks);
+}
+
+/**
+ * Determines the appropriate fetch parameters based on the age of the last fetch and the history duration.
+ *
+ * @param lastFetchAgeSec The age of the last fetch in seconds.
+ * @param historySec The history duration in seconds.
+ * @returns An object containing the incremental flag and the fetch duration in seconds.
+ */
+export function getFetchParameters(
+  lastFetchAgeSec: number,
+  historySec: number,
+): { isIncremental: boolean; fetchSec: number } {
+  if (lastFetchAgeSec <= LiveTrackDurationSec.M5) {
+    return { isIncremental: true, fetchSec: LiveTrackDurationSec.M5 };
+  }
+  if (lastFetchAgeSec <= LiveTrackDurationSec.M20) {
+    return { isIncremental: true, fetchSec: LiveTrackDurationSec.M20 };
+  }
+  if (historySec <= LiveTrackDurationSec.H12) {
+    return { isIncremental: false, fetchSec: LiveTrackDurationSec.H12 };
+  }
+  if (historySec <= LiveTrackDurationSec.H24) {
+    return { isIncremental: false, fetchSec: LiveTrackDurationSec.H24 };
+  }
+  return { isIncremental: false, fetchSec: LiveTrackDurationSec.H48 };
 }

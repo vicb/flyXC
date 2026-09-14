@@ -1,12 +1,13 @@
 // Process the live tracking info from the server.
 
-import { isUfo, LiveDataRetentionSec, protos, removeBeforeFromLiveTrack, TRACK_GAP_MIN } from '@flyxc/common';
+import { isUfo, LiveTrackDurationSec, protos, removeBeforeFromLiveTrack, TRACK_GAP_MIN } from '@flyxc/common';
 
 import { trackToFeatures, updateLiveTracks } from '../logic/live-track';
 
 export interface Request {
   buffer: ArrayBuffer;
-  historyMin: number;
+  historySec: number;
+  isIncremental: boolean;
   tracks: { [id: string]: protos.LiveTrack };
 }
 
@@ -21,15 +22,14 @@ w.addEventListener('message', (message: MessageEvent<Request>) => {
   const request = message.data;
   const updates = protos.LiveDifferentialTrackGroup.fromBinary(new Uint8Array(request.buffer));
 
-  const updatedTracks = updateLiveTracks(request.tracks, updates);
+  const updatedTracks = updateLiveTracks(request.tracks, updates, request.isIncremental);
   const tracks: protos.LiveTrack[] = [];
   const features: any[] = [];
 
-  const historySec = request.historyMin * 60;
   const now = Math.round(Date.now() / 1000);
 
   for (let track of updatedTracks) {
-    const dropBeforeSec = now - (isUfo(track.flags[0]) ? LiveDataRetentionSec.Ufo : historySec);
+    const dropBeforeSec = now - (isUfo(track.flags[0]) ? LiveTrackDurationSec.UfoH1 : request.historySec);
     track = removeBeforeFromLiveTrack(track, dropBeforeSec);
 
     if (track.timeSec.length > 0) {
