@@ -143,7 +143,6 @@ export function Plugin() {
 
       <div id="wsp-sounding">
         <section onWheel={handleWheelEvent as any}>
-          <Details />
           <SoundingDiagram
             {...{
               width,
@@ -153,6 +152,7 @@ export function Plugin() {
               endResize,
             }}
           />
+          <Details />
         </section>
         <section>
           <ConnectedFavorites onSelected={selectFavorite} />
@@ -544,7 +544,7 @@ function useCurrentTimeMs(intervalMs = FIFTEEN_MINUTES_MS): number {
 /**
  * Display sounding details
  *
- * - Weather model
+ * - Weather model select
  * - Run timestamp and duration before next run (refreshed periodically)
  * - Current time
  */
@@ -579,7 +579,8 @@ const Details = memo(function Details() {
   return (
     <div id="wsp-model" className="desktop-only">
       <dl>
-        <dt>Model</dt>
+        <dt>Sounding time</dt>
+        <dd>{formatTimestamp(timeMs)}</dd> <dt>Model</dt>
         <dd>
           <select
             value={modelName}
@@ -603,8 +604,6 @@ const Details = memo(function Details() {
               }`
             : `...`}
         </dd>
-        <dt>Sounding time</dt>
-        <dd>{formatTimestamp(timeMs)}</dd>{' '}
       </dl>
     </div>
   );
