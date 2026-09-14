@@ -38,7 +38,7 @@ export interface LiveTrack {
    */
   id?: number;
   /**
-   * @generated from protobuf field: optional string idStr = 9
+   * @generated from protobuf field: optional string id_str = 9
    */
   idStr?: string;
   /**
@@ -91,7 +91,7 @@ export interface LiveDifferentialTrack {
    */
   id?: number;
   /**
-   * @generated from protobuf field: optional string idStr = 9
+   * @generated from protobuf field: optional string id_str = 9
    */
   idStr?: string;
   /**
@@ -144,15 +144,17 @@ export interface LiveDifferentialTrackGroup {
   /**
    * Whether this is a incremental update (vs full update).
    *
-   * @generated from protobuf field: bool incremental = 2
+   * @deprecated
+   * @generated from protobuf field: bool deprecated_incremental = 2 [deprecated = true]
    */
-  incremental: boolean;
+  deprecatedIncremental: boolean;
   /**
    * Remote IDs populated for export.
    *
-   * @generated from protobuf field: repeated string remoteId = 3
+   * @deprecated
+   * @generated from protobuf field: repeated string deprecated_remote_id = 3 [deprecated = true]
    */
-  remoteId: string[];
+  deprecatedRemoteId: string[];
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class LiveExtra$Type extends MessageType<LiveExtra> {
@@ -173,7 +175,7 @@ class LiveTrack$Type extends MessageType<LiveTrack> {
   constructor() {
     super('LiveTrack', [
       { no: 1, name: 'id', kind: 'scalar', opt: true, T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
-      { no: 9, name: 'idStr', kind: 'scalar', opt: true, T: 9 /*ScalarType.STRING*/ },
+      { no: 9, name: 'id_str', kind: 'scalar', opt: true, T: 9 /*ScalarType.STRING*/ },
       { no: 2, name: 'name', kind: 'scalar', opt: true, T: 9 /*ScalarType.STRING*/ },
       { no: 3, name: 'lat', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 2 /*ScalarType.FLOAT*/ },
       { no: 4, name: 'lon', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 2 /*ScalarType.FLOAT*/ },
@@ -194,7 +196,7 @@ class LiveDifferentialTrack$Type extends MessageType<LiveDifferentialTrack> {
   constructor() {
     super('LiveDifferentialTrack', [
       { no: 1, name: 'id', kind: 'scalar', opt: true, T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
-      { no: 9, name: 'idStr', kind: 'scalar', opt: true, T: 9 /*ScalarType.STRING*/ },
+      { no: 9, name: 'id_str', kind: 'scalar', opt: true, T: 9 /*ScalarType.STRING*/ },
       { no: 2, name: 'name', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 3, name: 'lat', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
       { no: 4, name: 'lon', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
@@ -215,8 +217,14 @@ class LiveDifferentialTrackGroup$Type extends MessageType<LiveDifferentialTrackG
   constructor() {
     super('LiveDifferentialTrackGroup', [
       { no: 1, name: 'tracks', kind: 'message', repeat: 2 /*RepeatType.UNPACKED*/, T: () => LiveDifferentialTrack },
-      { no: 2, name: 'incremental', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
-      { no: 3, name: 'remoteId', kind: 'scalar', repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+      { no: 2, name: 'deprecated_incremental', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
+      {
+        no: 3,
+        name: 'deprecated_remote_id',
+        kind: 'scalar',
+        repeat: 2 /*RepeatType.UNPACKED*/,
+        T: 9 /*ScalarType.STRING*/,
+      },
     ]);
   }
 }

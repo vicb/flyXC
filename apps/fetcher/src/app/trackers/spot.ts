@@ -6,7 +6,7 @@ import type { protos, TrackerNames } from '@flyxc/common';
 import {
   fetchResponse,
   formatReqError,
-  LiveDataIntervalSec,
+  LiveTrackPointIntervalSec,
   simplifyLiveTrack,
   validateSpotAccount,
 } from '@flyxc/common';
@@ -43,7 +43,7 @@ export class SpotFetcher extends TrackerFetcher {
           try {
             const points = parse(await response.text());
             const track = makeLiveTrack(points, this.getTrackerName());
-            simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
+            simplifyLiveTrack(track, LiveTrackPointIntervalSec.Recent);
             if (track.timeSec.length > 0) {
               updates.trackerDeltas.set(id, track);
             }

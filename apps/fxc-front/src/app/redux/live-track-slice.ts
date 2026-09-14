@@ -1,8 +1,9 @@
 import type { LatLonAlt, protos } from '@flyxc/common';
-import { getLastMessage, isEmergencyTrack, isGroundAltitudeValid } from '@flyxc/common';
+import { getLastMessage, isEmergencyTrack, isGroundAltitudeValid, LiveTrackDurationSec } from '@flyxc/common';
 import type { EntityState, PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk, createEntityAdapter, createSelector, createSlice } from '@reduxjs/toolkit';
 
+import { getFetchParameters } from '../logic/live-track';
 import type { Response } from '../workers/live-track';
 import LiveTrackWorker from '../workers/live-track?worker';
 import { isMobile } from './browser-slice';
@@ -32,7 +33,7 @@ export type TrackState = {
   // Whether the map should be centered on the current location.
   // Only used when the live modal is opened.
   centerOnLocation: boolean;
-  historyMin: number;
+  historySec: number;
 };
 
 const initialState: TrackState = {
@@ -42,7 +43,7 @@ const initialState: TrackState = {
   refreshTimer: undefined,
   displayLabels: true,
   centerOnLocation: false,
-  historyMin: 12 * 60,
+  historySec: LiveTrackDurationSec.H12,
 };
 
 const trackSlice = createSlice({
@@ -82,8 +83,8 @@ const trackSlice = createSlice({
     setCurrentLiveId: (state, action: PayloadAction<string | undefined>) => {
       state.currentLiveId = action.payload;
     },
-    setHistoryMin: (state, action: PayloadAction<number>) => {
-      state.historyMin = action.payload;
+    setHistorySec: (state, action: PayloadAction<number>) => {
+      state.historySec = action.payload;
     },
   },
 });
@@ -95,20 +96,23 @@ trackWorker.onmessage = (msg: MessageEvent<Response>) => {
 };
 
 export const updateTrackers = createAsyncThunk('liveTrack/fetch', async (_: undefined, api) => {
-  const fetchTimestamp = Date.now();
   try {
     const state = (api.getState() as RootState).liveTrack;
-    const timeSec = Math.round((state.fetchMillis ?? 0) / 1000);
-    const fetchMin = Math.round(state.historyMin);
-    const response = await fetch(`${import.meta.env.VITE_API_SERVER}/api/live/tracks.pbf?s=${timeSec}&fm=${fetchMin}`);
+    const nowMs = Date.now();
+    const lastFetchAgeSec = (nowMs - state.fetchMillis) / 1000;
+    const { fetchSec, isIncremental } = getFetchParameters(lastFetchAgeSec, state.historySec);
+    const response = await fetch(`${import.meta.env.VITE_API_SERVER}/api/live/tracks.pbf?sec=${fetchSec}`);
     if (response.status === 200) {
       const tracks = state.tracks.entities;
       trackWorker.postMessage({
         buffer: await response.arrayBuffer(),
-        historyMin: state.historyMin,
+        historySec: state.historySec,
+        isIncremental,
         tracks,
       });
-      api.dispatch(trackSlice.actions.setFetchMillis(fetchTimestamp));
+      api.dispatch(trackSlice.actions.setFetchMillis(nowMs));
+    } else {
+      response.body?.cancel?.();
     }
   } catch (e) {
     console.error(e);
@@ -129,7 +133,7 @@ export function handleVisibility(): void {
 document.addEventListener('visibilitychange', handleVisibility);
 
 export const reducer = trackSlice.reducer;
-export const { setReturnUrl, setCurrentLiveId, setDisplayLabels, setCenterOnLocation, setFetchMillis, setHistoryMin } =
+export const { setReturnUrl, setCurrentLiveId, setDisplayLabels, setCenterOnLocation, setFetchMillis, setHistorySec } =
   trackSlice.actions;
 
 export type LivePilot = {

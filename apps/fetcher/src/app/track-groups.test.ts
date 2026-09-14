@@ -1,4 +1,4 @@
-import { LiveDataRetentionSec, protos, trackerIdByName } from '@flyxc/common';
+import { LiveTrackDurationSec, protos, trackerIdByName } from '@flyxc/common';
 import { describe, expect, it } from 'vitest';
 
 import { createLiveTrackGroups, maybePushTrack, protoToBuffer } from './track-groups';
@@ -38,7 +38,7 @@ describe('maybePushTrack', () => {
     const dst = protos.LiveDifferentialTrackGroup.create();
     const emptyTrack = protos.LiveTrack.create();
 
-    const res = maybePushTrack(dst, emptyTrack, LiveDataRetentionSec.FullH24, 1, 'pilot', nowSec);
+    const res = maybePushTrack(dst, emptyTrack, LiveTrackDurationSec.H24, 1, 'pilot', nowSec);
 
     expect(res.timeSec).toEqual([]);
     expect(dst.tracks).toHaveLength(0);
@@ -56,7 +56,7 @@ describe('maybePushTrack', () => {
       extra: {},
     };
 
-    const res = maybePushTrack(dst, oldTrack, LiveDataRetentionSec.FullH24, 1, 'pilot', nowSec);
+    const res = maybePushTrack(dst, oldTrack, LiveTrackDurationSec.H24, 1, 'pilot', nowSec);
 
     expect(res.timeSec).toEqual([]);
     expect(dst.tracks).toHaveLength(0);
@@ -74,7 +74,7 @@ describe('maybePushTrack', () => {
       extra: {},
     };
 
-    const res = maybePushTrack(dst, mixedTrack, LiveDataRetentionSec.FullH24, 42, 'John', nowSec);
+    const res = maybePushTrack(dst, mixedTrack, LiveTrackDurationSec.H24, 42, 'John', nowSec);
 
     expect(res.timeSec).toEqual([nowSec - 100]);
     expect(dst.tracks).toHaveLength(1);
@@ -94,7 +94,7 @@ describe('maybePushTrack', () => {
       extra: {},
     };
 
-    maybePushTrack(dst, track, LiveDataRetentionSec.FullH24, 'aviant-drone1', undefined, nowSec);
+    maybePushTrack(dst, track, LiveTrackDurationSec.H24, 'aviant-drone1', undefined, nowSec);
 
     expect(dst.tracks).toHaveLength(1);
     expect(dst.tracks[0].idStr).toBe('aviant-drone1');
@@ -254,6 +254,5 @@ describe('createLiveTrackGroups', () => {
     expect(partnerIds).not.toContain(7);
     expect(partnerIds).not.toContain('aviant-drone1');
     expect(groups.partnersM30.tracks).toHaveLength(1);
-    expect(groups.partnersM30.incremental).toBeFalsy();
   });
 });

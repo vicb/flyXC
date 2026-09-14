@@ -3,7 +3,7 @@ import * as zlib from 'node:zlib';
 
 import csurf from '@dr.pogodin/csurf';
 import type { AccountModel, LiveTrackEntity } from '@flyxc/common';
-import { AccountFormModel, Keys, LiveDataRetentionSec, protos } from '@flyxc/common';
+import { AccountFormModel, Keys, LiveTrackDurationSec, protos } from '@flyxc/common';
 import type { BufferRedisClient, RedisClient } from '@flyxc/common-node';
 import {
   FlyMeValidator,
@@ -35,35 +35,23 @@ export function decompressProto(buffer: Buffer | null): Buffer | null {
 }
 
 /**
- * Resolves the appropriate Redis key for live tracks based on the client's last
- * update timestamp delta and requested history duration (in minutes).
+ * Resolves the appropriate Redis key for live tracks based on the requested
+ * history duration or incremental window (in seconds).
  *
- * @param lastUpdateSec - Timestamp in seconds of the client's last update.
- * @param fetchMinutes - Requested duration of track history in minutes.
- * @param nowSec - Current timestamp in seconds (defaults to current time).
+ * @param fetchSec - Requested duration in seconds.
  * @returns The matching Redis key for incremental or full track data.
  */
-export function resolveLiveTrackKey(
-  lastUpdateSec: number,
-  fetchMinutes: number,
-  nowSec = Math.round(Date.now() / 1000),
-): Keys {
-  const deltaSec = nowSec - lastUpdateSec;
-
-  // Pick the incremental proto if the last request was recent.
-  if (deltaSec < LiveDataRetentionSec.IncrementalM5) {
-    return Keys.fetcherIncrementalProtoM5;
-  }
-  if (deltaSec < LiveDataRetentionSec.IncrementalM20) {
-    return Keys.fetcherIncrementalProtoM20;
-  }
-
-  // Otherwise, return full tracks for the requested history range.
-  switch (fetchMinutes) {
-    case 24 * 60:
+export function resolveLiveTrackKey(fetchSec: number): Keys {
+  switch (fetchSec) {
+    case LiveTrackDurationSec.M5:
+      return Keys.fetcherIncrementalProtoM5;
+    case LiveTrackDurationSec.M20:
+      return Keys.fetcherIncrementalProtoM20;
+    case LiveTrackDurationSec.H24:
       return Keys.fetcherFullProtoH24;
-    case 48 * 60:
+    case LiveTrackDurationSec.H48:
       return Keys.fetcherFullProtoH48;
+    case LiveTrackDurationSec.H12:
     default:
       return Keys.fetcherFullProtoH12;
   }
@@ -191,11 +179,9 @@ export async function handlePartnerTokenRequest(
           };
         },
       );
-      const anonGroup: protos.LiveDifferentialTrackGroup = {
+      const anonGroup = protos.LiveDifferentialTrackGroup.create({
         tracks: anonTracks,
-        incremental: false,
-        remoteId: [],
-      };
+      });
 
       if (req.header('accept') === 'application/json') {
         return res.json(protos.LiveDifferentialTrackGroup.toJson(anonGroup));
@@ -242,18 +228,17 @@ export function getTrackerRouter(redis: RedisClient, datastore: Datastore): Rout
 
   // Get the live tracks (in protobuf or JSON format).
   router.get('/tracks.pbf', async (req: Request, res: Response) => {
-    res.set('Cache-Control', 'no-store');
-
     // 1. Handle partner token requests (e.g. FlyMe, Wing, Zipline).
     const token = req.header('token');
     if (token) {
+      res.set('Cache-Control', 'no-store');
       return await handlePartnerTokenRequest(req, res, token, bufferRedis);
     }
 
-    // 2. Handle public live track requests based on client time delta and history range.
-    const lastUpdateSec = Number(req.query.s ?? 0);
-    const fetchMin = Number(req.query.fm ?? 0);
-    const key = resolveLiveTrackKey(lastUpdateSec, fetchMin);
+    // 2. Handle public live track requests based on requested duration in seconds.
+    res.set('Cache-Control', 'public, max-age=30').vary('Accept-Encoding');
+    const sec = Number(req.query.sec ?? 0);
+    const key = resolveLiveTrackKey(sec);
     const protoBuffer = await getCachedProto(bufferRedis, key);
     sendProtobufResponse(req, res, protoBuffer);
   });

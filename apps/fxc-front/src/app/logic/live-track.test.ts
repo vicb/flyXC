@@ -1,6 +1,13 @@
-import { differentialEncodeLiveTrack, LiveTrackFlag, NO_GROUND_ALTITUDE, protos, trackerIdByName } from '@flyxc/common';
+import {
+  differentialEncodeLiveTrack,
+  LiveTrackDurationSec,
+  LiveTrackFlag,
+  NO_GROUND_ALTITUDE,
+  protos,
+  trackerIdByName,
+} from '@flyxc/common';
 
-import { FixType, trackToFeatures, updateLiveTracks } from './live-track';
+import { FixType, getFetchParameters, trackToFeatures, updateLiveTracks } from './live-track';
 
 describe('Create GeoJSON features', () => {
   it('should support an empty track', () => {
@@ -572,10 +579,9 @@ describe('Update live tracks', () => {
 
       const updates = protos.LiveDifferentialTrackGroup.create({
         tracks: [differentialEncodeLiveTrack(update, 2, 'update')],
-        incremental: false,
       });
 
-      expect(updateLiveTracks({ 1: current }, updates)).toEqual([{ ...update, id: 2, name: 'update' }]);
+      expect(updateLiveTracks({ 1: current }, updates, false)).toEqual([{ ...update, id: 2, name: 'update' }]);
     });
   });
 
@@ -606,10 +612,9 @@ describe('Update live tracks', () => {
           differentialEncodeLiveTrack(update1, 1, 'update1'),
           differentialEncodeLiveTrack(update2, 2, 'update2'),
         ],
-        incremental: true,
       });
 
-      expect(updateLiveTracks({}, updates)).toEqual([
+      expect(updateLiveTracks({}, updates, true)).toEqual([
         { ...update1, id: 1, name: 'update1' },
         { ...update2, id: 2, name: 'update2' },
       ]);
@@ -664,10 +669,9 @@ describe('Update live tracks', () => {
 
       const updates = protos.LiveDifferentialTrackGroup.create({
         tracks: [differentialEncodeLiveTrack(update1, 1, 'track1'), differentialEncodeLiveTrack(update3, 3, 'track3')],
-        incremental: true,
       });
 
-      expect(updateLiveTracks({ 1: current1, 2: current2 }, updates)).toEqual([
+      expect(updateLiveTracks({ 1: current1, 2: current2 }, updates, true)).toEqual([
         {
           id: 1,
           name: 'track1',
@@ -682,6 +686,55 @@ describe('Update live tracks', () => {
         current2,
         { ...update3, id: 3, name: 'track3' },
       ]);
+    });
+  });
+
+  describe('getFetchParameters', () => {
+    it('should return incremental M5 when lastFetchAgeSec <= M5', () => {
+      expect(getFetchParameters(100, LiveTrackDurationSec.H12)).toEqual({
+        isIncremental: true,
+        fetchSec: LiveTrackDurationSec.M5,
+      });
+      expect(getFetchParameters(LiveTrackDurationSec.M5, LiveTrackDurationSec.H12)).toEqual({
+        isIncremental: true,
+        fetchSec: LiveTrackDurationSec.M5,
+      });
+    });
+
+    it('should return incremental M20 when lastFetchAgeSec <= M20 and > M5', () => {
+      expect(getFetchParameters(600, LiveTrackDurationSec.H12)).toEqual({
+        isIncremental: true,
+        fetchSec: LiveTrackDurationSec.M20,
+      });
+      expect(getFetchParameters(LiveTrackDurationSec.M20, LiveTrackDurationSec.H12)).toEqual({
+        isIncremental: true,
+        fetchSec: LiveTrackDurationSec.M20,
+      });
+    });
+
+    it('should return full H12 when historySec <= H12 and last fetch is old', () => {
+      expect(getFetchParameters(3600, LiveTrackDurationSec.H12)).toEqual({
+        isIncremental: false,
+        fetchSec: LiveTrackDurationSec.H12,
+      });
+      expect(getFetchParameters(3600, 40 * 60)).toEqual({
+        isIncremental: false,
+        fetchSec: LiveTrackDurationSec.H12,
+      });
+    });
+
+    it('should return full H24 when historySec <= H24 and > H12 and last fetch is old', () => {
+      expect(getFetchParameters(3600, LiveTrackDurationSec.H24)).toEqual({
+        isIncremental: false,
+        fetchSec: LiveTrackDurationSec.H24,
+      });
+    });
+
+    it('should return full H48 when historySec > H24 and last fetch is old', () => {
+      expect(getFetchParameters(3600, LiveTrackDurationSec.H48)).toEqual({
+        isIncremental: false,
+        fetchSec: LiveTrackDurationSec.H48,
+      });
     });
   });
 });

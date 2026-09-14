@@ -6,7 +6,7 @@ import type { protos, TrackerNames } from '@flyxc/common';
 import {
   fetchResponse,
   formatReqError,
-  LiveDataIntervalSec,
+  LiveTrackPointIntervalSec,
   removeBeforeFromLiveTrack,
   simplifyLiveTrack,
   validateFlymasterAccount,
@@ -81,7 +81,7 @@ export class FlymasterFetcher extends TrackerFetcher {
         const points = parse(flight);
         let track = makeLiveTrack(points, this.getTrackerName());
         track = removeBeforeFromLiveTrack(track, fetchFromSecond - 5 * 60);
-        simplifyLiveTrack(track, LiveDataIntervalSec.Recent);
+        simplifyLiveTrack(track, LiveTrackPointIntervalSec.Recent);
         updates.trackerDeltas.set(dsId, track);
       }
 

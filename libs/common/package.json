@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "protos": "pnpm exec protoc --ts_out src/protos --ts_opt long_type_number --ts_opt force_optimize_code_size --proto_path src/protos --experimental_allow_proto3_optional track.proto live-track.proto fetcher-state.proto proxy.proto"
+    "protos": "pnpm exec protoc --ts_out src/protos --ts_opt long_type_number --ts_opt force_optimize_code_size --proto_path src/protos --experimental_allow_proto3_optional track.proto live-track.proto fetcher-state.proto"
   },
   "dependencies": {
     "@date-fns/tz": "catalog:default",

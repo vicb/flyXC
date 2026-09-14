@@ -8,7 +8,7 @@ message Track {
   repeated sint32 lon = 3;
   repeated sint32 alt = 4;
   // Time in seconds.
-  repeated uint32 timeSec = 5;
+  repeated uint32 time_sec = 5;
 }
 
 // All the tracks for a single file.

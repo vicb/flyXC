@@ -28,7 +28,7 @@ export interface Track {
   /**
    * Time in seconds.
    *
-   * @generated from protobuf field: repeated uint32 timeSec = 5
+   * @generated from protobuf field: repeated uint32 time_sec = 5
    */
   timeSec: number[];
 }
@@ -235,7 +235,7 @@ class Track$Type extends MessageType<Track> {
       { no: 2, name: 'lat', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
       { no: 3, name: 'lon', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
       { no: 4, name: 'alt', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
-      { no: 5, name: 'timeSec', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 13 /*ScalarType.UINT32*/ },
+      { no: 5, name: 'time_sec', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 13 /*ScalarType.UINT32*/ },
     ]);
   }
 }

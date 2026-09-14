@@ -2,8 +2,8 @@ import type { protos } from '@flyxc/common';
 import {
   Keys,
   LIVE_FETCH_TIMEOUT_SEC,
-  LiveDataIntervalSec,
-  LiveDataRetentionSec,
+  LiveTrackDurationSec,
+  LiveTrackPointIntervalSec,
   mergeLiveTracks,
   removeBeforeFromLiveTrack,
   simplifyLiveTrack,
@@ -111,7 +111,7 @@ export function applyTrackerUpdates(
   trackerUpdates: TrackerUpdates[],
   nowSec = Math.round(Date.now() / 1000),
 ): Map<number, number> {
-  const dropBeforeSec = nowSec - LiveDataRetentionSec.Max;
+  const dropBeforeSec = nowSec - LiveTrackDurationSec.Max;
 
   // Merge updates only for pilots that have deltas in this cycle.
   // Record the earliest timestamp of all patches for each updated pilot.
@@ -145,18 +145,18 @@ export function applyTrackerUpdates(
   for (const id of updatedPilots.keys()) {
     const pilot = state.pilots[id];
     if (pilot) {
-      simplifyLiveTrack(pilot.track, LiveDataIntervalSec.AfterH24, {
+      simplifyLiveTrack(pilot.track, LiveTrackPointIntervalSec.AfterH24, {
         toSec: nowSec - 24 * 3600,
       });
-      simplifyLiveTrack(pilot.track, LiveDataIntervalSec.H12ToH24, {
+      simplifyLiveTrack(pilot.track, LiveTrackPointIntervalSec.H12ToH24, {
         fromSec: nowSec - 24 * 3600,
         toSec: nowSec - 12 * 3600,
       });
-      simplifyLiveTrack(pilot.track, LiveDataIntervalSec.H6ToH12, {
+      simplifyLiveTrack(pilot.track, LiveTrackPointIntervalSec.H6ToH12, {
         fromSec: nowSec - 12 * 3600,
         toSec: nowSec - 6 * 3600,
       });
-      simplifyLiveTrack(pilot.track, LiveDataIntervalSec.Recent, {
+      simplifyLiveTrack(pilot.track, LiveTrackPointIntervalSec.Recent, {
         fromSec: nowSec - 6 * 3600,
       });
     }
