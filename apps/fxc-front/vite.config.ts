@@ -1,5 +1,4 @@
-import { execSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { TZDate } from '@date-fns/tz';
@@ -138,16 +137,12 @@ export default defineConfig(({ mode }) => {
   };
 });
 
-// Get the airspace update date from the commit.
+// Get the airspace update date from airspaces-date.json.
 function getAirspaceDate() {
-  const tileInfo = join(import.meta.dirname, '..', 'fxc-tiles/src/assets/tiles/tiles-info.json');
-
-  if (existsSync(tileInfo)) {
-    try {
-      return String(execSync(`git log -1 --format="%ad" --date=format:"%Y-%m-%d" -- ${tileInfo}`)).trim();
-    } catch {
-      return '-';
-    }
+  const dateFile = join(import.meta.dirname, '../fxc-tiles/assets/airspaces-date.json');
+  try {
+    return JSON.parse(readFileSync(dateFile, 'utf8')).date ?? '-';
+  } catch {
+    return '-';
   }
-  return '-';
 }
