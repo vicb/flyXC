@@ -12,7 +12,7 @@ import './app/components/ui/main-menu';
 import './app/components/pwa-install';
 
 import type { LatLonAlt } from '@flyxc/common';
-import type { NavigationHookResult } from '@ionic/core/dist/types/components/route/route-interface';
+import type { NavigationHookCallback } from '@ionic/core';
 import type { PropertyValues, TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
@@ -42,6 +42,8 @@ import * as sel from './app/redux/selectors';
 import type { RootState } from './app/redux/store';
 import { store } from './app/redux/store';
 import * as track from './app/redux/track-slice';
+
+type NavigationHookResult = Awaited<ReturnType<NavigationHookCallback>>;
 
 export const SHOW_SPLIT_PANE_WHEN = `(min-width: 992px)`;
 
