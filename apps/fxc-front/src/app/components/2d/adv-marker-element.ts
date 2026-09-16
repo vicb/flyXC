@@ -44,11 +44,13 @@ export class AdvancedMarkerElement extends LitElement {
 
   @property({ attribute: false })
   set map(value: google.maps.Map | null | undefined) {
-    this.marker_.map = value ?? null;
+    this.map_ = value ?? null;
+    // Only attach to the map if currently connected to avoid orphaned markers during pending updates.
+    this.marker_.map = this.isConnected ? this.map_ : null;
   }
 
-  get map() {
-    return this.marker_.map;
+  get map(): google.maps.Map | null {
+    return this.map_;
   }
 
   @property({ attribute: false })
@@ -62,16 +64,20 @@ export class AdvancedMarkerElement extends LitElement {
 
   private lat_ = 0;
   private lng_ = 0;
-  private marker_ = new google.maps.marker.AdvancedMarkerElement();
+  private map_: google.maps.Map | null = null;
+  private marker_ = new google.maps.marker.AdvancedMarkerElement({ gmpClickable: true });
+  private clickListener_ = () => this.dispatchEvent(new CustomEvent('click'));
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.marker_.addListener('click', () => this.dispatchEvent(new CustomEvent('click')));
+    // (Re-)attach the marker to the map when connected.
+    this.marker_.map = this.map_;
+    this.marker_.addEventListener('gmp-click', this.clickListener_);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    google.maps.event.clearInstanceListeners(this.marker_);
+    this.marker_.removeEventListener('gmp-click', this.clickListener_);
     this.marker_.map = null;
   }
 

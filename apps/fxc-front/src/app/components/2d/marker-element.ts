@@ -63,6 +63,10 @@ export class MarkerElement extends connect(store)(LitElement) {
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
+    // Skip updates if the element has been disconnected (e.g. when track was removed).
+    if (!this.isConnected) {
+      return false;
+    }
     if (changedProps.has('color')) {
       this.path.setAttribute('fill', this.color);
       changedProps.delete('color');
@@ -105,7 +109,6 @@ export class MarkerElement extends connect(store)(LitElement) {
       .zindex=${Math.floor(alt ?? 0)}
       .title=${label}
       @click=${this.onClick}
-      }
     ></adv-marker-element>`;
   }
 
