@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSelector, createSlice } from '@reduxjs/toolkit';
-import type { HttpPayload } from '@windy/client/http';
 import type { LatLon } from '@windy/interfaces';
 import type { AnyMeteogramLevels, DataHash2, SoundingDataHash2, WeatherDataPayload2 } from '@windy/node-forecast-v3';
 
@@ -18,7 +17,7 @@ const windyProducts = W.products;
 
 // Cache stale windy data for 10 minutes.
 // Data are stale when an update is expected.
-const STALE_WINDY_DATA_CACHE_MIN = 10;
+export const STALE_WINDY_DATA_CACHE_MIN = 10;
 
 export enum FetchStatus {
   Idle = 'idle',
@@ -148,38 +147,44 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
     const { modelName, location } = modelAndLocation;
     const forecastKey = windyDataKey(modelName, location);
 
-    let forecast: HttpPayload<ForecastType>;
-
     try {
-      forecast = await windyFetch.getPointForecastData(
+      const forecast = await windyFetch.getPointForecastData(
         modelName,
         { ...location, days: 15, step: 1 },
         { header: true, celestial: true, sounding: true },
       );
+
+      const updateMs = new Date(forecast.data.header.update as string).getTime();
+      const product = windyProducts[modelName];
+      const updateIntervalMin = product
+        ? (windySubscription.hasAny() ? product.intervalPremium ?? product.interval : product.interval) ?? 360
+        : 360;
+
+      return {
+        forecastKey,
+        modelName,
+        location,
+        loadedMs: Date.now(),
+        updateMs,
+        nextUpdateMs: updateMs + updateIntervalMin * 60 * 1000,
+        fetchStatus: FetchStatus.Loaded,
+        forecast: forecast.data,
+      };
     } catch (err) {
-      const error = err as { status: number; responseText: string };
-      if (error.status === 400 && JSON.parse(error.responseText).message === 'Out of model bounds') {
-        throw new OutOfBoundsError('Out of model bounds');
+      const error = err as { status?: number; responseText?: string };
+      if (error?.status === 400 && error.responseText) {
+        try {
+          if (JSON.parse(error.responseText)?.message === 'Out of model bounds') {
+            throw new OutOfBoundsError('Out of model bounds');
+          }
+        } catch (e) {
+          if (e instanceof OutOfBoundsError) {
+            throw e;
+          }
+        }
       }
       throw new Error('Failed to fetch forecast data', { cause: err });
     }
-
-    const updateMs = new Date(forecast.data.header.update as string).getTime();
-    const product = windyProducts[modelName];
-    const updateIntervalMin = product
-      ? (windySubscription.hasAny() ? product.intervalPremium ?? product.interval : product.interval) ?? 360
-      : 360;
-
-    return {
-      forecastKey,
-      modelName,
-      location,
-      loadedMs: Date.now(),
-      updateMs,
-      nextUpdateMs: updateMs + updateIntervalMin * 60 * 1000,
-      fetchStatus: FetchStatus.Loaded,
-      forecast: forecast.data,
-    };
   },
   {
     condition: (modelAndLocation, api: AppThunkAPI) => {
@@ -211,7 +216,7 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
   },
 );
 
-function windyDataKey(modelName: string, location: LatLon): string {
+export function windyDataKey(modelName: string, location: LatLon): string {
   return `${modelName}-${latLon2Str(location)}`;
 }
 
@@ -223,7 +228,7 @@ function windyDataKey(modelName: string, location: LatLon): string {
  * @param state - The state object containing forecast data.
  * @param key - The key to identify the forecast data.
  * */
-function isWindyDataCached(state: ForecastState, key: string) {
+export function isWindyDataCached(state: ForecastState, key: string) {
   const forecast = state.data[key];
   if (forecast == null) {
     return false;
@@ -383,9 +388,14 @@ const selTimeMs = (state: RootState, modelName: string, location: LatLon, timeMs
 const selMaybeWindyData = (state: RootState, modelName: string, location: LatLon): Forecast | undefined =>
   state[slice.name].data[windyDataKey(modelName, location)];
 
-const selMaybeLoadedWindyData = (state: RootState, modelName: string, location: LatLon): Forecast | undefined => {
+export const selMaybeLoadedWindyData = (
+  state: RootState,
+  modelName: string,
+  location: LatLon,
+): Forecast | undefined => {
   const key = windyDataKey(modelName, location);
-  return isWindyDataCached(state[slice.name], key) ? state[slice.name].data[key] : undefined;
+  const forecast = state[slice.name].data[key];
+  return forecast?.fetchStatus === FetchStatus.Loaded ? forecast : undefined;
 };
 
 /**
