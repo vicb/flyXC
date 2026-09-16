@@ -22,6 +22,9 @@ import * as atm from '../util/atmosphere';
 import * as math from '../util/math';
 import { formatTimestamp, getAvailableModels } from '../util/utils';
 
+// Refresh interval (15 minutes) for cache checking and relative timestamp displays.
+const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
+
 // Plugin
 
 export function Plugin() {
@@ -48,12 +51,32 @@ export function Plugin() {
   });
 
   const dispatch: AppDispatch = useDispatch();
-  // Fetch data when the cache has expired or model/location changes.
+  // Fetch data on initial load, on model/location change, or periodically when kept open.
   // Ignore initial dummy coordinates (0, 0) before openPlugin sets the actual location.
   useEffect(() => {
-    if (location.lat !== 0 || location.lon !== 0) {
-      dispatch(forecastSlice.fetchForecast({ modelName, location }));
+    if (location.lat === 0 && location.lon === 0) {
+      return;
     }
+
+    dispatch(forecastSlice.fetchForecast({ modelName, location }));
+
+    // Periodically re-check (every 15 min) to refresh stale data when kept open.
+    const interval = setInterval(() => {
+      dispatch(forecastSlice.fetchForecast({ modelName, location }));
+    }, FIFTEEN_MINUTES_MS);
+
+    // Refresh if tab becomes visible again after being in background.
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        dispatch(forecastSlice.fetchForecast({ modelName, location }));
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, [dispatch, modelName, location]);
 
   const selectFavorite = useCallback((location: LatLon) => {
@@ -518,9 +541,6 @@ function ConnectedFavorites({ onSelected }: { onSelected: (location: LatLon) => 
 
   return <Favorites {...{ ...props, onSelected, onSelectModel: selectModel }} />;
 }
-
-// Refresh interval (15 minutes) for relative timestamp displays (e.g. next model run / overdue).
-const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
 
 /**
  * Periodically provides the current timestamp to keep relative time strings
