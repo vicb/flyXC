@@ -19,7 +19,7 @@ export default [
         },
       ],
     },
-    ignores: ['**/*.spec.ts'],
+    ignores: ['**/*.spec.ts', 'vite.config.ts'],
   },
   {
     files: ['**/*.ts', '**/*.tsx'],

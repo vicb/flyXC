@@ -265,12 +265,10 @@ export class PathElement extends connect(store)(LitElement) {
 
   // Sends a message to the iframe host with the changes.
   private postScoreToHost(scoringResult: ScoringResult) {
-    let kms = '';
-    let circuit = '';
     if (scoringResult.lengthKm !== 0 && window.parent) {
-      kms = scoringResult.lengthKm.toFixed(1);
+      const kms = scoringResult.lengthKm.toFixed(1);
       // add number of turn points for an open distance
-      circuit =
+      const circuit =
         scoringResult.circuit === CircuitType.OpenDistance
           ? CIRCUIT_SHORT_NAME[scoringResult.circuit] + String(scoringResult.turnpoints.length)
           : CIRCUIT_SHORT_NAME[scoringResult.circuit];

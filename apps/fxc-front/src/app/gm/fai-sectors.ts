@@ -185,7 +185,7 @@ function findLatitudeLongitude(loc: LatLon, bearing: number, distance: number): 
   const b = calcB(uSq);
 
   let sigma = distance / (POLE_RADIUS * a);
-  let sigmaP = 2 * Math.PI;
+  let sigmaP: number;
 
   let sinSigma, cosSigma, cos2SigmaM;
 

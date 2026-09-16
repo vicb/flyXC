@@ -46,8 +46,8 @@ export function parseMessage(message: unknown): MeshBirMessage {
     return textSchema.or(positionSchema).parse(message);
   } catch (e) {
     if (e instanceof ZodError) {
-      throw new Error(`Invalid message format`);
+      throw new Error(`Invalid message format`, { cause: e });
     }
-    throw new Error(`Unexpected error during message parsing`);
+    throw new Error(`Unexpected error during message parsing`, { cause: e });
   }
 }

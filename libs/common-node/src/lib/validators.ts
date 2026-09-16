@@ -55,7 +55,7 @@ async function getFlyMeId(username: string, token: string): Promise<string | und
   try {
     response = await fetchResponse(url);
   } catch (e) {
-    throw new Error(`Flyme server error`);
+    throw new Error(`Flyme server error`, { cause: e });
   }
 
   if (response.ok) {

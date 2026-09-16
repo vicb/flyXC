@@ -106,7 +106,7 @@ export function parse(jsonFeed: string): LivePoint[] {
   try {
     feed = JSON.parse(jsonFeed);
   } catch (e) {
-    throw new Error(`Invalid SPOT json - feed: ${jsonFeed}`);
+    throw new Error(`Invalid SPOT json - feed: ${jsonFeed}`, { cause: e });
   }
 
   // error could be a single object or an array ob objects.
