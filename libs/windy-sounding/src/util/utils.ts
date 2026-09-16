@@ -79,3 +79,16 @@ export function getAvailableModels(location: LatLon): string[] {
 export function latLon2Str({ lat, lon }: { lat: string | number; lon: string | number }): string {
   return W.utils.latLon2str({ lat: Number(lat), lon: Number(lon) });
 }
+
+/**
+ * Checks if a given string or number represents a valid finite number.
+ *
+ * @param value
+ * @returns Whether the value represents a valid finite number.
+ */
+export function isValidNumber(value: string | number | undefined): boolean {
+  if (typeof value === 'string' && value.trim() === '') {
+    return false;
+  }
+  return Number.isFinite(Number(value));
+}

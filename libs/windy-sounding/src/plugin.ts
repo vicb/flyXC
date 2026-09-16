@@ -14,6 +14,7 @@ import type { ExternalSvelteApp } from '@windy/client/SveltePlugin';
 import { pluginConfig } from './config';
 import { destroyPlugin, mountPlugin, openPlugin } from './sounding';
 import { loadSetting, Settings } from './util/settings';
+import { isValidNumber } from './util/utils';
 
 class Plugin implements ExternalSvelteApp {
   private contentEl: HTMLElement;
@@ -35,13 +36,24 @@ class Plugin implements ExternalSvelteApp {
    *
    * @see https://docs.windy-plugins.com/getting-started/#opening-plugin-with-parameters
    */
-  onopen(parameters: any) {
+  onopen(parameters: { modelName?: string; lat?: string; lon?: string } = {}) {
+    // The plugin supports 2 URL formats:
+    // - /:lat/:lon
+    // - /:model/:lat/:lon
+    if (isValidNumber(parameters?.modelName) && isValidNumber(parameters?.lat)) {
+      [parameters.lat, parameters.lon, parameters.modelName] = [
+        parameters.modelName,
+        parameters.lat,
+        W.store.get('product'),
+      ];
+    }
+
     let lat = parameters?.lat;
     let lon = parameters?.lon;
 
-    if (lat === undefined || lon === undefined) {
+    if (!isValidNumber(lat) || !isValidNumber(lon)) {
       try {
-        const location = JSON.parse(loadSetting(Settings.location));
+        const location = JSON.parse(loadSetting(Settings.location) ?? '{}');
         lat ??= location.lat;
         lon ??= location.lon;
       } catch {
@@ -50,10 +62,11 @@ class Plugin implements ExternalSvelteApp {
     }
 
     const mapCenter = W.map.map.getCenter();
-    lat = Number(lat ?? mapCenter.lat);
-    lon = Number(lon ?? mapCenter.lng);
-    const modelName = parameters?.modelName ?? loadSetting(Settings.model) ?? W.store.get('product');
-    openPlugin({ lat, lon, modelName });
+    openPlugin({
+      lat: Number(lat ?? mapCenter.lat),
+      lon: Number(lon ?? mapCenter.lng),
+      modelName: parameters?.modelName ?? loadSetting(Settings.model) ?? W.store.get('product'),
+    });
   }
 
   /**
