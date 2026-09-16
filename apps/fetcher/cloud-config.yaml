@@ -39,7 +39,7 @@ write_files:
       Description=FlyXC Fetcher Container
       After=docker.service var-swapfile.swap
       Requires=docker.service
-      BindsTo=var-swapfile.swap
+      Wants=var-swapfile.swap
 
       [Service]
       TimeoutStartSec=0
@@ -50,7 +50,7 @@ write_files:
       ExecStartPre=-/usr/bin/docker stop fetcher
       ExecStartPre=-/usr/bin/docker rm fetcher
       ExecStart=/usr/bin/docker run --name fetcher --rm us-docker.pkg.dev/fly-xc/docker/fetcher:latest
-      ExecStop=/usr/bin/docker stop fetcher
+      ExecStop=-/usr/bin/docker stop -t 15 fetcher
 
       [Install]
       WantedBy=multi-user.target
