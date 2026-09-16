@@ -161,7 +161,7 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
       if (error.status === 400 && JSON.parse(error.responseText).message === 'Out of model bounds') {
         throw new OutOfBoundsError('Out of model bounds');
       }
-      throw new Error('Failed to fetch forecast data');
+      throw new Error('Failed to fetch forecast data', { cause: err });
     }
 
     const updateMs = new Date(forecast.data.header.update as string).getTime();

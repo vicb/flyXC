@@ -74,7 +74,7 @@ function convertRustigcScore(score: Score, track: ScoringTrack): ScoringResult {
   let startPoint: LatLon | undefined;
   let endPoint: LatLon | undefined;
   let closingPoints: { in: LatLon; out: LatLon } | undefined;
-  let path: LatLon[] = [];
+  let path: LatLon[];
   const legs: Leg[] = [];
 
   if (score.circuit) {

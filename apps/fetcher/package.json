@@ -19,11 +19,8 @@
     "commander": "catalog:default",
     "date-fns": "catalog:default",
     "geolib": "catalog:default",
-    "node-os-utils": "^2.0.4",
+    "node-os-utils": "^3.1.0",
     "redis": "catalog:default",
     "undici": "catalog:default"
-  },
-  "devDependencies": {
-    "@types/node-os-utils": "catalog:default"
   }
 }
