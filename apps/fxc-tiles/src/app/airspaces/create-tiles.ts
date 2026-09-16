@@ -1,7 +1,7 @@
 // #!/usr/bin/env node
 
 import { execSync } from 'node:child_process';
-import { existsSync, readdirSync, rmSync, statSync, unlinkSync } from 'node:fs';
+import { existsSync, readdirSync, rmSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -15,10 +15,12 @@ const __dirname = dirname(__filename);
 
 const defaultInputFile = resolve(join(getAppFolderFromDist(__dirname), 'assets/airspaces.geojson'));
 const defaultOutputFolder = resolve(join(getAppFolderFromDist(__dirname), 'assets/tiles'));
+const defaultDateFile = resolve(join(getAppFolderFromDist(__dirname), 'assets/airspaces-date.json'));
 
 program
   .option('-i, --input <folder>', 'input folder', defaultInputFile)
   .option('-o, --output <file>', 'output file', defaultOutputFolder)
+  .option('-d, --date <file>', 'date file', defaultDateFile)
   .parse();
 
 const outFolder = program.opts().output;
@@ -52,6 +54,10 @@ execSync(`tippecanoe ${args.join(' ')}`, { stdio: 'inherit' });
 
 console.log(`# Drop the metadata`);
 rmSync(join(outFolder, 'metadata.json'), { force: true });
+
+console.log(`# Update the airspace date`);
+const date = new Date().toISOString().slice(0, 10);
+writeFileSync(program.opts().date, `${JSON.stringify({ date }, null, 2)}\n`);
 
 // Recursively delete pbf files.
 //
