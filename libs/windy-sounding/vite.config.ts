@@ -3,7 +3,12 @@ import type { UserConfig } from 'vite';
 import { defineConfig } from 'vite';
 
 import { certificatePEM, keyPEM } from './https.ts';
-import { windyDevPlugin } from './vite-plugin-windy-dev.ts';
+import { generateWindyExports } from './tools/generate-windy-exports.js';
+import { WINDY_ORIGINS, windyDevPlugin } from './tools/vite-plugin-windy-dev.ts';
+
+// Generate src/windy-exports.d.ts from types/client/commonExports.d.ts so W is
+// strongly typed without manually modifying any files in the types/ directory.
+generateWindyExports();
 
 const PORT = 9999;
 
@@ -20,12 +25,14 @@ export default defineConfig(({ mode }): UserConfig => {
     server: {
       port: PORT,
       strictPort: true,
-      host: '0.0.0.0',
+      host: 'localhost',
       https: {
         key: keyPEM,
         cert: certificatePEM,
       },
-      cors: true,
+      cors: {
+        origin: [...WINDY_ORIGINS],
+      },
       hmr: {
         host: 'localhost',
         protocol: 'wss',
@@ -35,13 +42,15 @@ export default defineConfig(({ mode }): UserConfig => {
 
     preview: {
       port: PORT,
-      host: '0.0.0.0',
+      host: 'localhost',
       https: {
         key: keyPEM,
         cert: certificatePEM,
       },
       open: false,
-      cors: true,
+      cors: {
+        origin: [...WINDY_ORIGINS],
+      },
     },
 
     // See: https://vitejs.dev/guide/build.html#library-mode
@@ -70,13 +79,11 @@ export default defineConfig(({ mode }): UserConfig => {
             },
       rolldownOptions: {
         output: {
-          codeSplitting: false,
+          // We need to duplicate the minify setting here
+          minify: mode === 'production',
+          inlineDynamicImports: true,
         },
       },
-    },
-
-    esbuild: {
-      drop: mode === 'production' ? ['console', 'debugger'] : [],
     },
 
     define: {
@@ -90,7 +97,10 @@ export default defineConfig(({ mode }): UserConfig => {
       globals: true,
       environment: 'node',
       setupFiles: ['./src/test-setup.ts'],
-      include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+      include: [
+        'src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+        'tools/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      ],
       reporters: ['default'],
       coverage: {
         reportsDirectory: './coverage',

@@ -79,7 +79,7 @@ class Plugin implements ExternalSvelteApp {
 }
 
 // Set the build timestamp on the dev server.
-if (process.env.NODE_ENV !== 'production') {
+if (import.meta.env.DEV) {
   (window as any).__BUILD_TIMESTAMP__ = Date.now();
   if (!pluginConfig.name.startsWith('windy-plugin-')) {
     throw new Error(`Plugin name "${pluginConfig.name}" should start with "windy-plugin-".`);

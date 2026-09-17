@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { pluginConfig } from './dist/config.js';
+import { pluginConfig } from '../dist/config.js';
 
 try {
   const outputFolder = path.resolve(process.argv[2] ?? '');

@@ -4,6 +4,9 @@ run-name: Upload to Windy by @${{ github.actor }}
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   publish-plugin:
     runs-on: ubuntu-latest

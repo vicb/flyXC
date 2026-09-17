@@ -1,29 +1,7 @@
-declare const __BUILD_TIMESTAMP__: number;
+import type * as Windy from './windy-exports';
 
-declare const SwipeListener: any;
-
-/* eslint-disable */
-declare const W: {
-  store: typeof import('@windy/client/store').default;
-  utils: typeof import('@windy/client/utils');
-
-  fetch: typeof import('@windy/client/fetch');
-  subscription: typeof import('@windy/client/subscription');
-  products: typeof import('@windy/client/products').default;
-  metrics: typeof import('@windy/client/metrics').default;
-  models: typeof import('@windy/client/models');
-  rootScope: typeof import('@windy/rootScope.d');
-  map: typeof import('@windy/client/map');
-  singleclick: typeof import('@windy/client/singleclick');
-  location: typeof import('@windy/client/location');
-  userFavs: typeof import('@windy/client/userFavs');
-  picker: typeof import('@windy/client/picker');
-  broadcast: typeof import('@windy/client/broadcast').default;
-  http: typeof import('@windy/client/http');
-  user: typeof import('@windy/client/user');
-  overlays: typeof import('@windy/client/overlays').default;
-  reverseName: typeof import('@windy/client/reverseName');
-  geolocation: typeof import('@windy/client/geolocation');
-  colors: typeof import('@windy/client/colors').default;
-};
-/* eslint-enable */
+declare global {
+  const __BUILD_TIMESTAMP__: number;
+  const SwipeListener: any;
+  const W: typeof Windy;
+}

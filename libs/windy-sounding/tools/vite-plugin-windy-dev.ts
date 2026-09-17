@@ -51,10 +51,12 @@ export interface WindyDevPluginOptions {
  *    `"https://localhost:9999/"`.
  *
  * 5. **CORS & Preflight Handling:**
- *    Cross-origin requests from `https://www.windy.com` require permissive CORS
- *    headers (`Access-Control-Allow-Origin: *`) and immediate `204 No Content`
+ *    Cross-origin requests from `https://windy.com` and `https://www.windy.com`
+ *    require CORS headers (`Access-Control-Allow-Origin`) and immediate `204 No Content`
  *    responses for HTTP `OPTIONS` preflight requests.
  */
+export const WINDY_ORIGINS = ['https://windy.com', 'https://www.windy.com'];
+
 export function windyDevPlugin(options: WindyDevPluginOptions = {}): Plugin {
   const port = options.port ?? 9999;
   const origin = options.origin ?? `https://localhost:${port}`;
@@ -64,13 +66,19 @@ export function windyDevPlugin(options: WindyDevPluginOptions = {}): Plugin {
     apply: 'serve',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        // 1. CORS & Preflight: Allow windy.com to load scripts across origins.
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', '*');
+        // 1. CORS & Preflight: Allow only windy.com and www.windy.com across origins.
+        const requestOrigin = req.headers.origin;
+        const isAllowedOrigin = typeof requestOrigin === 'string' && WINDY_ORIGINS.includes(requestOrigin);
+
+        if (isAllowedOrigin) {
+          res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+          res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+          res.setHeader('Access-Control-Allow-Headers', '*');
+          res.setHeader('Vary', 'Origin');
+        }
 
         if (req.method === 'OPTIONS') {
-          res.statusCode = 204;
+          res.statusCode = isAllowedOrigin ? 204 : 403;
           res.end();
           return;
         }

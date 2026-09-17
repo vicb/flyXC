@@ -6,8 +6,9 @@ GH_OWNER="${GITHUB_REPOSITORY_OWNER:-flyxc}"
 
 if [ -z "$WINDY_API_KEY" ]; then
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    if [ -f "${SCRIPT_DIR}/.env" ]; then
-        WINDY_API_KEY=$(pnpm --dir "${SCRIPT_DIR}" exec dotenvx get WINDY_API_KEY -f "${SCRIPT_DIR}/.env" -fk "${SCRIPT_DIR}/../../.env.keys" 2>/dev/null)
+    PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+    if [ -f "${PROJECT_DIR}/.env" ]; then
+        WINDY_API_KEY=$(pnpm --dir "${PROJECT_DIR}" exec dotenvx get WINDY_API_KEY -f "${PROJECT_DIR}/.env" -fk "${PROJECT_DIR}/../../.env.keys" 2>/dev/null)
     fi
 fi
 
@@ -26,7 +27,7 @@ echo "{\"repositoryName\": \"${GH_REPO}\", \"commitSha\": \"${GH_SHA}\", \"repos
 
 # Resolve dist directory relative to script location so it works regardless of CWD (e.g. workspace root vs project dir)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DIST_DIR="${SCRIPT_DIR}/dist"
+DIST_DIR="$(cd "${SCRIPT_DIR}/../dist" && pwd)"
 
 PLUGIN_JSON_FILE=$(mktemp)
 cat "${DIST_DIR}/plugin.json" > $PLUGIN_JSON_FILE

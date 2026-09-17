@@ -19,10 +19,6 @@
     "*.less",
     "*.scss"
   ],
-  "scripts": {
-    "upload:prepare": "rm -rf dist && vite build --mode production && vite build --mode development && BUILD_PLUGIN_CONFIG=true vite build --mode production && node generate-manifest.js dist",
-    "upload": "./upload.sh"
-  },
   "dependencies": {
     "@reduxjs/toolkit": "catalog:default",
     "date-fns": "catalog:default",

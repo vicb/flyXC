@@ -273,7 +273,7 @@ describe('svgPath', () => {
         [1, 1],
         [10, 10],
       ]),
-    ).toEqual('M0,0l10,10l90,90');
+    ).toEqual(import.meta.env.DEV ? 'M0,0 l 10,10 l 90,90' : 'M0,0l10,10l90,90');
   });
 });
 

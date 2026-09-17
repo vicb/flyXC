@@ -277,7 +277,7 @@ export function svgPath(
       lastY = scaledY;
       return coordinates;
     });
-    return points.length > 1 ? 'M' + points.join(process.env.NODE_ENV === 'development' ? ' l ' : 'l') : '';
+    return points.length > 1 ? 'M' + points.join(import.meta.env.DEV ? ' l ' : 'l') : '';
   };
 }
 

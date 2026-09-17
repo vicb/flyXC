@@ -10,13 +10,12 @@ export type AppDispatch = typeof store.dispatch;
 export type RootState = ReturnType<typeof store.getState>;
 export type AppThunkAPI = GetThunkAPI<{ state: RootState; dispatch: AppDispatch }>;
 
-const devTools: DevToolsEnhancerOptions | boolean =
-  process.env.NODE_ENV === 'development'
-    ? {
-        trace: false,
-        autoPause: true,
-      }
-    : false;
+const devTools: DevToolsEnhancerOptions | boolean = import.meta.env.DEV
+  ? {
+      trace: false,
+      autoPause: true,
+    }
+  : false;
 
 export const store = configureStore({
   reducer: combineReducers({

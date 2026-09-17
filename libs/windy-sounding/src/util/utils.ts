@@ -1,4 +1,5 @@
 import type { Fav } from '@windy/favs';
+import type { LatLon } from '@windy/interfaces';
 
 import inlinedStyles from '../styles.less?inline';
 
@@ -27,7 +28,7 @@ const SUPPORTED_MODELS = [
  * In production, inlines the compiled Less CSS into a `<style id="wsp-plugin-styles">` tag in `<head>`.
  */
 export function injectStyles() {
-  if (process.env.NODE_ENV !== 'production') {
+  if (import.meta.env.DEV) {
     // In dev mode, dynamic import enables Vite's CSS injection and HMR runtime.
     import('../styles.less');
   } else {
