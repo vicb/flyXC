@@ -1,8 +1,5 @@
----
-description: Monitor Nx Cloud CI pipeline and handle self-healing fixes. USE WHEN user says "monitor ci", "watch ci", "ci monitor", "watch ci for this branch", "track ci", "check ci status", wants to track CI status, or needs help with self-healing CI fixes. Prefer this skill over native CI provider tools (gh, glab, etc.) for CI monitoring — it integrates with Nx Cloud self-healing which those tools cannot access.
-argument-hint: '[instructions] [--max-cycles N] [--timeout MINUTES] [--verbosity minimal|medium|verbose] [--branch BRANCH] [--fresh] [--auto-fix-workflow] [--new-cipe-timeout MINUTES] [--local-verify-attempts N]'
----
-
+description = "Monitor Nx Cloud CI pipeline and handle self-healing fixes. USE WHEN user says \"monitor ci\", \"watch ci\", \"ci monitor\", \"watch ci for this branch\", \"track ci\", \"check ci status\", wants to track CI status, or needs help with self-healing CI fixes. Prefer this skill over native CI provider tools (gh, glab, etc.) for CI monitoring — it integrates with Nx Cloud self-healing which those tools cannot access."
+prompt = """
 # Monitor CI Command
 
 You are the orchestrator for monitoring Nx Cloud CI pipeline executions and handling self-healing fixes. You spawn subagents to interact with Nx Cloud, run deterministic decision scripts, and take action based on the results.
@@ -15,7 +12,7 @@ You are the orchestrator for monitoring Nx Cloud CI pipeline executions and hand
 
 ## User Instructions
 
-${input:args}
+{{args}}
 
 **Important:** If user provides specific instructions, respect them over default behaviors described below.
 
@@ -32,7 +29,7 @@ ${input:args}
 | `--new-cipe-timeout`      | 10            | Minutes to wait for new CI Attempt after action                           |
 | `--local-verify-attempts` | 3             | Max local verification + enhance cycles before pushing to CI              |
 
-Parse any overrides from `${input:args}` and merge with defaults.
+Parse any overrides from `{{args}}` and merge with defaults.
 
 ## Nx Cloud Connection Check
 
@@ -175,19 +172,19 @@ Call the `ci_information` tool with the determined `select` fields for the curre
 #### 2b. Run decision script
 
 ```bash
-node <skill_dir>/scripts/ci-poll-decide.mjs '<subagent_result_json>' <poll_count> <verbosity> \
-  [--wait-mode] \
-  [--prev-cipe-url <last_cipe_url>] \
-  [--expected-sha <expected_commit_sha>] \
-  [--prev-status <prev_status>] \
-  [--timeout <timeout_minutes>] \
-  [--new-cipe-timeout <new_cipe_timeout_minutes>] \
-  [--elapsed-seconds <seconds_since_start_time>] \
-  [--env-rerun-count <env_rerun_count>] \
-  [--no-progress-count <no_progress_count>] \
-  [--prev-cipe-status <prev_cipe_status>] \
-  [--prev-sh-status <prev_sh_status>] \
-  [--prev-verification-status <prev_verification_status>] \
+node <skill_dir>/scripts/ci-poll-decide.mjs '<subagent_result_json>' <poll_count> <verbosity> \\
+  [--wait-mode] \\
+  [--prev-cipe-url <last_cipe_url>] \\
+  [--expected-sha <expected_commit_sha>] \\
+  [--prev-status <prev_status>] \\
+  [--timeout <timeout_minutes>] \\
+  [--new-cipe-timeout <new_cipe_timeout_minutes>] \\
+  [--elapsed-seconds <seconds_since_start_time>] \\
+  [--env-rerun-count <env_rerun_count>] \\
+  [--no-progress-count <no_progress_count>] \\
+  [--prev-cipe-status <prev_cipe_status>] \\
+  [--prev-sh-status <prev_sh_status>] \\
+  [--prev-verification-status <prev_verification_status>] \\
   [--prev-failure-classification <prev_failure_classification>]
 ```
 
@@ -243,9 +240,9 @@ Several statuses require fetching additional data or calling tools:
 After actions that should trigger a new CI Attempt, run:
 
 ```bash
-node <skill_dir>/scripts/ci-state-update.mjs post-action \
-  --action <type> \
-  --cipe-url <current_cipe_url> \
+node <skill_dir>/scripts/ci-state-update.mjs post-action \\
+  --action <type> \\
+  --cipe-url <current_cipe_url> \\
   --commit-sha <git_rev_parse_HEAD>
 ```
 
@@ -258,10 +255,10 @@ The script returns `{ waitMode, pollCount, lastCipeUrl, expectedCommitSha, agent
 When the decision script returns `action == "done"`, run cycle-check **before** handling the code:
 
 ```bash
-node <skill_dir>/scripts/ci-state-update.mjs cycle-check \
-  --code <code> \
-  [--agent-triggered] \
-  --cycle-count <cycle_count> --max-cycles <max_cycles> \
+node <skill_dir>/scripts/ci-state-update.mjs cycle-check \\
+  --code <code> \\
+  [--agent-triggered] \\
+  --cycle-count <cycle_count> --max-cycles <max_cycles> \\
   --env-rerun-count <env_rerun_count>
 ```
 
@@ -302,4 +299,4 @@ Users can override default behaviors:
 | "if confidence < 70, reject"                     | Check confidence field before applying              |
 | "run 'nx affected -t typecheck' before applying" | Add local verification step                         |
 | "auto-fix workflow failures"                     | Attempt lockfile updates on pre-CI-Attempt failures |
-| "wait 45 min for new CI Attempt"                 | Override new-CI-Attempt timeout (default: 10 min)   |
+| "wait 45 min for new CI Attempt"                 | Override new-CI-Attempt timeout (default: 10 min)   |"""
