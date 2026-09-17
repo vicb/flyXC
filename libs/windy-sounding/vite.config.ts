@@ -18,9 +18,6 @@ export default defineConfig(({ mode }): UserConfig => {
       : [
           preact({
             prefreshEnabled: false,
-            babel: {
-              babelrc: true,
-            },
           }),
         ],
 
