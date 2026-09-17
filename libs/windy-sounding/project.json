@@ -1,5 +1,5 @@
 {
-  "name": "windy-plugin-fxc-soundings",
+  "name": "windy-plugin",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/windy-sounding/src",
   "projectType": "library",
@@ -27,9 +27,9 @@
         "cwd": "{projectRoot}",
         "commands": [
           "rm -rf dist",
-          "pnpm nx run windy-plugin-fxc-soundings:build:production",
-          "pnpm nx run windy-plugin-fxc-soundings:build:development",
-          "pnpm nx run windy-plugin-fxc-soundings:build:config",
+          "pnpm nx run windy-plugin:build:production",
+          "pnpm nx run windy-plugin:build:development",
+          "pnpm nx run windy-plugin:build:config",
           "node tools/generate-manifest.js dist"
         ],
         "parallel": false

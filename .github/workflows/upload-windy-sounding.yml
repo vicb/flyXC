@@ -28,6 +28,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build
-        run: pnpm nx upload:prepare windy-plugin-fxc-soundings
+        run: pnpm nx upload:prepare windy-plugin
       - name: Publish Plugin
-        run: pnpm nx upload windy-plugin-fxc-soundings
+        run: pnpm nx upload windy-plugin

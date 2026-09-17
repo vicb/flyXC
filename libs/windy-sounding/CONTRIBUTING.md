@@ -17,7 +17,7 @@ pnpm install
 Run the development server from the project root:
 
 ```bash
-pnpm nx serve windy-plugin-fxc-soundings
+pnpm nx serve windy-plugin
 ```
 
 This will:
@@ -39,19 +39,19 @@ When you update components or styles, your changes will be hot-reloaded in the b
 Build for production (default):
 
 ```bash
-pnpm nx build windy-plugin-fxc-soundings
+pnpm nx build windy-plugin
 ```
 
 Build for development:
 
 ```bash
-pnpm nx build windy-plugin-fxc-soundings -c development
+pnpm nx build windy-plugin -c development
 ```
 
 Build everything (production, development, and config files):
 
 ```bash
-pnpm nx upload:prepare windy-plugin-fxc-soundings
+pnpm nx upload:prepare windy-plugin
 ```
 
 ### Preview
@@ -59,7 +59,7 @@ pnpm nx upload:prepare windy-plugin-fxc-soundings
 Preview the built plugin:
 
 ```bash
-pnpm nx preview windy-plugin-fxc-soundings
+pnpm nx preview windy-plugin
 ```
 
 ### Testing and Linting
@@ -67,20 +67,20 @@ pnpm nx preview windy-plugin-fxc-soundings
 Run tests:
 
 ```bash
-pnpm nx test windy-plugin-fxc-soundings
+pnpm nx test windy-plugin
 ```
 
 Lint:
 
 ```bash
-pnpm nx lint windy-plugin-fxc-soundings
+pnpm nx lint windy-plugin
 ```
 
 ## Release
 
 1. Update the plugin version in `package.json`
-2. Build the plugin: `pnpm nx upload:prepare windy-plugin-fxc-soundings`
-3. Upload: `pnpm nx upload windy-plugin-fxc-soundings` (requires `WINDY_API_KEY` environment variable)
+2. Build the plugin: `pnpm nx upload:prepare windy-plugin`
+3. Upload: `pnpm nx upload windy-plugin` (requires `WINDY_API_KEY` environment variable)
 
 ## References
 
