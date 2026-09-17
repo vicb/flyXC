@@ -56,7 +56,7 @@ export class PlannerElement extends connect(store)(LitElement) {
     this.score = state.planner.score;
     this.speedKmh = state.planner.speedKmh;
     this.units = state.units;
-    this.duration = ((this.distanceM / this.speedKmh) * 60) / 1000;
+    this.duration = this.speedKmh > 0 ? ((this.distanceM / this.speedKmh) * 60) / 1000 : 0;
     this.isFreeDrawing = state.planner.isFreeDrawing;
     this.league = state.planner.league;
   }
@@ -238,10 +238,13 @@ export class PlannerElement extends connect(store)(LitElement) {
   }
 
   private getDuration(): string {
-    const duration = this.duration as number;
+    let duration = this.duration as number;
+    if (!Number.isFinite(duration) || duration < 0) {
+      duration = 0;
+    }
     const hour = Math.floor(duration / 60);
-    const minutes = Math.floor(duration % 60).toString();
-    return `${hour}:${minutes.padStart(2, '0')}`;
+    const minute = Math.floor(duration % 60);
+    return `${hour}:${String(minute).padStart(2, '0')}`;
   }
 
   private onMouseMove(e: MouseEvent): void {
