@@ -14,45 +14,44 @@ pnpm install
 
 ### Development Server
 
-Run the preview server with watch mode from the project root:
+Run the development server from the project root:
 
 ```bash
-nx preview windy-plugin-fxc-soundings
+pnpm nx serve windy-plugin-fxc-soundings
 ```
 
 This will:
 
-- Build both development and production versions
-- Start watch mode to automatically rebuild on file changes
-- Serve the built plugin at `https://localhost:9999/plugin.js`
+- Start the Vite dev server with Hot Module Replacement (HMR)
+- Serve the plugin directly at `https://localhost:9999/plugin.js`
 
 Then visit `windy.com/dev` and enter `https://localhost:9999/plugin.js` as the url to the plugin.
 
 Press `Install and open plugin` and the plugin will open to the right side.
 
-When you update the code, the builds will automatically regenerate. Click `Reload plugin` in Windy to load your changes.
+When you update components or styles, your changes will be hot-reloaded in the browser automatically via HMR without having to click `Reload plugin`!
 
 > [!TIP]
 > Use the `Launch Windy Plugin` launch configuration to debug the plugin in Chrome.
 
 ### Building
 
-Build for production:
+Build for production (default):
 
 ```bash
-nx build windy-plugin-fxc-soundings --prod
+pnpm nx build windy-plugin-fxc-soundings
 ```
 
 Build for development:
 
 ```bash
-nx build windy-plugin-fxc-soundings
+pnpm nx build windy-plugin-fxc-soundings -c development
 ```
 
 Build everything (production, development, and config files):
 
 ```bash
-nx upload:prepare windy-plugin-fxc-soundings
+pnpm nx upload:prepare windy-plugin-fxc-soundings
 ```
 
 ### Preview
@@ -60,14 +59,28 @@ nx upload:prepare windy-plugin-fxc-soundings
 Preview the built plugin:
 
 ```bash
-nx preview windy-plugin-fxc-soundings
+pnpm nx preview windy-plugin-fxc-soundings
+```
+
+### Testing and Linting
+
+Run tests:
+
+```bash
+pnpm nx test windy-plugin-fxc-soundings
+```
+
+Lint:
+
+```bash
+pnpm nx lint windy-plugin-fxc-soundings
 ```
 
 ## Release
 
 1. Update the plugin version in `package.json`
-2. Build the plugin: `nx upload:prepare windy-plugin-fxc-soundings`
-3. Upload: `nx upload windy-plugin-fxc-soundings` (requires `WINDY_API_KEY` environment variable)
+2. Build the plugin: `pnpm nx upload:prepare windy-plugin-fxc-soundings`
+3. Upload: `pnpm nx upload windy-plugin-fxc-soundings` (requires `WINDY_API_KEY` environment variable)
 
 ## References
 

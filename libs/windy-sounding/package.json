@@ -20,17 +20,7 @@
     "*.scss"
   ],
   "scripts": {
-    "build:dev": "vite build --mode development",
-    "build:prod": "vite build --mode production",
-    "build:config": "BUILD_PLUGIN_CONFIG=true pnpm run build:prod",
-    "clean": "rm -rf dist",
-    "lint": "eslint . --max-warnings=0",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,scss,less,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,scss,less,md}\"",
-    "manifest": "node generate-manifest.js dist",
-    "preview": "pnpm build:dev --watch & pnpm build:prod --watch & vite preview",
-    "upload:prepare": "rm -rf dist && pnpm build:prod && pnpm build:dev && pnpm build:config && pnpm manifest",
+    "upload:prepare": "rm -rf dist && vite build --mode production && vite build --mode development && BUILD_PLUGIN_CONFIG=true vite build --mode production && node generate-manifest.js dist",
     "upload": "./upload.sh"
   },
   "dependencies": {

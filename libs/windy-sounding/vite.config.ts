@@ -1,9 +1,11 @@
-/// <reference types='vitest' />
 import preact from '@preact/preset-vite';
 import type { UserConfig } from 'vite';
 import { defineConfig } from 'vite';
 
 import { certificatePEM, keyPEM } from './https.ts';
+import { windyDevPlugin } from './vite-plugin-windy-dev.ts';
+
+const PORT = 9999;
 
 export default defineConfig(({ mode }): UserConfig => {
   const isConfigBuild = process.env.BUILD_PLUGIN_CONFIG === 'true';
@@ -13,26 +15,26 @@ export default defineConfig(({ mode }): UserConfig => {
 
     cacheDir: './node_modules/.vite',
 
-    plugins: isConfigBuild
-      ? []
-      : [
-          preact({
-            prefreshEnabled: false,
-          }),
-        ],
+    plugins: isConfigBuild ? [] : [preact(), windyDevPlugin({ port: PORT })],
 
     server: {
-      port: 9999,
+      port: PORT,
+      strictPort: true,
       host: '0.0.0.0',
       https: {
         key: keyPEM,
         cert: certificatePEM,
       },
       cors: true,
+      hmr: {
+        host: 'localhost',
+        protocol: 'wss',
+        clientPort: PORT,
+      },
     },
 
     preview: {
-      port: 9999,
+      port: PORT,
       host: '0.0.0.0',
       https: {
         key: keyPEM,
@@ -79,8 +81,8 @@ export default defineConfig(({ mode }): UserConfig => {
 
     define: {
       'process.env.NODE_ENV': JSON.stringify(mode),
-      __BUILD_TIMESTAMP__: Date.now(),
-      global: {},
+      __BUILD_TIMESTAMP__: JSON.stringify(Date.now()),
+      global: 'window',
     },
 
     test: {

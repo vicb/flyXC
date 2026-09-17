@@ -86,3 +86,7 @@ You can support the development of this plugin via the Buy me a Coffee platform
 <a href="https://www.buymeacoffee.com/vic.b" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="35" width="150"></a>
 
 Any contribution is greatly appreciated!
+
+## Development
+
+For setup, development server, building, testing, and release instructions, see [CONTRIBUTING.md](CONTRIBUTING.md).
