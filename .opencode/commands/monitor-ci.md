@@ -15,7 +15,7 @@ You are the orchestrator for monitoring Nx Cloud CI pipeline executions and hand
 
 ## User Instructions
 
-${input:args}
+$ARGUMENTS
 
 **Important:** If user provides specific instructions, respect them over default behaviors described below.
 
@@ -32,7 +32,7 @@ ${input:args}
 | `--new-cipe-timeout`      | 10            | Minutes to wait for new CI Attempt after action                           |
 | `--local-verify-attempts` | 3             | Max local verification + enhance cycles before pushing to CI              |
 
-Parse any overrides from `${input:args}` and merge with defaults.
+Parse any overrides from `$ARGUMENTS` and merge with defaults.
 
 ## Nx Cloud Connection Check
 
