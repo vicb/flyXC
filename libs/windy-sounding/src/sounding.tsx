@@ -1,5 +1,3 @@
-import './styles.less';
-
 import type { LatLon } from '@windy/interfaces';
 import { render } from 'preact';
 import { Provider } from 'react-redux';
@@ -17,7 +15,6 @@ import {
 } from './redux/meta';
 import * as pluginSlice from './redux/plugin-slice';
 import { store } from './redux/store';
-import styles from './styles.less?inline';
 import { saveSetting, Settings } from './util/settings';
 import { DEFAULT_MODEL, getSupportedModelName, injectStyles, METEOBLUE_AI_MODEL } from './util/utils';
 
@@ -36,7 +33,7 @@ let resizeObserver: ResizeObserver | undefined;
 export const mountPlugin = (container: HTMLElement) => {
   const { dispatch } = store;
   appContainer = container;
-  injectStyles(styles);
+  injectStyles();
   render(
     <Provider store={store}>
       <Plugin />
@@ -157,4 +154,17 @@ function setSizeFrom(container: HTMLElement) {
   const height = Math.round(Math.min(width, window.innerHeight * 0.7));
   store.dispatch(pluginSlice.setWidth(width));
   store.dispatch(pluginSlice.setHeight(height));
+}
+
+if (import.meta.hot) {
+  import.meta.hot.accept(() => {
+    if (appContainer) {
+      render(
+        <Provider store={store}>
+          <Plugin />
+        </Provider>,
+        appContainer,
+      );
+    }
+  });
 }

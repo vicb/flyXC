@@ -1,5 +1,6 @@
 import type { Fav } from '@windy/favs';
-import type { LatLon } from '@windy/interfaces';
+
+import inlinedStyles from '../styles.less?inline';
 
 export const METEOBLUE_AI_MODEL = 'mblue';
 export const DEFAULT_MODEL = 'ecmwf';
@@ -18,11 +19,29 @@ const SUPPORTED_MODELS = [
   /^mblue$/,
 ];
 
-export function injectStyles(styles: string) {
-  const { head } = document;
-  const style = document.createElement('style');
-  head.appendChild(style);
-  style.appendChild(document.createTextNode(styles));
+/**
+ * Injects CSS styles into the document.
+ *
+ * In development, imports `./styles.less` to enable Vite's CSS injection and HMR runtime
+ * so that editing Less files updates styles live in the browser without reloading.
+ * In production, inlines the compiled Less CSS into a `<style id="wsp-plugin-styles">` tag in `<head>`.
+ */
+export function injectStyles() {
+  if (process.env.NODE_ENV !== 'production') {
+    // In dev mode, dynamic import enables Vite's CSS injection and HMR runtime.
+    import('../styles.less');
+  } else {
+    // In production, inject the inlined CSS into `<head>`.
+    // Reuses an existing `<style id="wsp-plugin-styles">` element if present.
+    const { head } = document;
+    let style = document.getElementById('wsp-plugin-styles') as HTMLStyleElement | null;
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'wsp-plugin-styles';
+      head.appendChild(style);
+    }
+    style.textContent = inlinedStyles;
+  }
 }
 
 export function getFavLabel(fav: Fav): string {

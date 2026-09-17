@@ -1,4 +1,4 @@
-import pkg from '../package.json';
+import packageJson from '../package.json';
 import type { PluginConfig, PluginUserConfig } from './types';
 
 // User configuration.
@@ -16,13 +16,16 @@ const userConfig: PluginUserConfig = {
 };
 
 // Automatic configuration, edit with care.
+const pkg = (packageJson as any)?.default ?? packageJson;
+const buildTime = Number(__BUILD_TIMESTAMP__ ?? Date.now());
+
 export const pluginConfig: PluginConfig = {
   author: pkg.author,
   name: pkg.name as `windy-plugin-${string}`,
   version: pkg.version,
   description: pkg.description,
-  repository: pkg.repository.url ?? String(pkg.repository),
-  built: Number(__BUILD_TIMESTAMP__),
-  builtReadable: new Date(__BUILD_TIMESTAMP__).toISOString(),
+  repository: pkg.repository?.url ?? String(pkg.repository),
+  built: buildTime,
+  builtReadable: new Date(buildTime).toISOString(),
   ...userConfig,
 };
