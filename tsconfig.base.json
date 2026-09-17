@@ -14,14 +14,6 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "resolveJsonModule": true,
-    "paths": {
-      "@windy/*": [
-        "./libs/windy-sounding/types/*",
-        "./libs/windy-sounding/types/client/*",
-        "./libs/windy-sounding/types/client/d.ts.files/*"
-      ],
-      "windy-sounding": ["./libs/windy-sounding/src/index.ts"]
-    },
     "strict": false,
     "noUncheckedSideEffectImports": false,
     "types": ["*"],

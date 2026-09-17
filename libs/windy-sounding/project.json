@@ -12,7 +12,36 @@
         },
         "production": {
           "mode": "production"
+        },
+        "config": {
+          "mode": "production",
+          "env": {
+            "BUILD_PLUGIN_CONFIG": "true"
+          }
         }
+      }
+    },
+    "upload:prepare": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "commands": [
+          "rm -rf dist",
+          "pnpm nx run windy-plugin-fxc-soundings:build:production",
+          "pnpm nx run windy-plugin-fxc-soundings:build:development",
+          "pnpm nx run windy-plugin-fxc-soundings:build:config",
+          "node tools/generate-manifest.js dist"
+        ],
+        "parallel": false
+      },
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "upload": {
+      "dependsOn": ["upload:prepare"],
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "./tools/upload.sh"
       }
     }
   }

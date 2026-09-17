@@ -140,8 +140,6 @@ export function Plugin() {
     [dispatch],
   );
 
-  const isDev = process.env.NODE_ENV === 'development';
-
   return (
     <>
       <div
@@ -153,7 +151,7 @@ export function Plugin() {
         tabIndex={0}
       >
         <img id="wsp-icon" src={flyxcIcon} width="30" height="30" alt="flyXC" />
-        {isDev && (
+        {import.meta.env.DEV && (
           <span id="wsp-dev" className="badge fg-white bg-orange size-xs">
             dev
           </span>

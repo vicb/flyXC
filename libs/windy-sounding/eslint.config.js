@@ -27,7 +27,7 @@ export default [
       '@nx/dependency-checks': [
         'error',
         {
-          ignoredFiles: ['{projectRoot}/vite.config.ts', 'vite.config.*', '{projectRoot}/vite-plugin-*.ts'],
+          ignoredFiles: ['{projectRoot}/vite.config.ts', '{projectRoot}/tools/**'],
           ignoredDependencies: ['react-redux', 'preact', 'jsonc-eslint-parser'],
         },
       ],
@@ -37,6 +37,6 @@ export default [
     },
   },
   {
-    ignores: ['node_modules/', 'generate-manifest.js', 'vite.config.ts', 'vite-plugin-*.ts', 'types/'],
+    ignores: ['node_modules/', 'tools/**', 'vite.config.ts', 'types/'],
   },
 ];

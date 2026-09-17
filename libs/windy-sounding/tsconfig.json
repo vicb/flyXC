@@ -13,8 +13,9 @@
     "esModuleInterop": true,
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
-    "jsxFactory": "h",
-    "jsxFragmentFactory": "Fragment"
+    "paths": {
+      "@windy/*": ["./types/*", "./types/client/*", "./types/client/d.ts.files/*"]
+    }
   },
   "files": [],
   "include": ["src", "https.ts", "types"],
