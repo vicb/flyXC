@@ -20,9 +20,16 @@ export type PlannerState = {
 const route = getUrlParamValues(ParamNames.route)[0] ?? '';
 const enabled = route.length > 0;
 
+export const DEFAULT_SPEED_KMH = 20;
+
+export function parseSpeedParam(param: string | undefined): number {
+  const speed = Number(param);
+  return Number.isFinite(speed) && speed > 0 ? speed : DEFAULT_SPEED_KMH;
+}
+
 const initialState: PlannerState = {
   score: undefined,
-  speedKmh: Number(getUrlParamValues(ParamNames.speed)[0] ?? 20),
+  speedKmh: parseSpeedParam(getUrlParamValues(ParamNames.speed)[0]),
   distanceM: 0,
   league: (getUrlParamValues(ParamNames.league)[0] ?? localStorage.getItem('league') ?? 'xc') as LeagueCode,
   enabled,
@@ -41,7 +48,8 @@ const plannerSlice = createSlice({
       state.distanceM = action.payload;
     },
     setSpeedKmh: (state, action: PayloadAction<number>) => {
-      state.speedKmh = Math.max(1, action.payload);
+      const speed = Number.isFinite(action.payload) && action.payload > 0 ? action.payload : DEFAULT_SPEED_KMH;
+      state.speedKmh = Math.max(1, speed);
       setUrlParamValue(ParamNames.speed, state.speedKmh.toFixed(1));
     },
     setLeague: (state, action: PayloadAction<LeagueCode>) => {
