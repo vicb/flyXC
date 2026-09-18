@@ -87,7 +87,11 @@ export default defineConfig(({ mode }): UserConfig => {
     },
 
     define: {
-      'process.env.NODE_ENV': JSON.stringify(mode),
+      // Library mode (build.lib) does not replace process.env.NODE_ENV by default.
+      // Explicitly define it so bundled dependencies like Redux Toolkit initialize safely in browser environments.
+      'process.env.NODE_ENV': JSON.stringify(
+        process.env.NODE_ENV ?? (mode === 'production' ? 'production' : 'development'),
+      ),
       __BUILD_TIMESTAMP__: JSON.stringify(Date.now()),
       global: 'window',
     },

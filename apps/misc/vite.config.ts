@@ -74,7 +74,6 @@ export default defineConfig(({ mode }) => {
 
     // Inject secrets as compile-time constants
     define: {
-      'process.env.NODE_ENV': JSON.stringify(mode),
       ...secretsDefine,
     },
 

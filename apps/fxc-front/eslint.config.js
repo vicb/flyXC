@@ -23,6 +23,7 @@ export default [
             'vite',
             'vitest',
             `@stencil/core`,
+            `workbox-core`,
             `workbox-window`,
             'jsonc-eslint-parser',
           ],

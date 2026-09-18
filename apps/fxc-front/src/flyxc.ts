@@ -34,6 +34,7 @@ import {
   pushCurrentState,
 } from './app/logic/history';
 import * as msg from './app/logic/messages';
+import { handleServiceWorkerReload } from './app/logic/pwa-lifecycle';
 import { downloadTracksByGroupIds, downloadTracksByUrls, uploadTracks } from './app/logic/track';
 import * as app from './app/redux/app-slice';
 import * as liveTrack from './app/redux/live-track-slice';
@@ -288,9 +289,13 @@ requestCurrentPosition(false);
 
 ionicInit();
 
-// TODO: do we need to check if already registered?
+// Register the service worker with automatic updates without user prompt,
+// while handling reloads safely to prevent redundant reloads and infinite loops.
 registerSW({
   immediate: true,
+  async onNeedReload() {
+    await handleServiceWorkerReload();
+  },
   onRegisteredSW(swUrl: string, registration: ServiceWorkerRegistration | undefined) {
     if (!registration) {
       return;
@@ -304,6 +309,15 @@ registerSW({
     console.error(error);
   },
 });
+
+// Also listen for SW activation broadcasts to catch background updates seamlessly.
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data?.type === 'SW_ACTIVATED') {
+      handleServiceWorkerReload({ swVersion: event.data.version });
+    }
+  });
+}
 
 async function updateServiceWorker(swUrl: string, registration: ServiceWorkerRegistration): Promise<void> {
   if (registration.installing || !navigator) {

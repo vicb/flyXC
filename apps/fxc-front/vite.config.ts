@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -114,9 +115,8 @@ export default defineConfig(({ mode }) => {
     },
 
     define: {
-      __BUILD_TIMESTAMP__: JSON.stringify(format(new TZDate(new Date(), 'Europe/Paris'), 'yyyyMMdd-HHmm')),
+      __BUILD_TIMESTAMP__: JSON.stringify(getBuildTimestamp()),
       __AIRSPACE_DATE__: JSON.stringify(getAirspaceDate()),
-      'process.env.NODE_ENV': JSON.stringify(mode),
       // Vite does not define global.
       // Required for a dependency of igc-xc-score.
       // See https://stackoverflow.com/questions/72114775/vite-global-is-not-defined/73208485#73208485
@@ -136,6 +136,21 @@ export default defineConfig(({ mode }) => {
     },
   };
 });
+
+let buildTimestamp: string | undefined;
+
+/**
+ * Returns a unique build version string formatted as 'yyyyMMdd-HHmm-xxxxxxxx' in Paris time.
+ *
+ * Caches the value in a local variable so that the two separate Vite build passes executed
+ * by vite-plugin-pwa (Pass 1: client application, Pass 2: injectManifest service worker) share
+ * the exact same timestamp string.
+ */
+function getBuildTimestamp(): string {
+  return (buildTimestamp ??= `${format(new TZDate(new Date(), 'Europe/Paris'), 'yyyyMMdd-HHmm')}-${randomBytes(
+    4,
+  ).toString('hex')}`);
+}
 
 // Get the airspace update date from airspaces-date.json.
 function getAirspaceDate() {
