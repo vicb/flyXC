@@ -3,12 +3,7 @@ import type { UserConfig } from 'vite';
 import { defineConfig } from 'vite';
 
 import { certificatePEM, keyPEM } from './https.ts';
-import { generateWindyExports } from './tools/generate-windy-exports.js';
 import { WINDY_ORIGINS, windyDevPlugin } from './tools/vite-plugin-windy-dev.ts';
-
-// Generate src/windy-exports.d.ts from types/client/commonExports.d.ts so W is
-// strongly typed without manually modifying any files in the types/ directory.
-generateWindyExports();
 
 const PORT = 9999;
 

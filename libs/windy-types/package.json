@@ -1,0 +1,15 @@
+{
+  "name": "@flyxc/windy-types",
+  "version": "3.0.4",
+  "description": "Clean, zero-config TypeScript definitions for Windy plugins extracted from @windycom/plugin-devtools.",
+  "type": "module",
+  "private": true,
+  "types": "src/index.d.ts",
+  "exports": {
+    ".": "./src/index.d.ts",
+    "./*": {
+      "types": "./src/*.d.ts",
+      "default": "./src/*"
+    }
+  }
+}
