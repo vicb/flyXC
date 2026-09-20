@@ -20,6 +20,7 @@
     "*.scss"
   ],
   "dependencies": {
+    "@flyxc/windy-types": "workspace:*",
     "@reduxjs/toolkit": "catalog:default",
     "date-fns": "catalog:default",
     "geojson": "^0.5.0",

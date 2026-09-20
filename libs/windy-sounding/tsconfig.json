@@ -12,10 +12,7 @@
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "preact",
-    "paths": {
-      "@windy/*": ["./types/*", "./types/client/*", "./types/client/d.ts.files/*"]
-    }
+    "jsxImportSource": "preact"
   },
   "files": [],
   "include": [],

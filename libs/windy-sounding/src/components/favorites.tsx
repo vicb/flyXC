@@ -1,4 +1,5 @@
-import type { Fav, LatLon } from '@windy/interfaces';
+import type { Fav } from '@windy/favs';
+import type { LatLon } from '@windy/interfaces';
 import { useState } from 'preact/hooks';
 
 import { getAvailableModels, getFavLabel, latLon2Str } from '../util/utils';

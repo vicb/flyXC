@@ -1,0 +1,35 @@
+{
+  "name": "windy-types",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/windy-types/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "echo @flyxc/windy-types is a type-only package"
+      }
+    },
+    "update": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "node libs/windy-types/scripts/update.js",
+            "forwardAllArgs": true
+          },
+          {
+            "command": "pnpm nx format",
+            "forwardAllArgs": false
+          },
+          {
+            "command": "pnpm nx run windy-types:lint --fix --skip-nx-cache",
+            "forwardAllArgs": false
+          }
+        ],
+        "parallel": false
+      }
+    }
+  }
+}
