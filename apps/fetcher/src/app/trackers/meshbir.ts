@@ -79,12 +79,13 @@ export function parse(
   // Parse locations
   for (const msg of messages) {
     if (msg.type == 'position') {
+      const timeSec = Math.round(msg.time / 1000);
       const point: LivePoint = {
         lat: msg.latitude,
         lon: msg.longitude,
         alt: msg.altitude,
         speed: msg.ground_speed,
-        timeSec: msg.time,
+        timeSec,
       };
       const meshId = validateMeshBirAccount(msg.user_id);
       if (meshId !== false) {
@@ -108,13 +109,14 @@ export function parse(
       if (meshId === false) {
         continue;
       }
+      const timeSec = Math.round(msg.time / 1000);
       // Add the message on a position retrieved in the current cycle
       const points = pointsByMeshId.get(meshId) ?? [];
       pointsByMeshId.set(meshId, points);
 
       if (points.length > 0) {
         const timesSec = points.map((p) => p.timeSec);
-        const index = findIndexes(timesSec, msg.time).beforeIndex;
+        const index = findIndexes(timesSec, timeSec).beforeIndex;
         points[index].message = text;
         continue;
       }
