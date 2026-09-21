@@ -14,7 +14,7 @@ describe('Parse kml feed', () => {
           lon: -122.027765,
           message: 'Starting my trip. Follow me on where.vicb.fr',
           speed: 0,
-          timeMs: 1571510460000,
+          timeSec: 1571510460,
           valid: true,
         },
         {
@@ -25,7 +25,7 @@ describe('Parse kml feed', () => {
           lon: -122.027785,
           message: undefined,
           speed: 0,
-          timeMs: 1571510490000,
+          timeSec: 1571510490,
           valid: true,
         },
         {
@@ -36,7 +36,7 @@ describe('Parse kml feed', () => {
           lon: -122.027721,
           message: undefined,
           speed: 6,
-          timeMs: 1571511090000,
+          timeSec: 1571511090,
           valid: false,
         },
         {
@@ -47,7 +47,7 @@ describe('Parse kml feed', () => {
           lon: -122.027765,
           message: undefined,
           speed: 0,
-          timeMs: 1571511405000,
+          timeSec: 1571511405,
           valid: true,
         },
       ].map(({ name: _, ...point }) => point),
@@ -64,7 +64,7 @@ describe('Parse kml feed', () => {
 
   it('should parse the timestamp', () => {
     expect(parse(feed)[0]).toMatchObject({
-      timeMs: 1571510460000,
+      timeSec: 1571510460,
     });
   });
 

@@ -219,6 +219,14 @@ export interface Pilot {
    * @generated from protobuf field: Tracker meshbir = 13
    */
   meshbir?: Tracker;
+  /**
+   * @generated from protobuf field: PilotStatus status = 14
+   */
+  status: PilotStatus;
+  /**
+   * @generated from protobuf field: int64 status_time_sec = 15
+   */
+  statusTimeSec: number;
 }
 /**
  * @generated from protobuf message Tracker
@@ -264,6 +272,39 @@ export interface Tracker {
    * @generated from protobuf field: int64 num_consecutive_errors = 8
    */
   numConsecutiveErrors: number;
+}
+/**
+ * @generated from protobuf enum PilotStatus
+ */
+export enum PilotStatus {
+  /**
+   * @generated from protobuf enum value: PILOT_STATUS_UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+  /**
+   * @generated from protobuf enum value: PILOT_STATUS_FLYING = 1;
+   */
+  FLYING = 1,
+  /**
+   * @generated from protobuf enum value: PILOT_STATUS_LANDED_OK = 2;
+   */
+  LANDED_OK = 2,
+  /**
+   * @generated from protobuf enum value: PILOT_STATUS_NEED_RIDE = 3;
+   */
+  NEED_RIDE = 3,
+  /**
+   * @generated from protobuf enum value: PILOT_STATUS_PICKED_UP = 4;
+   */
+  PICKED_UP = 4,
+  /**
+   * @generated from protobuf enum value: PILOT_STATUS_NEED_HELP = 5;
+   */
+  NEED_HELP = 5,
+  /**
+   * @generated from protobuf enum value: PILOT_STATUS_SOS = 6;
+   */
+  SOS = 6,
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class FetcherState$Type extends MessageType<FetcherState> {
@@ -336,6 +377,8 @@ class Pilot$Type extends MessageType<Pilot> {
       { no: 11, name: 'zoleo', kind: 'message', T: () => Tracker },
       { no: 12, name: 'xcontest', kind: 'message', T: () => Tracker },
       { no: 13, name: 'meshbir', kind: 'message', T: () => Tracker },
+      { no: 14, name: 'status', kind: 'enum', T: () => ['PilotStatus', PilotStatus, 'PILOT_STATUS_'] },
+      { no: 15, name: 'status_time_sec', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
     ]);
   }
 }

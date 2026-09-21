@@ -213,7 +213,7 @@ export function parse(kmlFeed: string): LivePoint[] {
         lon,
         lat,
         alt: Math.round(alt),
-        timeMs: new Date(time).getTime(),
+        timeSec: Math.round(new Date(time).getTime() / 1000),
         message,
         speed: Number(extendedData['Velocity'].replace(/^([\d]+).*/, '$1')),
         emergency: extendedData['In Emergency'] !== 'False',

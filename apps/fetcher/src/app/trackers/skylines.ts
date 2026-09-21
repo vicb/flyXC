@@ -122,7 +122,7 @@ export function parse(flight: any, nowMillis = Date.now()): LivePoint[] {
       lon: lonlat[i * 2 + 1],
       alt: alt[i] - (flight.geoid ?? 0),
       gndAlt: gndAlt[i],
-      timeMs: timeSec * 1000,
+      timeSec,
     };
   });
 }

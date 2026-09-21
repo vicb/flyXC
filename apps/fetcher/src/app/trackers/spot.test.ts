@@ -22,7 +22,7 @@ describe('Parse JSON feed', () => {
           lon: 7.20849,
           lowBattery: false,
           message: undefined,
-          timeMs: 1571231455000,
+          timeSec: 1571231455,
         },
         {
           alt: 0,
@@ -32,7 +32,7 @@ describe('Parse JSON feed', () => {
           lon: 7.20879,
           lowBattery: false,
           message: 'msg ok',
-          timeMs: 1571230698000,
+          timeSec: 1571230698,
         },
         {
           alt: 0,
@@ -42,7 +42,7 @@ describe('Parse JSON feed', () => {
           lon: 7.20351,
           lowBattery: false,
           message: 'msg help',
-          timeMs: 1571230128000,
+          timeSec: 1571230128,
         },
         {
           alt: 0,
@@ -52,7 +52,7 @@ describe('Parse JSON feed', () => {
           lon: 7.20452,
           lowBattery: true,
           message: undefined,
-          timeMs: 1571229492000,
+          timeSec: 1571229492,
         },
         {
           alt: 0,
@@ -62,7 +62,7 @@ describe('Parse JSON feed', () => {
           lon: 7.22531,
           lowBattery: false,
           message: undefined,
-          timeMs: 1571228890000,
+          timeSec: 1571228890,
         },
       ].map(({ name: _, ...point }) => point),
     );
@@ -79,7 +79,7 @@ describe('Parse JSON feed', () => {
           lon: 7.20849,
           lowBattery: false,
           message: undefined,
-          timeMs: 1571231455000,
+          timeSec: 1571231455,
         },
         {
           alt: 456,
@@ -89,7 +89,7 @@ describe('Parse JSON feed', () => {
           lon: 7.20879,
           lowBattery: false,
           message: 'msg ok',
-          timeMs: 1571230698000,
+          timeSec: 1571230698,
         },
         {
           alt: 789,
@@ -99,7 +99,7 @@ describe('Parse JSON feed', () => {
           lon: 7.20351,
           lowBattery: false,
           message: 'msg help',
-          timeMs: 1571230128000,
+          timeSec: 1571230128,
         },
         {
           alt: 123,
@@ -109,7 +109,7 @@ describe('Parse JSON feed', () => {
           lon: 7.20452,
           lowBattery: true,
           message: undefined,
-          timeMs: 1571229492000,
+          timeSec: 1571229492,
         },
         {
           alt: 456,
@@ -119,7 +119,7 @@ describe('Parse JSON feed', () => {
           lon: 7.22531,
           lowBattery: false,
           message: undefined,
-          timeMs: 1571228890000,
+          timeSec: 1571228890,
         },
       ].map(({ name: _, ...point }) => point),
     );

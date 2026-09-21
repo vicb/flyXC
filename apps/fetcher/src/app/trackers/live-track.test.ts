@@ -5,12 +5,13 @@ import {
   isValidFix,
   LiveTrackFlag,
   NO_GROUND_ALTITUDE,
+  protos,
   trackerIdByName,
 } from '@flyxc/common';
 import { computeDestinationPoint } from 'geolib';
 
 import type { LivePoint } from './live-track';
-import { makeLiveTrack } from './live-track';
+import { createLiveTrack, getPilotStatusDescription, makeLiveTrack } from './live-track';
 
 describe('makeLiveTrack', () => {
   it('should return an empty live track when given no points', () => {
@@ -33,7 +34,7 @@ describe('makeLiveTrack', () => {
           lat: 10,
           lon: -12,
           alt: 100,
-          timeMs: 1000000,
+          timeSec: 1000,
         },
       ]),
     ).toThrow('Unknown tracker name: unknown');
@@ -46,7 +47,7 @@ describe('makeLiveTrack', () => {
         lat: 10.123456,
         lon: -12.123456,
         alt: 100.123,
-        timeMs: 2000001,
+        timeSec: 2000,
         valid: false,
       },
       {
@@ -54,7 +55,7 @@ describe('makeLiveTrack', () => {
         lat: 11.123456,
         lon: -13.123456,
         alt: 200.123,
-        timeMs: 1000001,
+        timeSec: 1000,
         valid: true,
       },
     ];
@@ -77,7 +78,7 @@ describe('makeLiveTrack', () => {
           lat: 10,
           lon: -12,
           alt: 100,
-          timeMs: 1000000,
+          timeSec: 1000,
         },
       ],
       'inreach',
@@ -93,7 +94,7 @@ describe('makeLiveTrack', () => {
         lat: 10.123456,
         lon: -12.123456,
         alt: 100.123,
-        timeMs: 20001,
+        timeSec: 20.001,
         valid: false,
       },
     ]);
@@ -109,7 +110,7 @@ describe('makeLiveTrack', () => {
         lat: 10.123456,
         lon: -12.123456,
         alt: 100.123,
-        timeMs: 20001,
+        timeSec: 20.001,
         valid: false,
       },
     ]);
@@ -125,7 +126,7 @@ describe('makeLiveTrack', () => {
         lon: -12.123456,
         alt: 100.123,
         gndAlt: 80.123,
-        timeMs: 20001,
+        timeSec: 20.001,
         valid: false,
       },
     ]);
@@ -133,14 +134,14 @@ describe('makeLiveTrack', () => {
     expect(track.gndAlt[0]).toBe(80);
   });
 
-  it('should convert the timestamp to seconds', () => {
+  it('should round the timestamp to seconds', () => {
     const track = makeLiveTrack([
       {
         name: 'inreach',
         lat: 10.123456,
         lon: -12.123456,
         alt: 100.123,
-        timeMs: 20001,
+        timeSec: 20.001,
         valid: false,
       },
     ]);
@@ -155,7 +156,7 @@ describe('makeLiveTrack', () => {
         lat: 10.123456,
         lon: -12.123456,
         alt: 100.123,
-        timeMs: 20001,
+        timeSec: 20.001,
         valid: false,
       },
     ]);
@@ -165,8 +166,8 @@ describe('makeLiveTrack', () => {
 
   it('should add extra for speed as uint32', () => {
     const track = makeLiveTrack([
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 1000000, valid: false },
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 2000000, valid: false, speed: 10.123 },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 1000, valid: false },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, valid: false, speed: 10.123 },
     ]);
 
     expect(track.extra).toEqual({ 1: { speed: 10 } });
@@ -174,13 +175,13 @@ describe('makeLiveTrack', () => {
 
   it('should add extra for messages', () => {
     const track = makeLiveTrack([
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 1000000, valid: false },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 1000, valid: false },
       {
         name: 'inreach',
         lat: 10,
         lon: -12,
         alt: 100,
-        timeMs: 2000000,
+        timeSec: 2000,
         valid: false,
         message: 'hello',
       },
@@ -191,8 +192,8 @@ describe('makeLiveTrack', () => {
 
   it('should populate ground altitude in track.gndAlt and not extra', () => {
     const track = makeLiveTrack([
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 1000000, valid: false },
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 2000000, valid: false, gndAlt: 32 },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 1000, valid: false },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, valid: false, gndAlt: 32 },
     ]);
 
     expect(track.gndAlt).toEqual([NO_GROUND_ALTITUDE, 32]);
@@ -204,13 +205,13 @@ describe('makeLiveTrack', () => {
     const end = computeDestinationPoint(start, 1000, 0);
 
     const track = makeLiveTrack([
-      { name: 'inreach', lat: start.lat, lon: start.lon, alt: 100, timeMs: 1000000, valid: false },
+      { name: 'inreach', lat: start.lat, lon: start.lon, alt: 100, timeSec: 1000, valid: false },
       {
         name: 'inreach',
         lat: end.latitude,
         lon: end.longitude,
         alt: 100,
-        timeMs: 1060000,
+        timeSec: 1060,
         valid: false,
       },
     ]);
@@ -223,10 +224,10 @@ describe('makeLiveTrack', () => {
 
   it('should encode valid', () => {
     const track = makeLiveTrack([
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 1000, valid: false },
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 2000, valid: true },
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 2000, valid: null },
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 2000 },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 1000, valid: false },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, valid: true },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, valid: null },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000 },
     ]);
 
     expect(track.flags.map((flags) => isValidFix(flags))).toEqual([false, true, true, true]);
@@ -234,10 +235,10 @@ describe('makeLiveTrack', () => {
 
   it('should encode emergency', () => {
     const track = makeLiveTrack([
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 1000, emergency: true },
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 2000, emergency: false },
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 2000, emergency: null },
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 2000 },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 1000, emergency: true },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, emergency: false },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, emergency: null },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000 },
     ]);
 
     expect(track.flags.map((flags) => isEmergencyFix(flags))).toEqual([true, false, false, false]);
@@ -245,10 +246,10 @@ describe('makeLiveTrack', () => {
 
   it('should encode low battery', () => {
     const track = makeLiveTrack([
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 1000, lowBattery: true },
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 2000, lowBattery: false },
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 2000, lowBattery: null },
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 2000 },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 1000, lowBattery: true },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, lowBattery: false },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, lowBattery: null },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000 },
     ]);
 
     expect(track.flags.map((flags) => isLowBatFix(flags))).toEqual([true, false, false, false]);
@@ -256,11 +257,11 @@ describe('makeLiveTrack', () => {
 
   it('should encode the device', () => {
     const track = makeLiveTrack([
-      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeMs: 1000 },
-      { name: 'spot', lat: 10, lon: -12, alt: 100, timeMs: 2000 },
-      { name: 'skylines', lat: 10, lon: -12, alt: 100, timeMs: 2000 },
-      { name: 'flyme', lat: 10, lon: -12, alt: 100, timeMs: 2000 },
-      { name: 'flymaster', lat: 10, lon: -12, alt: 100, timeMs: 2000 },
+      { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 1000 },
+      { name: 'spot', lat: 10, lon: -12, alt: 100, timeSec: 2000 },
+      { name: 'skylines', lat: 10, lon: -12, alt: 100, timeSec: 2000 },
+      { name: 'flyme', lat: 10, lon: -12, alt: 100, timeSec: 2000 },
+      { name: 'flymaster', lat: 10, lon: -12, alt: 100, timeSec: 2000 },
     ]);
 
     expect(track.flags.map((flags) => getTrackerName(flags))).toEqual([
@@ -270,5 +271,44 @@ describe('makeLiveTrack', () => {
       'flyme',
       'flymaster',
     ]);
+  });
+});
+
+describe('createLiveTrack', () => {
+  it('should extract latest status update in chronological order', () => {
+    const points: LivePoint[] = [
+      { name: 'ogn', lat: 10, lon: -12, alt: 100, timeSec: 3, status: protos.PilotStatus.LANDED_OK },
+      { name: 'ogn', lat: 10, lon: -12, alt: 100, timeSec: 1, status: protos.PilotStatus.FLYING },
+      { name: 'ogn', lat: 10, lon: -12, alt: 100, timeSec: 2 },
+    ];
+
+    const result = createLiveTrack(points);
+    expect(result.track.timeSec).toEqual([1, 2, 3]);
+    expect(result.statusUpdate).toEqual({
+      status: protos.PilotStatus.LANDED_OK,
+      statusTimeSec: 3,
+    });
+  });
+
+  it('should return undefined statusUpdate when no point has status', () => {
+    const points: LivePoint[] = [
+      { name: 'ogn', lat: 10, lon: -12, alt: 100, timeSec: 1 },
+      { name: 'ogn', lat: 10, lon: -12, alt: 100, timeSec: 2 },
+    ];
+
+    const result = createLiveTrack(points);
+    expect(result.statusUpdate).toBeUndefined();
+  });
+});
+
+describe('getPilotStatusDescription', () => {
+  it('should return correct description for each status', () => {
+    expect(getPilotStatusDescription(protos.PilotStatus.FLYING)).toBe('Flying');
+    expect(getPilotStatusDescription(protos.PilotStatus.LANDED_OK)).toBe('Landed OK');
+    expect(getPilotStatusDescription(protos.PilotStatus.NEED_RIDE)).toBe('Need Ride');
+    expect(getPilotStatusDescription(protos.PilotStatus.PICKED_UP)).toBe('Picked Up');
+    expect(getPilotStatusDescription(protos.PilotStatus.NEED_HELP)).toBe('Need Help');
+    expect(getPilotStatusDescription(protos.PilotStatus.SOS)).toBe('SOS');
+    expect(getPilotStatusDescription(protos.PilotStatus.UNKNOWN)).toBe('Unknown');
   });
 });

@@ -157,11 +157,11 @@ export function parseLiveUsers(users: any, idToLastFlight: Map<string, XContestF
 
 export function parseLiveTrack(track: any) {
   const points: LivePoint[] = [];
-  let timeMs = new Date(track.flight.properties.firstFixTime).getTime();
+  let timeSec = Math.round(new Date(track.flight.properties.firstFixTime).getTime() / 1000);
   for (const fix of track.flight.geometry.coordinates) {
     const [lon, lat, alt, details] = fix;
-    timeMs += (details?.dt ?? 1) * 1000;
-    points.push({ lat, lon, alt, timeMs });
+    timeSec += details?.dt ?? 1;
+    points.push({ lat, lon, alt, timeSec });
   }
   return points;
 }

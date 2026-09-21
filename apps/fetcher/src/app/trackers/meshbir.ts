@@ -84,7 +84,7 @@ export function parse(
         lon: msg.longitude,
         alt: msg.altitude,
         speed: msg.ground_speed,
-        timeMs: msg.time,
+        timeSec: msg.time,
       };
       const meshId = validateMeshBirAccount(msg.user_id);
       if (meshId !== false) {
@@ -113,8 +113,8 @@ export function parse(
       pointsByMeshId.set(meshId, points);
 
       if (points.length > 0) {
-        const timesMs = points.map((p) => p.timeMs);
-        const index = findIndexes(timesMs, msg.time).beforeIndex;
+        const timesSec = points.map((p) => p.timeSec);
+        const index = findIndexes(timesSec, msg.time).beforeIndex;
         points[index].message = text;
         continue;
       }
@@ -128,8 +128,8 @@ export function parse(
       if (track === undefined || track.timeSec.length === 0) {
         continue;
       }
-      const nowMs = Date.now();
-      const lastFixAgeSec = Math.round(nowMs / 1000) - track.timeSec.at(-1);
+      const nowSec = Math.round(Date.now() / 1000);
+      const lastFixAgeSec = nowSec - track.timeSec.at(-1);
       if (lastFixAgeSec > messageAffinityMin * 60) {
         continue;
       }
@@ -137,7 +137,7 @@ export function parse(
         lat: track.lat.at(-1),
         lon: track.lon.at(-1),
         alt: track.alt.at(-1),
-        timeMs: nowMs,
+        timeSec: nowSec,
         message: text,
       });
     }

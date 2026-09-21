@@ -50,7 +50,7 @@ export function parse(position: any): LivePoint[] {
     lat,
     lon,
     alt: Math.round(alt),
-    timeMs: Date.parse(timestamp),
+    timeSec: Math.round(Date.parse(timestamp) / 1000),
     speed: Math.round(vel * 3.6),
   };
   return [point];

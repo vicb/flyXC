@@ -15,7 +15,6 @@ import { makeLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';
 
-
 // Email messages will be attached to live-track points if they are within MESSAGE_AFFINITY_MIN minutes of the message time.
 // This period is long because Zoleo tracking intervals are too.
 const MESSAGE_AFFINITY_MIN = 80;
@@ -99,7 +98,7 @@ export function parse(messages: ZoleoMessage[]): Map<string, LivePoint[]> {
         lat: msg.lat,
         lon: msg.lon,
         alt: msg.altitudeM,
-        timeMs: msg.timeMs,
+        timeSec: Math.round(msg.timeMs / 1000),
       };
       if (msg.emergency) {
         point.emergency = msg.emergency;
@@ -118,7 +117,7 @@ export function parse(messages: ZoleoMessage[]): Map<string, LivePoint[]> {
         lat: msg.lat,
         lon: msg.lon,
         alt: msg.altitudeM ?? 0,
-        timeMs: msg.timeMs,
+        timeSec: Math.round(msg.timeMs / 1000),
         message: msg.message,
       };
       if (msg.batteryPercent < 20) {
@@ -164,7 +163,8 @@ export function handleLocationlessMessage(
       continue;
     }
 
-    const lastFixAgeSec = msg.timeMs / 1000 - track.timeSec.at(-1);
+    const msgTimeSec = Math.round(msg.timeMs / 1000);
+    const lastFixAgeSec = msgTimeSec - track.timeSec.at(-1);
     if (lastFixAgeSec > messageAffinityMin * 60) {
       continue;
     }
@@ -175,7 +175,7 @@ export function handleLocationlessMessage(
       lat: track.lat.at(-1),
       lon: track.lon.at(-1),
       alt: track.alt.at(-1),
-      timeMs: msg.timeMs,
+      timeSec: msgTimeSec,
       message: msg.message,
     });
   }

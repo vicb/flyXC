@@ -128,7 +128,7 @@ export function parse(jsonFeed: string): LivePoint[] {
         lon: fix.longitude,
         lat: fix.latitude,
         alt: fix.altitude,
-        timeMs: fix.unixTime * 1000,
+        timeSec: fix.unixTime,
         emergency: fix.messageType == 'HELP',
         message: fix.messageContent,
         // Values could be "GOOD" or "LOW".

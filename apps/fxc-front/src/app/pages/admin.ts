@@ -765,6 +765,8 @@ function filterState(state: common.protos.FetcherState | undefined, maxPilots: n
       id: pId,
       share: pilot.share,
       track: pilot.track,
+      status: pilot.status,
+      statusTimeSec: pilot.statusTimeSec,
     };
 
     let lastFixSec = 0;

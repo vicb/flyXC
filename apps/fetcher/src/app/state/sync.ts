@@ -133,6 +133,8 @@ export function syncLiveTrack(state: protos.FetcherState, liveTrack: LiveTrackEn
     if (preserveTrack) {
       updatedPilot.track = existingPilot.track;
     }
+    updatedPilot.status = existingPilot.status;
+    updatedPilot.statusTimeSec = existingPilot.statusTimeSec;
   }
 
   state.pilots[id] = updatedPilot;
@@ -162,7 +164,7 @@ function createPilotFromEntity(liveTrack: LiveTrackEntity): protos.Pilot {
     }
   }
 
-  return {
+  return protos.Pilot.create({
     name: liveTrack.name,
     track: protos.LiveTrack.create(),
     share: liveTrack.share,
@@ -176,7 +178,7 @@ function createPilotFromEntity(liveTrack: LiveTrackEntity): protos.Pilot {
     zoleo,
     ...createAccountEnabledTracker('xcontest', liveTrack),
     ...createAccountEnabledTracker('meshbir', liveTrack),
-  };
+  });
 }
 
 // Create a tracker that has both account and enabled properties.
