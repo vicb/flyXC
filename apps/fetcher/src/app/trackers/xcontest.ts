@@ -12,7 +12,7 @@ import {
 } from '@flyxc/common';
 
 import type { LivePoint } from './live-track';
-import { makeLiveTrack } from './live-track';
+import { createLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';
 
@@ -112,7 +112,7 @@ export class XcontestFetcher extends TrackerFetcher {
             const points = parseLiveTrack(track);
             updates.fetchedTracker.add(deviceId);
             if (points.length > 0) {
-              updates.trackerDeltas.set(deviceId, makeLiveTrack(points, this.getTrackerName()));
+              updates.trackerDeltas.set(deviceId, createLiveTrack(points, this.getTrackerName()).track);
             }
           } catch (e) {
             updates.trackerErrors.set(deviceId, `Error parsing JSON ${response.body}\n${e}`);

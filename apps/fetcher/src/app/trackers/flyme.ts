@@ -6,7 +6,7 @@ import type { protos, TrackerNames } from '@flyxc/common';
 import { fetchResponse, formatReqError, validateFlymeAccount } from '@flyxc/common';
 
 import type { LivePoint } from './live-track';
-import { makeLiveTrack } from './live-track';
+import { createLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';
 
@@ -68,7 +68,7 @@ export class FlymeFetcher extends TrackerFetcher {
             timeSec: fix[4],
           },
         ];
-        updates.trackerDeltas.set(id, makeLiveTrack(livePoints, this.getTrackerName()));
+        updates.trackerDeltas.set(id, createLiveTrack(livePoints, this.getTrackerName()).track);
       }
     }
   }

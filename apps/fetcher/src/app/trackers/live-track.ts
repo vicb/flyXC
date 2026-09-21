@@ -142,16 +142,3 @@ export function createLiveTrack(
   return { track, statusUpdate: latestStatusUpdate };
 }
 
-/**
- * Converts points into a live track in chronological order.
- *
- * @param points Points to convert. Each point may override the default tracker name.
- * @param defaultTrackerName Tracker name used when a point does not provide one.
- * @returns A live track containing the converted points.
- */
-export function makeLiveTrack(
-  points: LivePoint[],
-  defaultTrackerName?: TrackerNames | UfoFleetNames,
-): protos.LiveTrack {
-  return createLiveTrack(points, defaultTrackerName).track;
-}

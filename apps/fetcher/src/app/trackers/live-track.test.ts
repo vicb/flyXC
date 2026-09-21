@@ -11,11 +11,11 @@ import {
 import { computeDestinationPoint } from 'geolib';
 
 import type { LivePoint } from './live-track';
-import { createLiveTrack, getPilotStatusDescription, makeLiveTrack } from './live-track';
+import { createLiveTrack, getPilotStatusDescription } from './live-track';
 
-describe('makeLiveTrack', () => {
+describe('createLiveTrack', () => {
   it('should return an empty live track when given no points', () => {
-    expect(makeLiveTrack([])).toEqual({
+    expect(createLiveTrack([]).track).toEqual({
       alt: [],
       extra: {},
       flags: [],
@@ -28,7 +28,7 @@ describe('makeLiveTrack', () => {
 
   it('should reject an unknown tracker name', () => {
     expect(() =>
-      makeLiveTrack([
+      createLiveTrack([
         {
           name: 'unknown' as any,
           lat: 10,
@@ -60,7 +60,7 @@ describe('makeLiveTrack', () => {
       },
     ];
 
-    expect(makeLiveTrack(points)).toEqual({
+    expect(createLiveTrack(points).track).toEqual({
       alt: [200, 100],
       gndAlt: [NO_GROUND_ALTITUDE, NO_GROUND_ALTITUDE],
       extra: {},
@@ -72,7 +72,7 @@ describe('makeLiveTrack', () => {
   });
 
   it('should use the default tracker name when a point has no name', () => {
-    const track = makeLiveTrack(
+    const { track } = createLiveTrack(
       [
         {
           lat: 10,
@@ -88,7 +88,7 @@ describe('makeLiveTrack', () => {
   });
 
   it('should keep 5 digits for lat and lon', () => {
-    const track = makeLiveTrack([
+    const { track } = createLiveTrack([
       {
         name: 'inreach',
         lat: 10.123456,
@@ -104,7 +104,7 @@ describe('makeLiveTrack', () => {
   });
 
   it('should round the altitude', () => {
-    const track = makeLiveTrack([
+    const { track } = createLiveTrack([
       {
         name: 'inreach',
         lat: 10.123456,
@@ -119,7 +119,7 @@ describe('makeLiveTrack', () => {
   });
 
   it('should round the ground altitude', () => {
-    const track = makeLiveTrack([
+    const { track } = createLiveTrack([
       {
         name: 'inreach',
         lat: 10.123456,
@@ -135,7 +135,7 @@ describe('makeLiveTrack', () => {
   });
 
   it('should round the timestamp to seconds', () => {
-    const track = makeLiveTrack([
+    const { track } = createLiveTrack([
       {
         name: 'inreach',
         lat: 10.123456,
@@ -150,7 +150,7 @@ describe('makeLiveTrack', () => {
   });
 
   it('should not add extra when not required', () => {
-    const track = makeLiveTrack([
+    const { track } = createLiveTrack([
       {
         name: 'inreach',
         lat: 10.123456,
@@ -165,7 +165,7 @@ describe('makeLiveTrack', () => {
   });
 
   it('should add extra for speed as uint32', () => {
-    const track = makeLiveTrack([
+    const { track } = createLiveTrack([
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 1000, valid: false },
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, valid: false, speed: 10.123 },
     ]);
@@ -174,7 +174,7 @@ describe('makeLiveTrack', () => {
   });
 
   it('should add extra for messages', () => {
-    const track = makeLiveTrack([
+    const { track } = createLiveTrack([
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 1000, valid: false },
       {
         name: 'inreach',
@@ -191,7 +191,7 @@ describe('makeLiveTrack', () => {
   });
 
   it('should populate ground altitude in track.gndAlt and not extra', () => {
-    const track = makeLiveTrack([
+    const { track } = createLiveTrack([
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 1000, valid: false },
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, valid: false, gndAlt: 32 },
     ]);
@@ -204,7 +204,7 @@ describe('makeLiveTrack', () => {
     const start = { lat: 0, lon: 0 };
     const end = computeDestinationPoint(start, 1000, 0);
 
-    const track = makeLiveTrack([
+    const { track } = createLiveTrack([
       { name: 'inreach', lat: start.lat, lon: start.lon, alt: 100, timeSec: 1000, valid: false },
       {
         name: 'inreach',
@@ -223,7 +223,7 @@ describe('makeLiveTrack', () => {
   });
 
   it('should encode valid', () => {
-    const track = makeLiveTrack([
+    const { track } = createLiveTrack([
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 1000, valid: false },
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, valid: true },
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, valid: null },
@@ -234,7 +234,7 @@ describe('makeLiveTrack', () => {
   });
 
   it('should encode emergency', () => {
-    const track = makeLiveTrack([
+    const { track } = createLiveTrack([
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 1000, emergency: true },
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, emergency: false },
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, emergency: null },
@@ -245,7 +245,7 @@ describe('makeLiveTrack', () => {
   });
 
   it('should encode low battery', () => {
-    const track = makeLiveTrack([
+    const { track } = createLiveTrack([
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 1000, lowBattery: true },
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, lowBattery: false },
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 2000, lowBattery: null },
@@ -256,7 +256,7 @@ describe('makeLiveTrack', () => {
   });
 
   it('should encode the device', () => {
-    const track = makeLiveTrack([
+    const { track } = createLiveTrack([
       { name: 'inreach', lat: 10, lon: -12, alt: 100, timeSec: 1000 },
       { name: 'spot', lat: 10, lon: -12, alt: 100, timeSec: 2000 },
       { name: 'skylines', lat: 10, lon: -12, alt: 100, timeSec: 2000 },

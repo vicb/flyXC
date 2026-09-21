@@ -6,7 +6,7 @@ import { findIndexes, Keys, removeBeforeFromLiveTrack, validateMeshBirAccount } 
 import type { MeshBirMessage, RedisClient, RedisClientMultiCmd } from '@flyxc/common-node';
 
 import type { LivePoint } from './live-track';
-import { makeLiveTrack } from './live-track';
+import { createLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';
 
@@ -53,7 +53,7 @@ export class MeshBirFetcher extends TrackerFetcher {
       const dsId = meshIdToDsId.get(meshId);
       if (dsId != null) {
         const liveTrack = removeBeforeFromLiveTrack(
-          makeLiveTrack(points, this.getTrackerName()),
+          createLiveTrack(points, this.getTrackerName()).track,
           Math.round(Date.now() / 1000) - KEEP_HISTORY_MIN * 60,
         );
         if (liveTrack.timeSec.length > 0) {
