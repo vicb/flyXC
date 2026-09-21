@@ -11,7 +11,7 @@ ARG DEBIAN_FRONTEND="noninteractive"
 RUN apt-get update -y \
 	&& apt-get install -y tini
 
-RUN npm install -g pnpm@11.10.0
+RUN npm install -g pnpm@12.5.1
 
 WORKDIR /usr/src/app
 

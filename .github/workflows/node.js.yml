@@ -23,6 +23,7 @@ jobs:
         with:
           runtime: node@${{ matrix.node-version }}
           cache: true
+          install: false
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: 'Test'
