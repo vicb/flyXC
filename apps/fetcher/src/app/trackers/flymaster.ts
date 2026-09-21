@@ -13,7 +13,7 @@ import {
 } from '@flyxc/common';
 
 import type { LivePoint } from './live-track';
-import { makeLiveTrack } from './live-track';
+import { createLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';
 
@@ -79,7 +79,7 @@ export class FlymasterFetcher extends TrackerFetcher {
         const dsId = flmIdToDsId.get(flmId) as number;
         // Get an extra 5min of data that might not have been received (when no network coverage).
         const points = parse(flight);
-        let track = makeLiveTrack(points, this.getTrackerName());
+        let { track } = createLiveTrack(points, this.getTrackerName());
         track = removeBeforeFromLiveTrack(track, fetchFromSecond - 5 * 60);
         simplifyLiveTrack(track, LiveTrackPointIntervalSec.Recent);
         updates.trackerDeltas.set(dsId, track);
@@ -110,7 +110,7 @@ export function parse(flight: any): LivePoint[] {
       alt: fix.h,
       gndAlt: fix.s,
       speed: fix.v,
-      timeMs: fix.d * 1000,
+      timeSec: fix.d,
     }),
   );
 }

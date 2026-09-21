@@ -61,6 +61,16 @@ message UfoFleet {
   int64 num_consecutive_errors = 7;
 }
 
+enum PilotStatus {
+  PILOT_STATUS_UNKNOWN = 0;
+  PILOT_STATUS_FLYING = 1;
+  PILOT_STATUS_LANDED_OK = 2;
+  PILOT_STATUS_NEED_RIDE = 3;
+  PILOT_STATUS_PICKED_UP = 4;
+  PILOT_STATUS_NEED_HELP = 5;
+  PILOT_STATUS_SOS = 6;
+}
+
 message Pilot {
   string name = 1;
 
@@ -81,6 +91,9 @@ message Pilot {
   Tracker zoleo = 11;
   Tracker xcontest = 12;
   Tracker meshbir = 13;
+
+  PilotStatus status = 14;
+  int64 status_time_sec = 15;
 }
 
 message Tracker {

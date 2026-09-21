@@ -6,6 +6,8 @@ import type { protos, TrackerNames } from '@flyxc/common';
 import { LIVE_REFRESH_SEC, TRACKERS_MAX_FETCH_DURATION_SEC } from '@flyxc/common';
 import type { RedisClientMultiCmd } from '@flyxc/common-node';
 
+import type { PilotStatusUpdate } from './live-track';
+
 /**
  * Updates collected during a single fetch tick for a tracker type (InReach, Spot, etc.).
  */
@@ -16,6 +18,8 @@ export interface TrackerUpdates {
   errors: string[];
   /** Per-device track deltas (only populated when there is a delta). */
   trackerDeltas: Map<number, protos.LiveTrack>;
+  /** Per-device status updates (only populated when a status was received). */
+  trackerStatus: Map<number, PilotStatusUpdate>;
   /** Per-device error messages (no delta when there is an error). */
   trackerErrors: Map<number, string>;
   /** Set of device IDs that were fetched. */
@@ -52,6 +56,7 @@ export class TrackerFetcher {
       name: this.getTrackerName(),
       errors: [],
       trackerDeltas: new Map<number, protos.LiveTrack>(),
+      trackerStatus: new Map<number, PilotStatusUpdate>(),
       trackerErrors: new Map<number, string>(),
       fetchedTracker: new Set<number>(),
       startFetchSec: 0,

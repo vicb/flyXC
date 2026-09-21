@@ -1,10 +1,12 @@
-import type { protos } from '@flyxc/common';
 import {
+  Comparison,
+  findFirstIndex,
   Keys,
   LIVE_FETCH_TIMEOUT_SEC,
   LiveTrackDurationSec,
   LiveTrackPointIntervalSec,
   mergeLiveTracks,
+  type protos,
   removeBeforeFromLiveTrack,
   simplifyLiveTrack,
 } from '@flyxc/common';
@@ -17,6 +19,7 @@ import { addElevationLogs } from '../redis';
 import { FlymasterFetcher } from './flymaster';
 import { FlymeFetcher } from './flyme';
 import { InreachFetcher } from './inreach';
+import { getPilotStatusDescription, type PilotStatusUpdate } from './live-track';
 import { MeshBirFetcher } from './meshbir';
 import { OgnFetcher } from './ogn';
 import { OGN_HOST, OGN_PORT, OgnClient } from './ogn-client';
@@ -113,11 +116,14 @@ export function applyTrackerUpdates(
 ): Map<number, number> {
   const dropBeforeSec = nowSec - LiveTrackDurationSec.Max;
 
-  // Merge updates only for pilots that have deltas in this cycle.
   // Record the earliest timestamp of all patches for each updated pilot.
   const updatedPilots = new Map<number, number>();
+  // Find the latest status update for each pilot across all tracker updates in this cycle.
+  const latestStatusByPilotId = new Map<number, PilotStatusUpdate>();
+
   for (const updates of trackerUpdates) {
-    for (const [id, delta] of updates.trackerDeltas.entries()) {
+    // 1. Merge track deltas for pilots that have deltas in this cycle.
+    for (const [id, delta] of updates.trackerDeltas) {
       const pilot = state.pilots[id];
       if (pilot) {
         pilot.track = mergeLiveTracks(pilot.track, delta);
@@ -125,6 +131,43 @@ export function applyTrackerUpdates(
           const deltaMinSec = delta.timeSec[0];
           const currentMinSec = updatedPilots.get(id);
           updatedPilots.set(id, currentMinSec != null ? Math.min(currentMinSec, deltaMinSec) : deltaMinSec);
+        }
+      }
+    }
+
+    // 2. Collect the latest status update per pilot across trackers.
+    if (updates.trackerStatus) {
+      for (const [id, update] of updates.trackerStatus) {
+        const current = latestStatusByPilotId.get(id);
+        if (current == null || update.statusTimeSec > current.statusTimeSec) {
+          latestStatusByPilotId.set(id, update);
+        }
+      }
+    }
+  }
+
+  // The status is updated to the latest status if more recent than the pilot's current status.
+  // When the status changes, a message "Status: <description>" is attached before simplifying the live track.
+  for (const [id, statusUpdate] of latestStatusByPilotId) {
+    const pilot = state.pilots[id];
+    if (pilot && statusUpdate.statusTimeSec > (pilot.statusTimeSec ?? 0)) {
+      const statusChanged = pilot.status !== statusUpdate.status;
+      pilot.status = statusUpdate.status;
+      pilot.statusTimeSec = statusUpdate.statusTimeSec;
+
+      if (statusChanged) {
+        if (pilot.track && pilot.track.timeSec.length > 0) {
+          const index = Math.max(
+            0,
+            findFirstIndex(pilot.track.timeSec, statusUpdate.statusTimeSec, Comparison.GREATER) - 1,
+          );
+          const statusMessage = `Status: ${getPilotStatusDescription(statusUpdate.status)}`;
+          const existingMessage = pilot.track.extra?.[index]?.message?.trim();
+          pilot.track.extra ??= {};
+          pilot.track.extra[index] = {
+            ...pilot.track.extra[index],
+            message: existingMessage ? `${existingMessage} - ${statusMessage}` : statusMessage,
+          };
         }
       }
     }
@@ -200,7 +243,7 @@ export function addTrackerLogs(
   );
 
   // Consecutive errors.
-  for (const [id, error] of updates.trackerErrors.entries()) {
+  for (const [id, error] of updates.trackerErrors) {
     const numConsErrors = state.pilots[id][name].numConsecutiveErrors;
     if (numConsErrors > 10) {
       pushListCap(

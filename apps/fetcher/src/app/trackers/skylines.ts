@@ -14,7 +14,7 @@ import {
 } from '@flyxc/common';
 
 import type { LivePoint } from './live-track';
-import { makeLiveTrack } from './live-track';
+import { createLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';
 
@@ -59,7 +59,7 @@ export class SkylinesFetcher extends TrackerFetcher {
               // Get an extra 10min of data that might not have been received (when no network coverage).
               const keepFromSec = this.getTrackerFetchFromSec(dsId, updates.startFetchSec, 10 * 60);
               const points = parse(flight);
-              let track = makeLiveTrack(points, this.getTrackerName());
+              let { track } = createLiveTrack(points, this.getTrackerName());
               track = removeBeforeFromLiveTrack(track, keepFromSec);
               simplifyLiveTrack(track, LiveTrackPointIntervalSec.Recent);
               updates.trackerDeltas.set(dsId, track);
@@ -122,7 +122,7 @@ export function parse(flight: any, nowMillis = Date.now()): LivePoint[] {
       lon: lonlat[i * 2 + 1],
       alt: alt[i] - (flight.geoid ?? 0),
       gndAlt: gndAlt[i],
-      timeMs: timeSec * 1000,
+      timeSec,
     };
   });
 }

@@ -4,7 +4,7 @@ import type { UfoFleetNames } from '@flyxc/common';
 import { fetchResponse, formatReqError } from '@flyxc/common';
 
 import type { LivePoint } from '../trackers/live-track';
-import { makeLiveTrack } from '../trackers/live-track';
+import { createLiveTrack } from '../trackers/live-track';
 import type { UfoFleetUpdates } from './ufo';
 import { UfoFleetFetcher } from './ufo';
 
@@ -22,7 +22,7 @@ export class AviantFetcher extends UfoFleetFetcher {
         for (const position of positions) {
           const points = parse(position);
           if (points.length > 0) {
-            const track = makeLiveTrack(points, this.getFleetName());
+            const { track } = createLiveTrack(points, this.getFleetName());
             track.name = position.call_sign;
             updates.deltas.set(position.serial_nr, track);
           }
@@ -50,7 +50,7 @@ export function parse(position: any): LivePoint[] {
     lat,
     lon,
     alt: Math.round(alt),
-    timeMs: Date.parse(timestamp),
+    timeSec: Math.round(Date.parse(timestamp) / 1000),
     speed: Math.round(vel * 3.6),
   };
   return [point];

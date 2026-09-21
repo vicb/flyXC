@@ -19,7 +19,7 @@ import { createXmlParser, pushListCap, sanitizeXmlInput } from '@flyxc/common-no
 import { fetch as undiciFetch } from 'undici';
 
 import type { LivePoint } from './live-track';
-import { makeLiveTrack } from './live-track';
+import { createLiveTrack } from './live-track';
 import { Proxy } from './proxy';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';
@@ -87,7 +87,7 @@ export class InreachFetcher extends TrackerFetcher {
           if (response.ok) {
             try {
               const points = parse(await response.text());
-              const track = makeLiveTrack(points, this.getTrackerName());
+              const { track } = createLiveTrack(points, this.getTrackerName());
               simplifyLiveTrack(track, LiveTrackPointIntervalSec.Recent);
               if (track.timeSec.length > 0) {
                 updates.trackerDeltas.set(id, track);
@@ -213,7 +213,7 @@ export function parse(kmlFeed: string): LivePoint[] {
         lon,
         lat,
         alt: Math.round(alt),
-        timeMs: new Date(time).getTime(),
+        timeSec: Math.round(new Date(time).getTime() / 1000),
         message,
         speed: Number(extendedData['Velocity'].replace(/^([\d]+).*/, '$1')),
         emergency: extendedData['In Emergency'] !== 'False',

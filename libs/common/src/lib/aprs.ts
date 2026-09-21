@@ -1,5 +1,6 @@
 // Generate and parse (OGN) APRS position
 
+import { PilotStatus } from '../protos/fetcher-state';
 import {
   decimalDegreeToDegreesMinutes,
   degreesMinutesToDecimalDegrees,
@@ -72,6 +73,7 @@ export function parseAprsPosition(position: string, nowSec = Math.round(Date.now
   const speed = Math.round(Number(match.groups['speed'] ?? '0') * KNOT_IN_KMH);
   const course = Number(match.groups['course'] ?? '0');
   const alt = Math.round(Number(match.groups['alt'] ?? '0') * FT_IN_METER);
+  const comment = match.groups['comment']?.trim();
   return {
     lat,
     lon,
@@ -79,7 +81,39 @@ export function parseAprsPosition(position: string, nowSec = Math.round(Date.now
     alt,
     speed,
     course,
+    ...(comment ? { comment } : {}),
   };
+}
+
+/**
+ * Extracts a pilot status from a FANET APRS comment if present.
+ *
+ * Recognized codes:
+ * - FNT79: Landed OK
+ * - FNT78: Need Ride
+ * - FNT7D: Need Medical Help
+ * - FNT7E: SOS
+ */
+export function parseFntStatus(comment?: string): PilotStatus | undefined {
+  if (!comment) {
+    return undefined;
+  }
+  const match = comment.match(/\bFNT(7[0-9a-fA-F])\b/);
+  if (!match) {
+    return undefined;
+  }
+  switch (match[1].toUpperCase()) {
+    case '79':
+      return PilotStatus.LANDED_OK;
+    case '78':
+      return PilotStatus.NEED_RIDE;
+    case '7D':
+      return PilotStatus.NEED_HELP;
+    case '7E':
+      return PilotStatus.SOS;
+    default:
+      return undefined;
+  }
 }
 
 export function generateAprsPosition(position: AprsPosition, ognId: string): string {

@@ -16,7 +16,7 @@ export interface LivePoint {
   lat: number;
   lon: number;
   alt: number;
-  timeMs: number;
+  timeSec: number;
   name?: TrackerNames | UfoFleetNames;
   // Whether the gps fix is invalid.
   // undefined or null is considered valid (only false is invalid).
@@ -29,28 +29,65 @@ export interface LivePoint {
   speed?: number | null;
   gndAlt?: number;
   lowBattery?: boolean | null;
+  status?: protos.PilotStatus;
+}
+
+export interface PilotStatusUpdate {
+  status: protos.PilotStatus;
+  statusTimeSec: number;
+}
+
+export interface LiveTrackResult {
+  track: protos.LiveTrack;
+  statusUpdate?: PilotStatusUpdate;
 }
 
 /**
- * Converts points into a live track in chronological order.
+ * Returns a human-readable description for a pilot status.
+ */
+export function getPilotStatusDescription(status: protos.PilotStatus): string {
+  switch (status) {
+    case protos.PilotStatus.FLYING:
+      return 'Flying';
+    case protos.PilotStatus.LANDED_OK:
+      return 'Landed OK';
+    case protos.PilotStatus.NEED_RIDE:
+      return 'Need Ride';
+    case protos.PilotStatus.PICKED_UP:
+      return 'Picked Up';
+    case protos.PilotStatus.NEED_HELP:
+      return 'Need Help';
+    case protos.PilotStatus.SOS:
+      return 'SOS';
+    default:
+      return 'Unknown';
+  }
+}
+
+/**
+ * Converts points into a live track in chronological order and extracts the latest status update.
  *
  * @param points Points to convert. Each point may override the default tracker name.
  * @param defaultTrackerName Tracker name used when a point does not provide one.
- * @returns A live track containing the converted points.
+ * @returns An object containing the live track and the latest status update if any.
  */
-export function makeLiveTrack(
+export function createLiveTrack(
   points: LivePoint[],
   defaultTrackerName?: TrackerNames | UfoFleetNames,
-): protos.LiveTrack {
+): LiveTrackResult {
   if (points.length === 0) {
-    return protos.LiveTrack.create();
+    return { track: protos.LiveTrack.create() };
   }
 
-  points.sort((a, b) => a.timeMs - b.timeMs);
+  points.sort((a, b) => a.timeSec - b.timeSec);
 
   const track = protos.LiveTrack.create();
+  let latestStatusUpdate: PilotStatusUpdate | undefined;
 
   points.forEach((point, index) => {
+    if (point.status != null) {
+      latestStatusUpdate = { status: point.status, statusTimeSec: Math.round(point.timeSec) };
+    }
     const device = point.name ?? defaultTrackerName;
     if (device == null) {
       throw new Error('A tracker name is required for every live point');
@@ -62,7 +99,7 @@ export function makeLiveTrack(
     track.lon.push(round(point.lon, 5));
     track.alt.push(Math.round(point.alt));
     track.gndAlt.push(isGroundAltitudeValid(point.gndAlt) ? Math.round(point.gndAlt) : NO_GROUND_ALTITUDE);
-    track.timeSec.push(Math.round(point.timeMs / 1000));
+    track.timeSec.push(Math.round(point.timeSec));
     track.flags.push(
       getLiveTrackFlags({
         valid: point.valid !== false,
@@ -102,5 +139,5 @@ export function makeLiveTrack(
     }
   }
 
-  return track;
+  return { track, statusUpdate: latestStatusUpdate };
 }

@@ -1,5 +1,5 @@
 export * from './airspaces';
-export { generateAprsPosition, parseAprsPosition } from './aprs';
+export { generateAprsPosition, parseAprsPosition, parseFntStatus } from './aprs';
 export * from './distance';
 export * from './encode';
 export * from './fetch-timeout';

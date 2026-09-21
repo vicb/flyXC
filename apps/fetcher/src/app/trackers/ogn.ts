@@ -3,11 +3,11 @@
 // See http://wiki.glidernet.org/.
 
 import type { protos, TrackerNames } from '@flyxc/common';
-import { validateOgnAccount } from '@flyxc/common';
+import { parseFntStatus, validateOgnAccount } from '@flyxc/common';
 import type { RedisClientMultiCmd } from '@flyxc/common-node';
 
 import type { LivePoint } from './live-track';
-import { makeLiveTrack } from './live-track';
+import { createLiveTrack } from './live-track';
 import type { OgnClient } from './ogn-client';
 import { OgnPusher } from './ogn-push';
 import type { TrackerUpdates } from './tracker';
@@ -58,17 +58,24 @@ export class OgnFetcher extends TrackerFetcher {
 
       const points: LivePoint[] = positions
         .filter((p) => p.timeSec > keepFromSec)
-        .map((p) => ({
-          lat: p.lat,
-          lon: p.lon,
-          alt: p.alt,
-          timeMs: p.timeSec * 1000,
-          speed: p.speed,
-        }));
+        .map((p) => {
+          const status = parseFntStatus(p.comment);
+          return {
+            lat: p.lat,
+            lon: p.lon,
+            alt: p.alt,
+            timeSec: p.timeSec,
+            speed: p.speed,
+            status,
+          };
+        });
 
-      if (points.length > 0) {
-        const track = makeLiveTrack(points, this.getTrackerName());
+      if (points.length > 0 && dsId != null) {
+        const { track, statusUpdate } = createLiveTrack(points, this.getTrackerName());
         updates.trackerDeltas.set(dsId, track);
+        if (statusUpdate) {
+          updates.trackerStatus.set(dsId, statusUpdate);
+        }
       }
     }
 

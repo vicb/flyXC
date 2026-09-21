@@ -1,5 +1,6 @@
+import { PilotStatus } from '../protos/fetcher-state';
 import type { AprsPosition } from './aprs';
-import { generateAprsPosition, parseAprsPosition } from './aprs';
+import { generateAprsPosition, parseAprsPosition, parseFntStatus } from './aprs';
 
 describe('parseAprsPosition', () => {
   it('return null if malformed position', () => {
@@ -116,14 +117,32 @@ describe('parseAprsPosition', () => {
     });
   });
 
-  // Comments removed to save memory
-  it.skip('parse comment', () => {
-    expect(parseAprsPosition('123456h0000.00N/00000.00E/')).toMatchObject({
-      comment: undefined,
-    });
+  it('parse comment', () => {
+    expect(parseAprsPosition('123456h0000.00N/00000.00E/')?.comment).toBeUndefined();
     expect(parseAprsPosition('123456h0000.00N/00000.00E/ comment')).toMatchObject({
       comment: 'comment',
     });
+  });
+
+  it('parse OGN status messages', () => {
+    const p1 = parseAprsPosition('024603h3202.20N\\07642.42En !W88! id3E88BFEA FNT79 71.0dB');
+    expect(p1?.comment).toBe('id3E88BFEA FNT79 71.0dB');
+    expect(parseFntStatus(p1?.comment)).toBe(PilotStatus.LANDED_OK);
+
+    const p2 = parseAprsPosition('024757h3202.20N\\07642.42En !W99! id3E88BFEA FNT78 71.0dB');
+    expect(p2?.comment).toBe('id3E88BFEA FNT78 71.0dB');
+    expect(parseFntStatus(p2?.comment)).toBe(PilotStatus.NEED_RIDE);
+
+    const p3 = parseAprsPosition('024906h3202.20N\\07642.42En !W99! id3E88BFEA FNT7D 72.0dB');
+    expect(p3?.comment).toBe('id3E88BFEA FNT7D 72.0dB');
+    expect(parseFntStatus(p3?.comment)).toBe(PilotStatus.NEED_HELP);
+
+    const p4 = parseAprsPosition('025009h3202.21N\\07642.42En !W00! id3E88BFEA FNT7E 71.0dB');
+    expect(p4?.comment).toBe('id3E88BFEA FNT7E 71.0dB');
+    expect(parseFntStatus(p4?.comment)).toBe(PilotStatus.SOS);
+
+    expect(parseFntStatus('id3E88BFEA 71.0dB')).toBeUndefined();
+    expect(parseFntStatus(undefined)).toBeUndefined();
   });
 });
 

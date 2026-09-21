@@ -12,7 +12,7 @@ import {
 } from '@flyxc/common';
 
 import type { LivePoint } from './live-track';
-import { makeLiveTrack } from './live-track';
+import { createLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';
 
@@ -42,7 +42,7 @@ export class SpotFetcher extends TrackerFetcher {
         if (response.ok) {
           try {
             const points = parse(await response.text());
-            const track = makeLiveTrack(points, this.getTrackerName());
+            const { track } = createLiveTrack(points, this.getTrackerName());
             simplifyLiveTrack(track, LiveTrackPointIntervalSec.Recent);
             if (track.timeSec.length > 0) {
               updates.trackerDeltas.set(id, track);
@@ -128,7 +128,7 @@ export function parse(jsonFeed: string): LivePoint[] {
         lon: fix.longitude,
         lat: fix.latitude,
         alt: fix.altitude,
-        timeMs: fix.unixTime * 1000,
+        timeSec: fix.unixTime,
         emergency: fix.messageType == 'HELP',
         message: fix.messageContent,
         // Values could be "GOOD" or "LOW".
