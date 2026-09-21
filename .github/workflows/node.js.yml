@@ -18,13 +18,11 @@ jobs:
           # We must fetch at least the immediate parents so that if this is
           # a pull request then we can checkout the head.
           fetch-depth: 2
-      - name: Install pnpm
-        uses: pnpm/action-setup@v6
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
+      - name: Setup pnpm and Node.js
+        uses: pnpm/setup@v1
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
+          runtime: node@${{ matrix.node-version }}
+          cache: true
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: 'Test'

@@ -8,7 +8,7 @@
     "check": "syncpack lint && pnpm run fixlint && pnpm nx format && pnpm nx run-many --targets=typecheck,test,lint,build --parallel 6",
     "fixlint": "pnpm nx run-many -t lint --fix --parallel 6"
   },
-  "packageManager": "pnpm@11.10.0",
+  "packageManager": "pnpm@12.5.1",
   "engines": {
     "node": "^24.15"
   },
