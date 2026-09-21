@@ -66,19 +66,24 @@ export function windyDevPlugin(options: WindyDevPluginOptions = {}): Plugin {
     apply: 'serve',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        // 1. CORS & Preflight: Allow only windy.com and www.windy.com across origins.
+        // 1. CORS & Preflight: Allow windy.com, www.windy.com, and sub-module requests without Origin header.
         const requestOrigin = req.headers.origin;
-        const isAllowedOrigin = typeof requestOrigin === 'string' && WINDY_ORIGINS.includes(requestOrigin);
+        const isAllowedOrigin =
+          !requestOrigin || (typeof requestOrigin === 'string' && WINDY_ORIGINS.includes(requestOrigin));
 
         if (isAllowedOrigin) {
-          res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+          res.setHeader('Access-Control-Allow-Origin', requestOrigin ?? '*');
           res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
           res.setHeader('Access-Control-Allow-Headers', '*');
+          res.setHeader('Access-Control-Allow-Private-Network', 'true');
           res.setHeader('Vary', 'Origin');
         }
 
         if (req.method === 'OPTIONS') {
           res.statusCode = isAllowedOrigin ? 204 : 403;
+          if (isAllowedOrigin) {
+            res.setHeader('Access-Control-Allow-Private-Network', 'true');
+          }
           res.end();
           return;
         }

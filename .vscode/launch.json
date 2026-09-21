@@ -9,14 +9,14 @@
       "request": "launch",
       "type": "chrome",
       "url": "https://windy.com/dev",
-      "webRoot": "${workspaceFolder}/libs/windy-souding/dist"
+      "webRoot": "${workspaceFolder}/libs/windy-sounding/dist"
     },
     {
       "name": "Attach to Chrome",
       "port": 9999,
       "request": "attach",
       "type": "chrome",
-      "webRoot": "${workspaceFolder}/windy-sounding/dist"
+      "webRoot": "${workspaceFolder}/libs/windy-sounding/dist"
     },
     {
       "name": "Attach",
