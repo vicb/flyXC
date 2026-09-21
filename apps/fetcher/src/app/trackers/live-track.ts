@@ -141,4 +141,3 @@ export function createLiveTrack(
 
   return { track, statusUpdate: latestStatusUpdate };
 }
-
