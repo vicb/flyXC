@@ -66,6 +66,26 @@ describe('windyDevPlugin CORS handling', () => {
     expect(next).toHaveBeenCalled();
   });
 
+  it('allows sub-module requests without Origin header with *', async () => {
+    const middleware = setupMiddleware();
+    const req = {
+      method: 'GET',
+      url: '/@vite/client',
+      headers: {},
+    } as unknown as IncomingMessage;
+    const res = {
+      setHeader: vi.fn(),
+      end: vi.fn(),
+    } as unknown as ServerResponse;
+    const next = vi.fn();
+
+    await middleware(req, res, next);
+
+    expect(res.setHeader).toHaveBeenCalledWith('Access-Control-Allow-Origin', '*');
+    expect(res.setHeader).toHaveBeenCalledWith('Access-Control-Allow-Private-Network', 'true');
+    expect(next).toHaveBeenCalled();
+  });
+
   it('handles OPTIONS preflight from allowed origin with 204', async () => {
     const middleware = setupMiddleware();
     const req = {
