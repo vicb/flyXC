@@ -1,4 +1,5 @@
 export * from './airspaces';
+export * from './altitude';
 export { generateAprsPosition, parseAprsPosition, parseFntStatus } from './aprs';
 export * from './distance';
 export * from './encode';

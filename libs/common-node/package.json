@@ -10,7 +10,6 @@
     "@google-cloud/pubsub": "catalog:default",
     "@xmldom/xmldom": "catalog:default",
     "redis": "catalog:",
-    "tiny-lru": "catalog:default",
     "tslib": "catalog:default",
     "vaadin-nodom": "workspace:*",
     "zod": "catalog:default"

@@ -1,7 +1,21 @@
 import type { LiveDifferentialTrack, LiveExtra } from '../protos/live-track';
 import { LiveTrack } from '../protos/live-track';
+import {
+  isGroundAltitudeValid,
+  MAX_GROUND_ALTITUDE_ERROR,
+  nextGroundAltitudeError,
+  NO_GROUND_ALTITUDE,
+  shouldFetchGroundAltitude,
+} from './altitude';
 import { Comparison, diffDecodeArray, diffEncodeArray32bit, findFirstIndex } from './math';
 
+export {
+  isGroundAltitudeValid,
+  MAX_GROUND_ALTITUDE_ERROR,
+  nextGroundAltitudeError,
+  NO_GROUND_ALTITUDE,
+  shouldFetchGroundAltitude,
+};
 export { Comparison, findFirstIndex } from './math';
 
 // Number of bits reserved for device names.
@@ -49,15 +63,6 @@ export const TRACK_GAP_MIN = 60;
 
 // Export to partners.
 export const EXPORT_UPDATE_SEC = 5 * 60;
-
-// Sentinel value representing a missing ground altitude or an error during elevation lookup.
-//
-// The maximum value that can be encoded as 2 bytes in Protobuf varint is 16383.
-export const NO_GROUND_ALTITUDE = 9999;
-
-export function isGroundAltitudeValid(gndAlt?: number): boolean {
-  return gndAlt != null && gndAlt !== NO_GROUND_ALTITUDE && !isNaN(gndAlt);
-}
 
 export const trackerNames = [
   'inreach',

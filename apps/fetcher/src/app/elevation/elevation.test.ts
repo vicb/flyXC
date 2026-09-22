@@ -1,6 +1,13 @@
-import { Comparison, findFirstIndex, NO_GROUND_ALTITUDE, type protos } from '@flyxc/common';
-import type { AltitudeResult } from '@flyxc/common-node';
-import { ElevationService } from '@flyxc/common-node';
+import {
+  type AltitudeResult,
+  Comparison,
+  ElevationService,
+  findFirstIndex,
+  MAX_GROUND_ALTITUDE_ERROR,
+  NO_GROUND_ALTITUDE,
+  type protos,
+} from '@flyxc/common';
+import { nodeTileDecoder } from '@flyxc/common-node';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ELEVATION_BATCH_SIZE, ELEVATION_FETCH_TIMEOUT_MS, patchTracksElevation } from './elevation';
@@ -10,7 +17,7 @@ describe('patchTracksElevation', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockElevationService = new ElevationService({ cacheCapacity: 10, zoom: 10 });
+    mockElevationService = new ElevationService({ cacheCapacity: 10, zoom: 10, decoder: nodeTileDecoder });
   });
 
   it('should return immediately when tracks list is empty', async () => {
@@ -158,8 +165,55 @@ describe('patchTracksElevation', () => {
     expect(updates.numFetched).toBe(1);
     expect(updates.numRetrieved).toBe(0);
     expect(updates.errors.length).toBeGreaterThan(0);
-    expect(delta.gndAlt[0]).toBe(NO_GROUND_ALTITUDE);
+    expect(delta.gndAlt[0]).toBe(10000);
     expect(updates.durationSec).toBeGreaterThanOrEqual(0);
+  });
+
+  it('increments error codes on consecutive failures up to MAX_GROUND_ALTITUDE_ERROR', async () => {
+    vi.spyOn(mockElevationService, 'fetchCoordinatesAltitude').mockResolvedValue({
+      altitudes: [NO_GROUND_ALTITUDE],
+      hasErrors: true,
+    } as AltitudeResult);
+
+    const delta: protos.LiveTrack = {
+      timeSec: [1000],
+      lat: [45.0],
+      lon: [6.0],
+      alt: [1000],
+      gndAlt: [10000],
+      flags: [0],
+      extra: {},
+    };
+
+    await patchTracksElevation([{ track: delta }], mockElevationService);
+    expect(delta.gndAlt[0]).toBe(10001);
+
+    delta.gndAlt[0] = 10004;
+    await patchTracksElevation([{ track: delta }], mockElevationService);
+    expect(delta.gndAlt[0]).toBe(MAX_GROUND_ALTITUDE_ERROR);
+
+    // Capped at MAX_GROUND_ALTITUDE_ERROR
+    await patchTracksElevation([{ track: delta }], mockElevationService);
+    expect(delta.gndAlt[0]).toBe(MAX_GROUND_ALTITUDE_ERROR);
+  });
+
+  it('does not retry points that reached MAX_GROUND_ALTITUDE_ERROR', async () => {
+    const fetchSpy = vi.spyOn(mockElevationService, 'fetchCoordinatesAltitude');
+
+    const delta: protos.LiveTrack = {
+      timeSec: [1000],
+      lat: [45.0],
+      lon: [6.0],
+      alt: [1000],
+      gndAlt: [MAX_GROUND_ALTITUDE_ERROR],
+      flags: [0],
+      extra: {},
+    };
+
+    const updates = await patchTracksElevation([{ track: delta }], mockElevationService);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(updates.numFetched).toBe(0);
+    expect(delta.gndAlt[0]).toBe(MAX_GROUND_ALTITUDE_ERROR);
   });
 
   it('retries points with NO_GROUND_ALTITUDE', async () => {

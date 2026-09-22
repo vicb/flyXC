@@ -1,5 +1,15 @@
-import { Comparison, findFirstIndex, isGroundAltitudeValid, NO_GROUND_ALTITUDE, type protos } from '@flyxc/common';
-import { type ElevationCacheStats, ElevationService } from '@flyxc/common-node';
+import {
+  Comparison,
+  type ElevationCacheStats,
+  ElevationService,
+  findFirstIndex,
+  isGroundAltitudeValid,
+  nextGroundAltitudeError,
+  NO_GROUND_ALTITUDE,
+  type protos,
+  shouldFetchGroundAltitude,
+} from '@flyxc/common';
+import { nodeTileDecoder } from '@flyxc/common-node';
 
 export interface ElevationUpdates {
   errors: string[];
@@ -19,7 +29,7 @@ export const ELEVATION_BATCH_SIZE = 50;
 // Timeout in milliseconds for fetching elevations across all tracks.
 export const ELEVATION_FETCH_TIMEOUT_MS = 10_000;
 
-const defaultElevationService = new ElevationService({ cacheSizeMb: 50, zoom: 10 });
+const defaultElevationService = new ElevationService({ cacheSizeMb: 50, zoom: 10, decoder: nodeTileDecoder });
 
 export interface TrackElevationPatch {
   track: protos.LiveTrack;
@@ -73,7 +83,7 @@ export async function patchTracksElevation(
         : 0;
 
     for (let i = startIdx; i < track.lat.length; i++) {
-      if (!isGroundAltitudeValid(track.gndAlt[i])) {
+      if (shouldFetchGroundAltitude(track.gndAlt[i])) {
         targets.push({ track, idx: i });
         allLats.push(track.lat[i]);
         allLons.push(track.lon[i]);
@@ -108,15 +118,21 @@ export async function patchTracksElevation(
       }
       for (let i = 0; i < batchTargets.length; i++) {
         const alt = result.altitudes[i];
+        const { track, idx } = batchTargets[i];
         if (isGroundAltitudeValid(alt)) {
-          const { track, idx } = batchTargets[i];
           track.gndAlt[idx] = Math.round(alt);
           updates.numRetrieved++;
+        } else {
+          track.gndAlt[idx] = nextGroundAltitudeError(track.gndAlt[idx]);
         }
       }
     } catch (e) {
       hasErrors = true;
       updates.errors.push(e instanceof Error ? e.message : String(e));
+      for (let i = 0; i < batchTargets.length; i++) {
+        const { track, idx } = batchTargets[i];
+        track.gndAlt[idx] = nextGroundAltitudeError(track.gndAlt[idx]);
+      }
     }
 
     if (offset + ELEVATION_BATCH_SIZE < targets.length && Date.now() - startMs >= ELEVATION_FETCH_TIMEOUT_MS) {
