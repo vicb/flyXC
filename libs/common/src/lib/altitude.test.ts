@@ -49,6 +49,7 @@ describe('ground altitude retry range', () => {
 
   it('computes next ground altitude error correctly', () => {
     expect(nextGroundAltitudeError(undefined)).toBe(10000);
+    expect(nextGroundAltitudeError(NaN)).toBe(10000);
     expect(nextGroundAltitudeError(NO_GROUND_ALTITUDE)).toBe(10000);
     expect(nextGroundAltitudeError(10000)).toBe(10001);
     expect(nextGroundAltitudeError(10001)).toBe(10002);

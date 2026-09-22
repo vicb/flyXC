@@ -64,7 +64,7 @@ export function shouldFetchGroundAltitude(gndAlt?: number): boolean {
  * @returns The next error sentinel value, ranging between `10000` and `MAX_GROUND_ALTITUDE_ERROR` (10005).
  */
 export function nextGroundAltitudeError(gndAlt?: number): number {
-  if (gndAlt == null || gndAlt <= NO_GROUND_ALTITUDE) {
+  if (gndAlt == null || isNaN(gndAlt) || gndAlt <= NO_GROUND_ALTITUDE) {
     return 10000;
   }
   return Math.min(MAX_GROUND_ALTITUDE_ERROR, gndAlt + 1);
