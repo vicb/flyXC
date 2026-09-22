@@ -6,10 +6,69 @@
 // - https://observablehq.com/@benjaminortizulloa/mapzen-dem
 // - https://www.mapzen.com/blog/terrain-tile-service/
 
-import lodepng from '@cwasm/lodepng';
-import { fetchResponse, NO_GROUND_ALTITUDE, parallelTasksWithTimeout } from '@flyxc/common';
 import type { LRU } from 'tiny-lru';
 import { lru } from 'tiny-lru';
+
+import { fetchResponse } from './fetch-timeout';
+import { parallelTasksWithTimeout } from './util';
+
+// Sentinel value representing a missing ground altitude that has not been fetched yet.
+//
+// Values from NO_GROUND_ALTITUDE (9999) to MAX_GROUND_ALTITUDE_ERROR (10005) represent
+// missing elevations or consecutive lookup failures:
+// - 9999: not fetched yet
+// - 10000: fetched once with error
+// - 10001: fetched twice with error
+// - ...
+// - 10005: max errors reached, stop fetching
+//
+// The maximum value that can be encoded as 2 bytes in Protobuf varint is 16383.
+export const NO_GROUND_ALTITUDE = 9999;
+export const MAX_GROUND_ALTITUDE_ERROR = 10005;
+
+/**
+ * Validates whether a ground altitude value is a real elevation measurement.
+ *
+ * Values in the sentinel range `[NO_GROUND_ALTITUDE, MAX_GROUND_ALTITUDE_ERROR]` (9999..10005),
+ * as well as `null`, `undefined`, and `NaN`, are considered invalid.
+ */
+export function isGroundAltitudeValid(gndAlt?: number): boolean {
+  return gndAlt != null && !isNaN(gndAlt) && (gndAlt < NO_GROUND_ALTITUDE || gndAlt > MAX_GROUND_ALTITUDE_ERROR);
+}
+
+/**
+ * Determines whether a ground elevation lookup should be attempted for a given ground altitude value.
+ *
+ * Elevation fetching is skipped if the altitude is already valid (e.g. within normal terrestrial ranges)
+ * or if it has reached `MAX_GROUND_ALTITUDE_ERROR` (10005), indicating that repeated attempts have failed
+ * and further retries should be abandoned to prevent redundant queries.
+ *
+ * @param gndAlt - The current ground altitude value or sentinel code.
+ * @returns `true` if the ground altitude is missing/invalid and has not yet reached the retry limit (10005); `false` otherwise.
+ */
+export function shouldFetchGroundAltitude(gndAlt?: number): boolean {
+  return !isGroundAltitudeValid(gndAlt) && (gndAlt == null || isNaN(gndAlt) || gndAlt < MAX_GROUND_ALTITUDE_ERROR);
+}
+
+/**
+ * Computes the next sentinel error code following a failed ground elevation lookup.
+ *
+ * Error progression follows the sentinel range `9999..10005`:
+ * - If the altitude has not been fetched yet (`NO_GROUND_ALTITUDE` / 9999, `undefined`, `null`, or `<= 9999`),
+ *   transitions to `10000` (first failure).
+ * - For existing error codes (`10000..10004`), increments the code by 1 to track consecutive attempts.
+ * - Once reaching `MAX_GROUND_ALTITUDE_ERROR` (10005), caps at 10005 so callers can recognize that the maximum
+ *   number of retry attempts has been reached.
+ *
+ * @param gndAlt - The previous ground altitude sentinel code before the current failure.
+ * @returns The next error sentinel value, ranging between `10000` and `MAX_GROUND_ALTITUDE_ERROR` (10005).
+ */
+export function nextGroundAltitudeError(gndAlt?: number): number {
+  if (gndAlt == null || isNaN(gndAlt) || gndAlt <= NO_GROUND_ALTITUDE) {
+    return 10000;
+  }
+  return Math.min(MAX_GROUND_ALTITUDE_ERROR, gndAlt + 1);
+}
 
 // Expected tile size in pixels.
 export const TILE_SIZE_PX = 256;
@@ -24,6 +83,12 @@ export const DOWNLOAD_CONCURRENCY_DEFAULT = 5;
 export const TIMEOUT_SEC_DEFAULT = 10;
 
 const DEG_TO_RAD = Math.PI / 180;
+
+/**
+ * Function that decodes a raw tile image buffer into RGBA pixel data (256x256x4 bytes).
+ * Returns null if decoding fails.
+ */
+export type TileDecoder = (buffer: ArrayBufferLike) => Uint8ClampedArray | Promise<Uint8ClampedArray | null> | null;
 
 /**
  * Precomputed Mercator projection constants for a specific zoom level.
@@ -76,11 +141,13 @@ export interface AltitudeResult {
 
 /**
  * Configuration options for ElevationService.
- * Callers must explicitly provide zoom and either cacheSizeMb or cacheCapacity.
+ * Callers must provide zoom, decoder, and either cacheSizeMb or cacheCapacity.
  */
 export type ElevationOptions = {
   /** Zoom level for altitude tiles. */
   zoom: number;
+  /** Function to decode raw tile image buffers into 256x256 RGBA pixel data. */
+  decoder: TileDecoder;
   /** Default concurrency for tile downloads (defaults to DOWNLOAD_CONCURRENCY_DEFAULT). */
   concurrency?: number;
   /** Timeout in seconds for tile downloads (defaults to TIMEOUT_SEC_DEFAULT). */
@@ -121,12 +188,12 @@ export class ElevationService {
   private readonly concurrency: number;
   private readonly timeoutSec: number;
   private readonly zoomConstants: ZoomConstants;
+  private readonly decoder: TileDecoder;
 
   /**
    * Initializes a new ElevationService instance.
-   * Callers must provide zoom and either cacheSizeMb or cacheCapacity.
    *
-   * @param options - Configuration options specifying zoom, cache size/capacity, and optional concurrency/timeoutSec.
+   * @param options - Configuration options specifying zoom, decoder, cache size/capacity, and optional concurrency/timeoutSec.
    */
   constructor(options: ElevationOptions) {
     let capacity: number;
@@ -141,6 +208,7 @@ export class ElevationService {
     this.concurrency = options.concurrency ?? DOWNLOAD_CONCURRENCY_DEFAULT;
     this.timeoutSec = options.timeoutSec ?? TIMEOUT_SEC_DEFAULT;
     this.zoomConstants = createZoomConstants(options.zoom);
+    this.decoder = options.decoder;
   }
 
   /**
@@ -172,8 +240,6 @@ export class ElevationService {
    * Fast Web Mercator projection without heap allocations.
    * Writes output into provided array or typed array: [tileX, tileY, pxX, pxY].
    *
-   * NOTE: Primarily used internally and exposed for unit tests.
-   *
    * @param lat - Latitude in degrees.
    * @param lon - Longitude in degrees.
    * @param out - Array or typed array written in-place with `[tileX, tileY, pxX, pxY]`.
@@ -189,7 +255,7 @@ export class ElevationService {
   }
 
   /**
-   * Downloads a single tile from AWS S3, decodes PNG via @cwasm/lodepng, and caches the RGBA buffer.
+   * Downloads a single tile from AWS S3, decodes PNG via pluggable decoder, and caches the RGBA buffer.
    * In-flight requests are deduplicated.
    *
    * @param url - The tile URL to download.
@@ -217,9 +283,9 @@ export class ElevationService {
         });
         if (response.ok) {
           const buffer = await response.arrayBuffer();
-          const img = lodepng.decode(Buffer.from(buffer));
-          if (img.width === TILE_SIZE_PX && img.height === TILE_SIZE_PX) {
-            rgba = img.data;
+          const decoded = await this.decoder(buffer);
+          if (decoded != null && decoded.length === BYTES_PER_TILE) {
+            rgba = decoded;
           }
         }
       } catch {
@@ -390,9 +456,6 @@ export class ElevationService {
 /**
  * Returns the URL of a Terrarium PNG image from the AWS Open Data dataset.
  *
- * NOTE: Primarily used in tests (e.g., verifying URL formatting and priming mock tiles in cache)
- * and internally when fetching tiles.
- *
  * @param x - Tile X coordinate in Web Mercator projection.
  * @param y - Tile Y coordinate in Web Mercator projection.
  * @param zoom - Zoom level of the tile.
@@ -405,8 +468,6 @@ export function getElevationTileUrl(x: number, y: number, zoom: number): string 
 /**
  * Fast Web Mercator projection without heap allocations.
  * Writes output into provided array or typed array: [tileX, tileY, pxX, pxY].
- *
- * NOTE: Primarily used internally and exported for unit tests.
  *
  * @param lat - Latitude in degrees.
  * @param lon - Longitude in degrees.
@@ -444,8 +505,6 @@ export function projectLatLonFast(
 /**
  * Extracts unique Terrarium tile URLs needed for the given latitude and longitude series.
  * Optimized with spatial locality to skip duplicate string/Set operations for consecutive fixes.
- *
- * NOTE: Primarily used internally and exported for unit tests.
  *
  * @param lat - Array-like collection of latitudes in degrees.
  * @param lon - Array-like collection of longitudes in degrees.
@@ -485,8 +544,6 @@ export function getElevationUrlList(
 /**
  * Extracts tile URLs from a track object or coordinate series.
  *
- * NOTE: Only used for tests (e.g. testing URL generation on track fixtures).
- *
  * @param track - Object containing latitude and longitude arrays.
  * @param constants - Zoom projection constants including the zoom level.
  * @param maxNumUrls - Maximum number of URLs to return.
@@ -498,9 +555,6 @@ export function getUrlList(track: TrackCoordinates, constants: ZoomConstants, ma
 
 /**
  * Samples elevation in meters from decoded Terrarium RGBA buffer at in-tile pixel coordinates.
- *
- * NOTE: Primarily used in tests to verify elevation decoding formulas on isolated RGBA buffers
- * and internally by the service.
  *
  * @param rgba - Decoded 256x256 RGBA pixel buffer (Uint8ClampedArray).
  * @param pxX - Pixel X offset within the tile (0–255).

@@ -1,24 +1,70 @@
-import * as common from '@flyxc/common';
-import { getPixelCoordinates } from '@flyxc/common';
-import { vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  BYTES_PER_TILE,
   createZoomConstants,
   ElevationService,
   getAltitudeFromRgba,
   getElevationTileUrl,
   getElevationUrlList,
   getUrlList,
+  isGroundAltitudeValid,
+  MAX_GROUND_ALTITUDE_ERROR,
+  nextGroundAltitudeError,
+  NO_GROUND_ALTITUDE,
   projectLatLonFast,
+  shouldFetchGroundAltitude,
   TILE_SIZE_PX,
+  type TileDecoder,
   TIMEOUT_SEC_DEFAULT,
 } from './altitude';
+import * as fetchTimeout from './fetch-timeout';
+import { getPixelCoordinates } from './proj';
 
-describe('Altitude in common-node', () => {
+describe('ground altitude retry range', () => {
+  it('validates ground altitudes correctly', () => {
+    expect(isGroundAltitudeValid(undefined)).toBe(false);
+    expect(isGroundAltitudeValid(NaN)).toBe(false);
+    expect(isGroundAltitudeValid(0)).toBe(true);
+    expect(isGroundAltitudeValid(-100)).toBe(true);
+    expect(isGroundAltitudeValid(1500)).toBe(true);
+    expect(isGroundAltitudeValid(8848)).toBe(true);
+    expect(isGroundAltitudeValid(NO_GROUND_ALTITUDE)).toBe(false);
+    expect(isGroundAltitudeValid(10000)).toBe(false);
+    expect(isGroundAltitudeValid(10001)).toBe(false);
+    expect(isGroundAltitudeValid(10004)).toBe(false);
+    expect(isGroundAltitudeValid(MAX_GROUND_ALTITUDE_ERROR)).toBe(false);
+    expect(isGroundAltitudeValid(10006)).toBe(true);
+  });
+
+  it('determines when ground altitude should be fetched', () => {
+    expect(shouldFetchGroundAltitude(undefined)).toBe(true);
+    expect(shouldFetchGroundAltitude(NaN)).toBe(true);
+    expect(shouldFetchGroundAltitude(NO_GROUND_ALTITUDE)).toBe(true);
+    expect(shouldFetchGroundAltitude(10000)).toBe(true);
+    expect(shouldFetchGroundAltitude(10004)).toBe(true);
+    expect(shouldFetchGroundAltitude(MAX_GROUND_ALTITUDE_ERROR)).toBe(false);
+    expect(shouldFetchGroundAltitude(1500)).toBe(false);
+  });
+
+  it('computes next ground altitude error correctly', () => {
+    expect(nextGroundAltitudeError(undefined)).toBe(10000);
+    expect(nextGroundAltitudeError(NaN)).toBe(10000);
+    expect(nextGroundAltitudeError(NO_GROUND_ALTITUDE)).toBe(10000);
+    expect(nextGroundAltitudeError(10000)).toBe(10001);
+    expect(nextGroundAltitudeError(10001)).toBe(10002);
+    expect(nextGroundAltitudeError(10004)).toBe(MAX_GROUND_ALTITUDE_ERROR);
+    expect(nextGroundAltitudeError(MAX_GROUND_ALTITUDE_ERROR)).toBe(MAX_GROUND_ALTITUDE_ERROR);
+  });
+});
+
+describe('Elevation in common', () => {
+  const mockDecoder: TileDecoder = vi.fn(() => new Uint8ClampedArray(BYTES_PER_TILE));
   let elevationService: ElevationService;
 
   beforeEach(() => {
-    elevationService = new ElevationService({ cacheCapacity: 100, zoom: 10 });
+    vi.clearAllMocks();
+    elevationService = new ElevationService({ cacheCapacity: 100, zoom: 10, decoder: mockDecoder });
   });
 
   describe('Fast Web Mercator Projection', () => {
@@ -58,7 +104,7 @@ describe('Altitude in common-node', () => {
       const testZooms = [0, 1, 3, 5, 8, 10, 12, 15];
 
       for (const zoom of testZooms) {
-        const zoomService = new ElevationService({ cacheCapacity: 10, zoom });
+        const zoomService = new ElevationService({ cacheCapacity: 10, zoom, decoder: mockDecoder });
         const constants = createZoomConstants(zoom);
 
         for (const { lat, lon } of testCoordinates) {
@@ -220,11 +266,11 @@ describe('Altitude in common-node', () => {
     });
 
     it('does not cache failed tile downloads allowing later retries', async () => {
-      const fetchSpy = vi.spyOn(common, 'fetchResponse').mockRejectedValueOnce(new Error('Network error'));
+      const fetchSpy = vi.spyOn(fetchTimeout, 'fetchResponse').mockRejectedValueOnce(new Error('Network error'));
 
       const result = await elevationService.fetchCoordinatesAltitude([45.83], [6.86]);
       expect(result.hasErrors).toBe(true);
-      expect(result.altitudes).toEqual([common.NO_GROUND_ALTITUDE]);
+      expect(result.altitudes).toEqual([NO_GROUND_ALTITUDE]);
 
       // Verify URL was not stored in cache
       const tileUrl = getElevationTileUrl(531, 364, 10);
@@ -236,7 +282,7 @@ describe('Altitude in common-node', () => {
 
     it('limits tile fetching to at most 50 tiles per request to protect cache', async () => {
       // Create a service with sufficient cache capacity
-      const service = new ElevationService({ cacheCapacity: 100, zoom: 10 });
+      const service = new ElevationService({ cacheCapacity: 100, zoom: 10, decoder: mockDecoder });
       const count = 60;
       const lats = new Float64Array(count);
       const lons = new Float64Array(count);
@@ -281,17 +327,17 @@ describe('Altitude in common-node', () => {
   describe('ElevationService class', () => {
     it('supports custom cache size in MB and tile capacity', () => {
       // 50 MB should give capacity around ~191 tiles
-      const service50Mb = new ElevationService({ cacheSizeMb: 50, zoom: 10 });
+      const service50Mb = new ElevationService({ cacheSizeMb: 50, zoom: 10, decoder: mockDecoder });
       expect(service50Mb.getCache().max).toBe(191);
 
       // Custom tile capacity directly
-      const service10Tiles = new ElevationService({ cacheCapacity: 10, zoom: 10 });
+      const service10Tiles = new ElevationService({ cacheCapacity: 10, zoom: 10, decoder: mockDecoder });
       expect(service10Tiles.getCache().max).toBe(10);
     });
 
     it('isolates cache between different service instances', async () => {
-      const serviceA = new ElevationService({ cacheCapacity: 10, zoom: 10 });
-      const serviceB = new ElevationService({ cacheCapacity: 10, zoom: 10 });
+      const serviceA = new ElevationService({ cacheCapacity: 10, zoom: 10, decoder: mockDecoder });
+      const serviceB = new ElevationService({ cacheCapacity: 10, zoom: 10, decoder: mockDecoder });
 
       const dummyTile = new Uint8ClampedArray(256 * 256 * 4);
       dummyTile[0] = 131; // 1000m
@@ -309,7 +355,7 @@ describe('Altitude in common-node', () => {
     });
 
     it('returns cache statistics including size and MB', () => {
-      const service = new ElevationService({ cacheSizeMb: 50, zoom: 10 });
+      const service = new ElevationService({ cacheSizeMb: 50, zoom: 10, decoder: mockDecoder });
       expect(service.getCacheStats()).toEqual({
         size: 0,
         max: 191,
@@ -327,11 +373,42 @@ describe('Altitude in common-node', () => {
       expect(stats.sizeMb).toBe(1); // 2 * 262144 / 1e6 ~ 0.52 -> rounds to 1
       expect(stats.maxMb).toBe(50);
     });
+
+    it('invokes decoder when downloading tiles', async () => {
+      const customDecoder: TileDecoder = vi.fn(() => {
+        const tile = new Uint8ClampedArray(BYTES_PER_TILE);
+        for (let i = 0; i < 256 * 256; i++) {
+          tile[i * 4] = 131;
+          tile[i * 4 + 1] = 232;
+          tile[i * 4 + 3] = 255;
+        }
+        return tile;
+      });
+      const service = new ElevationService({ cacheCapacity: 10, zoom: 10, decoder: customDecoder });
+
+      const fetchSpy = vi.spyOn(fetchTimeout, 'fetchResponse').mockResolvedValueOnce({
+        ok: true,
+        arrayBuffer: async () => new ArrayBuffer(100),
+      } as any);
+
+      const result = await service.fetchCoordinatesAltitude([45.83], [6.86]);
+      expect(fetchSpy).toHaveBeenCalled();
+      expect(customDecoder).toHaveBeenCalled();
+      expect(result.hasErrors).toBe(false);
+      expect(result.altitudes[0]).toBe(1000);
+
+      fetchSpy.mockRestore();
+    });
   });
 
   describe('Timeout handling', () => {
     it('fills missing coordinates with NO_GROUND_ALTITUDE when a timeout occurs', async () => {
-      const service = new ElevationService({ cacheCapacity: 10, zoom: 10, timeoutSec: 0.05 });
+      const service = new ElevationService({
+        cacheCapacity: 10,
+        zoom: 10,
+        timeoutSec: 0.05,
+        decoder: mockDecoder,
+      });
 
       // Point 1 in tile (531, 364)
       const lat1 = 45.8326;
@@ -352,7 +429,7 @@ describe('Altitude in common-node', () => {
       service.getCache().set(getElevationTileUrl(coords[0], coords[1], 10), dummyTile);
 
       // Mock fetchResponse to hang longer than timeoutSec (50ms)
-      const fetchSpy = vi.spyOn(common, 'fetchResponse').mockImplementation(
+      const fetchSpy = vi.spyOn(fetchTimeout, 'fetchResponse').mockImplementation(
         () =>
           new Promise((resolve) => {
             setTimeout(
@@ -371,15 +448,15 @@ describe('Altitude in common-node', () => {
       // First point is from cached tile -> 1000m
       expect(result.altitudes[0]).toBe(1000);
       // Second point timed out and is missing -> NO_GROUND_ALTITUDE
-      expect(result.altitudes[1]).toBe(common.NO_GROUND_ALTITUDE);
+      expect(result.altitudes[1]).toBe(NO_GROUND_ALTITUDE);
 
       fetchSpy.mockRestore();
     });
 
     it('allows timeoutSec override per call', async () => {
-      const service = new ElevationService({ cacheCapacity: 10, zoom: 10 });
+      const service = new ElevationService({ cacheCapacity: 10, zoom: 10, decoder: mockDecoder });
 
-      const fetchSpy = vi.spyOn(common, 'fetchResponse').mockImplementation(
+      const fetchSpy = vi.spyOn(fetchTimeout, 'fetchResponse').mockImplementation(
         () =>
           new Promise((resolve) => {
             setTimeout(
@@ -395,14 +472,14 @@ describe('Altitude in common-node', () => {
 
       const result = await service.fetchCoordinatesAltitude([45.0], [6.0], 5, 0.05);
       expect(result.hasErrors).toBe(true);
-      expect(result.altitudes[0]).toBe(common.NO_GROUND_ALTITUDE);
+      expect(result.altitudes[0]).toBe(NO_GROUND_ALTITUDE);
 
       fetchSpy.mockRestore();
     });
 
     it('has default timeout constant set to 10 seconds', () => {
       expect(TIMEOUT_SEC_DEFAULT).toBe(10);
-      const service = new ElevationService({ cacheCapacity: 10, zoom: 10 });
+      const service = new ElevationService({ cacheCapacity: 10, zoom: 10, decoder: mockDecoder });
       // Access private timeoutSec for verification
       expect((service as any).timeoutSec).toBe(10);
     });
