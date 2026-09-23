@@ -1,3 +1,4 @@
+import type { protos } from '@flyxc/common';
 import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -41,31 +42,63 @@ const dashedLineIconsFactory: (opacity: number) => google.maps.IconSequence[] = 
   },
 ];
 
-// Extract properties with the correct type.
+/**
+ * Extracts a typed property value from a GeoJSON Point feature.
+ *
+ * @param feature - The Google Maps Data feature.
+ * @param key - The property key to retrieve.
+ * @returns The typed property value.
+ */
 function getPointProp<K extends keyof LivePointProperties>(feature: google.maps.Data.Feature, key: K) {
   return feature.getProperty(key) as LivePointProperties[K];
 }
 
-// Extract properties with the correct type.
+/**
+ * Extracts a typed property value from a GeoJSON LineString feature.
+ *
+ * @param feature - The Google Maps Data feature.
+ * @param key - The property key to retrieve.
+ * @returns The typed property value.
+ */
 function getLineProp<K extends keyof LiveLineProperties>(feature: google.maps.Data.Feature, key: K) {
   return feature.getProperty(key) as LiveLineProperties[K];
 }
 
-const positionSvg = (
-  color: string,
-  opacity: number,
-): string => `<svg xmlns="http://www.w3.org/2000/svg" height="9" width="9">
-<circle r="3" cx="4" cy="4" fill="${color}" stroke="black" stroke-width="1" opacity="${opacity}"/>
+/**
+ * Generates an SVG string for the current position marker dot on a live track.
+ *
+ * @param color - Fill color for the circle.
+ * @param opacity - Opacity of the circle.
+ * @returns An SVG markup string.
+ */
+const positionSvg = (color: string, opacity: number): string =>
+  `<svg xmlns="http://www.w3.org/2000/svg" height="19" width="19">
+<circle r="6" cx="9" cy="9" fill="${color}" stroke="black" stroke-width="1.5" opacity="${opacity}"/>
 </svg>`;
 
+/**
+ * Generates an SVG string for a directional arrow pilot icon.
+ *
+ * @param angle - Orientation angle in degrees.
+ * @param color - Fill color for the arrow.
+ * @param opacity - Opacity of the arrow.
+ * @returns An SVG markup string.
+ */
 const arrowSvg = (
   angle: number,
   color: string,
   opacity: number,
-) => `<svg xmlns="http://www.w3.org/2000/svg" height="19" width="19">
+): string => `<svg xmlns="http://www.w3.org/2000/svg" height="19" width="19">
 <path d='M9 3 l-5 13 l5 -3 l5 3z' fill="${color}" stroke="black" stroke-width="1" transform="rotate(${angle}, 9, 9)"  opacity="${opacity}"/>
 </svg>`;
 
+/**
+ * Generates an SVG string for a message fix icon.
+ *
+ * @param color - Fill color for the message icon.
+ * @param opacity - Opacity of the message icon.
+ * @returns An SVG markup string.
+ */
 const msgSvg = (
   color: string,
   opacity: number,
@@ -73,7 +106,14 @@ const msgSvg = (
 <path fill="${color}" stroke="black" stroke-width="1" opacity="${opacity}" d="M2.5 2C1.7 2 1 2.7 1 3.5 l 0 8 c0 .8.7 1.5 1.5 1.5 H4 l 0 2.4 L 7.7 13 l 4.8 0 c.8 0 1.5 -.7 1.5 -1.5 l 0 -8 c 0 -.8 -.7 -1.5 -1.5 -1.5 z"/>
 </svg>`;
 
-// https://www.svgrepo.com/svg/23593/old-plane
+/**
+ * Generates an SVG string for an unidentified flying object (UFO) icon.
+ *
+ * @param angle - Heading angle in degrees.
+ * @param color - Fill color.
+ * @param opacity - Opacity.
+ * @returns An SVG markup string.
+ */
 const ufoSvg = (
   angle: number,
   color: string,
@@ -98,17 +138,26 @@ export class TrackingElement extends connect(store)(LitElement) {
   private numTracks = 0;
   @state()
   plannerEnabled = false;
-
+  @state()
+  private timeSec = 0;
+  @state()
   private units?: Units;
+  @state()
+  private liveTrack?: protos.LiveTrack;
+
   private info?: google.maps.InfoWindow;
 
   private features: google.maps.Data.Feature[] = [];
   private clearCurrentPilotListener?: google.maps.MapsEventListener;
+  private positionMarker?: google.maps.Marker;
 
+  /**
+   * Initializes the element, configures icon anchors, and sets up map event listeners.
+   */
   connectedCallback(): void {
     super.connectedCallback();
     // At this point the api has been loaded.
-    ANCHOR_POSITION = new google.maps.Point(4, 4);
+    ANCHOR_POSITION = new google.maps.Point(9, 9);
     ANCHOR_ARROW = new google.maps.Point(9, 9);
     ORIGIN_ARROW = new google.maps.Point(9, 36);
     ANCHOR_UFO = new google.maps.Point(8, 8);
@@ -121,14 +170,26 @@ export class TrackingElement extends connect(store)(LitElement) {
       store.dispatch(setCurrentLiveId(undefined));
       this.info?.close();
     });
+    this.updateMovingDot(true);
   }
 
+  /**
+   * Cleans up map event listeners and removes the position marker.
+   */
   disconnectedCallback(): void {
     super.disconnectedCallback();
     this.clearCurrentPilotListener?.remove();
     this.clearCurrentPilotListener = undefined;
+    this.positionMarker?.setMap(null);
+    this.positionMarker = undefined;
   }
 
+  /**
+   * Updates map GeoJSON features, styles, and moving dot marker when relevant properties change.
+   *
+   * @param changedProps - Map of changed properties with their previous values.
+   * @returns True if Lit should render an update.
+   */
   shouldUpdate(changedProps: PropertyValues): boolean {
     if (changedProps.has('geojson')) {
       const features = this.features;
@@ -141,13 +202,28 @@ export class TrackingElement extends connect(store)(LitElement) {
       changedProps.has('displayLabels') ||
       changedProps.has('currentId') ||
       changedProps.has('numTracks') ||
-      changedProps.has('plannerEnabled')
+      changedProps.has('plannerEnabled') ||
+      changedProps.has('units')
     ) {
       this.setMapStyle(this.map);
+    }
+    // Refresh moving marker dot when timestamp, pilot selection, track data, or units change.
+    if (
+      changedProps.has('timeSec') ||
+      changedProps.has('currentId') ||
+      changedProps.has('liveTrack') ||
+      changedProps.has('units')
+    ) {
+      this.updateMovingDot(changedProps.has('currentId'));
     }
     return super.shouldUpdate(changedProps);
   }
 
+  /**
+   * Handles Redux store state updates for live tracking.
+   *
+   * @param state - The updated root Redux state.
+   */
   stateChanged(state: RootState): void {
     this.units = state.units;
     this.displayLabels = state.liveTrack.displayLabels;
@@ -155,13 +231,79 @@ export class TrackingElement extends connect(store)(LitElement) {
     this.currentId = state.liveTrack.currentLiveId;
     this.numTracks = sel.numTracks(state);
     this.plannerEnabled = state.planner.enabled;
+    this.timeSec = state.app.timeSec;
+    this.liveTrack = sel.activeLiveTrack(state);
   }
 
+  /**
+   * Updates or hides the moving dot marker for the active live track on the map.
+   *
+   * The dot is displayed only when a live track is selected and the current timestamp
+   * is within the active (last) segment's time span.
+   *
+   * @param hasCurrentIdChanged - Whether the selected pilot ID has changed.
+   */
+  private updateMovingDot(hasCurrentIdChanged = false): void {
+    if (!this.map || !this.currentId) {
+      this.positionMarker?.setMap(null);
+      return;
+    }
+
+    // Only display the moving dot on the active (last) segment of the track.
+    const liveTrack = this.liveTrack ?? sel.activeLiveTrack(store.getState());
+    if (
+      !liveTrack ||
+      liveTrack.timeSec.length === 0 ||
+      this.timeSec < liveTrack.timeSec[0] ||
+      this.timeSec > liveTrack.timeSec[liveTrack.timeSec.length - 1]
+    ) {
+      this.positionMarker?.setMap(null);
+      return;
+    }
+
+    const pos = sel.getTrackLatLonAlt(store.getState())(this.timeSec);
+    if (!pos) {
+      this.positionMarker?.setMap(null);
+      return;
+    }
+
+    const color = getUniqueContrastColor(this.currentId);
+    if (!this.positionMarker) {
+      this.positionMarker = new google.maps.Marker({
+        map: this.map,
+        zIndex: 100,
+        cursor: 'default',
+        icon: {
+          url: `data:image/svg+xml;base64,${btoa(positionSvg(color, 1))}`,
+          anchor: ANCHOR_POSITION,
+        },
+      });
+    } else if (hasCurrentIdChanged) {
+      this.positionMarker.setIcon({
+        url: `data:image/svg+xml;base64,${btoa(positionSvg(color, 1))}`,
+        anchor: ANCHOR_POSITION,
+      });
+    }
+
+    this.positionMarker.setPosition({ lat: pos.lat, lng: pos.lon });
+    if (this.units && pos.alt != null) {
+      const gndAlt = sel.getGndAlt(store.getState())(this.timeSec);
+      const altStr = formatUnit(pos.alt, this.units.altitude);
+      const aglStr = gndAlt != null ? ` (${formatUnit(Math.max(0, pos.alt - gndAlt), this.units.altitude)} AGL)` : '';
+      this.positionMarker.setTitle(`${altStr}${aglStr}`);
+    }
+    this.positionMarker.setMap(this.map);
+  }
+
+  /**
+   * Sets up the info window and click listener for map data features (pilot icons, messages, tracks).
+   *
+   * @param map - The Google Maps map instance.
+   */
   private setupInfoWindow(map: google.maps.Map): void {
     this.info = new google.maps.InfoWindow({ headerDisabled: false });
     this.info.close();
     this.info.addListener('closeclick', () => {
-      store.dispatch(setCurrentLiveId(undefined));
       this.setMapStyle(this.map);
     });
 
@@ -198,6 +340,11 @@ export class TrackingElement extends connect(store)(LitElement) {
     });
   }
 
+  /**
+   * Sets the style function on the map's Data layer.
+   *
+   * @param map - The Google Maps map instance.
+   */
   private setMapStyle(map: google.maps.Map): void {
     map.data.setStyle((feature: google.maps.Data.Feature): google.maps.Data.StyleOptions => {
       switch (feature.getGeometry()?.getType()) {
@@ -211,49 +358,36 @@ export class TrackingElement extends connect(store)(LitElement) {
     });
   }
 
-  // Using data-url with icon is much faster than using symbols.
+  /**
+   * Computes the style options for a Point feature (pilot marker, message, emergency).
+   *
+   * Using data-URL with SVG icons is much faster than using Google Maps symbols.
+   *
+   * @param feature - The Point Data feature.
+   * @returns The style options for rendering the point.
+   */
   private getPointStyle(feature: google.maps.Data.Feature): google.maps.Data.StyleOptions {
-    const nowSec = Date.now() / 1000;
-    const pilotId = getPointProp(feature, 'pilotId');
-    const alt = getPointProp(feature, 'alt');
-    const gndAlt = getPointProp(feature, 'gndAlt');
-    const ageMin = Math.round((nowSec - getPointProp(feature, 'timeSec')) / 60);
     const fixType = getPointProp(feature, 'fixType');
+    const pilotId = getPointProp(feature, 'pilotId');
     const isActive = pilotId === this.currentId;
-
-    const elevationStr = formatUnit(alt, this.units!.altitude);
-    const title = gndAlt == null ? undefined : `${formatUnit(Math.max(0, alt - gndAlt), this.units!.altitude)} AGL`;
+    const nowSec = Date.now() / 1000;
+    const ageMin = Math.round((nowSec - getPointProp(feature, 'timeSec')) / 60);
 
     let opacity = ageMin > RECENT_TIMEOUT_MIN ? 0.3 : 0.9;
-    const color = getUniqueContrastColor(pilotId);
-    let labelColor = 'black';
-    let svg = positionSvg(color, opacity);
-    let labelOrigin: google.maps.Point | undefined;
-    let anchor = ANCHOR_POSITION;
-    let zIndex = 10;
-    let fontWeight: string | undefined;
-    let label: google.maps.MarkerLabel | undefined;
-
     if (isActive) {
       opacity = 0.9;
-      labelColor = '#BF1515';
-      zIndex = 20;
-      fontWeight = '500';
     }
 
-    if (this.displayLabels && (isActive || ageMin < 6 * 60)) {
-      label = {
-        color: labelColor,
-        text: `${getPointProp(feature, 'name')}\n${elevationStr} · -${formatDurationMin(ageMin)}`,
-        className: 'gm-label-outline',
-        fontWeight,
-      };
-    }
+    let svg: string;
+    let anchor: google.maps.Point | undefined;
+    let labelOrigin: google.maps.Point | undefined;
+    let zIndex = 10;
 
     switch (fixType) {
       case FixType.pilot:
         {
           const heading = getPointProp(feature, 'heading') ?? 0;
+          const color = getUniqueContrastColor(pilotId);
           if (getPointProp(feature, 'isUfo')) {
             anchor = ANCHOR_UFO;
             labelOrigin = ORIGIN_UFO;
@@ -262,6 +396,9 @@ export class TrackingElement extends connect(store)(LitElement) {
             anchor = ANCHOR_ARROW;
             labelOrigin = ORIGIN_ARROW;
             svg = arrowSvg(heading, color, opacity);
+          }
+          if (isActive) {
+            zIndex = 20;
           }
         }
         break;
@@ -281,8 +418,24 @@ export class TrackingElement extends connect(store)(LitElement) {
         break;
 
       default:
-        label = undefined;
+        return { visible: false };
     }
+
+    let label: google.maps.MarkerLabel | undefined;
+    if (fixType === FixType.pilot && this.displayLabels && (isActive || ageMin < 6 * 60)) {
+      const alt = getPointProp(feature, 'alt');
+      const elevationStr = formatUnit(alt, this.units!.altitude);
+      label = {
+        color: isActive ? '#BF1515' : 'black',
+        text: `${getPointProp(feature, 'name')}\n${elevationStr} · -${formatDurationMin(ageMin)}`,
+        className: 'gm-label-outline',
+        fontWeight: isActive ? '500' : undefined,
+      };
+    }
+
+    const alt = getPointProp(feature, 'alt');
+    const gndAlt = getPointProp(feature, 'gndAlt');
+    const title = gndAlt == null ? undefined : `${formatUnit(Math.max(0, alt - gndAlt), this.units!.altitude)} AGL`;
 
     return {
       label,
@@ -297,6 +450,15 @@ export class TrackingElement extends connect(store)(LitElement) {
     };
   }
 
+  /**
+   * Computes the style options for a LineString feature (live track line).
+   *
+   * Renders previous segments before gaps as dashed lines, highlights the selected track,
+   * and dims non-selected tracks when a track is active.
+   *
+   * @param feature - The LineString Data feature.
+   * @returns The style options for rendering the line.
+   */
   private getTrackStyle(feature: google.maps.Data.Feature): google.maps.Data.StyleOptions {
     const nowSec = Date.now() / 1000;
     const id = getLineProp(feature, 'id');

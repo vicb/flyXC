@@ -1,14 +1,13 @@
 import type { LatLonAlt, protos } from '@flyxc/common';
 import { getLastMessage, isEmergencyTrack, isGroundAltitudeValid, LiveTrackDurationSec } from '@flyxc/common';
 import type { EntityState, PayloadAction } from '@reduxjs/toolkit';
-import { createAsyncThunk, createEntityAdapter, createSelector, createSlice } from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, createEntityAdapter, createSelector, createSlice } from '@reduxjs/toolkit';
 
+import { isMobile } from '../logic/browser';
 import { getFetchParameters } from '../logic/live-track';
 import type { Response } from '../workers/live-track';
 import LiveTrackWorker from '../workers/live-track?worker';
-import { isMobile } from './browser-slice';
 import type { RootState } from './store';
-import { store } from './store';
 
 // Refresh live tracks every.
 const REFRESH_INTERVAL_SEC = isMobile() ? 2 * 60 : 60;
@@ -66,8 +65,11 @@ const trackSlice = createSlice({
       state.fetchMillis = action.payload;
     },
     startRefreshTimer: (state) => {
-      if (!state.refreshTimer) {
-        state.refreshTimer = setInterval(() => store.dispatch(updateTrackers()), REFRESH_INTERVAL_SEC * 1000);
+      if (!state.refreshTimer && appStore) {
+        state.refreshTimer = setInterval(
+          () => appStore?.dispatch(updateTrackers() as any),
+          REFRESH_INTERVAL_SEC * 1000,
+        );
       }
     },
     stopRefreshTimer: (state) => {
@@ -87,14 +89,45 @@ const trackSlice = createSlice({
       state.historySec = action.payload;
     },
   },
+  extraReducers: (builder) => {
+    // Automatically clear live track selection when a runtime track is selected,
+    // enforcing store-level mutual exclusion between runtime and live tracks.
+    builder.addCase(createAction<string | undefined>('track/setCurrentTrackId'), (state, action) => {
+      if (action.payload != null) {
+        state.currentLiveId = undefined;
+      }
+    });
+  },
 });
 
-const trackWorker = new LiveTrackWorker();
-trackWorker.onmessage = (msg: MessageEvent<Response>) => {
-  store.dispatch(trackSlice.actions.setTracks(msg.data.tracks));
-  store.dispatch(trackSlice.actions.setGeojson(msg.data.geojson));
-};
+let appStore: { dispatch: (action: any) => void } | undefined;
+let trackWorker: Worker | undefined;
 
+/**
+ * Initializes live tracking, setting up the background worker for track processing
+ * and visibility change listeners.
+ *
+ * @param store - The Redux store or dispatch provider.
+ */
+export function initLiveTracking(store: { dispatch: (action: any) => void }): void {
+  appStore = store;
+  if (typeof Worker !== 'undefined') {
+    if (!trackWorker) {
+      trackWorker = new LiveTrackWorker();
+    }
+    trackWorker.onmessage = (msg: MessageEvent<Response>) => {
+      store.dispatch(trackSlice.actions.setTracks(msg.data.tracks));
+      store.dispatch(trackSlice.actions.setGeojson(msg.data.geojson));
+    };
+    handleVisibility();
+    document.addEventListener('visibilitychange', () => handleVisibility());
+  }
+}
+
+/**
+ * Async thunk to fetch live tracking updates from the API server and pass them
+ * to the web worker for decoding and GeoJSON feature generation.
+ */
 export const updateTrackers = createAsyncThunk('liveTrack/fetch', async (_: undefined, api) => {
   try {
     const state = (api.getState() as RootState).liveTrack;
@@ -104,7 +137,7 @@ export const updateTrackers = createAsyncThunk('liveTrack/fetch', async (_: unde
     const response = await fetch(`${import.meta.env.VITE_API_SERVER}/api/live/tracks.pbf?sec=${fetchSec}`);
     if (response.status === 200) {
       const tracks = state.tracks.entities;
-      trackWorker.postMessage({
+      trackWorker?.postMessage({
         buffer: await response.arrayBuffer(),
         historySec: state.historySec,
         isIncremental,
@@ -119,18 +152,28 @@ export const updateTrackers = createAsyncThunk('liveTrack/fetch', async (_: unde
   }
 });
 
-export function handleVisibility(): void {
+/**
+ * Starts or stops live tracking updates according to document visibility.
+ *
+ * Pauses periodic polling when the tab is hidden to save bandwidth and battery.
+ *
+ * @param store - Optional Redux store reference.
+ */
+export function handleVisibility(store?: { dispatch: (action: any) => void }): void {
+  if (store) {
+    appStore = store;
+  }
+  if (!appStore) {
+    return;
+  }
   const visible = document.visibilityState == 'visible';
   if (visible) {
-    store.dispatch(updateTrackers());
-    store.dispatch(trackSlice.actions.startRefreshTimer());
+    appStore.dispatch(updateTrackers() as any);
+    appStore.dispatch(trackSlice.actions.startRefreshTimer());
   } else {
-    store.dispatch(trackSlice.actions.stopRefreshTimer());
+    appStore.dispatch(trackSlice.actions.stopRefreshTimer());
   }
 }
-
-// The timer should only be active when the app is visible.
-document.addEventListener('visibilitychange', handleVisibility);
 
 export const reducer = trackSlice.reducer;
 export const { setReturnUrl, setCurrentLiveId, setDisplayLabels, setCenterOnLocation, setFetchMillis, setHistorySec } =

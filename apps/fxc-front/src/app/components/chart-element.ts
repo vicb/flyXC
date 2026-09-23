@@ -1,22 +1,82 @@
-import type { Class, RuntimeTrack, Type } from '@flyxc/common';
+import type { Class, protos, Type } from '@flyxc/common';
 import { Flags, isAirspaceVisible, sampleAt } from '@flyxc/common';
 import { ticks } from 'd3-array';
 import type { CSSResult, PropertyValues, SVGTemplateResult, TemplateResult } from 'lit';
 import { css, html, LitElement, svg } from 'lit';
-import { customElement, query, state } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
-import { connect } from 'pwa-helpers';
+import { when } from 'lit/directives/when.js';
 
 import * as units from '../logic/units';
-import { ChartYAxis, setChartYAxis } from '../redux/app-slice';
-import * as sel from '../redux/selectors';
-import type { RootState } from '../redux/store';
-import { store } from '../redux/store';
+
+/**
+ * Metrics that can be displayed on the chart's primary Y-axis.
+ */
+export enum ChartYAxis {
+  /** Altitude profile (in meters, formatted according to user preferences). */
+  Altitude = 0,
+  /** Horizontal ground speed profile. */
+  Speed = 1,
+  /** Vertical speed (variometer) profile. */
+  Vario = 2,
+}
+
+/**
+ * Generic track representation rendered by `<chart-element>`.
+ *
+ * Can represent runtime tracks (e.g. from IGC/GPX files) or live tracking tracks.
+ */
+export interface ChartTrack {
+  /** Unique identifier of the track. */
+  id: string;
+  /** Display name of the pilot or track. */
+  name?: string;
+  /** Visual color used to render the track line. */
+  color?: string;
+  /** Array of timestamps in epoch seconds. */
+  timeSec: number[];
+  /** Array of altitude points in meters corresponding to timeSec. */
+  alt: number[];
+  /** Optional array of ground elevation points in meters. */
+  gndAlt?: number[];
+  /** Optional array of horizontal speeds. */
+  vx?: number[];
+  /** Optional array of vertical speeds / variometer values. */
+  vz?: number[];
+  /** Optional airspace definitions intersected by the track. */
+  airspaces?: protos.Airspaces;
+  /** Time offset in seconds applied when synchronizing multiple tracks. */
+  offsetSeconds?: number;
+  /** Minimum altitude across the track. */
+  minAlt?: number;
+  /** Maximum altitude across the track. */
+  maxAlt?: number;
+  /** Minimum horizontal speed across the track. */
+  minVx?: number;
+  /** Maximum horizontal speed across the track. */
+  maxVx?: number;
+  /** Minimum vertical speed across the track. */
+  minVz?: number;
+  /** Maximum vertical speed across the track. */
+  maxVz?: number;
+  /** Start timestamp in epoch seconds. */
+  minTimeSec?: number;
+  /** End timestamp in epoch seconds. */
+  maxTimeSec?: number;
+  /** Whether the track is a live tracking track. */
+  isLive?: boolean;
+}
 
 const MIN_SPEED_FACTOR = 16;
 const MAX_SPEED_FACTOR = 4096;
 const PLAY_INTERVAL_MILLIS = 50;
 
+/**
+ * Returns the CSS class name corresponding to airspace restriction flags.
+ *
+ * @param flags - Bitwise airspace classification flags.
+ * @returns The CSS modifier string (`prohibited`, `restricted`, `danger`, or `other`).
+ */
 function getAirspaceCssClass(flags: number): string {
   if (flags & Flags.AirspaceProhibited) {
     return `prohibited`;
@@ -30,32 +90,53 @@ function getAirspaceCssClass(flags: number): string {
   return `other`;
 }
 
+/**
+ * Interactive SVG elevation, speed, and vario profile chart for flight tracks.
+ *
+ * Renders flight paths, ground elevation, airspace intersections, time & metric axes,
+ * playback controls, and a synchronized time scrubber cursor.
+ */
 @customElement('chart-element')
-export class ChartElement extends connect(store)(LitElement) {
-  @state()
-  private tracks: RuntimeTrack[] = [];
-  @state()
-  private chartYAxis: ChartYAxis = ChartYAxis.Altitude;
-  @state()
-  private timeSec = 0;
+export class ChartElement extends LitElement {
+  @property({ attribute: false })
+  tracks: ChartTrack[] = [];
+  @property({ attribute: false })
+  chartYAxis: ChartYAxis = ChartYAxis.Altitude;
+  @property({ attribute: false })
+  availableYAxes: ChartYAxis[] = [ChartYAxis.Altitude, ChartYAxis.Speed, ChartYAxis.Vario];
+  @property({ attribute: false })
+  timeSec = 0;
+  @property({ attribute: false })
+  currentTrackId?: string;
+  @property({ attribute: false })
+  minTimeSec?: number;
+  @property({ attribute: false })
+  maxTimeSec?: number;
+  @property({ attribute: false })
+  minY?: number;
+  @property({ attribute: false })
+  maxY?: number;
+  @property({ attribute: false })
+  units?: units.Units;
+  @property({ attribute: false })
+  showClasses: Class[] = [];
+  @property({ attribute: false })
+  showTypes: Type[] = [];
+  @property({ type: Boolean })
+  isLiveTrack = false;
+
+  private get isLive(): boolean {
+    return this.isLiveTrack || this.tracks.some((t) => t.isLive);
+  }
+
   @state()
   private width = 0;
   @state()
   private height = 0;
   @state()
-  private units?: units.Units;
-  @state()
-  private showClasses: Class[] = [];
-  @state()
-  private showTypes: Type[] = [];
-  @state()
-  private currentTrackId?: string;
-  @state()
   private playSpeed = 64;
   @state()
   private playTimer?: number;
-  @state()
-  private trackColors: { [id: string]: string } = {};
 
   // Last time the track animation was paused and corresponding timestamp
   private lastPauseMs = 0;
@@ -64,73 +145,99 @@ export class ChartElement extends connect(store)(LitElement) {
   @query('#thumb')
   private thumbElement?: SVGLineElement;
 
-  // mins, maxs and offsets are in seconds.
-  private minTimeSec = 0;
-  private maxTimeSec = 1;
-  private offsetSeconds: { [id: string]: number } = {};
-  // Throttle timestamp and airspace updates.
+  // Throttle timestamp updates.
   private nextTimestampUpdate = 0;
   private sizeListener = () => this.updateSize();
 
-  stateChanged(state: RootState): void {
-    this.tracks = sel.tracks(state);
-    this.chartYAxis = state.app.chartYAxis;
-    this.timeSec = state.app.timeSec;
-    this.minTimeSec = sel.minTimeSec(state);
-    this.maxTimeSec = sel.maxTimeSec(state);
-    this.units = state.units;
-    this.offsetSeconds = sel.offsetSeconds(state);
-    this.showClasses = state.airspace.showClasses;
-    this.showTypes = state.airspace.showTypes;
-    this.currentTrackId = state.track.currentTrackId;
-    this.trackColors = sel.trackColors(state);
-  }
-
-  private get minY(): number {
-    const state = store.getState();
+  private get computedMinY(): number {
+    if (this.minY != null) {
+      return this.minY;
+    }
+    if (this.tracks.length === 0) {
+      return 0;
+    }
     switch (this.chartYAxis) {
-      case ChartYAxis.Speed:
-        return sel.minSpeed(state);
-      case ChartYAxis.Vario:
-        return sel.minVario(state);
-      default:
-        return sel.minAlt(state);
+      case ChartYAxis.Speed: {
+        const mins = this.tracks.map((t) => t.minVx ?? (t.vx?.length ? Math.min(...t.vx) : 0));
+        return Math.min(...mins);
+      }
+      case ChartYAxis.Vario: {
+        const mins = this.tracks.map((t) => t.minVz ?? (t.vz?.length ? Math.min(...t.vz) : 0));
+        return Math.min(...mins);
+      }
+      default: {
+        const mins = this.tracks.map((t) => t.minAlt ?? (t.alt.length ? Math.min(...t.alt) : 0));
+        return Math.min(...mins);
+      }
     }
   }
 
-  private get maxY(): number {
-    const state = store.getState();
-    switch (this.chartYAxis) {
-      case ChartYAxis.Speed:
-        return sel.maxSpeed(state);
-      case ChartYAxis.Vario:
-        return sel.maxVario(state);
-      default:
-        return sel.maxAlt(state);
+  private get computedMaxY(): number {
+    if (this.maxY != null) {
+      return this.maxY;
     }
+    if (this.tracks.length === 0) {
+      return 1;
+    }
+    switch (this.chartYAxis) {
+      case ChartYAxis.Speed: {
+        const maxs = this.tracks.map((t) => t.maxVx ?? (t.vx?.length ? Math.max(...t.vx) : 1));
+        return Math.max(...maxs);
+      }
+      case ChartYAxis.Vario: {
+        const maxs = this.tracks.map((t) => t.maxVz ?? (t.vz?.length ? Math.max(...t.vz) : 1));
+        return Math.max(...maxs);
+      }
+      default: {
+        const maxs = this.tracks.map((t) => t.maxAlt ?? (t.alt.length ? Math.max(...t.alt) : 1));
+        return Math.max(...maxs);
+      }
+    }
+  }
+
+  private get computedMinTimeSec(): number {
+    if (this.minTimeSec != null) {
+      return this.minTimeSec;
+    }
+    if (this.tracks.length === 0) {
+      return 0;
+    }
+    const starts = this.tracks.map((t) => (t.minTimeSec ?? t.timeSec[0]) - (t.offsetSeconds ?? 0));
+    return Math.min(...starts);
+  }
+
+  private get computedMaxTimeSec(): number {
+    if (this.maxTimeSec != null) {
+      return this.maxTimeSec;
+    }
+    if (this.tracks.length === 0) {
+      return 1;
+    }
+    const ends = this.tracks.map((t) => (t.maxTimeSec ?? t.timeSec[t.timeSec.length - 1]) - (t.offsetSeconds ?? 0));
+    return Math.max(...ends);
   }
 
   // time is in seconds.
-  private getY(track: RuntimeTrack, timeSec: number): number {
+  private getY(track: ChartTrack, timeSec: number): number {
     switch (this.chartYAxis) {
       case ChartYAxis.Speed:
-        return sampleAt(track.timeSec, track.vx, timeSec);
+        return track.vx ? sampleAt(track.timeSec, track.vx, timeSec) : 0;
       case ChartYAxis.Vario:
-        return sampleAt(track.timeSec, track.vz, timeSec);
+        return track.vz ? sampleAt(track.timeSec, track.vz, timeSec) : 0;
       default:
         return sampleAt(track.timeSec, track.alt, timeSec);
     }
   }
 
   private getYUnit(): units.DistanceUnit | units.SpeedUnit {
-    const logUnits = this.units as units.Units;
+    const logUnits = this.units;
     switch (this.chartYAxis) {
       case ChartYAxis.Speed:
-        return logUnits.speed;
+        return logUnits?.speed ?? units.SpeedUnit.KilometersPerHour;
       case ChartYAxis.Vario:
-        return logUnits.vario;
+        return logUnits?.vario ?? units.SpeedUnit.MetersPerSecond;
       default:
-        return logUnits.altitude;
+        return logUnits?.altitude ?? units.DistanceUnit.Meters;
     }
   }
 
@@ -179,7 +286,7 @@ export class ChartElement extends connect(store)(LitElement) {
           stroke-width: 0.5px;
         }
         .ticks {
-          font: 10px sans-serif;
+          font: 12px sans-serif;
           user-select: none;
           pointer-events: none;
           stroke-width: 0.5px;
@@ -245,7 +352,9 @@ export class ChartElement extends connect(store)(LitElement) {
 
   connectedCallback(): void {
     super.connectedCallback();
-    new ResizeObserver(this.sizeListener).observe(this);
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(this.sizeListener).observe(this);
+    }
     // Sometimes the SVG has a 0x0 size when opened in a new window.
     if (document.visibilityState != 'visible') {
       document.addEventListener('visibilitychange', () => setTimeout(this.sizeListener, 500));
@@ -256,6 +365,10 @@ export class ChartElement extends connect(store)(LitElement) {
     super.disconnectedCallback();
     window.removeEventListener('resize', this.sizeListener);
     document.removeEventListener('visibilitychange', this.sizeListener);
+    if (this.playTimer) {
+      clearInterval(this.playTimer);
+      this.playTimer = undefined;
+    }
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
@@ -303,11 +416,34 @@ export class ChartElement extends connect(store)(LitElement) {
         </defs>
         <rect width="100%" height="100%" fill="white" />
         ${guard(
-          [this.tracks, this.showClasses, this.showTypes, this.width, this.height, this.chartYAxis],
+          [
+            this.tracks,
+            this.currentTrackId,
+            this.showClasses,
+            this.showTypes,
+            this.width,
+            this.height,
+            this.chartYAxis,
+            this.minY,
+            this.maxY,
+            this.minTimeSec,
+            this.maxTimeSec,
+          ],
           () => svg`<g class="paths">${this.paths()}</g>`,
         )}
         ${guard(
-          [this.tracks, this.width, this.height, this.chartYAxis],
+          [
+            this.tracks,
+            this.width,
+            this.height,
+            this.chartYAxis,
+            this.minY,
+            this.maxY,
+            this.minTimeSec,
+            this.maxTimeSec,
+            this.units,
+            this.isLive,
+          ],
           () => svg`<g class="axis">${this.axis()}</g>
         <g class="ticks">${this.yTexts()}</g>
         <g class="ticks">${this.xTexts()}</g>`,
@@ -315,11 +451,20 @@ export class ChartElement extends connect(store)(LitElement) {
         <line id="thumb" x1="0" x2="0" y2="100%"></line>
       </svg>
       <div id="ct">
-        <select @change=${this.handleYChange}>
-          <option value=${ChartYAxis.Altitude} selected>Altitude</option>
-          <option value=${ChartYAxis.Speed}>Speed</option>
-          <option value=${ChartYAxis.Vario}>Vario</option>
-        </select>
+        ${when(
+          this.availableYAxes.length > 1,
+          () => html`
+            <select @change=${this.handleYChange}>
+              ${this.availableYAxes.map(
+                (axis) => html`
+                  <option value=${axis} ?selected=${this.chartYAxis === axis}>
+                    ${axis === ChartYAxis.Altitude ? 'Altitude' : axis === ChartYAxis.Speed ? 'Speed' : 'Vario'}
+                  </option>
+                `,
+              )}
+            </select>
+          `,
+        )}
         <div class="control">
           <i
             class="la la-2x la-chevron-down"
@@ -342,7 +487,6 @@ export class ChartElement extends connect(store)(LitElement) {
     // Wait for the element to get a size.
     // Then `updateSize()` will trigger a re-render by updating properties.
     // It helps with Safari which needs explicit width and height.
-    // See
     const timeout = Date.now() + 5000;
     const waitForSize = () => {
       if (this.clientWidth > 0) {
@@ -354,10 +498,18 @@ export class ChartElement extends connect(store)(LitElement) {
     waitForSize();
   }
 
+  /**
+   * Generates SVG path elements for the elevation profiles of all tracks.
+   *
+   * Draws ground elevation when a single track is in altitude mode, and highlights
+   * the active track. Supports short active segments with at least two fixes.
+   *
+   * @returns Array of SVG template results representing track and terrain paths.
+   */
   private paths(): TemplateResult[] {
     const paths: TemplateResult[] = [];
 
-    // Dot not render before the width is set.
+    // Do not render before the width is set.
     if (this.tracks.length == 0 || this.width < 50) {
       return paths;
     }
@@ -365,25 +517,26 @@ export class ChartElement extends connect(store)(LitElement) {
     let activePath: SVGTemplateResult | undefined;
 
     // Display the gnd elevation only if there is a single track & mode is altitude
-
     const displayGndAlt = this.tracks.length == 1 && this.chartYAxis == ChartYAxis.Altitude;
 
     this.tracks.forEach((track) => {
-      if (track.timeSec.length < 5) {
+      // At least 2 points are required to define a line segment on the chart.
+      if (track.timeSec.length < 2) {
         return;
       }
       // Span of the track on the X axis.
-      const offsetSeconds = this.offsetSeconds[track.id];
+      const offsetSeconds = track.offsetSeconds ?? 0;
       const minX = this.getXAtTimeSec(track.timeSec[0], offsetSeconds);
       const maxX = this.getXAtTimeSec(track.timeSec[track.timeSec.length - 1], offsetSeconds);
 
       const trackCoords: string[] = [];
-      const gndCoords = [`${minX},${this.getYAtHeight(this.minY).toFixed(1)}`];
+      const gndCoords = [`${minX},${this.getYAtHeight(this.computedMinY).toFixed(1)}`];
 
-      if (displayGndAlt && track.gndAlt) {
+      if (displayGndAlt && track.gndAlt && track.airspaces) {
         paths.push(...this.airspacePaths(track));
       }
-      for (let x = minX; x < maxX; x++) {
+      // Sample all horizontal pixels across the track span up to maxX.
+      for (let x = minX; x <= maxX; x++) {
         const timeSec = this.getTimeSecAtX(x) + offsetSeconds;
         const y = this.getY(track, timeSec);
         trackCoords.push(`${x.toFixed(1)},${this.getYAtHeight(y).toFixed(1)}`);
@@ -392,17 +545,21 @@ export class ChartElement extends connect(store)(LitElement) {
           gndCoords.push(`${x.toFixed(1)},${this.getYAtHeight(gndAlt).toFixed(1)}`);
         }
       }
-      gndCoords.push(`${maxX},${this.getYAtHeight(this.minY).toFixed(1)}`);
-      if (displayGndAlt) {
+      // When minX equals maxX, append the end fix to guarantee at least two path coordinates.
+      if (trackCoords.length === 1) {
+        const yEnd = this.getY(track, track.timeSec[track.timeSec.length - 1]);
+        trackCoords.push(`${maxX.toFixed(1)},${this.getYAtHeight(yEnd).toFixed(1)}`);
+      }
+      gndCoords.push(`${maxX},${this.getYAtHeight(this.computedMinY).toFixed(1)}`);
+      if (displayGndAlt && track.gndAlt) {
         paths.push(svg`<path class=gnd d=${`M${gndCoords.join('L')}`}></path>`);
       }
+      const trackColor = track.color ?? 'black';
       if (track.id == this.currentTrackId) {
-        activePath = svg`<path class='active' stroke=${this.trackColors[track.id]} filter=url(#shadow-active)
+        activePath = svg`<path class='active' stroke=${trackColor} filter=url(#shadow-active)
           d=${`M${trackCoords.join('L')}`}></path>`;
       } else {
-        paths.push(
-          svg`<path stroke=${this.trackColors[track.id]} d=${`M${trackCoords.join('L')}`} filter=url(#shadow)></path>`,
-        );
+        paths.push(svg`<path stroke=${trackColor} d=${`M${trackCoords.join('L')}`} filter=url(#shadow)></path>`);
       }
     });
 
@@ -414,8 +571,13 @@ export class ChartElement extends connect(store)(LitElement) {
     return paths;
   }
 
-  // Compute the SVG paths for the airspaces.
-  private airspacePaths(track: RuntimeTrack): SVGTemplateResult[] {
+  /**
+   * Computes the SVG path elements for airspaces intersected by the given track.
+   *
+   * @param track - The track whose airspaces to render.
+   * @returns An array of SVG path template results.
+   */
+  private airspacePaths(track: ChartTrack): SVGTemplateResult[] {
     const airspaces = track.airspaces;
     if (airspaces == null) {
       return [];
@@ -466,8 +628,20 @@ export class ChartElement extends connect(store)(LitElement) {
     return paths;
   }
 
+  /**
+   * Generates sample points for an airspace top or bottom boundary line,
+   * factoring in terrain altitude when the boundary is AGL (above ground level).
+   *
+   * @param track - The flight track.
+   * @param startSec - Start timestamp of the airspace segment.
+   * @param endSec - End timestamp of the airspace segment.
+   * @param alt - Boundary altitude value in meters.
+   * @param refGnd - Whether the boundary references ground elevation (AGL).
+   * @param clampTo - Altitude limits to clamp the line within.
+   * @returns Array of `[timeSec, altitude]` coordinates.
+   */
   private aspLine(
-    track: RuntimeTrack,
+    track: ChartTrack,
     startSec: number,
     endSec: number,
     alt: number,
@@ -500,11 +674,16 @@ export class ChartElement extends connect(store)(LitElement) {
     return reverse ? points.reverse() : points;
   }
 
+  /**
+   * Renders horizontal grid lines across the chart Y axis.
+   *
+   * @returns An array of SVG line template results.
+   */
   private axis(): TemplateResult[] {
     const axis: TemplateResult[] = [];
 
-    if (this.tracks) {
-      const tks = ticks(this.minY, this.maxY, 4);
+    if (this.tracks.length > 0) {
+      const tks = ticks(this.computedMinY, this.computedMaxY, 4);
 
       tks.forEach((tick) => {
         // Draw line
@@ -516,11 +695,16 @@ export class ChartElement extends connect(store)(LitElement) {
     return axis;
   }
 
+  /**
+   * Generates Y-axis label text SVG elements with white background stroke for readability.
+   *
+   * @returns An array of SVG text template results.
+   */
   private yTexts(): TemplateResult[] {
     const texts: TemplateResult[] = [];
 
-    if (this.tracks) {
-      const tks = ticks(this.minY, this.maxY, 4);
+    if (this.tracks.length > 0) {
+      const tks = ticks(this.computedMinY, this.computedMaxY, 4);
 
       tks.forEach((tick) => {
         const y = this.getYAtHeight(tick);
@@ -534,27 +718,63 @@ export class ChartElement extends connect(store)(LitElement) {
     return texts;
   }
 
+  /**
+   * Generates X-axis time label text SVG elements along the bottom of the chart.
+   * For live tracks, also renders a right-aligned age label ("now" or "now - Xmin")
+   * and skips any overlapping tick labels.
+   *
+   * @returns An array of SVG text template results.
+   */
   private xTexts(): TemplateResult[] {
     const texts: TemplateResult[] = [];
 
-    if (this.tracks) {
-      const minute = 60 * 1000;
+    if (this.tracks.length > 0) {
+      const minute = 60;
       const hour = 60 * minute;
 
-      // Push minTs 50px right to avoid writing over the alt scale
-      const minSec = this.getTimeSecAtX(50);
-      const timeSpan = this.maxTimeSec - minSec;
-      const tickSpan = Math.ceil(timeSpan / hour / 6) * hour;
+      // Push minTs 60px right to avoid writing over the alt scale
+      const minSec = this.getTimeSecAtX(60);
+      const timeSpan = this.computedMaxTimeSec - minSec;
+      const tickSpan = Math.max(hour, Math.ceil(timeSpan / hour / 6) * hour);
       const date = new Date(minSec * 1000);
       const startTime =
         new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() + 1).getTime() / 1000;
 
-      for (let timeSec = startTime; timeSec < this.maxTimeSec; timeSec += tickSpan) {
+      let rightLabel = '';
+      let rightLabelX = 0;
+      let rightLabelLeftEdge = Infinity;
+
+      if (this.isLive && this.computedMaxTimeSec > 0) {
+        const nowSec = Date.now() / 1000;
+        const ageMin = Math.round((nowSec - this.computedMaxTimeSec) / 60);
+        rightLabel = ageMin <= 0 ? 'now' : `now - ${units.formatDurationMin(ageMin)}`;
+        rightLabelX = this.width - 4;
+        // Estimate label width: ~8px per character in 12px font, plus margin
+        const approxWidth = Math.max(rightLabel.length * 8, 35);
+        rightLabelLeftEdge = rightLabelX - approxWidth;
+      }
+
+      for (let timeSec = startTime; timeSec < this.computedMaxTimeSec; timeSec += tickSpan) {
         const x = this.getXAtTimeSec(timeSec);
-        const date = new Date(timeSec * 1000).toLocaleTimeString();
+        // Skip tick label if it would overlap with the rightmost live label.
+        // Tick label is centered at x (approx width ~ 60px, so right edge is x + 30).
+        if (rightLabel && x + 30 >= rightLabelLeftEdge) {
+          continue;
+        }
+        const dateStr = new Date(timeSec * 1000).toLocaleTimeString();
         texts.push(
-          svg`<text text-anchor=middle stroke-width=3 y=${this.height} x=${x.toFixed(1)} dy=-4>${date}</text>
-          <text text-anchor=middle y=${this.height} x=${x.toFixed(1)} dy=-4>${date}</text>`,
+          svg`<text text-anchor=middle stroke-width=3 y=${this.height} x=${x.toFixed(1)} dy=-4>${dateStr}</text>
+          <text text-anchor=middle y=${this.height} x=${x.toFixed(1)} dy=-4>${dateStr}</text>`,
+        );
+      }
+
+      // Add the rightmost live label if it doesn't overlap with the left scale (x > 70).
+      if (rightLabel && rightLabelLeftEdge > 70) {
+        texts.push(
+          svg`<text text-anchor=end stroke-width=3 y=${this.height} x=${rightLabelX.toFixed(
+            1,
+          )} dy=-4>${rightLabel}</text>
+          <text text-anchor=end y=${this.height} x=${rightLabelX.toFixed(1)} dy=-4>${rightLabel}</text>`,
         );
       }
     }
@@ -562,22 +782,30 @@ export class ChartElement extends connect(store)(LitElement) {
     return texts;
   }
 
+  /**
+   * Synchronizes internal width and height with the component's client dimensions.
+   */
   private updateSize(): void {
     this.width = this.clientWidth;
     this.height = this.clientHeight;
   }
 
-  private handlePlay() {
+  /**
+   * Toggles track replay playback on or off.
+   */
+  private handlePlay(): void {
+    const minTimeSec = this.computedMinTimeSec;
+    const maxTimeSec = this.computedMaxTimeSec;
     if (this.playTimer) {
       clearInterval(this.playTimer);
       this.playTimer = undefined;
       this.lastPauseMs = Date.now();
     } else {
       // Restart from the beginning if play has not been used for 30s,
-      if (this.lastPauseMs < Date.now() - 30 * 1000 || this.timeSec == this.maxTimeSec) {
-        this.dispatchEvent(new CustomEvent('move', { detail: { timeSec: this.minTimeSec } }));
+      if (this.lastPauseMs < Date.now() - 30 * 1000 || this.timeSec == maxTimeSec) {
+        this.dispatchEvent(new CustomEvent('move', { detail: { timeSec: minTimeSec } }));
       } else {
-        const timeSec = Math.min(Math.max(this.lastPauseTimestampSec, this.minTimeSec), this.maxTimeSec);
+        const timeSec = Math.min(Math.max(this.lastPauseTimestampSec, minTimeSec), maxTimeSec);
         this.dispatchEvent(new CustomEvent('move', { detail: { timeSec } }));
       }
       this.playTick();
@@ -585,10 +813,14 @@ export class ChartElement extends connect(store)(LitElement) {
     }
   }
 
-  private playTick() {
+  /**
+   * Advances the playback timestamp by one tick interval and dispatches a move event.
+   */
+  private playTick(): void {
+    const maxTimeSec = this.computedMaxTimeSec;
     let timeSec = this.timeSec + (PLAY_INTERVAL_MILLIS * this.playSpeed) / 1000;
-    if (timeSec >= this.maxTimeSec) {
-      timeSec = this.maxTimeSec;
+    if (timeSec >= maxTimeSec) {
+      timeSec = maxTimeSec;
       clearInterval(this.playTimer);
       this.playTimer = undefined;
       this.lastPauseMs = 0;
@@ -597,35 +829,78 @@ export class ChartElement extends connect(store)(LitElement) {
     this.dispatchEvent(new CustomEvent('move', { detail: { timeSec } }));
   }
 
+  /**
+   * Handles user selection of a different Y-axis metric (Altitude, Speed, or Vario).
+   *
+   * @param e - The select change event.
+   */
   private handleYChange(e: Event): void {
     const y: ChartYAxis = Number((e.target as HTMLSelectElement).value);
-    store.dispatch(setChartYAxis(y));
+    this.dispatchEvent(new CustomEvent('select-y', { detail: { y } }));
   }
 
+  /**
+   * Converts a timestamp in seconds to an X coordinate in pixels.
+   *
+   * @param timeSec - Epoch timestamp in seconds.
+   * @param offsetSec - Optional offset in seconds (e.g. for multi-day tracks).
+   * @returns Pixel X position.
+   */
   private getXAtTimeSec(timeSec: number, offsetSec = 0): number {
-    return Math.round(((timeSec - offsetSec - this.minTimeSec) / (this.maxTimeSec - this.minTimeSec)) * this.width);
+    const timeSpan = this.computedMaxTimeSec - this.computedMinTimeSec;
+    return timeSpan === 0 ? 0 : Math.round(((timeSec - offsetSec - this.computedMinTimeSec) / timeSpan) * this.width);
   }
 
-  private getTimeSecAtX(x: number) {
-    return (x / this.width) * (this.maxTimeSec - this.minTimeSec) + this.minTimeSec;
+  /**
+   * Converts an X coordinate in pixels to a timestamp in seconds.
+   *
+   * @param x - Pixel X position.
+   * @returns Epoch timestamp in seconds.
+   */
+  private getTimeSecAtX(x: number): number {
+    return this.width === 0
+      ? this.computedMinTimeSec
+      : (x / this.width) * (this.computedMaxTimeSec - this.computedMinTimeSec) + this.computedMinTimeSec;
   }
 
-  private getYAtHeight(height: number) {
-    return ((this.maxY - height) / (this.maxY - this.minY)) * this.height;
+  /**
+   * Converts a metric value (height, speed, vario) to a Y coordinate in pixels.
+   *
+   * @param height - Value in metric units.
+   * @returns Pixel Y position (inverted SVG coordinate).
+   */
+  private getYAtHeight(height: number): number {
+    const ySpan = this.computedMaxY - this.computedMinY;
+    return ySpan === 0 ? this.height / 2 : ((this.computedMaxY - height) / ySpan) * this.height;
   }
 
+  /**
+   * Handles pointer down events on the chart to pin and scrub the time position.
+   *
+   * @param e - Pointer mouse event.
+   */
   private handlePointerDown(e: MouseEvent): void {
     const { timeSec } = this.getCoordinatesFromEvent(e);
     this.dispatchEvent(new CustomEvent('pin', { detail: { timeSec } }));
     this.dispatchEvent(new CustomEvent('move', { detail: { timeSec } }));
   }
 
+  /**
+   * Handles mouse wheel events on the chart to trigger zooming centered at the pointer timestamp.
+   *
+   * @param e - Wheel event.
+   */
   private handleMouseWheel(e: WheelEvent): void {
     const { timeSec } = this.getCoordinatesFromEvent(e);
     this.dispatchEvent(new CustomEvent('zoom', { detail: { timeSec, deltaY: e.deltaY } }));
     e.preventDefault();
   }
 
+  /**
+   * Handles pointer movement over the chart to scrub the timestamp during hover/drag.
+   *
+   * @param e - Mouse event.
+   */
   private handlePointerMove(e: MouseEvent): void {
     if (this.playTimer == null) {
       const now = Date.now();
@@ -637,6 +912,12 @@ export class ChartElement extends connect(store)(LitElement) {
     }
   }
 
+  /**
+   * Extracts chart pixel coordinates and corresponding timestamp from a mouse event.
+   *
+   * @param e - Mouse event.
+   * @returns Object with x, y, and timeSec.
+   */
   private getCoordinatesFromEvent(e: MouseEvent): { x: number; y: number; timeSec: number } {
     // The event target could be any of the children of the element with the listener.
     const { left, top } = (e.currentTarget as HTMLElement).getBoundingClientRect();

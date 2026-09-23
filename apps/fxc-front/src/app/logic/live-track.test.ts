@@ -7,7 +7,14 @@ import {
   trackerIdByName,
 } from '@flyxc/common';
 
-import { FixType, getFetchParameters, trackToFeatures, updateLiveTracks } from './live-track';
+import {
+  FixType,
+  getActiveTrackSegment,
+  getFetchParameters,
+  getLastSegmentStartIndex,
+  trackToFeatures,
+  updateLiveTracks,
+} from './live-track';
 
 describe('Create GeoJSON features', () => {
   it('should support an empty track', () => {
@@ -177,86 +184,6 @@ describe('Create GeoJSON features', () => {
           },
         ]
       `);
-    });
-
-    it('should add points for the last few points', () => {
-      const track: protos.LiveTrack = {
-        idStr: 'str-123',
-        timeSec: [1, 1000, 2000, 3000, 4000, 5000, 6000],
-        lon: [11, 110, 120, 130, 140, 150, 160],
-        lat: [21, 210, 220, 230, 240, 250, 260],
-        alt: [31, 310, 320, 330, 340, 350, 360],
-        gndAlt: Array(7).fill(NO_GROUND_ALTITUDE),
-        flags: [
-          trackerIdByName.flyme,
-          trackerIdByName.flyme,
-          trackerIdByName.flyme,
-          trackerIdByName.flyme,
-          trackerIdByName.flyme,
-          trackerIdByName.flyme,
-          trackerIdByName.flyme,
-        ],
-        extra: {},
-      };
-
-      const features = trackToFeatures(track, 1000);
-
-      expect(features).toContainEqual({
-        geometry: {
-          coordinates: [150, 250, 350],
-          type: 'Point',
-        },
-        properties: {
-          alt: 350,
-          fixType: FixType.dot,
-          gndAlt: undefined,
-          id: 'str-123-5',
-          index: 5,
-          isUfo: false,
-          name: undefined,
-          pilotId: 'str-123',
-          timeSec: 5000,
-        },
-        type: 'Feature',
-      });
-
-      expect(features).toContainEqual({
-        geometry: {
-          coordinates: [140, 240, 340],
-          type: 'Point',
-        },
-        properties: {
-          alt: 340,
-          fixType: FixType.dot,
-          gndAlt: undefined,
-          id: 'str-123-4',
-          index: 4,
-          isUfo: false,
-          name: undefined,
-          pilotId: 'str-123',
-          timeSec: 4000,
-        },
-        type: 'Feature',
-      });
-
-      expect(features).toContainEqual({
-        geometry: {
-          coordinates: [130, 230, 330],
-          type: 'Point',
-        },
-        properties: {
-          alt: 330,
-          fixType: FixType.dot,
-          gndAlt: undefined,
-          id: 'str-123-3',
-          index: 3,
-          isUfo: false,
-          name: undefined,
-          pilotId: 'str-123',
-          timeSec: 3000,
-        },
-        type: 'Feature',
-      });
     });
 
     it('should use gndAlt from LiveTrack when available', () => {
@@ -734,6 +661,64 @@ describe('Update live tracks', () => {
       expect(getFetchParameters(3600, LiveTrackDurationSec.H48)).toEqual({
         isIncremental: false,
         fetchSec: LiveTrackDurationSec.H48,
+      });
+    });
+  });
+
+  describe('Active track segment extraction', () => {
+    it('returns index 0 when there are no gaps', () => {
+      expect(getLastSegmentStartIndex([])).toBe(0);
+      expect(getLastSegmentStartIndex([100])).toBe(0);
+      expect(getLastSegmentStartIndex([100, 200, 300, 400])).toBe(0);
+    });
+
+    it('identifies the start index of the last segment when gaps exist', () => {
+      // 100, 200 (gap 5000s > 3600s), 5200, 5300
+      expect(getLastSegmentStartIndex([100, 200, 5200, 5300], 60)).toBe(2);
+      // multiple gaps: 100 -> gap -> 5000 -> gap -> 10000, 10100
+      expect(getLastSegmentStartIndex([100, 5000, 10000, 10100], 60)).toBe(2);
+    });
+
+    it('returns the same track when there are no gaps', () => {
+      const track: protos.LiveTrack = {
+        id: 1,
+        timeSec: [100, 200, 300],
+        alt: [1000, 1100, 1200],
+        gndAlt: [800, 900, 1000],
+        lat: [45.1, 45.2, 45.3],
+        lon: [6.1, 6.2, 6.3],
+        flags: [0, 0, 0],
+        extra: {},
+      };
+      expect(getActiveTrackSegment(track)).toBe(track);
+    });
+
+    it('slices only the last segment when a gap exists', () => {
+      const track: protos.LiveTrack = {
+        id: 1,
+        timeSec: [100, 200, 5000, 5100],
+        alt: [1000, 1100, 1200, 1300],
+        gndAlt: [800, 900, 1000, 1100],
+        lat: [45.1, 45.2, 45.3, 45.4],
+        lon: [6.1, 6.2, 6.3, 6.4],
+        flags: [1, 2, 3, 4],
+        extra: {
+          0: { message: 'dropped fix message' },
+          1: { speed: 20 },
+          2: { speed: 30, message: 'reindexed fix 0' },
+          3: { speed: 45 },
+        },
+      };
+      const active = getActiveTrackSegment(track, 60);
+      expect(active.timeSec).toEqual([5000, 5100]);
+      expect(active.alt).toEqual([1200, 1300]);
+      expect(active.gndAlt).toEqual([1000, 1100]);
+      expect(active.lat).toEqual([45.3, 45.4]);
+      expect(active.lon).toEqual([6.3, 6.4]);
+      expect(active.flags).toEqual([3, 4]);
+      expect(active.extra).toEqual({
+        0: { speed: 30, message: 'reindexed fix 0' },
+        1: { speed: 45 },
       });
     });
   });

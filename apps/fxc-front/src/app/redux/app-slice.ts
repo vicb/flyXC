@@ -1,17 +1,14 @@
 import type { PayloadAction, Store } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 
+import { ChartYAxis } from '../components/chart-element';
+
+export { ChartYAxis };
+
 export const UPDATE_APP_TIME_EVERY_MIN = 10;
 
 // Do not show the install prompt after install has been cancelled.
 const PWA_INSTALL_CANCELLED_KEY = 'pwa-install-cancelled';
-
-// Y axis of the chart.
-export enum ChartYAxis {
-  Altitude,
-  Speed,
-  Vario,
-}
 
 type AppState = {
   chartYAxis: ChartYAxis;
@@ -58,10 +55,17 @@ const appSlice = createSlice({
 export const reducer = appSlice.reducer;
 export const { setTimeSec, setApiLoading, setChartYAxis, setView3d, setPwaInstallCancelled } = appSlice.actions;
 
-// Set the app time to the current time when there is no loaded track.
-// Track time is used when any track is loaded.
-export function updateAppTime(store: Store) {
-  if (store.getState().track.tracks.ids.length == 0) {
+/**
+ * Sets the app time to the current clock time when there are no loaded runtime tracks
+ * and no live track is currently selected.
+ *
+ * When tracks are loaded or a live track is selected, the track's own timestamp range is used instead.
+ *
+ * @param store - The Redux store instance.
+ */
+export function updateAppTime(store: Store): void {
+  const state = store.getState() as any;
+  if (state.track?.tracks?.ids?.length == 0 && state.liveTrack?.currentLiveId == null) {
     store.dispatch(appSlice.actions.setTimeSec(Math.round(new Date().getTime() / 1000)));
   }
 }

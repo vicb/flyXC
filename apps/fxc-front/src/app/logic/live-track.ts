@@ -11,6 +11,7 @@ import {
   LiveTrackPointIntervalSec,
   mergeLiveTracks,
   simplifyLiveTrack,
+  TRACK_GAP_MIN,
 } from '@flyxc/common';
 import { getRhumbLineBearing } from 'geolib';
 
@@ -45,14 +46,83 @@ export type LiveLineProperties = {
   last: boolean;
 };
 
-// Creates GeoJSON features from a live track.
-//
-// - Segments are created when there is a gap larger than gapMin,
-// - Segments are returned as a multi-line,
-// - Points are returned for all the points of interest:
-//   - first and last for all the tracks,
-//   - fixes with messages or emergency,
-//   - 3 last fixes of the last track (last has heading),
+/**
+ * Returns the starting index of the last segment in a live track.
+ *
+ * A track is split into segments when there is a gap greater than `gapMin` minutes.
+ * Only the last segment is considered the active track.
+ *
+ * @param timeSec - Array of point timestamps in seconds.
+ * @param gapMin - Maximum gap duration in minutes before starting a new segment (defaults to TRACK_GAP_MIN).
+ * @returns The start index of the last segment (0 if no gap exists).
+ */
+export function getLastSegmentStartIndex(timeSec: number[], gapMin = TRACK_GAP_MIN): number {
+  const maxGapSec = gapMin * 60;
+  for (let i = timeSec.length - 1; i > 0; i--) {
+    if (timeSec[i] - timeSec[i - 1] > maxGapSec) {
+      return i;
+    }
+  }
+  return 0;
+}
+
+/**
+ * Returns the active segment of a live track (the last segment after any gap >= gapMin).
+ *
+ * Segments before the gap are rendered as dashed lines on the map, while only the
+ * last segment is considered the active track shown on the elevation chart and tracked
+ * by the moving dot marker.
+ *
+ * @param track - The full live track protobuf object.
+ * @param gapMin - Maximum gap duration in minutes (defaults to TRACK_GAP_MIN).
+ * @returns A LiveTrack object representing only the last segment, or the original track if no gap.
+ */
+export function getActiveTrackSegment(track: protos.LiveTrack, gapMin = TRACK_GAP_MIN): protos.LiveTrack {
+  if (track.timeSec.length === 0) {
+    return track;
+  }
+  const startIndex = getLastSegmentStartIndex(track.timeSec, gapMin);
+  if (startIndex === 0) {
+    return track;
+  }
+  // Reindex extra metadata entries so fix indices match the sliced arrays.
+  let extra: { [key: number]: protos.LiveExtra } | undefined;
+  if (track.extra) {
+    extra = {};
+    for (const index in track.extra) {
+      const srcIndex = Number(index);
+      if (srcIndex >= startIndex) {
+        const item = track.extra[srcIndex];
+        if (item) {
+          extra[srcIndex - startIndex] = { ...item };
+        }
+      }
+    }
+  }
+  return {
+    ...track,
+    timeSec: track.timeSec.slice(startIndex),
+    alt: track.alt.slice(startIndex),
+    lat: track.lat.slice(startIndex),
+    lon: track.lon.slice(startIndex),
+    gndAlt:
+      track.gndAlt && track.gndAlt.length === track.timeSec.length ? track.gndAlt.slice(startIndex) : track.gndAlt,
+    flags: track.flags && track.flags.length === track.timeSec.length ? track.flags.slice(startIndex) : track.flags,
+    extra: extra ?? track.extra,
+  };
+}
+
+/**
+ * Creates GeoJSON features from a live track.
+ *
+ * - Segments are created when there is a gap larger than gapMin,
+ * - Segments are returned as a multi-line (earlier segments marked with `last: false`),
+ * - Points are returned for all points of interest (pilot fixes, messages, emergencies).
+ *
+ * @param track - The live track to convert to GeoJSON.
+ * @param gapMin - Gap duration threshold in minutes.
+ * @returns An array of GeoJSON feature objects.
+ */
 export function trackToFeatures(track: protos.LiveTrack, gapMin: number): any[] {
   const features: any[] = [];
 
@@ -109,27 +179,19 @@ export function trackToFeatures(track: protos.LiveTrack, gapMin: number): any[] 
       }
     });
 
-    // Add 3 last points of the last segment (at least 2mn apart) - unless ufo
-    if (segments.length > 0) {
-      const { firstIndex, lastIndex } = segments[segments.length - 1];
-      let previousSec = track.timeSec[lastIndex];
-      let extraPoints = isUfo(track.flags[firstIndex]) ? 1 : 3;
-      for (let i = lastIndex - 1; i >= firstIndex && extraPoints > 0; --i) {
-        const currentSec = track.timeSec[i];
-        if (previousSec - currentSec >= 2 * 60) {
-          previousSec = currentSec;
-          addPoint(pointsByIndex, track, i);
-          extraPoints--;
-        }
-      }
-    }
-
     features.push(...pointsByIndex.values());
   }
 
   return features;
 }
 
+/**
+ * Adds a GeoJSON Point feature for a specific fix of a live track to the map of points.
+ *
+ * @param pointsByIndex - Map storing created Point features keyed by fix index.
+ * @param track - The live track protobuf object.
+ * @param index - The index of the fix within the live track.
+ */
 function addPoint(pointsByIndex: Map<number, any>, track: protos.LiveTrack, index: number): void {
   const len = track.timeSec.length;
   // Compute the heading for the last fix of last segment.

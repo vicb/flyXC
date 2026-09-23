@@ -61,10 +61,16 @@ export class Line3dElement extends connect(store)(LitElement) {
     this.destroyLines();
   }
 
+  /**
+   * Synchronizes track offset, color, opacity, timestamp, and altitude multiplier from Redux state.
+   *
+   * @param state - The current root state of the Redux store.
+   */
   stateChanged(state: RootState): void {
     if (this.track) {
       const id = this.track.id;
-      this.offsetSeconds = sel.offsetSeconds(state)[id];
+      // Fall back to 0 if the track has no offset (e.g. single day or not yet computed).
+      this.offsetSeconds = sel.offsetSeconds(state)[id] ?? 0;
       this.color = sel.trackColors(state)[id];
       this.opacity = id == sel.currentTrackId(state) ? 1 : INACTIVE_ALPHA;
     }

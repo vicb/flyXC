@@ -6,12 +6,11 @@ import '@ionic/core/css/padding.css';
 import '@ionic/core/css/structure.css';
 import '@ionic/core/css/text-alignment.css';
 import '@ionic/core/css/typography.css';
-import './app/components/chart-element';
 import './app/components/loader-element';
-import './app/components/ui/main-menu';
 import './app/components/pwa-install';
+import './app/components/ui/main-menu';
 
-import type { LatLonAlt } from '@flyxc/common';
+import type { Class, LatLonAlt, Type } from '@flyxc/common';
 import type { NavigationHookCallback } from '@ionic/core';
 import type { PropertyValues, TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
@@ -21,6 +20,8 @@ import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 import { registerSW } from 'virtual:pwa-register';
 
+import type { ChartTrack } from './app/components/chart-element';
+import { ChartYAxis } from './app/components/chart-element';
 import type { PWAInstallComponent } from './app/components/pwa-install';
 import { ionicInit } from './app/components/ui/ionic';
 import { requestCurrentPosition } from './app/logic/geolocation';
@@ -36,6 +37,7 @@ import {
 import * as msg from './app/logic/messages';
 import { handleServiceWorkerReload } from './app/logic/pwa-lifecycle';
 import { downloadTracksByGroupIds, downloadTracksByUrls, uploadTracks } from './app/logic/track';
+import type * as units from './app/logic/units';
 import * as app from './app/redux/app-slice';
 import * as liveTrack from './app/redux/live-track-slice';
 import * as planner from './app/redux/planner-slice';
@@ -245,9 +247,131 @@ export class MapsElement extends connect(store)(LitElement) {
   @state()
   private showLoader = false;
 
+  @state()
+  private chartTracks: ChartTrack[] = [];
+
+  @state()
+  private chartActiveTrackId?: string;
+
+  @state()
+  private chartYAxis: ChartYAxis = ChartYAxis.Altitude;
+
+  @state()
+  private availableYAxes: ChartYAxis[] = [];
+
+  @state()
+  private timeSec = 0;
+
+  @state()
+  private minTimeSec = 0;
+
+  @state()
+  private maxTimeSec = 1;
+
+  @state()
+  private minY = 0;
+
+  @state()
+  private maxY = 1;
+
+  @state()
+  private units?: units.Units;
+
+  @state()
+  private showClasses: Class[] = [];
+
+  @state()
+  private showTypes: Type[] = [];
+
+  @state()
+  private isLiveTrack = false;
+
+  private lastSelectedLiveId?: string;
+  private lastSelectedTrackId?: string;
+
+  /**
+   * Responds to Redux state updates, synchronizing chart properties, airspace settings,
+   * and clamping/adjusting current time when tracks or live tracks are selected or switched.
+   *
+   * @param state - The root application state.
+   */
   stateChanged(state: RootState): void {
-    this.hasTrack = sel.numTracks(state) > 0;
+    const selectedLive = sel.activeLiveTrack(state);
+    const hasLiveTrack = selectedLive != null;
+    this.isLiveTrack = hasLiveTrack;
+    this.hasTrack = sel.hasChartTrack(state);
     this.showLoader = state.track.fetching || state.app.loadingApi;
+
+    this.chartTracks = sel.chartTracks(state);
+    this.chartActiveTrackId = sel.chartActiveTrackId(state);
+    this.chartYAxis = hasLiveTrack ? ChartYAxis.Altitude : state.app.chartYAxis;
+    this.availableYAxes = sel.chartAvailableYAxes(state);
+    this.timeSec = state.app.timeSec;
+    this.minTimeSec = sel.chartMinTimeSec(state);
+    this.maxTimeSec = sel.chartMaxTimeSec(state);
+    this.minY = sel.chartMinY(state);
+    this.maxY = sel.chartMaxY(state);
+    this.units = state.units;
+    this.showClasses = state.airspace.showClasses;
+    this.showTypes = state.airspace.showTypes;
+
+    // If a live track is selected, ensure timeSec is within its range.
+    const currentLiveId = state.liveTrack.currentLiveId;
+    const liveIdChanged = currentLiveId !== this.lastSelectedLiveId;
+    this.lastSelectedLiveId = currentLiveId;
+
+    if (currentLiveId && selectedLive && selectedLive.timeSec.length > 0) {
+      if (liveIdChanged) {
+        const lastFixTime = selectedLive.timeSec.at(-1);
+        if (
+          lastFixTime != null &&
+          (state.app.timeSec < this.minTimeSec || state.app.timeSec > this.maxTimeSec) &&
+          lastFixTime !== state.app.timeSec
+        ) {
+          store.dispatch(app.setTimeSec(lastFixTime));
+        }
+      } else if (state.app.timeSec < this.minTimeSec) {
+        store.dispatch(app.setTimeSec(this.minTimeSec));
+      } else if (state.app.timeSec > this.maxTimeSec) {
+        store.dispatch(app.setTimeSec(this.maxTimeSec));
+      }
+    }
+
+    // Handle runtime tracks selection / switching.
+    const currentTrackId = state.track.currentTrackId;
+    const prevTrackId = this.lastSelectedTrackId;
+    const trackIdChanged = currentTrackId !== prevTrackId;
+    this.lastSelectedTrackId = currentTrackId;
+
+    if (!hasLiveTrack && state.track.tracks.ids.length > 0) {
+      if (trackIdChanged) {
+        const isMultiDay = sel.isMultiDay(state);
+        const prevTrack = prevTrackId ? state.track.tracks.entities[prevTrackId] : undefined;
+        const currentTrack = currentTrackId ? state.track.tracks.entities[currentTrackId] : undefined;
+
+        if (isMultiDay && prevTrack && currentTrack) {
+          // If the caller has already set the timestamp within the selected track's range
+          // (e.g. clicking directly on the track fix on the map), do not add the track-start delta.
+          const minTime = currentTrack.minTimeSec ?? currentTrack.timeSec[0];
+          const maxTime = currentTrack.maxTimeSec ?? currentTrack.timeSec.at(-1) ?? minTime;
+          const isTimePreSet = state.app.timeSec >= minTime && state.app.timeSec <= maxTime;
+          const delta = isTimePreSet ? 0 : currentTrack.timeSec[0] - prevTrack.timeSec[0];
+          const targetTimeSec = Math.max(this.minTimeSec, Math.min(this.maxTimeSec, state.app.timeSec + delta));
+          if (targetTimeSec !== state.app.timeSec) {
+            store.dispatch(app.setTimeSec(targetTimeSec));
+          }
+        } else if (state.app.timeSec < this.minTimeSec || state.app.timeSec > this.maxTimeSec) {
+          const targetTimeSec = currentTrack?.timeSec[0] ?? this.minTimeSec;
+          if (targetTimeSec !== state.app.timeSec) {
+            store.dispatch(app.setTimeSec(targetTimeSec));
+          }
+        }
+      } else if (state.app.timeSec < this.minTimeSec || state.app.timeSec > this.maxTimeSec) {
+        if (this.minTimeSec !== state.app.timeSec) {
+          store.dispatch(app.setTimeSec(this.minTimeSec));
+        }
+      }
+    }
   }
 
   render(): TemplateResult {
@@ -261,9 +385,23 @@ export class MapsElement extends connect(store)(LitElement) {
             this.hasTrack,
             () => html`<chart-element
               class=${clMap}
+              .tracks=${this.chartTracks}
+              .currentTrackId=${this.chartActiveTrackId}
+              .chartYAxis=${this.chartYAxis}
+              .availableYAxes=${this.availableYAxes}
+              .timeSec=${this.timeSec}
+              .minTimeSec=${this.minTimeSec}
+              .maxTimeSec=${this.maxTimeSec}
+              .minY=${this.minY}
+              .maxY=${this.maxY}
+              .units=${this.units}
+              .showClasses=${this.showClasses}
+              .showTypes=${this.showTypes}
+              .isLiveTrack=${this.isLiveTrack}
               @move=${(e: CustomEvent) => store.dispatch(app.setTimeSec(e.detail.timeSec))}
               @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.timeSec))}
               @zoom=${(e: CustomEvent) => msg.centerZoomMap.emit(this.coordinatesAt(e.detail.timeSec), e.detail.deltaY)}
+              @select-y=${(e: CustomEvent) => store.dispatch(app.setChartYAxis(e.detail.y))}
             ></chart-element>`,
           )}
         </ion-content>
