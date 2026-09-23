@@ -9,6 +9,7 @@ import grant from 'grant';
 
 import { config } from './app/config';
 import { getAdminRouter } from './app/routes/admin';
+import { getCountryRouter } from './app/routes/country';
 import { getTrackerRouter } from './app/routes/live-track';
 import { getMeshBirRouter } from './app/routes/meshbir';
 import { getTrackRouter } from './app/routes/track';
@@ -96,7 +97,8 @@ const app = express()
   .use('/api/track', getTrackRouter(datastore))
   .use('/api/waypoint', getWaypointRouter())
   .use('/api/zoleo', getZoleoRouter(redis))
-  .use('/api/bircom', getMeshBirRouter(redis));
+  .use('/api/bircom', getMeshBirRouter(redis))
+  .use('/api/country', getCountryRouter());
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => console.info(`Started server on port ${port}.`));

@@ -44,6 +44,18 @@ export class AboutModal extends LitElement {
           </ul>
         </ion-text>
 
+        <h3><ion-text color="primary">Sponsors</ion-text></h3>
+
+        <p>
+          <a href="https://ruedelair.com/" target="_blank">
+            <img
+              src="/static/img/ruedelair.svg"
+              alt="Rue de l'Air"
+              style="height: 38px; max-width: 100%; vertical-align: middle;"
+            />
+          </a>
+        </p>
+
         <h3><ion-text color="primary">Credits</ion-text></h3>
 
         <ion-text>

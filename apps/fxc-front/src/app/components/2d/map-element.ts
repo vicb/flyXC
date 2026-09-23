@@ -97,12 +97,17 @@ export class MapElement extends connect(store)(LitElement) {
   private isFreeDrawing = false;
   @state()
   private freeDrawPath = '';
+  @state()
+  private isFrance = false;
+  @state()
+  private isFromFfvl = false;
 
   private pathPoints: [number, number][] = [];
   private pointerEventId?: number;
   private lockOnPilot = false;
   private lockPanBefore = 0;
   private subscriptions: UnsubscribeHandle[] = [];
+  private readonly adRatio = store.getState().browser.isSmallScreen ? 0.7 : 1;
 
   stateChanged(state: RootState): void {
     this.tracks = sel.tracks(state);
@@ -113,6 +118,8 @@ export class MapElement extends connect(store)(LitElement) {
     this.lockOnPilot = state.track.lockOnPilot;
     this.currentTrackId = state.track.currentTrackId;
     this.isFreeDrawing = state.planner.isFreeDrawing;
+    this.isFrance = state.browser.isFrance;
+    this.isFromFfvl = state.browser.isFromFfvl;
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
@@ -271,6 +278,13 @@ export class MapElement extends connect(store)(LitElement) {
           fill: lightgray;
           stroke: none;
         }
+        .ad {
+          position: absolute;
+          bottom: 10px;
+          left: 50%;
+          transform: translate(-50%, 0);
+          z-index: 1;
+        }
       </style>
       <div id="drw-container" style=${`display:${this.isFreeDrawing ? 'block' : 'none'}`}>
         <svg>
@@ -285,6 +299,17 @@ export class MapElement extends connect(store)(LitElement) {
         </svg>
       </div>
       <div id="map"></div>
+      ${when(
+        this.isFrance && !this.isFromFfvl,
+        () => html`<a class="ad" href="https://ruedelair.com/" target="_blank">
+          <img
+            width="${Math.round(175 * this.adRatio)}"
+            height="${Math.round(34 * this.adRatio)}"
+            src="/static/img/ruedelair.svg"
+            alt="Rue de l'Air"
+          />
+        </a>`,
+      )}
       ${when(
         this.map,
         () => html`<topo-spain .map=${this.map}></topo-spain>

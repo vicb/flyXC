@@ -66,6 +66,10 @@ export class Map3dElement extends connect(store)(LitElement) {
   private gndGraphicsLayer?: GraphicsLayer;
   @state()
   private apiLoaded = false;
+  @state()
+  private isFrance = false;
+  @state()
+  private isFromFfvl = false;
 
   // ArcGis objects.
   private map?: Map;
@@ -83,6 +87,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   private subscriptions: UnsubscribeHandle[] = [];
   private previousLookAt?: LatLonAlt;
   private updateCamera = false;
+  private readonly adRatio = store.getState().browser.isSmallScreen ? 0.7 : 1;
 
   stateChanged(state: RootState): void {
     this.tracks = sel.tracks(state);
@@ -92,6 +97,8 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.multiplier = state.arcgis.altMultiplier;
     this.updateCamera = state.track.lockOnPilot;
     this.sunEnabled = state.arcgis.useSunLighting;
+    this.isFrance = state.browser.isFrance;
+    this.isFromFfvl = state.browser.isFromFfvl;
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
@@ -413,8 +420,27 @@ export class Map3dElement extends connect(store)(LitElement) {
         #layers {
           font: 18px Roboto, arial, sans-serif !important;
         }
+        .ad {
+          position: absolute;
+          box-shadow: none;
+          bottom: 10px;
+          left: 50%;
+          transform: translate(-50%, 0);
+          z-index: 1;
+        }
       </style>
       <div id="map3d"></div>
+      ${when(
+        this.isFrance && !this.isFromFfvl,
+        () => html`<a class="ad" href="https://ruedelair.com/" target="_blank">
+          <img
+            width="${Math.round(175 * this.adRatio)}"
+            height="${Math.round(34 * this.adRatio)}"
+            src="/static/img/ruedelair.svg"
+            alt="Rue de l'Air"
+          />
+        </a>`,
+      )}
       <select id="layers" @change=${(e: any) => this.map?.set('basemap', this.basemaps[e.target.value])}>
         ${Object.getOwnPropertyNames(this.basemaps).map((name) => html`<option value="${name}">${name}</option>`)}
       </select>
