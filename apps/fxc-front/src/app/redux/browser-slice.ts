@@ -13,6 +13,7 @@ type BrowserState = {
   readonly isSmallScreen: boolean;
   // Whether the PWA is installed.
   readonly isInstalledPwa: boolean;
+  isFrance: boolean;
 };
 
 // https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
@@ -35,6 +36,7 @@ const initialState: BrowserState = {
   isMobile: isMobile(),
   isSmallScreen: !window.matchMedia('(min-width: 640px)').matches,
   isInstalledPwa,
+  isFrance: false,
 };
 
 const browserSlice = createSlice({
@@ -46,6 +48,9 @@ const browserSlice = createSlice({
     },
     setIsVisible: (state, action: PayloadAction<boolean>) => {
       state.isVisible = action.payload;
+    },
+    setIsFrance: (state, action: PayloadAction<boolean>) => {
+      state.isFrance = action.payload;
     },
   },
 });
@@ -79,3 +84,17 @@ async function getScreenWakeLock(): Promise<void> {
 }
 
 getScreenWakeLock();
+
+async function fetchCountry(): Promise<void> {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_SERVER}/api/country`);
+    if (response.ok) {
+      const { country } = await response.json();
+      store.dispatch(browserSlice.actions.setIsFrance(country === 'FR'));
+    }
+  } catch {
+    // empty
+  }
+}
+
+fetchCountry();
