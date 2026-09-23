@@ -76,10 +76,16 @@ export class Marker3dElement extends connect(store)(LitElement) {
     this.destroyMarker();
   }
 
+  /**
+   * Synchronizes track offset, color, active state, timestamp, multiplier, and label visibility from Redux state.
+   *
+   * @param state - The current root state of the Redux store.
+   */
   stateChanged(state: RootState): void {
     if (this.track) {
       const id = this.track.id;
-      this.offsetSeconds = sel.offsetSeconds(state)[id];
+      // Fall back to 0 if the track has no offset (e.g. single day or not yet computed).
+      this.offsetSeconds = sel.offsetSeconds(state)[id] ?? 0;
       this.color = sel.trackColors(state)[id];
       this.active = id == sel.currentTrackId(state);
     }

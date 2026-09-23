@@ -44,6 +44,11 @@ export const store = configureStore({
   devTools,
 });
 
-liveTrack.handleVisibility();
+// Initialize browser event listeners (fullscreen, visibility, screen wake lock).
+browser.initBrowserEvents(store);
 
+// Start live tracking worker and polling.
+liveTrack.initLiveTracking(store);
+
+// Periodically synchronize app time when no tracks are loaded.
 setInterval(() => app.updateAppTime(store), app.UPDATE_APP_TIME_EVERY_MIN * 60 * 1000);

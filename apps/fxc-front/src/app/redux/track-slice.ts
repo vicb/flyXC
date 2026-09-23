@@ -8,7 +8,7 @@ import {
   protos,
 } from '@flyxc/common';
 import type { EntityState, PayloadAction } from '@reduxjs/toolkit';
-import { createAsyncThunk, createEntityAdapter, createSlice } from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, createEntityAdapter, createSlice } from '@reduxjs/toolkit';
 
 import { addUrlParamValue, deleteUrlParamValue, ParamNames } from '../logic/history';
 import * as msg from '../logic/messages';
@@ -204,11 +204,8 @@ const trackSlice = createSlice({
     setTrackDomain: (state, action: PayloadAction<string>) => {
       state.domain = action.payload;
     },
-    selectNextTrack: (state) => {
-      if (state.currentTrackId != null && state.tracks.ids.length > 0) {
-        const index = state.tracks.ids.indexOf(state.currentTrackId);
-        state.currentTrackId = String(state.tracks.ids[(index + 1) % state.tracks.ids.length]);
-      }
+    addTrackEntities: (state, action: PayloadAction<RuntimeTrack[]>) => {
+      trackAdapter.addMany(state.tracks, action.payload);
     },
     patchTrack: (state, action: PayloadAction<Partial<RuntimeTrack> & Pick<RuntimeTrack, 'id'>>) => {
       const update = action.payload;
@@ -239,7 +236,14 @@ const trackSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    // Automatically clear runtime track selection when a live track is selected,
+    // enforcing store-level mutual exclusion between runtime and live tracks.
     builder
+      .addCase(createAction<string | undefined>('liveTrack/setCurrentLiveId'), (state, action) => {
+        if (action.payload != null) {
+          state.currentTrackId = undefined;
+        }
+      })
       .addCase(fetchTrack.pending, (state) => {
         state.fetching = true;
       })
@@ -303,12 +307,33 @@ const trackSlice = createSlice({
 
 export const reducer = trackSlice.reducer;
 export const {
+  addTrackEntities,
   removeTracksByGroupIds,
   setCurrentTrackId,
-  selectNextTrack,
   setDisplayLabels,
   setLockOnPilot,
   setTrackDomain,
   setTrackLoaded,
 } = trackSlice.actions;
+
+/**
+ * Selects the next runtime track in the list.
+ *
+ * If no runtime track is currently selected, selects the first track.
+ * Dispatches setCurrentTrackId only if there is at least one runtime track,
+ * which clears any live track selection. If no runtime tracks exist,
+ * does not dispatch or change selection.
+ */
+export const selectNextTrack = (): AppThunk => (dispatch, getState) => {
+  const state = getState().track;
+  if (state.tracks.ids.length > 0) {
+    if (state.currentTrackId == null) {
+      dispatch(setCurrentTrackId(String(state.tracks.ids[0])));
+    } else {
+      const index = state.tracks.ids.indexOf(state.currentTrackId);
+      dispatch(setCurrentTrackId(String(state.tracks.ids[(index + 1) % state.tracks.ids.length])));
+    }
+  }
+};
+
 export const trackAdapterSelector = trackAdapter.getSelectors((state: RootState) => state.track.tracks);

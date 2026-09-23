@@ -1,22 +1,43 @@
 import './ui/pref-modal';
 
-import * as common from '@flyxc/common';
 import { modalController } from '@ionic/core/components';
 import type { CSSResult, TemplateResult } from 'lit';
 import { css, html, LitElement } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
+import { connect } from 'pwa-helpers';
 
 import * as units from '../logic/units';
+import * as sel from '../redux/selectors';
+import type { RootState } from '../redux/store';
+import { store } from '../redux/store';
 import { controlStyle } from '../styles/control-style';
 
-@customElement('dashboard-ctrl-element')
+/**
+ * Presentational component displaying the flight dashboard metrics (Alt, AGL, Vz, Vx, time, date).
+ *
+ * Driven entirely by input properties without direct store connection. Metrics that are
+ * undefined (such as Vz and Vx for live tracks) are omitted from display. Clicking the
+ * dashboard opens `<pref-modal>` to adjust unit preferences.
+ */
+@customElement('dashboard-element')
 export class DashboardElement extends LitElement {
   @property({ attribute: false })
-  timeSec = 0;
+  data?: sel.ActiveDashboardData;
   @property({ attribute: false })
-  track?: common.RuntimeTrack;
+  alt?: number;
+  @property({ attribute: false })
+  gndAlt?: number;
+  @property({ attribute: false })
+  vz?: number;
+  @property({ attribute: false })
+  vx?: number;
+  @property({ attribute: false })
+  timeSec?: number;
   @property({ attribute: false })
   units?: units.Units;
+  @property({ type: Boolean })
+  hasTrack?: boolean;
 
   static get styles(): CSSResult[] {
     return [
@@ -32,59 +53,79 @@ export class DashboardElement extends LitElement {
   }
 
   protected render(): TemplateResult {
-    const alt = this.getElevation();
-    const gndAlt = this.getGroundElevation();
-    const date = new Date(this.timeSec * 1000);
-    return this.units
-      ? html`
-          <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
-          />
-          <ul style="cursor: pointer" @click=${this.handlePreferences}>
-            <li>${units.formatUnit(alt, this.units.altitude)} [Alt]</li>
-            <li>${units.formatUnit(Math.max(0, alt - gndAlt), this.units.altitude)} [AGL]</li>
-            <li>${units.formatUnit(this.getVz(), this.units.vario)} [Vz]</li>
-            <li>${units.formatUnit(this.getVx(), this.units.speed)} [Vx]</li>
-            <li>${date.toLocaleTimeString()}</li>
-            <li>${date.toLocaleDateString()}</li>
-          </ul>
-        `
-      : html``;
+    // Resolve metrics from either a bundled ActiveDashboardData object or individual properties.
+    const hasTrack = this.data ? this.data.hasTrack : this.hasTrack ?? true;
+    const currentUnits = this.units;
+    const isVisible = Boolean(hasTrack && currentUnits);
+    this.hidden = !isVisible;
+    this.style.display = isVisible ? 'block' : 'none';
+
+    if (!isVisible || !currentUnits) {
+      return html``;
+    }
+
+    const alt = this.data ? this.data.alt : this.alt ?? 0;
+    const gndAlt = this.data ? this.data.gndAlt : this.gndAlt;
+    const vz = this.data ? this.data.vz : this.vz;
+    const vx = this.data ? this.data.vx : this.vx;
+    const timeSec = this.data ? this.data.timeSec : this.timeSec ?? 0;
+    const date = new Date(timeSec * 1000);
+
+    return html`
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
+      />
+      <ul style="cursor: pointer" @click=${this.handlePreferences}>
+        <li>${units.formatUnit(alt, currentUnits.altitude)} [Alt]</li>
+        ${when(
+          gndAlt != null,
+          () => html`<li>${units.formatUnit(Math.max(0, alt - gndAlt!), currentUnits.altitude)} [AGL]</li>`,
+        )}
+        ${when(vz != null, () => html`<li>${units.formatUnit(vz!, currentUnits.vario)} [Vz]</li>`)}
+        ${when(vx != null, () => html`<li>${units.formatUnit(vx!, currentUnits.speed)} [Vx]</li>`)}
+        <li>${date.toLocaleTimeString()}</li>
+        <li>${date.toLocaleDateString()}</li>
+      </ul>
+    `;
   }
 
-  private async handlePreferences() {
+  /**
+   * Opens the user preferences modal to customize unit display.
+   */
+  private async handlePreferences(): Promise<void> {
     const modal = await modalController.create({
       component: 'pref-modal',
     });
     await modal.present();
   }
+}
 
-  private getElevation(): number {
-    if (!this.track) {
-      return 0;
-    }
-    return common.sampleAt(this.track.timeSec, this.track.alt, this.timeSec);
+/**
+ * Map control element connected to Redux that passes the active flight telemetry
+ * down to the presentational `<dashboard-element>`.
+ */
+@customElement('dashboard-ctrl-element')
+export class DashboardCtrlElement extends connect(store)(LitElement) {
+  @state()
+  private data?: sel.ActiveDashboardData;
+  @state()
+  private units?: units.Units;
+
+  /**
+   * Updates component telemetry values and unit preferences from the Redux store.
+   *
+   * @param state - The current root state of the Redux store.
+   */
+  stateChanged(state: RootState): void {
+    this.units = state.units;
+    this.data = sel.activeDashboardData(state);
   }
 
-  private getGroundElevation(): number {
-    if (this.track?.gndAlt) {
-      return common.sampleAt(this.track.timeSec, this.track.gndAlt, this.timeSec);
+  protected render(): TemplateResult {
+    if (!this.data?.hasTrack || !this.units) {
+      return html``;
     }
-    return 0;
-  }
-
-  private getVz(): number {
-    if (!this.track) {
-      return 0;
-    }
-    return common.sampleAt(this.track.timeSec, this.track.vz, this.timeSec);
-  }
-
-  private getVx(): number {
-    if (!this.track) {
-      return 0;
-    }
-    return common.sampleAt(this.track.timeSec, this.track.vx, this.timeSec);
+    return html`<dashboard-element .data=${this.data} .units=${this.units}></dashboard-element>`;
   }
 }

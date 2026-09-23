@@ -2,7 +2,7 @@ import { getHostName } from '@flyxc/common';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 
-import { store } from './store';
+import { isMobile } from '../logic/browser';
 
 type BrowserState = {
   isFullscreen: boolean;
@@ -16,9 +16,7 @@ type BrowserState = {
   isFrance: boolean;
 };
 
-// https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
-export const isMobile = () =>
-  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobi/i.test(navigator.userAgent);
+export { isMobile };
 
 const doc = document as Document & { webkitFullscreenElement?: boolean };
 const isFullscreen = ('webkitFullscreenElement' in doc ? doc.webkitFullscreenElement : doc.fullscreenElement) != null;
@@ -26,7 +24,10 @@ const isFullscreen = ('webkitFullscreenElement' in doc ? doc.webkitFullscreenEle
 const isInIframe = window.parent !== window;
 const isFromFfvl = isInIframe && (getHostName(document.referrer) ?? '').endsWith('ffvl.fr');
 const isInstalledPwa =
-  (navigator as Navigator & { standalone?: boolean }).standalone || matchMedia('(display-mode: standalone)').matches;
+  Boolean((navigator as Navigator & { standalone?: boolean }).standalone) ||
+  (typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(display-mode: standalone)').matches);
 
 const initialState: BrowserState = {
   isFullscreen,
@@ -34,7 +35,10 @@ const initialState: BrowserState = {
   isInIframe,
   isFromFfvl,
   isMobile: isMobile(),
-  isSmallScreen: !window.matchMedia('(min-width: 640px)').matches,
+  isSmallScreen:
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? !window.matchMedia('(min-width: 640px)').matches
+      : false,
   isInstalledPwa,
   isFrance: false,
 };
@@ -57,22 +61,37 @@ const browserSlice = createSlice({
 
 export const reducer = browserSlice.reducer;
 
-// Handle when full screen is exited by pressing the ESC key.
-window.addEventListener('fullscreenchange', () => {
-  store.dispatch(browserSlice.actions.setIsFullscreen(document.fullscreenElement != null));
-});
-window.addEventListener('webkitfullscreenchange', () => {
-  store.dispatch(browserSlice.actions.setIsFullscreen(doc.webkitFullscreenElement != null));
-});
+/**
+ * Initializes browser event listeners for fullscreen and visibility changes,
+ * dispatching updates to the Redux store.
+ *
+ * @param store - The Redux store or dispatch provider.
+ */
+export function initBrowserEvents(store: { dispatch: (action: any) => void }): void {
+  // Handle when full screen is exited by pressing the ESC key.
+  window.addEventListener('fullscreenchange', () => {
+    store.dispatch(browserSlice.actions.setIsFullscreen(document.fullscreenElement != null));
+  });
+  window.addEventListener('webkitfullscreenchange', () => {
+    store.dispatch(browserSlice.actions.setIsFullscreen(doc.webkitFullscreenElement != null));
+  });
 
-document.addEventListener('visibilitychange', async () => {
-  const visible = document.visibilityState == 'visible';
-  store.dispatch(browserSlice.actions.setIsVisible(visible));
-  if (visible) {
-    await getScreenWakeLock();
-  }
-});
+  document.addEventListener('visibilitychange', async () => {
+    const visible = document.visibilityState == 'visible';
+    store.dispatch(browserSlice.actions.setIsVisible(visible));
+    if (visible) {
+      await getScreenWakeLock();
+    }
+  });
 
+  fetchCountry(store);
+}
+
+/**
+ * Requests a screen wake lock if supported by the browser to keep the screen on.
+ *
+ * @returns A promise resolving when the lock has been requested.
+ */
 async function getScreenWakeLock(): Promise<void> {
   if ('wakeLock' in navigator) {
     try {
@@ -85,7 +104,7 @@ async function getScreenWakeLock(): Promise<void> {
 
 getScreenWakeLock();
 
-async function fetchCountry(): Promise<void> {
+async function fetchCountry(store: { dispatch: (action: any) => void }): Promise<void> {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_SERVER}/api/country`);
     if (response.ok) {
@@ -96,5 +115,3 @@ async function fetchCountry(): Promise<void> {
     // empty
   }
 }
-
-fetchCountry();
