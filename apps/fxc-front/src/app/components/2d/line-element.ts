@@ -4,9 +4,9 @@ import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
-import * as sel from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
+import { selectCurrentTrackId, selectTrackColors } from '../../redux/track-slice';
 
 const INACTIVE_OPACITY = 0.5;
 
@@ -29,8 +29,8 @@ export class LineElement extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     if (this.track) {
-      this.color = sel.trackColors(state)[this.track.id] ?? '';
-      this.opacity = sel.currentTrackId(state) == this.track.id ? 1 : INACTIVE_OPACITY;
+      this.color = selectTrackColors(state)[this.track.id] ?? '';
+      this.opacity = selectCurrentTrackId(state) == this.track.id ? 1 : INACTIVE_OPACITY;
     }
   }
 

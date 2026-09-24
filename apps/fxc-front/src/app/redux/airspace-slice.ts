@@ -1,6 +1,9 @@
 import { Class, Type } from '@flyxc/common';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice } from '@reduxjs/toolkit';
+import { createSelector, createSlice } from '@reduxjs/toolkit';
+
+import { DistanceUnit } from '../logic/units';
+import { selectAltitudeUnit } from './units-slice';
 
 type AirspaceState = {
   maxAltitude: number;
@@ -70,3 +73,21 @@ const airspaceSlice = createSlice({
 export const reducer = airspaceSlice.reducer;
 export const { setMaxAltitude, setShow, showClasses, showTypes } = airspaceSlice.actions;
 export const { selectShowAirspaces, selectShowClasses, selectShowTypes, selectMaxAltitude } = airspaceSlice.selectors;
+
+/**
+ * Returns a list of altitude stops for airspaces in meters, rounded according to the current altitude unit.
+ */
+export const selectAirspaceAltitudeStops = createSelector([selectAltitudeUnit], (altitudeUnit): number[] => {
+  const steps: number[] = [];
+  if (altitudeUnit === DistanceUnit.Feet) {
+    for (let ft = 1000; ft <= 17000; ft += 1000) {
+      const m = ft / 3.28084;
+      steps.push(m);
+    }
+  } else {
+    for (let m = 500; m <= 6000; m += 500) {
+      steps.push(m);
+    }
+  }
+  return steps;
+});

@@ -8,7 +8,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import * as units from '../../logic/units';
-import * as sel from '../../redux/selectors';
+import { selectTrackLatLonAlt } from '../../redux/selectors/position';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import * as track from '../../redux/track-slice';
@@ -55,9 +55,9 @@ export class MarkerElement extends connect(store)(LitElement) {
   stateChanged(state: RootState): void {
     if (this.track) {
       const id = this.track.id;
-      this.offsetSeconds = sel.offsetSeconds(state)[id] ?? 0;
-      this.color = sel.trackColors(state)[id];
-      this.active = sel.currentTrackId(state) == id;
+      this.offsetSeconds = track.selectOffsetSeconds(state)[id] ?? 0;
+      this.color = track.selectTrackColors(state)[id];
+      this.active = track.selectCurrentTrackId(state) == id;
     }
     this.units = unitsSlice.selectUnits(state);
     this.displayLabels = track.selectDisplayLabels(state);
@@ -87,7 +87,7 @@ export class MarkerElement extends connect(store)(LitElement) {
     }
 
     const timeSec = this.timeSec + this.offsetSeconds;
-    const { lat, lon, alt } = sel.getTrackLatLonAlt(store.getState())(timeSec, this.track) as common.LatLonAlt;
+    const { lat, lon, alt } = selectTrackLatLonAlt(store.getState())(timeSec, this.track) as common.LatLonAlt;
     const altAboveMin = (alt ?? 0) - this.track.minAlt;
     const altDelta = this.track.maxAlt - this.track.minAlt;
     const scale = 20 + (50 * altAboveMin) / Math.max(altDelta, 1);

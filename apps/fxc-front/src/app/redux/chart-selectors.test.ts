@@ -4,10 +4,41 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { ChartYAxis } from '../components/chart-element';
 import { updateAppTime } from './app-slice';
-import { setCurrentLiveId } from './live-track-slice';
-import * as sel from './selectors';
+import {
+  getSanitizedLiveGroundAltitude,
+  selectActiveLiveTrack,
+  selectIsLiveTrackSelected,
+  setCurrentLiveId,
+} from './live-track-slice';
+import {
+  selectChartActiveTrackId,
+  selectChartAvailableYAxes,
+  selectChartMaxTimeSec,
+  selectChartMaxY,
+  selectChartMinTimeSec,
+  selectChartMinY,
+  selectChartTracks,
+  selectHasChartTrack,
+} from './selectors/chart';
+import {
+  selectActiveDashboardData,
+  selectActivePilotColor,
+  selectActivePilotName,
+  selectHasActiveTrack,
+} from './selectors/dashboard';
+import { selectTrackGndAlt, selectTrackLatLonAlt } from './selectors/position';
 import { store } from './store';
-import { addTrackEntities, removeTracksByGroupIds, selectNextTrack, setCurrentTrackId } from './track-slice';
+import {
+  addTrackEntities,
+  removeTracksByGroupIds,
+  selectIsMultiDay,
+  selectMaxTimeSec,
+  selectMinTimeSec,
+  selectNextTrack,
+  selectOffsetSeconds,
+  selectTrackTotal,
+  setCurrentTrackId,
+} from './track-slice';
 
 /**
  * Creates a mock RuntimeTrack object with populated coordinates and statistics.
@@ -115,15 +146,15 @@ describe('chart selectors', () => {
   };
 
   it('selects runtime tracks when no live track is selected', () => {
-    const tracks = sel.chartTracks(baseState);
+    const tracks = selectChartTracks(baseState);
     expect(tracks).toHaveLength(1);
     expect(tracks[0].id).toBe('1-0');
     expect(tracks[0].alt).toEqual([1500, 1800, 1600]);
     expect(tracks[0].vx).toBeDefined();
 
-    expect(sel.chartAvailableYAxes(baseState)).toEqual([ChartYAxis.Altitude, ChartYAxis.Speed, ChartYAxis.Vario]);
-    expect(sel.chartMinTimeSec(baseState)).toBe(1000);
-    expect(sel.chartMaxTimeSec(baseState)).toBe(1200);
+    expect(selectChartAvailableYAxes(baseState)).toEqual([ChartYAxis.Altitude, ChartYAxis.Speed, ChartYAxis.Vario]);
+    expect(selectChartMinTimeSec(baseState)).toBe(1000);
+    expect(selectChartMaxTimeSec(baseState)).toBe(1200);
   });
 
   it('switches to live track when currentLiveId is set', () => {
@@ -135,10 +166,10 @@ describe('chart selectors', () => {
       },
     };
 
-    expect(sel.isLiveTrackSelected(stateWithLive)).toBe(true);
-    expect(sel.hasChartTrack(stateWithLive)).toBe(true);
+    expect(selectIsLiveTrackSelected(stateWithLive)).toBe(true);
+    expect(selectHasChartTrack(stateWithLive)).toBe(true);
 
-    const tracks = sel.chartTracks(stateWithLive);
+    const tracks = selectChartTracks(stateWithLive);
     expect(tracks).toHaveLength(1);
     expect(tracks[0].id).toBe('42');
     expect(tracks[0].name).toBe('Live Pilot 42');
@@ -151,17 +182,17 @@ describe('chart selectors', () => {
     expect(tracks[0].gndAlt).toEqual([1000, 2500, 1200]);
 
     // Available Y-axes for live track must only be Altitude
-    expect(sel.chartAvailableYAxes(stateWithLive)).toEqual([ChartYAxis.Altitude]);
+    expect(selectChartAvailableYAxes(stateWithLive)).toEqual([ChartYAxis.Altitude]);
 
     // Chart time range should match live track
-    expect(sel.chartMinTimeSec(stateWithLive)).toBe(2000);
-    expect(sel.chartMaxTimeSec(stateWithLive)).toBe(2200);
+    expect(selectChartMinTimeSec(stateWithLive)).toBe(2000);
+    expect(selectChartMaxTimeSec(stateWithLive)).toBe(2200);
 
     // Chart active track id
-    expect(sel.chartActiveTrackId(stateWithLive)).toBe('42');
+    expect(selectChartActiveTrackId(stateWithLive)).toBe('42');
 
     // Sampling lat/lon/alt should sample from live track
-    const coords = sel.getTrackLatLonAlt(stateWithLive)(2100);
+    const coords = selectTrackLatLonAlt(stateWithLive)(2100);
     expect(coords).toEqual({
       lat: 45.5,
       lon: 6.5,
@@ -170,15 +201,15 @@ describe('chart selectors', () => {
   });
 
   it('sanitizes live ground altitude correctly using getSanitizedLiveGroundAltitude', () => {
-    const sanitized = sel.getSanitizedLiveGroundAltitude(liveTrack);
+    const sanitized = getSanitizedLiveGroundAltitude(liveTrack);
     expect(sanitized).toEqual([1000, 2500, 1200]);
 
     // Returns undefined if gndAlt is missing or mismatched length
     const noGnd: protos.LiveTrack = { ...liveTrack, gndAlt: undefined as any };
-    expect(sel.getSanitizedLiveGroundAltitude(noGnd)).toBeUndefined();
+    expect(getSanitizedLiveGroundAltitude(noGnd)).toBeUndefined();
 
     const mismatched: protos.LiveTrack = { ...liveTrack, gndAlt: [1000] };
-    expect(sel.getSanitizedLiveGroundAltitude(mismatched)).toBeUndefined();
+    expect(getSanitizedLiveGroundAltitude(mismatched)).toBeUndefined();
   });
 
   it('shows chart when only live track exists and no runtime tracks are loaded', () => {
@@ -195,10 +226,10 @@ describe('chart selectors', () => {
       },
     };
 
-    expect(sel.numTracks(stateOnlyLive)).toBe(0);
-    expect(sel.hasChartTrack(stateOnlyLive)).toBe(true);
-    expect(sel.chartTracks(stateOnlyLive)).toHaveLength(1);
-    expect(sel.chartTracks(stateOnlyLive)[0].id).toBe('42');
+    expect(selectTrackTotal(stateOnlyLive)).toBe(0);
+    expect(selectHasChartTrack(stateOnlyLive)).toBe(true);
+    expect(selectChartTracks(stateOnlyLive)).toHaveLength(1);
+    expect(selectChartTracks(stateOnlyLive)[0].id).toBe('42');
   });
 
   it('hides chart when no runtime tracks and no live track is selected', () => {
@@ -215,19 +246,19 @@ describe('chart selectors', () => {
       },
     };
 
-    expect(sel.hasChartTrack(stateEmpty)).toBe(false);
-    expect(sel.chartTracks(stateEmpty)).toHaveLength(0);
+    expect(selectHasChartTrack(stateEmpty)).toBe(false);
+    expect(selectChartTracks(stateEmpty)).toHaveLength(0);
   });
 
   describe('active track and dashboard selectors', () => {
     it('returns runtime track name, color, and dashboard data when runtime track is active', () => {
-      expect(sel.hasActiveTrack(baseState)).toBe(true);
-      expect(sel.isLiveTrackSelected(baseState)).toBe(false);
-      expect(sel.activePilotName(baseState)).toBe('Pilot 1-0');
-      expect(sel.activePilotColor(baseState)).toBe('#FF0000');
+      expect(selectHasActiveTrack(baseState)).toBe(true);
+      expect(selectIsLiveTrackSelected(baseState)).toBe(false);
+      expect(selectActivePilotName(baseState)).toBe('Pilot 1-0');
+      expect(selectActivePilotColor(baseState)).toBe('#FF0000');
 
       // Sampled at timeSec = 1100 (halfway between 1000 and 1200)
-      const data = sel.activeDashboardData(baseState);
+      const data = selectActiveDashboardData(baseState);
       expect(data.hasTrack).toBe(true);
       expect(data.alt).toBe(1800);
       expect(data.gndAlt).toBe(1600);
@@ -249,12 +280,12 @@ describe('chart selectors', () => {
         },
       };
 
-      expect(sel.hasActiveTrack(stateWithLive)).toBe(true);
-      expect(sel.isLiveTrackSelected(stateWithLive)).toBe(true);
-      expect(sel.activePilotName(stateWithLive)).toBe('Live Pilot 42');
-      expect(sel.activePilotColor(stateWithLive)).toBeDefined();
+      expect(selectHasActiveTrack(stateWithLive)).toBe(true);
+      expect(selectIsLiveTrackSelected(stateWithLive)).toBe(true);
+      expect(selectActivePilotName(stateWithLive)).toBe('Live Pilot 42');
+      expect(selectActivePilotColor(stateWithLive)).toBeDefined();
 
-      const data = sel.activeDashboardData(stateWithLive);
+      const data = selectActiveDashboardData(stateWithLive);
       expect(data.hasTrack).toBe(true);
       expect(data.alt).toBe(2200);
       expect(data.gndAlt).toBe(1000); // valid ground altitude at timeSec = 2000
@@ -278,7 +309,7 @@ describe('chart selectors', () => {
         },
       };
 
-      const dataMid = sel.activeDashboardData(stateMidpoint);
+      const dataMid = selectActiveDashboardData(stateMidpoint);
       expect(dataMid.hasTrack).toBe(true);
       expect(dataMid.alt).toBe(2350); // midpoint of 2200 and 2500
       expect(dataMid.gndAlt).toBe(1750); // midpoint of 1000 and 2500 (sanitized from 9999)
@@ -295,12 +326,12 @@ describe('chart selectors', () => {
           currentLiveId: '42',
         },
       };
-      const dataAtInvalid = sel.activeDashboardData(stateAtInvalid);
+      const dataAtInvalid = selectActiveDashboardData(stateAtInvalid);
       expect(dataAtInvalid.gndAlt).toBe(2500);
 
-      // getGndAlt selector also uses sanitized values
-      expect(sel.getGndAlt(stateMidpoint)(2050)).toBe(1750);
-      expect(sel.getGndAlt(stateAtInvalid)(2100)).toBe(2500);
+      // selectTrackGndAlt selector also uses sanitized values
+      expect(selectTrackGndAlt(stateMidpoint)(2050)).toBe(1750);
+      expect(selectTrackGndAlt(stateAtInvalid)(2100)).toBe(2500);
     });
 
     it('omits gndAlt when live track does not have ground altitudes', () => {
@@ -325,11 +356,11 @@ describe('chart selectors', () => {
         },
       };
 
-      const data = sel.activeDashboardData(stateNoGnd);
+      const data = selectActiveDashboardData(stateNoGnd);
       expect(data.hasTrack).toBe(true);
       expect(data.alt).toBe(2200);
       expect(data.gndAlt).toBeUndefined();
-      expect(sel.getGndAlt(stateNoGnd)(2000)).toBeUndefined();
+      expect(selectTrackGndAlt(stateNoGnd)(2000)).toBeUndefined();
     });
 
     it('returns hasTrack: false when neither live nor runtime track is active', () => {
@@ -346,15 +377,15 @@ describe('chart selectors', () => {
         },
       };
 
-      expect(sel.hasActiveTrack(stateEmpty)).toBe(false);
-      expect(sel.activePilotName(stateEmpty)).toBeUndefined();
-      const data = sel.activeDashboardData(stateEmpty);
+      expect(selectHasActiveTrack(stateEmpty)).toBe(false);
+      expect(selectActivePilotName(stateEmpty)).toBeUndefined();
+      const data = selectActiveDashboardData(stateEmpty);
       expect(data.hasTrack).toBe(false);
-      expect(sel.getGndAlt(stateEmpty)(2000)).toBe(0);
+      expect(selectTrackGndAlt(stateEmpty)(2000)).toBe(0);
     });
   });
 
-  describe('getGndAlt selector', () => {
+  describe('selectTrackGndAlt selector', () => {
     const stateEmpty = {
       ...baseState,
       track: {
@@ -369,35 +400,35 @@ describe('chart selectors', () => {
     };
 
     it('returns 0 when there is no active or provided track', () => {
-      expect(sel.getGndAlt(stateEmpty)(1000)).toBe(0);
+      expect(selectTrackGndAlt(stateEmpty)(1000)).toBe(0);
     });
 
     it('returns 0 for runtime track without gndAlt', () => {
       const trackNoGnd = createMockRuntimeTrack('t-no-gnd', [1000, 1200], [1500, 1700]);
       delete (trackNoGnd as any).gndAlt;
-      expect(sel.getGndAlt(stateEmpty)(1100, trackNoGnd)).toBe(0);
+      expect(selectTrackGndAlt(stateEmpty)(1100, trackNoGnd)).toBe(0);
     });
 
     it('returns sampled ground altitude for runtime track with gndAlt', () => {
       const trackWithGnd = createMockRuntimeTrack('t-gnd', [1000, 1200], [1500, 1700]);
       // alt is 1500..1700, gndAlt is 1300..1500, sampled at 1100 -> 1400
-      expect(sel.getGndAlt(stateEmpty)(1100, trackWithGnd)).toBe(1400);
+      expect(selectTrackGndAlt(stateEmpty)(1100, trackWithGnd)).toBe(1400);
     });
 
     it('returns undefined for live track without gndAlt', () => {
       const liveNoGnd = createMockLiveTrack(99, [2000, 2100], [2200, 2500]);
       delete (liveNoGnd as any).gndAlt;
-      expect(sel.getGndAlt(stateEmpty)(2050, liveNoGnd)).toBeUndefined();
+      expect(selectTrackGndAlt(stateEmpty)(2050, liveNoGnd)).toBeUndefined();
     });
 
     it('returns sampled ground altitude for live track with gndAlt', () => {
       const liveWithGnd = createMockLiveTrack(99, [2000, 2100], [2200, 2500], [1000, 1200]);
-      expect(sel.getGndAlt(stateEmpty)(2050, liveWithGnd)).toBe(1100);
+      expect(selectTrackGndAlt(stateEmpty)(2050, liveWithGnd)).toBe(1100);
     });
 
     it('defaults to active live track or current runtime track from state', () => {
       // With baseState, currentTrack is track-1-0 with alt [1600, 2000] and gndAlt [1400, 1800]
-      expect(sel.getGndAlt(baseState)(1100)).toBe(1600);
+      expect(selectTrackGndAlt(baseState)(1100)).toBe(1600);
 
       // With active live track
       const stateWithLive = {
@@ -408,7 +439,7 @@ describe('chart selectors', () => {
         },
       };
       // Live track 42 has timeSec [2000, 2100], alt [2200, 2500], gndAlt [1000, NO_GROUND_ALTITUDE (sanitized to 2500)]
-      expect(sel.getGndAlt(stateWithLive)(2050)).toBe(1750);
+      expect(selectTrackGndAlt(stateWithLive)(2050)).toBe(1750);
     });
   });
 
@@ -475,13 +506,13 @@ describe('chart selectors', () => {
         },
       };
 
-      expect(sel.isMultiDay(state)).toBe(false);
-      const offsets = sel.offsetSeconds(state);
+      expect(selectIsMultiDay(state)).toBe(false);
+      const offsets = selectOffsetSeconds(state);
       expect(offsets).toEqual({ t1: 0, t2: 0 });
-      expect(sel.minTimeSec(state)).toBe(1000);
-      expect(sel.maxTimeSec(state)).toBe(3500);
+      expect(selectMinTimeSec(state)).toBe(1000);
+      expect(selectMaxTimeSec(state)).toBe(3500);
 
-      const cTracks = sel.chartTracks(state);
+      const cTracks = selectChartTracks(state);
       expect(cTracks).toHaveLength(2);
       expect(cTracks[0].offsetSeconds).toBe(0);
       expect(cTracks[1].offsetSeconds).toBe(0);
@@ -500,18 +531,18 @@ describe('chart selectors', () => {
         },
       };
 
-      expect(sel.isMultiDay(state)).toBe(true);
-      const offsets = sel.offsetSeconds(state);
+      expect(selectIsMultiDay(state)).toBe(true);
+      const offsets = selectOffsetSeconds(state);
       expect(offsets.d1).toBe(0);
       expect(offsets.d2).toBe(99000); // 100000 - 1000
 
-      expect(sel.minTimeSec(state)).toBe(1000);
+      expect(selectMinTimeSec(state)).toBe(1000);
       // d1 max: 4000 - 0 = 4000; d2 max: 105000 - 99000 = 6000
-      expect(sel.maxTimeSec(state)).toBe(6000);
-      expect(Number.isNaN(sel.minTimeSec(state))).toBe(false);
-      expect(Number.isNaN(sel.maxTimeSec(state))).toBe(false);
+      expect(selectMaxTimeSec(state)).toBe(6000);
+      expect(Number.isNaN(selectMinTimeSec(state))).toBe(false);
+      expect(Number.isNaN(selectMaxTimeSec(state))).toBe(false);
 
-      const cTracks = sel.chartTracks(state);
+      const cTracks = selectChartTracks(state);
       expect(cTracks).toHaveLength(2);
       expect(cTracks[0].offsetSeconds).toBe(0);
       expect(cTracks[1].offsetSeconds).toBe(99000);
@@ -530,18 +561,18 @@ describe('chart selectors', () => {
         },
       };
 
-      expect(sel.isMultiDay(state)).toBe(true);
-      const offsets = sel.offsetSeconds(state);
+      expect(selectIsMultiDay(state)).toBe(true);
+      const offsets = selectOffsetSeconds(state);
       expect(offsets.d1).toBe(-99000); // 1000 - 100000
       expect(offsets.d2).toBe(0);
 
-      expect(sel.minTimeSec(state)).toBe(100000);
+      expect(selectMinTimeSec(state)).toBe(100000);
       // d1 max: 4000 - (-99000) = 103000; d2 max: 105000 - 0 = 105000
-      expect(sel.maxTimeSec(state)).toBe(105000);
-      expect(Number.isNaN(sel.minTimeSec(state))).toBe(false);
-      expect(Number.isNaN(sel.maxTimeSec(state))).toBe(false);
+      expect(selectMaxTimeSec(state)).toBe(105000);
+      expect(Number.isNaN(selectMinTimeSec(state))).toBe(false);
+      expect(Number.isNaN(selectMaxTimeSec(state))).toBe(false);
 
-      const cTracks = sel.chartTracks(state);
+      const cTracks = selectChartTracks(state);
       expect(cTracks[0].offsetSeconds).toBe(-99000);
       expect(cTracks[1].offsetSeconds).toBe(0);
     });
@@ -559,18 +590,18 @@ describe('chart selectors', () => {
         },
       };
 
-      expect(sel.isMultiDay(state)).toBe(true);
+      expect(selectIsMultiDay(state)).toBe(true);
       // Should fall back to tracks[0] as reference track
-      const offsets = sel.offsetSeconds(state);
+      const offsets = selectOffsetSeconds(state);
       expect(offsets.d1).toBe(0);
       expect(offsets.d2).toBe(99000);
 
-      expect(sel.minTimeSec(state)).toBe(1000);
-      expect(sel.maxTimeSec(state)).toBe(6000);
-      expect(Number.isNaN(sel.minTimeSec(state))).toBe(false);
-      expect(Number.isNaN(sel.maxTimeSec(state))).toBe(false);
-      expect(Number.isNaN(sel.chartMinTimeSec(state))).toBe(false);
-      expect(Number.isNaN(sel.chartMaxTimeSec(state))).toBe(false);
+      expect(selectMinTimeSec(state)).toBe(1000);
+      expect(selectMaxTimeSec(state)).toBe(6000);
+      expect(Number.isNaN(selectMinTimeSec(state))).toBe(false);
+      expect(Number.isNaN(selectMaxTimeSec(state))).toBe(false);
+      expect(Number.isNaN(selectChartMinTimeSec(state))).toBe(false);
+      expect(Number.isNaN(selectChartMaxTimeSec(state))).toBe(false);
     });
 
     it('keeps runtime track offsets valid when a live track is selected', () => {
@@ -591,14 +622,14 @@ describe('chart selectors', () => {
       };
 
       // Live track is rendered on chart
-      const cTracks = sel.chartTracks(state);
+      const cTracks = selectChartTracks(state);
       expect(cTracks).toHaveLength(1);
       expect(cTracks[0].isLive).toBe(true);
-      expect(sel.chartMinTimeSec(state)).toBe(2000);
-      expect(sel.chartMaxTimeSec(state)).toBe(2200);
+      expect(selectChartMinTimeSec(state)).toBe(2000);
+      expect(selectChartMaxTimeSec(state)).toBe(2200);
 
       // Runtime track offsets remain valid for 2D/3D map markers
-      const offsets = sel.offsetSeconds(state);
+      const offsets = selectOffsetSeconds(state);
       expect(offsets.d1).toBe(0);
       expect(offsets.d2).toBe(99000);
       expect(Number.isNaN(offsets.d1)).toBe(false);
@@ -630,15 +661,15 @@ describe('chart selectors', () => {
         },
       };
 
-      // activeLiveTrack should only have the points of the last segment
-      const active = sel.activeLiveTrack(state);
+      // selectActiveLiveTrack should only have the points of the last segment
+      const active = selectActiveLiveTrack(state);
       expect(active).toBeDefined();
       expect(active?.timeSec).toEqual([10000, 10100]);
       expect(active?.alt).toEqual([1500, 1600]);
       expect(active?.gndAlt).toEqual([1200, 1300]);
 
-      // chartTracks should only have the last segment
-      const cTracks = sel.chartTracks(state);
+      // selectChartTracks should only have the last segment
+      const cTracks = selectChartTracks(state);
       expect(cTracks).toHaveLength(1);
       expect(cTracks[0].timeSec).toEqual([10000, 10100]);
       expect(cTracks[0].alt).toEqual([1500, 1600]);
@@ -646,11 +677,11 @@ describe('chart selectors', () => {
       expect(cTracks[0].maxTimeSec).toBe(10100);
 
       // chart min/max time should reflect only the last segment
-      expect(sel.chartMinTimeSec(state)).toBe(10000);
-      expect(sel.chartMaxTimeSec(state)).toBe(10100);
+      expect(selectChartMinTimeSec(state)).toBe(10000);
+      expect(selectChartMaxTimeSec(state)).toBe(10100);
 
       // dashboard should sample on the active segment
-      const dash = sel.activeDashboardData(state);
+      const dash = selectActiveDashboardData(state);
       expect(dash.hasTrack).toBe(true);
       expect(dash.alt).toBe(1550);
       expect(dash.gndAlt).toBe(1250);
@@ -673,8 +704,8 @@ describe('chart selectors', () => {
       };
 
       // Altitudes are 2200 and 2500, ground altitudes are 1000 and sanitized 2500 -> min should be 1000
-      expect(sel.chartMinY(stateWithLive)).toBe(1000);
-      expect(sel.chartMaxY(stateWithLive)).toBe(2500);
+      expect(selectChartMinY(stateWithLive)).toBe(1000);
+      expect(selectChartMaxY(stateWithLive)).toBe(2500);
     });
 
     it('does not overwrite app time when a live track is selected', () => {

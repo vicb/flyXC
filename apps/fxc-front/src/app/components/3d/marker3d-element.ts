@@ -8,7 +8,7 @@ import { connect } from 'pwa-helpers';
 
 import * as app from '../../redux/app-slice';
 import * as arcgis from '../../redux/arcgis-slice';
-import * as sel from '../../redux/selectors';
+import { selectTrackLatLonAlt } from '../../redux/selectors/position';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import * as track from '../../redux/track-slice';
@@ -88,9 +88,9 @@ export class Marker3dElement extends connect(store)(LitElement) {
     if (this.track) {
       const id = this.track.id;
       // Fall back to 0 if the track has no offset (e.g. single day or not yet computed).
-      this.offsetSeconds = sel.offsetSeconds(state)[id] ?? 0;
-      this.color = sel.trackColors(state)[id];
-      this.active = id == sel.currentTrackId(state);
+      this.offsetSeconds = track.selectOffsetSeconds(state)[id] ?? 0;
+      this.color = track.selectTrackColors(state)[id];
+      this.active = id == track.selectCurrentTrackId(state);
     }
     this.timeSec = app.selectTimeSec(state);
     this.multiplier = arcgis.selectAltitudeMultiplier(state);
@@ -111,7 +111,7 @@ export class Marker3dElement extends connect(store)(LitElement) {
     if (this.graphic && this.track) {
       const track = this.track;
       const timeSec = this.timeSec + this.offsetSeconds;
-      const { lat, lon, alt } = sel.getTrackLatLonAlt(store.getState())(timeSec, this.track) as common.LatLonAlt;
+      const { lat, lon, alt } = selectTrackLatLonAlt(store.getState())(timeSec, this.track) as common.LatLonAlt;
 
       this.point.latitude = lat;
       this.point.longitude = lon;

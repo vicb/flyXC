@@ -9,9 +9,10 @@ import { connect } from 'pwa-helpers';
 
 import * as app from '../../redux/app-slice';
 import * as arcgis from '../../redux/arcgis-slice';
-import * as sel from '../../redux/selectors';
+import { selectTrackLatLonAlt } from '../../redux/selectors/position';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
+import { selectCurrentTrackId, selectOffsetSeconds, selectTrackColors } from '../../redux/track-slice';
 
 const INACTIVE_ALPHA = 0.7;
 
@@ -72,9 +73,9 @@ export class Line3dElement extends connect(store)(LitElement) {
     if (this.track) {
       const id = this.track.id;
       // Fall back to 0 if the track has no offset (e.g. single day or not yet computed).
-      this.offsetSeconds = sel.offsetSeconds(state)[id] ?? 0;
-      this.color = sel.trackColors(state)[id];
-      this.opacity = id == sel.currentTrackId(state) ? 1 : INACTIVE_ALPHA;
+      this.offsetSeconds = selectOffsetSeconds(state)[id] ?? 0;
+      this.color = selectTrackColors(state)[id];
+      this.opacity = id == selectCurrentTrackId(state) ? 1 : INACTIVE_ALPHA;
     }
     this.timeSec = app.selectTimeSec(state);
     this.multiplier = arcgis.selectAltitudeMultiplier(state);
@@ -100,7 +101,7 @@ export class Line3dElement extends connect(store)(LitElement) {
       const end = Math.max(common.findIndexes(timeSecs, timeSec).beforeIndex + 1, 4);
       const path = this.path3d.slice(start, end);
       // The last point must match the marker position and needs to be interpolated.
-      const pos = sel.getTrackLatLonAlt(store.getState())(timeSec, this.track) as common.LatLonAlt;
+      const pos = selectTrackLatLonAlt(store.getState())(timeSec, this.track) as common.LatLonAlt;
       path.push([pos.lon, pos.lat, this.multiplier * pos.alt]);
       this.line.paths[0] = path;
 

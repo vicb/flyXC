@@ -19,9 +19,9 @@ import { drawRoute } from '../../logic/messages';
 import type { LeagueCode } from '../../logic/score/league/leagues';
 import { Scorer } from '../../logic/score/scorer';
 import * as plannerSlice from '../../redux/planner-slice';
-import { currentTrack } from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
+import { selectCurrentTrack } from '../../redux/track-slice';
 import type { PlannerElement } from './planner-element';
 
 // Route color by circuit type.
@@ -71,7 +71,7 @@ export class PathElement extends connect(store)(LitElement) {
   private toastScoring?: HTMLIonToastElement;
 
   stateChanged(state: RootState): void {
-    this.currentTrack = currentTrack(state);
+    this.currentTrack = selectCurrentTrack(state);
     this.league = plannerSlice.selectLeague(state);
     this.enabled = plannerSlice.selectEnabled(state);
     this.encodedRoute = plannerSlice.selectRoute(state);

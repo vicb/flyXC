@@ -4,7 +4,7 @@ import type { EntityState, PayloadAction } from '@reduxjs/toolkit';
 import { createAction, createAsyncThunk, createEntityAdapter, createSelector, createSlice } from '@reduxjs/toolkit';
 
 import { isMobile } from '../logic/browser';
-import { getFetchParameters } from '../logic/live-track';
+import { getActiveTrackSegment, getFetchParameters } from '../logic/live-track';
 import type { Response } from '../workers/live-track';
 import LiveTrackWorker from '../workers/live-track?worker';
 import type { RootState } from './store';
@@ -234,3 +234,43 @@ export const getLivePilots = createSelector(liveTrackSelectors.selectAll, (track
     };
   });
 });
+
+/**
+ * Sanitizes ground altitude samples for a live track by replacing invalid samples
+ * (e.g. NO_GROUND_ALTITUDE = 9999) with the corresponding flight altitude.
+ *
+ * This prevents sampleAt from interpolating across 9999 sentinel values, which would
+ * otherwise produce blended pseudo-elevations far above the actual flight path.
+ *
+ * @param liveTrack - The live track containing ground and flight altitude arrays.
+ * @returns An array of sanitized ground altitude values, or undefined if gndAlt is missing or mismatched.
+ */
+export function getSanitizedLiveGroundAltitude(liveTrack: protos.LiveTrack): number[] | undefined {
+  if (liveTrack.gndAlt && liveTrack.gndAlt.length === liveTrack.timeSec.length) {
+    return liveTrack.gndAlt.map((g, i) => (isGroundAltitudeValid(g) ? g : liveTrack.alt[i]));
+  }
+  return undefined;
+}
+
+/**
+ * Selects the currently active LiveTrack entity based on currentLiveId.
+ */
+export const selectSelectedLiveTrack = createSelector(
+  [selectCurrentLiveId, selectLiveTrackEntities],
+  (id, entities): protos.LiveTrack | undefined => (id && entities ? entities[id] : undefined),
+);
+
+/**
+ * Returns the active segment of the selected live track (the last segment after any gap >= TRACK_GAP_MIN).
+ *
+ * If the track contains gaps, earlier segments are drawn as dashed lines on the map and only
+ * the last segment is considered active (shown on the elevation chart and followed by the moving dot).
+ */
+export const selectActiveLiveTrack = createSelector([selectSelectedLiveTrack], (track): protos.LiveTrack | undefined =>
+  track ? getActiveTrackSegment(track) : undefined,
+);
+
+/**
+ * Whether a live track is currently selected.
+ */
+export const selectIsLiveTrackSelected = createSelector([selectSelectedLiveTrack], (track): boolean => track != null);

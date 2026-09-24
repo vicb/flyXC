@@ -10,9 +10,9 @@ import type { LeagueCode } from '../../logic/score/league/leagues';
 import * as units from '../../logic/units';
 import { selectIsSmallScreen } from '../../redux/browser-slice';
 import * as plannerSlice from '../../redux/planner-slice';
-import { currentTrack } from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
+import { selectCurrentTrack } from '../../redux/track-slice';
 import { selectUnits } from '../../redux/units-slice';
 
 const ICON_MINUS =
@@ -53,7 +53,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   private readonly scoreHandler = () => this.dispatchEvent(new CustomEvent('score-track'));
 
   stateChanged(state: RootState): void {
-    this.hasCurrentTrack = currentTrack(state) != null;
+    this.hasCurrentTrack = selectCurrentTrack(state) != null;
     this.distanceM = plannerSlice.selectDistanceM(state);
     this.score = plannerSlice.selectScore(state);
     this.speedKmh = plannerSlice.selectSpeedKmh(state);

@@ -10,7 +10,6 @@ import { maybeHideSidePane } from '../../../flyxc';
 import { pushCurrentState } from '../../logic/history';
 import * as msg from '../../logic/messages';
 import * as app from '../../redux/app-slice';
-import * as sel from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import * as trackSlice from '../../redux/track-slice';
@@ -25,7 +24,7 @@ export class TrackModal extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     this.currentTrackId = trackSlice.selectCurrentTrackId(state);
-    this.tracks = sel.tracks(state);
+    this.tracks = trackSlice.selectAllTracks(state);
     this.state = state;
   }
 
@@ -46,7 +45,10 @@ export class TrackModal extends connect(store)(LitElement) {
                 color=${track.id == this.currentTrackId ? 'primary' : ''}
                 @click=${() => this.handleSelect(track)}
               >
-                <i class="las la-user-astronaut la-2x" style=${`color: ${sel.trackColors(this.state)[track.id]}`}></i
+                <i
+                  class="las la-user-astronaut la-2x"
+                  style=${`color: ${trackSlice.selectTrackColors(this.state)[track.id]}`}
+                ></i
                 >${track.name}
                 <i
                   slot="end"
@@ -82,7 +84,7 @@ export class TrackModal extends connect(store)(LitElement) {
     app.updateAppTime(store);
     msg.trackGroupsRemoved.emit([groupId]);
     // Closes the modal and the menu when all tracks are closed.
-    if (sel.numTracks(store.getState()) == 0) {
+    if (trackSlice.selectTrackTotal(store.getState()) == 0) {
       await this.dismiss();
       await maybeHideSidePane();
     }
