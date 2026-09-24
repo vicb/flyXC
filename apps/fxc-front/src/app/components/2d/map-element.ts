@@ -285,6 +285,9 @@ export class MapElement extends connect(store)(LitElement) {
           transform: translate(-50%, 0);
           z-index: 1;
         }
+        .ad img {
+          filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #fff);
+        }
       </style>
       <div id="drw-container" style=${`display:${this.isFreeDrawing ? 'block' : 'none'}`}>
         <svg>
@@ -303,8 +306,8 @@ export class MapElement extends connect(store)(LitElement) {
         this.isFrance && !this.isFromFfvl,
         () => html`<a class="ad" href="https://ruedelair.com/" target="_blank">
           <img
-            width="${Math.round(175 * this.adRatio)}"
-            height="${Math.round(34 * this.adRatio)}"
+            width="${Math.round(220 * this.adRatio)}"
+            height="${Math.round(42 * this.adRatio)}"
             src="/static/img/ruedelair.svg"
             alt="Rue de l'Air"
           />
