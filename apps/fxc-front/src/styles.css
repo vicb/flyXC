@@ -44,8 +44,8 @@ chart-element.has-tracks {
 
 .gm-label-outline {
   font-size: 14px;
-  text-shadow: 0 0 5px #fff, 2px 0 5px #fff, -2px 0 5px #fff, 0 0 5px #fff, 2px 0 5px #fff, -2px 0 5px #fff;
-  filter: drop-shadow(0 0 1px lightgray);
+  -webkit-text-stroke: 5px #fff;
+  paint-order: stroke fill;
   white-space: pre;
 }
 
@@ -129,8 +129,9 @@ ion-item.social a {
   overflow: visible;
   position: relative;
   font-size: 14px;
-  text-shadow: 0 0 5px #fff, 2px 0 5px #fff, -2px 0 5px #fff, 0 0 5px #fff, 2px 0 5px #fff, -2px 0 5px #fff;
   font-weight: 500;
+  -webkit-text-stroke: 5px #fff;
+  paint-order: stroke fill;
 }
 
 .fxc-marker svg {
