@@ -1,4 +1,4 @@
-import type { RuntimeTrack } from '@flyxc/common';
+import type { LatLon, RuntimeTrack } from '@flyxc/common';
 import {
   addAirspaces,
   addGroundAltitude,
@@ -8,10 +8,11 @@ import {
   protos,
 } from '@flyxc/common';
 import type { EntityState, PayloadAction } from '@reduxjs/toolkit';
-import { createAction, createAsyncThunk, createEntityAdapter, createSlice } from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, createEntityAdapter, createSelector, createSlice } from '@reduxjs/toolkit';
 
 import { addUrlParamValue, ParamNames } from '../logic/history';
 import * as msg from '../logic/messages';
+import { getUniqueColor } from '../styles/track';
 import type { Response } from '../workers/track';
 import TrackWorker from '../workers/track?worker';
 import { setTimeSec } from './app-slice';
@@ -359,3 +360,121 @@ export const {
   selectTotal: selectTrackTotal,
   selectById: selectTrackById,
 } = trackAdapterSelector;
+
+/**
+ * Selects the currently selected RuntimeTrack object, or undefined if none is selected.
+ */
+export const selectCurrentTrack = createSelector(
+  [selectCurrentTrackId, selectTrackEntities],
+  (trackId, entities): RuntimeTrack | undefined => (trackId && entities ? entities[trackId] : undefined),
+);
+
+/**
+ * Returns a Set of group IDs present across all loaded tracks.
+ */
+export const selectGroupIds = createSelector(
+  [selectTrackIds],
+  (ids): Set<number> => new Set(ids.map((trackId) => extractGroupId(String(trackId)))),
+);
+
+/**
+ * True if loaded tracks' start times are more than 12h apart.
+ */
+export const selectIsMultiDay = createSelector([selectAllTracks], (tracks): boolean => {
+  if (tracks.length === 0) {
+    return false;
+  }
+  const startTimesSec = tracks.map((t) => t.minTimeSec);
+  const minTimeSec = Math.min(...startTimesSec);
+  const maxTimeSec = Math.max(...startTimesSec);
+  return maxTimeSec - minTimeSec > 12 * 3600;
+});
+
+/**
+ * Offsets to subtract from each track timestamp to normalize multi-day tracks to the start of the current track.
+ */
+export const selectOffsetSeconds = createSelector(
+  [selectAllTracks, selectCurrentTrack, selectIsMultiDay],
+  (tracks, currentTrack, isMultiDay): { [id: string]: number } => {
+    const offsets: { [id: string]: number } = {};
+    if (tracks.length > 0) {
+      const referenceTrack = currentTrack ?? tracks[0];
+      const start = referenceTrack.timeSec[0];
+      tracks.forEach((track) => {
+        offsets[track.id] = isMultiDay ? track.timeSec[0] - start : 0;
+      });
+    }
+    return offsets;
+  },
+);
+
+export const selectMaxLats = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.maxLat));
+export const selectMaxLat = createSelector([selectMaxLats], (lats) => Math.max(...lats));
+
+export const selectMaxLons = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.maxLon));
+export const selectMaxLon = createSelector([selectMaxLons], (lons) => Math.max(...lons));
+
+export const selectMinLats = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.minLat));
+export const selectMinLat = createSelector([selectMinLats], (lats) => Math.min(...lats));
+
+export const selectMinLons = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.minLon));
+export const selectMinLon = createSelector([selectMinLons], (lons) => Math.min(...lons));
+
+export const selectMaxTimeSecs = createSelector([selectAllTracks, selectOffsetSeconds], (tracks, offsetSeconds) =>
+  tracks.map((t) => t.maxTimeSec - (offsetSeconds[t.id] ?? 0)),
+);
+export const selectMaxTimeSec = createSelector([selectMaxTimeSecs], (timeSecs) =>
+  timeSecs.length ? Math.max(...timeSecs) : 1,
+);
+
+export const selectMinTimeSecs = createSelector([selectAllTracks, selectOffsetSeconds], (tracks, offsetSeconds) =>
+  tracks.map((t) => t.minTimeSec - (offsetSeconds[t.id] ?? 0)),
+);
+export const selectMinTimeSec = createSelector([selectMinTimeSecs], (timeSecs) =>
+  timeSecs.length ? Math.min(...timeSecs) : 0,
+);
+
+export const selectMaxAlts = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.maxAlt));
+export const selectMaxAlt = createSelector([selectMaxAlts], (alts) => (alts.length ? Math.max(...alts) : 0));
+
+export const selectMinAlts = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.minAlt));
+export const selectMinAlt = createSelector([selectMinAlts], (alts) => Math.min(...alts));
+
+export const selectMaxSpeeds = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.maxVx));
+export const selectMaxSpeed = createSelector([selectMaxSpeeds], (speeds) => Math.max(...speeds));
+
+export const selectMinSpeeds = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.minVx));
+export const selectMinSpeed = createSelector([selectMinSpeeds], (speeds) => Math.min(...speeds));
+
+export const selectMaxVarios = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.maxVz));
+export const selectMaxVario = createSelector([selectMaxVarios], (varios) => Math.max(...varios));
+
+export const selectMinVarios = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.minVz));
+export const selectMinVario = createSelector([selectMinVarios], (varios) => Math.min(...varios));
+
+/**
+ * Returns the geographical bounding box of all loaded tracks, or null if no tracks are loaded.
+ */
+export const selectTracksExtent = createSelector(
+  [selectAllTracks, selectMinLat, selectMinLon, selectMaxLat, selectMaxLon],
+  (tracks, minLat, minLon, maxLat, maxLon): { ne: LatLon; sw: LatLon } | null => {
+    if (tracks.length === 0) {
+      return null;
+    }
+    return {
+      ne: { lat: maxLat, lon: maxLon },
+      sw: { lat: minLat, lon: minLon },
+    };
+  },
+);
+
+/**
+ * Maps each track ID to a distinct display color.
+ */
+export const selectTrackColors = createSelector([selectTrackIds], (ids): { [id: string]: string } => {
+  const colors: { [id: string]: string } = {};
+  ids.forEach((id, i) => {
+    colors[id] = getUniqueColor(String(i), 1);
+  });
+  return colors;
+});

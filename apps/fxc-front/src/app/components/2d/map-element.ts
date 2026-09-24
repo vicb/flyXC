@@ -22,14 +22,16 @@ import {
   setCurrentZoom,
 } from '../../redux/location-slice';
 import { selectIsFreeDrawing, setIsFreeDrawing, setRoute } from '../../redux/planner-slice';
-import * as sel from '../../redux/selectors';
+import { selectTrackLatLonAlt } from '../../redux/selectors/position';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import {
+  selectAllTracks,
   selectCurrentTrackId,
   selectDomain,
   selectLoaded,
   selectLockOnPilot,
+  selectTracksExtent,
   setCurrentTrackId,
 } from '../../redux/track-slice';
 import { ControlsElement } from './controls-element';
@@ -123,7 +125,7 @@ export class MapElement extends connect(store)(LitElement) {
   private readonly adRatio = selectIsSmallScreen(store.getState()) ? 0.7 : 1;
 
   stateChanged(state: RootState): void {
-    this.tracks = sel.tracks(state);
+    this.tracks = selectAllTracks(state);
     this.timeSec = selectTimeSec(state);
     // In full screen mode the gesture handling must be greedy.
     // Using ctrl (+ scroll) is unnecessary as thr page can not scroll anyway.
@@ -139,7 +141,7 @@ export class MapElement extends connect(store)(LitElement) {
     const now = Date.now();
     if (this.map) {
       if (changedProps.has('currentTrackId')) {
-        const latLon = sel.getTrackLatLonAlt(store.getState())(this.timeSec);
+        const latLon = selectTrackLatLonAlt(store.getState())(this.timeSec);
         if (latLon) {
           const { lat, lon } = latLon;
           this.center(lat, lon);
@@ -148,7 +150,7 @@ export class MapElement extends connect(store)(LitElement) {
       if (this.tracks.length && this.lockOnPilot && changedProps.has('timeSec') && now > this.lockPanBefore) {
         this.lockPanBefore = now + 50;
         const zoom = this.map.getZoom() as number;
-        const currentPosition = sel.getTrackLatLonAlt(store.getState())(this.timeSec) as LatLonAlt;
+        const currentPosition = selectTrackLatLonAlt(store.getState())(this.timeSec) as LatLonAlt;
         const { x, y } = getPixelCoordinates(currentPosition, zoom, 256).world;
         const bounds = this.map.getBounds() as google.maps.LatLngBounds;
         const sw = bounds.getSouthWest();
@@ -436,7 +438,7 @@ export class MapElement extends connect(store)(LitElement) {
       if (Date.now() < timeout && !hasWidth) {
         setTimeout(zoomWhenSize, 100);
       } else {
-        const extent = sel.tracksExtent(store.getState());
+        const extent = selectTracksExtent(store.getState());
         if (extent != null) {
           const bounds = new google.maps.LatLngBounds(
             { lat: extent.sw.lat, lng: extent.sw.lon },

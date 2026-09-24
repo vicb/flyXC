@@ -42,7 +42,17 @@ import * as airspaces from './app/redux/airspace-slice';
 import * as app from './app/redux/app-slice';
 import * as liveTrack from './app/redux/live-track-slice';
 import * as planner from './app/redux/planner-slice';
-import * as sel from './app/redux/selectors';
+import {
+  selectChartActiveTrackId,
+  selectChartAvailableYAxes,
+  selectChartMaxTimeSec,
+  selectChartMaxY,
+  selectChartMinTimeSec,
+  selectChartMinY,
+  selectChartTracks,
+  selectHasChartTrack,
+} from './app/redux/selectors/chart';
+import { selectTrackLatLonAlt } from './app/redux/selectors/position';
 import type { RootState } from './app/redux/store';
 import { store } from './app/redux/store';
 import * as track from './app/redux/track-slice';
@@ -87,7 +97,7 @@ export class FlyXc extends connect(store)(LitElement) {
       downloadTracksByUrls(getUrlParamValues(ParamNames.trackUrl)),
     ]).then(() => {
       store.dispatch(track.setTrackLoaded(true));
-      const numTracks = sel.numTracks(store.getState());
+      const numTracks = track.selectTrackTotal(store.getState());
       store.dispatch(track.setDisplayLabels(numTracks > 1));
       store.dispatch(liveTrack.setDisplayLabels(numTracks === 0));
       // Remove the track urls as they will be replaced with ids.
@@ -206,7 +216,7 @@ export class FlyXc extends connect(store)(LitElement) {
   private handlePopState(): void {
     // Handle added and removed tracks.
     const nextGroupIds = new Set(getUrlParamValues(ParamNames.groupId).map((txt) => Number(txt)));
-    const currentGroupIds = sel.groupIds(store.getState());
+    const currentGroupIds = track.selectGroupIds(store.getState());
     // Close all the tracks that have been removed.
     const removedTrackGroups = [...currentGroupIds].filter((id) => !nextGroupIds.has(id));
     if (removedTrackGroups.length) {
@@ -298,21 +308,21 @@ export class MapsElement extends connect(store)(LitElement) {
    * @param state - The root application state.
    */
   stateChanged(state: RootState): void {
-    const selectedLive = sel.activeLiveTrack(state);
+    const selectedLive = liveTrack.selectActiveLiveTrack(state);
     const hasLiveTrack = selectedLive != null;
     this.isLiveTrack = hasLiveTrack;
-    this.hasTrack = sel.hasChartTrack(state);
+    this.hasTrack = selectHasChartTrack(state);
     this.showLoader = track.selectFetching(state) || app.selectLoadingApi(state);
 
-    this.chartTracks = sel.chartTracks(state);
-    this.chartActiveTrackId = sel.chartActiveTrackId(state);
+    this.chartTracks = selectChartTracks(state);
+    this.chartActiveTrackId = selectChartActiveTrackId(state);
     this.chartYAxis = hasLiveTrack ? ChartYAxis.Altitude : app.selectChartYAxis(state);
-    this.availableYAxes = sel.chartAvailableYAxes(state);
+    this.availableYAxes = selectChartAvailableYAxes(state);
     this.timeSec = app.selectTimeSec(state);
-    this.minTimeSec = sel.chartMinTimeSec(state);
-    this.maxTimeSec = sel.chartMaxTimeSec(state);
-    this.minY = sel.chartMinY(state);
-    this.maxY = sel.chartMaxY(state);
+    this.minTimeSec = selectChartMinTimeSec(state);
+    this.maxTimeSec = selectChartMaxTimeSec(state);
+    this.minY = selectChartMinY(state);
+    this.maxY = selectChartMaxY(state);
     this.units = unitsSlice.selectUnits(state);
     this.showClasses = airspaces.selectShowClasses(state);
     this.showTypes = airspaces.selectShowTypes(state);
@@ -348,7 +358,7 @@ export class MapsElement extends connect(store)(LitElement) {
     const trackIds = track.selectTrackIds(state);
     if (!hasLiveTrack && trackIds.length > 0) {
       if (trackIdChanged) {
-        const isMultiDay = sel.isMultiDay(state);
+        const isMultiDay = track.selectIsMultiDay(state);
         const trackEntities = track.selectTrackEntities(state);
         const prevTrack = prevTrackId ? trackEntities[prevTrackId] : undefined;
         const currentTrack = currentTrackId ? trackEntities[currentTrackId] : undefined;
@@ -419,7 +429,7 @@ export class MapsElement extends connect(store)(LitElement) {
 
   // Returns the coordinates of the active track at the given timestamp.
   private coordinatesAt(timeSec: number): LatLonAlt {
-    return sel.getTrackLatLonAlt(store.getState())(timeSec) as LatLonAlt;
+    return selectTrackLatLonAlt(store.getState())(timeSec) as LatLonAlt;
   }
 
   createRenderRoot(): HTMLElement {

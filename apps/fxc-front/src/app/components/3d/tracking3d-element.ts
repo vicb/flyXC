@@ -19,9 +19,9 @@ import type { Units } from '../../logic/units';
 import { formatDurationMin } from '../../logic/units';
 import * as arcgis from '../../redux/arcgis-slice';
 import * as liveTrack from '../../redux/live-track-slice';
-import * as sel from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
+import { selectTrackTotal } from '../../redux/track-slice';
 import * as unitsSlice from '../../redux/units-slice';
 import { getUniqueContrastColor } from '../../styles/track';
 
@@ -167,7 +167,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
     this.multiplier = arcgis.selectAltitudeMultiplier(state);
     this.units = unitsSlice.selectUnits(state);
     this.currentId = liveTrack.selectCurrentLiveId(state);
-    this.numTracks = sel.numTracks(state);
+    this.numTracks = selectTrackTotal(state);
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {

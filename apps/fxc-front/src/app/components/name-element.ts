@@ -7,7 +7,8 @@ import { html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
-import * as sel from '../redux/selectors';
+import { selectIsLiveTrackSelected } from '../redux/live-track-slice';
+import { selectActivePilotColor, selectActivePilotName, selectHasActiveTrack } from '../redux/selectors/dashboard';
 import type { RootState } from '../redux/store';
 import { store } from '../redux/store';
 import { controlStyle } from '../styles/control-style';
@@ -45,10 +46,10 @@ export class NameElement extends connect(store)(LitElement) {
    * @param state - The current root state of the Redux store.
    */
   stateChanged(state: RootState): void {
-    this.stateHasTrack = sel.hasActiveTrack(state);
-    this.stateName = sel.activePilotName(state) ?? '';
-    this.stateColor = sel.activePilotColor(state);
-    this.stateIsLive = sel.isLiveTrackSelected(state);
+    this.stateHasTrack = selectHasActiveTrack(state);
+    this.stateName = selectActivePilotName(state) ?? '';
+    this.stateColor = selectActivePilotColor(state);
+    this.stateIsLive = selectIsLiveTrackSelected(state);
   }
 
   static get styles(): CSSResult {

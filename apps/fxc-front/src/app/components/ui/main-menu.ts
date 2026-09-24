@@ -33,7 +33,6 @@ import type { LivePilot } from '../../redux/live-track-slice';
 import * as liveTrack from '../../redux/live-track-slice';
 import * as locationSlice from '../../redux/location-slice';
 import * as planner from '../../redux/planner-slice';
-import * as sel from '../../redux/selectors';
 import * as skyways from '../../redux/skyways-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
@@ -246,7 +245,7 @@ export class AirspaceItems extends connect(store)(LitElement) {
   stateChanged(state: RootState): void {
     this.unit = unitsSlice.selectAltitudeUnit(state);
     this.maxAltitude = airspaces.selectMaxAltitude(state);
-    this.altitudeStops = sel.airspaceAltitudeStops(state);
+    this.altitudeStops = airspaces.selectAirspaceAltitudeStops(state);
     this.show = airspaces.selectShowAirspaces(state);
     this.showClasses = airspaces.selectShowClasses(state);
     this.showTypes = airspaces.selectShowTypes(state);
@@ -350,8 +349,8 @@ export class AirspaceItems extends connect(store)(LitElement) {
     const stops = this.altitudeStops;
     const state = store.getState();
 
-    if (stops.length > 0 && sel.numTracks(state) > 0) {
-      const maxAlt = sel.maxAlt(state);
+    if (stops.length > 0 && track.selectTrackTotal(state) > 0) {
+      const maxAlt = track.selectMaxAlt(state);
       store.dispatch(airspaces.setMaxAltitude(stops.find((alt) => alt >= maxAlt) ?? stops[stops.length - 1]));
     }
   }
@@ -598,7 +597,7 @@ export class TrackItems extends connect(store)(LitElement) {
   private lockOnPilot = true;
 
   stateChanged(state: RootState): void {
-    this.numTracks = sel.numTracks(state);
+    this.numTracks = track.selectTrackTotal(state);
     this.displayLabels = track.selectDisplayLabels(state);
     this.lockOnPilot = track.selectLockOnPilot(state);
   }

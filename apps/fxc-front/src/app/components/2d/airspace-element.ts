@@ -7,9 +7,10 @@ import { connect } from 'pwa-helpers';
 import { AspMapType, AspZoomMapType, getAirspaceList } from '../../logic/airspaces';
 import * as airspaces from '../../redux/airspace-slice';
 import * as app from '../../redux/app-slice';
-import * as sel from '../../redux/selectors';
+import { selectTrackGndAlt, selectTrackLatLonAlt } from '../../redux/selectors/position';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
+import { selectCurrentTrack } from '../../redux/track-slice';
 
 @customElement('airspace-element')
 export class AirspaceElement extends connect(store)(LitElement) {
@@ -62,7 +63,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
     this.showClasses = airspaces.selectShowClasses(state);
     this.showTypes = airspaces.selectShowTypes(state);
     this.maxAltitude = airspaces.selectMaxAltitude(state);
-    this.track = sel.currentTrack(state);
+    this.track = selectCurrentTrack(state);
     this.timeSec = app.selectTimeSec(state);
   }
 
@@ -79,8 +80,8 @@ export class AirspaceElement extends connect(store)(LitElement) {
         this.addOverlays();
       }
       if (this.track && changedProperties.has('timeSec') && !this.isMapClick) {
-        const point = sel.getTrackLatLonAlt(store.getState())(this.timeSec) as common.LatLonAlt;
-        const gndAlt = sel.getGndAlt(store.getState())(this.timeSec);
+        const point = selectTrackLatLonAlt(store.getState())(this.timeSec) as common.LatLonAlt;
+        const gndAlt = selectTrackGndAlt(store.getState())(this.timeSec);
         this.showAirspaceInfo(point, { gndAlt, date: new Date(this.timeSec * 1000) });
       }
     }

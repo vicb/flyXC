@@ -12,9 +12,10 @@ import { formatDurationMin, formatUnit } from '../../logic/units';
 import * as app from '../../redux/app-slice';
 import * as liveTrack from '../../redux/live-track-slice';
 import * as planner from '../../redux/planner-slice';
-import * as sel from '../../redux/selectors';
+import { selectTrackGndAlt, selectTrackLatLonAlt } from '../../redux/selectors/position';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
+import { selectTrackTotal } from '../../redux/track-slice';
 import * as unitsSlice from '../../redux/units-slice';
 import { getUniqueContrastColor } from '../../styles/track';
 
@@ -232,10 +233,10 @@ export class TrackingElement extends connect(store)(LitElement) {
     this.displayLabels = liveTrack.selectDisplayLabels(state);
     this.geojson = liveTrack.selectGeojson(state);
     this.currentId = liveTrack.selectCurrentLiveId(state);
-    this.numTracks = sel.numTracks(state);
+    this.numTracks = selectTrackTotal(state);
     this.plannerEnabled = planner.selectEnabled(state);
     this.timeSec = app.selectTimeSec(state);
-    this.liveTrack = sel.activeLiveTrack(state);
+    this.liveTrack = liveTrack.selectActiveLiveTrack(state);
   }
 
   /**
@@ -253,18 +254,18 @@ export class TrackingElement extends connect(store)(LitElement) {
     }
 
     // Only display the moving dot on the active (last) segment of the track.
-    const liveTrack = this.liveTrack ?? sel.activeLiveTrack(store.getState());
+    const liveTrackData = this.liveTrack ?? liveTrack.selectActiveLiveTrack(store.getState());
     if (
-      !liveTrack ||
-      liveTrack.timeSec.length === 0 ||
-      this.timeSec < liveTrack.timeSec[0] ||
-      this.timeSec > liveTrack.timeSec[liveTrack.timeSec.length - 1]
+      !liveTrackData ||
+      liveTrackData.timeSec.length === 0 ||
+      this.timeSec < liveTrackData.timeSec[0] ||
+      this.timeSec > liveTrackData.timeSec[liveTrackData.timeSec.length - 1]
     ) {
       this.positionMarker?.setMap(null);
       return;
     }
 
-    const pos = sel.getTrackLatLonAlt(store.getState())(this.timeSec);
+    const pos = selectTrackLatLonAlt(store.getState())(this.timeSec);
     if (!pos) {
       this.positionMarker?.setMap(null);
       return;
@@ -290,7 +291,7 @@ export class TrackingElement extends connect(store)(LitElement) {
 
     this.positionMarker.setPosition({ lat: pos.lat, lng: pos.lon });
     if (this.units && pos.alt != null) {
-      const gndAlt = sel.getGndAlt(store.getState())(this.timeSec);
+      const gndAlt = selectTrackGndAlt(store.getState())(this.timeSec);
       const altStr = formatUnit(pos.alt, this.units.altitude);
       const aglStr = gndAlt != null ? ` (${formatUnit(Math.max(0, pos.alt - gndAlt), this.units.altitude)} AGL)` : '';
       this.positionMarker.setTitle(`${altStr}${aglStr}`);

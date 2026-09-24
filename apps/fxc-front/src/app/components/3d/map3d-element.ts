@@ -49,10 +49,17 @@ import {
   setCurrentLocation,
   setCurrentZoom,
 } from '../../redux/location-slice';
-import * as sel from '../../redux/selectors';
+import { selectLookAtLatLonAlt, selectTrackLatLonAlt } from '../../redux/selectors/position';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
-import { selectCurrentTrackId, selectLockOnPilot, setCurrentTrackId } from '../../redux/track-slice';
+import {
+  selectAllTracks,
+  selectCurrentTrackId,
+  selectLockOnPilot,
+  selectMaxTimeSec,
+  selectMinTimeSec,
+  setCurrentTrackId,
+} from '../../redux/track-slice';
 import type { Airspace3dElement } from './airspace3d-element';
 import type { Skyways3dElement } from './skyways3d-element';
 
@@ -98,7 +105,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   private readonly adRatio = selectIsSmallScreen(store.getState()) ? 0.7 : 1;
 
   stateChanged(state: RootState): void {
-    this.tracks = sel.tracks(state);
+    this.tracks = selectAllTracks(state);
     this.apiLoaded = !selectLoadingApi(state);
     this.timeSec = selectTimeSec(state);
     this.currentTrackId = selectCurrentTrackId(state);
@@ -113,7 +120,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     if (changedProps.has('currentTrackId')) {
       this.centerOnMarker(16);
     } else if (changedProps.has('timeSec')) {
-      const lookAt = sel.getLookAtLatLonAlt(store.getState())(this.timeSec);
+      const lookAt = selectLookAtLatLonAlt(store.getState())(this.timeSec);
       if (this.updateCamera && lookAt && this.view && !this.view.interacting) {
         if (this.previousLookAt) {
           const dLat = lookAt.lat - this.previousLookAt.lat;
@@ -325,8 +332,8 @@ export class Map3dElement extends connect(store)(LitElement) {
       }
       const direction = Math.sign(e.native.deltaX);
       const state = store.getState();
-      const minTimeSec = sel.minTimeSec(state);
-      const maxTimeSec = sel.maxTimeSec(state);
+      const minTimeSec = selectMinTimeSec(state);
+      const maxTimeSec = selectMaxTimeSec(state);
       const delta = Math.round((direction * (maxTimeSec - minTimeSec)) / 300) + 1;
       const ts = Math.max(Math.min(selectTimeSec(state) + delta, maxTimeSec), minTimeSec);
       store.dispatch(setTimeSec(ts));
@@ -392,7 +399,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   }
 
   private centerOnMarker(zoom?: number): void {
-    const latLon = sel.getTrackLatLonAlt(store.getState())(this.timeSec);
+    const latLon = selectTrackLatLonAlt(store.getState())(this.timeSec);
     this.previousLookAt = latLon;
     if (latLon && this.view) {
       const { lat, lon, alt } = latLon;

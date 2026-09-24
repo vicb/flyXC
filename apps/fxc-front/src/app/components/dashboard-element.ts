@@ -8,7 +8,8 @@ import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 
 import * as units from '../logic/units';
-import * as sel from '../redux/selectors';
+import type { ActiveDashboardData } from '../redux/selectors/dashboard';
+import { selectActiveDashboardData } from '../redux/selectors/dashboard';
 import type { RootState } from '../redux/store';
 import { store } from '../redux/store';
 import * as unitsSlice from '../redux/units-slice';
@@ -24,7 +25,7 @@ import { controlStyle } from '../styles/control-style';
 @customElement('dashboard-element')
 export class DashboardElement extends LitElement {
   @property({ attribute: false })
-  data?: sel.ActiveDashboardData;
+  data?: ActiveDashboardData;
   @property({ attribute: false })
   alt?: number;
   @property({ attribute: false })
@@ -109,7 +110,7 @@ export class DashboardElement extends LitElement {
 @customElement('dashboard-ctrl-element')
 export class DashboardCtrlElement extends connect(store)(LitElement) {
   @state()
-  private data?: sel.ActiveDashboardData;
+  private data?: ActiveDashboardData;
   @state()
   private units?: units.Units;
 
@@ -120,7 +121,7 @@ export class DashboardCtrlElement extends connect(store)(LitElement) {
    */
   stateChanged(state: RootState): void {
     this.units = unitsSlice.selectUnits(state);
-    this.data = sel.activeDashboardData(state);
+    this.data = selectActiveDashboardData(state);
   }
 
   protected render(): TemplateResult {
