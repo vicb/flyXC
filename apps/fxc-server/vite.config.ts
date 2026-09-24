@@ -29,7 +29,8 @@ export default defineConfig(({ mode }) => {
           if (key.startsWith('DOTENV_')) {
             continue;
           }
-          if (typeof value === 'string' && value.startsWith('encrypted:')) {
+          // Decryption keys are not available on CI. Allow encrypted placeholders there.
+          if (!process.env.CI && typeof value === 'string' && value.startsWith('encrypted:')) {
             throw new Error(`Failed to decrypt secret "${key}" in ${filePath}. Decryption key missing.`);
           }
           secretsDefine[`SECRETS.${key}`] = JSON.stringify(value);
