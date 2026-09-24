@@ -1,4 +1,12 @@
-import { Comparison, diffDecodeArray, diffEncodeArray32bit, findFirstIndex, findIndexes } from './math';
+import {
+  arrayMax,
+  arrayMin,
+  Comparison,
+  diffDecodeArray,
+  diffEncodeArray32bit,
+  findFirstIndex,
+  findIndexes,
+} from './math';
 
 describe('findIndexes', () => {
   test('throws when the lis is empty', () => {
@@ -194,6 +202,54 @@ describe('findFirstIndex', () => {
       const list = [10, 20, 20, 20, 30];
       expect(findFirstIndex(list, 20, cmp)).toBe(4);
       expect(findFirstIndex(list, 25, cmp)).toBe(4);
+    });
+  });
+
+  describe('arrayMin', () => {
+    it('returns defaultValue (0 by default) for empty arrays', () => {
+      expect(arrayMin([])).toBe(0);
+      expect(arrayMin([], 999)).toBe(999);
+    });
+
+    it('returns the single element for 1-element arrays', () => {
+      expect(arrayMin([42])).toBe(42);
+      expect(arrayMin([-10])).toBe(-10);
+    });
+
+    it('finds the minimum among positive and negative values', () => {
+      expect(arrayMin([10, 5, 20, 2])).toBe(2);
+      expect(arrayMin([-5, -20, -3, 0])).toBe(-20);
+      expect(arrayMin([100, -50, 200, -100])).toBe(-100);
+    });
+
+    it('handles large arrays without call stack overflow', () => {
+      const large = new Array(100_000).fill(500);
+      large[50_000] = -42;
+      expect(arrayMin(large)).toBe(-42);
+    });
+  });
+
+  describe('arrayMax', () => {
+    it('returns defaultValue (0 by default) for empty arrays', () => {
+      expect(arrayMax([])).toBe(0);
+      expect(arrayMax([], -999)).toBe(-999);
+    });
+
+    it('returns the single element for 1-element arrays', () => {
+      expect(arrayMax([42])).toBe(42);
+      expect(arrayMax([-10])).toBe(-10);
+    });
+
+    it('finds the maximum among positive and negative values', () => {
+      expect(arrayMax([10, 5, 20, 2])).toBe(20);
+      expect(arrayMax([-5, -20, -3, -1])).toBe(-1);
+      expect(arrayMax([100, -50, 200, -100])).toBe(200);
+    });
+
+    it('handles large arrays without call stack overflow', () => {
+      const large = new Array(100_000).fill(500);
+      large[50_000] = 99_999;
+      expect(arrayMax(large)).toBe(99_999);
     });
   });
 });

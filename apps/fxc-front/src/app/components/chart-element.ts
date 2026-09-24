@@ -1,5 +1,5 @@
 import type { Class, protos, Type } from '@flyxc/common';
-import { Flags, isAirspaceVisible, sampleAt } from '@flyxc/common';
+import { arrayMax, arrayMin, Flags, isAirspaceVisible, sampleAt } from '@flyxc/common';
 import { ticks } from 'd3-array';
 import type { CSSResult, PropertyValues, SVGTemplateResult, TemplateResult } from 'lit';
 import { css, html, LitElement, svg } from 'lit';
@@ -71,6 +71,12 @@ const MIN_SPEED_FACTOR = 16;
 const MAX_SPEED_FACTOR = 4096;
 const PLAY_INTERVAL_MILLIS = 50;
 
+/** Reusable hour:minute time formatter without seconds to avoid re-instantiation per tick. */
+const hourMinuteFormatter = new Intl.DateTimeFormat([], {
+  hour: 'numeric',
+  minute: '2-digit',
+});
+
 /**
  * Returns the CSS class name corresponding to airspace restriction flags.
  *
@@ -88,6 +94,36 @@ function getAirspaceCssClass(flags: number): string {
     return `danger`;
   }
   return `other`;
+}
+
+/**
+ * Simplifies a sequence of 2D points by dropping intermediate collinear points
+ * within a tolerance (0.2px), returning an SVG path string segment.
+ * Coordinates are formatted without redundant trailing zeroes.
+ *
+ * @param points - Array of [x, y] coordinates.
+ * @param toleranceSq - Maximum squared perpendicular distance to allow dropping a point.
+ * @returns SVG path string segment (e.g. "0,81L1,58.6L4,0.1...").
+ */
+export function pointsToSvgPath(points: [number, number][], toleranceSq = 0.04): string {
+  if (toleranceSq <= 0 || points.length <= 2) {
+    return points.map(([x, y]) => `${x},${y}`).join(' ');
+  }
+  const simplified: [number, number][] = [points[0]];
+  for (let i = 1; i < points.length - 1; i++) {
+    const [x0, y0] = simplified[simplified.length - 1];
+    const [x1, y1] = points[i];
+    const [x2, y2] = points[i + 1];
+
+    const cross = (x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0);
+    const distSq = (x2 - x0) ** 2 + (y2 - y0) ** 2;
+    if (distSq > 0 && (cross * cross) / distSq <= toleranceSq) {
+      continue;
+    }
+    simplified.push(points[i]);
+  }
+  simplified.push(points[points.length - 1]);
+  return simplified.map(([x, y]) => `${x},${y}`).join(' ');
 }
 
 /**
@@ -158,16 +194,16 @@ export class ChartElement extends LitElement {
     }
     switch (this.chartYAxis) {
       case ChartYAxis.Speed: {
-        const mins = this.tracks.map((t) => t.minVx ?? (t.vx?.length ? Math.min(...t.vx) : 0));
-        return Math.min(...mins);
+        const mins = this.tracks.map((t) => t.minVx ?? (t.vx?.length ? arrayMin(t.vx) : 0));
+        return arrayMin(mins);
       }
       case ChartYAxis.Vario: {
-        const mins = this.tracks.map((t) => t.minVz ?? (t.vz?.length ? Math.min(...t.vz) : 0));
-        return Math.min(...mins);
+        const mins = this.tracks.map((t) => t.minVz ?? (t.vz?.length ? arrayMin(t.vz) : 0));
+        return arrayMin(mins);
       }
       default: {
-        const mins = this.tracks.map((t) => t.minAlt ?? (t.alt.length ? Math.min(...t.alt) : 0));
-        return Math.min(...mins);
+        const mins = this.tracks.map((t) => t.minAlt ?? (t.alt.length ? arrayMin(t.alt) : 0));
+        return arrayMin(mins);
       }
     }
   }
@@ -181,16 +217,16 @@ export class ChartElement extends LitElement {
     }
     switch (this.chartYAxis) {
       case ChartYAxis.Speed: {
-        const maxs = this.tracks.map((t) => t.maxVx ?? (t.vx?.length ? Math.max(...t.vx) : 1));
-        return Math.max(...maxs);
+        const maxs = this.tracks.map((t) => t.maxVx ?? (t.vx?.length ? arrayMax(t.vx) : 1));
+        return arrayMax(maxs);
       }
       case ChartYAxis.Vario: {
-        const maxs = this.tracks.map((t) => t.maxVz ?? (t.vz?.length ? Math.max(...t.vz) : 1));
-        return Math.max(...maxs);
+        const maxs = this.tracks.map((t) => t.maxVz ?? (t.vz?.length ? arrayMax(t.vz) : 1));
+        return arrayMax(maxs);
       }
       default: {
-        const maxs = this.tracks.map((t) => t.maxAlt ?? (t.alt.length ? Math.max(...t.alt) : 1));
-        return Math.max(...maxs);
+        const maxs = this.tracks.map((t) => t.maxAlt ?? (t.alt.length ? arrayMax(t.alt) : 1));
+        return arrayMax(maxs);
       }
     }
   }
@@ -203,7 +239,7 @@ export class ChartElement extends LitElement {
       return 0;
     }
     const starts = this.tracks.map((t) => (t.minTimeSec ?? t.timeSec[0]) - (t.offsetSeconds ?? 0));
-    return Math.min(...starts);
+    return arrayMin(starts);
   }
 
   private get computedMaxTimeSec(): number {
@@ -214,7 +250,7 @@ export class ChartElement extends LitElement {
       return 1;
     }
     const ends = this.tracks.map((t) => (t.maxTimeSec ?? t.timeSec[t.timeSec.length - 1]) - (t.offsetSeconds ?? 0));
-    return Math.max(...ends);
+    return arrayMax(ends);
   }
 
   // time is in seconds.
@@ -289,10 +325,10 @@ export class ChartElement extends LitElement {
           font: 12px sans-serif;
           user-select: none;
           pointer-events: none;
-          stroke-width: 0.5px;
           fill: black;
           stroke: white;
-          stroke-width: 0;
+          stroke-width: 4px;
+          paint-order: stroke fill;
         }
         #thumb {
           stroke: gray;
@@ -380,7 +416,8 @@ export class ChartElement extends LitElement {
       }
       changedProps.delete('timeSec');
     }
-    return super.shouldUpdate(changedProps);
+    // Note: `LitElement#shouldUpdate()` is always true
+    return changedProps.size === 0 ? false : super.shouldUpdate(changedProps);
   }
 
   protected render(): TemplateResult {
@@ -445,8 +482,7 @@ export class ChartElement extends LitElement {
             this.isLive,
           ],
           () => svg`<g class="axis">${this.axis()}</g>
-        <g class="ticks">${this.yTexts()}</g>
-        <g class="ticks">${this.xTexts()}</g>`,
+        <g class="ticks">${this.yTexts()}${this.xTexts()}</g>`,
         )}
         <line id="thumb" x1="0" x2="0" y2="100%"></line>
       </svg>
@@ -529,8 +565,8 @@ export class ChartElement extends LitElement {
       const minX = this.getXAtTimeSec(track.timeSec[0], offsetSeconds);
       const maxX = this.getXAtTimeSec(track.timeSec[track.timeSec.length - 1], offsetSeconds);
 
-      const trackCoords: string[] = [];
-      const gndCoords = [`${minX},${this.getYAtHeight(this.computedMinY).toFixed(1)}`];
+      const trackPoints: [number, number][] = [];
+      const gndPoints: [number, number][] = [[minX, Math.round(this.getYAtHeight(this.computedMinY) * 10) / 10]];
 
       if (displayGndAlt && track.gndAlt && track.airspaces) {
         paths.push(...this.airspacePaths(track));
@@ -539,27 +575,28 @@ export class ChartElement extends LitElement {
       for (let x = minX; x <= maxX; x++) {
         const timeSec = this.getTimeSecAtX(x) + offsetSeconds;
         const y = this.getY(track, timeSec);
-        trackCoords.push(`${x.toFixed(1)},${this.getYAtHeight(y).toFixed(1)}`);
+        trackPoints.push([x, Math.round(this.getYAtHeight(y) * 10) / 10]);
         if (displayGndAlt && track.gndAlt) {
           const gndAlt = sampleAt(track.timeSec, track.gndAlt, timeSec);
-          gndCoords.push(`${x.toFixed(1)},${this.getYAtHeight(gndAlt).toFixed(1)}`);
+          gndPoints.push([x, Math.round(this.getYAtHeight(gndAlt) * 10) / 10]);
         }
       }
       // When minX equals maxX, append the end fix to guarantee at least two path coordinates.
-      if (trackCoords.length === 1) {
+      if (trackPoints.length === 1) {
         const yEnd = this.getY(track, track.timeSec[track.timeSec.length - 1]);
-        trackCoords.push(`${maxX.toFixed(1)},${this.getYAtHeight(yEnd).toFixed(1)}`);
+        trackPoints.push([maxX, Math.round(this.getYAtHeight(yEnd) * 10) / 10]);
       }
-      gndCoords.push(`${maxX},${this.getYAtHeight(this.computedMinY).toFixed(1)}`);
+      gndPoints.push([maxX, Math.round(this.getYAtHeight(this.computedMinY) * 10) / 10]);
       if (displayGndAlt && track.gndAlt) {
-        paths.push(svg`<path class=gnd d=${`M${gndCoords.join('L')}`}></path>`);
+        paths.push(svg`<path class=gnd d=${`M${pointsToSvgPath(gndPoints)}`}></path>`);
       }
       const trackColor = track.color ?? 'black';
+      const trackD = `M${pointsToSvgPath(trackPoints)}`;
       if (track.id == this.currentTrackId) {
         activePath = svg`<path class='active' stroke=${trackColor} filter=url(#shadow-active)
-          d=${`M${trackCoords.join('L')}`}></path>`;
+          d=${trackD}></path>`;
       } else {
-        paths.push(svg`<path stroke=${trackColor} d=${`M${trackCoords.join('L')}`} filter=url(#shadow)></path>`);
+        paths.push(svg`<path stroke=${trackColor} d=${trackD} filter=url(#shadow)></path>`);
       }
     });
 
@@ -611,17 +648,14 @@ export class ChartElement extends LitElement {
         continue;
       }
       coords.push(coords[0]);
-      const path = coords
-        .map(([timeSec, alt]) => {
-          const x = this.getXAtTimeSec(timeSec);
-          const y = this.getYAtHeight(alt);
-          return `${x.toFixed(1)},${y.toFixed(1)}`;
-        })
-        .join('L');
+      const aspPoints: [number, number][] = coords.map(([timeSec, alt]) => [
+        Math.round(this.getXAtTimeSec(timeSec) * 10) / 10,
+        Math.round(this.getYAtHeight(alt) * 10) / 10,
+      ]);
       paths.push(
-        svg`<path data-start=${startSec} data-end=${endSec} class=${`asp ${getAirspaceCssClass(flags)}`} d=${
-          'M' + path
-        }></path>`,
+        svg`<path data-start=${startSec} data-end=${endSec} class=${`asp ${getAirspaceCssClass(
+          flags,
+        )}`} d=${`M${pointsToSvgPath(aspPoints, 0)}`}></path>`,
       );
     }
 
@@ -675,47 +709,38 @@ export class ChartElement extends LitElement {
   }
 
   /**
+   * Computes the Y-axis tick values and formatted pixel Y positions.
+   *
+   * Shared between grid lines and text labels to avoid calculating ticks twice.
+   */
+  private getYAxisTicks(): Array<{ tick: number; yStr: string }> {
+    if (this.tracks.length === 0) {
+      return [];
+    }
+    return ticks(this.computedMinY, this.computedMaxY, 4).map((tick) => ({
+      tick,
+      yStr: this.getYAtHeight(tick).toFixed(1),
+    }));
+  }
+
+  /**
    * Renders horizontal grid lines across the chart Y axis.
    *
    * @returns An array of SVG line template results.
    */
   private axis(): TemplateResult[] {
-    const axis: TemplateResult[] = [];
-
-    if (this.tracks.length > 0) {
-      const tks = ticks(this.computedMinY, this.computedMaxY, 4);
-
-      tks.forEach((tick) => {
-        // Draw line
-        const y = this.getYAtHeight(tick);
-        axis.push(svg`<line y1=${y.toFixed(1)} x2=${this.width} y2=${y}></line>`);
-      });
-    }
-
-    return axis;
+    return this.getYAxisTicks().map(({ yStr }) => svg`<line y1=${yStr} x2=${this.width} y2=${yStr}></line>`);
   }
 
   /**
-   * Generates Y-axis label text SVG elements with white background stroke for readability.
+   * Generates Y-axis label text SVG elements with white outline for readability.
    *
    * @returns An array of SVG text template results.
    */
   private yTexts(): TemplateResult[] {
-    const texts: TemplateResult[] = [];
-
-    if (this.tracks.length > 0) {
-      const tks = ticks(this.computedMinY, this.computedMaxY, 4);
-
-      tks.forEach((tick) => {
-        const y = this.getYAtHeight(tick);
-        texts.push(
-          svg`<text stroke-width=3 x=5 y=${y.toFixed(1)} dy=-2>${units.formatUnit(tick, this.getYUnit())}</text>
-          <text x=5 y=${y.toFixed(1)} dy=-2>${units.formatUnit(tick, this.getYUnit())}</text>`,
-        );
-      });
-    }
-
-    return texts;
+    const yTicks = this.getYAxisTicks();
+    const yUnit = this.getYUnit();
+    return yTicks.map(({ tick, yStr }) => svg`<text x=5 y=${yStr} dy=-2>${units.formatUnit(tick, yUnit)}</text>`);
   }
 
   /**
@@ -729,16 +754,14 @@ export class ChartElement extends LitElement {
     const texts: TemplateResult[] = [];
 
     if (this.tracks.length > 0) {
-      const minute = 60;
-      const hour = 60 * minute;
+      const minuteInSec = 60;
 
       // Push minTs 60px right to avoid writing over the alt scale
       const minSec = this.getTimeSecAtX(60);
       const timeSpan = this.computedMaxTimeSec - minSec;
-      const tickSpan = Math.max(hour, Math.ceil(timeSpan / hour / 6) * hour);
-      const date = new Date(minSec * 1000);
-      const startTime =
-        new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() + 1).getTime() / 1000;
+      // At max 6 ticks, with a minimum spacing of 1 minute between them.
+      const tickSpan = Math.max(minuteInSec, Math.ceil(timeSpan / 6 / minuteInSec) * minuteInSec);
+      const startTime = Math.ceil(minSec / tickSpan) * tickSpan;
 
       let rightLabel = '';
       let rightLabelX = 0;
@@ -747,11 +770,13 @@ export class ChartElement extends LitElement {
       if (this.isLive && this.computedMaxTimeSec > 0) {
         const nowSec = Date.now() / 1000;
         const ageMin = Math.round((nowSec - this.computedMaxTimeSec) / 60);
-        rightLabel = ageMin <= 0 ? 'now' : `now - ${units.formatDurationMin(ageMin)}`;
-        rightLabelX = this.width - 4;
-        // Estimate label width: ~8px per character in 12px font, plus margin
-        const approxWidth = Math.max(rightLabel.length * 8, 35);
-        rightLabelLeftEdge = rightLabelX - approxWidth;
+        if (ageMin <= 90) {
+          rightLabel = ageMin <= 0 ? 'now' : `${units.formatDurationMin(ageMin)} ago`;
+          rightLabelX = this.width - 4;
+          // Estimate label width: ~8px per character in 12px font, plus margin
+          const approxWidth = Math.max(rightLabel.length * 8, 35);
+          rightLabelLeftEdge = rightLabelX - approxWidth;
+        }
       }
 
       for (let timeSec = startTime; timeSec < this.computedMaxTimeSec; timeSec += tickSpan) {
@@ -761,21 +786,13 @@ export class ChartElement extends LitElement {
         if (rightLabel && x + 30 >= rightLabelLeftEdge) {
           continue;
         }
-        const dateStr = new Date(timeSec * 1000).toLocaleTimeString();
-        texts.push(
-          svg`<text text-anchor=middle stroke-width=3 y=${this.height} x=${x.toFixed(1)} dy=-4>${dateStr}</text>
-          <text text-anchor=middle y=${this.height} x=${x.toFixed(1)} dy=-4>${dateStr}</text>`,
-        );
+        const dateStr = hourMinuteFormatter.format(timeSec * 1000);
+        texts.push(svg`<text text-anchor=middle y=${this.height} x=${x.toFixed(1)} dy=-4>${dateStr}</text>`);
       }
 
       // Add the rightmost live label if it doesn't overlap with the left scale (x > 70).
       if (rightLabel && rightLabelLeftEdge > 70) {
-        texts.push(
-          svg`<text text-anchor=end stroke-width=3 y=${this.height} x=${rightLabelX.toFixed(
-            1,
-          )} dy=-4>${rightLabel}</text>
-          <text text-anchor=end y=${this.height} x=${rightLabelX.toFixed(1)} dy=-4>${rightLabel}</text>`,
-        );
+        texts.push(svg`<text text-anchor=end y=${this.height} x=${rightLabelX.toFixed(1)} dy=-4>${rightLabel}</text>`);
       }
     }
 

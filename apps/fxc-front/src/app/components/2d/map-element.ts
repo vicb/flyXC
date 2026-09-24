@@ -167,7 +167,8 @@ export class MapElement extends connect(store)(LitElement) {
         changedProps.delete('fullscreen');
       }
     }
-    return super.shouldUpdate(changedProps);
+    // Note: `LitElement#shouldUpdate()` is always true
+    return changedProps.size === 0 ? false : super.shouldUpdate(changedProps);
   }
 
   connectedCallback(): void {

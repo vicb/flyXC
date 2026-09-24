@@ -2,7 +2,7 @@
 // Compute the heading.
 
 import type { RuntimeTrack } from '@flyxc/common';
-import { computeVerticalSpeed } from '@flyxc/common';
+import { arrayMax, arrayMin, computeVerticalSpeed } from '@flyxc/common';
 import { getRhumbLineBearing } from 'geolib';
 import createMedianFilter from 'moving-median';
 
@@ -149,10 +149,10 @@ w.addEventListener('message', (message: MessageEvent<Request>) => {
   const heading = computeHeading(lat, lon);
 
   const vz = computeVerticalSpeed(alt, timeSec);
-  const minAlt = Math.min(...alt);
-  const maxAlt = Math.max(...alt);
-  const minVz = Math.min(...vz);
-  const maxVz = Math.max(...vz);
+  const minAlt = arrayMin(alt);
+  const maxAlt = arrayMax(alt);
+  const minVz = arrayMin(vz);
+  const maxVz = arrayMax(vz);
 
   filterPosition(lat, lon, timeSec);
 

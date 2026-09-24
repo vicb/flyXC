@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ChartTrack } from './chart-element';
-import { ChartElement, ChartYAxis } from './chart-element';
+import { ChartElement, ChartYAxis, pointsToSvgPath } from './chart-element';
 
 describe('ChartElement', () => {
   it('instantiates ChartElement', () => {
@@ -146,7 +146,7 @@ describe('ChartElement', () => {
 
     const texts = (el as any).xTexts();
     const rendered = texts.map((t: any) => t.values?.join('') ?? '').join('');
-    expect(rendered).toContain('now - 5min');
+    expect(rendered).toContain('5min ago');
   });
 
   it('draws short active segments with 2, 3, or 4 fixes', () => {
@@ -264,6 +264,57 @@ describe('ChartElement', () => {
 
     const texts = (el as any).xTexts();
     expect(texts.length).toBeGreaterThanOrEqual(2);
+    expect(texts.length).toBeLessThanOrEqual(6);
+    // Ensure tick labels format as hour:minute without seconds (e.g. "7:00 PM" or "19:00", not "7:00:00 PM")
+    for (const t of texts) {
+      const label = t.values?.[2];
+      expect(label).toBeDefined();
+      expect(label).not.toMatch(/:\d\d:\d\d/);
+    }
+  });
+
+  it('renders ticks for a short 5-minute flight with 1-minute minimum span and at most 6 ticks', () => {
+    const el = new ChartElement();
+    (el as any).width = 800;
+    (el as any).height = 100;
+    // 5 minutes flight
+    const startSec = 1700000000;
+    const endSec = startSec + 5 * 60;
+    el.tracks = [
+      {
+        id: 'flight',
+        timeSec: [startSec, endSec],
+        alt: [1000, 2000],
+      },
+    ];
+    el.minTimeSec = startSec;
+    el.maxTimeSec = endSec;
+
+    const texts = (el as any).xTexts();
+    expect(texts.length).toBeGreaterThanOrEqual(1);
+    expect(texts.length).toBeLessThanOrEqual(6);
+  });
+
+  it('renders ticks for a 30-minute flight with at most 6 ticks', () => {
+    const el = new ChartElement();
+    (el as any).width = 800;
+    (el as any).height = 100;
+    // 30 minutes flight
+    const startSec = 1700000000;
+    const endSec = startSec + 30 * 60;
+    el.tracks = [
+      {
+        id: 'flight',
+        timeSec: [startSec, endSec],
+        alt: [1000, 2000],
+      },
+    ];
+    el.minTimeSec = startSec;
+    el.maxTimeSec = endSec;
+
+    const texts = (el as any).xTexts();
+    expect(texts.length).toBeGreaterThanOrEqual(2);
+    expect(texts.length).toBeLessThanOrEqual(6);
   });
 
   it('clears playTimer on disconnectedCallback', () => {
@@ -271,5 +322,65 @@ describe('ChartElement', () => {
     (el as any).playTimer = 9999 as any;
     el.disconnectedCallback();
     expect((el as any).playTimer).toBeUndefined();
+  });
+
+  describe('pointsToSvgPath', () => {
+    it('simplifies horizontal collinear points into start and end', () => {
+      // 100 points with identical y
+      const points: [number, number][] = [];
+      for (let x = 4; x <= 143; x++) {
+        points.push([x, 0.1]);
+      }
+      const path = pointsToSvgPath(points);
+      expect(path).toBe('4,0.1 143,0.1');
+    });
+
+    it('simplifies diagonal collinear points', () => {
+      const points: [number, number][] = [
+        [0, 0],
+        [1, 2],
+        [2, 4],
+        [3, 6],
+        [4, 8],
+      ];
+      const path = pointsToSvgPath(points);
+      expect(path).toBe('0,0 4,8');
+    });
+
+    it('preserves corners and bends in the path', () => {
+      const points: [number, number][] = [
+        [0, 81],
+        [1, 58.6],
+        [2, 36.3],
+        [4, 0.1],
+        [10, 0.1],
+        [20, 50],
+      ];
+      const path = pointsToSvgPath(points);
+      expect(path).toContain('4,0.1');
+      expect(path).toContain('10,0.1');
+      expect(path).toContain('20,50');
+    });
+
+    it('preserves small non-collinear deviations when toleranceSq is 0', () => {
+      const points: [number, number][] = [
+        [0, 0],
+        [10, 0.1],
+        [20, 0],
+      ];
+      expect(pointsToSvgPath(points)).toBe('0,0 20,0');
+      expect(pointsToSvgPath(points, 0)).toBe('0,0 10,0.1 20,0');
+    });
+
+    it('handles short point arrays', () => {
+      expect(pointsToSvgPath([])).toBe('');
+      expect(pointsToSvgPath([[1, 2]])).toBe('1,2');
+      expect(
+        pointsToSvgPath([
+          [1, 2],
+          [3, 4],
+        ]),
+      ).toBe('1,2 3,4');
+    });
   });
 });

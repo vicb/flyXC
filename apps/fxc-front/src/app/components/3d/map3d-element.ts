@@ -157,7 +157,8 @@ export class Map3dElement extends connect(store)(LitElement) {
     // timestamp updates should not cause a re-render
     changedProps.delete('timeSec');
 
-    return super.shouldUpdate(changedProps);
+    // Note: `LitElement#shouldUpdate()` is always true
+    return changedProps.size === 0 ? false : super.shouldUpdate(changedProps);
   }
 
   disconnectedCallback(): void {

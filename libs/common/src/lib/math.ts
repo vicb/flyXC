@@ -218,3 +218,43 @@ export function diffDecodeArray(data: number[], multiplier = 1): number[] {
   }
   return out;
 }
+
+/**
+ * Returns the minimum value in a numeric array without spreading to avoid call stack overflow.
+ *
+ * @param arr - The array of numbers to evaluate.
+ * @param defaultValue - Value returned if the array is empty (defaults to 0).
+ * @returns The minimum number found, or `defaultValue` if `arr` contains no elements.
+ */
+export function arrayMin(arr: number[], defaultValue = 0): number {
+  if (arr.length === 0) {
+    return defaultValue;
+  }
+  let min = arr[0];
+  for (let i = 1; i < arr.length; i++) {
+    if (arr[i] < min) {
+      min = arr[i];
+    }
+  }
+  return min;
+}
+
+/**
+ * Returns the maximum value in a numeric array without spreading to avoid call stack overflow.
+ *
+ * @param arr - The array of numbers to evaluate.
+ * @param defaultValue - Value returned if the array is empty (defaults to 0).
+ * @returns The maximum number found, or `defaultValue` if `arr` contains no elements.
+ */
+export function arrayMax(arr: number[], defaultValue = 0): number {
+  if (arr.length === 0) {
+    return defaultValue;
+  }
+  let max = arr[0];
+  for (let i = 1; i < arr.length; i++) {
+    if (arr[i] > max) {
+      max = arr[i];
+    }
+  }
+  return max;
+}

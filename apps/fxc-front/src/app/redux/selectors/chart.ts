@@ -1,5 +1,5 @@
 import type { protos, RuntimeTrack } from '@flyxc/common';
-import { isGroundAltitudeValid } from '@flyxc/common';
+import { arrayMax, arrayMin, isGroundAltitudeValid } from '@flyxc/common';
 import { createSelector } from '@reduxjs/toolkit';
 
 import type { ChartTrack } from '../../components/chart-element';
@@ -40,8 +40,9 @@ export function liveTrackToChartTrack(liveTrack: protos.LiveTrack): ChartTrack {
   const gndAlt = getSanitizedLiveGroundAltitude(liveTrack);
 
   const validGnd = (gndAlt ?? []).filter(isGroundAltitudeValid);
-  const minAlt = alt.length > 0 ? Math.min(...alt, ...(validGnd.length ? validGnd : [])) : 0;
-  const maxAlt = alt.length > 0 ? Math.max(...alt) : 1;
+  const minAlt =
+    alt.length > 0 ? (validGnd.length > 0 ? Math.min(arrayMin(alt), arrayMin(validGnd)) : arrayMin(alt)) : 0;
+  const maxAlt = alt.length > 0 ? arrayMax(alt) : 1;
 
   return {
     id,
@@ -175,7 +176,7 @@ export const selectChartMinY = createSelector(
       }
       const sanitizedGnd = getSanitizedLiveGroundAltitude(liveTrack);
       const validGnd = (sanitizedGnd ?? []).filter(isGroundAltitudeValid);
-      return Math.min(...liveTrack.alt, ...(validGnd.length ? validGnd : []));
+      return validGnd.length > 0 ? Math.min(arrayMin(liveTrack.alt), arrayMin(validGnd)) : arrayMin(liveTrack.alt);
     }
     switch (yAxis) {
       case ChartYAxis.Speed:
@@ -195,7 +196,7 @@ export const selectChartMaxY = createSelector(
   [selectActiveLiveTrack, selectChartYAxis, selectMaxAlt, selectMaxSpeed, selectMaxVario],
   (liveTrack, yAxis, rtMaxAlt, rtMaxSpeed, rtMaxVario): number => {
     if (liveTrack != null) {
-      return liveTrack.alt.length > 0 ? Math.max(...liveTrack.alt) : 1;
+      return liveTrack.alt.length > 0 ? arrayMax(liveTrack.alt) : 1;
     }
     switch (yAxis) {
       case ChartYAxis.Speed:
