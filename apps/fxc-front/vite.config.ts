@@ -82,6 +82,14 @@ export default defineConfig(({ mode }) => {
     },
 
     plugins: [
+      {
+        name: 'force-full-reload',
+        apply: 'serve',
+        handleHotUpdate({ server }) {
+          server.ws.send({ type: 'full-reload' });
+          return [];
+        },
+      },
       VitePWA(getPwaConfig(mode)),
       // Exclude @esri/calcite-components because its dynamic Lit properties (e.g. .ariaBusy=) fail the html minifier parse check.
       literalsHtmlCssMinifier({
