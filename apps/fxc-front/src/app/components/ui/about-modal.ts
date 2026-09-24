@@ -51,7 +51,7 @@ export class AboutModal extends LitElement {
             <img
               src="/static/img/ruedelair.svg"
               alt="Rue de l'Air"
-              style="height: 38px; max-width: 100%; vertical-align: middle;"
+              style="height: 48px; max-width: 100%; vertical-align: middle;"
             />
           </a>
         </p>
