@@ -2,7 +2,7 @@ import type { ScoringResult } from '@flyxc/optimizer/src/lib/optimizer';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 
-import { deleteUrlParam, getUrlParamValues, ParamNames, setUrlParamValue } from '../logic/history';
+import { getUrlParamValues, ParamNames } from '../logic/history';
 import type { LeagueCode } from '../logic/score/league/leagues';
 
 export type PlannerState = {
@@ -50,29 +50,18 @@ const plannerSlice = createSlice({
     setSpeedKmh: (state, action: PayloadAction<number>) => {
       const speed = Number.isFinite(action.payload) && action.payload > 0 ? action.payload : DEFAULT_SPEED_KMH;
       state.speedKmh = Math.max(1, speed);
-      setUrlParamValue(ParamNames.speed, state.speedKmh.toFixed(1));
     },
     setLeague: (state, action: PayloadAction<LeagueCode>) => {
-      setUrlParamValue(ParamNames.league, action.payload);
-      localStorage.setItem('league', action.payload);
       state.league = action.payload;
     },
     incrementSpeed: (state) => {
       state.speedKmh = Math.floor(state.speedKmh + 1);
-      setUrlParamValue(ParamNames.speed, state.speedKmh.toFixed(1));
     },
     decrementSpeed: (state) => {
       state.speedKmh = Math.max(1, Math.floor(state.speedKmh - 1));
-      setUrlParamValue(ParamNames.speed, state.speedKmh.toFixed(1));
     },
     setRoute: (state, action: PayloadAction<string>) => {
-      const route = action.payload;
-      if (route.length == 0) {
-        deleteUrlParam(ParamNames.route);
-      } else {
-        setUrlParamValue(ParamNames.route, route);
-      }
-      state.route = route;
+      state.route = action.payload;
     },
     setEnabled: (state, action: PayloadAction<boolean>) => {
       state.enabled = action.payload;
@@ -80,6 +69,15 @@ const plannerSlice = createSlice({
     setIsFreeDrawing: (state, action: PayloadAction<boolean>) => {
       state.isFreeDrawing = action.payload;
     },
+  },
+  selectors: {
+    selectScore: (state) => state.score,
+    selectDistanceM: (state) => state.distanceM,
+    selectSpeedKmh: (state) => state.speedKmh,
+    selectLeague: (state) => state.league,
+    selectRoute: (state) => state.route,
+    selectEnabled: (state) => state.enabled,
+    selectIsFreeDrawing: (state) => state.isFreeDrawing,
   },
 });
 
@@ -95,3 +93,13 @@ export const {
   setEnabled,
   setIsFreeDrawing,
 } = plannerSlice.actions;
+
+export const {
+  selectScore,
+  selectDistanceM,
+  selectSpeedKmh,
+  selectLeague,
+  selectRoute,
+  selectEnabled,
+  selectIsFreeDrawing,
+} = plannerSlice.selectors;

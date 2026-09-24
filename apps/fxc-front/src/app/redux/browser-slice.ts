@@ -13,7 +13,7 @@ type BrowserState = {
   readonly isSmallScreen: boolean;
   // Whether the PWA is installed.
   readonly isInstalledPwa: boolean;
-  isFrance: boolean;
+  country?: string;
 };
 
 export { isMobile };
@@ -40,11 +40,11 @@ const initialState: BrowserState = {
       ? !window.matchMedia('(min-width: 640px)').matches
       : false,
   isInstalledPwa,
-  isFrance: false,
+  country: undefined,
 };
 
 const browserSlice = createSlice({
-  name: 'units',
+  name: 'browser',
   initialState,
   reducers: {
     setIsFullscreen: (state, action: PayloadAction<boolean>) => {
@@ -53,13 +53,34 @@ const browserSlice = createSlice({
     setIsVisible: (state, action: PayloadAction<boolean>) => {
       state.isVisible = action.payload;
     },
-    setIsFrance: (state, action: PayloadAction<boolean>) => {
-      state.isFrance = action.payload;
+    setCountry: (state, action: PayloadAction<string | undefined>) => {
+      state.country = action.payload;
     },
+  },
+  selectors: {
+    selectIsFullscreen: (state) => state.isFullscreen,
+    selectIsVisible: (state) => state.isVisible,
+    selectIsInIframe: (state) => state.isInIframe,
+    selectIsFromFfvl: (state) => state.isFromFfvl,
+    selectIsMobile: (state) => state.isMobile,
+    selectIsSmallScreen: (state) => state.isSmallScreen,
+    selectIsInstalledPwa: (state) => state.isInstalledPwa,
+    selectCountry: (state) => state.country,
   },
 });
 
 export const reducer = browserSlice.reducer;
+export const { setIsFullscreen, setIsVisible, setCountry } = browserSlice.actions;
+export const {
+  selectIsFullscreen,
+  selectIsVisible,
+  selectIsInIframe,
+  selectIsFromFfvl,
+  selectIsMobile,
+  selectIsSmallScreen,
+  selectIsInstalledPwa,
+  selectCountry,
+} = browserSlice.selectors;
 
 /**
  * Initializes browser event listeners for fullscreen and visibility changes,
@@ -102,14 +123,12 @@ async function getScreenWakeLock(): Promise<void> {
   }
 }
 
-getScreenWakeLock();
-
 async function fetchCountry(store: { dispatch: (action: any) => void }): Promise<void> {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_SERVER}/api/country`);
     if (response.ok) {
       const { country } = await response.json();
-      store.dispatch(browserSlice.actions.setIsFrance(country === 'FR'));
+      store.dispatch(browserSlice.actions.setCountry(country));
     }
   } catch {
     // empty

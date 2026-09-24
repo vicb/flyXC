@@ -3,9 +3,7 @@
 // See https://thermal.kk7.ch
 
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSelector, createSlice } from '@reduxjs/toolkit';
-
-import type { RootState } from './store';
+import { createSlice } from '@reduxjs/toolkit';
 
 const TILE_URL = 'https://thermal.kk7.ch/tiles/{layer}/{z}/{x}/{y}.png?src={domain}'.replace(
   '{domain}',
@@ -81,16 +79,20 @@ const skywaysSlice = createSlice({
       state.timeOfDay = action.payload;
     },
   },
+  selectors: {
+    selectShow: (state) => state.show,
+    selectOpacity: (state) => state.opacity,
+    selectLayer: (state) => state.layer,
+    selectMonth: (state) => state.month,
+    selectTimeOfDay: (state) => state.timeOfDay,
+    selectTileUrl: (state) => TILE_URL.replace('{layer}', `${state.layer}_${state.month}_${state.timeOfDay}`),
+  },
 });
 
 export const reducer = skywaysSlice.reducer;
 export const { setShow, setOpacity, setLayer, setMonth, setTimeOfDay } = skywaysSlice.actions;
 
-export const getTileUrl = createSelector(
-  (state: RootState) => state.skyways.layer,
-  (state: RootState) => state.skyways.month,
-  (state: RootState) => state.skyways.timeOfDay,
-  (layer: Layer, month: Month, timeOfDay: TimeOfDay) => {
-    return TILE_URL.replace('{layer}', `${layer}_${month}_${timeOfDay}`);
-  },
-);
+export const { selectShow, selectOpacity, selectLayer, selectMonth, selectTimeOfDay, selectTileUrl } =
+  skywaysSlice.selectors;
+
+export const getTileUrl = selectTileUrl;

@@ -7,6 +7,8 @@ import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
+import * as app from '../../redux/app-slice';
+import * as arcgis from '../../redux/arcgis-slice';
 import * as sel from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
@@ -74,8 +76,8 @@ export class Line3dElement extends connect(store)(LitElement) {
       this.color = sel.trackColors(state)[id];
       this.opacity = id == sel.currentTrackId(state) ? 1 : INACTIVE_ALPHA;
     }
-    this.timeSec = state.app.timeSec;
-    this.multiplier = state.arcgis.altMultiplier;
+    this.timeSec = app.selectTimeSec(state);
+    this.multiplier = arcgis.selectAltitudeMultiplier(state);
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {

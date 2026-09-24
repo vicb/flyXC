@@ -5,6 +5,8 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { AspMapType, AspZoomMapType, getAirspaceList } from '../../logic/airspaces';
+import * as airspaces from '../../redux/airspace-slice';
+import * as app from '../../redux/app-slice';
 import * as sel from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
@@ -56,12 +58,12 @@ export class AirspaceElement extends connect(store)(LitElement) {
   }
 
   stateChanged(state: RootState): void {
-    this.show = state.airspace.show;
-    this.showClasses = state.airspace.showClasses;
-    this.showTypes = state.airspace.showTypes;
-    this.maxAltitude = state.airspace.maxAltitude;
+    this.show = airspaces.selectShowAirspaces(state);
+    this.showClasses = airspaces.selectShowClasses(state);
+    this.showTypes = airspaces.selectShowTypes(state);
+    this.maxAltitude = airspaces.selectMaxAltitude(state);
     this.track = sel.currentTrack(state);
-    this.timeSec = state.app.timeSec;
+    this.timeSec = app.selectTimeSec(state);
   }
 
   protected shouldUpdate(changedProperties: PropertyValues): boolean {

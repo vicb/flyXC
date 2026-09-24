@@ -1,11 +1,18 @@
-import type { Action, DevToolsEnhancerOptions } from '@reduxjs/toolkit';
-import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import type { ThunkAction } from 'redux-thunk';
+import type { Action, DevToolsEnhancerOptions, ThunkAction, TypedStartListening } from '@reduxjs/toolkit';
+import {
+  combineReducers,
+  configureStore,
+  createAsyncThunk,
+  createListenerMiddleware,
+  createSelector,
+} from '@reduxjs/toolkit';
 
 import * as airspace from './airspace-slice';
 import * as app from './app-slice';
 import * as arcgis from './arcgis-slice';
 import * as browser from './browser-slice';
+import { setupStorageSyncListener } from './listeners/storage-sync';
+import { setupUrlSyncListener } from './listeners/url-sync';
 import * as liveTrack from './live-track-slice';
 import * as location from './location-slice';
 import * as planner from './planner-slice';
@@ -15,7 +22,19 @@ import * as units from './units-slice';
 
 export type RootState = ReturnType<typeof rootReducer>;
 export type AppDispatch = typeof store.dispatch;
-export type AppThunk = ThunkAction<void, RootState, unknown, Action<string>>;
+export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action<string>>;
+
+export const listenerMiddleware = createListenerMiddleware();
+
+export type AppStartListening = TypedStartListening<RootState, AppDispatch>;
+export const startAppListening = listenerMiddleware.startListening as AppStartListening;
+
+export const createAppAsyncThunk = createAsyncThunk.withTypes<{
+  state: RootState;
+  dispatch: AppDispatch;
+}>();
+
+export const createAppSelector = createSelector.withTypes<RootState>();
 
 const rootReducer = combineReducers({
   airspace: airspace.reducer,
@@ -38,9 +57,14 @@ const devTools: DevToolsEnhancerOptions | boolean = import.meta.env.PROD
       autoPause: true,
     };
 
+// Register listener middleware listeners
+setupStorageSyncListener(startAppListening);
+setupUrlSyncListener(startAppListening);
+
 export const store = configureStore({
   reducer: rootReducer,
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false, immutableCheck: false }),
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({ serializableCheck: false, immutableCheck: false }).prepend(listenerMiddleware.middleware),
   devTools,
 });
 

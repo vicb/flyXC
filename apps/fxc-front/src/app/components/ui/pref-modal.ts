@@ -6,10 +6,10 @@ import { connect } from 'pwa-helpers';
 
 import { LEAGUE_CODES, LEAGUES } from '../../logic/score/league/leagues';
 import * as units from '../../logic/units';
-import { setLeague } from '../../redux/planner-slice';
+import * as planner from '../../redux/planner-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
-import { setAltitudeUnit, setDistanceUnit, setSpeedUnit, setVarioUnit } from '../../redux/units-slice';
+import * as unitsSlice from '../../redux/units-slice';
 
 @customElement('pref-modal')
 export class PrefModal extends connect(store)(LitElement) {
@@ -29,8 +29,8 @@ export class PrefModal extends connect(store)(LitElement) {
   }
 
   stateChanged(state: RootState): void {
-    this.league = state.planner.league;
-    this.units = state.units;
+    this.league = planner.selectLeague(state);
+    this.units = unitsSlice.selectUnits(state);
   }
 
   render(): TemplateResult {
@@ -114,23 +114,23 @@ export class PrefModal extends connect(store)(LitElement) {
   }
 
   private handleLeague(e: CustomEvent) {
-    store.dispatch(setLeague(e.detail.value));
+    store.dispatch(planner.setLeague(e.detail.value));
   }
 
   private handleDistance(e: CustomEvent) {
-    store.dispatch(setDistanceUnit(e.detail.value));
+    store.dispatch(unitsSlice.setDistanceUnit(e.detail.value));
   }
 
   private handleSpeed(e: CustomEvent) {
-    store.dispatch(setSpeedUnit(e.detail.value));
+    store.dispatch(unitsSlice.setSpeedUnit(e.detail.value));
   }
 
   private handleAltitude(e: CustomEvent) {
-    store.dispatch(setAltitudeUnit(e.detail.value));
+    store.dispatch(unitsSlice.setAltitudeUnit(e.detail.value));
   }
 
   private handleVario(e: CustomEvent) {
-    store.dispatch(setVarioUnit(e.detail.value));
+    store.dispatch(unitsSlice.setVarioUnit(e.detail.value));
   }
 
   private async dismiss(): Promise<void> {

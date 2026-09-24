@@ -11,7 +11,8 @@ import * as units from '../../logic/units';
 import * as sel from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
-import { setCurrentTrackId } from '../../redux/track-slice';
+import * as track from '../../redux/track-slice';
+import * as unitsSlice from '../../redux/units-slice';
 
 const INACTIVE_OPACITY = 0.5;
 
@@ -58,8 +59,8 @@ export class MarkerElement extends connect(store)(LitElement) {
       this.color = sel.trackColors(state)[id];
       this.active = sel.currentTrackId(state) == id;
     }
-    this.units = state.units;
-    this.displayLabels = state.track.displayLabels;
+    this.units = unitsSlice.selectUnits(state);
+    this.displayLabels = track.selectDisplayLabels(state);
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
@@ -113,7 +114,7 @@ export class MarkerElement extends connect(store)(LitElement) {
   }
 
   private onClick() {
-    store.dispatch(setCurrentTrackId(this.track?.id));
+    store.dispatch(track.setCurrentTrackId(this.track?.id));
   }
 
   createRenderRoot(): HTMLElement {

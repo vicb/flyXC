@@ -6,9 +6,12 @@ import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
+import * as app from '../../redux/app-slice';
+import * as arcgis from '../../redux/arcgis-slice';
 import * as sel from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
+import * as track from '../../redux/track-slice';
 
 const MARKER_HEIGHT = 30;
 
@@ -89,9 +92,9 @@ export class Marker3dElement extends connect(store)(LitElement) {
       this.color = sel.trackColors(state)[id];
       this.active = id == sel.currentTrackId(state);
     }
-    this.timeSec = state.app.timeSec;
-    this.multiplier = state.arcgis.altMultiplier;
-    this.displayLabels = state.track.displayLabels;
+    this.timeSec = app.selectTimeSec(state);
+    this.multiplier = arcgis.selectAltitudeMultiplier(state);
+    this.displayLabels = track.selectDisplayLabels(state);
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {

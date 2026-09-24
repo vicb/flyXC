@@ -8,10 +8,12 @@ import { connect } from 'pwa-helpers';
 
 import type { LeagueCode } from '../../logic/score/league/leagues';
 import * as units from '../../logic/units';
+import { selectIsSmallScreen } from '../../redux/browser-slice';
 import * as plannerSlice from '../../redux/planner-slice';
 import { currentTrack } from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
+import { selectUnits } from '../../redux/units-slice';
 
 const ICON_MINUS =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJAQMAAADaX5RTAAAABlBMVEX///9xe4e/5menAAAAE0lEQVQImWP438DQAEP7kNj/GwCK4wo9HA2mvgAAAABJRU5ErkJggg==';
@@ -33,7 +35,7 @@ export class PlannerElement extends connect(store)(LitElement) {
   @state()
   private distanceM = 0;
   @state()
-  private hideDetails = store.getState().browser.isSmallScreen;
+  private hideDetails = selectIsSmallScreen(store.getState());
   @state()
   private isFreeDrawing = false;
   @state()
@@ -52,13 +54,13 @@ export class PlannerElement extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     this.hasCurrentTrack = currentTrack(state) != null;
-    this.distanceM = state.planner.distanceM;
-    this.score = state.planner.score;
-    this.speedKmh = state.planner.speedKmh;
-    this.units = state.units;
+    this.distanceM = plannerSlice.selectDistanceM(state);
+    this.score = plannerSlice.selectScore(state);
+    this.speedKmh = plannerSlice.selectSpeedKmh(state);
+    this.units = selectUnits(state);
     this.duration = this.speedKmh > 0 ? ((this.distanceM / this.speedKmh) * 60) / 1000 : 0;
-    this.isFreeDrawing = state.planner.isFreeDrawing;
-    this.league = state.planner.league;
+    this.isFreeDrawing = plannerSlice.selectIsFreeDrawing(state);
+    this.league = plannerSlice.selectLeague(state);
   }
 
   static get styles(): CSSResult {

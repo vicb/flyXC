@@ -11,6 +11,7 @@ import * as units from '../logic/units';
 import * as sel from '../redux/selectors';
 import type { RootState } from '../redux/store';
 import { store } from '../redux/store';
+import * as unitsSlice from '../redux/units-slice';
 import { controlStyle } from '../styles/control-style';
 
 /**
@@ -118,7 +119,7 @@ export class DashboardCtrlElement extends connect(store)(LitElement) {
    * @param state - The current root state of the Redux store.
    */
   stateChanged(state: RootState): void {
-    this.units = state.units;
+    this.units = unitsSlice.selectUnits(state);
     this.data = sel.activeDashboardData(state);
   }
 

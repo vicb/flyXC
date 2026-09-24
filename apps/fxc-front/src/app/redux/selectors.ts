@@ -1,26 +1,31 @@
 import type { LatLon, LatLonAlt, protos, RuntimeTrack } from '@flyxc/common';
 import { extractGroupId, isGroundAltitudeValid, sampleAt } from '@flyxc/common';
-import { createSelector } from 'reselect';
+import { createSelector } from '@reduxjs/toolkit';
 
 import type { ChartTrack } from '../components/chart-element';
 import { ChartYAxis } from '../components/chart-element';
 import { getActiveTrackSegment } from '../logic/live-track';
-import type { Units } from '../logic/units';
 import { DistanceUnit } from '../logic/units';
 import { getUniqueColor, getUniqueContrastColor } from '../styles/track';
+import { selectChartYAxis, selectTimeSec } from './app-slice';
+import { selectCurrentLiveId, selectLiveTrackEntities } from './live-track-slice';
 import type { RootState } from './store';
-import { trackAdapterSelector } from './track-slice';
+import { selectCurrentTrackId, trackAdapterSelector } from './track-slice';
+import { selectUnits } from './units-slice';
 
-export const units = (state: RootState): Units => state.units;
+export const units = selectUnits;
 export const altitudeUnits = createSelector(units, (units) => units.altitude);
 export const tracks = trackAdapterSelector.selectAll;
-export const currentTrack = (state: RootState): RuntimeTrack | undefined =>
-  state.track.currentTrackId ? trackAdapterSelector.selectById(state, state.track.currentTrackId) : undefined;
-export const currentTrackId = (state: RootState): string | undefined => state.track.currentTrackId;
+export const currentTrack = (state: RootState): RuntimeTrack | undefined => {
+  const trackId = selectCurrentTrackId(state);
+  return trackId ? trackAdapterSelector.selectById(state, trackId) : undefined;
+};
+export const currentTrackId = selectCurrentTrackId;
+export const currentLiveId = selectCurrentLiveId;
 export const numTracks = trackAdapterSelector.selectTotal;
 
 export const groupIds = (state: RootState): Set<number> =>
-  new Set(state.track.tracks.ids.map((trackId) => extractGroupId(String(trackId))));
+  new Set(trackAdapterSelector.selectIds(state).map((trackId) => extractGroupId(String(trackId))));
 
 // isMultiDay is true if tracks starts are more than 12h apart.
 export const isMultiDay = createSelector(tracks, (tracks): boolean => {
@@ -122,17 +127,9 @@ export const airspaceAltitudeStops = createSelector(altitudeUnits, (units) => {
   return steps;
 });
 
-/**
- * Returns the currently selected live track ID from the store.
- */
-export const currentLiveId = (state: RootState): string | undefined => state.liveTrack.currentLiveId;
-
-/**
- * Returns the currently selected live track entity from the store.
- */
 export const selectedLiveTrack = createSelector(
   currentLiveId,
-  (state: RootState) => state.liveTrack?.tracks?.entities,
+  selectLiveTrackEntities,
   (id, entities): protos.LiveTrack | undefined => (id && entities ? entities[id] : undefined),
 );
 
@@ -385,7 +382,7 @@ export const chartAvailableYAxes = createSelector(activeLiveTrack, (liveTrack): 
  */
 export const chartMinY = createSelector(
   activeLiveTrack,
-  (state: RootState) => state.app.chartYAxis,
+  selectChartYAxis,
   minAlt,
   minSpeed,
   minVario,
@@ -414,7 +411,7 @@ export const chartMinY = createSelector(
  */
 export const chartMaxY = createSelector(
   activeLiveTrack,
-  (state: RootState) => state.app.chartYAxis,
+  selectChartYAxis,
   maxAlt,
   maxSpeed,
   maxVario,
@@ -490,7 +487,7 @@ export const activePilotColor = createSelector(
 export const activeDashboardData = createSelector(
   activeLiveTrack,
   currentTrack,
-  (state: RootState) => state.app.timeSec,
+  selectTimeSec,
   (liveTrack, rtTrack, timeSec): ActiveDashboardData => {
     if (liveTrack != null) {
       if (liveTrack.timeSec.length === 0) {

@@ -11,22 +11,27 @@ import type { RootState } from './store';
 
 // Refresh live tracks every.
 const REFRESH_INTERVAL_SEC = isMobile() ? 2 * 60 : 60;
-// Local storage key for the return URL.
-// Must be kept in sync with device-form.ts.
-const RETURN_URL_KEY = 'url.tracking.return';
+/** Local storage key for the return URL (must be kept in sync with device-form.ts). */
+export const RETURN_URL_KEY = 'url.tracking.return';
 
 const trackAdapter = createEntityAdapter<protos.LiveTrack, string>({
   selectId: (track) => String(track.id ?? track.idStr),
 });
 
 export const liveTrackSelectors = trackAdapter.getSelectors((state: RootState) => state.liveTrack.tracks);
+export const {
+  selectIds: selectLiveTrackIds,
+  selectEntities: selectLiveTrackEntities,
+  selectAll: selectAllLiveTracks,
+  selectTotal: selectLiveTrackTotal,
+  selectById: selectLiveTrackById,
+} = liveTrackSelectors;
 
 export type TrackState = {
   tracks: EntityState<protos.LiveTrack, string>;
   // Fetch timestamp of the current data.
   fetchMillis: number;
   geojson: any;
-  refreshTimer: any;
   currentLiveId?: string;
   displayLabels: boolean;
   // Whether the map should be centered on the current location.
@@ -39,11 +44,12 @@ const initialState: TrackState = {
   fetchMillis: 0,
   tracks: trackAdapter.getInitialState(),
   geojson: { type: 'FeatureCollection', features: [] },
-  refreshTimer: undefined,
   displayLabels: true,
   centerOnLocation: false,
   historySec: LiveTrackDurationSec.H12,
 };
+
+let refreshTimer: NodeJS.Timeout | number | undefined;
 
 const trackSlice = createSlice({
   name: 'liveTrack',
@@ -64,23 +70,19 @@ const trackSlice = createSlice({
     setFetchMillis: (state, action: PayloadAction<number>) => {
       state.fetchMillis = action.payload;
     },
-    startRefreshTimer: (state) => {
-      if (!state.refreshTimer && appStore) {
-        state.refreshTimer = setInterval(
-          () => appStore?.dispatch(updateTrackers() as any),
-          REFRESH_INTERVAL_SEC * 1000,
-        );
+    startRefreshTimer: () => {
+      if (!refreshTimer && appStore) {
+        refreshTimer = setInterval(() => appStore?.dispatch(updateTrackers() as any), REFRESH_INTERVAL_SEC * 1000);
       }
     },
-    stopRefreshTimer: (state) => {
-      if (state.refreshTimer) {
-        clearInterval(state.refreshTimer);
-        state.refreshTimer = null;
+    stopRefreshTimer: () => {
+      if (refreshTimer) {
+        clearInterval(refreshTimer);
+        refreshTimer = undefined;
       }
     },
-    // @ts-ignore
-    setReturnUrl: (state, action: PayloadAction<string>) => {
-      localStorage.setItem(RETURN_URL_KEY, action.payload);
+    setReturnUrl: (_state, _action: PayloadAction<string>) => {
+      // Intentionally empty: side-effect is handled by the storage-sync listener middleware.
     },
     setCurrentLiveId: (state, action: PayloadAction<string | undefined>) => {
       state.currentLiveId = action.payload;
@@ -88,6 +90,14 @@ const trackSlice = createSlice({
     setHistorySec: (state, action: PayloadAction<number>) => {
       state.historySec = action.payload;
     },
+  },
+  selectors: {
+    selectCurrentLiveId: (state) => state.currentLiveId,
+    selectDisplayLabels: (state) => state.displayLabels,
+    selectCenterOnLocation: (state) => state.centerOnLocation,
+    selectHistorySec: (state) => state.historySec,
+    selectFetchMillis: (state) => state.fetchMillis,
+    selectGeojson: (state) => state.geojson,
   },
   extraReducers: (builder) => {
     // Automatically clear live track selection when a runtime track is selected,
@@ -178,6 +188,15 @@ export function handleVisibility(store?: { dispatch: (action: any) => void }): v
 export const reducer = trackSlice.reducer;
 export const { setReturnUrl, setCurrentLiveId, setDisplayLabels, setCenterOnLocation, setFetchMillis, setHistorySec } =
   trackSlice.actions;
+
+export const {
+  selectCurrentLiveId,
+  selectDisplayLabels,
+  selectCenterOnLocation,
+  selectHistorySec,
+  selectFetchMillis,
+  selectGeojson,
+} = trackSlice.selectors;
 
 export type LivePilot = {
   id: string;
