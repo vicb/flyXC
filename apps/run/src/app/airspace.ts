@@ -3,6 +3,7 @@ import {
   AIRSPACE_TILE_SIZE,
   AirspaceColorCategory,
   applyOverrides,
+  arrayMax,
   fetchResponse,
   Flags,
   getAirspaceColorCategory,
@@ -93,7 +94,7 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
   const gndAlt = altitude.altitudes;
   const indexesByAirspaceId = new Map<string, number[]>();
   const airspaceById = new Map<string, AirspaceTyped>();
-  const maxAltitudeToCheck = Math.max(...track.alt) + MARGIN_METER;
+  const maxAltitudeToCheck = arrayMax(track.alt) + MARGIN_METER;
   for (const [url, indexes] of indexesByTileUrl) {
     const buffer = cache.get(url);
     if (buffer == null) {

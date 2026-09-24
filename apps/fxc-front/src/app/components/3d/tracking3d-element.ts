@@ -175,6 +175,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       this.updateTracks();
       this.updateMarkers();
     }
+    // Note: `LitElement#shouldUpdate()` is always true
     return super.shouldUpdate(changedProps);
   }
 

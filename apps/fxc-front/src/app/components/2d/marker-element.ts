@@ -78,7 +78,8 @@ export class MarkerElement extends connect(store)(LitElement) {
       changedProps.delete('active');
     }
 
-    return super.shouldUpdate(changedProps);
+    // Note: `LitElement#shouldUpdate()` is always true
+    return changedProps.size === 0 ? false : super.shouldUpdate(changedProps);
   }
 
   render() {

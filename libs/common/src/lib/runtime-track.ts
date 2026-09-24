@@ -1,7 +1,7 @@
 import { getDistance } from 'geolib';
 
 import * as protos from '../protos/track';
-import { diffDecodeArray, diffEncodeArray32bit } from './math';
+import { arrayMax, arrayMin, diffDecodeArray, diffEncodeArray32bit } from './math';
 
 export type Point = {
   x: number;
@@ -104,19 +104,19 @@ export function protoToRuntimeTrack(
     vx,
     vz,
     heading: new Array(trackLen).fill(0),
-    maxAlt: Math.max(...track.alt),
-    minAlt: Math.min(...track.alt),
-    maxLat: Math.max(...track.lat),
-    minLat: Math.min(...track.lat),
-    maxLon: Math.max(...track.lon),
-    minLon: Math.min(...track.lon),
-    maxTimeSec: Math.max(...track.timeSec),
-    minTimeSec: Math.min(...track.timeSec),
-    maxVz: Math.max(...vz),
-    minVz: Math.min(...vz),
-    maxVx: Math.max(...vx),
-    minVx: Math.min(...vx),
-    maxDistance: Math.max(...distX),
+    maxAlt: arrayMax(track.alt),
+    minAlt: arrayMin(track.alt),
+    maxLat: arrayMax(track.lat),
+    minLat: arrayMin(track.lat),
+    maxLon: arrayMax(track.lon),
+    minLon: arrayMin(track.lon),
+    maxTimeSec: arrayMax(track.timeSec),
+    minTimeSec: arrayMin(track.timeSec),
+    maxVz: arrayMax(vz),
+    minVz: arrayMin(vz),
+    maxVx: arrayMax(vx),
+    minVx: arrayMin(vx),
+    maxDistance: arrayMax(distX),
     isPostProcessed,
   };
 }

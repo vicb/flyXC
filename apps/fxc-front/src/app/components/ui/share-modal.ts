@@ -18,6 +18,7 @@ export class ShareModal extends LitElement {
   @state()
   private type: 'task' | 'link' = 'task';
 
+  @state()
   private qrDataUrl?: string;
 
   shouldUpdate(changedProps: PropertyValues): boolean {
@@ -25,13 +26,9 @@ export class ShareModal extends LitElement {
       this.qrDataUrl = undefined;
       toDataURL(this.type == 'link' ? this.link : this.createXCTrackRoute()).then((url: string) => {
         this.qrDataUrl = url;
-        this.requestUpdate();
       });
-
-      changedProps.delete('link');
-      changedProps.delete('type');
     }
-
+    // Note: `LitElement#shouldUpdate()` is always true
     return super.shouldUpdate(changedProps);
   }
 

@@ -83,7 +83,7 @@ export class FlowIonInput extends lit.LitElement {
         cl.toggle('ion-valid', !this.invalid);
       }
     }
-
+    // Note: `LitElement#shouldUpdate()` is always true
     return super.shouldUpdate(changedProps);
   }
 

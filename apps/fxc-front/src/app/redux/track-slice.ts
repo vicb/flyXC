@@ -2,6 +2,8 @@ import type { LatLon, RuntimeTrack } from '@flyxc/common';
 import {
   addAirspaces,
   addGroundAltitude,
+  arrayMax,
+  arrayMin,
   createRuntimeTracks,
   createTrackId,
   extractGroupId,
@@ -385,8 +387,8 @@ export const selectIsMultiDay = createSelector([selectAllTracks], (tracks): bool
     return false;
   }
   const startTimesSec = tracks.map((t) => t.minTimeSec);
-  const minTimeSec = Math.min(...startTimesSec);
-  const maxTimeSec = Math.max(...startTimesSec);
+  const minTimeSec = arrayMin(startTimesSec);
+  const maxTimeSec = arrayMax(startTimesSec);
   return maxTimeSec - minTimeSec > 12 * 3600;
 });
 
@@ -409,48 +411,48 @@ export const selectOffsetSeconds = createSelector(
 );
 
 export const selectMaxLats = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.maxLat));
-export const selectMaxLat = createSelector([selectMaxLats], (lats) => Math.max(...lats));
+export const selectMaxLat = createSelector([selectMaxLats], (lats) => arrayMax(lats));
 
 export const selectMaxLons = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.maxLon));
-export const selectMaxLon = createSelector([selectMaxLons], (lons) => Math.max(...lons));
+export const selectMaxLon = createSelector([selectMaxLons], (lons) => arrayMax(lons));
 
 export const selectMinLats = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.minLat));
-export const selectMinLat = createSelector([selectMinLats], (lats) => Math.min(...lats));
+export const selectMinLat = createSelector([selectMinLats], (lats) => arrayMin(lats));
 
 export const selectMinLons = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.minLon));
-export const selectMinLon = createSelector([selectMinLons], (lons) => Math.min(...lons));
+export const selectMinLon = createSelector([selectMinLons], (lons) => arrayMin(lons));
 
 export const selectMaxTimeSecs = createSelector([selectAllTracks, selectOffsetSeconds], (tracks, offsetSeconds) =>
   tracks.map((t) => t.maxTimeSec - (offsetSeconds[t.id] ?? 0)),
 );
 export const selectMaxTimeSec = createSelector([selectMaxTimeSecs], (timeSecs) =>
-  timeSecs.length ? Math.max(...timeSecs) : 1,
+  timeSecs.length ? arrayMax(timeSecs) : 1,
 );
 
 export const selectMinTimeSecs = createSelector([selectAllTracks, selectOffsetSeconds], (tracks, offsetSeconds) =>
   tracks.map((t) => t.minTimeSec - (offsetSeconds[t.id] ?? 0)),
 );
 export const selectMinTimeSec = createSelector([selectMinTimeSecs], (timeSecs) =>
-  timeSecs.length ? Math.min(...timeSecs) : 0,
+  timeSecs.length ? arrayMin(timeSecs) : 0,
 );
 
 export const selectMaxAlts = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.maxAlt));
-export const selectMaxAlt = createSelector([selectMaxAlts], (alts) => (alts.length ? Math.max(...alts) : 0));
+export const selectMaxAlt = createSelector([selectMaxAlts], (alts) => arrayMax(alts, 0));
 
 export const selectMinAlts = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.minAlt));
-export const selectMinAlt = createSelector([selectMinAlts], (alts) => Math.min(...alts));
+export const selectMinAlt = createSelector([selectMinAlts], (alts) => arrayMin(alts));
 
 export const selectMaxSpeeds = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.maxVx));
-export const selectMaxSpeed = createSelector([selectMaxSpeeds], (speeds) => Math.max(...speeds));
+export const selectMaxSpeed = createSelector([selectMaxSpeeds], (speeds) => arrayMax(speeds));
 
 export const selectMinSpeeds = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.minVx));
-export const selectMinSpeed = createSelector([selectMinSpeeds], (speeds) => Math.min(...speeds));
+export const selectMinSpeed = createSelector([selectMinSpeeds], (speeds) => arrayMin(speeds));
 
 export const selectMaxVarios = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.maxVz));
-export const selectMaxVario = createSelector([selectMaxVarios], (varios) => Math.max(...varios));
+export const selectMaxVario = createSelector([selectMaxVarios], (varios) => arrayMax(varios));
 
 export const selectMinVarios = createSelector([selectAllTracks], (tracks) => tracks.map((t) => t.minVz));
-export const selectMinVario = createSelector([selectMinVarios], (varios) => Math.min(...varios));
+export const selectMinVario = createSelector([selectMinVarios], (varios) => arrayMin(varios));
 
 /**
  * Returns the geographical bounding box of all loaded tracks, or null if no tracks are loaded.
