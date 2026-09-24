@@ -72,10 +72,10 @@ export class PathElement extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     this.currentTrack = currentTrack(state);
-    this.league = state.planner.league;
-    this.enabled = state.planner.enabled;
-    this.encodedRoute = state.planner.route;
-    this.isFreeDrawing = state.planner.isFreeDrawing;
+    this.league = plannerSlice.selectLeague(state);
+    this.enabled = plannerSlice.selectEnabled(state);
+    this.encodedRoute = plannerSlice.selectRoute(state);
+    this.isFreeDrawing = plannerSlice.selectIsFreeDrawing(state);
   }
 
   shouldUpdate(changedProperties: PropertyValues): boolean {

@@ -24,7 +24,7 @@ export class TrackModal extends connect(store)(LitElement) {
   private state!: RootState;
 
   stateChanged(state: RootState): void {
-    this.currentTrackId = state.track.currentTrackId;
+    this.currentTrackId = trackSlice.selectCurrentTrackId(state);
     this.tracks = sel.tracks(state);
     this.state = state;
   }

@@ -38,13 +38,21 @@ import type { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
 import * as msg from '../../logic/messages';
-import { setApiLoading, setTimeSec, setView3d } from '../../redux/app-slice';
+import { selectLoadingApi, selectTimeSec, setApiLoading, setTimeSec, setView3d } from '../../redux/app-slice';
+import { selectAltitudeMultiplier, selectUseSunLighting } from '../../redux/arcgis-slice';
+import { selectCountry, selectIsFromFfvl, selectIsSmallScreen } from '../../redux/browser-slice';
 import { setCurrentLiveId } from '../../redux/live-track-slice';
-import { setCurrentLocation, setCurrentZoom } from '../../redux/location-slice';
+import {
+  selectLocation,
+  selectStartLocation,
+  selectZoom,
+  setCurrentLocation,
+  setCurrentZoom,
+} from '../../redux/location-slice';
 import * as sel from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
-import { setCurrentTrackId } from '../../redux/track-slice';
+import { selectCurrentTrackId, selectLockOnPilot, setCurrentTrackId } from '../../redux/track-slice';
 import type { Airspace3dElement } from './airspace3d-element';
 import type { Skyways3dElement } from './skyways3d-element';
 
@@ -67,7 +75,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   @state()
   private apiLoaded = false;
   @state()
-  private isFrance = false;
+  private country?: string;
   @state()
   private isFromFfvl = false;
 
@@ -87,18 +95,18 @@ export class Map3dElement extends connect(store)(LitElement) {
   private subscriptions: UnsubscribeHandle[] = [];
   private previousLookAt?: LatLonAlt;
   private updateCamera = false;
-  private readonly adRatio = store.getState().browser.isSmallScreen ? 0.7 : 1;
+  private readonly adRatio = selectIsSmallScreen(store.getState()) ? 0.7 : 1;
 
   stateChanged(state: RootState): void {
     this.tracks = sel.tracks(state);
-    this.apiLoaded = !state.app.loadingApi;
-    this.timeSec = state.app.timeSec;
-    this.currentTrackId = state.track.currentTrackId;
-    this.multiplier = state.arcgis.altMultiplier;
-    this.updateCamera = state.track.lockOnPilot;
-    this.sunEnabled = state.arcgis.useSunLighting;
-    this.isFrance = state.browser.isFrance;
-    this.isFromFfvl = state.browser.isFromFfvl;
+    this.apiLoaded = !selectLoadingApi(state);
+    this.timeSec = selectTimeSec(state);
+    this.currentTrackId = selectCurrentTrackId(state);
+    this.multiplier = selectAltitudeMultiplier(state);
+    this.updateCamera = selectLockOnPilot(state);
+    this.sunEnabled = selectUseSunLighting(state);
+    this.country = selectCountry(state);
+    this.isFromFfvl = selectIsFromFfvl(state);
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
@@ -258,7 +266,8 @@ export class Map3dElement extends connect(store)(LitElement) {
           // Zoom to tracks when there are some.
           this.centerOnMarker(16);
         } else {
-          const { location, zoom } = store.getState().location;
+          const location = selectLocation(store.getState());
+          const zoom = selectZoom(store.getState());
           this.center({ ...location, alt: 0 }, zoom);
         }
 
@@ -319,7 +328,7 @@ export class Map3dElement extends connect(store)(LitElement) {
       const minTimeSec = sel.minTimeSec(state);
       const maxTimeSec = sel.maxTimeSec(state);
       const delta = Math.round((direction * (maxTimeSec - minTimeSec)) / 300) + 1;
-      const ts = Math.max(Math.min(state.app.timeSec + delta, maxTimeSec), minTimeSec);
+      const ts = Math.max(Math.min(selectTimeSec(state) + delta, maxTimeSec), minTimeSec);
       store.dispatch(setTimeSec(ts));
       e.stopPropagation();
     });
@@ -407,7 +416,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   private geolocation({ lat, lon }: LatLon, userInitiated: boolean): void {
     if (this.view) {
       const center = this.view.center;
-      const start = store.getState().location.start;
+      const start = selectStartLocation(store.getState());
       if (userInitiated || (center?.latitude == start.lat && center?.longitude == start.lon)) {
         this.center({ lat, lon, alt: 0 });
       }
@@ -434,7 +443,7 @@ export class Map3dElement extends connect(store)(LitElement) {
       </style>
       <div id="map3d"></div>
       ${when(
-        this.isFrance && !this.isFromFfvl,
+        this.country === 'FR' && !this.isFromFfvl,
         () => html`<a class="ad" href="https://ruedelair.com/" target="_blank">
           <img
             width="${Math.round(220 * this.adRatio)}"

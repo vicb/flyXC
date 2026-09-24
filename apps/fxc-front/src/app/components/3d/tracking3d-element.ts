@@ -17,10 +17,12 @@ import { popupContent } from '../../logic/live-track-popup';
 import * as msg from '../../logic/messages';
 import type { Units } from '../../logic/units';
 import { formatDurationMin } from '../../logic/units';
-import { liveTrackSelectors, setCurrentLiveId } from '../../redux/live-track-slice';
+import * as arcgis from '../../redux/arcgis-slice';
+import * as liveTrack from '../../redux/live-track-slice';
 import * as sel from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
+import * as unitsSlice from '../../redux/units-slice';
 import { getUniqueContrastColor } from '../../styles/track';
 
 // A track is considered recent if ended less than timeout ago.
@@ -160,11 +162,11 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   }
 
   stateChanged(state: RootState): void {
-    this.displayLabels = state.liveTrack.displayLabels;
-    this.geojson = state.liveTrack.geojson;
-    this.multiplier = state.arcgis.altMultiplier;
-    this.units = state.units;
-    this.currentId = state.liveTrack.currentLiveId;
+    this.displayLabels = liveTrack.selectDisplayLabels(state);
+    this.geojson = liveTrack.selectGeojson(state);
+    this.multiplier = arcgis.selectAltitudeMultiplier(state);
+    this.units = unitsSlice.selectUnits(state);
+    this.currentId = liveTrack.selectCurrentLiveId(state);
     this.numTracks = sel.numTracks(state);
   }
 
@@ -328,7 +330,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   private handleClick(graphic: Graphic, view: SceneView) {
     const attr = graphic.attributes;
     if (attr.liveTrackId != null) {
-      store.dispatch(setCurrentLiveId(attr.liveTrackId));
+      store.dispatch(liveTrack.setCurrentLiveId(attr.liveTrackId));
       if (attr.liveTrackIndex != null && this.units) {
         // Style for markers.
         const index = attr.liveTrackIndex;
@@ -337,7 +339,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
           return;
         }
 
-        const track = liveTrackSelectors.selectById(store.getState(), attr.liveTrackId) as protos.LiveTrack;
+        const track = liveTrack.selectLiveTrackById(store.getState(), attr.liveTrackId) as protos.LiveTrack;
 
         view.popup?.open({
           location: new Point({

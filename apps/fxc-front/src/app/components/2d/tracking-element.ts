@@ -9,10 +9,13 @@ import { FixType } from '../../logic/live-track';
 import { popupContent } from '../../logic/live-track-popup';
 import type { Units } from '../../logic/units';
 import { formatDurationMin, formatUnit } from '../../logic/units';
-import { setCurrentLiveId } from '../../redux/live-track-slice';
+import * as app from '../../redux/app-slice';
+import * as liveTrack from '../../redux/live-track-slice';
+import * as planner from '../../redux/planner-slice';
 import * as sel from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
+import * as unitsSlice from '../../redux/units-slice';
 import { getUniqueContrastColor } from '../../styles/track';
 
 // Anchors and label origins for markers.
@@ -167,7 +170,7 @@ export class TrackingElement extends connect(store)(LitElement) {
     this.setMapStyle(this.map);
     this.setupInfoWindow(this.map);
     this.clearCurrentPilotListener = this.map.addListener('click', () => {
-      store.dispatch(setCurrentLiveId(undefined));
+      store.dispatch(liveTrack.setCurrentLiveId(undefined));
       this.info?.close();
     });
     this.updateMovingDot(true);
@@ -225,13 +228,13 @@ export class TrackingElement extends connect(store)(LitElement) {
    * @param state - The updated root Redux state.
    */
   stateChanged(state: RootState): void {
-    this.units = state.units;
-    this.displayLabels = state.liveTrack.displayLabels;
-    this.geojson = state.liveTrack.geojson;
-    this.currentId = state.liveTrack.currentLiveId;
+    this.units = unitsSlice.selectUnits(state);
+    this.displayLabels = liveTrack.selectDisplayLabels(state);
+    this.geojson = liveTrack.selectGeojson(state);
+    this.currentId = liveTrack.selectCurrentLiveId(state);
     this.numTracks = sel.numTracks(state);
-    this.plannerEnabled = state.planner.enabled;
-    this.timeSec = state.app.timeSec;
+    this.plannerEnabled = planner.selectEnabled(state);
+    this.timeSec = app.selectTimeSec(state);
     this.liveTrack = sel.activeLiveTrack(state);
   }
 
@@ -316,7 +319,7 @@ export class TrackingElement extends connect(store)(LitElement) {
       if (type === 'LineString') {
         const pilotId = getLineProp(feature, 'id');
         this.info?.close();
-        store.dispatch(setCurrentLiveId(pilotId));
+        store.dispatch(liveTrack.setCurrentLiveId(pilotId));
         this.setMapStyle(this.map);
       } else if (type === 'Point' && this.units) {
         const pilotId = getPointProp(feature, 'pilotId');
@@ -333,7 +336,7 @@ export class TrackingElement extends connect(store)(LitElement) {
           (this.info as any).setHeaderContent(popup.title);
           this.info.setPosition(event.latLng);
           this.info.open(map);
-          store.dispatch(setCurrentLiveId(pilotId));
+          store.dispatch(liveTrack.setCurrentLiveId(pilotId));
           this.setMapStyle(this.map);
         }
       }

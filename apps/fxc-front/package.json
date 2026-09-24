@@ -25,8 +25,6 @@
     "moving-median": "^1.0.0",
     "pwa-helpers": "^0.9.1",
     "qrcode": "^1.5.4",
-    "redux-thunk": "^3.1.0",
-    "reselect": "^5.3.0",
     "rollup-plugin-visualizer": "^7.1.1",
     "simplify-path": "catalog:default",
     "vaadin-dom": "workspace:*",

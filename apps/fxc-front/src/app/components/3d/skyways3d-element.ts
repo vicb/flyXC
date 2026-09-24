@@ -22,15 +22,15 @@ export class Skyways3dElement extends connect(store)(LitElement) {
   @state()
   maxZoom = 13;
   @state()
-  tileUrl = skyways.getTileUrl(store.getState());
+  tileUrl = skyways.selectTileUrl(store.getState());
 
   private layer?: WebTileLayer;
 
   stateChanged(state: RootState): void {
-    this.show = state.skyways.show;
-    this.opacity = state.skyways.opacity;
-    this.tileUrl = skyways.getTileUrl(state);
-    this.maxZoom = skyways.getTileMaxZoom(state.skyways.layer);
+    this.show = skyways.selectShow(state);
+    this.opacity = skyways.selectOpacity(state);
+    this.tileUrl = skyways.selectTileUrl(state);
+    this.maxZoom = skyways.getTileMaxZoom(skyways.selectLayer(state));
   }
 
   protected shouldUpdate(changedProperties: PropertyValues): boolean {

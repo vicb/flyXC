@@ -11,10 +11,11 @@ import { maybeHideSidePane } from '../../../flyxc';
 import * as msg from '../../logic/messages';
 import * as units from '../../logic/units';
 import type { LivePilot } from '../../redux/live-track-slice';
-import { getLivePilots, setCenterOnLocation, setCurrentLiveId } from '../../redux/live-track-slice';
-import { setCurrentLocation } from '../../redux/location-slice';
+import * as liveTrack from '../../redux/live-track-slice';
+import * as location from '../../redux/location-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
+import * as unitsSlice from '../../redux/units-slice';
 import { getUniqueContrastColor } from '../../styles/track';
 
 // Maximum number of pilots to list.
@@ -48,11 +49,11 @@ export class LiveModal extends connect(store)(LitElement) {
   private watchLocationId = 0;
 
   stateChanged(state: RootState): void {
-    this.pilots = getLivePilots(state);
-    this.location = state.location.location;
-    this.units = state.units;
-    this.centerOnLocation = state.liveTrack.centerOnLocation;
-    this.currentLiveId = state.liveTrack.currentLiveId;
+    this.pilots = liveTrack.getLivePilots(state);
+    this.location = location.selectLocation(state);
+    this.units = unitsSlice.selectUnits(state);
+    this.centerOnLocation = liveTrack.selectCenterOnLocation(state);
+    this.currentLiveId = liveTrack.selectCurrentLiveId(state);
   }
 
   connectedCallback(): void {
@@ -114,7 +115,7 @@ export class LiveModal extends connect(store)(LitElement) {
   private async handleCenter(): Promise<void> {
     const watch = !this.centerOnLocation;
     await this.watchLocation(watch);
-    store.dispatch(setCenterOnLocation(watch));
+    store.dispatch(liveTrack.setCenterOnLocation(watch));
   }
 
   private filterPilots(e: CustomEvent): void {
@@ -128,10 +129,10 @@ export class LiveModal extends connect(store)(LitElement) {
           (p: GeolocationPosition) => {
             const { latitude: lat, longitude: lon } = p.coords;
             msg.centerMap.emit({ lat, lon, alt: 0 });
-            store.dispatch(setCurrentLocation({ lat, lon }));
+            store.dispatch(location.setCurrentLocation({ lat, lon }));
           },
           () => {
-            store.dispatch(setCenterOnLocation(false));
+            store.dispatch(liveTrack.setCenterOnLocation(false));
             this.watchLocation(false);
           },
           {
@@ -159,7 +160,7 @@ export class LiveModal extends connect(store)(LitElement) {
 
   private async handleFlyTo(pilot: LivePilot) {
     msg.centerMap.emit(pilot.position);
-    store.dispatch(setCurrentLiveId(pilot.id));
+    store.dispatch(liveTrack.setCurrentLiveId(pilot.id));
     await this.dismiss();
     await maybeHideSidePane();
   }

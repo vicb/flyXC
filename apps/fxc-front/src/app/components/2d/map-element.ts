@@ -12,13 +12,26 @@ import simplify from 'simplify-path';
 
 import { getApiKeyAndHost } from '../../apikey';
 import * as msg from '../../logic/messages';
-import { setApiLoading, setTimeSec } from '../../redux/app-slice';
-import { setCurrentLocation, setCurrentZoom } from '../../redux/location-slice';
-import { setIsFreeDrawing, setRoute } from '../../redux/planner-slice';
+import { selectTimeSec, setApiLoading, setTimeSec } from '../../redux/app-slice';
+import { selectCountry, selectIsFromFfvl, selectIsFullscreen, selectIsSmallScreen } from '../../redux/browser-slice';
+import {
+  selectLocation,
+  selectStartLocation,
+  selectZoom,
+  setCurrentLocation,
+  setCurrentZoom,
+} from '../../redux/location-slice';
+import { selectIsFreeDrawing, setIsFreeDrawing, setRoute } from '../../redux/planner-slice';
 import * as sel from '../../redux/selectors';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
-import { setCurrentTrackId } from '../../redux/track-slice';
+import {
+  selectCurrentTrackId,
+  selectDomain,
+  selectLoaded,
+  selectLockOnPilot,
+  setCurrentTrackId,
+} from '../../redux/track-slice';
 import { ControlsElement } from './controls-element';
 import { LineElement } from './line-element';
 import { MarkerElement } from './marker-element';
@@ -49,7 +62,7 @@ let gMapsApiLoading: Promise<void> | undefined;
 function loadGMaps(): Promise<void> {
   if (!gMapsApiLoading) {
     const load = (resolve: () => void) => {
-      const { key } = getApiKeyAndHost('GMAPS', store.getState().track.domain);
+      const { key } = getApiKeyAndHost('GMAPS', selectDomain(store.getState()));
       gMapLoader.setOptions({
         key,
         v: 'weekly',
@@ -66,11 +79,11 @@ function loadGMaps(): Promise<void> {
     gMapsApiLoading = new Promise((r) => (resolve = r));
     // Wait for the track to be loaded before loading the Google Maps API.
     // That way we know which API key to use (from the domain).
-    if (store.getState().track.loaded) {
+    if (selectLoaded(store.getState())) {
       load(resolve);
     } else {
       const unsubscribeState = store.subscribe(() => {
-        if (store.getState().track.loaded) {
+        if (selectLoaded(store.getState())) {
           unsubscribeState();
           load(resolve);
         }
@@ -98,7 +111,7 @@ export class MapElement extends connect(store)(LitElement) {
   @state()
   private freeDrawPath = '';
   @state()
-  private isFrance = false;
+  private country?: string;
   @state()
   private isFromFfvl = false;
 
@@ -107,19 +120,19 @@ export class MapElement extends connect(store)(LitElement) {
   private lockOnPilot = false;
   private lockPanBefore = 0;
   private subscriptions: UnsubscribeHandle[] = [];
-  private readonly adRatio = store.getState().browser.isSmallScreen ? 0.7 : 1;
+  private readonly adRatio = selectIsSmallScreen(store.getState()) ? 0.7 : 1;
 
   stateChanged(state: RootState): void {
     this.tracks = sel.tracks(state);
-    this.timeSec = state.app.timeSec;
+    this.timeSec = selectTimeSec(state);
     // In full screen mode the gesture handling must be greedy.
     // Using ctrl (+ scroll) is unnecessary as thr page can not scroll anyway.
-    this.fullscreen = state.browser.isFullscreen;
-    this.lockOnPilot = state.track.lockOnPilot;
-    this.currentTrackId = state.track.currentTrackId;
-    this.isFreeDrawing = state.planner.isFreeDrawing;
-    this.isFrance = state.browser.isFrance;
-    this.isFromFfvl = state.browser.isFromFfvl;
+    this.fullscreen = selectIsFullscreen(state);
+    this.lockOnPilot = selectLockOnPilot(state);
+    this.currentTrackId = selectCurrentTrackId(state);
+    this.isFreeDrawing = selectIsFreeDrawing(state);
+    this.country = selectCountry(state);
+    this.isFromFfvl = selectIsFromFfvl(state);
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
@@ -217,7 +230,8 @@ export class MapElement extends connect(store)(LitElement) {
         // Zoom to tracks when there are some.
         this.zoomToTracks();
       } else {
-        const { location, zoom } = store.getState().location;
+        const location = selectLocation(store.getState());
+        const zoom = selectZoom(store.getState());
         this.map.setCenter({ lat: location.lat, lng: location.lon });
         this.map.setZoom(zoom);
       }
@@ -303,7 +317,7 @@ export class MapElement extends connect(store)(LitElement) {
       </div>
       <div id="map"></div>
       ${when(
-        this.isFrance && !this.isFromFfvl,
+        this.country === 'FR' && !this.isFromFfvl,
         () => html`<a class="ad" href="https://ruedelair.com/" target="_blank">
           <img
             width="${Math.round(220 * this.adRatio)}"
@@ -394,7 +408,7 @@ export class MapElement extends connect(store)(LitElement) {
   private geolocation({ lat, lon }: LatLon, userInitiated: boolean): void {
     if (this.map) {
       const center = this.map.getCenter() as google.maps.LatLng;
-      const start = store.getState().location.start;
+      const start = selectStartLocation(store.getState());
       if (userInitiated || (center.lat() == start.lat && center.lng() == start.lon)) {
         this.center(lat, lon);
       }

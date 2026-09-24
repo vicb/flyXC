@@ -26,23 +26,19 @@ import { uploadTracks } from '../../logic/track';
 import type { DistanceUnit } from '../../logic/units';
 import { formatUnit } from '../../logic/units';
 import * as airspaces from '../../redux/airspace-slice';
-import { setApiLoading } from '../../redux/app-slice';
+import * as app from '../../redux/app-slice';
 import * as arcgis from '../../redux/arcgis-slice';
+import * as browser from '../../redux/browser-slice';
 import type { LivePilot } from '../../redux/live-track-slice';
-import {
-  getLivePilots,
-  setDisplayLabels as setDisplayLiveLabels,
-  setFetchMillis,
-  setHistorySec,
-  setReturnUrl,
-  updateTrackers,
-} from '../../redux/live-track-slice';
+import * as liveTrack from '../../redux/live-track-slice';
+import * as locationSlice from '../../redux/location-slice';
 import * as planner from '../../redux/planner-slice';
 import * as sel from '../../redux/selectors';
 import * as skyways from '../../redux/skyways-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
-import { setDisplayLabels, setLockOnPilot } from '../../redux/track-slice';
+import * as track from '../../redux/track-slice';
+import * as unitsSlice from '../../redux/units-slice';
 
 @customElement('main-menu')
 export class MainMenu extends connect(store)(LitElement) {
@@ -58,11 +54,11 @@ export class MainMenu extends connect(store)(LitElement) {
   sunEnabled = false;
 
   stateChanged(state: RootState): void {
-    this.view3d = state.app.view3d;
-    this.exaggeration = state.arcgis.altMultiplier;
-    this.plannerEnabled = state.planner.enabled;
-    this.requestingLocation = state.location.requestingLocation;
-    this.sunEnabled = state.arcgis.useSunLighting;
+    this.view3d = app.selectView3d(state);
+    this.exaggeration = arcgis.selectAltitudeMultiplier(state);
+    this.plannerEnabled = planner.selectEnabled(state);
+    this.requestingLocation = locationSlice.selectRequestingLocation(state);
+    this.sunEnabled = arcgis.selectUseSunLighting(state);
   }
 
   render(): TemplateResult {
@@ -189,7 +185,7 @@ export class MainMenu extends connect(store)(LitElement) {
   }
 
   private handleSounding() {
-    const { lat, lon } = store.getState().location.location;
+    const { lat, lon } = locationSlice.selectLocation(store.getState());
     window.open(`https://www.windy.com/plugin/sdg/${lat}/${lon}`, '_blank');
   }
 
@@ -248,12 +244,12 @@ export class AirspaceItems extends connect(store)(LitElement) {
   private subscriptions: UnsubscribeHandle[] = [];
 
   stateChanged(state: RootState): void {
-    this.unit = state.units.altitude;
-    this.maxAltitude = state.airspace.maxAltitude;
+    this.unit = unitsSlice.selectAltitudeUnit(state);
+    this.maxAltitude = airspaces.selectMaxAltitude(state);
     this.altitudeStops = sel.airspaceAltitudeStops(state);
-    this.show = state.airspace.show;
-    this.showClasses = state.airspace.showClasses;
-    this.showTypes = state.airspace.showTypes;
+    this.show = airspaces.selectShowAirspaces(state);
+    this.showClasses = airspaces.selectShowClasses(state);
+    this.showTypes = airspaces.selectShowTypes(state);
   }
 
   connectedCallback(): void {
@@ -387,11 +383,11 @@ export class SkywaysItems extends connect(store)(LitElement) {
   private timeOfDay: skyways.TimeOfDay = 'all';
 
   stateChanged(state: RootState): void {
-    this.opacity = state.skyways.opacity;
-    this.show = state.skyways.show;
-    this.layer = state.skyways.layer;
-    this.month = state.skyways.month;
-    this.timeOfDay = state.skyways.timeOfDay;
+    this.opacity = skyways.selectOpacity(state);
+    this.show = skyways.selectShow(state);
+    this.layer = skyways.selectLayer(state);
+    this.month = skyways.selectMonth(state);
+    this.timeOfDay = skyways.selectTimeOfDay(state);
   }
 
   render(): TemplateResult {
@@ -479,7 +475,7 @@ export class ViewItems extends connect(store)(LitElement) {
   view3d = false;
 
   stateChanged(state: RootState): void {
-    this.view3d = state.app.view3d;
+    this.view3d = app.selectView3d(state);
   }
 
   render(): TemplateResult {
@@ -505,7 +501,7 @@ export class ViewItems extends connect(store)(LitElement) {
   }
 
   private async handleSearch(place: string) {
-    const { lat, lon } = store.getState().location.location;
+    const { lat, lon } = locationSlice.selectLocation(store.getState());
     if (place.trim().length < 2) {
       return;
     }
@@ -540,7 +536,7 @@ export class ViewItems extends connect(store)(LitElement) {
   }
 
   private async handleSwitch() {
-    store.dispatch(setApiLoading(true));
+    store.dispatch(app.setApiLoading(true));
     await maybeHideSidePane();
   }
 
@@ -555,7 +551,7 @@ export class FullScreenItems extends connect(store)(LitElement) {
   private fullscreen = true;
 
   stateChanged(state: RootState): void {
-    this.fullscreen = state.browser.isFullscreen;
+    this.fullscreen = browser.selectIsFullscreen(state);
   }
 
   render(): TemplateResult {
@@ -603,8 +599,8 @@ export class TrackItems extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     this.numTracks = sel.numTracks(state);
-    this.displayLabels = state.track.displayLabels;
-    this.lockOnPilot = state.track.lockOnPilot;
+    this.displayLabels = track.selectDisplayLabels(state);
+    this.lockOnPilot = track.selectLockOnPilot(state);
   }
 
   render(): TemplateResult {
@@ -636,7 +632,7 @@ export class TrackItems extends connect(store)(LitElement) {
   }
 
   private handleLock() {
-    store.dispatch(setLockOnPilot(!this.lockOnPilot));
+    store.dispatch(track.setLockOnPilot(!this.lockOnPilot));
   }
 
   // Programmatically opens the file dialog.
@@ -662,7 +658,7 @@ export class TrackItems extends connect(store)(LitElement) {
 
   // Shows/Hides pilot names next to the marker.
   private handleDisplayNames(): void {
-    store.dispatch(setDisplayLabels(!this.displayLabels));
+    store.dispatch(track.setDisplayLabels(!this.displayLabels));
   }
 
   private async handleSelect() {
@@ -690,9 +686,9 @@ export class LiveTrackItems extends connect(store)(LitElement) {
   private historySec = LiveTrackDurationSec.H12;
 
   stateChanged(state: RootState): void {
-    this.displayLabels = state.liveTrack.displayLabels;
-    this.pilots = getLivePilots(state);
-    this.historySec = state.liveTrack.historySec;
+    this.displayLabels = liveTrack.selectDisplayLabels(state);
+    this.pilots = liveTrack.getLivePilots(state);
+    this.historySec = liveTrack.selectHistorySec(state);
   }
 
   render(): TemplateResult {
@@ -742,17 +738,17 @@ export class LiveTrackItems extends connect(store)(LitElement) {
 
   // Shows/Hides pilot names next to the marker.
   private handleDisplayNames(): void {
-    store.dispatch(setDisplayLiveLabels(!this.displayLabels));
+    store.dispatch(liveTrack.setDisplayLabels(!this.displayLabels));
   }
 
   private handleHistory(e: CustomEvent): void {
-    store.dispatch(setHistorySec(Number(e.detail.value)));
-    store.dispatch(setFetchMillis(0));
-    store.dispatch(updateTrackers());
+    store.dispatch(liveTrack.setHistorySec(Number(e.detail.value)));
+    store.dispatch(liveTrack.setFetchMillis(0));
+    store.dispatch(liveTrack.updateTrackers());
   }
 
   private handleConfig() {
-    store.dispatch(setReturnUrl(document.location.toString()));
+    store.dispatch(liveTrack.setReturnUrl(document.location.toString()));
     document.location.href = `${import.meta.env.VITE_APP_SERVER}/devices`;
   }
 

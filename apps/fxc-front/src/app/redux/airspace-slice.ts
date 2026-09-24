@@ -42,22 +42,31 @@ const airspaceSlice = createSlice({
   name: 'airspace',
   initialState,
   reducers: {
+    /** Sets whether airspace boundaries are displayed on the map. */
     setShow: (state, action: PayloadAction<boolean>) => {
       state.show = action.payload;
     },
+    /** Sets which airspace classes should be displayed. */
     showClasses: (state, action: PayloadAction<Class[]>) => {
       state.showClasses = action.payload;
-      localStorage.setItem('airspaceClasses', JSON.stringify(action.payload));
     },
+    /** Sets which airspace types (e.g. Danger, Restricted) should be displayed. */
     showTypes: (state, action: PayloadAction<Type[]>) => {
-      localStorage.setItem('airspaceTypes', JSON.stringify(action.payload));
       state.showTypes = action.payload;
     },
+    /** Sets the maximum altitude threshold for airspaces to display. */
     setMaxAltitude: (state, action: PayloadAction<number>) => {
       state.maxAltitude = action.payload;
     },
+  },
+  selectors: {
+    selectShowAirspaces: (state) => state.show,
+    selectShowClasses: (state) => state.showClasses,
+    selectShowTypes: (state) => state.showTypes,
+    selectMaxAltitude: (state) => state.maxAltitude,
   },
 });
 
 export const reducer = airspaceSlice.reducer;
 export const { setMaxAltitude, setShow, showClasses, showTypes } = airspaceSlice.actions;
+export const { selectShowAirspaces, selectShowClasses, selectShowTypes, selectMaxAltitude } = airspaceSlice.selectors;

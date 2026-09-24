@@ -10,7 +10,7 @@ import {
 import type { EntityState, PayloadAction } from '@reduxjs/toolkit';
 import { createAction, createAsyncThunk, createEntityAdapter, createSlice } from '@reduxjs/toolkit';
 
-import { addUrlParamValue, deleteUrlParamValue, ParamNames } from '../logic/history';
+import { addUrlParamValue, ParamNames } from '../logic/history';
 import * as msg from '../logic/messages';
 import type { Response } from '../workers/track';
 import TrackWorker from '../workers/track?worker';
@@ -179,12 +179,10 @@ const trackSlice = createSlice({
       state.displayLabels = action.payload;
     },
     setLockOnPilot: (state, action: PayloadAction<boolean>) => {
-      localStorage.setItem('track.lock-pilot', String(action.payload));
       state.lockOnPilot = action.payload;
     },
     removeTracksByGroupIds: (state, action: PayloadAction<number[]>) => {
       const groupIds = action.payload.map((v) => String(v));
-      groupIds.forEach((groupId) => deleteUrlParamValue(ParamNames.groupId, groupId));
       const trackIds = state.tracks.ids.filter((id) => groupIds.some((groupId) => String(id).startsWith(groupId)));
       trackAdapter.removeMany(state.tracks, trackIds);
       if (state.tracks.ids.length == 0) {
@@ -303,6 +301,14 @@ const trackSlice = createSlice({
         }
       });
   },
+  selectors: {
+    selectCurrentTrackId: (state) => state.currentTrackId,
+    selectFetching: (state) => state.fetching,
+    selectDisplayLabels: (state) => state.displayLabels,
+    selectLockOnPilot: (state) => state.lockOnPilot,
+    selectDomain: (state) => state.domain,
+    selectLoaded: (state) => state.loaded,
+  },
 });
 
 export const reducer = trackSlice.reducer;
@@ -315,6 +321,15 @@ export const {
   setTrackDomain,
   setTrackLoaded,
 } = trackSlice.actions;
+
+export const {
+  selectCurrentTrackId,
+  selectFetching,
+  selectDisplayLabels,
+  selectLockOnPilot,
+  selectDomain,
+  selectLoaded,
+} = trackSlice.selectors;
 
 /**
  * Selects the next runtime track in the list.
@@ -337,3 +352,10 @@ export const selectNextTrack = (): AppThunk => (dispatch, getState) => {
 };
 
 export const trackAdapterSelector = trackAdapter.getSelectors((state: RootState) => state.track.tracks);
+export const {
+  selectIds: selectTrackIds,
+  selectEntities: selectTrackEntities,
+  selectAll: selectAllTracks,
+  selectTotal: selectTrackTotal,
+  selectById: selectTrackById,
+} = trackAdapterSelector;

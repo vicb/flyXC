@@ -30,24 +30,33 @@ const locationSlice = createSlice({
   name: 'location',
   initialState,
   reducers: {
+    /** Sets the current map center location. */
     setCurrentLocation: (state, action: PayloadAction<LatLon>) => {
       state.location = action.payload;
     },
+    /** Sets the current map zoom level. */
     setCurrentZoom: (state, action: PayloadAction<number>) => {
       state.zoom = action.payload;
     },
+    /** Sets the geolocation retrieved from the browser. */
     setGeolocation: (state, action: PayloadAction<LatLon>) => {
-      // The next initial location will be here.
-      const latLon = action.payload;
-      localStorage.setItem('init.lat', String(latLon.lat));
-      localStorage.setItem('init.lon', String(latLon.lon));
-      state.geolocation = latLon;
+      state.geolocation = action.payload;
     },
+    /** Sets whether browser geolocation is currently being requested. */
     setRequestingLocation: (state, action: PayloadAction<boolean>) => {
       state.requestingLocation = action.payload;
     },
+  },
+  selectors: {
+    selectLocation: (state) => state.location,
+    selectZoom: (state) => state.zoom,
+    selectStartLocation: (state) => state.start,
+    selectGeolocation: (state) => state.geolocation,
+    selectRequestingLocation: (state) => state.requestingLocation,
   },
 });
 
 export const reducer = locationSlice.reducer;
 export const { setCurrentLocation, setCurrentZoom, setGeolocation, setRequestingLocation } = locationSlice.actions;
+export const { selectLocation, selectZoom, selectStartLocation, selectGeolocation, selectRequestingLocation } =
+  locationSlice.selectors;

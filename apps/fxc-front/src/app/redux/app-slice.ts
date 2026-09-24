@@ -47,13 +47,21 @@ const appSlice = createSlice({
     },
     setPwaInstallCancelled: (state, action: PayloadAction<boolean>) => {
       state.pwaInstallCancelled = action.payload;
-      localStorage.setItem(PWA_INSTALL_CANCELLED_KEY, String(action.payload));
     },
+  },
+  selectors: {
+    selectChartYAxis: (state) => state.chartYAxis,
+    selectTimeSec: (state) => state.timeSec,
+    selectView3d: (state) => state.view3d,
+    selectLoadingApi: (state) => state.loadingApi,
+    selectPwaInstallCancelled: (state) => state.pwaInstallCancelled,
   },
 });
 
 export const reducer = appSlice.reducer;
 export const { setTimeSec, setApiLoading, setChartYAxis, setView3d, setPwaInstallCancelled } = appSlice.actions;
+export const { selectChartYAxis, selectTimeSec, selectView3d, selectLoadingApi, selectPwaInstallCancelled } =
+  appSlice.selectors;
 
 /**
  * Sets the app time to the current clock time when there are no loaded runtime tracks

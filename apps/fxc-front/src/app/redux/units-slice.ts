@@ -15,24 +15,33 @@ const unitsSlice = createSlice({
   name: 'units',
   initialState,
   reducers: {
+    /** Sets the user's distance unit preference. */
     setDistanceUnit: (state, action: PayloadAction<DistanceUnit>) => {
-      localStorage.setItem('unit.distance', action.payload);
       state.distance = action.payload;
     },
+    /** Sets the user's speed unit preference. */
     setSpeedUnit: (state, action: PayloadAction<SpeedUnit>) => {
-      localStorage.setItem('unit.speed', action.payload);
       state.speed = action.payload;
     },
+    /** Sets the user's altitude unit preference. */
     setAltitudeUnit: (state, action: PayloadAction<DistanceUnit>) => {
-      localStorage.setItem('unit.altitude', action.payload);
       state.altitude = action.payload;
     },
+    /** Sets the user's vertical speed (vario) unit preference. */
     setVarioUnit: (state, action: PayloadAction<SpeedUnit>) => {
-      localStorage.setItem('unit.vario', action.payload);
       state.vario = action.payload;
     },
+  },
+  selectors: {
+    selectUnits: (state) => state,
+    selectDistanceUnit: (state) => state.distance,
+    selectSpeedUnit: (state) => state.speed,
+    selectAltitudeUnit: (state) => state.altitude,
+    selectVarioUnit: (state) => state.vario,
   },
 });
 
 export const reducer = unitsSlice.reducer;
 export const { setDistanceUnit, setSpeedUnit, setAltitudeUnit, setVarioUnit } = unitsSlice.actions;
+export const { selectUnits, selectDistanceUnit, selectSpeedUnit, selectAltitudeUnit, selectVarioUnit } =
+  unitsSlice.selectors;

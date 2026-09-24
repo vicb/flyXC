@@ -23,7 +23,12 @@ const arcgisSlice = createSlice({
       state.useSunLighting = action.payload;
     },
   },
+  selectors: {
+    selectAltitudeMultiplier: (state) => state.altMultiplier,
+    selectUseSunLighting: (state) => state.useSunLighting,
+  },
 });
 
 export const reducer = arcgisSlice.reducer;
 export const { setAltitudeMultiplier, setUseSunLighting } = arcgisSlice.actions;
+export const { selectAltitudeMultiplier, selectUseSunLighting } = arcgisSlice.selectors;

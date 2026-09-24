@@ -17,6 +17,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { getAirspaceList } from '../../logic/airspaces';
+import * as airspaces from '../../redux/airspace-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 
@@ -37,10 +38,10 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private layer?: VectorTileLayer;
 
   stateChanged(state: RootState): void {
-    this.maxAltitude = state.airspace.maxAltitude;
-    this.showAirspace = state.airspace.show;
-    this.showClasses = state.airspace.showClasses;
-    this.showTypes = state.airspace.showTypes;
+    this.maxAltitude = airspaces.selectMaxAltitude(state);
+    this.showAirspace = airspaces.selectShowAirspaces(state);
+    this.showClasses = airspaces.selectShowClasses(state);
+    this.showTypes = airspaces.selectShowTypes(state);
   }
 
   protected shouldUpdate(): boolean {

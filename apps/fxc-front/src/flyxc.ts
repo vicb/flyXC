@@ -38,6 +38,7 @@ import * as msg from './app/logic/messages';
 import { handleServiceWorkerReload } from './app/logic/pwa-lifecycle';
 import { downloadTracksByGroupIds, downloadTracksByUrls, uploadTracks } from './app/logic/track';
 import type * as units from './app/logic/units';
+import * as airspaces from './app/redux/airspace-slice';
 import * as app from './app/redux/app-slice';
 import * as liveTrack from './app/redux/live-track-slice';
 import * as planner from './app/redux/planner-slice';
@@ -45,6 +46,7 @@ import * as sel from './app/redux/selectors';
 import type { RootState } from './app/redux/store';
 import { store } from './app/redux/store';
 import * as track from './app/redux/track-slice';
+import * as unitsSlice from './app/redux/units-slice';
 
 type NavigationHookResult = Awaited<ReturnType<NavigationHookCallback>>;
 
@@ -300,23 +302,23 @@ export class MapsElement extends connect(store)(LitElement) {
     const hasLiveTrack = selectedLive != null;
     this.isLiveTrack = hasLiveTrack;
     this.hasTrack = sel.hasChartTrack(state);
-    this.showLoader = state.track.fetching || state.app.loadingApi;
+    this.showLoader = track.selectFetching(state) || app.selectLoadingApi(state);
 
     this.chartTracks = sel.chartTracks(state);
     this.chartActiveTrackId = sel.chartActiveTrackId(state);
-    this.chartYAxis = hasLiveTrack ? ChartYAxis.Altitude : state.app.chartYAxis;
+    this.chartYAxis = hasLiveTrack ? ChartYAxis.Altitude : app.selectChartYAxis(state);
     this.availableYAxes = sel.chartAvailableYAxes(state);
-    this.timeSec = state.app.timeSec;
+    this.timeSec = app.selectTimeSec(state);
     this.minTimeSec = sel.chartMinTimeSec(state);
     this.maxTimeSec = sel.chartMaxTimeSec(state);
     this.minY = sel.chartMinY(state);
     this.maxY = sel.chartMaxY(state);
-    this.units = state.units;
-    this.showClasses = state.airspace.showClasses;
-    this.showTypes = state.airspace.showTypes;
+    this.units = unitsSlice.selectUnits(state);
+    this.showClasses = airspaces.selectShowClasses(state);
+    this.showTypes = airspaces.selectShowTypes(state);
 
     // If a live track is selected, ensure timeSec is within its range.
-    const currentLiveId = state.liveTrack.currentLiveId;
+    const currentLiveId = liveTrack.selectCurrentLiveId(state);
     const liveIdChanged = currentLiveId !== this.lastSelectedLiveId;
     this.lastSelectedLiveId = currentLiveId;
 
@@ -325,49 +327,51 @@ export class MapsElement extends connect(store)(LitElement) {
         const lastFixTime = selectedLive.timeSec.at(-1);
         if (
           lastFixTime != null &&
-          (state.app.timeSec < this.minTimeSec || state.app.timeSec > this.maxTimeSec) &&
-          lastFixTime !== state.app.timeSec
+          (this.timeSec < this.minTimeSec || this.timeSec > this.maxTimeSec) &&
+          lastFixTime !== this.timeSec
         ) {
           store.dispatch(app.setTimeSec(lastFixTime));
         }
-      } else if (state.app.timeSec < this.minTimeSec) {
+      } else if (this.timeSec < this.minTimeSec) {
         store.dispatch(app.setTimeSec(this.minTimeSec));
-      } else if (state.app.timeSec > this.maxTimeSec) {
+      } else if (this.timeSec > this.maxTimeSec) {
         store.dispatch(app.setTimeSec(this.maxTimeSec));
       }
     }
 
     // Handle runtime tracks selection / switching.
-    const currentTrackId = state.track.currentTrackId;
+    const currentTrackId = track.selectCurrentTrackId(state);
     const prevTrackId = this.lastSelectedTrackId;
     const trackIdChanged = currentTrackId !== prevTrackId;
     this.lastSelectedTrackId = currentTrackId;
 
-    if (!hasLiveTrack && state.track.tracks.ids.length > 0) {
+    const trackIds = track.selectTrackIds(state);
+    if (!hasLiveTrack && trackIds.length > 0) {
       if (trackIdChanged) {
         const isMultiDay = sel.isMultiDay(state);
-        const prevTrack = prevTrackId ? state.track.tracks.entities[prevTrackId] : undefined;
-        const currentTrack = currentTrackId ? state.track.tracks.entities[currentTrackId] : undefined;
+        const trackEntities = track.selectTrackEntities(state);
+        const prevTrack = prevTrackId ? trackEntities[prevTrackId] : undefined;
+        const currentTrack = currentTrackId ? trackEntities[currentTrackId] : undefined;
 
         if (isMultiDay && prevTrack && currentTrack) {
           // If the caller has already set the timestamp within the selected track's range
           // (e.g. clicking directly on the track fix on the map), do not add the track-start delta.
           const minTime = currentTrack.minTimeSec ?? currentTrack.timeSec[0];
           const maxTime = currentTrack.maxTimeSec ?? currentTrack.timeSec.at(-1) ?? minTime;
-          const isTimePreSet = state.app.timeSec >= minTime && state.app.timeSec <= maxTime;
+          const isTimePreSet = this.timeSec >= minTime && this.timeSec <= maxTime;
           const delta = isTimePreSet ? 0 : currentTrack.timeSec[0] - prevTrack.timeSec[0];
-          const targetTimeSec = Math.max(this.minTimeSec, Math.min(this.maxTimeSec, state.app.timeSec + delta));
-          if (targetTimeSec !== state.app.timeSec) {
+          const targetTimeSec = Math.max(this.minTimeSec, Math.min(this.maxTimeSec, this.timeSec + delta));
+          if (targetTimeSec !== this.timeSec) {
             store.dispatch(app.setTimeSec(targetTimeSec));
           }
-        } else if (state.app.timeSec < this.minTimeSec || state.app.timeSec > this.maxTimeSec) {
+        } else if (this.timeSec < this.minTimeSec || this.timeSec > this.maxTimeSec) {
           const targetTimeSec = currentTrack?.timeSec[0] ?? this.minTimeSec;
-          if (targetTimeSec !== state.app.timeSec) {
+          if (targetTimeSec !== this.timeSec) {
             store.dispatch(app.setTimeSec(targetTimeSec));
           }
         }
-      } else if (state.app.timeSec < this.minTimeSec || state.app.timeSec > this.maxTimeSec) {
-        if (this.minTimeSec !== state.app.timeSec) {
+      } else if (this.timeSec < this.minTimeSec || this.timeSec > this.maxTimeSec) {
+        if (this.minTimeSec !== this.timeSec) {
           store.dispatch(app.setTimeSec(this.minTimeSec));
         }
       }

@@ -50,9 +50,9 @@ export class SkywaysElement extends connect(store)(LitElement) {
   private copyrightEl?: HTMLElement;
 
   stateChanged(state: RootState): void {
-    this.show = state.skyways.show;
-    this.opacity = state.skyways.opacity;
-    this.tileUrl = skyways.getTileUrl(state);
+    this.show = skyways.selectShow(state);
+    this.opacity = skyways.selectOpacity(state);
+    this.tileUrl = skyways.selectTileUrl(state);
   }
 
   disconnectedCallback(): void {
