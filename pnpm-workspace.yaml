@@ -9,11 +9,11 @@ packages:
 catalog:
   '@cwasm/lodepng': ^0.1.9
   '@date-fns/tz': 1.5.0
-  '@dotenvx/dotenvx': ^2.26.1
-  '@google-cloud/datastore': ^11.0.1
-  '@google-cloud/pubsub': ^6.0.1
-  '@google-cloud/compute': 7.3.0
-  '@google-cloud/storage': ^8.1.0
+  '@dotenvx/dotenvx': ^2.30.0
+  '@google-cloud/datastore': ^11.1.0
+  '@google-cloud/pubsub': ^6.1.0
+  '@google-cloud/compute': 7.5.0
+  '@google-cloud/storage': ^8.2.0
   '@reduxjs/toolkit': ^2.12.0
   '@types/compression': ^1.8.1
   '@types/cors': ^2.8.19
@@ -22,7 +22,7 @@ catalog:
   '@types/express': ^5.0.6
   '@types/express-fileupload': ^1.5.1
   '@types/express-session': ^1.19.0
-  '@types/google.maps': ^3.66.3
+  '@types/google.maps': ^3.66.4
   '@types/mapbox__sphericalmercator': ^1.2.3
   '@types/react': ^19.3.0
   '@types/react-redux': ^7.1.34
@@ -42,14 +42,14 @@ catalog:
   simplify-path: ^1.1.0
   tiny-lru: ^13.0.1
   tslib: ^2.8.1
-  undici: ~7.29.0
-  vite: ^8.3.0
+  undici: ~8.11.2
+  vite: ^8.3.1
   zod: ^4.6.5
   core-js: ^3.50.0
-  '@ionic/core': ^9.0.3
+  '@ionic/core': ^9.0.5
   '@preact/preset-vite': ^2.10.6
   vite-plugin-static-copy: ^4.1.1
-  wrangler: ^4.132.0
+  wrangler: ^4.140.0
   eslint-plugin-unused-imports: ^4.4.1
 
 allowBuilds:

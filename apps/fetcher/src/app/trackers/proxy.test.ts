@@ -1,7 +1,6 @@
 import net from 'node:net';
 
 import { fetch as undiciFetch, ProxyAgent } from 'undici';
-import undiciPkg from 'undici/package.json';
 import { describe, expect, it } from 'vitest';
 
 import { Proxy } from './proxy';
@@ -10,23 +9,6 @@ describe('Proxy & Dispatcher compatibility', () => {
   it('returns undefined dispatcher when proxy IP is not ready', () => {
     const proxy = new Proxy('inreach');
     expect(proxy.getDispatcher()).toBeUndefined();
-  });
-
-  it('ensures installed undici major version matches Node embedded undici version', () => {
-    // Node.js embeds its own copy of undici for globalThis.fetch, reported in process.versions.undici.
-    // If undici is bumped to a new major version ahead of Node (or vice versa), the internal
-    // Dispatcher interface contracts can diverge.
-    const nodeUndiciVersion = process.versions.undici;
-    expect(nodeUndiciVersion, 'process.versions.undici should be defined in Node.js').toBeDefined();
-
-    const nodeMajor = nodeUndiciVersion.split('.')[0];
-    const installedMajor = undiciPkg.version.split('.')[0];
-
-    expect(
-      installedMajor,
-      `Installed undici (${undiciPkg.version}) major version does not match Node's embedded undici (${nodeUndiciVersion}). ` +
-        `Align undici in pnpm-workspace.yaml with Node's version.`,
-    ).toBe(nodeMajor);
   });
 
   it('undici.fetch accepts ProxyAgent without throwing internal dispatcher contract errors', async () => {

@@ -137,4 +137,36 @@ describe('fetchResponse', () => {
     expect(customFetch).toHaveBeenCalledTimes(1);
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
+
+  it('should throw when dispatcher is provided without custom fetch function', async () => {
+    const dummyDispatcher = {};
+    await expect(fetchResponse('https://example.com/test', { dispatcher: dummyDispatcher })).rejects.toThrow(
+      'A custom fetch implementation (e.g. undici.fetch) must be provided when using a dispatcher to avoid dispatcher protocol mismatches.',
+    );
+  });
+
+  it('should throw when dispatcher is provided with globalThis.fetch', async () => {
+    const dummyDispatcher = {};
+    await expect(
+      fetchResponse('https://example.com/test', { dispatcher: dummyDispatcher, fetch: globalThis.fetch }),
+    ).rejects.toThrow(
+      'A custom fetch implementation (e.g. undici.fetch) must be provided when using a dispatcher to avoid dispatcher protocol mismatches.',
+    );
+  });
+
+  it('should allow dispatcher when custom fetch function is provided', async () => {
+    const customResponse = new Response('ok', { status: 200 });
+    const customFetch = vi.fn().mockResolvedValue(customResponse);
+    const dummyDispatcher = {};
+
+    const res = await fetchResponse('https://example.com/test', {
+      dispatcher: dummyDispatcher,
+      fetch: customFetch,
+    });
+    expect(res).toBe(customResponse);
+    expect(customFetch).toHaveBeenCalledWith(
+      'https://example.com/test',
+      expect.objectContaining({ dispatcher: dummyDispatcher }),
+    );
+  });
 });
