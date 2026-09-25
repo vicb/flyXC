@@ -27,6 +27,11 @@ export const NO_GROUND_ALTITUDE = 9999;
 export const MAX_GROUND_ALTITUDE_ERROR = 10005;
 
 /**
+ * Sentinel value for unknown GPS altitude (e.g. status beacons lacking altitude).
+ */
+export const NO_ALTITUDE = -10000;
+
+/**
  * Validates whether a ground altitude value is a real elevation measurement.
  *
  * Values in the sentinel range `[NO_GROUND_ALTITUDE, MAX_GROUND_ALTITUDE_ERROR]` (9999..10005),

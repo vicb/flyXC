@@ -29,7 +29,8 @@ export interface AprsPosition {
   lat: number;
   lon: number;
   timeSec: number;
-  alt: number;
+  // Altitude is missing for FANET messages
+  alt?: number;
   // speed in km/h
   speed: number;
   // course in degrees
@@ -37,8 +38,19 @@ export interface AprsPosition {
   comment?: string;
 }
 
-// http://wiki.glidernet.org/wiki:ogn-flavoured-aprs
-// https://github.com/svoop/ogn_client-ruby/wiki/SenderBeacon
+/**
+ * Parses an OGN-flavored APRS position beacon string.
+ *
+ * Extracts coordinates (with optional high-precision `!W..!` extensions), speed (converted to km/h),
+ * course, altitude (converted from feet to meters), timestamp, and optional comment.
+ *
+ * @see http://wiki.glidernet.org/wiki:ogn-flavoured-aprs
+ * @see https://github.com/svoop/ogn_client-ruby/wiki/SenderBeacon
+ *
+ * @param position - Raw APRS position payload string to parse.
+ * @param nowSec - Reference current timestamp in seconds (defaults to now), used to resolve UTC date ambiguity.
+ * @returns Parsed `AprsPosition` object, or `null` if the format is invalid.
+ */
 export function parseAprsPosition(position: string, nowSec = Math.round(Date.now() / 1000)): AprsPosition | null {
   const match = position.match(POSITION_REGEXP);
   if (match == null || match.groups == null) {
@@ -72,13 +84,13 @@ export function parseAprsPosition(position: string, nowSec = Math.round(Date.now
   );
   const speed = Math.round(Number(match.groups['speed'] ?? '0') * KNOT_IN_KMH);
   const course = Number(match.groups['course'] ?? '0');
-  const alt = Math.round(Number(match.groups['alt'] ?? '0') * FT_IN_METER);
+  const alt = match.groups['alt'] != null ? Math.round(Number(match.groups['alt']) * FT_IN_METER) : undefined;
   const comment = match.groups['comment']?.trim();
   return {
     lat,
     lon,
     timeSec,
-    alt,
+    ...(alt != null ? { alt } : {}),
     speed,
     course,
     ...(comment ? { comment } : {}),
@@ -116,6 +128,16 @@ export function parseFntStatus(comment?: string): PilotStatus | undefined {
   }
 }
 
+/**
+ * Generates an OGN-flavored APRS position beacon string for a device.
+ *
+ * Formats coordinates into degrees and decimal minutes with APRS enhanced resolution (!W..!),
+ * converts speed to knots, altitude to feet, and appends the OGN device ID and optional comment.
+ *
+ * @param position - The position data (coordinates, altitude in meters, speed in km/h, timestamp, etc.).
+ * @param ognId - The 6-character hex identifier of the OGN device.
+ * @returns The formatted APRS beacon packet string.
+ */
 export function generateAprsPosition(position: AprsPosition, ognId: string): string {
   const idStr = ognId.substring(0, 6).toUpperCase().padStart(6, '0');
   const date = new Date(position.timeSec * 1000);
@@ -128,7 +150,7 @@ export function generateAprsPosition(position: AprsPosition, ognId: string): str
   const lonStr = (dm.degrees * 100 + dm.minutes).toFixed(3).padStart(9, '0');
   const courseStr = String(Math.round(position.course % 360)).padStart(3, '0');
   const speedStr = String(Math.min(999, Math.round(position.speed / KNOT_IN_KMH))).padStart(3, '0');
-  const altStr = String(Math.min(999999, Math.round(Math.max(0, position.alt) / FT_IN_METER))).padStart(6, '0');
+  const altStr = String(Math.min(999999, Math.round(Math.max(0, position.alt ?? 0) / FT_IN_METER))).padStart(6, '0');
 
   return (
     `FXC${idStr}>FXCAPP:/` +

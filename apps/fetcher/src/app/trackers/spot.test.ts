@@ -1,3 +1,5 @@
+import { NO_ALTITUDE } from '@flyxc/common';
+
 import spot2Feed from './fixtures/spot2.txt?raw';
 import spot3Feed from './fixtures/spot3.txt?raw';
 import type { LivePoint } from './live-track';
@@ -15,7 +17,7 @@ describe('Parse JSON feed', () => {
     expect(spot2).toEqual(
       [
         {
-          alt: 0,
+          alt: NO_ALTITUDE,
           name: 'spot',
           emergency: false,
           lat: 44.06871,
@@ -25,7 +27,7 @@ describe('Parse JSON feed', () => {
           timeSec: 1571231455,
         },
         {
-          alt: 0,
+          alt: NO_ALTITUDE,
           name: 'spot',
           emergency: false,
           lat: 44.06923,
@@ -35,7 +37,7 @@ describe('Parse JSON feed', () => {
           timeSec: 1571230698,
         },
         {
-          alt: 0,
+          alt: NO_ALTITUDE,
           name: 'spot',
           emergency: true,
           lat: 44.07498,
@@ -45,7 +47,7 @@ describe('Parse JSON feed', () => {
           timeSec: 1571230128,
         },
         {
-          alt: 0,
+          alt: NO_ALTITUDE,
           name: 'spot',
           emergency: false,
           lat: 44.04253,
@@ -55,7 +57,7 @@ describe('Parse JSON feed', () => {
           timeSec: 1571229492,
         },
         {
-          alt: 0,
+          alt: NO_ALTITUDE,
           name: 'spot',
           emergency: false,
           lat: 44.01246,

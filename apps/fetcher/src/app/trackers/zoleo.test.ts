@@ -1,4 +1,4 @@
-import { protos } from '@flyxc/common';
+import { NO_ALTITUDE, protos } from '@flyxc/common';
 import type { ZoleoMessage } from '@flyxc/common-node';
 
 import { handleLocationlessMessage, parse } from './zoleo';
@@ -219,7 +219,7 @@ describe('parse', () => {
             {
               lat: 45.182,
               lon: 5.73797,
-              alt: 0,
+              alt: NO_ALTITUDE,
               timeSec: 235,
               message: 'Email message',
             },

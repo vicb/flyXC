@@ -5,7 +5,7 @@
 // - Cloud Connect: https://cloudconnect.zoleo.com/
 
 import type { protos, TrackerNames } from '@flyxc/common';
-import { Keys, validateZoleoAccount } from '@flyxc/common';
+import { Keys, NO_ALTITUDE, validateZoleoAccount } from '@flyxc/common';
 import type { RedisClient, RedisClientMultiCmd, ZoleoMessage } from '@flyxc/common-node';
 import { LIVE_TRACK_TABLE } from '@flyxc/common-node';
 import { Datastore } from '@google-cloud/datastore';
@@ -97,7 +97,7 @@ export function parse(messages: ZoleoMessage[]): Map<string, LivePoint[]> {
       const point: LivePoint = {
         lat: msg.lat,
         lon: msg.lon,
-        alt: msg.altitudeM,
+        alt: msg.altitudeM ?? NO_ALTITUDE,
         timeSec: Math.round(msg.timeMs / 1000),
       };
       if (msg.emergency) {
@@ -116,7 +116,7 @@ export function parse(messages: ZoleoMessage[]): Map<string, LivePoint[]> {
       const point: LivePoint = {
         lat: msg.lat,
         lon: msg.lon,
-        alt: msg.altitudeM ?? 0,
+        alt: msg.altitudeM ?? NO_ALTITUDE,
         timeSec: Math.round(msg.timeMs / 1000),
         message: msg.message,
       };

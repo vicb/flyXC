@@ -4,6 +4,7 @@ import {
   ElevationService,
   findFirstIndex,
   MAX_GROUND_ALTITUDE_ERROR,
+  NO_ALTITUDE,
   NO_GROUND_ALTITUDE,
   type protos,
 } from '@flyxc/common';
@@ -321,5 +322,48 @@ describe('patchTracksElevation', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('should patch NO_ALTITUDE in track.alt with valid gndAlt', async () => {
+    vi.spyOn(mockElevationService, 'fetchCoordinatesAltitude').mockResolvedValueOnce({
+      altitudes: [780],
+      hasErrors: false,
+    });
+
+    const delta: protos.LiveTrack = {
+      timeSec: [1000],
+      lat: [45.0],
+      lon: [6.0],
+      alt: [NO_ALTITUDE],
+      gndAlt: [NO_GROUND_ALTITUDE],
+      flags: [0],
+      extra: {},
+    };
+
+    await patchTracksElevation([{ track: delta }], mockElevationService);
+
+    expect(delta.gndAlt[0]).toBe(780);
+    expect(delta.alt[0]).toBe(780);
+  });
+
+  it('should fallback NO_ALTITUDE to 0 if ground altitude is invalid or unavailable', async () => {
+    vi.spyOn(mockElevationService, 'fetchCoordinatesAltitude').mockResolvedValueOnce({
+      altitudes: [NO_GROUND_ALTITUDE],
+      hasErrors: true,
+    });
+
+    const delta: protos.LiveTrack = {
+      timeSec: [1000],
+      lat: [45.0],
+      lon: [6.0],
+      alt: [NO_ALTITUDE],
+      gndAlt: [NO_GROUND_ALTITUDE],
+      flags: [0],
+      extra: {},
+    };
+
+    await patchTracksElevation([{ track: delta }], mockElevationService);
+
+    expect(delta.alt[0]).toBe(0);
   });
 });
