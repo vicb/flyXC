@@ -20,7 +20,7 @@ import * as unitsSlice from '../../redux/units-slice';
 import { getUniqueContrastColor } from '../../styles/track';
 
 // Anchors and label origins for markers.
-let ANCHOR_POSITION: google.maps.Point | undefined;
+let ANCHOR_POSITION_DOT: google.maps.Point | undefined;
 let ANCHOR_ARROW: google.maps.Point | undefined;
 let ORIGIN_ARROW: google.maps.Point | undefined;
 let ANCHOR_UFO: google.maps.Point | undefined;
@@ -161,7 +161,7 @@ export class TrackingElement extends connect(store)(LitElement) {
   connectedCallback(): void {
     super.connectedCallback();
     // At this point the api has been loaded.
-    ANCHOR_POSITION = new google.maps.Point(9, 9);
+    ANCHOR_POSITION_DOT = new google.maps.Point(9, 9);
     ANCHOR_ARROW = new google.maps.Point(9, 9);
     ORIGIN_ARROW = new google.maps.Point(9, 36);
     ANCHOR_UFO = new google.maps.Point(8, 8);
@@ -276,17 +276,17 @@ export class TrackingElement extends connect(store)(LitElement) {
     if (!this.positionMarker) {
       this.positionMarker = new google.maps.Marker({
         map: this.map,
-        zIndex: 100,
+        zIndex: 10,
         cursor: 'default',
         icon: {
           url: `data:image/svg+xml;base64,${btoa(positionSvg(color, 1))}`,
-          anchor: ANCHOR_POSITION,
+          anchor: ANCHOR_POSITION_DOT,
         },
       });
     } else if (hasCurrentIdChanged) {
       this.positionMarker.setIcon({
         url: `data:image/svg+xml;base64,${btoa(positionSvg(color, 1))}`,
-        anchor: ANCHOR_POSITION,
+        anchor: ANCHOR_POSITION_DOT,
       });
     }
 
@@ -334,8 +334,7 @@ export class TrackingElement extends connect(store)(LitElement) {
 
         if (this.info) {
           this.info.setContent(popup.content);
-          // TODO(vicb): Remove the cast when typings are updated
-          (this.info as any).setHeaderContent(popup.title);
+          this.info.setHeaderContent(popup.title);
           this.info.setPosition(event.latLng);
           this.info.open(map);
           store.dispatch(liveTrack.setCurrentLiveId(pilotId));
