@@ -1,8 +1,5 @@
-import './adv-marker-element';
-
 import type * as common from '@flyxc/common';
 import { round } from '@flyxc/common';
-import type { PropertyValues } from 'lit';
 import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
@@ -36,21 +33,6 @@ export class MarkerElement extends connect(store)(LitElement) {
   private color = 'white';
 
   private offsetSeconds = 0;
-  private markerContent: HTMLDivElement;
-  private svg: SVGElement;
-  private path: SVGPathElement;
-  private label: HTMLParagraphElement;
-
-  constructor() {
-    super();
-    this.markerContent = document.createElement('div');
-    this.markerContent.className = 'fxc-marker';
-    this.markerContent.innerHTML =
-      '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"><path fill="orange" stroke="#000" d="M134.5-168.8A121.8 121.8 0 0 0 99-149.6C86.9-86 55.2-64 30.5-57a5.4 5.4 0 0 1-6.8-4c-.2-.8-.2-1 .2-25.4L11.6-78c-1 .7-2.3 1-3.5 1H-7.3c-1.2 0-2.5-.3-3.5-1l-12.3-8.4c.4 24.4.3 24.6.2 25.3a5.4 5.4 0 0 1-6.8 4.1c-24.6-7-56.3-29-68.4-92.5-3.6-3-15.4-11.9-35.6-19.2-21-7.5-55.2-14.6-102.7-8.2a118.3 118.3 0 0 1 41 93.2c11.9.2 23.7 2.4 34.8 6.6 18 7 40.5 22.6 50.3 57.3 10.9-8.7 27.8-12.6 53.8-12.6A60.8 60.8 0 0 1-8.5-10 71.9 71.9 0 0 1 .3 3.5 73 73 0 0 1 9.2-10a60.8 60.8 0 0 1 48-22.5c26 0 43 4 54 12.7A82.2 82.2 0 0 1 161.5-77a101 101 0 0 1 34.8-6.6 118.3 118.3 0 0 1 41-93.2c-47.5-6.4-81.8.7-102.7 8.2z"/></svg><p class="max-content" style="transform: translate(-50%, 5px)"></p>';
-    this.svg = this.markerContent.querySelector('svg')!;
-    this.path = this.svg.querySelector('path')!;
-    this.label = this.markerContent.querySelector('p')!;
-  }
 
   stateChanged(state: RootState): void {
     if (this.track) {
@@ -63,23 +45,25 @@ export class MarkerElement extends connect(store)(LitElement) {
     this.displayLabels = track.selectDisplayLabels(state);
   }
 
-  shouldUpdate(changedProps: PropertyValues): boolean {
+  shouldUpdate(): boolean {
     // Skip updates if the element has been disconnected (e.g. when track was removed).
-    if (!this.isConnected) {
-      return false;
-    }
-    if (changedProps.has('color')) {
-      this.path.setAttribute('fill', this.color);
-      changedProps.delete('color');
-    }
-    if (changedProps.has('active')) {
-      this.path.setAttribute('opacity', `${this.active ? 1 : INACTIVE_OPACITY}`);
-      this.path.setAttribute('stroke-color', `${this.active ? '#000' : '#555'}`);
-      changedProps.delete('active');
-    }
+    return this.isConnected;
+  }
 
-    // Note: `LitElement#shouldUpdate()` is always true
-    return changedProps.size === 0 ? false : super.shouldUpdate(changedProps);
+  override connectedCallback(): void {
+    super.connectedCallback();
+    const marker = this.querySelector('gmp-advanced-marker') as google.maps.marker.AdvancedMarkerElement | null;
+    if (marker && this.map) {
+      marker.map = this.map;
+    }
+  }
+
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    const marker = this.querySelector('gmp-advanced-marker') as google.maps.marker.AdvancedMarkerElement | null;
+    if (marker) {
+      marker.map = null;
+    }
   }
 
   render() {
@@ -92,8 +76,8 @@ export class MarkerElement extends connect(store)(LitElement) {
     const altAboveMin = (alt ?? 0) - this.track.minAlt;
     const altDelta = this.track.maxAlt - this.track.minAlt;
     const scale = 20 + (50 * altAboveMin) / Math.max(altDelta, 1);
-    this.path.setAttribute('transform', `scale(${round(scale / 512, 4)})`);
-    this.path.setAttribute('stroke-width', `${round(2 / (scale / 512), 4)}`);
+    const transformScale = round(scale / 512, 1);
+    const strokeWidth = round(2 / (scale / 512), 1);
 
     let label = '';
     if (this.displayLabels) {
@@ -101,17 +85,28 @@ export class MarkerElement extends connect(store)(LitElement) {
       label = (this.track.name == 'unknown' ? '' : `${this.track.name} · `) + altitude;
     }
 
-    this.label.textContent = label;
-
-    return html`<adv-marker-element
+    return html`<gmp-advanced-marker
       .map=${this.map}
-      .lat=${lat}
-      .lng=${lon}
-      .content=${this.markerContent}
-      .zindex=${Math.floor(alt ?? 0)}
+      .position=${{ lat, lng: lon }}
+      .zIndex=${Math.floor(alt ?? 0)}
       .title=${label}
-      @click=${this.onClick}
-    ></adv-marker-element>`;
+      .gmpClickable=${true}
+      @gmp-click=${this.onClick}
+    >
+      <div class="fxc-marker">
+        <svg xmlns="http://www.w3.org/2000/svg" width="1" height="1">
+          <path
+            fill=${this.color}
+            stroke=${this.active ? '#000' : '#555'}
+            opacity=${this.active ? 1 : INACTIVE_OPACITY}
+            transform="scale(${transformScale})"
+            stroke-width=${strokeWidth}
+            d="M134.5-168.8A121.8 121.8 0 0 0 99-149.6C86.9-86 55.2-64 30.5-57a5.4 5.4 0 0 1-6.8-4c-.2-.8-.2-1 .2-25.4L11.6-78c-1 .7-2.3 1-3.5 1H-7.3c-1.2 0-2.5-.3-3.5-1l-12.3-8.4c.4 24.4.3 24.6.2 25.3a5.4 5.4 0 0 1-6.8 4.1c-24.6-7-56.3-29-68.4-92.5-3.6-3-15.4-11.9-35.6-19.2-21-7.5-55.2-14.6-102.7-8.2a118.3 118.3 0 0 1 41 93.2c11.9.2 23.7 2.4 34.8 6.6 18 7 40.5 22.6 50.3 57.3 10.9-8.7 27.8-12.6 53.8-12.6A60.8 60.8 0 0 1-8.5-10 71.9 71.9 0 0 1 .3 3.5 73 73 0 0 1 9.2-10a60.8 60.8 0 0 1 48-22.5c26 0 43 4 54 12.7A82.2 82.2 0 0 1 161.5-77a101 101 0 0 1 34.8-6.6 118.3 118.3 0 0 1 41-93.2c-47.5-6.4-81.8.7-102.7 8.2z"
+          ></path>
+        </svg>
+        <p class="max-content" style="transform: translate(-50%, 5px)">${label}</p>
+      </div>
+    </gmp-advanced-marker>`;
   }
 
   private onClick() {
