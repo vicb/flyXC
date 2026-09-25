@@ -8,7 +8,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@dr.pogodin/csurf": "^1.17.1",
+    "@dr.pogodin/csurf": "^1.18.1",
     "@flyxc/common": "workspace:*",
     "@flyxc/common-node": "workspace:*",
     "@google-cloud/datastore": "catalog:default",

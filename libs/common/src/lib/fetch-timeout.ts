@@ -73,8 +73,9 @@ export interface FetchResponseOptions {
   /**
    * Optional custom dispatcher (e.g. Undici ProxyAgent or Agent).
    *
-   * Note: This is specific to Node.js / Undici and has no effect in browser environments,
-   * where `window.fetch` does not support custom dispatchers.
+   * Note: When a dispatcher is provided, a matching {@link fetch} implementation (e.g. `undici.fetch`)
+   * must also be provided to avoid dispatcher protocol mismatches with Node's embedded Undici.
+   * `fetchResponse` throws an `Error` if a dispatcher is supplied without a custom `fetch`.
    */
   dispatcher?: any;
 
@@ -88,7 +89,7 @@ export interface FetchResponseOptions {
    * Optional custom `fetch` implementation (e.g. `undici.fetch` in Node.js).
    *
    * ### Why use this:
-   * When using custom Undici dispatchers (like `ProxyAgent`), pairing `undici.fetch`
+   * Required when using custom Undici dispatchers (like `ProxyAgent`). Pairing `undici.fetch`
    * with `undici.ProxyAgent` ensures both share the exact same internal dispatcher
    * protocol from the installed npm package. This completely decouples requests
    * from the Node.js runtime's embedded Undici version, preventing runtime crashes
@@ -121,8 +122,8 @@ export interface FetchResponseOptions {
  * @param url - The URL to fetch.
  * @param options - Configuration options for the fetch operation.
  * @returns Resolves with the `Response` object.
- * @throws `Error` when retries are exhausted, timeout expires (without retryOnTimeout),
- *         or an unhandled/fatal error occurs.
+ * @throws `Error` when a `dispatcher` is supplied without a custom `fetch`, when retries are exhausted,
+ *         timeout expires (without retryOnTimeout), or an unhandled/fatal error occurs.
  */
 export async function fetchResponse(url: string, options?: FetchResponseOptions): Promise<Response> {
   const {
@@ -138,6 +139,12 @@ export async function fetchResponse(url: string, options?: FetchResponseOptions)
     signal: externalSignal = undefined,
     fetch: fetchOverride = undefined,
   } = options ?? {};
+
+  if (dispatcher && (!fetchOverride || fetchOverride === globalThis.fetch)) {
+    throw new Error(
+      'A custom fetch implementation (e.g. undici.fetch) must be provided when using a dispatcher to avoid dispatcher protocol mismatches.',
+    );
+  }
 
   let error = new Error(`Retried ${retry} times`);
   const start = Date.now() / 1000;
