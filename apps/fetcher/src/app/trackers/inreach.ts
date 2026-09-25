@@ -10,6 +10,7 @@ import {
   formatReqError,
   Keys,
   LiveTrackPointIntervalSec,
+  NO_ALTITUDE,
   parallelTasksWithTimeout,
   parseRetryAfterS,
   simplifyLiveTrack,
@@ -212,7 +213,7 @@ export function parse(kmlFeed: string): LivePoint[] {
       points.push({
         lon,
         lat,
-        alt: Math.round(alt),
+        alt: Number.isFinite(alt) ? Math.round(alt) : NO_ALTITUDE,
         timeSec: Math.round(new Date(time).getTime() / 1000),
         message,
         speed: Number(extendedData['Velocity'].replace(/^([\d]+).*/, '$1')),

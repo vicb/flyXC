@@ -5,6 +5,7 @@ import {
   findFirstIndex,
   isGroundAltitudeValid,
   nextGroundAltitudeError,
+  NO_ALTITUDE,
   NO_GROUND_ALTITUDE,
   type protos,
   shouldFetchGroundAltitude,
@@ -37,10 +38,13 @@ export interface TrackElevationPatch {
 }
 
 /**
- * Populates ground altitudes for newly added points in tracks.
+ * Populates ground altitudes for newly added points in tracks and resolves missing altitudes.
  *
- * Missing points across all tracks are batched in chunks of up to ELEVATION_BATCH_SIZE.
+ * Ground altitudes for points across all tracks are batched in chunks of up to ELEVATION_BATCH_SIZE.
  * After each batch, execution time is checked against ELEVATION_FETCH_TIMEOUT_MS to stop early.
+ *
+ * Any point with missing altitude marked with `NO_ALTITUDE`
+ * is patched using the resolved ground altitude (or 0 if unavailable).
  *
  * @param tracks - Tracks or patch objects with optional `fromSec` timestamp.
  * @param elevationService - Elevation service instance (defaults to shared module instance).
@@ -89,11 +93,6 @@ export async function patchTracksElevation(
         allLons.push(track.lon[i]);
       }
     }
-  }
-
-  if (targets.length === 0) {
-    updates.durationSec = Math.round((Date.now() - startMs) / 1000);
-    return updates;
   }
 
   let hasErrors = false;
@@ -146,8 +145,25 @@ export async function patchTracksElevation(
     updates.errors.push('Failed to retrieve ground elevation for some coordinates');
   }
 
+  patchMissingAltitudes(tracks);
+
   updates.durationSec = Math.round((Date.now() - startMs) / 1000);
   updates.cache = elevationService.getCacheStats();
 
   return updates;
+}
+
+/**
+ * Replaces any NO_ALTITUDE sentinel values with valid ground altitude (or 0 if unavailable).
+ */
+function patchMissingAltitudes(tracks: Iterable<TrackElevationPatch>): void {
+  for (const { track } of tracks) {
+    if (track?.alt) {
+      for (let i = 0; i < track.alt.length; i++) {
+        if (track.alt[i] === NO_ALTITUDE) {
+          track.alt[i] = isGroundAltitudeValid(track.gndAlt?.[i]) ? track.gndAlt[i] : 0;
+        }
+      }
+    }
+  }
 }

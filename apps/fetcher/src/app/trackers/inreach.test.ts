@@ -1,3 +1,5 @@
+import { NO_ALTITUDE } from '@flyxc/common';
+
 import feed from './fixtures/inreach-feed.kml?raw';
 import { parse } from './inreach';
 
@@ -90,5 +92,25 @@ describe('Parse kml feed', () => {
 
   it('should throw on invalid feed', () => {
     expect(() => parse('<')).toThrow(/Invalid InReach feed/);
+  });
+
+  it('should use NO_ALTITUDE when coordinates lack altitude', () => {
+    const kml = `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <Placemark>
+      <TimeStamp><when>2019-10-20T00:01:00Z</when></TimeStamp>
+      <Point><coordinates>-122.027765,37.385005</coordinates></Point>
+      <ExtendedData>
+        <Data name="Velocity"><value>0 km/h</value></Data>
+        <Data name="In Emergency"><value>False</value></Data>
+        <Data name="Valid GPS Fix"><value>True</value></Data>
+      </ExtendedData>
+    </Placemark>
+  </Document>
+</kml>`;
+    const points = parse(kml);
+    expect(points).toHaveLength(1);
+    expect(points[0].alt).toBe(NO_ALTITUDE);
   });
 });

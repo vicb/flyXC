@@ -109,9 +109,7 @@ describe('parseAprsPosition', () => {
   });
 
   it('parse altitude', () => {
-    expect(parseAprsPosition('123456h0000.00N/00000.00E/')).toMatchObject({
-      alt: 0,
-    });
+    expect(parseAprsPosition('123456h0000.00N/00000.00E/')?.alt).toBeUndefined();
     expect(parseAprsPosition('123456h0000.00N/00000.00E//A=000300')).toMatchObject({
       alt: 91,
     });
@@ -127,6 +125,7 @@ describe('parseAprsPosition', () => {
   it('parse OGN status messages', () => {
     const p1 = parseAprsPosition('024603h3202.20N\\07642.42En !W88! id3E88BFEA FNT79 71.0dB');
     expect(p1?.comment).toBe('id3E88BFEA FNT79 71.0dB');
+    expect(p1?.alt).toBeUndefined();
     expect(parseFntStatus(p1?.comment)).toBe(PilotStatus.LANDED_OK);
 
     const p2 = parseAprsPosition('024757h3202.20N\\07642.42En !W99! id3E88BFEA FNT78 71.0dB');

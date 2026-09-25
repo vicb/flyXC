@@ -7,6 +7,7 @@ import {
   fetchResponse,
   formatReqError,
   LiveTrackPointIntervalSec,
+  NO_ALTITUDE,
   simplifyLiveTrack,
   validateSpotAccount,
 } from '@flyxc/common';
@@ -124,10 +125,11 @@ export function parse(jsonFeed: string): LivePoint[] {
   const fixes = feed.response?.feedMessageResponse?.messages?.message;
   if (Array.isArray(fixes)) {
     fixes.forEach((fix: any) => {
+      const alt = Number(fix.altitude);
       points.push({
         lon: fix.longitude,
         lat: fix.latitude,
-        alt: fix.altitude,
+        alt: Number.isFinite(alt) && alt !== 0 ? alt : NO_ALTITUDE,
         timeSec: fix.unixTime,
         emergency: fix.messageType == 'HELP',
         message: fix.messageContent,
