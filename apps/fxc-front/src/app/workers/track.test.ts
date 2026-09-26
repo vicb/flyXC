@@ -6,8 +6,18 @@ describe('filterSpikes', () => {
   it('should return early when track has fewer than 3 fixes', () => {
     const alt = [1000, 5000];
     const time = [1, 2];
-    filterSpikes(alt, time);
+    const bounds = filterSpikes(alt, time);
     expect(alt).toEqual([1000, 5000]);
+    expect(bounds).toEqual({ minAlt: 1000, maxAlt: 5000 });
+  });
+
+  it('returns exact minAlt and maxAlt bounds after filtering outliers', () => {
+    const alt = [1000, 1005, 5000, 1015, 980];
+    const time = [1, 2, 3, 4, 5];
+    const { maxAlt, minAlt } = filterSpikes(alt, time);
+    // Spike 5000 is filtered to 1010, so max is 1015, min is 980
+    expect(maxAlt).toBe(1015);
+    expect(minAlt).toBe(980);
   });
 
   describe('preservation of genuine flight maneuvers', () => {
