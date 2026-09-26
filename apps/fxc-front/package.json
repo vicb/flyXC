@@ -22,7 +22,6 @@
     "lit": "catalog:default",
     "mapbox-vector-tile": "catalog:default",
     "micro-typed-events": "^1.0.2",
-    "moving-median": "^1.0.0",
     "pwa-helpers": "^0.9.1",
     "qrcode": "^1.5.4",
     "rollup-plugin-visualizer": "^7.1.1",
