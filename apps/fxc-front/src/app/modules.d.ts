@@ -1,5 +1,4 @@
 // Modules without types.
-declare module 'moving-median';
 declare module '@mapbox/sphericalmercator';
 declare module 'simplify-path';
 

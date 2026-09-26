@@ -75,7 +75,8 @@ export function protoToRuntimeTrack(
 ): RuntimeTrack {
   const track = diffDecodeTrack(differentialTrack);
   const trackLen = track.lat.length;
-  const distX: number[] = [0];
+  const distX = new Array<number>(trackLen);
+  distX[0] = 0;
 
   // Pre-computes values to save time.
   let previousLatLon = { lat: track.lat[0], lon: track.lon[0] };
@@ -125,7 +126,8 @@ export function protoToRuntimeTrack(
 // time is in seconds.
 export function computeVerticalSpeed(alt: number[], timeSec: number[]): number[] {
   const trackLen = alt.length;
-  const distZ: number[] = [0];
+  const distZ = new Array<number>(trackLen);
+  distZ[0] = 0;
 
   // Pre-computes values to save time.
   for (let i = 1; i < trackLen; i++) {
@@ -219,10 +221,30 @@ export function diffDecodeAirspaces(asp: protos.Airspaces): protos.Airspaces {
   };
 }
 
-// Average data per seconds.
-function averagePerSeconds(data: number[], timesSec: number[], windowSec: number) {
+/**
+ * Computes a sliding-window average rate of change per second (e.g. horizontal speed or vertical speed).
+ *
+ * For each fix `index`, computes the average rate over a time window of duration `windowSec`
+ * centered around `timesSec[index]` (using a lookahead of `round(windowSec / 2)` seconds).
+ *
+ * Each element `data[j]` (for `j >= 1`) represents the change (distance or altitude delta)
+ * accumulated over the interval between fix `j - 1` and fix `j` (`data[0]` is 0).
+ * Over any window spanning from `firstIndex` to `lastIndex`, the total change is the sum of
+ * `data[j]` for `j` from `firstIndex + 1` to `lastIndex`, and the elapsed time is
+ * `timesSec[lastIndex] - timesSec[firstIndex]`.
+ *
+ * Optimizations:
+ * - O(N) complexity using a two-pointer sliding window where `firstIndex` and `lastIndex` advance monotonically.
+ * - Pre-allocates the result array to avoid dynamic memory resizing during track processing.
+ *
+ * @param data - Array where `data[j]` is the delta between fix `j - 1` and fix `j` (`data[0]` is 0).
+ * @param timesSec - Monotonically increasing timestamps in seconds for each fix.
+ * @param windowSec - Duration of the smoothing window in seconds.
+ * @returns Array of smoothed rates per second at each fix index.
+ */
+export function averagePerSeconds(data: number[], timesSec: number[], windowSec: number): number[] {
   const len = timesSec.length;
-  const average = [];
+  const average = new Array(len);
 
   let sum = 0;
   const lookAheadSec = Math.round(windowSec / 2);
@@ -233,20 +255,20 @@ function averagePerSeconds(data: number[], timesSec: number[], windowSec: number
     const windowStart = timesSec[index] - lookAheadSec;
     const windowEnd = windowStart + windowSec;
 
-    // Remove samples from the beginning.
-    while (timesSec[firstIndex] < windowStart) {
-      sum -= data[firstIndex];
-      firstIndex++;
+    // Add samples to the end of the window.
+    while (lastIndex < len - 1 && timesSec[lastIndex] < windowEnd) {
+      lastIndex++;
+      sum += data[lastIndex];
     }
 
-    // Add samples to the end.
-    while (lastIndex < len - 1 && timesSec[lastIndex] < windowEnd) {
-      sum += data[lastIndex];
-      lastIndex++;
+    // Remove samples from the beginning of the window that fall before windowStart.
+    while (firstIndex < lastIndex && timesSec[firstIndex] < windowStart) {
+      firstIndex++;
+      sum -= data[firstIndex];
     }
 
     const deltaSec = timesSec[lastIndex] - timesSec[firstIndex];
-    average.push(deltaSec == 0 ? 0 : sum / deltaSec);
+    average[index] = deltaSec === 0 ? 0 : sum / deltaSec;
   }
 
   return average;
