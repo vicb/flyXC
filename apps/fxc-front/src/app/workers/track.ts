@@ -2,7 +2,7 @@
 // Compute the heading.
 
 import type { RuntimeTrack } from '@flyxc/common';
-import { arrayMax, arrayMin, computeVerticalSpeed } from '@flyxc/common';
+import { computeVerticalSpeed } from '@flyxc/common';
 import { getRhumbLineBearing } from 'geolib';
 
 export type Request = Pick<RuntimeTrack, 'alt' | 'id' | 'lat' | 'lon' | 'timeSec'>;
@@ -69,6 +69,14 @@ export function computeMedian(arr: number[]): number {
 }
 
 /**
+ * Result of the spike filtering process containing the computed altitude bounds.
+ */
+export type AltitudeBounds = {
+  maxAlt: number;
+  minAlt: number;
+};
+
+/**
  * Removes isolated altitude spikes and GPS dropouts without altering genuine altitudes or clipping thermal peaks.
  *
  * This Hampel-style outlier filter only modifies an altitude point if:
@@ -77,15 +85,25 @@ export function computeMedian(arr: number[]): number {
  *    AND the point deviates significantly (> MIN_SPIKE_DIFF_M) from its local neighborhood median, OR
  * 2. It represents a zero/negative GPS dropout while flying at altitude (> MIN_DROPOUT_ALT_M).
  *
- * Note: `altitude` is updated in place.
+ * Note: `altitude` is updated in place. Computes and returns `minAlt` and `maxAlt` in the same pass.
  *
  * @param altitude - Array of altitudes in meters (modified in place).
  * @param timeSecs - Monotonically increasing timestamps in seconds corresponding to each fix.
+ * @returns Object containing `minAlt` and `maxAlt`.
  */
-export function filterSpikes(altitude: number[], timeSecs: number[]): void {
+export function filterSpikes(altitude: number[], timeSecs: number[]): AltitudeBounds {
   const len = altitude.length;
+  if (len === 0) {
+    return { maxAlt: 0, minAlt: 0 };
+  }
   if (len < 3) {
-    return;
+    let minAlt = altitude[0];
+    let maxAlt = altitude[0];
+    for (let i = 1; i < len; i++) {
+      if (altitude[i] < minAlt) minAlt = altitude[i];
+      if (altitude[i] > maxAlt) maxAlt = altitude[i];
+    }
+    return { maxAlt, minAlt };
   }
 
   // Create a copy of the original values for forward neighbor lookups.
@@ -93,6 +111,8 @@ export function filterSpikes(altitude: number[], timeSecs: number[]): void {
 
   // Reusable buffer to collect neighbor altitudes for candidate spikes without per-point allocations.
   const neighbors: number[] = [];
+  let minAlt = Infinity;
+  let maxAlt = -Infinity;
 
   for (let i = 0; i < len; i++) {
     const timeS = timeSecs[i];
@@ -128,6 +148,8 @@ export function filterSpikes(altitude: number[], timeSecs: number[]): void {
     // Fast path: In normal flight, vertical speed is well within physical limits.
     // Points with normal vertical speed and positive altitude are skipped immediately with zero allocations.
     if (!hasExtremeJump && !isZeroDropoutCandidate) {
+      if (alt < minAlt) minAlt = alt;
+      if (alt > maxAlt) maxAlt = alt;
       continue;
     }
 
@@ -171,6 +193,8 @@ export function filterSpikes(altitude: number[], timeSecs: number[]): void {
     }
 
     if (neighbors.length === 0) {
+      if (alt < minAlt) minAlt = alt;
+      if (alt > maxAlt) maxAlt = alt;
       continue;
     }
 
@@ -187,7 +211,13 @@ export function filterSpikes(altitude: number[], timeSecs: number[]): void {
     if (isSpike || isDropout) {
       altitude[i] = median;
     }
+
+    const finalAlt = altitude[i];
+    if (finalAlt < minAlt) minAlt = finalAlt;
+    if (finalAlt > maxAlt) maxAlt = finalAlt;
   }
+
+  return { maxAlt, minAlt };
 }
 
 // Compute the heading between each points.
@@ -271,14 +301,10 @@ const w: Worker = self as any;
 w.addEventListener('message', (message: MessageEvent<Request>) => {
   const { alt, id, lat, lon, timeSec } = message.data;
 
-  filterSpikes(alt, timeSec);
+  const { maxAlt, minAlt } = filterSpikes(alt, timeSec);
   const heading = computeHeading(lat, lon);
 
-  const vz = computeVerticalSpeed(alt, timeSec);
-  const minAlt = arrayMin(alt);
-  const maxAlt = arrayMax(alt);
-  const minVz = arrayMin(vz);
-  const maxVz = arrayMax(vz);
+  const { maxVz, minVz, vz } = computeVerticalSpeed(alt, timeSec);
 
   filterPosition(lat, lon, timeSec);
 

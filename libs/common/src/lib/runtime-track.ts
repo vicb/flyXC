@@ -1,7 +1,7 @@
 import { getDistance } from 'geolib';
 
 import * as protos from '../protos/track';
-import { arrayMax, arrayMin, diffDecodeArray, diffEncodeArray32bit } from './math';
+import { diffDecodeArray, diffEncodeArray32bit } from './math';
 
 export type Point = {
   x: number;
@@ -75,20 +75,13 @@ export function protoToRuntimeTrack(
 ): RuntimeTrack {
   const track = diffDecodeTrack(differentialTrack);
   const trackLen = track.lat.length;
-  const distX = new Array<number>(trackLen);
-  distX[0] = 0;
 
-  // Pre-computes values to save time.
-  let previousLatLon = { lat: track.lat[0], lon: track.lon[0] };
-  for (let i = 1; i < trackLen; i++) {
-    const currentLatLon = { lat: track.lat[i], lon: track.lon[i] };
-    distX[i] = getDistance(previousLatLon, currentLatLon);
-    previousLatLon = currentLatLon;
-  }
-
-  const vx = averagePerSeconds(distX, track.timeSec, 60).map((speed) => 3.6 * speed);
-
-  const vz = computeVerticalSpeed(track.alt, track.timeSec);
+  const { maxDistance, maxLat, maxLon, maxVx, minLat, minLon, minVx, vx } = computeGroundSpeed(
+    track.lat,
+    track.lon,
+    track.timeSec,
+  );
+  const { maxAlt, minAlt, maxVz, minVz, vz } = computeVerticalSpeed(track.alt, track.timeSec);
 
   return {
     id,
@@ -105,36 +98,95 @@ export function protoToRuntimeTrack(
     vx,
     vz,
     heading: new Array(trackLen).fill(0),
-    maxAlt: arrayMax(track.alt),
-    minAlt: arrayMin(track.alt),
-    maxLat: arrayMax(track.lat),
-    minLat: arrayMin(track.lat),
-    maxLon: arrayMax(track.lon),
-    minLon: arrayMin(track.lon),
-    maxTimeSec: arrayMax(track.timeSec),
-    minTimeSec: arrayMin(track.timeSec),
-    maxVz: arrayMax(vz),
-    minVz: arrayMin(vz),
-    maxVx: arrayMax(vx),
-    minVx: arrayMin(vx),
-    maxDistance: arrayMax(distX),
+    maxAlt,
+    minAlt,
+    maxLat,
+    minLat,
+    maxLon,
+    minLon,
+    maxTimeSec: trackLen > 0 ? track.timeSec[trackLen - 1] : 0,
+    minTimeSec: trackLen > 0 ? track.timeSec[0] : 0,
+    maxVz,
+    minVz,
+    maxVx,
+    minVx,
+    maxDistance,
     isPostProcessed,
   };
 }
 
-// altitude is in meter.
-// time is in seconds.
-export function computeVerticalSpeed(alt: number[], timeSec: number[]): number[] {
-  const trackLen = alt.length;
-  const distZ = new Array<number>(trackLen);
-  distZ[0] = 0;
+/**
+ * Result of the vertical speed computation.
+ */
+export type VerticalSpeedResult = {
+  maxAlt: number;
+  maxVz: number;
+  minAlt: number;
+  minVz: number;
+  vz: number[];
+};
 
-  // Pre-computes values to save time.
-  for (let i = 1; i < trackLen; i++) {
-    distZ[i] = alt[i] - alt[i - 1];
+/**
+ * Computes smoothed vertical speed (m/s) using a centered sliding window.
+ *
+ * Optimizations:
+ * - Since the sum of consecutive altitude deltas is a telescoping sum
+ *   (sum = alt[lastIndex] - alt[firstIndex]), it computes windowed vertical speed directly
+ *   from `alt` and `timeSec` without allocating or populating an intermediate `distZ` array.
+ * - Computes `minAlt`, `maxAlt`, `minVz`, and `maxVz` concurrently in the same pass.
+ *
+ * @param alt - Array of altitudes in meters.
+ * @param timeSec - Monotonically increasing timestamps in seconds.
+ * @param windowSec - Duration of the smoothing window in seconds (defaults to 60s).
+ * @returns Object containing the smoothed `vz` array, `minAlt`, `maxAlt`, `minVz`, and `maxVz`.
+ */
+export function computeVerticalSpeed(alt: number[], timeSec: number[], windowSec = 60): VerticalSpeedResult {
+  const len = alt.length;
+  if (len === 0) {
+    return { maxAlt: 0, maxVz: 0, minAlt: 0, minVz: 0, vz: [] };
   }
 
-  return averagePerSeconds(distZ, timeSec, 60);
+  const vz = new Array<number>(len);
+  let minVz = Infinity;
+  let maxVz = -Infinity;
+  let minAlt = alt[0];
+  let maxAlt = alt[0];
+
+  const lookAheadSec = Math.round(windowSec / 2);
+  let firstIndex = 0;
+  let lastIndex = 0;
+
+  for (let index = 0; index < len; index++) {
+    const a = alt[index];
+    if (a < minAlt) minAlt = a;
+    if (a > maxAlt) maxAlt = a;
+
+    const windowStart = timeSec[index] - lookAheadSec;
+    const windowEnd = windowStart + windowSec;
+
+    // Add samples to the end of the window.
+    while (lastIndex < len - 1 && timeSec[lastIndex] < windowEnd) {
+      lastIndex++;
+    }
+
+    // Remove samples from the beginning of the window that fall before windowStart.
+    while (firstIndex < lastIndex && timeSec[firstIndex] < windowStart) {
+      firstIndex++;
+    }
+
+    const deltaSec = timeSec[lastIndex] - timeSec[firstIndex];
+    const speed = deltaSec === 0 ? 0 : (alt[lastIndex] - alt[firstIndex]) / deltaSec;
+    vz[index] = speed;
+
+    if (speed < minVz) {
+      minVz = speed;
+    }
+    if (speed > maxVz) {
+      maxVz = speed;
+    }
+  }
+
+  return { maxAlt, maxVz, minAlt, minVz, vz };
 }
 
 // Add the ground altitude to a runtime track.
@@ -222,54 +274,109 @@ export function diffDecodeAirspaces(asp: protos.Airspaces): protos.Airspaces {
 }
 
 /**
- * Computes a sliding-window average rate of change per second (e.g. horizontal speed or vertical speed).
- *
- * For each fix `index`, computes the average rate over a time window of duration `windowSec`
- * centered around `timesSec[index]` (using a lookahead of `round(windowSec / 2)` seconds).
- *
- * Each element `data[j]` (for `j >= 1`) represents the change (distance or altitude delta)
- * accumulated over the interval between fix `j - 1` and fix `j` (`data[0]` is 0).
- * Over any window spanning from `firstIndex` to `lastIndex`, the total change is the sum of
- * `data[j]` for `j` from `firstIndex + 1` to `lastIndex`, and the elapsed time is
- * `timesSec[lastIndex] - timesSec[firstIndex]`.
+ * Result of the ground speed computation.
+ */
+export type GroundSpeedResult = {
+  maxDistance: number;
+  maxLat: number;
+  maxLon: number;
+  maxVx: number;
+  minLat: number;
+  minLon: number;
+  minVx: number;
+  vx: number[];
+};
+
+/**
+ * Computes smoothed horizontal ground speed (km/h) using a centered sliding window.
  *
  * Optimizations:
- * - O(N) complexity using a two-pointer sliding window where `firstIndex` and `lastIndex` advance monotonically.
- * - Pre-allocates the result array to avoid dynamic memory resizing during track processing.
+ * - Uses a cumulative distance array so the ground distance over any window is simply
+ *   `cumDist[lastIndex] - cumDist[firstIndex]`, eliminating running-sum float precision drift.
+ * - Computes speed directly in km/h (* 3.6), avoiding an extra array allocation from `.map()`.
+ * - Computes `minLat`, `maxLat`, `minLon`, `maxLon`, `minVx`, `maxVx`, and `maxDistance` concurrently
+ *   without separate array traversals.
  *
- * @param data - Array where `data[j]` is the delta between fix `j - 1` and fix `j` (`data[0]` is 0).
- * @param timesSec - Monotonically increasing timestamps in seconds for each fix.
- * @param windowSec - Duration of the smoothing window in seconds.
- * @returns Array of smoothed rates per second at each fix index.
+ * @param lat - Array of latitudes in degrees.
+ * @param lon - Array of longitudes in degrees.
+ * @param timeSec - Monotonically increasing timestamps in seconds.
+ * @param windowSec - Duration of the smoothing window in seconds (defaults to 60s).
+ * @returns Object containing smoothed `vx` in km/h, bounds for coordinates and speeds, and `maxDistance`.
  */
-export function averagePerSeconds(data: number[], timesSec: number[], windowSec: number): number[] {
-  const len = timesSec.length;
-  const average = new Array(len);
+export function computeGroundSpeed(lat: number[], lon: number[], timeSec: number[], windowSec = 60): GroundSpeedResult {
+  const len = lat.length;
+  if (len === 0) {
+    return {
+      maxDistance: 0,
+      maxLat: 0,
+      maxLon: 0,
+      maxVx: 0,
+      minLat: 0,
+      minLon: 0,
+      minVx: 0,
+      vx: [],
+    };
+  }
 
-  let sum = 0;
+  const cumDist = new Array<number>(len);
+  cumDist[0] = 0;
+  let maxDistance = 0;
+  let minLat = lat[0];
+  let maxLat = lat[0];
+  let minLon = lon[0];
+  let maxLon = lon[0];
+
+  let prevCoord = { lat: lat[0], lon: lon[0] };
+  for (let i = 1; i < len; i++) {
+    const currLat = lat[i];
+    const currLon = lon[i];
+    if (currLat < minLat) minLat = currLat;
+    if (currLat > maxLat) maxLat = currLat;
+    if (currLon < minLon) minLon = currLon;
+    if (currLon > maxLon) maxLon = currLon;
+
+    const currCoord = { lat: currLat, lon: currLon };
+    const stepDist = getDistance(prevCoord, currCoord);
+    if (stepDist > maxDistance) {
+      maxDistance = stepDist;
+    }
+    cumDist[i] = cumDist[i - 1] + stepDist;
+    prevCoord = currCoord;
+  }
+
+  const vx = new Array<number>(len);
+  let minVx = Infinity;
+  let maxVx = -Infinity;
+
   const lookAheadSec = Math.round(windowSec / 2);
   let firstIndex = 0;
   let lastIndex = 0;
 
   for (let index = 0; index < len; index++) {
-    const windowStart = timesSec[index] - lookAheadSec;
+    const windowStart = timeSec[index] - lookAheadSec;
     const windowEnd = windowStart + windowSec;
 
     // Add samples to the end of the window.
-    while (lastIndex < len - 1 && timesSec[lastIndex] < windowEnd) {
+    while (lastIndex < len - 1 && timeSec[lastIndex] < windowEnd) {
       lastIndex++;
-      sum += data[lastIndex];
     }
 
     // Remove samples from the beginning of the window that fall before windowStart.
-    while (firstIndex < lastIndex && timesSec[firstIndex] < windowStart) {
+    while (firstIndex < lastIndex && timeSec[firstIndex] < windowStart) {
       firstIndex++;
-      sum -= data[firstIndex];
     }
 
-    const deltaSec = timesSec[lastIndex] - timesSec[firstIndex];
-    average[index] = deltaSec === 0 ? 0 : sum / deltaSec;
+    const deltaSec = timeSec[lastIndex] - timeSec[firstIndex];
+    const speedKmH = deltaSec === 0 ? 0 : ((cumDist[lastIndex] - cumDist[firstIndex]) * 3.6) / deltaSec;
+    vx[index] = speedKmH;
+
+    if (speedKmH < minVx) {
+      minVx = speedKmH;
+    }
+    if (speedKmH > maxVx) {
+      maxVx = speedKmH;
+    }
   }
 
-  return average;
+  return { maxDistance, maxLat, maxLon, maxVx, minLat, minLon, minVx, vx };
 }
