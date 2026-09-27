@@ -1,7 +1,9 @@
 import type * as common from '@flyxc/common';
 import { round } from '@flyxc/common';
+import type { PropertyValues } from 'lit';
 import { html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { ref } from 'lit/directives/ref.js';
 import { connect } from 'pwa-helpers';
 
 import * as units from '../../logic/units';
@@ -33,6 +35,7 @@ export class MarkerElement extends connect(store)(LitElement) {
   private color = 'white';
 
   private offsetSeconds = 0;
+  private marker?: google.maps.marker.AdvancedMarkerElement | null;
 
   stateChanged(state: RootState): void {
     if (this.track) {
@@ -52,17 +55,23 @@ export class MarkerElement extends connect(store)(LitElement) {
 
   override connectedCallback(): void {
     super.connectedCallback();
-    const marker = this.querySelector('gmp-advanced-marker') as google.maps.marker.AdvancedMarkerElement | null;
-    if (marker && this.map) {
-      marker.map = this.map;
+    if (this.marker && this.map) {
+      this.marker.map = this.map;
     }
   }
 
   override disconnectedCallback(): void {
     super.disconnectedCallback();
-    const marker = this.querySelector('gmp-advanced-marker') as google.maps.marker.AdvancedMarkerElement | null;
-    if (marker) {
-      marker.map = null;
+    if (this.marker) {
+      this.marker.map = null;
+    }
+  }
+
+  override willUpdate(changedProps: PropertyValues<this>): void {
+    super.willUpdate(changedProps);
+    // Detach the marker from the map if the track was cleared while the element remains connected.
+    if (!this.track && this.marker) {
+      this.marker.map = null;
     }
   }
 
@@ -86,6 +95,11 @@ export class MarkerElement extends connect(store)(LitElement) {
     }
 
     return html`<gmp-advanced-marker
+      ${ref((el) => {
+        if (el) {
+          this.marker = el as google.maps.marker.AdvancedMarkerElement;
+        }
+      })}
       .map=${this.map}
       .position=${{ lat, lng: lon }}
       .zIndex=${Math.floor(alt ?? 0)}
