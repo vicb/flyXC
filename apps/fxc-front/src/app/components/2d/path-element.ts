@@ -62,7 +62,7 @@ export class PathElement extends connect(store)(LitElement) {
   // Set to true to block updating the state.
   // i.e. when the line is being created from the state.
   private doNotSyncState = false;
-  private onPointAddeded?: google.maps.MapsEventListener;
+  private onPointAdded?: google.maps.MapsEventListener;
   private onBoundsChanged?: google.maps.MapsEventListener;
   private closingSector?: ClosingSector;
   private faiSectors?: FaiSectors;
@@ -181,7 +181,7 @@ export class PathElement extends connect(store)(LitElement) {
         }
       }
     });
-    this.onPointAddeded = google.maps.event.addListener(this.map, 'rightclick', (e: google.maps.MapMouseEvent) =>
+    this.onPointAdded = google.maps.event.addListener(this.map, 'rightclick', (e: google.maps.MapMouseEvent) =>
       this.appendToPath(e.latLng as google.maps.LatLng),
     );
     this.onBoundsChanged = google.maps.event.addListener(this.map, 'bounds_changed', () => {
@@ -391,9 +391,9 @@ export class PathElement extends connect(store)(LitElement) {
 
   // Cleanup resources when the planner control gets closed.
   private destroy(): void {
-    google.maps.event.removeListener(this.onPointAddeded as google.maps.MapsEventListener);
-    this.onPointAddeded = undefined;
-    google.maps.event.removeListener(this.onBoundsChanged as google.maps.MapsEventListener);
+    this.onPointAdded?.remove();
+    this.onPointAdded = undefined;
+    this.onBoundsChanged?.remove();
     this.onBoundsChanged = undefined;
     this.line?.setMap(null);
     this.line = undefined;

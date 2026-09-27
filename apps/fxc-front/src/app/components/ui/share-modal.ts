@@ -11,13 +11,11 @@ import { toDataURL } from 'qrcode/lib/browser';
 export class ShareModal extends LitElement {
   @property({ attribute: false })
   link = '';
-
   @property({ attribute: false })
   points: LatLonAlt[] = [];
 
   @state()
   private type: 'task' | 'link' = 'task';
-
   @state()
   private qrDataUrl?: string;
 

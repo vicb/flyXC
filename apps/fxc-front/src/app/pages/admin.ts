@@ -33,10 +33,8 @@ let lastFetchMs = Date.now();
 export class AdminPage extends LitElement {
   @state()
   private isLoading = true;
-
   @state()
   private connected = false;
-
   @state()
   private values: unknown;
 
@@ -523,10 +521,8 @@ const STATE_MAX_PILOT = 50;
 export class StateExplorer extends LitElement {
   @state()
   private isLoading = false;
-
   @state()
   private filter = '';
-
   @state()
   private fetcherState?: common.protos.FetcherState;
 

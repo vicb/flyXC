@@ -20,10 +20,9 @@ export class WaypointModal extends LitElement {
   points: LatLonAlt[] = [];
 
   @state()
-  fileType = 'cup';
-
+  private fileType = 'cup';
   @state()
-  prefix = 'FXC';
+  private namePrefix = 'FXC';
 
   render(): TemplateResult {
     return html`
@@ -43,7 +42,7 @@ export class WaypointModal extends LitElement {
 
         <ion-item lines="full">
           <ion-input
-            value=${this.prefix}
+            value=${this.namePrefix}
             @ionChange=${this.handlePrefix}
             label="Waypoint prefix"
             label-placement="floating"
@@ -80,7 +79,7 @@ export class WaypointModal extends LitElement {
   }
 
   private handlePrefix(e: CustomEvent) {
-    this.prefix = e.detail.value;
+    this.namePrefix = e.detail.value;
   }
 
   private async handleDownload(): Promise<void> {
@@ -89,7 +88,7 @@ export class WaypointModal extends LitElement {
     const input = form.querySelector('input') as HTMLInputElement;
     const payload = {
       format: this.fileType,
-      prefix: this.prefix,
+      prefix: this.namePrefix,
       points: this.points,
     };
     input.value = JSON.stringify(payload);
