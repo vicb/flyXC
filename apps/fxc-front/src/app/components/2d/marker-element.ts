@@ -85,8 +85,8 @@ export class MarkerElement extends connect(store)(LitElement) {
     const altAboveMin = (alt ?? 0) - this.track.minAlt;
     const altDelta = this.track.maxAlt - this.track.minAlt;
     const scale = 20 + (50 * altAboveMin) / Math.max(altDelta, 1);
-    const transformScale = round(scale / 512, 1);
-    const strokeWidth = round(2 / (scale / 512), 1);
+    const transformScale = round(scale / 512, 4);
+    const strokeWidth = round(2 / (scale / 512), 4);
 
     let label = '';
     if (this.displayLabels) {
