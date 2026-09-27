@@ -39,11 +39,11 @@ export class SkywaysElement extends connect(store)(LitElement) {
   map!: google.maps.Map;
 
   @state()
-  opacity = 100;
+  private opacity = 100;
   @state()
-  show = false;
+  private show = false;
   @state()
-  tileUrl = '';
+  private tileUrl = '';
 
   private overlay?: google.maps.ImageMapType;
   private overlayAddedToMap = false;

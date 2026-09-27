@@ -141,7 +141,7 @@ export class TrackingElement extends connect(store)(LitElement) {
   @state()
   private numTracks = 0;
   @state()
-  plannerEnabled = false;
+  private plannerEnabled = false;
   @state()
   private timeSec = 0;
   @state()

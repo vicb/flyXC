@@ -44,7 +44,6 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   private multiplier = 1;
   @state()
   private displayLabels = true;
-
   // Id of the selected pilot.
   @state()
   private currentId?: string;

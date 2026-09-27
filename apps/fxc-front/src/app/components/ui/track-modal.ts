@@ -20,6 +20,7 @@ export class TrackModal extends connect(store)(LitElement) {
   private tracks: RuntimeTrack[] = [];
   @state()
   private currentTrackId?: string;
+
   private state!: RootState;
 
   stateChanged(state: RootState): void {

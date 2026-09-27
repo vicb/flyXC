@@ -26,7 +26,7 @@ export class MarkerElement extends connect(store)(LitElement) {
   track?: common.RuntimeTrack;
 
   @state()
-  active = false;
+  private active = false;
   @state()
   private units!: units.Units;
   @state()

@@ -42,15 +42,15 @@ import * as unitsSlice from '../../redux/units-slice';
 @customElement('main-menu')
 export class MainMenu extends connect(store)(LitElement) {
   @state()
-  view3d = false;
+  private view3d = false;
   @state()
-  exaggeration = 1;
+  private exaggeration = 1;
   @state()
-  plannerEnabled = false;
+  private plannerEnabled = false;
   @state()
-  requestingLocation = false;
+  private requestingLocation = false;
   @state()
-  sunEnabled = false;
+  private sunEnabled = false;
 
   stateChanged(state: RootState): void {
     this.view3d = app.selectView3d(state);
@@ -228,7 +228,7 @@ export class MainMenu extends connect(store)(LitElement) {
 @customElement('airspace-items')
 export class AirspaceItems extends connect(store)(LitElement) {
   @state()
-  unit!: DistanceUnit;
+  private unit!: DistanceUnit;
   @state()
   private maxAltitude = 1000;
   @state()
@@ -471,7 +471,7 @@ export class SkywaysItems extends connect(store)(LitElement) {
 @customElement('view-items')
 export class ViewItems extends connect(store)(LitElement) {
   @state()
-  view3d = false;
+  private view3d = false;
 
   stateChanged(state: RootState): void {
     this.view3d = app.selectView3d(state);

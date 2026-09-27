@@ -14,9 +14,9 @@ import * as unitsSlice from '../../redux/units-slice';
 @customElement('pref-modal')
 export class PrefModal extends connect(store)(LitElement) {
   @state()
-  league = 'xc';
+  private league = 'xc';
   @state()
-  units!: units.Units;
+  private units!: units.Units;
 
   private leagues: { value: string; name: string }[] = [];
 

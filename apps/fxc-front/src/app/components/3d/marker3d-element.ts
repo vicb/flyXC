@@ -33,7 +33,7 @@ export class Marker3dElement extends connect(store)(LitElement) {
   @state()
   private color = '';
   @state()
-  displayLabels = true;
+  private displayLabels = true;
 
   private point = {
     type: 'point',

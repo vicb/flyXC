@@ -16,7 +16,6 @@ const IMG_SIZE = 200;
 export class ArchivesPage extends LitElement {
   @state()
   private connected = false;
-
   @state()
   tracks: any[] = [];
 

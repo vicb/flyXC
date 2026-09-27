@@ -16,13 +16,13 @@ export class Skyways3dElement extends connect(store)(LitElement) {
   map!: Map;
 
   @state()
-  opacity = 0.5;
+  private opacity = 0.5;
   @state()
-  show = false;
+  private show = false;
   @state()
-  maxZoom = 13;
+  private maxZoom = 13;
   @state()
-  tileUrl = skyways.selectTileUrl(store.getState());
+  private tileUrl = skyways.selectTileUrl(store.getState());
 
   private layer?: WebTileLayer;
 
