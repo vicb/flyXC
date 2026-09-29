@@ -239,6 +239,8 @@ export class AirspaceItems extends connect(store)(LitElement) {
   private showClasses: Class[] = [];
   @state()
   private showTypes: Type[] = [];
+  @state()
+  private opacity = 70;
 
   private subscriptions: UnsubscribeHandle[] = [];
 
@@ -249,6 +251,7 @@ export class AirspaceItems extends connect(store)(LitElement) {
     this.show = airspaces.selectShowAirspaces(state);
     this.showClasses = airspaces.selectShowClasses(state);
     this.showTypes = airspaces.selectShowTypes(state);
+    this.opacity = airspaces.selectOpacity(state);
   }
 
   connectedCallback(): void {
@@ -319,7 +322,7 @@ export class AirspaceItems extends connect(store)(LitElement) {
               )}
             </ion-select>
           </ion-item>
-          <ion-item>
+          <ion-item lines="none">
             <ion-select
               label="Floor below"
               @ionChange=${this.handleMaxAltitude}
@@ -331,6 +334,21 @@ export class AirspaceItems extends connect(store)(LitElement) {
                   html`<ion-select-option .value=${altitude}> ${formatUnit(altitude, this.unit)}</ion-select-option> `,
               )}
             </ion-select>
+          </ion-item>
+          <ion-item @ionChange=${this.handleOpacity} .detail=${false} class="dense">
+            <ion-range
+              min="10"
+              max="60"
+              step="5"
+              debounce="50"
+              aria-label="Opacity"
+              value=${this.opacity}
+              .pin=${true}
+              .pinFormatter=${this.formatPercent}
+            >
+              <ion-label slot="start"><i class="las la-adjust"></i></ion-label>
+              <ion-label slot="end"><i class="las la-adjust la-2x"></i></ion-label>
+            </ion-range>
           </ion-item>`,
       )}`;
   }
@@ -361,6 +379,14 @@ export class AirspaceItems extends connect(store)(LitElement) {
 
   private handleMaxAltitude(event: CustomEvent) {
     store.dispatch(airspaces.setMaxAltitude(event.detail.value));
+  }
+
+  private handleOpacity(event: CustomEvent) {
+    store.dispatch(airspaces.setOpacity(event.detail.value));
+  }
+
+  private formatPercent(value: number) {
+    return `${value}%`;
   }
 
   protected createRenderRoot(): HTMLElement {

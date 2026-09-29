@@ -95,6 +95,7 @@ function getAirspaceHtmlDescription(airspace: AirspaceTyped): string {
 // altitude is expressed in meters.
 export class AspMapType {
   altitude = 1000;
+  opacity = 70;
   minZoom = 0;
   maxZoom = 0;
   tileSize: google.maps.Size;
@@ -141,6 +142,7 @@ export class AspMapType {
       this.active,
       this.fetchInfoMap,
       this.date,
+      this.opacity,
     );
   }
 
@@ -173,6 +175,10 @@ export class AspMapType {
 
   setAltitude(altitude: number): void {
     this.altitude = altitude;
+  }
+
+  setOpacity(opacity: number): void {
+    this.opacity = opacity;
   }
 
   showClasses(classes: Class[]): void {
@@ -224,6 +230,7 @@ export class AspZoomMapType extends AspMapType {
       this.active,
       this.fetchInfoMap,
       this.date,
+      this.opacity,
     );
   }
 }
@@ -241,6 +248,7 @@ function getTile(
   active: boolean,
   fetchInfoMap: Map<number, FetchInfo>,
   date: Date,
+  opacity: number,
 ): HTMLElement {
   if (!active) {
     return doc.createElement('div');
@@ -283,7 +291,18 @@ function getTile(
         return;
       }
       const vectorTile = new VectorTile(new Uint8Array(buffer));
-      renderTiles(fetchKey, fetchInfoMap, vectorTile, altitude, showClasses, showTypes, mapZoom, tileZoom, date);
+      renderTiles(
+        fetchKey,
+        fetchInfoMap,
+        vectorTile,
+        altitude,
+        showClasses,
+        showTypes,
+        mapZoom,
+        tileZoom,
+        date,
+        opacity,
+      );
     })
     .catch((e) => {
       // AbortError are expected when aborting a request.
@@ -310,6 +329,7 @@ function renderTiles(
   mapZoom: number,
   tileZoom: number,
   date: Date,
+  opacity: number,
 ) {
   const fetchInfo = fetchInfoMap.get(fetchKey);
   if (fetchInfo == null) {
@@ -357,7 +377,7 @@ function renderTiles(
               x: Math.round(x * ratio * renderZoom) - renderX,
               y: Math.round(y * ratio * renderZoom) - renderZ,
             }));
-            ctx.fillStyle = getAirspaceColor(airspace, 70);
+            ctx.fillStyle = getAirspaceColor(airspace, opacity);
             ctx.moveTo(coords[0].x, coords[0].y);
             for (let j = 1; j < coords.length; j++) {
               const p = coords[j];
@@ -366,7 +386,7 @@ function renderTiles(
           });
           ctx.closePath();
           ctx.fill('evenodd');
-          ctx.strokeStyle = getAirspaceColor(airspace, 75);
+          ctx.strokeStyle = getAirspaceColor(airspace, opacity + 5);
           ctx.stroke();
         });
       }

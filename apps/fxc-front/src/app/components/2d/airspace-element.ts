@@ -26,6 +26,8 @@ export class AirspaceElement extends connect(store)(LitElement) {
   @state()
   private showTypes: common.Type[] = [];
   @state()
+  private opacity = 70;
+  @state()
   private track?: common.RuntimeTrack;
   @state()
   private timeSec = 0;
@@ -63,6 +65,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
     this.showClasses = airspaces.selectShowClasses(state);
     this.showTypes = airspaces.selectShowTypes(state);
     this.maxAltitude = airspaces.selectMaxAltitude(state);
+    this.opacity = airspaces.selectOpacity(state);
     this.track = selectCurrentTrack(state);
     this.timeSec = app.selectTimeSec(state);
   }
@@ -74,7 +77,8 @@ export class AirspaceElement extends connect(store)(LitElement) {
         changedProperties.has('maxAltitude') ||
         changedProperties.has('showClasses') ||
         changedProperties.has('showTypes') ||
-        changedProperties.has('track')
+        changedProperties.has('track') ||
+        changedProperties.has('opacity')
       ) {
         this.removeOverlays();
         this.addOverlays();
@@ -134,6 +138,7 @@ export class AirspaceElement extends connect(store)(LitElement) {
     this.overlays.forEach((o) => {
       if (this.map.overlayMapTypes) {
         o.setAltitude(this.maxAltitude);
+        o.setOpacity(this.opacity);
         o.showClasses(this.showClasses);
         o.showTypes(this.showTypes);
         // Use the track time or the current time

@@ -34,6 +34,8 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private showClasses: Class[] = [];
   @state()
   private showTypes: Type[] = [];
+  @state()
+  private opacity = 70;
 
   private layer?: VectorTileLayer;
 
@@ -42,6 +44,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     this.showAirspace = airspaces.selectShowAirspaces(state);
     this.showClasses = airspaces.selectShowClasses(state);
     this.showTypes = airspaces.selectShowTypes(state);
+    this.opacity = airspaces.selectOpacity(state);
   }
 
   protected shouldUpdate(): boolean {
@@ -178,7 +181,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
                 // Unmatched airspaces.
                 ASP_COLOR_OTHER,
               ],
-              'fill-opacity': 0.7,
+              'fill-opacity': this.opacity / 100,
               'fill-outline-color': '#aaaaaa',
             },
             filter: ['all', ['any', ...visibilityFilters], ['<=', ['get', 'floorM'], this.maxAltitude]],

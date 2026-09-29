@@ -7,6 +7,7 @@ import { selectAltitudeUnit } from './units-slice';
 
 type AirspaceState = {
   maxAltitude: number;
+  opacity: number;
   show: boolean;
   showClasses: Class[];
   showTypes: Type[];
@@ -36,6 +37,7 @@ try {
 
 const initialState: AirspaceState = {
   maxAltitude: 3000,
+  opacity: 45,
   show: false,
   showClasses: initClasses,
   showTypes: initTypes,
@@ -45,6 +47,10 @@ const airspaceSlice = createSlice({
   name: 'airspace',
   initialState,
   reducers: {
+    /** Sets the opacity of the airspace overlay as a percentage. */
+    setOpacity: (state, action: PayloadAction<number>) => {
+      state.opacity = action.payload;
+    },
     /** Sets whether airspace boundaries are displayed on the map. */
     setShow: (state, action: PayloadAction<boolean>) => {
       state.show = action.payload;
@@ -63,6 +69,7 @@ const airspaceSlice = createSlice({
     },
   },
   selectors: {
+    selectOpacity: (state) => state.opacity,
     selectShowAirspaces: (state) => state.show,
     selectShowClasses: (state) => state.showClasses,
     selectShowTypes: (state) => state.showTypes,
@@ -71,8 +78,9 @@ const airspaceSlice = createSlice({
 });
 
 export const reducer = airspaceSlice.reducer;
-export const { setMaxAltitude, setShow, showClasses, showTypes } = airspaceSlice.actions;
-export const { selectShowAirspaces, selectShowClasses, selectShowTypes, selectMaxAltitude } = airspaceSlice.selectors;
+export const { setMaxAltitude, setOpacity, setShow, showClasses, showTypes } = airspaceSlice.actions;
+export const { selectOpacity, selectShowAirspaces, selectShowClasses, selectShowTypes, selectMaxAltitude } =
+  airspaceSlice.selectors;
 
 /**
  * Returns a list of altitude stops for airspaces in meters, rounded according to the current altitude unit.
