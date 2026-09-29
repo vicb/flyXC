@@ -4,7 +4,8 @@
       "http://localhost:8080",
       "https://console.cloud.google.com",
       "https://fly-xc.appspot.com/",
-      "https://flyxc.app/"
+      "https://flyxc.app/",
+      "https://*.flyxc.workers.dev"
     ],
     "responseHeader": [
       "Content-Type",

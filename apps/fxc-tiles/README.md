@@ -39,17 +39,20 @@ $ node /usr/src/app/unzip.js -i tiles.zip
 ## Google Storage ref
 
 _copy_
-gsutil -h "Content-Type:application/x-protobuf" \
- -h "Cache-Control:public, max-age=360000" \
- -m cp -rZ tiles gs://airspaces
+gcloud storage cp -r tiles gs://airspaces \
+ --content-type="application/x-protobuf" \
+ --cache-control="public, max-age=360000" \
+ --gzip-in-flight-all
 
-Z = serve file gzip encoded
+--gzip-in-flight-all = serve files gzip encoded
 
 _enable CORS_
-$ gsutil cors set cors.json gs://airspaces
+$ gcloud storage buckets update gs://airspaces --cors-file=cors.json
 
 _public access_
-$ gsutil iam ch allUsers:objectViewer gs://airspaces
+$ gcloud storage buckets add-iam-policy-binding gs://airspaces \
+ --member=allUsers \
+ --role=roles/storage.objectViewer
 
 _url_
-<https://airsp.storage.googleapis.com/${z}/${x}/${y}.pbf>
+<https://airspaces.storage.googleapis.com/${z}/${x}/${y}.pbf>
