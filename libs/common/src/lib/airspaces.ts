@@ -396,7 +396,7 @@ function isInPolygon(point: Point, polygon: Point[], ratio: number): boolean {
 export const airspaceOverrides = {
   // Inactive from July to Oct
   // https://www.ecrins-parcnational.fr/les-survols-non-motorises
-  ecrins: 'PARC/RESERVE  ECRINS 1000M/SOL',
+  ecrins: 'PARC/RESERVE ECRINS',
   // See https://www.freedom-parapente.fr/site/puy-de-dome
   TMAClermont21: 'TMA CLERMONT 2.1 (VOL LIBRE)',
   TMAClermont22: 'TMA CLERMONT 2.2 CHAMPEIX (VOL LIBRE)',
@@ -408,7 +408,7 @@ export const airspaceOverrides = {
   LFR30B: 'LF-R30B MONT BLANC (JULY+AUGUST)',
   // 300m AGL for PG
   // https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000021755667
-  aiguilleRouges: 'PARC/RESERVE  AIGUILLES ROUGES 1000M/SOL',
+  aiguilleRouges: 'PARC/RESERVE AIGUILLES ROUGES',
   // Class E
   // - 2nd Monday of April to 2nd Friday of December
   // - outside the above period: Monday 11:00UTC to Thursday 23:59UTC
@@ -433,12 +433,6 @@ export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyp
   const month = tzDate.getMonth() + 1;
 
   switch (airspace.name) {
-    case airspaceOverrides.aiguilleRouges:
-      return {
-        ...airspace,
-        ...createTopM(300),
-      };
-
     case airspaceOverrides.ecrins:
       if (month >= 7 && month <= 10) {
         return {

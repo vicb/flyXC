@@ -179,8 +179,8 @@ describe('Airspace overrides', () => {
       floorM: 0,
       floorRefGnd: true,
       icaoClass: 8,
-      topLabel: '3281ft GND',
-      topM: 1000,
+      topLabel: '300m GND',
+      topM: 300,
       topRefGnd: true,
       type: 29,
     });
@@ -192,7 +192,7 @@ describe('Airspace overrides', () => {
 
     expect(override).toMatchObject({
       topM: 300,
-      topLabel: '300m',
+      topLabel: '300m GND',
     });
   });
 

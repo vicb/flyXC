@@ -1,5 +1,6 @@
-/openaip.json
+/openaip/
 /airspaces.geojson
+/geojson/
 /tiles
 /tiles-info-previous.json
 /tiles-info-diff.json
