@@ -13,13 +13,13 @@ import { getAppFolderFromDist, printOnCurrentLine } from '../util';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const defaultInputFile = resolve(join(getAppFolderFromDist(__dirname), 'assets/airspaces.geojson'));
+const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), 'assets/geojson'));
 const defaultOutputFolder = resolve(join(getAppFolderFromDist(__dirname), 'assets/tiles'));
 const defaultDateFile = resolve(join(getAppFolderFromDist(__dirname), 'assets/airspaces-date.json'));
 
 program
-  .option('-i, --input <folder>', 'input folder', defaultInputFile)
-  .option('-o, --output <file>', 'output file', defaultOutputFolder)
+  .option('-i, --input <folder>', 'input folder or file', defaultInputFolder)
+  .option('-o, --output <folder>', 'output folder', defaultOutputFolder)
   .option('-d, --date <file>', 'date file', defaultDateFile)
   .parse();
 
@@ -31,7 +31,24 @@ if (existsSync(outFolder)) {
   console.log(`-> ${numDeleted} tiles deleted`);
 }
 
-console.log(`# Generate tiles`);
+const inputPath = resolve(program.opts().input);
+let inputFiles: string[] = [];
+
+if (existsSync(inputPath) && statSync(inputPath).isDirectory()) {
+  inputFiles = readdirSync(inputPath)
+    .filter((f) => f.endsWith('.geojson'))
+    .sort()
+    .map((f) => join(inputPath, f));
+} else if (existsSync(inputPath)) {
+  inputFiles = [inputPath];
+}
+
+if (inputFiles.length === 0) {
+  console.error(`Error: No .geojson files found in ${inputPath}`);
+  process.exit(1);
+}
+
+console.log(`# Generate tiles from ${inputFiles.length} file(s)`);
 execSync('tippecanoe -v');
 // See https://github.com/felt/tippecanoe#options)
 const args = [
@@ -47,7 +64,7 @@ const args = [
   '--drop-densest-as-needed', // drop least visible feats if too big
   '-f', // do not complain on existing output
   '--',
-  program.opts().input,
+  ...inputFiles,
 ];
 console.log(`executing:\ntippecanoe ${args.join(' ')}`);
 execSync(`tippecanoe ${args.join(' ')}`, { stdio: 'inherit' });

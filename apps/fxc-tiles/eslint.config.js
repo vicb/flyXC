@@ -5,7 +5,14 @@ import baseConfig from '../../eslint.config.js';
 export default [
   ...baseConfig,
   {
-    ignores: ['src/assets/airspaces/tiles/*', 'dist/**', 'assets/tiles/**'],
+    ignores: [
+      'src/assets/airspaces/tiles/*',
+      'dist/**',
+      'assets/tiles/**',
+      'assets/geojson/**',
+      'assets/openaip/**',
+      'assets/*.json',
+    ],
   },
   {
     files: ['**/{package,project}.json'],

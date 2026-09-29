@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -8,7 +8,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const assetsFolder = resolve(join(getAppFolderFromDist(__dirname), 'assets'));
-const airspaces = JSON.parse(readFileSync(join(assetsFolder, 'openaip.json'), 'utf-8'));
+const openaipDir = join(assetsFolder, 'openaip');
+const airspaces: any[] = [];
+for (const file of readdirSync(openaipDir)
+  .filter((f) => f.endsWith('.json'))
+  .sort()) {
+  const items = JSON.parse(readFileSync(join(openaipDir, file), 'utf-8'));
+  airspaces.push(...items);
+}
 
 const classes = new Map([
   [0, 'A'],

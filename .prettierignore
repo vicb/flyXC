@@ -6,7 +6,10 @@
 /libs/*/dist
 
 /apps/fxc-front/public
-/apps/fxc-tiles/src/assets/airspaces
+/apps/fxc-tiles/assets/*.json
+/apps/fxc-tiles/assets/geojson
+/apps/fxc-tiles/assets/openaip
+/apps/fxc-tiles/assets/tiles
 /libs/windy-types/src/types
 /.nx/cache
 /.nx/workspace-data

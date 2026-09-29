@@ -6,7 +6,7 @@ DIST_FOLDER=`realpath $APP_FOLDER/dist`
 
 echo "# Download openaip airspaces"
 
-node "$DIST_FOLDER/airspaces/download-openaip.js" -o "$ASSETS_FOLDER"
+node "$DIST_FOLDER/airspaces/download-openaip.js" -o "$ASSETS_FOLDER/openaip"
 
 # no more available
 # echo "# Download Ukraine airspaces"
