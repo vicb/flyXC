@@ -52,6 +52,22 @@ describe('dump_track', () => {
     it('generates epoch date 19700101 when timestamp is 0', () => {
       expect(createDefaultFileName('Pilot', 0)).toBe('Pilot-19700101.csv');
     });
+
+    it('falls back to fallbackDate when timestamp is non-finite or invalid', () => {
+      const fallback = new Date(Date.UTC(2023, 5, 20));
+      expect(createDefaultFileName('Pilot', NaN, fallback)).toBe('Pilot-20230620.csv');
+      expect(createDefaultFileName('Pilot', Infinity, fallback)).toBe('Pilot-20230620.csv');
+      expect(createDefaultFileName('Pilot', -Infinity, fallback)).toBe('Pilot-20230620.csv');
+      expect(createDefaultFileName('Pilot', 1e20, fallback)).toBe('Pilot-20230620.csv');
+    });
+
+    it('falls back to current date when fallbackDate is invalid', () => {
+      const invalidDate = new Date('invalid');
+      const now = new Date();
+      const expectedYyyy = now.getUTCFullYear();
+      const result = createDefaultFileName('Pilot', undefined, invalidDate);
+      expect(result).toMatch(new RegExp(`^Pilot-${expectedYyyy}\\d{4}\\.csv$`));
+    });
   });
 
   describe('flightToCsv', () => {
@@ -191,4 +207,3 @@ describe('dump_track', () => {
     });
   });
 });
-

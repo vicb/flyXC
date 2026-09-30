@@ -28,8 +28,19 @@ export function formatUtcTime(timestampSec: number): string {
  */
 export function createDefaultFileName(pilot?: string, timestampSec?: number, fallbackDate?: Date): string {
   const sanitizedPilot = (pilot?.trim() || 'pilot').replace(/[/\\?%*:|"<>]/g, '_');
-  const date =
-    timestampSec != null && !Number.isNaN(timestampSec) ? new Date(timestampSec * 1000) : (fallbackDate ?? new Date());
+  let date: Date | undefined;
+
+  if (timestampSec != null && Number.isFinite(timestampSec)) {
+    const candidate = new Date(timestampSec * 1000);
+    if (!Number.isNaN(candidate.getTime())) {
+      date = candidate;
+    }
+  }
+
+  if (!date) {
+    date = fallbackDate != null && !Number.isNaN(fallbackDate.getTime()) ? fallbackDate : new Date();
+  }
+
   const yyyy = date.getUTCFullYear();
   const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
   const dd = String(date.getUTCDate()).padStart(2, '0');
