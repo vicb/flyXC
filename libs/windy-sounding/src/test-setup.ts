@@ -29,6 +29,7 @@
     emitter: { on: vi.fn(), off: vi.fn() },
   },
   singleclick: {
+    singleclick: { on: vi.fn(), off: vi.fn() },
     on: vi.fn(),
     off: vi.fn(),
   },
@@ -66,5 +67,35 @@
   },
   location: {
     setUrl: vi.fn(),
+  },
+  metrics: {
+    temp: {
+      conv: {
+        '°C': { conversion: (t: number) => t - 273.15 },
+        '°F': { conversion: (t: number) => (t - 273.15) * 1.8 + 32 },
+        K: { conversion: (t: number) => t },
+      },
+    },
+    altitude: {
+      conv: {
+        m: { conversion: (a: number) => a },
+        ft: { conversion: (a: number) => a * 3.28084 },
+      },
+    },
+    pressure: {
+      conv: {
+        hPa: { conversion: (p: number) => p / 100 },
+        mmHg: { conversion: (p: number) => p * 0.00750062 },
+        inHg: { conversion: (p: number) => p * 0.0002953 },
+      },
+    },
+    wind: {
+      conv: {
+        'km/h': { conversion: (w: number) => w * 3.6 },
+        kt: { conversion: (w: number) => w * 1.94384 },
+        mph: { conversion: (w: number) => w * 2.23694 },
+        bft: { conversion: (w: number) => w },
+      },
+    },
   },
 };
