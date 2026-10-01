@@ -1,3 +1,4 @@
+import { clsx } from 'clsx';
 import { useMemo, useState } from 'preact/hooks';
 
 import { getPressureToGhScale } from '../util/atmosphere';
@@ -149,7 +150,7 @@ export function WindProfile(props: WindProfileProps) {
     <g className="graph wind">
       {chartElements}
       {yPointer !== undefined && yPointer < ySurface && (
-        <g className={`cursor ${cursorClass}`}>
+        <g className={clsx('cursor', cursorClass)}>
           <text className="speed" x={width - 5} y={yPointer + yOffsetCursor}>
             {format(windAtCursor)}
           </text>

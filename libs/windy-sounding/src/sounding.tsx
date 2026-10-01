@@ -15,6 +15,7 @@ import {
 } from './redux/meta';
 import * as pluginSlice from './redux/plugin-slice';
 import { store } from './redux/store';
+import * as unitsSlice from './redux/units-slice';
 import { saveSetting, Settings } from './util/settings';
 import { DEFAULT_MODEL, getSupportedModelName, injectStyles, METEOBLUE_AI_MODEL } from './util/utils';
 
@@ -34,6 +35,32 @@ export const mountPlugin = (container: HTMLElement) => {
   const { dispatch } = store;
   appContainer = container;
   injectStyles();
+
+  const tempUnit = windyStore.get('metric_temp');
+  if (tempUnit) {
+    dispatch(unitsSlice.setTempUnit(tempUnit));
+  }
+  const altUnit = (windyStore.get('metric_altitude') ?? 'm') as unitsSlice.AltitudeUnit;
+  if (altUnit) {
+    dispatch(unitsSlice.setAltitudeUnit(altUnit));
+  }
+  const windUnit = windyStore.get('metric_wind');
+  if (windUnit) {
+    dispatch(unitsSlice.setWindSpeedUnit(windUnit));
+  }
+  const pressureUnit = windyStore.get('metric_pressure');
+  if (pressureUnit) {
+    dispatch(unitsSlice.setPressureUnit(pressureUnit));
+  }
+  const rainUnit = windyStore.get('metric_rain') ?? 'mm';
+  if (rainUnit) {
+    dispatch(unitsSlice.setRainUnit(rainUnit));
+  }
+  const timestamp = windyStore.get('timestamp');
+  if (timestamp) {
+    dispatch(pluginSlice.setTimeMs(timestamp));
+  }
+
   render(
     <Provider store={store}>
       <Plugin />
@@ -64,7 +91,7 @@ export const mountPlugin = (container: HTMLElement) => {
       })
       .catch((e: any) => console.error(e));
   } else {
-    const container = document.querySelector(`#plugin-${pluginConfig.name}`);
+    const container = typeof document !== 'undefined' ? document.querySelector(`#plugin-${pluginConfig.name}`) : null;
     if (container) {
       resizeObserver = new ResizeObserver(() => {
         setSizeFrom(appContainer);
@@ -112,6 +139,31 @@ export const mountPlugin = (container: HTMLElement) => {
     dispatch(pluginSlice.setFavorites(await favs.getAll()));
   });
   addSubscription(() => broadcast.off(favChangedEventId));
+
+  const tempUnitEventId = windyStore.on('metric_temp', (unit: unitsSlice.TempUnit) => {
+    dispatch(unitsSlice.setTempUnit(unit));
+  });
+  addSubscription(() => windyStore.off(tempUnitEventId));
+
+  const altUnitEventId = windyStore.on('metric_altitude', (unit: unitsSlice.AltitudeUnit) => {
+    dispatch(unitsSlice.setAltitudeUnit(unit));
+  });
+  addSubscription(() => windyStore.off(altUnitEventId));
+
+  const windUnitEventId = windyStore.on('metric_wind', (unit: unitsSlice.SpeedUnit) => {
+    dispatch(unitsSlice.setWindSpeedUnit(unit));
+  });
+  addSubscription(() => windyStore.off(windUnitEventId));
+
+  const pressureUnitEventId = windyStore.on('metric_pressure', (unit: unitsSlice.PressureUnit) => {
+    dispatch(unitsSlice.setPressureUnit(unit));
+  });
+  addSubscription(() => windyStore.off(pressureUnitEventId));
+
+  const rainUnitEventId = windyStore.on('metric_rain', (unit: unitsSlice.RainUnit) => {
+    dispatch(unitsSlice.setRainUnit(unit));
+  });
+  addSubscription(() => windyStore.off(rainUnitEventId));
 };
 
 // Called when the plugin is opened

@@ -464,6 +464,7 @@ const ConnectedSkewT = memo(function ConnectedSkewT(props: ChildGraphProps) {
         ? forecastSlice.selParcel(state, modelName, location, timeMs)
         : undefined,
       formatAltitude: unitsSlice.selAltitudeFormatter(state),
+      formatLayerAltitude: unitsSlice.selLayerAltitudeFormatter(state),
       formatTemp,
       tempUnit: unitsSlice.selTempUnit(state),
       tempAxisStep: unitsSlice.selTempUnit(state) === '°C' ? 10 : 20,
@@ -471,6 +472,8 @@ const ConnectedSkewT = memo(function ConnectedSkewT(props: ChildGraphProps) {
       ghAxisStep: unitsSlice.selAltitudeUnit(state) === 'm' ? 1000 : 3000,
       showUpperClouds: isZoomedIn,
       clouds: timeValues.cloud,
+      rainMm: timeValues.rainMm,
+      formatRain: unitsSlice.selRainFormatter(state),
     };
   }, shallowEqual);
 

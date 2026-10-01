@@ -48,22 +48,44 @@
   // Map overlay layer switcher icons (Clouds, Wind, Rain, CCL).
   .layer-icon {
     cursor: pointer;
-    width: 32px;
-    height: 32px;
-    opacity: 0.3;
 
     rect {
       fill: transparent;
     }
 
+    path {
+      opacity: 0.3;
+    }
+
+    .sublabel {
+      opacity: 0.75;
+      fill: #111;
+      stroke: #fff;
+      stroke-width: 2.5px;
+      stroke-linejoin: round;
+      paint-order: stroke fill;
+      font-size: 12px;
+      text-anchor: middle;
+      user-select: none;
+      pointer-events: none;
+    }
+
     &:hover {
-      opacity: 0.8;
+      path {
+        opacity: 0.8;
+      }
+    }
+
+    &.has-rain {
+      path {
+        fill: var(--color-blue, #005eff);
+        opacity: 0.4;
+      }
     }
 
     &.active {
-      opacity: 1;
-
       path {
+        opacity: 1;
         fill: var(--color-orange);
       }
     }
@@ -164,6 +186,7 @@
       from {
         transform: translate3d(0, 0, 0);
       }
+
       to {
         transform: translate3d(340px, 0, 0);
       }
@@ -235,6 +258,7 @@
         .temperature {
           stroke: @temperature-color;
         }
+
         .dewpoint {
           stroke: @dewpoint-color;
         }

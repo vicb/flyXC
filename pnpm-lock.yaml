@@ -73,6 +73,9 @@ catalogs:
     '@xmldom/xmldom':
       specifier: ^0.9.12
       version: 0.9.12
+    clsx:
+      specifier: ^2.1.1
+      version: 2.1.1
     commander:
       specifier: ^15.0.0
       version: 15.0.0
@@ -770,6 +773,9 @@ importers:
       '@reduxjs/toolkit':
         specifier: catalog:default
         version: 2.12.0(react-redux@9.3.0(@types/react@19.3.0)(react@19.2.3)(redux@5.0.1))(react@19.2.3)
+      clsx:
+        specifier: catalog:default
+        version: 2.1.1
       date-fns:
         specifier: catalog:default
         version: 4.4.0
@@ -5010,6 +5016,10 @@ packages:
   clone@2.1.2:
     resolution: {integrity: sha512-3Pe/CF1Nn94hyhIYpjtiLhdCoEoz0DqQ+988E9gmeEdQZlojxnOb74wctFyuwWQHzqyf9X7C7MG8juUpqBJT8w==}
     engines: {node: '>=0.8'}
+
+  clsx@2.1.1:
+    resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
+    engines: {node: '>=6'}
 
   cluster-key-slot@1.1.2:
     resolution: {integrity: sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==}
@@ -14102,6 +14112,8 @@ snapshots:
   clone@1.0.4: {}
 
   clone@2.1.2: {}
+
+  clsx@2.1.1: {}
 
   cluster-key-slot@1.1.2: {}
 
