@@ -64,6 +64,7 @@ export default defineConfig(({ mode }) => {
           list_trackers: path.resolve(__dirname, 'src/app/list_trackers.ts'),
           list_flymaster: path.resolve(__dirname, 'src/app/list_flymaster.ts'),
           email_inreach: path.resolve(__dirname, 'src/app/email_inreach.ts'),
+          dump_track: path.resolve(__dirname, 'src/app/dump_track.ts'),
         },
         output: {
           entryFileNames: '[name].js',
