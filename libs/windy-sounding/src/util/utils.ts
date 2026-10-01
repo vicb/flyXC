@@ -118,7 +118,7 @@ export function isValidNumber(value: string | number | undefined): boolean {
  *
  * @param level - The Windy map level identifier (e.g. 'surface', '100m', '850h', '700h').
  * @param unit - User's preferred altitude unit ('m' or 'ft'). Defaults to 'm'.
- * @returns Formatted altitude string (e.g. 'Surface', '1500', '5000').
+ * @returns Formatted altitude string with units (e.g. 'Surface', '1500m', '5000ft', '10kft', '10.4km').
  */
 export function formatLayerAltitude(level: string | undefined, unit = 'm'): string {
   if (!level || level === 'surface') {
