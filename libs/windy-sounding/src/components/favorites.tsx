@@ -1,5 +1,6 @@
 import type { Fav } from '@windy/favs';
 import type { LatLon } from '@windy/interfaces';
+import { clsx } from 'clsx';
 import { useState } from 'preact/hooks';
 
 import { getAvailableModels, getFavLabel, latLon2Str } from '../util/utils';
@@ -50,7 +51,7 @@ export function Favorites({
       <>
         <section id="wsp-favorite">
           <div
-            className={`select ${isModelExpanded ? 'active' : ''}`}
+            className={clsx('select', { active: isModelExpanded })}
             data-icon="w"
             data-icon-after="g"
             onClick={toggleModelSelect}
@@ -58,7 +59,7 @@ export function Favorites({
             <small className="size-m">{W.products[modelName]?.modelName ?? modelName}</small>
           </div>
           <div
-            className={`select ${isLocationExpanded ? 'active' : ''}`}
+            className={clsx('select', { active: isLocationExpanded })}
             data-icon="D"
             data-icon-after="g"
             onClick={toggleLocationSelect}
@@ -75,7 +76,7 @@ export function Favorites({
             {models.map((model: string) => (
               <span
                 key={model}
-                className={model == modelName ? 'selected' : ''}
+                className={clsx({ selected: model === modelName })}
                 onClick={() => {
                   onSelectModel?.(model);
                   setIsModelExpanded(false);
@@ -95,7 +96,7 @@ export function Favorites({
               favorites.map((favorite: Fav) => (
                 <span
                   key={latLon2Str(favorite)}
-                  className={latLon2Str(favorite) == locationStr ? 'selected' : ''}
+                  className={clsx({ selected: latLon2Str(favorite) === locationStr })}
                   onClick={() => {
                     onSelected({ lat: favorite.lat, lon: favorite.lon });
                   }}
@@ -124,7 +125,7 @@ export function Favorites({
         return (
           <>
             <div
-              className={`button button--transparent ${latLon2Str(favorite) == locationStr ? 'selected' : ''}`}
+              className={clsx('button button--transparent', { selected: latLon2Str(favorite) === locationStr })}
               onClick={() => onSelected({ lat: favorite.lat, lon: favorite.lon })}
             >
               {getFavLabel(favorite)}

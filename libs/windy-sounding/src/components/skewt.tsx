@@ -1,3 +1,4 @@
+import { clsx } from 'clsx';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
 import { Watermark } from '../containers/containers.jsx';
@@ -30,6 +31,9 @@ export type SkewTProps = {
   ghUnit: string;
   ghAxisStep: number;
   showUpperClouds: boolean;
+  rainMm?: number;
+  formatLayerAltitude: (level: string | undefined) => string;
+  formatRain: (rainMm: number | undefined) => string;
 };
 
 export function SkewT(props: SkewTProps) {
@@ -238,7 +242,7 @@ export function SkewT(props: SkewTProps) {
         {linesElement}
         <rect className="surface" y={ySurface} width={width} height={height - ySurface + 1} />
         {yPointer !== undefined && yPointer < ySurface && (
-          <g className={`cursor ${cursorClass}`}>
+          <g className={clsx('cursor', cursorClass)}>
             <text className="altitude" x={width - 7} y={yPointer + yOffsetCursor}>
               {formatAltitude(ghMeterToPxScale.invert(yPointer))}
             </text>
@@ -263,7 +267,13 @@ export function SkewT(props: SkewTProps) {
       </g>
 
       <g>
-        <LayerSwitcher {...{ width, y: 35 }} />
+        <LayerSwitcher
+          width={width}
+          y={35}
+          rainMm={props.rainMm}
+          formatLayerAltitude={props.formatLayerAltitude}
+          formatRain={props.formatRain}
+        />
       </g>
     </svg>
   );
@@ -303,50 +313,89 @@ const LAYERS = [
   },
 ];
 
-function LayerSwitcher({ width, y }: { width: number; y: number }) {
+function LayerSwitcher({
+  width,
+  y,
+  rainMm = 0,
+  formatLayerAltitude,
+  formatRain,
+}: {
+  width: number;
+  y: number;
+  rainMm?: number;
+  formatLayerAltitude: (level: string | undefined) => string;
+  formatRain: (rainMm: number | undefined) => string;
+}) {
   const [overlay, setOverlay] = useState(W.store.get('overlay'));
+  const [level, setLevel] = useState<string | undefined>(W.store.get('level'));
+
+  useEffect(() => {
+    const handleOverlayChange = (newOverlay: string) => setOverlay(newOverlay);
+    const handleLevelChange = (newLevel: string) => setLevel(newLevel);
+
+    W.store.on('overlay', handleOverlayChange);
+    W.store.on('level', handleLevelChange);
+
+    return () => {
+      W.store.off('overlay', handleOverlayChange);
+      W.store.off('level', handleLevelChange);
+    };
+  }, []);
 
   const padding = 16;
   const compWidth = 32 * LAYERS.length + padding * (LAYERS.length - 1);
   const startX = width / 2 - compWidth / 2;
 
-  useEffect(() => {
-    const handleOverlayChange = (overlay: string) => {
-      setOverlay(overlay);
-    };
-
-    W.store.on('overlay', handleOverlayChange);
-
-    return () => {
-      W.store.off('overlay', handleOverlayChange);
-    };
-  }, []);
-
   return (
     <g transform={`translate(0, ${y})`}>
-      {LAYERS.map(({ name, label, paths }, idx) => (
-        <g
-          key={name}
-          transform={`translate(${startX + idx * (32 + padding)})`}
-          className={`layer-icon ${overlay === name ? 'active' : ''}`}
-          onPointerDown={() => W.store.set('overlay', name)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              W.store.set('overlay', name);
+      {LAYERS.map(({ name, label, paths }, idx) => {
+        const isActive = overlay === name;
+        let sublabel: string | undefined;
+        switch (name) {
+          case 'wind':
+            if (isActive) {
+              sublabel = formatLayerAltitude(level);
             }
-          }}
-          role="button"
-          tabIndex={0}
-          aria-label={label}
-          aria-pressed={overlay === name}
-        >
-          <rect width={32} height={32} />
-          {paths.map((d, pathIdx) => (
-            <path key={pathIdx} d={d} />
-          ))}
-        </g>
-      ))}
+            break;
+          case 'rain':
+            if (rainMm > 0) {
+              sublabel = formatRain(rainMm);
+            }
+            break;
+        }
+        const hasRain = name === 'rain' && rainMm > 0;
+        return (
+          <g
+            key={name}
+            transform={`translate(${startX + idx * (32 + padding)})`}
+            className={clsx('layer-icon', {
+              active: isActive,
+              'has-rain': hasRain,
+            })}
+            onPointerDown={() => W.store.set('overlay', name)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                W.store.set('overlay', name);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={sublabel ? `${label} (${sublabel})` : label}
+            aria-pressed={isActive}
+          >
+            <rect width={32} height={sublabel ? 48 : 32} />
+            {paths.map((d, pathIdx) => (
+              <path key={pathIdx} d={d} />
+            ))}
+            {sublabel && (
+              <text x={16} y={46} className="sublabel">
+                {sublabel}
+              </text>
+            )}
+          </g>
+        );
+      })}
     </g>
   );
 }

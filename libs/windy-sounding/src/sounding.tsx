@@ -15,6 +15,7 @@ import {
 } from './redux/meta';
 import * as pluginSlice from './redux/plugin-slice';
 import { store } from './redux/store';
+import * as unitsSlice from './redux/units-slice';
 import { saveSetting, Settings } from './util/settings';
 import { DEFAULT_MODEL, getSupportedModelName, injectStyles, METEOBLUE_AI_MODEL } from './util/utils';
 
@@ -112,6 +113,16 @@ export const mountPlugin = (container: HTMLElement) => {
     dispatch(pluginSlice.setFavorites(await favs.getAll()));
   });
   addSubscription(() => broadcast.off(favChangedEventId));
+
+  const altUnitEventId = windyStore.on('metric_altitude', (unit: unitsSlice.AltitudeUnit) => {
+    dispatch(unitsSlice.setAltitudeUnit(unit));
+  });
+  addSubscription(() => windyStore.off(altUnitEventId));
+
+  const rainUnitEventId = windyStore.on('metric_rain', (unit: unitsSlice.RainUnit) => {
+    dispatch(unitsSlice.setRainUnit(unit));
+  });
+  addSubscription(() => windyStore.off(rainUnitEventId));
 };
 
 // Called when the plugin is opened

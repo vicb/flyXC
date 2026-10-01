@@ -51,6 +51,7 @@ catalog:
   vite-plugin-static-copy: ^4.1.1
   wrangler: ^4.140.0
   eslint-plugin-unused-imports: ^4.4.1
+  clsx: ^2.1.1
 
 allowBuilds:
   '@parcel/watcher': false

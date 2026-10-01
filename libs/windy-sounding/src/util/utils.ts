@@ -112,3 +112,44 @@ export function isValidNumber(value: string | number | undefined): boolean {
   }
   return Number.isFinite(Number(value));
 }
+
+/**
+ * Formats the altitude for a given map level identifier according to user preference (m or ft).
+ *
+ * @param level - The Windy map level identifier (e.g. 'surface', '100m', '850h', '700h').
+ * @param unit - User's preferred altitude unit ('m' or 'ft'). Defaults to 'm'.
+ * @returns Formatted altitude string (e.g. 'Surface', '1500', '5000').
+ */
+export function formatLayerAltitude(level: string | undefined, unit = 'm'): string {
+  if (!level || level === 'surface') {
+    return 'Surface';
+  }
+  const levelData = W.rootScope?.levelsData?.[level as any];
+  if (levelData) {
+    const val = unit === 'ft' ? levelData[3] : levelData[2];
+    if (val >= 10000) {
+      const kVal = Number((val / 1000).toFixed(1));
+      return `${kVal}k${unit}`;
+    }
+    return `${val}${unit}`;
+  }
+  return level;
+}
+
+/**
+ * Formats rain amount in mm according to user preference (mm or in).
+ *
+ * @param rainMm - The rain amount in millimeters.
+ * @param unit - User's preferred rain unit ('mm' or 'in'). Defaults to 'mm'.
+ * @returns Formatted rain string (e.g. '0mm', '1.2mm', '0.05in').
+ */
+export function formatRainAmount(rainMm: number | undefined, unit = 'mm'): string {
+  if (rainMm == null || isNaN(rainMm) || rainMm <= 0) {
+    return `0${unit}`;
+  }
+  const conv = W.metrics?.rain?.conv?.[unit as any];
+  const value = conv ? Number(conv.conversion(rainMm)) : unit === 'in' ? rainMm / 25.4 : rainMm;
+  const precision = conv?.precision ?? (unit === 'in' ? 2 : 1);
+  const formattedNum = Number(value.toFixed(precision));
+  return `${formattedNum}${unit}`;
+}
