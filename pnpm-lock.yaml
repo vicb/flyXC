@@ -455,6 +455,9 @@ importers:
       date-fns:
         specifier: catalog:default
         version: 4.4.0
+      jsonc-eslint-parser:
+        specifier: catalog:default
+        version: 3.3.0
       rollup-plugin-visualizer:
         specifier: ^7.1.1
         version: 7.1.1(rolldown@1.2.11)(rollup@4.54.0)
