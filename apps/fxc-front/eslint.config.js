@@ -12,7 +12,12 @@ export default [
       '@nx/dependency-checks': [
         'error',
         {
-          ignoredFiles: [],
+          ignoredFiles: [
+            '{projectRoot}/vite.config.ts',
+            'vite.config.ts',
+            '{projectRoot}/pwa.config.ts',
+            'pwa.config.ts',
+          ],
           ignoredDependencies: [
             '@date-fns/tz',
             '@dotenvx/dotenvx',
@@ -22,6 +27,8 @@ export default [
             'vite-plugin-checker',
             'vite',
             'vitest',
+            'vite-plugin-pwa',
+            'workbox-build',
             `@stencil/core`,
             `workbox-core`,
             `workbox-window`,
