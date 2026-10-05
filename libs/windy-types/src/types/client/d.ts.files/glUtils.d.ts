@@ -44,6 +44,12 @@ export type GlColorFormat =
     | WebGLRenderingContextBase['LUMINANCE_ALPHA']
     | Gl2ColorFormat;
 
+export type GlBufferFormat =
+    | WebGLRenderingContext['FLOAT']
+    | WebGLRenderingContext['UNSIGNED_BYTE']
+    | WebGLRenderingContext['UNSIGNED_SHORT']
+    | WebGLRenderingContext['UNSIGNED_INT'];
+
 // https://developer.mozilla.org/en-US/docs/Web/API/EXT_disjoint_timer_query
 interface TimerQueryBase {
     QUERY_COUNTER_BITS_EXT: GLenum;

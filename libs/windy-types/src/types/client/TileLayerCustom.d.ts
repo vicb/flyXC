@@ -19,12 +19,15 @@ export declare class TileLayerCustom implements CustomLayerInterface {
     private _cloudsPatternGradient?;
     private _cloudsPatternGradientDirty;
     private _currentOverlay;
+    private _map;
+    private _autoSwitchTimer;
+    private _latestCache;
     readonly eventManager: EventManager;
     readonly type: "custom";
     id: string;
     constructor(layerId: string, params: FullRenderParameters);
     get switchableCache(): any;
-    render(gl: WebGLRenderingContext | WebGL2RenderingContext, _options: CustomRenderMethodInput): void;
+    render(gl: WebGLRenderingContext | WebGL2RenderingContext, options: CustomRenderMethodInput): void;
     onAdd(maplibreMap: MapLibreMap, gl: WebGLRenderingContext | WebGL2RenderingContext): void;
     /**
      * @summary Hides/shows the layer

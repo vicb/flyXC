@@ -2,10 +2,9 @@
  * @module showMyPosition
  * @description Service to handle showing user's current position on the map.
  */
-import type { Position } from '@capacitor/geolocation';
 import type { GeolocationInfo } from '@windy/interfaces';
-import type { GeolocationOptions } from '@windy/geolocation';
-export declare const onPosition: (pos: Position | null, err?: unknown) => Promise<void>;
+import type { AnyGeolocationPosition, GeolocationOptions } from '@windy/geolocation';
+export declare const onPosition: (pos: AnyGeolocationPosition | null, err?: unknown) => Promise<void>;
 export declare const stop: () => void;
 /**
  * My position marker can be started in two modes:

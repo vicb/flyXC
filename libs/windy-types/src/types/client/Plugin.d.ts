@@ -64,6 +64,14 @@ export declare class Plugin<P extends PluginIdent> {
      */
     isOpen?: boolean;
     /**
+     * True while `open()` has been requested and the plugin's async `load()` is still
+     * in flight, ie. it has claimed its pane but hasn't set `isOpen` yet.
+     *
+     * Used by pluginCtrl to detect a same-pane plugin that is mid-load and would
+     * otherwise open uncontested, since it isn't yet reported by `isOpen`.
+     */
+    get isPending(): boolean;
+    /**
      * After opening, plugin is not closed automatically by pluginCtrl
      *
      * Other methods of closing are possible

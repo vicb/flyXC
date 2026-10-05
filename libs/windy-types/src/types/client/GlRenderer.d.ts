@@ -18,7 +18,7 @@ export declare class GlRenderer {
     /** Textures must be treated separately since they must be bound each frame */
     protected readonly uniformTextures: Map<string, UniformRecord>;
     /** Program used for rendering */
-    protected program: GlProgram;
+    protected _program: GlProgram;
     protected renderReady: boolean;
     /** Color used to clear the bound framebuffer before rendering the content */
     protected clearColor?: Vector4;

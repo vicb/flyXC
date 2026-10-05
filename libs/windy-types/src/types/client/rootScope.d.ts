@@ -11,7 +11,7 @@ export declare const version: `${number}.${number}.${number}`;
  * Target
  * @deprecated Use `TARGET` env variable instead.
  */
-export declare const target: "mobile" | "index" | "lib" | "embed";
+export declare const target: "lib" | "embed" | "index" | "mobile";
 /**
  * Platform
  */
@@ -47,7 +47,7 @@ export declare const overlays: readonly ["radar", "satellite", "wind", "gust", "
 /**
  * Identifier of products that cover only certain area
  */
-export declare const localProducts: readonly ["nems", "namConus", "namHawaii", "namAlaska", "iconEu", "iconD2", "arome", "aromeAntilles", "aromeFrance", "aromeReunion", "canHrdps", "canRdwpsWaves", "camsEu", "czeAladin", "iconEuWaves", "hrrrAlaska", "hrrrConus", "bomAccess", "bomAccessAd", "bomAccessBn", "bomAccessDn", "bomAccessNq", "bomAccessPh", "bomAccessSy", "bomAccessVt", "ukv", "jmaMsm", "jmaCwmWaves"];
+export declare const localProducts: readonly ["nems", "iconEu", "iconD2", "arome", "aromeAntilles", "aromeFrance", "aromeReunion", "canHrdps", "canRdwpsWaves", "camsEu", "czeAladin", "iconEuWaves", "hrrrAlaska", "hrrrConus", "bomAccess", "bomAccessAd", "bomAccessBn", "bomAccessDn", "bomAccessNq", "bomAccessPh", "bomAccessSy", "bomAccessVt", "ukv", "jmaMsm", "jmaCwmWaves"];
 /**
  * Identifiers of global products
  */
@@ -65,13 +65,17 @@ export declare const waveProducts: readonly ["ecmwfWaves", "gfsWaves", "iconEuWa
  */
 export declare const pointForecastOnlyGlobalProducts: readonly ["mblue"];
 /**
+ * Default point forecast model
+ */
+export declare const DEFAULT_POINT_PRODUCT = "mblue";
+/**
  * identifiers of air quality product
  */
 export declare const airQualityProducts: readonly ["cams", "camsEu"];
 /**
  * identifiers of local products, that have point forecast
  */
-export declare const localPointProducts: readonly ["namConus", "namHawaii", "namAlaska", "iconD2", "iconEu", "iconEuWaves", "arome", "aromeAntilles", "aromeFrance", "aromeReunion", "canHrdps", "canRdwpsWaves", "camsEu", "czeAladin", "hrrrAlaska", "hrrrConus", "bomAccess", "bomAccessAd", "bomAccessBn", "bomAccessDn", "bomAccessNq", "bomAccessPh", "bomAccessSy", "bomAccessVt", "ukv", "jmaMsm", "jmaCwmWaves"];
+export declare const localPointProducts: readonly ["iconD2", "iconEu", "iconEuWaves", "arome", "aromeAntilles", "aromeFrance", "aromeReunion", "canHrdps", "canRdwpsWaves", "camsEu", "czeAladin", "hrrrAlaska", "hrrrConus", "bomAccess", "bomAccessAd", "bomAccessBn", "bomAccessDn", "bomAccessNq", "bomAccessPh", "bomAccessSy", "bomAccessVt", "ukv", "jmaMsm", "jmaCwmWaves"];
 /**
  * Identifiers of global products, that have point forecast
  */
@@ -84,15 +88,15 @@ export declare const fallbackAirProducts: readonly ["gfs", "ecmwf", "jmaMsm", "c
 /**
  * Identifiers of all land products combined
  */
-export declare const products: readonly ["mblue", "gfs", "ecmwf", "ecmwfAnalysis", "radar", "ecmwfWaves", "gfsWaves", "icon", "capAlerts", "avalancheDanger", "cams", "efi", "satellite", "cmems", "drought", "fireDanger", "activeFires", "topoMap", "nems", "namConus", "namHawaii", "namAlaska", "iconEu", "iconD2", "arome", "aromeAntilles", "aromeFrance", "aromeReunion", "canHrdps", "canRdwpsWaves", "camsEu", "czeAladin", "iconEuWaves", "hrrrAlaska", "hrrrConus", "bomAccess", "bomAccessAd", "bomAccessBn", "bomAccessDn", "bomAccessNq", "bomAccessPh", "bomAccessSy", "bomAccessVt", "ukv", "jmaMsm", "jmaCwmWaves", "cams", "camsEu", "ecmwfWaves", "gfsWaves", "iconEuWaves", "jmaCwmWaves", "canRdwpsWaves"];
+export declare const products: readonly ["mblue", "gfs", "ecmwf", "ecmwfAnalysis", "radar", "ecmwfWaves", "gfsWaves", "icon", "capAlerts", "avalancheDanger", "cams", "efi", "satellite", "cmems", "drought", "fireDanger", "activeFires", "topoMap", "nems", "iconEu", "iconD2", "arome", "aromeAntilles", "aromeFrance", "aromeReunion", "canHrdps", "canRdwpsWaves", "camsEu", "czeAladin", "iconEuWaves", "hrrrAlaska", "hrrrConus", "bomAccess", "bomAccessAd", "bomAccessBn", "bomAccessDn", "bomAccessNq", "bomAccessPh", "bomAccessSy", "bomAccessVt", "ukv", "jmaMsm", "jmaCwmWaves", "cams", "camsEu", "ecmwfWaves", "gfsWaves", "iconEuWaves", "jmaCwmWaves", "canRdwpsWaves"];
 /**
  * Identifiers of all point products combines
  */
-export declare const pointProducts: readonly ["ecmwfWaves", "gfsWaves", "iconEuWaves", "jmaCwmWaves", "canRdwpsWaves", "mblue", "gfs", "ecmwf", "icon", "namConus", "namHawaii", "namAlaska", "iconD2", "iconEu", "iconEuWaves", "arome", "aromeAntilles", "aromeFrance", "aromeReunion", "canHrdps", "canRdwpsWaves", "camsEu", "czeAladin", "hrrrAlaska", "hrrrConus", "bomAccess", "bomAccessAd", "bomAccessBn", "bomAccessDn", "bomAccessNq", "bomAccessPh", "bomAccessSy", "bomAccessVt", "ukv", "jmaMsm", "jmaCwmWaves", "cams", "camsEu"];
+export declare const pointProducts: readonly ["ecmwfWaves", "gfsWaves", "iconEuWaves", "jmaCwmWaves", "canRdwpsWaves", "mblue", "gfs", "ecmwf", "icon", "iconD2", "iconEu", "iconEuWaves", "arome", "aromeAntilles", "aromeFrance", "aromeReunion", "canHrdps", "canRdwpsWaves", "camsEu", "czeAladin", "hrrrAlaska", "hrrrConus", "bomAccess", "bomAccessAd", "bomAccessBn", "bomAccessDn", "bomAccessNq", "bomAccessPh", "bomAccessSy", "bomAccessVt", "ukv", "jmaMsm", "jmaCwmWaves", "cams", "camsEu"];
 /**
  * Point products that have air point forecast
  */
-export declare const airPointProducts: ("icon" | "ecmwfWaves" | "gfsWaves" | "iconEuWaves" | "jmaCwmWaves" | "canRdwpsWaves" | "mblue" | "gfs" | "ecmwf" | "namConus" | "namHawaii" | "namAlaska" | "iconD2" | "iconEu" | "arome" | "aromeAntilles" | "aromeFrance" | "aromeReunion" | "canHrdps" | "camsEu" | "czeAladin" | "hrrrAlaska" | "hrrrConus" | "bomAccess" | "bomAccessAd" | "bomAccessBn" | "bomAccessDn" | "bomAccessNq" | "bomAccessPh" | "bomAccessSy" | "bomAccessVt" | "ukv" | "jmaMsm" | "cams")[];
+export declare const airPointProducts: ("mblue" | "gfs" | "ecmwf" | "ecmwfWaves" | "gfsWaves" | "icon" | "cams" | "iconEu" | "iconD2" | "arome" | "aromeAntilles" | "aromeFrance" | "aromeReunion" | "canHrdps" | "canRdwpsWaves" | "camsEu" | "czeAladin" | "iconEuWaves" | "hrrrAlaska" | "hrrrConus" | "bomAccess" | "bomAccessAd" | "bomAccessBn" | "bomAccessDn" | "bomAccessNq" | "bomAccessPh" | "bomAccessSy" | "bomAccessVt" | "ukv" | "jmaMsm" | "jmaCwmWaves")[];
 /**
  * IndicatesIndicates that that browsing device is mobile
  */
@@ -221,5 +225,14 @@ export declare const pollenProducts: Record<keyof PollenDataHash2, [
 export declare const autoOpenArticleImportance: ArticleImportance;
 export declare const detailDefaults: {
     pointFcstDisplay: DetailDisplayType;
-    forecastDaysLength: number;
 };
+/**
+ * Length of the point forecast in days, by subscription and view:
+ *
+ * - without Premium: `freeForecastDaysLength` collapsed, `forecastDaysLength` expanded
+ *   (padded with promoted fake days up to `extendedForecastDaysLength`)
+ * - with Premium: `forecastDaysLength` collapsed, `extendedForecastDaysLength` expanded
+ */
+export declare const forecastDaysLength = 7;
+export declare const extendedForecastDaysLength = 15;
+export declare const freeForecastDaysLength = 5;

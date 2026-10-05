@@ -1,7 +1,7 @@
 /// <reference types="svelte" />
 import store from '@windy/store';
 import type { StoreTypes } from '@windy/store.d';
-import type { Evented as MaplibreEvented, Listener, MapEventType, MapLayerEventType, LeafletEventHandlerFn } from '@leafletGl';
+import type { Evented as MaplibreEvented, Listener, MapEventType, MapLayerEventType, LeafletEventHandlerFn, LeafletEvented } from '@leafletGl';
 import type { Evented } from '@windy/Evented';
 import type { BcastTypes } from '@windy/broadcast.d';
 import type { Plugins } from '@windy/plugins.d';
@@ -33,7 +33,7 @@ export declare class EventManager {
      * @param topic     - which event to listen for
      * @param callback  - callback function that should process the event
      */
-    addMapLibreListener<T extends MapLibreEventTypes>(target: MaplibreEvented, topic: T, callback: Listener): void;
+    addMapLibreListener<T extends MapLibreEventTypes>(target: MaplibreEvented | LeafletEvented, topic: T, callback: Listener): void;
     /**
      * @summary Registers specific event listener on windy store with a given callback
      * @param topic     - which event to listen for

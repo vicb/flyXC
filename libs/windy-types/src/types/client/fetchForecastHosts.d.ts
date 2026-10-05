@@ -21,6 +21,15 @@ export interface PointForecastOptions extends LatLon {
      */
     days?: number;
     /**
+     * Whether to interpolate forecast data
+     */
+    interpolate?: boolean;
+    /**
+     * Whether the extended forecast range was requested. Users without Premium
+     * get a longer range of real data in the extended view than in the basic one.
+     */
+    extended?: boolean;
+    /**
      * Optional source of query
      */
     source?: 'detail' | 'detail-preload' | 'hp' | 'favs' | 'favs-on-top' | 'alerts' | 'embedded-meteogram' | 'multiload';
@@ -37,7 +46,7 @@ export declare const getNowPointForecastUrl: (model: PointProducts, { lat, lon }
 /**
  * Gets point forecast data for given location
  */
-export declare const getPointForecastData: <K extends DataHash2 | AirQDataHash2 = DataHash2>(model: PointProducts, { lat, lon, step, days: requiredDays, source }: PointForecastOptions, includeInQueryString?: IncludeInQueryString | undefined | null, httpOptions?: HttpOptions) => Promise<http.HttpPayload<WeatherDataPayload2<K>>>;
+export declare const getPointForecastData: <K extends DataHash2 | AirQDataHash2 = DataHash2>(model: PointProducts, { lat, lon, step, days: requiredDays, interpolate, source, extended }: PointForecastOptions, includeInQueryString?: IncludeInQueryString | undefined | null, httpOptions?: HttpOptions) => Promise<http.HttpPayload<WeatherDataPayload2<K>>>;
 export interface DetailPointForecastOptions extends LatLon {
     model: PointProducts;
     days: number;

@@ -19,6 +19,10 @@ import type { Pixel } from '@windy/types';
  */
 export declare const layerOrder: {
     /**
+     * Simple layer that just clears the alpha channel of all pixels to 1.
+     */
+    ALPHA_CLEAR: number;
+    /**
      * Used for the colored land-sea layer. Bottom of the stack.
      */
     LANDSEA_MASK_COLORED: number;
@@ -47,6 +51,10 @@ export declare const layerOrder: {
      * Draws above the weather layers and land/sea mask.
      */
     BASE_MAP: number;
+    /**
+     * Draw topo map over base map, but otherwise use the same place in the layer stack.
+     */
+    TOPO_MAP: number;
     /**
      * Bucket where particles are moved if the map is zoomed in enough to show outdoor map instead of the grey base map.
      */

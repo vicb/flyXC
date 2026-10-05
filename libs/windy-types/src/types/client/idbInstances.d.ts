@@ -2,9 +2,11 @@ import { IDB } from '@windy/IDB';
 import type { MarkedNotams } from '@plugins/airport/airport';
 import type { AnyColorIdent, UserColor } from '@windy/Color';
 import type { AlertRequest, StoredAlert } from '@windy/alerts';
+import type { AnyDashboardItem, Dashboard, Organization } from '@windy/dashboards';
 import type { Fav, FavFragment } from '@windy/favs.d';
 import type { CapAlertSlided, InstalledExternalPluginConfig } from '@windy/interfaces';
 import type { PromoInfoObject } from '@windy/promo';
+import type { Pixel } from '@windy/types';
 /** Db of stored user favourites */
 export declare const userFavsIdb: IDB<string, Fav, FavFragment>;
 export declare const searchRecentsIdb: IDB<string, (import("@plugins/search/search").SearchRecentItem & import("@plugins/search/search").RequiredSearchItemProperties & import("@windy/interfaces").LatLon & import("@plugins/search/search").CountryAndRegionInformation & {
@@ -25,17 +27,18 @@ export declare const searchRecentsIdb: IDB<string, (import("@plugins/search/sear
     type: "radiosonde";
     id: string;
 }) | (import("@plugins/search/search").SearchRecentItem & import("@plugins/search/search").RequiredSearchItemProperties & import("@windy/interfaces").LatLon & import("@plugins/search/search").CountryAndRegionInformation & {
+    /** Log of locations, that user uses on this device */
     type: import("@plugins/search/search").StandardSearchType;
 }) | (import("@plugins/search/search").SearchRecentItem & import("@plugins/search/search").RequiredSearchItemProperties & {
     type: "windy-overlay";
-    ident: "visibility" | "go3" | "no2" | "pm2p5" | "radar" | "satellite" | "wind" | "gust" | "gustAccu" | "turbulence" | "icing" | "rain" | "rainAccu" | "snowAccu" | "snowcover" | "ptype" | "thunder" | "temp" | "dewpoint" | "rh" | "deg0" | "wetbulbtemp" | "solarpower" | "uvindex" | "clouds" | "hclouds" | "mclouds" | "lclouds" | "fog" | "cloudtop" | "cbase" | "cape" | "ccl" | "waves" | "swell1" | "swell2" | "swell3" | "wwaves" | "sst" | "currents" | "currentsTide" | "wavePower" | "aqi" | "aod550" | "gtco3" | "tcso2" | "cosc" | "dustsm" | "pressure" | "efiTemp" | "efiWind" | "efiRain" | "capAlerts" | "avalancheDanger" | "soilMoisture40" | "soilMoisture100" | "moistureAnom40" | "moistureAnom100" | "drought40" | "drought100" | "fwi" | "dfm10h" | "dfm100h" | "dfm1000h" | "heatmaps" | "topoMap" | "hurricanes";
+    ident: "hurricanes" | "ptype" | "fwi" | "uvindex" | "visibility" | "radar" | "satellite" | "wind" | "gust" | "gustAccu" | "turbulence" | "icing" | "rain" | "rainAccu" | "snowAccu" | "snowcover" | "thunder" | "temp" | "dewpoint" | "rh" | "deg0" | "wetbulbtemp" | "solarpower" | "clouds" | "hclouds" | "mclouds" | "lclouds" | "fog" | "cloudtop" | "cbase" | "cape" | "ccl" | "waves" | "swell1" | "swell2" | "swell3" | "wwaves" | "sst" | "currents" | "currentsTide" | "wavePower" | "aqi" | "no2" | "pm2p5" | "aod550" | "gtco3" | "tcso2" | "go3" | "cosc" | "dustsm" | "pressure" | "efiTemp" | "efiWind" | "efiRain" | "capAlerts" | "avalancheDanger" | "soilMoisture40" | "soilMoisture100" | "moistureAnom40" | "moistureAnom100" | "drought40" | "drought100" | "dfm10h" | "dfm100h" | "dfm1000h" | "heatmaps" | "topoMap";
     thumbnailUrl: string;
     noValidLocation: true;
     addShakyClass: true;
     doNotSave: true;
 }) | (import("@plugins/search/search").SearchRecentItem & import("@plugins/search/search").RequiredSearchItemProperties & {
     type: "windy-poi";
-    ident: "cams" | "wind" | "temp" | "favs" | "cities" | "stations" | "precip" | "metars" | "pgspots" | "kitespots" | "surfspots" | "tide" | "firespots" | "airq" | "radiosonde" | "empty";
+    ident: "favs" | "wind" | "temp" | "cams" | "airq" | "cities" | "stations" | "precip" | "metars" | "pgspots" | "kitespots" | "surfspots" | "tide" | "firespots" | "radiosonde" | "empty";
     poiIcon: import("../../types/iconfont").Iconfont;
     noValidLocation: true;
     addShakyClass: true;
@@ -81,17 +84,18 @@ export declare const searchRecentsIdb: IDB<string, (import("@plugins/search/sear
     type: "radiosonde";
     id: string;
 }) | (import("@plugins/search/search").SearchRecentItem & import("@plugins/search/search").RequiredSearchItemProperties & import("@windy/interfaces").LatLon & import("@plugins/search/search").CountryAndRegionInformation & {
+    /** Log of locations, that user uses on this device */
     type: import("@plugins/search/search").StandardSearchType;
 }) | (import("@plugins/search/search").SearchRecentItem & import("@plugins/search/search").RequiredSearchItemProperties & {
     type: "windy-overlay";
-    ident: "visibility" | "go3" | "no2" | "pm2p5" | "radar" | "satellite" | "wind" | "gust" | "gustAccu" | "turbulence" | "icing" | "rain" | "rainAccu" | "snowAccu" | "snowcover" | "ptype" | "thunder" | "temp" | "dewpoint" | "rh" | "deg0" | "wetbulbtemp" | "solarpower" | "uvindex" | "clouds" | "hclouds" | "mclouds" | "lclouds" | "fog" | "cloudtop" | "cbase" | "cape" | "ccl" | "waves" | "swell1" | "swell2" | "swell3" | "wwaves" | "sst" | "currents" | "currentsTide" | "wavePower" | "aqi" | "aod550" | "gtco3" | "tcso2" | "cosc" | "dustsm" | "pressure" | "efiTemp" | "efiWind" | "efiRain" | "capAlerts" | "avalancheDanger" | "soilMoisture40" | "soilMoisture100" | "moistureAnom40" | "moistureAnom100" | "drought40" | "drought100" | "fwi" | "dfm10h" | "dfm100h" | "dfm1000h" | "heatmaps" | "topoMap" | "hurricanes";
+    ident: "hurricanes" | "ptype" | "fwi" | "uvindex" | "visibility" | "radar" | "satellite" | "wind" | "gust" | "gustAccu" | "turbulence" | "icing" | "rain" | "rainAccu" | "snowAccu" | "snowcover" | "thunder" | "temp" | "dewpoint" | "rh" | "deg0" | "wetbulbtemp" | "solarpower" | "clouds" | "hclouds" | "mclouds" | "lclouds" | "fog" | "cloudtop" | "cbase" | "cape" | "ccl" | "waves" | "swell1" | "swell2" | "swell3" | "wwaves" | "sst" | "currents" | "currentsTide" | "wavePower" | "aqi" | "no2" | "pm2p5" | "aod550" | "gtco3" | "tcso2" | "go3" | "cosc" | "dustsm" | "pressure" | "efiTemp" | "efiWind" | "efiRain" | "capAlerts" | "avalancheDanger" | "soilMoisture40" | "soilMoisture100" | "moistureAnom40" | "moistureAnom100" | "drought40" | "drought100" | "dfm10h" | "dfm100h" | "dfm1000h" | "heatmaps" | "topoMap";
     thumbnailUrl: string;
     noValidLocation: true;
     addShakyClass: true;
     doNotSave: true;
 }) | (import("@plugins/search/search").SearchRecentItem & import("@plugins/search/search").RequiredSearchItemProperties & {
     type: "windy-poi";
-    ident: "cams" | "wind" | "temp" | "favs" | "cities" | "stations" | "precip" | "metars" | "pgspots" | "kitespots" | "surfspots" | "tide" | "firespots" | "airq" | "radiosonde" | "empty";
+    ident: "favs" | "wind" | "temp" | "cams" | "airq" | "cities" | "stations" | "precip" | "metars" | "pgspots" | "kitespots" | "surfspots" | "tide" | "firespots" | "radiosonde" | "empty";
     poiIcon: import("../../types/iconfont").Iconfont;
     noValidLocation: true;
     addShakyClass: true;
@@ -124,20 +128,30 @@ export declare const searchRecentsIdb: IDB<string, (import("@plugins/search/sear
 export declare const userAlertsIdb: IDB<string, StoredAlert, AlertRequest>;
 /** Db of stored notams marked as read */
 export declare const markedNotamsIdb: IDB<`${string}_${string}/${string}`, MarkedNotams, MarkedNotams>;
-/** Upvoted articles */
-export declare const upvotedArticlesIdb: IDB<string | number, true, true>;
-/** Upvoted comments, keyed by articleId */
-export declare const upvotedCommentsIdb: IDB<number, string[], string[]>;
 /** Seen promos */
 export declare const seenPromosIdb: IDB<string, PromoInfoObject, PromoInfoObject>;
 /** Custom user colors  */
 export declare const customColorsIdb: IDB<AnyColorIdent, UserColor, UserColor>;
+/** Dashboards belonging to the current user */
+export declare const dashboardsIdb: IDB<string, Dashboard, Dashboard>;
+/** Items belonging to dashboards */
+export declare const dashboardItemsIdb: IDB<string, AnyDashboardItem, AnyDashboardItem>;
+/**
+ * User's organizations (with nested groups)
+ */
+export declare const userOrganizationsIdb: IDB<string, Organization, Organization>;
 /** Cap alerts that were slided from left to right on startup screen */
 export declare const slidedCapAlertsIdb: IDB<string, CapAlertSlided, CapAlertSlided>;
 /** Log of pages & events that happened on this device */
-export declare const logIdb: IDB<`version/${string}` | `path/${string}` | `airport/${string}` | `station/${string}` | `pois/${string}` | `subscription/${string}` | `garmin/${string}` | `onboarding/${string}` | `articles/${string}` | `plugin/${string}` | `overlay/${string}` | `level/${string}` | `acRange/${string}` | `levelsRange/${string}` | `isolinesType/${string}` | `isolinesOn/${string}` | `product/${string}` | `startup/${string}` | `404/${string}` | `promo/${string}` | `appRating/${string}` | `appOpening/${string}` | `detail2/${string}` | `appsflyer/${string}` | `weather/${string}` | `events/${string}` | `locationPermissionPopup/${string}` | `widgetPromo/${string}` | `storyEvent/${string}` | `routePlanner/${string}` | `garminEdge/${string}`, number, number>;
+export declare const logIdb: IDB<`airport/${string}` | `articles/${string}` | `dashboards/${string}` | `garmin/${string}` | `onboarding/${string}` | `station/${string}` | `subscription/${string}` | `pois/${string}` | `version/${string}` | `path/${string}` | `plugin/${string}` | `overlay/${string}` | `level/${string}` | `acRange/${string}` | `levelsRange/${string}` | `isolinesType/${string}` | `isolinesOn/${string}` | `product/${string}` | `startup/${string}` | `404/${string}` | `promo/${string}` | `appRating/${string}` | `appOpening/${string}` | `detail2/${string}` | `appsflyer/${string}` | `weather/${string}` | `events/${string}` | `locationPermissionPopup/${string}` | `widgetPromo/${string}` | `storyEvent/${string}` | `routePlanner/${string}` | `garminEdge/${string}`, number, number>;
 /** Log of locations, that user uses on this device */
 export declare const popularLocationsIdb: IDB<string, number, number>;
 /** Installed external plugins  */
 export declare const installedPluginsIdb: IDB<string, InstalledExternalPluginConfig, InstalledExternalPluginConfig>;
+/** Last saved plugin state (e.g. resized width) */
+export declare const lastPluginStateIdb: IDB<keyof import("../pluginSystem/plugins").Plugins, {
+    width: Pixel;
+}, {
+    width: Pixel;
+}>;
 export declare const clearIndexedDB: () => Promise<void>;

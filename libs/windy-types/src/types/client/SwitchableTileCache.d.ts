@@ -13,6 +13,7 @@ import type { Cache } from '@windy/tileHelpers';
 export declare class SwitchableTileCache<TTile> {
     private _nextCache;
     private _currentCache;
+    private _switchToNext;
     private _keepBuffer;
     private _maxLowerZoom;
     private _maxHigherZoom;
@@ -52,6 +53,7 @@ export declare class SwitchableTileCache<TTile> {
      * You may not pass the same instance of a tle cache to this function multiple times.
      */
     setCache(cache: Cache<TTile>): void;
+    forceSwitch(): void;
     /**
      * Updates the caches with the map's current view and zoom.
      * Call every time the map moves.

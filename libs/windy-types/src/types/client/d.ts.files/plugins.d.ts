@@ -18,6 +18,7 @@ export interface BottomSveltePlugins {
 }
 
 export interface SveltePanePlugins {
+    dashboards: SveltePanePlugin<'dashboards'>;
     favs: SveltePanePlugin<'favs'>;
     'alerts-edit': SveltePanePlugin<'alerts-edit'>;
     alerts: SveltePanePlugin<'alerts'>;
@@ -45,7 +46,6 @@ export interface SveltePopupPlugins {
     login: SveltePopupPlugin<'login'>;
     subscription: SveltePopupPlugin<'subscription'>;
     consent: SveltePopupPlugin<'consent'>;
-    'default-model-selector': SveltePopupPlugin<'default-model-selector'>;
 }
 
 export interface SveltePlugins {
@@ -113,6 +113,7 @@ export interface TagPlugins {
     'poi-libs': TagPlugin<'poi-libs'>;
     picker: TagPlugin<'picker'>;
     globe: TagPlugin<'globe'>;
+    'distance-desktop': TagPlugin<'distance-desktop'>;
 }
 
 // Includes plain plugins

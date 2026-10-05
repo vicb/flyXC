@@ -6,6 +6,7 @@ export type PoisCheckboxeDef = {
     checkboxTranslation?: keyof LoadedTranslations;
     checkboxText?: string;
     bindStore: keyof DataSpecifications;
+    dataTestId?: string;
 };
 
 export type PoisCheckboxes = Record<Pois, PoisCheckboxeDef[]>;

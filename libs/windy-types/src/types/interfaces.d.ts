@@ -57,6 +57,16 @@ export interface ExportedObj {
     default?: unknown;
 }
 
+export interface ResizableConfig {
+    min: Pixel;
+    max: Pixel;
+    initialWidth: Pixel;
+}
+
+export interface ExtendedResizableConfig extends ResizableConfig {
+    pluginIdent: keyof Plugins;
+}
+
 /**
  * # LatLon
  *
@@ -1153,6 +1163,15 @@ export interface LinearScale {
 }
 
 /**
+ * Scale where a linear position within the domain drives a geometric interpolation
+ * between the range endpoints (aka exponential scale). Inspired by d3 log scale.
+ */
+export interface ScaleExponential {
+    get: (val: NumValue) => Pixel;
+    invert: (val: NumValue) => Pixel;
+}
+
+/**
  * Main GDPR, privacy or cookie consent object
  */
 export interface Consent {
@@ -1378,7 +1397,7 @@ export interface InstalledExternalPluginConfig extends CompiledExternalPluginCon
     /**
      * From which process was plugin installed
      */
-    installedBy: 'dev' | 'gallery' | 'url';
+    installedBy: 'dev' | 'gallery' | 'url' | 'dashboard';
 
     /**
      * When was this plugin installed by specific user

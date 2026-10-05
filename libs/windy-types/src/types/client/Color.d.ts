@@ -90,16 +90,16 @@ export declare class Color {
      * Use only for few colors that are used
      * for initial rendering and overall app, like temp, wind
      */
-    private prepare?;
+    private _prepare?;
     /** Set all alpha values to 255.  By default is set true */
-    private opaque?;
+    private _opaque?;
     /** Initial gradient */
-    private initialColorGradient;
+    private _initialColorGradient;
     /** Initial gradient, that was parsed to RGBA arrays from RGBAStrings */
-    private defaultColorGradient?;
+    private _defaultColorGradient?;
     /** Custom modified gradient */
-    private customColorGradient?;
-    private minMaxValue?;
+    private _customColorGradient;
+    private _minMaxValue?;
     private _precomputedGradient;
     /** Ident of color */
     ident: AnyColorIdent;
@@ -115,8 +115,10 @@ export declare class Color {
      * The maximum of the value range for which the gradient is generated.
      */
     get max(): number;
+    get customColorsLoaded(): boolean;
+    get defaultColorGradient(): ColorGradient;
     constructor(params: ColorInitParams);
-    loadCustomColor(): Promise<void>;
+    reloadCustomColor(): Promise<void>;
     hasCustomColor(): boolean;
     /**
      * Updates custom color gradient
@@ -150,3 +152,8 @@ export declare class Color {
     RGBA(value: NumValue): RGBA;
     private _generatePrecomputedColors;
 }
+/**
+ * Returns true if the two supplied gradient are value-equal (they need not be reference equal for true to be returned).
+ */
+export declare function valueCompareGradients(a: ColorGradient | null | undefined, b: ColorGradient | null | undefined): boolean;
+export declare function getGradientJsonImportable(gradient: ColorGradient): string;

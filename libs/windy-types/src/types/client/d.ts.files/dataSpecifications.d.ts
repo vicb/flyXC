@@ -29,7 +29,6 @@ import {
     RouteMotionSpeed,
     UsedMapLibrary,
     UserInterest,
-    DefaultPointModel,
     type ISOCountryCode,
     type AnimationSpeed,
     type DetailDisplayType,
@@ -39,13 +38,16 @@ import { MetricItem } from '@windy/Metric.d';
 
 import type { LoginAndFinishAction, User } from '@windy/user.d';
 
+import type { LastActiveOrganizationSnapshot } from '@windy/dashboards';
+
 import type { SubscriptionInfo } from '@plugins/shared/subscription-services/subscription-services.d';
-import type RadarCalendar from '@plugins/radar-plus/calendar/radarCalendar';
 import type { SatelliteCalendar } from '@plugins/radar-plus/calendar/satelliteCalendar';
 import type { NumberRange } from '@windy/alerts.d';
 import type { FavType } from '@windy/favs.d';
-import type { Range } from '@plugins/shared/radSatGui/context';
 import type { TiledPoiClasses } from '@plugins/poi-libs/poi-libs.d';
+import type { Range } from '@plugins/shared/radSatGui/context';
+import type { RadarCalendar } from '@plugins/radar-plus/calendar/radarCalendar';
+import type { GlobePromoControls } from '@plugins/globe/main/GlobeControl';
 
 /**
  * Custom animation particles settings
@@ -510,7 +512,7 @@ export interface DataSpecifications {
     /**
      * Enable/disable synchronization of forecast time with map timestamp on mobile
      */
-    detailSyncTimeWithMap: DataSpecificationsObject<boolean>;
+    detailSyncTimeWithMap2: DataSpecificationsObject<boolean>;
 
     /**
      * Whether to DEBUG detail related stuff
@@ -551,6 +553,11 @@ export interface DataSpecifications {
      * Sound for lightning flash effect on radar
      */
     blitzSoundOn: DataSpecificationsObject<boolean>;
+
+    /**
+     * Render mode for lightning data - for satellite we use higher contrast
+     */
+    blitzRenderMode: DataSpecificationsObject<'normal' | 'satellite'>;
 
     /**
      * Whether to render baseLayer using tiles with thick borders
@@ -707,6 +714,20 @@ export interface DataSpecifications {
     badgeNumber: DataSpecificationsObject<number>;
 
     /**
+     * Id of the most recently opened dashboard. Read by the avatar/org entry-point
+     * to "resume" the user into their last dashboard. `null` if the user has never
+     * opened one.
+     */
+    lastOpenedDashboardId: DataSpecificationsObject<string | null>;
+
+    /**
+     * Snapshot of the last-active organization (id + name + logoUrl), persisted so
+     * the avatar-adjacent org logo can paint on cold reload before the orgs fetch
+     * resolves. Reconciled against the fresh `account` org list when it arrives.
+     */
+    lastActiveOrganization: DataSpecificationsObject<LastActiveOrganizationSnapshot | null>;
+
+    /**
      * Major object holding user info
      * { username, avatar, userslug, email }
      * @ignore
@@ -831,9 +852,19 @@ export interface DataSpecifications {
     changeDetailOnMapDrag: DataSpecificationsObject<boolean>;
 
     /**
-     * Timestamp in ms
+     * Radar-plus render time in ms
+     * TODO: Could be deprecated and removed
      */
     radsatTimestamp: DataSpecificationsObject<Timestamp>;
+
+    /**
+     * Timestamp of the last rendered frame respecting the timestamp of data used to render it
+     *  - used for multiple plugins rendering synchronization
+     *  - timestamp managed by the driving (data heavy) plugin (e.g. radar-plus, etc.) and updated on every render
+     *  - timestamp consumed by other plugins (data lightweight) to synchronize their rendering with the driving plugin
+     *  - e.g. set by radar-plus (since it loads lots of data), consumed by lightnings so they don't render ahead of radar-plus
+     */
+    lastRenderedTimestamp: DataSpecificationsObject<Timestamp | null>;
 
     /**
      * Display this type of WX stations on POI map
@@ -935,9 +966,14 @@ export interface DataSpecifications {
     pinMenuActiveTab: DataSpecificationsObject<'models' | 'layers'>;
 
     /*
-     * Range of the currently used segment
+     * Range of the currently used segment - do not mix with (animation) range, which changes by clicking range input
      */
     radarPlusSegmentRange: DataSpecificationsObject<Range>;
+
+    /*
+     * Active animation range while playing, else null - mirrors the radar-plus `range` store so the shared lightnings module can read it without depending on the plugin.
+     */
+    radarPlusAnimationRange: DataSpecificationsObject<Range | null>;
 
     /**
      * Whether the debug performance overlay (frametimes & FPS) is enabled (DEBUG type setting)
@@ -992,9 +1028,10 @@ export interface DataSpecifications {
     multimodelBlockedModels: DataSpecificationsObject<PointProducts[]>;
 
     /**
-     * Defaul point forecast model or null. Nell menas user did not choose default model and yet
+     * True when a loader for the main tile layer (placed above the calendar) is requested.
      */
-    userSelectedPointFcstModel: DataSpecificationsObject<DefaultPointModel | null>;
+    tileLayerLoaderPresent: DataSpecificationsObject<boolean>;
+    promoControls: DataSpecificationsObject<GlobePromoControls>;
 }
 
 /**

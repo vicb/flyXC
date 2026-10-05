@@ -11,7 +11,7 @@
 import * as http from '@windy/http';
 import type { CityTemperaturesDto } from '@windy-types/citytile2';
 import type { LatLon, CapAlertHeadline, ActiveStormCountPayload, TZinfo, NativeAppsReleaseInfo } from '@windy/interfaces.d';
-import type { RadarMinifest } from '@plugins/radar-plus/types';
+import type { RadarMinifest, RadarArchiveMinifest } from '@plugins/radar-plus/types';
 import type { Pois, Products } from '@windy/rootScope.d';
 import type { SatelliteCompositeJson, SatelliteRangeJson } from '@windy/satellite.d';
 import type { ExtendedStationType, NumValue, Pixel, StationOrPoiType } from '@windy/types';
@@ -77,7 +77,7 @@ export declare const getSatelliteArchiveRangeInfo: () => Promise<HttpPayload<Sat
  * Loads Radar Product info
  */
 export declare const getRadarInfo: () => Promise<HttpPayload<RadarMinifest>>;
-export declare const getRadarArchiveInfo: () => Promise<HttpPayload<RadarMinifest>>;
+export declare const getRadarArchiveInfo: () => Promise<HttpPayload<RadarArchiveMinifest>>;
 export declare const getRadarCoverage: () => Promise<HttpPayload<number[]>>;
 export declare const getHurricanesList: () => Promise<HttpPayload<StormListJSON>>;
 /**

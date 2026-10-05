@@ -98,30 +98,7 @@ async function main() {
     fs.cpSync(extractedTypesPath, typesDir, { recursive: true });
   }
 
-  // 3. Generate windy-exports.d.ts from pristine types/client/commonExports.d.ts
-  const commonExportsFile = path.join(typesDir, 'client/commonExports.d.ts');
-  const windyExportsFile = path.join(srcDir, 'windy-exports.d.ts');
-  if (fs.existsSync(commonExportsFile)) {
-    console.log('Generating windy-exports.d.ts from pristine client/commonExports.d.ts...');
-    const content = fs.readFileSync(commonExportsFile, 'utf8');
-    const exportLines = content
-      .split('\n')
-      .map((line) => line.replace(/from\s+['"]\.\/[^'"]+\/([^'"]+)['"]/g, "from './types/client/$1'"))
-      .filter((line) => line.startsWith('export '));
-
-    exportLines.sort((a, b) => a.localeCompare(b));
-
-    const transformed = [
-      '// This file is auto-generated from types/client/commonExports.d.ts by update.js.',
-      '// DO NOT EDIT DIRECTLY.',
-      '',
-      ...exportLines,
-      '',
-    ].join('\n');
-    fs.writeFileSync(windyExportsFile, transformed, 'utf8');
-  }
-
-  // 4. Discover all .d.ts files and generate ambient module declarations
+  // 3. Discover all .d.ts files and generate ambient module declarations
   console.log('Generating index.d.ts with ambient @windy/* and global W declarations...');
   const moduleDeclarations = [];
   const registeredModules = new Set();
@@ -200,7 +177,7 @@ async function main() {
     `// Source package: @windycom/plugin-devtools@${cleanVersion}`,
     '// DO NOT EDIT DIRECTLY.',
     '',
-    "import type * as WindyExports from './windy-exports';",
+    "import type * as WindyExports from './types/client/commonExports';",
     '',
     'declare const W: typeof WindyExports;',
     '',
@@ -214,7 +191,7 @@ async function main() {
 
   fs.writeFileSync(path.join(srcDir, 'index.d.ts'), indexDtsContent, 'utf8');
 
-  // 5. Update package.json version
+  // 4. Update package.json version
   pkgData.version = cleanVersion;
   pkgData.exports = {
     '.': './src/index.d.ts',
@@ -225,7 +202,7 @@ async function main() {
   };
   fs.writeFileSync(pkgJsonFile, JSON.stringify(pkgData, null, 2) + '\n', 'utf8');
 
-  // 6. Cleanup tmpDir
+  // 5. Cleanup tmpDir
   if (tmpDir && fs.existsSync(tmpDir)) {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }

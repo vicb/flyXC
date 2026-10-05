@@ -17,6 +17,8 @@ export type DragInitParams = Pick<Drag, 'el'> & {
     ondrag?(x: number, y: number, e: MouseEvent | TouchEvent): void;
     ondragstart?(startXY: [number, number]): void;
     ondragend?(e: MouseEvent | TouchEvent): void;
+    /** Called instead of `ondragend` when the drag is aborted rather than dropped (eg. `destroy()` mid-drag). */
+    ondragcancel?(): void;
     bindedDrag?: (e: MouseEvent | TouchEvent) => void;
     bindedEndDrag?: (ev: MouseEvent | TouchEvent) => void;
     bindedStart?: (e: MouseEvent | TouchEvent) => void;
@@ -40,11 +42,13 @@ export declare class Drag {
     el: HTMLElement;
     constructor(params: DragInitParams);
     ondragend?(e: MouseEvent | TouchEvent): void;
+    ondragcancel?(): void;
     destroy(): void;
     ondragstart?(startXY: [number, number]): void;
     ondrag?(x: number, y: number, e: MouseEvent | TouchEvent): void;
     startDrag(e: MouseEvent | TouchEvent): void;
     protected endDrag(ev: MouseEvent | TouchEvent): void;
+    private removeWindowListeners;
     private getXY;
     private _drag;
 }

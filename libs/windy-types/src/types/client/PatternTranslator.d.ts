@@ -1,4 +1,4 @@
-import { Point } from "@leafletGl";
+import { PointLGL } from '@leafletGl';
 /**
  * This class computes pattern translation and opacity based on map movement.
  * Patterns are translated so that they move along with the map, unless zooming.
@@ -13,7 +13,7 @@ export declare class PatternTranslator {
     private _lastZooming;
     private _zooming;
     private _lastUpdateTime;
-    get translation(): Point;
+    get translation(): PointLGL;
     get opacity(): number;
     init(): void;
     update(textureSize: {

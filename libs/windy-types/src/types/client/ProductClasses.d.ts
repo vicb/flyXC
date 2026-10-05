@@ -38,9 +38,6 @@ export declare class FakeCalendarProduct extends Product {
     constructor(params: ProductInitParams);
     loadMinifest(): Promise<MinifestObject>;
 }
-export declare class NamProducts extends Product {
-    constructor(params: Partial<ProductInitParams>);
-}
 export declare class AccessProduct extends Product {
     constructor(params: Partial<ProductInitParams>);
 }

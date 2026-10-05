@@ -2,7 +2,7 @@
 import { HttpError } from '@windy/errors';
 import type { RegistrationError } from '@capacitor/push-notifications';
 import type { QueryStringSource } from '@windy/http.d';
-import type { LatLon, LinearScale, TilePoint } from '@windy/interfaces.d';
+import type { LatLon, LinearScale, ScaleExponential, TilePoint } from '@windy/interfaces.d';
 import type { RGBNumValues } from '@windy/interpolatorTypes';
 import type { ExtendedStationType, HTMLString, NumOrNull, NumValue, Path, Timestamp, TimeRangeMs, ParsedQueryString, RGBAString, RGBString, ColorGradientString, RGBA, Hours, YearMonthDay } from '@windy/types.d';
 import type { Vector3 } from '@windy/math';
@@ -176,10 +176,7 @@ export interface WindObject extends DirObject {
  * @param v Vector [u,v]
  * @returns Object { wind, dir }
  */
-export declare const wind2obj: ([u, v]: [
-    number,
-    number
-] | RGBNumValues) => WindObject;
+export declare const wind2obj: ([u, v]: [number, number] | RGBNumValues) => WindObject;
 export interface WaveObject extends DirObject {
     period: number;
     size: number;
@@ -283,13 +280,6 @@ export declare const unitXToLonRad: (ux: number) => number;
  * @returns Rad value
  */
 export declare const unitYToLatRad: (uy: number) => number;
-/**
- * Returns adjusted Date.now()
- *
- * @param syncTime Synchronization value (ts from server)
- * @returns Current time
- */
-export declare const getAdjustedNow: (syncTime?: number) => number;
 /**
  * Is valid lang ISO string (the one we have translated?)
  *
@@ -440,6 +430,24 @@ export declare const scaleLinear: ({ domain, range, clip, }: {
     range: [number, number];
     clip?: boolean;
 }) => LinearScale;
+/**
+ * Like {@link scaleLinear}, but a linear position within the domain drives a geometric
+ * interpolation between the range endpoints (aka exponential scale). Reduces to
+ * `out = rangeStart * (rangeEnd / rangeStart) ^ ((val - domainStart) / domainSpan)`.
+ *
+ * Example: `scaleExponential({ domain: [3, 11], range: [1 / 256, 1], clip: true })` maps
+ * zoom `z` to `2 ^ (z - 3) / 256`, doubling every step (base 2 is implied by the range ratio).
+ *
+ * Both range endpoints must be non-zero and share the same sign.
+ * https://d3js.org/d3-scale/log
+ * @param Object { domain: [ ], range: [ ] }
+ * @returns Object { get, invert }
+ */
+export declare const scaleExponential: ({ domain, range, clip, }: {
+    domain: [number, number];
+    range: [number, number];
+    clip?: boolean;
+}) => ScaleExponential;
 export declare const maxCanvasRatio = 2;
 /**
  * Unified canvasRatio used in overall Windy. Not bigger than maxCanvasRatio
@@ -547,9 +555,9 @@ export declare function extractTileCoordsUrlPositionsFromParametricUrl(url: stri
  * @summary Modifies the input leaflet zoom based on the currently used map library
  *  - maplibre zoom is offset by 1 from the leaflet zoom, since Leaflet uses
  *  zoom computed wrt 256px tile while maplibre uses 512px tile as base size
- * @param leafletZoom Leaflet-based zoom level
+ * @param maplibreZoom Leaflet-based zoom level
  */
-export declare const offsetLeafletZoom: (leafletZoom: number) => number;
+export declare const getLeafletZoom: (maplibreZoom: number) => number;
 /**
  * Used for Svelte stores
  * Sometimes we only want to subscribe to changes in store and don't want to be called with initial value

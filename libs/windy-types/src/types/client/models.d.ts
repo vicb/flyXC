@@ -2,7 +2,6 @@ import type { Layers } from '@windy/Layer';
 import type { UsedOverlays } from '@windy/Overlay';
 import type { LatLon } from '@windy/interfaces.d';
 import type { Overlays, PointProducts, Products } from '@windy/rootScope.d';
-import type { DefaultPointModel } from '@windy/types';
 type LayerOrOverlay = Layers | UsedOverlays;
 /**
  * Layer <--> product relations
@@ -23,7 +22,7 @@ export declare const bestModelFromSameGroup: (rqrdProduct: PointProducts, avProd
 /**
  * Return idents of visible local products available in the current map boundaries (or empty array undefined)
  */
-export declare const betterProducts: <T extends LatLon, PT extends boolean, R extends PT extends true ? "icon" | "ecmwfWaves" | "gfsWaves" | "iconEuWaves" | "jmaCwmWaves" | "canRdwpsWaves" | "mblue" | "gfs" | "ecmwf" | "namConus" | "namHawaii" | "namAlaska" | "iconD2" | "iconEu" | "arome" | "aromeAntilles" | "aromeFrance" | "aromeReunion" | "canHrdps" | "camsEu" | "czeAladin" | "hrrrAlaska" | "hrrrConus" | "bomAccess" | "bomAccessAd" | "bomAccessBn" | "bomAccessDn" | "bomAccessNq" | "bomAccessPh" | "bomAccessSy" | "bomAccessVt" | "ukv" | "jmaMsm" | "cams" : "icon" | "ecmwfWaves" | "gfsWaves" | "iconEuWaves" | "jmaCwmWaves" | "canRdwpsWaves" | "mblue" | "gfs" | "ecmwf" | "namConus" | "namHawaii" | "namAlaska" | "iconD2" | "iconEu" | "arome" | "aromeAntilles" | "aromeFrance" | "aromeReunion" | "canHrdps" | "camsEu" | "czeAladin" | "hrrrAlaska" | "hrrrConus" | "bomAccess" | "bomAccessAd" | "bomAccessBn" | "bomAccessDn" | "bomAccessNq" | "bomAccessPh" | "bomAccessSy" | "bomAccessVt" | "ukv" | "jmaMsm" | "cams" | "radar" | "satellite" | "capAlerts" | "avalancheDanger" | "topoMap" | "nems" | "ecmwfAnalysis" | "efi" | "cmems" | "drought" | "fireDanger" | "activeFires">(latLon: T, pointFcts?: PT) => R[];
+export declare const betterProducts: <T extends LatLon, PT extends boolean, R extends PT extends true ? "mblue" | "gfs" | "ecmwf" | "ecmwfWaves" | "gfsWaves" | "icon" | "cams" | "iconEu" | "iconD2" | "arome" | "aromeAntilles" | "aromeFrance" | "aromeReunion" | "canHrdps" | "canRdwpsWaves" | "camsEu" | "czeAladin" | "iconEuWaves" | "hrrrAlaska" | "hrrrConus" | "bomAccess" | "bomAccessAd" | "bomAccessBn" | "bomAccessDn" | "bomAccessNq" | "bomAccessPh" | "bomAccessSy" | "bomAccessVt" | "ukv" | "jmaMsm" | "jmaCwmWaves" : "drought" | "radar" | "satellite" | "capAlerts" | "avalancheDanger" | "topoMap" | "mblue" | "gfs" | "ecmwf" | "ecmwfAnalysis" | "ecmwfWaves" | "gfsWaves" | "icon" | "cams" | "efi" | "cmems" | "fireDanger" | "activeFires" | "nems" | "iconEu" | "iconD2" | "arome" | "aromeAntilles" | "aromeFrance" | "aromeReunion" | "canHrdps" | "canRdwpsWaves" | "camsEu" | "czeAladin" | "iconEuWaves" | "hrrrAlaska" | "hrrrConus" | "bomAccess" | "bomAccessAd" | "bomAccessBn" | "bomAccessDn" | "bomAccessNq" | "bomAccessPh" | "bomAccessSy" | "bomAccessVt" | "ukv" | "jmaMsm" | "jmaCwmWaves">(latLon: T, pointFcts?: PT) => R[];
 /**
  * Return product string on a basis of overlay & wanted forecast model
  */
@@ -40,7 +39,7 @@ export declare const getPointProducts: <T extends LatLon>(latLon: T) => PointPro
  * Returns wave products available for given location
  */
 export declare const getWavePointProducts: <T extends LatLon>(latLon: T) => PointProducts[];
-export declare const getDefaultPointProduct: () => DefaultPointModel;
+export declare const getDefaultPointProduct: () => PointProducts;
 /**
  * Sorts point products according to productsSorting order.
  * Products listed in the sorting array come first (in that order),

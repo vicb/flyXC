@@ -63,7 +63,7 @@ export declare class GlTexture {
      * @param premultiply flag, whether to premultiply RGB channels by Alpha channel before uploading data to the GPU (UNPACK_PREMULTIPLY_ALPHA_WEBGL)
      * ToDo: mip-maps, per-coordinate wrap, per mag/min filtering
      */
-    updateContent(gl: WebGLRenderingContext | WebGL2RenderingContext, data: HTMLImageElement | [Uint8Array, Vector2] | [Uint8ClampedArray, Vector2] | HTMLCanvasElement | ImageBitmap, wrap?: GLenum, filter?: GLenum, premultiply?: boolean): void;
+    updateContent(gl: WebGLRenderingContext | WebGL2RenderingContext, data: HTMLImageElement | [Uint8Array, Vector2] | [Uint8ClampedArray, Vector2] | HTMLCanvasElement | ImageBitmap | ImageData, wrap?: GLenum, filter?: GLenum, premultiply?: boolean): void;
     create(gl: WebGLRenderingContext | WebGL2RenderingContext, width: number, height: number): void;
     /**
      * @summary Binds the texture for rendering and other operations
