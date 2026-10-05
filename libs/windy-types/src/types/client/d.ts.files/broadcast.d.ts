@@ -27,6 +27,7 @@ import type { ParsedStartupValues } from '@windy/router';
 import type { ParsLocation as GlobeParsLocation } from '@plugins/globe/main/receiver.d';
 import type { Params as GlobeParams, Poi as GlobePoi } from '@plugins/globe/types.d';
 import type { ExtendedDataAndParams } from '@plugins/isolines/IsolinesCanvas2D.d';
+import type { Hurricanes } from '@plugins/shared/hurricanes/types';
 
 type BcastTypesNonGeneric = {
     /**
@@ -175,6 +176,10 @@ export interface BasicBcastTypes<T extends keyof Plugins> {
     /** @ignore */ glRestoreContext: [];
     /** @ignore */ glLoseContext: [];
     /** @ignore */ debugPrintTiles: []; // Used for debugging rare tile cache issues
+
+    /** @ignore */ hurricanesData: [Hurricanes | null];
+    /** @ignore */ hurricanesSelection: [string | null, string | null];
+    /** @ignore */ refreshDashboards: []; // Forces the dashboard instance in currentDashboard.ts to be refreshed from IDB - use when the IDB is modified from outside the dashboards plugin
 }
 
 interface BcastTypes<T extends keyof Plugins> extends BcastTypesNonGeneric, BasicBcastTypes<T> {}

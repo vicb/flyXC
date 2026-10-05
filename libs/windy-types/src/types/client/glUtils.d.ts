@@ -5,9 +5,10 @@ export { GlTexture } from '@windy/GlTexture';
 export { GlVertexArray } from '@windy/GlVertexArray';
 export { GlRenderer } from '@windy/GlRenderer';
 export { GlObj } from '@windy/GlObj';
+export { PixelReader } from '@windy/pixelReader';
 export type { UniformRecord, TypedArray, UniformDataType, Gl2ColorFormat, GlColorFormat, EXT_disjoint_timer_query, EXT_disjoint_timer_query_webgl2, } from '@windy/glUtils.d';
 import type { Vector2 } from './d.ts.files/math';
-import type { GlColorFormat } from './d.ts.files/glUtils.d';
+import type { GlBufferFormat, GlColorFormat } from './d.ts.files/glUtils.d';
 type GlUtils = {
     placeholderImageDataEmpty: ArrayBuffer | undefined;
     placeholderTextureEmpty: WebGLTexture | undefined;
@@ -101,7 +102,7 @@ export declare function createPlaceholderImageData(gl: WebGL2RenderingContext | 
  * @param type Type to get size of
  * @returns Size in bytes (per pixel in case of color format) of the given type
  */
-export declare function sizeOf(type: GlColorFormat): number;
+export declare function sizeOf(type: GlColorFormat | GlBufferFormat): number;
 /**
  * @summary Method for accessing texture format by its internal format for cases, when these two are not the same
  *  - specifically for special WebGL2 texture formats

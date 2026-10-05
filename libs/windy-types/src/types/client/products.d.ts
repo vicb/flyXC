@@ -33,9 +33,6 @@ type AllExportedProducts = Implements<{
     aromeFrance: AromeProduct;
     aromeReunion: AromeProduct;
     nems: Product;
-    namAlaska: Product;
-    namConus: Product;
-    namHawaii: Product;
     capAlerts: FakeCalendarProduct;
     efi: Product;
     radar: Product;

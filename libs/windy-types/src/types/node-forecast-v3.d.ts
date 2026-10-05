@@ -56,6 +56,7 @@ export const enum PrecipitationType {
     Snow = 4,
     WetSnow = 5,
     RainWithSnow = 6,
+    IcePellets = 7,
 }
 
 export type WindyMeteogramLevels =

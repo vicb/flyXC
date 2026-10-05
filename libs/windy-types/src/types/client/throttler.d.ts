@@ -1,8 +1,6 @@
-import type { LeafletGlMap } from '@leafletGl';
 export declare class Throttler {
     private _workItemEnergyAvailable;
     private _workItems;
-    private _map;
     private _interval;
     private _lastFrameTime;
     private _maxRefreshMs;
@@ -13,7 +11,7 @@ export declare class Throttler {
      */
     energyPerFrame: number;
     maxAccumulatedEnergy: number;
-    constructor(map: LeafletGlMap);
+    constructor();
     /**
      * Await this function inside an asynchronous work item that might trigger a long-running task.
      * Returns a promise that resolves once this work item is scheduled to run.
@@ -28,5 +26,5 @@ export declare class Throttler {
      */
     awaitThrottled(abort?: AbortSignal, priority?: number, weight?: number): Promise<void>;
     dispose(): void;
-    private _onNewFrame;
+    onNewFrame(): void;
 }

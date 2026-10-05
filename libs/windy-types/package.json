@@ -1,6 +1,6 @@
 {
   "name": "@flyxc/windy-types",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "description": "Clean, zero-config TypeScript definitions for Windy plugins extracted from @windycom/plugin-devtools.",
   "type": "module",
   "private": true,

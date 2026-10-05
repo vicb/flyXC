@@ -100,6 +100,10 @@ export interface AlertsLangFile {
      */
     ALERTS_TO_DELETE: string;
     /**
+     * alerts: Add to dashboard
+     */
+    ALERT_ADD_TO_DASHBOARD: string;
+    /**
      * alerts: I agree with Windy's <a href="{{link}}" target="_blank">conditions</a> for alert handling.
      */
     ALERT_ANALYTICS_CONSENT: string;
@@ -488,10 +492,6 @@ export interface AlertsLangFile {
      */
     ALERT_VALIDATION_ACCEPT_CONDITIONS: string;
     /**
-     * alerts: Description cannot be empty.
-     */
-    ALERT_VALIDATION_DESCRIPTION_REQUIRED: string;
-    /**
      * alerts: Some enabled conditions need more input.
      */
     ALERT_VALIDATION_FORECAST_INCOMPLETE: string;
@@ -658,6 +658,10 @@ export interface ArticlesLangFile {
      */
     ARTICLES_MAX_CHARS: string;
     /**
+     * articles: Ascending
+     */
+    ARTICLES_ORDER_ASC: string;
+    /**
      * articles: Order by:
      */
     ARTICLES_ORDER_BY: string;
@@ -665,6 +669,10 @@ export interface ArticlesLangFile {
      * articles: Date
      */
     ARTICLES_ORDER_DATE: string;
+    /**
+     * articles: Descending
+     */
+    ARTICLES_ORDER_DESC: string;
     /**
      * articles: Upvotes
      */
@@ -842,31 +850,519 @@ export interface ConsentLangFile {
     CONSENT_TITLE: string;
 }
 
-export interface DefaultmodelselectorLangFile {
+export interface DashboardsLangFile {
     /**
-     * defaultmodelselector: Recommended
+     * dashboards: Add to dashboard:
      */
-    DMS_BADGE_RECOMMENDED: string;
+    DASHBOARDS_ADD_ITEM_TO: string;
     /**
-     * defaultmodelselector: Combines multiple weather data sources with real-time radar and satellite observations for a more precise local result. Powered by {meteoblue}, continuously improved since 2018.
+     * dashboards: Add new item
      */
-    DMS_OPTION_AI_DESC: string;
+    DASHBOARDS_ADD_NEW_ITEM: string;
     /**
-     * defaultmodelselector: AI-enhanced forecast
+     * dashboards: Alert
      */
-    DMS_OPTION_AI_NAME: string;
+    DASHBOARDS_ALERT: string;
     /**
-     * defaultmodelselector: Direct output from a global weather model. Updated four times a day.
+     * dashboards: Click to see the forecast for this location
      */
-    DMS_OPTION_CLASSIC_DESC: string;
+    DASHBOARDS_ALERT_CLICK_HINT: string;
     /**
-     * defaultmodelselector: Classic forecast (current selection)
+     * dashboards: Create a new alert for this dashboard
      */
-    DMS_OPTION_CLASSIC_NAME: string;
+    DASHBOARDS_ALERT_CREATE: string;
     /**
-     * defaultmodelselector: How should we serve you a location forecast?
+     * dashboards: Create a shared weather alert for this dashboard. Any group member may subscribe to the alert and be notified when conditions are met. To create a new dashboard alert, navigate to the alerts menu and add one of your existing alerts or create a new dashboard alert by clicking on a desired location and using the option in the heart menu next to the search bar.
      */
-    DMS_TITLE: string;
+    DASHBOARDS_ALERT_DESC: string;
+    /**
+     * dashboards: Edit alert conditions
+     */
+    DASHBOARDS_ALERT_EDIT_CONDITIONS: string;
+    /**
+     * dashboards: Subscribe to this alert
+     */
+    DASHBOARDS_ALERT_SUBSCRIBE: string;
+    /**
+     * dashboards: Couldn't update your subscription. Please try again.
+     */
+    DASHBOARDS_ALERT_SUBSCRIBE_ERROR: string;
+    /**
+     * dashboards: You need to be a member of this group to subscribe.
+     */
+    DASHBOARDS_ALERT_SUBSCRIBE_FORBIDDEN: string;
+    /**
+     * dashboards: Unsubscribe
+     */
+    DASHBOARDS_ALERT_UNSUBSCRIBE: string;
+    /**
+     * dashboards: Color palette
+     */
+    DASHBOARDS_COLOR_PALETTE: string;
+    /**
+     * dashboards: Select from your custom palettes
+     */
+    DASHBOARDS_COLOR_PALETTE_ADD_EXISTING: string;
+    /**
+     * dashboards: Apply
+     */
+    DASHBOARDS_COLOR_PALETTE_APPLY: string;
+    /**
+     * dashboards: Color palette for {{overlay}}
+     */
+    DASHBOARDS_COLOR_PALETTE_DEFAULT_TITLE: string;
+    /**
+     * dashboards: Share custom color palettes with your organization. Create a palette in the color palette editor (Settings → Colors), then add it here.
+     */
+    DASHBOARDS_COLOR_PALETTE_DESC: string;
+    /**
+     * dashboards: Export
+     */
+    DASHBOARDS_COLOR_PALETTE_EXPORT: string;
+    /**
+     * dashboards: Open color palette editor
+     */
+    DASHBOARDS_COLOR_PALETTE_OPEN_EDITOR: string;
+    /**
+     * dashboards: Reset to default
+     */
+    DASHBOARDS_COLOR_PALETTE_RESET: string;
+    /**
+     * dashboards: Tap to copy
+     */
+    DASHBOARDS_COLOR_PALETTE_TAP_TO_COPY: string;
+    /**
+     * dashboards: Couldn't load dashboard
+     */
+    DASHBOARDS_COULDNT_LOAD: string;
+    /**
+     * dashboards: Custom color palette
+     */
+    DASHBOARDS_CUSTOM_COLOR_PALETTE_LABEL: string;
+    /**
+     * dashboards: Delete dashboard
+     */
+    DASHBOARDS_DELETE: string;
+    /**
+     * dashboards: Delete dashboard "{title}"?
+     */
+    DASHBOARDS_DELETE_CONFIRM: string;
+    /**
+     * dashboards: Couldn't delete the dashboard. Please try again.
+     */
+    DASHBOARDS_DELETE_ERROR: string;
+    /**
+     * dashboards: Description (optional)
+     */
+    DASHBOARDS_DESCRIPTION_PLACEHOLDER: string;
+    /**
+     * dashboards: Description too long
+     */
+    DASHBOARDS_DESC_TOO_LONG_ERROR: string;
+    /**
+     * dashboards: Dynamic upload
+     */
+    DASHBOARDS_DYNAMIC_UPLOAD: string;
+    /**
+     * dashboards: Add dynamic upload
+     */
+    DASHBOARDS_DYNAMIC_UPLOAD_ADD: string;
+    /**
+     * dashboards: Show on map
+     */
+    DASHBOARDS_DYNAMIC_UPLOAD_CLICK_HINT: string;
+    /**
+     * dashboards: Add a KML, GPX or GeoJSON URL that refreshes automatically.
+     */
+    DASHBOARDS_DYNAMIC_UPLOAD_DESC: string;
+    /**
+     * dashboards: Update interval (minutes)
+     */
+    DASHBOARDS_DYNAMIC_UPLOAD_INTERVAL_LABEL: string;
+    /**
+     * dashboards: Refreshes every {min} min
+     */
+    DASHBOARDS_DYNAMIC_UPLOAD_REFRESHES_EVERY: string;
+    /**
+     * dashboards: File type
+     */
+    DASHBOARDS_DYNAMIC_UPLOAD_TYPE_LABEL: string;
+    /**
+     * dashboards: Enter the URL of the data to upload
+     */
+    DASHBOARDS_DYNAMIC_UPLOAD_URL_EMPTY_ERROR: string;
+    /**
+     * dashboards: Data source URL
+     */
+    DASHBOARDS_DYNAMIC_UPLOAD_URL_LABEL: string;
+    /**
+     * dashboards: https://example.com/data.kml
+     */
+    DASHBOARDS_DYNAMIC_UPLOAD_URL_PLACEHOLDER: string;
+    /**
+     * dashboards: Edit dashboard
+     */
+    DASHBOARDS_EDIT: string;
+    /**
+     * dashboards: External plugin
+     */
+    DASHBOARDS_EXT_PLUGIN: string;
+    /**
+     * dashboards: Add external plugin
+     */
+    DASHBOARDS_EXT_PLUGIN_ADD: string;
+    /**
+     * dashboards: Pin an external Windy plugin from windy-plugins.com to this dashboard. Paste the URL of a published plugin version below.
+     */
+    DASHBOARDS_EXT_PLUGIN_DESC: string;
+    /**
+     * dashboards: Could not load plugin details from this URL. Please check the URL and try again.
+     */
+    DASHBOARDS_EXT_PLUGIN_FETCH_ERROR: string;
+    /**
+     * dashboards: Cancel
+     */
+    DASHBOARDS_EXT_PLUGIN_INSTALL_CANCEL: string;
+    /**
+     * dashboards: Yes, install
+     */
+    DASHBOARDS_EXT_PLUGIN_INSTALL_CONFIRM: string;
+    /**
+     * dashboards: External plugin
+     */
+    DASHBOARDS_EXT_PLUGIN_LABEL: string;
+    /**
+     * dashboards: This doesn't look like a windy-plugins.com plugin URL
+     */
+    DASHBOARDS_EXT_PLUGIN_URL_INVALID_ERROR: string;
+    /**
+     * dashboards: External plugin URL
+     */
+    DASHBOARDS_EXT_PLUGIN_URL_LABEL: string;
+    /**
+     * dashboards: https://windy-plugins.com/…
+     */
+    DASHBOARDS_EXT_PLUGIN_URL_PLACEHOLDER: string;
+    /**
+     * dashboards: Favorite
+     */
+    DASHBOARDS_FAV: string;
+    /**
+     * dashboards: Click to open this location
+     */
+    DASHBOARDS_FAV_CLICK_HINT: string;
+    /**
+     * dashboards: Save a place, airport, weather station, webcam or route for easy access. Add by selecting a place and clicking on "{{icon}}" icon right of the search input, or navigate to the Favorites menu and copy one of your existing fav items.
+     */
+    DASHBOARDS_FAV_DESC: string;
+    /**
+     * dashboards: Airport
+     */
+    DASHBOARDS_FAV_TITLE_AIRPORT: string;
+    /**
+     * dashboards: Place
+     */
+    DASHBOARDS_FAV_TITLE_PLACE: string;
+    /**
+     * dashboards: Route
+     */
+    DASHBOARDS_FAV_TITLE_ROUTE: string;
+    /**
+     * dashboards: Station
+     */
+    DASHBOARDS_FAV_TITLE_STATION: string;
+    /**
+     * dashboards: Webcam
+     */
+    DASHBOARDS_FAV_TITLE_WEBCAM: string;
+    /**
+     * dashboards: You don't have access to this dashboard. Ask its owner to give you access.
+     */
+    DASHBOARDS_FORBIDDEN: string;
+    /**
+     * dashboards: Cancel
+     */
+    DASHBOARDS_FORM_CANCEL: string;
+    /**
+     * dashboards: Create dashboard
+     */
+    DASHBOARDS_FORM_CREATE_TITLE: string;
+    /**
+     * dashboards: Edit dashboard
+     */
+    DASHBOARDS_FORM_EDIT_TITLE: string;
+    /**
+     * dashboards: Organization or group
+     */
+    DASHBOARDS_FORM_GROUP_LABEL: string;
+    /**
+     * dashboards: Save
+     */
+    DASHBOARDS_FORM_SAVE: string;
+    /**
+     * dashboards: Couldn't save the dashboard. Please try again.
+     */
+    DASHBOARDS_FORM_SAVE_ERROR: string;
+    /**
+     * dashboards: Saving…
+     */
+    DASHBOARDS_FORM_SAVING: string;
+    /**
+     * dashboards: Title
+     */
+    DASHBOARDS_FORM_TITLE_LABEL: string;
+    /**
+     * dashboards: Dashboard title
+     */
+    DASHBOARDS_FORM_TITLE_PLACEHOLDER: string;
+    /**
+     * dashboards: Couldn't add item. Please try again.
+     */
+    DASHBOARDS_ITEM_ADD_ERROR: string;
+    /**
+     * dashboards: Copy to…
+     */
+    DASHBOARDS_ITEM_COPY: string;
+    /**
+     * dashboards: Copying…
+     */
+    DASHBOARDS_ITEM_COPYING: string;
+    /**
+     * dashboards: Copy
+     */
+    DASHBOARDS_ITEM_COPY_CONFIRM: string;
+    /**
+     * dashboards: Couldn't copy the item. Please try again.
+     */
+    DASHBOARDS_ITEM_COPY_ERROR: string;
+    /**
+     * dashboards: Copy "{title}" to:
+     */
+    DASHBOARDS_ITEM_COPY_HEADING: string;
+    /**
+     * dashboards: Copy item
+     */
+    DASHBOARDS_ITEM_COPY_PANE_TITLE: string;
+    /**
+     * dashboards: Item permanently deleted.
+     */
+    DASHBOARDS_ITEM_DELETED: string;
+    /**
+     * dashboards: Duplicate
+     */
+    DASHBOARDS_ITEM_DUPLICATE: string;
+    /**
+     * dashboards: Couldn't duplicate the item. Please try again.
+     */
+    DASHBOARDS_ITEM_DUPLICATE_ERROR: string;
+    /**
+     * dashboards: Edit
+     */
+    DASHBOARDS_ITEM_EDIT: string;
+    /**
+     * dashboards: Edit item
+     */
+    DASHBOARDS_ITEM_EDIT_PANE_TITLE: string;
+    /**
+     * dashboards: Description
+     */
+    DASHBOARDS_ITEM_FORM_DESCRIPTION_LABEL: string;
+    /**
+     * dashboards: Couldn't save the item. Please try again.
+     */
+    DASHBOARDS_ITEM_FORM_SAVE_ERROR: string;
+    /**
+     * dashboards: Item title
+     */
+    DASHBOARDS_ITEM_FORM_TITLE_PLACEHOLDER: string;
+    /**
+     * dashboards: Moved to Deleted items.
+     */
+    DASHBOARDS_ITEM_MOVED_TO_TRASH: string;
+    /**
+     * dashboards: Delete
+     */
+    DASHBOARDS_ITEM_MOVE_TO_TRASH: string;
+    /**
+     * dashboards: Couldn't delete the item. Please try again.
+     */
+    DASHBOARDS_ITEM_MOVE_TO_TRASH_ERROR: string;
+    /**
+     * dashboards: Restore
+     */
+    DASHBOARDS_ITEM_RESTORE: string;
+    /**
+     * dashboards: Item restored.
+     */
+    DASHBOARDS_ITEM_RESTORED: string;
+    /**
+     * dashboards: Restored to {dashboard}.
+     */
+    DASHBOARDS_ITEM_RESTORED_TO: string;
+    /**
+     * dashboards: Can't restore — its original dashboard is no longer available.
+     */
+    DASHBOARDS_ITEM_RESTORE_CONFLICT: string;
+    /**
+     * dashboards: Couldn't restore the item. Please try again.
+     */
+    DASHBOARDS_ITEM_RESTORE_ERROR: string;
+    /**
+     * dashboards: This dashboard doesn't exist. Somebody has probably deleted it.
+     */
+    DASHBOARDS_NOT_FOUND: string;
+    /**
+     * dashboards: No dashboard selected
+     */
+    DASHBOARDS_NO_DASHBOARD_SELECTED: string;
+    /**
+     * dashboards: To create a dashboard, you first need to be a member of an organization.
+     */
+    DASHBOARDS_NO_ORGS_HELP: string;
+    /**
+     * dashboards: Reorder items
+     */
+    DASHBOARDS_REORDER: string;
+    /**
+     * dashboards: Cancel
+     */
+    DASHBOARDS_REORDER_CANCEL: string;
+    /**
+     * dashboards: Save
+     */
+    DASHBOARDS_REORDER_SAVE: string;
+    /**
+     * dashboards: Couldn't save the new order. Please try again.
+     */
+    DASHBOARDS_REORDER_SAVE_ERROR: string;
+    /**
+     * dashboards: Saving…
+     */
+    DASHBOARDS_REORDER_SAVING: string;
+    /**
+     * dashboards: Please select a dashboard
+     */
+    DASHBOARDS_SELECT_DASHBOARD_ERROR: string;
+    /**
+     * dashboards: Title must not be empty
+     */
+    DASHBOARDS_TITLE_EMPTY_ERROR: string;
+    /**
+     * dashboards: Title
+     */
+    DASHBOARDS_TITLE_PLACEHOLDER: string;
+    /**
+     * dashboards: Title too long
+     */
+    DASHBOARDS_TITLE_TOO_LONG_ERROR: string;
+    /**
+     * dashboards: Couldn't load the deleted items. Please try again.
+     */
+    DASHBOARDS_TRASH_COULDNT_LOAD: string;
+    /**
+     * dashboards: Delete permanently
+     */
+    DASHBOARDS_TRASH_DELETE: string;
+    /**
+     * dashboards: Permanently delete "{title}"? This can't be undone.
+     */
+    DASHBOARDS_TRASH_DELETE_CONFIRM: string;
+    /**
+     * dashboards: Couldn't delete the item. Please try again.
+     */
+    DASHBOARDS_TRASH_DELETE_ERROR: string;
+    /**
+     * dashboards: There are no deleted items.
+     */
+    DASHBOARDS_TRASH_EMPTY: string;
+    /**
+     * dashboards: Deleted items ({orgName})
+     */
+    DASHBOARDS_TRASH_FOR_ORG: string;
+    /**
+     * dashboards: Couldn't load all deleted items. Some items may be missing.
+     */
+    DASHBOARDS_TRASH_PARTIAL: string;
+    /**
+     * dashboards: Upload
+     */
+    DASHBOARDS_UPLOAD: string;
+    /**
+     * dashboards: Upload a file
+     */
+    DASHBOARDS_UPLOAD_ADD: string;
+    /**
+     * dashboards: Click to show the contents of this file on the map
+     */
+    DASHBOARDS_UPLOAD_CLICK_HINT: string;
+    /**
+     * dashboards: Cannot copy or duplicate this item type yet. Coming soon.
+     */
+    DASHBOARDS_UPLOAD_COPY_DUPLICATE_ERROR: string;
+    /**
+     * dashboards: Upload a KML, GPX or GeoJSON file to share within your organization.
+     */
+    DASHBOARDS_UPLOAD_DESC: string;
+    /**
+     * dashboards: Failed to process the file.
+     */
+    DASHBOARDS_UPLOAD_FILE_ERROR: string;
+    /**
+     * dashboards: Select a file to upload
+     */
+    DASHBOARDS_UPLOAD_SELECT_FILE: string;
+    /**
+     * dashboards: Show on map
+     */
+    DASHBOARDS_UPLOAD_SHOW_ON_MAP: string;
+    /**
+     * dashboards: View
+     */
+    DASHBOARDS_VIEW: string;
+    /**
+     * dashboards: Apply
+     */
+    DASHBOARDS_VIEW_APPLY: string;
+    /**
+     * dashboards: Capture current view
+     */
+    DASHBOARDS_VIEW_CAPTURE: string;
+    /**
+     * dashboards: Click to set the map to this view
+     */
+    DASHBOARDS_VIEW_CLICK_HINT: string;
+    /**
+     * dashboards: Save the current map state (overlay, model, and position) to restore it later.
+     */
+    DASHBOARDS_VIEW_DESC: string;
+    /**
+     * dashboards: Globe is not yet supported in dashboard map views.
+     */
+    DASHBOARDS_VIEW_GLOBE_NOT_SUPPORTED: string;
+    /**
+     * dashboards: Move the map or change overlay/model to update the view.
+     */
+    DASHBOARDS_VIEW_LIVE_HINT: string;
+    /**
+     * dashboards: Re-capture current map
+     */
+    DASHBOARDS_VIEW_RECAPTURE: string;
+    /**
+     * dashboards: <p>Windy users can join or create <strong>organizations</strong>. Users inside an organization can then create and share <strong>dashboards</strong>.</p><p>A dashboard provides easy shared access to saved locations, favorites such as weather stations and airports, map views and more.</p>
+     */
+    DASHBOARDS_WELCOME_DESCRIPTION: string;
+    /**
+     * dashboards: Manage organizations
+     */
+    DASHBOARDS_WELCOME_MANAGE_ORGANIZATIONS: string;
+    /**
+     * dashboards: You are currently not part of an organization and hence cannot create a dashboard or add items to one.
+     */
+    DASHBOARDS_WELCOME_NO_ORG: string;
+    /**
+     * dashboards: Welcome to Windy Organizations and Dashboards!
+     */
+    DASHBOARDS_WELCOME_TITLE: string;
 }
 
 export interface DetailLangFile {
@@ -1577,6 +2073,10 @@ export interface MainLangFile {
      */
     ADD_ALERT: string;
     /**
+     * Add to dashboard
+     */
+    ADD_TO_DASHBOARD: string;
+    /**
      * Good
      */
     AIRQ_RANGE_GOOD: string;
@@ -1612,6 +2112,10 @@ export interface MainLangFile {
      * Migrate alert
      */
     ALERT_MIGRATE: string;
+    /**
+     * Description cannot be empty.
+     */
+    ALERT_VALIDATION_DESCRIPTION_REQUIRED: string;
     /**
      * All
      */
@@ -1761,9 +2265,17 @@ export interface MainLangFile {
      */
     COPY_TO_C: string;
     /**
+     * Copy to Dashboard
+     */
+    COPY_TO_DASHBOARD: string;
+    /**
      * CO concentration
      */
     COSC: string;
+    /**
+     * Add dashboard alert
+     */
+    CREATE_DASHBOARD_ALERT: string;
     /**
      * Cloud tops
      */
@@ -1776,6 +2288,42 @@ export interface MainLangFile {
      * Tidal currents
      */
     CURRENT_TIDE: string;
+    /**
+     * Dashboard
+     */
+    DASHBOARD: string;
+    /**
+     * Dashboards
+     */
+    DASHBOARDS: string;
+    /**
+     * Add new dashboard
+     */
+    DASHBOARDS_ADD_NEW_DASHBOARD: string;
+    /**
+     * Couldn't refresh — tap to retry
+     */
+    DASHBOARDS_COULDNT_REFRESH: string;
+    /**
+     * Create new organization
+     */
+    DASHBOARDS_CREATE_NEW_ORGANIZATION: string;
+    /**
+     * Search dashboards
+     */
+    DASHBOARDS_DROPDOWN_SEARCH_PLACEHOLDER: string;
+    /**
+     * Public dashboard
+     */
+    DASHBOARDS_FORM_IS_PUBLIC_LABEL: string;
+    /**
+     * Deleted items
+     */
+    DASHBOARDS_TRASH: string;
+    /**
+     * Add dashboard item
+     */
+    DASHBOARD_ADD_ITEM: string;
     /**
      * Data not available for this location
      */
@@ -2497,6 +3045,10 @@ export interface MainLangFile {
      */
     MENU_LOCATION: string;
     /**
+     * Measure distance
+     */
+    MENU_MEASURE_DISTANCE: string;
+    /**
      * Download App
      */
     MENU_MOBILE: string;
@@ -3169,6 +3721,10 @@ export interface MainLangFile {
      */
     SEARCH_LAYER: string;
     /**
+     * Select dashboard:
+     */
+    SELECT_DASHBOARD: string;
+    /**
      * Send
      */
     SEND: string;
@@ -3381,6 +3937,10 @@ export interface MainLangFile {
      */
     SUB_OTHER_BENEFITS: string;
     /**
+     * <strong>{{count}}-day forecast</strong> outlook
+     */
+    SUB_REASON_EXTENDED_FORECAST: string;
+    /**
      * Forecast <strong>updates</strong> at least <strong>4 times a day</strong>
      */
     SUB_REASON_FREQUENCY: string;
@@ -3513,6 +4073,10 @@ export interface MainLangFile {
      */
     TITLE: string;
     /**
+     * Title
+     */
+    TITLE_PLACEHOLDER_FAV: string;
+    /**
      * Terms and conditions
      */
     TOC: string;
@@ -3605,9 +4169,33 @@ export interface MainLangFile {
      */
     UPLOAD_BEING_PROCESSED: string;
     /**
+     * Your organization's dynamic {type} file: {title}
+     */
+    UPLOAD_DASHBOARD_DYNAMIC_FILE: string;
+    /**
+     * Your organization's {type} file: {title}
+     */
+    UPLOAD_DASHBOARD_FILE: string;
+    /**
      * Describe content of your file (required)
      */
     UPLOAD_DESCRIBE_FILE: string;
+    /**
+     * Failed to load your organization's dynamic {type} file. It is possible that the file was deleted or that our servers were blocked from accessing it.
+     */
+    UPLOAD_DYNAMIC_LOAD_ERROR: string;
+    /**
+     * Failed to parse your organization's dynamic {type} file. It may be corrupted or in an incorrect format.
+     */
+    UPLOAD_DYNAMIC_PARSE_ERROR: string;
+    /**
+     * Refreshing...
+     */
+    UPLOAD_DYNAMIC_REFRESHING: string;
+    /**
+     * Updated {time}
+     */
+    UPLOAD_DYNAMIC_UPDATED: string;
     /**
      * Supported extensions: .geojson, .json, .gpx, .kml, .xml
      */
@@ -3617,9 +4205,29 @@ export interface MainLangFile {
      */
     UPLOAD_KML_GPX: string;
     /**
+     * Loading shared file
+     */
+    UPLOAD_LOADING: string;
+    /**
+     * Failed to load shared file id: {id}. It is possible that owner of the file deleted it from a cloud.
+     */
+    UPLOAD_LOAD_ERROR: string;
+    /**
      * Files larger than 5MB cannot be uploaded to the cloud.
      */
     UPLOAD_SIZE_LIMIT: string;
+    /**
+     * User @{username} published {type} file
+     */
+    UPLOAD_USER_PUBLISHED: string;
+    /**
+     * User @{username} shared {type} file with you
+     */
+    UPLOAD_USER_SHARED: string;
+    /**
+     * Upload your own KML, GPX or geoJSON file
+     */
+    UPLOAD_YOUR_OWN_FILE: string;
     /**
      * UV Index
      */
@@ -6164,6 +6772,10 @@ export interface SubscriptionLangFile {
      */
     SUB_REASON_RADSAT_LOOP: string;
     /**
+     * subscription: <strong>{{count}}-hour</strong> loop for <strong>Radar</strong> and <strong>Satellite</strong>
+     */
+    SUB_REASON_RADSAT_LOOP_HOURS: string;
+    /**
      * subscription: <strong>Route Planner</strong> for planning tasks
      */
     SUB_REASON_RPLANNER: string;
@@ -7506,7 +8118,7 @@ export interface WidgetspromoLangFile {
 }
 
 // prettier-ignore
-export interface PluginTranslations extends AccumulationsLangFile, AirportLangFile, AlertsLangFile, AppreviewLangFile, ArticlesLangFile, ConsentLangFile, DefaultmodelselectorLangFile, DetailLangFile, DistanceLangFile, FavsLangFile, GarminLangFile, HurricanesLangFile, InfoLangFile, LibLangFile, LivealertsLangFile, MenuLangFile, MenudescLangFile, NotificationsLangFile, OnboardingLangFile, PickerLangFile, ProductsLangFile, RadsatLangFile, RegisterLangFile, ReportissueLangFile, SearchLangFile, SettingsLangFile, SoundingLangFile, StartuppromosLangFile, StationLangFile, SubscriptionLangFile, SunmoonLangFile, WatchfaceLangFile, WebcamsLangFile, WidgetspromoLangFile {}
+export interface PluginTranslations extends AccumulationsLangFile, AirportLangFile, AlertsLangFile, AppreviewLangFile, ArticlesLangFile, ConsentLangFile, DashboardsLangFile, DetailLangFile, DistanceLangFile, FavsLangFile, GarminLangFile, HurricanesLangFile, InfoLangFile, LibLangFile, LivealertsLangFile, MenuLangFile, MenudescLangFile, NotificationsLangFile, OnboardingLangFile, PickerLangFile, ProductsLangFile, RadsatLangFile, RegisterLangFile, ReportissueLangFile, SearchLangFile, SettingsLangFile, SoundingLangFile, StartuppromosLangFile, StationLangFile, SubscriptionLangFile, SunmoonLangFile, WatchfaceLangFile, WebcamsLangFile, WidgetspromoLangFile {}
 export interface Translations extends MainLangFile, PluginTranslations {}
 
 export interface SupportedLangFiles {
@@ -7516,7 +8128,7 @@ export interface SupportedLangFiles {
     appreview: AppreviewLangFile;
     articles: ArticlesLangFile;
     consent: ConsentLangFile;
-    defaultmodelselector: DefaultmodelselectorLangFile;
+    dashboards: DashboardsLangFile;
     detail: DetailLangFile;
     distance: DistanceLangFile;
     favs: FavsLangFile;

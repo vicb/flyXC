@@ -1,4 +1,4 @@
-import { LeafletGlMap, type CacheAllocationToken } from '@leafletGl';
+import { LeafletGlMap, MapLibreMap, ReferenceCountedCache, type CacheAllocationToken } from '@leafletGl';
 import { type TileHeader } from '@windy/TileLayerUtils';
 import { Evented } from '@windy/Evented';
 export type CachedTile = {
@@ -30,15 +30,14 @@ type TileLayerSourceEvents = {
     keydeleted: string;
 };
 /**
- * A reference counted cache for loading generic TileLayer tiles.
+ * A reference counted cache for loading generic TileLayer (weather forecast) tiles.
  * Automatically extracts tile headers and uploads the images into WebGL textures.
  */
 declare class TileLayerSource extends Evented<TileLayerSourceEvents> {
     private _gl;
     private _cache;
-    private _canvas;
-    private _ctx;
     private _disposed;
+    private _decodeErrorLogged;
     constructor();
     /**
      * Initializes the tile source with a WebGL context.
@@ -64,19 +63,45 @@ declare class TileLayerSource extends Evented<TileLayerSourceEvents> {
      * Releases all resources held by this TileLayerSource.
      */
     dispose(): void;
-    private _imageBitmapToUint8Array;
 }
 /**
  * A singleton instance of a {@link TileLayerSource}.
  */
 export declare const tileLayerSource: TileLayerSource;
-export declare function fetchImageBlob(url: string, signal?: AbortSignal): Promise<{
+export type RasterTile = {
+    valid: true;
+    tex: WebGLTexture;
+} | {
+    valid: false;
+    message: string;
+};
+declare class RasterTileSource extends ReferenceCountedCache<string, RasterTile> {
+    private _gl;
+    private _sourceDisposed;
+    private _throttler;
+    private _semaphore;
+    private _map;
+    private _decodeErrorLogged;
+    constructor();
+    /**
+     * Initializes the tile source with a WebGL context.
+     */
+    init(map: MapLibreMap): void;
+    updateThrottler: () => void;
+    /**
+     * Releases all resources held by this TileLayerSource.
+     */
+    dispose(): void;
+}
+export declare const simpleTileSource: RasterTileSource;
+export type ImageFetchResult = {
     valid: true;
     blob: Blob;
 } | {
     valid: false;
     message: string;
-}>;
+};
+export declare function fetchImageBlob(url: string, signal?: AbortSignal): Promise<ImageFetchResult>;
 export declare function extractTileHeader(imageBitmapWithHeader: ImageBitmap): Promise<ImageAndHeader>;
 export type DecodedTile = {
     image: ImageBitmap | null;

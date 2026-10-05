@@ -36,11 +36,6 @@ export declare class AqiOverlay extends Overlay {
 export declare class RadarOverlay extends Overlay {
     hidePickerElevation: boolean;
     createPickerHTML(values: RGBNumValues): string;
-    /**
-     * https://kody.windy.com/windy/satellite/rs-server/-/blob/master/doc/radar.md?ref_type=heads#radar2composite201806061345342ptypepng
-     * @param value - pType value encoded in 0-255 range
-     */
-    private categorizePrecipitationValue;
 }
 export declare class SatelliteOverlay extends Overlay {
     hidePickerElevation: boolean;

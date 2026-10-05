@@ -140,9 +140,12 @@ export type CapAlertType =
     | 'G' /** fog **/
     | 'N' /** tornado **/
     | 'Q' /** air quality  */
-    /** these two are new not implemented in client **/
     | 'S' /** snow ice **/
     | 'A' /** avalanche **/
+    | 'P' /** hail **/
+    | 'V' /** volcanic **/
+    | 'E' /** earthquake **/
+    | 'M' /** landslide **/
     | '-' /** invalid */;
 
 export type CapAlertInfo = Record<
@@ -265,6 +268,7 @@ export type LogPaths =
     | 'path'
     | 'version'
     | 'plugin'
+    | 'dashboards'
     | 'pois'
     | 'startup'
     | 'subscription'
@@ -299,7 +303,9 @@ export type LogEvents =
     | 'subs-purchased'
     | 'map-selector-clicked'
     | 'radsat-animation-speed-changed'
-    | 'login-finish-action';
+    | 'login-finish-action'
+    | 'dashboard'
+    | 'dashboard-item';
 
 /**
  * Type of user consent
@@ -309,9 +315,6 @@ export type ConsentType = 'pending' | 'rejected' | 'analytics';
 export type ProductCategory = 'analysis' | 'forecast';
 
 export type ProductIdent =
-    | 'nam-conus'
-    | 'nam-hawaii'
-    | 'nam-alaska'
     | 'icon-eu'
     | 'icon-d2'
     | 'arome'
@@ -438,7 +441,8 @@ export type ParsedQueryString = Record<string, string | undefined>;
 
 export type Size = 'xxs' | 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' | 'xxxl' | 'ultra';
 
-export type RGBA = [number, number, number, number];
+export type RGBA = [r: number, g: number, b: number, a: number];
+export type RGB = [r: number, g: number, b: number];
 
 export type YUVA = [number, number, number, number];
 
@@ -737,5 +741,3 @@ export type Timeout = ReturnType<typeof setTimeout>;
 export type Interval = ReturnType<typeof setInterval>;
 
 export type SemVersion = `${number}.${number}.${number}`;
-
-export type DefaultPointModel = 'ecmwf' | 'mblue';

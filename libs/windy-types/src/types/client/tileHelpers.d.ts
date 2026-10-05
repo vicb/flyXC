@@ -1,5 +1,5 @@
 import { type TileHeader } from '@windy/TileLayerUtils';
-import { Bounds, TileCache, type CacheAllocationToken, type Coords } from '@leafletGl';
+import { Bounds, MapLibreMap, TileCache, type CacheAllocationToken, type Coords } from '@leafletGl';
 import { GlTexture } from '@windy/glUtils';
 import { type CachedTile } from '@windy/tileLayerSource';
 import type { FullRenderParameters } from '@windy/interfaces';
@@ -64,7 +64,12 @@ export type ReadyTile = {
  */
 export declare function makeTileLayerCache(params: FullRenderParameters): Cache<ReadyTile>;
 /**
- * Replaces {z}, {x} and {y} in the URL template with the given tile coords.
+ * Replaces {z}, {x} and {y} (or <z>, <x> and <y>) in the URL template with the given tile coords.
  */
 export declare function applyUrlTemplate(urlTemplate: string, coords: Coords): string;
+/**
+ * Returns the range visible of tiles for the given zoom level.
+ * The range is always valid, even near the antimeridian or when the world is repeated multiple times.
+ */
+export declare function getTileBounds(maplibreMap: MapLibreMap, zoom?: number): Bounds;
 export {};

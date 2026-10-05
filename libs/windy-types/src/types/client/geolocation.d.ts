@@ -1,6 +1,6 @@
 import '@windy/router';
 import type { GeolocationInfo, HomeLocation } from '@windy/interfaces.d';
-import type { PositionOptions } from '@capacitor/geolocation';
+import type { PositionOptions, Position } from '@capacitor/geolocation';
 /**
  * Returns either GPS or IP location whichever is newer.
  *
@@ -15,6 +15,16 @@ export interface GeolocationOptions extends PositionOptions {
     doNotShowFailureMessage?: boolean;
     getMeFallbackGps?: boolean;
 }
+/**
+ * Position as delivered either by the native Geolocation plugin or by the browser's
+ * `navigator.geolocation` API.
+ *
+ * Since Capacitor 8 the plugin's `Position` declares compass properties
+ * (`magneticHeading`, `trueHeading`, `headingAccuracy`, `course`) that the browser API
+ * does not provide, so a browser position is no longer assignable to `Position`. Use
+ * this type for callbacks that are shared by both sources.
+ */
+export type AnyGeolocationPosition = Position | GeolocationPosition;
 /**
  * Returns promise on GPS based location with GeoIP location as a fallback.
  *

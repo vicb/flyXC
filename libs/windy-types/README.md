@@ -76,8 +76,7 @@ When executed, the update process:
 
 1. Downloads `@windycom/plugin-devtools` using `npm pack` into an isolated temporary folder (without running `npm install` or pulling dependencies).
 2. Extracts `package/types/` as pristine source files into `src/types/` without any modification or formatting.
-3. Generates `src/windy-exports.d.ts` from pristine `types/client/commonExports.d.ts` mapping modules to clean exports.
-4. Generates `src/index.d.ts` with ambient `@windy/*` module declarations and global `W` typing.
-5. Records the source package version in the `src/index.d.ts` header.
-6. Synchronizes the version in `libs/windy-types/package.json` with the upstream source package version.
-7. Formats and lints the generated files using `pnpm nx format` and `pnpm nx run windy-types:lint --fix`.
+3. Generates `src/index.d.ts` with ambient `@windy/*` module declarations and global `W` typing referencing pristine `types/client/commonExports.d.ts`.
+4. Records the source package version in the `src/index.d.ts` header.
+5. Synchronizes the version in `libs/windy-types/package.json` with the upstream source package version.
+6. Formats and lints the generated files using `pnpm nx format` and `pnpm nx run windy-types:lint --fix`.

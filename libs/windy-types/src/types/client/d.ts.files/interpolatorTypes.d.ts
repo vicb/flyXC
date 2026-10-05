@@ -26,10 +26,14 @@ export type PixelInterpolationFun = (
     mercXpx?: number, // mercator coords in pixels (needed for radar and satellite)
     mercYpx?: number,
     abort?: AbortController,
-    params?: FullRenderParameters
+    params?: FullRenderParameters,
 ) => Promise<InterpolatorPossibleReturns>;
 
 /**
  * Interpolates coordinates to tuple weather values from RGB channels
  */
-export type CoordsInterpolationFun = <T extends LatLon>(latLon: T, abort?: AbortController, params?: FullRenderParameters) => Promise<InterpolatorPossibleReturns>;
+export type CoordsInterpolationFun = <T extends LatLon>(
+    latLon: T,
+    abort?: AbortController,
+    params?: FullRenderParameters,
+) => Promise<InterpolatorPossibleReturns>;

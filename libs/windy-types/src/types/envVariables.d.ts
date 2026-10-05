@@ -10,6 +10,7 @@ declare global {
     const PROMOS_HOST: string;
     const PLUGINS_HOST: string;
     const USERS_HOST: string;
+    const DASHBOARDS_HOST: string;
     const NOTIF_HOST: string;
     const RPLANNER_HOST: string;
     const FORECAST_HOST: string;

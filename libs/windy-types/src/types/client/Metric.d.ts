@@ -59,7 +59,7 @@ export declare abstract class Metric {
      */
     legend?: Legend | DiscreteLegend;
     /**
-     * convertValue for this metric returns nonsense, so use convertValue
+     * Use convertValue() instead of convertNumber() when rendering this metric.
      */
     useConvertValue?: boolean;
     constructor(params: MetricInitParams);

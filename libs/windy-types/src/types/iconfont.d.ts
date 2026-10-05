@@ -132,7 +132,6 @@ declare global {
     const ICON_BELL: "";
     const ICON_SAILING_BOAT: "";
     const ICON_GAS_MASK: "";
-    const ICON_VOLCANO: "";
     const ICON_FACTORY: "";
     const ICON_SEARCH: "";
     const ICON_MORE_SYMBOL_HORIZONTAL: "";
@@ -197,6 +196,11 @@ declare global {
     const ICON_BELL_PLUS: "";
     const ICON_X: "";
     const ICON_TWITTER: "";
+    const ICON_EARTHQUAKE: "";
+    const ICON_HAIL: "";
+    const ICON_LANDSLIDE: "";
+    const ICON_TORNADO: "";
+    const ICON_VOLCANO: "";
     const ICON_EYE_BLOCKED: "";
     const ICON_BUG: "";
     const ICON_HAMMER: "";
@@ -209,6 +213,11 @@ declare global {
     const ICON_FIRE_WIND: "";
     const ICON_CROSSHAIR: "";
     const ICON_PUSHPIN: "";
+    const ICON_FLIGHT_LAND: "";
+    const ICON_FLIGHT_TAKEOFF: "";
+    const ICON_HEADSET: "";
+    const ICON_LOCK: "";
+    const ICON_UNLOCKED: "";
 }
 
 export type Iconfont =
@@ -343,7 +352,6 @@ export type Iconfont =
     | typeof ICON_BELL
     | typeof ICON_SAILING_BOAT
     | typeof ICON_GAS_MASK
-    | typeof ICON_VOLCANO
     | typeof ICON_FACTORY
     | typeof ICON_SEARCH
     | typeof ICON_MORE_SYMBOL_HORIZONTAL
@@ -408,6 +416,11 @@ export type Iconfont =
     | typeof ICON_BELL_PLUS
     | typeof ICON_X
     | typeof ICON_TWITTER
+    | typeof ICON_EARTHQUAKE
+    | typeof ICON_HAIL
+    | typeof ICON_LANDSLIDE
+    | typeof ICON_TORNADO
+    | typeof ICON_VOLCANO
     | typeof ICON_EYE_BLOCKED
     | typeof ICON_BUG
     | typeof ICON_HAMMER
@@ -419,4 +432,9 @@ export type Iconfont =
     | typeof ICON_FIRE_MATCH
     | typeof ICON_FIRE_WIND
     | typeof ICON_CROSSHAIR
-    | typeof ICON_PUSHPIN;
+    | typeof ICON_PUSHPIN
+    | typeof ICON_FLIGHT_LAND
+    | typeof ICON_FLIGHT_TAKEOFF
+    | typeof ICON_HEADSET
+    | typeof ICON_LOCK
+    | typeof ICON_UNLOCKED;

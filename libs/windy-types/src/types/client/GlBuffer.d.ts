@@ -15,8 +15,11 @@ export declare class GlBuffer {
     /** Reference to the WebGL buffer on the GPU */
     protected readonly buffer: WebGLBuffer;
     protected type: GlBufferType;
-    /** Length of uploaded data array in the buffer */
+    /**
+     * Length of uploaded data array in the buffer
+     */
     protected _dataLength: number;
+    protected _byteLength: number;
     /** Class instance unique id, for debug, tracks number of created instances */
     protected readonly bufferId: number;
     constructor(gl: WebGLRenderingContext | WebGL2RenderingContext, type: GlBufferType);
@@ -40,6 +43,8 @@ export declare class GlBuffer {
     update(gl: WebGLRenderingContext | WebGL2RenderingContext, data: TypedArray, usage?: GlBufferUsage): void;
     /** @summary Returns number of elements inside the buffer */
     get length(): number;
+    /** @summary Returns byte length of the buffer */
+    get byteLength(): number;
     /** @summary Deletes the WebGL buffer */
     destroy(gl: WebGLRenderingContext | WebGL2RenderingContext): void;
 }

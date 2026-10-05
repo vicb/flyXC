@@ -17,6 +17,7 @@ export declare class GlProgram {
      * @returns Unique program id
      */
     get programId(): number;
+    get program(): WebGLProgram;
     /**
      * @summary Creates shader program from shader sources in strings (vertex and fragment shader source codes)
      * @param vertexShaderSourceCode String with VS shader code

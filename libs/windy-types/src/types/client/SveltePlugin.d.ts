@@ -3,7 +3,7 @@ import type { WindowPluginInitParams } from '@windy/WindowPlugin';
 import type { PluginsOpenParams, PluginsQsParams } from '@windy/plugin-params.d';
 import type { BottomSveltePlugins, StartupElementPlugins, SveltePanePlugins, SveltePopupPlugins, SveltePlugins } from '@windy/plugins.d';
 import type { InterpolatorFactory } from '@windy/interpolator';
-import type { FullRenderParameters } from '@windy/interfaces';
+import type { FullRenderParameters, ResizableConfig } from '@windy/interfaces';
 export declare class SvelteApp<P extends keyof SveltePlugins | keyof SveltePopupPlugins | keyof SveltePanePlugins | keyof BottomSveltePlugins | keyof StartupElementPlugins> {
     interpolator?: InterpolatorFactory;
     constructor(_args: {
@@ -34,11 +34,14 @@ export declare class SveltePlugin<P extends keyof SveltePlugins | keyof SveltePo
      * Holder of SvelteApp
      */
     svelteApp?: SvelteApp<P> | ExternalSvelteApp | null;
-    needsPluginRoot?: boolean;
+    /**
+     * Optional resize config. When set, enables left-edge drag resizing on desktop.
+     */
+    resizable?: ResizableConfig;
     ident: P;
     plugin: WPluginModules[`@plugins/${P}`] & AdditionalSvelteAssets;
     constructor(params: WindowPluginInitParams<P> & {
-        needsPluginRoot?: boolean;
+        resizable?: ResizableConfig;
     });
     onopen(params?: PluginsOpenParams[P], _qs?: PluginsQsParams[P]): void;
     paramsChanged(params?: FullRenderParameters): void;

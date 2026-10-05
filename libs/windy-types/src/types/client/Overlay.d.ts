@@ -169,6 +169,6 @@ export declare class Overlay {
      * Just proxy to the Metric's metric property
      * @deprecated Change to getMetric() and remove this getter
      */
-    get metric(): "" | import("./Metric").MetricItem;
+    get metric(): import("./Metric").MetricItem | "";
     protected initProperties(): void;
 }
