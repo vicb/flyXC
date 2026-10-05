@@ -13,7 +13,7 @@ export default [
       '@nx/dependency-checks': [
         'error',
         {
-          ignoredFiles: [],
+          ignoredFiles: ['{projectRoot}/vite.config.ts', 'vite.config.ts'],
           ignoredDependencies: ['@protobuf-ts/runtime', 'vitest', 'jsonc-eslint-parser'],
           checkMissingDependencies: true,
           checkObsoleteDependencies: true,
