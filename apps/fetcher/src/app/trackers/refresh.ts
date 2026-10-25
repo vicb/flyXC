@@ -158,19 +158,22 @@ export function applyTrackerUpdates(
 
       if (statusChanged) {
         if (pilot.track && pilot.track.timeSec.length > 0) {
-          const index = Math.max(
-            0,
-            findFirstIndex(pilot.track.timeSec, statusUpdate.statusTimeSec, Comparison.GREATER) - 1,
-          );
-          const statusMessage = `Status: ${getPilotStatusDescription(statusUpdate.status)}`;
-          const existingMessage = pilot.track.extra?.[index]?.message?.trim();
-          pilot.track.extra ??= {};
-          pilot.track.extra[index] = {
-            ...pilot.track.extra[index],
-            message: existingMessage ? `${existingMessage} - ${statusMessage}` : statusMessage,
-          };
-          if (statusUpdate.status === protos.PilotStatus.NEED_HELP || statusUpdate.status === protos.PilotStatus.SOS) {
-            pilot.track.flags[index] |= LiveTrackFlag.Emergency;
+          const nextIndex = findFirstIndex(pilot.track.timeSec, statusUpdate.statusTimeSec, Comparison.GREATER);
+          if (nextIndex > 0) {
+            const index = nextIndex - 1;
+            const statusMessage = `Status: ${getPilotStatusDescription(statusUpdate.status)}`;
+            const existingMessage = pilot.track.extra?.[index]?.message?.trim();
+            pilot.track.extra ??= {};
+            pilot.track.extra[index] = {
+              ...pilot.track.extra[index],
+              message: existingMessage ? `${existingMessage} - ${statusMessage}` : statusMessage,
+            };
+            if (
+              statusUpdate.status === protos.PilotStatus.NEED_HELP ||
+              statusUpdate.status === protos.PilotStatus.SOS
+            ) {
+              pilot.track.flags[index] |= LiveTrackFlag.Emergency;
+            }
           }
         }
       }
