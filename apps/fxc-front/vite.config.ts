@@ -135,6 +135,7 @@ export default defineConfig(({ mode }) => {
     test: {
       globals: true,
       environment: 'jsdom',
+      setupFiles: [join(import.meta.dirname, 'src/test-setup.ts')],
       include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
       coverage: {
         reportsDirectory: '../../coverage/apps/fxc-front',
