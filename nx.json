@@ -11,6 +11,14 @@
       "dependsOn": ["^build"],
       "inputs": ["production", "^production"]
     },
+    "lint": {
+      "cache": true,
+      "inputs": ["default", "^default", "{workspaceRoot}/eslint.config.js", "{workspaceRoot}/tools/eslint-rules/**/*"]
+    },
+    "test": {
+      "cache": true,
+      "inputs": ["default", "^production"]
+    },
     "typecheck": {
       "cache": true,
       "inputs": ["default", "^production"]
@@ -75,7 +83,7 @@
       "plugin": "@nx/js/typescript",
       "options": {
         "typecheck": {
-          "targetName": "typecheck-vite"
+          "targetName": "typecheck-ts"
         }
       }
     },
