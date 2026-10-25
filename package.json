@@ -10,7 +10,7 @@
   },
   "packageManager": "pnpm@11.10.0",
   "engines": {
-    "node": "^24.15"
+    "node": "^24.22.1"
   },
   "nx": {
     "includedScripts": [
