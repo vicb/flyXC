@@ -6,29 +6,10 @@
       "inputs": ["production", "^production"],
       "cache": true
     },
-    "@nx/eslint:lint": {
-      "inputs": [
-        "default",
-        "^default",
-        "{workspaceRoot}/.eslintrc.json",
-        "{workspaceRoot}/eslint.config.js",
-        "{workspaceRoot}/tools/eslint-rules/**/*"
-      ],
-      "cache": true
-    },
     "@nx/js:tsc": {
       "cache": true,
       "dependsOn": ["^build"],
       "inputs": ["production", "^production"]
-    },
-    "@nx/vite:build": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["production", "^production"]
-    },
-    "@nx/vitest:test": {
-      "cache": true,
-      "inputs": ["default", "^production"]
     },
     "typecheck": {
       "cache": true,
@@ -91,6 +72,14 @@
       ]
     },
     {
+      "plugin": "@nx/js/typescript",
+      "options": {
+        "typecheck": {
+          "targetName": "typecheck-vite"
+        }
+      }
+    },
+    {
       "plugin": "@nx/vite/plugin",
       "options": {
         "buildTargetName": "build",
@@ -112,5 +101,8 @@
       ]
     }
   ],
-  "analytics": true
+  "analytics": true,
+  "affected": {
+    "legacy": true
+  }
 }
