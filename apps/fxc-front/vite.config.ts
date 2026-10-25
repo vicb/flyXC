@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { TZDate } from '@date-fns/tz';
 import dotenvx from '@dotenvx/dotenvx';
 import { literalsHtmlCssMinifier } from '@literals/rollup-plugin-html-css-minifier';
+import { nxReadySignal } from '@nx/vite/plugins/nx-ready-signal.plugin';
 import { format } from 'date-fns';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { checker } from 'vite-plugin-checker';
@@ -82,6 +83,7 @@ export default defineConfig(({ mode }) => {
     },
 
     plugins: [
+      nxReadySignal(),
       {
         name: 'force-full-reload',
         apply: 'serve',

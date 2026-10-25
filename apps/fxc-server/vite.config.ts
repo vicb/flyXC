@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import dotenvx from '@dotenvx/dotenvx';
+import { nxReadySignal } from '@nx/vite/plugins/nx-ready-signal.plugin';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { defineConfig } from 'vitest/config';
 
@@ -58,6 +59,7 @@ export default defineConfig(({ mode }) => {
           },
         ],
       }),
+      nxReadySignal(),
     ],
 
     // Configuration for Node.js application

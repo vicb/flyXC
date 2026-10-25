@@ -58,6 +58,8 @@ vitest.config.*.timestamp*
 .nx/self-healing
 .nx/migrate-runs
 /tools/ai-migrations/@nx/*
+/tools/ai-migrations/nx/*
 .claude/settings.local.json
 
 .wrangler
+.vitest

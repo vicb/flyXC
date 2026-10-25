@@ -1,3 +1,4 @@
+import { nxReadySignal } from '@nx/vite/plugins/nx-ready-signal.plugin';
 import preact from '@preact/preset-vite';
 import type { UserConfig } from 'vite';
 import { defineConfig } from 'vite';
@@ -15,7 +16,7 @@ export default defineConfig(({ mode }): UserConfig => {
 
     cacheDir: './node_modules/.vite',
 
-    plugins: isConfigBuild ? [] : [preact(), windyDevPlugin({ port: PORT })],
+    plugins: [nxReadySignal(), ...(isConfigBuild ? [] : [preact(), windyDevPlugin({ port: PORT })])],
 
     server: {
       port: PORT,
