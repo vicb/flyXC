@@ -4,9 +4,10 @@ import {
   Keys,
   LIVE_FETCH_TIMEOUT_SEC,
   LiveTrackDurationSec,
+  LiveTrackFlag,
   LiveTrackPointIntervalSec,
   mergeLiveTracks,
-  type protos,
+  protos,
   removeBeforeFromLiveTrack,
   simplifyLiveTrack,
 } from '@flyxc/common';
@@ -168,6 +169,9 @@ export function applyTrackerUpdates(
             ...pilot.track.extra[index],
             message: existingMessage ? `${existingMessage} - ${statusMessage}` : statusMessage,
           };
+          if (statusUpdate.status === protos.PilotStatus.NEED_HELP || statusUpdate.status === protos.PilotStatus.SOS) {
+            pilot.track.flags[index] |= LiveTrackFlag.Emergency;
+          }
         }
       }
     }

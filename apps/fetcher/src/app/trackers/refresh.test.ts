@@ -1,4 +1,4 @@
-import { LiveTrackDurationSec, protos } from '@flyxc/common';
+import { isEmergencyFix, LiveTrackDurationSec, LiveTrackFlag, protos } from '@flyxc/common';
 import { describe, expect, it } from 'vitest';
 
 import { applyTrackerUpdates } from './refresh';
@@ -270,6 +270,49 @@ describe('applyTrackerUpdates', () => {
     expect(pilot.track.extra[1]?.message).toBe('Status: Landed OK');
     // Because of the message, point nowSec - 20 is preserved and not simplified out!
     expect(pilot.track.timeSec).toEqual([nowSec - 30, nowSec - 20, nowSec - 10]);
+    expect(isEmergencyFix(pilot.track.flags[1])).toBe(false);
+  });
+
+  it('should set emergency message flag when status changes to NEED_HELP or SOS', () => {
+    for (const status of [protos.PilotStatus.NEED_HELP, protos.PilotStatus.SOS]) {
+      const nowSec = 1700000000;
+
+      const pilotTrack: protos.LiveTrack = {
+        timeSec: [nowSec - 30, nowSec - 20, nowSec - 10],
+        lat: [45.0, 45.1, 45.2],
+        lon: [6.0, 6.1, 6.2],
+        alt: [1000, 1010, 1020],
+        gndAlt: [500, 510, 520],
+        flags: [1, 2, 3],
+        extra: {},
+      };
+
+      const state = protos.FetcherState.create({
+        pilots: {
+          1: { track: pilotTrack, status: protos.PilotStatus.FLYING, statusTimeSec: nowSec - 50 },
+        },
+      });
+
+      const updates: TrackerUpdates = {
+        name: 'ogn',
+        trackerDeltas: new Map([[1, pilotTrack]]),
+        trackerStatus: new Map([[1, { status, statusTimeSec: nowSec - 20 }]]),
+        trackerErrors: new Map(),
+        errors: [],
+        fetchedTracker: new Set([1]),
+        startFetchSec: nowSec - 5,
+        endFetchSec: nowSec,
+      };
+
+      applyTrackerUpdates(state, [updates], nowSec);
+
+      const pilot = state.pilots[1];
+      expect(pilot.status).toBe(status);
+      expect(isEmergencyFix(pilot.track.flags[1])).toBe(true);
+      expect((pilot.track.flags[1] & LiveTrackFlag.Emergency) !== 0).toBe(true);
+      // Original flags are preserved alongside the emergency flag
+      expect((pilot.track.flags[1] & 2) !== 0).toBe(true);
+    }
   });
 
   it('should ignore status updates older than current statusTimeSec', () => {
