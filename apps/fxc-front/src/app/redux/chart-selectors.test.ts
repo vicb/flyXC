@@ -11,7 +11,7 @@ import {
   setCurrentLiveId,
 } from './live-track-slice';
 import {
-  isRuntimeTrackChartable,
+  isTrackChartable,
   selectChartableTracks,
   selectChartActiveTrackId,
   selectChartAvailableYAxes,
@@ -254,6 +254,11 @@ describe('chart selectors', () => {
 
   it('hides chart when the active live track segment has fewer than 2 fixes', () => {
     const singleFixLiveTrack = createMockLiveTrack(99, [1000], [500]);
+    expect(isTrackChartable(singleFixLiveTrack)).toBe(false);
+    expect(isTrackChartable(liveTrack)).toBe(true);
+    expect(isTrackChartable(undefined)).toBe(false);
+    expect(isTrackChartable(null)).toBe(false);
+
     const stateSingleFix = {
       ...baseState,
       track: {
@@ -849,9 +854,9 @@ describe('chart selectors', () => {
         },
       };
 
-      expect(isRuntimeTrackChartable(chartableTrack)).toBe(true);
-      expect(isRuntimeTrackChartable(extremeSingleFixTrack)).toBe(false);
-      expect(isRuntimeTrackChartable(noAltTrack)).toBe(false);
+      expect(isTrackChartable(chartableTrack)).toBe(true);
+      expect(isTrackChartable(extremeSingleFixTrack)).toBe(false);
+      expect(isTrackChartable(noAltTrack)).toBe(false);
 
       expect(selectChartableTracks(state)).toEqual([chartableTrack]);
       expect(selectChartTracks(state)).toHaveLength(1);

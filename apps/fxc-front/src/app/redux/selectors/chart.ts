@@ -78,20 +78,20 @@ export function runtimeTrackToChartTrack(track: RuntimeTrack, color: string, off
 }
 
 /**
- * Whether a runtime track has sufficient fixes and altitude data to be displayed on the elevation chart.
+ * Whether a track (live or runtime) has sufficient fixes and altitude data to be displayed on the elevation chart.
  *
- * @param track - The runtime track to evaluate.
+ * @param track - The live or runtime track to evaluate.
  * @returns True if the track has at least 2 timestamp fixes and 2 altitude points, false otherwise.
  */
-export function isRuntimeTrackChartable(track: RuntimeTrack): boolean {
-  return track.timeSec.length >= 2 && track.alt.length >= 2;
+export function isTrackChartable<T extends protos.LiveTrack | RuntimeTrack>(track?: T | null): track is T {
+  return track != null && track.timeSec.length >= 2 && track.alt.length >= 2;
 }
 
 /**
  * Returns only the runtime tracks that are chartable (at least 2 fixes and 2 altitude points).
  */
 export const selectChartableTracks = createSelector([selectAllTracks], (tracks): RuntimeTrack[] =>
-  tracks.filter(isRuntimeTrackChartable),
+  tracks.filter(isTrackChartable),
 );
 
 /**
@@ -105,7 +105,7 @@ export const selectChartTracks = createSelector(
   [selectActiveLiveTrack, selectChartableTracks, selectTrackColors, selectOffsetSeconds, selectIsLiveTrackSelected],
   (activeLive, rtTracks, colors, offsets, isLiveSelected): ChartTrack[] => {
     if (isLiveSelected) {
-      if (activeLive != null && activeLive.timeSec.length >= 2 && activeLive.alt.length >= 2) {
+      if (isTrackChartable(activeLive)) {
         return [liveTrackToChartTrack(activeLive)];
       }
       return [];

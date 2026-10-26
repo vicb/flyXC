@@ -12,6 +12,7 @@ import { formatDurationMin, formatUnit } from '../../logic/units';
 import * as app from '../../redux/app-slice';
 import * as liveTrack from '../../redux/live-track-slice';
 import * as planner from '../../redux/planner-slice';
+import { isTrackChartable } from '../../redux/selectors/chart';
 import { selectTrackGndAlt, selectTrackLatLonAlt } from '../../redux/selectors/position';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
@@ -254,11 +255,10 @@ export class TrackingElement extends connect(store)(LitElement) {
       return;
     }
 
-    // Only display the moving dot on the active (last) segment of the track.
+    // Only display the moving dot on the active (last) segment of the track when chartable.
     const liveTrackData = this.liveTrack ?? liveTrack.selectActiveLiveTrack(store.getState());
     if (
-      !liveTrackData ||
-      liveTrackData.timeSec.length === 0 ||
+      !isTrackChartable(liveTrackData) ||
       this.timeSec < liveTrackData.timeSec[0] ||
       this.timeSec > liveTrackData.timeSec[liveTrackData.timeSec.length - 1]
     ) {
