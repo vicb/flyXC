@@ -11,6 +11,8 @@ import {
   setCurrentLiveId,
 } from './live-track-slice';
 import {
+  isRuntimeTrackChartable,
+  selectChartableTracks,
   selectChartActiveTrackId,
   selectChartAvailableYAxes,
   selectChartMaxTimeSec,
@@ -798,6 +800,81 @@ describe('chart selectors', () => {
       // Altitudes are 2200 and 2500, ground altitudes are 1000 and sanitized 2500 -> min should be 1000
       expect(selectChartMinY(stateWithLive)).toBe(1000);
       expect(selectChartMaxY(stateWithLive)).toBe(2500);
+    });
+
+    it('excludes unchartable runtime tracks from time and Y bounds so extreme bounds do not distort chart axes', () => {
+      const chartableTrack = createMockRuntimeTrack('valid-1', [1000, 1100, 1200], [1500, 1800, 1600]);
+      // Single fix track with extreme timestamps and altitudes
+      const extremeSingleFixTrack: RuntimeTrack = {
+        ...createMockRuntimeTrack('extreme-single', [50000], [9999]),
+        minTimeSec: 50000,
+        maxTimeSec: 50000,
+        minAlt: 9999,
+        maxAlt: 9999,
+        minVx: 200,
+        maxVx: 200,
+        minVz: -10,
+        maxVz: 10,
+      };
+      // Track with no altitude data and extreme past timestamps
+      const noAltTrack: RuntimeTrack = {
+        ...createMockRuntimeTrack('no-alt', [100, 200], []),
+        minTimeSec: 100,
+        maxTimeSec: 200,
+        minAlt: 0,
+        maxAlt: 0,
+        minVx: 0,
+        maxVx: 0,
+        minVz: 0,
+        maxVz: 0,
+      };
+
+      const state: any = {
+        ...baseState,
+        track: {
+          tracks: {
+            ids: ['valid-1', 'extreme-single', 'no-alt'],
+            entities: {
+              'valid-1': chartableTrack,
+              'extreme-single': extremeSingleFixTrack,
+              'no-alt': noAltTrack,
+            },
+          },
+          currentTrackId: 'valid-1',
+          fetching: false,
+        },
+        liveTrack: {
+          ...baseState.liveTrack,
+          currentLiveId: undefined,
+        },
+      };
+
+      expect(isRuntimeTrackChartable(chartableTrack)).toBe(true);
+      expect(isRuntimeTrackChartable(extremeSingleFixTrack)).toBe(false);
+      expect(isRuntimeTrackChartable(noAltTrack)).toBe(false);
+
+      expect(selectChartableTracks(state)).toEqual([chartableTrack]);
+      expect(selectChartTracks(state)).toHaveLength(1);
+      expect(selectChartTracks(state)[0].id).toBe('valid-1');
+
+      // Time bounds must be determined solely by the chartable track [1000, 1200], not 100 or 50000
+      expect(selectChartMinTimeSec(state)).toBe(1000);
+      expect(selectChartMaxTimeSec(state)).toBe(1200);
+
+      // Altitude mode bounds must be [1500, 1800], not 0 or 9999
+      const altState = { ...state, app: { ...state.app, chartYAxis: ChartYAxis.Altitude } };
+      expect(selectChartMinY(altState)).toBe(1500);
+      expect(selectChartMaxY(altState)).toBe(1800);
+
+      // Speed mode bounds must be [10, 10] from chartable track, not 200
+      const speedState = { ...state, app: { ...state.app, chartYAxis: ChartYAxis.Speed } };
+      expect(selectChartMinY(speedState)).toBe(10);
+      expect(selectChartMaxY(speedState)).toBe(10);
+
+      // Vario mode bounds must be [1, 1] from chartable track, not -10 or 10
+      const varioState = { ...state, app: { ...state.app, chartYAxis: ChartYAxis.Vario } };
+      expect(selectChartMinY(varioState)).toBe(1);
+      expect(selectChartMaxY(varioState)).toBe(1);
     });
 
     it('does not overwrite app time when a live track is selected', () => {

@@ -7,20 +7,7 @@ import { ChartYAxis } from '../../components/chart-element';
 import { getUniqueContrastColor } from '../../styles/track';
 import { selectChartYAxis } from '../app-slice';
 import { getSanitizedLiveGroundAltitude, selectActiveLiveTrack, selectIsLiveTrackSelected } from '../live-track-slice';
-import {
-  selectAllTracks,
-  selectCurrentTrackId,
-  selectMaxAlt,
-  selectMaxSpeed,
-  selectMaxTimeSec,
-  selectMaxVario,
-  selectMinAlt,
-  selectMinSpeed,
-  selectMinTimeSec,
-  selectMinVario,
-  selectOffsetSeconds,
-  selectTrackColors,
-} from '../track-slice';
+import { selectAllTracks, selectCurrentTrackId, selectOffsetSeconds, selectTrackColors } from '../track-slice';
 
 /**
  * Converts a live track into a ChartTrack object suitable for the elevation chart.
@@ -91,6 +78,23 @@ export function runtimeTrackToChartTrack(track: RuntimeTrack, color: string, off
 }
 
 /**
+ * Whether a runtime track has sufficient fixes and altitude data to be displayed on the elevation chart.
+ *
+ * @param track - The runtime track to evaluate.
+ * @returns True if the track has at least 2 timestamp fixes and 2 altitude points, false otherwise.
+ */
+export function isRuntimeTrackChartable(track: RuntimeTrack): boolean {
+  return track.timeSec.length >= 2 && track.alt.length >= 2;
+}
+
+/**
+ * Returns only the runtime tracks that are chartable (at least 2 fixes and 2 altitude points).
+ */
+export const selectChartableTracks = createSelector([selectAllTracks], (tracks): RuntimeTrack[] =>
+  tracks.filter(isRuntimeTrackChartable),
+);
+
+/**
  * Returns the tracks to be displayed on the elevation chart.
  *
  * When a live track is selected, only its active (last) segment is returned, provided it has
@@ -98,7 +102,7 @@ export function runtimeTrackToChartTrack(track: RuntimeTrack, color: string, off
  * When runtime tracks are active, all loaded runtime tracks with at least 2 points are returned.
  */
 export const selectChartTracks = createSelector(
-  [selectActiveLiveTrack, selectAllTracks, selectTrackColors, selectOffsetSeconds, selectIsLiveTrackSelected],
+  [selectActiveLiveTrack, selectChartableTracks, selectTrackColors, selectOffsetSeconds, selectIsLiveTrackSelected],
   (activeLive, rtTracks, colors, offsets, isLiveSelected): ChartTrack[] => {
     if (isLiveSelected) {
       if (activeLive != null && activeLive.timeSec.length >= 2 && activeLive.alt.length >= 2) {
@@ -106,9 +110,7 @@ export const selectChartTracks = createSelector(
       }
       return [];
     }
-    return rtTracks
-      .filter((t) => t.timeSec.length >= 2 && t.alt.length >= 2)
-      .map((t) => runtimeTrackToChartTrack(t, colors[t.id] ?? 'black', offsets[t.id] ?? 0));
+    return rtTracks.map((t) => runtimeTrackToChartTrack(t, colors[t.id] ?? 'black', offsets[t.id] ?? 0));
   },
 );
 
@@ -137,12 +139,15 @@ export const selectChartActiveTrackId = createSelector(
  * Returns the minimum timestamp in seconds for the elevation chart X axis.
  */
 export const selectChartMinTimeSec = createSelector(
-  [selectActiveLiveTrack, selectMinTimeSec],
-  (liveTrack, rtMinTimeSec): number => {
+  [selectActiveLiveTrack, selectChartableTracks, selectOffsetSeconds],
+  (liveTrack, rtTracks, offsets): number => {
     if (liveTrack != null && liveTrack.timeSec.length > 0) {
       return liveTrack.timeSec[0];
     }
-    return rtMinTimeSec;
+    if (rtTracks.length === 0) {
+      return 0;
+    }
+    return arrayMin(rtTracks.map((t) => t.minTimeSec - (offsets[t.id] ?? 0)));
   },
 );
 
@@ -150,12 +155,15 @@ export const selectChartMinTimeSec = createSelector(
  * Returns the maximum timestamp in seconds for the elevation chart X axis.
  */
 export const selectChartMaxTimeSec = createSelector(
-  [selectActiveLiveTrack, selectMaxTimeSec],
-  (liveTrack, rtMaxTimeSec): number => {
+  [selectActiveLiveTrack, selectChartableTracks, selectOffsetSeconds],
+  (liveTrack, rtTracks, offsets): number => {
     if (liveTrack != null && liveTrack.timeSec.length > 0) {
       return liveTrack.timeSec[liveTrack.timeSec.length - 1];
     }
-    return rtMaxTimeSec;
+    if (rtTracks.length === 0) {
+      return 1;
+    }
+    return arrayMax(rtTracks.map((t) => t.maxTimeSec - (offsets[t.id] ?? 0)));
   },
 );
 
@@ -173,8 +181,8 @@ export const selectChartAvailableYAxes = createSelector([selectActiveLiveTrack],
  * Returns the minimum Y value for the current chart mode.
  */
 export const selectChartMinY = createSelector(
-  [selectActiveLiveTrack, selectChartYAxis, selectMinAlt, selectMinSpeed, selectMinVario],
-  (liveTrack, yAxis, rtMinAlt, rtMinSpeed, rtMinVario): number => {
+  [selectActiveLiveTrack, selectChartYAxis, selectChartableTracks],
+  (liveTrack, yAxis, rtTracks): number => {
     if (liveTrack != null) {
       if (liveTrack.alt.length === 0) {
         return 0;
@@ -183,13 +191,16 @@ export const selectChartMinY = createSelector(
       const validGnd = (sanitizedGnd ?? []).filter(isGroundAltitudeValid);
       return validGnd.length > 0 ? Math.min(arrayMin(liveTrack.alt), arrayMin(validGnd)) : arrayMin(liveTrack.alt);
     }
+    if (rtTracks.length === 0) {
+      return 0;
+    }
     switch (yAxis) {
       case ChartYAxis.Speed:
-        return rtMinSpeed;
+        return arrayMin(rtTracks.map((t) => t.minVx));
       case ChartYAxis.Vario:
-        return rtMinVario;
+        return arrayMin(rtTracks.map((t) => t.minVz));
       default:
-        return rtMinAlt;
+        return arrayMin(rtTracks.map((t) => t.minAlt));
     }
   },
 );
@@ -198,18 +209,24 @@ export const selectChartMinY = createSelector(
  * Returns the maximum Y value for the current chart mode.
  */
 export const selectChartMaxY = createSelector(
-  [selectActiveLiveTrack, selectChartYAxis, selectMaxAlt, selectMaxSpeed, selectMaxVario],
-  (liveTrack, yAxis, rtMaxAlt, rtMaxSpeed, rtMaxVario): number => {
+  [selectActiveLiveTrack, selectChartYAxis, selectChartableTracks],
+  (liveTrack, yAxis, rtTracks): number => {
     if (liveTrack != null) {
       return liveTrack.alt.length > 0 ? arrayMax(liveTrack.alt) : 1;
     }
+    if (rtTracks.length === 0) {
+      return 1;
+    }
     switch (yAxis) {
       case ChartYAxis.Speed:
-        return rtMaxSpeed;
+        return arrayMax(rtTracks.map((t) => t.maxVx));
       case ChartYAxis.Vario:
-        return rtMaxVario;
+        return arrayMax(rtTracks.map((t) => t.maxVz));
       default:
-        return rtMaxAlt;
+        return arrayMax(
+          rtTracks.map((t) => t.maxAlt),
+          0,
+        );
     }
   },
 );
