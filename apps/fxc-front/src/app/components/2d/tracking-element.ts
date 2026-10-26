@@ -154,6 +154,8 @@ export class TrackingElement extends connect(store)(LitElement) {
 
   private features: google.maps.Data.Feature[] = [];
   private clearCurrentPilotListener?: google.maps.MapsEventListener;
+  // A deprecated Marker is required here because the Data layer uses legacy markers
+  // and z-indices between AdvancedMarkerElement and the Data layer do not interoperate.
   private positionMarker?: google.maps.Marker;
 
   /**
