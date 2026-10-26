@@ -42,7 +42,8 @@
     "activityBarTop.inactiveForeground": "#15202b99",
     "commandCenter.foreground": "#e7e7e7",
     "statusBar.debuggingBackground": "#557c9b",
-    "statusBar.debuggingForeground": "#e7e7e7"
+    "statusBar.debuggingForeground": "#e7e7e7",
+    "statusBar.inactiveBackground": "#557c9b"
   },
   "peacock.color": "#557c9b",
   "git.ignoreLimitWarning": true,
