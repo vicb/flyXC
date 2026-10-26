@@ -6,7 +6,7 @@ import type { ChartTrack } from '../../components/chart-element';
 import { ChartYAxis } from '../../components/chart-element';
 import { getUniqueContrastColor } from '../../styles/track';
 import { selectChartYAxis } from '../app-slice';
-import { getSanitizedLiveGroundAltitude, selectActiveLiveTrack, selectSelectedLiveTrack } from '../live-track-slice';
+import { getSanitizedLiveGroundAltitude, selectActiveLiveTrack, selectIsLiveTrackSelected } from '../live-track-slice';
 import {
   selectAllTracks,
   selectCurrentTrackId,
@@ -20,7 +20,6 @@ import {
   selectMinVario,
   selectOffsetSeconds,
   selectTrackColors,
-  selectTrackTotal,
 } from '../track-slice';
 
 /**
@@ -92,27 +91,33 @@ export function runtimeTrackToChartTrack(track: RuntimeTrack, color: string, off
 }
 
 /**
- * Whether any track (runtime or live) is available to display on the elevation chart.
+ * Returns the tracks to be displayed on the elevation chart.
+ *
+ * When a live track is selected, only its active (last) segment is returned, provided it has
+ * at least 2 points to define an elevation profile.
+ * When runtime tracks are active, all loaded runtime tracks with at least 2 points are returned.
  */
-export const selectHasChartTrack = createSelector(
-  [selectTrackTotal, selectSelectedLiveTrack],
-  (numTracks, liveTrack): boolean => numTracks > 0 || liveTrack != null,
+export const selectChartTracks = createSelector(
+  [selectActiveLiveTrack, selectAllTracks, selectTrackColors, selectOffsetSeconds, selectIsLiveTrackSelected],
+  (activeLive, rtTracks, colors, offsets, isLiveSelected): ChartTrack[] => {
+    if (isLiveSelected) {
+      if (activeLive != null && activeLive.timeSec.length >= 2 && activeLive.alt.length >= 2) {
+        return [liveTrackToChartTrack(activeLive)];
+      }
+      return [];
+    }
+    return rtTracks
+      .filter((t) => t.timeSec.length >= 2 && t.alt.length >= 2)
+      .map((t) => runtimeTrackToChartTrack(t, colors[t.id] ?? 'black', offsets[t.id] ?? 0));
+  },
 );
 
 /**
- * Returns the tracks to be displayed on the elevation chart.
- *
- * When a live track is selected, only its active (last) segment is returned.
- * When runtime tracks are active, all loaded runtime tracks are returned with their assigned colors and offsets.
+ * Whether any track (runtime or live) is available to display on the elevation chart.
  */
-export const selectChartTracks = createSelector(
-  [selectActiveLiveTrack, selectAllTracks, selectTrackColors, selectOffsetSeconds],
-  (activeLive, rtTracks, colors, offsets): ChartTrack[] => {
-    if (activeLive != null) {
-      return [liveTrackToChartTrack(activeLive)];
-    }
-    return rtTracks.map((t) => runtimeTrackToChartTrack(t, colors[t.id] ?? 'black', offsets[t.id] ?? 0));
-  },
+export const selectHasChartTrack = createSelector(
+  [selectChartTracks],
+  (chartTracks): boolean => chartTracks.length > 0,
 );
 
 /**

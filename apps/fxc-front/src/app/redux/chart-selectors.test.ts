@@ -250,6 +250,98 @@ describe('chart selectors', () => {
     expect(selectChartTracks(stateEmpty)).toHaveLength(0);
   });
 
+  it('hides chart when the active live track segment has fewer than 2 fixes', () => {
+    const singleFixLiveTrack = createMockLiveTrack(99, [1000], [500]);
+    const stateSingleFix = {
+      ...baseState,
+      track: {
+        tracks: { ids: [], entities: {} },
+        currentTrackId: undefined,
+        fetching: false,
+      },
+      liveTrack: {
+        ...baseState.liveTrack,
+        tracks: {
+          ids: ['99'],
+          entities: { '99': singleFixLiveTrack },
+        },
+        currentLiveId: '99',
+      },
+    };
+
+    expect(selectChartTracks(stateSingleFix)).toHaveLength(0);
+    expect(selectHasChartTrack(stateSingleFix)).toBe(false);
+  });
+
+  it('hides chart when the active live track segment has only 1 fix following a long gap (e.g. Jessica Suen scenario)', () => {
+    // Older segment had multiple fixes, but the last fix is after a > 60 min gap
+    const gapLiveTrack = createMockLiveTrack(100, [1000, 1060, 1120, 10000], [500, 600, 700, 800]);
+    const stateGap = {
+      ...baseState,
+      track: {
+        tracks: { ids: [], entities: {} },
+        currentTrackId: undefined,
+        fetching: false,
+      },
+      liveTrack: {
+        ...baseState.liveTrack,
+        tracks: {
+          ids: ['100'],
+          entities: { '100': gapLiveTrack },
+        },
+        currentLiveId: '100',
+      },
+    };
+
+    // Active segment has only 1 fix (at 10000), so elevation profile cannot be drawn
+    expect(selectChartTracks(stateGap)).toHaveLength(0);
+    expect(selectHasChartTrack(stateGap)).toBe(false);
+  });
+
+  it('hides chart when live track has no altitude data', () => {
+    const noAltLiveTrack = {
+      ...createMockLiveTrack(101, [1000, 1060], [500, 600]),
+      alt: [],
+    };
+    const stateNoAlt = {
+      ...baseState,
+      track: {
+        tracks: { ids: [], entities: {} },
+        currentTrackId: undefined,
+        fetching: false,
+      },
+      liveTrack: {
+        ...baseState.liveTrack,
+        tracks: {
+          ids: ['101'],
+          entities: { '101': noAltLiveTrack },
+        },
+        currentLiveId: '101',
+      },
+    };
+
+    expect(selectChartTracks(stateNoAlt)).toHaveLength(0);
+    expect(selectHasChartTrack(stateNoAlt)).toBe(false);
+  });
+
+  it('hides chart when a 1-fix live track is selected even if runtime tracks exist in store', () => {
+    const singleFixLiveTrack = createMockLiveTrack(99, [1000], [500]);
+    const stateWithRtAndSingleLive = {
+      ...baseState,
+      liveTrack: {
+        ...baseState.liveTrack,
+        tracks: {
+          ids: ['99'],
+          entities: { '99': singleFixLiveTrack },
+        },
+        currentLiveId: '99',
+      },
+    };
+
+    expect(selectChartTracks(stateWithRtAndSingleLive)).toHaveLength(0);
+    expect(selectHasChartTrack(stateWithRtAndSingleLive)).toBe(false);
+  });
+
   describe('active track and dashboard selectors', () => {
     it('returns runtime track name, color, and dashboard data when runtime track is active', () => {
       expect(selectHasActiveTrack(baseState)).toBe(true);
