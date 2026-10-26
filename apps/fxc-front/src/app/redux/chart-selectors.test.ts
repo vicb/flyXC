@@ -11,6 +11,8 @@ import {
   setCurrentLiveId,
 } from './live-track-slice';
 import {
+  isTrackChartable,
+  selectChartableTracks,
   selectChartActiveTrackId,
   selectChartAvailableYAxes,
   selectChartMaxTimeSec,
@@ -248,6 +250,103 @@ describe('chart selectors', () => {
 
     expect(selectHasChartTrack(stateEmpty)).toBe(false);
     expect(selectChartTracks(stateEmpty)).toHaveLength(0);
+  });
+
+  it('hides chart when the active live track segment has fewer than 2 fixes', () => {
+    const singleFixLiveTrack = createMockLiveTrack(99, [1000], [500]);
+    expect(isTrackChartable(singleFixLiveTrack)).toBe(false);
+    expect(isTrackChartable(liveTrack)).toBe(true);
+    expect(isTrackChartable(undefined)).toBe(false);
+    expect(isTrackChartable(null)).toBe(false);
+
+    const stateSingleFix = {
+      ...baseState,
+      track: {
+        tracks: { ids: [], entities: {} },
+        currentTrackId: undefined,
+        fetching: false,
+      },
+      liveTrack: {
+        ...baseState.liveTrack,
+        tracks: {
+          ids: ['99'],
+          entities: { '99': singleFixLiveTrack },
+        },
+        currentLiveId: '99',
+      },
+    };
+
+    expect(selectChartTracks(stateSingleFix)).toHaveLength(0);
+    expect(selectHasChartTrack(stateSingleFix)).toBe(false);
+  });
+
+  it('hides chart when the active live track segment has only 1 fix following a long gap (e.g. Jessica Suen scenario)', () => {
+    // Older segment had multiple fixes, but the last fix is after a > 60 min gap
+    const gapLiveTrack = createMockLiveTrack(100, [1000, 1060, 1120, 10000], [500, 600, 700, 800]);
+    const stateGap = {
+      ...baseState,
+      track: {
+        tracks: { ids: [], entities: {} },
+        currentTrackId: undefined,
+        fetching: false,
+      },
+      liveTrack: {
+        ...baseState.liveTrack,
+        tracks: {
+          ids: ['100'],
+          entities: { '100': gapLiveTrack },
+        },
+        currentLiveId: '100',
+      },
+    };
+
+    // Active segment has only 1 fix (at 10000), so elevation profile cannot be drawn
+    expect(selectChartTracks(stateGap)).toHaveLength(0);
+    expect(selectHasChartTrack(stateGap)).toBe(false);
+  });
+
+  it('hides chart when live track has no altitude data', () => {
+    const noAltLiveTrack = {
+      ...createMockLiveTrack(101, [1000, 1060], [500, 600]),
+      alt: [],
+    };
+    const stateNoAlt = {
+      ...baseState,
+      track: {
+        tracks: { ids: [], entities: {} },
+        currentTrackId: undefined,
+        fetching: false,
+      },
+      liveTrack: {
+        ...baseState.liveTrack,
+        tracks: {
+          ids: ['101'],
+          entities: { '101': noAltLiveTrack },
+        },
+        currentLiveId: '101',
+      },
+    };
+
+    expect(selectChartTracks(stateNoAlt)).toHaveLength(0);
+    expect(selectHasChartTrack(stateNoAlt)).toBe(false);
+  });
+
+  it('hides chart when a 1-fix live track is selected even if runtime tracks exist in store', () => {
+    const singleFixLiveTrack = createMockLiveTrack(99, [1000], [500]);
+    const stateWithRtAndSingleLive = {
+      ...baseState,
+      liveTrack: {
+        ...baseState.liveTrack,
+        tracks: {
+          ids: ['99'],
+          entities: { '99': singleFixLiveTrack },
+        },
+        currentLiveId: '99',
+      },
+    };
+
+    expect(selectChartTracks(stateWithRtAndSingleLive)).toHaveLength(0);
+    expect(selectHasChartTrack(stateWithRtAndSingleLive)).toBe(false);
   });
 
   describe('active track and dashboard selectors', () => {
@@ -706,6 +805,81 @@ describe('chart selectors', () => {
       // Altitudes are 2200 and 2500, ground altitudes are 1000 and sanitized 2500 -> min should be 1000
       expect(selectChartMinY(stateWithLive)).toBe(1000);
       expect(selectChartMaxY(stateWithLive)).toBe(2500);
+    });
+
+    it('excludes unchartable runtime tracks from time and Y bounds so extreme bounds do not distort chart axes', () => {
+      const chartableTrack = createMockRuntimeTrack('valid-1', [1000, 1100, 1200], [1500, 1800, 1600]);
+      // Single fix track with extreme timestamps and altitudes
+      const extremeSingleFixTrack: RuntimeTrack = {
+        ...createMockRuntimeTrack('extreme-single', [50000], [9999]),
+        minTimeSec: 50000,
+        maxTimeSec: 50000,
+        minAlt: 9999,
+        maxAlt: 9999,
+        minVx: 200,
+        maxVx: 200,
+        minVz: -10,
+        maxVz: 10,
+      };
+      // Track with no altitude data and extreme past timestamps
+      const noAltTrack: RuntimeTrack = {
+        ...createMockRuntimeTrack('no-alt', [100, 200], []),
+        minTimeSec: 100,
+        maxTimeSec: 200,
+        minAlt: 0,
+        maxAlt: 0,
+        minVx: 0,
+        maxVx: 0,
+        minVz: 0,
+        maxVz: 0,
+      };
+
+      const state: any = {
+        ...baseState,
+        track: {
+          tracks: {
+            ids: ['valid-1', 'extreme-single', 'no-alt'],
+            entities: {
+              'valid-1': chartableTrack,
+              'extreme-single': extremeSingleFixTrack,
+              'no-alt': noAltTrack,
+            },
+          },
+          currentTrackId: 'valid-1',
+          fetching: false,
+        },
+        liveTrack: {
+          ...baseState.liveTrack,
+          currentLiveId: undefined,
+        },
+      };
+
+      expect(isTrackChartable(chartableTrack)).toBe(true);
+      expect(isTrackChartable(extremeSingleFixTrack)).toBe(false);
+      expect(isTrackChartable(noAltTrack)).toBe(false);
+
+      expect(selectChartableTracks(state)).toEqual([chartableTrack]);
+      expect(selectChartTracks(state)).toHaveLength(1);
+      expect(selectChartTracks(state)[0].id).toBe('valid-1');
+
+      // Time bounds must be determined solely by the chartable track [1000, 1200], not 100 or 50000
+      expect(selectChartMinTimeSec(state)).toBe(1000);
+      expect(selectChartMaxTimeSec(state)).toBe(1200);
+
+      // Altitude mode bounds must be [1500, 1800], not 0 or 9999
+      const altState = { ...state, app: { ...state.app, chartYAxis: ChartYAxis.Altitude } };
+      expect(selectChartMinY(altState)).toBe(1500);
+      expect(selectChartMaxY(altState)).toBe(1800);
+
+      // Speed mode bounds must be [10, 10] from chartable track, not 200
+      const speedState = { ...state, app: { ...state.app, chartYAxis: ChartYAxis.Speed } };
+      expect(selectChartMinY(speedState)).toBe(10);
+      expect(selectChartMaxY(speedState)).toBe(10);
+
+      // Vario mode bounds must be [1, 1] from chartable track, not -10 or 10
+      const varioState = { ...state, app: { ...state.app, chartYAxis: ChartYAxis.Vario } };
+      expect(selectChartMinY(varioState)).toBe(1);
+      expect(selectChartMaxY(varioState)).toBe(1);
     });
 
     it('does not overwrite app time when a live track is selected', () => {
