@@ -1,14 +1,9 @@
-import type { BRecord, IGCFile } from 'igc-parser';
-import type { Point, Solution } from 'igc-xc-score';
-import { solver } from 'igc-xc-score';
+import type { InitInput, Score } from 'rustigc-wasm';
+import initRustigc, { Scorer } from 'rustigc-wasm';
 
 import type { ScoringRuleName } from './api';
 import { CircuitType } from './api';
-import { scoringRules } from './scoring-rules';
-
-// Minimum number of points in an igc-xc-score track.
-// See this issue https://github.com/mmomtchev/igc-xc-score/issues/231
-const MIN_IGC_XC_SCORE_POINTS = 5;
+import { getRuleset } from './scoring-rules';
 
 export interface LatLon {
   lat: number;
@@ -21,24 +16,14 @@ export interface LatLonAltTime extends LatLon {
 }
 
 export interface ScoringTrack {
-  points: LatLonAltTime[];
+  points: LatLon[];
 }
 
 export interface ScoringRequest {
   track: ScoringTrack;
   ruleName: ScoringRuleName;
-  /** Maximum cycle duration. Unbounded when not provided */
-  maxCycleDurationMs?: number;
-  /** Maximum number of cycles. Unbounded when not provided */
-  maxNumCycles?: number;
 }
 
-export interface Leg {
-  name: string;
-  lengthKm: number;
-  start: LatLon;
-  end: LatLon;
-}
 export interface ScoringResult {
   // The score for the track in the given league
   score: number;
@@ -48,278 +33,182 @@ export interface ScoringResult {
   multiplier: number;
   circuit: CircuitType;
   closingRadiusKm?: number;
-  // Indices of solutions points in the request
-  solutionIndices: number[];
-  // Whether the result is optimal.
-  //If not the optimizer can be cycled again to get a more accurate solution.
-  optimal: boolean;
-  startPoint?: LatLon;
-  endPoint?: LatLon;
-  legs: Leg[];
-  turnpoints: LatLon[];
   closingPoints?: {
     in: LatLon;
     out: LatLon;
   };
-  // optimized path
+  turnpoints: LatLon[];
+  // Optimized route path
   path: LatLon[];
 }
 
+let initPromise: Promise<void> | undefined;
+
 /**
- * Returns an iterative optimizer computing the score for the flight.
+ * Initializes the rustigc WebAssembly module.
  *
- * At each iteration, the score should be a better solutions.
- *
- * @see README.md
- *
- * @param request Contains the tracks and options.
- * @returns an Iterator of OptimizationResult
+ * @param wasmInput Custom URL, BufferSource, Response, or WebAssembly.Module.
  */
-export function* getOptimizer(request: ScoringRequest): Iterator<ScoringResult, ScoringResult> {
-  if (request.track.points.length === 0) {
+export function initOptimizer(wasmInput: InitInput | Promise<InitInput>): Promise<void> {
+  return (initPromise ??= (async () => {
+    await initRustigc({ module_or_path: wasmInput });
+  })());
+}
+
+/**
+ * Computes the score for a track in a given league.
+ *
+ * @param points Array of LatLon coordinates or a ScoringRequest object.
+ * @param ruleName Name of the league scoring ruleset.
+ * @returns The scoring result.
+ */
+export function scoreTrack(points: LatLon[], ruleName: ScoringRuleName): ScoringResult;
+export function scoreTrack(request: ScoringRequest): ScoringResult;
+export function scoreTrack(
+  pointsOrRequest: LatLon[] | ScoringRequest,
+  ruleName?: ScoringRuleName,
+): ScoringResult {
+  const points = Array.isArray(pointsOrRequest) ? pointsOrRequest : pointsOrRequest.track.points;
+  const rule = Array.isArray(pointsOrRequest) ? ruleName! : pointsOrRequest.ruleName;
+
+  if (points.length === 0) {
     return {
       score: 0,
       lengthKm: 0,
       multiplier: 0,
       circuit: CircuitType.OpenDistance,
-      solutionIndices: [],
-      optimal: true,
-      legs: [],
       turnpoints: [],
       path: [],
     };
   }
-  const { track } = request;
-  const flight = toIgcFile(appendPointsIfNeeded(track, MIN_IGC_XC_SCORE_POINTS));
-  const solverScoringRules = scoringRules.get(request.ruleName);
-  if (solverScoringRules === undefined) {
-    return toOptimizationResult(toUnoptimizedSolution(track), track);
-  }
-  const options = toSolverOptions(request);
-  const solutionIterator = solver(flight, solverScoringRules, options);
-  while (true) {
-    const solution = solutionIterator.next();
-    if (solution.done) {
-      return toOptimizationResult(solution.value, track);
-    }
-    yield toOptimizationResult(solution.value, track);
-  }
-}
 
-function toUnoptimizedSolution(track: ScoringTrack): Solution {
-  const tp: Point[] = [];
-  let distance = 0;
-  for (let i = 1; i < track.points.length - 1; i++) {
-    tp.push(trackToPoint(track.points, i));
-  }
-  for (let i = 1; i < track.points.length; i++) {
-    const from = track.points[i - 1];
-    const to = track.points[i];
-    distance += distanceEarthFCC(from, to);
+  if (rule === 'None') {
+    return toUnoptimizedSolution(points);
   }
 
-  return {
-    scoreInfo: {
-      ep: {
-        start: trackToPoint(track.points, 0),
-        finish: trackToPoint(track.points, track.points.length - 1),
-      },
-      tp,
-      distance,
-      penalty: 0,
-      score: distance,
-    },
-    opt: {
-      launch: 0,
-      landing: track.points.length - 1,
-      scoring: {
-        name: '',
-        code: 'od',
-        multiplier: 1,
-      },
-      flight: undefined as any,
-      config: {},
-    },
-    optimal: true,
-    id: 0,
-    bound: 0,
-    currentUpperBound: 0,
-  };
-}
-
-/**
- * Append points if the track is too short for igc-xc-score.
- *
- * The points are close enough to the last point to not affect the score.
- */
-function appendPointsIfNeeded(track: ScoringTrack, minValidLength: number) {
-  track = structuredClone(track);
-
-  if (track.points.length >= minValidLength) {
-    return track;
-  }
-
-  while (track.points.length < minValidLength) {
-    const lastPoint = track.points.at(-1)!;
-    track.points.push({
-      ...lastPoint,
-      lat: lastPoint.lat + 0.000001,
-      timeSec: lastPoint.timeSec + 60,
-    });
-  }
-
-  return track;
-}
-
-/**
- * create an igc file from a track
- * @param track the source track
- */
-function toIgcFile(track: ScoringTrack): IGCFile {
-  if (track.points.length == 0) {
-    throw new Error('Empty track');
-  }
-
-  const fixes = track.points.map((point): BRecord => {
-    const timeMilliSec = point.timeSec * 1000;
+  if (points.length < 2) {
     return {
-      timestamp: timeMilliSec,
-      time: new Date(timeMilliSec).toISOString(),
-      latitude: point.lat,
-      longitude: point.lon,
-      valid: true,
-      pressureAltitude: null,
-      gpsAltitude: point.alt,
-      extensions: {},
-      fixAccuracy: null,
-      enl: null,
+      score: 0,
+      lengthKm: 0,
+      multiplier: 1,
+      circuit: CircuitType.OpenDistance,
+      turnpoints: [],
+      path: [points[0]],
     };
-  });
+  }
 
-  // Only fill out the fields required by igc-xc-score.
-  return {
-    date: new Date(track.points[0].timeSec * 1000).toISOString(),
-    fixes,
-  } as any;
+  const ruleset = getRuleset(rule);
+  if (!ruleset) {
+    return toUnoptimizedSolution(points);
+  }
+
+  const coords = new Float64Array(points.length * 2);
+  for (let i = 0; i < points.length; i++) {
+    coords[2 * i] = points[i].lat;
+    coords[2 * i + 1] = points[i].lon;
+  }
+
+  const scorer = new Scorer(coords);
+  const score = scorer.solve(ruleset);
+  if (!score) {
+    return {
+      score: 0,
+      lengthKm: 0,
+      multiplier: 1,
+      circuit: CircuitType.OpenDistance,
+      turnpoints: [],
+      path: [],
+    };
+  }
+
+  return toScoringResult(score, points);
 }
 
-function toSolverOptions(request: ScoringRequest) {
-  // TODO: upstream the type to igc-xc-score
+function toUnoptimizedSolution(points: LatLon[]): ScoringResult {
+  let distance = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    distance += distanceEarthFCC(points[i], points[i + 1]);
+  }
+
   return {
-    maxcycle: request.maxCycleDurationMs,
-    maxloop: request.maxNumCycles,
+    score: distance,
+    lengthKm: distance,
+    multiplier: 1,
+    circuit: CircuitType.OpenDistance,
+    turnpoints: points.slice(1, -1),
+    path: points.map(({ lat, lon }) => ({ lat, lon })),
   };
 }
 
-function toOptimizationResult(solution: Solution, track: ScoringTrack): ScoringResult {
-  const startPoint = solution.scoreInfo?.ep?.start ? pointToLatTon(solution.scoreInfo?.ep?.start) : undefined;
-  const endPoint = solution.scoreInfo?.ep?.finish ? pointToLatTon(solution.scoreInfo?.ep?.finish) : undefined;
-  const closingPoints = solution.scoreInfo?.cp
-    ? {
-        in: pointToLatTon(solution.scoreInfo.cp.in),
-        out: pointToLatTon(solution.scoreInfo.cp.out),
-      }
-    : undefined;
-  const turnpoints = (solution.scoreInfo?.tp ?? []).map((point) => pointToLatTon(point));
+function toCircuitType(score: Score): CircuitType {
+  switch (score.description) {
+    case 'fai':
+      return CircuitType.FaiTriangle;
+    case 'out-and-return':
+      return CircuitType.OutAndReturn;
+    case 'triangle':
+      return CircuitType.FlatTriangle;
+    case 'open':
+    default:
+      return CircuitType.OpenDistance;
+  }
+}
+
+function toScoringResult(score: Score, points: LatLon[]): ScoringResult {
+  const circuit = toCircuitType(score);
+
+  if (score.circuit) {
+    const closingPoints = {
+      in: { lat: points[score.entry].lat, lon: points[score.entry].lon },
+      out: { lat: points[score.exit].lat, lon: points[score.exit].lon },
+    };
+    const turnpoints = score.turnpoints.map((idx) => ({
+      lat: points[idx].lat,
+      lon: points[idx].lon,
+    }));
+
+    return {
+      score: score.score,
+      lengthKm: score.distance_km,
+      multiplier: score.multiplier,
+      circuit,
+      closingRadiusKm: score.threshold_m / 1000,
+      closingPoints,
+      turnpoints,
+      path: [closingPoints.in, ...turnpoints, closingPoints.out],
+    };
+  }
+
+  const rawIndices = [score.entry, ...score.turnpoints, score.exit];
+  const deduplicatedIndices: number[] = [];
+  for (const idx of rawIndices) {
+    if (deduplicatedIndices.length === 0 || deduplicatedIndices[deduplicatedIndices.length - 1] !== idx) {
+      deduplicatedIndices.push(idx);
+    }
+  }
+
+  const path = deduplicatedIndices.map((idx) => ({
+    lat: points[idx].lat,
+    lon: points[idx].lon,
+  }));
+
+  const turnpoints = deduplicatedIndices.slice(1, -1).map((idx) => ({
+    lat: points[idx].lat,
+    lon: points[idx].lon,
+  }));
+
   return {
-    score: solution.score ?? 0,
-    lengthKm: solution.scoreInfo?.distance ?? 0,
-    multiplier: solution.opt.scoring.multiplier,
-    circuit: toCircuitType(solution.opt.scoring.code),
-    closingRadiusKm: getClosingRadiusKm(solution),
-    solutionIndices: getSolutionIndices(solution, track),
-    optimal: solution.optimal || false,
-    startPoint,
-    endPoint,
-    legs: (solution.scoreInfo?.legs ?? []).map(({ name, d, start, finish }) => ({
-      name,
-      lengthKm: d,
-      start: pointToLatTon(start),
-      end: pointToLatTon(finish),
-    })),
+    score: score.score,
+    lengthKm: score.distance_km,
+    multiplier: score.multiplier,
+    circuit,
     turnpoints,
-    closingPoints,
-    path: [closingPoints?.in, startPoint, ...turnpoints, endPoint, closingPoints?.out].filter((p) => p != null),
+    path,
   };
 }
 
-function pointToLatTon(point: Point): LatLon {
-  return { lat: point.y, lon: point.x };
-}
-
-function trackToPoint(track: LatLon[], index: number): Point {
-  const latLon = track[index];
-  return { x: latLon.lon, y: latLon.lat, r: index };
-}
-
-function getClosingRadiusKm(solution: Solution): number | undefined {
-  const closingDistance = solution.scoreInfo?.cp?.d;
-
-  if (closingDistance == null) {
-    return undefined;
-  }
-
-  const closingDistanceFixed = solution.opt.scoring.closingDistanceFixed;
-
-  if (closingDistanceFixed != null && closingDistance < closingDistanceFixed) {
-    return closingDistanceFixed;
-  }
-
-  const closingDistanceRelativeRatio = solution.opt.scoring.closingDistanceRelative;
-  const closingDistanceRelative =
-    solution.scoreInfo?.distance != null && closingDistanceRelativeRatio != null
-      ? closingDistanceRelativeRatio * solution.scoreInfo.distance
-      : undefined;
-
-  if (closingDistanceRelative != null && closingDistance < closingDistanceRelative) {
-    return closingDistanceRelative;
-  }
-
-  return undefined;
-}
-
-const circuitMapping: Readonly<Record<string, CircuitType>> = {
-  od: CircuitType.OpenDistance,
-  tri: CircuitType.FlatTriangle,
-  fai: CircuitType.FaiTriangle,
-  oar: CircuitType.OutAndReturn,
-};
-
-function toCircuitType(code: string): CircuitType {
-  const type = circuitMapping[code];
-  if (type == null) {
-    throw new Error(`Unknown type "${code}"`);
-  }
-  return type;
-}
-
-/**
- * Return the indices of the solution in the input track.
- *
- * It contains (when applicable):
- * - the starting point
- * - the 'in' closing point
- * - the turn points
- * - the 'out' closing point
- * - the end point
- * */
-function getSolutionIndices(solution: Solution, inputTrack: ScoringTrack): number[] {
-  return (
-    [
-      solution.scoreInfo?.ep?.start.r,
-      solution.scoreInfo?.cp?.in.r,
-      ...(solution.scoreInfo?.tp ?? []).map((turnPoint) => turnPoint.r),
-      solution.scoreInfo?.cp?.out.r,
-      solution.scoreInfo?.ep?.finish.r,
-    ]
-      .filter((index) => index != null)
-      // Map added dummy points back to the last point of the input track.
-      .map((index) => Math.min(index!, inputTrack.points.length - 1))
-  );
-}
-
-// https://github.com/mmomtchev/igc-xc-score/blob/da601fa5ade432c1e55808de5ad3336905ea6cf8/src/foundation.js#L48C1-L64C6
-function distanceEarthFCC(p1: LatLon, p2: LatLon) {
+// FCC distance formula between two lat/lon coordinates in kilometers.
+function distanceEarthFCC(p1: LatLon, p2: LatLon): number {
   const df = p1.lat - p2.lat;
   const dg = p1.lon - p2.lon;
   const fmDegree = (p2.lat + p1.lat) / 2;

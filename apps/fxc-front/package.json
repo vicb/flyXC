@@ -22,6 +22,7 @@
     "micro-typed-events": "^1.0.2",
     "pwa-helpers": "^0.9.1",
     "qrcode": "^1.5.4",
+    "rustigc-wasm": "catalog:",
     "simplify-path": "catalog:default",
     "vaadin-dom": "workspace:*",
     "workbox-core": "^7.4.1",

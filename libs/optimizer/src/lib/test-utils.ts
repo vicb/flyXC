@@ -1,7 +1,7 @@
-import type { LatLonAltTime, ScoringTrack } from '../optimizer';
+import type { LatLon, LatLonAltTime, ScoringTrack } from './optimizer';
 
 /**
- * Creates a track with segments.
+ * Creates a track with segments (test utility only).
  *
  * Points are computed by a linear interpolation
  *
@@ -29,3 +29,25 @@ export function createSegments(startPoint: LatLonAltTime, endPoint: LatLonAltTim
 
   return { points };
 }
+
+/**
+ * Merge multiple tracks (test utility only).
+ *
+ * Collapse end and start point of consecutive tracks when they match.
+ *
+ * @param tracks the tracks to concatenate
+ * @returns a track
+ */
+export function mergeTracks(...tracks: ScoringTrack[]): ScoringTrack {
+  const points: LatLon[] = [];
+
+  for (const track of tracks) {
+    if (track.points.length == 0) {
+      continue;
+    }
+    const collapse = points.at(-1)?.lat === track.points[0].lat && points.at(-1)?.lon === track.points[0].lon;
+    points.push(...(collapse ? track.points.slice(1) : track.points));
+  }
+  return { points };
+}
+

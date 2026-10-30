@@ -1,5 +1,6 @@
-import type { ScoringRequest, ScoringResult } from '@flyxc/optimizer/src/lib/optimizer';
-import { getOptimizer } from '@flyxc/optimizer/src/lib/optimizer';
+import type { ScoringRequest, ScoringResult } from '@flyxc/optimizer';
+import { initOptimizer, scoreTrack } from '@flyxc/optimizer';
+import wasmUrl from 'rustigc-wasm/rustigc_wasm_bg.wasm?url';
 
 export interface Request {
   request: ScoringRequest;
@@ -11,16 +12,19 @@ export interface Response {
   id?: number;
 }
 
+let initPromise: Promise<void> | undefined;
+
+function ensureReady(): Promise<void> {
+  return (initPromise ??= initOptimizer(wasmUrl));
+}
+
 addEventListener('message', async (event: MessageEvent<Request>) => {
   const { request, id } = event.data;
-  const optimizer = getOptimizer(request);
-  let result: IteratorResult<ScoringResult, ScoringResult>;
-  do {
-    result = optimizer.next();
-  } while (!result.done);
+  await ensureReady();
+  const response = scoreTrack(request);
 
   postMessage({
-    response: result.value,
+    response,
     id,
   } satisfies Response);
 });

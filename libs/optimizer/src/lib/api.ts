@@ -1,6 +1,3 @@
-// Do not depend on igc-xc-score that pollutes the global namespace
-// See https://github.com/mmomtchev/igc-xc-score/issues/234
-
 export const scoringRuleNames = [
   'CzechLocal',
   'CzechEurope',
@@ -22,7 +19,6 @@ export const enum CircuitType {
   FlatTriangle = 'Flat triangle',
   FaiTriangle = 'Fai triangle',
   OutAndReturn = 'Out and return',
-  Quad = 'Quad',
 }
 
 export type ScoringRuleName = (typeof scoringRuleNames)[number];

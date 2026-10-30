@@ -30,7 +30,6 @@ const ROUTE_STROKE_COLORS = {
   [CircuitType.OutAndReturn]: '#ff9933',
   [CircuitType.FlatTriangle]: '#ffcc00',
   [CircuitType.FaiTriangle]: '#ffff00',
-  [CircuitType.Quad]: '#b55bff',
 };
 
 // Circuit abbreviation by circuit type.
@@ -39,7 +38,6 @@ const CIRCUIT_SHORT_NAME = {
   [CircuitType.OutAndReturn]: 'oar',
   [CircuitType.FlatTriangle]: 'triangle',
   [CircuitType.FaiTriangle]: 'fai',
-  [CircuitType.Quad]: 'quad',
 };
 
 @customElement('path-element')

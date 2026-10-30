@@ -1,12 +1,19 @@
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+
 import { computeDestinationPoint, getGreatCircleBearing, getPreciseDistance } from 'geolib';
 
 import { CircuitType, type ScoringRuleName, scoringRuleNames } from './api';
 import type { ScoringRequest, ScoringResult } from './optimizer';
-import { getOptimizer } from './optimizer';
-import { createSegments } from './utils/create-segments';
-import { mergeTracks } from './utils/merge-tracks';
+import { initOptimizer, scoreTrack } from './optimizer';
+import { createSegments, mergeTracks } from './test-utils';
 
 describe('optimizer', () => {
+  beforeAll(async () => {
+    const wasmPath = createRequire(import.meta.url).resolve('rustigc-wasm/rustigc_wasm_bg.wasm');
+    await initOptimizer(readFileSync(wasmPath));
+  });
+
   scoringRuleNames.forEach((ruleName) => {
     if (ruleName === 'None') {
       return;
@@ -23,169 +30,178 @@ describe('optimizer', () => {
           lengthKm: 0,
           multiplier: 0,
           circuit: CircuitType.OpenDistance,
-          optimal: true,
         });
       });
 
       [1, 10].forEach((segmentsPerBranch) => {
         describe(`given a free distanceKm request (${segmentsPerBranch} segments/branch)`, () => {
-          const start = { lat: 45, lon: 5 };
-          const end = { lat: 45, lon: 6 };
+          it('computes the score', () => {
+            const start = { lat: 45, lon: 5 };
+            const end = { lat: 45, lon: 6 };
 
-          const request = {
-            track: createSegments({ ...start, alt: 0, timeSec: 0 }, { ...end, alt: 0, timeSec: 60 }, segmentsPerBranch),
-            ruleName,
-          };
+            const request = {
+              track: createSegments(
+                { ...start, alt: 0, timeSec: 0 },
+                { ...end, alt: 0, timeSec: 60 },
+                segmentsPerBranch,
+              ),
+              ruleName,
+            };
 
-          const multiplier = getFreeDistanceMultiplier(ruleName);
-          const distanceKm = getPreciseDistance(start, end) / 1000;
-          expect(optimize(request)).toMatchObject({
-            score: expect.closeTo(distanceKm * multiplier, 1),
-            lengthKm: expect.closeTo(distanceKm, 1),
-            multiplier,
-            circuit: CircuitType.OpenDistance,
-            optimal: true,
+            const multiplier = getFreeDistanceMultiplier(ruleName);
+            const distanceKm = getPreciseDistance(start, end) / 1000;
+            expect(optimize(request)).toMatchObject({
+              score: expect.closeTo(distanceKm * multiplier, 1),
+              lengthKm: expect.closeTo(distanceKm, 1),
+              multiplier,
+              circuit: CircuitType.OpenDistance,
+            });
           });
         });
 
         describe(`given a free distanceKm with 1 turnpoints request (${segmentsPerBranch} segment/branch)`, () => {
-          const start = { lat: 45, lon: 5 };
-          const tp = { lat: 45, lon: 6 };
-          const end = { lat: 46, lon: 6 };
+          it('computes the score', () => {
+            const start = { lat: 45, lon: 5 };
+            const tp = { lat: 45, lon: 6 };
+            const end = { lat: 46, lon: 6 };
 
-          const request = {
-            track: mergeTracks(
-              createSegments({ ...start, alt: 0, timeSec: 0 }, { ...tp, alt: 0, timeSec: 60 }, segmentsPerBranch),
-              createSegments({ ...tp, alt: 0, timeSec: 60 }, { ...end, alt: 0, timeSec: 120 }, segmentsPerBranch),
-            ),
-            ruleName,
-          };
+            const request = {
+              track: mergeTracks(
+                createSegments({ ...start, alt: 0, timeSec: 0 }, { ...tp, alt: 0, timeSec: 60 }, segmentsPerBranch),
+                createSegments({ ...tp, alt: 0, timeSec: 60 }, { ...end, alt: 0, timeSec: 120 }, segmentsPerBranch),
+              ),
+              ruleName,
+            };
 
-          const distanceKm = (getPreciseDistance(start, tp) + getPreciseDistance(tp, end)) / 1000;
-          const multiplier = getFreeDistanceMultiplier(ruleName);
-          expect(optimize(request)).toMatchObject({
-            score: expect.closeTo(distanceKm * multiplier, 1),
-            lengthKm: expect.closeTo(distanceKm, 1),
-            multiplier,
-            circuit: CircuitType.OpenDistance,
-            optimal: true,
+            const distanceKm = (getPreciseDistance(start, tp) + getPreciseDistance(tp, end)) / 1000;
+            const multiplier = getFreeDistanceMultiplier(ruleName);
+            expect(optimize(request)).toMatchObject({
+              score: expect.closeTo(distanceKm * multiplier, 1),
+              lengthKm: expect.closeTo(distanceKm, 1),
+              multiplier,
+              circuit: CircuitType.OpenDistance,
+            });
           });
         });
 
         describe(`given a free distanceKm with 2 turnpoints request (${segmentsPerBranch} segment/branch)`, () => {
-          const start = { lat: 45, lon: 5 };
-          const tp1 = { lat: 45, lon: 6 };
-          const tp2 = { lat: 46, lon: 6 };
-          const end = { lat: 46, lon: 5 };
+          it('computes the score', () => {
+            const start = { lat: 45, lon: 5 };
+            const tp1 = { lat: 45, lon: 6 };
+            const tp2 = { lat: 46, lon: 6 };
+            const end = { lat: 46, lon: 5 };
 
-          const request = {
-            track: mergeTracks(
-              createSegments({ ...start, alt: 0, timeSec: 0 }, { ...tp1, alt: 0, timeSec: 60 }, segmentsPerBranch),
-              createSegments({ ...tp1, alt: 0, timeSec: 60 }, { ...tp2, alt: 0, timeSec: 120 }, segmentsPerBranch),
-              createSegments({ ...tp2, alt: 0, timeSec: 120 }, { ...end, alt: 0, timeSec: 180 }, segmentsPerBranch),
-            ),
-            ruleName,
-          };
+            const request = {
+              track: mergeTracks(
+                createSegments({ ...start, alt: 0, timeSec: 0 }, { ...tp1, alt: 0, timeSec: 60 }, segmentsPerBranch),
+                createSegments({ ...tp1, alt: 0, timeSec: 60 }, { ...tp2, alt: 0, timeSec: 120 }, segmentsPerBranch),
+                createSegments({ ...tp2, alt: 0, timeSec: 120 }, { ...end, alt: 0, timeSec: 180 }, segmentsPerBranch),
+              ),
+              ruleName,
+            };
 
-          const distanceKm =
-            (getPreciseDistance(start, tp1) + getPreciseDistance(tp1, tp2) + getPreciseDistance(tp2, end)) / 1000;
-          const multiplier = getFreeDistanceMultiplier(ruleName);
-          expect(optimize(request)).toMatchObject({
-            score: expect.closeTo(distanceKm * multiplier, 1),
-            lengthKm: expect.closeTo(distanceKm, 1),
-            multiplier,
-            circuit: CircuitType.OpenDistance,
-            optimal: true,
+            const distanceKm =
+              (getPreciseDistance(start, tp1) + getPreciseDistance(tp1, tp2) + getPreciseDistance(tp2, end)) / 1000;
+            const multiplier = getFreeDistanceMultiplier(ruleName);
+            expect(optimize(request)).toMatchObject({
+              score: expect.closeTo(distanceKm * multiplier, 1),
+              lengthKm: expect.closeTo(distanceKm, 1),
+              multiplier,
+              circuit: CircuitType.OpenDistance,
+            });
           });
         });
 
         describe(`given a free distanceKm with 3 turnpoints request (${segmentsPerBranch} segment/branch)`, () => {
-          const start = { lat: 45, lon: 5 };
-          const tp1 = { lat: 45, lon: 6 };
-          const tp2 = { lat: 46, lon: 6 };
-          const tp3 = { lat: 46, lon: 5 };
-          const end = { lat: 47, lon: 5 };
+          it('computes the score', () => {
+            const start = { lat: 45, lon: 5 };
+            const tp1 = { lat: 45, lon: 6 };
+            const tp2 = { lat: 46, lon: 6 };
+            const tp3 = { lat: 46, lon: 5 };
+            const end = { lat: 47, lon: 5 };
 
-          const request = {
-            track: mergeTracks(
-              createSegments({ ...start, alt: 0, timeSec: 0 }, { ...tp1, alt: 0, timeSec: 60 }, segmentsPerBranch),
-              createSegments({ ...tp1, alt: 0, timeSec: 60 }, { ...tp2, alt: 0, timeSec: 120 }, segmentsPerBranch),
-              createSegments({ ...tp2, alt: 0, timeSec: 120 }, { ...tp3, alt: 0, timeSec: 180 }, segmentsPerBranch),
-              createSegments({ ...tp3, alt: 0, timeSec: 180 }, { ...end, alt: 0, timeSec: 240 }, segmentsPerBranch),
-            ),
-            ruleName,
-          };
+            const request = {
+              track: mergeTracks(
+                createSegments({ ...start, alt: 0, timeSec: 0 }, { ...tp1, alt: 0, timeSec: 60 }, segmentsPerBranch),
+                createSegments({ ...tp1, alt: 0, timeSec: 60 }, { ...tp2, alt: 0, timeSec: 120 }, segmentsPerBranch),
+                createSegments({ ...tp2, alt: 0, timeSec: 120 }, { ...tp3, alt: 0, timeSec: 180 }, segmentsPerBranch),
+                createSegments({ ...tp3, alt: 0, timeSec: 180 }, { ...end, alt: 0, timeSec: 240 }, segmentsPerBranch),
+              ),
+              ruleName,
+            };
 
-          const distanceKm =
-            (getPreciseDistance(start, tp1) +
-              getPreciseDistance(tp1, tp2) +
-              getPreciseDistance(tp2, tp3) +
-              getPreciseDistance(tp3, end)) /
-            1000;
-          const multiplier = getFreeDistanceMultiplier(ruleName);
-          expect(optimize(request)).toMatchObject({
-            score: expect.closeTo(distanceKm * multiplier, 1),
-            lengthKm: expect.closeTo(distanceKm, 1),
-            multiplier,
-            circuit: CircuitType.OpenDistance,
-            optimal: true,
+            const distanceKm =
+              (getPreciseDistance(start, tp1) +
+                getPreciseDistance(tp1, tp2) +
+                getPreciseDistance(tp2, tp3) +
+                getPreciseDistance(tp3, end)) /
+              1000;
+            const multiplier = getFreeDistanceMultiplier(ruleName);
+            expect(optimize(request)).toMatchObject({
+              score: expect.closeTo(distanceKm * multiplier, 1),
+              lengthKm: expect.closeTo(distanceKm, 1),
+              multiplier,
+              circuit: CircuitType.OpenDistance,
+            });
           });
         });
 
         describe(`given a closed flat triangle request (${segmentsPerBranch} segment/branch)`, () => {
-          const tp1 = { lat: 45, lon: 5 };
-          const tp2 = { lat: 45, lon: 6 };
-          const tp3 = { lat: 45.2, lon: 6 };
+          it('computes the score', () => {
+            const tp1 = { lat: 45, lon: 5 };
+            const tp2 = { lat: 45, lon: 6 };
+            const tp3 = { lat: 45.2, lon: 6 };
 
-          const request = {
-            track: mergeTracks(
-              createSegments({ ...tp1, alt: 0, timeSec: 0 }, { ...tp2, alt: 0, timeSec: 60 }, segmentsPerBranch),
-              createSegments({ ...tp2, alt: 0, timeSec: 60 }, { ...tp3, alt: 0, timeSec: 120 }, segmentsPerBranch),
-              createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp1, alt: 0, timeSec: 180 }, segmentsPerBranch),
-            ),
-            ruleName,
-          };
+            const request = {
+              track: mergeTracks(
+                createSegments({ ...tp1, alt: 0, timeSec: 0 }, { ...tp2, alt: 0, timeSec: 60 }, segmentsPerBranch),
+                createSegments({ ...tp2, alt: 0, timeSec: 60 }, { ...tp3, alt: 0, timeSec: 120 }, segmentsPerBranch),
+                createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp1, alt: 0, timeSec: 180 }, segmentsPerBranch),
+              ),
+              ruleName,
+            };
 
-          const distanceKm =
-            (getPreciseDistance(tp1, tp2) + getPreciseDistance(tp2, tp3) + getPreciseDistance(tp3, tp1)) / 1000;
-          const multiplier = getFlatTriangleMultiplier(ruleName);
-          expect(optimize(request)).toMatchObject({
-            score: expect.closeTo(distanceKm * multiplier, 1),
-            lengthKm: expect.closeTo(distanceKm, 1),
-            multiplier,
-            circuit: CircuitType.FlatTriangle,
-            optimal: true,
+            const distanceKm =
+              (getPreciseDistance(tp1, tp2) + getPreciseDistance(tp2, tp3) + getPreciseDistance(tp3, tp1)) / 1000;
+            const multiplier = getFlatTriangleMultiplier(ruleName);
+            expect(optimize(request)).toMatchObject({
+              score: expect.closeTo(distanceKm * multiplier, 1),
+              lengthKm: expect.closeTo(distanceKm, 1),
+              multiplier,
+              circuit: CircuitType.FlatTriangle,
+            });
           });
         });
 
         describe(`given a closed FAI triangle request (${segmentsPerBranch} segment/branch)`, () => {
-          const tp1 = { lat: 45, lon: 5 };
-          const tp2 = { lat: 45, lon: 6 };
+          it('computes the score', () => {
+            const tp1 = { lat: 45, lon: 5 };
+            const tp2 = { lat: 45, lon: 6 };
 
-          const distance1 = getPreciseDistance(tp1, tp2);
-          const bearing = getGreatCircleBearing(tp1, tp2);
-          // Build an equilateral triangle
-          const tp3GeoLib = computeDestinationPoint(tp1, distance1, bearing + 60);
-          const tp3 = { lat: tp3GeoLib.latitude, lon: tp3GeoLib.longitude };
+            const distance1 = getPreciseDistance(tp1, tp2);
+            const bearing = getGreatCircleBearing(tp1, tp2);
+            // Build an equilateral triangle
+            const tp3GeoLib = computeDestinationPoint(tp1, distance1, bearing + 60);
+            const tp3 = { lat: tp3GeoLib.latitude, lon: tp3GeoLib.longitude };
 
-          const request = {
-            track: mergeTracks(
-              createSegments({ ...tp1, alt: 0, timeSec: 0 }, { ...tp2, alt: 0, timeSec: 60 }, segmentsPerBranch),
-              createSegments({ ...tp2, alt: 0, timeSec: 60 }, { ...tp3, alt: 0, timeSec: 120 }, segmentsPerBranch),
-              createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp1, alt: 0, timeSec: 180 }, segmentsPerBranch),
-            ),
-            ruleName,
-          };
+            const request = {
+              track: mergeTracks(
+                createSegments({ ...tp1, alt: 0, timeSec: 0 }, { ...tp2, alt: 0, timeSec: 60 }, segmentsPerBranch),
+                createSegments({ ...tp2, alt: 0, timeSec: 60 }, { ...tp3, alt: 0, timeSec: 120 }, segmentsPerBranch),
+                createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp1, alt: 0, timeSec: 180 }, segmentsPerBranch),
+              ),
+              ruleName,
+            };
 
-          const distanceKm =
-            (getPreciseDistance(tp1, tp2) + getPreciseDistance(tp2, tp3) + getPreciseDistance(tp3, tp1)) / 1000;
-          const multiplier = getFaiTriangleMultiplier(ruleName);
-          expect(optimize(request)).toMatchObject({
-            score: expect.closeTo(distanceKm * multiplier, 1),
-            lengthKm: expect.closeTo(distanceKm, 1),
-            multiplier,
-            circuit: CircuitType.FaiTriangle,
-            optimal: true,
+            const distanceKm =
+              (getPreciseDistance(tp1, tp2) + getPreciseDistance(tp2, tp3) + getPreciseDistance(tp3, tp1)) / 1000;
+            const multiplier = getFaiTriangleMultiplier(ruleName);
+            expect(optimize(request)).toMatchObject({
+              score: expect.closeTo(distanceKm * multiplier, 1),
+              lengthKm: expect.closeTo(distanceKm, 1),
+              multiplier,
+              circuit: CircuitType.FaiTriangle,
+            });
           });
         });
       });
@@ -209,7 +225,6 @@ describe('optimizer', () => {
         createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp1, alt: 0, timeSec: 180 }, 10),
       ),
       ruleName: 'FFVL',
-      maxNumCycles: 1,
     };
 
     const distanceKm =
@@ -220,7 +235,6 @@ describe('optimizer', () => {
       lengthKm: expect.closeTo(distanceKm, 1),
       multiplier,
       circuit: CircuitType.FaiTriangle,
-      optimal: true,
     });
   });
 
@@ -236,7 +250,6 @@ describe('optimizer', () => {
         createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp4, alt: 0, timeSec: 180 }, 1),
       ),
       ruleName: 'FFVL',
-      maxNumCycles: 1,
     };
     it('should return a closing distance of 3 km', () => {
       expect(optimize(request).closingRadiusKm).toEqual(3);
@@ -255,7 +268,6 @@ describe('optimizer', () => {
         createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp4, alt: 0, timeSec: 180 }, 1),
       ),
       ruleName: 'FFVL',
-      maxNumCycles: 1,
     };
     it('should return a closing distance greater than 3 km', () => {
       expect(optimize(request).closingRadiusKm).toBeGreaterThan(3);
@@ -275,7 +287,6 @@ describe('optimizer', () => {
           createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp4, alt: 0, timeSec: 180 }, 1),
         ),
         ruleName: rule,
-        maxNumCycles: 1,
       };
       it('should return a closing distance less than 20 km', () => {
         expect(optimize(request).closingRadiusKm).toBeLessThan(20);
@@ -285,15 +296,7 @@ describe('optimizer', () => {
 });
 
 function optimize(request: ScoringRequest): ScoringResult {
-  const optimizer = getOptimizer(request);
-  let result: IteratorResult<ScoringResult, ScoringResult>;
-  do {
-    result = optimizer.next();
-  } while (!result.done);
-
-  expect(result.value.optimal).toBe(true);
-
-  return result.value;
+  return scoreTrack(request);
 }
 
 // TODO: refactor to extract from the rules

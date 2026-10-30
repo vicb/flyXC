@@ -1,4 +1,4 @@
-import type { LatLonAltTime, ScoringResult } from '@flyxc/optimizer/src/lib/optimizer';
+import type { LatLonAltTime, ScoringResult } from '@flyxc/optimizer';
 
 import { type Response as WorkerResponse } from '../../workers/optimizer';
 import ScoringWorker from '../../workers/optimizer?worker';
@@ -66,9 +66,7 @@ export class Scorer {
       if (msg.data.id) {
         // retrieve the handler and invoke it
         this.handlers.get(msg.data.id)?.call(this, msg.data.response);
-        if (msg.data.response.optimal) {
-          this.handlers.delete(msg.data.id);
-        }
+        this.handlers.delete(msg.data.id);
       }
     };
     scoringWorker.onerror = (error: any) => {

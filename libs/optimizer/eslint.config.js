@@ -39,7 +39,6 @@ export default [
         {
           ignoredFiles: ['{projectRoot}/vite.config.ts', 'vite.config.ts'],
           ignoredDependencies: [
-            'igc-parser', // test
             'jsonc-eslint-parser', // eslint config
           ],
           checkMissingDependencies: true,
