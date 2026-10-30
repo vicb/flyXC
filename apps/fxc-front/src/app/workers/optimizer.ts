@@ -21,7 +21,7 @@ function ensureReady(): Promise<void> {
 addEventListener('message', async (event: MessageEvent<Request>) => {
   const { request, id } = event.data;
   await ensureReady();
-  const response = scoreTrack(request);
+  const response = scoreTrack(request.track.points, request.ruleName);
 
   postMessage({
     response,

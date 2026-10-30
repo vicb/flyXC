@@ -3,10 +3,42 @@ import { createRequire } from 'node:module';
 
 import { computeDestinationPoint, getGreatCircleBearing, getPreciseDistance } from 'geolib';
 
-import { CircuitType, type ScoringRuleName, scoringRuleNames } from './api';
-import type { ScoringRequest, ScoringResult } from './optimizer';
+import { CircuitType, type ScoringRuleName } from './api';
+import type { LatLon } from './optimizer';
 import { initOptimizer, scoreTrack } from './optimizer';
-import { createSegments, mergeTracks } from './test-utils';
+import { createInterpolatedTrack } from './test-utils';
+
+// Canonical test geometries
+const P_START: LatLon = { lat: 45, lon: 5 };
+const P_EAST: LatLon = { lat: 45, lon: 6 };
+const P_NORTH_EAST: LatLon = { lat: 46, lon: 6 };
+const P_NORTH: LatLon = { lat: 46, lon: 5 };
+const P_FAR_NORTH: LatLon = { lat: 47, lon: 5 };
+
+const STRAIGHT_LINE: LatLon[] = [P_START, P_EAST];
+const OPEN_1TP: LatLon[] = [P_START, P_EAST, P_NORTH_EAST];
+const OPEN_2TP: LatLon[] = [P_START, P_EAST, P_NORTH_EAST, P_NORTH];
+const OPEN_3TP: LatLon[] = [P_START, P_EAST, P_NORTH_EAST, P_NORTH, P_FAR_NORTH];
+
+// Flat triangle: base ~78 km, height ~22 km (< 28% of perimeter)
+const FLAT_TRIANGLE: LatLon[] = [P_START, P_EAST, { lat: 45.2, lon: 6 }, P_START];
+
+// FAI triangle: equilateral triangle (each side 33.3% of perimeter >= 28%)
+const d = getPreciseDistance(P_START, P_EAST);
+const bearing = getGreatCircleBearing(P_START, P_EAST);
+const pFaiTop = computeDestinationPoint(P_START, d, bearing + 60);
+const FAI_TRIANGLE: LatLon[] = [P_START, P_EAST, { lat: pFaiTop.latitude, lon: pFaiTop.longitude }, P_START];
+
+// Out and Return: closed circuit with 2 turnpoints (~78 km each way)
+const OUT_AND_RETURN: LatLon[] = [P_START, P_EAST, P_START];
+
+function totalLegDistanceKm(waypoints: LatLon[]): number {
+  let meters = 0;
+  for (let i = 0; i < waypoints.length - 1; i++) {
+    meters += getPreciseDistance(waypoints[i], waypoints[i + 1]);
+  }
+  return meters / 1000;
+}
 
 describe('optimizer', () => {
   beforeAll(async () => {
@@ -14,363 +46,164 @@ describe('optimizer', () => {
     await initOptimizer(readFileSync(wasmPath));
   });
 
-  scoringRuleNames.forEach((ruleName) => {
-    if (ruleName === 'None') {
-      return;
-    }
-    describe(`${ruleName} rules`, () => {
-      it('Scores an empty request with a score of 0', () => {
-        const request = {
-          track: { points: [] },
-          ruleName,
-        };
-        const result = optimize(request);
-        expect(result).toMatchObject({
-          score: 0,
-          lengthKm: 0,
-          multiplier: 0,
-          circuit: CircuitType.OpenDistance,
-        });
-      });
-
-      [1, 10].forEach((segmentsPerBranch) => {
-        describe(`given a free distanceKm request (${segmentsPerBranch} segments/branch)`, () => {
-          it('computes the score', () => {
-            const start = { lat: 45, lon: 5 };
-            const end = { lat: 45, lon: 6 };
-
-            const request = {
-              track: createSegments(
-                { ...start, alt: 0, timeSec: 0 },
-                { ...end, alt: 0, timeSec: 60 },
-                segmentsPerBranch,
-              ),
-              ruleName,
-            };
-
-            const multiplier = getFreeDistanceMultiplier(ruleName);
-            const distanceKm = getPreciseDistance(start, end) / 1000;
-            expect(optimize(request)).toMatchObject({
-              score: expect.closeTo(distanceKm * multiplier, 1),
-              lengthKm: expect.closeTo(distanceKm, 1),
-              multiplier,
-              circuit: CircuitType.OpenDistance,
-            });
-          });
-        });
-
-        describe(`given a free distanceKm with 1 turnpoints request (${segmentsPerBranch} segment/branch)`, () => {
-          it('computes the score', () => {
-            const start = { lat: 45, lon: 5 };
-            const tp = { lat: 45, lon: 6 };
-            const end = { lat: 46, lon: 6 };
-
-            const request = {
-              track: mergeTracks(
-                createSegments({ ...start, alt: 0, timeSec: 0 }, { ...tp, alt: 0, timeSec: 60 }, segmentsPerBranch),
-                createSegments({ ...tp, alt: 0, timeSec: 60 }, { ...end, alt: 0, timeSec: 120 }, segmentsPerBranch),
-              ),
-              ruleName,
-            };
-
-            const distanceKm = (getPreciseDistance(start, tp) + getPreciseDistance(tp, end)) / 1000;
-            const multiplier = getFreeDistanceMultiplier(ruleName);
-            expect(optimize(request)).toMatchObject({
-              score: expect.closeTo(distanceKm * multiplier, 1),
-              lengthKm: expect.closeTo(distanceKm, 1),
-              multiplier,
-              circuit: CircuitType.OpenDistance,
-            });
-          });
-        });
-
-        describe(`given a free distanceKm with 2 turnpoints request (${segmentsPerBranch} segment/branch)`, () => {
-          it('computes the score', () => {
-            const start = { lat: 45, lon: 5 };
-            const tp1 = { lat: 45, lon: 6 };
-            const tp2 = { lat: 46, lon: 6 };
-            const end = { lat: 46, lon: 5 };
-
-            const request = {
-              track: mergeTracks(
-                createSegments({ ...start, alt: 0, timeSec: 0 }, { ...tp1, alt: 0, timeSec: 60 }, segmentsPerBranch),
-                createSegments({ ...tp1, alt: 0, timeSec: 60 }, { ...tp2, alt: 0, timeSec: 120 }, segmentsPerBranch),
-                createSegments({ ...tp2, alt: 0, timeSec: 120 }, { ...end, alt: 0, timeSec: 180 }, segmentsPerBranch),
-              ),
-              ruleName,
-            };
-
-            const distanceKm =
-              (getPreciseDistance(start, tp1) + getPreciseDistance(tp1, tp2) + getPreciseDistance(tp2, end)) / 1000;
-            const multiplier = getFreeDistanceMultiplier(ruleName);
-            expect(optimize(request)).toMatchObject({
-              score: expect.closeTo(distanceKm * multiplier, 1),
-              lengthKm: expect.closeTo(distanceKm, 1),
-              multiplier,
-              circuit: CircuitType.OpenDistance,
-            });
-          });
-        });
-
-        describe(`given a free distanceKm with 3 turnpoints request (${segmentsPerBranch} segment/branch)`, () => {
-          it('computes the score', () => {
-            const start = { lat: 45, lon: 5 };
-            const tp1 = { lat: 45, lon: 6 };
-            const tp2 = { lat: 46, lon: 6 };
-            const tp3 = { lat: 46, lon: 5 };
-            const end = { lat: 47, lon: 5 };
-
-            const request = {
-              track: mergeTracks(
-                createSegments({ ...start, alt: 0, timeSec: 0 }, { ...tp1, alt: 0, timeSec: 60 }, segmentsPerBranch),
-                createSegments({ ...tp1, alt: 0, timeSec: 60 }, { ...tp2, alt: 0, timeSec: 120 }, segmentsPerBranch),
-                createSegments({ ...tp2, alt: 0, timeSec: 120 }, { ...tp3, alt: 0, timeSec: 180 }, segmentsPerBranch),
-                createSegments({ ...tp3, alt: 0, timeSec: 180 }, { ...end, alt: 0, timeSec: 240 }, segmentsPerBranch),
-              ),
-              ruleName,
-            };
-
-            const distanceKm =
-              (getPreciseDistance(start, tp1) +
-                getPreciseDistance(tp1, tp2) +
-                getPreciseDistance(tp2, tp3) +
-                getPreciseDistance(tp3, end)) /
-              1000;
-            const multiplier = getFreeDistanceMultiplier(ruleName);
-            expect(optimize(request)).toMatchObject({
-              score: expect.closeTo(distanceKm * multiplier, 1),
-              lengthKm: expect.closeTo(distanceKm, 1),
-              multiplier,
-              circuit: CircuitType.OpenDistance,
-            });
-          });
-        });
-
-        describe(`given a closed flat triangle request (${segmentsPerBranch} segment/branch)`, () => {
-          it('computes the score', () => {
-            const tp1 = { lat: 45, lon: 5 };
-            const tp2 = { lat: 45, lon: 6 };
-            const tp3 = { lat: 45.2, lon: 6 };
-
-            const request = {
-              track: mergeTracks(
-                createSegments({ ...tp1, alt: 0, timeSec: 0 }, { ...tp2, alt: 0, timeSec: 60 }, segmentsPerBranch),
-                createSegments({ ...tp2, alt: 0, timeSec: 60 }, { ...tp3, alt: 0, timeSec: 120 }, segmentsPerBranch),
-                createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp1, alt: 0, timeSec: 180 }, segmentsPerBranch),
-              ),
-              ruleName,
-            };
-
-            const distanceKm =
-              (getPreciseDistance(tp1, tp2) + getPreciseDistance(tp2, tp3) + getPreciseDistance(tp3, tp1)) / 1000;
-            const multiplier = getFlatTriangleMultiplier(ruleName);
-            expect(optimize(request)).toMatchObject({
-              score: expect.closeTo(distanceKm * multiplier, 1),
-              lengthKm: expect.closeTo(distanceKm, 1),
-              multiplier,
-              circuit: CircuitType.FlatTriangle,
-            });
-          });
-        });
-
-        describe(`given a closed FAI triangle request (${segmentsPerBranch} segment/branch)`, () => {
-          it('computes the score', () => {
-            const tp1 = { lat: 45, lon: 5 };
-            const tp2 = { lat: 45, lon: 6 };
-
-            const distance1 = getPreciseDistance(tp1, tp2);
-            const bearing = getGreatCircleBearing(tp1, tp2);
-            // Build an equilateral triangle
-            const tp3GeoLib = computeDestinationPoint(tp1, distance1, bearing + 60);
-            const tp3 = { lat: tp3GeoLib.latitude, lon: tp3GeoLib.longitude };
-
-            const request = {
-              track: mergeTracks(
-                createSegments({ ...tp1, alt: 0, timeSec: 0 }, { ...tp2, alt: 0, timeSec: 60 }, segmentsPerBranch),
-                createSegments({ ...tp2, alt: 0, timeSec: 60 }, { ...tp3, alt: 0, timeSec: 120 }, segmentsPerBranch),
-                createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp1, alt: 0, timeSec: 180 }, segmentsPerBranch),
-              ),
-              ruleName,
-            };
-
-            const distanceKm =
-              (getPreciseDistance(tp1, tp2) + getPreciseDistance(tp2, tp3) + getPreciseDistance(tp3, tp1)) / 1000;
-            const multiplier = getFaiTriangleMultiplier(ruleName);
-            expect(optimize(request)).toMatchObject({
-              score: expect.closeTo(distanceKm * multiplier, 1),
-              lengthKm: expect.closeTo(distanceKm, 1),
-              multiplier,
-              circuit: CircuitType.FaiTriangle,
-            });
-          });
-        });
+  describe('Edge cases', () => {
+    it('scores an empty track with 0', () => {
+      expect(scoreTrack([], 'WorldXC')).toEqual({
+        score: 0,
+        lengthKm: 0,
+        multiplier: 0,
+        circuit: CircuitType.OpenDistance,
+        turnpoints: [],
+        path: [],
       });
     });
-  });
 
-  it('given a closed FAI triangle request (10 segments/branch) with minimal loop allowed', () => {
-    const tp1 = { lat: 45, lon: 5 };
-    const tp2 = { lat: 45, lon: 6 };
-
-    const distance1 = getPreciseDistance(tp1, tp2);
-    const bearing = getGreatCircleBearing(tp1, tp2);
-    // Build an equilateral triangle
-    const tp3GeoLib = computeDestinationPoint(tp1, distance1, bearing + 60);
-    const tp3 = { lat: tp3GeoLib.latitude, lon: tp3GeoLib.longitude };
-
-    const request: ScoringRequest = {
-      track: mergeTracks(
-        createSegments({ ...tp1, alt: 0, timeSec: 0 }, { ...tp2, alt: 0, timeSec: 60 }, 10),
-        createSegments({ ...tp2, alt: 0, timeSec: 60 }, { ...tp3, alt: 0, timeSec: 120 }, 10),
-        createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp1, alt: 0, timeSec: 180 }, 10),
-      ),
-      ruleName: 'FFVL',
-    };
-
-    const distanceKm =
-      (getPreciseDistance(tp1, tp2) + getPreciseDistance(tp2, tp3) + getPreciseDistance(tp3, tp1)) / 1000;
-    const multiplier = getFaiTriangleMultiplier('FFVL');
-    expect(optimize(request)).toMatchObject({
-      score: expect.closeTo(distanceKm * multiplier, 1),
-      lengthKm: expect.closeTo(distanceKm, 1),
-      multiplier,
-      circuit: CircuitType.FaiTriangle,
-    });
-  });
-
-  describe('given a 130.9 triangle with less than 3 km closing distance (FFVL rules)', () => {
-    const tp1 = { lat: 45.20467, lon: 5.72595 };
-    const tp2 = { lat: 45.62463, lon: 6.11006 };
-    const tp3 = { lat: 45.25107, lon: 6.15041 };
-    const tp4 = { lat: 45.20169, lon: 5.74171 };
-    const request: ScoringRequest = {
-      track: mergeTracks(
-        createSegments({ ...tp1, alt: 0, timeSec: 0 }, { ...tp2, alt: 0, timeSec: 60 }, 1),
-        createSegments({ ...tp2, alt: 0, timeSec: 60 }, { ...tp3, alt: 0, timeSec: 120 }, 1),
-        createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp4, alt: 0, timeSec: 180 }, 1),
-      ),
-      ruleName: 'FFVL',
-    };
-    it('should return a closing distance of 3 km', () => {
-      expect(optimize(request).closingRadiusKm).toEqual(3);
-    });
-  });
-
-  describe('given a 130.9 triangle with more than 3 km closing distance (FFVL rules)', () => {
-    const tp1 = { lat: 45.20467, lon: 5.72595 };
-    const tp2 = { lat: 45.62463, lon: 6.11006 };
-    const tp3 = { lat: 45.25107, lon: 6.15041 };
-    const tp4 = { lat: 45.1902, lon: 5.78684 };
-    const request: ScoringRequest = {
-      track: mergeTracks(
-        createSegments({ ...tp1, alt: 0, timeSec: 0 }, { ...tp2, alt: 0, timeSec: 60 }, 1),
-        createSegments({ ...tp2, alt: 0, timeSec: 60 }, { ...tp3, alt: 0, timeSec: 120 }, 1),
-        createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp4, alt: 0, timeSec: 180 }, 1),
-      ),
-      ruleName: 'FFVL',
-    };
-    it('should return a closing distance greater than 3 km', () => {
-      expect(optimize(request).closingRadiusKm).toBeGreaterThan(3);
-    });
-  });
-
-  (['CzechLocal', 'CzechEurope', 'CzechOutsideEurope'] as ScoringRuleName[]).forEach((rule) => {
-    describe(`given a 130.9 triangle with more than 3 km closing distance (${rule} rules)`, () => {
-      const tp1 = { lat: 45.20467, lon: 5.72595 };
-      const tp2 = { lat: 45.62463, lon: 6.11006 };
-      const tp3 = { lat: 45.25107, lon: 6.15041 };
-      const tp4 = { lat: 45.1902, lon: 5.78684 };
-      const request: ScoringRequest = {
-        track: mergeTracks(
-          createSegments({ ...tp1, alt: 0, timeSec: 0 }, { ...tp2, alt: 0, timeSec: 60 }, 1),
-          createSegments({ ...tp2, alt: 0, timeSec: 60 }, { ...tp3, alt: 0, timeSec: 120 }, 1),
-          createSegments({ ...tp3, alt: 0, timeSec: 120 }, { ...tp4, alt: 0, timeSec: 180 }, 1),
-        ),
-        ruleName: rule,
-      };
-      it('should return a closing distance less than 20 km', () => {
-        expect(optimize(request).closingRadiusKm).toBeLessThan(20);
+    it('scores a single-point track with 0', () => {
+      expect(scoreTrack([P_START], 'WorldXC')).toEqual({
+        score: 0,
+        lengthKm: 0,
+        multiplier: 1,
+        circuit: CircuitType.OpenDistance,
+        turnpoints: [],
+        path: [P_START],
       });
     });
+
+    it('calculates unoptimized FCC distance sum when rule is "None"', () => {
+      const result = scoreTrack(OPEN_2TP, 'None');
+      expect(result.multiplier).toBe(1);
+      expect(result.circuit).toBe(CircuitType.OpenDistance);
+      expect(result.turnpoints).toHaveLength(2);
+      expect(result.lengthKm).toBeGreaterThan(0);
+      expect(result.score).toBe(result.lengthKm);
+    });
+  });
+
+  describe('Circuit type classification', () => {
+    it('classifies a straight line as OpenDistance', () => {
+      const expectedKm = totalLegDistanceKm(STRAIGHT_LINE);
+      const result = scoreTrack(STRAIGHT_LINE, 'WorldXC');
+      expect(result.circuit).toBe(CircuitType.OpenDistance);
+      expect(result.lengthKm).toBeCloseTo(expectedKm, 1);
+      expect(result.turnpoints).toHaveLength(0);
+    });
+
+    it.each([
+      { name: '1 turnpoint', waypoints: OPEN_1TP, expectedTurnpoints: 1 },
+      { name: '2 turnpoints', waypoints: OPEN_2TP, expectedTurnpoints: 2 },
+      { name: '3 turnpoints', waypoints: OPEN_3TP, expectedTurnpoints: 3 },
+    ])('classifies open flight with $name as OpenDistance', ({ waypoints, expectedTurnpoints }) => {
+      const expectedKm = totalLegDistanceKm(waypoints);
+      const result = scoreTrack(waypoints, 'WorldXC');
+      expect(result.circuit).toBe(CircuitType.OpenDistance);
+      expect(result.lengthKm).toBeCloseTo(expectedKm, 1);
+      expect(result.turnpoints).toHaveLength(expectedTurnpoints);
+    });
+
+    it('classifies an asymmetric triangle as FlatTriangle', () => {
+      const expectedKm = totalLegDistanceKm(FLAT_TRIANGLE);
+      const result = scoreTrack(FLAT_TRIANGLE, 'WorldXC');
+      expect(result.circuit).toBe(CircuitType.FlatTriangle);
+      expect(result.lengthKm).toBeCloseTo(expectedKm, 1);
+      expect(result.turnpoints).toHaveLength(3);
+    });
+
+    it('classifies an equilateral triangle as FaiTriangle', () => {
+      const expectedKm = totalLegDistanceKm(FAI_TRIANGLE);
+      const result = scoreTrack(FAI_TRIANGLE, 'WorldXC');
+      expect(result.circuit).toBe(CircuitType.FaiTriangle);
+      expect(result.lengthKm).toBeCloseTo(expectedKm, 1);
+      expect(result.turnpoints).toHaveLength(3);
+    });
+
+    it('classifies an out-and-return course as OutAndReturn', () => {
+      const result = scoreTrack(OUT_AND_RETURN, 'UKClub');
+      expect(result.circuit).toBe(CircuitType.OutAndReturn);
+      expect(result.turnpoints).toHaveLength(2);
+    });
+  });
+
+  describe('Dense / interpolated track invariance', () => {
+    it('produces equivalent score when legs are densely sampled', () => {
+      const sparseResult = scoreTrack(FAI_TRIANGLE, 'WorldXC');
+      const denseTrack = createInterpolatedTrack(FAI_TRIANGLE, 10);
+      const denseResult = scoreTrack(denseTrack, 'WorldXC');
+
+      expect(denseResult.circuit).toBe(sparseResult.circuit);
+      expect(denseResult.multiplier).toBe(sparseResult.multiplier);
+      expect(denseResult.lengthKm).toBeCloseTo(sparseResult.lengthKm, 1);
+      expect(denseResult.score).toBeCloseTo(sparseResult.score, 1);
+    });
+  });
+
+  describe('League multipliers', () => {
+    it.each([
+      { league: 'CzechLocal', open: 1.0, flat: 1.8, fai: 2.2 },
+      { league: 'CzechEurope', open: 1.0, flat: 1.2, fai: 1.4 },
+      { league: 'CzechOutsideEurope', open: 0.8, flat: 1.2, fai: 1.4 },
+      { league: 'FFVL', open: 1.0, flat: 1.2, fai: 1.4 },
+      { league: 'Leonardo', open: 1.5, flat: 1.75, fai: 2.0 },
+      { league: 'Norway', open: 1.0, flat: 1.6, fai: 1.8 },
+      { league: 'UKClub', open: 1.0, flat: 1.7, fai: 2.0 },
+      { league: 'UKInternational', open: 1.0, flat: 1.2, fai: 1.5 },
+      { league: 'UKNational', open: 1.0, flat: 1.7, fai: 2.0 },
+      { league: 'XContest', open: 1.0, flat: 1.4, fai: 1.6 },
+      { league: 'XContestPPG', open: 1.0, flat: 2.0, fai: 4.0 },
+      { league: 'WorldXC', open: 1.0, flat: 1.75, fai: 2.0 },
+    ] as const)('applies correct multipliers for $league', ({ league, open, flat, fai }) => {
+      const openResult = scoreTrack(STRAIGHT_LINE, league as ScoringRuleName);
+      expect(openResult.multiplier).toBe(open);
+      expect(openResult.score).toBeCloseTo(openResult.lengthKm * open, 1);
+
+      const flatResult = scoreTrack(FLAT_TRIANGLE, league as ScoringRuleName);
+      expect(flatResult.multiplier).toBe(flat);
+      expect(flatResult.score).toBeCloseTo(flatResult.lengthKm * flat, 1);
+
+      const faiResult = scoreTrack(FAI_TRIANGLE, league as ScoringRuleName);
+      expect(faiResult.multiplier).toBe(fai);
+      expect(faiResult.score).toBeCloseTo(faiResult.lengthKm * fai, 1);
+    });
+
+    it.each([
+      { league: 'UKClub', multiplier: 1.7 },
+      { league: 'UKNational', multiplier: 1.7 },
+    ] as const)('applies out-and-return multiplier for $league', ({ league, multiplier }) => {
+      const result = scoreTrack(OUT_AND_RETURN, league as ScoringRuleName);
+      expect(result.circuit).toBe(CircuitType.OutAndReturn);
+      expect(result.multiplier).toBe(multiplier);
+    });
+  });
+
+  describe('Closing radius and threshold rules', () => {
+    // 130.9 km triangle with small closing gap (< 3 km)
+    const TRIANGLE_SMALL_GAP: LatLon[] = [
+      { lat: 45.20467, lon: 5.72595 },
+      { lat: 45.62463, lon: 6.11006 },
+      { lat: 45.25107, lon: 6.15041 },
+      { lat: 45.20169, lon: 5.74171 },
+    ];
+
+    // 130.9 km triangle with larger closing gap (> 3 km)
+    const TRIANGLE_LARGE_GAP: LatLon[] = [
+      { lat: 45.20467, lon: 5.72595 },
+      { lat: 45.62463, lon: 6.11006 },
+      { lat: 45.25107, lon: 6.15041 },
+      { lat: 45.1902, lon: 5.78684 },
+    ];
+
+    it('returns fixed 3 km closing distance for FFVL when gap < 3 km', () => {
+      expect(scoreTrack(TRIANGLE_SMALL_GAP, 'FFVL').closingRadiusKm).toBe(3);
+    });
+
+    it('returns relative closing distance for FFVL when gap > 3 km', () => {
+      expect(scoreTrack(TRIANGLE_LARGE_GAP, 'FFVL').closingRadiusKm).toBeGreaterThan(3);
+    });
+
+    it.each(['CzechLocal', 'CzechEurope', 'CzechOutsideEurope'] as const)(
+      'returns relative closing distance for %s',
+      (rule) => {
+        expect(scoreTrack(TRIANGLE_LARGE_GAP, rule).closingRadiusKm).toBeLessThan(20);
+      },
+    );
   });
 });
-
-function optimize(request: ScoringRequest): ScoringResult {
-  return scoreTrack(request);
-}
-
-// TODO: refactor to extract from the rules
-function getFreeDistanceMultiplier(scoringRules: ScoringRuleName) {
-  switch (scoringRules) {
-    case 'CzechLocal':
-    case 'CzechEurope':
-    case 'FFVL':
-    case 'Norway':
-    case 'UKClub':
-    case 'UKInternational':
-    case 'UKNational':
-    case 'XContest':
-    case 'XContestPPG':
-    case 'WorldXC':
-    case 'None':
-      return 1;
-    case 'CzechOutsideEurope':
-      return 0.8;
-    case 'Leonardo':
-      return 1.5;
-  }
-}
-
-// TODO: refactor to extract from the rules
-function getFlatTriangleMultiplier(scoringRules: ScoringRuleName) {
-  switch (scoringRules) {
-    case 'CzechEurope':
-    case 'CzechOutsideEurope':
-    case 'FFVL':
-    case 'UKInternational':
-      return 1.2;
-    case 'Leonardo':
-    case 'WorldXC':
-      return 1.75;
-    case 'XContest':
-      return 1.4;
-    case 'Norway':
-      return 1.6;
-    case 'UKClub':
-    case 'UKNational':
-      return 1.7;
-    case 'CzechLocal':
-      return 1.8;
-    case 'XContestPPG':
-      return 2;
-    case 'None':
-      return 1;
-  }
-}
-
-// TODO: refactor to extract from the rules
-function getFaiTriangleMultiplier(scoringRules: ScoringRuleName) {
-  switch (scoringRules) {
-    case 'CzechEurope':
-    case 'CzechOutsideEurope':
-    case 'FFVL':
-      return 1.4;
-    case 'Leonardo':
-    case 'UKClub':
-    case 'UKNational':
-    case 'WorldXC':
-      return 2;
-    case 'XContest':
-      return 1.6;
-    case 'CzechLocal':
-      return 2.2;
-    case 'Norway':
-      return 1.8;
-    case 'UKInternational':
-      return 1.5;
-    case 'XContestPPG':
-      return 4;
-    case 'None':
-      return 1;
-  }
-}

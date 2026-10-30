@@ -58,19 +58,11 @@ export function initOptimizer(wasmInput: InitInput | Promise<InitInput>): Promis
 /**
  * Computes the score for a track in a given league.
  *
- * @param points Array of LatLon coordinates or a ScoringRequest object.
+ * @param points Array of LatLon coordinates.
  * @param ruleName Name of the league scoring ruleset.
  * @returns The scoring result.
  */
-export function scoreTrack(points: LatLon[], ruleName: ScoringRuleName): ScoringResult;
-export function scoreTrack(request: ScoringRequest): ScoringResult;
-export function scoreTrack(
-  pointsOrRequest: LatLon[] | ScoringRequest,
-  ruleName?: ScoringRuleName,
-): ScoringResult {
-  const points = Array.isArray(pointsOrRequest) ? pointsOrRequest : pointsOrRequest.track.points;
-  const rule = Array.isArray(pointsOrRequest) ? ruleName! : pointsOrRequest.ruleName;
-
+export function scoreTrack(points: LatLon[], ruleName: ScoringRuleName): ScoringResult {
   if (points.length === 0) {
     return {
       score: 0,
@@ -82,7 +74,7 @@ export function scoreTrack(
     };
   }
 
-  if (rule === 'None') {
+  if (ruleName === 'None') {
     return toUnoptimizedSolution(points);
   }
 
@@ -97,7 +89,7 @@ export function scoreTrack(
     };
   }
 
-  const ruleset = getRuleset(rule);
+  const ruleset = getRuleset(ruleName);
   if (!ruleset) {
     return toUnoptimizedSolution(points);
   }
@@ -124,6 +116,16 @@ export function scoreTrack(
   return toScoringResult(score, points);
 }
 
+/**
+ * Computes an unoptimized solution for a track.
+ *
+ * Used when no scoring ruleset is configured (e.g. 'None'). The total distance
+ * is calculated by summing the distances between consecutive points using the
+ * FCC formula.
+ *
+ * @param points Array of track coordinates.
+ * @returns A ScoringResult representing the unoptimized open distance flight.
+ */
 function toUnoptimizedSolution(points: LatLon[]): ScoringResult {
   let distance = 0;
   for (let i = 0; i < points.length - 1; i++) {
@@ -140,6 +142,12 @@ function toUnoptimizedSolution(points: LatLon[]): ScoringResult {
   };
 }
 
+/**
+ * Maps a rustigc Score result to the corresponding FlyXC CircuitType.
+ *
+ * @param score The winning score from rustigc.
+ * @returns The classified CircuitType.
+ */
 function toCircuitType(score: Score): CircuitType {
   switch (score.description) {
     case 'fai':
@@ -154,6 +162,16 @@ function toCircuitType(score: Score): CircuitType {
   }
 }
 
+/**
+ * Converts a rustigc Score and input track points into a FlyXC ScoringResult.
+ *
+ * Resolves point indices (entry, turnpoints, exit) back to LatLon coordinates,
+ * extracts closing points and radius for circuits, and builds the optimized path.
+ *
+ * @param score The winning score from rustigc.
+ * @param points The original input track coordinates.
+ * @returns The complete scoring result.
+ */
 function toScoringResult(score: Score, points: LatLon[]): ScoringResult {
   const circuit = toCircuitType(score);
 
@@ -207,7 +225,17 @@ function toScoringResult(score: Score, points: LatLon[]): ScoringResult {
   };
 }
 
-// FCC distance formula between two lat/lon coordinates in kilometers.
+/**
+ * Computes the distance between two coordinates in kilometers using the FCC formula.
+ *
+ * The Federal Communications Commission (FCC) formula provides an elliptical
+ * approximation of distance on the Earth's surface, accurate for distances up to
+ * several hundred kilometers.
+ *
+ * @param p1 First coordinate.
+ * @param p2 Second coordinate.
+ * @returns Distance in kilometers.
+ */
 function distanceEarthFCC(p1: LatLon, p2: LatLon): number {
   const df = p1.lat - p2.lat;
   const dg = p1.lon - p2.lon;

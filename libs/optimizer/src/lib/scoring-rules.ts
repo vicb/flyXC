@@ -70,9 +70,7 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
       { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: 'open', multiplier: 1 }] },
       {
         shape: { type: 'closed_circuit', turnpoints: 3 },
-        variants: [
-          { name: 'triangle', multiplier: 1.8, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
-        ],
+        variants: [{ name: 'triangle', multiplier: 1.8, closing: { type: 'ratio', ratio: 0.05, penalized: true } }],
       },
       {
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
@@ -86,9 +84,7 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
       { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: 'open', multiplier: 1 }] },
       {
         shape: { type: 'closed_circuit', turnpoints: 3 },
-        variants: [
-          { name: 'triangle', multiplier: 1.2, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
-        ],
+        variants: [{ name: 'triangle', multiplier: 1.2, closing: { type: 'ratio', ratio: 0.05, penalized: true } }],
       },
       {
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
@@ -102,9 +98,7 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
       { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: 'open', multiplier: 0.8 }] },
       {
         shape: { type: 'closed_circuit', turnpoints: 3 },
-        variants: [
-          { name: 'triangle', multiplier: 1.2, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
-        ],
+        variants: [{ name: 'triangle', multiplier: 1.2, closing: { type: 'ratio', ratio: 0.05, penalized: true } }],
       },
       {
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
@@ -138,9 +132,7 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
       { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: 'open', multiplier: 1.5 }] },
       {
         shape: { type: 'closed_circuit', turnpoints: 3 },
-        variants: [
-          { name: 'triangle', multiplier: 1.75, closing: { type: 'ratio', ratio: 0.2, penalized: true } },
-        ],
+        variants: [{ name: 'triangle', multiplier: 1.75, closing: { type: 'ratio', ratio: 0.2, penalized: true } }],
       },
       {
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
@@ -380,9 +372,7 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
       },
       {
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
-        variants: [
-          { name: 'fai', multiplier: 4, closing: { type: 'distance', distance_m: 800, penalized: false } },
-        ],
+        variants: [{ name: 'fai', multiplier: 4, closing: { type: 'distance', distance_m: 800, penalized: false } }],
       },
     ],
   },
@@ -392,15 +382,11 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
       { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: 'open', multiplier: 1 }] },
       {
         shape: { type: 'closed_circuit', turnpoints: 3 },
-        variants: [
-          { name: 'triangle', multiplier: 1.75, closing: { type: 'ratio', ratio: 0.2, penalized: true } },
-        ],
+        variants: [{ name: 'triangle', multiplier: 1.75, closing: { type: 'ratio', ratio: 0.2, penalized: true } }],
       },
       {
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
-        variants: [
-          { name: 'fai', multiplier: 2.0, closing: { type: 'distance', distance_m: 200, penalized: false } },
-        ],
+        variants: [{ name: 'fai', multiplier: 2.0, closing: { type: 'distance', distance_m: 200, penalized: false } }],
       },
     ],
   },

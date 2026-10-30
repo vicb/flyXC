@@ -1,53 +1,40 @@
-import type { LatLon, LatLonAltTime, ScoringTrack } from './optimizer';
+import type { LatLon } from './optimizer';
 
 /**
- * Creates a track with segments (test utility only).
+ * Linearly interpolates points between two coordinates (test utility only).
  *
- * Points are computed by a linear interpolation
- *
- * @returns a ScoringTrack of nbSegments
+ * @param start Start coordinate.
+ * @param end End coordinate.
+ * @param segments Number of segments to divide the leg into.
+ * @returns Array of coordinates including start and end.
  */
-export function createSegments(startPoint: LatLonAltTime, endPoint: LatLonAltTime, nbSegments: number): ScoringTrack {
-  const points: LatLonAltTime[] = [];
-
-  points.push(startPoint);
-
-  const deltaLat = (endPoint.lat - startPoint.lat) / nbSegments;
-  const deltaLon = (endPoint.lon - startPoint.lon) / nbSegments;
-  const deltaAlt = (endPoint.alt - startPoint.alt) / nbSegments;
-  const deltaTimeSec = (endPoint.timeSec - startPoint.timeSec) / nbSegments;
-  for (let index = 1; index < nbSegments; index++) {
+export function interpolateSegment(start: LatLon, end: LatLon, segments: number): LatLon[] {
+  const points: LatLon[] = [start];
+  for (let i = 1; i < segments; i++) {
     points.push({
-      lat: startPoint.lat + deltaLat * index,
-      lon: startPoint.lon + deltaLon * index,
-      alt: Math.round(startPoint.alt + deltaAlt * index),
-      timeSec: Math.round(startPoint.timeSec + deltaTimeSec * index),
+      lat: start.lat + ((end.lat - start.lat) * i) / segments,
+      lon: start.lon + ((end.lon - start.lon) * i) / segments,
     });
   }
-
-  points.push(endPoint);
-
-  return { points };
+  points.push(end);
+  return points;
 }
 
 /**
- * Merge multiple tracks (test utility only).
+ * Creates a track with interpolated segments between sequential waypoints (test utility only).
  *
- * Collapse end and start point of consecutive tracks when they match.
- *
- * @param tracks the tracks to concatenate
- * @returns a track
+ * @param waypoints Ordered waypoints to connect.
+ * @param segmentsPerLeg Number of segments per leg between waypoints.
+ * @returns Array of track coordinates without duplicate intermediate vertices.
  */
-export function mergeTracks(...tracks: ScoringTrack[]): ScoringTrack {
-  const points: LatLon[] = [];
-
-  for (const track of tracks) {
-    if (track.points.length == 0) {
-      continue;
-    }
-    const collapse = points.at(-1)?.lat === track.points[0].lat && points.at(-1)?.lon === track.points[0].lon;
-    points.push(...(collapse ? track.points.slice(1) : track.points));
+export function createInterpolatedTrack(waypoints: LatLon[], segmentsPerLeg = 1): LatLon[] {
+  if (waypoints.length <= 1) {
+    return [...waypoints];
   }
-  return { points };
+  const track: LatLon[] = [];
+  for (let i = 0; i < waypoints.length - 1; i++) {
+    const leg = interpolateSegment(waypoints[i], waypoints[i + 1], segmentsPerLeg);
+    track.push(...(i === 0 ? leg : leg.slice(1)));
+  }
+  return track;
 }
-
