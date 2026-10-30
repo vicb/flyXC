@@ -7,7 +7,10 @@ This library scores flight tracks using [rustigc-wasm](https://www.npmjs.com/pac
 ## Usage
 
 ```ts
-import { scoreTrack } from '@flyxc/optimizer';
+import { initOptimizer, scoreTrack } from '@flyxc/optimizer';
+import wasmUrl from 'rustigc-wasm/rustigc_wasm_bg.wasm?url';
+
+await initOptimizer(wasmUrl);
 
 const result = scoreTrack(points, 'FFVL');
 ```

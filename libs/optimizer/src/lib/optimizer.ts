@@ -51,7 +51,12 @@ let initPromise: Promise<void> | undefined;
  */
 export function initOptimizer(wasmInput: InitInput | Promise<InitInput>): Promise<void> {
   return (initPromise ??= (async () => {
-    await initRustigc({ module_or_path: wasmInput });
+    try {
+      await initRustigc({ module_or_path: wasmInput });
+    } catch (e) {
+      initPromise = undefined;
+      throw e;
+    }
   })());
 }
 
@@ -101,19 +106,23 @@ export function scoreTrack(points: LatLon[], ruleName: ScoringRuleName): Scoring
   }
 
   const scorer = new Scorer(coords);
-  const score = scorer.solve(ruleset);
-  if (!score) {
-    return {
-      score: 0,
-      lengthKm: 0,
-      multiplier: 1,
-      circuit: CircuitType.OpenDistance,
-      turnpoints: [],
-      path: [],
-    };
-  }
+  try {
+    const score = scorer.solve(ruleset);
+    if (!score) {
+      return {
+        score: 0,
+        lengthKm: 0,
+        multiplier: 1,
+        circuit: CircuitType.OpenDistance,
+        turnpoints: [],
+        path: [],
+      };
+    }
 
-  return toScoringResult(score, points);
+    return toScoringResult(score, points);
+  } finally {
+    scorer.free();
+  }
 }
 
 /**
