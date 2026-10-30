@@ -1,5 +1,5 @@
 import type { ScoringRequest, ScoringResult } from '@flyxc/optimizer';
-import { CircuitType, initOptimizer, scoreTrack } from '@flyxc/optimizer';
+import { initOptimizer, scoreTrack } from '@flyxc/optimizer';
 import wasmUrl from 'rustigc-wasm/rustigc_wasm_bg.wasm?url';
 
 export interface Request {
@@ -8,7 +8,8 @@ export interface Request {
 }
 
 export interface Response {
-  response: ScoringResult;
+  response?: ScoringResult;
+  error?: string;
   id?: number;
 }
 
@@ -23,24 +24,18 @@ function ensureReady(): Promise<void> {
 
 addEventListener('message', async (event: MessageEvent<Request>) => {
   const { request, id } = event.data;
-  let response: ScoringResult;
   try {
     await ensureReady();
-    response = scoreTrack(request.track.points, request.ruleName);
+    const response = scoreTrack(request.track.points, request.ruleName);
+    postMessage({
+      response,
+      id,
+    } satisfies Response);
   } catch (error) {
     console.error('Optimization error:', error);
-    response = {
-      score: 0,
-      lengthKm: 0,
-      multiplier: 0,
-      circuit: CircuitType.OpenDistance,
-      turnpoints: [],
-      path: [],
-    };
+    postMessage({
+      error: error instanceof Error ? error.message : String(error),
+      id,
+    } satisfies Response);
   }
-
-  postMessage({
-    response,
-    id,
-  } satisfies Response);
 });

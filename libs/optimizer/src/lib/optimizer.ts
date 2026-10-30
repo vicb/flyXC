@@ -87,10 +87,10 @@ export function scoreTrack(points: LatLon[], ruleName: ScoringRuleName): Scoring
     return {
       score: 0,
       lengthKm: 0,
-      multiplier: 1,
+      multiplier: 0,
       circuit: CircuitType.OpenDistance,
       turnpoints: [],
-      path: [points[0]],
+      path: [...points],
     };
   }
 
@@ -112,10 +112,10 @@ export function scoreTrack(points: LatLon[], ruleName: ScoringRuleName): Scoring
       return {
         score: 0,
         lengthKm: 0,
-        multiplier: 1,
+        multiplier: 0,
         circuit: CircuitType.OpenDistance,
         turnpoints: [],
-        path: [],
+        path: points.map(({ lat, lon }) => ({ lat, lon })),
       };
     }
 

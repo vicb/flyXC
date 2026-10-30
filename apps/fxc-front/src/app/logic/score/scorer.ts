@@ -64,8 +64,12 @@ export class Scorer {
     const scoringWorker = new ScoringWorker();
     scoringWorker.onmessage = (msg: MessageEvent<WorkerResponse>) => {
       if (msg.data.id) {
-        // retrieve the handler and invoke it
-        this.handlers.get(msg.data.id)?.call(this, msg.data.response);
+        if (!msg.data.error && msg.data.response) {
+          // retrieve the handler and invoke it with valid result
+          this.handlers.get(msg.data.id)?.call(this, msg.data.response);
+        } else if (msg.data.error) {
+          console.error(`Scoring error for request ${msg.data.id}:`, msg.data.error);
+        }
         this.handlers.delete(msg.data.id);
       }
     };

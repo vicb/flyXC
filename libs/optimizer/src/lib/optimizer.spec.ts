@@ -62,7 +62,7 @@ describe('optimizer', () => {
       expect(scoreTrack([P_START], 'WorldXC')).toEqual({
         score: 0,
         lengthKm: 0,
-        multiplier: 1,
+        multiplier: 0,
         circuit: CircuitType.OpenDistance,
         turnpoints: [],
         path: [P_START],
@@ -70,12 +70,24 @@ describe('optimizer', () => {
     });
 
     it('calculates unoptimized FCC distance sum when rule is "None"', () => {
+      const expectedKm = totalLegDistanceKm(OPEN_2TP);
       const result = scoreTrack(OPEN_2TP, 'None');
       expect(result.multiplier).toBe(1);
       expect(result.circuit).toBe(CircuitType.OpenDistance);
       expect(result.turnpoints).toHaveLength(2);
-      expect(result.lengthKm).toBeGreaterThan(0);
-      expect(result.score).toBe(result.lengthKm);
+      expect(result.lengthKm).toBeCloseTo(expectedKm, 1);
+      expect(result.score).toBeCloseTo(expectedKm, 1);
+    });
+
+    it('preserves input route and reports 0 multiplier when track does not meet league constraints', () => {
+      const shortTrack: LatLon[] = [
+        { lat: 45, lon: 5 },
+        { lat: 45.001, lon: 5 },
+      ];
+      const result = scoreTrack(shortTrack, 'UKClub');
+      expect(result.score).toBe(0);
+      expect(result.multiplier).toBe(0);
+      expect(result.path).toEqual(shortTrack);
     });
   });
 
