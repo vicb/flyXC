@@ -1,26 +1,33 @@
-import type { ScoringRequest, ScoringResult } from '@flyxc/optimizer/src/lib/optimizer';
-import { getOptimizer } from '@flyxc/optimizer/src/lib/optimizer';
+import type { LatLon, ScoringResult, ScoringRuleName } from '@flyxc/optimizer';
+import { initOptimizer, scoreTrack } from '@flyxc/optimizer';
+import wasmUrl from 'rustigc-wasm/rustigc_wasm_bg.wasm?url';
 
 export interface Request {
-  request: ScoringRequest;
+  points: LatLon[];
+  ruleName: ScoringRuleName;
   id?: number;
 }
 
 export interface Response {
-  response: ScoringResult;
+  response?: ScoringResult;
+  error?: string;
   id?: number;
 }
 
 addEventListener('message', async (event: MessageEvent<Request>) => {
-  const { request, id } = event.data;
-  const optimizer = getOptimizer(request);
-  let result: IteratorResult<ScoringResult, ScoringResult>;
-  do {
-    result = optimizer.next();
-  } while (!result.done);
-
-  postMessage({
-    response: result.value,
-    id,
-  } satisfies Response);
+  const { points, ruleName, id } = event.data;
+  try {
+    await initOptimizer(wasmUrl);
+    const response = scoreTrack(points, ruleName);
+    postMessage({
+      response,
+      id,
+    } satisfies Response);
+  } catch (error) {
+    console.error('Optimization error:', error);
+    postMessage({
+      error: error instanceof Error ? error.message : String(error),
+      id,
+    } satisfies Response);
+  }
 });

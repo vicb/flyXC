@@ -52,6 +52,7 @@ catalog:
   wrangler: ^4.152.0
   eslint-plugin-unused-imports: ^4.4.1
   clsx: ^2.1.1
+  rustigc-wasm: 0.2.0-rc.3
 
 allowBuilds:
   '@parcel/watcher': false

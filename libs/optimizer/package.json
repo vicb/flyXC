@@ -2,8 +2,7 @@
   "name": "@flyxc/optimizer",
   "version": "0.0.1",
   "dependencies": {
-    "igc-parser": "^2.0.0",
-    "igc-xc-score": "^1.8.0",
+    "rustigc-wasm": "catalog:",
     "tslib": "catalog:default"
   },
   "devDependencies": {

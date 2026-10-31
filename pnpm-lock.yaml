@@ -115,6 +115,9 @@ catalogs:
     redis:
       specifier: ^6.3.0
       version: 6.3.0
+    rustigc-wasm:
+      specifier: 0.2.0-rc.3
+      version: 0.2.0-rc.3
     simplify-path:
       specifier: ^1.1.0
       version: 1.1.0
@@ -409,6 +412,9 @@ importers:
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
+      rustigc-wasm:
+        specifier: 'catalog:'
+        version: 0.2.0-rc.3
       simplify-path:
         specifier: catalog:default
         version: 1.1.0
@@ -463,7 +469,7 @@ importers:
         version: 7.1.1(rolldown@1.2.15)(rollup@4.54.0)
       vite-plugin-pwa:
         specifier: ^2.0.0
-        version: 2.0.0(@vite-pwa/assets-generator@1.0.2(@types/node@26.6.5))(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(less@4.1.3)(sass@1.97.1)(stylus@0.64.0)(terser@5.49.0)(yaml@2.9.0))(workbox-build@7.4.1(@types/babel__core@7.20.5))(workbox-window@7.4.1)
+        version: 2.0.0(@vite-pwa/assets-generator@1.0.2(@types/node@26.6.5))(supports-color@8.1.1)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(less@4.1.3)(sass@1.97.1)(stylus@0.64.0)(terser@5.49.0)(yaml@2.9.0))(workbox-build@7.4.1(@types/babel__core@7.20.5))(workbox-window@7.4.1)
       workbox-build:
         specifier: ^7.4.1
         version: 7.4.1(@types/babel__core@7.20.5)
@@ -720,12 +726,9 @@ importers:
 
   libs/optimizer:
     dependencies:
-      igc-parser:
-        specifier: ^2.0.0
-        version: 2.0.0
-      igc-xc-score:
-        specifier: ^1.8.0
-        version: 1.8.0
+      rustigc-wasm:
+        specifier: 'catalog:'
+        version: 0.2.0-rc.3
       tslib:
         specifier: catalog:default
         version: 2.8.1
@@ -4839,9 +4842,6 @@ packages:
   collect-v8-coverage@1.0.3:
     resolution: {integrity: sha512-1L5aqIkwPfiodaMgQunkF1zRhNqifHBmtbbbxcr6yVxxBnliw4TDOW6NxpO8DJLgJ16OT+Y4ztZqP6p/FtXnAw==}
 
-  collections@5.1.13:
-    resolution: {integrity: sha512-SCb6Qd+d3Z02corWQ7/mqXiXeeTdHvkP6TeFSYfGYdCFp1WrjSNZ3j6y8Y3T/7osGEe0iOcU2g1d346l99m4Lg==}
-
   color-convert@1.9.3:
     resolution: {integrity: sha512-QfAUtd+vFdAtFQcC8CCyYt1fYWxSqAiK2cSD6zDB8N3cpsEBAvRxp9zOGg6G/SHHJYAT88/az/IuDGALsNVbGg==}
 
@@ -5867,14 +5867,8 @@ packages:
   flat-cache@6.1.23:
     resolution: {integrity: sha512-f++BY9pTk+983xK1FLzlLpmM0i0z+jHmx3QESGkURMXujQZz1k5wzwX6hjnQ8goaD0B+sYnDK1yZ6MTyZfUaqA==}
 
-  flatbush@4.5.0:
-    resolution: {integrity: sha512-K7JSilGr4lySRLdJqKY45fu0m/dIs6YAAu/ESqdMsnW3pI0m3gpa6oRc6NDXW161Ov9+rIQjsuyOt5ObdIfgwg==}
-
   flatpickr@4.6.13:
     resolution: {integrity: sha512-97PMG/aywoYpB4IvbvUJi0RQi8vearvU0oov1WW3k0WZPBMrTQVqekSX5CjSG/M4Q3i6A/0FKXC7RyAoAUUSPw==}
-
-  flatqueue@3.0.0:
-    resolution: {integrity: sha512-y1deYaVt+lIc/d2uIcWDNd0CrdQTO5xoCjeFdhX0kSXvm2Acm0o+3bAOiYklTEoRyzwio3sv3/IiBZdusbAe2Q==}
 
   flatted@3.4.4:
     resolution: {integrity: sha512-5+ybhBZANEJxaH3X5evAFatUxLfEHSr7n6kYJ+1Qd0mUqr4eu9gIf6GDbWHf8RJijHrjjO8G+la14SlL2SeS1Q==}
@@ -6251,18 +6245,9 @@ packages:
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
 
-  igc-parser@1.1.0:
-    resolution: {integrity: sha512-CJGWiCcCCxNSI3Pt0zbllHNekEp2NOVCgDysg5/7FuW/uXUUDiW+AcZWSwRwvtRQxnYf+Sn7mQmYKLWQfVSATA==}
-    engines: {node: '>=12'}
-
   igc-parser@2.0.0:
     resolution: {integrity: sha512-bsJZjPaZRmT8ElFvNgsn5p5rNV6KLilQaRt4fvspufvHeHoeAWpZqsm2UBlwxTnapxnYmhRwaCazZELY4H01BA==}
     engines: {node: '>=12'}
-
-  igc-xc-score@1.8.0:
-    resolution: {integrity: sha512-2rZS8/4DB6Dcn+KFMhjwW9Rm2nUC6GE3t2tOoAmIONjIPVP4ok59APqgLjXMOEOJvmodQpQc2QlQOGgQ75ML+A==}
-    engines: {node: '>=18'}
-    hasBin: true
 
   ignore@5.3.2:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
@@ -7607,9 +7592,6 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
-  quickselect@3.0.0:
-    resolution: {integrity: sha512-XdjUArbK4Bm5fLLvlm5KpTFOiOThgfWWI4axAZDWg4E/0mKdZyI9tNEfds27qCi1ze/vwTR16kvmmGhRra3c2g==}
-
   random-bytes@1.0.0:
     resolution: {integrity: sha512-iv7LhNVO047HzYR3InF6pUcUsPQiHTM1Qal51DcGSuZFBil1aBBWG5eHPNek7bvILMaYJ/8RU1e8w1AMdHmLQQ==}
     engines: {node: '>= 0.8'}
@@ -7621,9 +7603,6 @@ packages:
   raw-body@3.0.2:
     resolution: {integrity: sha512-K5zQjDllxWkf7Z5xJdV0/B0WTNqx6vxG70zJE4N0kBs4LovmEYWJzQGxC9bS9RAKu3bgM40lrd5zoLJ12MQ5BA==}
     engines: {node: '>= 0.10'}
-
-  rbush@4.0.1:
-    resolution: {integrity: sha512-IP0UpfeWQujYC8Jg162rMNc01Rf0gWMMAb2Uxus/Q0qOFw4lCcq6ZnQEZwUoJqWyUGJ9th7JjwI4yIWo+uvoAQ==}
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -7829,6 +7808,9 @@ packages:
 
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
+
+  rustigc-wasm@0.2.0-rc.3:
+    resolution: {integrity: sha512-wqQBbnYqYyxwXxDIda9ez6Kd2c47170/qWB3Jzh40GP6Uz64Y4mZGGFSEa8BuIWe/tyBloESxGzEOI6w4xh1zA==}
 
   rw@1.3.3:
     resolution: {integrity: sha512-PdhdWy89SiZogBLaw42zdeqtRJ//zFd2PgQavcICDUgJT5oW10QCRKbJ6bg4r0/UY2M6BWd5tkxuGFRvCkgfHQ==}
@@ -8880,9 +8862,6 @@ packages:
 
   wcwidth@1.0.1:
     resolution: {integrity: sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==}
-
-  weak-map@1.0.8:
-    resolution: {integrity: sha512-lNR9aAefbGPpHO7AEnY0hCFjz1eTkWCXYvkTRrTHs9qv8zJp+SkVYpzfLIFXQQiG3tVvbNFQgVg2bQS8YGgxyw==}
 
   web-streams-polyfill@3.3.3:
     resolution: {integrity: sha512-d2JWLCivmZYTSIoge9MsgFCZrt571BikcWGYkjC1khllbTeDlGqZ2D8vD8E/lJa8WGWbb7Plm8/XJYV7IJHZZw==}
@@ -10444,7 +10423,7 @@ snapshots:
       eslint: 10.13.0(jiti@2.7.0)(supports-color@8.1.1)
       eslint-visitor-keys: 3.4.3
 
-  '@eslint-community/eslint-utils@4.9.1(eslint@8.57.1)':
+  '@eslint-community/eslint-utils@4.9.1(eslint@8.57.1(supports-color@8.1.1))':
     dependencies:
       eslint: 8.57.1(supports-color@8.1.1)
       eslint-visitor-keys: 3.4.3
@@ -13656,10 +13635,6 @@ snapshots:
 
   collect-v8-coverage@1.0.3: {}
 
-  collections@5.1.13:
-    dependencies:
-      weak-map: 1.0.8
-
   color-convert@1.9.3:
     dependencies:
       color-name: 1.1.3
@@ -14598,7 +14573,7 @@ snapshots:
 
   eslint@8.57.1(supports-color@8.1.1):
     dependencies:
-      '@eslint-community/eslint-utils': 4.9.1(eslint@8.57.1)
+      '@eslint-community/eslint-utils': 4.9.1(eslint@8.57.1(supports-color@8.1.1))
       '@eslint-community/regexpp': 4.12.2
       '@eslint/eslintrc': 2.1.4(supports-color@8.1.1)
       '@eslint/js': 8.57.1
@@ -14909,13 +14884,7 @@ snapshots:
       flatted: 3.4.4
       hookified: 1.15.1
 
-  flatbush@4.5.0:
-    dependencies:
-      flatqueue: 3.0.0
-
   flatpickr@4.6.13: {}
-
-  flatqueue@3.0.0: {}
 
   flatted@3.4.4: {}
 
@@ -15371,20 +15340,9 @@ snapshots:
 
   ieee754@1.2.1: {}
 
-  igc-parser@1.1.0:
-    dependencies:
-      flight-recorder-manufacturers: 2.0.0
-
   igc-parser@2.0.0:
     dependencies:
       flight-recorder-manufacturers: 2.0.0
-
-  igc-xc-score@1.8.0:
-    dependencies:
-      collections: 5.1.13
-      flatbush: 4.5.0
-      igc-parser: 1.1.0
-      rbush: 4.0.1
 
   ignore@5.3.2: {}
 
@@ -16937,8 +16895,6 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
-  quickselect@3.0.0: {}
-
   random-bytes@1.0.0: {}
 
   range-parser@1.2.1: {}
@@ -16949,10 +16905,6 @@ snapshots:
       http-errors: 2.0.1
       iconv-lite: 0.7.3
       unpipe: 1.0.0
-
-  rbush@4.0.1:
-    dependencies:
-      quickselect: 3.0.0
 
   react-is@16.13.1: {}
 
@@ -17193,6 +17145,8 @@ snapshots:
   run-parallel@1.2.0:
     dependencies:
       queue-microtask: 1.2.3
+
+  rustigc-wasm@0.2.0-rc.3: {}
 
   rw@1.3.3: {}
 
@@ -18215,7 +18169,7 @@ snapshots:
       - typescript
       - webpack
 
-  vite-plugin-pwa@2.0.0(@vite-pwa/assets-generator@1.0.2(@types/node@26.6.5))(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(less@4.1.3)(sass@1.97.1)(stylus@0.64.0)(terser@5.49.0)(yaml@2.9.0))(workbox-build@7.4.1(@types/babel__core@7.20.5))(workbox-window@7.4.1):
+  vite-plugin-pwa@2.0.0(@vite-pwa/assets-generator@1.0.2(@types/node@26.6.5))(supports-color@8.1.1)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(less@4.1.3)(sass@1.97.1)(stylus@0.64.0)(terser@5.49.0)(yaml@2.9.0))(workbox-build@7.4.1(@types/babel__core@7.20.5))(workbox-window@7.4.1):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       pretty-bytes: 6.1.1
@@ -18302,8 +18256,6 @@ snapshots:
   wcwidth@1.0.1:
     dependencies:
       defaults: 1.0.4
-
-  weak-map@1.0.8: {}
 
   web-streams-polyfill@3.3.3: {}
 

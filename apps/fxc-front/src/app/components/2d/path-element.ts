@@ -30,7 +30,6 @@ const ROUTE_STROKE_COLORS = {
   [CircuitType.OutAndReturn]: '#ff9933',
   [CircuitType.FlatTriangle]: '#ffcc00',
   [CircuitType.FaiTriangle]: '#ffff00',
-  [CircuitType.Quad]: '#b55bff',
 };
 
 // Circuit abbreviation by circuit type.
@@ -39,7 +38,6 @@ const CIRCUIT_SHORT_NAME = {
   [CircuitType.OutAndReturn]: 'oar',
   [CircuitType.FlatTriangle]: 'triangle',
   [CircuitType.FaiTriangle]: 'fai',
-  [CircuitType.Quad]: 'quad',
 };
 
 @customElement('path-element')
@@ -210,9 +208,13 @@ export class PathElement extends connect(store)(LitElement) {
       return;
     }
 
-    const points = this.getPathPoints().map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 }));
+    const points = this.getPathPoints();
 
-    this.getScorer().score(points, this.league, (result) => this.drawOptimization(result));
+    this.getScorer().score(points, this.league, (result) => {
+      if (result) {
+        this.drawOptimization(result);
+      }
+    });
   }
 
   // Lazily create and get scorer
@@ -227,7 +229,7 @@ export class PathElement extends connect(store)(LitElement) {
     this.optimizedLine.setOptions({
       map: this.map,
       path: result.path.map(({ lat, lon }) => ({ lat, lng: lon })),
-      strokeColor: ROUTE_STROKE_COLORS[result.circuit],
+      strokeColor: ROUTE_STROKE_COLORS[result.circuitType],
       strokeOpacity: 0.8,
       strokeWeight: 3,
       zIndex: 1000,
@@ -238,9 +240,9 @@ export class PathElement extends connect(store)(LitElement) {
       this.closingSector.addListener('rightclick', (e) => this.appendToPath(e.latLng));
     }
 
-    if (result.closingPoints) {
-      this.closingSector.center = result.closingPoints.in;
-      this.closingSector.radiusM = (result.closingRadiusKm ?? 0) * 1000;
+    if (result.closing) {
+      this.closingSector.center = result.closing.startPoint;
+      this.closingSector.radiusM = result.closing.radiusKm * 1000;
       this.closingSector.update();
       this.closingSector.setMap(this.map);
     } else {
@@ -251,8 +253,8 @@ export class PathElement extends connect(store)(LitElement) {
       this.faiSectors = new FaiSectors();
       this.faiSectors.addListeners('rightclick', (e) => this.appendToPath(e.latLng));
     }
-    if (result.circuit == CircuitType.FlatTriangle || result.circuit == CircuitType.FaiTriangle) {
-      this.faiSectors.update(result.turnpoints);
+    if (result.circuitType === CircuitType.FlatTriangle || result.circuitType === CircuitType.FaiTriangle) {
+      this.faiSectors.update(result.path.slice(1, -1));
       this.faiSectors.setMap(this.map);
     } else {
       this.faiSectors.setMap(null);
@@ -268,10 +270,11 @@ export class PathElement extends connect(store)(LitElement) {
     if (scoringResult.lengthKm !== 0 && window.parent) {
       const kms = scoringResult.lengthKm.toFixed(1);
       // add number of turn points for an open distance
+      const numTurnpoints = Math.max(0, scoringResult.path.length - 2);
       const circuit =
-        scoringResult.circuit === CircuitType.OpenDistance
-          ? CIRCUIT_SHORT_NAME[scoringResult.circuit] + String(scoringResult.turnpoints.length)
-          : CIRCUIT_SHORT_NAME[scoringResult.circuit];
+        scoringResult.circuitType === CircuitType.OpenDistance
+          ? CIRCUIT_SHORT_NAME[scoringResult.circuitType] + String(numTurnpoints)
+          : CIRCUIT_SHORT_NAME[scoringResult.circuitType];
       window.parent.postMessage(
         JSON.stringify({
           kms,
@@ -365,12 +368,25 @@ export class PathElement extends connect(store)(LitElement) {
         const points = track.lat.map((lat, index) => ({
           lat,
           lon: track.lon[index],
-          alt: track.alt[index],
-          timeSec: track.timeSec[index],
         }));
-        this.getScorer().score(points, this.league, async (result) => {
-          this.handleScoringResult(result);
+        this.getScorer().score(points, this.league, async (result, error) => {
           await this.toastScoring?.dismiss();
+          this.toastScoring = undefined;
+          if (result) {
+            this.handleScoringResult(result);
+          } else {
+            const toast = await toastController.create({
+              message: `Scoring failed${error ? `: ${error}` : ''}`,
+              duration: 3000,
+              buttons: [
+                {
+                  text: 'Close',
+                  role: 'cancel',
+                },
+              ],
+            });
+            await toast.present();
+          }
         });
       });
     }
@@ -405,6 +421,8 @@ export class PathElement extends connect(store)(LitElement) {
     this.faiSectors = undefined;
     this.plannerElement?.remove();
     this.plannerElement = undefined;
+    this.toastScoring?.dismiss();
+    this.toastScoring = undefined;
     this.scorer?.cleanup();
     this.scorer = undefined;
   }

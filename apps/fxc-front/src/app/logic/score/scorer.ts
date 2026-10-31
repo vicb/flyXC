@@ -1,10 +1,10 @@
-import type { LatLonAltTime, ScoringResult } from '@flyxc/optimizer/src/lib/optimizer';
+import type { LatLon, ScoringResult } from '@flyxc/optimizer';
 
-import { type Response as WorkerResponse } from '../../workers/optimizer';
+import { type Request as WorkerRequest, type Response as WorkerResponse } from '../../workers/optimizer';
 import ScoringWorker from '../../workers/optimizer?worker';
 import { getScoringRuleName, type LeagueCode } from './league/leagues';
 
-export type ScoringResultHandler = (result: ScoringResult) => void;
+export type ScoringResultHandler = (result?: ScoringResult, error?: string) => void;
 
 export class Scorer {
   private scoringWorker?: Worker;
@@ -26,23 +26,24 @@ export class Scorer {
    * @param handleScoringResult Callback called with the scoring solution
    * @return  a number that identifies this scoring request
    */
-  public score(track: LatLonAltTime[], league: LeagueCode, handleScoringResult: ScoringResultHandler): number {
+  public score(track: LatLon[], league: LeagueCode, handleScoringResult: ScoringResultHandler): number {
     // stores the handler for retrieval when handling worker response message
     const id = ++this.currentScoringRequestId;
     this.handlers.set(id, handleScoringResult);
     try {
       this.getWorker().postMessage({
-        request: {
-          track: {
-            points: track,
-          },
-          ruleName: getScoringRuleName(league),
-        },
+        points: track,
+        ruleName: getScoringRuleName(league),
         id,
-      });
+      } satisfies WorkerRequest);
       return id;
     } catch (error) {
       console.error('Error posting message to scoring worker:', error);
+      try {
+        handleScoringResult(undefined, error instanceof Error ? error.message : String(error));
+      } finally {
+        this.handlers.delete(id);
+      }
       return -1;
     }
   }
@@ -52,6 +53,7 @@ export class Scorer {
    */
   public cleanup() {
     this.scoringWorker?.terminate();
+    this.handlers.clear();
   }
 
   // get worker with lazy instanciation
@@ -64,9 +66,17 @@ export class Scorer {
     const scoringWorker = new ScoringWorker();
     scoringWorker.onmessage = (msg: MessageEvent<WorkerResponse>) => {
       if (msg.data.id) {
-        // retrieve the handler and invoke it
-        this.handlers.get(msg.data.id)?.call(this, msg.data.response);
-        if (msg.data.response.optimal) {
+        const handler = this.handlers.get(msg.data.id);
+        try {
+          if (msg.data.response) {
+            // retrieve the handler and invoke it with valid result
+            handler?.call(this, msg.data.response);
+          } else {
+            const error = msg.data.error ?? 'Unknown scoring error';
+            console.error(`Scoring error for request ${msg.data.id}:`, error);
+            handler?.call(this, undefined, error);
+          }
+        } finally {
           this.handlers.delete(msg.data.id);
         }
       }
