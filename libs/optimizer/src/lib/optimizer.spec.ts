@@ -204,18 +204,35 @@ describe('optimizer', () => {
     ];
 
     it('returns fixed 3 km closing distance for FFVL when gap < 3 km', () => {
-      expect(scoreTrack(TRIANGLE_SMALL_GAP, 'FFVL').closingRadiusKm).toBe(3);
+      expect(scoreTrack(TRIANGLE_SMALL_GAP, 'FFVL').closing?.radiusKm).toBe(3);
     });
 
     it('returns relative closing distance for FFVL when gap > 3 km', () => {
-      expect(scoreTrack(TRIANGLE_LARGE_GAP, 'FFVL').closingRadiusKm).toBeGreaterThan(3);
+      expect(scoreTrack(TRIANGLE_LARGE_GAP, 'FFVL').closing?.radiusKm).toBeGreaterThan(3);
     });
 
     it.each(['CzechLocal', 'CzechEurope', 'CzechOutsideEurope'] as const)(
       'returns relative closing distance for %s',
       (rule) => {
-        expect(scoreTrack(TRIANGLE_LARGE_GAP, rule).closingRadiusKm).toBeLessThan(20);
+        expect(scoreTrack(TRIANGLE_LARGE_GAP, rule).closing?.radiusKm).toBeLessThan(20);
       },
     );
+
+    it('returns closing information for closed circuits and leaves it undefined for open distance', () => {
+      const resultSmall = scoreTrack(TRIANGLE_SMALL_GAP, 'FFVL');
+      expect(resultSmall.closing).toBeDefined();
+      if (resultSmall.closing) {
+        expect(resultSmall.closing.gapKm).toBeLessThan(resultSmall.closing.radiusKm);
+        expect(resultSmall.closing.startPoint).toBeDefined();
+        expect(resultSmall.closing.endPoint).toBeDefined();
+      }
+
+      const resultLarge = scoreTrack(TRIANGLE_LARGE_GAP, 'FFVL');
+      expect(resultLarge.closing).toBeDefined();
+      expect(resultLarge.closing?.gapKm).toBeGreaterThan(1);
+
+      const resultOpen = scoreTrack(OPEN_2TP, 'FFVL');
+      expect(resultOpen.closing).toBeUndefined();
+    });
   });
 });

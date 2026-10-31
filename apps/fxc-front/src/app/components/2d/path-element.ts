@@ -240,9 +240,9 @@ export class PathElement extends connect(store)(LitElement) {
       this.closingSector.addListener('rightclick', (e) => this.appendToPath(e.latLng));
     }
 
-    if (result.closingPoints) {
-      this.closingSector.center = result.closingPoints.in;
-      this.closingSector.radiusM = (result.closingRadiusKm ?? 0) * 1000;
+    if (result.closing) {
+      this.closingSector.center = result.closing.startPoint;
+      this.closingSector.radiusM = result.closing.radiusKm * 1000;
       this.closingSector.update();
       this.closingSector.setMap(this.map);
     } else {

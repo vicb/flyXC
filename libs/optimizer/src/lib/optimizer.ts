@@ -10,21 +10,52 @@ export interface LatLon {
   lon: number;
 }
 
+/**
+ * Information about the closing gap and sector for closed circuits.
+ */
+export interface ScoringClosing {
+  /** Maximum allowed closing distance gap in kilometers for closed circuits. */
+  radiusKm: number;
+  /** Actual closing distance gap in kilometers between start and end. */
+  gapKm: number;
+  /** Starting/entry point of the closed circuit where the closing sector is centered. */
+  startPoint: LatLon;
+  /** Ending/exit point of the closed circuit closing back to the start. */
+  endPoint: LatLon;
+}
+
+/**
+ * Result of scoring a flight track according to league rules.
+ */
 export interface ScoringResult {
-  // The score for the track in the given league
+  /**
+   * The calculated score points for the track in the given league.
+   */
   score: number;
-  // The length of the optimized track in kms
+  /**
+   * The total scored length of the optimized track in kilometers.
+   */
   lengthKm: number;
-  // Multiplier for computing score. score = lengthKm * multiplier
+  /**
+   * Scoring multiplier applied to distance to compute final score (score = lengthKm * multiplier).
+   */
   multiplier: number;
+  /**
+   * The classified circuit type of the flight.
+   */
   circuit: CircuitType;
-  closingRadiusKm?: number;
-  closingPoints?: {
-    in: LatLon;
-    out: LatLon;
-  };
+  /**
+   * Information about the closing gap and sector for closed circuits.
+   * Undefined for open distance flights.
+   */
+  closing?: ScoringClosing;
+  /**
+   * Intermediate turnpoints between start and finish of the scored task.
+   */
   turnpoints: LatLon[];
-  // Optimized route path
+  /**
+   * Sequence of coordinates forming the complete optimized route path.
+   */
   path: LatLon[];
 }
 
@@ -141,9 +172,11 @@ function toScoringResult(score: Score, points: LatLon[]): ScoringResult {
   const circuit = score.description as CircuitType;
 
   if (score.circuit) {
-    const closingPoints = {
-      in: { lat: points[score.entry].lat, lon: points[score.entry].lon },
-      out: { lat: points[score.exit].lat, lon: points[score.exit].lon },
+    const closing: ScoringClosing = {
+      radiusKm: score.threshold_m / 1000,
+      gapKm: score.gap_m / 1000,
+      startPoint: { lat: points[score.entry].lat, lon: points[score.entry].lon },
+      endPoint: { lat: points[score.exit].lat, lon: points[score.exit].lon },
     };
     const turnpoints = score.turnpoints.map((idx) => ({
       lat: points[idx].lat,
@@ -155,30 +188,28 @@ function toScoringResult(score: Score, points: LatLon[]): ScoringResult {
       lengthKm: score.distance_km,
       multiplier: score.multiplier,
       circuit,
-      closingRadiusKm: score.threshold_m / 1000,
-      closingPoints,
+      closing,
       turnpoints,
-      path: [closingPoints.in, ...turnpoints, closingPoints.out],
+      path: [closing.startPoint, ...turnpoints, closing.endPoint],
     };
   }
 
-  const rawIndices = [score.entry, ...score.turnpoints, score.exit];
-  const deduplicatedIndices: number[] = [];
-  for (const idx of rawIndices) {
-    if (deduplicatedIndices.length === 0 || deduplicatedIndices[deduplicatedIndices.length - 1] !== idx) {
-      deduplicatedIndices.push(idx);
-    }
-  }
+  // For open distance tasks, rustigc always fills the fixed number of turnpoints
+  // configured in the rule (e.g. 3 turnpoints for a 5-point polyline). When the track
+  // has fewer points than the rule requires, or when the optimal flight does not need
+  // all available turns (e.g. a straight line), rustigc collapses unused turnpoints
+  // onto adjacent indices (entry, exit, or neighboring turnpoints).
+  // Deduplicating consecutive indices yields the actual active vertices.
+  const activeIndices = [score.entry, ...score.turnpoints, score.exit].filter(
+    (idx, i, arr) => i === 0 || idx !== arr[i - 1],
+  );
 
-  const path = deduplicatedIndices.map((idx) => ({
+  const path = activeIndices.map((idx) => ({
     lat: points[idx].lat,
     lon: points[idx].lon,
   }));
 
-  const turnpoints = deduplicatedIndices.slice(1, -1).map((idx) => ({
-    lat: points[idx].lat,
-    lon: points[idx].lon,
-  }));
+  const turnpoints = path.slice(1, -1);
 
   return {
     score: score.score,
