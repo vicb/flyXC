@@ -52,8 +52,7 @@ describe('optimizer', () => {
         score: 0,
         lengthKm: 0,
         multiplier: 0,
-        circuit: CircuitType.OpenDistance,
-        turnpoints: [],
+        circuitType: CircuitType.OpenDistance,
         path: [],
       });
     });
@@ -63,8 +62,7 @@ describe('optimizer', () => {
         score: 0,
         lengthKm: 0,
         multiplier: 0,
-        circuit: CircuitType.OpenDistance,
-        turnpoints: [],
+        circuitType: CircuitType.OpenDistance,
         path: [P_START],
       });
     });
@@ -73,8 +71,8 @@ describe('optimizer', () => {
       const expectedKm = totalLegDistanceKm(OPEN_2TP);
       const result = scoreTrack(OPEN_2TP, 'None');
       expect(result.multiplier).toBe(1);
-      expect(result.circuit).toBe(CircuitType.OpenDistance);
-      expect(result.turnpoints).toHaveLength(2);
+      expect(result.circuitType).toBe(CircuitType.OpenDistance);
+      expect(result.path.slice(1, -1)).toHaveLength(2);
       expect(result.lengthKm).toBeCloseTo(expectedKm, 1);
       expect(result.score).toBeCloseTo(expectedKm, 1);
     });
@@ -95,9 +93,9 @@ describe('optimizer', () => {
     it('classifies a straight line as OpenDistance', () => {
       const expectedKm = totalLegDistanceKm(STRAIGHT_LINE);
       const result = scoreTrack(STRAIGHT_LINE, 'WorldXC');
-      expect(result.circuit).toBe(CircuitType.OpenDistance);
+      expect(result.circuitType).toBe(CircuitType.OpenDistance);
       expect(result.lengthKm).toBeCloseTo(expectedKm, 1);
-      expect(result.turnpoints).toHaveLength(0);
+      expect(result.path.slice(1, -1)).toHaveLength(0);
     });
 
     it.each([
@@ -107,31 +105,31 @@ describe('optimizer', () => {
     ])('classifies open flight with $name as OpenDistance', ({ waypoints, expectedTurnpoints }) => {
       const expectedKm = totalLegDistanceKm(waypoints);
       const result = scoreTrack(waypoints, 'WorldXC');
-      expect(result.circuit).toBe(CircuitType.OpenDistance);
+      expect(result.circuitType).toBe(CircuitType.OpenDistance);
       expect(result.lengthKm).toBeCloseTo(expectedKm, 1);
-      expect(result.turnpoints).toHaveLength(expectedTurnpoints);
+      expect(result.path.slice(1, -1)).toHaveLength(expectedTurnpoints);
     });
 
     it('classifies an asymmetric triangle as FlatTriangle', () => {
       const expectedKm = totalLegDistanceKm(FLAT_TRIANGLE);
       const result = scoreTrack(FLAT_TRIANGLE, 'WorldXC');
-      expect(result.circuit).toBe(CircuitType.FlatTriangle);
+      expect(result.circuitType).toBe(CircuitType.FlatTriangle);
       expect(result.lengthKm).toBeCloseTo(expectedKm, 1);
-      expect(result.turnpoints).toHaveLength(3);
+      expect(result.path.slice(1, -1)).toHaveLength(3);
     });
 
     it('classifies an equilateral triangle as FaiTriangle', () => {
       const expectedKm = totalLegDistanceKm(FAI_TRIANGLE);
       const result = scoreTrack(FAI_TRIANGLE, 'WorldXC');
-      expect(result.circuit).toBe(CircuitType.FaiTriangle);
+      expect(result.circuitType).toBe(CircuitType.FaiTriangle);
       expect(result.lengthKm).toBeCloseTo(expectedKm, 1);
-      expect(result.turnpoints).toHaveLength(3);
+      expect(result.path.slice(1, -1)).toHaveLength(3);
     });
 
     it('classifies an out-and-return course as OutAndReturn', () => {
       const result = scoreTrack(OUT_AND_RETURN, 'UKClub');
-      expect(result.circuit).toBe(CircuitType.OutAndReturn);
-      expect(result.turnpoints).toHaveLength(2);
+      expect(result.circuitType).toBe(CircuitType.OutAndReturn);
+      expect(result.path.slice(1, -1)).toHaveLength(2);
     });
   });
 
@@ -141,7 +139,7 @@ describe('optimizer', () => {
       const denseTrack = createInterpolatedTrack(FAI_TRIANGLE, 10);
       const denseResult = scoreTrack(denseTrack, 'WorldXC');
 
-      expect(denseResult.circuit).toBe(sparseResult.circuit);
+      expect(denseResult.circuitType).toBe(sparseResult.circuitType);
       expect(denseResult.multiplier).toBe(sparseResult.multiplier);
       expect(denseResult.lengthKm).toBeCloseTo(sparseResult.lengthKm, 1);
       expect(denseResult.score).toBeCloseTo(sparseResult.score, 1);
@@ -181,7 +179,7 @@ describe('optimizer', () => {
       { league: 'UKNational', multiplier: 1.7 },
     ] as const)('applies out-and-return multiplier for $league', ({ league, multiplier }) => {
       const result = scoreTrack(OUT_AND_RETURN, league as ScoringRuleName);
-      expect(result.circuit).toBe(CircuitType.OutAndReturn);
+      expect(result.circuitType).toBe(CircuitType.OutAndReturn);
       expect(result.multiplier).toBe(multiplier);
     });
   });

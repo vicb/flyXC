@@ -150,7 +150,7 @@ export class PlannerElement extends connect(store)(LitElement) {
           <div><i class="las la-times-circle"></i> Close</div>
         </div>
         <div>
-          <div>${this.score.circuit}</div>
+          <div>${this.score.circuitType}</div>
           <div class="large">
             ${unsafeHTML(units.formatUnit(this.score.lengthKm, this.units.distance, undefined, 'unit'))}
           </div>

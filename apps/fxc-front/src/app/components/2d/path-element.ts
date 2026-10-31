@@ -229,7 +229,7 @@ export class PathElement extends connect(store)(LitElement) {
     this.optimizedLine.setOptions({
       map: this.map,
       path: result.path.map(({ lat, lon }) => ({ lat, lng: lon })),
-      strokeColor: ROUTE_STROKE_COLORS[result.circuit],
+      strokeColor: ROUTE_STROKE_COLORS[result.circuitType],
       strokeOpacity: 0.8,
       strokeWeight: 3,
       zIndex: 1000,
@@ -253,8 +253,8 @@ export class PathElement extends connect(store)(LitElement) {
       this.faiSectors = new FaiSectors();
       this.faiSectors.addListeners('rightclick', (e) => this.appendToPath(e.latLng));
     }
-    if (result.circuit == CircuitType.FlatTriangle || result.circuit == CircuitType.FaiTriangle) {
-      this.faiSectors.update(result.turnpoints);
+    if (result.circuitType == CircuitType.FlatTriangle || result.circuitType == CircuitType.FaiTriangle) {
+      this.faiSectors.update(result.path.slice(1, -1));
       this.faiSectors.setMap(this.map);
     } else {
       this.faiSectors.setMap(null);
@@ -270,10 +270,11 @@ export class PathElement extends connect(store)(LitElement) {
     if (scoringResult.lengthKm !== 0 && window.parent) {
       const kms = scoringResult.lengthKm.toFixed(1);
       // add number of turn points for an open distance
+      const numTurnpoints = Math.max(0, scoringResult.path.length - 2);
       const circuit =
-        scoringResult.circuit === CircuitType.OpenDistance
-          ? CIRCUIT_SHORT_NAME[scoringResult.circuit] + String(scoringResult.turnpoints.length)
-          : CIRCUIT_SHORT_NAME[scoringResult.circuit];
+        scoringResult.circuitType === CircuitType.OpenDistance
+          ? CIRCUIT_SHORT_NAME[scoringResult.circuitType] + String(numTurnpoints)
+          : CIRCUIT_SHORT_NAME[scoringResult.circuitType];
       window.parent.postMessage(
         JSON.stringify({
           kms,

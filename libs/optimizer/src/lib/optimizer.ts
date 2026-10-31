@@ -26,6 +26,16 @@ export interface ScoringClosing {
 
 /**
  * Result of scoring a flight track according to league rules.
+ *
+ * The scored route is given by `path`, which contains the ordered sequence of
+ * vertices `[start, ...turnpoints, end]`.
+ *
+ * To obtain intermediate turnpoints:
+ * - Use `path.slice(1, -1)`:
+ *   - Triangles (`FlatTriangle`, `FaiTriangle`): returns the 3 triangle corner turnpoints.
+ *   - Out and return (`OutAndReturn`): returns the turnaround point(s).
+ *   - Open distance (`OpenDistance`): returns intermediate waypoints (0 to 3 points);
+ *     the number of turnpoints is `Math.max(0, path.length - 2)`.
  */
 export interface ScoringResult {
   /**
@@ -43,18 +53,16 @@ export interface ScoringResult {
   /**
    * The classified circuit type of the flight.
    */
-  circuit: CircuitType;
+  circuitType: CircuitType;
   /**
    * Information about the closing gap and sector for closed circuits.
    * Undefined for open distance flights.
    */
   closing?: ScoringClosing;
   /**
-   * Intermediate turnpoints between start and finish of the scored task.
-   */
-  turnpoints: LatLon[];
-  /**
-   * Sequence of coordinates forming the complete optimized route path.
+   * Sequence of coordinates forming the complete optimized route path: `[start, ...turnpoints, end]`.
+   *
+   * To extract intermediate turnpoints, use `path.slice(1, -1)`.
    */
   path: LatLon[];
 }
@@ -90,8 +98,7 @@ export function scoreTrack(points: LatLon[], ruleName: ScoringRuleName): Scoring
       score: 0,
       lengthKm: 0,
       multiplier: 0,
-      circuit: CircuitType.OpenDistance,
-      turnpoints: [],
+      circuitType: CircuitType.OpenDistance,
       path: [],
     };
   }
@@ -105,8 +112,7 @@ export function scoreTrack(points: LatLon[], ruleName: ScoringRuleName): Scoring
       score: 0,
       lengthKm: 0,
       multiplier: 0,
-      circuit: CircuitType.OpenDistance,
-      turnpoints: [],
+      circuitType: CircuitType.OpenDistance,
       path: [...points],
     };
   }
@@ -130,8 +136,7 @@ export function scoreTrack(points: LatLon[], ruleName: ScoringRuleName): Scoring
         score: 0,
         lengthKm: 0,
         multiplier: 0,
-        circuit: CircuitType.OpenDistance,
-        turnpoints: [],
+        circuitType: CircuitType.OpenDistance,
         path: points.map(({ lat, lon }) => ({ lat, lon })),
       };
     }
@@ -162,14 +167,13 @@ function toUnoptimizedSolution(points: LatLon[]): ScoringResult {
     score: distance,
     lengthKm: distance,
     multiplier: 1,
-    circuit: CircuitType.OpenDistance,
-    turnpoints: points.slice(1, -1),
+    circuitType: CircuitType.OpenDistance,
     path: points.map(({ lat, lon }) => ({ lat, lon })),
   };
 }
 
 function toScoringResult(score: Score, points: LatLon[]): ScoringResult {
-  const circuit = score.description as CircuitType;
+  const circuitType = score.description as CircuitType;
 
   if (score.circuit) {
     const closing: ScoringClosing = {
@@ -178,7 +182,7 @@ function toScoringResult(score: Score, points: LatLon[]): ScoringResult {
       startPoint: { lat: points[score.entry].lat, lon: points[score.entry].lon },
       endPoint: { lat: points[score.exit].lat, lon: points[score.exit].lon },
     };
-    const turnpoints = score.turnpoints.map((idx) => ({
+    const tps = score.turnpoints.map((idx) => ({
       lat: points[idx].lat,
       lon: points[idx].lon,
     }));
@@ -187,10 +191,9 @@ function toScoringResult(score: Score, points: LatLon[]): ScoringResult {
       score: score.score,
       lengthKm: score.distance_km,
       multiplier: score.multiplier,
-      circuit,
+      circuitType,
       closing,
-      turnpoints,
-      path: [closing.startPoint, ...turnpoints, closing.endPoint],
+      path: [closing.startPoint, ...tps, closing.endPoint],
     };
   }
 
@@ -209,14 +212,11 @@ function toScoringResult(score: Score, points: LatLon[]): ScoringResult {
     lon: points[idx].lon,
   }));
 
-  const turnpoints = path.slice(1, -1);
-
   return {
     score: score.score,
     lengthKm: score.distance_km,
     multiplier: score.multiplier,
-    circuit,
-    turnpoints,
+    circuitType,
     path,
   };
 }
