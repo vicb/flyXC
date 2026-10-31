@@ -1,9 +1,10 @@
-import type { ScoringRequest, ScoringResult } from '@flyxc/optimizer';
+import type { LatLon, ScoringResult, ScoringRuleName } from '@flyxc/optimizer';
 import { initOptimizer, scoreTrack } from '@flyxc/optimizer';
 import wasmUrl from 'rustigc-wasm/rustigc_wasm_bg.wasm?url';
 
 export interface Request {
-  request: ScoringRequest;
+  points: LatLon[];
+  ruleName: ScoringRuleName;
   id?: number;
 }
 
@@ -23,10 +24,10 @@ function ensureReady(): Promise<void> {
 }
 
 addEventListener('message', async (event: MessageEvent<Request>) => {
-  const { request, id } = event.data;
+  const { points, ruleName, id } = event.data;
   try {
     await ensureReady();
-    const response = scoreTrack(request.track.points, request.ruleName);
+    const response = scoreTrack(points, ruleName);
     postMessage({
       response,
       id,

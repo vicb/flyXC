@@ -10,20 +10,6 @@ export interface LatLon {
   lon: number;
 }
 
-export interface LatLonAltTime extends LatLon {
-  alt: number;
-  timeSec: number;
-}
-
-export interface ScoringTrack {
-  points: LatLon[];
-}
-
-export interface ScoringRequest {
-  track: ScoringTrack;
-  ruleName: ScoringRuleName;
-}
-
 export interface ScoringResult {
   // The score for the track in the given league
   score: number;
@@ -151,38 +137,8 @@ function toUnoptimizedSolution(points: LatLon[]): ScoringResult {
   };
 }
 
-/**
- * Maps a rustigc Score result to the corresponding FlyXC CircuitType.
- *
- * @param score The winning score from rustigc.
- * @returns The classified CircuitType.
- */
-function toCircuitType(score: Score): CircuitType {
-  switch (score.description) {
-    case 'fai':
-      return CircuitType.FaiTriangle;
-    case 'out-and-return':
-      return CircuitType.OutAndReturn;
-    case 'triangle':
-      return CircuitType.FlatTriangle;
-    case 'open':
-    default:
-      return CircuitType.OpenDistance;
-  }
-}
-
-/**
- * Converts a rustigc Score and input track points into a FlyXC ScoringResult.
- *
- * Resolves point indices (entry, turnpoints, exit) back to LatLon coordinates,
- * extracts closing points and radius for circuits, and builds the optimized path.
- *
- * @param score The winning score from rustigc.
- * @param points The original input track coordinates.
- * @returns The complete scoring result.
- */
 function toScoringResult(score: Score, points: LatLon[]): ScoringResult {
-  const circuit = toCircuitType(score);
+  const circuit = score.description as CircuitType;
 
   if (score.circuit) {
     const closingPoints = {

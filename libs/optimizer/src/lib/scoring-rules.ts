@@ -1,6 +1,6 @@
 import { Ruleset } from 'rustigc-wasm';
 
-import type { ScoringRuleName } from './api';
+import { CircuitType, type ScoringRuleName } from './api';
 
 export interface ShapeOpenPolyline {
   type: 'open_polyline';
@@ -47,7 +47,7 @@ export interface ConstraintMinDistance {
 export type Constraint = ConstraintMinScore | ConstraintMinDistance;
 
 export interface VariantDefinition {
-  name: string;
+  name: CircuitType;
   multiplier: number;
   closing?: Closing;
   constraints?: Constraint[];
@@ -67,61 +67,81 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
   CzechLocal: {
     name: 'CzechLocal',
     rules: [
-      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: 'open', multiplier: 1 }] },
+      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: CircuitType.OpenDistance, multiplier: 1 }] },
       {
         shape: { type: 'closed_circuit', turnpoints: 3 },
-        variants: [{ name: 'triangle', multiplier: 1.8, closing: { type: 'ratio', ratio: 0.05, penalized: true } }],
+        variants: [
+          { name: CircuitType.FlatTriangle, multiplier: 1.8, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
+        ],
       },
       {
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
-        variants: [{ name: 'fai', multiplier: 2.2, closing: { type: 'ratio', ratio: 0.05, penalized: true } }],
+        variants: [
+          { name: CircuitType.FaiTriangle, multiplier: 2.2, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
+        ],
       },
     ],
   },
   CzechEurope: {
     name: 'CzechEurope',
     rules: [
-      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: 'open', multiplier: 1 }] },
+      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: CircuitType.OpenDistance, multiplier: 1 }] },
       {
         shape: { type: 'closed_circuit', turnpoints: 3 },
-        variants: [{ name: 'triangle', multiplier: 1.2, closing: { type: 'ratio', ratio: 0.05, penalized: true } }],
+        variants: [
+          { name: CircuitType.FlatTriangle, multiplier: 1.2, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
+        ],
       },
       {
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
-        variants: [{ name: 'fai', multiplier: 1.4, closing: { type: 'ratio', ratio: 0.05, penalized: true } }],
+        variants: [
+          { name: CircuitType.FaiTriangle, multiplier: 1.4, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
+        ],
       },
     ],
   },
   CzechOutsideEurope: {
     name: 'CzechOutsideEurope',
     rules: [
-      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: 'open', multiplier: 0.8 }] },
+      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: CircuitType.OpenDistance, multiplier: 0.8 }] },
       {
         shape: { type: 'closed_circuit', turnpoints: 3 },
-        variants: [{ name: 'triangle', multiplier: 1.2, closing: { type: 'ratio', ratio: 0.05, penalized: true } }],
+        variants: [
+          { name: CircuitType.FlatTriangle, multiplier: 1.2, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
+        ],
       },
       {
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
-        variants: [{ name: 'fai', multiplier: 1.4, closing: { type: 'ratio', ratio: 0.05, penalized: true } }],
+        variants: [
+          { name: CircuitType.FaiTriangle, multiplier: 1.4, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
+        ],
       },
     ],
   },
   FFVL: {
     name: 'FFVL',
     rules: [
-      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: 'open', multiplier: 1 }] },
+      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: CircuitType.OpenDistance, multiplier: 1 }] },
       {
         shape: { type: 'closed_circuit', turnpoints: 3 },
         variants: [
-          { name: 'triangle', multiplier: 1.2, closing: { type: 'distance', distance_m: 3000, penalized: false } },
-          { name: 'triangle', multiplier: 1.2, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
+          {
+            name: CircuitType.FlatTriangle,
+            multiplier: 1.2,
+            closing: { type: 'distance', distance_m: 3000, penalized: false },
+          },
+          { name: CircuitType.FlatTriangle, multiplier: 1.2, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
         ],
       },
       {
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
         variants: [
-          { name: 'fai', multiplier: 1.4, closing: { type: 'distance', distance_m: 3000, penalized: false } },
-          { name: 'fai', multiplier: 1.4, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
+          {
+            name: CircuitType.FaiTriangle,
+            multiplier: 1.4,
+            closing: { type: 'distance', distance_m: 3000, penalized: false },
+          },
+          { name: CircuitType.FaiTriangle, multiplier: 1.4, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
         ],
       },
     ],
@@ -129,33 +149,37 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
   Leonardo: {
     name: 'Leonardo',
     rules: [
-      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: 'open', multiplier: 1.5 }] },
+      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: CircuitType.OpenDistance, multiplier: 1.5 }] },
       {
         shape: { type: 'closed_circuit', turnpoints: 3 },
-        variants: [{ name: 'triangle', multiplier: 1.75, closing: { type: 'ratio', ratio: 0.2, penalized: true } }],
+        variants: [
+          { name: CircuitType.FlatTriangle, multiplier: 1.75, closing: { type: 'ratio', ratio: 0.2, penalized: true } },
+        ],
       },
       {
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
-        variants: [{ name: 'fai', multiplier: 2.0, closing: { type: 'ratio', ratio: 0.2, penalized: true } }],
+        variants: [
+          { name: CircuitType.FaiTriangle, multiplier: 2.0, closing: { type: 'ratio', ratio: 0.2, penalized: true } },
+        ],
       },
     ],
   },
   Norway: {
     name: 'Norway',
     rules: [
-      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: 'open', multiplier: 1 }] },
+      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: CircuitType.OpenDistance, multiplier: 1 }] },
       {
         shape: { type: 'closed_circuit', turnpoints: 3 },
         variants: [
-          { name: 'triangle', multiplier: 1.6, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
-          { name: 'triangle', multiplier: 1.4, closing: { type: 'ratio', ratio: 0.2, penalized: true } },
+          { name: CircuitType.FlatTriangle, multiplier: 1.6, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
+          { name: CircuitType.FlatTriangle, multiplier: 1.4, closing: { type: 'ratio', ratio: 0.2, penalized: true } },
         ],
       },
       {
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
         variants: [
-          { name: 'fai', multiplier: 1.8, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
-          { name: 'fai', multiplier: 1.6, closing: { type: 'ratio', ratio: 0.2, penalized: true } },
+          { name: CircuitType.FaiTriangle, multiplier: 1.8, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
+          { name: CircuitType.FaiTriangle, multiplier: 1.6, closing: { type: 'ratio', ratio: 0.2, penalized: true } },
         ],
       },
     ],
@@ -165,25 +189,27 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
     rules: [
       {
         shape: { type: 'open_polyline', points: 5 },
-        variants: [{ name: 'open', multiplier: 1, constraints: [{ type: 'min_distance', meters: 5000 }] }],
+        variants: [
+          { name: CircuitType.OpenDistance, multiplier: 1, constraints: [{ type: 'min_distance', meters: 5000 }] },
+        ],
       },
       {
         shape: { type: 'closed_circuit', turnpoints: 2 },
         variants: [
           {
-            name: 'out-and-return',
+            name: CircuitType.OutAndReturn,
             multiplier: 1.7,
             closing: { type: 'distance', distance_m: 800, penalized: false },
             constraints: [{ type: 'min_distance', meters: 35000 }],
           },
           {
-            name: 'out-and-return',
+            name: CircuitType.OutAndReturn,
             multiplier: 1.3,
             closing: { type: 'distance', distance_m: 800, penalized: false },
             constraints: [{ type: 'min_distance', meters: 15000 }],
           },
           {
-            name: 'out-and-return',
+            name: CircuitType.OutAndReturn,
             multiplier: 1.2,
             closing: { type: 'distance', distance_m: 800, penalized: false },
             constraints: [{ type: 'min_distance', meters: 5000 }],
@@ -194,19 +220,19 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
         shape: { type: 'closed_circuit', turnpoints: 3 },
         variants: [
           {
-            name: 'triangle',
+            name: CircuitType.FlatTriangle,
             multiplier: 1.7,
             closing: { type: 'ratio', ratio: 0.2, penalized: true },
             constraints: [{ type: 'min_distance', meters: 35000 }],
           },
           {
-            name: 'triangle',
+            name: CircuitType.FlatTriangle,
             multiplier: 1.3,
             closing: { type: 'ratio', ratio: 0.2, penalized: true },
             constraints: [{ type: 'min_distance', meters: 15000 }],
           },
           {
-            name: 'triangle',
+            name: CircuitType.FlatTriangle,
             multiplier: 1.2,
             closing: { type: 'ratio', ratio: 0.2, penalized: true },
             constraints: [{ type: 'min_distance', meters: 5000 }],
@@ -217,19 +243,19 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
         variants: [
           {
-            name: 'fai',
+            name: CircuitType.FaiTriangle,
             multiplier: 2.0,
             closing: { type: 'ratio', ratio: 0.2, penalized: true },
             constraints: [{ type: 'min_distance', meters: 35000 }],
           },
           {
-            name: 'fai',
+            name: CircuitType.FaiTriangle,
             multiplier: 1.7,
             closing: { type: 'ratio', ratio: 0.2, penalized: true },
             constraints: [{ type: 'min_distance', meters: 15000 }],
           },
           {
-            name: 'fai',
+            name: CircuitType.FaiTriangle,
             multiplier: 1.5,
             closing: { type: 'ratio', ratio: 0.2, penalized: true },
             constraints: [{ type: 'min_distance', meters: 5000 }],
@@ -243,13 +269,15 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
     rules: [
       {
         shape: { type: 'open_polyline', points: 5 },
-        variants: [{ name: 'open', multiplier: 1, constraints: [{ type: 'min_distance', meters: 10000 }] }],
+        variants: [
+          { name: CircuitType.OpenDistance, multiplier: 1, constraints: [{ type: 'min_distance', meters: 10000 }] },
+        ],
       },
       {
         shape: { type: 'closed_circuit', turnpoints: 2 },
         variants: [
           {
-            name: 'out-and-return',
+            name: CircuitType.OutAndReturn,
             multiplier: 1.2,
             closing: { type: 'distance', distance_m: 800, penalized: false },
             constraints: [{ type: 'min_distance', meters: 35000 }],
@@ -260,7 +288,7 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
         shape: { type: 'closed_circuit', turnpoints: 3 },
         variants: [
           {
-            name: 'triangle',
+            name: CircuitType.FlatTriangle,
             multiplier: 1.2,
             closing: { type: 'ratio', ratio: 0.2, penalized: true },
             constraints: [{ type: 'min_distance', meters: 35000 }],
@@ -271,7 +299,7 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
         variants: [
           {
-            name: 'fai',
+            name: CircuitType.FaiTriangle,
             multiplier: 1.5,
             closing: { type: 'ratio', ratio: 0.2, penalized: true },
             constraints: [{ type: 'min_distance', meters: 25000 }],
@@ -285,19 +313,21 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
     rules: [
       {
         shape: { type: 'open_polyline', points: 5 },
-        variants: [{ name: 'open', multiplier: 1, constraints: [{ type: 'min_distance', meters: 10000 }] }],
+        variants: [
+          { name: CircuitType.OpenDistance, multiplier: 1, constraints: [{ type: 'min_distance', meters: 10000 }] },
+        ],
       },
       {
         shape: { type: 'closed_circuit', turnpoints: 2 },
         variants: [
           {
-            name: 'out-and-return',
+            name: CircuitType.OutAndReturn,
             multiplier: 1.7,
             closing: { type: 'distance', distance_m: 800, penalized: false },
             constraints: [{ type: 'min_distance', meters: 35000 }],
           },
           {
-            name: 'out-and-return',
+            name: CircuitType.OutAndReturn,
             multiplier: 1.3,
             closing: { type: 'distance', distance_m: 800, penalized: false },
             constraints: [{ type: 'min_distance', meters: 15000 }],
@@ -308,13 +338,13 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
         shape: { type: 'closed_circuit', turnpoints: 3 },
         variants: [
           {
-            name: 'triangle',
+            name: CircuitType.FlatTriangle,
             multiplier: 1.7,
             closing: { type: 'ratio', ratio: 0.2, penalized: true },
             constraints: [{ type: 'min_distance', meters: 35000 }],
           },
           {
-            name: 'triangle',
+            name: CircuitType.FlatTriangle,
             multiplier: 1.3,
             closing: { type: 'ratio', ratio: 0.2, penalized: true },
             constraints: [{ type: 'min_distance', meters: 15000 }],
@@ -325,13 +355,13 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
         variants: [
           {
-            name: 'fai',
+            name: CircuitType.FaiTriangle,
             multiplier: 2.0,
             closing: { type: 'ratio', ratio: 0.2, penalized: true },
             constraints: [{ type: 'min_distance', meters: 25000 }],
           },
           {
-            name: 'fai',
+            name: CircuitType.FaiTriangle,
             multiplier: 1.7,
             closing: { type: 'ratio', ratio: 0.2, penalized: true },
             constraints: [{ type: 'min_distance', meters: 15000 }],
@@ -343,19 +373,19 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
   XContest: {
     name: 'XContest',
     rules: [
-      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: 'open', multiplier: 1 }] },
+      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: CircuitType.OpenDistance, multiplier: 1 }] },
       {
         shape: { type: 'closed_circuit', turnpoints: 3 },
         variants: [
-          { name: 'triangle', multiplier: 1.4, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
-          { name: 'triangle', multiplier: 1.2, closing: { type: 'ratio', ratio: 0.2, penalized: true } },
+          { name: CircuitType.FlatTriangle, multiplier: 1.4, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
+          { name: CircuitType.FlatTriangle, multiplier: 1.2, closing: { type: 'ratio', ratio: 0.2, penalized: true } },
         ],
       },
       {
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
         variants: [
-          { name: 'fai', multiplier: 1.6, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
-          { name: 'fai', multiplier: 1.4, closing: { type: 'ratio', ratio: 0.2, penalized: true } },
+          { name: CircuitType.FaiTriangle, multiplier: 1.6, closing: { type: 'ratio', ratio: 0.05, penalized: true } },
+          { name: CircuitType.FaiTriangle, multiplier: 1.4, closing: { type: 'ratio', ratio: 0.2, penalized: true } },
         ],
       },
     ],
@@ -363,30 +393,48 @@ export const scoringRuleDefinitions: Readonly<Record<Exclude<ScoringRuleName, 'N
   XContestPPG: {
     name: 'XContestPPG',
     rules: [
-      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: 'open', multiplier: 1 }] },
+      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: CircuitType.OpenDistance, multiplier: 1 }] },
       {
         shape: { type: 'closed_circuit', turnpoints: 3 },
         variants: [
-          { name: 'triangle', multiplier: 2, closing: { type: 'distance', distance_m: 800, penalized: false } },
+          {
+            name: CircuitType.FlatTriangle,
+            multiplier: 2,
+            closing: { type: 'distance', distance_m: 800, penalized: false },
+          },
         ],
       },
       {
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
-        variants: [{ name: 'fai', multiplier: 4, closing: { type: 'distance', distance_m: 800, penalized: false } }],
+        variants: [
+          {
+            name: CircuitType.FaiTriangle,
+            multiplier: 4,
+            closing: { type: 'distance', distance_m: 800, penalized: false },
+          },
+        ],
       },
     ],
   },
   WorldXC: {
     name: 'WorldXC',
     rules: [
-      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: 'open', multiplier: 1 }] },
+      { shape: { type: 'open_polyline', points: 5 }, variants: [{ name: CircuitType.OpenDistance, multiplier: 1 }] },
       {
         shape: { type: 'closed_circuit', turnpoints: 3 },
-        variants: [{ name: 'triangle', multiplier: 1.75, closing: { type: 'ratio', ratio: 0.2, penalized: true } }],
+        variants: [
+          { name: CircuitType.FlatTriangle, multiplier: 1.75, closing: { type: 'ratio', ratio: 0.2, penalized: true } },
+        ],
       },
       {
         shape: { type: 'balanced_circuit', turnpoints: 3, min_side: 280 },
-        variants: [{ name: 'fai', multiplier: 2.0, closing: { type: 'distance', distance_m: 200, penalized: false } }],
+        variants: [
+          {
+            name: CircuitType.FaiTriangle,
+            multiplier: 2.0,
+            closing: { type: 'distance', distance_m: 200, penalized: false },
+          },
+        ],
       },
     ],
   },

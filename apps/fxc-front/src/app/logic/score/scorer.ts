@@ -1,6 +1,6 @@
-import type { LatLonAltTime, ScoringResult } from '@flyxc/optimizer';
+import type { LatLon, ScoringResult } from '@flyxc/optimizer';
 
-import { type Response as WorkerResponse } from '../../workers/optimizer';
+import { type Request as WorkerRequest, type Response as WorkerResponse } from '../../workers/optimizer';
 import ScoringWorker from '../../workers/optimizer?worker';
 import { getScoringRuleName, type LeagueCode } from './league/leagues';
 
@@ -26,20 +26,16 @@ export class Scorer {
    * @param handleScoringResult Callback called with the scoring solution
    * @return  a number that identifies this scoring request
    */
-  public score(track: LatLonAltTime[], league: LeagueCode, handleScoringResult: ScoringResultHandler): number {
+  public score(track: LatLon[], league: LeagueCode, handleScoringResult: ScoringResultHandler): number {
     // stores the handler for retrieval when handling worker response message
     const id = ++this.currentScoringRequestId;
     this.handlers.set(id, handleScoringResult);
     try {
       this.getWorker().postMessage({
-        request: {
-          track: {
-            points: track,
-          },
-          ruleName: getScoringRuleName(league),
-        },
+        points: track,
+        ruleName: getScoringRuleName(league),
         id,
-      });
+      } satisfies WorkerRequest);
       return id;
     } catch (error) {
       console.error('Error posting message to scoring worker:', error);

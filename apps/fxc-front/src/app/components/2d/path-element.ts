@@ -208,7 +208,7 @@ export class PathElement extends connect(store)(LitElement) {
       return;
     }
 
-    const points = this.getPathPoints().map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 }));
+    const points = this.getPathPoints();
 
     this.getScorer().score(points, this.league, (result) => {
       if (result) {
@@ -367,8 +367,6 @@ export class PathElement extends connect(store)(LitElement) {
         const points = track.lat.map((lat, index) => ({
           lat,
           lon: track.lon[index],
-          alt: track.alt[index],
-          timeSec: track.timeSec[index],
         }));
         this.getScorer().score(points, this.league, async (result, error) => {
           await this.toastScoring?.dismiss();
