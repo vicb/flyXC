@@ -14,19 +14,10 @@ export interface Response {
   id?: number;
 }
 
-let initPromise: Promise<void> | undefined;
-
-function ensureReady(): Promise<void> {
-  return (initPromise ??= initOptimizer(wasmUrl).catch((error) => {
-    initPromise = undefined;
-    throw error;
-  }));
-}
-
 addEventListener('message', async (event: MessageEvent<Request>) => {
   const { points, ruleName, id } = event.data;
   try {
-    await ensureReady();
+    await initOptimizer(wasmUrl);
     const response = scoreTrack(points, ruleName);
     postMessage({
       response,

@@ -68,12 +68,13 @@ export class Scorer {
       if (msg.data.id) {
         const handler = this.handlers.get(msg.data.id);
         try {
-          if (!msg.data.error && msg.data.response) {
+          if (msg.data.response) {
             // retrieve the handler and invoke it with valid result
             handler?.call(this, msg.data.response);
-          } else if (msg.data.error) {
-            console.error(`Scoring error for request ${msg.data.id}:`, msg.data.error);
-            handler?.call(this, undefined, msg.data.error);
+          } else {
+            const error = msg.data.error ?? 'Unknown scoring error';
+            console.error(`Scoring error for request ${msg.data.id}:`, error);
+            handler?.call(this, undefined, error);
           }
         } finally {
           this.handlers.delete(msg.data.id);

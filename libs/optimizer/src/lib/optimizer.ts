@@ -93,20 +93,6 @@ export function initOptimizer(wasmInput: InitInput | Promise<InitInput>): Promis
  * @returns The scoring result.
  */
 export function scoreTrack(points: LatLon[], ruleName: ScoringRuleName): ScoringResult {
-  if (points.length === 0) {
-    return {
-      score: 0,
-      lengthKm: 0,
-      multiplier: 0,
-      circuitType: CircuitType.OpenDistance,
-      path: [],
-    };
-  }
-
-  if (ruleName === 'None') {
-    return toUnoptimizedSolution(points);
-  }
-
   if (points.length < 2) {
     return {
       score: 0,
@@ -117,15 +103,20 @@ export function scoreTrack(points: LatLon[], ruleName: ScoringRuleName): Scoring
     };
   }
 
+  if (ruleName === 'None') {
+    return toUnoptimizedSolution(points);
+  }
+
   const ruleset = getRuleset(ruleName);
   if (!ruleset) {
     return toUnoptimizedSolution(points);
   }
 
   const coords = new Float64Array(points.length * 2);
+  let idx = 0;
   for (let i = 0; i < points.length; i++) {
-    coords[2 * i] = points[i].lat;
-    coords[2 * i + 1] = points[i].lon;
+    coords[idx++] = points[i].lat;
+    coords[idx++] = points[i].lon;
   }
 
   const scorer = new Scorer(coords);

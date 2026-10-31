@@ -253,7 +253,7 @@ export class PathElement extends connect(store)(LitElement) {
       this.faiSectors = new FaiSectors();
       this.faiSectors.addListeners('rightclick', (e) => this.appendToPath(e.latLng));
     }
-    if (result.circuitType == CircuitType.FlatTriangle || result.circuitType == CircuitType.FaiTriangle) {
+    if (result.circuitType === CircuitType.FlatTriangle || result.circuitType === CircuitType.FaiTriangle) {
       this.faiSectors.update(result.path.slice(1, -1));
       this.faiSectors.setMap(this.map);
     } else {
