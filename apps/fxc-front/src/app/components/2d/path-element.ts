@@ -210,7 +210,11 @@ export class PathElement extends connect(store)(LitElement) {
 
     const points = this.getPathPoints().map((point, i) => ({ ...point, alt: 0, timeSec: i * 60 }));
 
-    this.getScorer().score(points, this.league, (result) => this.drawOptimization(result));
+    this.getScorer().score(points, this.league, (result) => {
+      if (result) {
+        this.drawOptimization(result);
+      }
+    });
   }
 
   // Lazily create and get scorer
@@ -366,9 +370,24 @@ export class PathElement extends connect(store)(LitElement) {
           alt: track.alt[index],
           timeSec: track.timeSec[index],
         }));
-        this.getScorer().score(points, this.league, async (result) => {
-          this.handleScoringResult(result);
+        this.getScorer().score(points, this.league, async (result, error) => {
           await this.toastScoring?.dismiss();
+          this.toastScoring = undefined;
+          if (result) {
+            this.handleScoringResult(result);
+          } else {
+            const toast = await toastController.create({
+              message: `Scoring failed${error ? `: ${error}` : ''}`,
+              duration: 3000,
+              buttons: [
+                {
+                  text: 'Close',
+                  role: 'cancel',
+                },
+              ],
+            });
+            await toast.present();
+          }
         });
       });
     }
@@ -403,6 +422,8 @@ export class PathElement extends connect(store)(LitElement) {
     this.faiSectors = undefined;
     this.plannerElement?.remove();
     this.plannerElement = undefined;
+    this.toastScoring?.dismiss();
+    this.toastScoring = undefined;
     this.scorer?.cleanup();
     this.scorer = undefined;
   }
