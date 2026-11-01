@@ -23,6 +23,9 @@ message LiveTrack {
   // map from an index to extra info.
   map<uint32, LiveExtra> extra = 8;
   repeated int32 gnd_alt = 10;
+  // Latest timestamp (sec) of an outlier fix pruned in this flight segment.
+  // Sent to clients to signal that retroactive outlier filtering was performed.
+  optional int32 last_outlier_fix_sec = 11;
 }
 
 // All the points for a tracker.
@@ -40,6 +43,9 @@ message LiveDifferentialTrack {
   // map from an index to extra info.
   map<uint32, LiveExtra> extra = 8;
   repeated sint32 gnd_alt = 10;
+  // Latest timestamp (sec) of an outlier fix pruned in this flight segment.
+  // Sent to clients to signal that retroactive outlier filtering was performed.
+  optional int32 last_outlier_fix_sec = 11;
 }
 
 // All active trackers.

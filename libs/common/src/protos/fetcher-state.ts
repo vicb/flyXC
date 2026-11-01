@@ -227,6 +227,18 @@ export interface Pilot {
    * @generated from protobuf field: int64 status_time_sec = 15
    */
   statusTimeSec: number;
+  /**
+   * Track location confidence state (0 = UNKNOWN, 1 = UNCONFIRMED, 2 = KNOWN).
+   *
+   * @generated from protobuf field: TrackLocationConfidence location_confidence = 16
+   */
+  locationConfidence: TrackLocationConfidence;
+  /**
+   * Timestamp (sec) of the start of the active segment when confidence was established.
+   *
+   * @generated from protobuf field: optional int32 last_session_start_sec = 17
+   */
+  lastSessionStartSec?: number;
 }
 /**
  * @generated from protobuf message Tracker
@@ -306,6 +318,25 @@ export enum PilotStatus {
    */
   SOS = 6,
 }
+/**
+ * Confidence level in the track's true geographic location.
+ *
+ * @generated from protobuf enum TrackLocationConfidence
+ */
+export enum TrackLocationConfidence {
+  /**
+   * @generated from protobuf enum value: TRACK_LOCATION_CONFIDENCE_UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+  /**
+   * @generated from protobuf enum value: TRACK_LOCATION_CONFIDENCE_UNCONFIRMED = 1;
+   */
+  UNCONFIRMED = 1,
+  /**
+   * @generated from protobuf enum value: TRACK_LOCATION_CONFIDENCE_KNOWN = 2;
+   */
+  KNOWN = 2,
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class FetcherState$Type extends MessageType<FetcherState> {
   constructor() {
@@ -379,6 +410,13 @@ class Pilot$Type extends MessageType<Pilot> {
       { no: 13, name: 'meshbir', kind: 'message', T: () => Tracker },
       { no: 14, name: 'status', kind: 'enum', T: () => ['PilotStatus', PilotStatus, 'PILOT_STATUS_'] },
       { no: 15, name: 'status_time_sec', kind: 'scalar', T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
+      {
+        no: 16,
+        name: 'location_confidence',
+        kind: 'enum',
+        T: () => ['TrackLocationConfidence', TrackLocationConfidence, 'TRACK_LOCATION_CONFIDENCE_'],
+      },
+      { no: 17, name: 'last_session_start_sec', kind: 'scalar', opt: true, T: 5 /*ScalarType.INT32*/ },
     ]);
   }
 }

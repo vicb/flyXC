@@ -77,6 +77,13 @@ export interface LiveTrack {
    * @generated from protobuf field: repeated int32 gnd_alt = 10
    */
   gndAlt: number[];
+  /**
+   * Latest timestamp (sec) of an outlier fix pruned in this flight segment.
+   * Sent to clients to signal that retroactive outlier filtering was performed.
+   *
+   * @generated from protobuf field: optional int32 last_outlier_fix_sec = 11
+   */
+  lastOutlierFixSec?: number;
 }
 /**
  * All the points for a tracker.
@@ -130,6 +137,13 @@ export interface LiveDifferentialTrack {
    * @generated from protobuf field: repeated sint32 gnd_alt = 10
    */
   gndAlt: number[];
+  /**
+   * Latest timestamp (sec) of an outlier fix pruned in this flight segment.
+   * Sent to clients to signal that retroactive outlier filtering was performed.
+   *
+   * @generated from protobuf field: optional int32 last_outlier_fix_sec = 11
+   */
+  lastOutlierFixSec?: number;
 }
 /**
  * All active trackers.
@@ -184,6 +198,7 @@ class LiveTrack$Type extends MessageType<LiveTrack> {
       { no: 7, name: 'flags', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 13 /*ScalarType.UINT32*/ },
       { no: 8, name: 'extra', kind: 'map', K: 13 /*ScalarType.UINT32*/, V: { kind: 'message', T: () => LiveExtra } },
       { no: 10, name: 'gnd_alt', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 5 /*ScalarType.INT32*/ },
+      { no: 11, name: 'last_outlier_fix_sec', kind: 'scalar', opt: true, T: 5 /*ScalarType.INT32*/ },
     ]);
   }
 }
@@ -205,6 +220,7 @@ class LiveDifferentialTrack$Type extends MessageType<LiveDifferentialTrack> {
       { no: 7, name: 'flags', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 13 /*ScalarType.UINT32*/ },
       { no: 8, name: 'extra', kind: 'map', K: 13 /*ScalarType.UINT32*/, V: { kind: 'message', T: () => LiveExtra } },
       { no: 10, name: 'gnd_alt', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
+      { no: 11, name: 'last_outlier_fix_sec', kind: 'scalar', opt: true, T: 5 /*ScalarType.INT32*/ },
     ]);
   }
 }

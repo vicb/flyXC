@@ -1,5 +1,6 @@
 import {
   Comparison,
+  filterLiveTrackOutliers,
   findFirstIndex,
   Keys,
   LIVE_FETCH_TIMEOUT_SEC,
@@ -147,6 +148,22 @@ export function applyTrackerUpdates(
     }
   }
 
+  // Filter outliers for pilots that had track deltas in this cycle.
+  // In Phase 2 (confident session), only fixes from the earliest added delta timestamp onwards are filtered.
+  for (const [id, deltaMinSec] of updatedPilots) {
+    const pilot = state.pilots[id];
+    if (pilot) {
+      const result = filterLiveTrackOutliers(pilot.track, {
+        locationConfidence: pilot.locationConfidence,
+        lastSessionStartSec: pilot.lastSessionStartSec,
+        filterFromSec: deltaMinSec,
+      });
+      pilot.track = result.track;
+      pilot.locationConfidence = result.locationConfidence;
+      pilot.lastSessionStartSec = result.lastSessionStartSec;
+    }
+  }
+
   // The status is updated to the latest status if more recent than the pilot's current status.
   // When the status changes, a message "Status: <description>" is attached before simplifying the live track.
   for (const [id, statusUpdate] of latestStatusByPilotId) {
@@ -188,6 +205,10 @@ export function applyTrackerUpdates(
     const pilot = state.pilots[id];
     if (pilot.track.timeSec.length > 0 && pilot.track.timeSec[0] < dropBeforeSec) {
       pilot.track = removeBeforeFromLiveTrack(pilot.track, dropBeforeSec);
+    }
+    if (pilot.track.timeSec.length === 0) {
+      pilot.locationConfidence = protos.TrackLocationConfidence.UNKNOWN;
+      pilot.lastSessionStartSec = undefined;
     }
   }
 

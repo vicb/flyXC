@@ -71,6 +71,13 @@ enum PilotStatus {
   PILOT_STATUS_SOS = 6;
 }
 
+// Confidence level in the track's true geographic location.
+enum TrackLocationConfidence {
+  TRACK_LOCATION_CONFIDENCE_UNKNOWN = 0;
+  TRACK_LOCATION_CONFIDENCE_UNCONFIRMED = 1;
+  TRACK_LOCATION_CONFIDENCE_KNOWN = 2;
+}
+
 message Pilot {
   string name = 1;
 
@@ -94,6 +101,11 @@ message Pilot {
 
   PilotStatus status = 14;
   int64 status_time_sec = 15;
+
+  // Track location confidence state (0 = UNKNOWN, 1 = UNCONFIRMED, 2 = KNOWN).
+  TrackLocationConfidence location_confidence = 16;
+  // Timestamp (sec) of the start of the active segment when confidence was established.
+  optional int32 last_session_start_sec = 17;
 }
 
 message Tracker {

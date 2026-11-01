@@ -25,7 +25,7 @@ const MAX_NUM_DEVICES = 2 ** DEVICE_TYPE_NUM_BITS - 1;
 const DEVICE_TYPE_BITMASK = 2 ** DEVICE_TYPE_NUM_BITS - 1;
 
 /**
- * Duration of the live track groups
+ * Durations in seconds for live track query groups and retention windows.
  */
 export const LiveTrackDurationSec = {
   M5: 5 * 60,
@@ -38,7 +38,9 @@ export const LiveTrackDurationSec = {
   Max: 48 * 3600,
 } as const;
 
-// Minium track point intervals for each segments of live tracks.
+/**
+ * Minimum track point intervals for each segment of live tracks.
+ */
 export enum LiveTrackPointIntervalSec {
   Recent = 5,
   H6ToH12 = 60,
@@ -46,24 +48,28 @@ export enum LiveTrackPointIntervalSec {
   AfterH24 = 6 * 60,
 }
 
+/** Maximum duration in seconds of tracker points to fetch. */
 export const TRACKERS_MAX_FETCH_DURATION_SEC = 24 * 3600;
 
-// Age for a point to be considered old.
+/** Age threshold in seconds for a track point to be considered old. */
 export const LIVE_AGE_OLD_SEC = 6 * 3600;
-// Minimum interval for old points points.
+
+/** Minimum interval in seconds between kept points for old segments. */
 export const LIVE_OLD_INTERVAL_SEC = 3 * 60;
 
-// Refresh interval (how often one update is triggered)
+/** Interval in seconds between live track refresh cycles. */
 export const LIVE_REFRESH_SEC = 60;
-// Timeout for fetching - need time for completing the transaction.
+
+/** Timeout in seconds for fetching tracker updates, leaving margin to complete database transactions. */
 export const LIVE_FETCH_TIMEOUT_SEC = LIVE_REFRESH_SEC - 20;
 
-// Break tracks if gap is more than.
+/** Maximum time gap in minutes before a track is split into separate segments. */
 export const TRACK_GAP_MIN = 60;
 
-// Export to partners.
+/** Interval in seconds between exports to partner platforms. */
 export const EXPORT_UPDATE_SEC = 5 * 60;
 
+/** Supported tracker provider identifiers. */
 export const trackerNames = [
   'inreach',
   'spot',
@@ -80,10 +86,10 @@ if (trackerNames.length > MAX_NUM_DEVICES - 1) {
   throw new Error('Too many devices');
 }
 
-// ID for the tracking devices.
+/** Identifier type for supported tracking devices. */
 export type TrackerNames = (typeof trackerNames)[number];
 
-// How to display the tracker name.
+/** Human-readable display names for supported tracking devices. */
 export const trackerDisplayNames: Readonly<Record<TrackerNames, string>> = {
   inreach: 'InReach',
   spot: 'Spot',
@@ -96,7 +102,10 @@ export const trackerDisplayNames: Readonly<Record<TrackerNames, string>> = {
   meshbir: 'Bircom',
 };
 
+/** Mapping from tracker provider name to internal numeric ID. */
 export const trackerIdByName: Record<TrackerNames, number> = {} as any;
+
+/** Mapping from internal numeric ID to tracker provider name. */
 export const trackerNameById: Record<number, TrackerNames> = {} as any;
 
 trackerNames.forEach((name, index) => {
@@ -104,19 +113,25 @@ trackerNames.forEach((name, index) => {
   trackerIdByName[name] = index + 1;
 });
 
+/** Supported Unregistered Flying Object (UFO) fleet names. */
 export const ufoFleetNames = ['aviant'] as const;
 
+/** Identifier type for supported UFO fleet names. */
 export type UfoFleetNames = (typeof ufoFleetNames)[number];
 
 if (ufoFleetNames.length > MAX_NUM_DEVICES - 1) {
   throw new Error('Too many devices');
 }
 
+/** Human-readable display names for UFO fleets. */
 export const ufoFleetDisplayNames: Readonly<Record<UfoFleetNames, string>> = {
   aviant: 'Aviant drone',
 };
 
+/** Mapping from UFO fleet name to internal numeric ID. */
 export const ufoFleetIdByName: Record<UfoFleetNames, number> = {} as any;
+
+/** Mapping from internal numeric ID to UFO fleet name. */
 export const ufoFleetNameById: Record<number, UfoFleetNames> = {} as any;
 
 ufoFleetNames.forEach((name, index) => {
@@ -127,6 +142,9 @@ ufoFleetNames.forEach((name, index) => {
   ufoFleetIdByName[name] = index + 1;
 });
 
+/**
+ * Bit flags associated with a live track fix, encoding validity, emergency status, low battery, and device type.
+ */
 export enum LiveTrackFlag {
   DeviceTypeMask = DEVICE_TYPE_BITMASK,
   Valid = 1 << 6,
@@ -135,46 +153,108 @@ export enum LiveTrackFlag {
   IsUfo = 1 << 9,
 }
 
+/**
+ * Checks whether the fix flags indicate a valid position fix.
+ *
+ * @param flags - The fix bit flags.
+ * @returns True if the fix is valid.
+ */
 export function isValidFix(flags: number): boolean {
   return (flags & LiveTrackFlag.Valid) != 0;
 }
 
+/**
+ * Checks whether the fix flags indicate an emergency (SOS / Need Help) state.
+ *
+ * @param flags - The fix bit flags.
+ * @returns True if the fix is marked as emergency.
+ */
 export function isEmergencyFix(flags: number): boolean {
   return (flags & LiveTrackFlag.Emergency) != 0;
 }
 
+/**
+ * Checks whether any fix in the track is marked with an emergency flag.
+ *
+ * @param track - The live track to check.
+ * @returns True if at least one fix is marked as emergency.
+ */
 export function isEmergencyTrack(track: LiveTrack): boolean {
   return track.flags.some((f) => isEmergencyFix(f));
 }
 
+/**
+ * Checks whether the fix flags indicate a low battery warning.
+ *
+ * @param flags - The fix bit flags.
+ * @returns True if the low battery flag is set.
+ */
 export function isLowBatFix(flags: number): boolean {
   return (flags & LiveTrackFlag.LowBat) != 0;
 }
 
+/**
+ * Checks whether the fix flags indicate a UFO (Unregistered Flying Object) vehicle.
+ *
+ * @param flags - The fix bit flags.
+ * @returns True if the UFO flag is set.
+ */
 export function isUfo(flags: number): boolean {
   return (flags & LiveTrackFlag.IsUfo) != 0;
 }
 
+/**
+ * Retrieves the device or fleet identifier name from fix flags.
+ *
+ * @param flags - The fix bit flags.
+ * @returns The tracker or UFO fleet name.
+ */
 export function getTrackerName(flags: number): TrackerNames | UfoFleetNames {
   return flags & LiveTrackFlag.IsUfo
     ? ufoFleetNameById[flags & LiveTrackFlag.DeviceTypeMask]
     : trackerNameById[flags & LiveTrackFlag.DeviceTypeMask];
 }
 
+/**
+ * Retrieves the human-readable display name for the tracker or UFO fleet from fix flags.
+ *
+ * @param flags - The fix bit flags.
+ * @returns The human-readable tracker or fleet display name.
+ */
 export function getTrackerDisplayName(flags: number): string {
   return flags & LiveTrackFlag.IsUfo
     ? ufoFleetDisplayNames[getTrackerName(flags) as UfoFleetNames]
     : trackerDisplayNames[getTrackerName(flags) as TrackerNames];
 }
 
+/**
+ * Retrieves any message attached to a fix at the given index.
+ *
+ * @param track - The live track.
+ * @param index - Index of the fix.
+ * @returns The message string if present, or undefined.
+ */
 export function getFixMessage(track: LiveTrack, index: number): string | undefined {
   return track.extra[index]?.message;
 }
 
+/**
+ * Retrieves the speed attached to a fix at the given index.
+ *
+ * @param track - The live track.
+ * @param index - Index of the fix.
+ * @returns The speed in km/h if present, or 0.
+ */
 export function getFixSpeed(track: LiveTrack, index: number): number {
   return track.extra[index]?.speed ?? 0;
 }
 
+/**
+ * Finds the latest message attached to any fix in the track.
+ *
+ * @param track - The live track.
+ * @returns Object containing the message text and timestamp, or undefined if no messages exist.
+ */
 export function getLastMessage(track: LiveTrack): { timeSec: number; text: string } | undefined {
   const extraIndexes = Object.keys(track.extra).map((v) => Number(v));
   extraIndexes.sort((a, b) => b - a);
@@ -190,6 +270,12 @@ export function getLastMessage(track: LiveTrack): { timeSec: number; text: strin
   return undefined;
 }
 
+/**
+ * Encodes fix attributes into a single bitmask integer.
+ *
+ * @param value - The fix properties (validity, emergency, low battery, and device name).
+ * @returns Encoded bitmask flags integer.
+ */
 export function getTrackerFlags(value: {
   valid: boolean;
   emergency?: boolean | null;
@@ -214,9 +300,13 @@ export function getTrackerFlags(value: {
   return flags;
 }
 
-// Delete all the fixes strictly before timeSec from the track.
-// Note:
-// - Returns the original track if no fixes are removed.
+/**
+ * Deletes all fixes strictly before timeSec from the live track.
+ *
+ * @param track - The live track to trim.
+ * @param timeSec - The cutoff timestamp in seconds. Fixes with timeSec < this value are removed.
+ * @returns The trimmed track, or the original track if no fixes are strictly before timeSec.
+ */
 export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): LiveTrack {
   const len = track.timeSec.length;
   if (len === 0) {
@@ -235,7 +325,12 @@ export function removeBeforeFromLiveTrack(track: LiveTrack, timeSec: number): Li
 
   // 2. If timeSec is strictly after the last fix, all fixes are dropped.
   if (timeSec > track.timeSec[len - 1]) {
-    return LiveTrack.create({ name: track.name, id: track.id, idStr: track.idStr });
+    return LiveTrack.create({
+      name: track.name,
+      id: track.id,
+      idStr: track.idStr,
+      lastOutlierFixSec: track.lastOutlierFixSec,
+    });
   }
 
   // Find the first index whose time is >= timeSec.
@@ -422,8 +517,17 @@ function copyFix(fromTrack: LiveTrack, fromIndex: number, toTrack: LiveTrack, to
   }
 }
 
-// Merges two tracks.
-// Keep messages, emergency and low battery.
+/**
+ * Merges two live tracks chronologically into a single live track.
+ *
+ * When fixes overlap at identical timestamps, coordinates from valid fixes are preferred,
+ * extra metadata (speed, message) is merged field by field, and status flags
+ * (emergency, low battery) are combined.
+ *
+ * @param track1 - The first live track.
+ * @param track2 - The second live track to merge.
+ * @returns A new LiveTrack containing all merged fixes sorted chronologically.
+ */
 export function mergeLiveTracks(track1: LiveTrack, track2: LiveTrack): LiveTrack {
   if (track1.gndAlt?.length !== track1.lat.length) {
     track1.gndAlt = Array(track1.lat.length).fill(NO_GROUND_ALTITUDE);
@@ -432,7 +536,12 @@ export function mergeLiveTracks(track1: LiveTrack, track2: LiveTrack): LiveTrack
     track2.gndAlt = Array(track2.lat.length).fill(NO_GROUND_ALTITUDE);
   }
 
-  const toTrack = LiveTrack.create({ name: track1.name ?? track2.name, id: track1.id ?? track2.id });
+  const toTrack = LiveTrack.create({
+    name: track1.name ?? track2.name,
+    id: track1.id ?? track2.id,
+    idStr: track1.idStr ?? track2.idStr,
+    lastOutlierFixSec: track2.lastOutlierFixSec ?? track1.lastOutlierFixSec,
+  });
 
   let index1 = 0;
   let index2 = 0;
@@ -511,7 +620,16 @@ export function mergeLiveTracks(track1: LiveTrack, track2: LiveTrack): LiveTrack
   return toTrack;
 }
 
-// The name and id are required to send over the wire.
+/**
+ * Encodes a live track into differential representation for wire transmission.
+ *
+ * Coordinates, altitudes, and timestamps are delta-encoded as integers to minimize payload size.
+ *
+ * @param track - The uncompressed live track to encode.
+ * @param id - Numeric or string pilot identifier.
+ * @param name - Optional pilot name fallback.
+ * @returns A differential encoded LiveDifferentialTrack message.
+ */
 export function differentialEncodeLiveTrack(
   track: LiveTrack,
   id: number | string,
@@ -543,7 +661,14 @@ export function differentialEncodeLiveTrack(
   return diffTrack;
 }
 
-// id and name are populated from the differential track.
+/**
+ * Decodes a differential encoded live track received over the wire into a standard LiveTrack.
+ *
+ * Reconstructs absolute coordinates, altitudes, and timestamps from delta values.
+ *
+ * @param diffTrack - The differential encoded track to decode.
+ * @returns The decoded uncompressed LiveTrack.
+ */
 export function differentialDecodeLiveTrack(diffTrack: LiveDifferentialTrack): LiveTrack {
   const lon = diffDecodeArray(diffTrack.lon, 1e5);
   const lat = diffDecodeArray(diffTrack.lat, 1e5);

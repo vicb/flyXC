@@ -1,5 +1,6 @@
 import type { protos } from '@flyxc/common';
 import {
+  filterLiveTrackOutliers,
   Keys,
   LIVE_FETCH_TIMEOUT_SEC,
   LiveTrackDurationSec,
@@ -51,6 +52,7 @@ export function applyUfoFleetUpdates(
       } else {
         ufoTracks[id] = track;
       }
+      ufoTracks[id] = filterLiveTrackOutliers(ufoTracks[id]).track;
     }
   }
 

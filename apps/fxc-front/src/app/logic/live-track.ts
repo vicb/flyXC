@@ -1,6 +1,7 @@
 import type { protos } from '@flyxc/common';
 import {
   differentialDecodeLiveTrack,
+  filterLiveTrackOutliers,
   getFixMessage,
   isEmergencyFix,
   isEmergencyTrack,
@@ -281,7 +282,19 @@ export function updateLiveTracks(
         continue;
       }
       if (id in updatedTracks) {
-        track = mergeLiveTracks(track, updatedTracks[id]);
+        const update = updatedTracks[id];
+        // If the server signals an outlier in the active segment that this client has not cleaned yet:
+        // We cannot simply check if update's fixes are after update.lastOutlierFixSec, because
+        // the outlier may already reside in the client's cached track from an earlier tentative delivery
+        // (during Phase 1 cold start).
+        // However, once the client runs the filter for a given lastOutlierFixSec, all subsequent
+        // incremental updates with the same timestamp can safely skip filtering (O(0) cost).
+        const hasNewOutlier = update.lastOutlierFixSec != null && update.lastOutlierFixSec !== track.lastOutlierFixSec;
+        track = mergeLiveTracks(track, update);
+        if (hasNewOutlier) {
+          track = filterLiveTrackOutliers(track).track;
+          track.lastOutlierFixSec = update.lastOutlierFixSec;
+        }
         simplifyLiveTrack(track, LiveTrackPointIntervalSec.Recent);
       }
       updatedTracks[id] = track;

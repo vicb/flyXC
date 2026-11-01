@@ -2,6 +2,36 @@ import { getDistance } from 'geolib';
 
 import type { RuntimeTrack } from './runtime-track';
 
+/**
+ * Approximate meters per degree of latitude on Earth.
+ */
+export const METERS_PER_DEG_LAT = 111_139;
+
+/**
+ * Computes the squared approximate distance in meters² between two coordinates using an equirectangular flat-earth projection.
+ *
+ * Tradeoffs:
+ * - **Performance**: Fast because it avoids full geodesic calculations, eliminates allocating temporary point objects
+ *   `{ lat, lon }` on the heap, and avoids expensive square-root calls. Ideal for comparing against a squared distance threshold
+ *   (e.g. `dist² <= maxDist²`).
+ * - **Accuracy**: Assumes a locally flat Earth where parallels are evenly spaced. The relative approximation error
+ *   is < 0.15% for short-to-medium distances (< 50 km) and remains < 1% up to hundreds of kilometers, making it
+ *   well-suited for speed and proximity threshold checks in live flight tracking. It is not intended for global-scale
+ *   geodesics or near-polar routes.
+ *
+ * @param lat1 - Latitude of first point in decimal degrees.
+ * @param lon1 - Longitude of first point in decimal degrees.
+ * @param lat2 - Latitude of second point in decimal degrees.
+ * @param lon2 - Longitude of second point in decimal degrees.
+ * @returns Squared approximate distance in meters².
+ */
+export function approximateDistanceSquared(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const dLatMeters = (lat2 - lat1) * METERS_PER_DEG_LAT;
+  const cosLat = Math.cos(((lat1 + lat2) * Math.PI) / 360);
+  const dLonMeters = (lon2 - lon1) * METERS_PER_DEG_LAT * cosLat;
+  return dLatMeters * dLatMeters + dLonMeters * dLonMeters;
+}
+
 // Finds the closest fix to {lat, lon} across all the tracks.
 export function findClosestFix(
   tracks: RuntimeTrack[],
