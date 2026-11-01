@@ -1,4 +1,7 @@
-FROM docker.io/node:lts-alpine
+# Pin to node:26-alpine to match "engines": { "node": "^26.13.0" } in package.json.
+# Using a specific major version rather than a floating tag guarantees the container runtime
+# matches local development and prevents silent upgrades to future Node versions upon rebuilding.
+FROM docker.io/node:26-alpine
 
 ENV NODE_ENV=production
 
