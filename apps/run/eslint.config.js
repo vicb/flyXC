@@ -28,7 +28,7 @@ export default [
         'error',
         {
           ignoredFiles: ['{projectRoot}/vite.config.ts', 'vite.config.ts'],
-          ignoredDependencies: ['@dotenvx/dotenvx', 'jsonc-eslint-parser', '@google-cloud/pubsub'],
+          ignoredDependencies: ['@cwasm/lodepng', '@dotenvx/dotenvx', 'jsonc-eslint-parser', '@google-cloud/pubsub'],
           checkMissingDependencies: true,
           checkObsoleteDependencies: true,
           checkVersionMismatches: true,

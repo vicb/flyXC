@@ -1,15 +1,11 @@
-# Pin to node:24-slim to match "engines": { "node": "^24.15" } in package.json.
-# Using a specific major version rather than floating "lts-slim" guarantees the container runtime
+# Pin to node:26-alpine to match "engines": { "node": "^26.13.0" } in package.json.
+# Using a specific major version rather than a floating tag guarantees the container runtime
 # matches local development and prevents silent upgrades to future Node versions upon rebuilding.
-# This also ensures Node's embedded Undici version (process.versions.undici) stays aligned with
-# the "undici" dependency pinned in pnpm-workspace.yaml.
-FROM docker.io/node:24-slim
+FROM docker.io/node:26-alpine
 
 ENV NODE_ENV=production
 
-ARG DEBIAN_FRONTEND="noninteractive"
-RUN apt-get update -y \
-	&& apt-get install -y tini
+RUN apk add --no-cache tini
 
 RUN npm install -g pnpm@11.10.0
 
@@ -22,7 +18,7 @@ RUN pnpm install --prod --frozen-lockfile --config.minimum-release-age=0
 
 COPY --chown=node:node apps/fetcher/dist/ ./dist/
 
-ENTRYPOINT ["/usr/bin/tini", "--"]
+ENTRYPOINT ["/sbin/tini", "--"]
 
 USER node
 
