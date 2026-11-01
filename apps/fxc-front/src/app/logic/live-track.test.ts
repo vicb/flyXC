@@ -646,10 +646,12 @@ describe('Update live tracks', () => {
         gndAlt: [0, 0, 0],
         extra: {},
         lastOutlierFixSec: 0,
+        lastSessionStartSec: 60,
       };
 
       const diffTrack = differentialEncodeLiveTrack(serverDelta, 1, 'pilot1');
       diffTrack.lastOutlierFixSec = 0;
+      diffTrack.lastSessionStartSec = 60;
       const updates = protos.LiveDifferentialTrackGroup.create({
         tracks: [diffTrack],
       });
@@ -676,9 +678,11 @@ describe('Update live tracks', () => {
         gndAlt: [0],
         extra: {},
         lastOutlierFixSec: 0,
+        lastSessionStartSec: 60,
       };
       const nextDiffTrack = differentialEncodeLiveTrack(nextServerDelta, 1, 'pilot1');
       nextDiffTrack.lastOutlierFixSec = 0;
+      nextDiffTrack.lastSessionStartSec = 60;
       const nextUpdates = protos.LiveDifferentialTrackGroup.create({
         tracks: [nextDiffTrack],
       });
@@ -793,10 +797,12 @@ describe('Update live tracks', () => {
         gndAlt: [0, 0, 0],
         extra: {},
         lastOutlierFixSec: 60,
+        lastSessionStartSec: 0,
       };
 
       const nextDiffTrack = differentialEncodeLiveTrack(nextServerDelta, 1, 'pilot1');
       nextDiffTrack.lastOutlierFixSec = 60;
+      nextDiffTrack.lastSessionStartSec = 0;
       const updates2 = protos.LiveDifferentialTrackGroup.create({
         tracks: [nextDiffTrack],
       });

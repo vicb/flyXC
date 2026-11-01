@@ -284,29 +284,25 @@ export function updateLiveTracks(
       if (id in updatedTracks) {
         const update = updatedTracks[id];
         // If the server signals an outlier in the active segment that this client has not cleaned yet:
-        // We cannot simply check if update's fixes are after update.lastOutlierFixSec, because
-        // the outlier may already reside in the client's cached track from an earlier tentative delivery
-        // (during Phase 1 cold start).
-        // However, once the client runs the filter for a given lastOutlierFixSec, all subsequent
-        // incremental updates with the same timestamp can safely skip filtering (O(0) cost).
+        // We only filter when the server has established location confidence (lastSessionStartSec != null),
+        // running a fast linear Phase 2 validation against the session anchor.
+        // Once the client runs the filter for a given lastOutlierFixSec, subsequent updates with the
+        // same marker safely skip filtering (O(0) cost).
         const prevMarker = track.lastOutlierFixSec;
-        const hasNewOutlier = update.lastOutlierFixSec != null && update.lastOutlierFixSec !== prevMarker;
+        const hasNewOutlier =
+          update.lastOutlierFixSec != null &&
+          update.lastOutlierFixSec !== prevMarker &&
+          update.lastSessionStartSec != null;
         track = mergeLiveTracks(track, update);
-        // Retain previous outlier marker until the purge is confirmed by reaching confidence
+        // Retain previous outlier marker unless a new outlier is confirmed and purged
         track.lastOutlierFixSec = prevMarker;
         if (hasNewOutlier) {
-          const isConfident = update.lastSessionStartSec != null;
-          const result = filterLiveTrackOutliers(track, {
-            locationConfidence: isConfident
-              ? protos.TrackLocationConfidence.KNOWN
-              : protos.TrackLocationConfidence.UNKNOWN,
+          track = filterLiveTrackOutliers(track, {
+            locationConfidence: protos.TrackLocationConfidence.KNOWN,
             lastSessionStartSec: update.lastSessionStartSec,
             lastOutlierFixSec: update.lastOutlierFixSec,
-          });
-          if (result.locationConfidence === protos.TrackLocationConfidence.KNOWN) {
-            track = result.track;
-            track.lastOutlierFixSec = update.lastOutlierFixSec;
-          }
+          }).track;
+          track.lastOutlierFixSec = update.lastOutlierFixSec;
         }
         simplifyLiveTrack(track, LiveTrackPointIntervalSec.Recent);
       }
