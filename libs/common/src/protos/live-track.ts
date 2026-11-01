@@ -84,6 +84,13 @@ export interface LiveTrack {
    * @generated from protobuf field: optional int32 last_outlier_fix_sec = 11
    */
   lastOutlierFixSec?: number;
+  /**
+   * Timestamp (sec) of the start of the active flight session if confidence is established.
+   * Present when the server has high confidence in the flight session.
+   *
+   * @generated from protobuf field: optional int32 last_session_start_sec = 12
+   */
+  lastSessionStartSec?: number;
 }
 /**
  * All the points for a tracker.
@@ -144,6 +151,13 @@ export interface LiveDifferentialTrack {
    * @generated from protobuf field: optional int32 last_outlier_fix_sec = 11
    */
   lastOutlierFixSec?: number;
+  /**
+   * Timestamp (sec) of the start of the active flight session if confidence is established.
+   * Present when the server has high confidence in the flight session.
+   *
+   * @generated from protobuf field: optional int32 last_session_start_sec = 12
+   */
+  lastSessionStartSec?: number;
 }
 /**
  * All active trackers.
@@ -199,6 +213,7 @@ class LiveTrack$Type extends MessageType<LiveTrack> {
       { no: 8, name: 'extra', kind: 'map', K: 13 /*ScalarType.UINT32*/, V: { kind: 'message', T: () => LiveExtra } },
       { no: 10, name: 'gnd_alt', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 5 /*ScalarType.INT32*/ },
       { no: 11, name: 'last_outlier_fix_sec', kind: 'scalar', opt: true, T: 5 /*ScalarType.INT32*/ },
+      { no: 12, name: 'last_session_start_sec', kind: 'scalar', opt: true, T: 5 /*ScalarType.INT32*/ },
     ]);
   }
 }
@@ -221,6 +236,7 @@ class LiveDifferentialTrack$Type extends MessageType<LiveDifferentialTrack> {
       { no: 8, name: 'extra', kind: 'map', K: 13 /*ScalarType.UINT32*/, V: { kind: 'message', T: () => LiveExtra } },
       { no: 10, name: 'gnd_alt', kind: 'scalar', repeat: 1 /*RepeatType.PACKED*/, T: 17 /*ScalarType.SINT32*/ },
       { no: 11, name: 'last_outlier_fix_sec', kind: 'scalar', opt: true, T: 5 /*ScalarType.INT32*/ },
+      { no: 12, name: 'last_session_start_sec', kind: 'scalar', opt: true, T: 5 /*ScalarType.INT32*/ },
     ]);
   }
 }

@@ -1,5 +1,6 @@
 import * as protos from '../protos';
 import { approximateDistanceSquared } from './distance';
+import { isValidFix } from './live-track';
 import { Comparison, findFirstIndex } from './math';
 
 /**
@@ -66,8 +67,23 @@ export interface FilterLiveTrackResult {
 }
 
 /**
+ * Checks whether fix at `index` is a valid position fix.
+ *
+ * @param track - The live track.
+ * @param index - Fix index.
+ * @returns True if the fix has valid GPS flags or if flags are not provided.
+ */
+function isTrackFixValid(track: protos.LiveTrack, index: number): boolean {
+  if (track.flags && track.flags.length > index) {
+    return isValidFix(track.flags[index]);
+  }
+  return true;
+}
+
+/**
  * Checks whether fix at `targetIndex` is reachable from fix at `startIndex` within the maximum speed limit.
  *
+ * Fixes marked invalid in `track.flags` are not reachable.
  * Uses `approximateDistanceSquared` to avoid object allocations and square-root calculations.
  *
  * @param track - The live track containing coordinates and timestamps.
@@ -77,6 +93,10 @@ export interface FilterLiveTrackResult {
  * @returns True if the target fix is physically reachable from the start fix at or below maxSpeedKmh.
  */
 function isReachable(track: protos.LiveTrack, startIndex: number, targetIndex: number, maxSpeedKmh: number): boolean {
+  if (!isTrackFixValid(track, startIndex) || !isTrackFixValid(track, targetIndex)) {
+    return false;
+  }
+
   const dt = track.timeSec[targetIndex] - track.timeSec[startIndex];
   if (dt <= 0) {
     return false;
@@ -186,16 +206,31 @@ function findConsensusChain(
   maxSpeedKmh: number,
   minRequiredFixes: number,
 ): Set<number> | undefined {
+  const maxOutliersAllowed = sessionLength - minRequiredFixes;
+  if (maxOutliersAllowed < 0) {
+    return undefined;
+  }
+
   const maxSpeedMs = maxSpeedKmh / 3.6;
   const { timeSec, lat, lon } = track;
 
   // longestChainLengths[k] stores the length of the longest valid chain ending at session index k (sessionStart + k).
-  const longestChainLengths = new Int32Array(sessionLength).fill(1);
+  // Valid fixes start with 1; invalid fixes start with 0.
+  const longestChainLengths = new Int32Array(sessionLength);
+  for (let k = 0; k < sessionLength; k++) {
+    longestChainLengths[k] = isTrackFixValid(track, sessionStart + k) ? 1 : 0;
+  }
   // parent[k] stores the predecessor index in the chain (-1 if k starts a chain), used for backtracking.
   const parent = new Int32Array(sessionLength).fill(-1);
 
-  let bestLen = 1;
-  let bestEnd = 0;
+  let bestLen = 0;
+  let bestEnd = -1;
+  for (let k = 0; k < sessionLength; k++) {
+    if (longestChainLengths[k] > bestLen) {
+      bestLen = longestChainLengths[k];
+      bestEnd = k;
+    }
+  }
 
   for (let k = 1; k < sessionLength; k++) {
     // Early abort: if best chain found so far plus all remaining fixes cannot reach threshold
@@ -204,11 +239,21 @@ function findConsensusChain(
     }
 
     const currIdx = sessionStart + k;
+    if (!isTrackFixValid(track, currIdx)) {
+      continue;
+    }
+
     const currTime = timeSec[currIdx];
     const currLat = lat[currIdx];
     const currLon = lon[currIdx];
 
-    for (let j = k - 1; j >= 0; j--) {
+    // Any chain containing edge (j, k) drops at least (k - 1 - j) intermediate fixes.
+    // Thus j needs only scan back within the session's overall outlier budget.
+    const minJ = Math.max(0, k - 1 - maxOutliersAllowed);
+    for (let j = k - 1; j >= minJ; j--) {
+      if (longestChainLengths[j] === 0) {
+        continue;
+      }
       if (j + 1 < longestChainLengths[k]) {
         // A chain ending at index j has length at most j + 1, so extending it with fix k could yield
         // at most j + 2. If j + 1 < longestChainLengths[k], no earlier index j' <= j can beat our current best.
@@ -238,7 +283,7 @@ function findConsensusChain(
     }
   }
 
-  if (bestLen < minRequiredFixes) {
+  if (bestLen < minRequiredFixes || bestEnd === -1) {
     return undefined;
   }
 
@@ -281,7 +326,6 @@ function filterUnconfirmedSession(
   const sessionLength = len - sessionStart;
 
   if (sessionLength < minConfidentFixes) {
-    track.lastOutlierFixSec = lastOutlierFixSec;
     return {
       track,
       locationConfidence: protos.TrackLocationConfidence.UNCONFIRMED,
@@ -291,11 +335,13 @@ function filterUnconfirmedSession(
   }
 
   // Fast-path: check if all consecutive fixes in the active session form a valid chain.
-  let isCleanChain = true;
-  for (let i = sessionStart + 1; i < len; i++) {
-    if (!isReachable(track, i - 1, i, maxSpeedKmh)) {
-      isCleanChain = false;
-      break;
+  let isCleanChain = isTrackFixValid(track, sessionStart);
+  if (isCleanChain) {
+    for (let i = sessionStart + 1; i < len; i++) {
+      if (!isTrackFixValid(track, i) || !isReachable(track, i - 1, i, maxSpeedKmh)) {
+        isCleanChain = false;
+        break;
+      }
     }
   }
 
@@ -317,7 +363,6 @@ function filterUnconfirmedSession(
   const chainSet = findConsensusChain(track, sessionStart, sessionLength, maxSpeedKmh, minRequiredFixes);
 
   if (!chainSet) {
-    track.lastOutlierFixSec = lastOutlierFixSec;
     return {
       track,
       locationConfidence: protos.TrackLocationConfidence.UNCONFIRMED,
@@ -327,16 +372,24 @@ function filterUnconfirmedSession(
   }
 
   // Confidence established: drop outliers outside the consensus chain
-  let updatedLastOutlierFixSec = lastOutlierFixSec;
   const droppedIndices = new Set<number>();
   for (let k = 0; k < sessionLength; k++) {
     const idx = sessionStart + k;
     if (!chainSet.has(idx)) {
       droppedIndices.add(idx);
-      if (updatedLastOutlierFixSec == null || track.timeSec[idx] > updatedLastOutlierFixSec) {
-        updatedLastOutlierFixSec = track.timeSec[idx];
+    }
+  }
+
+  let updatedLastOutlierFixSec = lastOutlierFixSec;
+  if (droppedIndices.size > 0) {
+    let maxDroppedSec = -Infinity;
+    for (const idx of droppedIndices) {
+      if (track.timeSec[idx] > maxDroppedSec) {
+        maxDroppedSec = track.timeSec[idx];
       }
     }
+    updatedLastOutlierFixSec =
+      lastOutlierFixSec == null ? maxDroppedSec : Math.max(lastOutlierFixSec + 1, maxDroppedSec);
   }
 
   const prunedTrack = droppedIndices.size > 0 ? pruneTrackIndices(track, droppedIndices) : track;
@@ -388,16 +441,38 @@ function filterConfidentSession(
     }
   }
 
-  let updatedLastOutlierFixSec = lastOutlierFixSec;
+  // Ensure anchorIdx points to a valid fix
+  while (anchorIdx >= sessionStart && !isTrackFixValid(track, anchorIdx)) {
+    anchorIdx--;
+  }
+  if (anchorIdx < sessionStart) {
+    for (let i = sessionStart; i < len; i++) {
+      if (isTrackFixValid(track, i)) {
+        anchorIdx = i;
+        startIdx = Math.max(startIdx, i + 1);
+        break;
+      }
+    }
+  }
+
   for (let i = startIdx; i < len; i++) {
-    if (isReachable(track, anchorIdx, i, maxSpeedKmh)) {
+    if (isTrackFixValid(track, i) && anchorIdx >= 0 && isReachable(track, anchorIdx, i, maxSpeedKmh)) {
       anchorIdx = i;
     } else {
       droppedIndices.add(i);
-      if (updatedLastOutlierFixSec == null || track.timeSec[i] > updatedLastOutlierFixSec) {
-        updatedLastOutlierFixSec = track.timeSec[i];
+    }
+  }
+
+  let updatedLastOutlierFixSec = lastOutlierFixSec;
+  if (droppedIndices.size > 0) {
+    let maxDroppedSec = -Infinity;
+    for (const idx of droppedIndices) {
+      if (track.timeSec[idx] > maxDroppedSec) {
+        maxDroppedSec = track.timeSec[idx];
       }
     }
+    updatedLastOutlierFixSec =
+      lastOutlierFixSec == null ? maxDroppedSec : Math.max(lastOutlierFixSec + 1, maxDroppedSec);
   }
 
   const pruned = droppedIndices.size > 0 ? pruneTrackIndices(track, droppedIndices) : track;
@@ -455,9 +530,10 @@ export function filterLiveTrackOutliers(
   const sessionStart = getActiveSessionStartIndex(track.timeSec, maxGapSec);
   const sessionStartSec = track.timeSec[sessionStart];
 
-  // If a gap > maxGapSec created a new session, ensure this new session has established consensus.
+  // If a gap > maxGapSec created a new session, or if retention shifted the session start,
+  // ensure this active session has established consensus.
   // We check if the active session's start timestamp matches the session start when confidence was established.
-  if (sessionStart > 0 && lastSessionStartSec !== sessionStartSec) {
+  if ((sessionStart > 0 || lastSessionStartSec != null) && lastSessionStartSec !== sessionStartSec) {
     locationConfidence = protos.TrackLocationConfidence.UNCONFIRMED;
   }
 

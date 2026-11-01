@@ -132,6 +132,8 @@ export function syncLiveTrack(state: protos.FetcherState, liveTrack: LiveTrackEn
 
     if (preserveTrack) {
       updatedPilot.track = existingPilot.track;
+      updatedPilot.locationConfidence = existingPilot.locationConfidence;
+      updatedPilot.lastSessionStartSec = existingPilot.lastSessionStartSec;
     }
     updatedPilot.status = existingPilot.status;
     updatedPilot.statusTimeSec = existingPilot.statusTimeSec;

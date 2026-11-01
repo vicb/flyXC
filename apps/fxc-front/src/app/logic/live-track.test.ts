@@ -628,7 +628,7 @@ describe('Update live tracks', () => {
         lon: [75.1, 76.7, 76.701],
         alt: [1000, 1000, 1000],
         timeSec: [0, 60, 120],
-        flags: [0, 0, 0],
+        flags: [LiveTrackFlag.Valid, LiveTrackFlag.Valid, LiveTrackFlag.Valid],
         gndAlt: [0, 0, 0],
         extra: {},
       };
@@ -642,7 +642,7 @@ describe('Update live tracks', () => {
         lon: [76.702, 76.703, 76.704],
         alt: [1000, 1000, 1000],
         timeSec: [180, 240, 300],
-        flags: [0, 0, 0],
+        flags: [LiveTrackFlag.Valid, LiveTrackFlag.Valid, LiveTrackFlag.Valid],
         gndAlt: [0, 0, 0],
         extra: {},
         lastOutlierFixSec: 0,
@@ -672,7 +672,7 @@ describe('Update live tracks', () => {
         lon: [75.1],
         alt: [1000],
         timeSec: [360],
-        flags: [0],
+        flags: [LiveTrackFlag.Valid],
         gndAlt: [0],
         extra: {},
         lastOutlierFixSec: 0,
@@ -694,6 +694,118 @@ describe('Update live tracks', () => {
       expect(updated2[0].lastOutlierFixSec).toBe(0);
 
       filterSpy.mockRestore();
+    });
+
+    it('purges cached outlier bursts using server confidence signal (Phase 2)', () => {
+      // Client has 2 valid points and 2 consecutive outlier spikes cached
+      const cachedTrack: protos.LiveTrack = {
+        id: 1,
+        name: 'pilot1',
+        lat: [32.05, 32.051, 31.5, 31.501], // 2 Bir, 2 Punjab spikes
+        lon: [76.7, 76.701, 75.1, 75.101],
+        alt: [1000, 1000, 1000, 1000],
+        timeSec: [0, 60, 120, 180],
+        flags: [LiveTrackFlag.Valid, LiveTrackFlag.Valid, LiveTrackFlag.Valid, LiveTrackFlag.Valid],
+        gndAlt: [0, 0, 0, 0],
+        extra: {},
+      };
+
+      // Server update confirms confidence with lastSessionStartSec = 0 and lastOutlierFixSec = 180
+      const serverDelta: protos.LiveTrack = {
+        id: 1,
+        name: 'pilot1',
+        lat: [32.052],
+        lon: [76.702],
+        alt: [1000],
+        timeSec: [240],
+        flags: [LiveTrackFlag.Valid],
+        gndAlt: [0],
+        extra: {},
+        lastOutlierFixSec: 180,
+        lastSessionStartSec: 0,
+      };
+
+      const diffTrack = differentialEncodeLiveTrack(serverDelta, 1, 'pilot1');
+      diffTrack.lastOutlierFixSec = 180;
+      diffTrack.lastSessionStartSec = 0;
+      const updates = protos.LiveDifferentialTrackGroup.create({
+        tracks: [diffTrack],
+      });
+
+      const updated = updateLiveTracks({ 1: cachedTrack }, updates, true);
+      expect(updated.length).toBe(1);
+      // Both cached Punjab outliers (120 and 180) are pruned in Phase 2 despite total valid fixes < 5
+      expect(updated[0].timeSec).toEqual([0, 60, 240]);
+      expect(updated[0].lastOutlierFixSec).toBe(180);
+    });
+
+    it('retries filtering when purge was incomplete due to insufficient points without server confidence', () => {
+      // Client cache has 2 points: 1 Bir, 1 Punjab outlier
+      const cachedTrack: protos.LiveTrack = {
+        id: 1,
+        name: 'pilot1',
+        lat: [32.05, 31.5],
+        lon: [76.7, 75.1],
+        alt: [1000, 1000],
+        timeSec: [0, 60],
+        flags: [LiveTrackFlag.Valid, LiveTrackFlag.Valid],
+        gndAlt: [0, 0],
+        extra: {},
+      };
+
+      // Server sends an update with lastOutlierFixSec = 60 but NO lastSessionStartSec
+      // Total points = 3 (< 5), so Phase 1 cannot confirm consensus and returns UNCONFIRMED
+      const serverDelta: protos.LiveTrack = {
+        id: 1,
+        name: 'pilot1',
+        lat: [32.051],
+        lon: [76.701],
+        alt: [1000],
+        timeSec: [120],
+        flags: [LiveTrackFlag.Valid],
+        gndAlt: [0],
+        extra: {},
+        lastOutlierFixSec: 60,
+      };
+
+      const diffTrack = differentialEncodeLiveTrack(serverDelta, 1, 'pilot1');
+      diffTrack.lastOutlierFixSec = 60;
+      const updates1 = protos.LiveDifferentialTrackGroup.create({
+        tracks: [diffTrack],
+      });
+
+      const updated1 = updateLiveTracks({ 1: cachedTrack }, updates1, true);
+      expect(updated1.length).toBe(1);
+      // Marker must NOT be acknowledged because confidence was not established
+      expect(updated1[0].lastOutlierFixSec).toBeUndefined();
+      expect(updated1[0].timeSec).toEqual([0, 60, 120]);
+
+      // Next update arrives with the SAME marker (lastOutlierFixSec = 60), but this time brings enough points
+      // or server confidence
+      const nextServerDelta: protos.LiveTrack = {
+        id: 1,
+        name: 'pilot1',
+        lat: [32.052, 32.053, 32.054],
+        lon: [76.702, 76.703, 76.704],
+        alt: [1000, 1000, 1000],
+        timeSec: [180, 240, 300],
+        flags: [LiveTrackFlag.Valid, LiveTrackFlag.Valid, LiveTrackFlag.Valid],
+        gndAlt: [0, 0, 0],
+        extra: {},
+        lastOutlierFixSec: 60,
+      };
+
+      const nextDiffTrack = differentialEncodeLiveTrack(nextServerDelta, 1, 'pilot1');
+      nextDiffTrack.lastOutlierFixSec = 60;
+      const updates2 = protos.LiveDifferentialTrackGroup.create({
+        tracks: [nextDiffTrack],
+      });
+
+      const updated2 = updateLiveTracks({ 1: updated1[0] }, updates2, true);
+      expect(updated2.length).toBe(1);
+      // Now consensus is confirmed, outlier at t=60 is pruned, and marker is acknowledged!
+      expect(updated2[0].timeSec).toEqual([0, 120, 180, 240, 300]);
+      expect(updated2[0].lastOutlierFixSec).toBe(60);
     });
   });
 

@@ -161,6 +161,8 @@ export function applyTrackerUpdates(
       pilot.track = result.track;
       pilot.locationConfidence = result.locationConfidence;
       pilot.lastSessionStartSec = result.lastSessionStartSec;
+      pilot.track.lastSessionStartSec =
+        result.locationConfidence === protos.TrackLocationConfidence.KNOWN ? result.lastSessionStartSec : undefined;
     }
   }
 

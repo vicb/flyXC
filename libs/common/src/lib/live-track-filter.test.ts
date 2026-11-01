@@ -1,19 +1,21 @@
 import { describe, expect, it } from 'vitest';
 
 import * as protos from '../protos';
+import { LiveTrackFlag } from './live-track';
 import { filterLiveTrackOutliers } from './live-track-filter';
 
 // Helper to create a LiveTrack from array of [lat, lon, timeSec]
 function createTestTrack(
   points: [number, number, number][],
   extra?: { [key: number]: protos.LiveExtra },
+  flags?: number[],
 ): protos.LiveTrack {
   return protos.LiveTrack.create({
     lat: points.map((p) => p[0]),
     lon: points.map((p) => p[1]),
     timeSec: points.map((p) => p[2]),
     alt: points.map(() => 1500),
-    flags: points.map(() => 0),
+    flags: flags ?? points.map(() => LiveTrackFlag.Valid),
     extra: extra ?? {},
   });
 }
@@ -402,6 +404,137 @@ describe('filterLiveTrackOutliers', () => {
 
       expect(result.lastOutlierFixSec).toBe(50);
       expect(result.track.lastOutlierFixSec).toBe(50);
+    });
+
+    it('prunes invalid fixes and does not let them act as anchors in Phase 2', () => {
+      const points: [number, number, number][] = [
+        [45.0, 6.0, 0], // valid anchor
+        [45.001, 6.0, 60], // invalid fix with plausible coords
+        [45.002, 6.0, 120], // valid fix
+      ];
+      const flags = [LiveTrackFlag.Valid, 0, LiveTrackFlag.Valid];
+      const track = createTestTrack(points, undefined, flags);
+
+      const result = filterLiveTrackOutliers(track, {
+        locationConfidence: protos.TrackLocationConfidence.KNOWN,
+        lastSessionStartSec: 0,
+      });
+
+      expect(result.track.timeSec).toEqual([0, 120]);
+      expect(result.lastOutlierFixSec).toBe(60);
+    });
+  });
+
+  describe('Edge cases and review fixes', () => {
+    it('establishes confidence across antimeridian / dateline crossings', () => {
+      // 5 consecutive fixes crossing longitude 180 (from 179.99 to -179.99)
+      const points: [number, number, number][] = [
+        [0.0, 179.98, 0],
+        [0.0, 179.99, 60],
+        [0.0, -179.99, 120],
+        [0.0, -179.98, 180],
+        [0.0, -179.97, 240],
+      ];
+      const track = createTestTrack(points);
+
+      const result = filterLiveTrackOutliers(track);
+      expect(result.locationConfidence).toBe(protos.TrackLocationConfidence.KNOWN);
+      expect(result.track.timeSec).toEqual([0, 60, 120, 180, 240]);
+    });
+
+    it('excludes invalid fixes from consensus chain in Phase 1', () => {
+      // 5 valid fixes and 1 invalid fix with valid-looking coordinates
+      const points: [number, number, number][] = [
+        [BIR_LAT, BIR_LON, 0],
+        [BIR_LAT + 0.001, BIR_LON, 60],
+        [BIR_LAT + 0.002, BIR_LON, 120], // invalid flag
+        [BIR_LAT + 0.003, BIR_LON, 180],
+        [BIR_LAT + 0.004, BIR_LON, 240],
+        [BIR_LAT + 0.005, BIR_LON, 300],
+      ];
+      const flags = [
+        LiveTrackFlag.Valid,
+        LiveTrackFlag.Valid,
+        0, // invalid GPS
+        LiveTrackFlag.Valid,
+        LiveTrackFlag.Valid,
+        LiveTrackFlag.Valid,
+      ];
+      const track = createTestTrack(points, undefined, flags);
+
+      const result = filterLiveTrackOutliers(track);
+      expect(result.locationConfidence).toBe(protos.TrackLocationConfidence.KNOWN);
+      // The invalid fix at t=120 must be pruned
+      expect(result.track.timeSec).toEqual([0, 60, 180, 240, 300]);
+    });
+
+    it('increments lastOutlierFixSec monotonically when pruned fix timestamp <= existing marker', () => {
+      // Existing marker is at 500
+      const existingMarker = 500;
+      // An outlier fix occurs at t=300 (before existing marker)
+      const points: [number, number, number][] = [
+        [BIR_LAT, BIR_LON, 0],
+        [BIR_LAT + 0.001, BIR_LON, 60],
+        [BIR_LAT + 0.002, BIR_LON, 120],
+        [BIR_LAT + 0.003, BIR_LON, 180],
+        [BIR_LAT + 0.004, BIR_LON, 240],
+        [PUNJAB_LAT, PUNJAB_LON, 300], // outlier fix <= 500
+      ];
+      const track = createTestTrack(points);
+
+      const result = filterLiveTrackOutliers(track, {
+        locationConfidence: protos.TrackLocationConfidence.KNOWN,
+        lastSessionStartSec: 0,
+        lastOutlierFixSec: existingMarker,
+      });
+
+      // Outlier pruned
+      expect(result.track.timeSec).toEqual([0, 60, 120, 180, 240]);
+      // Marker must be strictly greater than existingMarker so the client detects the new prune event
+      expect(result.lastOutlierFixSec).toBe(501);
+      expect(result.track.lastOutlierFixSec).toBe(501);
+    });
+
+    it('resets confidence across retention when sessionStart is 0 but start timestamp differs', () => {
+      // Track retention trimmed earlier fixes; now sessionStart === 0 at t=3600
+      const points: [number, number, number][] = [
+        [BIR_LAT, BIR_LON, 3600],
+        [BIR_LAT + 0.001, BIR_LON, 3660],
+      ];
+      const track = createTestTrack(points);
+
+      // Previously confidence was established for a session starting at t=0
+      const result = filterLiveTrackOutliers(track, {
+        locationConfidence: protos.TrackLocationConfidence.KNOWN,
+        lastSessionStartSec: 0,
+      });
+
+      // Since lastSessionStartSec (0) !== current sessionStartSec (3600), confidence resets
+      // and with only 2 fixes, the track remains UNCONFIRMED
+      expect(result.locationConfidence).toBe(protos.TrackLocationConfidence.UNCONFIRMED);
+    });
+
+    it('handles noisy session with quadratic bound correctly', () => {
+      // 10 valid fixes interspersed with 2 outliers (total 12 fixes)
+      const points: [number, number, number][] = [
+        [BIR_LAT, BIR_LON, 0],
+        [BIR_LAT + 0.001, BIR_LON, 60],
+        [PUNJAB_LAT, PUNJAB_LON, 120], // outlier 1
+        [BIR_LAT + 0.002, BIR_LON, 180],
+        [BIR_LAT + 0.003, BIR_LON, 240],
+        [PUNJAB_LAT, PUNJAB_LON, 300], // outlier 2
+        [BIR_LAT + 0.004, BIR_LON, 360],
+        [BIR_LAT + 0.005, BIR_LON, 420],
+        [BIR_LAT + 0.006, BIR_LON, 480],
+        [BIR_LAT + 0.007, BIR_LON, 540],
+        [BIR_LAT + 0.008, BIR_LON, 600],
+        [BIR_LAT + 0.009, BIR_LON, 660],
+      ];
+      const track = createTestTrack(points);
+
+      const result = filterLiveTrackOutliers(track);
+      expect(result.locationConfidence).toBe(protos.TrackLocationConfidence.KNOWN);
+      expect(result.track.timeSec).toEqual([0, 60, 180, 240, 360, 420, 480, 540, 600, 660]);
     });
   });
 });

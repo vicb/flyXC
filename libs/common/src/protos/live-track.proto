@@ -26,6 +26,9 @@ message LiveTrack {
   // Latest timestamp (sec) of an outlier fix pruned in this flight segment.
   // Sent to clients to signal that retroactive outlier filtering was performed.
   optional int32 last_outlier_fix_sec = 11;
+  // Timestamp (sec) of the start of the active flight session if confidence is established.
+  // Present when the server has high confidence in the flight session.
+  optional int32 last_session_start_sec = 12;
 }
 
 // All the points for a tracker.
@@ -46,6 +49,9 @@ message LiveDifferentialTrack {
   // Latest timestamp (sec) of an outlier fix pruned in this flight segment.
   // Sent to clients to signal that retroactive outlier filtering was performed.
   optional int32 last_outlier_fix_sec = 11;
+  // Timestamp (sec) of the start of the active flight session if confidence is established.
+  // Present when the server has high confidence in the flight session.
+  optional int32 last_session_start_sec = 12;
 }
 
 // All active trackers.

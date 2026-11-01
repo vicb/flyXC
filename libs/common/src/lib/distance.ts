@@ -27,8 +27,14 @@ export const METERS_PER_DEG_LAT = 111_139;
  */
 export function approximateDistanceSquared(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const dLatMeters = (lat2 - lat1) * METERS_PER_DEG_LAT;
+  let dLon = lon2 - lon1;
+  if (dLon > 180) {
+    dLon -= 360;
+  } else if (dLon < -180) {
+    dLon += 360;
+  }
   const cosLat = Math.cos(((lat1 + lat2) * Math.PI) / 360);
-  const dLonMeters = (lon2 - lon1) * METERS_PER_DEG_LAT * cosLat;
+  const dLonMeters = dLon * METERS_PER_DEG_LAT * cosLat;
   return dLatMeters * dLatMeters + dLonMeters * dLonMeters;
 }
 

@@ -541,6 +541,7 @@ export function mergeLiveTracks(track1: LiveTrack, track2: LiveTrack): LiveTrack
     id: track1.id ?? track2.id,
     idStr: track1.idStr ?? track2.idStr,
     lastOutlierFixSec: track2.lastOutlierFixSec ?? track1.lastOutlierFixSec,
+    lastSessionStartSec: track2.lastSessionStartSec ?? track1.lastSessionStartSec,
   });
 
   let index1 = 0;

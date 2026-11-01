@@ -36,4 +36,19 @@ describe('approximateDistanceSquared', () => {
     const relativeError = Math.abs(approxDist - geolibDist) / geolibDist;
     expect(relativeError).toBeLessThan(0.01); // < 1% error
   });
+
+  it('correctly handles antimeridian / dateline crossings', () => {
+    const lat1 = 0.0;
+    const lon1 = 179.99;
+    const lat2 = 0.0;
+    const lon2 = -179.99;
+
+    const geolibDist = getDistance({ lat: lat1, lon: lon1 }, { lat: lat2, lon: lon2 });
+    const approxDistSq = approximateDistanceSquared(lat1, lon1, lat2, lon2);
+    const approxDist = Math.sqrt(approxDistSq);
+
+    expect(approxDist).toBeCloseTo(geolibDist, -1);
+    const relativeError = Math.abs(approxDist - geolibDist) / geolibDist;
+    expect(relativeError).toBeLessThan(0.01);
+  });
 });

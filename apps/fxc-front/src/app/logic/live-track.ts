@@ -1,4 +1,3 @@
-import type { protos } from '@flyxc/common';
 import {
   differentialDecodeLiveTrack,
   filterLiveTrackOutliers,
@@ -11,6 +10,7 @@ import {
   LiveTrackDurationSec,
   LiveTrackPointIntervalSec,
   mergeLiveTracks,
+  protos,
   simplifyLiveTrack,
   TRACK_GAP_MIN,
 } from '@flyxc/common';
@@ -289,11 +289,24 @@ export function updateLiveTracks(
         // (during Phase 1 cold start).
         // However, once the client runs the filter for a given lastOutlierFixSec, all subsequent
         // incremental updates with the same timestamp can safely skip filtering (O(0) cost).
-        const hasNewOutlier = update.lastOutlierFixSec != null && update.lastOutlierFixSec !== track.lastOutlierFixSec;
+        const prevMarker = track.lastOutlierFixSec;
+        const hasNewOutlier = update.lastOutlierFixSec != null && update.lastOutlierFixSec !== prevMarker;
         track = mergeLiveTracks(track, update);
+        // Retain previous outlier marker until the purge is confirmed by reaching confidence
+        track.lastOutlierFixSec = prevMarker;
         if (hasNewOutlier) {
-          track = filterLiveTrackOutliers(track).track;
-          track.lastOutlierFixSec = update.lastOutlierFixSec;
+          const isConfident = update.lastSessionStartSec != null;
+          const result = filterLiveTrackOutliers(track, {
+            locationConfidence: isConfident
+              ? protos.TrackLocationConfidence.KNOWN
+              : protos.TrackLocationConfidence.UNKNOWN,
+            lastSessionStartSec: update.lastSessionStartSec,
+            lastOutlierFixSec: update.lastOutlierFixSec,
+          });
+          if (result.locationConfidence === protos.TrackLocationConfidence.KNOWN) {
+            track = result.track;
+            track.lastOutlierFixSec = update.lastOutlierFixSec;
+          }
         }
         simplifyLiveTrack(track, LiveTrackPointIntervalSec.Recent);
       }

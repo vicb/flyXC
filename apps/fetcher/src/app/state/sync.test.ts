@@ -136,9 +136,13 @@ describe('sync', () => {
       const lt = createLiveTrackEntity('1978');
       syncLiveTrack(state, lt);
       state.pilots[1978].track = protos.LiveTrack.create({ timeSec: [1, 2, 3] });
+      state.pilots[1978].locationConfidence = protos.TrackLocationConfidence.KNOWN;
+      state.pilots[1978].lastSessionStartSec = 1000;
 
       syncLiveTrack(state, lt);
       expect(state.pilots[1978].track).toMatchObject({ timeSec: [1, 2, 3] });
+      expect(state.pilots[1978].locationConfidence).toBe(protos.TrackLocationConfidence.KNOWN);
+      expect(state.pilots[1978].lastSessionStartSec).toBe(1000);
     });
 
     it('drops track when global updated', () => {
