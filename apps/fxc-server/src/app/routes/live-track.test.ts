@@ -226,6 +226,8 @@ describe('live-track routes and helpers', () => {
             alt: [300],
             gndAlt: [400],
             timeSec: [1000],
+            lastOutlierFixSec: 500,
+            lastSessionStartSec: 200,
           },
         ],
       });
@@ -263,6 +265,8 @@ describe('live-track routes and helpers', () => {
       expect(track.flags).toEqual([]);
       expect(track.extra).toEqual({});
       expect(track.lat).toEqual([100]);
+      expect(track.lastOutlierFixSec).toBe(500);
+      expect(track.lastSessionStartSec).toBe(200);
     });
 
     it('should return JSON when accept header is application/json', async () => {

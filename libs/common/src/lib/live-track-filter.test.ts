@@ -536,5 +536,35 @@ describe('filterLiveTrackOutliers', () => {
       expect(result.locationConfidence).toBe(protos.TrackLocationConfidence.KNOWN);
       expect(result.track.timeSec).toEqual([0, 60, 180, 240, 360, 420, 480, 540, 600, 660]);
     });
+
+    it('recovers from an initial wrong anchor when a cluster of minConfidentFixes mutually reachable fixes arrives', () => {
+      // 5 consistent wrong fixes at Punjab (established initial false confidence)
+      // followed by 5 genuine fixes at Bir
+      const points: [number, number, number][] = [
+        [PUNJAB_LAT, PUNJAB_LON, 0],
+        [PUNJAB_LAT + 0.001, PUNJAB_LON, 60],
+        [PUNJAB_LAT + 0.002, PUNJAB_LON, 120],
+        [PUNJAB_LAT + 0.003, PUNJAB_LON, 180],
+        [PUNJAB_LAT + 0.004, PUNJAB_LON, 240],
+        // Now 5 real fixes arrive at Bir
+        [BIR_LAT, BIR_LON, 300],
+        [BIR_LAT + 0.001, BIR_LON, 360],
+        [BIR_LAT + 0.002, BIR_LON, 420],
+        [BIR_LAT + 0.003, BIR_LON, 480],
+        [BIR_LAT + 0.004, BIR_LON, 540],
+      ];
+      const track = createTestTrack(points);
+
+      // Phase 2 runs with false initial confidence at Punjab starting at t=0
+      const result = filterLiveTrackOutliers(track, {
+        locationConfidence: protos.TrackLocationConfidence.KNOWN,
+        lastSessionStartSec: 0,
+      });
+
+      // Instead of silently dropping all 5 genuine Bir fixes forever,
+      // it detects the 5-point consistent cluster and reverts to UNCONFIRMED without pruning
+      expect(result.locationConfidence).toBe(protos.TrackLocationConfidence.UNCONFIRMED);
+      expect(result.track.timeSec.length).toBe(10);
+    });
   });
 });

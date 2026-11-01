@@ -416,6 +416,7 @@ function filterUnconfirmedSession(
  * @param lastOutlierFixSec - Latest timestamp of an outlier pruned in previous filtering cycles.
  * @param lastSessionStartSec - Start timestamp of the session when confidence was established.
  * @param maxSpeedKmh - Maximum kinematic speed allowed between fixes in km/h.
+ * @param minConfidentFixes - Minimum mutually reachable dropped fixes to trigger consensus recovery.
  * @param filterFromSec - Optional timestamp in seconds to filter from (skips already validated fixes).
  * @returns The filtered track result including updated confidence and outlier timestamps.
  */
@@ -426,6 +427,7 @@ function filterConfidentSession(
   lastOutlierFixSec: number | undefined,
   lastSessionStartSec: number | undefined,
   maxSpeedKmh: number,
+  minConfidentFixes: number,
   filterFromSec: number | undefined,
 ): FilterLiveTrackResult {
   const len = track.timeSec.length;
@@ -455,11 +457,38 @@ function filterConfidentSession(
     }
   }
 
+  let clusterCount = 0;
+  let clusterLastIdx = -1;
+
   for (let i = startIdx; i < len; i++) {
     if (isTrackFixValid(track, i) && anchorIdx >= 0 && isReachable(track, anchorIdx, i, maxSpeedKmh)) {
       anchorIdx = i;
+      clusterCount = 0;
+      clusterLastIdx = -1;
     } else {
       droppedIndices.add(i);
+      if (isTrackFixValid(track, i)) {
+        if (clusterLastIdx === -1 || isReachable(track, clusterLastIdx, i, maxSpeedKmh)) {
+          clusterCount++;
+          clusterLastIdx = i;
+        } else {
+          clusterCount = 1;
+          clusterLastIdx = i;
+        }
+        if (clusterCount >= minConfidentFixes) {
+          // Detected a cluster of mutually reachable dropped fixes that has reached the confidence threshold.
+          // Revert confidence to UNCONFIRMED without pruning or updating outlier state so Phase 1 can re-establish consensus.
+          return {
+            track,
+            locationConfidence: protos.TrackLocationConfidence.UNCONFIRMED,
+            lastOutlierFixSec,
+            lastSessionStartSec,
+          };
+        }
+      } else {
+        clusterCount = 0;
+        clusterLastIdx = -1;
+      }
     }
   }
 
@@ -560,6 +589,7 @@ export function filterLiveTrackOutliers(
     lastOutlierFixSec,
     lastSessionStartSec,
     maxSpeedKmh,
+    minConfidentFixes,
     filterFromSec,
   );
 }

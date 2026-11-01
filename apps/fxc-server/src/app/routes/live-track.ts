@@ -165,7 +165,7 @@ export async function handlePartnerTokenRequest(
       const idToSha = new Map<string, string>();
 
       const anonTracks: protos.LiveDifferentialTrack[] = liveGroup.tracks.map(
-        ({ lat, lon, alt, gndAlt, timeSec, id, idStr }) => {
+        ({ lat, lon, alt, gndAlt, timeSec, id, idStr, lastOutlierFixSec, lastSessionStartSec }) => {
           return {
             idStr: anonymizeId(idStr ?? id, idToSha),
             name: '',
@@ -176,6 +176,8 @@ export async function handlePartnerTokenRequest(
             alt,
             gndAlt,
             timeSec,
+            lastOutlierFixSec,
+            lastSessionStartSec,
           };
         },
       );
