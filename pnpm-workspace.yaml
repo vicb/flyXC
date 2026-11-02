@@ -2,6 +2,7 @@ overrides:
   typescript: '6.0.3'
   '@protobuf-ts/plugin>typescript': '~3.9.10'
   '@nx/devkit': '24.0.3'
+  vite-prerender-plugin: ^0.5.14
 
 packages:
   - apps/*
