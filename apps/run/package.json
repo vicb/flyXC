@@ -10,7 +10,6 @@
     "@flyxc/common-node": "workspace:*",
     "@google-cloud/datastore": "catalog:default",
     "@google-cloud/pubsub": "catalog:default",
-    "async": "^3.2.6",
     "express": "catalog:default",
     "google-polyline": "^2.0.0",
     "mapbox-vector-tile": "catalog:default",

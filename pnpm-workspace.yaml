@@ -78,5 +78,5 @@ packageExtensions:
 # time in minutes
 minimumReleaseAge: 0
 
-injectWorkspacePackages: true
+# injectWorkspacePackages: true
 catalogMode: strict

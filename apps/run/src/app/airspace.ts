@@ -11,10 +11,10 @@ import {
   getPixelCoordinates,
   isInFeature,
   MAX_AIRSPACE_TILE_ZOOM,
+  parallelTasksWithTimeout,
   protos,
   toTypedAirspace,
 } from '@flyxc/common';
-import async from 'async';
 import { VectorTile } from 'mapbox-vector-tile';
 import type { LRU } from 'tiny-lru';
 import { lru } from 'tiny-lru';
@@ -62,10 +62,10 @@ export function getIndicesByUrlAndPx(
 }
 
 // Populate the cache with the passed URLs.
-async function populateTileCache(cache: LRU<ArrayBuffer | null>, urls: string[]): Promise<void> {
+export async function populateTileCache(cache: LRU<ArrayBuffer | null>, urls: string[]): Promise<void> {
   // Downloading tiles might return 404 if there is not airspace.
   // We then can not rely on 404 to detect errors.
-  await async.eachLimit(urls, 5, async (url: string) => {
+  const { results } = await parallelTasksWithTimeout(5, urls, async (url: string) => {
     let buffer = cache.get(url);
     if (buffer === undefined) {
       try {
@@ -81,6 +81,12 @@ async function populateTileCache(cache: LRU<ArrayBuffer | null>, urls: string[])
       cache.set(url, buffer);
     }
   });
+
+  for (const result of results) {
+    if (result.status === 'rejected') {
+      throw result.reason;
+    }
+  }
 }
 
 // Retrieves the airspaces for the given track.

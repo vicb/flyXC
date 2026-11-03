@@ -2,7 +2,6 @@ import { diffDecodeTrack, diffEncodeAirspaces, diffEncodeArray32bit, fetchRespon
 import type { TrackEntity } from '@flyxc/common-node';
 import { retrieveTrackById, saveTrack } from '@flyxc/common-node';
 import type { Datastore } from '@google-cloud/datastore';
-import async from 'async';
 import polyline from 'google-polyline';
 import simplify from 'simplify-path';
 
@@ -26,7 +25,10 @@ export async function postProcessTrack(datastore: Datastore, trackId: number | s
       });
 
       // Add ground altitude.
-      const groundAltitudes: protos.GroundAltitude[] = await async.mapSeries(tracks, fetchGroundAltitude);
+      const groundAltitudes: protos.GroundAltitude[] = [];
+      for (const track of tracks) {
+        groundAltitudes.push(await fetchGroundAltitude(track));
+      }
       hasErrors = hasErrors || groundAltitudes.some((proto) => proto.hasErrors);
 
       trackEntity.ground_altitude_group = Buffer.from(
@@ -40,9 +42,9 @@ export async function postProcessTrack(datastore: Datastore, trackId: number | s
 
       // Add airspaces.
       const airspaces: protos.Airspaces[] = [];
-      await async.eachOfSeries(tracks, async (track, i) => {
-        airspaces.push(await fetchAirspaces(track, groundAltitudes[Number(i)]));
-      });
+      for (let i = 0; i < tracks.length; i++) {
+        airspaces.push(await fetchAirspaces(tracks[i], groundAltitudes[i]));
+      }
       trackEntity.airspaces_group = Buffer.from(
         protos.AirspacesGroup.toBinary({ airspaces: airspaces.map(diffEncodeAirspaces) }),
       );
