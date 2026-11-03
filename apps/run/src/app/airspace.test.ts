@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import { diffDecodeTrack, protos } from '@flyxc/common';
 
-import { fetchAirspaces, getIndicesByUrlAndPx } from './airspace';
+import { fetchAirspaces, getIndicesByUrlAndPx, populateTileCache } from './airspace';
 
 function readTrack(filename: string): protos.Track {
   const pbf = readFileSync(path.join(__dirname, 'fixtures', filename));
@@ -133,6 +133,19 @@ describe('Airspaces', () => {
           ],
         }
       `);
+    });
+  });
+
+  describe('populateTileCache', () => {
+    it('propagates errors when a task callback rejects', async () => {
+      const mockCache = {
+        get: vi.fn().mockReturnValue(undefined),
+        set: vi.fn(() => {
+          throw new Error('Cache error');
+        }),
+      } as any;
+
+      await expect(populateTileCache(mockCache, ['https://example.com/tile'])).rejects.toThrow('Cache error');
     });
   });
 });
