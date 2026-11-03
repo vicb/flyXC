@@ -791,9 +791,6 @@ importers:
       '@google-cloud/pubsub':
         specifier: catalog:default
         version: 6.3.2(supports-color@10.2.2)
-      async:
-        specifier: ^3.2.6
-        version: 3.2.6
       express:
         specifier: catalog:default
         version: 5.3.0(supports-color@10.2.2)
