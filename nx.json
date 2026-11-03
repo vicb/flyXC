@@ -22,6 +22,19 @@
     "typecheck": {
       "cache": true,
       "inputs": ["default", "^production"]
+    },
+    "@nx/js:prune-lockfile": {
+      "cache": true,
+      "inputs": [
+        "default",
+        "^production",
+        "{workspaceRoot}/package.json",
+        "{workspaceRoot}/pnpm-lock.yaml",
+        "{workspaceRoot}/pnpm-workspace.yaml",
+        {
+          "runtime": "pnpm -v"
+        }
+      ]
     }
   },
   "namedInputs": {
