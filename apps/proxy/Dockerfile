@@ -9,7 +9,7 @@ ENV NODE_ENV=production
 RUN apk add --no-cache tini libcap \
 	&& setcap cap_net_bind_service=+ep $(readlink -f $(which node))
 
-RUN npm install -g pnpm@12.17.0
+RUN npm install -g pnpm@11.28.10
 
 WORKDIR /usr/src/app
 
