@@ -236,7 +236,9 @@ export function parcelTrajectory(
 /**
  * Creates a scale that maps pressure to geopotential height.
  *
- * @param levels - The pressure levels, in descending order.
+ * Windy models provide multiple atmospheric pressure levels across the troposphere (typically >= 14 levels).
+ *
+ * @param levels - The pressure levels, in descending order (at least 2 levels).
  * @param ghByLevel - The geopotential heights in meters corresponding to the pressure levels.
  * @param seaLevelPressure - The pressure at sea level.
  * @returns A scale that maps pressure to geopotential height.
