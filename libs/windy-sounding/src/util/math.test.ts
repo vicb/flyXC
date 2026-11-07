@@ -182,6 +182,21 @@ describe('sampleAt', () => {
     ];
     expect(sampleAt(timesMs, windDirByTime, 1500, lerpAngleDegree)).toEqual([0, 0]);
   });
+
+  it('should return sole value when xs has single point without attempting interpolation', () => {
+    expect(sampleAt([1000], [42], 1500)).toEqual(42);
+    expect(sampleAt([1000], [42], [500, 1500])).toEqual([42, 42]);
+    expect(sampleAt([1000], [[10, 20]], 1500)).toEqual([10, 20]);
+    expect(sampleAt([1000], [[10, 20]], [500, 1500])).toEqual([
+      [10, 20],
+      [10, 20],
+    ]);
+  });
+
+  it('should handle empty arrays safely', () => {
+    expect(sampleAt([], [], 1500)).toEqual(0);
+    expect(sampleAt([], [], [500, 1500])).toEqual([0, 0]);
+  });
 });
 
 describe('scaleLinear', () => {
