@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import * as protos from '../protos';
-import { LiveTrackFlag } from './live-track';
+import { LiveTrackFlag, NO_GROUND_ALTITUDE } from './live-track';
 import { filterLiveTrackOutliers } from './live-track-filter';
 
 // Helper to create a LiveTrack from array of [lat, lon, timeSec]
@@ -328,6 +328,52 @@ describe('filterLiveTrackOutliers', () => {
     expect(result.lastOutlierFixSec).toBe(360);
   });
 
+  it('correctly anchors delta fast-path on long non-linear tracks', () => {
+    // 10 fixes without any gap > 1h
+    const points: [number, number, number][] = [
+      [BIR_LAT, BIR_LON, 0],
+      [BIR_LAT + 0.001, BIR_LON, 60],
+      [BIR_LAT + 0.002, BIR_LON, 120],
+      [BIR_LAT + 0.003, BIR_LON, 180],
+      [BIR_LAT + 0.004, BIR_LON, 240],
+      [BIR_LAT + 0.005, BIR_LON, 300],
+      [BIR_LAT + 0.006, BIR_LON, 360],
+      [BIR_LAT + 0.007, BIR_LON, 420],
+      // Delta: 1 outlier at 480 and 1 valid fix at 540
+      [PUNJAB_LAT, PUNJAB_LON, 480],
+      [BIR_LAT + 0.008, BIR_LON, 540],
+    ];
+
+    const result = filterLiveTrackOutliers(createTestTrack(points), { filterFromSec: 480 });
+    expect(result.timeSec).toEqual([0, 60, 120, 180, 240, 300, 360, 420, 540]);
+    expect(result.lastOutlierFixSec).toBe(480);
+  });
+
+  it('skips protected outliers when searching for delta anchor, retaining valid delta fixes', () => {
+    const points: [number, number, number][] = [
+      [BIR_LAT, BIR_LON, 0],
+      [BIR_LAT + 0.001, BIR_LON, 60],
+      [BIR_LAT + 0.002, BIR_LON, 120],
+      [BIR_LAT + 0.003, BIR_LON, 180],
+      [BIR_LAT + 0.004, BIR_LON, 240],
+      [BIR_LAT + 0.005, BIR_LON, 300],
+      // Protected outlier (SOS / message) right before the delta: kept because protected
+      [PUNJAB_LAT, PUNJAB_LON, 360],
+      // Delta: 2 valid fixes along the flight path
+      [BIR_LAT + 0.006, BIR_LON, 420],
+      [BIR_LAT + 0.007, BIR_LON, 480],
+    ];
+    const extra = { 6: protos.LiveExtra.create({ message: 'SOS' }) };
+
+    const track = createTestTrack(points, extra);
+    const result = filterLiveTrackOutliers(track, { filterFromSec: 420 });
+
+    // The protected outlier at 360 is preserved because it has a message
+    // The valid delta fixes at 420 and 480 are preserved because the anchor was found at 300 (skipping 360)
+    expect(result.timeSec).toEqual([0, 60, 120, 180, 240, 300, 360, 420, 480]);
+    expect(result.extra?.[6]?.message).toBe('SOS');
+  });
+
   it('keeps same-second and close-in-time fixes within MIN_OUTLIER_DIST_M (500m) for multi-tracker merges', () => {
     // 0.003 deg latitude is ~333m (< 500m, even though 333m in 0s or 1s exceeds 300 km/h)
     const points: [number, number, number][] = [
@@ -399,5 +445,87 @@ describe('filterLiveTrackOutliers', () => {
     expect(result).toBe(track);
     expect(result.timeSec.length).toBe(8);
     expect(result.lastOutlierFixSec).toBeUndefined();
+  });
+
+  it('prunes outliers in-place preserving array instances and full alignment', () => {
+    const points: [number, number, number][] = [
+      [BIR_LAT, BIR_LON, 0],
+      [BIR_LAT + 0.001, BIR_LON, 60],
+      [BIR_LAT + 0.002, BIR_LON, 120],
+      [BIR_LAT + 0.003, BIR_LON, 180],
+      [BIR_LAT + 0.004, BIR_LON, 240],
+      [PUNJAB_LAT, PUNJAB_LON, 300], // outlier
+      [BIR_LAT + 0.005, BIR_LON, 360],
+    ];
+    const track = createTestTrack(points);
+    track.gndAlt = [100, 101, 102, 103, 104, 999, 105];
+    const originalTimeSec = track.timeSec;
+    const originalLat = track.lat;
+    const originalLon = track.lon;
+    const originalAlt = track.alt;
+    const originalFlags = track.flags;
+    const originalGndAlt = track.gndAlt;
+
+    const result = filterLiveTrackOutliers(track);
+
+    expect(result).toBe(track);
+    expect(result.timeSec).toBe(originalTimeSec);
+    expect(result.lat).toBe(originalLat);
+    expect(result.lon).toBe(originalLon);
+    expect(result.alt).toBe(originalAlt);
+    expect(result.flags).toBe(originalFlags);
+    expect(result.gndAlt).toBe(originalGndAlt);
+
+    expect(result.timeSec).toEqual([0, 60, 120, 180, 240, 360]);
+    expect(result.lat).toEqual([
+      BIR_LAT,
+      BIR_LAT + 0.001,
+      BIR_LAT + 0.002,
+      BIR_LAT + 0.003,
+      BIR_LAT + 0.004,
+      BIR_LAT + 0.005,
+    ]);
+    expect(result.lon).toEqual([BIR_LON, BIR_LON, BIR_LON, BIR_LON, BIR_LON, BIR_LON]);
+    expect(result.alt).toHaveLength(6);
+    expect(result.flags).toHaveLength(6);
+    expect(result.gndAlt).toEqual([100, 101, 102, 103, 104, 105]);
+    expect(result.lastOutlierFixSec).toBe(300);
+  });
+
+  it('normalizes missing ground altitude slots during in-place compaction', () => {
+    const points: [number, number, number][] = [
+      [BIR_LAT, BIR_LON, 0],
+      [BIR_LAT + 0.001, BIR_LON, 60],
+      [BIR_LAT + 0.002, BIR_LON, 120],
+      [BIR_LAT + 0.003, BIR_LON, 180],
+      [BIR_LAT + 0.004, BIR_LON, 240],
+      [PUNJAB_LAT, PUNJAB_LON, 300], // outlier
+      [BIR_LAT + 0.005, BIR_LON, 360], // no gndAlt originally
+    ];
+    const track = createTestTrack(points);
+    // gndAlt only partially populated (length 6, missing 7th fix)
+    track.gndAlt = [100, 101, 102, 103, 104, 999];
+
+    const result = filterLiveTrackOutliers(track);
+    expect(result.gndAlt).toEqual([100, 101, 102, 103, 104, NO_GROUND_ALTITUDE]);
+    expect(result.gndAlt).toHaveLength(6);
+  });
+
+  it('leaves empty gndAlt empty without creating holes', () => {
+    const points: [number, number, number][] = [
+      [BIR_LAT, BIR_LON, 0],
+      [BIR_LAT + 0.001, BIR_LON, 60],
+      [BIR_LAT + 0.002, BIR_LON, 120],
+      [BIR_LAT + 0.003, BIR_LON, 180],
+      [BIR_LAT + 0.004, BIR_LON, 240],
+      [PUNJAB_LAT, PUNJAB_LON, 300], // outlier
+      [BIR_LAT + 0.005, BIR_LON, 360],
+    ];
+    const track = createTestTrack(points);
+    track.gndAlt = [];
+
+    const result = filterLiveTrackOutliers(track);
+    expect(result.gndAlt).toEqual([]);
+    expect(result.gndAlt).toHaveLength(0);
   });
 });

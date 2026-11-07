@@ -56,7 +56,8 @@ export function applyUfoFleetUpdates(
       }
       const prevOutlierSec = ufoTracks[id].lastOutlierFixSec;
       const numFixesBefore = ufoTracks[id].timeSec.length;
-      ufoTracks[id] = filterLiveTrackOutliers(ufoTracks[id]);
+      const filterFromSec = track.timeSec.length > 0 ? track.timeSec[0] : undefined;
+      ufoTracks[id] = filterLiveTrackOutliers(ufoTracks[id], { filterFromSec });
       const numFiltered = numFixesBefore - ufoTracks[id].timeSec.length;
       if (numFiltered > 0 && ufoTracks[id].lastOutlierFixSec !== prevOutlierSec) {
         filteredLogs.push(`[${nowSec}] ${fleetName}:${id} ${numFiltered} fixes`);
