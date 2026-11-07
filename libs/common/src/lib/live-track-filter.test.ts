@@ -510,4 +510,22 @@ describe('filterLiveTrackOutliers', () => {
     expect(result.gndAlt).toEqual([100, 101, 102, 103, 104, NO_GROUND_ALTITUDE]);
     expect(result.gndAlt).toHaveLength(6);
   });
+
+  it('leaves empty gndAlt empty without creating holes', () => {
+    const points: [number, number, number][] = [
+      [BIR_LAT, BIR_LON, 0],
+      [BIR_LAT + 0.001, BIR_LON, 60],
+      [BIR_LAT + 0.002, BIR_LON, 120],
+      [BIR_LAT + 0.003, BIR_LON, 180],
+      [BIR_LAT + 0.004, BIR_LON, 240],
+      [PUNJAB_LAT, PUNJAB_LON, 300], // outlier
+      [BIR_LAT + 0.005, BIR_LON, 360],
+    ];
+    const track = createTestTrack(points);
+    track.gndAlt = [];
+
+    const result = filterLiveTrackOutliers(track);
+    expect(result.gndAlt).toEqual([]);
+    expect(result.gndAlt).toHaveLength(0);
+  });
 });

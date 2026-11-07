@@ -129,6 +129,13 @@ function pruneAndRecordOutliers(track: protos.LiveTrack, droppedIndices: Set<num
   }
 
   const len = track.timeSec.length;
+  const hasGndAlt = Boolean(track.gndAlt && track.gndAlt.length > 0);
+  if (hasGndAlt && track.gndAlt!.length < len) {
+    while (track.gndAlt!.length < len) {
+      track.gndAlt!.push(NO_GROUND_ALTITUDE);
+    }
+  }
+
   let maxDroppedSec = -Infinity;
   let dstIdx = 0;
 
@@ -147,8 +154,8 @@ function pruneAndRecordOutliers(track: protos.LiveTrack, droppedIndices: Set<num
       track.lon[dstIdx] = track.lon[srcIdx];
       track.alt[dstIdx] = track.alt[srcIdx];
       track.flags[dstIdx] = track.flags[srcIdx];
-      if (track.gndAlt) {
-        track.gndAlt[dstIdx] = srcIdx < track.gndAlt.length ? track.gndAlt[srcIdx] : NO_GROUND_ALTITUDE;
+      if (hasGndAlt) {
+        track.gndAlt![dstIdx] = track.gndAlt![srcIdx];
       }
       if (track.extra) {
         if (srcIdx in track.extra) {
@@ -167,8 +174,8 @@ function pruneAndRecordOutliers(track: protos.LiveTrack, droppedIndices: Set<num
   track.lon.splice(dstIdx);
   track.alt.splice(dstIdx);
   track.flags.splice(dstIdx);
-  if (track.gndAlt) {
-    track.gndAlt.splice(dstIdx);
+  if (hasGndAlt) {
+    track.gndAlt!.splice(dstIdx);
   }
 
   // Preserve the marker when an already-pruned outlier is re-fetched during the 5-min tracker overlap.
