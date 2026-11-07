@@ -32,15 +32,17 @@ export async function refreshUfoFleets(pipeline: RedisClientMultiCmd, state: pro
     }
   }
 
-  applyUfoFleetUpdates(state, fleetUpdates);
+  applyUfoFleetUpdates(state, fleetUpdates, Math.round(Date.now() / 1000), pipeline);
 }
 
 export function applyUfoFleetUpdates(
   state: protos.FetcherState,
   fleetUpdates: UfoFleetUpdates[],
   nowSec = Math.round(Date.now() / 1000),
+  pipeline?: RedisClientMultiCmd,
 ): void {
   const ufoStartSec = nowSec - LiveTrackDurationSec.UfoH1;
+  const filteredLogs: string[] = [];
 
   for (const fleetUpdate of fleetUpdates) {
     const { fleetName } = fleetUpdate;
@@ -52,8 +54,18 @@ export function applyUfoFleetUpdates(
       } else {
         ufoTracks[id] = track;
       }
+      const prevOutlierSec = ufoTracks[id].lastOutlierFixSec;
+      const numFixesBefore = ufoTracks[id].timeSec.length;
       ufoTracks[id] = filterLiveTrackOutliers(ufoTracks[id]);
+      const numFiltered = numFixesBefore - ufoTracks[id].timeSec.length;
+      if (numFiltered > 0 && ufoTracks[id].lastOutlierFixSec !== prevOutlierSec) {
+        filteredLogs.push(`[${nowSec}] ${fleetName}:${id} ${numFiltered} fixes`);
+      }
     }
+  }
+
+  if (pipeline && filteredLogs.length > 0) {
+    pushListCap(pipeline, Keys.fetcherFilteredTracks, filteredLogs, 10);
   }
 
   for (const fleetName in state.ufoFleets) {

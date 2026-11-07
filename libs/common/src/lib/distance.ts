@@ -36,7 +36,7 @@ export function findClosestFix(
   let foundDistance = 10000;
   const ref = { lat, lon };
   tracks.forEach((track) => {
-    for (let fixIdx = 0; fixIdx < track.lat.length; ) {
+    for (let fixIdx = 0; fixIdx < track.lat.length;) {
       const lat = track.lat[fixIdx];
       const lon = track.lon[fixIdx];
       const d = getDistance(ref, { lat, lon });

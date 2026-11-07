@@ -86,7 +86,7 @@ export async function refreshTrackers(
   }
 
   const nowSec = Math.round(Date.now() / 1000);
-  const updatedPilots = applyTrackerUpdates(state, trackerUpdates, nowSec);
+  const updatedPilots = applyTrackerUpdates(state, trackerUpdates, nowSec, pipeline);
 
   // Fetch ground elevation for newly added points in tracker updates.
   const tracksToPatch: TrackElevationPatch[] = [];
@@ -115,6 +115,7 @@ export function applyTrackerUpdates(
   state: protos.FetcherState,
   trackerUpdates: TrackerUpdates[],
   nowSec = Math.round(Date.now() / 1000),
+  pipeline?: RedisClientMultiCmd,
 ): Map<number, number> {
   const dropBeforeSec = nowSec - LiveTrackDurationSec.Max;
 
@@ -182,12 +183,22 @@ export function applyTrackerUpdates(
     }
   }
 
-  // 4. Filter GPS speed outliers in the active session for pilots that had track deltas in this cycle.
+  // 4. Filter GPS speed outliers for updated pilots. Log only newly detected outliers to avoid duplicates during 5-min fetch overlap.
+  const filteredLogs: string[] = [];
   for (const [id, deltaMinSec] of updatedPilots) {
     const pilot = state.pilots[id];
     if (pilot) {
+      const prevOutlierSec = pilot.track.lastOutlierFixSec;
+      const numFixesBefore = pilot.track.timeSec.length;
       pilot.track = filterLiveTrackOutliers(pilot.track, { filterFromSec: deltaMinSec });
+      const numFiltered = numFixesBefore - pilot.track.timeSec.length;
+      if (numFiltered > 0 && pilot.track.lastOutlierFixSec !== prevOutlierSec) {
+        filteredLogs.push(`[${nowSec}] id=${id} ${numFiltered} fixes`);
+      }
     }
+  }
+  if (pipeline && filteredLogs.length > 0) {
+    pushListCap(pipeline, Keys.fetcherFilteredTracks, filteredLogs, 10);
   }
 
   // Drop points older than max retention for all tracks that have outdated points.
