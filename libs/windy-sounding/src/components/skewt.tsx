@@ -11,7 +11,8 @@ export type SkewTProps = {
   width: number;
   height: number;
   yPointer: number | undefined;
-  levels: number[];
+  tempLevels: number[];
+  ghLevels: number[];
   cloudLevels: number[];
   temps: number[];
   dewPoints: number[];
@@ -40,7 +41,8 @@ export function SkewT(props: SkewTProps) {
   const {
     width,
     height,
-    levels,
+    tempLevels,
+    ghLevels,
     cloudLevels,
     temps,
     ghs,
@@ -73,7 +75,7 @@ export function SkewT(props: SkewTProps) {
     pathGenerator,
     ySurface,
   } = useMemo(() => {
-    const pressureToGhScale = atm.getPressureToGhScale(levels, ghs, seaLevelPressure);
+    const pressureToGhScale = atm.getPressureToGhScale(ghLevels, ghs, seaLevelPressure);
     const ghMeterToPxScale = math.scaleLinear(
       [pressureToGhScale(minPressure), pressureToGhScale(maxPressure)],
       [0, height],
@@ -105,7 +107,7 @@ export function SkewT(props: SkewTProps) {
       ySurface,
     };
   }, [
-    levels,
+    ghLevels,
     ghs,
     seaLevelPressure,
     minPressure,
@@ -212,11 +214,11 @@ export function SkewT(props: SkewTProps) {
     () => (
       <g className="line">
         {parcel && <Parcel {...{ parcel, width, height, pathGenerator, pressureToPxScale, formatAltitude }} />}
-        <path className="temperature" d={pathGenerator(math.zip(temps, levels))} />
-        <path className="dewpoint" d={pathGenerator(math.zip(dewPoints, levels))} />
+        <path className="temperature" d={pathGenerator(math.zip(temps, tempLevels))} />
+        <path className="dewpoint" d={pathGenerator(math.zip(dewPoints, tempLevels))} />
       </g>
     ),
-    [parcel, width, height, pathGenerator, pressureToPxScale, formatAltitude, temps, dewPoints, levels],
+    [parcel, width, height, pathGenerator, pressureToPxScale, formatAltitude, temps, dewPoints, tempLevels],
   );
 
   let tempAtCursor = 0;
@@ -224,8 +226,8 @@ export function SkewT(props: SkewTProps) {
   let yOffsetCursor = 4;
   let cursorClass = 'top';
   if (yPointer !== undefined) {
-    tempAtCursor = math.sampleAt(levels, temps, pressureToPxScale.invert(yPointer));
-    dewPointAtCursor = math.sampleAt(levels, dewPoints, pressureToPxScale.invert(yPointer));
+    tempAtCursor = math.sampleAt(tempLevels, temps, pressureToPxScale.invert(yPointer));
+    dewPointAtCursor = math.sampleAt(tempLevels, dewPoints, pressureToPxScale.invert(yPointer));
     if (yPointer > height / 2) {
       yOffsetCursor = -4;
       cursorClass = 'bottom';
@@ -591,7 +593,10 @@ function Clouds({ width, cloudLevels, clouds, pressureToPxScale, surfacePressure
   if (showUpperClouds) {
     yStart = 30;
     const upperPressure = pressureToPxScale.invert(yStart);
-    const upperCoverMax = Math.max(0, ...cloudLevels.map((level, i) => (level <= upperPressure ? clouds[i] ?? 0 : 0)));
+    const upperCoverMax = Math.max(
+      0,
+      ...cloudLevels.map((level, i) => (level <= upperPressure ? (clouds[i] ?? 0) : 0)),
+    );
 
     if (upperCoverMax >= MIN_UPPER_CLOUD_COVER) {
       elements.push(

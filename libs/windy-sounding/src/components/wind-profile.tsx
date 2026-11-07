@@ -8,7 +8,8 @@ import { sampleAt } from '../util/math';
 export type WindProfileProps = {
   width: number;
   height: number;
-  levels: number[];
+  windLevels: number[];
+  ghLevels: number[];
   ghs: number[];
   minPressure: number;
   maxPressure: number;
@@ -26,7 +27,8 @@ export function WindProfile(props: WindProfileProps) {
   const {
     width,
     height,
-    levels,
+    windLevels,
+    ghLevels,
     ghs,
     minPressure,
     maxPressure,
@@ -41,13 +43,13 @@ export function WindProfile(props: WindProfileProps) {
   } = props;
 
   const { maxSpeed, pressureToPxScale, speedToPxScale, pathGenerator, ySurface, surfacePressure } = useMemo(() => {
-    const maxLevelIndex = levels.findIndex((level) => level < minPressure);
-    const keepToIndex = maxLevelIndex == -1 ? levels.length - 1 : maxLevelIndex;
+    const maxLevelIndex = windLevels.findIndex((level) => level < minPressure);
+    const keepToIndex = maxLevelIndex == -1 ? windLevels.length - 1 : maxLevelIndex;
 
     // Set the max to at least 30km/h.
     const maxSpeed = Math.max(60 / 3.6, ...speeds.slice(0, keepToIndex + 1));
 
-    const pressureToGhScale = getPressureToGhScale(levels, ghs, seaLevelPressure);
+    const pressureToGhScale = getPressureToGhScale(ghLevels, ghs, seaLevelPressure);
     const ghToPxScale = math.scaleLinear([pressureToGhScale(minPressure), pressureToGhScale(maxPressure)], [0, height]);
     const pressureToPxScale = math.composeScales(pressureToGhScale, ghToPxScale);
 
@@ -71,7 +73,19 @@ export function WindProfile(props: WindProfileProps) {
       ySurface,
       surfacePressure,
     };
-  }, [levels, minPressure, speeds, ghs, seaLevelPressure, maxPressure, height, isFixedRange, width, surfaceElevation]);
+  }, [
+    windLevels,
+    ghLevels,
+    minPressure,
+    speeds,
+    ghs,
+    seaLevelPressure,
+    maxPressure,
+    height,
+    isFixedRange,
+    width,
+    surfaceElevation,
+  ]);
 
   const [{ gradientMinSpeed, gradientMaxSpeed, gradientSpeedStops }] = useState(() => {
     const gradient = W.colors.wind.getColorGradient();
@@ -104,9 +118,9 @@ export function WindProfile(props: WindProfileProps) {
             ))}
           </linearGradient>
         </defs>
-        <path className="speed line" stroke="url(#windGrad)" d={pathGenerator(math.zip(speeds, levels))} />
+        <path className="speed line" stroke="url(#windGrad)" d={pathGenerator(math.zip(speeds, windLevels))} />
         <g transform={`translate(${width / 2}, 0)`}>
-          {levels.map((level: number, i: number) => {
+          {windLevels.map((level: number, i: number) => {
             if (level > surfacePressure) {
               return undefined;
             }
@@ -127,7 +141,7 @@ export function WindProfile(props: WindProfileProps) {
       isFixedRange,
       pathGenerator,
       speeds,
-      levels,
+      windLevels,
       surfacePressure,
       directions,
       pressureToPxScale,
@@ -139,7 +153,7 @@ export function WindProfile(props: WindProfileProps) {
   let cursorClass = 'top';
   let windAtCursor = 0;
   if (yPointer !== undefined) {
-    windAtCursor = sampleAt(levels, speeds, pressureToPxScale.invert(yPointer));
+    windAtCursor = sampleAt(windLevels, speeds, pressureToPxScale.invert(yPointer));
     if (yPointer > height / 2) {
       yOffsetCursor = -4;
       cursorClass = 'bottom';

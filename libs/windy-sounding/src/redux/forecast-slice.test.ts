@@ -2,11 +2,19 @@ import {
   fetchForecast,
   FetchStatus,
   type Forecast,
+  getSoundingTimesMs,
   isWindyDataCached,
+  selCloudDescendingLevels,
+  selGhDescendingLevels,
   selIsWindyDataAvailable,
   selIsWindyDataAvailableAt,
   selLoadedWindyDataOrThrow,
   selMaybeLoadedWindyData,
+  selPeriodValues,
+  selSoundingTimesMs,
+  selTempDescendingLevels,
+  selValuesAt,
+  selWindDescendingLevels,
   slice,
   STALE_WINDY_DATA_CACHE_MIN,
   windyDataKey,
@@ -294,6 +302,199 @@ describe('forecast-slice', () => {
 
       expect(action.meta.requestStatus).toBe('fulfilled');
       vi.restoreAllMocks();
+    });
+  });
+
+  describe('dewpoint extraction in selPeriodValues', () => {
+    const baseSounding = {
+      ts: [1_000_000],
+      'temp-1000h': [290],
+      'rh-1000h': [70],
+      'wind-1000h': [5],
+      'windDir-1000h': [180],
+      'cloud-1000h': [20],
+    };
+
+    it('extracts dew point when formatted as lowercase dewpoint-<level>', () => {
+      const forecast = createMockForecast({
+        forecast: {
+          ...createMockForecast().forecast,
+          sounding: {
+            ...baseSounding,
+            'dewpoint-1000h': [284],
+          },
+        } as any,
+      });
+      const state = createMockState(forecast);
+      const periodValues = selPeriodValues(state, modelName, location);
+      expect(periodValues.dewpointByTime).toEqual([[284]]);
+    });
+
+    it('extracts dew point when formatted as camelCase dewPoint-<level>', () => {
+      const forecast = createMockForecast({
+        forecast: {
+          ...createMockForecast().forecast,
+          sounding: {
+            ...baseSounding,
+            'dewPoint-1000h': [285],
+          },
+        } as any,
+      });
+      const state = createMockState(forecast);
+      const periodValues = selPeriodValues(state, modelName, location);
+      expect(periodValues.dewpointByTime).toEqual([[285]]);
+    });
+
+    it('falls back to computeDewPointKelvin when neither is present', () => {
+      (globalThis as any).W.utils.computeDewPointKelvin.mockReturnValueOnce(283);
+      const forecast = createMockForecast({
+        forecast: {
+          ...createMockForecast().forecast,
+          sounding: {
+            ...baseSounding,
+          },
+        } as any,
+      });
+      const state = createMockState(forecast);
+      const periodValues = selPeriodValues(state, modelName, location);
+      expect((globalThis as any).W.utils.computeDewPointKelvin).toHaveBeenCalledWith(70, 290);
+      expect(periodValues.dewpointByTime).toEqual([[283]]);
+    });
+  });
+
+  describe('mismatched upper-air vs surface horizon (e.g. mblue)', () => {
+    const ts = [1000, 2000, 3000, 4000, 5000];
+    const upperAirTs = [1000, 2000];
+
+    const soundingWithShortUpperAir = {
+      ts,
+      'temp-surface': [290, 291, 292, 293, 294],
+      'temp-1000h': [289, 290],
+      'temp-850h': [280, 281],
+      'rh-1000h': [70, 75],
+      'rh-850h': [60, 65],
+      'dewpoint-1000h': [284, 285],
+      'dewpoint-850h': [275, 276],
+      'gh-850h': [1500, 1510],
+      'gh-750h': [2500, 2510],
+      'wind-925h': [10, 12],
+      'wind-700h': [15, 18],
+      'windDir-925h': [180, 190],
+      'windDir-700h': [200, 210],
+      'cloud-1000h': [10, 20],
+      'cloud-900h': [30, 40],
+    };
+
+    it('getSoundingTimesMs slices timestamps to upper-air horizon', () => {
+      expect(getSoundingTimesMs(soundingWithShortUpperAir as any)).toEqual(upperAirTs);
+    });
+
+    it('selIsWindyDataAvailableAt restricts availability to upper-air horizon', () => {
+      const forecast = createMockForecast({
+        forecast: {
+          ...createMockForecast().forecast,
+          data: {
+            ts,
+            pressure: [101325, 101200, 101100, 101000, 100900],
+            precipAmount: [0, 2, 4, 6, 8],
+          },
+          sounding: soundingWithShortUpperAir,
+        } as any,
+      });
+      const state = createMockState(forecast);
+
+      // Within upper-air range
+      expect(selIsWindyDataAvailableAt(state, modelName, location, 1000)).toBe(true);
+      expect(selIsWindyDataAvailableAt(state, modelName, location, 2000)).toBe(true);
+
+      // Past upper-air horizon, even though surface data exists
+      expect(selIsWindyDataAvailableAt(state, modelName, location, 3000)).toBe(false);
+      expect(selIsWindyDataAvailableAt(state, modelName, location, 5000)).toBe(false);
+    });
+
+    it('extracts decoupled levels per parameter family', () => {
+      const forecast = createMockForecast({
+        forecast: {
+          ...createMockForecast().forecast,
+          data: {
+            ts,
+            pressure: [101325, 101200, 101100, 101000, 100900],
+            precipAmount: [0, 2, 4, 6, 8],
+          },
+          sounding: soundingWithShortUpperAir,
+        } as any,
+      });
+      const state = createMockState(forecast);
+
+      expect(selSoundingTimesMs(state, modelName, location)).toEqual(upperAirTs);
+      expect(selTempDescendingLevels(state, modelName, location)).toEqual([1000, 850]);
+      expect(selWindDescendingLevels(state, modelName, location)).toEqual([925, 700]);
+      expect(selGhDescendingLevels(state, modelName, location)).toEqual([850, 750]);
+      expect(selCloudDescendingLevels(state, modelName, location)).toEqual([1000, 900]);
+
+      const periodValues = selPeriodValues(state, modelName, location);
+      expect(periodValues.timesMs).toEqual(upperAirTs);
+      expect(periodValues.tempLevels).toEqual([1000, 850]);
+      expect(periodValues.windLevels).toEqual([925, 700]);
+      expect(periodValues.ghLevels).toEqual([850, 750]);
+      expect(periodValues.cloudLevels).toEqual([1000, 900]);
+
+      // Check extracted values align with their specific level definitions
+      expect(periodValues.tempByTime).toEqual([
+        [289, 280],
+        [290, 281],
+      ]);
+      expect(periodValues.windByTime).toEqual([
+        [10, 15],
+        [12, 18],
+      ]);
+      expect(periodValues.windDirByTime).toEqual([
+        [180, 200],
+        [190, 210],
+      ]);
+      expect(periodValues.ghByTime).toEqual([
+        [1500, 2500],
+        [1510, 2510],
+      ]);
+      expect(periodValues.cloudByTime).toEqual([
+        [10, 30],
+        [20, 40],
+      ]);
+
+      // Verify selValuesAt samples rainMm correctly against timesMs (interpolated between 0 and 2 at 1500)
+      const timeValues = selValuesAt(state, modelName, location, 1500);
+      expect(timeValues.rainMm).toBe(1);
+    });
+
+    it('selWindDescendingLevels returns only levels with both speed and direction and does not fallback to temp', () => {
+      const forecastWithPartialWind = createMockForecast({
+        forecast: {
+          ...createMockForecast().forecast,
+          sounding: {
+            ts: [1000],
+            'temp-1000h': [290],
+            'rh-1000h': [70],
+            'wind-1000h': [10], // speed without direction
+            'wind-850h': [15],
+            'windDir-850h': [180], // speed and direction
+          },
+        } as any,
+      });
+      const stateWithPartial = createMockState(forecastWithPartialWind);
+      expect(selWindDescendingLevels(stateWithPartial, modelName, location)).toEqual([850]);
+
+      const forecastWithNoWind = createMockForecast({
+        forecast: {
+          ...createMockForecast().forecast,
+          sounding: {
+            ts: [1000],
+            'temp-1000h': [290],
+            'rh-1000h': [70],
+          },
+        } as any,
+      });
+      const stateNoWind = createMockState(forecastWithNoWind);
+      expect(selWindDescendingLevels(stateNoWind, modelName, location)).toEqual([]);
     });
   });
 });

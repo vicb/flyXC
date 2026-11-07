@@ -309,7 +309,7 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
 
   const setIsZoomedIn = useCallback((expanded: boolean) => dispatch(pluginSlice.setIsZoomedIn(expanded)), []);
 
-  const { minPressure, maxPressure, isZoomedIn, levels, ghs, seaLevelPressure } = useSelector((state: RootState) => {
+  const { minPressure, maxPressure, isZoomedIn, ghLevels, ghs, seaLevelPressure } = useSelector((state: RootState) => {
     const timeMs = pluginSlice.selTimeMs(state);
     const isZoomedIn = pluginSlice.selIsZoomedIn(state);
     const modelName = pluginSlice.selModelName(state);
@@ -329,7 +329,7 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
       isZoomedIn,
       minPressure,
       maxPressure,
-      levels: periodValues.levels,
+      ghLevels: periodValues.ghLevels,
       ghs: timeValues.gh,
       seaLevelPressure: timeValues.seaLevelPressure,
     };
@@ -339,7 +339,7 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
   const windWidth = width - skewTWidth - 5;
 
   const cursorContextRef = useRef({
-    levels,
+    ghLevels,
     ghs,
     seaLevelPressure,
     minPressure,
@@ -347,7 +347,7 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
     height,
   });
   cursorContextRef.current = {
-    levels,
+    ghLevels,
     ghs,
     seaLevelPressure,
     minPressure,
@@ -370,8 +370,8 @@ function Graph({ width, height, skewTWidthPercent }: { width: number; height: nu
       const supportsLevels = W.overlays[overlay].hasMoreLevels;
       const availLevels = W.store.get('availLevels');
       if (supportsLevels && availLevels.length > 1) {
-        const { levels, ghs, seaLevelPressure, minPressure, maxPressure, height } = cursorContextRef.current;
-        const pressureToGhScale = atm.getPressureToGhScale(levels, ghs, seaLevelPressure);
+        const { ghLevels, ghs, seaLevelPressure, minPressure, maxPressure, height } = cursorContextRef.current;
+        const pressureToGhScale = atm.getPressureToGhScale(ghLevels, ghs, seaLevelPressure);
         const ghMeterToPxScale = math.scaleLinear(
           [pressureToGhScale(minPressure), pressureToGhScale(maxPressure)],
           [0, height],
@@ -451,10 +451,11 @@ const ConnectedSkewT = memo(function ConnectedSkewT(props: ChildGraphProps) {
     const formatTemp = unitsSlice.selTempFormatter(state);
 
     return {
-      levels: periodValues.levels,
+      tempLevels: periodValues.tempLevels,
+      ghLevels: periodValues.ghLevels,
       cloudLevels: periodValues.cloudLevels,
       temps: timeValues.temp,
-      dewPoints: timeValues.dewPoint,
+      dewPoints: timeValues.dewpoint,
       ghs: timeValues.gh,
       seaLevelPressure: timeValues.seaLevelPressure,
       minTemp,
@@ -497,7 +498,8 @@ const ConnectedWind = memo(function ConnectedWind(props: ChildGraphProps) {
 
     return {
       seaLevelPressure: timeValues.seaLevelPressure,
-      levels: periodValues.levels,
+      windLevels: periodValues.windLevels,
+      ghLevels: periodValues.ghLevels,
       ghs: timeValues.gh,
       speeds: timeValues.wind,
       directions: timeValues.windDir,
