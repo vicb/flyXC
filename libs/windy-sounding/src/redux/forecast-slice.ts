@@ -29,7 +29,7 @@ export enum FetchStatus {
 
 // Those properties varies with the altitude level.
 // All are defined at the same levels (the `PeriodValue.levels` array).
-const _levelProps = ['temp', 'dewPoint', 'gh', 'wind', 'windDir', 'rh'] as const;
+const _levelProps = ['temp', 'dewpoint', 'gh', 'wind', 'windDir', 'rh'] as const;
 type LevelProp = (typeof _levelProps)[number];
 type LevelPropByTime = `${LevelProp}ByTime`;
 
@@ -65,23 +65,22 @@ export type PeriodValue = {
   // By time only
   Record<SfcPropsByTime, number[]>;
 
-export type Forecast =
+export type Forecast = {
+  forecastKey: string;
+  modelName: string;
+  location: LatLon;
+  loadedMs: number;
+} & (
   | {
-      forecastKey: string;
-      modelName: string;
-      location: LatLon;
-      loadedMs: number;
-    } & (
-      | {
-          fetchStatus: FetchStatus.Loading | FetchStatus.Error | FetchStatus.Idle | FetchStatus.ErrorOutOfBounds;
-        }
-      | {
-          fetchStatus: FetchStatus.Loaded;
-          forecast: ForecastType;
-          nextUpdateMs: number;
-          updateMs: number;
-        }
-    );
+      fetchStatus: FetchStatus.Loading | FetchStatus.Error | FetchStatus.Idle | FetchStatus.ErrorOutOfBounds;
+    }
+  | {
+      fetchStatus: FetchStatus.Loaded;
+      forecast: ForecastType;
+      nextUpdateMs: number;
+      updateMs: number;
+    }
+);
 
 export type ModelAndLocation = {
   modelName: string;
@@ -157,7 +156,7 @@ export const fetchForecast = createAsyncThunk<Forecast, ModelAndLocation, { stat
       const updateMs = new Date(forecast.data.header.update as string).getTime();
       const product = windyProducts[modelName];
       const updateIntervalMin = product
-        ? (windySubscription.hasAny() ? product.intervalPremium ?? product.interval : product.interval) ?? 360
+        ? ((windySubscription.hasAny() ? (product.intervalPremium ?? product.interval) : product.interval) ?? 360)
         : 360;
 
       return {
@@ -256,7 +255,7 @@ export function isWindyDataCached(state: ForecastState, key: string) {
  * and approximates geopotential height (gh) from the barometric formula if omitted by the model.
  *
  * @param sounding - Sounding data payload.
- * @param paramName - Parameter to extract ('temp', 'dewPoint', 'gh', 'rh', 'wind', or 'windDir').
+ * @param paramName - Parameter to extract ('temp', 'dewpoint', 'gh', 'rh', 'wind', or 'windDir').
  * @param levels - Pressure levels in descending order (in hPa).
  * @param tsIndex - Timestamp index in the time series.
  * @returns Array of parameter values corresponding to each level.
@@ -270,10 +269,12 @@ function extractSoundingParamByLevel(
   return levels.map((level: number): number => {
     const levelKey = `${level}h` as AnyMeteogramLevels;
 
-    if (paramName === 'dewPoint') {
-      const dew = sounding[`dewPoint-${levelKey}`]?.[tsIndex];
+    if (paramName === 'dewpoint') {
+      // Windy API returns lowercase 'dewpoint-<level>', while @windy/node-forecast-v3 types define 'dewPoint-<level>'
+      const dew =
+        (sounding as Record<string, number[] | undefined>)[`dewpoint-${levelKey}`]?.[tsIndex] ??
+        sounding[`dewPoint-${levelKey}`]?.[tsIndex];
       if (dew != null) {
-        // As of Aug 2026, windy does not provide the dew point for meteoblue AI
         return dew;
       }
       const temp = sounding[`temp-${levelKey}`]?.[tsIndex];
@@ -317,6 +318,19 @@ function extractSoundingParamByLevel(
   });
 }
 
+/**
+ * Computes aggregated period values across all forecast sounding timestamps.
+ *
+ * Extracts vertical atmospheric profiles across pressure levels, cloud profiles,
+ * and surface parameters for each time step, and determines period extrema
+ * (min/max temperature and max sea level pressure).
+ *
+ * @param windyData - Loaded Windy forecast data containing sounding and surface weather information.
+ * @param levels - Pressure levels (in hPa) for sounding properties (temperature, dew point, geopotential height, etc.).
+ * @param cloudLevels - Pressure levels (in hPa) for cloud cover properties.
+ * @returns Aggregated period values including time series by level and period-wide extrema.
+ * @throws {Error} If the forecast does not contain sounding timestamps.
+ */
 function computePeriodValues(
   windyData: Forecast & {
     fetchStatus: FetchStatus.Loaded;
@@ -338,7 +352,7 @@ function computePeriodValues(
   const values: Record<LevelPropByTime, number[][]> &
     Record<CloudLevelPropByTime, number[][]> &
     Record<SfcPropsByTime, number[]> = {
-    dewPointByTime: [],
+    dewpointByTime: [],
     ghByTime: [],
     rhByTime: [],
     tempByTime: [],
@@ -357,7 +371,7 @@ function computePeriodValues(
     const seaLevelPressure = sampleAt(soundingTimeMs, windyData.forecast.data.pressure, timeMs) / 100;
     maxSeaLevelPressure = Math.max(maxSeaLevelPressure, seaLevelPressure);
     values.tempByTime.push(tempByLevel);
-    values.dewPointByTime.push(extractSoundingParamByLevel(soundingData, 'dewPoint', levels, tsIndex));
+    values.dewpointByTime.push(extractSoundingParamByLevel(soundingData, 'dewpoint', levels, tsIndex));
     values.ghByTime.push(extractSoundingParamByLevel(soundingData, 'gh', levels, tsIndex));
     values.rhByTime.push(extractSoundingParamByLevel(soundingData, 'rh', levels, tsIndex));
     values.windByTime.push(extractSoundingParamByLevel(soundingData, 'wind', levels, tsIndex));
@@ -552,7 +566,7 @@ export const selValuesAt = createSelector(
     timeMs = Math.max(timeMs, windyData.forecast.sounding?.ts?.[0] ?? timesMs[0], windyData.forecast.data.ts[0]);
     return {
       temp: sampleAt(timesMs, periodValues.tempByTime, timeMs),
-      dewPoint: sampleAt(timesMs, periodValues.dewPointByTime, timeMs),
+      dewpoint: sampleAt(timesMs, periodValues.dewpointByTime, timeMs),
       gh: sampleAt(timesMs, periodValues.ghByTime, timeMs),
       rh: sampleAt(timesMs, periodValues.rhByTime, timeMs),
       wind: sampleAt(timesMs, periodValues.windByTime, timeMs),
@@ -569,10 +583,8 @@ export const selElevation = (state: RootState, modelName: string, location: LatL
   return header.elevation ?? header.modelElevation ?? 0;
 };
 
-export const selPressureToGhScale = createSelector(
-  selDescendingLevels,
-  selValuesAt,
-  (levels, values): Scale => getPressureToGhScale(levels, values.gh, values.seaLevelPressure),
+export const selPressureToGhScale = createSelector(selDescendingLevels, selValuesAt, (levels, values): Scale =>
+  getPressureToGhScale(levels, values.gh, values.seaLevelPressure),
 );
 
 export const selDisplayParcel = createSelector(
@@ -593,7 +605,7 @@ export const selParcel = createSelector(
   selPressureToGhScale,
   selElevation,
   (timeValues, periodValues, pressureToGhScale, elevation): ParcelData => {
-    const pressureToDewpointScale = scaleLinear(periodValues.levels, timeValues.dewPoint);
+    const pressureToDewpointScale = scaleLinear(periodValues.levels, timeValues.dewpoint);
     return parcelTrajectory(
       periodValues.levels,
       timeValues.gh,
