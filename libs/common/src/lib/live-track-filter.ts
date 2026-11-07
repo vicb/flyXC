@@ -315,17 +315,24 @@ export function filterLiveTrackOutliers(
   if (hasCleanStart) {
     const cleanStartEndIdx = sessionStart + MIN_CONFIDENT_FIXES - 1;
     let startIdx = cleanStartEndIdx + 1;
+    let anchorIdx = cleanStartEndIdx;
 
     // When filterFromSec is provided (e.g. earliest delta timestamp in the current server tick),
-    // skip already-validated fixes and evaluate only from filterFromSec onwards.
+    // skip already-validated fixes and evaluate only from filterFromSec onwards against the preceding valid anchor.
     if (filterFromSec != null && filterFromSec > track.timeSec[cleanStartEndIdx]) {
       const fromIdx = findFirstIndex(track.timeSec, filterFromSec, Comparison.GREATER_EQUAL);
-      if (fromIdx > startIdx && isReachable(track, cleanStartEndIdx, fromIdx - 1, maxSpeedKmh)) {
-        startIdx = fromIdx;
+      if (fromIdx > startIdx) {
+        let prevValidIdx = fromIdx - 1;
+        while (prevValidIdx >= sessionStart && !isTrackFixValid(track, prevValidIdx)) {
+          prevValidIdx--;
+        }
+        if (prevValidIdx >= sessionStart) {
+          startIdx = fromIdx;
+          anchorIdx = prevValidIdx;
+        }
       }
     }
 
-    let anchorIdx = startIdx - 1;
     let droppedIndices: Set<number> | undefined;
     let droppedClusterCount = 0;
     let droppedClusterLastIdx = -1;

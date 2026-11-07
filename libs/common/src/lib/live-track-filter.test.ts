@@ -328,6 +328,27 @@ describe('filterLiveTrackOutliers', () => {
     expect(result.lastOutlierFixSec).toBe(360);
   });
 
+  it('correctly anchors delta fast-path on long non-linear tracks', () => {
+    // 10 fixes without any gap > 1h
+    const points: [number, number, number][] = [
+      [BIR_LAT, BIR_LON, 0],
+      [BIR_LAT + 0.001, BIR_LON, 60],
+      [BIR_LAT + 0.002, BIR_LON, 120],
+      [BIR_LAT + 0.003, BIR_LON, 180],
+      [BIR_LAT + 0.004, BIR_LON, 240],
+      [BIR_LAT + 0.005, BIR_LON, 300],
+      [BIR_LAT + 0.006, BIR_LON, 360],
+      [BIR_LAT + 0.007, BIR_LON, 420],
+      // Delta: 1 outlier at 480 and 1 valid fix at 540
+      [PUNJAB_LAT, PUNJAB_LON, 480],
+      [BIR_LAT + 0.008, BIR_LON, 540],
+    ];
+
+    const result = filterLiveTrackOutliers(createTestTrack(points), { filterFromSec: 480 });
+    expect(result.timeSec).toEqual([0, 60, 120, 180, 240, 300, 360, 420, 540]);
+    expect(result.lastOutlierFixSec).toBe(480);
+  });
+
   it('keeps same-second and close-in-time fixes within MIN_OUTLIER_DIST_M (500m) for multi-tracker merges', () => {
     // 0.003 deg latitude is ~333m (< 500m, even though 333m in 0s or 1s exceeds 300 km/h)
     const points: [number, number, number][] = [
