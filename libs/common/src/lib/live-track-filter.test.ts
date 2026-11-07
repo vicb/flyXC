@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import * as protos from '../protos';
-import { LiveTrackFlag } from './live-track';
+import { LiveTrackFlag, NO_GROUND_ALTITUDE } from './live-track';
 import { filterLiveTrackOutliers } from './live-track-filter';
 
 // Helper to create a LiveTrack from array of [lat, lon, timeSec]
@@ -447,7 +447,7 @@ describe('filterLiveTrackOutliers', () => {
     expect(result.lastOutlierFixSec).toBeUndefined();
   });
 
-  it('prunes outliers in-place preserving array instances', () => {
+  it('prunes outliers in-place preserving array instances and full alignment', () => {
     const points: [number, number, number][] = [
       [BIR_LAT, BIR_LON, 0],
       [BIR_LAT + 0.001, BIR_LON, 60],
@@ -458,9 +458,13 @@ describe('filterLiveTrackOutliers', () => {
       [BIR_LAT + 0.005, BIR_LON, 360],
     ];
     const track = createTestTrack(points);
+    track.gndAlt = [100, 101, 102, 103, 104, 999, 105];
     const originalTimeSec = track.timeSec;
     const originalLat = track.lat;
     const originalLon = track.lon;
+    const originalAlt = track.alt;
+    const originalFlags = track.flags;
+    const originalGndAlt = track.gndAlt;
 
     const result = filterLiveTrackOutliers(track);
 
@@ -468,7 +472,42 @@ describe('filterLiveTrackOutliers', () => {
     expect(result.timeSec).toBe(originalTimeSec);
     expect(result.lat).toBe(originalLat);
     expect(result.lon).toBe(originalLon);
+    expect(result.alt).toBe(originalAlt);
+    expect(result.flags).toBe(originalFlags);
+    expect(result.gndAlt).toBe(originalGndAlt);
+
     expect(result.timeSec).toEqual([0, 60, 120, 180, 240, 360]);
+    expect(result.lat).toEqual([
+      BIR_LAT,
+      BIR_LAT + 0.001,
+      BIR_LAT + 0.002,
+      BIR_LAT + 0.003,
+      BIR_LAT + 0.004,
+      BIR_LAT + 0.005,
+    ]);
+    expect(result.lon).toEqual([BIR_LON, BIR_LON, BIR_LON, BIR_LON, BIR_LON, BIR_LON]);
+    expect(result.alt).toHaveLength(6);
+    expect(result.flags).toHaveLength(6);
+    expect(result.gndAlt).toEqual([100, 101, 102, 103, 104, 105]);
     expect(result.lastOutlierFixSec).toBe(300);
+  });
+
+  it('normalizes missing ground altitude slots during in-place compaction', () => {
+    const points: [number, number, number][] = [
+      [BIR_LAT, BIR_LON, 0],
+      [BIR_LAT + 0.001, BIR_LON, 60],
+      [BIR_LAT + 0.002, BIR_LON, 120],
+      [BIR_LAT + 0.003, BIR_LON, 180],
+      [BIR_LAT + 0.004, BIR_LON, 240],
+      [PUNJAB_LAT, PUNJAB_LON, 300], // outlier
+      [BIR_LAT + 0.005, BIR_LON, 360], // no gndAlt originally
+    ];
+    const track = createTestTrack(points);
+    // gndAlt only partially populated (length 6, missing 7th fix)
+    track.gndAlt = [100, 101, 102, 103, 104, 999];
+
+    const result = filterLiveTrackOutliers(track);
+    expect(result.gndAlt).toEqual([100, 101, 102, 103, 104, NO_GROUND_ALTITUDE]);
+    expect(result.gndAlt).toHaveLength(6);
   });
 });

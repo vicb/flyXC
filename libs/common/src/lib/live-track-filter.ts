@@ -1,6 +1,6 @@
 import type * as protos from '../protos';
 import { approximateDistanceSquared } from './distance';
-import { isProtectedFix, isValidFix } from './live-track';
+import { isProtectedFix, isValidFix, NO_GROUND_ALTITUDE } from './live-track';
 import { Comparison, findFirstIndex } from './math';
 
 /**
@@ -147,8 +147,8 @@ function pruneAndRecordOutliers(track: protos.LiveTrack, droppedIndices: Set<num
       track.lon[dstIdx] = track.lon[srcIdx];
       track.alt[dstIdx] = track.alt[srcIdx];
       track.flags[dstIdx] = track.flags[srcIdx];
-      if (track.gndAlt && track.gndAlt.length > srcIdx) {
-        track.gndAlt[dstIdx] = track.gndAlt[srcIdx];
+      if (track.gndAlt) {
+        track.gndAlt[dstIdx] = srcIdx < track.gndAlt.length ? track.gndAlt[srcIdx] : NO_GROUND_ALTITUDE;
       }
       if (track.extra) {
         if (srcIdx in track.extra) {
