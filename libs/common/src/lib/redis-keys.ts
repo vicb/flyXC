@@ -69,6 +69,8 @@ export enum Keys {
   fetcherIncrementalProtoM5 = 'f:live:inc:short:proto',
   // Number of pilots in incremental tracks.
   fetcherIncrementalNumTracksM20 = 'f:live:inc:size',
+  // [List] Number of filtered outlier fixes by track.
+  fetcherFilteredTracks = 'f:live:filtered',
 
   // # Devices
 

@@ -94,15 +94,17 @@ export class AdminPage extends LitElement {
         ${when(this.isLoading && !this.values, () => html`<ion-progress-bar type="indeterminate"></ion-progress-bar>`)}
         ${when(
           this.values,
-          () => html`<dash-summary .values=${this.values} @sync=${this.fetch}></dash-summary>
-            ${common.trackerNames.map(
-              (name) => html`<dash-tracker .values=${this.values} .name=${name}></dash-tracker>`,
-            )}
-            ${common.ufoFleetNames.map((name) => html`<dash-fleet .values=${this.values} .name=${name}></dash-fleet>`)}
-            <dash-proxy .values=${this.values}></dash-proxy>
-            <dash-elev .values=${this.values}></dash-elev>
-            <dash-sync .values=${this.values}></dash-sync>
-            <state-explorer></state-explorer>`,
+          () =>
+            html`<dash-summary .values=${this.values} @sync=${this.fetch}></dash-summary>
+              ${common.trackerNames.map(
+                (name) => html`<dash-tracker .values=${this.values} .name=${name}></dash-tracker>`,
+              )}
+              ${common.ufoFleetNames.map((name) => html`<dash-fleet .values=${this.values} .name=${name}></dash-fleet>`)}
+              <dash-proxy .values=${this.values}></dash-proxy>
+              <dash-elev .values=${this.values}></dash-elev>
+              <dash-filter .values=${this.values}></dash-filter>
+              <dash-sync .values=${this.values}></dash-sync>
+              <state-explorer></state-explorer>`,
         )}
       </ion-content>
       <ion-footer>
@@ -341,33 +343,37 @@ export class DashFleet extends LitElement {
 function errorMarkup(title: string, recent: string[], old: string[]): TemplateResult {
   return html`${when(
     recent.length > 0,
-    () => html`<ion-accordion .value=${title}>
-      <ion-item slot="header">
-        <ion-label>${title} (${recent.length})</ion-label>
-      </ion-item>
-      <ion-list slot="content">
-        ${recent.map(
-          (e) => html`<ion-item lines="none">
-            <ion-label>${unsafeHTML(e)}</ion-label>
-          </ion-item>`,
-        )}
-      </ion-list>
-    </ion-accordion>`,
+    () =>
+      html`<ion-accordion .value=${title}>
+        <ion-item slot="header">
+          <ion-label>${title} (${recent.length})</ion-label>
+        </ion-item>
+        <ion-list slot="content">
+          ${recent.map(
+            (e) =>
+              html`<ion-item lines="none">
+                <ion-label>${unsafeHTML(e)}</ion-label>
+              </ion-item>`,
+          )}
+        </ion-list>
+      </ion-accordion>`,
   )}
   ${when(
     old.length > 0,
-    () => html`<ion-accordion>
-      <ion-item slot="header">
-        <ion-label>Old ${title} (${old.length})</ion-label>
-      </ion-item>
-      <ion-list slot="content">
-        ${old.map(
-          (e) => html`<ion-item lines="none">
-            <ion-label>${unsafeHTML(e)}</ion-label>
-          </ion-item>`,
-        )}
-      </ion-list>
-    </ion-accordion>`,
+    () =>
+      html`<ion-accordion>
+        <ion-item slot="header">
+          <ion-label>Old ${title} (${old.length})</ion-label>
+        </ion-item>
+        <ion-list slot="content">
+          ${old.map(
+            (e) =>
+              html`<ion-item lines="none">
+                <ion-label>${unsafeHTML(e)}</ion-label>
+              </ion-item>`,
+          )}
+        </ion-list>
+      </ion-accordion>`,
   )}`;
 }
 
@@ -387,6 +393,26 @@ export class DashElevation extends LitElement {
       ${item('Num Retrieved', this.values[common.Keys.elevationNumRetrieved].join(', '))}
       ${item('LRU Cache', this.values[common.Keys.elevationCache] ?? '-')}
       ${this.values[common.Keys.elevationErrors].map((e: string) => item(formatLogEntry(e)))}
+    </ion-card>`;
+  }
+
+  createRenderRoot(): HTMLElement {
+    return this;
+  }
+}
+
+@customElement('dash-filter')
+export class DashFilter extends LitElement {
+  @property({ attribute: false })
+  values: any;
+
+  render(): TemplateResult {
+    return html`<ion-card>
+      <ion-card-header color="secondary">
+        <ion-card-title><i class="las la-filter"></i> Filter Outliers</ion-card-title>
+      </ion-card-header>
+
+      ${(this.values[common.Keys.fetcherFilteredTracks] ?? []).map((e: string) => item(formatLogEntry(e)))}
     </ion-card>`;
   }
 
@@ -567,17 +593,23 @@ export class StateExplorer extends LitElement {
         </ion-item>
         ${when(
           this.fetcherState,
-          () => html`<ion-item lines="none">
-              <ion-label position="floating">Filter</ion-label>
-              <ion-input @input=${this.onFilterInput} type="text" .value=${this.filter} .clearInput=${true}></ion-input>
-            </ion-item>
-            ${item(
-              `${numMatchingPilots} pilots. ${
-                numMatchingPilots > STATE_MAX_PILOT ? `Only first ${STATE_MAX_PILOT} shown.` : ``
-              }`,
-            )}
-            <json-viewer .data=${state}>{}</json-viewer>
-            ${singleLineItem('State age', relativeTime(Date.now() / 1000, this.fetchSec))}`,
+          () =>
+            html`<ion-item lines="none">
+                <ion-label position="floating">Filter</ion-label>
+                <ion-input
+                  @input=${this.onFilterInput}
+                  type="text"
+                  .value=${this.filter}
+                  .clearInput=${true}
+                ></ion-input>
+              </ion-item>
+              ${item(
+                `${numMatchingPilots} pilots. ${
+                  numMatchingPilots > STATE_MAX_PILOT ? `Only first ${STATE_MAX_PILOT} shown.` : ``
+                }`,
+              )}
+              <json-viewer .data=${state}>{}</json-viewer>
+              ${singleLineItem('State age', relativeTime(Date.now() / 1000, this.fetchSec))}`,
         )}
       </ion-card>`;
   }

@@ -1,3 +1,4 @@
+import * as common from '@flyxc/common';
 import {
   differentialEncodeLiveTrack,
   LiveTrackDurationSec,
@@ -6,6 +7,7 @@ import {
   protos,
   trackerIdByName,
 } from '@flyxc/common';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   FixType,
@@ -613,6 +615,267 @@ describe('Update live tracks', () => {
         current2,
         { ...update3, id: 3, name: 'track3' },
       ]);
+    });
+
+    it('should filter outliers on incremental update when lastOutlierFixSec is present and skip on subsequent updates', () => {
+      const filterSpy = vi.spyOn(common, 'filterLiveTrackOutliers');
+
+      // Current client track contains a cold-start glitch at Punjab (t=0) and 2 Bir points (t=60, t=120)
+      const currentTrack: protos.LiveTrack = {
+        id: 1,
+        name: 'pilot1',
+        lat: [31.5, 32.05, 32.051],
+        lon: [75.1, 76.7, 76.701],
+        alt: [1000, 1000, 1000],
+        timeSec: [0, 60, 120],
+        flags: [LiveTrackFlag.Valid, LiveTrackFlag.Valid, LiveTrackFlag.Valid],
+        gndAlt: [0, 0, 0],
+        extra: {},
+      };
+
+      // Server update brings 3 more Bir points (now 5 Bir points total vs 1 Punjab), reaches confidence,
+      // and sets lastOutlierFixSec = 0
+      const serverDelta: protos.LiveTrack = {
+        id: 1,
+        name: 'pilot1',
+        lat: [32.052, 32.053, 32.054],
+        lon: [76.702, 76.703, 76.704],
+        alt: [1000, 1000, 1000],
+        timeSec: [180, 240, 300],
+        flags: [LiveTrackFlag.Valid, LiveTrackFlag.Valid, LiveTrackFlag.Valid],
+        gndAlt: [0, 0, 0],
+        extra: {},
+        lastOutlierFixSec: 0,
+      };
+
+      const diffTrack = differentialEncodeLiveTrack(serverDelta, 1, 'pilot1');
+      diffTrack.lastOutlierFixSec = 0;
+      const updates = protos.LiveDifferentialTrackGroup.create({
+        tracks: [diffTrack],
+      });
+
+      const updated = updateLiveTracks({ 1: currentTrack }, updates, true);
+      expect(filterSpy).toHaveBeenCalledTimes(1);
+      expect(updated.length).toBe(1);
+      // Punjab outlier (t=0) should be pruned on the client
+      expect(updated[0].timeSec).toEqual([60, 120, 180, 240, 300]);
+      expect(updated[0].lat[0]).toBeCloseTo(32.05);
+      expect(updated[0].lastOutlierFixSec).toBe(0);
+
+      // Subsequent update arrives with matching lastOutlierFixSec = 0.
+      // We include a point that filterLiveTrackOutliers would prune as an outlier (> 300 km/h spike).
+      // Since lastOutlierFixSec is unchanged, the client skips filtering and retains the fix.
+      const nextServerDelta: protos.LiveTrack = {
+        id: 1,
+        name: 'pilot1',
+        lat: [31.5], // Punjab jump: 150 km away in 60s (> 300 km/h)
+        lon: [75.1],
+        alt: [1000],
+        timeSec: [360],
+        flags: [LiveTrackFlag.Valid],
+        gndAlt: [0],
+        extra: {},
+        lastOutlierFixSec: 0,
+      };
+      const nextDiffTrack = differentialEncodeLiveTrack(nextServerDelta, 1, 'pilot1');
+      nextDiffTrack.lastOutlierFixSec = 0;
+      const nextUpdates = protos.LiveDifferentialTrackGroup.create({
+        tracks: [nextDiffTrack],
+      });
+
+      // Pass updated[0] as the existing cached track for id 1
+      const updated2 = updateLiveTracks({ 1: updated[0] }, nextUpdates, true);
+      // Assert that filterLiveTrackOutliers was NOT called again
+      expect(filterSpy).toHaveBeenCalledTimes(1);
+      expect(updated2.length).toBe(1);
+      expect(updated2[0].timeSec).toEqual([60, 120, 180, 240, 300, 360]);
+      // The spike is retained because filtering was skipped
+      expect(updated2[0].lat[5]).toBeCloseTo(31.5);
+      expect(updated2[0].lastOutlierFixSec).toBe(0);
+
+      filterSpy.mockRestore();
+    });
+
+    it('purges cached outlier bursts when signaled by server', () => {
+      // Client has 2 valid points and 2 consecutive outlier spikes cached
+      const cachedTrack: protos.LiveTrack = {
+        id: 1,
+        name: 'pilot1',
+        lat: [32.05, 32.051, 31.5, 31.501], // 2 Bir, 2 Punjab spikes
+        lon: [76.7, 76.701, 75.1, 75.101],
+        alt: [1000, 1000, 1000, 1000],
+        timeSec: [0, 60, 120, 180],
+        flags: [LiveTrackFlag.Valid, LiveTrackFlag.Valid, LiveTrackFlag.Valid, LiveTrackFlag.Valid],
+        gndAlt: [0, 0, 0, 0],
+        extra: {},
+      };
+
+      const serverDelta: protos.LiveTrack = {
+        id: 1,
+        name: 'pilot1',
+        lat: [32.052],
+        lon: [76.702],
+        alt: [1000],
+        timeSec: [240],
+        flags: [LiveTrackFlag.Valid],
+        gndAlt: [0],
+        extra: {},
+        lastOutlierFixSec: 180,
+      };
+
+      const diffTrack = differentialEncodeLiveTrack(serverDelta, 1, 'pilot1');
+      diffTrack.lastOutlierFixSec = 180;
+      const updates = protos.LiveDifferentialTrackGroup.create({
+        tracks: [diffTrack],
+      });
+
+      const updated = updateLiveTracks({ 1: cachedTrack }, updates, true);
+      expect(updated.length).toBe(1);
+      // Both cached Punjab outliers (120 and 180) are pruned despite total valid fixes < 5
+      expect(updated[0].timeSec).toEqual([0, 60, 240]);
+      expect(updated[0].lastOutlierFixSec).toBe(180);
+    });
+
+    it('purges cached cold-start outlier bursts and handles retention-trimmed client tracks', () => {
+      // 1. Cold-start outliers at t=0, 30 followed by valid fixes at t=60, 120
+      const cachedColdStart: protos.LiveTrack = {
+        id: 1,
+        name: 'pilot1',
+        lat: [31.5, 31.501, 32.05],
+        lon: [75.1, 75.101, 76.7],
+        alt: [1000, 1000, 1000],
+        timeSec: [0, 30, 60],
+        flags: [LiveTrackFlag.Valid, LiveTrackFlag.Valid, LiveTrackFlag.Valid],
+        gndAlt: [0, 0, 0],
+        extra: {},
+      };
+
+      const delta1: protos.LiveTrack = {
+        id: 1,
+        name: 'pilot1',
+        lat: [32.051],
+        lon: [76.701],
+        alt: [1000],
+        timeSec: [120],
+        flags: [LiveTrackFlag.Valid],
+        gndAlt: [0],
+        extra: {},
+        lastOutlierFixSec: 30,
+      };
+      const diff1 = differentialEncodeLiveTrack(delta1, 1, 'pilot1');
+      diff1.lastOutlierFixSec = 30;
+
+      const updated1 = updateLiveTracks(
+        { 1: cachedColdStart },
+        protos.LiveDifferentialTrackGroup.create({ tracks: [diff1] }),
+        true,
+      );
+      expect(updated1[0].timeSec).toEqual([60, 120]);
+      expect(updated1[0].lastOutlierFixSec).toBe(30);
+
+      // 2. Client retention trimmed earlier points so client track starts at t=5000
+      const trimmedClientTrack: protos.LiveTrack = {
+        id: 2,
+        name: 'pilot2',
+        lat: [32.05, 31.5], // valid at 5000, spike at 5060
+        lon: [76.7, 75.1],
+        alt: [1000, 1000],
+        timeSec: [5000, 5060],
+        flags: [LiveTrackFlag.Valid, LiveTrackFlag.Valid],
+        gndAlt: [0, 0],
+        extra: {},
+      };
+      const delta2: protos.LiveTrack = {
+        id: 2,
+        name: 'pilot2',
+        lat: [32.051],
+        lon: [76.701],
+        alt: [1000],
+        timeSec: [5120],
+        flags: [LiveTrackFlag.Valid],
+        gndAlt: [0],
+        extra: {},
+        lastOutlierFixSec: 5060,
+      };
+      const diff2 = differentialEncodeLiveTrack(delta2, 2, 'pilot2');
+      diff2.lastOutlierFixSec = 5060;
+
+      const updated2 = updateLiveTracks(
+        { 2: trimmedClientTrack },
+        protos.LiveDifferentialTrackGroup.create({ tracks: [diff2] }),
+        true,
+      );
+      expect(updated2[0].timeSec).toEqual([5000, 5120]);
+      expect(updated2[0].lastOutlierFixSec).toBe(5060);
+    });
+
+    it('acknowledges lastOutlierFixSec even when client track has no outliers to prune (avoiding infinite re-filtering)', () => {
+      const filterSpy = vi.spyOn(common, 'filterLiveTrackOutliers');
+
+      // Client track is already clean (never received the outlier)
+      const cachedTrack: protos.LiveTrack = {
+        id: 1,
+        name: 'pilot1',
+        lat: [32.05],
+        lon: [76.7],
+        alt: [1000],
+        timeSec: [60],
+        flags: [LiveTrackFlag.Valid],
+        gndAlt: [0],
+        extra: {},
+      };
+
+      // Server update arrives with lastOutlierFixSec = 0 (pruned server-side before sending)
+      const serverDelta: protos.LiveTrack = {
+        id: 1,
+        name: 'pilot1',
+        lat: [32.051],
+        lon: [76.701],
+        alt: [1000],
+        timeSec: [120],
+        flags: [LiveTrackFlag.Valid],
+        gndAlt: [0],
+        extra: {},
+        lastOutlierFixSec: 0,
+      };
+
+      const diffTrack = differentialEncodeLiveTrack(serverDelta, 1, 'pilot1');
+      diffTrack.lastOutlierFixSec = 0;
+      const updates1 = protos.LiveDifferentialTrackGroup.create({
+        tracks: [diffTrack],
+      });
+
+      const updated1 = updateLiveTracks({ 1: cachedTrack }, updates1, true);
+      expect(updated1.length).toBe(1);
+      // Marker IS acknowledged even though nothing was pruned on client
+      expect(updated1[0].lastOutlierFixSec).toBe(0);
+      expect(filterSpy).toHaveBeenCalledTimes(1);
+
+      // Next incremental update with matching lastOutlierFixSec = 0 does NOT re-run filter
+      const nextServerDelta: protos.LiveTrack = {
+        id: 1,
+        name: 'pilot1',
+        lat: [32.052],
+        lon: [76.702],
+        alt: [1000],
+        timeSec: [180],
+        flags: [LiveTrackFlag.Valid],
+        gndAlt: [0],
+        extra: {},
+        lastOutlierFixSec: 0,
+      };
+
+      const nextDiffTrack = differentialEncodeLiveTrack(nextServerDelta, 1, 'pilot1');
+      nextDiffTrack.lastOutlierFixSec = 0;
+      const updates2 = protos.LiveDifferentialTrackGroup.create({
+        tracks: [nextDiffTrack],
+      });
+
+      const updated2 = updateLiveTracks({ 1: updated1[0] }, updates2, true);
+      expect(updated2.length).toBe(1);
+      // Filter was NOT called again
+      expect(filterSpy).toHaveBeenCalledTimes(1);
+      expect(updated2[0].lastOutlierFixSec).toBe(0);
     });
   });
 

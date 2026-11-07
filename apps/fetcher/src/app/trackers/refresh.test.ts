@@ -1,5 +1,6 @@
-import { isEmergencyFix, LiveTrackDurationSec, LiveTrackFlag, protos } from '@flyxc/common';
-import { describe, expect, it } from 'vitest';
+import { isEmergencyFix, Keys, LiveTrackDurationSec, LiveTrackFlag, protos } from '@flyxc/common';
+import type { RedisClientMultiCmd } from '@flyxc/common-node';
+import { describe, expect, it, vi } from 'vitest';
 
 import { applyTrackerUpdates } from './refresh';
 import type { TrackerUpdates } from './tracker';
@@ -315,6 +316,62 @@ describe('applyTrackerUpdates', () => {
     }
   });
 
+  it('preserves outlier fixes that carry an emergency status update', () => {
+    const nowSec = 1700000000;
+    const validFlag = LiveTrackFlag.Valid;
+
+    // Track starts with 5 consistent fixes
+    const pilotTrack: protos.LiveTrack = {
+      timeSec: [nowSec - 300, nowSec - 240, nowSec - 180, nowSec - 120, nowSec - 60],
+      lat: [32.05, 32.051, 32.052, 32.053, 32.054],
+      lon: [76.7, 76.701, 76.702, 76.703, 76.704],
+      alt: [1000, 1000, 1000, 1000, 1000],
+      gndAlt: [0, 0, 0, 0, 0],
+      flags: [validFlag, validFlag, validFlag, validFlag, validFlag],
+      extra: {},
+    };
+
+    const state = protos.FetcherState.create({
+      pilots: {
+        1: { track: pilotTrack, status: protos.PilotStatus.FLYING, statusTimeSec: nowSec - 350 },
+      },
+    });
+
+    // Delta brings an SOS fix at a jumpy coordinate (150 km away)
+    const delta: protos.LiveTrack = {
+      timeSec: [nowSec],
+      lat: [31.5],
+      lon: [75.1],
+      alt: [1000],
+      gndAlt: [0],
+      flags: [validFlag],
+      extra: {},
+    };
+
+    const updates: TrackerUpdates = {
+      name: 'inreach',
+      trackerDeltas: new Map([[1, delta]]),
+      trackerStatus: new Map([[1, { status: protos.PilotStatus.SOS, statusTimeSec: nowSec }]]),
+      trackerErrors: new Map(),
+      errors: [],
+      fetchedTracker: new Set([1]),
+      startFetchSec: nowSec - 5,
+      endFetchSec: nowSec,
+    };
+
+    applyTrackerUpdates(state, [updates], nowSec);
+
+    const pilot = state.pilots[1];
+    expect(pilot.status).toBe(protos.PilotStatus.SOS);
+    // Outlier fix is preserved because status update ran first and marked it emergency
+    expect(pilot.track.timeSec).toContain(nowSec);
+    const lastIdx = pilot.track.timeSec.length - 1;
+    expect(pilot.track.timeSec[lastIdx]).toBe(nowSec);
+    expect(pilot.track.lat[lastIdx]).toBeCloseTo(31.5);
+    expect(isEmergencyFix(pilot.track.flags[lastIdx])).toBe(true);
+    expect(pilot.track.extra?.[lastIdx]?.message).toContain('Status: SOS');
+  });
+
   it('should not attach messages or mark fixes emergency when status time predates the track', () => {
     for (const status of [protos.PilotStatus.NEED_HELP, protos.PilotStatus.SOS]) {
       const nowSec = 1700000000;
@@ -554,5 +611,69 @@ describe('applyTrackerUpdates', () => {
     expect(updatedPilots.size).toBe(0);
     expect(state.pilots[1].status).toBe(protos.PilotStatus.LANDED_OK);
     expect(state.pilots[1].track.extra[0]?.message).toBe('Status: Landed OK');
+  });
+
+  it('should log the number of filtered outlier fixes to Redis capped at 10 entries', () => {
+    const nowSec = 1700000000;
+    const validFlag = LiveTrackFlag.Valid;
+
+    const pilotTrack: protos.LiveTrack = {
+      timeSec: [nowSec - 300, nowSec - 240, nowSec - 180, nowSec - 120, nowSec - 60],
+      lat: [45.0, 45.001, 45.002, 45.003, 45.004],
+      lon: [6.0, 6.0, 6.0, 6.0, 6.0],
+      alt: [1000, 1000, 1000, 1000, 1000],
+      gndAlt: [500, 500, 500, 500, 500],
+      flags: [validFlag, validFlag, validFlag, validFlag, validFlag],
+      extra: {},
+    };
+
+    const state = protos.FetcherState.create({
+      pilots: {
+        42: { name: 'RohitK', track: pilotTrack },
+      },
+    });
+
+    // Delta contains 2 outlier spikes (200km away) and 1 valid point
+    const delta: protos.LiveTrack = {
+      timeSec: [nowSec - 30, nowSec - 20, nowSec - 10],
+      lat: [47.0, 47.001, 45.005],
+      lon: [8.0, 8.0, 6.0],
+      alt: [1000, 1000, 1000],
+      gndAlt: [0, 0, 0],
+      flags: [validFlag, validFlag, validFlag],
+      extra: {},
+    };
+
+    const updates: TrackerUpdates = {
+      name: 'inreach',
+      trackerDeltas: new Map([[42, delta]]),
+      trackerStatus: new Map(),
+      trackerErrors: new Map(),
+      errors: [],
+      fetchedTracker: new Set([42]),
+      startFetchSec: nowSec - 5,
+      endFetchSec: nowSec,
+    };
+
+    const pipeline = {
+      lPush: vi.fn().mockReturnThis(),
+      lTrim: vi.fn().mockReturnThis(),
+    } as unknown as RedisClientMultiCmd;
+
+    applyTrackerUpdates(state, [updates], nowSec, pipeline);
+
+    expect(pipeline.lPush).toHaveBeenCalledWith(Keys.fetcherFilteredTracks, [`[${nowSec}] id=42 2 fixes`]);
+    expect(pipeline.lTrim).toHaveBeenCalledWith(Keys.fetcherFilteredTracks, 0, 9);
+
+    // Second tick: the 5-minute overlap re-fetches the same delta containing the already-pruned outliers.
+    // Verify that re-pruning the same fixes does NOT push duplicate logs to the Redis list.
+    const pipeline2 = {
+      lPush: vi.fn().mockReturnThis(),
+      lTrim: vi.fn().mockReturnThis(),
+    } as unknown as RedisClientMultiCmd;
+
+    applyTrackerUpdates(state, [updates], nowSec + 60, pipeline2);
+
+    expect(pipeline2.lPush).not.toHaveBeenCalled();
   });
 });

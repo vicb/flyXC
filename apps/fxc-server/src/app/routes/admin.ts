@@ -162,6 +162,7 @@ async function getDashboardValues(redis: RedisClient, datastore: Datastore): Pro
     [Keys.elevationNumRetrieved]: 'L',
     [Keys.elevationDurationSec]: 'L',
     [Keys.fetcherLastTicksSec]: 'L',
+    [Keys.fetcherFilteredTracks]: 'L',
     [Keys.proxyInreach]: 'L',
   };
 
