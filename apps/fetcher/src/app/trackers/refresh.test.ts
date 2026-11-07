@@ -315,6 +315,62 @@ describe('applyTrackerUpdates', () => {
     }
   });
 
+  it('preserves outlier fixes that carry an emergency status update', () => {
+    const nowSec = 1700000000;
+    const validFlag = LiveTrackFlag.Valid;
+
+    // Track starts with 5 consistent fixes
+    const pilotTrack: protos.LiveTrack = {
+      timeSec: [nowSec - 300, nowSec - 240, nowSec - 180, nowSec - 120, nowSec - 60],
+      lat: [32.05, 32.051, 32.052, 32.053, 32.054],
+      lon: [76.7, 76.701, 76.702, 76.703, 76.704],
+      alt: [1000, 1000, 1000, 1000, 1000],
+      gndAlt: [0, 0, 0, 0, 0],
+      flags: [validFlag, validFlag, validFlag, validFlag, validFlag],
+      extra: {},
+    };
+
+    const state = protos.FetcherState.create({
+      pilots: {
+        1: { track: pilotTrack, status: protos.PilotStatus.FLYING, statusTimeSec: nowSec - 350 },
+      },
+    });
+
+    // Delta brings an SOS fix at a jumpy coordinate (150 km away)
+    const delta: protos.LiveTrack = {
+      timeSec: [nowSec],
+      lat: [31.5],
+      lon: [75.1],
+      alt: [1000],
+      gndAlt: [0],
+      flags: [validFlag],
+      extra: {},
+    };
+
+    const updates: TrackerUpdates = {
+      name: 'inreach',
+      trackerDeltas: new Map([[1, delta]]),
+      trackerStatus: new Map([[1, { status: protos.PilotStatus.SOS, statusTimeSec: nowSec }]]),
+      trackerErrors: new Map(),
+      errors: [],
+      fetchedTracker: new Set([1]),
+      startFetchSec: nowSec - 5,
+      endFetchSec: nowSec,
+    };
+
+    applyTrackerUpdates(state, [updates], nowSec);
+
+    const pilot = state.pilots[1];
+    expect(pilot.status).toBe(protos.PilotStatus.SOS);
+    // Outlier fix is preserved because status update ran first and marked it emergency
+    expect(pilot.track.timeSec).toContain(nowSec);
+    const lastIdx = pilot.track.timeSec.length - 1;
+    expect(pilot.track.timeSec[lastIdx]).toBe(nowSec);
+    expect(pilot.track.lat[lastIdx]).toBeCloseTo(31.5);
+    expect(isEmergencyFix(pilot.track.flags[lastIdx])).toBe(true);
+    expect(pilot.track.extra?.[lastIdx]?.message).toContain('Status: SOS');
+  });
+
   it('should not attach messages or mark fixes emergency when status time predates the track', () => {
     for (const status of [protos.PilotStatus.NEED_HELP, protos.PilotStatus.SOS]) {
       const nowSec = 1700000000;

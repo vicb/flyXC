@@ -1,5 +1,6 @@
 import {
   Comparison,
+  filterLiveTrackOutliers,
   findFirstIndex,
   Keys,
   LIVE_FETCH_TIMEOUT_SEC,
@@ -147,8 +148,9 @@ export function applyTrackerUpdates(
     }
   }
 
-  // The status is updated to the latest status if more recent than the pilot's current status.
-  // When the status changes, a message "Status: <description>" is attached before simplifying the live track.
+  // 3. The status is updated to the latest status if more recent than the pilot's current status.
+  // When the status changes, a message "Status: <description>" is attached and emergency flags are set.
+  // This runs before outlier filtering so emergency fixes and status messages are protected from being pruned.
   for (const [id, statusUpdate] of latestStatusByPilotId) {
     const pilot = state.pilots[id];
     if (pilot && statusUpdate.statusTimeSec > (pilot.statusTimeSec ?? 0)) {
@@ -177,6 +179,14 @@ export function applyTrackerUpdates(
           }
         }
       }
+    }
+  }
+
+  // 4. Filter GPS speed outliers in the active session for pilots that had track deltas in this cycle.
+  for (const [id, deltaMinSec] of updatedPilots) {
+    const pilot = state.pilots[id];
+    if (pilot) {
+      pilot.track = filterLiveTrackOutliers(pilot.track, { filterFromSec: deltaMinSec });
     }
   }
 

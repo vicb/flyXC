@@ -1,6 +1,9 @@
 import type { protos } from '@flyxc/common';
 import {
+  CLIENT_CONFIDENCE_RATIO,
+  CLIENT_MIN_CONFIDENT_FIXES,
   differentialDecodeLiveTrack,
+  filterLiveTrackOutliers,
   getFixMessage,
   isEmergencyFix,
   isEmergencyTrack,
@@ -281,7 +284,19 @@ export function updateLiveTracks(
         continue;
       }
       if (id in updatedTracks) {
-        track = mergeLiveTracks(track, updatedTracks[id]);
+        const update = updatedTracks[id];
+        // Server signaled an outlier prune. Re-filter with lower client thresholds (simplified delta has fewer points)
+        // and acknowledge the marker so subsequent incremental ticks skip filtering.
+        const prevOutlierSec = track.lastOutlierFixSec;
+        const hasNewOutlier = update.lastOutlierFixSec != null && update.lastOutlierFixSec !== prevOutlierSec;
+        track = mergeLiveTracks(track, update);
+        if (hasNewOutlier) {
+          track = filterLiveTrackOutliers(track, {
+            minConfidentFixes: CLIENT_MIN_CONFIDENT_FIXES,
+            confidenceRatio: CLIENT_CONFIDENCE_RATIO,
+          });
+          track.lastOutlierFixSec = update.lastOutlierFixSec;
+        }
         simplifyLiveTrack(track, LiveTrackPointIntervalSec.Recent);
       }
       updatedTracks[id] = track;
