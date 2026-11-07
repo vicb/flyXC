@@ -323,7 +323,10 @@ export function filterLiveTrackOutliers(
       const fromIdx = findFirstIndex(track.timeSec, filterFromSec, Comparison.GREATER_EQUAL);
       if (fromIdx > startIdx) {
         let prevValidIdx = fromIdx - 1;
-        while (prevValidIdx >= sessionStart && !isTrackFixValid(track, prevValidIdx)) {
+        while (
+          prevValidIdx >= sessionStart &&
+          (!isTrackFixValid(track, prevValidIdx) || isProtectedFix(track, prevValidIdx))
+        ) {
           prevValidIdx--;
         }
         if (prevValidIdx >= sessionStart) {
