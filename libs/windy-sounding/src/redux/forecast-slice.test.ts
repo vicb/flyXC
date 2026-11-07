@@ -7,6 +7,7 @@ import {
   selIsWindyDataAvailableAt,
   selLoadedWindyDataOrThrow,
   selMaybeLoadedWindyData,
+  selPeriodValues,
   slice,
   STALE_WINDY_DATA_CACHE_MIN,
   windyDataKey,
@@ -294,6 +295,63 @@ describe('forecast-slice', () => {
 
       expect(action.meta.requestStatus).toBe('fulfilled');
       vi.restoreAllMocks();
+    });
+  });
+
+  describe('dewpoint extraction in selPeriodValues', () => {
+    const baseSounding = {
+      ts: [1_000_000],
+      'temp-1000h': [290],
+      'rh-1000h': [70],
+      'wind-1000h': [5],
+      'windDir-1000h': [180],
+      'cloud-1000h': [20],
+    };
+
+    it('extracts dew point when formatted as lowercase dewpoint-<level>', () => {
+      const forecast = createMockForecast({
+        forecast: {
+          ...createMockForecast().forecast,
+          sounding: {
+            ...baseSounding,
+            'dewpoint-1000h': [284],
+          },
+        } as any,
+      });
+      const state = createMockState(forecast);
+      const periodValues = selPeriodValues(state, modelName, location);
+      expect(periodValues.dewpointByTime).toEqual([[284]]);
+    });
+
+    it('extracts dew point when formatted as camelCase dewPoint-<level>', () => {
+      const forecast = createMockForecast({
+        forecast: {
+          ...createMockForecast().forecast,
+          sounding: {
+            ...baseSounding,
+            'dewPoint-1000h': [285],
+          },
+        } as any,
+      });
+      const state = createMockState(forecast);
+      const periodValues = selPeriodValues(state, modelName, location);
+      expect(periodValues.dewpointByTime).toEqual([[285]]);
+    });
+
+    it('falls back to computeDewPointKelvin when neither is present', () => {
+      (globalThis as any).W.utils.computeDewPointKelvin.mockReturnValueOnce(283);
+      const forecast = createMockForecast({
+        forecast: {
+          ...createMockForecast().forecast,
+          sounding: {
+            ...baseSounding,
+          },
+        } as any,
+      });
+      const state = createMockState(forecast);
+      const periodValues = selPeriodValues(state, modelName, location);
+      expect((globalThis as any).W.utils.computeDewPointKelvin).toHaveBeenCalledWith(70, 290);
+      expect(periodValues.dewpointByTime).toEqual([[283]]);
     });
   });
 });
