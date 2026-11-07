@@ -66,6 +66,9 @@ export function linearInterpolate(
 /**
  * Samples values from a set of data points at specified target x-coordinates using linear interpolation.
  *
+ * If `xs` contains a single point, that point's value is returned for any target x without attempting
+ * interpolation. If `xs` or `ys` is empty, returns 0.
+ *
  * @param xs - The x-coordinates of the data points. Must be sorted in ascending or descending order.
  * @param ys - The y-coordinates or arrays of y-coordinates of the data points. Must have the same length as `xs`.
  * @param targetXs - The x-coordinate or array of x-coordinates at which to sample.
@@ -78,6 +81,7 @@ export function linearInterpolate(
  * const ys = [10, 20, 30];
  * sampleAt(xs, ys, 5); // 15
  * sampleAt(xs, ys, [5, 15]); // [15, 25]
+ * sampleAt([10], [42], 5); // 42
  * ```
  */
 export function sampleAt(xs: number[], ys: number[], targetXs: number, lerpFn?: LerpFn): number;
@@ -90,9 +94,19 @@ export function sampleAt(
   targetXs: number | number[],
   lerpFn: LerpFn = lerp,
 ): number | number[] | number[][] {
-  const descOrder = xs[0] > xs[1];
   const xsIsArray = Array.isArray(targetXs);
   const xArray = xsIsArray ? targetXs : [targetXs];
+
+  if (xs.length === 0 || ys.length === 0) {
+    const fallback = 0;
+    return xsIsArray ? (xArray.map(() => fallback) as any) : fallback;
+  }
+
+  if (xs.length === 1) {
+    return xsIsArray ? (xArray.map(() => ys[0]) as any) : (ys[0] as any);
+  }
+
+  const descOrder = xs[0] > xs[1];
   const values: number[] | number[][] = xArray.map((tx: any) => {
     let index = xs.findIndex((x: any) => (descOrder ? x <= tx : x >= tx));
     if (index == -1) {
