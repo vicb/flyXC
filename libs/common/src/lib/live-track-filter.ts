@@ -112,8 +112,10 @@ function getActiveSessionStartIndex(timeSec: number[], maxGapSec: number): numbe
 }
 
 /**
- * Returns a new LiveTrack with `droppedIndices` removed, `extra` metadata reindexed,
- * and `lastOutlierFixSec` monotonically updated.
+ * Prunes `droppedIndices` from `track` in place, reindexing `extra` metadata,
+ * and monotonically updating `lastOutlierFixSec`.
+ *
+ * Modifies track arrays in-place to prevent allocating new arrays and garbage collection pressure.
  */
 function pruneAndRecordOutliers(track: protos.LiveTrack, droppedIndices: Set<number>): protos.LiveTrack {
   for (const index of droppedIndices) {
@@ -127,52 +129,52 @@ function pruneAndRecordOutliers(track: protos.LiveTrack, droppedIndices: Set<num
   }
 
   const len = track.timeSec.length;
-  const newLen = len - droppedIndices.size;
-  const timeSec: number[] = new Array(newLen);
-  const lat: number[] = new Array(newLen);
-  const lon: number[] = new Array(newLen);
-  const alt: number[] = new Array(newLen);
-  const flags: number[] = new Array(newLen);
-  const gndAlt: number[] | undefined = track.gndAlt?.length === len ? new Array(newLen) : undefined;
-  const extra: { [key: number]: protos.LiveExtra } | undefined = track.extra ? {} : undefined;
-
   let maxDroppedSec = -Infinity;
-  let newIdx = 0;
-  for (let i = 0; i < len; i++) {
-    if (droppedIndices.has(i)) {
-      if (track.timeSec[i] > maxDroppedSec) {
-        maxDroppedSec = track.timeSec[i];
+  let dstIdx = 0;
+
+  for (let srcIdx = 0; srcIdx < len; srcIdx++) {
+    if (droppedIndices.has(srcIdx)) {
+      if (track.timeSec[srcIdx] > maxDroppedSec) {
+        maxDroppedSec = track.timeSec[srcIdx];
       }
+      delete track.extra?.[srcIdx];
       continue;
     }
-    timeSec[newIdx] = track.timeSec[i];
-    lat[newIdx] = track.lat[i];
-    lon[newIdx] = track.lon[i];
-    alt[newIdx] = track.alt[i];
-    flags[newIdx] = track.flags[i];
-    if (gndAlt) {
-      gndAlt[newIdx] = track.gndAlt![i];
+
+    if (dstIdx !== srcIdx) {
+      track.timeSec[dstIdx] = track.timeSec[srcIdx];
+      track.lat[dstIdx] = track.lat[srcIdx];
+      track.lon[dstIdx] = track.lon[srcIdx];
+      track.alt[dstIdx] = track.alt[srcIdx];
+      track.flags[dstIdx] = track.flags[srcIdx];
+      if (track.gndAlt && track.gndAlt.length > srcIdx) {
+        track.gndAlt[dstIdx] = track.gndAlt[srcIdx];
+      }
+      if (track.extra) {
+        if (srcIdx in track.extra) {
+          track.extra[dstIdx] = track.extra[srcIdx];
+          delete track.extra[srcIdx];
+        } else {
+          delete track.extra[dstIdx];
+        }
+      }
     }
-    if (track.extra?.[i]) {
-      extra![newIdx] = { ...track.extra[i] };
-    }
-    newIdx++;
+    dstIdx++;
+  }
+
+  track.timeSec.splice(dstIdx);
+  track.lat.splice(dstIdx);
+  track.lon.splice(dstIdx);
+  track.alt.splice(dstIdx);
+  track.flags.splice(dstIdx);
+  if (track.gndAlt) {
+    track.gndAlt.splice(dstIdx);
   }
 
   // Preserve the marker when an already-pruned outlier is re-fetched during the 5-min tracker overlap.
-  const lastOutlierFixSec = Math.max(track.lastOutlierFixSec ?? -Infinity, maxDroppedSec);
+  track.lastOutlierFixSec = Math.max(track.lastOutlierFixSec ?? -Infinity, maxDroppedSec);
 
-  return {
-    ...track,
-    timeSec,
-    lat,
-    lon,
-    alt,
-    flags,
-    gndAlt: gndAlt ?? track.gndAlt,
-    extra: extra ?? track.extra,
-    lastOutlierFixSec,
-  };
+  return track;
 }
 
 /**

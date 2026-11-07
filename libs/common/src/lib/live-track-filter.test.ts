@@ -400,4 +400,29 @@ describe('filterLiveTrackOutliers', () => {
     expect(result.timeSec.length).toBe(8);
     expect(result.lastOutlierFixSec).toBeUndefined();
   });
+
+  it('prunes outliers in-place preserving array instances', () => {
+    const points: [number, number, number][] = [
+      [BIR_LAT, BIR_LON, 0],
+      [BIR_LAT + 0.001, BIR_LON, 60],
+      [BIR_LAT + 0.002, BIR_LON, 120],
+      [BIR_LAT + 0.003, BIR_LON, 180],
+      [BIR_LAT + 0.004, BIR_LON, 240],
+      [PUNJAB_LAT, PUNJAB_LON, 300], // outlier
+      [BIR_LAT + 0.005, BIR_LON, 360],
+    ];
+    const track = createTestTrack(points);
+    const originalTimeSec = track.timeSec;
+    const originalLat = track.lat;
+    const originalLon = track.lon;
+
+    const result = filterLiveTrackOutliers(track);
+
+    expect(result).toBe(track);
+    expect(result.timeSec).toBe(originalTimeSec);
+    expect(result.lat).toBe(originalLat);
+    expect(result.lon).toBe(originalLon);
+    expect(result.timeSec).toEqual([0, 60, 120, 180, 240, 360]);
+    expect(result.lastOutlierFixSec).toBe(300);
+  });
 });
