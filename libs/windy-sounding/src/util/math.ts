@@ -106,7 +106,8 @@ export function sampleAt(
     return xsIsArray ? (xArray.map(() => ys[0]) as any) : (ys[0] as any);
   }
 
-  const descOrder = xs[0] > xs[1];
+  // Compare first and last elements to avoid local boundary inversions misclassifying the overall array direction.
+  const descOrder = xs[0] > xs[xs.length - 1];
   const values: number[] | number[][] = xArray.map((tx: any) => {
     let index = xs.findIndex((x: any) => (descOrder ? x <= tx : x >= tx));
     if (index == -1) {

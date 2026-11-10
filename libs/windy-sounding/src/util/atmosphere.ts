@@ -244,7 +244,10 @@ export function parcelTrajectory(
  * @returns A scale that maps pressure to geopotential height.
  */
 export function getPressureToGhScale(levels: number[], ghByLevel: number[], seaLevelPressure: number): math.Scale {
-  return seaLevelPressure > levels[0]
+  // Only prepend sea-level pressure if the highest pressure level is above sea level (ghByLevel[0] > 0).
+  // If ghByLevel[0] <= 0 (e.g. 1000 hPa is below sea level under high pressure), sea level (0 m) is already
+  // interpolated between levels; prepending [seaLevelPressure, 0] would create a non-monotonic altitude array [0, -2, ...].
+  return seaLevelPressure > levels[0] && ghByLevel[0] > 0
     ? math.scaleLog([seaLevelPressure, ...levels], [0, ...ghByLevel])
     : math.scaleLog([...levels], [...ghByLevel]);
 }
