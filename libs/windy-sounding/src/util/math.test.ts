@@ -197,6 +197,17 @@ describe('sampleAt', () => {
     expect(sampleAt([], [], 1500)).toEqual(0);
     expect(sampleAt([], [], [500, 1500])).toEqual([0, 0]);
   });
+  it('should determine descending order using first and last elements', () => {
+    // Real-world use case: when inverting a pressure-to-geopotential-height scale where sea level (0 m)
+    // is prepended, but 1000 hPa is slightly below sea level (e.g., gh-1000h is -2 m in mblue/high-pressure),
+    // altitudes = [0, -2, 100, 200] has altitudes[0] > altitudes[1] despite being an overall ascending array.
+    const altitudes = [0, -2, 100, 200];
+    const pressures = [1000, 990, 900, 800];
+    // With altitudes[0] <= altitudes[altitudes.length - 1], sampleAt treats altitudes as ascending
+    // At altitude = 50, between altitudes[1]=-2 and altitudes[2]=100 (range 102), t = 52/102
+    // pressures[1] + t * (pressures[2] - pressures[1]) = 990 + 52/102 * (-90) = 944.12
+    expect(sampleAt(altitudes, pressures, 50)).toBeCloseTo(944.12, 1);
+  });
 });
 
 describe('scaleLinear', () => {

@@ -132,6 +132,17 @@ describe('atmosphere', () => {
         expect(scale(1000)).toBeCloseTo(100, 1);
         expect(scale(850)).toBeCloseTo(1450, 1);
       });
+
+      it('should not prepend seaLevelPressure when ghByLevel[0] is <= 0', () => {
+        const levels = [1000, 950, 900, 850];
+        const ghByLevel = [-2, 421, 879, 1358];
+        const seaLevelPressure = 1001.2;
+
+        const scale = getPressureToGhScale(levels, ghByLevel, seaLevelPressure);
+        expect(scale(1000)).toBeCloseTo(-2, 1);
+        expect(scale.invert(0)).toBeCloseTo(999.76, 1);
+        expect(scale.invert(879)).toBeCloseTo(900, 1);
+      });
     });
 
     describe('parcelTrajectory', () => {
