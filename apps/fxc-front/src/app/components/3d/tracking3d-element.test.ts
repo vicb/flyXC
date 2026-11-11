@@ -254,5 +254,36 @@ describe('Tracking3DElement', () => {
     msg.clickSceneView.emit(labelMarker, mockScene);
     expect(openPopup).toHaveBeenCalledTimes(2);
     expect(openPopup.mock.calls[1][0].location.z).toBe(550);
+
+    // Clicking a graphic without attributes from another layer should not throw.
+    expect(() => msg.clickSceneView.emit({} as Graphic, mockScene)).not.toThrow();
+    expect(openPopup).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not rebuild track lines when only displayLabels or sampler changes', async () => {
+    const layer = makeMockLayer();
+    const gndLayer = makeMockLayer();
+
+    const el = new Tracking3DElement() as any;
+    mounted.push(el);
+    el.layer = layer;
+    el.gndLayer = gndLayer;
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    el.multiplier = 1;
+    el.geojson = makeGeojson([300, 350, 400]);
+    await el.updateComplete;
+
+    const initialLine = layer.graphics.find((g) => g.geometry?.type === 'polyline');
+    expect(initialLine).toBeDefined();
+    layer.addMany.mockClear();
+    layer.removeMany.mockClear();
+
+    el.displayLabels = false;
+    await el.updateComplete;
+
+    expect(layer.graphics.find((g) => g.geometry?.type === 'polyline')).toBe(initialLine);
+    expect(layer.addMany).toHaveBeenCalledTimes(1);
   });
 });
