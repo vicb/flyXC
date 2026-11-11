@@ -341,7 +341,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
 
         const track = liveTrack.selectLiveTrackById(store.getState(), attr.liveTrackId) as protos.LiveTrack;
 
-        view.popup?.open({
+        view.openPopup({
           location: new Point({
             latitude: track.lat[index],
             longitude: track.lon[index],
