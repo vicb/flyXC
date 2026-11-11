@@ -55,7 +55,8 @@ chart-element.has-tracks {
   font-weight: 900;
   font-display: auto;
   src: url('https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/fonts/la-solid-900.eot');
-  src: url('https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/fonts/la-solid-900.eot?#iefix')
+  src:
+    url('https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/fonts/la-solid-900.eot?#iefix')
       format('embedded-opentype'),
     url('https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/fonts/la-solid-900.woff2') format('woff2'),
     url('https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/fonts/la-solid-900.woff') format('woff'),
@@ -70,18 +71,14 @@ chart-element.has-tracks {
   font-weight: normal;
   font-display: auto;
   src: url('https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/fonts/la-brands-400.eot');
-  src: url('https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/fonts/la-brands-400.eot?#iefix')
+  src:
+    url('https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/fonts/la-brands-400.eot?#iefix')
       format('embedded-opentype'),
     url('https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/fonts/la-brands-400.woff2') format('woff2'),
     url('https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/fonts/la-brands-400.woff') format('woff'),
     url('https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/fonts/la-brands-400.ttf') format('truetype'),
     url('https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/fonts/la-brands-400.svg#lineawesome')
       format('svg');
-}
-
-/* Reduce widgets margin */
-.esri-ui-corner-container {
-  inset: 5px 5px 20px !important;
 }
 
 .nobr {
