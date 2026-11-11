@@ -187,8 +187,29 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         this.samplerTimer = window.setTimeout(() => this.updateMarkers(), SAMPLER_REFRESH_DEBOUNCE_MS);
       });
     }
-    this.updateTracks();
-    this.updateMarkers();
+
+    if (
+      changedProps.has('layer') ||
+      changedProps.has('gndLayer') ||
+      changedProps.has('geojson') ||
+      changedProps.has('multiplier') ||
+      changedProps.has('currentId') ||
+      changedProps.has('numTracks')
+    ) {
+      this.updateTracks();
+    }
+
+    if (
+      changedProps.has('layer') ||
+      changedProps.has('sampler') ||
+      changedProps.has('geojson') ||
+      changedProps.has('multiplier') ||
+      changedProps.has('currentId') ||
+      changedProps.has('displayLabels')
+    ) {
+      this.updateMarkers();
+    }
+
     return false;
   }
 
@@ -270,7 +291,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
    * Updates live marker and label graphics, clamping markers above terrain via {@link sampler}.
    */
   private updateMarkers(): void {
-    if (!this.layer || !this.gndLayer) {
+    if (!this.layer) {
       return;
     }
 
@@ -366,7 +387,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
    */
   private handleClick(graphic: Graphic, scene: ArcgisScene) {
     const attr = graphic.attributes;
-    if (attr.liveTrackId != null) {
+    if (attr?.liveTrackId != null) {
       store.dispatch(liveTrack.setCurrentLiveId(attr.liveTrackId));
       if (attr.liveTrackIndex != null && this.units && graphic.geometry?.type === 'point') {
         const popup = popupContent(attr.liveTrackId, attr.liveTrackIndex, this.units);
