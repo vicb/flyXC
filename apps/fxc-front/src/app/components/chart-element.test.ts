@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { ChartTrack } from './chart-element';
 import { ChartElement, ChartYAxis, pointsToSvgPath } from './chart-element';
@@ -322,6 +322,42 @@ describe('ChartElement', () => {
     (el as any).playTimer = 9999 as any;
     el.disconnectedCallback();
     expect((el as any).playTimer).toBeUndefined();
+  });
+
+  it('accumulates sub-second playback steps at 16x speed despite integer rounding of timeSec', () => {
+    const el = new ChartElement();
+    el.minTimeSec = 1000;
+    el.maxTimeSec = 1100;
+    el.timeSec = 1000;
+    (el as any).playSpeed = 16;
+
+    const moves: number[] = [];
+    el.addEventListener('move', (e: Event) => {
+      const next = (e as CustomEvent).detail.timeSec;
+      moves.push(next);
+      // Simulate Redux app.setTimeSec rounding timeSec to nearest integer second
+      el.timeSec = Math.round(next);
+    });
+
+    (el as any).playbackTimeSec = 1000;
+    (el as any).lastDispatchedRoundedSec = 1000;
+    (el as any).lastFrameMs = 0;
+
+    // 4 frames at ~60fps (~16.6ms each): 4 * 0.0166 * 16 ≈ 1.06s total
+    const rafSpy = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 1);
+    try {
+      (el as any).playTick(16.6);
+      (el as any).playTick(33.2);
+      (el as any).playTick(49.8);
+      (el as any).playTick(66.4);
+    } finally {
+      el.disconnectedCallback();
+      rafSpy.mockRestore();
+    }
+
+    expect(el.timeSec).toBe(1001);
+    expect(moves.length).toBeGreaterThanOrEqual(1);
+    expect(Math.round(moves[moves.length - 1])).toBe(1001);
   });
 
   describe('pointsToSvgPath', () => {

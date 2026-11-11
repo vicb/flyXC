@@ -1,8 +1,7 @@
 import './airspace3d-element';
 import './controls3d-element';
-import './line3d-element';
-import './marker3d-element';
 import './skyways3d-element';
+import './track3d-element';
 import './tracking3d-element';
 import '@arcgis/map-components/components/arcgis-compass';
 import '@arcgis/map-components/components/arcgis-navigation-toggle';
@@ -410,7 +409,10 @@ export class Map3dElement extends connect(store)(LitElement) {
     return html`
       <style>
         #layers {
-          font: 18px Roboto, arial, sans-serif !important;
+          font:
+            18px Roboto,
+            arial,
+            sans-serif !important;
           margin-bottom: 10px;
         }
         .ad {
@@ -452,36 +454,35 @@ export class Map3dElement extends connect(store)(LitElement) {
       <airspace3d-element .map=${this.map}></airspace3d-element>
       ${when(
         this.country === 'FR' && !this.isFromFfvl,
-        () => html`<a class="ad" href="https://ruedelair.com/" target="_blank">
-          <img
-            width="${Math.round(220 * this.adRatio)}"
-            height="${Math.round(42 * this.adRatio)}"
-            src="/static/img/ruedelair.svg"
-            alt="Rue de l'Air"
-          />
-        </a>`,
+        () =>
+          html`<a class="ad" href="https://ruedelair.com/" target="_blank">
+            <img
+              width="${Math.round(220 * this.adRatio)}"
+              height="${Math.round(42 * this.adRatio)}"
+              src="/static/img/ruedelair.svg"
+              alt="Rue de l'Air"
+            />
+          </a>`,
       )}
       ${when(
         this.graphicsLayer != null && this.apiLoaded,
-        () => html`<tracking3d-element
-            .layer=${this.graphicsLayer}
-            .gndLayer=${this.gndGraphicsLayer}
-            .sampler=${this.view?.groundView.elevationSampler}
-          >
-          </tracking3d-element>
-          ${repeat(
-            this.tracks,
-            (track) => track.id,
-            (track) =>
-              html`
-                <line3d-element
+        () =>
+          html`<tracking3d-element
+              .layer=${this.graphicsLayer}
+              .gndLayer=${this.gndGraphicsLayer}
+              .sampler=${this.view?.groundView.elevationSampler}
+            >
+            </tracking3d-element>
+            ${repeat(
+              this.tracks,
+              (track) => track.id,
+              (track) =>
+                html`<track3d-element
                   .track=${track}
                   .layer=${this.graphicsLayer}
                   .gndLayer=${this.gndGraphicsLayer}
-                ></line3d-element>
-                <marker3d-element .track=${track} .layer=${this.graphicsLayer}></marker3d-element>
-              `,
-          )} `,
+                ></track3d-element>`,
+            )} `,
       )}
     `;
   }
