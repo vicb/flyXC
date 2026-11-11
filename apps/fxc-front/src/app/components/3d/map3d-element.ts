@@ -21,6 +21,7 @@ import BaseElevationLayer, {
 import ElevationLayer from '@arcgis/core/layers/ElevationLayer';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import SceneLayer from '@arcgis/core/layers/SceneLayer';
+import type ElevationSampler from '@arcgis/core/layers/support/ElevationSampler';
 import type { ElevationTileData } from '@arcgis/core/layers/support/types';
 import TileLayer from '@arcgis/core/layers/TileLayer';
 import VectorTileLayer from '@arcgis/core/layers/VectorTileLayer';
@@ -84,6 +85,8 @@ export class Map3dElement extends connect(store)(LitElement) {
   private graphicsLayer?: GraphicsLayer;
   @state()
   private gndGraphicsLayer?: GraphicsLayer;
+  @state()
+  private elevationSampler?: ElevationSampler;
   @state()
   private apiLoaded = false;
   @state()
@@ -170,6 +173,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     super.disconnectedCallback();
     this.subscriptions.forEach((sub) => sub());
     this.subscriptions.length = 0;
+    this.elevationSampler = undefined;
     this.view = undefined;
   }
 
@@ -215,7 +219,7 @@ export class Map3dElement extends connect(store)(LitElement) {
       ground: { layers: [this.elevationLayer] },
     });
 
-    this.graphicsLayer = new GraphicsLayer();
+    this.graphicsLayer = new GraphicsLayer({ elevationInfo: { mode: 'absolute-height' } });
     this.gndGraphicsLayer = new GraphicsLayer({ elevationInfo: { mode: 'on-the-ground' } });
     this.map.addMany([this.graphicsLayer, this.gndGraphicsLayer]);
   }
@@ -252,6 +256,15 @@ export class Map3dElement extends connect(store)(LitElement) {
           const zoom = selectZoom(store.getState());
           this.center({ ...location, alt: 0 }, zoom);
         }
+
+        const samplerWatch = watch(
+          () => view.groundView?.elevationSampler,
+          (sampler) => {
+            this.elevationSampler = sampler ?? undefined;
+          },
+          { initial: true },
+        );
+        this.subscriptions.push(() => samplerWatch.remove());
 
         watch(
           () => view.center,
@@ -470,7 +483,7 @@ export class Map3dElement extends connect(store)(LitElement) {
           html`<tracking3d-element
               .layer=${this.graphicsLayer}
               .gndLayer=${this.gndGraphicsLayer}
-              .sampler=${this.view?.groundView.elevationSampler}
+              .sampler=${this.elevationSampler}
             >
             </tracking3d-element>
             ${repeat(
