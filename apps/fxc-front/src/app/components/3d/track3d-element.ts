@@ -41,7 +41,7 @@ export class Track3dElement extends connect(store)(LitElement) {
   @state()
   private timeSec = 0;
   @state()
-  private multiplier = 0;
+  private multiplier = 1;
   @state()
   private offsetSeconds = 0;
   @state()
@@ -102,82 +102,85 @@ export class Track3dElement extends connect(store)(LitElement) {
       return false;
     }
 
-    if (
+    const recreated =
       changedProps.has('track') ||
       changedProps.has('multiplier') ||
       changedProps.has('layer') ||
-      changedProps.has('gndLayer')
-    ) {
+      changedProps.has('gndLayer');
+
+    if (recreated) {
       this.destroyGraphics();
       this.createGraphics();
     }
 
     if (this.lineGraphic && this.markerGraphic && this.track) {
-      const currentTrack = this.track;
-      const timeSecs = currentTrack.timeSec;
-      const timeSec = this.timeSec + this.offsetSeconds;
-      const pos = selectTrackLatLonAlt(store.getState())(timeSec, currentTrack) as common.LatLonAlt;
-      const z = this.multiplier * pos.alt;
-
-      const start = Math.min(common.findIndexes(timeSecs, timeSec - 15 * 60).beforeIndex, timeSecs.length - 4);
-      const end = Math.max(common.findIndexes(timeSecs, timeSec).beforeIndex + 1, 4);
-      const path = this.path3d.slice(start, end);
-      // The last point must match the marker position and needs to be interpolated.
-      path.push([pos.lon, pos.lat, z]);
-      this.line.paths[0] = path;
-      this.lineGraphic.set('geometry', this.line);
-      this.gndGraphic?.set('geometry', this.line);
-
-      this.point.latitude = pos.lat;
-      this.point.longitude = pos.lon;
-      this.point.z = z;
-      this.markerGraphic.set('geometry', this.point);
-
-      this.point.z = z + MARKER_HEIGHT;
-      this.txtGraphic?.set('geometry', this.point);
-
-      if (this.objectLayer) {
-        const heading = 180 + common.sampleAt(timeSecs, currentTrack.heading, timeSec);
-        if (this.objectLayer.heading !== heading) {
-          this.objectLayer.heading = heading;
-        }
+      if (recreated || changedProps.has('timeSec') || changedProps.has('offsetSeconds')) {
+        this.updateGeometry(this.track);
       }
-
-      const styleChanged =
-        changedProps.has('track') ||
-        changedProps.has('multiplier') ||
-        changedProps.has('layer') ||
-        changedProps.has('gndLayer') ||
-        changedProps.has('color');
-      if (this.lineLayer && (styleChanged || changedProps.has('opacity'))) {
-        this.lineLayer.material = { color: this.getLineRgba() };
-      }
-      const color = this.color || 'red';
-      if (this.objectLayer && styleChanged) {
-        this.objectLayer.material = { color };
-      }
-      if (this.textLayer && (styleChanged || changedProps.has('active'))) {
-        this.textLayer.halo = { color: this.active ? color : 'white', size: 1 };
-      }
-      if (
-        this.txtGraphic &&
-        (changedProps.has('track') ||
-          changedProps.has('multiplier') ||
-          changedProps.has('layer') ||
-          changedProps.has('displayLabels'))
-      ) {
-        const label = currentTrack.name ?? 'unknown';
-        this.txtGraphic.visible = this.displayLabels && label != 'unknown';
+      if (!recreated) {
+        this.updateStyles(changedProps, this.track);
       }
     }
 
     return false;
   }
 
+  private get trackColor(): string {
+    return this.color || 'red';
+  }
+
   private getLineRgba(): number[] {
-    const color = new Color(this.color || 'red');
+    const color = new Color(this.trackColor);
     color.a = this.opacity;
     return color.toRgba();
+  }
+
+  private updateGeometry(currentTrack: common.RuntimeTrack): void {
+    const timeSecs = currentTrack.timeSec;
+    const timeSec = this.timeSec + this.offsetSeconds;
+    const pos = selectTrackLatLonAlt(store.getState())(timeSec, currentTrack) as common.LatLonAlt;
+    const z = this.multiplier * pos.alt;
+
+    const start = Math.min(common.findIndexes(timeSecs, timeSec - 15 * 60).beforeIndex, timeSecs.length - 4);
+    const end = Math.max(common.findIndexes(timeSecs, timeSec).beforeIndex + 1, 4);
+    const path = this.path3d.slice(start, end);
+    // The last point must match the marker position and needs to be interpolated.
+    path.push([pos.lon, pos.lat, z]);
+    this.line.paths[0] = path;
+    this.lineGraphic!.set('geometry', this.line);
+    this.gndGraphic?.set('geometry', this.line);
+
+    this.point.latitude = pos.lat;
+    this.point.longitude = pos.lon;
+    this.point.z = z;
+    this.markerGraphic!.set('geometry', this.point);
+
+    this.point.z = z + MARKER_HEIGHT;
+    this.txtGraphic?.set('geometry', this.point);
+
+    if (this.objectLayer) {
+      const heading = 180 + common.sampleAt(timeSecs, currentTrack.heading, timeSec);
+      if (this.objectLayer.heading !== heading) {
+        this.objectLayer.heading = heading;
+      }
+    }
+  }
+
+  private updateStyles(changedProps: PropertyValues, currentTrack: common.RuntimeTrack): void {
+    const color = this.trackColor;
+    if (this.lineLayer && (changedProps.has('color') || changedProps.has('opacity'))) {
+      this.lineLayer.material = { color: this.getLineRgba() };
+    }
+    if (this.objectLayer && changedProps.has('color')) {
+      this.objectLayer.material = { color };
+    }
+    if (this.textLayer && (changedProps.has('color') || changedProps.has('active'))) {
+      this.textLayer.halo = { color: this.active ? color : 'white', size: 1 };
+    }
+    if (this.txtGraphic && changedProps.has('displayLabels')) {
+      const label = currentTrack.name ?? 'unknown';
+      this.txtGraphic.visible = this.displayLabels && label !== 'unknown';
+    }
   }
 
   private createGraphics(): void {
@@ -186,7 +189,7 @@ export class Track3dElement extends connect(store)(LitElement) {
     }
 
     const currentTrack = this.track;
-    const color = this.color || 'red';
+    const color = this.trackColor;
     const label = currentTrack.name ?? 'unknown';
     const attributes = { trackId: currentTrack.id };
 
