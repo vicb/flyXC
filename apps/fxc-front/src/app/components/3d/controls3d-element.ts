@@ -7,7 +7,7 @@ import { css, html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 /**
- * Top-right map controls container for the 3D Cesium/ArcGIS view.
+ * Top-left map controls container for the 3D view.
  *
  * Hosts menu, pilot name, and flight dashboard elements.
  */
@@ -17,7 +17,10 @@ export class Controls3dElement extends LitElement {
     return css`
       :host {
         display: block;
-        font: 12px 'Nobile', verdana, sans-serif;
+        font:
+          12px 'Nobile',
+          verdana,
+          sans-serif;
         height: 1px;
         box-shadow: none !important;
       }

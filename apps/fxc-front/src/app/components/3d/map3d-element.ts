@@ -247,6 +247,9 @@ export class Map3dElement extends connect(store)(LitElement) {
     view
       .when(() => {
         store.dispatch(setApiLoading(false));
+        if (!this.isConnected) {
+          return;
+        }
 
         if (this.tracks.length) {
           // Zoom to tracks when there are some.
@@ -266,7 +269,7 @@ export class Map3dElement extends connect(store)(LitElement) {
         );
         this.subscriptions.push(() => samplerWatch.remove());
 
-        watch(
+        const centerWatch = watch(
           () => view.center,
           (point?: Point) => {
             if (point) {
@@ -274,6 +277,7 @@ export class Map3dElement extends connect(store)(LitElement) {
             }
           },
         );
+        this.subscriptions.push(() => centerWatch.remove());
       })
       .catch(async (e) => {
         store.dispatch(setApiLoading(false));
