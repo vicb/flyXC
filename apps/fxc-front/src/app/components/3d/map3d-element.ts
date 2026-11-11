@@ -26,7 +26,6 @@ import Map from '@arcgis/core/Map';
 import SunLighting from '@arcgis/core/views/3d/environment/SunLighting';
 import VirtualLighting from '@arcgis/core/views/3d/environment/VirtualLighting';
 import SceneView from '@arcgis/core/views/SceneView';
-import Popup from '@arcgis/core/widgets/Popup';
 import type { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
 import type { PropertyValues, TemplateResult } from 'lit';
@@ -219,11 +218,12 @@ export class Map3dElement extends connect(store)(LitElement) {
         starsEnabled: false,
         atmosphereEnabled: true,
       },
-      popup: new Popup({
+      popup: {
         dockEnabled: false,
         actions: [],
         dockOptions: { buttonEnabled: false },
-      }),
+        viewModel: { includeDefaultActions: false },
+      },
       // Surprising, but true (I mean false).
       popupEnabled: false,
     });
@@ -238,9 +238,6 @@ export class Map3dElement extends connect(store)(LitElement) {
         }
       },
     );
-    if (view.popup) {
-      view.popup.viewModel.includeDefaultActions = false;
-    }
     view.ui.remove('zoom');
 
     const controls = document.createElement('controls3d-element');
