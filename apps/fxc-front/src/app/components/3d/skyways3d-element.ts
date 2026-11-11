@@ -16,7 +16,7 @@ export class Skyways3dElement extends connect(store)(LitElement) {
   map!: Map;
 
   @state()
-  private opacity = 0.5;
+  private opacity = 100;
   @state()
   private show = false;
   @state()
@@ -33,27 +33,19 @@ export class Skyways3dElement extends connect(store)(LitElement) {
     this.maxZoom = skyways.getTileMaxZoom(skyways.selectLayer(state));
   }
 
-  protected shouldUpdate(changedProperties: PropertyValues): boolean {
-    if (this.layer) {
-      if (changedProperties.has('show')) {
-        changedProperties.delete('show');
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
+    if (!this.layer || changedProps.has('map') || changedProps.has('tileUrl') || changedProps.has('maxZoom')) {
+      this.setupLayer();
+    } else {
+      if (changedProps.has('show')) {
         this.layer.visible = this.show;
       }
-
-      if (changedProperties.has('opacity')) {
-        changedProperties.delete('opacity');
+      if (changedProps.has('opacity')) {
         this.layer.opacity = this.opacity / 100;
-      }
-
-      if (changedProperties.has('tileUrl') || changedProperties.has('maxZoom')) {
-        this.removeLayer();
-        this.setupLayer();
-        changedProperties.delete('titleUrl');
-        changedProperties.delete('maxZoom');
       }
     }
 
-    return super.shouldUpdate(changedProperties);
+    return false;
   }
 
   disconnectedCallback(): void {
@@ -63,18 +55,23 @@ export class Skyways3dElement extends connect(store)(LitElement) {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.setupLayer();
+    this.requestUpdate();
   }
 
   private removeLayer() {
     if (this.layer) {
-      this.map.remove(this.layer);
+      this.map?.remove(this.layer);
       this.layer.destroy();
       this.layer = undefined;
     }
   }
 
   private setupLayer() {
+    this.removeLayer();
+    if (!this.map) {
+      return;
+    }
+
     const layer = new SkywaysLayer({
       urlTemplate: this.tileUrl,
       copyright: 'Skyways &copy; <a href="https://thermal.kk7.ch/">kk7.ch</a>',
@@ -83,6 +80,7 @@ export class Skyways3dElement extends connect(store)(LitElement) {
     });
 
     layer.visible = this.show;
+    layer.opacity = this.opacity / 100;
     this.map.add(layer);
     this.layer = layer;
   }
