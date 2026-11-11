@@ -411,6 +411,7 @@ export class Map3dElement extends connect(store)(LitElement) {
       <style>
         #layers {
           font: 18px Roboto, arial, sans-serif !important;
+          margin-bottom: 10px;
         }
         .ad {
           position: absolute;
