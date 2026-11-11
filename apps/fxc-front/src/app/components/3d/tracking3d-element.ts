@@ -4,7 +4,6 @@ import Graphic from '@arcgis/core/Graphic';
 import type GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import type ElevationSampler from '@arcgis/core/layers/support/ElevationSampler';
 import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
-import type { protos } from '@flyxc/common';
 import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -29,6 +28,8 @@ import { createPopupContent } from './popup-content';
 // A track is considered recent if ended less than timeout ago.
 const RECENT_TIMEOUT_MIN = 2 * 60;
 const MSG_MARKER_HEIGHT = 30;
+/** Debounce delay before re-sampling elevations after terrain tiles update. */
+const SAMPLER_REFRESH_DEBOUNCE_MS = 150;
 
 @customElement('tracking3d-element')
 export class Tracking3DElement extends connect(store)(LitElement) {
@@ -58,6 +59,10 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   // messages, pilots and texts.
   private markers: Graphic[] = [];
   private subscriptions: UnsubscribeHandle[] = [];
+  /** Subscription handle for terrain elevation updates from {@link sampler}. */
+  private samplerHandle?: { remove: () => void };
+  /** Pending debounce timer ID for {@link sampler} refresh updates. */
+  private samplerTimer?: number;
   private units?: Units;
 
   private line = {
@@ -144,6 +149,10 @@ export class Tracking3DElement extends connect(store)(LitElement) {
     super.disconnectedCallback();
     this.subscriptions.forEach((sub) => sub());
     this.subscriptions.length = 0;
+    this.samplerHandle?.remove();
+    this.samplerHandle = undefined;
+    clearTimeout(this.samplerTimer);
+    this.samplerTimer = undefined;
     if (this.layer) {
       this.layer.removeMany(this.tracks);
       this.layer.removeMany(this.markers);
@@ -171,12 +180,35 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    if (this.layer && this.gndLayer) {
-      this.updateTracks();
-      this.updateMarkers();
+    if (changedProps.has('sampler')) {
+      this.samplerHandle?.remove();
+      this.samplerHandle = this.sampler?.on('changed', () => {
+        clearTimeout(this.samplerTimer);
+        this.samplerTimer = window.setTimeout(() => this.updateMarkers(), SAMPLER_REFRESH_DEBOUNCE_MS);
+      });
     }
+    this.updateTracks();
+    this.updateMarkers();
     // Note: `LitElement#shouldUpdate()` is always true
     return super.shouldUpdate(changedProps);
+  }
+
+  /**
+   * Computes the elevation for a marker point by clamping scaled GPS altitude to terrain height.
+   *
+   * @param point - Geographic location used to query terrain elevation.
+   * @param rawAlt - Unscaled track altitude in meters.
+   * @returns Clamped `z` coordinate in meters.
+   */
+  private clampElevation(point: Point, rawAlt: number): number {
+    const scaledAlt = rawAlt * this.multiplier;
+    const sampled = this.sampler?.queryElevation(point) as Point | null | undefined;
+    const z = sampled?.z;
+    // The sampler sometimes returns sentinel/noData values (e.g. NaN, 3.40e+37 or noDataValue).
+    if (typeof z !== 'number' || !Number.isFinite(z) || z === this.sampler?.noDataValue || z > 20000) {
+      return scaledAlt;
+    }
+    return Math.max(z, scaledAlt);
   }
 
   // Updates the live tracks from the geojson.
@@ -231,8 +263,10 @@ export class Tracking3DElement extends connect(store)(LitElement) {
     this.trackShadows = trackShadows;
   }
 
-  // Updates markers from the geojson.
-  private updateMarkers() {
+  /**
+   * Updates live marker and label graphics, clamping markers above terrain via {@link sampler}.
+   */
+  private updateMarkers(): void {
     if (!this.layer || !this.gndLayer) {
       return;
     }
@@ -291,34 +325,28 @@ export class Tracking3DElement extends connect(store)(LitElement) {
 
       const graphic = new Graphic();
       graphic.set('symbol', symbol);
-      let point = new Point({
-        latitude: feature.geometry.coordinates[1],
-        longitude: feature.geometry.coordinates[0],
+      const [lon, lat, rawAlt] = feature.geometry.coordinates as [number, number, number];
+      const point = new Point({
+        latitude: lat,
+        longitude: lon,
         z: 0,
         hasZ: true,
       });
-      if (this.sampler) {
-        point = this.sampler.queryElevation(point) as Point;
-      }
-      // The sampler sometimes return incorrect values (i.e. 3.40...e+37).
-      if ((point.z ?? 0) > 20000) {
-        point.z = 0;
-      }
-      point.z = Math.max(point.z!, feature.geometry.coordinates[2] * this.multiplier);
+      point.z = this.clampElevation(point, rawAlt);
       graphic.set('geometry', point);
       graphic.set('attributes', { liveTrackId: pilotId, liveTrackIndex: pointProperties.index });
       markers.push(graphic);
 
       if (label) {
-        const graphic = new Graphic();
-        point = point.clone();
-        point.z! += MSG_MARKER_HEIGHT;
-        graphic.set('geometry', point);
+        const labelGraphic = new Graphic();
+        const labelPoint = point.clone();
+        labelPoint.z! += MSG_MARKER_HEIGHT;
+        labelGraphic.set('geometry', labelPoint);
         this.txtSymbol.symbolLayers[0].text = label;
         this.txtSymbol.symbolLayers[0].material.color = isActive ? '#BF1515' : 'black';
-        graphic.set('symbol', this.txtSymbol);
-        graphic.set('attributes', { liveTrackId: pilotId, liveTrackIndex: pointProperties.index });
-        markers.push(graphic);
+        labelGraphic.set('symbol', this.txtSymbol);
+        labelGraphic.set('attributes', { liveTrackId: pilotId, liveTrackIndex: pointProperties.index, isLabel: true });
+        markers.push(labelGraphic);
       }
     }
 
@@ -327,28 +355,29 @@ export class Tracking3DElement extends connect(store)(LitElement) {
     this.markers = markers;
   }
 
-  // Display the popup when a Graphic gets clicked.
+  /**
+   * Opens the popup anchored to the clicked marker's clamped geometry.
+   *
+   * @param graphic - Clicked graphic from the scene hit test.
+   * @param scene - Scene element displaying the popup.
+   */
   private handleClick(graphic: Graphic, scene: ArcgisScene) {
     const attr = graphic.attributes;
     if (attr.liveTrackId != null) {
       store.dispatch(liveTrack.setCurrentLiveId(attr.liveTrackId));
-      if (attr.liveTrackIndex != null && this.units) {
-        // Style for markers.
-        const index = attr.liveTrackIndex;
-        const popup = popupContent(attr.liveTrackId, index, this.units);
+      if (attr.liveTrackIndex != null && this.units && graphic.geometry?.type === 'point') {
+        const popup = popupContent(attr.liveTrackId, attr.liveTrackIndex, this.units);
         if (!popup) {
           return;
         }
 
-        const track = liveTrack.selectLiveTrackById(store.getState(), attr.liveTrackId) as protos.LiveTrack;
+        const location = (graphic.geometry as Point).clone();
+        if (!attr.isLabel && location.z != null) {
+          location.z += MSG_MARKER_HEIGHT;
+        }
 
         void scene.openPopup({
-          location: new Point({
-            latitude: track.lat[index],
-            longitude: track.lon[index],
-            z: track.alt[index] * this.multiplier + MSG_MARKER_HEIGHT,
-            hasZ: true,
-          }),
+          location,
           title: popup.title,
           content: createPopupContent(popup.content),
         });
