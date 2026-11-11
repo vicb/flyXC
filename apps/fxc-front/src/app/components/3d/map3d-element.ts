@@ -6,6 +6,7 @@ import './skyways3d-element';
 import './tracking3d-element';
 import '@arcgis/map-components/components/arcgis-compass';
 import '@arcgis/map-components/components/arcgis-navigation-toggle';
+import '@arcgis/map-components/components/arcgis-popup';
 import '@arcgis/map-components/components/arcgis-scene';
 
 import Basemap from '@arcgis/core/Basemap';
@@ -29,6 +30,7 @@ import Map from '@arcgis/core/Map';
 import SunLighting from '@arcgis/core/views/3d/environment/SunLighting';
 import VirtualLighting from '@arcgis/core/views/3d/environment/VirtualLighting';
 import type SceneView from '@arcgis/core/views/SceneView';
+import type { ArcgisPopup } from '@arcgis/map-components/components/arcgis-popup';
 import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
 import type { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
@@ -64,6 +66,8 @@ import {
   setCurrentTrackId,
 } from '../../redux/track-slice';
 import type { Airspace3dElement } from './airspace3d-element';
+
+const POPUP_DOCK_OPTIONS = { buttonEnabled: false };
 
 @customElement('map3d-element')
 export class Map3dElement extends connect(store)(LitElement) {
@@ -224,25 +228,8 @@ export class Map3dElement extends connect(store)(LitElement) {
       starsEnabled: false,
       atmosphereEnabled: true,
     } as any;
-    view.popup = {
-      dockEnabled: false,
-      actions: [],
-      dockOptions: { buttonEnabled: false },
-      viewModel: { includeDefaultActions: false },
-    };
-    // Surprising, but true (I mean false).
-    view.popupEnabled = false;
     this.view = view;
     this.createLighting();
-
-    watch(
-      () => view.popup?.visible,
-      (visible) => {
-        if (visible == false) {
-          store.dispatch(setCurrentLiveId(undefined));
-        }
-      },
-    );
 
     this.airspace = this.renderRoot.querySelector('airspace3d-element') as Airspace3dElement;
 
@@ -301,14 +288,14 @@ export class Map3dElement extends connect(store)(LitElement) {
           // Sort hits by their distance to the camera.
           results.sort((r1, r2) => r1.distance - r2.distance);
           const graphic = results[0].graphic;
-          msg.clickSceneView.emit(graphic, view);
+          msg.clickSceneView.emit(graphic, scene);
           // The trackId is set on tracks and pilots (not on live tracks).
           const trackId = graphic.attributes?.trackId;
           if (trackId != null) {
             store.dispatch(setCurrentTrackId(trackId));
           }
         } else {
-          this.airspace?.handleClick({ lat: e.mapPoint.latitude ?? 0, lon: e.mapPoint.longitude ?? 0 }, view);
+          this.airspace?.handleClick({ lat: e.mapPoint.latitude ?? 0, lon: e.mapPoint.longitude ?? 0 }, scene);
         }
       });
     });
@@ -437,7 +424,18 @@ export class Map3dElement extends connect(store)(LitElement) {
           filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #fff);
         }
       </style>
-      <arcgis-scene id="map3d" .map=${this.map} camera-tilt="80">
+      <arcgis-scene id="map3d" .map=${this.map} camera-tilt="80" popup-disabled>
+        <arcgis-popup
+          slot="popup"
+          .dockEnabled=${false}
+          .dockOptions=${POPUP_DOCK_OPTIONS}
+          include-default-actions-disabled
+          @arcgisPropertyChange=${(e: CustomEvent<{ name: string }>) => {
+            if (e.detail.name === 'open' && !(e.target as ArcgisPopup).open) {
+              store.dispatch(setCurrentLiveId(undefined));
+            }
+          }}
+        ></arcgis-popup>
         <controls3d-element slot="top-left"></controls3d-element>
         <select
           id="layers"

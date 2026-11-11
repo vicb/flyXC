@@ -1,5 +1,5 @@
 import type Graphic from '@arcgis/core/Graphic';
-import type SceneView from '@arcgis/core/views/SceneView';
+import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
 import type { LatLon, LatLonAlt } from '@flyxc/common';
 import { createEvents } from 'micro-typed-events';
 
@@ -17,8 +17,8 @@ export const trackGroupsAdded = createEvents<number[]>();
 // Emit the group id of the removed tracks.
 export const trackGroupsRemoved = createEvents<number[]>();
 
-// Click on a graphic of a SceneView (3d).
-export const clickSceneView = createEvents<Graphic, SceneView>();
+// Click on a graphic of an ArcgisScene (3d).
+export const clickSceneView = createEvents<Graphic, ArcgisScene>();
 
 // User location.
 // The second parameter is whether the location is user initiated.
