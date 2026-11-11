@@ -1,5 +1,8 @@
 import Graphic from '@arcgis/core/Graphic';
 import type GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import ObjectSymbol3DLayer from '@arcgis/core/symbols/ObjectSymbol3DLayer';
+import PointSymbol3D from '@arcgis/core/symbols/PointSymbol3D';
+import TextSymbol3DLayer from '@arcgis/core/symbols/TextSymbol3DLayer';
 import * as common from '@flyxc/common';
 import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
@@ -43,34 +46,8 @@ export class Marker3dElement extends connect(store)(LitElement) {
     hasZ: true,
   };
 
-  private symbol = {
-    type: 'point-3d',
-    symbolLayers: [
-      {
-        type: 'object',
-        height: MARKER_HEIGHT,
-        resource: { href: '/static/models/angry.glb' },
-        material: { color: 'red' },
-        anchor: 'relative',
-        anchorPosition: { x: 0, y: 0, z: -0.3 },
-        heading: 0,
-      },
-    ],
-  };
-
-  private txtSymbol = {
-    type: 'point-3d',
-    symbolLayers: [
-      {
-        type: 'text',
-        material: { color: 'black' },
-        halo: { color: 'white', size: 1 },
-        size: 12,
-        text: '',
-      },
-    ],
-  };
-
+  private objectLayer?: ObjectSymbol3DLayer;
+  private textLayer?: TextSymbol3DLayer;
   private graphic?: Graphic;
   private txtGraphic?: Graphic;
 
@@ -118,21 +95,27 @@ export class Marker3dElement extends connect(store)(LitElement) {
       this.point.z = alt * this.multiplier;
       this.graphic.set('geometry', this.point);
 
-      const objectSymbol = this.symbol.symbolLayers[0];
-      objectSymbol.material.color = this.color;
-      objectSymbol.heading = 180 + common.sampleAt(track.timeSec, track.heading, timeSec);
-      this.graphic.set('symbol', this.symbol);
-      this.graphic.set('attributes', { trackId: this.track?.id });
+      const color = this.color || 'red';
+      if (this.objectLayer) {
+        if (changedProps.has('track') || changedProps.has('color')) {
+          this.objectLayer.material = { color };
+        }
+        const heading = 180 + common.sampleAt(track.timeSec, track.heading, timeSec);
+        if (this.objectLayer.heading !== heading) {
+          this.objectLayer.heading = heading;
+        }
+      }
 
       this.point.z += MARKER_HEIGHT;
       this.txtGraphic?.set('geometry', this.point);
 
-      this.txtSymbol.symbolLayers[0].halo.color = this.active ? this.color : 'white';
-      const label = track.name ?? 'unknown';
-      this.txtSymbol.symbolLayers[0].text = label;
-      this.txtGraphic?.set('symbol', this.txtSymbol);
-      this.txtGraphic?.set('attributes', { trackId: track.id });
-      this.txtGraphic?.set('visible', this.displayLabels && label != 'unknown');
+      if (this.textLayer && (changedProps.has('track') || changedProps.has('active') || changedProps.has('color'))) {
+        this.textLayer.halo = { color: this.active ? color : 'white', size: 1 };
+      }
+      if (this.txtGraphic && (changedProps.has('track') || changedProps.has('displayLabels'))) {
+        const label = track.name ?? 'unknown';
+        this.txtGraphic.visible = this.displayLabels && label != 'unknown';
+      }
     }
 
     return false;
@@ -140,8 +123,36 @@ export class Marker3dElement extends connect(store)(LitElement) {
 
   private maybeCreateMarker(): void {
     if (this.layer && this.track) {
-      this.graphic = new Graphic();
-      this.txtGraphic = new Graphic({ symbol: this.txtSymbol as any });
+      const color = this.color || 'red';
+      const label = this.track.name ?? 'unknown';
+
+      this.objectLayer = new ObjectSymbol3DLayer({
+        height: MARKER_HEIGHT,
+        resource: { href: '/static/models/angry.glb' },
+        material: { color },
+        anchor: 'relative',
+        anchorPosition: { x: 0, y: 0, z: -0.3 },
+        heading: 0,
+      });
+
+      this.graphic = new Graphic({
+        symbol: new PointSymbol3D({ symbolLayers: [this.objectLayer] }),
+        attributes: { trackId: this.track.id },
+      });
+
+      this.textLayer = new TextSymbol3DLayer({
+        material: { color: 'black' },
+        halo: { color: this.active ? color : 'white', size: 1 },
+        size: 12,
+        text: label,
+      });
+
+      this.txtGraphic = new Graphic({
+        symbol: new PointSymbol3D({ symbolLayers: [this.textLayer] }),
+        attributes: { trackId: this.track.id },
+        visible: this.displayLabels && label != 'unknown',
+      });
+
       this.layer.addMany([this.graphic, this.txtGraphic]);
     }
   }
@@ -151,10 +162,12 @@ export class Marker3dElement extends connect(store)(LitElement) {
       this.layer?.remove(this.graphic);
     }
     this.graphic = undefined;
+    this.objectLayer = undefined;
     if (this.txtGraphic) {
       this.layer?.remove(this.txtGraphic);
     }
     this.txtGraphic = undefined;
+    this.textLayer = undefined;
   }
 
   // There is not content - no need to create a shadow root.
