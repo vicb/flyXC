@@ -85,6 +85,7 @@ export default defineConfig(({ mode }) => {
         '@google-cloud/storage',
         '@google-cloud/pubsub',
         '@google-cloud/compute',
+        '@node-rs/xxhash',
       ],
     },
 

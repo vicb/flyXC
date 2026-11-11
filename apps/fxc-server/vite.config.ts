@@ -92,7 +92,13 @@ export default defineConfig(({ mode }) => {
 
     // SSR mode for Node.js
     ssr: {
-      external: ['@google-cloud/datastore', '@google-cloud/storage', '@google-cloud/pubsub', '@google-cloud/compute'],
+      external: [
+        '@google-cloud/datastore',
+        '@google-cloud/storage',
+        '@google-cloud/pubsub',
+        '@google-cloud/compute',
+        '@node-rs/xxhash',
+      ],
     },
 
     server: {

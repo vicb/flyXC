@@ -85,6 +85,7 @@ export default defineConfig(({ mode }) => {
     // SSR mode for Node.js
     ssr: {
       noExternal: ['@flyxc/common', '@flyxc/common-node'],
+      external: ['@node-rs/xxhash'],
     },
 
     test: {

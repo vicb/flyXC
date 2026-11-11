@@ -108,7 +108,6 @@ export default defineConfig(({ mode }) => {
         : []),
       checker({
         typescript: {
-          root: process.cwd(),
           tsconfigPath: 'tsconfig.app.json',
         },
       }),

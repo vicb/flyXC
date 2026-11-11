@@ -19,7 +19,7 @@
     "cors": "^2.8.6",
     "express": "catalog:default",
     "express-basic-auth": "^1.2.1",
-    "express-fileupload": "^1.5.2",
+    "express-fileupload": "^1.6.0",
     "express-session": "^1.19.0",
     "gpx-builder": "^6.0.0",
     "grant": "catalog:default",
