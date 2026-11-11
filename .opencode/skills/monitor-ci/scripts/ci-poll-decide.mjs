@@ -322,9 +322,9 @@ const messages = {
 
   // fallback
   fallback: () =>
-    `CI: ${cipeStatus || 'N/A'} | Self-healing: ${selfHealingStatus || 'N/A'} | Verification: ${
-      verificationStatus || 'N/A'
-    }`,
+    `CI: ${cipeStatus || 'N/A'} | Self-healing: ${
+      selfHealingStatus || 'N/A'
+    } | Verification: ${verificationStatus || 'N/A'}`,
 };
 
 // Codes where noProgressCount resets to 0 (genuine progress occurred)
