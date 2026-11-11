@@ -6,6 +6,9 @@ settings:
 
 catalogs:
   default:
+    '@arcgis/map-components':
+      specifier: ^5.2.2
+      version: 5.2.2
     '@cwasm/lodepng':
       specifier: ^0.1.9
       version: 0.1.9
@@ -367,6 +370,9 @@ importers:
       '@arcgis/core':
         specifier: ^5.2.2
         version: 5.2.2(date-fns@4.4.0)(dayjs@1.11.23)(moment-timezone@0.6.2)
+      '@arcgis/map-components':
+        specifier: 'catalog:'
+        version: 5.2.2(@arcgis/core@5.2.2(date-fns@4.4.0)(dayjs@1.11.23)(moment-timezone@0.6.2))(@esri/calcite-components@5.2.1(date-fns@4.4.0)(dayjs@1.11.23)(luxon@3.7.2)(moment-timezone@0.6.2))
       '@esri/arcgis-rest-geocoding':
         specifier: ^4.11.1
         version: 4.11.1(@esri/arcgis-rest-request@4.11.1)
@@ -827,8 +833,20 @@ packages:
     peerDependencies:
       ajv: '>=8'
 
+  '@arcgis/common-components@5.2.2':
+    resolution: {integrity: sha512-/FvJQtMLzhGS396Cskd1JFFw1pTWKiwSbfVT5X0d28557a2ClGaOKvteaVZhIGTR4yqEwbYa5IR4Qzj/4In6Mw==}
+    peerDependencies:
+      '@arcgis/core': 5.2.2
+      '@esri/calcite-components': ^5.2.1
+
   '@arcgis/core@5.2.2':
     resolution: {integrity: sha512-vyfDiA4RnLDLWn2QgyI8d+9bfnBgPnamJ7HNHNkw47dhpGSZZcPdELDfquHssoBMhgUgXcKG6paM97WDovR7tg==}
+
+  '@arcgis/lumina-toolkit@5.2.2':
+    resolution: {integrity: sha512-WfzrSoO5ytXwcXGpq5sPVLlrHolosZNwq/LkYWTUrRAh3z8Uj7y0Xp0YbLTsylERHNI+t0AmdKm7qoM2j40maQ==}
+    peerDependencies:
+      '@arcgis/core': 5.2.2
+      '@arcgis/lumina': 5.2.2
 
   '@arcgis/lumina@5.2.2':
     resolution: {integrity: sha512-nwQG6F0zOtx9wy3Xo7WkvcwR6BNnJktMc+GMueKdKD9QaJzhCuDfvsnQeP5YnbATL3V0HGvq6Dq/Skm2IulUdw==}
@@ -838,6 +856,12 @@ packages:
     peerDependenciesMeta:
       '@lit/context':
         optional: true
+
+  '@arcgis/map-components@5.2.2':
+    resolution: {integrity: sha512-SAwOHrUghoHcmQecz11efoPlDF/kLn8j8pm0R3VCBIe7xB48BbtYUzVKtnFKQTZxQaCw6K14L8HQiSJHwAFFqQ==}
+    peerDependencies:
+      '@arcgis/core': 5.2.2
+      '@esri/calcite-components': ^5.2.1
 
   '@arcgis/toolkit@5.2.2':
     resolution: {integrity: sha512-LU1/Dyv4KWOKRIwg/hMelQCsxtYoo6z3E0mU/Jx6b8N/6xlY/WZ3Yke2Vk1w3IFmUoJ2Vxqb1Rw2W51/LYKDpw==}
@@ -2389,6 +2413,9 @@ packages:
 
   '@lit/reactive-element@2.1.2':
     resolution: {integrity: sha512-pbCDiVMnne1lYUIaYNN5wrwQXDtHaYtg7YEFPeW+hws6U47WeFvISGUWekPGKWOP1ygrs0ef0o1VJMk1exos5A==}
+
+  '@lit/task@1.0.3':
+    resolution: {integrity: sha512-1gJGJl8WON+2j0y9xfcD+XsS1rvcy3XDgsIhcdUW++yTR8ESjZW6o7dn8M8a4SZM8NnJe6ynS2cKWwsbfLOurg==}
 
   '@literals/html-css-minifier@4.0.2':
     resolution: {integrity: sha512-MaKfmNuqTiogCgDv06qnNznPc1Urr0GXe2V43M7VFqvWalCC+Rkt74m31q6oInNucdxYrtBPTc4uqlylbHlSmg==}
@@ -5558,6 +5585,9 @@ packages:
 
   es-toolkit@1.43.0:
     resolution: {integrity: sha512-SKCT8AsWvYzBBuUqMk4NPwFlSdqLpJwmy6AP322ERn8W2YLIB6JBXnwMI2Qsh2gfphT3q7EKAxKb23cvFHFwKA==}
+
+  es-toolkit@1.53.2:
+    resolution: {integrity: sha512-iUqZ+NlwH4jUgRmXZUxFBsV/9762TQEa1O4IXLFBmDEjVHScBytKuseX23I0+v9ShZ5MYxEx6WKNzm6IPnex8g==}
 
   esbuild@0.28.2:
     resolution: {integrity: sha512-HKVLS8dvII+xoKW9kmqxbRKrnWEXfJJr/FZhhJmiqIB0e053QNYFqOBouTMO/k5sID4MvCiUCvv8b9M4h32wIA==}
@@ -9261,6 +9291,20 @@ snapshots:
       jsonpointer: 5.0.1
       leven: 3.1.0
 
+  '@arcgis/common-components@5.2.2(@arcgis/core@5.2.2(date-fns@4.4.0)(dayjs@1.11.23)(moment-timezone@0.6.2))(@esri/calcite-components@5.2.1(date-fns@4.4.0)(dayjs@1.11.23)(luxon@3.7.2)(moment-timezone@0.6.2))':
+    dependencies:
+      '@arcgis/core': 5.2.2(date-fns@4.4.0)(dayjs@1.11.23)(moment-timezone@0.6.2)
+      '@arcgis/lumina': 5.2.2(lit@3.3.3)
+      '@arcgis/lumina-toolkit': 5.2.2(@arcgis/core@5.2.2(date-fns@4.4.0)(dayjs@1.11.23)(moment-timezone@0.6.2))(@arcgis/lumina@5.2.2(lit@3.3.3))
+      '@arcgis/toolkit': 5.2.2
+      '@esri/arcgis-html-sanitizer': 4.2.0
+      '@esri/calcite-components': 5.2.1(date-fns@4.4.0)(dayjs@1.11.23)(luxon@3.7.2)(moment-timezone@0.6.2)
+      '@lit/task': 1.0.3
+      lit: 3.3.3
+      tslib: 2.9.1
+    transitivePeerDependencies:
+      - '@lit/context'
+
   '@arcgis/core@5.2.2(date-fns@4.4.0)(dayjs@1.11.23)(moment-timezone@0.6.2)':
     dependencies:
       '@amcharts/amcharts5': 5.20.8
@@ -9279,12 +9323,33 @@ snapshots:
       - dayjs
       - moment-timezone
 
+  '@arcgis/lumina-toolkit@5.2.2(@arcgis/core@5.2.2(date-fns@4.4.0)(dayjs@1.11.23)(moment-timezone@0.6.2))(@arcgis/lumina@5.2.2(lit@3.3.3))':
+    dependencies:
+      '@arcgis/core': 5.2.2(date-fns@4.4.0)(dayjs@1.11.23)(moment-timezone@0.6.2)
+      '@arcgis/lumina': 5.2.2(lit@3.3.3)
+      tslib: 2.9.1
+
   '@arcgis/lumina@5.2.2(lit@3.3.3)':
     dependencies:
       '@arcgis/toolkit': 5.2.2
       csstype: 3.2.3
       lit: 3.3.3
       tslib: 2.9.1
+
+  '@arcgis/map-components@5.2.2(@arcgis/core@5.2.2(date-fns@4.4.0)(dayjs@1.11.23)(moment-timezone@0.6.2))(@esri/calcite-components@5.2.1(date-fns@4.4.0)(dayjs@1.11.23)(luxon@3.7.2)(moment-timezone@0.6.2))':
+    dependencies:
+      '@amcharts/amcharts5': 5.20.8
+      '@arcgis/common-components': 5.2.2(@arcgis/core@5.2.2(date-fns@4.4.0)(dayjs@1.11.23)(moment-timezone@0.6.2))(@esri/calcite-components@5.2.1(date-fns@4.4.0)(dayjs@1.11.23)(luxon@3.7.2)(moment-timezone@0.6.2))
+      '@arcgis/core': 5.2.2(date-fns@4.4.0)(dayjs@1.11.23)(moment-timezone@0.6.2)
+      '@arcgis/lumina': 5.2.2(lit@3.3.3)
+      '@arcgis/lumina-toolkit': 5.2.2(@arcgis/core@5.2.2(date-fns@4.4.0)(dayjs@1.11.23)(moment-timezone@0.6.2))(@arcgis/lumina@5.2.2(lit@3.3.3))
+      '@arcgis/toolkit': 5.2.2
+      '@esri/calcite-components': 5.2.1(date-fns@4.4.0)(dayjs@1.11.23)(luxon@3.7.2)(moment-timezone@0.6.2)
+      es-toolkit: 1.53.2
+      lit: 3.3.3
+      tslib: 2.9.1
+    transitivePeerDependencies:
+      - '@lit/context'
 
   '@arcgis/toolkit@5.2.2':
     dependencies:
@@ -11050,6 +11115,10 @@ snapshots:
   '@lit/reactive-element@2.1.2':
     dependencies:
       '@lit-labs/ssr-dom-shim': 1.5.0
+
+  '@lit/task@1.0.3':
+    dependencies:
+      '@lit/reactive-element': 2.1.2
 
   '@literals/html-css-minifier@4.0.2(@swc/core@1.16.22(@swc/helpers@0.5.24))':
     dependencies:
@@ -14453,6 +14522,8 @@ snapshots:
       is-symbol: 1.1.1
 
   es-toolkit@1.43.0: {}
+
+  es-toolkit@1.53.2: {}
 
   esbuild@0.28.2:
     optionalDependencies:

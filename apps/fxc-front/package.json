@@ -6,6 +6,7 @@
   "dependencies": {
     "@alenaksu/json-viewer": "^2.1.2",
     "@arcgis/core": "^5.2.2",
+    "@arcgis/map-components": "catalog:",
     "@esri/arcgis-rest-geocoding": "^4.11.1",
     "@esri/arcgis-rest-request": "^4.11.1",
     "@flyxc/common": "workspace:*",

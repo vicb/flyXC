@@ -4,6 +4,9 @@ import './line3d-element';
 import './marker3d-element';
 import './skyways3d-element';
 import './tracking3d-element';
+import '@arcgis/map-components/components/arcgis-compass';
+import '@arcgis/map-components/components/arcgis-navigation-toggle';
+import '@arcgis/map-components/components/arcgis-scene';
 
 import Basemap from '@arcgis/core/Basemap';
 import esriConfig from '@arcgis/core/config';
@@ -25,7 +28,8 @@ import WebTileLayer from '@arcgis/core/layers/WebTileLayer';
 import Map from '@arcgis/core/Map';
 import SunLighting from '@arcgis/core/views/3d/environment/SunLighting';
 import VirtualLighting from '@arcgis/core/views/3d/environment/VirtualLighting';
-import SceneView from '@arcgis/core/views/SceneView';
+import type SceneView from '@arcgis/core/views/SceneView';
+import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
 import type { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
 import type { PropertyValues, TemplateResult } from 'lit';
@@ -60,7 +64,6 @@ import {
   setCurrentTrackId,
 } from '../../redux/track-slice';
 import type { Airspace3dElement } from './airspace3d-element';
-import type { Skyways3dElement } from './skyways3d-element';
 
 @customElement('map3d-element')
 export class Map3dElement extends connect(store)(LitElement) {
@@ -164,7 +167,6 @@ export class Map3dElement extends connect(store)(LitElement) {
     super.disconnectedCallback();
     this.subscriptions.forEach((sub) => sub());
     this.subscriptions.length = 0;
-    this.view?.destroy();
     this.view = undefined;
   }
 
@@ -182,7 +184,11 @@ export class Map3dElement extends connect(store)(LitElement) {
     }
   }
 
-  firstUpdated(): void {
+  protected willUpdate(): void {
+    if (this.map) {
+      return;
+    }
+
     this.elevationLayer = new ExaggeratedElevationLayer({ multiplier: this.multiplier });
 
     const labelLayer = new SceneLayer({
@@ -209,24 +215,23 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.graphicsLayer = new GraphicsLayer();
     this.gndGraphicsLayer = new GraphicsLayer({ elevationInfo: { mode: 'on-the-ground' } });
     this.map.addMany([this.graphicsLayer, this.gndGraphicsLayer]);
+  }
 
-    const view = new SceneView({
-      container: 'map3d',
-      map: this.map,
-      camera: { tilt: 80 },
-      environment: {
-        starsEnabled: false,
-        atmosphereEnabled: true,
-      },
-      popup: {
-        dockEnabled: false,
-        actions: [],
-        dockOptions: { buttonEnabled: false },
-        viewModel: { includeDefaultActions: false },
-      },
-      // Surprising, but true (I mean false).
-      popupEnabled: false,
-    });
+  firstUpdated(): void {
+    const scene = this.renderRoot.querySelector('arcgis-scene') as ArcgisScene;
+    const view = scene.view;
+    view.environment = {
+      starsEnabled: false,
+      atmosphereEnabled: true,
+    } as any;
+    view.popup = {
+      dockEnabled: false,
+      actions: [],
+      dockOptions: { buttonEnabled: false },
+      viewModel: { includeDefaultActions: false },
+    };
+    // Surprising, but true (I mean false).
+    view.popupEnabled = false;
     this.view = view;
     this.createLighting();
 
@@ -238,22 +243,8 @@ export class Map3dElement extends connect(store)(LitElement) {
         }
       },
     );
-    view.ui.remove('zoom');
 
-    const controls = document.createElement('controls3d-element');
-    view.ui.add(controls, 'top-left');
-
-    const layerSwitcher = this.renderRoot.querySelector('#layers') as HTMLSelectElement;
-    view.ui.add(layerSwitcher, 'top-right');
-    view.ui.move([layerSwitcher, 'compass', 'navigation-toggle'], 'top-right');
-
-    const skyways = document.createElement('skyways3d-element') as Skyways3dElement;
-    skyways.map = this.map;
-    view.ui.add(skyways, 'top-left');
-
-    this.airspace = document.createElement('airspace3d-element') as Airspace3dElement;
-    this.airspace.map = this.map;
-    view.ui.add(this.airspace, 'top-left');
+    this.airspace = this.renderRoot.querySelector('airspace3d-element') as Airspace3dElement;
 
     this.subscriptions.push(
       msg.centerMap.subscribe((ll) => this.center(ll)),
@@ -446,7 +437,20 @@ export class Map3dElement extends connect(store)(LitElement) {
           filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #fff);
         }
       </style>
-      <div id="map3d"></div>
+      <arcgis-scene id="map3d" .map=${this.map} camera-tilt="80">
+        <controls3d-element slot="top-left"></controls3d-element>
+        <select
+          id="layers"
+          slot="top-right"
+          @change=${(e: any) => this.map?.set('basemap', this.basemaps[e.target.value])}
+        >
+          ${Object.getOwnPropertyNames(this.basemaps).map((name) => html`<option value="${name}">${name}</option>`)}
+        </select>
+        <arcgis-compass slot="top-right"></arcgis-compass>
+        <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
+      </arcgis-scene>
+      <skyways3d-element .map=${this.map}></skyways3d-element>
+      <airspace3d-element .map=${this.map}></airspace3d-element>
       ${when(
         this.country === 'FR' && !this.isFromFfvl,
         () => html`<a class="ad" href="https://ruedelair.com/" target="_blank">
@@ -458,9 +462,6 @@ export class Map3dElement extends connect(store)(LitElement) {
           />
         </a>`,
       )}
-      <select id="layers" @change=${(e: any) => this.map?.set('basemap', this.basemaps[e.target.value])}>
-        ${Object.getOwnPropertyNames(this.basemaps).map((name) => html`<option value="${name}">${name}</option>`)}
-      </select>
       ${when(
         this.graphicsLayer != null && this.apiLoaded,
         () => html`<tracking3d-element
