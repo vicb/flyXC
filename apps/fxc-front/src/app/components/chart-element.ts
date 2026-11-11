@@ -69,7 +69,7 @@ export interface ChartTrack {
 
 const MIN_SPEED_FACTOR = 16;
 const MAX_SPEED_FACTOR = 4096;
-const PLAY_INTERVAL_MILLIS = 50;
+const MAX_FRAME_DELTA_SEC = 0.25;
 
 /** Reusable hour:minute time formatter without seconds to avoid re-instantiation per tick. */
 const hourMinuteFormatter = new Intl.DateTimeFormat([], {
@@ -174,9 +174,12 @@ export class ChartElement extends LitElement {
   @state()
   private playTimer?: number;
 
-  // Last time the track animation was paused and corresponding timestamp
+  // Last time the track animation was paused, corresponding timestamp, and rAF accumulators.
   private lastPauseMs = 0;
   private lastPauseTimestampSec = 0;
+  private lastFrameMs = 0;
+  private playbackTimeSec = 0;
+  private lastDispatchedRoundedSec = 0;
 
   @query('#thumb')
   private thumbElement?: SVGLineElement;
@@ -285,7 +288,10 @@ export class ChartElement extends LitElement {
           width: 100%;
           height: 100%;
           position: relative;
-          font: 12px 'Nobile', verdana, sans-serif;
+          font:
+            12px 'Nobile',
+            verdana,
+            sans-serif;
         }
         #chart {
           touch-action: none;
@@ -401,14 +407,15 @@ export class ChartElement extends LitElement {
     super.disconnectedCallback();
     window.removeEventListener('resize', this.sizeListener);
     document.removeEventListener('visibilitychange', this.sizeListener);
-    if (this.playTimer) {
-      clearInterval(this.playTimer);
-      this.playTimer = undefined;
-    }
+    this.stopPlayback();
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
     if (changedProps.has('timeSec')) {
+      if (this.playTimer != null && Math.round(this.timeSec) !== this.lastDispatchedRoundedSec) {
+        this.playbackTimeSec = this.timeSec;
+        this.lastDispatchedRoundedSec = Math.round(this.timeSec);
+      }
       if (this.thumbElement) {
         const x = String(this.getXAtTimeSec(this.timeSec));
         this.thumbElement.setAttribute('x1', x);
@@ -808,42 +815,62 @@ export class ChartElement extends LitElement {
   }
 
   /**
+   * Stops active playback animation if running.
+   */
+  private stopPlayback(): void {
+    if (this.playTimer != null) {
+      cancelAnimationFrame(this.playTimer);
+      this.playTimer = undefined;
+    }
+  }
+
+  /**
    * Toggles track replay playback on or off.
    */
   private handlePlay(): void {
     const minTimeSec = this.computedMinTimeSec;
     const maxTimeSec = this.computedMaxTimeSec;
-    if (this.playTimer) {
-      clearInterval(this.playTimer);
-      this.playTimer = undefined;
+    if (this.playTimer != null) {
+      this.stopPlayback();
       this.lastPauseMs = Date.now();
     } else {
       // Restart from the beginning if play has not been used for 30s,
-      if (this.lastPauseMs < Date.now() - 30 * 1000 || this.timeSec == maxTimeSec) {
-        this.dispatchEvent(new CustomEvent('move', { detail: { timeSec: minTimeSec } }));
-      } else {
-        const timeSec = Math.min(Math.max(this.lastPauseTimestampSec, minTimeSec), maxTimeSec);
-        this.dispatchEvent(new CustomEvent('move', { detail: { timeSec } }));
-      }
-      this.playTick();
-      this.playTimer = window.setInterval(() => this.playTick(), PLAY_INTERVAL_MILLIS);
+      const startTimeSec =
+        this.lastPauseMs < Date.now() - 30 * 1000 || this.timeSec == maxTimeSec
+          ? minTimeSec
+          : Math.min(Math.max(this.lastPauseTimestampSec, minTimeSec), maxTimeSec);
+      this.playbackTimeSec = startTimeSec;
+      this.lastPauseTimestampSec = startTimeSec;
+      this.lastDispatchedRoundedSec = Math.round(startTimeSec);
+      this.dispatchEvent(new CustomEvent('move', { detail: { timeSec: startTimeSec } }));
+      this.lastFrameMs = performance.now();
+      this.playTimer = requestAnimationFrame((now) => this.playTick(now));
     }
   }
 
   /**
-   * Advances the playback timestamp by one tick interval and dispatches a move event.
+   * Advances the playback timestamp using elapsed frame time and dispatches a move event.
+   *
+   * @param nowMs - High-resolution timestamp passed by `requestAnimationFrame`.
    */
-  private playTick(): void {
+  private playTick(nowMs: number): void {
+    const dtSec = Math.min(Math.max((nowMs - this.lastFrameMs) / 1000, 0), MAX_FRAME_DELTA_SEC);
+    this.lastFrameMs = nowMs;
     const maxTimeSec = this.computedMaxTimeSec;
-    let timeSec = this.timeSec + (PLAY_INTERVAL_MILLIS * this.playSpeed) / 1000;
-    if (timeSec >= maxTimeSec) {
-      timeSec = maxTimeSec;
-      clearInterval(this.playTimer);
-      this.playTimer = undefined;
+    this.playbackTimeSec += dtSec * this.playSpeed;
+    if (this.playbackTimeSec >= maxTimeSec) {
+      this.playbackTimeSec = maxTimeSec;
+      this.stopPlayback();
       this.lastPauseMs = 0;
+    } else {
+      this.playTimer = requestAnimationFrame((now) => this.playTick(now));
     }
-    this.lastPauseTimestampSec = timeSec;
-    this.dispatchEvent(new CustomEvent('move', { detail: { timeSec } }));
+    this.lastPauseTimestampSec = this.playbackTimeSec;
+    const roundedSec = Math.round(this.playbackTimeSec);
+    if (roundedSec !== this.lastDispatchedRoundedSec || this.playbackTimeSec === maxTimeSec) {
+      this.lastDispatchedRoundedSec = roundedSec;
+      this.dispatchEvent(new CustomEvent('move', { detail: { timeSec: this.playbackTimeSec } }));
+    }
   }
 
   /**
