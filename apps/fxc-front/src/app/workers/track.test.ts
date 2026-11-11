@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { computeMedian, filterSpikes } from './track';
+import { computeMedian, filterSpikes } from './spike-filter';
 
 describe('filterSpikes', () => {
   it('should return early when track has fewer than 3 fixes', () => {
@@ -80,6 +80,45 @@ describe('filterSpikes', () => {
       filterSpikes(alt, time);
       expect(alt).toEqual(copy);
     });
+
+    it('preserves an in-limit descent crossing zero into negative altitude', () => {
+      const alt = [200, 180, 160, 140, 120, 100, 80, 60, 40, 20, 0, -20];
+      const time = alt.map((_, i) => i);
+      const copy = [...alt];
+      const { maxAlt, minAlt } = filterSpikes(alt, time);
+      expect(alt).toEqual(copy);
+      expect({ maxAlt, minAlt }).toEqual({ maxAlt: 200, minAlt: -20 });
+    });
+
+    it('preserves low-altitude oscillations crossing zero and climbing back above zero', () => {
+      const alt = [50, 30, 10, 0, -10, 5, 20];
+      const time = alt.map((_, i) => i);
+      const copy = [...alt];
+      const { maxAlt, minAlt } = filterSpikes(alt, time);
+      expect(alt).toEqual(copy);
+      expect({ maxAlt, minAlt }).toEqual({ maxAlt: 50, minAlt: -10 });
+    });
+
+    it('rejects a zero dropout followed by an out-of-limit negative spike or rebound', () => {
+      for (const [time, alt] of [
+        [
+          [0, 1, 31, 32, 33, 34],
+          [1000, 1000, 0, -500, 1000, 1000],
+        ],
+        [
+          [0, 1, 51, 52, 53, 54],
+          [1000, 1000, 0, -500, 1000, 1000],
+        ],
+        [
+          [0, 1, 61, 62, 63, 64],
+          [1000, 1000, 0, -20, 1000, 1000],
+        ],
+      ]) {
+        const result = filterSpikes(alt, time);
+        expect(alt).toEqual([1000, 1000, 1000, 1000, 1000, 1000]);
+        expect(result).toEqual({ maxAlt: 1000, minAlt: 1000 });
+      }
+    });
   });
 
   describe('outlier and spike removal', () => {
@@ -101,7 +140,7 @@ describe('filterSpikes', () => {
       const alt = [1000, 1005, 5000, 5005, 1020, 1025];
       const time = [1, 2, 3, 4, 5, 6];
       filterSpikes(alt, time);
-      expect(alt).toEqual([1000, 1005, 1020, 1020, 1020, 1025]);
+      expect(alt).toEqual([1000, 1005, 1010, 1015, 1020, 1025]);
     });
 
     it('removes decaying multi-point spike tails without leaving residual blips', () => {
@@ -117,7 +156,7 @@ describe('filterSpikes', () => {
       const alt = [1000, 1002, 3000, 3005, 3010, 3015, 1010, 1012];
       const time = [1, 2, 3, 4, 5, 6, 7, 8];
       filterSpikes(alt, time);
-      expect(alt).toEqual([1000, 1002, 1012, 1012, 1012, 1012, 1010, 1012]);
+      expect(alt).toEqual([1000, 1002, 1004, 1005, 1007, 1008, 1010, 1012]);
     });
 
     it('removes zero dropouts while flying at altitude', () => {
@@ -237,11 +276,155 @@ describe('filterSpikes', () => {
       expect(alt).toEqual([3000, 2650, 2300, 1950, 1600]);
     });
 
+    it('filters multi-fix GPS spikes during sustained steep sailplane dives', () => {
+      const time = [10, 20, 30, 40, 50, 60, 70, 80, 90];
+      const alt = [3000, 2650, 2300, 1950, 2800, 2805, 900, 550, 200];
+      const { maxAlt, minAlt } = filterSpikes(alt, time);
+      expect(alt).toEqual([3000, 2650, 2300, 1950, 1600, 1250, 900, 550, 200]);
+      expect({ maxAlt, minAlt }).toEqual({ maxAlt: 3000, minAlt: 200 });
+    });
+
     it('filters GPS zero dropouts during high-speed sailplane dives', () => {
       const time = [10, 20, 30, 40, 50];
       const alt = [3000, 2650, 0, 1950, 1600];
       filterSpikes(alt, time);
       expect(alt).toEqual([3000, 2650, 2300, 1950, 1600]);
+    });
+  });
+
+  describe('1 Hz transient barometer/GPS glitches (sub-60 m/s dips and bursts)', () => {
+    it('removes a single-second negative dip without corrupting the recovery point', () => {
+      const alt = [2234, 2241, 2248, 2235, 2175, 2242, 2235, 2249, 2259];
+      const time = alt.map((_, i) => i);
+      filterSpikes(alt, time);
+      expect(alt[4]).toBeGreaterThanOrEqual(2242);
+      expect(alt[5]).toBeGreaterThanOrEqual(2242);
+    });
+
+    it('removes negative spikes and exponential recovery tails on a steady descending glide', () => {
+      // Real segment from Guenhael Morineaux glide (2:35 PM): steady -1.5 m/s descent with -46m/-39m/-38m dips and RC recovery tails
+      const alt = [
+        2124, 2123, 2122, 2120, 2074, 2089, 2096, 2104, 2106, 2106, 2067, 2081, 2088, 2097, 2098, 2099, 2098, 2098,
+        2097, 2096, 2095, 2093, 2093, 2092, 2091, 2091, 2090, 2052, 2063, 2069, 2071, 2073, 2073, 2073, 2074,
+      ];
+      const time = alt.map((_, i) => i);
+      filterSpikes(alt, time);
+      for (let i = 1; i < alt.length; i++) {
+        expect(Math.abs(alt[i] - alt[i - 1])).toBeLessThanOrEqual(4);
+      }
+      expect(alt.slice(0, 4)).toEqual([2124, 2123, 2122, 2120]);
+    });
+
+    it('removes a negative glitch followed by an exponential recovery tail', () => {
+      const alt = [2133, 2132, 2131, 2071, 2094, 2106, 2112, 2116, 2120, 2124];
+      const time = alt.map((_, i) => i);
+      filterSpikes(alt, time);
+      expect(alt[3]).toBeGreaterThanOrEqual(2112);
+      expect(alt[4]).toBeGreaterThanOrEqual(2114);
+      expect(alt.slice(0, 3)).toEqual([2133, 2132, 2131]);
+    });
+
+    it('removes a multi-second negative glitch burst on a climbing 1 Hz track', () => {
+      const alt = [
+        2670, 2678, 2685, 2691, 2696, 2699, 2657, 2609, 2623, 2569, 2664, 2644, 2670, 2690, 2705, 2715, 2725, 2734,
+      ];
+      const time = alt.map((_, i) => i);
+      filterSpikes(alt, time);
+      expect(Math.min(...alt.slice(6, 12))).toBeGreaterThan(2680);
+    });
+
+    it('removes a positive transient spike below MAX_CLIMB_VZ_MPSEC while preserving clean 1 Hz climbs', () => {
+      const alt = [1786, 1788, 1789, 1790, 1807, 1798, 1792, 1790, 1788, 1786];
+      const time = alt.map((_, i) => i);
+      filterSpikes(alt, time);
+      expect(alt[4]).toBeLessThanOrEqual(1792);
+
+      const cleanClimb = [1710, 1722, 1735, 1749, 1763, 1775, 1785, 1792, 1796, 1798, 1798, 1795];
+      const cleanCopy = [...cleanClimb];
+      filterSpikes(
+        cleanCopy,
+        cleanCopy.map((_, i) => i),
+      );
+      expect(cleanCopy).toEqual(cleanClimb);
+    });
+    it('removes a spike at the first fix after a recording gap (> 60s)', () => {
+      const alt = [1000, 1005, 9999, 1000, 1005];
+      const time = [0, 1, 301, 302, 303];
+      const { maxAlt, minAlt } = filterSpikes(alt, time);
+      expect(alt).toEqual([1000, 1005, 1003, 1000, 1005]);
+      expect({ maxAlt, minAlt }).toEqual({ maxAlt: 1005, minAlt: 1000 });
+    });
+
+    it('bridges extreme spike plateaus lasting between 25s and 60s without corrupting recovery', () => {
+      const alt = [1000, 1002, ...Array(26).fill(5000), 1004, 1006];
+      const time = alt.map((_, i) => i);
+      const { maxAlt, minAlt } = filterSpikes(alt, time);
+      expect(maxAlt).toBe(1006);
+      expect(minAlt).toBe(1000);
+      expect(alt.every((v) => v >= 1000 && v <= 1006)).toBe(true);
+    });
+
+    it('detects and bridges a non-extreme dip at the second fix (i === 1)', () => {
+      const alt = [1000, 955, 1000, 1000];
+      const time = [0, 1, 2, 3];
+      const { maxAlt, minAlt } = filterSpikes(alt, time);
+      expect(alt).toEqual([1000, 1000, 1000, 1000]);
+      expect({ maxAlt, minAlt }).toEqual({ maxAlt: 1000, minAlt: 1000 });
+    });
+
+    it('preserves valid climb-to-glide transitions without clipping the climb', () => {
+      const alt = [1000, 1000, 1010, 1020, 1030, 1028, 1026, 1024, 1022, 1020, 1018, 1016, 1014, 1012, 1010];
+      const time = alt.map((_, i) => i);
+      const copy = [...alt];
+      const { maxAlt, minAlt } = filterSpikes(alt, time);
+      expect(alt).toEqual(copy);
+      expect({ maxAlt, minAlt }).toEqual({ maxAlt: 1030, minAlt: 1000 });
+    });
+
+    it('preserves shorter in-limit climbs followed by a steady glide', () => {
+      const alt = [1000, 1000, 1012, 1024, 1022, 1020, 1018, 1016, 1014, 1012, 1010];
+      const time = alt.map((_, i) => i);
+      const copy = [...alt];
+      const { maxAlt, minAlt } = filterSpikes(alt, time);
+      expect(alt).toEqual(copy);
+      expect({ maxAlt, minAlt }).toEqual({ maxAlt: 1024, minAlt: 1000 });
+    });
+
+    it('bridges two-fix ramp glitches when recovery exceeds physical limits', () => {
+      const alt = [1000, 1000, 980, 960, 1000, 1000];
+      const time = alt.map((_, i) => i);
+      const { maxAlt, minAlt } = filterSpikes(alt, time);
+      expect(alt).toEqual([1000, 1000, 1000, 1000, 1000, 1000]);
+      expect({ maxAlt, minAlt }).toEqual({ maxAlt: 1000, minAlt: 1000 });
+    });
+
+    it('preserves one-second -35 m/s descents followed by in-limit recovery', () => {
+      const alt = [1000, 1000, 965, 930, 950, 975, 1000, 1000];
+      const time = alt.map((_, i) => i);
+      const copy = [...alt];
+      const { maxAlt, minAlt } = filterSpikes(alt, time);
+      expect(alt).toEqual(copy);
+      expect({ maxAlt, minAlt }).toEqual({ maxAlt: 1000, minAlt: 930 });
+    });
+
+    it('preserves a clean segment start followed by a long spike plateau', () => {
+      const alt = [1000, ...Array(16).fill(5000), 1017, 1018, 1019];
+      const time = alt.map((_, i) => i);
+      const { maxAlt, minAlt } = filterSpikes(alt, time);
+      expect(alt[0]).toBe(1000);
+      expect(alt.slice(17)).toEqual([1017, 1018, 1019]);
+      expect(alt.every((v) => v >= 1000 && v <= 1019)).toBe(true);
+      expect({ maxAlt, minAlt }).toEqual({ maxAlt: 1019, minAlt: 1000 });
+    });
+
+    it('preserves a clean post-gap segment start followed by a spike plateau', () => {
+      const alt = [500, 502, 1000, ...Array(8).fill(5000), 1009, 1010, 1011];
+      const time = [0, 1, 300, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311];
+      const { maxAlt, minAlt } = filterSpikes(alt, time);
+      expect(alt.slice(0, 3)).toEqual([500, 502, 1000]);
+      expect(alt.slice(11)).toEqual([1009, 1010, 1011]);
+      expect(alt.every((v) => v >= 500 && v <= 1011)).toBe(true);
+      expect({ maxAlt, minAlt }).toEqual({ maxAlt: 1011, minAlt: 500 });
     });
   });
 });
