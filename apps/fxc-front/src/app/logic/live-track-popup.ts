@@ -12,6 +12,8 @@ import { store } from '../redux/store';
 import type { Units } from './units';
 import { formatUnit } from './units';
 
+const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
 // Generates the content of the live tracking popup.
 export function popupContent(
   trackId: string,
@@ -44,7 +46,7 @@ export function popupContent(
     }, ${track.lon[index]}`,
   );
   if (message != null) {
-    content.push(`<i class="las la-sms"></i> “${message}”`);
+    content.push(`<i class="las la-sms"></i> “${escapeHtml(message)}”`);
   }
   if (isEmergencyFix(flags)) {
     content.push('<i class="las la-first-aid"></i> <strong>Emergency</strong>');

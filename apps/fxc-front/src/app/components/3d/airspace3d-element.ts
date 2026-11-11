@@ -1,6 +1,7 @@
+import Point from '@arcgis/core/geometry/Point';
 import VectorTileLayer from '@arcgis/core/layers/VectorTileLayer';
 import type Map from '@arcgis/core/Map';
-import type SceneView from '@arcgis/core/views/SceneView';
+import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
 import type { LatLon } from '@flyxc/common';
 import {
   ASP_COLOR_DANGER,
@@ -20,6 +21,7 @@ import { getAirspaceList } from '../../logic/airspaces';
 import * as airspaces from '../../redux/airspace-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
+import { createPopupContent } from './popup-content';
 
 @customElement('airspace3d-element')
 export class Airspace3dElement extends connect(store)(LitElement) {
@@ -62,7 +64,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     this.setupLayer();
   }
 
-  public async handleClick(latLon: LatLon, view: SceneView) {
+  public async handleClick(latLon: LatLon, scene: ArcgisScene) {
     if (!this.showAirspace) {
       return;
     }
@@ -77,13 +79,13 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       new Date(),
     );
     if (html) {
-      view.openPopup({
-        location: {
+      await scene.openPopup({
+        location: new Point({
           latitude: latLon.lat,
           longitude: latLon.lon,
-        } as any,
+        }),
         title: 'Airspaces',
-        content: `<div style="display: block;">${html}</div>`,
+        content: createPopupContent(html),
       });
     }
   }

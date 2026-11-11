@@ -3,7 +3,7 @@ import Point from '@arcgis/core/geometry/Point';
 import Graphic from '@arcgis/core/Graphic';
 import type GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import type ElevationSampler from '@arcgis/core/layers/support/ElevationSampler';
-import type SceneView from '@arcgis/core/views/SceneView';
+import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
 import type { protos } from '@flyxc/common';
 import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
@@ -24,6 +24,7 @@ import { store } from '../../redux/store';
 import { selectTrackTotal } from '../../redux/track-slice';
 import * as unitsSlice from '../../redux/units-slice';
 import { getUniqueContrastColor } from '../../styles/track';
+import { createPopupContent } from './popup-content';
 
 // A track is considered recent if ended less than timeout ago.
 const RECENT_TIMEOUT_MIN = 2 * 60;
@@ -157,7 +158,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.subscriptions.push(msg.clickSceneView.subscribe((graphic, view) => this.handleClick(graphic, view)));
+    this.subscriptions.push(msg.clickSceneView.subscribe((graphic, scene) => this.handleClick(graphic, scene)));
   }
 
   stateChanged(state: RootState): void {
@@ -327,7 +328,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   }
 
   // Display the popup when a Graphic gets clicked.
-  private handleClick(graphic: Graphic, view: SceneView) {
+  private handleClick(graphic: Graphic, scene: ArcgisScene) {
     const attr = graphic.attributes;
     if (attr.liveTrackId != null) {
       store.dispatch(liveTrack.setCurrentLiveId(attr.liveTrackId));
@@ -341,7 +342,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
 
         const track = liveTrack.selectLiveTrackById(store.getState(), attr.liveTrackId) as protos.LiveTrack;
 
-        view.openPopup({
+        void scene.openPopup({
           location: new Point({
             latitude: track.lat[index],
             longitude: track.lon[index],
@@ -349,7 +350,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
             hasZ: true,
           }),
           title: popup.title,
-          content: `<div style="display: block;">${popup.content}</div>`,
+          content: createPopupContent(popup.content),
         });
       }
     }
