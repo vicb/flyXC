@@ -61,7 +61,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.setupLayer();
+    this.requestUpdate();
   }
 
   public async handleClick(latLon: LatLon, scene: ArcgisScene) {
@@ -92,7 +92,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
   private removeLayer() {
     if (this.layer) {
-      this.map.remove(this.layer);
+      this.map?.remove(this.layer);
       this.layer.destroy();
       this.layer = undefined;
     }
@@ -101,7 +101,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private setupLayer() {
     this.removeLayer();
 
-    if (!this.showAirspace) {
+    if (!this.map || !this.showAirspace) {
       return;
     }
 

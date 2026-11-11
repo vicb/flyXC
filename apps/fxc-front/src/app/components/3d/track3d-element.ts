@@ -96,7 +96,7 @@ export class Track3dElement extends connect(store)(LitElement) {
     this.displayLabels = track.selectDisplayLabels(state);
   }
 
-  shouldUpdate(changedProps: PropertyValues): boolean {
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (this.layer == null || this.gndLayer == null) {
       this.destroyGraphics();
       return false;
