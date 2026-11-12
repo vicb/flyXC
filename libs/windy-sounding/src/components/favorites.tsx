@@ -66,9 +66,6 @@ export function Favorites({
           >
             <small className="size-m">{locationLabel}</small>
           </div>
-          <a style={{ margin: '0 10px 3px 5px' }} href="https://buymeacoffee.com/vic.b" target="_blank">
-            ☕️
-          </a>
         </section>
 
         {isModelExpanded && (
