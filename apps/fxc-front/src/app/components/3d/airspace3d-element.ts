@@ -1,9 +1,7 @@
 import Color from '@arcgis/core/Color';
 import { watch } from '@arcgis/core/core/reactiveUtils.js';
 import type Extent from '@arcgis/core/geometry/Extent';
-import { unionExecuteMany } from '@arcgis/core/geometry/operators/unionOperator';
 import Point from '@arcgis/core/geometry/Point';
-import Polygon from '@arcgis/core/geometry/Polygon';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
@@ -15,27 +13,21 @@ import MeshSymbol3D from '@arcgis/core/symbols/MeshSymbol3D';
 import type LayerView from '@arcgis/core/views/layers/LayerView';
 import type SceneView from '@arcgis/core/views/SceneView';
 import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
-import type { AirspaceString, AirspaceTyped, Class, LatLon, Type } from '@flyxc/common';
+import type { AirspaceTyped, Class, LatLon, Type } from '@flyxc/common';
 import {
   AIRSPACE_TILE_SIZE,
   AirspaceColorCategory,
-  applyOverrides,
   ASP_COLOR_DANGER,
   ASP_COLOR_OTHER,
   ASP_COLOR_PROHIBITED,
   ASP_COLOR_RESTRICTED,
-  getAirspaceColorCategory,
-  getAirspaceTileUrl,
   getPixelCoordinates,
-  isAirspaceVisible,
   MAX_AIRSPACE_TILE_ZOOM,
   pointInPolygonRings,
-  toTypedAirspace,
 } from '@flyxc/common';
 import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { VectorTile } from 'mapbox-vector-tile';
 import { connect } from 'pwa-helpers';
 
 import { getAirspaceHtmlDescription, getAirspaceList } from '../../logic/airspaces';
@@ -45,12 +37,17 @@ import * as arcgis from '../../redux/arcgis-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import { selectCurrentTrack } from '../../redux/track-slice';
+import Airspace3dWorker from '../../workers/airspace3d?worker';
 import {
-  type AirspaceExtentLike,
-  type AirspaceFootprint,
+  Airspace3dProcessor,
+  type AirspaceWorkerItem,
+  type AirspaceWorkerRequest,
+  type AirspaceWorkerResponse,
+  type GeoBounds,
+  type TileCoord,
+} from '../../workers/airspace3d-processor';
+import {
   type AirspaceMeshData,
-  type AirspacePolygonLike,
-  buildAirspaceFootprint,
   computeGroundSignature,
   extrudeAirspaceFootprint,
   type GroundSampler,
@@ -77,39 +74,12 @@ async function openAirspacePopup(scene: ArcgisScene, latLon: LatLon, html: strin
 export const MIN_3D_ZOOM = 10;
 const MIN_3D_TILE_ZOOM = 8;
 export const MAX_TILES_3D = 36;
-const MAX_TILE_CACHE_SIZE = 300;
-const MAX_FOOTPRINT_CACHE_SIZE = 600;
 const MAX_MESH_CACHE_SIZE = 600;
 const VIEW_REFRESH_DEBOUNCE_MS = 60;
 const SAMPLER_REFRESH_DEBOUNCE_MS = 450;
 const CLICK_Z_TOLERANCE_M = 75;
 
-interface DecodedPolygonPart {
-  id: string;
-  rings: number[][][];
-  extent: AirspaceExtentLike;
-  polygon?: Polygon;
-}
-
-interface DecodedTileFeature {
-  baseAirspace: AirspaceTyped;
-  polygons: DecodedPolygonPart[];
-}
-
-interface CachedFootprintEntry {
-  polygon: AirspacePolygonLike;
-  footprint: AirspaceFootprint;
-}
-
-interface CachedAirspaceItem {
-  airspaceKey: string;
-  geomKey: string;
-  footprintKey: string;
-  cacheKey: string;
-  category: AirspaceColorCategory;
-  airspace: AirspaceTyped;
-  polygon: AirspacePolygonLike;
-  footprint?: AirspaceFootprint;
+interface CachedAirspaceItem extends AirspaceWorkerItem {
   meshData?: AirspaceMeshData;
   groundSignature?: number;
 }
@@ -117,19 +87,6 @@ interface CachedAirspaceItem {
 interface CachedMeshEntry {
   meshData: AirspaceMeshData;
   groundSignature?: number;
-}
-
-interface TileCoord {
-  x: number;
-  y: number;
-  z: number;
-}
-
-interface GeoBounds {
-  minLon: number;
-  minLat: number;
-  maxLon: number;
-  maxLat: number;
 }
 
 interface VisibleTileCoverage {
@@ -201,61 +158,6 @@ function createCategorySymbol(category: AirspaceColorCategory, opacityPercent: n
       }),
     ],
   });
-}
-
-function getAirspaceKey(airspace: AirspaceTyped): string {
-  return `${airspace.name}|${airspace.country}|${airspace.type}|${airspace.icaoClass}|${airspace.floorM}|${airspace.topM}|${airspace.floorRefGnd}|${airspace.topRefGnd}`;
-}
-
-function computeRingsExtent(rings: number[][][]): AirspaceExtentLike | undefined {
-  let xmin = Number.POSITIVE_INFINITY;
-  let ymin = Number.POSITIVE_INFINITY;
-  let xmax = Number.NEGATIVE_INFINITY;
-  let ymax = Number.NEGATIVE_INFINITY;
-  for (const ring of rings) {
-    for (const pt of ring) {
-      const lon = pt[0];
-      const lat = pt[1];
-      if (lon < xmin) {
-        xmin = lon;
-      }
-      if (lon > xmax) {
-        xmax = lon;
-      }
-      if (lat < ymin) {
-        ymin = lat;
-      }
-      if (lat > ymax) {
-        ymax = lat;
-      }
-    }
-  }
-  return xmin <= xmax && ymin <= ymax ? { xmin, ymin, xmax, ymax } : undefined;
-}
-
-function geoJsonGeometryToParts(
-  tilePrefix: string,
-  featureIndex: number,
-  geometry: { type: string; coordinates: any },
-): DecodedPolygonPart[] {
-  if (geometry.type === 'Polygon') {
-    const rings = geometry.coordinates as number[][][];
-    const extent = computeRingsExtent(rings);
-    return extent ? [{ id: `${tilePrefix}#${featureIndex}.0`, rings, extent }] : [];
-  }
-  if (geometry.type === 'MultiPolygon') {
-    const parts: DecodedPolygonPart[] = [];
-    const coords = geometry.coordinates as number[][][][];
-    for (let pIdx = 0; pIdx < coords.length; pIdx++) {
-      const rings = coords[pIdx];
-      const extent = computeRingsExtent(rings);
-      if (extent) {
-        parts.push({ id: `${tilePrefix}#${featureIndex}.${pIdx}`, rings, extent });
-      }
-    }
-    return parts;
-  }
-  return [];
 }
 
 function toGeoExtent(extent?: Extent | null): Extent | undefined {
@@ -370,15 +272,6 @@ export function getVisibleTileCoords(view: SceneView): TileCoord[] {
   return getVisibleTileCoverage(view).tiles;
 }
 
-function extentOverlapsBounds(ext: AirspaceExtentLike | undefined, bounds: GeoBounds): boolean {
-  if (!ext) {
-    return true;
-  }
-  return (
-    ext.xmax >= bounds.minLon && ext.xmin <= bounds.maxLon && ext.ymax >= bounds.minLat && ext.ymin <= bounds.maxLat
-  );
-}
-
 /**
  * Lit component managing 3D extruded airspace volumes in an ArcGIS SceneView when zoomed in >= {@link MIN_3D_ZOOM}.
  */
@@ -412,8 +305,6 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private graphicsLayer?: GraphicsLayer;
   private graphicsLayerView?: LayerView;
   private categoryGraphics = new globalThis.Map<AirspaceColorCategory, Graphic>();
-  private tileCache = new globalThis.Map<string, Promise<DecodedTileFeature[] | null>>();
-  private footprintCache = new globalThis.Map<string, CachedFootprintEntry>();
   private meshCache = new globalThis.Map<string, CachedMeshEntry>();
   private currentAirspaces: CachedAirspaceItem[] = [];
   private lastQueryKey?: string;
@@ -423,6 +314,9 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private samplerTimer?: number;
   private buildGeneration = 0;
   private patchedDepthCache?: { cache: any; orig: (...args: unknown[]) => unknown };
+  private worker?: Worker;
+  private fallbackProcessor?: Airspace3dProcessor;
+  private pendingWorkerResolvers = new globalThis.Map<number, (res: AirspaceWorkerResponse) => void>();
 
   stateChanged(state: RootState): void {
     this.maxAltitude = airspaces.selectMaxAltitude(state);
@@ -510,6 +404,11 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     clearTimeout(this.refreshTimer);
     clearTimeout(this.samplerTimer);
     this.clearLayer();
+    this.worker?.terminate();
+    this.worker = undefined;
+    this.fallbackProcessor?.clear();
+    this.fallbackProcessor = undefined;
+    this.pendingWorkerResolvers.clear();
   }
 
   /**
@@ -687,53 +586,8 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
   private clearLayer(): void {
     this.buildGeneration++;
+    this.pendingWorkerResolvers.clear();
     this.removeGraphicsLayer();
-  }
-
-  private fetchDecodedTile(x: number, y: number, z: number): Promise<DecodedTileFeature[] | null> {
-    const url = getAirspaceTileUrl(x, y, z, import.meta.env.VITE_AIRSPACE_SERVER);
-    const cached = this.tileCache.get(url);
-    if (cached) {
-      return cached;
-    }
-
-    const tilePrefix = `${z}/${x}/${y}`;
-    const promise = (async (): Promise<DecodedTileFeature[] | null> => {
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          return null;
-        }
-        const buffer = await response.arrayBuffer();
-        const layer = new VectorTile(new Uint8Array(buffer)).layers.asp;
-        if (!layer) {
-          return null;
-        }
-        const features: DecodedTileFeature[] = [];
-        for (let i = 0; i < layer.length; i++) {
-          const feature = layer.feature(i);
-          if (feature.type !== 3) {
-            continue;
-          }
-          const geo = feature.toGeoJSON(x, y, z) as { geometry: { type: string; coordinates: any } };
-          const polygons = geoJsonGeometryToParts(tilePrefix, i, geo.geometry);
-          if (polygons.length > 0) {
-            features.push({
-              baseAirspace: toTypedAirspace(feature.properties as AirspaceString),
-              polygons,
-            });
-          }
-        }
-        return features;
-      } catch {
-        // Evict failed promise so transient network errors can be retried later.
-        this.tileCache.delete(url);
-        return null;
-      }
-    })();
-
-    this.setBoundedCache(this.tileCache, MAX_TILE_CACHE_SIZE, url, promise);
-    return promise;
   }
 
   private setBoundedCache<K, V>(cache: globalThis.Map<K, V>, maxSize: number, key: K, value: V): void {
@@ -746,6 +600,27 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       }
     }
     cache.set(key, value);
+  }
+
+  private getWorker(): Worker | undefined {
+    if (typeof Worker !== 'undefined') {
+      if (!this.worker) {
+        this.worker = new Airspace3dWorker();
+        this.worker.onmessage = (event: MessageEvent<AirspaceWorkerResponse>) => {
+          const res = event.data;
+          const resolver = this.pendingWorkerResolvers.get(res.id);
+          if (resolver) {
+            this.pendingWorkerResolvers.delete(res.id);
+            resolver(res);
+          }
+        };
+        this.worker.onerror = (err) => {
+          console.error('Airspace3d Worker error:', err);
+        };
+      }
+      return this.worker;
+    }
+    return undefined;
   }
 
   private async refreshView(): Promise<void> {
@@ -780,109 +655,45 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     }
 
     const generation = ++this.buildGeneration;
-    const decodedTiles = await Promise.all(tiles.map((t) => this.fetchDecodedTile(t.x, t.y, t.z)));
-    if (generation !== this.buildGeneration || !this.showAirspace) {
+    const request: AirspaceWorkerRequest = {
+      id: generation,
+      tiles,
+      bounds,
+      maxAltitude: this.maxAltitude,
+      showClasses: this.showClasses,
+      showTypes: this.showTypes,
+      dateMs: date.getTime(),
+      tileServer: import.meta.env.VITE_AIRSPACE_SERVER,
+      multiplier: this.multiplier,
+    };
+
+    const worker = this.getWorker();
+    let response: AirspaceWorkerResponse;
+    if (worker) {
+      response = await new Promise<AirspaceWorkerResponse>((resolve) => {
+        this.pendingWorkerResolvers.set(generation, resolve);
+        worker.postMessage(request);
+      });
+    } else {
+      this.fallbackProcessor ??= new Airspace3dProcessor();
+      response = await this.fallbackProcessor.process(request);
+    }
+
+    if (response.id !== this.buildGeneration || !this.showAirspace) {
       return;
     }
 
-    const grouped = new globalThis.Map<
-      string,
-      { airspace: AirspaceTyped; parts: DecodedPolygonPart[]; geomIds: string[] }
-    >();
-    for (const features of decodedTiles) {
-      if (!features) {
-        continue;
-      }
-      for (const feature of features) {
-        const visibleParts = feature.polygons.filter((p) => extentOverlapsBounds(p.extent, bounds));
-        if (visibleParts.length === 0) {
-          continue;
-        }
-        const airspace = applyOverrides(feature.baseAirspace, date);
-        if (
-          airspace.floorM > this.maxAltitude ||
-          !isAirspaceVisible(airspace.icaoClass, this.showClasses, airspace.type, this.showTypes) ||
-          (!airspace.floorRefGnd && !airspace.topRefGnd && airspace.topM <= airspace.floorM)
-        ) {
-          continue;
-        }
-
-        const key = getAirspaceKey(airspace);
-        let entry = grouped.get(key);
-        if (!entry) {
-          entry = { airspace, parts: [], geomIds: [] };
-          grouped.set(key, entry);
-        }
-        for (const p of visibleParts) {
-          entry.parts.push(p);
-          entry.geomIds.push(p.id);
-        }
-      }
-    }
-
     const prevByKey = new globalThis.Map(this.currentAirspaces.map((item) => [item.cacheKey, item]));
-    const mergedAirspaces: CachedAirspaceItem[] = [];
-    for (const [airspaceKey, { airspace, parts, geomIds }] of grouped.entries()) {
-      const geomKey = geomIds.join(',');
-      const sinkZeroFloor = airspace.floorRefGnd && airspace.floorM === 0;
-      const footprintKey = `${airspace.floorRefGnd ? 1 : 0}${airspace.topRefGnd ? 1 : 0}${sinkZeroFloor ? 1 : 0}|${geomKey}`;
-      const cachedFp = this.footprintCache.get(footprintKey);
-
-      let polygon: AirspacePolygonLike | undefined = cachedFp?.polygon;
-      if (!polygon) {
-        if (parts.length === 1) {
-          polygon = { rings: parts[0].rings, extent: parts[0].extent };
-        } else {
-          const unioned = unionExecuteMany(
-            parts.map((p) => (p.polygon ??= new Polygon({ rings: p.rings, spatialReference: { wkid: 4326 } }))),
-          );
-          if (unioned && unioned.type === 'polygon' && unioned.rings.length > 0) {
-            polygon = { rings: unioned.rings, extent: unioned.extent ?? computeRingsExtent(unioned.rings) };
-          }
-        }
-      }
-      if (polygon && polygon.rings.length > 0) {
-        const cacheKey = `${airspaceKey}|${geomKey}|${this.multiplier}`;
-        const cachedMesh = prevByKey.get(cacheKey) ?? this.meshCache.get(cacheKey);
-        mergedAirspaces.push({
-          airspaceKey,
-          geomKey,
-          footprintKey,
-          cacheKey,
-          category: getAirspaceColorCategory(airspace),
-          airspace,
-          polygon,
-          footprint: cachedFp?.footprint,
-          meshData: cachedMesh?.meshData,
-          groundSignature: cachedMesh?.groundSignature,
-        });
-      }
-    }
-
-    const missingFootprints = mergedAirspaces.filter((item) => !item.footprint);
-    if (missingFootprints.length > 0) {
-      const builtFootprints = await Promise.all(
-        missingFootprints.map(async (item) => ({
-          item,
-          footprint: await buildAirspaceFootprint(item.polygon, item.airspace),
-        })),
-      );
-      if (generation !== this.buildGeneration || !this.showAirspace) {
-        return;
-      }
-      for (const { item, footprint } of builtFootprints) {
-        if (footprint) {
-          item.footprint = footprint;
-          this.setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, item.footprintKey, {
-            polygon: item.polygon,
-            footprint,
-          });
-        }
-      }
-    }
+    this.currentAirspaces = response.items.map((item) => {
+      const cachedMesh = prevByKey.get(item.cacheKey) ?? this.meshCache.get(item.cacheKey);
+      return {
+        ...item,
+        meshData: cachedMesh?.meshData,
+        groundSignature: cachedMesh?.groundSignature,
+      };
+    });
 
     this.lastQueryKey = queryKey;
-    this.currentAirspaces = mergedAirspaces;
     this.rebuildMeshes(false);
   }
 
