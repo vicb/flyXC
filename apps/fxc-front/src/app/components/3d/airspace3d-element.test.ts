@@ -276,8 +276,11 @@ function makeFeature(props: Record<string, string>, ring: number[][], holes: num
   };
 }
 
+let nextAirspaceId = 1;
+
 function makeAirspaceProps(overrides: Record<string, string | number | boolean> = {}): Record<string, any> {
   return {
+    id: nextAirspaceId++,
     name: 'CHAMBERY CTR',
     category: 'CTR',
     country: 'FR',
@@ -671,8 +674,8 @@ describe('Airspace3dElement', () => {
     await flushAsync();
 
     expect(hoisted.graphicsLayers).toHaveLength(1);
-    expect(hoisted.graphicsLayers[0].graphics.length).toBe(1);
-    expect(hoisted.graphicsLayers[0].graphics[0].attributes.isAirspace).toBe(true);
+    expect(hoisted.graphicsLayers[0].graphics.length).toBe(2);
+    expect(hoisted.graphicsLayers[0].graphics.every((g: any) => g.attributes.isAirspace)).toBe(true);
 
     // Zooming back below MIN_3D_ZOOM removes and destroys the 3D GraphicsLayer.
     view.zoom = 9;
@@ -728,15 +731,20 @@ describe('Airspace3dElement', () => {
     await element.updateComplete;
     await flushAsync();
 
-    // Both airspaces share the same color category, so they batch into a single Graphic.
-    expect(hoisted.graphicsLayers[0].graphics).toHaveLength(1);
-    expect(hoisted.graphicsLayers[0].graphics[0].attributes.category).toBe(common.AirspaceColorCategory.Prohibited);
+    // Both airspaces share the same color category, so they batch into 1 Mesh Graphic and 1 Line Graphic.
+    expect(hoisted.graphicsLayers[0].graphics).toHaveLength(2);
+    const meshGraphic = hoisted.graphicsLayers[0].graphics.find((g: any) => !g.attributes.isAirspaceLine);
+    const lineGraphic = hoisted.graphicsLayers[0].graphics.find((g: any) => g.attributes.isAirspaceLine);
+    expect(meshGraphic?.attributes.category).toBe(common.AirspaceColorCategory.Prohibited);
+    expect(lineGraphic?.attributes.category).toBe(common.AirspaceColorCategory.Prohibited);
     expect(meshModule.buildAirspaceFootprint).toHaveBeenCalledTimes(2);
     expect(meshModule.extrudeAirspaceFootprint).toHaveBeenCalledTimes(2);
 
-    const prevGraphic = hoisted.graphicsLayers[0].graphics[0];
+    const prevGraphic = meshGraphic!;
     const prevSymbol = prevGraphic.symbol;
     const prevGeom = prevGraphic.geometry;
+    const prevLineSymbol = lineGraphic!.symbol;
+    const prevLineGeom = lineGraphic!.geometry;
     hoisted.state.opacity = 30;
     store.dispatch({ type: 'TEST_OPACITY' });
     await element.updateComplete;
@@ -744,6 +752,7 @@ describe('Airspace3dElement', () => {
     expect(meshModule.buildAirspaceFootprint).toHaveBeenCalledTimes(2);
     expect(meshModule.extrudeAirspaceFootprint).toHaveBeenCalledTimes(2);
     expect(prevGraphic.symbol).not.toBe(prevSymbol);
+    expect(lineGraphic!.symbol).not.toBe(prevLineSymbol);
 
     // Changing exaggeration multiplier re-extrudes synchronously and updates Graphic.geometry in place.
     hoisted.state.multiplier = 2;
@@ -753,9 +762,10 @@ describe('Airspace3dElement', () => {
 
     expect(meshModule.buildAirspaceFootprint).toHaveBeenCalledTimes(2);
     expect(meshModule.extrudeAirspaceFootprint).toHaveBeenCalledTimes(4);
-    expect(hoisted.graphicsLayers[0].graphics).toHaveLength(1);
-    expect(hoisted.graphicsLayers[0].graphics[0]).toBe(prevGraphic);
-    expect(hoisted.graphicsLayers[0].graphics[0].geometry).not.toBe(prevGeom);
+    expect(hoisted.graphicsLayers[0].graphics).toHaveLength(2);
+    expect(meshGraphic).toBe(prevGraphic);
+    expect(meshGraphic.geometry).not.toBe(prevGeom);
+    expect(lineGraphic!.geometry).not.toBe(prevLineGeom);
   });
 
   it('passes active track date to applyOverrides when a track is loaded, and current date otherwise', async () => {
@@ -1029,8 +1039,8 @@ describe('Airspace3dElement', () => {
     // Apply LOD 0 response (First Paint)
     (element as any).applyWorkerResponse(coarseResponse);
     const layer = hoisted.graphicsLayers[hoisted.graphicsLayers.length - 1];
-    expect(layer.graphics).toHaveLength(1);
-    const graphicLOD0 = layer.graphics[0];
+    expect(layer.graphics).toHaveLength(2);
+    const graphicLOD0 = layer.graphics.find((g: any) => !g.attributes.isAirspaceLine);
     const initialVertexCount = graphicLOD0.geometry.vertexAttributes.position.length / 3;
 
     // Apply LOD 1 response (Fine Refinement)
@@ -1055,8 +1065,8 @@ describe('Airspace3dElement', () => {
 
     (element as any).applyWorkerResponse(fineResponse);
     // Graphic replaced in-place in graphics layer
-    expect(layer.graphics).toHaveLength(1);
-    const graphicLOD1 = layer.graphics[0];
+    expect(layer.graphics).toHaveLength(2);
+    const graphicLOD1 = layer.graphics.find((g: any) => !g.attributes.isAirspaceLine);
     const fineVertexCount = graphicLOD1.geometry.vertexAttributes.position.length / 3;
 
     expect(fineVertexCount).toBeGreaterThan(initialVertexCount);

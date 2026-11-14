@@ -63,6 +63,8 @@ catalog:
   '@arcgis/map-components': ^5.2.7
   '@esri/arcgis-rest-request': ^5.0.0
   idb: ^8.0.4
+  d3-delaunay: ^6.0.6
+  '@types/d3-delaunay': ^6.0.4
 
 allowBuilds:
   '@parcel/watcher': false

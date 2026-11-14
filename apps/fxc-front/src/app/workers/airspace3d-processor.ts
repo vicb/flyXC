@@ -78,7 +78,7 @@ const MAX_TILE_CACHE_SIZE = 128;
 const MAX_FOOTPRINT_CACHE_SIZE = 256;
 
 export function getAirspaceKey(airspace: AirspaceTyped): string {
-  return `${airspace.name}|${airspace.country}|${airspace.type}|${airspace.icaoClass}|${airspace.floorM}|${airspace.topM}|${airspace.floorRefGnd}|${airspace.topRefGnd}`;
+  return String(airspace.id);
 }
 
 export function computeRingsExtent(rings: number[][][]): AirspaceExtentLike | undefined {
@@ -298,7 +298,8 @@ export class Airspace3dProcessor {
         const airspaceKey = getAirspaceKey(airspace);
         const geomKey = String(feat.id);
         const sinkZeroFloor = airspace.floorRefGnd && airspace.floorM === 0;
-        const footprintKey = `${airspace.floorRefGnd ? 1 : 0}${airspace.topRefGnd ? 1 : 0}${sinkZeroFloor ? 1 : 0}|${geomKey}`;
+        const FOOTPRINT_SCHEMA_VERSION = 'v4';
+        const footprintKey = `${FOOTPRINT_SCHEMA_VERSION}|${airspace.floorRefGnd ? 1 : 0}${airspace.topRefGnd ? 1 : 0}${sinkZeroFloor ? 1 : 0}|${geomKey}`;
 
         let cachedFp = this.footprintCache.get(footprintKey);
         if (!cachedFp) {
@@ -435,7 +436,7 @@ export class Airspace3dProcessor {
           const ringsInfo = geoJsonGeometryToRings(geo.geometry);
           if (ringsInfo && ringsInfo.rings.length > 0) {
             const baseAirspace = toTypedAirspace(feature.properties as AirspaceString);
-            const rawId = feature.id ?? feature.properties?.id ?? getAirspaceKey(baseAirspace);
+            const rawId = feature.id ?? feature.properties?.id ?? baseAirspace.id;
             const featureId = typeof rawId === 'number' || typeof rawId === 'string' ? rawId : `${x}/${y}#${i}`;
             features.push({
               id: featureId,

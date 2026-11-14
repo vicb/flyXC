@@ -2,12 +2,15 @@ import Color from '@arcgis/core/Color';
 import { watch } from '@arcgis/core/core/reactiveUtils.js';
 import type Extent from '@arcgis/core/geometry/Extent';
 import Point from '@arcgis/core/geometry/Point';
+import Polyline from '@arcgis/core/geometry/Polyline';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import type ElevationSampler from '@arcgis/core/layers/support/ElevationSampler';
 import type Map from '@arcgis/core/Map';
 import FillSymbol3DLayer from '@arcgis/core/symbols/FillSymbol3DLayer';
+import LineSymbol3D from '@arcgis/core/symbols/LineSymbol3D';
+import LineSymbol3DLayer from '@arcgis/core/symbols/LineSymbol3DLayer';
 import MeshSymbol3D from '@arcgis/core/symbols/MeshSymbol3D';
 import type LayerView from '@arcgis/core/views/layers/LayerView';
 import type SceneView from '@arcgis/core/views/SceneView';
@@ -49,6 +52,7 @@ import {
   computeGroundSignature,
   extrudeAirspaceFootprint,
   type GroundSampler,
+  mergeContourPaths,
   mergeMeshData,
 } from './airspace3d-mesh';
 import { createPopupContent } from './popup-content';
@@ -150,6 +154,23 @@ function createCategorySymbol(category: AirspaceColorCategory, opacityPercent: n
       new FillSymbol3DLayer({
         material: { color: fill.toRgba(), colorMixMode: 'replace' },
         castShadows: false,
+      }),
+    ],
+  });
+}
+
+function createCategoryLineSymbol(category: AirspaceColorCategory, opacityPercent: number): LineSymbol3D {
+  const hex = ASP_CATEGORY_COLOR[category];
+  const color = new Color(hex);
+  color.a = Math.min(0.9, Math.max(0.2, (opacityPercent / 100) * 0.9));
+
+  return new LineSymbol3D({
+    symbolLayers: [
+      new LineSymbol3DLayer({
+        material: { color: color.toRgba() },
+        size: 1.5,
+        cap: 'round',
+        join: 'round',
       }),
     ],
   });
@@ -292,6 +313,8 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private graphicsLayerView?: LayerView;
   private categoryGraphics = new globalThis.Map<AirspaceColorCategory, Graphic>();
   private categorySymbols = new globalThis.Map<AirspaceColorCategory, MeshSymbol3D>();
+  private categoryLineGraphics = new globalThis.Map<AirspaceColorCategory, Graphic>();
+  private categoryLineSymbols = new globalThis.Map<AirspaceColorCategory, LineSymbol3D>();
   private categoryBuckets = new globalThis.Map<AirspaceColorCategory, { parts: AirspaceMeshData[]; sigHash: number }>([
     [AirspaceColorCategory.Prohibited, { parts: [], sigHash: 0 }],
     [AirspaceColorCategory.Restricted, { parts: [], sigHash: 0 }],
@@ -568,6 +591,9 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     this.restoreDepthCache();
     this.currentAirspaces.length = 0;
     this.categoryGraphics.clear();
+    this.categoryLineGraphics.clear();
+    this.categorySymbols.clear();
+    this.categoryLineSymbols.clear();
     this.graphicsLayerView = undefined;
     this.lastQueryKey = undefined;
     if (this.graphicsLayer) {
@@ -698,6 +724,15 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     return symbol;
   }
 
+  private getCategoryLineSymbol(category: AirspaceColorCategory): LineSymbol3D {
+    let symbol = this.categoryLineSymbols.get(category);
+    if (!symbol) {
+      symbol = createCategoryLineSymbol(category, this.opacity);
+      this.categoryLineSymbols.set(category, symbol);
+    }
+    return symbol;
+  }
+
   private rebuildMeshes(onlyGroundRef: boolean): void {
     if (!this.map || !this.showAirspace) {
       return;
@@ -776,7 +811,11 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       const bucket = this.categoryBuckets.get(category);
       const nextSig = bucket && bucket.parts.length > 0 ? bucket.sigHash >>> 0 : 0;
       const prevGraphic = this.categoryGraphics.get(category);
-      if ((nextSig === 0 && !prevGraphic) || (nextSig !== 0 && prevGraphic?.attributes?.sig === nextSig)) {
+      const prevLineGraphic = this.categoryLineGraphics.get(category);
+      if (
+        (nextSig === 0 && !prevGraphic && !prevLineGraphic) ||
+        (nextSig !== 0 && prevGraphic?.attributes?.sig === nextSig && prevLineGraphic?.attributes?.sig === nextSig)
+      ) {
         continue;
       }
 
@@ -796,6 +835,32 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         this.categoryGraphics.set(category, graphic);
         toAdd.push(graphic);
       }
+
+      const contourPaths = bucket && bucket.parts.length > 0 ? mergeContourPaths(bucket.parts) : [];
+      const polyline =
+        contourPaths.length > 0
+          ? new Polyline({
+              paths: contourPaths,
+              hasZ: true,
+              spatialReference: { wkid: 4326 },
+            })
+          : null;
+
+      if (prevLineGraphic && polyline) {
+        prevLineGraphic.geometry = polyline;
+        prevLineGraphic.attributes.sig = nextSig;
+      } else if (prevLineGraphic && !polyline) {
+        toRemove.push(prevLineGraphic);
+        this.categoryLineGraphics.delete(category);
+      } else if (!prevLineGraphic && polyline) {
+        const lineGraphic = new Graphic({
+          geometry: polyline,
+          symbol: this.getCategoryLineSymbol(category),
+          attributes: { isAirspace: true, isAirspaceLine: true, category, sig: nextSig },
+        });
+        this.categoryLineGraphics.set(category, lineGraphic);
+        toAdd.push(lineGraphic);
+      }
     }
 
     if (toRemove.length > 0) {
@@ -811,8 +876,12 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
   private updateGraphicOpacities(): void {
     this.categorySymbols.clear();
+    this.categoryLineSymbols.clear();
     for (const [category, graphic] of this.categoryGraphics.entries()) {
       graphic.symbol = this.getCategorySymbol(category);
+    }
+    for (const [category, lineGraphic] of this.categoryLineGraphics.entries()) {
+      lineGraphic.symbol = this.getCategoryLineSymbol(category);
     }
   }
 

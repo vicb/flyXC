@@ -2,14 +2,13 @@ import Mesh from '@arcgis/core/geometry/Mesh';
 import MeshGeoreferencedVertexSpace from '@arcgis/core/geometry/support/MeshGeoreferencedVertexSpace';
 // @ts-expect-error Internal ArcGIS 2D earcut tessellation utilities without type declarations
 import * as tess from '@arcgis/core/views/3d/layers/graphics/tessellationUtils.js';
-import type { AirspaceTyped } from '@flyxc/common';
+import { type AirspaceTyped, pointInPolygonRings } from '@flyxc/common';
+import { Delaunay } from 'd3-delaunay';
 
 const METERS_PER_DEGREE_LAT = 111_320;
 const MIN_DENSIFY_STEP_M = 1000;
 const TARGET_DENSIFY_SEGMENTS = 48;
-const TARGET_GRID_CELL_M = 1500;
-const MAX_SUBDIVIDE_PASSES = 4;
-const GND_BASE_SINK_M = 50;
+const GND_BASE_SINK_M = 250;
 
 /**
  * Synchronous terrain elevation sampler returning exaggerated ground elevation in meters at `(lon, lat)`.
@@ -45,11 +44,12 @@ export interface AirspaceMeshParams {
 }
 
 /**
- * Raw 3D vertex coordinates and triangle indices before combining into an ArcGIS Mesh.
+ * Raw 3D vertex coordinates, triangle indices, and optional perimeter contour lines before combining into an ArcGIS Mesh.
  */
 export interface AirspaceMeshData {
   positions: Float64Array;
   faces: Uint32Array;
+  contourPaths?: number[][][];
 }
 
 /**
@@ -148,171 +148,159 @@ const sharedMeshMaterial = {
   color: [255, 255, 255, 1] as [number, number, number, number],
   alphaMode: 'blend' as const,
   doubleSided: true,
+  unlit: true,
 };
 
-function subdivideTriangulation2D(tri: Triangulated2D, midLat: number, maxEdgeM: number): Triangulated2D {
-  if (tri.faces.length === 0) {
-    return tri;
+function distToSegmentSquared2D(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const l2 = dx * dx + dy * dy;
+  if (l2 === 0) {
+    const rx = px - x1;
+    const ry = py - y1;
+    return rx * rx + ry * ry;
   }
-
-  const cosLat = Math.max(0.1, Math.cos((midLat * Math.PI) / 180));
-  const scaleLon = METERS_PER_DEGREE_LAT * cosLat;
-  const scaleLat = METERS_PER_DEGREE_LAT;
-  const maxLen2 = maxEdgeM * maxEdgeM;
-
-  let xyCapacity = Math.max(tri.xy.length * 2, 256);
-  let xy = new Float64Array(xyCapacity);
-  xy.set(tri.xy);
-  let xyLen = tri.xy.length;
-
-  let faces = new Uint32Array(Math.max(tri.faces.length * 2, 256));
-  faces.set(tri.faces);
-  let facesLen = tri.faces.length;
-
-  let nextFacesCapacity = faces.length * 2;
-  let nextFaces = new Uint32Array(nextFacesCapacity);
-  let nextFacesLen = 0;
-
-  const midCache = new Map<number, number>();
-
-  const ensureXyCapacity = (additionalCoords: number) => {
-    if (xyLen + additionalCoords > xyCapacity) {
-      xyCapacity = Math.max(xyCapacity * 2, xyLen + additionalCoords);
-      const nextXy = new Float64Array(xyCapacity);
-      nextXy.set(xy.subarray(0, xyLen));
-      xy = nextXy;
-    }
-  };
-
-  const ensureNextFacesCapacity = (additionalIndices: number) => {
-    if (nextFacesLen + additionalIndices > nextFacesCapacity) {
-      nextFacesCapacity = Math.max(nextFacesCapacity * 2, nextFacesLen + additionalIndices);
-      const expanded = new Uint32Array(nextFacesCapacity);
-      expanded.set(nextFaces.subarray(0, nextFacesLen));
-      nextFaces = expanded;
-    }
-  };
-
-  const getMid = (a: number, b: number): number => {
-    const lo = a < b ? a : b;
-    const hi = a < b ? b : a;
-    const key = lo * 16_777_216 + hi;
-    let idx = midCache.get(key);
-    if (idx === undefined) {
-      idx = xyLen >> 1;
-      ensureXyCapacity(2);
-      xy[xyLen++] = (xy[a * 2] + xy[b * 2]) * 0.5;
-      xy[xyLen++] = (xy[a * 2 + 1] + xy[b * 2 + 1]) * 0.5;
-      midCache.set(key, idx);
-    }
-    return idx;
-  };
-
-  const edgeLen2 = (a: number, b: number): number => {
-    const dx = (xy[a * 2] - xy[b * 2]) * scaleLon;
-    const dy = (xy[a * 2 + 1] - xy[b * 2 + 1]) * scaleLat;
-    return dx * dx + dy * dy;
-  };
-
-  for (let pass = 0; pass < MAX_SUBDIVIDE_PASSES; pass++) {
-    midCache.clear();
-    nextFacesLen = 0;
-    let splitAny = false;
-
-    for (let i = 0; i < facesLen; i += 3) {
-      const a = faces[i];
-      const b = faces[i + 1];
-      const c = faces[i + 2];
-      const s0 = edgeLen2(a, b) > maxLen2;
-      const s1 = edgeLen2(b, c) > maxLen2;
-      const s2 = edgeLen2(c, a) > maxLen2;
-      const count = (s0 ? 1 : 0) + (s1 ? 1 : 0) + (s2 ? 1 : 0);
-
-      if (count === 0) {
-        ensureNextFacesCapacity(3);
-        nextFaces[nextFacesLen++] = a;
-        nextFaces[nextFacesLen++] = b;
-        nextFaces[nextFacesLen++] = c;
-        continue;
-      }
-      splitAny = true;
-
-      if (count === 3) {
-        const mab = getMid(a, b);
-        const mbc = getMid(b, c);
-        const mca = getMid(c, a);
-        ensureNextFacesCapacity(12);
-        nextFaces[nextFacesLen++] = a;
-        nextFaces[nextFacesLen++] = mab;
-        nextFaces[nextFacesLen++] = mca;
-        nextFaces[nextFacesLen++] = mab;
-        nextFaces[nextFacesLen++] = b;
-        nextFaces[nextFacesLen++] = mbc;
-        nextFaces[nextFacesLen++] = mca;
-        nextFaces[nextFacesLen++] = mbc;
-        nextFaces[nextFacesLen++] = c;
-        nextFaces[nextFacesLen++] = mab;
-        nextFaces[nextFacesLen++] = mbc;
-        nextFaces[nextFacesLen++] = mca;
-      } else if (count === 1) {
-        const [u, v, w] = s0 ? [a, b, c] : s1 ? [b, c, a] : [c, a, b];
-        const m = getMid(u, v);
-        ensureNextFacesCapacity(6);
-        nextFaces[nextFacesLen++] = u;
-        nextFaces[nextFacesLen++] = m;
-        nextFaces[nextFacesLen++] = w;
-        nextFaces[nextFacesLen++] = m;
-        nextFaces[nextFacesLen++] = v;
-        nextFaces[nextFacesLen++] = w;
-      } else {
-        const [u, v, w] = !s2 ? [a, b, c] : !s0 ? [b, c, a] : [c, a, b];
-        const m1 = getMid(u, v);
-        const m2 = getMid(v, w);
-        ensureNextFacesCapacity(9);
-        nextFaces[nextFacesLen++] = u;
-        nextFaces[nextFacesLen++] = m1;
-        nextFaces[nextFacesLen++] = w;
-        nextFaces[nextFacesLen++] = m1;
-        nextFaces[nextFacesLen++] = v;
-        nextFaces[nextFacesLen++] = m2;
-        nextFaces[nextFacesLen++] = m1;
-        nextFaces[nextFacesLen++] = m2;
-        nextFaces[nextFacesLen++] = w;
-      }
-    }
-
-    const tempFaces = faces;
-    faces = nextFaces;
-    facesLen = nextFacesLen;
-    nextFaces = tempFaces;
-    nextFacesCapacity = tempFaces.length;
-
-    if (!splitAny) {
-      break;
-    }
-  }
-
-  return { xy: xy.slice(0, xyLen), faces: faces.slice(0, facesLen) };
+  let t = ((px - x1) * dx + (py - y1) * dy) / l2;
+  t = Math.max(0, Math.min(1, t));
+  const qx = x1 + t * dx;
+  const qy = y1 + t * dy;
+  const rx = px - qx;
+  const ry = py - qy;
+  return rx * rx + ry * ry;
 }
 
 /**
- * Triangulates a 2D polygon and subdivides long interior edges so ground-referenced caps follow terrain relief.
+ * Triangulates a polygon by injecting a regular 2D grid of interior Steiner points and
+ * computing a conformal Delaunay triangulation, eliminating radial needle fans.
  */
-export function triangulateTerrainCap2D(
+export function triangulateCapWithGrid2D(
   rings: number[][][],
   extent: AirspaceExtentLike,
-  stepM?: number,
-  overrideMaxEdgeM?: number,
+  targetGridM = 2000,
 ): Triangulated2D {
-  const base = triangulateRings2D(rings);
-  const { widthM, heightM } = estimateExtentMeters(extent);
-  const defaultMaxEdgeM = Math.max(TARGET_GRID_CELL_M, stepM ?? TARGET_GRID_CELL_M) * 1.05;
-  const maxEdgeM = overrideMaxEdgeM ?? defaultMaxEdgeM;
-  if (widthM <= maxEdgeM && heightM <= maxEdgeM) {
-    return base;
+  if (rings.length === 0) {
+    return { xy: new Float64Array(0), faces: new Uint32Array(0) };
   }
+
+  const { widthM, heightM } = estimateExtentMeters(extent);
+  if (widthM <= targetGridM && heightM <= targetGridM) {
+    return triangulateRings2D(rings);
+  }
+
   const midLat = (extent.ymin + extent.ymax) / 2;
-  return subdivideTriangulation2D(base, midLat, maxEdgeM);
+  const cosLat = Math.max(0.1, Math.cos((midLat * Math.PI) / 180));
+  const stepLat = targetGridM / METERS_PER_DEGREE_LAT;
+  const stepLon = targetGridM / (METERS_PER_DEGREE_LAT * cosLat);
+
+  const allPts: number[][] = [];
+  const boundarySegments = new Set<string>();
+  let baseIdx = 0;
+  for (const ring of rings) {
+    const len =
+      ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]
+        ? ring.length - 1
+        : ring.length;
+    for (let i = 0; i < len; i++) {
+      allPts.push([ring[i][0], ring[i][1]]);
+      const next = (i + 1) % len;
+      const a = baseIdx + i;
+      const b = baseIdx + next;
+      boundarySegments.add(a < b ? `${a}_${b}` : `${b}_${a}`);
+    }
+    baseIdx += len;
+  }
+
+  if (allPts.length < 3) {
+    return { xy: new Float64Array(0), faces: new Uint32Array(0) };
+  }
+
+  const minDistDeg = (targetGridM * 0.4) / METERS_PER_DEGREE_LAT;
+  const minDistDeg2 = minDistDeg * minDistDeg;
+
+  // Generate interior Steiner points strictly inside the polygon boundary
+  for (let lon = extent.xmin + stepLon * 0.5; lon < extent.xmax; lon += stepLon) {
+    for (let lat = extent.ymin + stepLat * 0.5; lat < extent.ymax; lat += stepLat) {
+      if (pointInPolygonRings(lon, lat, rings)) {
+        let tooClose = false;
+        const plon = lon * cosLat;
+        for (const ring of rings) {
+          const len = ring.length - 1;
+          for (let i = 0; i < len; i++) {
+            if (
+              distToSegmentSquared2D(
+                plon,
+                lat,
+                ring[i][0] * cosLat,
+                ring[i][1],
+                ring[i + 1][0] * cosLat,
+                ring[i + 1][1],
+              ) < minDistDeg2
+            ) {
+              tooClose = true;
+              break;
+            }
+          }
+          if (tooClose) {
+            break;
+          }
+        }
+        if (!tooClose) {
+          allPts.push([lon, lat]);
+        }
+      }
+    }
+  }
+
+  const numPts = allPts.length;
+  const projected = new Float64Array(numPts * 2);
+  for (let i = 0; i < numPts; i++) {
+    projected[i * 2] = allPts[i][0] * cosLat;
+    projected[i * 2 + 1] = allPts[i][1];
+  }
+
+  const delaunay = new Delaunay(projected);
+  const tris = delaunay.triangles;
+  const insideFaces: number[] = [];
+
+  const isEdgeValid = (i1: number, i2: number): boolean => {
+    const key = i1 < i2 ? `${i1}_${i2}` : `${i2}_${i1}`;
+    if (boundarySegments.has(key)) {
+      return true;
+    }
+    const p1 = allPts[i1];
+    const p2 = allPts[i2];
+    return pointInPolygonRings((p1[0] + p2[0]) * 0.5, (p1[1] + p2[1]) * 0.5, rings);
+  };
+
+  for (let i = 0; i < tris.length; i += 3) {
+    const i0 = tris[i];
+    const i1 = tris[i + 1];
+    const i2 = tris[i + 2];
+    const p0 = allPts[i0];
+    const p1 = allPts[i1];
+    const p2 = allPts[i2];
+    const cx = (p0[0] + p1[0] + p2[0]) / 3;
+    const cy = (p0[1] + p1[1] + p2[1]) / 3;
+    if (!pointInPolygonRings(cx, cy, rings)) {
+      continue;
+    }
+    if (!isEdgeValid(i0, i1) || !isEdgeValid(i1, i2) || !isEdgeValid(i2, i0)) {
+      continue;
+    }
+    insideFaces.push(i0, i1, i2);
+  }
+
+  if (insideFaces.length === 0) {
+    return triangulateRings2D(rings);
+  }
+
+  const xy = new Float64Array(numPts * 2);
+  for (let i = 0; i < numPts; i++) {
+    xy[i * 2] = allPts[i][0];
+    xy[i * 2 + 1] = allPts[i][1];
+  }
+
+  return { xy, faces: new Uint32Array(insideFaces) };
 }
 
 /**
@@ -366,14 +354,25 @@ export async function buildAirspaceFootprint(
     return null;
   }
 
-  const needFloorCap = !(airspace.floorRefGnd && airspace.floorM === 0);
+  const sinkZeroFloor = airspace.floorRefGnd && airspace.floorM === 0;
+  const needFloorCap = !sinkZeroFloor;
   const needFlatCap = !airspace.topRefGnd || (needFloorCap && !airspace.floorRefGnd);
   const needTerrainCap = airspace.topRefGnd || (needFloorCap && airspace.floorRefGnd);
 
-  const flatCap = needFlatCap ? triangulateRings2D(polygon.rings) : undefined;
+  const { widthM, heightM } = estimateExtentMeters(polygon.extent);
+
+  let flatCap: Triangulated2D | undefined;
+  if (needFlatCap) {
+    const maxCapEdgeM = 2000;
+    flatCap =
+      widthM > maxCapEdgeM || heightM > maxCapEdgeM
+        ? triangulateCapWithGrid2D(wallRings, polygon.extent, maxCapEdgeM)
+        : triangulateRings2D(wallRings);
+  }
+
   const targetEdgeM = options?.maxEdgeM ?? (options?.coarse ? 4800 : undefined);
   const terrainCap = needTerrainCap
-    ? triangulateTerrainCap2D(wallRings, polygon.extent, stepM, targetEdgeM)
+    ? triangulateCapWithGrid2D(wallRings, polygon.extent, targetEdgeM ?? 2000)
     : undefined;
   const lod = needTerrainCap && options?.coarse ? 0 : 1;
 
@@ -438,6 +437,7 @@ export function extrudeAirspaceFootprint(
 
   const positions = new Float64Array(totalVertices * 3);
   const faces = new Uint32Array(totalIndices);
+  const contourPaths: number[][][] = [];
   let vCursor = 0;
   let fCursor = 0;
 
@@ -446,11 +446,15 @@ export function extrudeAirspaceFootprint(
       continue;
     }
     const ringBase = vCursor;
+    const topPath: number[][] = [];
+    const floorPath: number[][] = [];
     for (let i = 0; i < ring.length; i++) {
       const [lon, lat] = ring[i];
       const gnd = hasGroundRef ? sampleGroundZ(lon, lat) : 0;
-      const nominalFloor = (airspace.floorRefGnd ? gnd : 0) + floorOffset;
-      const topZ = Math.max((airspace.topRefGnd ? gnd : 0) + topOffset, nominalFloor);
+      const rawTop = (airspace.topRefGnd ? gnd : 0) + topOffset;
+      const rawFloor = (airspace.floorRefGnd ? gnd : 0) + floorOffset;
+      const topZ = airspace.topRefGnd ? Math.max(rawTop, rawFloor) : rawTop;
+      const nominalFloor = airspace.topRefGnd ? rawFloor : Math.min(rawFloor, topZ);
       const bottomZ = sinkZeroFloor && topZ > nominalFloor ? nominalFloor - GND_BASE_SINK_M * multiplier : nominalFloor;
 
       const p = vCursor * 3;
@@ -461,6 +465,15 @@ export function extrudeAirspaceFootprint(
       positions[p + 4] = lat;
       positions[p + 5] = topZ;
       vCursor += 2;
+
+      topPath.push([lon, lat, topZ]);
+      floorPath.push([lon, lat, nominalFloor + (sinkZeroFloor ? 2 : 0)]);
+    }
+    if (topPath.length >= 2) {
+      contourPaths.push(topPath);
+    }
+    if (floorPath.length >= 2 && Math.abs(topOffset - floorOffset) > 0.1) {
+      contourPaths.push(floorPath);
     }
     for (let i = 0; i < ring.length - 1; i++) {
       const b0 = ringBase + i * 2;
@@ -524,7 +537,24 @@ export function extrudeAirspaceFootprint(
     }
   }
 
-  return { positions, faces };
+  return { positions, faces, contourPaths };
+}
+
+/**
+ * Merges multiple raw {@link AirspaceMeshData} contour line paths into a single path array for a 3D Polyline.
+ */
+export function mergeContourPaths(parts: AirspaceMeshData[]): number[][][] {
+  const merged: number[][][] = [];
+  for (const part of parts) {
+    if (part.contourPaths) {
+      for (const path of part.contourPaths) {
+        if (path.length >= 2) {
+          merged.push(path);
+        }
+      }
+    }
+  }
+  return merged;
 }
 
 /**

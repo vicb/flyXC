@@ -97,18 +97,12 @@ describe('airspace3d-processor', () => {
   });
 
   describe('getAirspaceKey', () => {
-    it('constructs a deterministic key from airspace attributes', () => {
+    it('returns the airspace id as string', () => {
       const key = getAirspaceKey({
+        id: 12345,
         name: 'GENEVA TMA',
-        country: 'CH',
-        type: Type.TMA,
-        icaoClass: Class.D,
-        floorM: 1000,
-        topM: 3000,
-        floorRefGnd: false,
-        topRefGnd: true,
       } as any);
-      expect(key).toBe(`GENEVA TMA|CH|${Type.TMA}|${Class.D}|1000|3000|false|true`);
+      expect(key).toBe('12345');
     });
   });
 

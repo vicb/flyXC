@@ -3,7 +3,13 @@ import type { AirspaceTyped } from '@flyxc/common';
 import { Class, Type } from '@flyxc/common';
 import { describe, expect, it, vi } from 'vitest';
 
-import { buildAirspaceFootprint, buildAirspaceMesh, extrudeAirspaceFootprint } from './airspace3d-mesh';
+import {
+  buildAirspaceFootprint,
+  buildAirspaceMesh,
+  extrudeAirspaceFootprint,
+  mergeContourPaths,
+  triangulateCapWithGrid2D,
+} from './airspace3d-mesh';
 
 function makeAirspace(overrides: Partial<AirspaceTyped> = {}): AirspaceTyped {
   return {
@@ -143,8 +149,8 @@ describe('buildAirspaceMesh', () => {
     }
 
     // topM * 1.5 = 1500.
-    // West: ground=300 < 1500 -> bottom sinks by 50*1.5=75 -> 225, top is 1500.
-    expect(westZs).toContain(225);
+    // West: ground=300 < 1500 -> bottom sinks by 250*1.5=375 -> -75, top is 1500.
+    expect(westZs).toContain(-75);
     expect(westZs).toContain(1500);
     // East: ground=1500 == topZConst -> topZ clamps to nominalFloor (1500) and does not sink below ground.
     expect(eastZs).toContain(1500);
@@ -284,5 +290,177 @@ describe('buildAirspaceMesh', () => {
     });
     expect(mesh).not.toBeNull();
     assertValidMeshIndices(mesh!.vertexAttributes.position!, mesh!.components![0].faces!);
+  });
+
+  it('triangulates large polygons with an interior Steiner grid to avoid single-vertex needle fans', () => {
+    // Large circle with 100 perimeter points (~10km radius)
+    const centerLon = 5.9, centerLat = 44.3;
+    const radiusDeg = 0.1;
+    const ring: number[][] = [];
+    const N = 100;
+    for (let i = 0; i < N; i++) {
+      const angle = (i / N) * 2 * Math.PI;
+      ring.push([centerLon + Math.cos(angle) * radiusDeg, centerLat + Math.sin(angle) * radiusDeg]);
+    }
+    ring.push(ring[0]);
+
+    const extent = {
+      xmin: centerLon - radiusDeg,
+      xmax: centerLon + radiusDeg,
+      ymin: centerLat - radiusDeg,
+      ymax: centerLat + radiusDeg,
+    };
+
+    const tri = triangulateCapWithGrid2D([ring], extent, 2000);
+    expect(tri.xy.length / 2).toBeGreaterThan(N); // Must contain interior Steiner points
+    expect(tri.faces.length).toBeGreaterThan(0);
+
+    // Count triangles meeting at each vertex
+    const degrees: Record<number, number> = {};
+    for (let i = 0; i < tri.faces.length; i++) {
+      const v = tri.faces[i];
+      degrees[v] = (degrees[v] || 0) + 1;
+    }
+    const maxDegree = Math.max(...Object.values(degrees));
+    // Without interior grid, earcut produces maxDegree = 100 (all connected to vertex 0).
+    // With interior Steiner grid, no single vertex has more than 15 triangles!
+    expect(maxDegree).toBeLessThan(20);
+  });
+
+  it('preserves all perimeter boundary edges without missing gaps or jagged teeth', () => {
+    const ring = [
+      [5.889, 45.015],
+      [5.733, 44.442],
+      [5.344, 44.525],
+      [5.296, 44.963],
+      [5.345, 45.015],
+      [5.889, 45.015],
+    ];
+    const extent = {
+      xmin: 5.296,
+      ymin: 44.442,
+      xmax: 5.889,
+      ymax: 45.015,
+    };
+    const tri = triangulateCapWithGrid2D([ring], extent, 2000);
+    expect(tri.faces.length).toBeGreaterThan(0);
+
+    const edgeSet = new Set<string>();
+    for (let i = 0; i < tri.faces.length; i += 3) {
+      const a = tri.faces[i];
+      const b = tri.faces[i + 1];
+      const c = tri.faces[i + 2];
+      edgeSet.add(a < b ? `${a}_${b}` : `${b}_${a}`);
+      edgeSet.add(b < c ? `${b}_${c}` : `${c}_${b}`);
+      edgeSet.add(c < a ? `${c}_${a}` : `${a}_${c}`);
+    }
+
+    for (let i = 0; i < ring.length - 1; i++) {
+      const next = (i + 1) % (ring.length - 1);
+      const key = i < next ? `${i}_${next}` : `${next}_${i}`;
+      expect(edgeSet.has(key)).toBe(true);
+    }
+  });
+
+  it('clamps elevated floor at or below flat ceiling topZ without exceeding it', () => {
+    const airspace = makeAirspace({
+      floorM: 1000,
+      floorRefGnd: true,
+      topM: 3810,
+      topRefGnd: false,
+    });
+    // High mountain at 3500m -> ground + floorM = 4500m > 3810m ceiling!
+    const sampleGroundZ = () => 3500;
+    const footprint = {
+      wallRings: [
+        [
+          [5.0, 45.0],
+          [5.1, 45.0],
+          [5.1, 45.1],
+          [5.0, 45.1],
+          [5.0, 45.0],
+        ],
+      ],
+      lod: 1,
+    };
+    const mesh = extrudeAirspaceFootprint(footprint, airspace, 1, sampleGroundZ);
+    expect(mesh).not.toBeNull();
+    const zs = getZs(mesh!.positions);
+    // No Z coordinate should exceed topM (3810)
+    for (const z of zs) {
+      expect(z).toBeLessThanOrEqual(3810);
+    }
+  });
+
+  it('ensures ground-referenced airspaces with floor 0 GND have terrain-following ceiling caps', async () => {
+    const airspace = makeAirspace({
+      name: 'PARC/RESERVE AIGUILLES ROUGES',
+      floorM: 0,
+      floorRefGnd: true,
+      topM: 300,
+      topRefGnd: true,
+    });
+    const polygon = makeSquarePolygon(6.8, 45.9, 0.1);
+    const footprint = await buildAirspaceFootprint(polygon, airspace);
+    expect(footprint?.terrainCap).toBeDefined();
+
+    // Sample with varying ground elevation (1000m at min, 3000m at max)
+    const sampleGroundZ = (lon: number, lat: number) => 1000 + (lat - 45.9) * 20000;
+    const mesh = extrudeAirspaceFootprint(footprint!, airspace, 1, sampleGroundZ);
+    expect(mesh).not.toBeNull();
+    const zs = getZs(mesh!.positions);
+    const maxZ = Math.max(...zs);
+    const minZ = Math.min(...zs);
+    expect(maxZ - minZ).toBeGreaterThan(1500);
+  });
+
+  it('generates perimeter contour paths for floor and ceiling without interior edges', async () => {
+    const airspace = makeAirspace({
+      name: 'CONTOUR TEST',
+      floorM: 500,
+      floorRefGnd: false,
+      topM: 1500,
+      topRefGnd: false,
+    });
+    const polygon = makeSquarePolygon(6.0, 45.0, 0.05);
+    const footprint = await buildAirspaceFootprint(polygon, airspace);
+    expect(footprint).not.toBeNull();
+
+    const meshData = extrudeAirspaceFootprint(footprint!, airspace, 1, () => 0);
+    expect(meshData?.contourPaths).toBeDefined();
+    // A single square ring produces exactly 2 closed contour paths: top perimeter and floor perimeter
+    expect(meshData!.contourPaths).toHaveLength(2);
+
+    const [topPath, floorPath] = meshData!.contourPaths!;
+    // Both paths must trace the perimeter vertices and be closed loops
+    expect(topPath.length).toBe(footprint!.wallRings[0].length);
+    expect(floorPath.length).toBe(footprint!.wallRings[0].length);
+    // Closed loop
+    expect(topPath[0][0]).toBe(topPath[topPath.length - 1][0]);
+    expect(topPath[0][1]).toBe(topPath[topPath.length - 1][1]);
+    expect(floorPath[0][0]).toBe(floorPath[floorPath.length - 1][0]);
+    expect(floorPath[0][1]).toBe(floorPath[floorPath.length - 1][1]);
+
+    // Check Z values
+    expect(topPath.every((pt) => pt[2] === 1500)).toBe(true);
+    expect(floorPath.every((pt) => pt[2] === 500)).toBe(true);
+
+    // mergeContourPaths aggregates paths
+    const merged = mergeContourPaths([meshData!, meshData!]);
+    expect(merged).toHaveLength(4);
+
+    // Ground-level airspaces have floor contour biased +2m above ground surface
+    const gndAirspace = makeAirspace({
+      name: 'GND CONTOUR TEST',
+      floorM: 0,
+      floorRefGnd: true,
+      topM: 1000,
+      topRefGnd: false,
+    });
+    const gndMeshData = extrudeAirspaceFootprint(footprint!, gndAirspace, 1, () => 200);
+    expect(gndMeshData?.contourPaths).toHaveLength(2);
+    const [gndTop, gndFloor] = gndMeshData!.contourPaths!;
+    expect(gndTop.every((pt) => pt[2] === 1000)).toBe(true);
+    expect(gndFloor.every((pt) => pt[2] === 202)).toBe(true);
   });
 });

@@ -54,6 +54,9 @@ catalogs:
     '@types/d3-array':
       specifier: ^3.2.2
       version: 3.2.2
+    '@types/d3-delaunay':
+      specifier: ^6.0.4
+      version: 6.0.4
     '@types/express':
       specifier: ^5.0.6
       version: 5.0.6
@@ -87,6 +90,9 @@ catalogs:
     core-js:
       specifier: ^3.51.0
       version: 3.51.0
+    d3-delaunay:
+      specifier: ^6.0.6
+      version: 6.0.6
     date-fns:
       specifier: ^4.4.0
       version: 4.4.0
@@ -409,6 +415,9 @@ importers:
       d3-array:
         specifier: ^3.2.5
         version: 3.2.5
+      d3-delaunay:
+        specifier: 'catalog:'
+        version: 6.0.6
       geolib:
         specifier: catalog:default
         version: 4.0.2
@@ -467,6 +476,9 @@ importers:
       '@types/d3-array':
         specifier: catalog:default
         version: 3.2.2
+      '@types/d3-delaunay':
+        specifier: 'catalog:'
+        version: 6.0.4
       '@types/google.maps':
         specifier: catalog:default
         version: 3.67.0
@@ -5221,8 +5233,8 @@ packages:
     resolution: {integrity: sha512-4EzFTRIikzs47RGmdxbeUvLWtGedDUNkTcmzoeyg4sP/dvCexO47AaQL7VKy/gul85TOxw+IBgA8US2xwbToNA==}
     engines: {node: '>=12'}
 
-  d3-delaunay@6.0.4:
-    resolution: {integrity: sha512-mdjtIZ1XLAM8bm/hx3WwjfHt6Sggek7qH043O8KEjDXN40xi3vx/6pYSVTwLjEgiXQTbvaouWKynLBiUZ6SK6A==}
+  d3-delaunay@6.0.6:
+    resolution: {integrity: sha512-DMQIEvSJhZCB6pwedcXaAlQ+MeKU5LlM2XakKtc73b/VM+RBiI1SRXycOEOKg2jsKj4zZ9F0KGYG6nCGwwWu/g==}
     engines: {node: '>=12'}
 
   d3-dispatch@2.0.0:
@@ -14226,7 +14238,7 @@ snapshots:
     dependencies:
       d3-array: 3.2.5
 
-  d3-delaunay@6.0.4:
+  d3-delaunay@6.0.6:
     dependencies:
       delaunator: 5.0.1
 
@@ -14362,7 +14374,7 @@ snapshots:
       d3-chord: 3.0.1
       d3-color: 3.1.0
       d3-contour: 4.0.2
-      d3-delaunay: 6.0.4
+      d3-delaunay: 6.0.6
       d3-dispatch: 3.0.1
       d3-drag: 3.0.0
       d3-dsv: 3.0.1
