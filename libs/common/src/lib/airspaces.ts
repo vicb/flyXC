@@ -406,9 +406,6 @@ export const airspaceOverrides = {
   // Active in July and August
   // https://federation.ffvl.fr/sites/ffvl.fr/files/Massifdumontblancchamonix.pdf
   LFR30B: 'LF-R30B MONT BLANC (JULY+AUGUST)',
-  // 300m AGL for PG
-  // https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000021755667
-  aiguilleRouges: 'PARC/RESERVE AIGUILLES ROUGES',
   // Class E
   // - 2nd Monday of April to 2nd Friday of December
   // - outside the above period: Monday 11:00UTC to Thursday 23:59UTC
@@ -423,148 +420,120 @@ export const airspaceOverrides = {
 
 export type AirspaceOverride = (typeof airspaceOverrides)[keyof typeof airspaceOverrides];
 
-export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyped {
-  if (airspace.country != 'FR') {
-    return airspace;
+/**
+ * Returns the date-resolved overrides for all overridable airspaces.
+ */
+export function getAirspaceOverrides(date: Date): Map<string, Partial<AirspaceTyped>> {
+  const overrides = new Map<string, Partial<AirspaceTyped>>();
+  for (const name of Object.values(airspaceOverrides)) {
+    const override = getAirspaceOverride(name, date);
+    if (override) {
+      overrides.set(name, override);
+    }
   }
+  return overrides;
+}
 
+/**
+ * Applies any date-specific overrides to an airspace.
+ */
+export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyped {
+  const override = getAirspaceOverride(airspace.name, date);
+  return override ? { ...airspace, ...override } : airspace;
+}
+
+/**
+ * Returns the overridden fields for an airspace name on the given date, or undefined if no override applies.
+ */
+function getAirspaceOverride(name: string, date: Date): Partial<AirspaceTyped> | undefined {
   const tzDate = new TZDate(date, 'Europe/Paris');
-  const year = tzDate.getFullYear();
   const month = tzDate.getMonth() + 1;
 
-  switch (airspace.name) {
+  switch (name) {
     case airspaceOverrides.ecrins:
-      if (month >= 7 && month <= 10) {
-        return {
-          ...airspace,
-          name: `${airspace.name} - INACTIVE`,
-          type: Type.Other,
-        };
-      }
-      return airspace;
+      return month >= 7 && month <= 10 ? { name: `${name} - INACTIVE`, type: Type.Other } : undefined;
 
-    case airspaceOverrides.TMAClermont21: {
-      airspace = { ...airspace, type: Type.TMA, icaoClass: Class.G };
-
-      const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
-      const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
-      const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
-      if (lower) {
-        return { ...airspace, ...createTopM(1680) };
-      }
-      return { ...airspace, ...createTopM(1980) };
-    }
-
-    case airspaceOverrides.TMAClermont22: {
-      airspace = { ...airspace, type: Type.TMA, icaoClass: Class.G };
-
-      const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
-      const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
-      const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
-      if (lower) {
-        return { ...airspace, ...createTopM(1680) };
-      }
-      return { ...airspace, ...createTopM(1980) };
-    }
-
-    case airspaceOverrides.TMAClermont23: {
-      airspace = { ...airspace, type: Type.TMA, icaoClass: Class.G };
-
-      const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
-      const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
-      const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
-      if (lower) {
-        return { ...airspace, ...createTopM(1680) };
-      }
+    case airspaceOverrides.TMAClermont21:
+    case airspaceOverrides.TMAClermont22:
       return {
-        ...airspace,
-        ...(isSaturday(tzDate) || isSunday(tzDate) ? { ...createTopM(2590) } : { ...createTopM(1980) }),
+        type: Type.TMA,
+        icaoClass: Class.G,
+        ...createTopM(isClermontLowerPeriod(tzDate) ? 1680 : 1980),
       };
-    }
 
-    case airspaceOverrides.TMAClermont41: {
-      airspace = { ...airspace, type: Type.TMA, icaoClass: Class.G };
-
-      const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
-      const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
-      const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
-      if (lower) {
-        return { ...airspace, ...createTopM(2590) };
-      }
+    case airspaceOverrides.TMAClermont23:
       return {
-        ...airspace,
-        ...(isSaturday(tzDate) || isSunday(tzDate) ? { ...createTopM(2895) } : { ...createTopM(2590) }),
+        type: Type.TMA,
+        icaoClass: Class.G,
+        ...createTopM(isClermontLowerPeriod(tzDate) ? 1680 : isSaturday(tzDate) || isSunday(tzDate) ? 2590 : 1980),
       };
-    }
 
-    case airspaceOverrides.TMAClermont51: {
-      airspace = { ...airspace, type: Type.TMA, icaoClass: Class.G };
+    case airspaceOverrides.TMAClermont41:
+      return {
+        type: Type.TMA,
+        icaoClass: Class.G,
+        ...createTopM(isClermontLowerPeriod(tzDate) ? 2590 : isSaturday(tzDate) || isSunday(tzDate) ? 2895 : 2590),
+      };
 
-      const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
-      const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
-      const lower = isBefore(tzDate, start) || isAfter(tzDate, end);
-      if (lower) {
-        return { ...airspace, ...createTopM(2590) };
-      }
-      return { ...airspace, ...createTopM(3505) };
-    }
+    case airspaceOverrides.TMAClermont51:
+      return {
+        type: Type.TMA,
+        icaoClass: Class.G,
+        ...createTopM(isClermontLowerPeriod(tzDate) ? 2590 : 3505),
+      };
 
     case airspaceOverrides.LFR30B:
-      if (month == 7 || month == 8) {
-        return airspace;
-      }
-      return {
-        ...airspace,
-        type: Type.Other,
-        name: 'LF-R30B MONT BLANC - INACTIVE',
-      };
+      return month == 7 || month == 8 ? undefined : { type: Type.Other, name: 'LF-R30B MONT BLANC - INACTIVE' };
 
     case airspaceOverrides.TMAChambery1:
     case airspaceOverrides.TMAChambery2:
-    case airspaceOverrides.TMAChambery3: {
-      // 2nd Monday of April
-      const start = addDays(nextMonday(new TZDate(`${year}-04-01`, 'Europe/Paris')), 7);
-      // 2nd Friday of December
-      const end = addDays(nextFriday(new TZDate(`${year}-12-01`, 'Europe/Paris')), 7);
-
-      const isClassD =
-        (isBefore(tzDate, start) || isAfter(tzDate, end)) &&
-        (isFriday(tzDate) ||
-          isSaturday(tzDate) ||
-          isSunday(tzDate) ||
-          (isMonday(tzDate) && tzDate.getUTCHours() <= 11));
-
-      return isClassD ? { ...airspace, icaoClass: Class.D } : { ...airspace, icaoClass: Class.E };
-    }
+    case airspaceOverrides.TMAChambery3:
+      return { icaoClass: isChamberyWinterWeekend(tzDate) ? Class.D : Class.E };
 
     case airspaceOverrides.CTRChambery2: {
-      airspace = { ...airspace, ...createTopM(1067), topRefGnd: true };
-
-      // 2nd Monday of April
-      const start = addDays(nextMonday(new TZDate(`${year}-04-01`, 'Europe/Paris')), 7);
-      // 2nd Friday of December
-      const end = addDays(nextFriday(new TZDate(`${year}-12-01`, 'Europe/Paris')), 7);
-
-      const isActive =
-        (isBefore(tzDate, start) || isAfter(tzDate, end)) &&
-        (isFriday(tzDate) ||
-          isSaturday(tzDate) ||
-          isSunday(tzDate) ||
-          (isMonday(tzDate) && tzDate.getUTCHours() <= 11));
-
-      return isActive
-        ? { ...airspace, icaoClass: Class.D }
+      const base = { ...createTopM(1067), topRefGnd: true };
+      return isChamberyWinterWeekend(tzDate)
+        ? { ...base, icaoClass: Class.D }
         : {
-            ...airspace,
+            ...base,
             icaoClass: Class.SUA,
             type: Type.Other,
-            name: `${airspace.name} - INACTIVE`,
+            name: `${name} - INACTIVE`,
           };
     }
 
     default:
-      return airspace;
+      return undefined;
   }
+}
+
+/**
+ * Returns whether `tzDate` falls in the winter period (before March 15 or after October 15
+ * in `Europe/Paris`), when Clermont free-flight TMAs have a lower ceiling.
+ */
+function isClermontLowerPeriod(tzDate: TZDate): boolean {
+  const year = tzDate.getFullYear();
+  const start = new TZDate(`${year}-03-15`, 'Europe/Paris');
+  const end = new TZDate(`${year}-10-15`, 'Europe/Paris');
+  return isBefore(tzDate, start) || isAfter(tzDate, end);
+}
+
+/**
+ * Returns whether `tzDate` falls in the Chambéry winter weekend activation window
+ * (before the 2nd Monday of April or after the 2nd Friday of December, from Friday
+ * through Monday 11:59 UTC), when Chambéry TMAs become Class D and CTR 2 is active.
+ */
+function isChamberyWinterWeekend(tzDate: TZDate): boolean {
+  const year = tzDate.getFullYear();
+  // 2nd Monday of April
+  const start = addDays(nextMonday(new TZDate(`${year}-04-01`, 'Europe/Paris')), 7);
+  // 2nd Friday of December
+  const end = addDays(nextFriday(new TZDate(`${year}-12-01`, 'Europe/Paris')), 7);
+
+  return (
+    (isBefore(tzDate, start) || isAfter(tzDate, end)) &&
+    (isFriday(tzDate) || isSaturday(tzDate) || isSunday(tzDate) || (isMonday(tzDate) && tzDate.getUTCHours() <= 11))
+  );
 }
 
 function createTopM(topM: number) {

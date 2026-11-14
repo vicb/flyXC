@@ -2,13 +2,14 @@ import Point from '@arcgis/core/geometry/Point';
 import VectorTileLayer from '@arcgis/core/layers/VectorTileLayer';
 import type Map from '@arcgis/core/Map';
 import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
-import type { LatLon } from '@flyxc/common';
+import type { AirspaceServer, LatLon, RuntimeTrack } from '@flyxc/common';
 import {
   ASP_COLOR_DANGER,
   ASP_COLOR_OTHER,
   ASP_COLOR_PROHIBITED,
   ASP_COLOR_RESTRICTED,
   Class,
+  getAirspaceOverrides,
   getAirspaceTilesUrlTemplate,
   MAX_AIRSPACE_TILE_ZOOM,
   Type,
@@ -19,8 +20,10 @@ import { connect } from 'pwa-helpers';
 
 import { getAirspaceList } from '../../logic/airspaces';
 import * as airspaces from '../../redux/airspace-slice';
+import * as app from '../../redux/app-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
+import { selectCurrentTrack } from '../../redux/track-slice';
 import { createPopupContent } from './popup-content';
 
 @customElement('airspace3d-element')
@@ -38,6 +41,8 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private showTypes: Type[] = [];
   @state()
   private opacity = 70;
+  @state()
+  private track?: RuntimeTrack;
 
   private layer?: VectorTileLayer;
 
@@ -47,6 +52,11 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     this.showClasses = airspaces.selectShowClasses(state);
     this.showTypes = airspaces.selectShowTypes(state);
     this.opacity = airspaces.selectOpacity(state);
+    this.track = selectCurrentTrack(state);
+  }
+
+  private getEffectiveDate(): Date {
+    return this.track ? new Date(app.selectTimeSec(store.getState()) * 1000) : new Date();
   }
 
   protected shouldUpdate(): boolean {
@@ -75,8 +85,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       0,
       this.showClasses,
       this.showTypes,
-      // TODO: use track time when there is a track
-      new Date(),
+      this.getEffectiveDate(),
     );
     if (html) {
       await scene.openPopup({
@@ -105,91 +114,15 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       return;
     }
 
-    const visibilityFilters: any[] = [];
-
-    if (this.showTypes.indexOf(Type.Other) > -1) {
-      // https://community.esri.com/t5/arcgis-javascript-maps-sdk-questions/bug-in-vectortilelayer-stlyling-mapbox-styles/m-p/1334083#M82365
-      visibilityFilters.push(['boolean', true]);
-    } else {
-      for (const cl of this.showClasses) {
-        visibilityFilters.push(['==', ['get', 'icaoClass'], cl]);
-      }
-      for (const type of this.showTypes) {
-        visibilityFilters.push(['==', ['get', 'type'], type]);
-      }
-      if (this.showTypes.indexOf(Type.Restricted) > -1) {
-        visibilityFilters.push(['==', ['get', 'type'], Type.LowAltitudeOverflightRestriction]);
-      }
-    }
-
     this.layer = new VectorTileLayer({
-      style: {
-        version: 8,
-        sources: {
-          asp: {
-            type: 'vector',
-            tiles: [getAirspaceTilesUrlTemplate(import.meta.env.VITE_AIRSPACE_SERVER)],
-            minzoom: 0,
-            maxzoom: MAX_AIRSPACE_TILE_ZOOM,
-          },
-        },
-        layers: [
-          {
-            id: 'asp',
-            source: 'asp',
-            'source-layer': 'asp',
-            type: 'fill',
-            paint: {
-              'fill-color': [
-                'case',
-                // Class
-                ['==', ['get', 'icaoClass'], Class.A],
-                ASP_COLOR_PROHIBITED,
-                ['==', ['get', 'icaoClass'], Class.B],
-                ASP_COLOR_PROHIBITED,
-                ['==', ['get', 'icaoClass'], Class.C],
-                ASP_COLOR_PROHIBITED,
-                ['==', ['get', 'icaoClass'], Class.D],
-                ASP_COLOR_PROHIBITED,
-                ['==', ['get', 'icaoClass'], Class.E],
-                ASP_COLOR_RESTRICTED,
-                ['==', ['get', 'icaoClass'], Class.F],
-                ASP_COLOR_RESTRICTED,
-                ['==', ['get', 'icaoClass'], Class.G],
-                ASP_COLOR_RESTRICTED,
-                // Type
-                ['==', ['get', 'type'], Type.CTR],
-                ASP_COLOR_PROHIBITED,
-                ['==', ['get', 'type'], Type.TMA],
-                ASP_COLOR_PROHIBITED,
-                ['==', ['get', 'type'], Type.ATZ],
-                ASP_COLOR_PROHIBITED,
-                ['==', ['get', 'type'], Type.CTA],
-                ASP_COLOR_PROHIBITED,
-                ['==', ['get', 'type'], Type.Prohibited],
-                ASP_COLOR_PROHIBITED,
-                ['==', ['get', 'type'], Type.RMZ],
-                ASP_COLOR_PROHIBITED,
-                ['==', ['get', 'type'], Type.TMZ],
-                ASP_COLOR_RESTRICTED,
-                ['==', ['get', 'type'], Type.GlidingSector],
-                ASP_COLOR_RESTRICTED,
-                ['==', ['get', 'type'], Type.Restricted],
-                ASP_COLOR_RESTRICTED,
-                ['==', ['get', 'type'], Type.LowAltitudeOverflightRestriction],
-                ASP_COLOR_RESTRICTED,
-                ['==', ['get', 'type'], Type.Danger],
-                ASP_COLOR_DANGER,
-                // Unmatched airspaces.
-                ASP_COLOR_OTHER,
-              ],
-              'fill-opacity': this.opacity / 100,
-              'fill-outline-color': '#aaaaaa',
-            },
-            filter: ['all', ['any', ...visibilityFilters], ['<=', ['get', 'floorM'], this.maxAltitude]],
-          },
-        ],
-      },
+      style: buildAirspaceVectorTileStyle({
+        maxAltitude: this.maxAltitude,
+        showClasses: this.showClasses,
+        showTypes: this.showTypes,
+        opacity: this.opacity,
+        date: this.getEffectiveDate(),
+        tileServer: import.meta.env.VITE_AIRSPACE_SERVER,
+      }),
     });
     this.map.add(this.layer);
   }
@@ -197,4 +130,97 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   createRenderRoot(): HTMLElement {
     return this;
   }
+}
+
+/**
+ * Builds the Mapbox v8 style specification for the 3D airspace VectorTileLayer.
+ *
+ * Bakes date-specific `icaoClass` and `type` overrides (by airspace `name`) into
+ * Mapbox `match` expressions so that visibility filtering (alongside `floorM < maxAltitude`)
+ * and fill colors reflect the active date.
+ */
+export function buildAirspaceVectorTileStyle({
+  maxAltitude,
+  showClasses,
+  showTypes,
+  opacity,
+  date,
+  tileServer,
+}: {
+  maxAltitude: number;
+  showClasses: Class[];
+  showTypes: Type[];
+  opacity: number;
+  date: Date;
+  tileServer: AirspaceServer;
+}) {
+  const overrides = [...getAirspaceOverrides(date)];
+  const classOverrides = overrides.flatMap(([name, o]) => (o.icaoClass !== undefined ? [name, o.icaoClass] : []));
+  const icaoClassExpr: any =
+    classOverrides.length > 0
+      ? ['match', ['get', 'name'], ...classOverrides, ['get', 'icaoClass']]
+      : ['get', 'icaoClass'];
+  const typeOverrides = overrides.flatMap(([name, o]) => (o.type !== undefined ? [name, o.type] : []));
+  const typeExpr: any =
+    typeOverrides.length > 0 ? ['match', ['get', 'name'], ...typeOverrides, ['get', 'type']] : ['get', 'type'];
+
+  const visibilityFilters: any[] = [];
+  if (showTypes.includes(Type.Other)) {
+    // https://community.esri.com/t5/arcgis-javascript-maps-sdk-questions/bug-in-vectortilelayer-stlyling-mapbox-styles/m-p/1334083#M82365
+    visibilityFilters.push(['boolean', true]);
+  } else {
+    for (const cl of showClasses) {
+      visibilityFilters.push(['==', icaoClassExpr, cl]);
+    }
+    for (const type of showTypes) {
+      visibilityFilters.push(['==', typeExpr, type]);
+    }
+    if (showTypes.includes(Type.Restricted)) {
+      visibilityFilters.push(['==', typeExpr, Type.LowAltitudeOverflightRestriction]);
+    }
+  }
+
+  return {
+    version: 8,
+    sources: {
+      asp: {
+        type: 'vector',
+        tiles: [getAirspaceTilesUrlTemplate(tileServer)],
+        minzoom: 0,
+        maxzoom: MAX_AIRSPACE_TILE_ZOOM,
+      },
+    },
+    layers: [
+      {
+        id: 'asp',
+        source: 'asp',
+        'source-layer': 'asp',
+        type: 'fill',
+        paint: {
+          'fill-color': [
+            'match',
+            icaoClassExpr,
+            [Class.A, Class.B, Class.C, Class.D],
+            ASP_COLOR_PROHIBITED,
+            [Class.E, Class.F, Class.G],
+            ASP_COLOR_RESTRICTED,
+            [
+              'match',
+              typeExpr,
+              [Type.CTR, Type.TMA, Type.ATZ, Type.CTA, Type.Prohibited, Type.RMZ],
+              ASP_COLOR_PROHIBITED,
+              [Type.TMZ, Type.GlidingSector, Type.Restricted, Type.LowAltitudeOverflightRestriction],
+              ASP_COLOR_RESTRICTED,
+              Type.Danger,
+              ASP_COLOR_DANGER,
+              ASP_COLOR_OTHER,
+            ],
+          ],
+          'fill-opacity': opacity / 100,
+          'fill-outline-color': '#aaaaaa',
+        },
+        filter: ['all', ['any', ...visibilityFilters], ['<=', ['get', 'floorM'], maxAltitude]],
+      },
+    ],
+  };
 }
