@@ -67,6 +67,15 @@ export interface AirspaceFootprint {
   wallRings: number[][][];
   flatCap?: Triangulated2D;
   terrainCap?: Triangulated2D;
+  lod?: number;
+}
+
+/**
+ * Options for footprint generation, supporting progressive refinement.
+ */
+export interface BuildFootprintOptions {
+  coarse?: boolean;
+  maxEdgeM?: number;
 }
 
 function estimateExtentMeters(extent: AirspaceExtentLike): { widthM: number; heightM: number } {
@@ -289,10 +298,16 @@ function subdivideTriangulation2D(tri: Triangulated2D, midLat: number, maxEdgeM:
 /**
  * Triangulates a 2D polygon and subdivides long interior edges so ground-referenced caps follow terrain relief.
  */
-function triangulateTerrainCap2D(rings: number[][][], extent: AirspaceExtentLike, stepM?: number): Triangulated2D {
+export function triangulateTerrainCap2D(
+  rings: number[][][],
+  extent: AirspaceExtentLike,
+  stepM?: number,
+  overrideMaxEdgeM?: number,
+): Triangulated2D {
   const base = triangulateRings2D(rings);
   const { widthM, heightM } = estimateExtentMeters(extent);
-  const maxEdgeM = Math.max(TARGET_GRID_CELL_M, stepM ?? TARGET_GRID_CELL_M) * 1.05;
+  const defaultMaxEdgeM = Math.max(TARGET_GRID_CELL_M, stepM ?? TARGET_GRID_CELL_M) * 1.05;
+  const maxEdgeM = overrideMaxEdgeM ?? defaultMaxEdgeM;
   if (widthM <= maxEdgeM && heightM <= maxEdgeM) {
     return base;
   }
@@ -333,6 +348,7 @@ export function computeGroundSignature(polygon: AirspacePolygonLike, sampleGroun
 export async function buildAirspaceFootprint(
   polygon: AirspacePolygonLike,
   airspace: Pick<AirspaceTyped, 'floorM' | 'floorRefGnd' | 'topRefGnd'>,
+  options?: BuildFootprintOptions,
 ): Promise<AirspaceFootprint | null> {
   if (polygon.rings.length === 0 || !polygon.extent) {
     return null;
@@ -355,9 +371,11 @@ export async function buildAirspaceFootprint(
   const needTerrainCap = airspace.topRefGnd || (needFloorCap && airspace.floorRefGnd);
 
   const flatCap = needFlatCap ? triangulateRings2D(polygon.rings) : undefined;
-  const terrainCap = needTerrainCap ? triangulateTerrainCap2D(wallRings, polygon.extent, stepM) : undefined;
+  const targetEdgeM = options?.maxEdgeM ?? (options?.coarse ? 4800 : undefined);
+  const terrainCap = needTerrainCap ? triangulateTerrainCap2D(wallRings, polygon.extent, stepM, targetEdgeM) : undefined;
+  const lod = needTerrainCap && options?.coarse ? 0 : 1;
 
-  return { wallRings, flatCap, terrainCap };
+  return { wallRings, flatCap, terrainCap, lod };
 }
 
 function writeCap(

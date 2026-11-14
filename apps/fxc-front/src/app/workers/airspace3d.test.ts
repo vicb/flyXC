@@ -1,5 +1,5 @@
 import { Class, Type } from '@flyxc/common';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   Airspace3dProcessor,
@@ -140,6 +140,137 @@ describe('airspace3d-processor', () => {
       expect(res1.items).toEqual([]);
       const res2 = await res2Promise;
       expect(res2.id).toBe(2);
+    });
+
+    it('emits progressive refinement stages via onProgress callback', async () => {
+      const gndFeature = {
+        baseAirspace: {
+          name: 'TEST PROGRESSIVE CTR',
+          country: 'FR',
+          floorM: 300,
+          floorLabel: '300m AGL',
+          floorRefGnd: true,
+          topM: 1500,
+          topLabel: '1500m AGL',
+          topRefGnd: true,
+          type: Type.CTR,
+          icaoClass: Class.D,
+          activity: 0,
+        },
+        polygons: [
+          {
+            id: '10/500/300#0.0',
+            rings: [
+              [
+                [5.8, 45.1],
+                [6.2, 45.1],
+                [6.2, 45.5],
+                [5.8, 45.5],
+                [5.8, 45.1],
+              ],
+            ],
+            extent: { xmin: 5.8, ymin: 45.1, xmax: 6.2, ymax: 45.5 },
+          },
+        ],
+      };
+
+      (processor as any).fetchDecodedTile = vi.fn().mockResolvedValue([gndFeature]);
+
+      const progressStages: any[] = [];
+      const req = {
+        id: 10,
+        tiles: [{ x: 500, y: 300, z: 10 }],
+        bounds: { minLon: 5, minLat: 45, maxLon: 7, maxLat: 46 },
+        maxAltitude: 3000,
+        showClasses: [Class.D],
+        showTypes: [Type.CTR],
+        dateMs: Date.now(),
+        tileServer: 'cloud' as const,
+        multiplier: 1,
+      };
+
+      const finalRes = await processor.process(req, (p) => {
+        progressStages.push({
+          id: p.id,
+          lod: p.lod,
+          isFinal: p.isFinal,
+          itemCount: p.items.length,
+          triangleCount: p.items[0]?.footprint?.terrainCap?.faces.length ? p.items[0].footprint.terrainCap.faces.length / 3 : 0,
+        });
+      });
+
+      expect(progressStages).toHaveLength(2);
+      expect(progressStages[0]).toMatchObject({
+        id: 10,
+        lod: 0,
+        isFinal: false,
+        itemCount: 1,
+      });
+      expect(progressStages[1]).toMatchObject({
+        id: 10,
+        lod: 1,
+        isFinal: true,
+        itemCount: 1,
+      });
+
+      expect(progressStages[1].triangleCount).toBeGreaterThan(progressStages[0].triangleCount);
+      expect(finalRes.isFinal).toBe(true);
+    });
+
+    it('emits single final response when all airspaces are flat MSL', async () => {
+      const mslFeature = {
+        baseAirspace: {
+          name: 'TEST MSL CTR',
+          country: 'FR',
+          floorM: 500,
+          floorLabel: '500m MSL',
+          floorRefGnd: false,
+          topM: 2000,
+          topLabel: '2000m MSL',
+          topRefGnd: false,
+          type: Type.CTR,
+          icaoClass: Class.D,
+          activity: 0,
+        },
+        polygons: [
+          {
+            id: '10/500/300#1.0',
+            rings: [
+              [
+                [5.8, 45.1],
+                [6.0, 45.1],
+                [6.0, 45.3],
+                [5.8, 45.3],
+                [5.8, 45.1],
+              ],
+            ],
+            extent: { xmin: 5.8, ymin: 45.1, xmax: 6.0, ymax: 45.3 },
+          },
+        ],
+      };
+
+      (processor as any).fetchDecodedTile = vi.fn().mockResolvedValue([mslFeature]);
+
+      const progressStages: any[] = [];
+      const req = {
+        id: 11,
+        tiles: [{ x: 500, y: 300, z: 10 }],
+        bounds: { minLon: 5, minLat: 45, maxLon: 7, maxLat: 46 },
+        maxAltitude: 3000,
+        showClasses: [Class.D],
+        showTypes: [Type.CTR],
+        dateMs: Date.now(),
+        tileServer: 'cloud' as const,
+        multiplier: 1,
+      };
+
+      await processor.process(req, (p) => {
+        progressStages.push(p);
+      });
+
+      expect(progressStages).toHaveLength(1);
+      expect(progressStages[0].lod).toBe(1);
+      expect(progressStages[0].isFinal).toBe(true);
     });
   });
 });

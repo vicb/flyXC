@@ -6,8 +6,9 @@ const processor = new Airspace3dProcessor();
 
 addEventListener('message', async (event: MessageEvent<AirspaceWorkerRequest>) => {
   try {
-    const response = await processor.process(event.data);
-    postMessage(response);
+    await processor.process(event.data, (progress) => {
+      postMessage(progress);
+    });
   } catch (error) {
     console.error('Airspace3d Worker error:', error);
     postMessage({

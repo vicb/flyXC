@@ -68,11 +68,14 @@ export interface AirspaceWorkerItem {
   airspace: AirspaceTyped;
   polygon: AirspacePolygonLike;
   footprint: AirspaceFootprint;
+  lod?: number;
 }
 
 export interface AirspaceWorkerResponse {
   id: number;
   items: AirspaceWorkerItem[];
+  lod?: number;
+  isFinal?: boolean;
   error?: string;
 }
 
@@ -153,7 +156,10 @@ export class Airspace3dProcessor {
   private scratchPolygons: Polygon[] = [];
   private lastRequestId = 0;
 
-  public async process(request: AirspaceWorkerRequest): Promise<AirspaceWorkerResponse> {
+  public async process(
+    request: AirspaceWorkerRequest,
+    onProgress?: (response: AirspaceWorkerResponse) => void,
+  ): Promise<AirspaceWorkerResponse> {
     const requestId = request.id;
     if (requestId < this.lastRequestId) {
       return { id: requestId, items: [] };
@@ -209,6 +215,13 @@ export class Airspace3dProcessor {
     }
 
     const items: AirspaceWorkerItem[] = [];
+    const pendingRefinements: {
+      item: AirspaceWorkerItem;
+      airspace: AirspaceTyped;
+      polygon: AirspacePolygonLike;
+      footprintKey: string;
+    }[] = [];
+
     for (const [airspaceKey, { airspace, parts }] of grouped.entries()) {
       if (requestId < this.lastRequestId) {
         return { id: requestId, items: [] };
@@ -257,20 +270,25 @@ export class Airspace3dProcessor {
 
       if (polygon && polygon.rings.length > 0) {
         let footprint: AirspaceFootprint | undefined = cachedFp?.footprint;
+        const needsTerrainCap = airspace.topRefGnd || (!sinkZeroFloor && airspace.floorRefGnd);
+        const isProgressive = onProgress != null && needsTerrainCap && (!footprint || footprint.lod === 0);
+
         if (!footprint) {
-          const built = await buildAirspaceFootprint(polygon, airspace);
+          const built = await buildAirspaceFootprint(polygon, airspace, { coarse: isProgressive });
           if (built) {
             footprint = built;
-            setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, footprintKey, {
-              polygon,
-              footprint,
-            });
+            if (!isProgressive) {
+              setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, footprintKey, {
+                polygon,
+                footprint,
+              });
+            }
           }
         }
 
         if (footprint) {
           const cacheKey = `${airspaceKey}|${geomKey}|${multiplier}`;
-          items.push({
+          const item: AirspaceWorkerItem = {
             airspaceKey,
             geomKey,
             footprintKey,
@@ -279,12 +297,47 @@ export class Airspace3dProcessor {
             airspace,
             polygon,
             footprint,
-          });
+            lod: footprint.lod ?? 1,
+          };
+          items.push(item);
+
+          if (isProgressive) {
+            pendingRefinements.push({ item, airspace, polygon, footprintKey });
+          }
         }
       }
     }
 
-    return { id: requestId, items };
+    if (onProgress && pendingRefinements.length > 0) {
+      onProgress({ id: requestId, items: [...items], lod: 0, isFinal: false });
+
+      for (const pending of pendingRefinements) {
+        if (requestId < this.lastRequestId) {
+          return { id: requestId, items: [] };
+        }
+        const fineFootprint = await buildAirspaceFootprint(pending.polygon, pending.airspace, { coarse: false });
+        if (fineFootprint) {
+          pending.item.footprint = fineFootprint;
+          pending.item.lod = 1;
+          setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, pending.footprintKey, {
+            polygon: pending.polygon,
+            footprint: fineFootprint,
+          });
+        }
+      }
+
+      if (requestId < this.lastRequestId) {
+        return { id: requestId, items: [] };
+      }
+
+      const finalResponse: AirspaceWorkerResponse = { id: requestId, items, lod: 1, isFinal: true };
+      onProgress(finalResponse);
+      return finalResponse;
+    }
+
+    const singleResponse: AirspaceWorkerResponse = { id: requestId, items, lod: 1, isFinal: true };
+    onProgress?.(singleResponse);
+    return singleResponse;
   }
 
   public clear(): void {

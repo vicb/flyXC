@@ -80,6 +80,7 @@ const CLICK_Z_TOLERANCE_M = 75;
 interface CachedMeshEntry {
   meshData: AirspaceMeshData;
   groundSignature?: number;
+  meshLod?: number;
 }
 
 type CachedAirspaceItem = AirspaceWorkerItem & Partial<CachedMeshEntry>;
@@ -596,8 +597,9 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         this.worker = new Airspace3dWorker();
         this.worker.onmessage = (event: MessageEvent<AirspaceWorkerResponse>) => {
           const res = event.data;
+          this.applyWorkerResponse(res);
           const resolver = this.pendingWorkerResolvers.get(res.id);
-          if (resolver) {
+          if (resolver && (res.isFinal ?? true)) {
             this.pendingWorkerResolvers.delete(res.id);
             resolver(res);
           }
@@ -609,6 +611,32 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       return this.worker;
     }
     return undefined;
+  }
+
+  private applyWorkerResponse(response: AirspaceWorkerResponse): void {
+    if (response.id !== this.buildGeneration || !this.showAirspace) {
+      return;
+    }
+
+    const currentAirspaces = response.items as CachedAirspaceItem[];
+    for (const item of currentAirspaces) {
+      const cached = this.meshCache.get(item.cacheKey);
+      const targetLod = item.footprint?.lod ?? item.lod ?? 1;
+      const lodMatches = cached?.meshLod === targetLod;
+      if (lodMatches && cached) {
+        item.meshData = cached.meshData;
+        item.groundSignature = cached.groundSignature;
+        item.meshLod = cached.meshLod;
+      } else {
+        item.meshData = undefined;
+        item.groundSignature = undefined;
+        item.meshLod = undefined;
+      }
+    }
+    this.currentAirspaces = currentAirspaces;
+
+    const isRefinementPass = response.lod !== undefined && response.lod > 0;
+    this.rebuildMeshes(isRefinementPass);
   }
 
   private async refreshView(): Promise<void> {
@@ -655,34 +683,18 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       multiplier: this.multiplier,
     };
 
+    this.lastQueryKey = queryKey;
     const worker = this.getWorker();
-    let response: AirspaceWorkerResponse;
     if (worker) {
-      response = await new Promise<AirspaceWorkerResponse>((resolve) => {
+      await new Promise<AirspaceWorkerResponse>((resolve) => {
         this.pendingWorkerResolvers.set(generation, resolve);
         worker.postMessage(request);
       });
     } else {
       this.fallbackProcessor ??= new Airspace3dProcessor();
-      response = await this.fallbackProcessor.process(request);
+      const response = await this.fallbackProcessor.process(request);
+      this.applyWorkerResponse(response);
     }
-
-    if (response.id !== this.buildGeneration || !this.showAirspace) {
-      return;
-    }
-
-    const currentAirspaces = response.items as CachedAirspaceItem[];
-    for (const item of currentAirspaces) {
-      const cached = this.meshCache.get(item.cacheKey);
-      if (cached) {
-        item.meshData = cached.meshData;
-        item.groundSignature = cached.groundSignature;
-      }
-    }
-    this.currentAirspaces = currentAirspaces;
-
-    this.lastQueryKey = queryKey;
-    this.rebuildMeshes(false);
   }
 
   private getCategorySymbol(category: AirspaceColorCategory): MeshSymbol3D {
@@ -715,7 +727,8 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       }
 
       const sig = isGroundRef ? computeGroundSignature(item.polygon, sampleGroundZ) : undefined;
-      if (item.meshData != null && (!isGroundRef || item.groundSignature === sig)) {
+      const targetLod = item.footprint.lod ?? item.lod ?? 1;
+      if (item.meshData != null && item.meshLod === targetLod && (!isGroundRef || item.groundSignature === sig)) {
         continue;
       }
 
@@ -725,9 +738,15 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       if (meshData) {
         item.meshData = meshData;
         item.groundSignature = sig;
-        setBoundedCache(this.meshCache, MAX_MESH_CACHE_SIZE, item.cacheKey, { meshData, groundSignature: sig });
+        item.meshLod = targetLod;
+        setBoundedCache(this.meshCache, MAX_MESH_CACHE_SIZE, item.cacheKey, {
+          meshData,
+          groundSignature: sig,
+          meshLod: targetLod,
+        });
       } else {
         item.meshData = undefined;
+        item.meshLod = undefined;
       }
     }
 
@@ -752,6 +771,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
           h = Math.imul(h ^ key.charCodeAt(i), 0x01000193);
         }
         h = Math.imul(h ^ (item.groundSignature ?? 0), 0x01000193);
+        h = Math.imul(h ^ (item.meshLod ?? 0), 0x01000193);
         bucket.sigHash = h;
       }
     }

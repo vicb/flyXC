@@ -959,6 +959,104 @@ describe('Airspace3dElement', () => {
     expect((hoisted.getAirspaceListMock.mock.calls[1][6] as Date).getTime()).toBe(1_752_577_200 * 1000);
     expect(scene.openPopup).toHaveBeenCalledTimes(3);
   });
+
+  it('handles progressive worker responses from coarse (LOD 0) to fine (LOD 1) updating graphic geometry in place', async () => {
+    element.map = mockMap;
+    element.view = makeMockView(10, 6.0, 45.0, 6.2, 45.2);
+    element.sampler = {
+      noDataValue: -9999,
+      spatialReference: { isWGS84: true, isWebMercator: false },
+      elevationAt: () => 400,
+      on: vi.fn(() => ({ remove: vi.fn() })),
+    } as any;
+    await element.updateComplete;
+
+    const gndAirspace = {
+      name: 'PROG TMA',
+      country: 'FR',
+      floorM: 300,
+      floorLabel: '300m AGL',
+      floorRefGnd: true,
+      topM: 2000,
+      topLabel: '2000m AGL',
+      topRefGnd: true,
+      type: Type.TMA,
+      icaoClass: Class.D,
+      activity: 0,
+    };
+
+    const poly = {
+      rings: [
+        [
+          [6.0, 45.0],
+          [6.2, 45.0],
+          [6.2, 45.2],
+          [6.0, 45.2],
+          [6.0, 45.0],
+        ],
+      ],
+      extent: { xmin: 6.0, ymin: 45.0, xmax: 6.2, ymax: 45.2 },
+    };
+
+    const coarseFp = await meshModule.buildAirspaceFootprint(poly, gndAirspace, { coarse: true });
+    const fineFp = await meshModule.buildAirspaceFootprint(poly, gndAirspace, { coarse: false });
+
+    const gen = ((element as any).buildGeneration = 100);
+
+    const coarseResponse = {
+      id: gen,
+      lod: 0,
+      isFinal: false,
+      items: [
+        {
+          airspaceKey: 'PROG TMA',
+          geomKey: '100',
+          footprintKey: '110|100',
+          cacheKey: 'PROG TMA|100|1',
+          category: common.AirspaceColorCategory.Other,
+          airspace: gndAirspace as any,
+          polygon: poly,
+          footprint: coarseFp!,
+          lod: 0,
+        },
+      ],
+    };
+
+    // Apply LOD 0 response (First Paint)
+    (element as any).applyWorkerResponse(coarseResponse);
+    const layer = hoisted.graphicsLayers[hoisted.graphicsLayers.length - 1];
+    expect(layer.graphics).toHaveLength(1);
+    const graphicLOD0 = layer.graphics[0];
+    const initialVertexCount = graphicLOD0.geometry.vertexAttributes.position.length / 3;
+
+    // Apply LOD 1 response (Fine Refinement)
+    const fineResponse = {
+      id: gen,
+      lod: 1,
+      isFinal: true,
+      items: [
+        {
+          airspaceKey: 'PROG TMA',
+          geomKey: '100',
+          footprintKey: '110|100',
+          cacheKey: 'PROG TMA|100|1',
+          category: common.AirspaceColorCategory.Other,
+          airspace: gndAirspace as any,
+          polygon: poly,
+          footprint: fineFp!,
+          lod: 1,
+        },
+      ],
+    };
+
+    (element as any).applyWorkerResponse(fineResponse);
+    // Graphic replaced in-place in graphics layer
+    expect(layer.graphics).toHaveLength(1);
+    const graphicLOD1 = layer.graphics[0];
+    const fineVertexCount = graphicLOD1.geometry.vertexAttributes.position.length / 3;
+
+    expect(fineVertexCount).toBeGreaterThan(initialVertexCount);
+  });
 });
 
 describe('FlatAirspace3dElement', () => {
