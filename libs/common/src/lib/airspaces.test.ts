@@ -10,6 +10,7 @@ import {
   type AirspaceTyped,
   applyOverrides,
   Class,
+  getAirspaceOverrides,
   getAirspaceTileUrl,
   toTypedAirspace,
   Type,
@@ -332,5 +333,42 @@ describe('Airspace overrides', () => {
     expect(applyOverrides(ctr, new TZDate('2025-04-08', 'Europe/Paris')).icaoClass).toEqual(Class.SUA);
     expect(applyOverrides(ctr, new TZDate('2025-04-09', 'Europe/Paris')).icaoClass).toEqual(Class.SUA);
     expect(applyOverrides(ctr, new TZDate('2025-04-10', 'Europe/Paris')).icaoClass).toEqual(Class.SUA);
+  });
+
+  test('getAirspaceOverrides reflects active date overrides', () => {
+    const july = new TZDate('2025-07-15T12:00:00', 'Europe/Paris');
+    const julyMap = getAirspaceOverrides(july);
+
+    expect(julyMap.get(airspaceOverrides.ecrins)).toEqual({
+      name: `${airspaceOverrides.ecrins} - INACTIVE`,
+      type: Type.Other,
+    });
+    expect(julyMap.has(airspaceOverrides.LFR30B)).toBe(false);
+    expect(julyMap.get(airspaceOverrides.TMAClermont21)).toMatchObject({
+      icaoClass: Class.G,
+      type: Type.TMA,
+    });
+    expect(julyMap.get(airspaceOverrides.TMAChambery1)).toEqual({
+      icaoClass: Class.E,
+    });
+    expect(julyMap.get(airspaceOverrides.CTRChambery2)).toMatchObject({
+      icaoClass: Class.SUA,
+      type: Type.Other,
+    });
+
+    const winterWeekend = new TZDate('2025-04-13T12:00:00', 'Europe/Paris');
+    const winterMap = getAirspaceOverrides(winterWeekend);
+
+    expect(winterMap.has(airspaceOverrides.ecrins)).toBe(false);
+    expect(winterMap.get(airspaceOverrides.LFR30B)).toEqual({
+      name: 'LF-R30B MONT BLANC - INACTIVE',
+      type: Type.Other,
+    });
+    expect(winterMap.get(airspaceOverrides.TMAChambery1)).toEqual({
+      icaoClass: Class.D,
+    });
+    expect(winterMap.get(airspaceOverrides.CTRChambery2)).toMatchObject({
+      icaoClass: Class.D,
+    });
   });
 });
