@@ -6,6 +6,7 @@ import type { Point } from './runtime-track';
 
 // Maximum zoom level for the airspaces.
 export const MAX_AIRSPACE_TILE_ZOOM = 10;
+export const AIRSPACE_3D_TILE_ZOOM = 6;
 export const AIRSPACE_TILE_SIZE = 256;
 
 // Pseudo type (legacy) that is now only use for the color.
@@ -244,6 +245,7 @@ export function getTypeName(type: Type): string {
 }
 
 export interface AirspaceTyped {
+  id?: number;
   name: string;
   country: string;
   type: Type;
@@ -261,18 +263,19 @@ export interface AirspaceTyped {
 
 export type AirspaceString = Record<keyof AirspaceTyped, string>;
 
-export function toTypedAirspace(airspaceStr: AirspaceString): AirspaceTyped {
+export function toTypedAirspace(airspaceStr: Partial<AirspaceString>): AirspaceTyped {
   return {
-    name: airspaceStr.name,
-    country: airspaceStr.country,
+    id: airspaceStr.id != null ? Number(airspaceStr.id) : undefined,
+    name: airspaceStr.name ?? '',
+    country: airspaceStr.country ?? '',
     type: Number(airspaceStr.type) as Type,
     icaoClass: Number(airspaceStr.icaoClass) as Class,
     activity: Number(airspaceStr.activity) as Activity,
     floorM: Number(airspaceStr.floorM),
-    floorLabel: airspaceStr.floorLabel,
+    floorLabel: airspaceStr.floorLabel ?? '',
     floorRefGnd: Boolean(airspaceStr.floorRefGnd),
     topM: Number(airspaceStr.topM),
-    topLabel: airspaceStr.topLabel,
+    topLabel: airspaceStr.topLabel ?? '',
     topRefGnd: Boolean(airspaceStr.topRefGnd),
   };
 }
@@ -348,6 +351,12 @@ export function isInFeature(point: Point, feature: Feature): boolean {
 
 export type AirspaceServer = 'local' | 'cloud';
 
+export function getAirspaceDateUrl(server: AirspaceServer): string {
+  return server == 'local'
+    ? 'http://localhost:8084/airspaces-date.json'
+    : 'https://airspaces.storage.googleapis.com/airspaces-date.json';
+}
+
 export function getAirspaceTilesUrlTemplate(server: AirspaceServer): string {
   return server == 'local'
     ? 'http://localhost:8084/{z}/{x}/{y}.pbf'
@@ -357,6 +366,17 @@ export function getAirspaceTilesUrlTemplate(server: AirspaceServer): string {
 export function getAirspaceTileUrl(x: number, y: number, z: number, server: AirspaceServer): string {
   const url = getAirspaceTilesUrlTemplate(server);
   return url.replace('{x}', String(x)).replace('{y}', String(y)).replace('{z}', String(z));
+}
+
+export function getAirspace3dTilesUrlTemplate(server: AirspaceServer): string {
+  return server == 'local'
+    ? `http://localhost:8084/${AIRSPACE_3D_TILE_ZOOM}/{x}/{y}-unclipped.pbf`
+    : `https://airspaces.storage.googleapis.com/tiles/${AIRSPACE_3D_TILE_ZOOM}/{x}/{y}-unclipped.pbf`;
+}
+
+export function getAirspace3dTileUrl(x: number, y: number, server: AirspaceServer): string {
+  const url = getAirspace3dTilesUrlTemplate(server);
+  return url.replace('{x}', String(x)).replace('{y}', String(y));
 }
 
 // Return a label for the class and the type, i.e. "E TMA", "E", "TMA" or "".

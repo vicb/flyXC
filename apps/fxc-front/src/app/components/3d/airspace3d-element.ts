@@ -14,6 +14,7 @@ import type SceneView from '@arcgis/core/views/SceneView';
 import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
 import type { AirspaceTyped, Class, LatLon, Type } from '@flyxc/common';
 import {
+  AIRSPACE_3D_TILE_ZOOM,
   AIRSPACE_TILE_SIZE,
   AirspaceColorCategory,
   ASP_CATEGORY_COLOR,
@@ -74,7 +75,6 @@ export async function openAirspacePopup(
 }
 
 export const MIN_3D_ZOOM = 10;
-const MIN_3D_TILE_ZOOM = 8;
 export const MAX_TILES_3D = 36;
 const MAX_MESH_CACHE_SIZE = 600;
 const VIEW_REFRESH_DEBOUNCE_MS = 60;
@@ -208,43 +208,34 @@ export function getVisibleTileCoverage(view: SceneView): VisibleTileCoverage {
   const paddedMinLat = clamp(minLat - padLat, -85, 85);
   const paddedMaxLat = clamp(maxLat + padLat, -85, 85);
 
-  const getTileRange = (z: number) => {
-    const maxIndex = (1 << z) - 1;
-    const nw = getPixelCoordinates({ lat: paddedMaxLat, lon: paddedMinLon }, z, AIRSPACE_TILE_SIZE).tile;
-    const se = getPixelCoordinates({ lat: paddedMinLat, lon: paddedMaxLon }, z, AIRSPACE_TILE_SIZE).tile;
-    const minX = clamp(Math.min(nw.x, se.x), 0, maxIndex);
-    const maxX = clamp(Math.max(nw.x, se.x), 0, maxIndex);
-    const minY = clamp(Math.min(nw.y, se.y), 0, maxIndex);
-    const maxY = clamp(Math.max(nw.y, se.y), 0, maxIndex);
-    return { minX, maxX, minY, maxY, count: (maxX - minX + 1) * (maxY - minY + 1) };
-  };
-
-  const maxTileZoom = clamp(Math.floor(zoom), 0, MAX_AIRSPACE_TILE_ZOOM);
-  const minTileZoom = Math.min(MIN_3D_TILE_ZOOM, maxTileZoom);
-
-  let chosenZoom = minTileZoom;
-  let range = getTileRange(minTileZoom);
-  for (let z = maxTileZoom; z >= minTileZoom; z--) {
-    const candidate = getTileRange(z);
-    chosenZoom = z;
-    range = candidate;
-    if (candidate.count <= MAX_TILES_3D) {
-      break;
-    }
-  }
+  const maxIndex = (1 << AIRSPACE_3D_TILE_ZOOM) - 1;
+  const nw = getPixelCoordinates(
+    { lat: paddedMaxLat, lon: paddedMinLon },
+    AIRSPACE_3D_TILE_ZOOM,
+    AIRSPACE_TILE_SIZE,
+  ).tile;
+  const se = getPixelCoordinates(
+    { lat: paddedMinLat, lon: paddedMaxLon },
+    AIRSPACE_3D_TILE_ZOOM,
+    AIRSPACE_TILE_SIZE,
+  ).tile;
+  const minX = clamp(Math.min(nw.x, se.x), 0, maxIndex);
+  const maxX = clamp(Math.max(nw.x, se.x), 0, maxIndex);
+  const minY = clamp(Math.min(nw.y, se.y), 0, maxIndex);
+  const maxY = clamp(Math.max(nw.y, se.y), 0, maxIndex);
 
   const centerTile = getPixelCoordinates(
     { lat: clamp(centerLat, -85, 85), lon: clamp(centerLon, -179.99, 179.99) },
-    chosenZoom,
+    AIRSPACE_3D_TILE_ZOOM,
     AIRSPACE_TILE_SIZE,
   ).tile;
 
   const coords: Array<TileCoord & { dist2: number }> = [];
-  for (let x = range.minX; x <= range.maxX; x++) {
-    for (let y = range.minY; y <= range.maxY; y++) {
+  for (let x = minX; x <= maxX; x++) {
+    for (let y = minY; y <= maxY; y++) {
       const dx = x - centerTile.x;
       const dy = y - centerTile.y;
-      coords.push({ x, y, z: chosenZoom, dist2: dx * dx + dy * dy });
+      coords.push({ x, y, z: AIRSPACE_3D_TILE_ZOOM, dist2: dx * dx + dy * dy });
     }
   }
 

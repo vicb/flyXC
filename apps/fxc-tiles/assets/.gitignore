@@ -2,5 +2,6 @@
 /airspaces.geojson
 /geojson/
 /tiles
+/.tmp_unclipped
 /tiles-info-previous.json
 /tiles-info-diff.json

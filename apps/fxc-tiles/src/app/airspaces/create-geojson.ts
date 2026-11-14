@@ -35,9 +35,25 @@ const logs = new Map<string, number>();
 const filterFn = createFilter(logs);
 const processFn = createProcess(logs);
 
+let nextId = 1;
+
+function saveGeoJson(airspaces: Airspace[], outFile: string) {
+  if (airspaces.length === 0) {
+    return;
+  }
+  for (const a of airspaces) {
+    a.id = nextId++;
+  }
+  const geojsonObj = GeoJSON.parse(airspaces, { Polygon: 'polygon' });
+  for (const feature of geojsonObj.features) {
+    feature.id = feature.properties.id;
+  }
+  writeFileSync(outFile, JSON.stringify(geojsonObj));
+}
+
 let totalAirspaces = 0;
 
-// OpenAip — read and convert each page from the openaip/ subdirectory into a separate GeoJSON file.
+// OpenAip — read and convert each page from the openaip/ subdirectory into GeoJSON.
 console.log('# Open AIP airspaces');
 const openaipDir = join(inputFolder, 'openaip');
 if (existsSync(openaipDir)) {
@@ -56,11 +72,8 @@ if (existsSync(openaipDir)) {
     const processed = parsed.map(processFn).filter(filterFn);
     openaipOutput += processed.length;
 
-    if (processed.length > 0) {
-      const geojsonObj = GeoJSON.parse(processed, { Polygon: 'polygon' });
-      const outFile = join(outputFolder, file.replace(/\.json$/, '.geojson'));
-      writeFileSync(outFile, JSON.stringify(geojsonObj));
-    }
+    const outFile = join(outputFolder, file.replace(/\.json$/, '.geojson'));
+    saveGeoJson(processed, outFile);
   }
 
   console.log(`${openaipImported} airspaces imported`);
@@ -84,10 +97,7 @@ if (existsSync(uaPath)) {
   printLogs('Filtered:', logs);
   console.log(`-> ${processed.length} airspaces`);
 
-  if (processed.length > 0) {
-    const geojsonObj = GeoJSON.parse(processed, { Polygon: 'polygon' });
-    writeFileSync(join(outputFolder, 'ukraine.geojson'), JSON.stringify(geojsonObj));
-  }
+  saveGeoJson(processed, join(outputFolder, 'ukraine.geojson'));
   totalAirspaces += processed.length;
 }
 
@@ -103,10 +113,7 @@ if (existsSync(rePath)) {
   printLogs('Filtered:', logs);
   console.log(`-> ${processed.length} airspaces`);
 
-  if (processed.length > 0) {
-    const geojsonObj = GeoJSON.parse(processed, { Polygon: 'polygon' });
-    writeFileSync(join(outputFolder, 'reunion.geojson'), JSON.stringify(geojsonObj));
-  }
+  saveGeoJson(processed, join(outputFolder, 'reunion.geojson'));
   totalAirspaces += processed.length;
 }
 

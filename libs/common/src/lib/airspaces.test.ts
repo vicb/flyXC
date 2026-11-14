@@ -5,11 +5,14 @@ import { TZDate } from '@date-fns/tz';
 import { VectorTile } from 'mapbox-vector-tile';
 
 import {
+  AIRSPACE_3D_TILE_ZOOM,
   airspaceOverrides,
   type AirspaceString,
   type AirspaceTyped,
   applyOverrides,
   Class,
+  getAirspace3dTileUrl,
+  getAirspaceDateUrl,
   getAirspaceOverrides,
   getAirspaceTileUrl,
   isInFeature,
@@ -466,6 +469,21 @@ describe('Airspace overrides', () => {
       expect(isInFeature({ x: 32, y: 32 }, feature)).toBe(true);
       // (300, 300) maps to (4800, 4800) -> outside outer ring
       expect(isInFeature({ x: 300, y: 300 }, feature)).toBe(false);
+    });
+  });
+
+  describe('Airspace 3D and Version URLs', () => {
+    it('generates correct date URLs', () => {
+      expect(getAirspaceDateUrl('cloud')).toBe('https://airspaces.storage.googleapis.com/airspaces-date.json');
+      expect(getAirspaceDateUrl('local')).toBe('http://localhost:8084/airspaces-date.json');
+    });
+
+    it('generates correct 3D tile URLs for zoom 6', () => {
+      expect(AIRSPACE_3D_TILE_ZOOM).toBe(6);
+      expect(getAirspace3dTileUrl(32, 21, 'cloud')).toBe(
+        'https://airspaces.storage.googleapis.com/tiles/6/32/21-unclipped.pbf',
+      );
+      expect(getAirspace3dTileUrl(32, 21, 'local')).toBe('http://localhost:8084/6/32/21-unclipped.pbf');
     });
   });
 });

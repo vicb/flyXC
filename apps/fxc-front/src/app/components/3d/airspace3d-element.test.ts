@@ -8,6 +8,7 @@ import StyleRepository from '@arcgis/core/views/2d/engine/vectorTiles/style/Styl
 import { TZDate } from '@date-fns/tz';
 import * as common from '@flyxc/common';
 import {
+  AIRSPACE_3D_TILE_ZOOM,
   airspaceOverrides,
   ASP_COLOR_DANGER,
   ASP_COLOR_OTHER,
@@ -258,12 +259,15 @@ function makeMockView(zoom: number, xmin = 5.9, ymin = 45.4, xmax = 6.2, ymax = 
   } as any;
 }
 
-function makeFeature(props: Record<string, string>, ring: number[][], holes: number[][][] = []) {
+function makeFeature(props: Record<string, string>, ring: number[][], holes: number[][][] = [], id?: number) {
+  const featureId = id ?? (props.id != null ? Number(props.id) : undefined);
   return {
+    id: featureId,
     type: 3,
     properties: props,
     toGeoJSON: () => ({
       type: 'Feature',
+      id: featureId,
       geometry: {
         type: 'Polygon',
         coordinates: [ring, ...holes],
@@ -486,13 +490,13 @@ describe('getVisibleTileCoords', () => {
     const view = makeMockView(10, 4.0, 44.0, 8.0, 47.0);
     const tiles = getVisibleTileCoords(view);
     expect(tiles.length).toBeLessThanOrEqual(MAX_TILES_3D);
-    expect(tiles[0].z).toBeLessThan(10);
+    expect(tiles[0].z).toBe(AIRSPACE_3D_TILE_ZOOM);
 
-    // Very wide extent at zoom 10 hits MIN_3D_TILE_ZOOM (8) and still enforces MAX_TILES_3D sorted from center.
+    // Very wide extent at zoom 10 uses AIRSPACE_3D_TILE_ZOOM (6) and still enforces MAX_TILES_3D sorted from center.
     const hugeView = makeMockView(10, -10.0, 35.0, 20.0, 55.0);
     const cappedTiles = getVisibleTileCoords(hugeView);
     expect(cappedTiles).toHaveLength(MAX_TILES_3D);
-    expect(cappedTiles[0].z).toBe(8);
+    expect(cappedTiles[0].z).toBe(AIRSPACE_3D_TILE_ZOOM);
 
     // SceneView.visibleArea expands bounds beyond SceneView.extent alone while clamping horizon extremes.
     const tiltedView = {
@@ -531,7 +535,7 @@ describe('getVisibleTileCoords', () => {
 
     const tiles = getVisibleTileCoords(view);
     expect(tiles.length).toBeGreaterThan(0);
-    expect(tiles[0].z).toBe(10);
+    expect(tiles[0].z).toBe(AIRSPACE_3D_TILE_ZOOM);
   });
 });
 
@@ -611,7 +615,7 @@ describe('Airspace3dElement', () => {
     const origFetch = globalThis.fetch;
     fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-      const match = /\/(\d+)\/(\d+)\.pbf$/.exec(url);
+      const match = /\/(\d+)\/(\d+)(?:-[\w-]+)?\.pbf$/.exec(url);
       if (!match) {
         return origFetch(input, init);
       }
@@ -655,7 +659,7 @@ describe('Airspace3dElement', () => {
       [6.0, 45.45],
     ];
     hoisted.tilePayloads.set(1, [makeFeature(makeAirspaceProps(), polyRing)]);
-    hoisted.tilePayloads.set(2, []);
+    hoisted.tilePayloads.set(2, [makeFeature(makeAirspaceProps(), polyRing)]);
 
     view.zoom = MIN_3D_ZOOM;
     for (const entry of hoisted.watchEntries) {
@@ -684,8 +688,8 @@ describe('Airspace3dElement', () => {
   });
 
   it('merges multi-tile polygons, reuses cached footprints across multiplier updates, and updates opacity in place', async () => {
-    // Wide extent covering >=2 tiles at zoom 10 so both tile id 1 and id 2 are fetched.
-    const view = makeMockView(10, 5.7, 45.3, 6.4, 45.7);
+    // Wide extent covering tile 32 and tile 33 at zoom 6 so both tile id 1 and id 2 are fetched.
+    const view = makeMockView(10, 5.5, 45.3, 5.8, 45.7);
     const sharedProps = makeAirspaceProps({ floorRefGnd: false, floorM: 200, topM: 1000 });
     const secondSharedCategoryProps = makeAirspaceProps({
       name: 'CHAMBERY TMA',
@@ -695,27 +699,27 @@ describe('Airspace3dElement', () => {
     });
     hoisted.tilePayloads.set(1, [
       makeFeature(sharedProps, [
-        [6.0, 45.45],
-        [6.05, 45.45],
-        [6.05, 45.5],
-        [6.0, 45.5],
-        [6.0, 45.45],
+        [5.55, 45.45],
+        [5.65, 45.45],
+        [5.65, 45.5],
+        [5.55, 45.5],
+        [5.55, 45.45],
       ]),
       makeFeature(secondSharedCategoryProps, [
-        [6.12, 45.45],
-        [6.16, 45.45],
-        [6.16, 45.5],
-        [6.12, 45.5],
-        [6.12, 45.45],
+        [5.65, 45.45],
+        [5.75, 45.45],
+        [5.75, 45.5],
+        [5.65, 45.5],
+        [5.65, 45.45],
       ]),
     ]);
     hoisted.tilePayloads.set(2, [
       makeFeature(sharedProps, [
-        [6.05, 45.45],
-        [6.1, 45.45],
-        [6.1, 45.5],
-        [6.05, 45.5],
-        [6.05, 45.45],
+        [5.55, 45.45],
+        [5.65, 45.45],
+        [5.65, 45.5],
+        [5.55, 45.5],
+        [5.55, 45.45],
       ]),
     ]);
 

@@ -1,4 +1,4 @@
-// Web Worker for 3D airspace tile fetching, MVT decoding, multi-tile polygon union, and 2D footprint building.
+// Web Worker for 3D airspace Zoom 6 unclipped tile fetching, MVT decoding, and 2D footprint building.
 
 import { Airspace3dProcessor, type AirspaceWorkerRequest } from './airspace3d-processor';
 

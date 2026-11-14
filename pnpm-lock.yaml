@@ -105,6 +105,9 @@ catalogs:
     grant:
       specifier: ^5.4.24
       version: 5.4.24
+    idb:
+      specifier: ^8.0.4
+      version: 8.0.4
     jsonc-eslint-parser:
       specifier: 3.3.0
       version: 3.3.0
@@ -409,6 +412,9 @@ importers:
       geolib:
         specifier: catalog:default
         version: 4.0.2
+      idb:
+        specifier: 'catalog:'
+        version: 8.0.4
       lit:
         specifier: catalog:default
         version: 3.3.3
@@ -6382,6 +6388,9 @@ packages:
 
   idb@7.1.1:
     resolution: {integrity: sha512-gchesWBzyvGHRO9W8tzUWFDycow5gwjvFKfyV9FF32Y7F50yZMp7mP+T2mJIWFx49zicqyC4uefHM17o6xKIVQ==}
+
+  idb@8.0.4:
+    resolution: {integrity: sha512-jd0ITCrN+Zah4J7R/Z2jnR3W7A4BXDAjmo62MwWuSjxCiueUAf7X5rbodEdidWzeknwXHmLpdZkoiiCppNi30Q==}
 
   identity-obj-proxy@3.0.0:
     resolution: {integrity: sha512-00n6YnVHKrinT9t0d9+5yZC6UBNJANpYEQvL2LlX6Ab9lnmxzIRcEmTPuyGScvl1+jKuCICX1Z0Ab1pPKKdikA==}
@@ -15856,6 +15865,8 @@ snapshots:
       safer-buffer: 2.1.2
 
   idb@7.1.1: {}
+
+  idb@8.0.4: {}
 
   identity-obj-proxy@3.0.0:
     dependencies:

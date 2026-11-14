@@ -5,7 +5,7 @@ import {
   Airspace3dProcessor,
   computeRingsExtent,
   extentOverlapsBounds,
-  geoJsonGeometryToParts,
+  geoJsonGeometryToRings,
   getAirspaceKey,
 } from './airspace3d-processor';
 
@@ -34,8 +34,8 @@ describe('airspace3d-processor', () => {
     });
   });
 
-  describe('geoJsonGeometryToParts', () => {
-    it('decodes GeoJSON Polygon into parts with extents', () => {
+  describe('geoJsonGeometryToRings', () => {
+    it('decodes GeoJSON Polygon into rings and extent', () => {
       const geometry = {
         type: 'Polygon',
         coordinates: [
@@ -48,13 +48,13 @@ describe('airspace3d-processor', () => {
           ],
         ],
       };
-      const parts = geoJsonGeometryToParts('10/500/300', 0, geometry);
-      expect(parts).toHaveLength(1);
-      expect(parts[0].id).toBe('10/500/300#0.0');
-      expect(parts[0].extent).toEqual({ xmin: 1.0, ymin: 2.0, xmax: 3.0, ymax: 4.0 });
+      const res = geoJsonGeometryToRings(geometry);
+      expect(res).toBeDefined();
+      expect(res?.rings).toHaveLength(1);
+      expect(res?.extent).toEqual({ xmin: 1.0, ymin: 2.0, xmax: 3.0, ymax: 4.0 });
     });
 
-    it('decodes GeoJSON MultiPolygon into distinct parts', () => {
+    it('flattens GeoJSON MultiPolygon into combined rings and bounds', () => {
       const geometry = {
         type: 'MultiPolygon',
         coordinates: [
@@ -78,10 +78,10 @@ describe('airspace3d-processor', () => {
           ],
         ],
       };
-      const parts = geoJsonGeometryToParts('10/500/300', 2, geometry);
-      expect(parts).toHaveLength(2);
-      expect(parts[0].id).toBe('10/500/300#2.0');
-      expect(parts[1].id).toBe('10/500/300#2.1');
+      const res = geoJsonGeometryToRings(geometry);
+      expect(res).toBeDefined();
+      expect(res?.rings).toHaveLength(2);
+      expect(res?.extent).toEqual({ xmin: 0, ymin: 0, xmax: 3, ymax: 3 });
     });
   });
 
@@ -144,6 +144,7 @@ describe('airspace3d-processor', () => {
 
     it('emits progressive refinement stages via onProgress callback', async () => {
       const gndFeature = {
+        id: 101,
         baseAirspace: {
           name: 'TEST PROGRESSIVE CTR',
           country: 'FR',
@@ -157,21 +158,16 @@ describe('airspace3d-processor', () => {
           icaoClass: Class.D,
           activity: 0,
         },
-        polygons: [
-          {
-            id: '10/500/300#0.0',
-            rings: [
-              [
-                [5.8, 45.1],
-                [6.2, 45.1],
-                [6.2, 45.5],
-                [5.8, 45.5],
-                [5.8, 45.1],
-              ],
-            ],
-            extent: { xmin: 5.8, ymin: 45.1, xmax: 6.2, ymax: 45.5 },
-          },
+        rings: [
+          [
+            [5.8, 45.1],
+            [6.2, 45.1],
+            [6.2, 45.5],
+            [5.8, 45.5],
+            [5.8, 45.1],
+          ],
         ],
+        extent: { xmin: 5.8, ymin: 45.1, xmax: 6.2, ymax: 45.5 },
       };
 
       (processor as any).fetchDecodedTile = vi.fn().mockResolvedValue([gndFeature]);
@@ -179,7 +175,7 @@ describe('airspace3d-processor', () => {
       const progressStages: any[] = [];
       const req = {
         id: 10,
-        tiles: [{ x: 500, y: 300, z: 10 }],
+        tiles: [{ x: 33, y: 22, z: 6 }],
         bounds: { minLon: 5, minLat: 45, maxLon: 7, maxLat: 46 },
         maxAltitude: 3000,
         showClasses: [Class.D],
@@ -221,6 +217,7 @@ describe('airspace3d-processor', () => {
 
     it('emits single final response when all airspaces are flat MSL', async () => {
       const mslFeature = {
+        id: 102,
         baseAirspace: {
           name: 'TEST MSL CTR',
           country: 'FR',
@@ -234,21 +231,16 @@ describe('airspace3d-processor', () => {
           icaoClass: Class.D,
           activity: 0,
         },
-        polygons: [
-          {
-            id: '10/500/300#1.0',
-            rings: [
-              [
-                [5.8, 45.1],
-                [6.0, 45.1],
-                [6.0, 45.3],
-                [5.8, 45.3],
-                [5.8, 45.1],
-              ],
-            ],
-            extent: { xmin: 5.8, ymin: 45.1, xmax: 6.0, ymax: 45.3 },
-          },
+        rings: [
+          [
+            [5.8, 45.1],
+            [6.0, 45.1],
+            [6.0, 45.3],
+            [5.8, 45.3],
+            [5.8, 45.1],
+          ],
         ],
+        extent: { xmin: 5.8, ymin: 45.1, xmax: 6.0, ymax: 45.3 },
       };
 
       (processor as any).fetchDecodedTile = vi.fn().mockResolvedValue([mslFeature]);
@@ -256,7 +248,7 @@ describe('airspace3d-processor', () => {
       const progressStages: any[] = [];
       const req = {
         id: 11,
-        tiles: [{ x: 500, y: 300, z: 10 }],
+        tiles: [{ x: 33, y: 22, z: 6 }],
         bounds: { minLon: 5, minLat: 45, maxLon: 7, maxLat: 46 },
         maxAltitude: 3000,
         showClasses: [Class.D],
@@ -273,6 +265,142 @@ describe('airspace3d-processor', () => {
       expect(progressStages).toHaveLength(1);
       expect(progressStages[0].lod).toBe(1);
       expect(progressStages[0].isFinal).toBe(true);
+    });
+
+    it('deduplicates features across multiple Zoom 6 tiles by feature id without union', async () => {
+      const featureTile1 = {
+        id: 777,
+        baseAirspace: {
+          name: 'CROSS TILE TMA',
+          country: 'FR',
+          floorM: 1000,
+          floorLabel: '1000m MSL',
+          floorRefGnd: false,
+          topM: 3500,
+          topLabel: '3500m MSL',
+          topRefGnd: false,
+          type: Type.TMA,
+          icaoClass: Class.C,
+          activity: 0,
+        },
+        rings: [
+          [
+            [5.5, 45.0],
+            [6.5, 45.0],
+            [6.5, 46.0],
+            [5.5, 46.0],
+            [5.5, 45.0],
+          ],
+        ],
+        extent: { xmin: 5.5, ymin: 45.0, xmax: 6.5, ymax: 46.0 },
+      };
+
+      // In unclipped Zoom 6 tiles, neighbor tile also returns the exact same full feature
+      const featureTile2 = { ...featureTile1 };
+
+      (processor as any).fetchDecodedTile = vi
+        .fn()
+        .mockImplementation((x: number) => Promise.resolve(x === 33 ? [featureTile1] : [featureTile2]));
+
+      const req = {
+        id: 12,
+        tiles: [
+          { x: 33, y: 22, z: 6 },
+          { x: 34, y: 22, z: 6 },
+        ],
+        bounds: { minLon: 5, minLat: 44, maxLon: 7, maxLat: 47 },
+        maxAltitude: 4000,
+        showClasses: [Class.C],
+        showTypes: [Type.TMA],
+        dateMs: Date.now(),
+        tileServer: 'cloud' as const,
+        multiplier: 1,
+      };
+
+      const res = await processor.process(req);
+      // Exactly 1 item despite being returned by both tiles
+      expect(res.items).toHaveLength(1);
+      expect(res.items[0].geomKey).toBe('777');
+      expect(res.items[0].airspace.name).toBe('CROSS TILE TMA');
+    });
+
+    it('clears cache when remote timestamp differs even if date is identical', async () => {
+      const mockDb = {
+        get: vi.fn().mockImplementation((store: string, key: string) => {
+          if (store === 'metadata' && key === 'version') return Promise.resolve('1700000000000');
+          return Promise.resolve(undefined);
+        }),
+        put: vi.fn().mockResolvedValue(undefined),
+        delete: vi.fn().mockResolvedValue(undefined),
+        clear: vi.fn().mockResolvedValue(undefined),
+      };
+
+      (processor as any).getDb = vi.fn().mockResolvedValue(mockDb);
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ date: '2026-11-14', timestamp: 1700000099000 }),
+      } as any);
+
+      await (processor as any).checkRemoteDate('cloud');
+
+      expect(mockDb.clear).toHaveBeenCalledWith('footprints');
+      expect(mockDb.put).toHaveBeenCalledWith('metadata', '1700000099000', 'version');
+      expect(mockDb.delete).toHaveBeenCalledWith('metadata', 'date');
+    });
+
+    it('clears cache when remote airspaces-date differs from legacy stored date', async () => {
+      const mockDb = {
+        get: vi.fn().mockImplementation((store: string, key: string) => {
+          if (store === 'metadata' && key === 'date') return Promise.resolve('2026-10-01');
+          return Promise.resolve(undefined);
+        }),
+        put: vi.fn().mockResolvedValue(undefined),
+        delete: vi.fn().mockResolvedValue(undefined),
+        clear: vi.fn().mockResolvedValue(undefined),
+      };
+
+      (processor as any).getDb = vi.fn().mockResolvedValue(mockDb);
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ date: '2026-11-14' }),
+      } as any);
+
+      await (processor as any).checkRemoteDate('cloud');
+
+      expect(mockDb.clear).toHaveBeenCalledWith('footprints');
+      expect(mockDb.put).toHaveBeenCalledWith('metadata', '2026-11-14', 'version');
+      expect(mockDb.delete).toHaveBeenCalledWith('metadata', 'date');
+    });
+
+    it('allows retry on subsequent calls if remote date fetch fails', async () => {
+      const mockDb = {
+        get: vi.fn().mockResolvedValue(undefined),
+        put: vi.fn().mockResolvedValue(undefined),
+        delete: vi.fn().mockResolvedValue(undefined),
+        clear: vi.fn().mockResolvedValue(undefined),
+      };
+      (processor as any).getDb = vi.fn().mockResolvedValue(mockDb);
+
+      // First attempt fails with 500
+      global.fetch = vi.fn().mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+      } as any);
+
+      await (processor as any).checkRemoteDate('cloud');
+      expect(mockDb.clear).not.toHaveBeenCalled();
+
+      // Second attempt succeeds
+      global.fetch = vi.fn().mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ date: '2026-11-14', timestamp: 1700000099000 }),
+      } as any);
+
+      await (processor as any).checkRemoteDate('cloud');
+      expect(mockDb.clear).toHaveBeenCalledWith('footprints');
+      expect(mockDb.put).toHaveBeenCalledWith('metadata', '1700000099000', 'version');
     });
   });
 });

@@ -18,6 +18,7 @@
     "@stencil/core": "^4.45.5",
     "d3-array": "^3.2.5",
     "geolib": "catalog:default",
+    "idb": "catalog:",
     "lit": "catalog:default",
     "mapbox-vector-tile": "catalog:default",
     "micro-typed-events": "^1.0.2",

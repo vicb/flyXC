@@ -1,5 +1,3 @@
-import { unionExecuteMany } from '@arcgis/core/geometry/operators/unionOperator';
-import Polygon from '@arcgis/core/geometry/Polygon';
 import {
   type AirspaceColorCategory,
   type AirspaceServer,
@@ -7,12 +5,14 @@ import {
   type AirspaceTyped,
   applyOverrides,
   type Class,
+  getAirspace3dTileUrl,
   getAirspaceColorCategory,
-  getAirspaceTileUrl,
+  getAirspaceDateUrl,
   isAirspaceVisible,
   toTypedAirspace,
   type Type,
 } from '@flyxc/common';
+import { type IDBPDatabase, openDB } from 'idb';
 import { VectorTile } from 'mapbox-vector-tile';
 
 import {
@@ -35,16 +35,11 @@ export interface GeoBounds {
   maxLat: number;
 }
 
-export interface DecodedPolygonPart {
-  id: string;
+export interface DecodedTileFeature {
+  id: number | string;
+  baseAirspace: AirspaceTyped;
   rings: number[][][];
   extent?: AirspaceExtentLike;
-  polygon?: Polygon;
-}
-
-export interface DecodedTileFeature {
-  baseAirspace: AirspaceTyped;
-  polygons: DecodedPolygonPart[];
 }
 
 export interface AirspaceWorkerRequest {
@@ -112,29 +107,25 @@ export function computeRingsExtent(rings: number[][][]): AirspaceExtentLike | un
   return xmin <= xmax && ymin <= ymax ? { xmin, ymin, xmax, ymax } : undefined;
 }
 
-export function geoJsonGeometryToParts(
-  tilePrefix: string,
-  featureIndex: number,
-  geometry: { type: string; coordinates: any },
-): DecodedPolygonPart[] {
+export function geoJsonGeometryToRings(geometry: {
+  type: string;
+  coordinates: any;
+}): { rings: number[][][]; extent?: AirspaceExtentLike } | undefined {
   if (geometry.type === 'Polygon') {
     const rings = geometry.coordinates as number[][][];
     const extent = computeRingsExtent(rings);
-    return extent ? [{ id: `${tilePrefix}#${featureIndex}.0`, rings, extent }] : [];
+    return extent ? { rings, extent } : undefined;
   }
   if (geometry.type === 'MultiPolygon') {
-    const parts: DecodedPolygonPart[] = [];
     const coords = geometry.coordinates as number[][][][];
-    for (let pIdx = 0; pIdx < coords.length; pIdx++) {
-      const rings = coords[pIdx];
-      const extent = computeRingsExtent(rings);
-      if (extent) {
-        parts.push({ id: `${tilePrefix}#${featureIndex}.${pIdx}`, rings, extent });
-      }
+    const rings: number[][][] = [];
+    for (const poly of coords) {
+      rings.push(...poly);
     }
-    return parts;
+    const extent = computeRingsExtent(rings);
+    return extent ? { rings, extent } : undefined;
   }
-  return [];
+  return undefined;
 }
 
 export function extentOverlapsBounds(ext: AirspaceExtentLike | undefined, bounds: GeoBounds): boolean {
@@ -147,14 +138,109 @@ export function extentOverlapsBounds(ext: AirspaceExtentLike | undefined, bounds
 }
 
 /**
- * Core background pipeline for fetching, decoding, unioning and triangulating 3D airspace volumes.
+ * Core background pipeline for fetching, decoding, caching and triangulating 3D airspace volumes.
+ * Uses Zoom 6 unclipped tiles to eliminate multi-tile polygon union entirely.
  * Can run inside a Web Worker or in-process (e.g. for testing).
  */
 export class Airspace3dProcessor {
   private tileCache = new Map<string, Promise<DecodedTileFeature[] | null>>();
   private footprintCache = new Map<string, { polygon: AirspacePolygonLike; footprint: AirspaceFootprint }>();
-  private scratchPolygons: Polygon[] = [];
   private lastRequestId = 0;
+  private dbPromise: Promise<IDBPDatabase | null> | null = null;
+  private lastDateCheckTime = 0;
+  private lastCheckedServer?: AirspaceServer;
+  private currentVersion?: string;
+
+  private async getDb(): Promise<IDBPDatabase | null> {
+    if (typeof indexedDB === 'undefined') {
+      return null;
+    }
+    if (!this.dbPromise) {
+      this.dbPromise = openDB('flyxc-airspaces-3d', 1, {
+        upgrade(db) {
+          if (!db.objectStoreNames.contains('metadata')) {
+            db.createObjectStore('metadata');
+          }
+          if (!db.objectStoreNames.contains('footprints')) {
+            db.createObjectStore('footprints');
+          }
+        },
+      }).catch(() => null);
+    }
+    return this.dbPromise;
+  }
+
+  private async checkRemoteDate(server: AirspaceServer): Promise<void> {
+    const now = Date.now();
+    if (this.lastCheckedServer === server && now - this.lastDateCheckTime < 60_000) {
+      return;
+    }
+    this.lastCheckedServer = server;
+    this.lastDateCheckTime = now;
+    try {
+      const db = await this.getDb();
+      if (!db) {
+        return;
+      }
+      const remoteDateUrl = getAirspaceDateUrl(server);
+      const res = await fetch(remoteDateUrl, { cache: 'no-cache' });
+      if (!res.ok) {
+        // Allow retry on subsequent calls if request failed
+        this.lastDateCheckTime = 0;
+        return;
+      }
+      const { date: remoteDate, timestamp: remoteTimestamp } = (await res.json()) as {
+        date?: string;
+        timestamp?: number | string;
+      };
+      const remoteVersion = remoteTimestamp != null ? String(remoteTimestamp) : remoteDate;
+      if (!remoteVersion) {
+        return;
+      }
+      this.currentVersion = remoteVersion;
+      const storedVersion = (await db.get('metadata', 'version')) ?? (await db.get('metadata', 'date'));
+      if (storedVersion !== remoteVersion) {
+        await db.clear('footprints');
+        await db.put('metadata', remoteVersion, 'version');
+        await db.delete('metadata', 'date');
+        this.footprintCache.clear();
+        this.tileCache.clear();
+      }
+    } catch {
+      // Allow retry on subsequent calls if network threw
+      this.lastDateCheckTime = 0;
+    }
+  }
+
+  private async getFromIdb(
+    key: string,
+  ): Promise<{ polygon: AirspacePolygonLike; footprint: AirspaceFootprint } | null> {
+    try {
+      const db = await this.getDb();
+      if (!db) {
+        return null;
+      }
+      const record = await db.get('footprints', key);
+      return record ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async saveToIdb(
+    key: string,
+    value: { polygon: AirspacePolygonLike; footprint: AirspaceFootprint },
+  ): Promise<void> {
+    try {
+      const db = await this.getDb();
+      if (!db) {
+        return;
+      }
+      await db.put('footprints', value, key);
+    } catch {
+      // Ignore write errors (e.g. quota)
+    }
+  }
 
   public async process(
     request: AirspaceWorkerRequest,
@@ -169,51 +255,15 @@ export class Airspace3dProcessor {
     const { tiles, bounds, maxAltitude, showClasses, showTypes, dateMs, tileServer, multiplier } = request;
     const date = new Date(dateMs);
 
+    // Sync IndexedDB cache with remote airspaces-date.json
+    await this.checkRemoteDate(tileServer);
+
     const decodedTiles = await Promise.all(tiles.map((t) => this.fetchDecodedTile(t.x, t.y, t.z, tileServer)));
     if (requestId < this.lastRequestId) {
       return { id: requestId, items: [] };
     }
 
-    const grouped = new Map<string, { airspace: AirspaceTyped; parts: DecodedPolygonPart[] }>();
-    for (const features of decodedTiles) {
-      if (!features) {
-        continue;
-      }
-      for (const feature of features) {
-        const airspace = applyOverrides(feature.baseAirspace, date);
-        if (
-          airspace.floorM > maxAltitude ||
-          !isAirspaceVisible(airspace.icaoClass, showClasses, airspace.type, showTypes) ||
-          (!airspace.floorRefGnd && !airspace.topRefGnd && airspace.topM <= airspace.floorM)
-        ) {
-          continue;
-        }
-
-        let hasVisiblePart = false;
-        for (const p of feature.polygons) {
-          if (extentOverlapsBounds(p.extent, bounds)) {
-            hasVisiblePart = true;
-            break;
-          }
-        }
-        if (!hasVisiblePart) {
-          continue;
-        }
-
-        const key = getAirspaceKey(airspace);
-        let entry = grouped.get(key);
-        if (!entry) {
-          entry = { airspace, parts: [] };
-          grouped.set(key, entry);
-        }
-        for (const p of feature.polygons) {
-          if (extentOverlapsBounds(p.extent, bounds)) {
-            entry.parts.push(p);
-          }
-        }
-      }
-    }
-
+    const seenIds = new Set<number | string>();
     const items: AirspaceWorkerItem[] = [];
     const pendingRefinements: {
       item: AirspaceWorkerItem;
@@ -222,87 +272,84 @@ export class Airspace3dProcessor {
       footprintKey: string;
     }[] = [];
 
-    for (const [airspaceKey, { airspace, parts }] of grouped.entries()) {
-      if (requestId < this.lastRequestId) {
-        return { id: requestId, items: [] };
+    for (const features of decodedTiles) {
+      if (!features) {
+        continue;
       }
-      let geomKey: string;
-      if (parts.length === 1) {
-        geomKey = parts[0].id;
-      } else {
-        const ids: string[] = [];
-        for (let i = 0; i < parts.length; i++) {
-          ids.push(parts[i].id);
+      for (const feat of features) {
+        if (requestId < this.lastRequestId) {
+          return { id: requestId, items: [] };
         }
-        geomKey = ids.join(',');
-      }
-      const sinkZeroFloor = airspace.floorRefGnd && airspace.floorM === 0;
-      const footprintKey = `${airspace.floorRefGnd ? 1 : 0}${airspace.topRefGnd ? 1 : 0}${sinkZeroFloor ? 1 : 0}|${geomKey}`;
-      const cachedFp = this.footprintCache.get(footprintKey);
+        if (seenIds.has(feat.id)) {
+          continue;
+        }
+        seenIds.add(feat.id);
 
-      let polygon: AirspacePolygonLike | undefined = cachedFp?.polygon;
-      if (!polygon) {
-        if (parts.length === 1) {
-          polygon = { rings: parts[0].rings, extent: parts[0].extent };
-        } else {
-          this.scratchPolygons.length = 0;
-          for (let i = 0; i < parts.length; i++) {
-            this.scratchPolygons.push(
-              (parts[i].polygon ??= new Polygon({ rings: parts[i].rings, spatialReference: { wkid: 4326 } })),
-            );
-          }
-          const unioned = unionExecuteMany(this.scratchPolygons);
-          if (unioned && unioned.type === 'polygon' && unioned.rings.length > 0) {
-            polygon = {
-              rings: unioned.rings,
-              extent: unioned.extent
-                ? {
-                    xmin: unioned.extent.xmin,
-                    ymin: unioned.extent.ymin,
-                    xmax: unioned.extent.xmax,
-                    ymax: unioned.extent.ymax,
-                  }
-                : computeRingsExtent(unioned.rings),
-            };
+        const airspace = applyOverrides(feat.baseAirspace, date);
+        if (
+          airspace.floorM > maxAltitude ||
+          !isAirspaceVisible(airspace.icaoClass, showClasses, airspace.type, showTypes) ||
+          (!airspace.floorRefGnd && !airspace.topRefGnd && airspace.topM <= airspace.floorM) ||
+          !extentOverlapsBounds(feat.extent, bounds)
+        ) {
+          continue;
+        }
+
+        const airspaceKey = getAirspaceKey(airspace);
+        const geomKey = String(feat.id);
+        const sinkZeroFloor = airspace.floorRefGnd && airspace.floorM === 0;
+        const footprintKey = `${airspace.floorRefGnd ? 1 : 0}${airspace.topRefGnd ? 1 : 0}${sinkZeroFloor ? 1 : 0}|${geomKey}`;
+
+        let cachedFp = this.footprintCache.get(footprintKey);
+        if (!cachedFp) {
+          const idbRecord = await this.getFromIdb(footprintKey);
+          if (idbRecord) {
+            cachedFp = idbRecord;
+            setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, footprintKey, cachedFp);
           }
         }
-      }
 
-      if (polygon && polygon.rings.length > 0) {
-        let footprint: AirspaceFootprint | undefined = cachedFp?.footprint;
-        const needsTerrainCap = airspace.topRefGnd || (!sinkZeroFloor && airspace.floorRefGnd);
-        const isProgressive = onProgress != null && needsTerrainCap && (!footprint || footprint.lod === 0);
+        const polygon: AirspacePolygonLike = cachedFp?.polygon ?? {
+          rings: feat.rings,
+          extent: feat.extent,
+        };
 
-        if (!footprint) {
-          const built = await buildAirspaceFootprint(polygon, airspace, { coarse: isProgressive });
-          if (built) {
-            footprint = built;
-            if (!isProgressive) {
-              setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, footprintKey, {
-                polygon,
-                footprint,
-              });
+        if (polygon.rings.length > 0) {
+          let footprint: AirspaceFootprint | undefined = cachedFp?.footprint;
+          const needsTerrainCap = airspace.topRefGnd || (!sinkZeroFloor && airspace.floorRefGnd);
+          const isProgressive = onProgress != null && needsTerrainCap && (!footprint || footprint.lod === 0);
+
+          if (!footprint) {
+            const built = await buildAirspaceFootprint(polygon, airspace, { coarse: isProgressive });
+            if (built) {
+              footprint = built;
+              if (!isProgressive) {
+                const entry = { polygon, footprint };
+                setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, footprintKey, entry);
+                void this.saveToIdb(footprintKey, entry);
+              }
             }
           }
-        }
 
-        if (footprint) {
-          const cacheKey = `${airspaceKey}|${geomKey}|${multiplier}`;
-          const item: AirspaceWorkerItem = {
-            airspaceKey,
-            geomKey,
-            footprintKey,
-            cacheKey,
-            category: getAirspaceColorCategory(airspace),
-            airspace,
-            polygon,
-            footprint,
-            lod: footprint.lod ?? 1,
-          };
-          items.push(item);
+          if (footprint) {
+            const versionPrefix = this.currentVersion ? `${this.currentVersion}|` : '';
+            const cacheKey = `${versionPrefix}${airspaceKey}|${geomKey}|${multiplier}`;
+            const item: AirspaceWorkerItem = {
+              airspaceKey,
+              geomKey,
+              footprintKey,
+              cacheKey,
+              category: getAirspaceColorCategory(airspace),
+              airspace,
+              polygon,
+              footprint,
+              lod: footprint.lod ?? 1,
+            };
+            items.push(item);
 
-          if (isProgressive) {
-            pendingRefinements.push({ item, airspace, polygon, footprintKey });
+            if (isProgressive) {
+              pendingRefinements.push({ item, airspace, polygon, footprintKey });
+            }
           }
         }
       }
@@ -319,10 +366,12 @@ export class Airspace3dProcessor {
         if (fineFootprint) {
           pending.item.footprint = fineFootprint;
           pending.item.lod = 1;
-          setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, pending.footprintKey, {
+          const entry = {
             polygon: pending.polygon,
             footprint: fineFootprint,
-          });
+          };
+          setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, pending.footprintKey, entry);
+          void this.saveToIdb(pending.footprintKey, entry);
         }
       }
 
@@ -340,24 +389,31 @@ export class Airspace3dProcessor {
     return singleResponse;
   }
 
-  public clear(): void {
+  public async clear(): Promise<void> {
     this.tileCache.clear();
     this.footprintCache.clear();
+    try {
+      const db = await this.getDb();
+      if (db) {
+        await db.clear('footprints');
+      }
+    } catch {
+      // Ignore
+    }
   }
 
-  private fetchDecodedTile(
+  public fetchDecodedTile(
     x: number,
     y: number,
-    z: number,
+    _z: number,
     server: AirspaceServer,
   ): Promise<DecodedTileFeature[] | null> {
-    const url = getAirspaceTileUrl(x, y, z, server);
+    const url = getAirspace3dTileUrl(x, y, server);
     const cached = this.tileCache.get(url);
     if (cached) {
       return cached;
     }
 
-    const tilePrefix = `${z}/${x}/${y}`;
     const promise = (async (): Promise<DecodedTileFeature[] | null> => {
       try {
         const response = await fetch(url);
@@ -375,12 +431,17 @@ export class Airspace3dProcessor {
           if (feature.type !== 3) {
             continue;
           }
-          const geo = feature.toGeoJSON(x, y, z) as { geometry: { type: string; coordinates: any } };
-          const polygons = geoJsonGeometryToParts(tilePrefix, i, geo.geometry);
-          if (polygons.length > 0) {
+          const geo = feature.toGeoJSON(x, y, 6) as { geometry: { type: string; coordinates: any } };
+          const ringsInfo = geoJsonGeometryToRings(geo.geometry);
+          if (ringsInfo && ringsInfo.rings.length > 0) {
+            const baseAirspace = toTypedAirspace(feature.properties as AirspaceString);
+            const rawId = feature.id ?? feature.properties?.id ?? getAirspaceKey(baseAirspace);
+            const featureId = typeof rawId === 'number' || typeof rawId === 'string' ? rawId : `${x}/${y}#${i}`;
             features.push({
-              baseAirspace: toTypedAirspace(feature.properties as AirspaceString),
-              polygons,
+              id: featureId,
+              baseAirspace,
+              rings: ringsInfo.rings,
+              extent: ringsInfo.extent,
             });
           }
         }
