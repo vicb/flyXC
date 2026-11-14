@@ -298,6 +298,13 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private graphicsLayer?: GraphicsLayer;
   private graphicsLayerView?: LayerView;
   private categoryGraphics = new globalThis.Map<AirspaceColorCategory, Graphic>();
+  private categorySymbols = new globalThis.Map<AirspaceColorCategory, MeshSymbol3D>();
+  private categoryBuckets = new globalThis.Map<AirspaceColorCategory, { parts: AirspaceMeshData[]; sigHash: number }>([
+    [AirspaceColorCategory.Prohibited, { parts: [], sigHash: 0 }],
+    [AirspaceColorCategory.Restricted, { parts: [], sigHash: 0 }],
+    [AirspaceColorCategory.Danger, { parts: [], sigHash: 0 }],
+    [AirspaceColorCategory.Other, { parts: [], sigHash: 0 }],
+  ]);
   private meshCache = new globalThis.Map<string, CachedMeshEntry>();
   private currentAirspaces: CachedAirspaceItem[] = [];
   private lastQueryKey?: string;
@@ -664,13 +671,27 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       return;
     }
 
-    this.currentAirspaces = response.items.map((item) => {
+    const currentAirspaces = response.items as CachedAirspaceItem[];
+    for (const item of currentAirspaces) {
       const cached = this.meshCache.get(item.cacheKey);
-      return cached ? { ...item, meshData: cached.meshData, groundSignature: cached.groundSignature } : item;
-    });
+      if (cached) {
+        item.meshData = cached.meshData;
+        item.groundSignature = cached.groundSignature;
+      }
+    }
+    this.currentAirspaces = currentAirspaces;
 
     this.lastQueryKey = queryKey;
     this.rebuildMeshes(false);
+  }
+
+  private getCategorySymbol(category: AirspaceColorCategory): MeshSymbol3D {
+    let symbol = this.categorySymbols.get(category);
+    if (!symbol) {
+      symbol = createCategorySymbol(category, this.opacity);
+      this.categorySymbols.set(category, symbol);
+    }
+    return symbol;
   }
 
   private rebuildMeshes(onlyGroundRef: boolean): void {
@@ -714,18 +735,25 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       return;
     }
 
-    const byCategory = new globalThis.Map<AirspaceColorCategory, { parts: AirspaceMeshData[]; sigParts: string[] }>();
+    for (const bucket of this.categoryBuckets.values()) {
+      bucket.parts.length = 0;
+      bucket.sigHash = 0x811c9dc5;
+    }
     for (const item of items) {
       if (!item.meshData) {
         continue;
       }
-      let bucket = byCategory.get(item.category);
-      if (!bucket) {
-        bucket = { parts: [], sigParts: [] };
-        byCategory.set(item.category, bucket);
+      const bucket = this.categoryBuckets.get(item.category);
+      if (bucket) {
+        bucket.parts.push(item.meshData);
+        let h = bucket.sigHash;
+        const key = item.cacheKey;
+        for (let i = 0; i < key.length; i++) {
+          h = Math.imul(h ^ key.charCodeAt(i), 0x01000193);
+        }
+        h = Math.imul(h ^ (item.groundSignature ?? 0), 0x01000193);
+        bucket.sigHash = h;
       }
-      bucket.parts.push(item.meshData);
-      bucket.sigParts.push(`${item.cacheKey}:${item.groundSignature ?? ''}`);
     }
 
     const categoriesToUpdate = onlyGroundRef ? dirtyCategories : ALL_CATEGORIES;
@@ -733,23 +761,24 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     const toAdd: Graphic[] = [];
 
     for (const category of categoriesToUpdate) {
-      const bucket = byCategory.get(category);
-      const nextSig = bucket ? bucket.sigParts.join(';') : '';
+      const bucket = this.categoryBuckets.get(category);
+      const nextSig = bucket && bucket.parts.length > 0 ? (bucket.sigHash >>> 0) : 0;
       const prevGraphic = this.categoryGraphics.get(category);
-      if ((nextSig === '' && !prevGraphic) || (nextSig !== '' && prevGraphic?.attributes?.sig === nextSig)) {
+      if ((nextSig === 0 && !prevGraphic) || (nextSig !== 0 && prevGraphic?.attributes?.sig === nextSig)) {
         continue;
       }
 
-      if (prevGraphic) {
+      const mergedMesh = bucket && bucket.parts.length > 0 ? mergeMeshData(bucket.parts) : null;
+      if (prevGraphic && mergedMesh) {
+        prevGraphic.geometry = mergedMesh;
+        prevGraphic.attributes.sig = nextSig;
+      } else if (prevGraphic && !mergedMesh) {
         toRemove.push(prevGraphic);
         this.categoryGraphics.delete(category);
-      }
-
-      const mergedMesh = bucket ? mergeMeshData(bucket.parts) : null;
-      if (mergedMesh) {
+      } else if (!prevGraphic && mergedMesh) {
         const graphic = new Graphic({
           geometry: mergedMesh,
-          symbol: createCategorySymbol(category, this.opacity),
+          symbol: this.getCategorySymbol(category),
           attributes: { isAirspace: true, category, sig: nextSig },
         });
         this.categoryGraphics.set(category, graphic);
@@ -769,8 +798,9 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   }
 
   private updateGraphicOpacities(): void {
+    this.categorySymbols.clear();
     for (const [category, graphic] of this.categoryGraphics.entries()) {
-      graphic.symbol = createCategorySymbol(category, this.opacity);
+      graphic.symbol = this.getCategorySymbol(category);
     }
   }
 

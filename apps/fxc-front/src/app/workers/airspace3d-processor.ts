@@ -150,6 +150,7 @@ export function extentOverlapsBounds(ext: AirspaceExtentLike | undefined, bounds
 export class Airspace3dProcessor {
   private tileCache = new Map<string, Promise<DecodedTileFeature[] | null>>();
   private footprintCache = new Map<string, { polygon: AirspacePolygonLike; footprint: AirspaceFootprint }>();
+  private scratchPolygons: Polygon[] = [];
   private lastRequestId = 0;
 
   public async process(request: AirspaceWorkerRequest): Promise<AirspaceWorkerResponse> {
@@ -167,16 +168,12 @@ export class Airspace3dProcessor {
       return { id: requestId, items: [] };
     }
 
-    const grouped = new Map<string, { airspace: AirspaceTyped; parts: DecodedPolygonPart[]; geomIds: string[] }>();
+    const grouped = new Map<string, { airspace: AirspaceTyped; parts: DecodedPolygonPart[] }>();
     for (const features of decodedTiles) {
       if (!features) {
         continue;
       }
       for (const feature of features) {
-        const visibleParts = feature.polygons.filter((p) => extentOverlapsBounds(p.extent, bounds));
-        if (visibleParts.length === 0) {
-          continue;
-        }
         const airspace = applyOverrides(feature.baseAirspace, date);
         if (
           airspace.floorM > maxAltitude ||
@@ -186,25 +183,46 @@ export class Airspace3dProcessor {
           continue;
         }
 
+        let hasVisiblePart = false;
+        for (const p of feature.polygons) {
+          if (extentOverlapsBounds(p.extent, bounds)) {
+            hasVisiblePart = true;
+            break;
+          }
+        }
+        if (!hasVisiblePart) {
+          continue;
+        }
+
         const key = getAirspaceKey(airspace);
         let entry = grouped.get(key);
         if (!entry) {
-          entry = { airspace, parts: [], geomIds: [] };
+          entry = { airspace, parts: [] };
           grouped.set(key, entry);
         }
-        for (const p of visibleParts) {
-          entry.parts.push(p);
-          entry.geomIds.push(p.id);
+        for (const p of feature.polygons) {
+          if (extentOverlapsBounds(p.extent, bounds)) {
+            entry.parts.push(p);
+          }
         }
       }
     }
 
     const items: AirspaceWorkerItem[] = [];
-    for (const [airspaceKey, { airspace, parts, geomIds }] of grouped.entries()) {
+    for (const [airspaceKey, { airspace, parts }] of grouped.entries()) {
       if (requestId < this.lastRequestId) {
         return { id: requestId, items: [] };
       }
-      const geomKey = geomIds.join(',');
+      let geomKey: string;
+      if (parts.length === 1) {
+        geomKey = parts[0].id;
+      } else {
+        const ids: string[] = [];
+        for (let i = 0; i < parts.length; i++) {
+          ids.push(parts[i].id);
+        }
+        geomKey = ids.join(',');
+      }
       const sinkZeroFloor = airspace.floorRefGnd && airspace.floorM === 0;
       const footprintKey = `${airspace.floorRefGnd ? 1 : 0}${airspace.topRefGnd ? 1 : 0}${sinkZeroFloor ? 1 : 0}|${geomKey}`;
       const cachedFp = this.footprintCache.get(footprintKey);
@@ -214,9 +232,13 @@ export class Airspace3dProcessor {
         if (parts.length === 1) {
           polygon = { rings: parts[0].rings, extent: parts[0].extent };
         } else {
-          const unioned = unionExecuteMany(
-            parts.map((p) => (p.polygon ??= new Polygon({ rings: p.rings, spatialReference: { wkid: 4326 } }))),
-          );
+          this.scratchPolygons.length = 0;
+          for (let i = 0; i < parts.length; i++) {
+            this.scratchPolygons.push(
+              (parts[i].polygon ??= new Polygon({ rings: parts[i].rings, spatialReference: { wkid: 4326 } })),
+            );
+          }
+          const unioned = unionExecuteMany(this.scratchPolygons);
           if (unioned && unioned.type === 'polygon' && unioned.rings.length > 0) {
             polygon = {
               rings: unioned.rings,

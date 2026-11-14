@@ -134,6 +134,13 @@ function triangulateRings2D(rings: number[][][]): Triangulated2D {
   return { xy, faces: new Uint32Array(res.indices) };
 }
 
+const sharedVertexSpace = new MeshGeoreferencedVertexSpace();
+const sharedMeshMaterial = {
+  color: [255, 255, 255, 1] as [number, number, number, number],
+  alphaMode: 'blend' as const,
+  doubleSided: true,
+};
+
 function subdivideTriangulation2D(tri: Triangulated2D, midLat: number, maxEdgeM: number): Triangulated2D {
   if (tri.faces.length === 0) {
     return tri;
@@ -144,34 +151,66 @@ function subdivideTriangulation2D(tri: Triangulated2D, midLat: number, maxEdgeM:
   const scaleLat = METERS_PER_DEGREE_LAT;
   const maxLen2 = maxEdgeM * maxEdgeM;
 
-  const xy = Array.from(tri.xy);
-  let faces = Array.from(tri.faces);
+  let xyCapacity = Math.max(tri.xy.length * 2, 256);
+  let xy = new Float64Array(xyCapacity);
+  xy.set(tri.xy);
+  let xyLen = tri.xy.length;
+
+  let faces = new Uint32Array(Math.max(tri.faces.length * 2, 256));
+  faces.set(tri.faces);
+  let facesLen = tri.faces.length;
+
+  let nextFacesCapacity = faces.length * 2;
+  let nextFaces = new Uint32Array(nextFacesCapacity);
+  let nextFacesLen = 0;
+
+  const midCache = new Map<number, number>();
+
+  const ensureXyCapacity = (additionalCoords: number) => {
+    if (xyLen + additionalCoords > xyCapacity) {
+      xyCapacity = Math.max(xyCapacity * 2, xyLen + additionalCoords);
+      const nextXy = new Float64Array(xyCapacity);
+      nextXy.set(xy.subarray(0, xyLen));
+      xy = nextXy;
+    }
+  };
+
+  const ensureNextFacesCapacity = (additionalIndices: number) => {
+    if (nextFacesLen + additionalIndices > nextFacesCapacity) {
+      nextFacesCapacity = Math.max(nextFacesCapacity * 2, nextFacesLen + additionalIndices);
+      const expanded = new Uint32Array(nextFacesCapacity);
+      expanded.set(nextFaces.subarray(0, nextFacesLen));
+      nextFaces = expanded;
+    }
+  };
+
+  const getMid = (a: number, b: number): number => {
+    const lo = a < b ? a : b;
+    const hi = a < b ? b : a;
+    const key = lo * 16_777_216 + hi;
+    let idx = midCache.get(key);
+    if (idx === undefined) {
+      idx = xyLen >> 1;
+      ensureXyCapacity(2);
+      xy[xyLen++] = (xy[a * 2] + xy[b * 2]) * 0.5;
+      xy[xyLen++] = (xy[a * 2 + 1] + xy[b * 2 + 1]) * 0.5;
+      midCache.set(key, idx);
+    }
+    return idx;
+  };
+
+  const edgeLen2 = (a: number, b: number): number => {
+    const dx = (xy[a * 2] - xy[b * 2]) * scaleLon;
+    const dy = (xy[a * 2 + 1] - xy[b * 2 + 1]) * scaleLat;
+    return dx * dx + dy * dy;
+  };
 
   for (let pass = 0; pass < MAX_SUBDIVIDE_PASSES; pass++) {
-    const midCache = new Map<number, number>();
-    const nextFaces: number[] = [];
+    midCache.clear();
+    nextFacesLen = 0;
     let splitAny = false;
 
-    const getMid = (a: number, b: number): number => {
-      const lo = a < b ? a : b;
-      const hi = a < b ? b : a;
-      const key = lo * 16_777_216 + hi;
-      let idx = midCache.get(key);
-      if (idx === undefined) {
-        idx = xy.length / 2;
-        xy.push((xy[a * 2] + xy[b * 2]) * 0.5, (xy[a * 2 + 1] + xy[b * 2 + 1]) * 0.5);
-        midCache.set(key, idx);
-      }
-      return idx;
-    };
-
-    const edgeLen2 = (a: number, b: number): number => {
-      const dx = (xy[a * 2] - xy[b * 2]) * scaleLon;
-      const dy = (xy[a * 2 + 1] - xy[b * 2 + 1]) * scaleLat;
-      return dx * dx + dy * dy;
-    };
-
-    for (let i = 0; i < faces.length; i += 3) {
+    for (let i = 0; i < facesLen; i += 3) {
       const a = faces[i];
       const b = faces[i + 1];
       const c = faces[i + 2];
@@ -181,7 +220,10 @@ function subdivideTriangulation2D(tri: Triangulated2D, midLat: number, maxEdgeM:
       const count = (s0 ? 1 : 0) + (s1 ? 1 : 0) + (s2 ? 1 : 0);
 
       if (count === 0) {
-        nextFaces.push(a, b, c);
+        ensureNextFacesCapacity(3);
+        nextFaces[nextFacesLen++] = a;
+        nextFaces[nextFacesLen++] = b;
+        nextFaces[nextFacesLen++] = c;
         continue;
       }
       splitAny = true;
@@ -190,27 +232,58 @@ function subdivideTriangulation2D(tri: Triangulated2D, midLat: number, maxEdgeM:
         const mab = getMid(a, b);
         const mbc = getMid(b, c);
         const mca = getMid(c, a);
-        nextFaces.push(a, mab, mca, mab, b, mbc, mca, mbc, c, mab, mbc, mca);
+        ensureNextFacesCapacity(12);
+        nextFaces[nextFacesLen++] = a;
+        nextFaces[nextFacesLen++] = mab;
+        nextFaces[nextFacesLen++] = mca;
+        nextFaces[nextFacesLen++] = mab;
+        nextFaces[nextFacesLen++] = b;
+        nextFaces[nextFacesLen++] = mbc;
+        nextFaces[nextFacesLen++] = mca;
+        nextFaces[nextFacesLen++] = mbc;
+        nextFaces[nextFacesLen++] = c;
+        nextFaces[nextFacesLen++] = mab;
+        nextFaces[nextFacesLen++] = mbc;
+        nextFaces[nextFacesLen++] = mca;
       } else if (count === 1) {
         const [u, v, w] = s0 ? [a, b, c] : s1 ? [b, c, a] : [c, a, b];
         const m = getMid(u, v);
-        nextFaces.push(u, m, w, m, v, w);
+        ensureNextFacesCapacity(6);
+        nextFaces[nextFacesLen++] = u;
+        nextFaces[nextFacesLen++] = m;
+        nextFaces[nextFacesLen++] = w;
+        nextFaces[nextFacesLen++] = m;
+        nextFaces[nextFacesLen++] = v;
+        nextFaces[nextFacesLen++] = w;
       } else {
-        // Rotate so the unsplit edge is (w, u) and preserve triangle winding order.
         const [u, v, w] = !s2 ? [a, b, c] : !s0 ? [b, c, a] : [c, a, b];
         const m1 = getMid(u, v);
         const m2 = getMid(v, w);
-        nextFaces.push(u, m1, w, m1, v, m2, m1, m2, w);
+        ensureNextFacesCapacity(9);
+        nextFaces[nextFacesLen++] = u;
+        nextFaces[nextFacesLen++] = m1;
+        nextFaces[nextFacesLen++] = w;
+        nextFaces[nextFacesLen++] = m1;
+        nextFaces[nextFacesLen++] = v;
+        nextFaces[nextFacesLen++] = m2;
+        nextFaces[nextFacesLen++] = m1;
+        nextFaces[nextFacesLen++] = m2;
+        nextFaces[nextFacesLen++] = w;
       }
     }
 
+    const tempFaces = faces;
     faces = nextFaces;
+    facesLen = nextFacesLen;
+    nextFaces = tempFaces;
+    nextFacesCapacity = tempFaces.length;
+
     if (!splitAny) {
       break;
     }
   }
 
-  return { xy: new Float64Array(xy), faces: new Uint32Array(faces) };
+  return { xy: xy.slice(0, xyLen), faces: faces.slice(0, facesLen) };
 }
 
 /**
@@ -450,17 +523,13 @@ export async function buildAirspaceMeshData({
 function createMesh(positions: Float64Array, faces: Uint32Array): Mesh {
   return new Mesh({
     spatialReference: { wkid: 4326 },
-    vertexSpace: new MeshGeoreferencedVertexSpace(),
+    vertexSpace: sharedVertexSpace,
     vertexAttributes: { position: positions as Float64Array<ArrayBuffer> },
     components: [
       {
         faces: faces as Uint32Array<ArrayBuffer>,
         shading: 'flat',
-        material: {
-          color: [255, 255, 255, 1],
-          alphaMode: 'blend',
-          doubleSided: true,
-        },
+        material: sharedMeshMaterial,
       },
     ],
   });

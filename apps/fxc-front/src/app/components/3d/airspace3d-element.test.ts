@@ -732,6 +732,7 @@ describe('Airspace3dElement', () => {
 
     const prevGraphic = hoisted.graphicsLayers[0].graphics[0];
     const prevSymbol = prevGraphic.symbol;
+    const prevGeom = prevGraphic.geometry;
     hoisted.state.opacity = 30;
     store.dispatch({ type: 'TEST_OPACITY' });
     await element.updateComplete;
@@ -740,7 +741,7 @@ describe('Airspace3dElement', () => {
     expect(meshModule.extrudeAirspaceFootprint).toHaveBeenCalledTimes(2);
     expect(prevGraphic.symbol).not.toBe(prevSymbol);
 
-    // Changing exaggeration multiplier re-extrudes synchronously without rebuilding 2D footprints.
+    // Changing exaggeration multiplier re-extrudes synchronously and updates Graphic.geometry in place.
     hoisted.state.multiplier = 2;
     store.dispatch({ type: 'TEST_MULTIPLIER' });
     await element.updateComplete;
@@ -749,7 +750,8 @@ describe('Airspace3dElement', () => {
     expect(meshModule.buildAirspaceFootprint).toHaveBeenCalledTimes(2);
     expect(meshModule.extrudeAirspaceFootprint).toHaveBeenCalledTimes(4);
     expect(hoisted.graphicsLayers[0].graphics).toHaveLength(1);
-    expect(hoisted.graphicsLayers[0].graphics[0]).not.toBe(prevGraphic);
+    expect(hoisted.graphicsLayers[0].graphics[0]).toBe(prevGraphic);
+    expect(hoisted.graphicsLayers[0].graphics[0].geometry).not.toBe(prevGeom);
   });
 
   it('passes active track date to applyOverrides when a track is loaded, and current date otherwise', async () => {
