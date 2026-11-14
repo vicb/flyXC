@@ -1,5 +1,6 @@
 import './airspace3d-element';
 import './controls3d-element';
+import './flat-airspace3d-element';
 import './skyways3d-element';
 import './track3d-element';
 import './tracking3d-element';
@@ -65,7 +66,8 @@ import {
   selectMinTimeSec,
   setCurrentTrackId,
 } from '../../redux/track-slice';
-import type { Airspace3dElement } from './airspace3d-element';
+import { type Airspace3dElement, MIN_3D_ZOOM } from './airspace3d-element';
+import type { FlatAirspace3dElement } from './flat-airspace3d-element';
 
 const POPUP_DOCK_OPTIONS = { buttonEnabled: false };
 
@@ -93,13 +95,17 @@ export class Map3dElement extends connect(store)(LitElement) {
   private country?: string;
   @state()
   private isFromFfvl = false;
+  @state()
+  private is3dAirspace = false;
 
   // ArcGis objects.
   private map?: Map;
+  @state()
   private view?: SceneView;
   // Elevation layer with exaggeration.
   private elevationLayer?: BaseElevationLayer;
   private airspace?: Airspace3dElement;
+  private flatAirspace?: FlatAirspace3dElement;
   private basemaps: Record<string, string | Basemap | null> = {
     Satellite: null,
     OpenTopoMap: null,
@@ -175,6 +181,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.subscriptions.length = 0;
     this.elevationSampler = undefined;
     this.view = undefined;
+    this.is3dAirspace = false;
   }
 
   connectedCallback(): void {
@@ -200,6 +207,10 @@ export class Map3dElement extends connect(store)(LitElement) {
 
     const labelLayer = new SceneLayer({
       portalItem: { id: '002ce369070544f4ba55886efee41983' },
+      elevationInfo: { mode: 'relative-to-ground', offset: 1 },
+    });
+    void labelLayer.when(() => {
+      labelLayer.elevationInfo = { mode: 'relative-to-ground', offset: 1 };
     });
 
     this.basemaps.Satellite = new Basemap({
@@ -235,6 +246,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.createLighting();
 
     this.airspace = this.renderRoot.querySelector('airspace3d-element') as Airspace3dElement;
+    this.flatAirspace = this.renderRoot.querySelector('flat-airspace3d-element') as FlatAirspace3dElement;
 
     this.subscriptions.push(
       msg.centerMap.subscribe((ll) => this.center(ll)),
@@ -278,6 +290,15 @@ export class Map3dElement extends connect(store)(LitElement) {
           },
         );
         this.subscriptions.push(() => centerWatch.remove());
+
+        const zoomWatch = watch(
+          () => Number.isFinite(view.zoom) && view.zoom >= MIN_3D_ZOOM,
+          (is3d) => {
+            this.is3dAirspace = is3d;
+          },
+          { initial: true },
+        );
+        this.subscriptions.push(() => zoomWatch.remove());
       })
       .catch(async (e) => {
         store.dispatch(setApiLoading(false));
@@ -299,11 +320,19 @@ export class Map3dElement extends connect(store)(LitElement) {
 
     // Set the active track when clicking on a track, marker, label.
     view.on('click', (e) => {
-      view.hitTest(e).then(({ results }: { results: any[] }) => {
-        if (results.length > 0) {
+      if (this.is3dAirspace) {
+        this.airspace?.setPickable(true);
+      }
+      const hitPromise = view.hitTest(e);
+      if (this.is3dAirspace) {
+        this.airspace?.setPickable(false);
+      }
+      hitPromise.then(({ results }: { results: any[] }) => {
+        const nonAirspaceHits = results.filter((r) => !r.graphic?.attributes?.isAirspace);
+        if (nonAirspaceHits.length > 0) {
           // Sort hits by their distance to the camera.
-          results.sort((r1, r2) => r1.distance - r2.distance);
-          const graphic = results[0].graphic;
+          nonAirspaceHits.sort((r1, r2) => r1.distance - r2.distance);
+          const graphic = nonAirspaceHits[0].graphic;
           msg.clickSceneView.emit(graphic, scene);
           // The trackId is set on tracks and pilots (not on live tracks).
           const trackId = graphic.attributes?.trackId;
@@ -311,7 +340,19 @@ export class Map3dElement extends connect(store)(LitElement) {
             store.dispatch(setCurrentTrackId(trackId));
           }
         } else {
-          this.airspace?.handleClick({ lat: e.mapPoint.latitude ?? 0, lon: e.mapPoint.longitude ?? 0 }, scene);
+          const airspaceHits = this.is3dAirspace
+            ? results.filter((r) => r.graphic?.attributes?.isAirspace).sort((r1, r2) => r1.distance - r2.distance)
+            : [];
+          const firstHit = airspaceHits[0];
+          const hitPoint = firstHit?.mapPoint ?? e.mapPoint;
+          if (hitPoint) {
+            const latLon = { lat: hitPoint.latitude ?? 0, lon: hitPoint.longitude ?? 0 };
+            if (this.is3dAirspace) {
+              this.airspace?.handleClick(latLon, scene, firstHit?.mapPoint?.z);
+            } else {
+              this.flatAirspace?.handleClick(latLon, scene);
+            }
+          }
         }
       });
     });
@@ -468,7 +509,8 @@ export class Map3dElement extends connect(store)(LitElement) {
         <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
       </arcgis-scene>
       <skyways3d-element .map=${this.map}></skyways3d-element>
-      <airspace3d-element .map=${this.map}></airspace3d-element>
+      <flat-airspace3d-element .map=${this.map} .enabled=${!this.is3dAirspace}></flat-airspace3d-element>
+      <airspace3d-element .map=${this.map} .view=${this.view} .sampler=${this.elevationSampler}></airspace3d-element>
       ${when(
         this.country === 'FR' && !this.isFromFfvl,
         () =>

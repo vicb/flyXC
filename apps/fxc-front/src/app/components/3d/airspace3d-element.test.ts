@@ -1,7 +1,11 @@
+import Extent from '@arcgis/core/geometry/Extent';
+import Point from '@arcgis/core/geometry/Point';
+import SpatialReference from '@arcgis/core/geometry/SpatialReference';
+import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // @ts-expect-error Internal ArcGIS style evaluator without type declarations
 import StyleRepository from '@arcgis/core/views/2d/engine/vectorTiles/style/StyleRepository.js';
-import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
 import { TZDate } from '@date-fns/tz';
+import * as common from '@flyxc/common';
 import {
   airspaceOverrides,
   ASP_COLOR_DANGER,
@@ -11,31 +15,284 @@ import {
   Class,
   Type,
 } from '@flyxc/common';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import * as airspacesLogic from '../../logic/airspaces';
-import { setShow } from '../../redux/airspace-slice';
-import { setTimeSec } from '../../redux/app-slice';
+import type * as airspacesLogic from '../../logic/airspaces';
+import type * as airspaceSlice from '../../redux/airspace-slice';
+import type * as appSlice from '../../redux/app-slice';
+import type * as arcgisSlice from '../../redux/arcgis-slice';
 import { store } from '../../redux/store';
-import { addTrackEntities, setCurrentTrackId } from '../../redux/track-slice';
-import { Airspace3dElement, buildAirspaceVectorTileStyle } from './airspace3d-element';
+import type * as trackSlice from '../../redux/track-slice';
+import {
+  Airspace3dElement,
+  createGroundSampler,
+  getVisibleTileCoords,
+  getVisibleTileCoverage,
+  MAX_TILES_3D,
+  MIN_3D_ZOOM,
+} from './airspace3d-element';
+import * as meshModule from './airspace3d-mesh';
+import { buildAirspaceVectorTileStyle, FlatAirspace3dElement } from './flat-airspace3d-element';
 
-const { vectorTileCtorSpy } = vi.hoisted(() => ({
-  vectorTileCtorSpy: vi.fn(),
-}));
+const hoisted = vi.hoisted(() => {
+  const state = {
+    maxAltitude: 3000,
+    showAirspace: true,
+    showClasses: [] as Class[],
+    showTypes: [] as Type[],
+    opacity: 70,
+    multiplier: 1,
+    currentTrack: null as { id: string } | null,
+    timeSec: 1_752_577_200, // 2025-07-15T11:00:00Z
+  };
 
-vi.mock('@arcgis/core/layers/VectorTileLayer', () => {
+  type WatchEntry = { getter: () => unknown; cb: (val: any) => void; removed: boolean };
+  const watchEntries: WatchEntry[] = [];
+  const graphicsLayers: any[] = [];
+  const vectorTileLayers: any[] = [];
+  const tilePayloads = new Map<number, any[]>();
+  const pendingBuilds: Promise<unknown>[] = [];
+  const getAirspaceListMock = vi.fn(async (..._args: unknown[]) => '<div>Airspace list HTML</div>');
+
   return {
-    default: class MockVectorTileLayer {
-      style: any;
-      destroy = vi.fn();
-      constructor(props: { style: any }) {
-        this.style = props.style;
-        vectorTileCtorSpy(props);
-      }
-    },
+    state,
+    watchEntries,
+    graphicsLayers,
+    vectorTileLayers,
+    tilePayloads,
+    pendingBuilds,
+    getAirspaceListMock,
   };
 });
+
+vi.mock('@arcgis/core/core/reactiveUtils.js', () => ({
+  watch: vi.fn((getter: () => unknown, cb: (val: any) => void) => {
+    const entry = { getter, cb, removed: false };
+    hoisted.watchEntries.push(entry);
+    return {
+      remove: () => {
+        entry.removed = true;
+      },
+    };
+  }),
+}));
+
+vi.mock('@arcgis/core/layers/GraphicsLayer', () => ({
+  default: class MockGraphicsLayer {
+    graphics: any[] = [];
+    destroyed = false;
+    elevationInfo: any;
+    constructor(opts?: any) {
+      this.elevationInfo = opts?.elevationInfo;
+      hoisted.graphicsLayers.push(this);
+    }
+    addMany(items: any[]) {
+      this.graphics.push(...items);
+    }
+    removeAll() {
+      this.graphics.length = 0;
+    }
+    removeMany(items: any[]) {
+      this.graphics = this.graphics.filter((g) => !items.includes(g));
+    }
+    destroy() {
+      this.destroyed = true;
+    }
+  },
+}));
+
+vi.mock('@arcgis/core/layers/VectorTileLayer', () => ({
+  default: class MockVectorTileLayer {
+    style: any;
+    opacity = 1;
+    destroyed = false;
+    constructor(opts?: any) {
+      this.style = opts?.style;
+      hoisted.vectorTileLayers.push(this);
+    }
+    destroy() {
+      this.destroyed = true;
+    }
+  },
+}));
+
+vi.mock('mapbox-vector-tile', () => ({
+  VectorTile: class MockVectorTile {
+    layers: Record<string, { length: number; feature: (i: number) => any }> = {};
+    constructor(data: Uint8Array) {
+      const id = data[0];
+      const features = hoisted.tilePayloads.get(id) ?? [];
+      this.layers = {
+        asp: {
+          length: features.length,
+          feature: (i: number) => features[i],
+        },
+      };
+    }
+  },
+}));
+
+vi.mock('../../redux/airspace-slice', async (importOriginal) => {
+  const actual = await importOriginal<typeof airspaceSlice>();
+  return {
+    ...actual,
+    selectMaxAltitude: () => hoisted.state.maxAltitude,
+    selectShowAirspaces: () => hoisted.state.showAirspace,
+    selectShowClasses: () => hoisted.state.showClasses,
+    selectShowTypes: () => hoisted.state.showTypes,
+    selectOpacity: () => hoisted.state.opacity,
+  };
+});
+
+vi.mock('../../redux/arcgis-slice', async (importOriginal) => {
+  const actual = await importOriginal<typeof arcgisSlice>();
+  return {
+    ...actual,
+    selectAltitudeMultiplier: () => hoisted.state.multiplier,
+  };
+});
+
+vi.mock('../../redux/app-slice', async (importOriginal) => {
+  const actual = await importOriginal<typeof appSlice>();
+  return {
+    ...actual,
+    selectTimeSec: () => hoisted.state.timeSec,
+  };
+});
+
+vi.mock('../../redux/track-slice', async (importOriginal) => {
+  const actual = await importOriginal<typeof trackSlice>();
+  return {
+    ...actual,
+    selectCurrentTrack: () => hoisted.state.currentTrack,
+  };
+});
+
+vi.mock('../../logic/airspaces', async (importOriginal) => {
+  const actual = await importOriginal<typeof airspacesLogic>();
+  return {
+    ...actual,
+    getAirspaceList: hoisted.getAirspaceListMock,
+  };
+});
+
+vi.mock('./airspace3d-mesh', async (importOriginal) => {
+  const actual = await importOriginal<typeof meshModule>();
+  return {
+    ...actual,
+    buildAirspaceMesh: vi.fn((params: Parameters<typeof actual.buildAirspaceMesh>[0]) => {
+      const p = actual.buildAirspaceMesh(params);
+      hoisted.pendingBuilds.push(p);
+      return p;
+    }),
+    buildAirspaceMeshData: vi.fn((params: Parameters<typeof actual.buildAirspaceMeshData>[0]) => {
+      const p = actual.buildAirspaceMeshData(params);
+      hoisted.pendingBuilds.push(p);
+      return p;
+    }),
+    buildAirspaceFootprint: vi.fn((...args: Parameters<typeof actual.buildAirspaceFootprint>) => {
+      const p = actual.buildAirspaceFootprint(...args);
+      hoisted.pendingBuilds.push(p);
+      return p;
+    }),
+    extrudeAirspaceFootprint: vi.fn(actual.extrudeAirspaceFootprint),
+  };
+});
+
+vi.mock('@flyxc/common', async (importOriginal) => {
+  const actual = await importOriginal<typeof common>();
+  return {
+    ...actual,
+    applyOverrides: vi.fn(actual.applyOverrides),
+  };
+});
+
+function makeMockMap() {
+  const layers: any[] = [];
+  return {
+    layers,
+    add: vi.fn((layer: any) => {
+      layers.push(layer);
+    }),
+    remove: vi.fn((layer: any) => {
+      const idx = layers.indexOf(layer);
+      if (idx >= 0) {
+        layers.splice(idx, 1);
+      }
+    }),
+  } as any;
+}
+
+function makeMockView(zoom: number, xmin = 5.9, ymin = 45.4, xmax = 6.2, ymax = 45.6) {
+  const stageLayers: Record<string, { apiLayerViewUid: string; pickable: boolean }> = {};
+  let uidSeq = 1;
+  return {
+    zoom,
+    stationary: true,
+    center: new Point({
+      longitude: (xmin + xmax) / 2,
+      latitude: (ymin + ymax) / 2,
+      spatialReference: { wkid: 4326 },
+    }),
+    extent: new Extent({
+      xmin,
+      ymin,
+      xmax,
+      ymax,
+      spatialReference: { wkid: 4326 },
+    }),
+    stage: { _layers: stageLayers },
+    whenLayerView: vi.fn(async () => {
+      const uid = `lv-${uidSeq++}`;
+      stageLayers[uid] = { apiLayerViewUid: uid, pickable: true };
+      return { uid };
+    }),
+  } as any;
+}
+
+function makeFeature(props: Record<string, string>, ring: number[][]) {
+  return {
+    type: 3,
+    properties: props,
+    toGeoJSON: () => ({
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [ring],
+      },
+    }),
+  };
+}
+
+function makeAirspaceProps(overrides: Record<string, string | number | boolean> = {}): Record<string, any> {
+  return {
+    name: 'CHAMBERY CTR',
+    category: 'CTR',
+    country: 'FR',
+    floorM: 0,
+    floorLabel: 'GND',
+    floorRefGnd: true,
+    topM: 1000,
+    topLabel: '1000m MSL',
+    topRefGnd: false,
+    type: Type.CTR,
+    icaoClass: Class.D,
+    activity: 0,
+    flags: 0,
+    ...overrides,
+  };
+}
+
+async function flushAsync() {
+  for (let i = 0; i < 6; i++) {
+    await vi.advanceTimersByTimeAsync(10);
+    if (hoisted.pendingBuilds.length > 0) {
+      const batch = hoisted.pendingBuilds.splice(0, hoisted.pendingBuilds.length);
+      await Promise.all(batch);
+    }
+    await Promise.resolve();
+  }
+}
 
 function hexToUnitRgba(hex: string): [number, number, number, number] {
   const n = Number.parseInt(hex.slice(1), 16);
@@ -210,67 +467,550 @@ describe('buildAirspaceVectorTileStyle', () => {
   });
 });
 
+describe('getVisibleTileCoords', () => {
+  it('returns empty array when zoomed out below MIN_3D_ZOOM or missing extent', () => {
+    expect(getVisibleTileCoords(makeMockView(9.9))).toEqual([]);
+    expect(getVisibleTileCoords({ zoom: 10, extent: null, center: null } as any)).toEqual([]);
+    expect(getVisibleTileCoords({ zoom: Number.NaN } as any)).toEqual([]);
+  });
+
+  it('steps tile zoom down to cover wide/tilted frustum borders and caps at MAX_TILES_3D', () => {
+    const view = makeMockView(10, 4.0, 44.0, 8.0, 47.0);
+    const tiles = getVisibleTileCoords(view);
+    expect(tiles.length).toBeLessThanOrEqual(MAX_TILES_3D);
+    expect(tiles[0].z).toBeLessThan(10);
+
+    // Very wide extent at zoom 10 hits MIN_3D_TILE_ZOOM (8) and still enforces MAX_TILES_3D sorted from center.
+    const hugeView = makeMockView(10, -10.0, 35.0, 20.0, 55.0);
+    const cappedTiles = getVisibleTileCoords(hugeView);
+    expect(cappedTiles).toHaveLength(MAX_TILES_3D);
+    expect(cappedTiles[0].z).toBe(8);
+
+    // Tilted frustum sampling (toMap) expands bounds beyond SceneView.extent alone.
+    const tiltedView = {
+      ...makeMockView(10, 5.5, 45.4, 6.5, 45.9),
+      width: 1000,
+      height: 800,
+      toMap: vi.fn(({ y }: { x: number; y: number }) =>
+        y < 300 ? ({ longitude: 6.0, latitude: 47.2 } as any) : ({ longitude: 6.0, latitude: 44.9 } as any),
+      ),
+    } as any;
+    const coverage = getVisibleTileCoverage(tiltedView);
+    expect(coverage.bounds).not.toBeNull();
+    expect(coverage.bounds!.maxLat).toBeGreaterThanOrEqual(47.2);
+    expect(coverage.bounds!.minLat).toBeLessThanOrEqual(44.9);
+  });
+
+  it('converts WebMercator extents to geographic tile coordinates', () => {
+    const [xmin, ymin] = webMercatorUtils.lngLatToXY(5.9, 45.4);
+    const [xmax, ymax] = webMercatorUtils.lngLatToXY(6.2, 45.6);
+    const view = {
+      zoom: 10,
+      center: new Point({ longitude: 6.05, latitude: 45.5, spatialReference: { wkid: 4326 } }),
+      extent: new Extent({ xmin, ymin, xmax, ymax, spatialReference: SpatialReference.WebMercator }),
+    } as any;
+
+    const tiles = getVisibleTileCoords(view);
+    expect(tiles.length).toBeGreaterThan(0);
+    expect(tiles[0].z).toBe(10);
+  });
+});
+
+describe('createGroundSampler', () => {
+  it('returns 0 when sampler is missing', () => {
+    const sample = createGroundSampler(undefined);
+    expect(sample(6, 45)).toBe(0);
+  });
+
+  it('reads WGS84 elevationAt directly and filters invalid/sentinel values', () => {
+    const elevationAt = vi.fn((lon: number) => (lon === 1 ? -9999 : lon === 2 ? 25000 : lon === 3 ? Number.NaN : 850));
+    const sample = createGroundSampler({
+      noDataValue: -9999,
+      spatialReference: { isWGS84: true, isWebMercator: false },
+      elevationAt,
+    } as any);
+
+    expect(sample(6, 45)).toBe(850);
+    expect(sample(1, 45)).toBe(0);
+    expect(sample(2, 45)).toBe(0);
+    expect(sample(3, 45)).toBe(0);
+  });
+
+  it('projects coordinates for WebMercator samplers and falls back to queryElevation for others', () => {
+    const wmElevationAt = vi.fn(() => 420);
+    const wmSample = createGroundSampler({
+      noDataValue: -1,
+      spatialReference: { isWGS84: false, isWebMercator: true },
+      elevationAt: wmElevationAt,
+    } as any);
+
+    expect(wmSample(6, 45)).toBe(420);
+    const [expectedX, expectedY] = webMercatorUtils.lngLatToXY(6, 45);
+    expect(wmElevationAt).toHaveBeenCalledWith(expectedX, expectedY);
+
+    const queryElevation = vi.fn(() => ({ z: 615 }));
+    const otherSample = createGroundSampler({
+      noDataValue: -1,
+      spatialReference: { isWGS84: false, isWebMercator: false },
+      queryElevation,
+    } as any);
+
+    expect(otherSample(6, 45)).toBe(615);
+    expect(queryElevation).toHaveBeenCalledOnce();
+  });
+});
+
 describe('Airspace3dElement', () => {
-  const mounted: Airspace3dElement[] = [];
+  let element: Airspace3dElement;
+  let mockMap: ReturnType<typeof makeMockMap>;
+  let fetchMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    hoisted.state.maxAltitude = 3000;
+    hoisted.state.showAirspace = true;
+    hoisted.state.showClasses = [Class.C, Class.D];
+    hoisted.state.showTypes = [Type.CTR, Type.Restricted];
+    hoisted.state.opacity = 70;
+    hoisted.state.multiplier = 1;
+    hoisted.state.currentTrack = null;
+    hoisted.state.timeSec = 1_752_577_200;
+    hoisted.watchEntries.length = 0;
+    hoisted.graphicsLayers.length = 0;
+    hoisted.vectorTileLayers.length = 0;
+    hoisted.tilePayloads.clear();
+    hoisted.pendingBuilds.length = 0;
+    hoisted.getAirspaceListMock.mockClear();
+    vi.mocked(meshModule.buildAirspaceMesh).mockClear();
+    vi.mocked(meshModule.buildAirspaceMeshData).mockClear();
+    vi.mocked(meshModule.buildAirspaceFootprint).mockClear();
+    vi.mocked(meshModule.extrudeAirspaceFootprint).mockClear();
+    vi.mocked(common.applyOverrides).mockClear();
+
+    const origFetch = globalThis.fetch;
+    fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+      const match = /\/(\d+)\/(\d+)\.pbf$/.exec(url);
+      if (!match) {
+        return origFetch(input, init);
+      }
+      // Assign deterministic tile id 1 or 2 based on tile parity.
+      const id = ((Number(match[1]) + Number(match[2])) % 2) + 1;
+      return {
+        ok: true,
+        arrayBuffer: async () => new Uint8Array([id]).buffer,
+      } as Response;
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    mockMap = makeMockMap();
+    element = new Airspace3dElement();
+    document.body.appendChild(element);
+  });
 
   afterEach(() => {
-    for (const el of mounted) {
-      el.remove();
+    element.remove();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it('stays inactive below MIN_3D_ZOOM and cleans up GraphicsLayer when zooming back out', async () => {
+    const view = makeMockView(MIN_3D_ZOOM - 1);
+    element.map = mockMap;
+    element.view = view;
+    await element.updateComplete;
+    await flushAsync();
+
+    expect(hoisted.vectorTileLayers).toHaveLength(0);
+    expect(hoisted.graphicsLayers).toHaveLength(0);
+    expect(mockMap.layers).toHaveLength(0);
+
+    // Prepare single tile feature when zoomed in.
+    const polyRing = [
+      [6.0, 45.45],
+      [6.05, 45.45],
+      [6.05, 45.5],
+      [6.0, 45.5],
+      [6.0, 45.45],
+    ];
+    hoisted.tilePayloads.set(1, [makeFeature(makeAirspaceProps(), polyRing)]);
+    hoisted.tilePayloads.set(2, []);
+
+    view.zoom = MIN_3D_ZOOM;
+    for (const entry of hoisted.watchEntries) {
+      if (!entry.removed) {
+        entry.cb(MIN_3D_ZOOM);
+      }
     }
-    mounted.length = 0;
-    store.dispatch(setShow(false));
-    store.dispatch(setCurrentTrackId(undefined));
-    vi.restoreAllMocks();
-    vectorTileCtorSpy.mockClear();
+    await vi.advanceTimersByTimeAsync(260);
+    await flushAsync();
+
+    expect(hoisted.graphicsLayers).toHaveLength(1);
+    expect(hoisted.graphicsLayers[0].graphics.length).toBe(1);
+    expect(hoisted.graphicsLayers[0].graphics[0].attributes.isAirspace).toBe(true);
+
+    // Zooming back below MIN_3D_ZOOM removes and destroys the 3D GraphicsLayer.
+    view.zoom = 9;
+    for (const entry of hoisted.watchEntries) {
+      if (!entry.removed) {
+        entry.cb(-1);
+      }
+    }
+    await flushAsync();
+
+    expect(hoisted.graphicsLayers[0].destroyed).toBe(true);
+    expect(mockMap.layers).toHaveLength(0);
   });
 
-  async function createElement() {
-    const mockMap = {
-      add: vi.fn(),
-      remove: vi.fn(),
+  it('merges multi-tile polygons, reuses cached footprints across multiplier updates, and updates opacity in place', async () => {
+    // Wide extent covering >=2 tiles at zoom 10 so both tile id 1 and id 2 are fetched.
+    const view = makeMockView(10, 5.7, 45.3, 6.4, 45.7);
+    const sharedProps = makeAirspaceProps({ floorRefGnd: false, floorM: 200, topM: 1000 });
+    const secondSharedCategoryProps = makeAirspaceProps({
+      name: 'CHAMBERY TMA',
+      floorRefGnd: false,
+      floorM: 400,
+      topM: 1200,
+    });
+    hoisted.tilePayloads.set(1, [
+      makeFeature(sharedProps, [
+        [6.0, 45.45],
+        [6.05, 45.45],
+        [6.05, 45.5],
+        [6.0, 45.5],
+        [6.0, 45.45],
+      ]),
+      makeFeature(secondSharedCategoryProps, [
+        [6.12, 45.45],
+        [6.16, 45.45],
+        [6.16, 45.5],
+        [6.12, 45.5],
+        [6.12, 45.45],
+      ]),
+    ]);
+    hoisted.tilePayloads.set(2, [
+      makeFeature(sharedProps, [
+        [6.05, 45.45],
+        [6.1, 45.45],
+        [6.1, 45.5],
+        [6.05, 45.5],
+        [6.05, 45.45],
+      ]),
+    ]);
+
+    element.map = mockMap;
+    element.view = view;
+    await element.updateComplete;
+    await flushAsync();
+
+    // Both airspaces share the same color category, so they batch into a single Graphic.
+    expect(hoisted.graphicsLayers[0].graphics).toHaveLength(1);
+    expect(hoisted.graphicsLayers[0].graphics[0].attributes.category).toBe(common.AirspaceColorCategory.Prohibited);
+    expect(meshModule.buildAirspaceFootprint).toHaveBeenCalledTimes(2);
+    expect(meshModule.extrudeAirspaceFootprint).toHaveBeenCalledTimes(2);
+
+    const prevGraphic = hoisted.graphicsLayers[0].graphics[0];
+    const prevSymbol = prevGraphic.symbol;
+    hoisted.state.opacity = 30;
+    store.dispatch({ type: 'TEST_OPACITY' });
+    await element.updateComplete;
+
+    expect(meshModule.buildAirspaceFootprint).toHaveBeenCalledTimes(2);
+    expect(meshModule.extrudeAirspaceFootprint).toHaveBeenCalledTimes(2);
+    expect(prevGraphic.symbol).not.toBe(prevSymbol);
+
+    // Changing exaggeration multiplier re-extrudes synchronously without rebuilding 2D footprints.
+    hoisted.state.multiplier = 2;
+    store.dispatch({ type: 'TEST_MULTIPLIER' });
+    await element.updateComplete;
+    await flushAsync();
+
+    expect(meshModule.buildAirspaceFootprint).toHaveBeenCalledTimes(2);
+    expect(meshModule.extrudeAirspaceFootprint).toHaveBeenCalledTimes(4);
+    expect(hoisted.graphicsLayers[0].graphics).toHaveLength(1);
+    expect(hoisted.graphicsLayers[0].graphics[0]).not.toBe(prevGraphic);
+  });
+
+  it('passes active track date to applyOverrides when a track is loaded, and current date otherwise', async () => {
+    const view = makeMockView(10, 6.0, 45.45, 6.02, 45.47);
+    const props = makeAirspaceProps();
+    hoisted.tilePayloads.set(1, [
+      makeFeature(props, [
+        [6.0, 45.45],
+        [6.02, 45.45],
+        [6.02, 45.47],
+        [6.0, 45.47],
+        [6.0, 45.45],
+      ]),
+    ]);
+    hoisted.tilePayloads.set(2, hoisted.tilePayloads.get(1)!);
+
+    // Without track: uses wall-clock Date (2026+ or current Date.now()).
+    element.map = mockMap;
+    element.view = view;
+    await element.updateComplete;
+    await flushAsync();
+
+    expect(common.applyOverrides).toHaveBeenCalled();
+    const firstDate = vi.mocked(common.applyOverrides).mock.calls[0][1];
+    expect(firstDate.getFullYear()).not.toBe(2025);
+
+    // With active track: uses new Date(timeSec * 1000) -> 2025-07-15.
+    vi.mocked(common.applyOverrides).mockClear();
+    hoisted.state.currentTrack = { id: 'track-1' };
+    hoisted.state.timeSec = 1_752_577_200;
+    store.dispatch({ type: 'TEST_TRACK' });
+    await element.updateComplete;
+    await flushAsync();
+
+    expect(common.applyOverrides).toHaveBeenCalled();
+    const trackDate = vi.mocked(common.applyOverrides).mock.calls[0][1];
+    expect(trackDate.getTime()).toBe(1_752_577_200 * 1000);
+  });
+
+  it('debounces sampler changed events, skips unchanged terrain, and only rebuilds changed GND meshes', async () => {
+    let samplerChangeCb: (() => void) | undefined;
+    let elevation = 500;
+    const mockSampler = {
+      noDataValue: -9999,
+      spatialReference: { isWGS84: true, isWebMercator: false },
+      elevationAt: () => elevation,
+      on: vi.fn((event: string, cb: () => void) => {
+        if (event === 'changed') {
+          samplerChangeCb = cb;
+        }
+        return { remove: vi.fn() };
+      }),
     } as any;
-    const el = new Airspace3dElement();
-    el.map = mockMap;
-    document.body.appendChild(el);
-    mounted.push(el);
-    store.dispatch(setShow(true));
-    await el.updateComplete;
-    return { el, mockMap };
-  }
 
-  it('passes the active track timestamp to getAirspaceList on click and rebuilds layer on track change', async () => {
-    const { el } = await createElement();
-    expect(vectorTileCtorSpy).toHaveBeenCalledTimes(1);
+    const view = makeMockView(10, 6.0, 45.45, 6.02, 45.47);
+    const mslProps = makeAirspaceProps({ name: 'MSL ZONE', floorRefGnd: false, floorM: 500, topM: 1500 });
+    const gndProps = makeAirspaceProps({ name: 'GND ZONE', floorRefGnd: true, floorM: 3200, topM: 3800 });
+    const ring = [
+      [6.0, 45.45],
+      [6.02, 45.45],
+      [6.02, 45.47],
+      [6.0, 45.47],
+      [6.0, 45.45],
+    ];
 
-    const getListSpy = vi.spyOn(airspacesLogic, 'getAirspaceList').mockResolvedValue('<b>test</b>');
-    const mockScene = { openPopup: vi.fn().mockResolvedValue(undefined) } as unknown as ArcgisScene;
-    const trackTimeSec = Math.floor(Date.UTC(2025, 6, 15, 12, 0, 0) / 1000);
+    // Put both features in the cached tile, with GND ZONE initially filtered out by maxAltitude (3000).
+    hoisted.tilePayloads.set(1, [makeFeature(mslProps, ring), makeFeature(gndProps, ring)]);
+    hoisted.tilePayloads.set(2, hoisted.tilePayloads.get(1)!);
 
-    store.dispatch(setTimeSec(trackTimeSec));
-    store.dispatch(addTrackEntities([{ id: 'track-1' } as any]));
-    store.dispatch(setCurrentTrackId('track-1'));
-    await el.updateComplete;
-    expect(vectorTileCtorSpy).toHaveBeenCalledTimes(2);
+    element.map = mockMap;
+    element.view = view;
+    element.sampler = mockSampler;
+    await element.updateComplete;
+    await flushAsync();
 
-    await el.handleClick({ lat: 45.8, lon: 6.8 }, mockScene);
+    expect(meshModule.buildAirspaceFootprint).toHaveBeenCalledTimes(1);
+    expect(meshModule.extrudeAirspaceFootprint).toHaveBeenCalledTimes(1);
+    elevation = 900;
+    samplerChangeCb?.();
+    await vi.advanceTimersByTimeAsync(500);
+    await flushAsync();
+    expect(meshModule.extrudeAirspaceFootprint).toHaveBeenCalledTimes(1);
 
-    expect(getListSpy).toHaveBeenCalledTimes(1);
-    const passedDate = getListSpy.mock.calls[0][6];
-    expect(passedDate.getTime()).toBe(trackTimeSec * 1000);
+    // Increase maxAltitude so GND ZONE becomes visible alongside MSL ZONE.
+    hoisted.state.maxAltitude = 3500;
+    store.dispatch({ type: 'TEST_RELOAD' });
+    await element.updateComplete;
+    await flushAsync();
+
+    // MSL ZONE stays cached; only GND ZONE is newly built on maxAltitude reload.
+    expect(meshModule.buildAirspaceFootprint).toHaveBeenCalledTimes(2);
+    expect(meshModule.extrudeAirspaceFootprint).toHaveBeenCalledTimes(2);
+    vi.mocked(meshModule.buildAirspaceFootprint).mockClear();
+    vi.mocked(meshModule.extrudeAirspaceFootprint).mockClear();
+
+    // If terrain height did not change, sampler event skips rebuilding GND ZONE.
+    samplerChangeCb?.();
+    await vi.advanceTimersByTimeAsync(500);
+    await flushAsync();
+    expect(meshModule.extrudeAirspaceFootprint).toHaveBeenCalledTimes(0);
+
+    // When terrain height changes by >= 5m, sampler event synchronously re-extrudes ONLY GND ZONE without re-triangulating.
+    elevation = 1200;
+    samplerChangeCb?.();
+    await vi.advanceTimersByTimeAsync(500);
+    await flushAsync();
+
+    expect(meshModule.buildAirspaceFootprint).toHaveBeenCalledTimes(0);
+    expect(meshModule.extrudeAirspaceFootprint).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(meshModule.extrudeAirspaceFootprint).mock.calls[0][1].name).toBe('GND ZONE');
   });
 
-  it('uses current date on click when no track is loaded', async () => {
-    const { el } = await createElement();
+  it('cleans up layers when showAirspace becomes false and on disconnectedCallback', async () => {
+    const view = makeMockView(10, 6.0, 45.45, 6.02, 45.47);
+    hoisted.tilePayloads.set(1, [
+      makeFeature(makeAirspaceProps(), [
+        [6.0, 45.45],
+        [6.02, 45.45],
+        [6.02, 45.47],
+        [6.0, 45.47],
+        [6.0, 45.45],
+      ]),
+    ]);
+    hoisted.tilePayloads.set(2, hoisted.tilePayloads.get(1)!);
 
-    const getListSpy = vi.spyOn(airspacesLogic, 'getAirspaceList').mockResolvedValue('');
-    const mockScene = { openPopup: vi.fn() } as unknown as ArcgisScene;
+    element.map = mockMap;
+    element.view = view;
+    await element.updateComplete;
+    await flushAsync();
+
+    expect(hoisted.graphicsLayers).toHaveLength(1);
+    hoisted.state.showAirspace = false;
+    store.dispatch({ type: 'TEST_HIDE' });
+    await element.updateComplete;
+
+    expect(hoisted.graphicsLayers[0].destroyed).toBe(true);
+    expect(mockMap.layers).toHaveLength(0);
+
+    element.disconnectedCallback();
+    expect(hoisted.watchEntries.every((w) => w.removed)).toBe(true);
+  });
+
+  it('opens popup from local 3D matches or getAirspaceList fallback, and toggles pickable', async () => {
+    const view = makeMockView(10, 6.0, 45.45, 6.02, 45.47);
+    const ring = [
+      [6.0, 45.45],
+      [6.02, 45.45],
+      [6.02, 45.47],
+      [6.0, 45.47],
+      [6.0, 45.45],
+    ];
+    hoisted.tilePayloads.set(1, [
+      makeFeature(makeAirspaceProps({ name: 'LOCAL ZONE', floorRefGnd: false, floorM: 600, topM: 1200 }), ring),
+    ]);
+    hoisted.tilePayloads.set(2, hoisted.tilePayloads.get(1)!);
+
+    const scene = { openPopup: vi.fn(async () => undefined) } as any;
+    element.map = mockMap;
+    element.view = view;
+    await element.updateComplete;
+    await flushAsync();
+
+    // Non-pickable by default so map drag anchors on ground; setPickable toggles stage layer flag.
+    expect(view.stage._layers['lv-1'].pickable).toBe(false);
+    element.setPickable(true);
+    expect(view.stage._layers['lv-1'].pickable).toBe(true);
+    element.setPickable(false);
+    expect(view.stage._layers['lv-1'].pickable).toBe(false);
+
+    // Clicking inside an active 3D volume with clickZ resolves locally without calling getAirspaceList.
+    await element.handleClick({ lat: 45.46, lon: 6.01 }, scene, 900);
+    expect(hoisted.getAirspaceListMock).not.toHaveBeenCalled();
+    expect(scene.openPopup).toHaveBeenCalledTimes(1);
+    expect(scene.openPopup.mock.calls[0][0].location.z).toBe(900);
+
+    // Clicking outside loaded 3D polygons falls back to getAirspaceList with effective track date.
+    hoisted.state.currentTrack = { id: 'track-1' };
+    hoisted.state.timeSec = 1_752_577_200;
+    store.dispatch({ type: 'TEST_POPUP_DATE' });
+    await element.updateComplete;
+
+    await element.handleClick({ lat: 46.5, lon: 7.5 }, scene);
+    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(1);
+    expect((hoisted.getAirspaceListMock.mock.calls[0][6] as Date).getTime()).toBe(1_752_577_200 * 1000);
+    expect(scene.openPopup).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('FlatAirspace3dElement', () => {
+  let element: FlatAirspace3dElement;
+  let mockMap: ReturnType<typeof makeMockMap>;
+
+  beforeEach(() => {
+    hoisted.state.maxAltitude = 3000;
+    hoisted.state.showAirspace = true;
+    hoisted.state.showClasses = [Class.C, Class.D];
+    hoisted.state.showTypes = [Type.CTR, Type.Restricted];
+    hoisted.state.opacity = 70;
+    hoisted.state.currentTrack = null;
+    hoisted.state.timeSec = 1_752_577_200;
+    hoisted.vectorTileLayers.length = 0;
+    hoisted.getAirspaceListMock.mockClear();
+
+    mockMap = makeMockMap();
+    element = new FlatAirspace3dElement();
+    document.body.appendChild(element);
+  });
+
+  afterEach(() => {
+    element.remove();
+  });
+
+  it('creates VectorTileLayer only when enabled and showAirspace are true, and rebuilds on state changes', async () => {
+    element.map = mockMap;
+    element.enabled = false;
+    await element.updateComplete;
+    expect(hoisted.vectorTileLayers).toHaveLength(0);
+
+    element.enabled = true;
+    await element.updateComplete;
+    expect(hoisted.vectorTileLayers).toHaveLength(1);
+    expect(mockMap.layers).toHaveLength(1);
+    expect(hoisted.vectorTileLayers[0].style.layers[0].paint['fill-opacity']).toBeCloseTo(0.7);
+
+    // Opacity change rebuilds the VectorTileLayer with the updated fill-opacity.
+    hoisted.state.opacity = 40;
+    store.dispatch({ type: 'TEST_FLAT_OPACITY' });
+    await element.updateComplete;
+    expect(hoisted.vectorTileLayers).toHaveLength(2);
+    expect(hoisted.vectorTileLayers[0].destroyed).toBe(true);
+    expect(hoisted.vectorTileLayers[1].style.layers[0].paint['fill-opacity']).toBeCloseTo(0.4);
+
+    // Filter change recreates the VectorTileLayer.
+    hoisted.state.maxAltitude = 2000;
+    store.dispatch({ type: 'TEST_FLAT_FILTER' });
+    await element.updateComplete;
+    expect(hoisted.vectorTileLayers).toHaveLength(3);
+    expect(hoisted.vectorTileLayers[1].destroyed).toBe(true);
+
+    // Track change recreates the VectorTileLayer with track-date overrides.
+    hoisted.state.currentTrack = { id: 'track-1' };
+    store.dispatch({ type: 'TEST_FLAT_TRACK' });
+    await element.updateComplete;
+    expect(hoisted.vectorTileLayers).toHaveLength(4);
+    expect(hoisted.vectorTileLayers[2].destroyed).toBe(true);
+
+    // Disabling removes and destroys the layer.
+    element.enabled = false;
+    await element.updateComplete;
+    expect(hoisted.vectorTileLayers[3].destroyed).toBe(true);
+    expect(mockMap.layers).toHaveLength(0);
+  });
+
+  it('opens popup with effective track date on click only when enabled, and current date when no track is loaded', async () => {
+    const scene = { openPopup: vi.fn(async () => undefined) } as any;
+    element.map = mockMap;
+    element.enabled = false;
+    await element.updateComplete;
+
+    await element.handleClick({ lat: 45.5, lon: 6.1 }, scene);
+    expect(hoisted.getAirspaceListMock).not.toHaveBeenCalled();
+
+    element.enabled = true;
+    await element.updateComplete;
 
     const before = Date.now();
-    await el.handleClick({ lat: 45.8, lon: 6.8 }, mockScene);
+    await element.handleClick({ lat: 45.5, lon: 6.1 }, scene);
     const after = Date.now();
+    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(1);
+    const wallClockDate = hoisted.getAirspaceListMock.mock.calls[0][6] as Date;
+    expect(wallClockDate.getTime()).toBeGreaterThanOrEqual(before);
+    expect(wallClockDate.getTime()).toBeLessThanOrEqual(after);
+    expect(scene.openPopup).toHaveBeenCalledTimes(1);
 
-    const passedDate = getListSpy.mock.calls[0][6];
-    expect(passedDate.getTime()).toBeGreaterThanOrEqual(before);
-    expect(passedDate.getTime()).toBeLessThanOrEqual(after);
+    hoisted.state.currentTrack = { id: 'track-1' };
+    hoisted.state.timeSec = 1_752_577_200;
+    store.dispatch({ type: 'TEST_FLAT_DATE' });
+    await element.updateComplete;
+
+    await element.handleClick({ lat: 45.5, lon: 6.1 }, scene);
+    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(2);
+    expect((hoisted.getAirspaceListMock.mock.calls[1][6] as Date).getTime()).toBe(1_752_577_200 * 1000);
+    expect(scene.openPopup).toHaveBeenCalledTimes(2);
   });
 });

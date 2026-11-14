@@ -83,7 +83,13 @@ export async function getAirspaceList(
   return info.join('<br>');
 }
 
-function getAirspaceHtmlDescription(airspace: AirspaceTyped): string {
+/**
+ * Formats an airspace summary as an HTML snippet for map popups.
+ *
+ * @param airspace Typed airspace metadata to format.
+ * @returns HTML string describing category, name, floor, and ceiling.
+ */
+export function getAirspaceHtmlDescription(airspace: AirspaceTyped): string {
   let category = getAirspaceCategory(airspace);
   if (category.length > 0) {
     category = `[${category}] `;
