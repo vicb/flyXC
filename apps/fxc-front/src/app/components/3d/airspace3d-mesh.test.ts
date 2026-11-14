@@ -225,4 +225,64 @@ describe('buildAirspaceMesh', () => {
     assertValidMeshIndices(data2!.positions, data2!.faces);
     expect(getZs(data2!.positions).every((z) => z === 900 || z === 1900)).toBe(true);
   });
+
+  it('subdivides concave and holed GND polygons cleanly with typed arrays and preserves holes', async () => {
+    // 6.6km C-shaped polygon with an interior hole.
+    const concaveWithHole = new Polygon({
+      rings: [
+        [
+          [6.0, 45.0],
+          [6.06, 45.0],
+          [6.06, 45.06],
+          [6.04, 45.06],
+          [6.04, 45.045],
+          [6.02, 45.045],
+          [6.02, 45.06],
+          [6.0, 45.06],
+          [6.0, 45.0],
+        ],
+        [
+          [6.02, 45.01],
+          [6.02, 45.03],
+          [6.04, 45.03],
+          [6.04, 45.01],
+          [6.02, 45.01],
+        ],
+      ],
+      spatialReference: { wkid: 4326 },
+    });
+    const airspace = makeAirspace({
+      floorM: 200,
+      floorRefGnd: true,
+      topM: 700,
+      topRefGnd: true,
+    });
+
+    const footprint = await buildAirspaceFootprint(concaveWithHole, airspace);
+    expect(footprint).not.toBeNull();
+    expect(footprint!.terrainCap).toBeDefined();
+    expect(footprint!.terrainCap!.xy).toBeInstanceOf(Float64Array);
+    expect(footprint!.terrainCap!.faces).toBeInstanceOf(Uint32Array);
+
+    const { xy, faces } = footprint!.terrainCap!;
+    expect(xy.length / 2).toBeGreaterThan(20);
+    // No terrain-cap triangle centroid may lie inside the inner hole or the concave cutout.
+    for (let i = 0; i < faces.length; i += 3) {
+      const cx = (xy[faces[i] * 2] + xy[faces[i + 1] * 2] + xy[faces[i + 2] * 2]) / 3;
+      const cy = (xy[faces[i] * 2 + 1] + xy[faces[i + 1] * 2 + 1] + xy[faces[i + 2] * 2 + 1]) / 3;
+      const inHole = cx > 6.0201 && cx < 6.0399 && cy > 45.0101 && cy < 45.0299;
+      const inConcaveCutout = cx > 6.0201 && cx < 6.0399 && cy > 45.0451 && cy <= 45.06;
+      expect(inHole).toBe(false);
+      expect(inConcaveCutout).toBe(false);
+    }
+
+    const mesh = await buildAirspaceMesh({
+      polygon: concaveWithHole,
+      airspace,
+      multiplier: 1,
+      sampleGroundZ: (lon, lat) => 300 + (lon - 6.0) * 5000 + (lat - 45.0) * 5000,
+    });
+    expect(mesh).not.toBeNull();
+    assertValidMeshIndices(mesh!.vertexAttributes.position!, mesh!.components![0].faces!);
+  });
 });

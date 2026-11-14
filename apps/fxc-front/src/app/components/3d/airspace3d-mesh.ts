@@ -1,16 +1,15 @@
-import Extent from '@arcgis/core/geometry/Extent';
 import Mesh from '@arcgis/core/geometry/Mesh';
-import { clipExecute } from '@arcgis/core/geometry/operators/clipOperator';
-import Polygon from '@arcgis/core/geometry/Polygon';
+import type Polygon from '@arcgis/core/geometry/Polygon';
 import MeshGeoreferencedVertexSpace from '@arcgis/core/geometry/support/MeshGeoreferencedVertexSpace';
-import * as meshUtils from '@arcgis/core/geometry/support/meshUtils';
+// @ts-expect-error Internal ArcGIS 2D earcut tessellation utilities without type declarations
+import * as tess from '@arcgis/core/views/3d/layers/graphics/tessellationUtils.js';
 import type { AirspaceTyped } from '@flyxc/common';
 
 const METERS_PER_DEGREE_LAT = 111_320;
 const MIN_DENSIFY_STEP_M = 1000;
 const TARGET_DENSIFY_SEGMENTS = 48;
 const TARGET_GRID_CELL_M = 1500;
-const MAX_GRID_DIVS = 6;
+const MAX_SUBDIVIDE_PASSES = 4;
 const GND_BASE_SINK_M = 50;
 
 /**
@@ -40,8 +39,8 @@ export interface AirspaceMeshData {
  * Intermediate 2D triangulation in geographic `(lon, lat)` coordinates.
  */
 export interface Triangulated2D {
-  xy: number[];
-  faces: number[];
+  xy: Float64Array;
+  faces: Uint32Array;
 }
 
 /**
@@ -53,12 +52,12 @@ export interface AirspaceFootprint {
   terrainCap?: Triangulated2D;
 }
 
-function estimateExtentMeters(extent: Extent): { widthM: number; heightM: number } {
-  const midLat = (extent.ymin + extent.ymax) / 2;
+function estimateExtentMeters(extent: Polygon['extent']): { widthM: number; heightM: number } {
+  const midLat = (extent!.ymin + extent!.ymax) / 2;
   const cosLat = Math.max(0.1, Math.cos((midLat * Math.PI) / 180));
   return {
-    widthM: extent.width * METERS_PER_DEGREE_LAT * cosLat,
-    heightM: extent.height * METERS_PER_DEGREE_LAT,
+    widthM: extent!.width * METERS_PER_DEGREE_LAT * cosLat,
+    heightM: extent!.height * METERS_PER_DEGREE_LAT,
   };
 }
 
@@ -99,108 +98,120 @@ function prepareWallRings(rings: number[][][], stepM?: number): number[][][] {
   return result;
 }
 
-function appendMesh2D(mesh: Mesh | null | undefined, xy: number[], faces: number[]): boolean {
-  const srcPos = mesh?.vertexAttributes?.position;
-  const srcFaces = mesh?.components?.[0]?.faces;
-  if (!srcPos || !srcFaces || srcFaces.length === 0) {
-    return false;
+function triangulateRings2D(rings: number[][][]): Triangulated2D {
+  if (rings.length === 0) {
+    return { xy: new Float64Array(0), faces: new Uint32Array(0) };
   }
-  const base = xy.length / 2;
-  for (let i = 0; i < srcPos.length; i += 3) {
-    xy.push(srcPos[i], srcPos[i + 1]);
+  const info = tess.ringsToOutlinedTessellationInfo(rings, { hasZ: false, ccwRingsAsHoles: true });
+  const res = tess.tessellate(info, { method: 'earcut' });
+  if (!res?.succeeded || !res.positions || !res.indices) {
+    return { xy: new Float64Array(0), faces: new Uint32Array(0) };
   }
-  for (let i = 0; i < srcFaces.length; i++) {
-    faces.push(base + srcFaces[i]);
+  const srcPos = res.positions;
+  const vertexCount = srcPos.length / 3;
+  const xy = new Float64Array(vertexCount * 2);
+  for (let i = 0, j = 0; i < srcPos.length; i += 3, j += 2) {
+    xy[j] = srcPos[i];
+    xy[j + 1] = srcPos[i + 1];
   }
-  return true;
+  return { xy, faces: new Uint32Array(res.indices) };
 }
 
-async function polygonTo2D(polygon: Polygon): Promise<Triangulated2D> {
-  const tri: Triangulated2D = { xy: [], faces: [] };
-  appendMesh2D(await meshUtils.createFromPolygon(polygon), tri.xy, tri.faces);
-  return tri;
-}
+function subdivideTriangulation2D(tri: Triangulated2D, midLat: number, maxEdgeM: number): Triangulated2D {
+  if (tri.faces.length === 0) {
+    return tri;
+  }
 
-function isFullCell(clipped: Polygon, dx: number, dy: number): boolean {
-  const ext = clipped.extent;
-  return (
-    ext != null &&
-    clipped.rings.length === 1 &&
-    clipped.rings[0].length === 5 &&
-    Math.abs(ext.width - dx) < 1e-8 &&
-    Math.abs(ext.height - dy) < 1e-8
-  );
+  const cosLat = Math.max(0.1, Math.cos((midLat * Math.PI) / 180));
+  const scaleLon = METERS_PER_DEGREE_LAT * cosLat;
+  const scaleLat = METERS_PER_DEGREE_LAT;
+  const maxLen2 = maxEdgeM * maxEdgeM;
+
+  const xy = Array.from(tri.xy);
+  let faces = Array.from(tri.faces);
+
+  for (let pass = 0; pass < MAX_SUBDIVIDE_PASSES; pass++) {
+    const midCache = new Map<number, number>();
+    const nextFaces: number[] = [];
+    let splitAny = false;
+
+    const getMid = (a: number, b: number): number => {
+      const lo = a < b ? a : b;
+      const hi = a < b ? b : a;
+      const key = lo * 16_777_216 + hi;
+      let idx = midCache.get(key);
+      if (idx === undefined) {
+        idx = xy.length / 2;
+        xy.push((xy[a * 2] + xy[b * 2]) * 0.5, (xy[a * 2 + 1] + xy[b * 2 + 1]) * 0.5);
+        midCache.set(key, idx);
+      }
+      return idx;
+    };
+
+    const edgeLen2 = (a: number, b: number): number => {
+      const dx = (xy[a * 2] - xy[b * 2]) * scaleLon;
+      const dy = (xy[a * 2 + 1] - xy[b * 2 + 1]) * scaleLat;
+      return dx * dx + dy * dy;
+    };
+
+    for (let i = 0; i < faces.length; i += 3) {
+      const a = faces[i];
+      const b = faces[i + 1];
+      const c = faces[i + 2];
+      const s0 = edgeLen2(a, b) > maxLen2;
+      const s1 = edgeLen2(b, c) > maxLen2;
+      const s2 = edgeLen2(c, a) > maxLen2;
+      const count = (s0 ? 1 : 0) + (s1 ? 1 : 0) + (s2 ? 1 : 0);
+
+      if (count === 0) {
+        nextFaces.push(a, b, c);
+        continue;
+      }
+      splitAny = true;
+
+      if (count === 3) {
+        const mab = getMid(a, b);
+        const mbc = getMid(b, c);
+        const mca = getMid(c, a);
+        nextFaces.push(a, mab, mca, mab, b, mbc, mca, mbc, c, mab, mbc, mca);
+      } else if (count === 1) {
+        const [u, v, w] = s0 ? [a, b, c] : s1 ? [b, c, a] : [c, a, b];
+        const m = getMid(u, v);
+        nextFaces.push(u, m, w, m, v, w);
+      } else {
+        // Rotate so the unsplit edge is (w, u) and preserve triangle winding order.
+        const [u, v, w] = !s2 ? [a, b, c] : !s0 ? [b, c, a] : [c, a, b];
+        const m1 = getMid(u, v);
+        const m2 = getMid(v, w);
+        nextFaces.push(u, m1, w, m1, v, m2, m1, m2, w);
+      }
+    }
+
+    faces = nextFaces;
+    if (!splitAny) {
+      break;
+    }
+  }
+
+  return { xy: new Float64Array(xy), faces: new Uint32Array(faces) };
 }
 
 /**
- * Triangulates a 2D polygon over an adaptive grid so ground-referenced caps follow terrain relief.
+ * Triangulates a 2D polygon and subdivides long interior edges so ground-referenced caps follow terrain relief.
  */
-async function triangulateTerrainCap2D(polygon: Polygon): Promise<Triangulated2D> {
-  const extent = polygon.extent;
-  if (!extent) {
-    return { xy: [], faces: [] };
-  }
-
+function triangulateTerrainCap2D(
+  rings: number[][][],
+  extent: NonNullable<Polygon['extent']>,
+  stepM?: number,
+): Triangulated2D {
+  const base = triangulateRings2D(rings);
   const { widthM, heightM } = estimateExtentMeters(extent);
-  const nx = Math.min(MAX_GRID_DIVS, Math.max(1, Math.ceil(widthM / TARGET_GRID_CELL_M)));
-  const ny = Math.min(MAX_GRID_DIVS, Math.max(1, Math.ceil(heightM / TARGET_GRID_CELL_M)));
-
-  if (nx === 1 && ny === 1) {
-    return polygonTo2D(polygon);
+  const maxEdgeM = Math.max(TARGET_GRID_CELL_M, stepM ?? TARGET_GRID_CELL_M) * 1.05;
+  if (widthM <= maxEdgeM && heightM <= maxEdgeM) {
+    return base;
   }
-
-  const xy: number[] = [];
-  const faces: number[] = [];
-  const dx = extent.width / nx;
-  const dy = extent.height / ny;
-  const boundaryCells: Polygon[] = [];
-
-  for (let ix = 0; ix < nx; ix++) {
-    const x0 = extent.xmin + ix * dx;
-    const x1 = ix === nx - 1 ? extent.xmax : extent.xmin + (ix + 1) * dx;
-    for (let iy = 0; iy < ny; iy++) {
-      const y0 = extent.ymin + iy * dy;
-      const y1 = iy === ny - 1 ? extent.ymax : extent.ymin + (iy + 1) * dy;
-      const clipped = clipExecute(
-        polygon,
-        new Extent({ xmin: x0, ymin: y0, xmax: x1, ymax: y1, spatialReference: polygon.spatialReference }),
-      );
-      if (!clipped || clipped.type !== 'polygon' || clipped.rings.length === 0) {
-        continue;
-      }
-      if (isFullCell(clipped, x1 - x0, y1 - y0)) {
-        const base = xy.length / 2;
-        xy.push(x0, y0, x1, y0, x1, y1, x0, y1);
-        faces.push(base, base + 1, base + 2, base, base + 2, base + 3);
-      } else {
-        boundaryCells.push(clipped);
-      }
-    }
-  }
-
-  if (boundaryCells.length === 1) {
-    appendMesh2D(await meshUtils.createFromPolygon(boundaryCells[0]), xy, faces);
-  } else if (boundaryCells.length > 1) {
-    // Batch all clipped boundary cells into one createFromPolygon call; fall back per-cell if ArcGIS rejects touching rings.
-    const combined = new Polygon({
-      rings: boundaryCells.flatMap((c) => c.rings),
-      spatialReference: polygon.spatialReference,
-    });
-    let ok: boolean;
-    try {
-      ok = appendMesh2D(await meshUtils.createFromPolygon(combined), xy, faces);
-    } catch {
-      ok = false;
-    }
-    if (!ok) {
-      const meshes = await Promise.all(boundaryCells.map((cell) => meshUtils.createFromPolygon(cell)));
-      for (const cellMesh of meshes) {
-        appendMesh2D(cellMesh, xy, faces);
-      }
-    }
-  }
-
-  return { xy, faces };
+  const midLat = (extent.ymin + extent.ymax) / 2;
+  return subdivideTriangulation2D(base, midLat, maxEdgeM);
 }
 
 /**
@@ -264,15 +275,8 @@ export async function buildAirspaceFootprint(
   const needFlatCap = !airspace.topRefGnd || (needFloorCap && !airspace.floorRefGnd);
   const needTerrainCap = airspace.topRefGnd || (needFloorCap && airspace.floorRefGnd);
 
-  const terrainPolygon =
-    needTerrainCap && hasGroundRef
-      ? new Polygon({ rings: wallRings, spatialReference: polygon.spatialReference })
-      : polygon;
-
-  const [flatCap, terrainCap] = await Promise.all([
-    needFlatCap ? polygonTo2D(polygon) : undefined,
-    needTerrainCap ? triangulateTerrainCap2D(terrainPolygon) : undefined,
-  ]);
+  const flatCap = needFlatCap ? triangulateRings2D(polygon.rings) : undefined;
+  const terrainCap = needTerrainCap ? triangulateTerrainCap2D(wallRings, polygon.extent, stepM) : undefined;
 
   return { wallRings, flatCap, terrainCap };
 }
