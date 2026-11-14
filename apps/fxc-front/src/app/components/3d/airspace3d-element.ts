@@ -1,7 +1,6 @@
 import Color from '@arcgis/core/Color';
 import { watch } from '@arcgis/core/core/reactiveUtils.js';
 import type Extent from '@arcgis/core/geometry/Extent';
-import { containsExecute } from '@arcgis/core/geometry/operators/containsOperator';
 import { unionExecuteMany } from '@arcgis/core/geometry/operators/unionOperator';
 import Point from '@arcgis/core/geometry/Point';
 import Polygon from '@arcgis/core/geometry/Polygon';
@@ -46,8 +45,10 @@ import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import { selectCurrentTrack } from '../../redux/track-slice';
 import {
+  type AirspaceExtentLike,
   type AirspaceFootprint,
   type AirspaceMeshData,
+  type AirspacePolygonLike,
   buildAirspaceFootprint,
   computeGroundSignature,
   extrudeAirspaceFootprint,
@@ -82,13 +83,20 @@ const VIEW_REFRESH_DEBOUNCE_MS = 60;
 const SAMPLER_REFRESH_DEBOUNCE_MS = 450;
 const CLICK_Z_TOLERANCE_M = 75;
 
+interface DecodedPolygonPart {
+  id: string;
+  rings: number[][][];
+  extent: AirspaceExtentLike;
+  polygon?: Polygon;
+}
+
 interface DecodedTileFeature {
   baseAirspace: AirspaceTyped;
-  polygons: Array<{ id: string; polygon: Polygon }>;
+  polygons: DecodedPolygonPart[];
 }
 
 interface CachedFootprintEntry {
-  polygon: Polygon;
+  polygon: AirspacePolygonLike;
   footprint: AirspaceFootprint;
 }
 
@@ -99,7 +107,7 @@ interface CachedAirspaceItem {
   cacheKey: string;
   category: AirspaceColorCategory;
   airspace: AirspaceTyped;
-  polygon: Polygon;
+  polygon: AirspacePolygonLike;
   footprint?: AirspaceFootprint;
   meshData?: AirspaceMeshData;
   groundSignature?: number;
@@ -153,6 +161,7 @@ export function createGroundSampler(sampler?: ElevationSampler): GroundSampler {
   const sr = sampler.spatialReference;
   const isWGS84 = Boolean(sr?.isWGS84);
   const isWebMercator = Boolean(sr?.isWebMercator);
+  let queryPoint: Point | undefined;
 
   return (lon: number, lat: number): number => {
     let z: number | null | undefined;
@@ -162,7 +171,10 @@ export function createGroundSampler(sampler?: ElevationSampler): GroundSampler {
       const [x, y] = webMercatorUtils.lngLatToXY(lon, lat);
       z = sampler.elevationAt(x, y);
     } else {
-      z = sampler.queryElevation(new Point({ longitude: lon, latitude: lat }))?.z;
+      queryPoint ??= new Point({ longitude: lon, latitude: lat });
+      queryPoint.longitude = lon;
+      queryPoint.latitude = lat;
+      z = sampler.queryElevation(queryPoint)?.z;
     }
 
     if (typeof z !== 'number' || !Number.isFinite(z) || z === noData || z > 20000) {
@@ -194,13 +206,53 @@ function getAirspaceKey(airspace: AirspaceTyped): string {
   return `${airspace.name}|${airspace.country}|${airspace.type}|${airspace.icaoClass}|${airspace.floorM}|${airspace.topM}|${airspace.floorRefGnd}|${airspace.topRefGnd}`;
 }
 
-function geoJsonGeometryToPolygons(geometry: { type: string; coordinates: any }): Polygon[] {
-  const spatialReference = { wkid: 4326 };
+function computeRingsExtent(rings: number[][][]): AirspaceExtentLike | null {
+  let xmin = Number.POSITIVE_INFINITY;
+  let ymin = Number.POSITIVE_INFINITY;
+  let xmax = Number.NEGATIVE_INFINITY;
+  let ymax = Number.NEGATIVE_INFINITY;
+  for (const ring of rings) {
+    for (const pt of ring) {
+      const lon = pt[0];
+      const lat = pt[1];
+      if (lon < xmin) {
+        xmin = lon;
+      }
+      if (lon > xmax) {
+        xmax = lon;
+      }
+      if (lat < ymin) {
+        ymin = lat;
+      }
+      if (lat > ymax) {
+        ymax = lat;
+      }
+    }
+  }
+  return xmin <= xmax && ymin <= ymax ? { xmin, ymin, xmax, ymax } : null;
+}
+
+function geoJsonGeometryToParts(
+  tilePrefix: string,
+  featureIndex: number,
+  geometry: { type: string; coordinates: any },
+): DecodedPolygonPart[] {
   if (geometry.type === 'Polygon') {
-    return [new Polygon({ rings: geometry.coordinates, spatialReference })];
+    const rings = geometry.coordinates as number[][][];
+    const extent = computeRingsExtent(rings);
+    return extent ? [{ id: `${tilePrefix}#${featureIndex}.0`, rings, extent }] : [];
   }
   if (geometry.type === 'MultiPolygon') {
-    return (geometry.coordinates as number[][][][]).map((rings) => new Polygon({ rings, spatialReference }));
+    const parts: DecodedPolygonPart[] = [];
+    const coords = geometry.coordinates as number[][][][];
+    for (let pIdx = 0; pIdx < coords.length; pIdx++) {
+      const rings = coords[pIdx];
+      const extent = computeRingsExtent(rings);
+      if (extent) {
+        parts.push({ id: `${tilePrefix}#${featureIndex}.${pIdx}`, rings, extent });
+      }
+    }
+    return parts;
   }
   return [];
 }
@@ -317,14 +369,29 @@ export function getVisibleTileCoords(view: SceneView): TileCoord[] {
   return getVisibleTileCoverage(view).tiles;
 }
 
-function polygonOverlapsBounds(polygon: Polygon, bounds: GeoBounds): boolean {
-  const ext = polygon.extent;
+function extentOverlapsBounds(ext: AirspaceExtentLike | null | undefined, bounds: GeoBounds): boolean {
   if (!ext) {
     return true;
   }
   return (
     ext.xmax >= bounds.minLon && ext.xmin <= bounds.maxLon && ext.ymax >= bounds.minLat && ext.ymin <= bounds.maxLat
   );
+}
+
+function pointInPolygonRings(lon: number, lat: number, rings: number[][][]): boolean {
+  let inside = false;
+  for (const ring of rings) {
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const xi = ring[i][0];
+      const yi = ring[i][1];
+      const xj = ring[j][0];
+      const yj = ring[j][1];
+      if (yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) {
+        inside = !inside;
+      }
+    }
+  }
+  return inside;
 }
 
 /**
@@ -479,11 +546,6 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     if (this.currentAirspaces.length === 0) {
       return [];
     }
-    const point = new Point({
-      longitude: latLon.lon,
-      latitude: latLon.lat,
-      spatialReference: { wkid: 4326 },
-    });
     const sampleGroundZ = createGroundSampler(this.sampler);
     const groundZ = sampleGroundZ(latLon.lon, latLon.lat);
 
@@ -493,7 +555,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       if (ext && (latLon.lon < ext.xmin || latLon.lon > ext.xmax || latLon.lat < ext.ymin || latLon.lat > ext.ymax)) {
         continue;
       }
-      if (!containsExecute(item.polygon, point)) {
+      if (!pointInPolygonRings(latLon.lon, latLon.lat, item.polygon.rings)) {
         continue;
       }
       const floorZ = (item.airspace.floorRefGnd ? groundZ : 0) + item.airspace.floorM * this.multiplier;
@@ -652,11 +714,11 @@ export class Airspace3dElement extends connect(store)(LitElement) {
             continue;
           }
           const geo = feature.toGeoJSON(x, y, z) as { geometry: { type: string; coordinates: any } };
-          const polygons = geoJsonGeometryToPolygons(geo.geometry);
+          const polygons = geoJsonGeometryToParts(tilePrefix, i, geo.geometry);
           if (polygons.length > 0) {
             features.push({
               baseAirspace: toTypedAirspace(feature.properties as AirspaceString),
-              polygons: polygons.map((polygon, pIdx) => ({ id: `${tilePrefix}#${i}.${pIdx}`, polygon })),
+              polygons,
             });
           }
         }
@@ -721,14 +783,17 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       return;
     }
 
-    const grouped = new globalThis.Map<string, { airspace: AirspaceTyped; polygons: Polygon[]; geomIds: string[] }>();
+    const grouped = new globalThis.Map<
+      string,
+      { airspace: AirspaceTyped; parts: DecodedPolygonPart[]; geomIds: string[] }
+    >();
     for (const features of decodedTiles) {
       if (!features) {
         continue;
       }
       for (const feature of features) {
-        const visiblePolygons = feature.polygons.filter((p) => polygonOverlapsBounds(p.polygon, bounds));
-        if (visiblePolygons.length === 0) {
+        const visibleParts = feature.polygons.filter((p) => extentOverlapsBounds(p.extent, bounds));
+        if (visibleParts.length === 0) {
           continue;
         }
         const airspace = applyOverrides(feature.baseAirspace, date);
@@ -743,11 +808,11 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         const key = getAirspaceKey(airspace);
         let entry = grouped.get(key);
         if (!entry) {
-          entry = { airspace, polygons: [], geomIds: [] };
+          entry = { airspace, parts: [], geomIds: [] };
           grouped.set(key, entry);
         }
-        for (const p of visiblePolygons) {
-          entry.polygons.push(p.polygon);
+        for (const p of visibleParts) {
+          entry.parts.push(p);
           entry.geomIds.push(p.id);
         }
       }
@@ -755,14 +820,26 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
     const prevByKey = new globalThis.Map(this.currentAirspaces.map((item) => [item.cacheKey, item]));
     const mergedAirspaces: CachedAirspaceItem[] = [];
-    for (const [airspaceKey, { airspace, polygons, geomIds }] of grouped.entries()) {
+    for (const [airspaceKey, { airspace, parts, geomIds }] of grouped.entries()) {
       const geomKey = geomIds.join(',');
       const sinkZeroFloor = airspace.floorRefGnd && airspace.floorM === 0;
       const footprintKey = `${airspace.floorRefGnd ? 1 : 0}${airspace.topRefGnd ? 1 : 0}${sinkZeroFloor ? 1 : 0}|${geomKey}`;
       const cachedFp = this.footprintCache.get(footprintKey);
 
-      const polygon = cachedFp?.polygon ?? (polygons.length === 1 ? polygons[0] : unionExecuteMany(polygons));
-      if (polygon && polygon.type === 'polygon' && polygon.rings.length > 0) {
+      let polygon: AirspacePolygonLike | null = cachedFp?.polygon ?? null;
+      if (!polygon) {
+        if (parts.length === 1) {
+          polygon = { rings: parts[0].rings, extent: parts[0].extent };
+        } else {
+          const unioned = unionExecuteMany(
+            parts.map((p) => (p.polygon ??= new Polygon({ rings: p.rings, spatialReference: { wkid: 4326 } }))),
+          );
+          if (unioned && unioned.type === 'polygon' && unioned.rings.length > 0) {
+            polygon = { rings: unioned.rings, extent: unioned.extent ?? computeRingsExtent(unioned.rings) };
+          }
+        }
+      }
+      if (polygon && polygon.rings.length > 0) {
         const cacheKey = `${airspaceKey}|${geomKey}|${this.multiplier}`;
         const cachedMesh = prevByKey.get(cacheKey) ?? this.meshCache.get(cacheKey);
         mergedAirspaces.push({

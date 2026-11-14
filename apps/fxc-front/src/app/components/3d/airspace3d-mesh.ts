@@ -1,5 +1,4 @@
 import Mesh from '@arcgis/core/geometry/Mesh';
-import type Polygon from '@arcgis/core/geometry/Polygon';
 import MeshGeoreferencedVertexSpace from '@arcgis/core/geometry/support/MeshGeoreferencedVertexSpace';
 // @ts-expect-error Internal ArcGIS 2D earcut tessellation utilities without type declarations
 import * as tess from '@arcgis/core/views/3d/layers/graphics/tessellationUtils.js';
@@ -18,10 +17,31 @@ const GND_BASE_SINK_M = 50;
 export type GroundSampler = (lon: number, lat: number) => number;
 
 /**
+ * Lightweight 2D geographic bounding box compatible with ArcGIS Extent and plain objects.
+ */
+export interface AirspaceExtentLike {
+  xmin: number;
+  ymin: number;
+  xmax: number;
+  ymax: number;
+  width?: number;
+  height?: number;
+  center?: { longitude?: number | null; latitude?: number | null };
+}
+
+/**
+ * Lightweight 2D polygon shape compatible with ArcGIS Polygon and raw decoded GeoJSON rings.
+ */
+export interface AirspacePolygonLike {
+  rings: number[][][];
+  extent?: AirspaceExtentLike | null;
+}
+
+/**
  * Input parameters for building a 3D airspace mesh.
  */
 export interface AirspaceMeshParams {
-  polygon: Polygon;
+  polygon: AirspacePolygonLike;
   airspace: AirspaceTyped;
   multiplier: number;
   sampleGroundZ: GroundSampler;
@@ -52,12 +72,14 @@ export interface AirspaceFootprint {
   terrainCap?: Triangulated2D;
 }
 
-function estimateExtentMeters(extent: Polygon['extent']): { widthM: number; heightM: number } {
-  const midLat = (extent!.ymin + extent!.ymax) / 2;
+function estimateExtentMeters(extent: AirspaceExtentLike): { widthM: number; heightM: number } {
+  const width = extent.width ?? extent.xmax - extent.xmin;
+  const height = extent.height ?? extent.ymax - extent.ymin;
+  const midLat = (extent.ymin + extent.ymax) / 2;
   const cosLat = Math.max(0.1, Math.cos((midLat * Math.PI) / 180));
   return {
-    widthM: extent!.width * METERS_PER_DEGREE_LAT * cosLat,
-    heightM: extent!.height * METERS_PER_DEGREE_LAT,
+    widthM: width * METERS_PER_DEGREE_LAT * cosLat,
+    heightM: height * METERS_PER_DEGREE_LAT,
   };
 }
 
@@ -201,7 +223,7 @@ function subdivideTriangulation2D(tri: Triangulated2D, midLat: number, maxEdgeM:
  */
 function triangulateTerrainCap2D(
   rings: number[][][],
-  extent: NonNullable<Polygon['extent']>,
+  extent: AirspaceExtentLike,
   stepM?: number,
 ): Triangulated2D {
   const base = triangulateRings2D(rings);
@@ -218,15 +240,15 @@ function triangulateTerrainCap2D(
  * Computes a fast ground-elevation checksum at representative points of a polygon so
  * terrain updates that do not meaningfully affect this airspace can be skipped.
  */
-export function computeGroundSignature(polygon: Polygon, sampleGroundZ: GroundSampler): number {
+export function computeGroundSignature(polygon: AirspacePolygonLike, sampleGroundZ: GroundSampler): number {
   const extent = polygon.extent;
   if (!extent) {
     return 0;
   }
   const pts: Array<[number, number]> = [
     [
-      extent.center.longitude ?? (extent.xmin + extent.xmax) / 2,
-      extent.center.latitude ?? (extent.ymin + extent.ymax) / 2,
+      extent.center?.longitude ?? (extent.xmin + extent.xmax) / 2,
+      extent.center?.latitude ?? (extent.ymin + extent.ymax) / 2,
     ],
     [extent.xmin, extent.ymin],
     [extent.xmax, extent.ymin],
@@ -252,7 +274,7 @@ export function computeGroundSignature(polygon: Polygon, sampleGroundZ: GroundSa
  * exaggeration and terrain updates can re-extrude synchronously without re-triangulating.
  */
 export async function buildAirspaceFootprint(
-  polygon: Polygon,
+  polygon: AirspacePolygonLike,
   airspace: Pick<AirspaceTyped, 'floorM' | 'floorRefGnd' | 'topRefGnd'>,
 ): Promise<AirspaceFootprint | null> {
   if (polygon.rings.length === 0 || !polygon.extent) {

@@ -1,5 +1,6 @@
 import Extent from '@arcgis/core/geometry/Extent';
 import Point from '@arcgis/core/geometry/Point';
+import Polygon from '@arcgis/core/geometry/Polygon';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // @ts-expect-error Internal ArcGIS style evaluator without type declarations
@@ -250,7 +251,7 @@ function makeMockView(zoom: number, xmin = 5.9, ymin = 45.4, xmax = 6.2, ymax = 
   } as any;
 }
 
-function makeFeature(props: Record<string, string>, ring: number[][]) {
+function makeFeature(props: Record<string, string>, ring: number[][], holes: number[][][] = []) {
   return {
     type: 3,
     properties: props,
@@ -258,7 +259,7 @@ function makeFeature(props: Record<string, string>, ring: number[][]) {
       type: 'Feature',
       geometry: {
         type: 'Polygon',
-        coordinates: [ring],
+        coordinates: [ring, ...holes],
       },
     }),
   };
@@ -567,7 +568,9 @@ describe('createGroundSampler', () => {
     } as any);
 
     expect(otherSample(6, 45)).toBe(615);
-    expect(queryElevation).toHaveBeenCalledOnce();
+    expect(otherSample(7, 46)).toBe(615);
+    expect(queryElevation).toHaveBeenCalledTimes(2);
+    expect((queryElevation.mock.calls as any[][])[0][0]).toBe((queryElevation.mock.calls as any[][])[1][0]);
   });
 });
 
@@ -882,17 +885,24 @@ describe('Airspace3dElement', () => {
     expect(hoisted.watchEntries.every((w) => w.removed)).toBe(true);
   });
 
-  it('opens popup from local 3D matches or getAirspaceList fallback, and toggles pickable', async () => {
-    const view = makeMockView(10, 6.0, 45.45, 6.02, 45.47);
+  it('opens popup from local 3D matches or getAirspaceList fallback, respects holes, and toggles pickable', async () => {
+    const view = makeMockView(10, 6.0, 45.45, 6.04, 45.49);
     const ring = [
       [6.0, 45.45],
-      [6.02, 45.45],
-      [6.02, 45.47],
-      [6.0, 45.47],
+      [6.04, 45.45],
+      [6.04, 45.49],
+      [6.0, 45.49],
       [6.0, 45.45],
     ];
+    const hole = [
+      [6.015, 45.465],
+      [6.025, 45.465],
+      [6.025, 45.475],
+      [6.015, 45.475],
+      [6.015, 45.465],
+    ];
     hoisted.tilePayloads.set(1, [
-      makeFeature(makeAirspaceProps({ name: 'LOCAL ZONE', floorRefGnd: false, floorM: 600, topM: 1200 }), ring),
+      makeFeature(makeAirspaceProps({ name: 'LOCAL ZONE', floorRefGnd: false, floorM: 600, topM: 1200 }), ring, [hole]),
     ]);
     hoisted.tilePayloads.set(2, hoisted.tilePayloads.get(1)!);
 
@@ -902,6 +912,11 @@ describe('Airspace3dElement', () => {
     await element.updateComplete;
     await flushAsync();
 
+    // Single-tile airspaces pass lightweight { rings, extent } objects without constructing ArcGIS Polygon instances.
+    const passedPoly = vi.mocked(meshModule.buildAirspaceFootprint).mock.calls[0][0];
+    expect(passedPoly).not.toBeInstanceOf(Polygon);
+    expect(passedPoly.extent).toEqual({ xmin: 6.0, ymin: 45.45, xmax: 6.04, ymax: 45.49 });
+
     // Non-pickable by default so map drag anchors on ground; setPickable toggles stage layer flag.
     expect(view.stage._layers['lv-1'].pickable).toBe(false);
     element.setPickable(true);
@@ -909,11 +924,16 @@ describe('Airspace3dElement', () => {
     element.setPickable(false);
     expect(view.stage._layers['lv-1'].pickable).toBe(false);
 
-    // Clicking inside an active 3D volume with clickZ resolves locally without calling getAirspaceList.
-    await element.handleClick({ lat: 45.46, lon: 6.01 }, scene, 900);
+    // Clicking inside an active 3D volume (outside any hole) with clickZ resolves locally without calling getAirspaceList.
+    await element.handleClick({ lat: 45.455, lon: 6.005 }, scene, 900);
     expect(hoisted.getAirspaceListMock).not.toHaveBeenCalled();
     expect(scene.openPopup).toHaveBeenCalledTimes(1);
     expect(scene.openPopup.mock.calls[0][0].location.z).toBe(900);
+
+    // Clicking inside an interior hole does not match the airspace locally and falls back to getAirspaceList.
+    await element.handleClick({ lat: 45.47, lon: 6.02 }, scene, 900);
+    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(1);
+    expect(scene.openPopup).toHaveBeenCalledTimes(2);
 
     // Clicking outside loaded 3D polygons falls back to getAirspaceList with effective track date.
     hoisted.state.currentTrack = { id: 'track-1' };
@@ -922,9 +942,9 @@ describe('Airspace3dElement', () => {
     await element.updateComplete;
 
     await element.handleClick({ lat: 46.5, lon: 7.5 }, scene);
-    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(1);
-    expect((hoisted.getAirspaceListMock.mock.calls[0][6] as Date).getTime()).toBe(1_752_577_200 * 1000);
-    expect(scene.openPopup).toHaveBeenCalledTimes(2);
+    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(2);
+    expect((hoisted.getAirspaceListMock.mock.calls[1][6] as Date).getTime()).toBe(1_752_577_200 * 1000);
+    expect(scene.openPopup).toHaveBeenCalledTimes(3);
   });
 });
 
