@@ -437,6 +437,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private refreshTimer?: number;
   private samplerTimer?: number;
   private buildGeneration = 0;
+  private patchedDepthCache?: { cache: any; orig: (...args: unknown[]) => unknown };
 
   stateChanged(state: RootState): void {
     this.maxAltitude = airspaces.selectMaxAltitude(state);
@@ -454,6 +455,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (changedProps.has('view')) {
       this.teardownViewWatchers();
+      this.restoreDepthCache();
       this.setupViewWatchers();
       this.graphicsLayerView = undefined;
     }
@@ -526,12 +528,13 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   }
 
   /**
-   * Controls whether 3D airspace graphics participate in SceneView raycasts.
+   * Controls whether 3D airspace graphics participate in SceneView raycasts and depth clamping.
    * Keep disabled during camera navigation so dragging always anchors to terrain.
    */
   public setPickable(pickable: boolean): void {
     const uid = this.graphicsLayerView?.uid;
-    const stageLayers = (this.view as any)?.stage?._layers as Record<string, any> | undefined;
+    const stage = (this.view as any)?.stage;
+    const stageLayers = stage?._layers as Record<string, any> | undefined;
     if (!uid || !stageLayers) {
       return;
     }
@@ -539,6 +542,19 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       if (sl?.apiLayerViewUid === uid) {
         sl.pickable = pickable;
       }
+    }
+    const depthCache = stage?.renderer?.navigationDepthCache;
+    if (!pickable && depthCache && this.patchedDepthCache?.cache !== depthCache) {
+      this.restoreDepthCache();
+      this.patchedDepthCache = { cache: depthCache, orig: depthCache.getMinimalDepthForArea };
+      depthCache.getMinimalDepthForArea = () => null;
+    }
+  }
+
+  private restoreDepthCache(): void {
+    if (this.patchedDepthCache) {
+      this.patchedDepthCache.cache.getMinimalDepthForArea = this.patchedDepthCache.orig;
+      this.patchedDepthCache = undefined;
     }
   }
 
@@ -672,6 +688,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   }
 
   private removeGraphicsLayer(): void {
+    this.restoreDepthCache();
     this.currentAirspaces.length = 0;
     this.categoryGraphics.clear();
     this.graphicsLayerView = undefined;

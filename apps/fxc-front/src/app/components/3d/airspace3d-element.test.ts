@@ -242,7 +242,14 @@ function makeMockView(zoom: number, xmin = 5.9, ymin = 45.4, xmax = 6.2, ymax = 
       ymax,
       spatialReference: { wkid: 4326 },
     }),
-    stage: { _layers: stageLayers },
+    stage: {
+      _layers: stageLayers,
+      renderer: {
+        navigationDepthCache: {
+          getMinimalDepthForArea: () => 500,
+        },
+      },
+    },
     whenLayerView: vi.fn(async () => {
       const uid = `lv-${uidSeq++}`;
       stageLayers[uid] = { apiLayerViewUid: uid, pickable: true };
@@ -874,12 +881,14 @@ describe('Airspace3dElement', () => {
     await flushAsync();
 
     expect(hoisted.graphicsLayers).toHaveLength(1);
+    expect(view.stage.renderer.navigationDepthCache.getMinimalDepthForArea()).toBeNull();
     hoisted.state.showAirspace = false;
     store.dispatch({ type: 'TEST_HIDE' });
     await element.updateComplete;
 
     expect(hoisted.graphicsLayers[0].destroyed).toBe(true);
     expect(mockMap.layers).toHaveLength(0);
+    expect(view.stage.renderer.navigationDepthCache.getMinimalDepthForArea()).toBe(500);
 
     element.disconnectedCallback();
     expect(hoisted.watchEntries.every((w) => w.removed)).toBe(true);
@@ -919,10 +928,12 @@ describe('Airspace3dElement', () => {
 
     // Non-pickable by default so map drag anchors on ground; setPickable toggles stage layer flag.
     expect(view.stage._layers['lv-1'].pickable).toBe(false);
+    expect(view.stage.renderer.navigationDepthCache.getMinimalDepthForArea()).toBeNull();
     element.setPickable(true);
     expect(view.stage._layers['lv-1'].pickable).toBe(true);
     element.setPickable(false);
     expect(view.stage._layers['lv-1'].pickable).toBe(false);
+    expect(view.stage.renderer.navigationDepthCache.getMinimalDepthForArea()).toBeNull();
 
     // Clicking inside an active 3D volume (outside any hole) with clickZ resolves locally without calling getAirspaceList.
     await element.handleClick({ lat: 45.455, lon: 6.005 }, scene, 900);
