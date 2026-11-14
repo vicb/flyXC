@@ -205,25 +205,28 @@ function geoJsonGeometryToPolygons(geometry: { type: string; coordinates: any })
   return [];
 }
 
+function toGeoExtent(extent?: Extent | null): Extent | null {
+  if (!extent) {
+    return null;
+  }
+  if (extent.spatialReference?.isWGS84) {
+    return extent;
+  }
+  if (extent.spatialReference?.isWebMercator) {
+    return webMercatorUtils.webMercatorToGeographic(extent) as Extent;
+  }
+  return null;
+}
+
 /**
  * Computes visible airspace tile coordinates and padded geographic bounds covering the 3D frustum,
  * stepping tile zoom down as needed so border tiles fit within {@link MAX_TILES_3D}.
  */
 export function getVisibleTileCoverage(view: SceneView): VisibleTileCoverage {
   const zoom = view.zoom;
-  const extent = view.extent;
   const center = view.center;
-  if (!Number.isFinite(zoom) || zoom < MIN_3D_ZOOM || !extent || !center) {
-    return { tiles: [], bounds: null };
-  }
-
-  let geoExtent: Extent | null = null;
-  if (extent.spatialReference?.isWGS84) {
-    geoExtent = extent;
-  } else if (extent.spatialReference?.isWebMercator) {
-    geoExtent = webMercatorUtils.webMercatorToGeographic(extent) as Extent;
-  }
-  if (!geoExtent) {
+  const geoExtent = toGeoExtent(view.extent) ?? toGeoExtent(view.visibleArea?.extent);
+  if (!Number.isFinite(zoom) || zoom < MIN_3D_ZOOM || !center || !geoExtent) {
     return { tiles: [], bounds: null };
   }
 
@@ -238,29 +241,13 @@ export function getVisibleTileCoverage(view: SceneView): VisibleTileCoverage {
   const maxHalfLat = Math.max(2.0, (maxLat - minLat) * 1.5);
   const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
 
-  // Sample ground points across the viewport because tilted SceneView.extent under-covers side/bottom/far borders.
-  if (typeof view.toMap === 'function' && view.width > 0 && view.height > 0) {
-    for (const gy of [0.18, 0.45, 0.75, 1]) {
-      for (const gx of [0, 0.5, 1]) {
-        const pt = view.toMap({ x: view.width * gx, y: view.height * gy });
-        const rawLon = pt?.longitude;
-        const rawLat = pt?.latitude;
-        if (
-          typeof rawLon !== 'number' ||
-          typeof rawLat !== 'number' ||
-          !Number.isFinite(rawLon) ||
-          !Number.isFinite(rawLat)
-        ) {
-          continue;
-        }
-        const lon = clamp(rawLon, centerLon - maxHalfLon, centerLon + maxHalfLon);
-        const lat = clamp(rawLat, centerLat - maxHalfLat, centerLat + maxHalfLat);
-        minLon = Math.min(minLon, lon);
-        maxLon = Math.max(maxLon, lon);
-        minLat = Math.min(minLat, lat);
-        maxLat = Math.max(maxLat, lat);
-      }
-    }
+  // Expand extent with SceneView.visibleArea so tilted frustum side/bottom/far borders are covered.
+  const visibleGeoExtent = toGeoExtent(view.visibleArea?.extent);
+  if (visibleGeoExtent) {
+    minLon = Math.min(minLon, clamp(visibleGeoExtent.xmin, centerLon - maxHalfLon, centerLon + maxHalfLon));
+    maxLon = Math.max(maxLon, clamp(visibleGeoExtent.xmax, centerLon - maxHalfLon, centerLon + maxHalfLon));
+    minLat = Math.min(minLat, clamp(visibleGeoExtent.ymin, centerLat - maxHalfLat, centerLat + maxHalfLat));
+    maxLat = Math.max(maxLat, clamp(visibleGeoExtent.ymax, centerLat - maxHalfLat, centerLat + maxHalfLat));
   }
 
   // Pad slightly to reduce pop-in during short pans.

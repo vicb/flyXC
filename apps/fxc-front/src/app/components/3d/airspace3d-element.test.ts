@@ -486,19 +486,30 @@ describe('getVisibleTileCoords', () => {
     expect(cappedTiles).toHaveLength(MAX_TILES_3D);
     expect(cappedTiles[0].z).toBe(8);
 
-    // Tilted frustum sampling (toMap) expands bounds beyond SceneView.extent alone.
+    // SceneView.visibleArea expands bounds beyond SceneView.extent alone while clamping horizon extremes.
     const tiltedView = {
       ...makeMockView(10, 5.5, 45.4, 6.5, 45.9),
-      width: 1000,
-      height: 800,
-      toMap: vi.fn(({ y }: { x: number; y: number }) =>
-        y < 300 ? ({ longitude: 6.0, latitude: 47.2 } as any) : ({ longitude: 6.0, latitude: 44.9 } as any),
-      ),
+      visibleArea: {
+        extent: new Extent({ xmin: 5.5, ymin: 44.9, xmax: 6.5, ymax: 47.2, spatialReference: { wkid: 4326 } }),
+      },
     } as any;
     const coverage = getVisibleTileCoverage(tiltedView);
     expect(coverage.bounds).not.toBeNull();
     expect(coverage.bounds!.maxLat).toBeGreaterThanOrEqual(47.2);
     expect(coverage.bounds!.minLat).toBeLessThanOrEqual(44.9);
+
+    const horizonView = {
+      ...makeMockView(10, 5.5, 45.4, 6.5, 45.9),
+      visibleArea: {
+        extent: new Extent({ xmin: -20, ymin: 30, xmax: 30, ymax: 60, spatialReference: { wkid: 4326 } }),
+      },
+    } as any;
+    const clampedCoverage = getVisibleTileCoverage(horizonView);
+    expect(clampedCoverage.bounds).not.toBeNull();
+    expect(clampedCoverage.bounds!.minLon).toBeGreaterThan(-20);
+    expect(clampedCoverage.bounds!.maxLon).toBeLessThan(30);
+    expect(clampedCoverage.bounds!.minLat).toBeGreaterThan(30);
+    expect(clampedCoverage.bounds!.maxLat).toBeLessThan(60);
   });
 
   it('converts WebMercator extents to geographic tile coordinates', () => {
