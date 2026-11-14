@@ -7,7 +7,6 @@ import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import type ElevationSampler from '@arcgis/core/layers/support/ElevationSampler';
 import type Map from '@arcgis/core/Map';
-import SolidEdges3D from '@arcgis/core/symbols/edges/SolidEdges3D';
 import FillSymbol3DLayer from '@arcgis/core/symbols/FillSymbol3DLayer';
 import MeshSymbol3D from '@arcgis/core/symbols/MeshSymbol3D';
 import type LayerView from '@arcgis/core/views/layers/LayerView';
@@ -57,7 +56,12 @@ export function getEffectiveAirspaceDate(hasTrack: boolean, timeSec: number): Da
   return hasTrack && Number.isFinite(timeSec) ? new Date(timeSec * 1000) : new Date();
 }
 
-export async function openAirspacePopup(scene: ArcgisScene, latLon: LatLon, html: string, clickZ?: number): Promise<void> {
+export async function openAirspacePopup(
+  scene: ArcgisScene,
+  latLon: LatLon,
+  html: string,
+  clickZ?: number,
+): Promise<void> {
   await scene.openPopup({
     location: new Point({
       latitude: latLon.lat,
@@ -140,14 +144,11 @@ function createCategorySymbol(category: AirspaceColorCategory, opacityPercent: n
   const hex = ASP_CATEGORY_COLOR[category];
   const fill = new Color(hex);
   fill.a = Math.min(0.45, Math.max(0.05, (opacityPercent / 100) * 0.45));
-  const edge = new Color(hex);
-  edge.a = Math.min(0.95, Math.max(0.3, opacityPercent / 100 + 0.25));
 
   return new MeshSymbol3D({
     symbolLayers: [
       new FillSymbol3DLayer({
         material: { color: fill.toRgba(), colorMixMode: 'replace' },
-        edges: new SolidEdges3D({ color: edge.toRgba(), size: 1 }),
         castShadows: false,
       }),
     ],
@@ -782,7 +783,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
     for (const category of categoriesToUpdate) {
       const bucket = this.categoryBuckets.get(category);
-      const nextSig = bucket && bucket.parts.length > 0 ? (bucket.sigHash >>> 0) : 0;
+      const nextSig = bucket && bucket.parts.length > 0 ? bucket.sigHash >>> 0 : 0;
       const prevGraphic = this.categoryGraphics.get(category);
       if ((nextSig === 0 && !prevGraphic) || (nextSig !== 0 && prevGraphic?.attributes?.sig === nextSig)) {
         continue;

@@ -195,7 +195,9 @@ describe('airspace3d-processor', () => {
           lod: p.lod,
           isFinal: p.isFinal,
           itemCount: p.items.length,
-          triangleCount: p.items[0]?.footprint?.terrainCap?.faces.length ? p.items[0].footprint.terrainCap.faces.length / 3 : 0,
+          triangleCount: p.items[0]?.footprint?.terrainCap?.faces.length
+            ? p.items[0].footprint.terrainCap.faces.length / 3
+            : 0,
         });
       });
 
