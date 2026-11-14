@@ -406,9 +406,6 @@ export const airspaceOverrides = {
   // Active in July and August
   // https://federation.ffvl.fr/sites/ffvl.fr/files/Massifdumontblancchamonix.pdf
   LFR30B: 'LF-R30B MONT BLANC (JULY+AUGUST)',
-  // 300m AGL for PG
-  // https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000021755667
-  aiguilleRouges: 'PARC/RESERVE AIGUILLES ROUGES',
   // Class E
   // - 2nd Monday of April to 2nd Friday of December
   // - outside the above period: Monday 11:00UTC to Thursday 23:59UTC

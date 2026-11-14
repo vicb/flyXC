@@ -50,8 +50,7 @@ async function getTile(x: number, y: number, z: number): Promise<Map<string, Air
   //       nU.includes('ECRINS') ||
   //       nU.includes('R30B') ||
   //       nU.includes('CLERMONT') ||
-  //       nU.includes('CHAMBERY') ||
-  //       nU.includes('AIGUILLES')
+  //       nU.includes('CHAMBERY')
   //     );
   //   }),
   // );
@@ -172,28 +171,6 @@ describe('Airspace overrides', () => {
       floorRefGnd: true,
       icaoClass: 3,
       type: 4,
-    });
-    expect(airspaces.get(airspaceOverrides.aiguilleRouges)).toMatchObject({
-      activity: 0,
-      country: 'FR',
-      floorLabel: 'GND',
-      floorM: 0,
-      floorRefGnd: true,
-      icaoClass: 8,
-      topLabel: '300m GND',
-      topM: 300,
-      topRefGnd: true,
-      type: 29,
-    });
-  });
-
-  test(airspaceOverrides.aiguilleRouges, () => {
-    const aiguillesRouges = airspaces.get(airspaceOverrides.aiguilleRouges)!;
-    const override = applyOverrides(aiguillesRouges, new TZDate('2024-07-01', 'Europe/Paris'));
-
-    expect(override).toMatchObject({
-      topM: 300,
-      topLabel: '300m GND',
     });
   });
 

@@ -17,6 +17,7 @@ import * as airspacesLogic from '../../logic/airspaces';
 import { setShow } from '../../redux/airspace-slice';
 import { setTimeSec } from '../../redux/app-slice';
 import { store } from '../../redux/store';
+import { addTrackEntities, setCurrentTrackId } from '../../redux/track-slice';
 import { Airspace3dElement, buildAirspaceVectorTileStyle } from './airspace3d-element';
 
 const { vectorTileCtorSpy } = vi.hoisted(() => ({
@@ -218,6 +219,7 @@ describe('Airspace3dElement', () => {
     }
     mounted.length = 0;
     store.dispatch(setShow(false));
+    store.dispatch(setCurrentTrackId(undefined));
     vi.restoreAllMocks();
     vectorTileCtorSpy.mockClear();
   });
@@ -245,7 +247,8 @@ describe('Airspace3dElement', () => {
     const trackTimeSec = Math.floor(Date.UTC(2025, 6, 15, 12, 0, 0) / 1000);
 
     store.dispatch(setTimeSec(trackTimeSec));
-    (el as any).track = { id: 'track-1' };
+    store.dispatch(addTrackEntities([{ id: 'track-1' } as any]));
+    store.dispatch(setCurrentTrackId('track-1'));
     await el.updateComplete;
     expect(vectorTileCtorSpy).toHaveBeenCalledTimes(2);
 
