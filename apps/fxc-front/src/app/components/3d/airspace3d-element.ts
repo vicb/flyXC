@@ -29,6 +29,7 @@ import {
   getPixelCoordinates,
   isAirspaceVisible,
   MAX_AIRSPACE_TILE_ZOOM,
+  pointInPolygonRings,
   toTypedAirspace,
 } from '@flyxc/common';
 import type { PropertyValues } from 'lit';
@@ -206,7 +207,7 @@ function getAirspaceKey(airspace: AirspaceTyped): string {
   return `${airspace.name}|${airspace.country}|${airspace.type}|${airspace.icaoClass}|${airspace.floorM}|${airspace.topM}|${airspace.floorRefGnd}|${airspace.topRefGnd}`;
 }
 
-function computeRingsExtent(rings: number[][][]): AirspaceExtentLike | null {
+function computeRingsExtent(rings: number[][][]): AirspaceExtentLike | undefined {
   let xmin = Number.POSITIVE_INFINITY;
   let ymin = Number.POSITIVE_INFINITY;
   let xmax = Number.NEGATIVE_INFINITY;
@@ -229,7 +230,7 @@ function computeRingsExtent(rings: number[][][]): AirspaceExtentLike | null {
       }
     }
   }
-  return xmin <= xmax && ymin <= ymax ? { xmin, ymin, xmax, ymax } : null;
+  return xmin <= xmax && ymin <= ymax ? { xmin, ymin, xmax, ymax } : undefined;
 }
 
 function geoJsonGeometryToParts(
@@ -257,17 +258,17 @@ function geoJsonGeometryToParts(
   return [];
 }
 
-function toGeoExtent(extent?: Extent | null): Extent | null {
+function toGeoExtent(extent?: Extent | null): Extent | undefined {
   if (!extent) {
-    return null;
+    return undefined;
   }
   if (extent.spatialReference?.isWGS84) {
     return extent;
   }
   if (extent.spatialReference?.isWebMercator) {
-    return webMercatorUtils.webMercatorToGeographic(extent) as Extent;
+    return (webMercatorUtils.webMercatorToGeographic(extent) as Extent) ?? undefined;
   }
-  return null;
+  return undefined;
 }
 
 /**
@@ -369,29 +370,13 @@ export function getVisibleTileCoords(view: SceneView): TileCoord[] {
   return getVisibleTileCoverage(view).tiles;
 }
 
-function extentOverlapsBounds(ext: AirspaceExtentLike | null | undefined, bounds: GeoBounds): boolean {
+function extentOverlapsBounds(ext: AirspaceExtentLike | undefined, bounds: GeoBounds): boolean {
   if (!ext) {
     return true;
   }
   return (
     ext.xmax >= bounds.minLon && ext.xmin <= bounds.maxLon && ext.ymax >= bounds.minLat && ext.ymin <= bounds.maxLat
   );
-}
-
-function pointInPolygonRings(lon: number, lat: number, rings: number[][][]): boolean {
-  let inside = false;
-  for (const ring of rings) {
-    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-      const xi = ring[i][0];
-      const yi = ring[i][1];
-      const xj = ring[j][0];
-      const yj = ring[j][1];
-      if (yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) {
-        inside = !inside;
-      }
-    }
-  }
-  return inside;
 }
 
 /**
@@ -843,7 +828,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       const footprintKey = `${airspace.floorRefGnd ? 1 : 0}${airspace.topRefGnd ? 1 : 0}${sinkZeroFloor ? 1 : 0}|${geomKey}`;
       const cachedFp = this.footprintCache.get(footprintKey);
 
-      let polygon: AirspacePolygonLike | null = cachedFp?.polygon ?? null;
+      let polygon: AirspacePolygonLike | undefined = cachedFp?.polygon;
       if (!polygon) {
         if (parts.length === 1) {
           polygon = { rings: parts[0].rings, extent: parts[0].extent };

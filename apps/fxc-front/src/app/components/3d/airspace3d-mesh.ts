@@ -24,9 +24,6 @@ export interface AirspaceExtentLike {
   ymin: number;
   xmax: number;
   ymax: number;
-  width?: number;
-  height?: number;
-  center?: { longitude?: number | null; latitude?: number | null };
 }
 
 /**
@@ -73,13 +70,11 @@ export interface AirspaceFootprint {
 }
 
 function estimateExtentMeters(extent: AirspaceExtentLike): { widthM: number; heightM: number } {
-  const width = extent.width ?? extent.xmax - extent.xmin;
-  const height = extent.height ?? extent.ymax - extent.ymin;
   const midLat = (extent.ymin + extent.ymax) / 2;
   const cosLat = Math.max(0.1, Math.cos((midLat * Math.PI) / 180));
   return {
-    widthM: width * METERS_PER_DEGREE_LAT * cosLat,
-    heightM: height * METERS_PER_DEGREE_LAT,
+    widthM: (extent.xmax - extent.xmin) * METERS_PER_DEGREE_LAT * cosLat,
+    heightM: (extent.ymax - extent.ymin) * METERS_PER_DEGREE_LAT,
   };
 }
 
@@ -221,11 +216,7 @@ function subdivideTriangulation2D(tri: Triangulated2D, midLat: number, maxEdgeM:
 /**
  * Triangulates a 2D polygon and subdivides long interior edges so ground-referenced caps follow terrain relief.
  */
-function triangulateTerrainCap2D(
-  rings: number[][][],
-  extent: AirspaceExtentLike,
-  stepM?: number,
-): Triangulated2D {
+function triangulateTerrainCap2D(rings: number[][][], extent: AirspaceExtentLike, stepM?: number): Triangulated2D {
   const base = triangulateRings2D(rings);
   const { widthM, heightM } = estimateExtentMeters(extent);
   const maxEdgeM = Math.max(TARGET_GRID_CELL_M, stepM ?? TARGET_GRID_CELL_M) * 1.05;
@@ -246,10 +237,7 @@ export function computeGroundSignature(polygon: AirspacePolygonLike, sampleGroun
     return 0;
   }
   const pts: Array<[number, number]> = [
-    [
-      extent.center?.longitude ?? (extent.xmin + extent.xmax) / 2,
-      extent.center?.latitude ?? (extent.ymin + extent.ymax) / 2,
-    ],
+    [(extent.xmin + extent.xmax) / 2, (extent.ymin + extent.ymax) / 2],
     [extent.xmin, extent.ymin],
     [extent.xmax, extent.ymin],
     [extent.xmax, extent.ymax],

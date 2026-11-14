@@ -337,17 +337,11 @@ export function getAirspaceColor(airspace: AirspaceTyped, opacityPercent: number
 // Returns whether the point is inside the polygon feature.
 export function isInFeature(point: Point, feature: Feature): boolean {
   const ratio = 256 / feature.extent;
+  const px = point.x / ratio;
+  const py = point.y / ratio;
   const polygons = feature.asPolygons() ?? [];
   for (const rings of polygons) {
-    // The point must be in the outer ring.
-    let isIn = isInPolygon(point, rings[0], ratio);
-    if (isIn) {
-      for (let i = 1; i < rings.length; ++i) {
-        // The point must not be in any hole.
-        isIn = isIn && !isInPolygon(point, rings[i], ratio);
-      }
-    }
-    if (isIn) {
+    if (pointInPolygonRings(px, py, rings)) {
       return true;
     }
   }
@@ -374,23 +368,38 @@ export function getAirspaceCategory(airspace: AirspaceTyped) {
   return parts.join(' ');
 }
 
-// Returns whether the point is in the polygon.
-function isInPolygon(point: Point, polygon: Point[], ratio: number): boolean {
-  const { x, y } = { x: point.x / ratio, y: point.y / ratio };
+export type PolygonPoint = Point | [number, number] | readonly number[] | number[];
+export type PolygonRing = ReadonlyArray<PolygonPoint>;
 
-  let isIn = false;
-
-  let [xa, ya] = [polygon[0].x, polygon[0].y];
-  for (let j = 1; j < polygon.length; j++) {
-    const [xb, yb] = [polygon[j].x, polygon[j].y];
-
-    if (ya > y != yb > y && x < ((xb - xa) * (y - ya)) / (yb - ya) + xa) {
-      isIn = !isIn;
+/**
+ * Returns whether a point (x/lon, y/lat) is inside a polygon defined by its rings (outer ring and optional holes).
+ * Uses the ray-casting algorithm (even-odd rule) and supports rings made of Point objects ({x, y}) or coordinate tuples ([x, y]).
+ */
+export function pointInPolygonRings(x: number, y: number, rings: ReadonlyArray<PolygonRing>): boolean {
+  let inside = false;
+  for (const ring of rings) {
+    const len = ring.length;
+    if (len < 3) {
+      continue;
     }
-    [xa, ya] = [xb, yb];
-  }
+    const isArray = Array.isArray(ring[0]);
+    const last = ring[len - 1];
+    let xj = isArray ? (last as number[])[0] : (last as Point).x;
+    let yj = isArray ? (last as number[])[1] : (last as Point).y;
 
-  return isIn;
+    for (let i = 0; i < len; i++) {
+      const p = ring[i];
+      const xi = isArray ? (p as number[])[0] : (p as Point).x;
+      const yi = isArray ? (p as number[])[1] : (p as Point).y;
+
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+        inside = !inside;
+      }
+      xj = xi;
+      yj = yi;
+    }
+  }
+  return inside;
 }
 
 export const airspaceOverrides = {
