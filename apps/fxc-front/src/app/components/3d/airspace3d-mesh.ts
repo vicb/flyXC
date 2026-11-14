@@ -236,23 +236,19 @@ export function computeGroundSignature(polygon: AirspacePolygonLike, sampleGroun
   if (!extent) {
     return 0;
   }
-  const pts: Array<[number, number]> = [
-    [(extent.xmin + extent.xmax) / 2, (extent.ymin + extent.ymax) / 2],
-    [extent.xmin, extent.ymin],
-    [extent.xmax, extent.ymin],
-    [extent.xmax, extent.ymax],
-    [extent.xmin, extent.ymax],
-  ];
+  let weight = 1;
+  let sum = Math.round(sampleGroundZ((extent.xmin + extent.xmax) / 2, (extent.ymin + extent.ymax) / 2) / 2) * weight++;
+  sum += Math.round(sampleGroundZ(extent.xmin, extent.ymin) / 2) * weight++;
+  sum += Math.round(sampleGroundZ(extent.xmax, extent.ymin) / 2) * weight++;
+  sum += Math.round(sampleGroundZ(extent.xmax, extent.ymax) / 2) * weight++;
+  sum += Math.round(sampleGroundZ(extent.xmin, extent.ymax) / 2) * weight++;
+
   const ring = polygon.rings[0];
   if (ring && ring.length > 0) {
     const step = Math.max(1, Math.floor(ring.length / 4));
     for (let i = 0; i < ring.length; i += step) {
-      pts.push([ring[i][0], ring[i][1]]);
+      sum += Math.round(sampleGroundZ(ring[i][0], ring[i][1]) / 2) * weight++;
     }
-  }
-  let sum = 0;
-  for (let i = 0; i < pts.length; i++) {
-    sum += Math.round(sampleGroundZ(pts[i][0], pts[i][1]) / 2) * (i + 1);
   }
   return sum;
 }
@@ -298,21 +294,20 @@ function writeCap(
   fCursor: number,
   tri: Triangulated2D,
   computeZ: (lon: number, lat: number) => number,
-): [number, number] {
+): void {
   const baseVertex = vCursor;
-  for (let i = 0; i < tri.xy.length; i += 2) {
-    const lon = tri.xy[i];
-    const lat = tri.xy[i + 1];
-    const p = vCursor * 3;
+  const numVertices = tri.xy.length / 2;
+  for (let i = 0; i < numVertices; i++) {
+    const lon = tri.xy[i * 2];
+    const lat = tri.xy[i * 2 + 1];
+    const p = (vCursor + i) * 3;
     positions[p] = lon;
     positions[p + 1] = lat;
     positions[p + 2] = computeZ(lon, lat);
-    vCursor++;
   }
   for (let i = 0; i < tri.faces.length; i++) {
-    faces[fCursor++] = baseVertex + tri.faces[i];
+    faces[fCursor + i] = baseVertex + tri.faces[i];
   }
-  return [vCursor, fCursor];
 }
 
 /**
@@ -415,13 +410,15 @@ export function extrudeAirspaceFootprint(
     }
   } else {
     if (topTri) {
-      [vCursor, fCursor] = writeCap(positions, faces, vCursor, fCursor, topTri, (lon, lat) => {
+      writeCap(positions, faces, vCursor, fCursor, topTri, (lon, lat) => {
         if (!airspace.topRefGnd) {
           return topOffset;
         }
         const z = sampleGroundZ(lon, lat) + topOffset;
         return airspace.floorRefGnd ? z : Math.max(z, floorOffset);
       });
+      vCursor += topTri.xy.length / 2;
+      fCursor += topTri.faces.length;
     }
     if (floorTri) {
       writeCap(positions, faces, vCursor, fCursor, floorTri, (lon, lat) => {
@@ -454,6 +451,32 @@ export async function buildAirspaceMeshData({
  * Merges multiple raw {@link AirspaceMeshData} buffers into a single ArcGIS {@link Mesh}.
  */
 export function mergeMeshData(parts: AirspaceMeshData[]): Mesh | null {
+  if (parts.length === 0) {
+    return null;
+  }
+  if (parts.length === 1) {
+    const part = parts[0];
+    if (part.positions.length === 0 || part.faces.length === 0) {
+      return null;
+    }
+    return new Mesh({
+      spatialReference: { wkid: 4326 },
+      vertexSpace: new MeshGeoreferencedVertexSpace(),
+      vertexAttributes: { position: part.positions as Float64Array<ArrayBuffer> },
+      components: [
+        {
+          faces: part.faces as Uint32Array<ArrayBuffer>,
+          shading: 'flat',
+          material: {
+            color: [255, 255, 255, 1],
+            alphaMode: 'blend',
+            doubleSided: true,
+          },
+        },
+      ],
+    });
+  }
+
   let totalPos = 0;
   let totalFaces = 0;
   for (const part of parts) {

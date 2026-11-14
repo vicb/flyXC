@@ -120,14 +120,19 @@ export function createGroundSampler(sampler?: ElevationSampler): GroundSampler {
   const isWGS84 = Boolean(sr?.isWGS84);
   const isWebMercator = Boolean(sr?.isWebMercator);
   let queryPoint: Point | undefined;
+  const scratchXY: [number, number] = [0, 0];
 
   return (lon: number, lat: number): number => {
     let z: number | null | undefined;
     if (isWGS84) {
       z = sampler.elevationAt(lon, lat);
     } else if (isWebMercator) {
-      const [x, y] = webMercatorUtils.lngLatToXY(lon, lat);
-      z = sampler.elevationAt(x, y);
+      (webMercatorUtils.lngLatToXY as (lon: number, lat: number, dest?: [number, number]) => [number, number])(
+        lon,
+        lat,
+        scratchXY,
+      );
+      z = sampler.elevationAt(scratchXY[0], scratchXY[1]);
     } else {
       queryPoint ??= new Point({ longitude: lon, latitude: lat });
       queryPoint.longitude = lon;
