@@ -239,7 +239,7 @@ export class Airspace3dProcessor {
           const built = await buildAirspaceFootprint(polygon, airspace);
           if (built) {
             footprint = built;
-            this.setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, footprintKey, {
+            setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, footprintKey, {
               polygon,
               footprint,
             });
@@ -316,19 +316,19 @@ export class Airspace3dProcessor {
       }
     })();
 
-    this.setBoundedCache(this.tileCache, MAX_TILE_CACHE_SIZE, url, promise);
+    setBoundedCache(this.tileCache, MAX_TILE_CACHE_SIZE, url, promise);
     return promise;
   }
+}
 
-  private setBoundedCache<K, V>(cache: Map<K, V>, maxSize: number, key: K, value: V): void {
-    if (cache.has(key)) {
-      cache.delete(key);
-    } else if (cache.size >= maxSize) {
-      const oldestKey = cache.keys().next().value;
-      if (oldestKey !== undefined) {
-        cache.delete(oldestKey);
-      }
+export function setBoundedCache<K, V>(cache: Map<K, V>, maxSize: number, key: K, value: V): void {
+  if (cache.has(key)) {
+    cache.delete(key);
+  } else if (cache.size >= maxSize) {
+    const oldestKey = cache.keys().next().value;
+    if (oldestKey !== undefined) {
+      cache.delete(oldestKey);
     }
-    cache.set(key, value);
   }
+  cache.set(key, value);
 }

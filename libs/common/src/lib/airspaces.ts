@@ -317,21 +317,18 @@ export const ASP_COLOR_RESTRICTED = '#bfbf40';
 export const ASP_COLOR_DANGER = '#bf8040';
 export const ASP_COLOR_OTHER = '#808080';
 
+export const ASP_CATEGORY_COLOR: Record<AirspaceColorCategory, string> = {
+  [AirspaceColorCategory.Prohibited]: ASP_COLOR_PROHIBITED,
+  [AirspaceColorCategory.Restricted]: ASP_COLOR_RESTRICTED,
+  [AirspaceColorCategory.Danger]: ASP_COLOR_DANGER,
+  [AirspaceColorCategory.Other]: ASP_COLOR_OTHER,
+};
+
 // Returns the color of the airspace with the given opacity percentage (0-100).
 export function getAirspaceColor(airspace: AirspaceTyped, opacityPercent: number): string {
   const alpha255 = Math.min(255, Math.max(0, Math.round((opacityPercent * 255) / 100)));
   const alphaHex = alpha255.toString(16).padStart(2, '0');
-
-  switch (getAirspaceColorCategory(airspace)) {
-    case AirspaceColorCategory.Prohibited:
-      return `${ASP_COLOR_PROHIBITED}${alphaHex}`;
-    case AirspaceColorCategory.Restricted:
-      return `${ASP_COLOR_RESTRICTED}${alphaHex}`;
-    case AirspaceColorCategory.Danger:
-      return `${ASP_COLOR_DANGER}${alphaHex}`;
-    case AirspaceColorCategory.Other:
-      return `${ASP_COLOR_OTHER}${alphaHex}`;
-  }
+  return `${ASP_CATEGORY_COLOR[getAirspaceColorCategory(airspace)]}${alphaHex}`;
 }
 
 // Returns whether the point is inside the polygon feature.

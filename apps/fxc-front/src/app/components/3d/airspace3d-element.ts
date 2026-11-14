@@ -17,10 +17,7 @@ import type { AirspaceTyped, Class, LatLon, Type } from '@flyxc/common';
 import {
   AIRSPACE_TILE_SIZE,
   AirspaceColorCategory,
-  ASP_COLOR_DANGER,
-  ASP_COLOR_OTHER,
-  ASP_COLOR_PROHIBITED,
-  ASP_COLOR_RESTRICTED,
+  ASP_CATEGORY_COLOR,
   getPixelCoordinates,
   MAX_AIRSPACE_TILE_ZOOM,
   pointInPolygonRings,
@@ -44,6 +41,7 @@ import {
   type AirspaceWorkerRequest,
   type AirspaceWorkerResponse,
   type GeoBounds,
+  setBoundedCache,
   type TileCoord,
 } from '../../workers/airspace3d-processor';
 import {
@@ -55,11 +53,11 @@ import {
 } from './airspace3d-mesh';
 import { createPopupContent } from './popup-content';
 
-function getEffectiveAirspaceDate(hasTrack: boolean, timeSec: number): Date {
+export function getEffectiveAirspaceDate(hasTrack: boolean, timeSec: number): Date {
   return hasTrack && Number.isFinite(timeSec) ? new Date(timeSec * 1000) : new Date();
 }
 
-async function openAirspacePopup(scene: ArcgisScene, latLon: LatLon, html: string, clickZ?: number): Promise<void> {
+export async function openAirspacePopup(scene: ArcgisScene, latLon: LatLon, html: string, clickZ?: number): Promise<void> {
   await scene.openPopup({
     location: new Point({
       latitude: latLon.lat,
@@ -79,27 +77,17 @@ const VIEW_REFRESH_DEBOUNCE_MS = 60;
 const SAMPLER_REFRESH_DEBOUNCE_MS = 450;
 const CLICK_Z_TOLERANCE_M = 75;
 
-interface CachedAirspaceItem extends AirspaceWorkerItem {
-  meshData?: AirspaceMeshData;
-  groundSignature?: number;
-}
-
 interface CachedMeshEntry {
   meshData: AirspaceMeshData;
   groundSignature?: number;
 }
 
+type CachedAirspaceItem = AirspaceWorkerItem & Partial<CachedMeshEntry>;
+
 interface VisibleTileCoverage {
   tiles: TileCoord[];
   bounds: GeoBounds | null;
 }
-
-const CATEGORY_HEX: Record<AirspaceColorCategory, string> = {
-  [AirspaceColorCategory.Prohibited]: ASP_COLOR_PROHIBITED,
-  [AirspaceColorCategory.Restricted]: ASP_COLOR_RESTRICTED,
-  [AirspaceColorCategory.Danger]: ASP_COLOR_DANGER,
-  [AirspaceColorCategory.Other]: ASP_COLOR_OTHER,
-};
 
 const ALL_CATEGORIES = [
   AirspaceColorCategory.Prohibited,
@@ -148,7 +136,7 @@ export function createGroundSampler(sampler?: ElevationSampler): GroundSampler {
 }
 
 function createCategorySymbol(category: AirspaceColorCategory, opacityPercent: number): MeshSymbol3D {
-  const hex = CATEGORY_HEX[category];
+  const hex = ASP_CATEGORY_COLOR[category];
   const fill = new Color(hex);
   fill.a = Math.min(0.45, Math.max(0.05, (opacityPercent / 100) * 0.45));
   const edge = new Color(hex);
@@ -595,18 +583,6 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     this.removeGraphicsLayer();
   }
 
-  private setBoundedCache<K, V>(cache: globalThis.Map<K, V>, maxSize: number, key: K, value: V): void {
-    if (cache.has(key)) {
-      cache.delete(key);
-    } else if (cache.size >= maxSize) {
-      const oldestKey = cache.keys().next().value;
-      if (oldestKey !== undefined) {
-        cache.delete(oldestKey);
-      }
-    }
-    cache.set(key, value);
-  }
-
   private getWorker(): Worker | undefined {
     if (typeof Worker !== 'undefined') {
       if (!this.worker) {
@@ -688,14 +664,9 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       return;
     }
 
-    const prevByKey = new globalThis.Map(this.currentAirspaces.map((item) => [item.cacheKey, item]));
     this.currentAirspaces = response.items.map((item) => {
-      const cachedMesh = prevByKey.get(item.cacheKey) ?? this.meshCache.get(item.cacheKey);
-      return {
-        ...item,
-        meshData: cachedMesh?.meshData,
-        groundSignature: cachedMesh?.groundSignature,
-      };
+      const cached = this.meshCache.get(item.cacheKey);
+      return cached ? { ...item, meshData: cached.meshData, groundSignature: cached.groundSignature } : item;
     });
 
     this.lastQueryKey = queryKey;
@@ -733,7 +704,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       if (meshData) {
         item.meshData = meshData;
         item.groundSignature = sig;
-        this.setBoundedCache(this.meshCache, MAX_MESH_CACHE_SIZE, item.cacheKey, { meshData, groundSignature: sig });
+        setBoundedCache(this.meshCache, MAX_MESH_CACHE_SIZE, item.cacheKey, { meshData, groundSignature: sig });
       } else {
         item.meshData = undefined;
       }

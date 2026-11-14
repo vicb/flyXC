@@ -447,6 +447,25 @@ export async function buildAirspaceMeshData({
   return footprint ? extrudeAirspaceFootprint(footprint, airspace, multiplier, sampleGroundZ) : null;
 }
 
+function createMesh(positions: Float64Array, faces: Uint32Array): Mesh {
+  return new Mesh({
+    spatialReference: { wkid: 4326 },
+    vertexSpace: new MeshGeoreferencedVertexSpace(),
+    vertexAttributes: { position: positions as Float64Array<ArrayBuffer> },
+    components: [
+      {
+        faces: faces as Uint32Array<ArrayBuffer>,
+        shading: 'flat',
+        material: {
+          color: [255, 255, 255, 1],
+          alphaMode: 'blend',
+          doubleSided: true,
+        },
+      },
+    ],
+  });
+}
+
 /**
  * Merges multiple raw {@link AirspaceMeshData} buffers into a single ArcGIS {@link Mesh}.
  */
@@ -456,25 +475,7 @@ export function mergeMeshData(parts: AirspaceMeshData[]): Mesh | null {
   }
   if (parts.length === 1) {
     const part = parts[0];
-    if (part.positions.length === 0 || part.faces.length === 0) {
-      return null;
-    }
-    return new Mesh({
-      spatialReference: { wkid: 4326 },
-      vertexSpace: new MeshGeoreferencedVertexSpace(),
-      vertexAttributes: { position: part.positions as Float64Array<ArrayBuffer> },
-      components: [
-        {
-          faces: part.faces as Uint32Array<ArrayBuffer>,
-          shading: 'flat',
-          material: {
-            color: [255, 255, 255, 1],
-            alphaMode: 'blend',
-            doubleSided: true,
-          },
-        },
-      ],
-    });
+    return part.positions.length > 0 && part.faces.length > 0 ? createMesh(part.positions, part.faces) : null;
   }
 
   let totalPos = 0;
@@ -503,22 +504,7 @@ export function mergeMeshData(parts: AirspaceMeshData[]): Mesh | null {
     faceOffset += srcFaces.length;
   }
 
-  return new Mesh({
-    spatialReference: { wkid: 4326 },
-    vertexSpace: new MeshGeoreferencedVertexSpace(),
-    vertexAttributes: { position: positions },
-    components: [
-      {
-        faces,
-        shading: 'flat',
-        material: {
-          color: [255, 255, 255, 1],
-          alphaMode: 'blend',
-          doubleSided: true,
-        },
-      },
-    ],
-  });
+  return createMesh(positions, faces);
 }
 
 /**

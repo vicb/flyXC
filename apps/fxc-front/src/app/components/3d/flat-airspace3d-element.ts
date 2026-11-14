@@ -1,4 +1,3 @@
-import Point from '@arcgis/core/geometry/Point';
 import VectorTileLayer from '@arcgis/core/layers/VectorTileLayer';
 import type Map from '@arcgis/core/Map';
 import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
@@ -24,7 +23,7 @@ import * as app from '../../redux/app-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import { selectCurrentTrack } from '../../redux/track-slice';
-import { createPopupContent } from './popup-content';
+import { getEffectiveAirspaceDate, openAirspacePopup } from './airspace3d-element';
 
 @customElement('flat-airspace3d-element')
 export class FlatAirspace3dElement extends connect(store)(LitElement) {
@@ -58,7 +57,7 @@ export class FlatAirspace3dElement extends connect(store)(LitElement) {
   }
 
   private getEffectiveDate(): Date {
-    return this.track ? new Date(app.selectTimeSec(store.getState()) * 1000) : new Date();
+    return getEffectiveAirspaceDate(this.track != null, app.selectTimeSec(store.getState()));
   }
 
   protected shouldUpdate(): boolean {
@@ -90,14 +89,7 @@ export class FlatAirspace3dElement extends connect(store)(LitElement) {
       this.getEffectiveDate(),
     );
     if (html) {
-      await scene.openPopup({
-        location: new Point({
-          latitude: latLon.lat,
-          longitude: latLon.lon,
-        }),
-        title: 'Airspaces',
-        content: createPopupContent(html),
-      });
+      await openAirspacePopup(scene, latLon, html);
     }
   }
 
