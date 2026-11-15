@@ -1,8 +1,29 @@
+/**
+ * Converts raw airspace source datasets into standardized GeoJSON files for vector tile generation.
+ *
+ * Source formats processed:
+ * - OpenAIP JSON pages (`assets/openaip/openaip-*.json`)
+ * - OpenAir text format (e.g. `UKRAINE (UK).txt`, `reunion.txt`)
+ *
+ * Pipeline responsibilities:
+ * 1. Filter: Drops airspaces with floor > 6000m or unwanted patterns (e.g. ILS paths).
+ * 2. ID Assignment: Generates sequential 1-based integer feature IDs preserved in downstream MVT tiles.
+ * 3. Type Normalization: Normalizes country-specific airspace classifications (e.g. Ukraine CTR/TMA/FIR).
+ * 4. Ramer-Douglas-Peucker (RDP) Simplification:
+ *    - Raw airspace curves (such as circular CTRs/TMAs) frequently contain thousands of densely sampled
+ *      vertices (e.g., 6,000+ vertices per boundary) that produce moiré/shimmering visual artifacts
+ *      and high GPU/CPU overhead in 3D SceneViews, as well as bloating 2D vector tile sizes.
+ *    - Applies metric RDP simplification (`simplifyCoords`, default 15m tolerance) with equirectangular
+ *      latitude correction, reducing vertex counts by ~90% while preserving boundary fidelity, ring
+ *      closure, and GeoJSON linear ring validity (minimum 4 coordinates).
+ *    - Simplification can be adjusted via `-t, --tolerance <meters>` or disabled with `-t 0`.
+ */
+
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { Type } from '@flyxc/common';
+import { simplifyCoords, Type } from '@flyxc/common';
 import { program } from 'commander';
 import GeoJSON from 'geojson';
 
@@ -23,10 +44,12 @@ const defaultOutputFolder = resolve(join(getAppFolderFromDist(__dirname), 'asset
 program
   .option('-i, --input <folder>', 'input folder', defaultInputFolder)
   .option('-o, --output <folder>', 'output folder', defaultOutputFolder)
+  .option('-t, --tolerance <meters>', 'simplification tolerance in meters (0 to disable)', '15')
   .parse();
 
 const inputFolder = program.opts().input;
 const outputFolder = program.opts().output;
+const toleranceM = Number(program.opts().tolerance) || 0;
 
 mkdirSync(outputFolder, { recursive: true });
 cleanOutputDir(outputFolder);
@@ -36,6 +59,8 @@ const filterFn = createFilter(logs);
 const processFn = createProcess(logs);
 
 let nextId = 1;
+let totalOrigVertices = 0;
+let totalSimpVertices = 0;
 
 function saveGeoJson(airspaces: Airspace[], outFile: string) {
   if (airspaces.length === 0) {
@@ -43,6 +68,14 @@ function saveGeoJson(airspaces: Airspace[], outFile: string) {
   }
   for (const a of airspaces) {
     a.id = nextId++;
+    if (toleranceM > 0) {
+      a.polygon = a.polygon.map((ring) => {
+        totalOrigVertices += ring.length;
+        const simplified = simplifyCoords(ring, toleranceM);
+        totalSimpVertices += simplified.length;
+        return simplified;
+      });
+    }
   }
   const geojsonObj = GeoJSON.parse(airspaces, { Polygon: 'polygon' });
   for (const feature of geojsonObj.features) {
@@ -118,6 +151,12 @@ if (existsSync(rePath)) {
 }
 
 console.log(`\n# Total: ${totalAirspaces} airspaces written to ${outputFolder}`);
+if (totalOrigVertices > 0) {
+  const reduction = (((totalOrigVertices - totalSimpVertices) / totalOrigVertices) * 100).toFixed(1);
+  console.log(
+    `# Geometry simplification (tolerance: ${toleranceM}m): ${totalOrigVertices.toLocaleString()} -> ${totalSimpVertices.toLocaleString()} vertices (-${reduction}%)`,
+  );
+}
 
 function cleanOutputDir(dir: string) {
   try {

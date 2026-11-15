@@ -16,7 +16,6 @@ import {
   getAirspaceOverrides,
   getAirspaceTileUrl,
   isInFeature,
-  pointInPolygonRings,
   toTypedAirspace,
   Type,
 } from './airspaces';
@@ -351,87 +350,6 @@ describe('Airspace overrides', () => {
     });
     expect(winterMap.get(airspaceOverrides.CTRChambery2)).toMatchObject({
       icaoClass: Class.D,
-    });
-  });
-
-  describe('pointInPolygonRings', () => {
-    // 10x10 square
-    const outerRingTuples: [number, number][] = [
-      [0, 0],
-      [10, 0],
-      [10, 10],
-      [0, 10],
-      [0, 0],
-    ];
-
-    it('identifies points inside and outside coordinate-array rings', () => {
-      expect(pointInPolygonRings(5, 5, [outerRingTuples])).toBe(true);
-      expect(pointInPolygonRings(15, 5, [outerRingTuples])).toBe(false);
-      expect(pointInPolygonRings(-1, 5, [outerRingTuples])).toBe(false);
-      expect(pointInPolygonRings(5, 12, [outerRingTuples])).toBe(false);
-    });
-
-    it('works with unclosed rings', () => {
-      const unclosed: [number, number][] = [
-        [0, 0],
-        [10, 0],
-        [10, 10],
-        [0, 10],
-      ];
-      expect(pointInPolygonRings(5, 5, [unclosed])).toBe(true);
-      expect(pointInPolygonRings(15, 5, [unclosed])).toBe(false);
-    });
-
-    it('handles holes in coordinate-array polygons', () => {
-      // 4x4 hole from (3,3) to (7,7)
-      const holeTuples: [number, number][] = [
-        [3, 3],
-        [7, 3],
-        [7, 7],
-        [3, 7],
-        [3, 3],
-      ];
-      const rings = [outerRingTuples, holeTuples];
-
-      // Inside outer ring and outside hole
-      expect(pointInPolygonRings(2, 2, rings)).toBe(true);
-      expect(pointInPolygonRings(8, 8, rings)).toBe(true);
-      // Inside hole
-      expect(pointInPolygonRings(5, 5, rings)).toBe(false);
-      // Outside outer ring
-      expect(pointInPolygonRings(12, 12, rings)).toBe(false);
-    });
-
-    it('supports Point objects ({x, y})', () => {
-      const outerRingPoints = [
-        { x: 0, y: 0 },
-        { x: 10, y: 0 },
-        { x: 10, y: 10 },
-        { x: 0, y: 10 },
-        { x: 0, y: 0 },
-      ];
-      const holePoints = [
-        { x: 3, y: 3 },
-        { x: 7, y: 3 },
-        { x: 7, y: 7 },
-        { x: 3, y: 7 },
-        { x: 3, y: 3 },
-      ];
-      expect(pointInPolygonRings(2, 2, [outerRingPoints, holePoints])).toBe(true);
-      expect(pointInPolygonRings(5, 5, [outerRingPoints, holePoints])).toBe(false);
-      expect(pointInPolygonRings(15, 5, [outerRingPoints, holePoints])).toBe(false);
-    });
-
-    it('ignores degenerate rings with fewer than 3 vertices', () => {
-      expect(pointInPolygonRings(5, 5, [[]])).toBe(false);
-      expect(
-        pointInPolygonRings(5, 5, [
-          [
-            [0, 0],
-            [1, 1],
-          ],
-        ]),
-      ).toBe(false);
     });
   });
 

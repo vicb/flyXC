@@ -1,5 +1,5 @@
 import type { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
-import { findClosestFix, getPixelCoordinates } from '@flyxc/common';
+import { findClosestFix, getPixelCoordinates, simplifyPath } from '@flyxc/common';
 import * as gMapLoader from '@googlemaps/js-api-loader';
 import type { PropertyValues, TemplateResult } from 'lit';
 import { html, LitElement, svg } from 'lit';
@@ -8,7 +8,6 @@ import { repeat } from 'lit/directives/repeat.js';
 import { when } from 'lit/directives/when.js';
 import type { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
-import simplify from 'simplify-path';
 
 import { getApiKeyAndHost } from '../../apikey';
 import * as msg from '../../logic/messages';
@@ -385,7 +384,7 @@ export class MapElement extends connect(store)(LitElement) {
     this.pointerEventId = undefined;
     this.freeDrawPath = '';
     store.dispatch(setIsFreeDrawing(false));
-    this.pathPoints = simplify(this.pathPoints, 15);
+    this.pathPoints = simplifyPath(this.pathPoints, 15);
     let encodedRoute = '';
     if (this.pathPoints.length >= 2 && this.map) {
       const proj = this.map.getProjection() as google.maps.Projection;

@@ -1,6 +1,5 @@
 // Modules without types.
 declare module '@mapbox/sphericalmercator';
-declare module 'simplify-path';
 
 // The official types does not work in the browser.
 declare module 'qrcode/lib/browser';

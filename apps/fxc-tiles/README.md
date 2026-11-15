@@ -11,6 +11,7 @@ Install [tippecanoe](https://github.com/felt/tippecanoe) - note that the mapbox 
 - Create the geojson with `node dist/airspaces/create-geojson.js`
   - Assigns sequential 1-based integer `id`s (`id: 1..N`) across all airspaces.
   - Sets both top-level `feature.id` and property `id` so tippecanoe preserves native protobuf feature IDs.
+  - Simplifies dense airspace boundaries using Ramer-Douglas-Peucker equirectangular simplification (default: 15m tolerance, configurable via `-t, --tolerance`), removing ~90% of redundant curve vertices while preserving visual and spatial fidelity.
 - Create the vector tiles with `node dist/airspaces/create-tiles.js`
   - Generates 2D vector tiles (zooms 0 to 10) in `assets/tiles`.
   - Generates unclipped vector tiles (`-z 6 -Z 6 -pc`) co-located in `assets/tiles/6/{x}/{y}-unclipped.pbf`. Unclipped polygons eliminate tile stitching and union operators in 3D rendering.

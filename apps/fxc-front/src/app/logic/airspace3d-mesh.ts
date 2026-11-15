@@ -2,7 +2,7 @@ import Mesh from '@arcgis/core/geometry/Mesh';
 import MeshGeoreferencedVertexSpace from '@arcgis/core/geometry/support/MeshGeoreferencedVertexSpace';
 // @ts-expect-error Internal ArcGIS 2D earcut tessellation utilities without type declarations
 import * as tess from '@arcgis/core/views/3d/layers/graphics/tessellationUtils.js';
-import { type AirspaceTyped, pointInPolygonRings } from '@flyxc/common';
+import { densifyPolyline, type AirspaceTyped, pointInPolygonRings, pointToSegmentSquared2D } from '@flyxc/common';
 import { Delaunay } from 'd3-delaunay';
 
 const METERS_PER_DEGREE_LAT = 111_320;
@@ -96,27 +96,7 @@ function prepareWallRings(rings: number[][][], stepM?: number): number[][][] {
     if (ring.length < 3) {
       continue;
     }
-    const out: number[][] = [[ring[0][0], ring[0][1]]];
-    for (let i = 1; i < ring.length; i++) {
-      const [lon0, lat0] = out[out.length - 1];
-      const [lon1, lat1] = ring[i];
-      if (lon0 === lon1 && lat0 === lat1) {
-        continue;
-      }
-      if (stepM != null) {
-        const cosLat = Math.max(0.1, Math.cos(((lat0 + lat1) * 0.5 * Math.PI) / 180));
-        const segLenM = Math.hypot(
-          (lon1 - lon0) * METERS_PER_DEGREE_LAT * cosLat,
-          (lat1 - lat0) * METERS_PER_DEGREE_LAT,
-        );
-        const steps = Math.max(1, Math.ceil(segLenM / stepM));
-        for (let k = 1; k < steps; k++) {
-          const t = k / steps;
-          out.push([lon0 + (lon1 - lon0) * t, lat0 + (lat1 - lat0) * t]);
-        }
-      }
-      out.push([lon1, lat1]);
-    }
+    const out = densifyPolyline(ring as [number, number][], stepM);
     if (out.length >= 3) {
       result.push(out);
     }
@@ -150,24 +130,6 @@ const sharedMeshMaterial = {
   doubleSided: true,
   unlit: true,
 };
-
-function distToSegmentSquared2D(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const l2 = dx * dx + dy * dy;
-  if (l2 === 0) {
-    const rx = px - x1;
-    const ry = py - y1;
-    return rx * rx + ry * ry;
-  }
-  let t = ((px - x1) * dx + (py - y1) * dy) / l2;
-  t = Math.max(0, Math.min(1, t));
-  const qx = x1 + t * dx;
-  const qy = y1 + t * dy;
-  const rx = px - qx;
-  const ry = py - qy;
-  return rx * rx + ry * ry;
-}
 
 /**
  * Triangulates a polygon cap by injecting a regular 2D grid of interior Steiner points and
@@ -252,7 +214,7 @@ export function triangulateCapWithGrid2D(
         const plon = lon * cosLat;
         for (let s = 0; s < projSegments.length; s += 4) {
           if (
-            distToSegmentSquared2D(
+            pointToSegmentSquared2D(
               plon,
               lat,
               projSegments[s],

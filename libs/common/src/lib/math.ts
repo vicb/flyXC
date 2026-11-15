@@ -1,3 +1,99 @@
+/** Degrees to radians conversion multiplier. */
+export const DEG_TO_RAD = Math.PI / 180;
+
+/** Radians to degrees conversion multiplier. */
+export const RAD_TO_DEG = 180 / Math.PI;
+
+/**
+ * Converts degrees to radians.
+ *
+ * @param deg - Angle in degrees.
+ * @returns Angle in radians.
+ */
+export function toRad(deg: number): number {
+  return deg * DEG_TO_RAD;
+}
+
+/**
+ * Converts radians to degrees.
+ *
+ * @param rad - Angle in radians.
+ * @returns Angle in degrees.
+ */
+export function toDeg(rad: number): number {
+  return rad * RAD_TO_DEG;
+}
+
+/**
+ * Clamps a number to the inclusive range [min, max].
+ *
+ * @param value - The value to clamp.
+ * @param min - Lower bound.
+ * @param max - Upper bound.
+ * @returns The clamped value.
+ */
+export function clamp(value: number, min: number, max: number): number {
+  return value < min ? min : value > max ? max : value;
+}
+
+/**
+ * Linearly interpolates between two scalar values: v0 + t * (v1 - v0).
+ *
+ * @param v0 - The starting value.
+ * @param v1 - The ending value.
+ * @param t - The interpolation weight, typically between 0 and 1.
+ * @returns The interpolated value.
+ */
+export function lerp(v0: number, v1: number, t: number): number {
+  return v0 + t * (v1 - v0);
+}
+
+/**
+ * Linearly interpolates between two angles in degrees along the shortest arc.
+ *
+ * Handles wrapping around 360 degrees and normalizes the output to [0, 360).
+ *
+ * @param a - Starting angle in degrees.
+ * @param b - Ending angle in degrees.
+ * @param t - Interpolation weight, where 0 returns `a` and 1 returns `b`.
+ * @returns The interpolated angle in degrees, normalized to [0, 360).
+ */
+export function lerpAngleDegree(a: number, b: number, t: number): number {
+  const rawDiff = (b - a) % 360;
+  const wrappedDiff0To360 = (rawDiff + 540) % 360;
+  const shortestArcDelta = wrappedDiff0To360 - 180;
+  const interpolatedAngle = a + shortestArcDelta * t;
+  return ((interpolatedAngle % 360) + 360) % 360;
+}
+
+/**
+ * Computes the median of an array of numbers using an insertion sort.
+ * Modifies the array in place and returns the median rounded to the nearest integer.
+ *
+ * @param arr - Array of numbers to sort and compute the median of.
+ * @returns The median value rounded to the nearest integer.
+ */
+export function computeMedian(arr: number[]): number {
+  const len = arr.length;
+  if (len === 0) {
+    return 0;
+  }
+  if (len === 1) {
+    return arr[0];
+  }
+  for (let i = 1; i < len; i++) {
+    const val = arr[i];
+    let j = i - 1;
+    while (j >= 0 && arr[j] > val) {
+      arr[j + 1] = arr[j];
+      j--;
+    }
+    arr[j + 1] = val;
+  }
+  const mid = Math.floor(len / 2);
+  return len % 2 === 1 ? arr[mid] : Math.round((arr[mid - 1] + arr[mid]) * 0.5);
+}
+
 // Linear interpolation
 // The values (y1 and y2) can be arrays
 export function linearInterpolate(x1: number, y1: number, x2: number, y2: number, x: number): number;

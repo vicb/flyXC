@@ -46,7 +46,6 @@ catalog:
   lit: ^3.3.3
   mapbox-vector-tile: ^0.3.0
   proxy: ^4.1.0
-  simplify-path: ^1.1.0
   tiny-lru: ^13.1.1
   tslib: ^2.9.1
   undici: ~8.13.1

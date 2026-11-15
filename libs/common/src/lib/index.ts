@@ -4,6 +4,7 @@ export { generateAprsPosition, parseAprsPosition, parseFntStatus } from './aprs'
 export * from './distance';
 export * from './encode';
 export * from './fetch-timeout';
+export * from './geometry';
 export * from './live-track';
 export * from './live-track-entity';
 export * from './live-track-filter';

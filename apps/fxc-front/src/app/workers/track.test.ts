@@ -1,6 +1,7 @@
+import { computeMedian } from '@flyxc/common';
 import { describe, expect, it } from 'vitest';
 
-import { computeMedian, filterSpikes } from './spike-filter';
+import { filterSpikes } from './spike-filter';
 
 describe('filterSpikes', () => {
   it('should return early when track has fewer than 3 fixes', () => {

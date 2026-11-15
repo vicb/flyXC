@@ -1,3 +1,5 @@
+import { computeMedian } from '@flyxc/common';
+
 // Maximum physically possible climb rate (m/s) in atmospheric flight (paragliding/gliding/light aircraft).
 // Thermal and mountain wave climb rates rarely exceed +15 to +18 m/s.
 // Instantaneous climb exceeding 25 m/s indicates an instrument anomaly or GPS glitch.
@@ -169,30 +171,6 @@ function findBridgeReconnection(
   }
 
   return -1;
-}
-
-/**
- * Computes the median of a small array (N <= 30) in-place.
- *
- * Uses an in-place insertion sort which is > 5x faster than Array.prototype.sort((a, b) => a - b)
- * for small collections because it eliminates V8 comparator callback invocation overhead.
- *
- * @param arr - Array of numbers to sort and find the median of (modified in place).
- * @returns The median value rounded to the nearest integer.
- */
-export function computeMedian(arr: number[]): number {
-  const len = arr.length;
-  for (let i = 1; i < len; i++) {
-    const val = arr[i];
-    let j = i - 1;
-    while (j >= 0 && arr[j] > val) {
-      arr[j + 1] = arr[j];
-      j--;
-    }
-    arr[j + 1] = val;
-  }
-  const mid = Math.floor(len / 2);
-  return len % 2 === 1 ? arr[mid] : Math.round((arr[mid - 1] + arr[mid]) / 2);
 }
 
 /**

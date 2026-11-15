@@ -1,9 +1,15 @@
-import { diffDecodeTrack, diffEncodeAirspaces, diffEncodeArray32bit, fetchResponse, protos } from '@flyxc/common';
+import {
+  diffDecodeTrack,
+  diffEncodeAirspaces,
+  diffEncodeArray32bit,
+  fetchResponse,
+  protos,
+  simplifyPath,
+} from '@flyxc/common';
 import type { TrackEntity } from '@flyxc/common-node';
 import { retrieveTrackById, saveTrack } from '@flyxc/common-node';
 import type { Datastore } from '@google-cloud/datastore';
 import polyline from 'google-polyline';
-import simplify from 'simplify-path';
 
 import { fetchAirspaces } from './airspace';
 import { fetchGroundAltitude } from './altitude';
@@ -57,8 +63,8 @@ export async function postProcessTrack(datastore: Datastore, trackId: number | s
         trackEntity.country = location.country;
 
         // Add simplified path.
-        const coords = firstTrack.lat.map((lat, i) => [lat, firstTrack.lon[i]]);
-        trackEntity.path = polyline.encode(simplify(coords, 0.005));
+        const coords: [number, number][] = firstTrack.lat.map((lat, i) => [lat, firstTrack.lon[i]]);
+        trackEntity.path = polyline.encode(simplifyPath(coords, 0.005));
       }
 
       // Update the track

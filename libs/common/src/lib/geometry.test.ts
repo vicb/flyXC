@@ -1,0 +1,327 @@
+import {
+  boundsOverlap,
+  computeBounds,
+  densifyPolyline,
+  pointInPolygonRings,
+  pointToSegmentSquared2D,
+  simplifyCoords,
+  simplifyDouglasPeucker,
+  simplifyPath,
+  simplifyRadialDist,
+} from './geometry';
+
+describe('geometry', () => {
+  describe('pointToSegmentSquared2D', () => {
+    it('returns 0 when the point lies on the segment', () => {
+      expect(pointToSegmentSquared2D(5, 0, 0, 0, 10, 0)).toBe(0);
+      expect(pointToSegmentSquared2D(0, 0, 0, 0, 10, 0)).toBe(0);
+      expect(pointToSegmentSquared2D(10, 0, 0, 0, 10, 0)).toBe(0);
+    });
+
+    it('computes squared perpendicular distance when projection falls within segment', () => {
+      expect(pointToSegmentSquared2D(5, 3, 0, 0, 10, 0)).toBe(9);
+      expect(pointToSegmentSquared2D(2, -4, 0, 0, 10, 0)).toBe(16);
+    });
+
+    it('clamps to segment start when point projects before start', () => {
+      expect(pointToSegmentSquared2D(-3, 4, 0, 0, 10, 0)).toBe(25);
+    });
+
+    it('clamps to segment end when point projects after end', () => {
+      expect(pointToSegmentSquared2D(13, 4, 0, 0, 10, 0)).toBe(25);
+    });
+
+    it('handles degenerate zero-length segments', () => {
+      expect(pointToSegmentSquared2D(3, 4, 0, 0, 0, 0)).toBe(25);
+    });
+  });
+
+  describe('pointInPolygonRings', () => {
+    const outerRing: [number, number][] = [
+      [0, 0],
+      [10, 0],
+      [10, 10],
+      [0, 10],
+      [0, 0],
+    ];
+    const holeRing: [number, number][] = [
+      [2, 2],
+      [8, 2],
+      [8, 8],
+      [2, 8],
+      [2, 2],
+    ];
+
+    it('returns true when point is inside outer ring with no holes', () => {
+      expect(pointInPolygonRings(5, 5, [outerRing])).toBe(true);
+    });
+
+    it('returns false when point is outside outer ring', () => {
+      expect(pointInPolygonRings(15, 5, [outerRing])).toBe(false);
+      expect(pointInPolygonRings(-1, 5, [outerRing])).toBe(false);
+    });
+
+    it('returns false when point is inside a hole', () => {
+      expect(pointInPolygonRings(5, 5, [outerRing, holeRing])).toBe(false);
+    });
+
+    it('returns true when point is inside outer ring but outside hole', () => {
+      expect(pointInPolygonRings(1, 1, [outerRing, holeRing])).toBe(true);
+    });
+
+    it('works with Point objects ({x, y})', () => {
+      const pointRing = [
+        { x: 0, y: 0 },
+        { x: 10, y: 0 },
+        { x: 10, y: 10 },
+        { x: 0, y: 10 },
+        { x: 0, y: 0 },
+      ];
+      expect(pointInPolygonRings(5, 5, [pointRing])).toBe(true);
+      expect(pointInPolygonRings(15, 5, [pointRing])).toBe(false);
+    });
+
+    it('works with unclosed rings', () => {
+      const unclosed: [number, number][] = [
+        [0, 0],
+        [10, 0],
+        [10, 10],
+        [0, 10],
+      ];
+      expect(pointInPolygonRings(5, 5, [unclosed])).toBe(true);
+      expect(pointInPolygonRings(15, 5, [unclosed])).toBe(false);
+    });
+
+    it('ignores degenerate rings with fewer than 3 vertices', () => {
+      expect(pointInPolygonRings(5, 5, [[]])).toBe(false);
+      expect(
+        pointInPolygonRings(5, 5, [
+          [
+            [0, 0],
+            [1, 1],
+          ],
+        ]),
+      ).toBe(false);
+    });
+  });
+
+  describe('computeBounds', () => {
+    it('computes bounding box for flat array of points', () => {
+      const bounds = computeBounds([
+        [0, 5],
+        [10, 2],
+        [-5, 20],
+      ]);
+      expect(bounds).toEqual({ xmin: -5, ymin: 2, xmax: 10, ymax: 20 });
+    });
+
+    it('computes bounding box for flat array of Point objects ({x, y})', () => {
+      const bounds = computeBounds([
+        { x: 0, y: 5 },
+        { x: 10, y: 2 },
+        { x: -5, y: 20 },
+      ]);
+      expect(bounds).toEqual({ xmin: -5, ymin: 2, xmax: 10, ymax: 20 });
+    });
+
+    it('computes bounding box for nested polygon rings', () => {
+      const ring1: [number, number][] = [
+        [0, 0],
+        [10, 10],
+      ];
+      const ring2: [number, number][] = [
+        [-5, -10],
+        [5, 5],
+      ];
+      const bounds = computeBounds([ring1, ring2]);
+      expect(bounds).toEqual({ xmin: -5, ymin: -10, xmax: 10, ymax: 10 });
+    });
+
+    it('computes bounding box for nested rings of Point objects', () => {
+      const ring1 = [
+        { x: 0, y: 0 },
+        { x: 10, y: 10 },
+      ];
+      const ring2 = [
+        { x: -5, y: -10 },
+        { x: 5, y: 5 },
+      ];
+      const bounds = computeBounds([ring1, ring2]);
+      expect(bounds).toEqual({ xmin: -5, ymin: -10, xmax: 10, ymax: 10 });
+    });
+
+    it('returns undefined for empty input', () => {
+      expect(computeBounds([])).toBeUndefined();
+    });
+  });
+
+  describe('boundsOverlap', () => {
+    it('returns true for overlapping boxes', () => {
+      const b1 = { xmin: 0, ymin: 0, xmax: 10, ymax: 10 };
+      const b2 = { xmin: 5, ymin: 5, xmax: 15, ymax: 15 };
+      expect(boundsOverlap(b1, b2)).toBe(true);
+    });
+
+    it('returns false for disjoint boxes', () => {
+      const b1 = { xmin: 0, ymin: 0, xmax: 10, ymax: 10 };
+      const b2 = { xmin: 15, ymin: 15, xmax: 20, ymax: 20 };
+      expect(boundsOverlap(b1, b2)).toBe(false);
+    });
+  });
+
+  describe('densifyPolyline', () => {
+    it('returns short line unchanged', () => {
+      const coords: [number, number][] = [[0, 0]];
+      expect(densifyPolyline(coords, 1000)).toBe(coords);
+    });
+
+    it('strips duplicate consecutive points', () => {
+      const coords: [number, number][] = [
+        [0, 0],
+        [0, 0],
+        [0.001, 0.001],
+      ];
+      const result = densifyPolyline(coords, 100_000);
+      expect(result.length).toBe(2);
+    });
+
+    it('subdivides long segments based on maxStepMeters', () => {
+      // 1 degree latitude ~ 111,139m
+      const coords: [number, number][] = [
+        [0, 0],
+        [0, 1],
+      ];
+      const result = densifyPolyline(coords, 30_000);
+      // ~111km / 30km = 4 steps -> 5 points
+      expect(result.length).toBeGreaterThan(2);
+      expect(result[0]).toEqual([0, 0]);
+      expect(result[result.length - 1]).toEqual([0, 1]);
+    });
+  });
+
+  describe('simplifyDouglasPeucker', () => {
+    it('returns short point lists as is', () => {
+      const pts: [number, number][] = [
+        [0, 0],
+        [10, 10],
+      ];
+      expect(simplifyDouglasPeucker(pts, 1)).toBe(pts);
+    });
+
+    it('simplifies intermediate points on a straight line', () => {
+      const pts: [number, number][] = [
+        [0, 0],
+        [1, 0.1],
+        [2, -0.1],
+        [3, 0],
+        [10, 0],
+      ];
+      const simplified = simplifyDouglasPeucker(pts, 0.5);
+      expect(simplified).toEqual([
+        [0, 0],
+        [10, 0],
+      ]);
+    });
+
+    it('retains corner vertices exceeding tolerance', () => {
+      const pts: [number, number][] = [
+        [0, 0],
+        [5, 10],
+        [10, 0],
+      ];
+      expect(simplifyDouglasPeucker(pts, 1)).toEqual(pts);
+    });
+  });
+
+  describe('simplifyRadialDist', () => {
+    it('returns short point lists as is', () => {
+      const pts: [number, number][] = [[0, 0]];
+      expect(simplifyRadialDist(pts, 1)).toBe(pts);
+    });
+
+    it('removes points closer than tolerance to the previous point', () => {
+      const pts: [number, number][] = [
+        [0, 0],
+        [0.1, 0.1],
+        [0.2, 0.2],
+        [2, 2],
+        [2.1, 2.1],
+      ];
+      const result = simplifyRadialDist(pts, 1);
+      expect(result).toEqual([
+        [0, 0],
+        [2, 2],
+        [2.1, 2.1],
+      ]);
+    });
+  });
+
+  describe('simplifyPath', () => {
+    it('combines radial distance filtering and Douglas-Peucker', () => {
+      const pts: [number, number][] = [
+        [0, 0],
+        [0.1, 0.1],
+        [5, 10],
+        [5.1, 10.1],
+        [10, 0],
+      ];
+      const result = simplifyPath(pts, 1);
+      expect(result).toEqual([
+        [0, 0],
+        [5, 10],
+        [10, 0],
+      ]);
+    });
+  });
+
+  describe('simplifyCoords', () => {
+    it('returns short coordinate lists as is', () => {
+      const coords: [number, number][] = [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 0],
+      ];
+      expect(simplifyCoords(coords, 15)).toBe(coords);
+    });
+
+    it('returns coordinates unmodified when tolerance is 0 or negative', () => {
+      const coords: [number, number][] = [
+        [0, 0],
+        [0.5, 0.5],
+        [1, 1],
+        [1, 0],
+        [0, 0],
+      ];
+      expect(simplifyCoords(coords, 0)).toBe(coords);
+      expect(simplifyCoords(coords, -5)).toBe(coords);
+    });
+
+    it('removes redundant collinear intermediate points within tolerance', () => {
+      const coords: [number, number][] = [
+        [0, 0],
+        [0.00001, 0.00001],
+        [0.00002, 0.00002],
+        [1, 1],
+        [1, 0],
+        [0, 0],
+      ];
+      const simplified = simplifyCoords(coords, 15);
+      expect(simplified.length).toBeLessThan(coords.length);
+      expect(simplified[0]).toEqual([0, 0]);
+      expect(simplified[simplified.length - 1]).toEqual([0, 0]);
+    });
+
+    it('preserves original coordinates if simplification would produce fewer than 4 points', () => {
+      const coords: [number, number][] = [
+        [0, 0],
+        [0.000001, 0],
+        [0.000001, 0.000001],
+        [0, 0.000001],
+        [0, 0],
+      ];
+      const simplified = simplifyCoords(coords, 100);
+      expect(simplified.length).toBeGreaterThanOrEqual(4);
+    });
+  });
+});

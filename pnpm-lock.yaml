@@ -132,9 +132,6 @@ catalogs:
     rustigc-wasm:
       specifier: 0.2.0-rc.3
       version: 0.2.0-rc.3
-    simplify-path:
-      specifier: ^1.1.0
-      version: 1.1.0
     tiny-lru:
       specifier: ^13.1.1
       version: 13.1.1
@@ -442,9 +439,6 @@ importers:
       rustigc-wasm:
         specifier: 'catalog:'
         version: 0.2.0-rc.3
-      simplify-path:
-        specifier: catalog:default
-        version: 1.1.0
       vaadin-dom:
         specifier: workspace:*
         version: link:../../libs/vaadin-dom
@@ -670,9 +664,6 @@ importers:
       mapbox-vector-tile:
         specifier: catalog:default
         version: 0.3.0
-      simplify-path:
-        specifier: catalog:default
-        version: 1.1.0
       tiny-lru:
         specifier: catalog:default
         version: 13.1.1
@@ -8169,9 +8160,6 @@ packages:
 
   simple-swizzle@0.2.4:
     resolution: {integrity: sha512-nAu1WFPQSMNr2Zn9PGSZK9AGn4t/y97lEm+MXTtUDwfP0ksAIX4nO+6ruD9Jwut4C49SB1Ws+fbXsm/yScWOHw==}
-
-  simplify-path@1.1.0:
-    resolution: {integrity: sha512-qvEyrV36pP6YjRoEAe7ymSqFwurrTQXltcmZaQXFVh8cTWUfHYGeobbMK8V7WHlT9+ysW3GNVkCd6TF8aM0ydw==}
 
   sirv@3.0.2:
     resolution: {integrity: sha512-2wcC/oGxHis/BoHkkPwldgiPSYcpZK3JU28WoMVv55yHJgcZ8rlXvuG9iZggz+sU1d4bRgIGASwyWqjxu3FM0g==}
@@ -18040,8 +18028,6 @@ snapshots:
     dependencies:
       is-arrayish: 0.3.4
     optional: true
-
-  simplify-path@1.1.0: {}
 
   sirv@3.0.2:
     dependencies:

@@ -2,6 +2,7 @@ import { TZDate } from '@date-fns/tz';
 import { addDays, isAfter, isBefore, isFriday, isMonday, isSaturday, isSunday, nextFriday, nextMonday } from 'date-fns';
 import type { Feature } from 'mapbox-vector-tile';
 
+import { pointInPolygonRings } from './geometry';
 import type { Point } from './runtime-track';
 
 // Maximum zoom level for the airspaces.
@@ -383,40 +384,6 @@ export function getAirspace3dTileUrl(x: number, y: number, server: AirspaceServe
 export function getAirspaceCategory(airspace: AirspaceTyped) {
   const parts = [getClassName(airspace.icaoClass), getTypeName(airspace.type)].filter((s) => s !== '');
   return parts.join(' ');
-}
-
-export type PolygonPoint = Point | [number, number] | readonly number[] | number[];
-export type PolygonRing = ReadonlyArray<PolygonPoint>;
-
-/**
- * Returns whether a point (x/lon, y/lat) is inside a polygon defined by its rings (outer ring and optional holes).
- * Uses the ray-casting algorithm (even-odd rule) and supports rings made of Point objects ({x, y}) or coordinate tuples ([x, y]).
- */
-export function pointInPolygonRings(x: number, y: number, rings: ReadonlyArray<PolygonRing>): boolean {
-  let inside = false;
-  for (const ring of rings) {
-    const len = ring.length;
-    if (len < 3) {
-      continue;
-    }
-    const isArray = Array.isArray(ring[0]);
-    const last = ring[len - 1];
-    let xj = isArray ? (last as number[])[0] : (last as Point).x;
-    let yj = isArray ? (last as number[])[1] : (last as Point).y;
-
-    for (let i = 0; i < len; i++) {
-      const p = ring[i];
-      const xi = isArray ? (p as number[])[0] : (p as Point).x;
-      const yi = isArray ? (p as number[])[1] : (p as Point).y;
-
-      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
-        inside = !inside;
-      }
-      xj = xi;
-      yj = yi;
-    }
-  }
-  return inside;
 }
 
 export const airspaceOverrides = {

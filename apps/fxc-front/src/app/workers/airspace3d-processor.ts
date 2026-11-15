@@ -5,6 +5,7 @@ import {
   type AirspaceTyped,
   applyOverrides,
   type Class,
+  computeBounds,
   getAirspace3dTileUrl,
   getAirspaceColorCategory,
   getAirspaceDateUrl,
@@ -82,29 +83,7 @@ export function getAirspaceKey(airspace: AirspaceTyped): string {
 }
 
 export function computeRingsExtent(rings: number[][][]): AirspaceExtentLike | undefined {
-  let xmin = Number.POSITIVE_INFINITY;
-  let ymin = Number.POSITIVE_INFINITY;
-  let xmax = Number.NEGATIVE_INFINITY;
-  let ymax = Number.NEGATIVE_INFINITY;
-  for (const ring of rings) {
-    for (const pt of ring) {
-      const lon = pt[0];
-      const lat = pt[1];
-      if (lon < xmin) {
-        xmin = lon;
-      }
-      if (lon > xmax) {
-        xmax = lon;
-      }
-      if (lat < ymin) {
-        ymin = lat;
-      }
-      if (lat > ymax) {
-        ymax = lat;
-      }
-    }
-  }
-  return xmin <= xmax && ymin <= ymax ? { xmin, ymin, xmax, ymax } : undefined;
+  return computeBounds(rings);
 }
 
 export function geoJsonGeometryToRings(geometry: {
@@ -132,9 +111,7 @@ export function extentOverlapsBounds(ext: AirspaceExtentLike | undefined, bounds
   if (!ext) {
     return true;
   }
-  return (
-    ext.xmax >= bounds.minLon && ext.xmin <= bounds.maxLon && ext.ymax >= bounds.minLat && ext.ymin <= bounds.maxLat
-  );
+  return ext.xmax >= bounds.minLon && ext.xmin <= bounds.maxLon && ext.ymax >= bounds.minLat && ext.ymin <= bounds.maxLat;
 }
 
 /**
