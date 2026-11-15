@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   buildAirspaceFootprint,
   buildAirspaceMesh,
+  computeTargetGridM,
   extrudeAirspaceFootprint,
   mergeContourPaths,
   triangulateCapWithGrid2D,
@@ -463,5 +464,47 @@ describe('buildAirspaceMesh', () => {
     const [gndTop, gndFloor] = gndMeshData!.contourPaths!;
     expect(gndTop.every((pt) => pt[2] === 1000)).toBe(true);
     expect(gndFloor.every((pt) => pt[2] === 202)).toBe(true);
+  });
+
+  describe('computeTargetGridM & adaptive AGL triangulation', () => {
+    it('computes correct grid spacing for MSL and variable-thickness AGL ceilings', () => {
+      // MSL airspaces use standard 2000m / 4800m grid
+      const msl = makeAirspace({ floorM: 0, floorRefGnd: false, topM: 1000, topRefGnd: false });
+      expect(computeTargetGridM(msl, false)).toBe(2000);
+      expect(computeTargetGridM(msl, true)).toBe(4800);
+
+      // Very thin AGL airspace (e.g. Vinon 152m GND): clamped to minimum 400m fine
+      const thinAgl = makeAirspace({ floorM: 0, floorRefGnd: true, topM: 152, topRefGnd: true });
+      expect(computeTargetGridM(thinAgl, false)).toBe(400);
+      expect(computeTargetGridM(thinAgl, true)).toBe(2000);
+
+      // 300m AGL airspace (e.g. Vercors / Bauges 300m GND): 300 * 1.5 = 450m fine
+      const vercors = makeAirspace({ floorM: 0, floorRefGnd: true, topM: 300, topRefGnd: true });
+      expect(computeTargetGridM(vercors, false)).toBe(450);
+      expect(computeTargetGridM(vercors, true)).toBe(2000);
+
+      // 1000m AGL airspace (e.g. Ecrins 1000m GND): 1000 * 1.5 = 1500m fine
+      const ecrins = makeAirspace({ floorM: 0, floorRefGnd: true, topM: 1000, topRefGnd: true });
+      expect(computeTargetGridM(ecrins, false)).toBe(1500);
+      expect(computeTargetGridM(ecrins, true)).toBe(4000);
+    });
+
+    it('densifies fine terrainCap mesh much more thoroughly for thin AGL ceilings', async () => {
+      const thinAgl = makeAirspace({ floorM: 0, floorRefGnd: true, topM: 300, topRefGnd: true });
+      // 0.2 x 0.2 deg polygon (~15km x 22km)
+      const polygon = makeSquarePolygon(5.5, 45.0, 0.2);
+
+      const coarseFp = await buildAirspaceFootprint(polygon, thinAgl, { coarse: true });
+      const fineFp = await buildAirspaceFootprint(polygon, thinAgl, { coarse: false });
+
+      expect(coarseFp?.terrainCap).toBeDefined();
+      expect(fineFp?.terrainCap).toBeDefined();
+
+      // Fine mesh has much denser triangulation than coarse preview
+      const coarseVertCount = coarseFp!.terrainCap!.xy.length / 2;
+      const fineVertCount = fineFp!.terrainCap!.xy.length / 2;
+      expect(fineVertCount).toBeGreaterThan(coarseVertCount * 5);
+      expect(fineFp!.terrainCap!.faces.length).toBeGreaterThan(coarseFp!.terrainCap!.faces.length * 5);
+    });
   });
 });

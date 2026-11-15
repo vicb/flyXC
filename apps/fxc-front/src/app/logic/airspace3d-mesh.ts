@@ -155,9 +155,9 @@ export function triangulateCapWithGrid2D(
     return triangulateRings2D(rings);
   }
 
-  // Cap subdivisions to prevent runaway grid generation on large polygons (max 40x40 grid points)
-  const MAX_GRID_DIVS = 40;
-  const effectiveGridM = Math.max(targetGridM, Math.max(widthM, heightM) / MAX_GRID_DIVS);
+  // Cap subdivisions to prevent runaway grid generation on large polygons (max 120 for fine AGL caps, 40 for standard)
+  const maxGridDivs = targetGridM < 1000 ? 120 : 40;
+  const effectiveGridM = Math.max(targetGridM, Math.max(widthM, heightM) / maxGridDivs);
 
   const midLat = (extent.ymin + extent.ymax) / 2;
   const cosLat = Math.max(0.1, Math.cos((midLat * Math.PI) / 180));
@@ -207,7 +207,7 @@ export function triangulateCapWithGrid2D(
     }
   }
 
-  const minDistDeg = (targetGridM * 0.4) / METERS_PER_DEGREE_LAT;
+  const minDistDeg = (effectiveGridM * 0.25) / METERS_PER_DEGREE_LAT;
   const minDistDeg2 = minDistDeg * minDistDeg;
 
   // Generate interior Steiner points strictly inside the polygon boundary
@@ -317,23 +317,51 @@ export function computeGroundSignature(polygon: AirspacePolygonLike, sampleGroun
 }
 
 /**
+ * Computes an adaptive Steiner grid spacing based on ceiling thickness.
+ * Narrow AGL cushions (e.g. 150m-300m above ground over steep mountain ranges) require
+ * tighter triangulation so the ceiling faithfully follows mountain crests without ridge puncture.
+ */
+export function computeTargetGridM(
+  airspace: Pick<AirspaceTyped, 'floorM' | 'floorRefGnd' | 'topRefGnd'> & { topM?: number },
+  coarse?: boolean,
+): number {
+  if (!airspace.topRefGnd) {
+    return coarse ? 4800 : 2000;
+  }
+  const topM = airspace.topM ?? 1000;
+  const floorM = airspace.floorRefGnd ? airspace.floorM : 0;
+  const thicknessM = Math.max(50, topM - floorM);
+  if (coarse) {
+    return Math.max(2000, Math.min(4800, thicknessM * 4));
+  }
+  return Math.max(400, Math.min(1500, Math.round(thicknessM * 1.5)));
+}
+
+/**
  * Builds the 2D wall rings and cap triangulations for an airspace polygon so later
  * exaggeration and terrain updates can re-extrude synchronously without re-triangulating.
  */
 export async function buildAirspaceFootprint(
   polygon: AirspacePolygonLike,
-  airspace: Pick<AirspaceTyped, 'floorM' | 'floorRefGnd' | 'topRefGnd'>,
+  airspace: Pick<AirspaceTyped, 'floorM' | 'floorRefGnd' | 'topRefGnd'> & { topM?: number },
   options?: BuildFootprintOptions,
 ): Promise<AirspaceFootprint | null> {
   if (polygon.rings.length === 0 || !polygon.extent) {
     return null;
   }
 
+  const targetGridM = options?.maxEdgeM ?? computeTargetGridM(airspace, options?.coarse);
+
   const hasGroundRef = airspace.floorRefGnd || airspace.topRefGnd;
   let stepM: number | undefined;
   if (hasGroundRef) {
     const { widthM, heightM } = estimateExtentMeters(polygon.extent);
-    stepM = Math.max(MIN_DENSIFY_STEP_M, Math.hypot(widthM, heightM) / TARGET_DENSIFY_SEGMENTS);
+    const minStep = airspace.topRefGnd
+      ? Math.max(250, Math.min(MIN_DENSIFY_STEP_M, targetGridM * 0.8))
+      : MIN_DENSIFY_STEP_M;
+    stepM = options?.coarse
+      ? Math.max(MIN_DENSIFY_STEP_M, Math.hypot(widthM, heightM) / TARGET_DENSIFY_SEGMENTS)
+      : Math.max(minStep, Math.hypot(widthM, heightM) / (airspace.topRefGnd ? 96 : TARGET_DENSIFY_SEGMENTS));
   }
 
   const wallRings = prepareWallRings(polygon.rings, stepM);
@@ -351,9 +379,8 @@ export async function buildAirspaceFootprint(
     flatCap = triangulateRings2D(wallRings);
   }
 
-  const targetEdgeM = options?.maxEdgeM ?? (options?.coarse ? 4800 : undefined);
   const terrainCap = needTerrainCap
-    ? triangulateCapWithGrid2D(wallRings, polygon.extent, targetEdgeM ?? 2000)
+    ? triangulateCapWithGrid2D(wallRings, polygon.extent, targetGridM)
     : undefined;
   const lod = needTerrainCap && options?.coarse ? 0 : 1;
 

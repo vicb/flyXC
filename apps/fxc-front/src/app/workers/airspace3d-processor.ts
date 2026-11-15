@@ -290,8 +290,8 @@ export class Airspace3dProcessor {
         const airspaceKey = getAirspaceKey(airspace);
         const geomKey = String(feat.id);
         const sinkZeroFloor = airspace.floorRefGnd && airspace.floorM === 0;
-        const FOOTPRINT_SCHEMA_VERSION = 'v5';
-        const footprintKey = `${FOOTPRINT_SCHEMA_VERSION}|${airspace.floorRefGnd ? 1 : 0}${airspace.topRefGnd ? 1 : 0}${sinkZeroFloor ? 1 : 0}|${geomKey}`;
+        const FOOTPRINT_SCHEMA_VERSION = 'v6';
+        const footprintKey = `${FOOTPRINT_SCHEMA_VERSION}|${airspace.floorRefGnd ? 1 : 0}${airspace.topRefGnd ? 1 : 0}${sinkZeroFloor ? 1 : 0}|${airspace.topRefGnd ? airspace.topM : 0}|${geomKey}`;
 
         let cachedFp = this.footprintCache.get(footprintKey);
         if (!cachedFp) {
