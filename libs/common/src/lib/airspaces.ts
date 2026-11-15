@@ -382,7 +382,7 @@ export function getAirspace3dTileUrl(x: number, y: number, server: AirspaceServe
 
 // Return a label for the class and the type, i.e. "E TMA", "E", "TMA" or "".
 export function getAirspaceCategory(airspace: AirspaceTyped) {
-  const parts = [getClassName(airspace.icaoClass), getTypeName(airspace.type)].filter((s) => s !== '');
+  const parts = [getClassName(airspace.icaoClass), getTypeName(airspace.type)].filter(Boolean);
   return parts.join(' ');
 }
 

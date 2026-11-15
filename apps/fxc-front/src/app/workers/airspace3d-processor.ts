@@ -37,7 +37,7 @@ export interface GeoBounds {
 }
 
 export interface DecodedTileFeature {
-  id: number | string;
+  id: number;
   baseAirspace: AirspaceTyped;
   rings: number[][][];
   extent?: AirspaceExtentLike;
@@ -255,7 +255,7 @@ export class Airspace3dProcessor {
       return { id: requestId, items: [] };
     }
 
-    const seenIds = new Set<number | string>();
+    const seenIds = new Set<number>();
     const items: AirspaceWorkerItem[] = [];
     const pendingRefinements: {
       item: AirspaceWorkerItem;
@@ -290,7 +290,7 @@ export class Airspace3dProcessor {
         const airspaceKey = getAirspaceKey(airspace);
         const geomKey = String(feat.id);
         const sinkZeroFloor = airspace.floorRefGnd && airspace.floorM === 0;
-        const FOOTPRINT_SCHEMA_VERSION = 'v4';
+        const FOOTPRINT_SCHEMA_VERSION = 'v5';
         const footprintKey = `${FOOTPRINT_SCHEMA_VERSION}|${airspace.floorRefGnd ? 1 : 0}${airspace.topRefGnd ? 1 : 0}${sinkZeroFloor ? 1 : 0}|${geomKey}`;
 
         let cachedFp = this.footprintCache.get(footprintKey);
@@ -426,12 +426,12 @@ export class Airspace3dProcessor {
           }
           const geo = feature.toGeoJSON(x, y, 6) as { geometry: { type: string; coordinates: any } };
           const ringsInfo = geoJsonGeometryToRings(geo.geometry);
-          if (ringsInfo && ringsInfo.rings.length > 0) {
+          if (ringsInfo && ringsInfo.rings.length > 0 && ringsInfo.extent) {
             const baseAirspace = toTypedAirspace(feature.properties as AirspaceString);
-            const rawId = feature.id ?? feature.properties?.id ?? baseAirspace.id;
-            const featureId = typeof rawId === 'number' || typeof rawId === 'string' ? rawId : `${x}/${y}#${i}`;
+            const id = Number(feature.id);
+            baseAirspace.id = id;
             features.push({
-              id: featureId,
+              id,
               baseAirspace,
               rings: ringsInfo.rings,
               extent: ringsInfo.extent,

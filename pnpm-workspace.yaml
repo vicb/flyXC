@@ -64,6 +64,11 @@ catalog:
   idb: ^8.0.4
   d3-delaunay: ^6.0.6
   '@types/d3-delaunay': ^6.0.4
+  polygon-clipping: ^0.15.7
+  rbush: ^4.0.1
+  '@types/rbush': ^4.0.0
+  clipper2-wasm: ^0.4.0
+  flatbush: ^4.7.0
 
 allowBuilds:
   '@parcel/watcher': false

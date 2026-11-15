@@ -1,7 +1,7 @@
 // #!/usr/bin/env node
 
 import { execSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,6 +9,7 @@ import { AIRSPACE_3D_TILE_ZOOM, MAX_AIRSPACE_TILE_ZOOM } from '@flyxc/common';
 import { program } from 'commander';
 
 import { getAppFolderFromDist } from '../util';
+import { mergeCoplanarAirspaces } from './coplanar-3d';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -72,7 +73,19 @@ rmSync(join(outFolder, 'metadata.json'), { force: true });
 
 console.log(`# Generate unclipped tiles (zoom ${AIRSPACE_3D_TILE_ZOOM})`);
 const tmpUnclippedFolder = resolve(join(dirname(outFolder), '.tmp_unclipped'));
+const tmp3dGeojson = resolve(join(dirname(outFolder), '.tmp_3d_airspaces.geojson'));
 rmSync(tmpUnclippedFolder, { recursive: true, force: true });
+rmSync(tmp3dGeojson, { force: true });
+
+console.log(`# Dissolving overlapping coplanar airspaces for 3D tiles...`);
+const allFeatures: any[] = [];
+for (const file of inputFiles) {
+  const content = JSON.parse(readFileSync(file, 'utf8'));
+  allFeatures.push(...content.features);
+}
+const dissolved3dFeatures = await mergeCoplanarAirspaces(allFeatures);
+console.log(`  Merged ${allFeatures.length} input features into ${dissolved3dFeatures.length} 3D features`);
+writeFileSync(tmp3dGeojson, JSON.stringify({ type: 'FeatureCollection', features: dissolved3dFeatures }));
 
 // Tippecanoe parameters for unclipped 3D tiles:
 // - `-d 16` (--full-detail=16): increases coordinate grid from 12 bits (4,096 units / ~150m at zoom 6)
@@ -83,7 +96,10 @@ rmSync(tmpUnclippedFolder, { recursive: true, force: true });
 // - `-pc` (--no-tile-clipping) & `-pC`: generates complete, unclipped polygon footprints across tile
 //   boundaries, eliminating tile stitching and union operators in 3D rendering.
 // - `--no-tile-size-limit`: overrides the default 500 KB uncompressed tile limit to ensure zero
-//   airspaces are dropped in dense regions (e.g. US east coast).
+//   airspaces are dropped in dense regions.
+// - `-y <property>`: whitelists only the numerical bounds and category flags required for 3D extrusion
+//   and styling. Text strings (name, country, labels) are omitted to minimize tile file size; rich
+//   metadata is queried on-demand from the standard 2D vector tiles upon click.
 const args3d = [
   `-e ${tmpUnclippedFolder}`,
   `-z ${AIRSPACE_3D_TILE_ZOOM}`,
@@ -92,14 +108,21 @@ const args3d = [
   '-l asp',
   '-ps',
   '-ab',
-  '-pi',
   '-pt',
   '-pC',
   '-pc',
   '--no-tile-size-limit',
+  '-y floorM',
+  '-y topM',
+  '-y floorRefGnd',
+  '-y topRefGnd',
+  '-y icaoClass',
+  '-y type',
+  '-y activity',
+  '-y flags',
   '-f',
   '--',
-  ...inputFiles,
+  tmp3dGeojson,
 ];
 console.log(`executing:\ntippecanoe ${args3d.join(' ')}`);
 try {
@@ -126,6 +149,7 @@ try {
     }
   }
 } finally {
+  rmSync(tmp3dGeojson, { force: true });
   rmSync(tmpUnclippedFolder, { recursive: true, force: true });
 }
 

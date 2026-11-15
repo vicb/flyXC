@@ -39,6 +39,9 @@ export async function getAirspaceList(
   showClasses: Class[],
   showTypes: Type[],
   date: Date,
+  checkCeiling = gndAltitude !== 0,
+  toleranceM = checkCeiling ? 75 : 0,
+  maxAltitude?: number,
 ): Promise<string> {
   const tileZoom = Math.min(zoom, MAX_AIRSPACE_TILE_ZOOM);
   const { tile: tileCoords, px } = getPixelCoordinates(latLon, tileZoom, AIRSPACE_TILE_SIZE);
@@ -65,10 +68,12 @@ export async function getAirspaceList(
   for (let i = 0; i < layer.length; i++) {
     const f = layer.feature(i);
     const airspace = applyOverrides(toTypedAirspace(f.properties as AirspaceString), date);
+    if (maxAltitude != null && airspace.floorM > maxAltitude) {
+      continue;
+    }
     const floor = airspace.floorM + (airspace.floorRefGnd ? gndAltitude : 0);
     const top = airspace.topM + (airspace.topRefGnd ? gndAltitude : 0);
-    const onlyConsiderFloor = gndAltitude == 0;
-    const isBetweenTopAndBottom = altitude >= floor && (onlyConsiderFloor || altitude <= top);
+    const isBetweenTopAndBottom = altitude >= floor - toleranceM && (!checkCeiling || altitude <= top + toleranceM);
     if (
       isBetweenTopAndBottom &&
       isAirspaceVisible(airspace.icaoClass, showClasses, airspace.type, showTypes) &&
@@ -90,11 +95,17 @@ export async function getAirspaceList(
  * @returns HTML string describing category, name, floor, and ceiling.
  */
 export function getAirspaceHtmlDescription(airspace: AirspaceTyped): string {
-  let category = getAirspaceCategory(airspace);
-  if (category.length > 0) {
-    category = `[${category}] `;
-  }
-  return `<b>${category}${airspace.name}</b><br>↧${airspace.floorLabel} ↥${airspace.topLabel}`;
+  const category = getAirspaceCategory(airspace);
+  const name = airspace.name || (!category ? 'Airspace' : '');
+  const prefix = category ? `[${category}]` : '';
+  const title = prefix && name ? `${prefix} ${name}` : prefix || name;
+  const floor =
+    airspace.floorLabel ||
+    (airspace.floorRefGnd && airspace.floorM === 0
+      ? 'GND'
+      : `${airspace.floorM}m${airspace.floorRefGnd ? ' GND' : ''}`);
+  const top = airspace.topLabel || `${airspace.topM}m${airspace.topRefGnd ? ' GND' : ''}`;
+  return `<b>${title}</b><br>↧${floor} ↥${top}`;
 }
 
 // Airspaces MapType.

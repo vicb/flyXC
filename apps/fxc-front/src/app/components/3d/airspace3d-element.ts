@@ -21,6 +21,7 @@ import {
   AIRSPACE_TILE_SIZE,
   AirspaceColorCategory,
   ASP_CATEGORY_COLOR,
+  getAirspaceCategory,
   getPixelCoordinates,
   MAX_AIRSPACE_TILE_ZOOM,
   pointInPolygonRings,
@@ -609,7 +610,14 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
       // 3. Target/ground point inside polygon footprint
       if (1.0 < minT && pointInPolygonRings(P.lon, P.lat, item.polygon.rings)) {
-        if (P.z >= floorZ - CLICK_Z_TOLERANCE_M && P.z <= topZ + CLICK_Z_TOLERANCE_M) {
+        const groundAtP = sampleGroundZ(P.lon, P.lat);
+        const floorAtP = (item.airspace.floorRefGnd ? groundAtP : 0) + item.airspace.floorM * this.multiplier;
+        const topAtP = Math.max(
+          floorAtP,
+          (item.airspace.topRefGnd ? groundAtP : 0) + item.airspace.topM * this.multiplier,
+        );
+        const isFloorGnd = item.airspace.floorRefGnd && item.airspace.floorM === 0;
+        if ((isFloorGnd || P.z >= floorAtP - CLICK_Z_TOLERANCE_M) && P.z <= topAtP + CLICK_Z_TOLERANCE_M) {
           minT = 1.0;
           hitPoint = { lat: P.lat, lon: P.lon, z: P.z };
         }
@@ -663,10 +671,70 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     this.highlightGraphic = new Graphic({
       geometry: mesh,
       symbol,
-      attributes: { isAirspaceHighlight: true },
+      attributes: { isAirspace: true, isAirspaceHighlight: true },
     });
     const layer = this.ensureGraphicsLayer();
     layer.addMany([this.highlightGraphic]);
+  }
+
+  /**
+   * Highlights the clicked 3D airspace and displays an interactive popup.
+   *
+   * Places the clicked 3D airspace at the top of the popup, followed by any other
+   * airspaces present at that exact 3D position from the vector tile dataset.
+   */
+  private async displayAirspaceHitPopup(
+    scene: ArcgisScene,
+    hitItem: AirspaceWorkerItem,
+    otherItems: AirspaceWorkerItem[],
+    latLon: LatLon,
+    z: number,
+  ): Promise<void> {
+    this.highlightAirspace(hitItem);
+    const hitAirspaceDesc = getAirspaceHtmlDescription(hitItem.airspace);
+    const otherDescs = otherItems.slice(0, 4).map((m) => getAirspaceHtmlDescription(m.airspace));
+    const fallbackHtml = [hitAirspaceDesc, ...otherDescs].join('<br>');
+
+    const sampleGroundZ = createGroundSampler(this.sampler);
+    const mult = this.multiplier > 0 ? this.multiplier : 1;
+    const gndAlt = sampleGroundZ(latLon.lon ?? 0, latLon.lat ?? 0) / mult;
+    const unexaggeratedZ = z / mult;
+    const html = await getAirspaceList(
+      MAX_AIRSPACE_TILE_ZOOM,
+      latLon,
+      unexaggeratedZ,
+      gndAlt,
+      this.showClasses,
+      this.showTypes,
+      getEffectiveAirspaceDate(this.hasTrack, this.timeSec),
+      false,
+      75,
+      this.maxAltitude,
+    );
+
+    const hitName = hitItem.airspace.name;
+    const hitCategory = getAirspaceCategory(hitItem.airspace);
+    let finalHtml: string;
+    if (html) {
+      const entries = html
+        .split(/(?=<b>)/g)
+        .map((s) => s.replace(/^<br\s*\/?>/i, '').trim())
+        .filter(Boolean);
+      const hitIndex = entries.findIndex((e) =>
+        hitName ? e.includes(hitName) : hitCategory ? e.includes(`[${hitCategory}]`) : false,
+      );
+      if (hitIndex > 0) {
+        const [hitEntry] = entries.splice(hitIndex, 1);
+        entries.unshift(hitEntry);
+      } else if (hitIndex === -1 && hitName) {
+        entries.unshift(hitAirspaceDesc);
+      }
+      finalHtml = entries.join('<br>');
+    } else {
+      finalHtml = fallbackHtml;
+    }
+
+    await openAirspacePopup(scene, latLon, finalHtml, z);
   }
 
   /**
@@ -701,12 +769,13 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       });
       if (rayMatches.length > 0) {
         const bestHit = rayMatches[0].hitPoint;
-        const html = rayMatches
-          .slice(0, 5)
-          .map((m) => getAirspaceHtmlDescription(m.airspace))
-          .join('<br>');
-        this.highlightAirspace(rayMatches[0].item);
-        await openAirspacePopup(scene, { lat: bestHit.lat, lon: bestHit.lon }, html, bestHit.z);
+        await this.displayAirspaceHitPopup(
+          scene,
+          rayMatches[0].item,
+          rayMatches.slice(1).map((m) => m.item),
+          { lat: bestHit.lat, lon: bestHit.lon },
+          bestHit.z,
+        );
         return;
       }
     }
@@ -714,12 +783,13 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     if (clickZ != null) {
       const localMatches = this.findAirspacesAtPoint(latLon, clickZ);
       if (localMatches.length > 0) {
-        const html = localMatches
-          .slice(0, 5)
-          .map((m) => getAirspaceHtmlDescription(m.airspace))
-          .join('<br>');
-        this.highlightAirspace(localMatches[0].item);
-        await openAirspacePopup(scene, latLon, html, clickZ);
+        await this.displayAirspaceHitPopup(
+          scene,
+          localMatches[0].item,
+          localMatches.slice(1).map((m) => m.item),
+          latLon,
+          clickZ,
+        );
         return;
       }
     }

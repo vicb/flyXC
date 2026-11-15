@@ -342,15 +342,19 @@ export class Map3dElement extends connect(store)(LitElement) {
         this.airspace?.setPickable(true);
       }
       const hitPromise = view.hitTest(e);
-      if (this.is3dAirspace) {
-        this.airspace?.setPickable(false);
-      }
+      hitPromise.finally(() => {
+        if (this.is3dAirspace) {
+          this.airspace?.setPickable(false);
+        }
+      });
       hitPromise.then(({ results }: { results: any[] }) => {
-        const nonAirspaceHits = results.filter((r) => !r.graphic?.attributes?.isAirspace);
-        if (nonAirspaceHits.length > 0) {
+        const trackHits = results.filter(
+          (r) => r.graphic?.attributes?.trackId != null || r.graphic?.attributes?.isPilot,
+        );
+        if (trackHits.length > 0) {
           // Sort hits by their distance to the camera.
-          nonAirspaceHits.sort((r1, r2) => r1.distance - r2.distance);
-          const graphic = nonAirspaceHits[0].graphic;
+          trackHits.sort((r1, r2) => r1.distance - r2.distance);
+          const graphic = trackHits[0].graphic;
           msg.clickSceneView.emit(graphic, scene);
           // The trackId is set on tracks and pilots (not on live tracks).
           const trackId = graphic.attributes?.trackId;

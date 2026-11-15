@@ -155,10 +155,14 @@ export function triangulateCapWithGrid2D(
     return triangulateRings2D(rings);
   }
 
+  // Cap subdivisions to prevent runaway grid generation on large polygons (max 40x40 grid points)
+  const MAX_GRID_DIVS = 40;
+  const effectiveGridM = Math.max(targetGridM, Math.max(widthM, heightM) / MAX_GRID_DIVS);
+
   const midLat = (extent.ymin + extent.ymax) / 2;
   const cosLat = Math.max(0.1, Math.cos((midLat * Math.PI) / 180));
-  const stepLat = targetGridM / METERS_PER_DEGREE_LAT;
-  const stepLon = targetGridM / (METERS_PER_DEGREE_LAT * cosLat);
+  const stepLat = effectiveGridM / METERS_PER_DEGREE_LAT;
+  const stepLon = effectiveGridM / (METERS_PER_DEGREE_LAT * cosLat);
 
   const allPts: number[][] = [];
   // Use numeric keys (a * 10_000_000 + b) instead of strings to eliminate memory allocations and GC churn
@@ -342,15 +346,9 @@ export async function buildAirspaceFootprint(
   const needFlatCap = !airspace.topRefGnd || (needFloorCap && !airspace.floorRefGnd);
   const needTerrainCap = airspace.topRefGnd || (needFloorCap && airspace.floorRefGnd);
 
-  const { widthM, heightM } = estimateExtentMeters(polygon.extent);
-
   let flatCap: Triangulated2D | undefined;
   if (needFlatCap) {
-    const maxCapEdgeM = 2000;
-    flatCap =
-      widthM > maxCapEdgeM || heightM > maxCapEdgeM
-        ? triangulateCapWithGrid2D(wallRings, polygon.extent, maxCapEdgeM)
-        : triangulateRings2D(wallRings);
+    flatCap = triangulateRings2D(wallRings);
   }
 
   const targetEdgeM = options?.maxEdgeM ?? (options?.coarse ? 4800 : undefined);

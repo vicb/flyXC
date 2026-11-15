@@ -1000,9 +1000,9 @@ describe('Airspace3dElement', () => {
     expect(view.stage._layers['lv-1'].pickable).toBe(false);
     expect(view.stage.renderer.navigationDepthCache.getMinimalDepthForArea()).toBeNull();
 
-    // Clicking inside an active 3D volume (outside any hole) with clickZ resolves locally without calling getAirspaceList.
+    // Clicking inside an active 3D volume (outside any hole) with clickZ highlights the volume and queries getAirspaceList.
     await element.handleClick({ lat: 45.455, lon: 6.005 }, scene, 900);
-    expect(hoisted.getAirspaceListMock).not.toHaveBeenCalled();
+    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(1);
     expect(scene.openPopup).toHaveBeenCalledTimes(1);
     expect(scene.openPopup.mock.calls[0][0].location.z).toBe(900);
 
@@ -1019,7 +1019,7 @@ describe('Airspace3dElement', () => {
     // Clicking inside an interior hole does not match the airspace locally and falls back to getAirspaceList.
     hoisted.getAirspaceListMock.mockResolvedValueOnce('<div>hole airspace</div>');
     await element.handleClick({ lat: 45.47, lon: 6.02 }, scene, 900);
-    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(2);
+    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(3);
     expect(scene.openPopup).toHaveBeenCalledTimes(2);
 
     // Clicking outside loaded 3D polygons falls back to getAirspaceList with effective track date.
@@ -1029,8 +1029,8 @@ describe('Airspace3dElement', () => {
     await element.updateComplete;
 
     await element.handleClick({ lat: 46.5, lon: 7.5 }, scene);
-    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(3);
-    expect((hoisted.getAirspaceListMock.mock.calls[2][6] as Date).getTime()).toBe(1_752_577_200 * 1000);
+    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(4);
+    expect((hoisted.getAirspaceListMock.mock.calls[3][6] as Date).getTime()).toBe(1_752_577_200 * 1000);
     expect(scene.openPopup).toHaveBeenCalledTimes(3);
   });
 
@@ -1052,6 +1052,7 @@ describe('Airspace3dElement', () => {
     const scene = { openPopup: vi.fn(async () => undefined), closePopup: vi.fn(async () => undefined) } as any;
     element.map = mockMap;
     element.view = view;
+    hoisted.getAirspaceListMock.mockResolvedValue('');
     await element.updateComplete;
     await flushAsync();
 
@@ -1089,6 +1090,81 @@ describe('Airspace3dElement', () => {
     expect(wallPopup.location.z).toBeCloseTo(1000, 1);
     const wallContent = wallPopup.content.shadowRoot?.innerHTML ?? wallPopup.content.innerHTML;
     expect(wallContent).toContain('COMBOIRE');
+    hoisted.getAirspaceListMock.mockResolvedValue('<div>Airspace list HTML</div>');
+  });
+
+  it('correctly handles nameless 3D tiles: unexaggerates ground elevation for getAirspaceList, matches by category, and formats clean fallbacks', async () => {
+    const view = makeMockView(10, 6.2, 44.8, 6.4, 45.0);
+    const ring = [
+      [6.2, 44.8],
+      [6.4, 44.8],
+      [6.4, 45.0],
+      [6.2, 45.0],
+      [6.2, 44.8],
+    ];
+    hoisted.tilePayloads.set(1, [
+      makeFeature(
+        makeAirspaceProps({
+          name: '',
+          type: Type.LowAltitudeOverflightRestriction,
+          icaoClass: Class.SUA,
+          floorRefGnd: true,
+          floorM: 0,
+          floorLabel: '',
+          topRefGnd: true,
+          topM: 1000,
+          topLabel: '',
+        }),
+        ring,
+      ),
+    ]);
+    hoisted.tilePayloads.set(2, hoisted.tilePayloads.get(1)!);
+
+    const scene = { openPopup: vi.fn(async () => undefined), closePopup: vi.fn(async () => undefined) } as any;
+    element.map = mockMap;
+    element.view = view;
+    element.sampler = {
+      noDataValue: -9999,
+      spatialReference: { isWGS84: true, isWebMercator: false },
+      elevationAt: () => 2600,
+      on: vi.fn(() => ({ remove: vi.fn() })),
+    } as any;
+    hoisted.state.multiplier = 1.3;
+    store.dispatch({ type: 'TEST_MULTIPLIER' });
+    await element.updateComplete;
+    await flushAsync();
+
+    // 1. Successful 2D vector tile query: matches category and promotes full description to top
+    hoisted.getAirspaceListMock.mockResolvedValue(
+      '<b>[Low altitude restriction] PARC/RESERVE ECRINS</b><br>↧GND ↥3281ft GND<br><b>[Restricted] LF-R196A1</b><br>↧3300ft GND ↥FL 195',
+    );
+
+    await element.handleClick({ lat: 44.9, lon: 6.3 }, scene, 2600);
+    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(1);
+    const [, , calledAlt, calledGndAlt] = hoisted.getAirspaceListMock.mock.calls[0];
+    expect(calledGndAlt).toBeCloseTo(2000, 1);
+    expect(calledAlt).toBeCloseTo(2000, 1);
+
+    expect(scene.openPopup).toHaveBeenCalledTimes(1);
+    const popup1 = scene.openPopup.mock.calls[0][0];
+    const content1 = popup1.content.shadowRoot?.innerHTML ?? popup1.content.innerHTML;
+    expect(content1).toContain('PARC/RESERVE ECRINS');
+    expect(content1).toContain('3281ft GND');
+    expect(content1).not.toContain('Low altitude restriction] Low altitude restriction');
+
+    // 2. Empty 2D vector tile response: fallback does not duplicate category string
+    hoisted.getAirspaceListMock.mockResolvedValue('');
+    await element.handleClick({ lat: 44.9, lon: 6.3 }, scene, 2600);
+    expect(scene.openPopup).toHaveBeenCalledTimes(2);
+    const popup2 = scene.openPopup.mock.calls[1][0];
+    const content2 = popup2.content.shadowRoot?.innerHTML ?? popup2.content.innerHTML;
+    expect(content2).toContain('<b>[Low altitude restriction]</b>');
+    expect(content2).not.toContain('Low altitude restriction] Low altitude restriction');
+    expect(content2).toContain('↧GND ↥1000m GND');
+
+    hoisted.state.multiplier = 1;
+    store.dispatch({ type: 'TEST_MULTIPLIER' });
+    hoisted.getAirspaceListMock.mockResolvedValue('<div>Airspace list HTML</div>');
   });
 
   it('handles progressive worker responses from coarse (LOD 0) to fine (LOD 1) updating graphic geometry in place', async () => {
