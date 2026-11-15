@@ -97,8 +97,14 @@ const airspaceSlice = createSlice({
 
 export const reducer = airspaceSlice.reducer;
 export const { setMaxAltitude, setOpacity, setShow, showClasses, showTypes, setUse3d } = airspaceSlice.actions;
-export const { selectOpacity, selectShowAirspaces, selectShowClasses, selectShowTypes, selectMaxAltitude, selectUse3d } =
-  airspaceSlice.selectors;
+export const {
+  selectOpacity,
+  selectShowAirspaces,
+  selectShowClasses,
+  selectShowTypes,
+  selectMaxAltitude,
+  selectUse3d,
+} = airspaceSlice.selectors;
 
 /**
  * Returns a list of altitude stops for airspaces in meters, rounded according to the current altitude unit.

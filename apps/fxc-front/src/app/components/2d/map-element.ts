@@ -323,30 +323,31 @@ export class MapElement extends connect(store)(LitElement) {
       <div id="map"></div>
       ${when(
         this.country === 'FR' && !this.isFromFfvl,
-        () => html`<a class="ad" href="https://ruedelair.com/" target="_blank">
-          <img
-            width="${Math.round(220 * this.adRatio)}"
-            height="${Math.round(42 * this.adRatio)}"
-            src="/static/img/ruedelair.svg"
-            alt="Rue de l'Air"
-          />
-        </a>`,
+        () =>
+          html`<a class="ad" href="https://ruedelair.com/" target="_blank">
+            <img
+              width="${Math.round(220 * this.adRatio)}"
+              height="${Math.round(42 * this.adRatio)}"
+              src="/static/img/ruedelair.svg"
+              alt="Rue de l'Air"
+            />
+          </a>`,
       )}
       ${when(
         this.map,
-        () => html`<topo-spain .map=${this.map}></topo-spain>
-          <topo-france .map=${this.map}></topo-france>
-          <topo-otm .map=${this.map}></topo-otm>
-          <segments-element .map=${this.map} .query=${document.location.search}></segments-element>
-          ${repeat(
-            this.tracks,
-            (track) => track.id,
-            (track) =>
-              html`
+        () =>
+          html`<topo-spain .map=${this.map}></topo-spain>
+            <topo-france .map=${this.map}></topo-france>
+            <topo-otm .map=${this.map}></topo-otm>
+            <segments-element .map=${this.map} .query=${document.location.search}></segments-element>
+            ${repeat(
+              this.tracks,
+              (track) => track.id,
+              (track) => html`
                 <marker-element .map=${this.map} .track=${track} .timeSec=${this.timeSec}></marker-element>
                 <line-element .map=${this.map} .track=${track}></line-element>
               `,
-          )}`,
+            )}`,
       )}`;
   }
 

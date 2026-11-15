@@ -2,7 +2,7 @@ import Mesh from '@arcgis/core/geometry/Mesh';
 import MeshGeoreferencedVertexSpace from '@arcgis/core/geometry/support/MeshGeoreferencedVertexSpace';
 // @ts-expect-error Internal ArcGIS 2D earcut tessellation utilities without type declarations
 import * as tess from '@arcgis/core/views/3d/layers/graphics/tessellationUtils.js';
-import { densifyPolyline, type AirspaceTyped, pointInPolygonRings, pointToSegmentSquared2D } from '@flyxc/common';
+import { type AirspaceTyped, densifyPolyline, pointInPolygonRings, pointToSegmentSquared2D } from '@flyxc/common';
 import { Delaunay } from 'd3-delaunay';
 
 const METERS_PER_DEGREE_LAT = 111_320;
@@ -563,7 +563,10 @@ export async function buildAirspaceMeshData({
   return footprint ? extrudeAirspaceFootprint(footprint, airspace, multiplier, sampleGroundZ) : null;
 }
 
-function createMesh(positions: Float64Array, faces: Uint32Array): Mesh {
+/**
+ * Creates an ArcGIS {@link Mesh} geometry from 3D vertex positions and face indices.
+ */
+export function createMesh(positions: Float64Array, faces: Uint32Array): Mesh {
   return new Mesh({
     spatialReference: { wkid: 4326 },
     vertexSpace: sharedVertexSpace,

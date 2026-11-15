@@ -102,9 +102,7 @@ export function pointInPolygonRings(x: number, y: number, rings: ReadonlyArray<P
  * @param pointsOrRings - Either a 1D array of points [x, y] / {x, y} or an array of rings.
  * @returns The bounding box, or undefined if no valid coordinates were found.
  */
-export function computeBounds(
-  pointsOrRings: ReadonlyArray<PolygonPoint | PolygonRing>,
-): Bounds2D | undefined {
+export function computeBounds(pointsOrRings: ReadonlyArray<PolygonPoint | PolygonRing>): Bounds2D | undefined {
   if (pointsOrRings.length === 0) {
     return undefined;
   }

@@ -287,9 +287,10 @@ export class AirspaceItems extends connect(store)(LitElement) {
         () =>
           html`${when(
               this.view3d,
-              () => html`<ion-item button lines="none" .detail=${false}>
-                <ion-toggle .checked=${this.use3d} @ionChange=${this.handleUse3d}>3D airspaces</ion-toggle>
-              </ion-item>`,
+              () =>
+                html`<ion-item button lines="none" .detail=${false}>
+                  <ion-toggle .checked=${this.use3d} @ionChange=${this.handleUse3d}>3D airspaces</ion-toggle>
+                </ion-item>`,
             )}
             <ion-item button lines="none" .detail="${false}">
               <ion-select

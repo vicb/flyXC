@@ -111,7 +111,9 @@ export function extentOverlapsBounds(ext: AirspaceExtentLike | undefined, bounds
   if (!ext) {
     return true;
   }
-  return ext.xmax >= bounds.minLon && ext.xmin <= bounds.maxLon && ext.ymax >= bounds.minLat && ext.ymin <= bounds.maxLat;
+  return (
+    ext.xmax >= bounds.minLon && ext.xmin <= bounds.maxLon && ext.ymax >= bounds.minLat && ext.ymin <= bounds.maxLat
+  );
 }
 
 /**

@@ -294,7 +294,8 @@ describe('buildAirspaceMesh', () => {
 
   it('triangulates large polygons with an interior Steiner grid to avoid single-vertex needle fans', () => {
     // Large circle with 100 perimeter points (~10km radius)
-    const centerLon = 5.9, centerLat = 44.3;
+    const centerLon = 5.9,
+      centerLat = 44.3;
     const radiusDeg = 0.1;
     const ring: number[][] = [];
     const N = 100;
@@ -405,7 +406,7 @@ describe('buildAirspaceMesh', () => {
     expect(footprint?.terrainCap).toBeDefined();
 
     // Sample with varying ground elevation (1000m at min, 3000m at max)
-    const sampleGroundZ = (lon: number, lat: number) => 1000 + (lat - 45.9) * 20000;
+    const sampleGroundZ = (_lon: number, lat: number) => 1000 + (lat - 45.9) * 20000;
     const mesh = extrudeAirspaceFootprint(footprint!, airspace, 1, sampleGroundZ);
     expect(mesh).not.toBeNull();
     const zs = getZs(mesh!.positions);

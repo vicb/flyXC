@@ -980,7 +980,7 @@ describe('Airspace3dElement', () => {
     ]);
     hoisted.tilePayloads.set(2, hoisted.tilePayloads.get(1)!);
 
-    const scene = { openPopup: vi.fn(async () => undefined) } as any;
+    const scene = { openPopup: vi.fn(async () => undefined), closePopup: vi.fn(async () => undefined) } as any;
     element.map = mockMap;
     element.view = view;
     await element.updateComplete;
@@ -1006,9 +1006,20 @@ describe('Airspace3dElement', () => {
     expect(scene.openPopup).toHaveBeenCalledTimes(1);
     expect(scene.openPopup.mock.calls[0][0].location.z).toBe(900);
 
+    // Selected airspace volume is highlighted on the GraphicsLayer.
+    const highlight = hoisted.graphicsLayers[0].graphics.find((g: any) => g.attributes?.isAirspaceHighlight);
+    expect(highlight).toBeDefined();
+
+    // Clicking an empty location without airspace clears the highlight and closes any open popup.
+    hoisted.getAirspaceListMock.mockResolvedValueOnce('');
+    await element.handleClick({ lat: 40.0, lon: 0.0 }, scene);
+    expect(hoisted.graphicsLayers[0].graphics.find((g: any) => g.attributes?.isAirspaceHighlight)).toBeUndefined();
+    expect(scene.closePopup).toHaveBeenCalledTimes(1);
+
     // Clicking inside an interior hole does not match the airspace locally and falls back to getAirspaceList.
+    hoisted.getAirspaceListMock.mockResolvedValueOnce('<div>hole airspace</div>');
     await element.handleClick({ lat: 45.47, lon: 6.02 }, scene, 900);
-    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(1);
+    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(2);
     expect(scene.openPopup).toHaveBeenCalledTimes(2);
 
     // Clicking outside loaded 3D polygons falls back to getAirspaceList with effective track date.
@@ -1018,8 +1029,8 @@ describe('Airspace3dElement', () => {
     await element.updateComplete;
 
     await element.handleClick({ lat: 46.5, lon: 7.5 }, scene);
-    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(2);
-    expect((hoisted.getAirspaceListMock.mock.calls[1][6] as Date).getTime()).toBe(1_752_577_200 * 1000);
+    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(3);
+    expect((hoisted.getAirspaceListMock.mock.calls[2][6] as Date).getTime()).toBe(1_752_577_200 * 1000);
     expect(scene.openPopup).toHaveBeenCalledTimes(3);
   });
 
@@ -1038,7 +1049,7 @@ describe('Airspace3dElement', () => {
     ]);
     hoisted.tilePayloads.set(2, hoisted.tilePayloads.get(1)!);
 
-    const scene = { openPopup: vi.fn(async () => undefined) } as any;
+    const scene = { openPopup: vi.fn(async () => undefined), closePopup: vi.fn(async () => undefined) } as any;
     element.map = mockMap;
     element.view = view;
     await element.updateComplete;
@@ -1058,12 +1069,7 @@ describe('Airspace3dElement', () => {
     // 2. Top surface click in tilted view: ray crosses top cap at lat ~45.47, but ground behind is outside (lat 45.51)
     // Camera at (lat: 45.35, lon: 6.02, z: 4268), target ground behind is at (lat: 45.51, lon: 6.02, z: 0)
     // At z = 1067m, t = (4268 - 1067) / 4268 = 0.75, lat = 45.35 + 0.75 * 0.16 = 45.47 (inside [45.45, 45.49])
-    await element.handleClick(
-      { lat: 45.51, lon: 6.02 },
-      scene,
-      0,
-      { lat: 45.35, lon: 6.02, z: 4268 },
-    );
+    await element.handleClick({ lat: 45.51, lon: 6.02 }, scene, 0, { lat: 45.35, lon: 6.02, z: 4268 });
     expect(scene.openPopup).toHaveBeenCalledTimes(2);
     const topPopup = scene.openPopup.mock.calls[1][0];
     expect(topPopup.location.latitude).toBeCloseTo(45.47, 2);
@@ -1075,12 +1081,7 @@ describe('Airspace3dElement', () => {
     // 3. Wall click in tilted view: ray enters south wall (lat 45.45) at mid-height
     // Camera at (lat: 45.35, lon: 6.02, z: 2000), target ground behind is at (lat: 45.55, lon: 6.02, z: 0)
     // Wall is at lat 45.45: t = (45.45 - 45.35) / (0.20) = 0.5. At t = 0.5, z = 1000m (within [0, 1067])
-    await element.handleClick(
-      { lat: 45.55, lon: 6.02 },
-      scene,
-      0,
-      { lat: 45.35, lon: 6.02, z: 2000 },
-    );
+    await element.handleClick({ lat: 45.55, lon: 6.02 }, scene, 0, { lat: 45.35, lon: 6.02, z: 2000 });
     expect(scene.openPopup).toHaveBeenCalledTimes(3);
     const wallPopup = scene.openPopup.mock.calls[2][0];
     expect(wallPopup.location.latitude).toBeCloseTo(45.45, 2);
@@ -1255,7 +1256,7 @@ describe('FlatAirspace3dElement', () => {
   });
 
   it('opens popup with effective track date on click only when enabled, and current date when no track is loaded', async () => {
-    const scene = { openPopup: vi.fn(async () => undefined) } as any;
+    const scene = { openPopup: vi.fn(async () => undefined), closePopup: vi.fn(async () => undefined) } as any;
     element.map = mockMap;
     element.enabled = false;
     await element.updateComplete;

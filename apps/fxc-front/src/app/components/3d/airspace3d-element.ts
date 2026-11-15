@@ -33,6 +33,7 @@ import { connect } from 'pwa-helpers';
 import {
   type AirspaceMeshData,
   computeGroundSignature,
+  createMesh,
   extrudeAirspaceFootprint,
   type GroundSampler,
   mergeContourPaths,
@@ -340,6 +341,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private categorySymbols = new globalThis.Map<AirspaceColorCategory, MeshSymbol3D>();
   private categoryLineGraphics = new globalThis.Map<AirspaceColorCategory, Graphic>();
   private categoryLineSymbols = new globalThis.Map<AirspaceColorCategory, LineSymbol3D>();
+  private highlightGraphic?: Graphic;
   private categoryBuckets = new globalThis.Map<AirspaceColorCategory, { parts: AirspaceMeshData[]; sigHash: number }>([
     [AirspaceColorCategory.Prohibited, { parts: [], sigHash: 0 }],
     [AirspaceColorCategory.Restricted, { parts: [], sigHash: 0 }],
@@ -484,14 +486,17 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     }
   }
 
-  private findAirspacesAtPoint(latLon: LatLon, clickZ?: number): AirspaceTyped[] {
+  private findAirspacesAtPoint(
+    latLon: LatLon,
+    clickZ?: number,
+  ): Array<{ airspace: AirspaceTyped; item: CachedAirspaceItem; matchesZ: boolean; topZ: number }> {
     if (this.currentAirspaces.length === 0) {
       return [];
     }
     const sampleGroundZ = createGroundSampler(this.sampler);
     const groundZ = sampleGroundZ(latLon.lon, latLon.lat);
 
-    const matches: Array<{ airspace: AirspaceTyped; matchesZ: boolean; topZ: number }> = [];
+    const matches: Array<{ airspace: AirspaceTyped; item: CachedAirspaceItem; matchesZ: boolean; topZ: number }> = [];
     for (const item of this.currentAirspaces) {
       const ext = item.polygon.extent;
       if (ext && (latLon.lon < ext.xmin || latLon.lon > ext.xmax || latLon.lat < ext.ymin || latLon.lat > ext.ymax)) {
@@ -503,7 +508,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       const floorZ = (item.airspace.floorRefGnd ? groundZ : 0) + item.airspace.floorM * this.multiplier;
       const topZ = Math.max(floorZ, (item.airspace.topRefGnd ? groundZ : 0) + item.airspace.topM * this.multiplier);
       const matchesZ = clickZ != null && clickZ >= floorZ - CLICK_Z_TOLERANCE_M && clickZ <= topZ + CLICK_Z_TOLERANCE_M;
-      matches.push({ airspace: item.airspace, matchesZ, topZ });
+      matches.push({ airspace: item.airspace, item, matchesZ, topZ });
     }
 
     matches.sort((a, b) => {
@@ -513,7 +518,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       return b.topZ - a.topZ;
     });
 
-    return matches.map((m) => m.airspace);
+    return matches;
   }
 
   /**
@@ -529,6 +534,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     targetPoint: { lat: number; lon: number; z: number },
   ): Array<{
     airspace: AirspaceTyped;
+    item: CachedAirspaceItem;
     hitPoint: { lat: number; lon: number; z: number };
     hitT: number;
     topZ: number;
@@ -547,6 +553,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
     const matches: Array<{
       airspace: AirspaceTyped;
+      item: CachedAirspaceItem;
       hitPoint: { lat: number; lon: number; z: number };
       hitT: number;
       topZ: number;
@@ -609,11 +616,57 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       }
 
       if (hitPoint) {
-        matches.push({ airspace: item.airspace, hitPoint, hitT: minT, topZ });
+        matches.push({ airspace: item.airspace, item, hitPoint, hitT: minT, topZ });
       }
     }
 
     return matches.sort((a, b) => a.topZ - b.topZ);
+  }
+
+  /**
+   * Clears any currently active 3D airspace highlight graphic.
+   */
+  public clearHighlight(): void {
+    if (this.highlightGraphic) {
+      const g = this.highlightGraphic;
+      this.highlightGraphic = undefined;
+      this.graphicsLayer?.removeMany([g]);
+      g.destroy?.();
+    }
+  }
+
+  /**
+   * Highlights the selected 3D airspace volume while its popup is displayed.
+   */
+  public highlightAirspace(item: CachedAirspaceItem): void {
+    this.clearHighlight();
+    const sampleGroundZ = createGroundSampler(this.sampler);
+    const meshData =
+      item.meshData ??
+      (item.footprint ? extrudeAirspaceFootprint(item.footprint, item.airspace, this.multiplier, sampleGroundZ) : null);
+    if (!meshData || meshData.positions.length === 0 || meshData.faces.length === 0) {
+      return;
+    }
+    const mesh = createMesh(meshData.positions, meshData.faces);
+    const category = item.category ?? AirspaceColorCategory.Other;
+    const hex = ASP_CATEGORY_COLOR[category] ?? ASP_CATEGORY_COLOR[AirspaceColorCategory.Other];
+    const fill = new Color(hex);
+    fill.a = 0.8;
+    const symbol = new MeshSymbol3D({
+      symbolLayers: [
+        new FillSymbol3DLayer({
+          material: { color: fill.toRgba(), colorMixMode: 'replace' },
+          castShadows: false,
+        }),
+      ],
+    });
+    this.highlightGraphic = new Graphic({
+      geometry: mesh,
+      symbol,
+      attributes: { isAirspaceHighlight: true },
+    });
+    const layer = this.ensureGraphicsLayer();
+    layer.addMany([this.highlightGraphic]);
   }
 
   /**
@@ -648,7 +701,11 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       });
       if (rayMatches.length > 0) {
         const bestHit = rayMatches[0].hitPoint;
-        const html = rayMatches.slice(0, 5).map((m) => getAirspaceHtmlDescription(m.airspace)).join('<br>');
+        const html = rayMatches
+          .slice(0, 5)
+          .map((m) => getAirspaceHtmlDescription(m.airspace))
+          .join('<br>');
+        this.highlightAirspace(rayMatches[0].item);
         await openAirspacePopup(scene, { lat: bestHit.lat, lon: bestHit.lon }, html, bestHit.z);
         return;
       }
@@ -657,12 +714,17 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     if (clickZ != null) {
       const localMatches = this.findAirspacesAtPoint(latLon, clickZ);
       if (localMatches.length > 0) {
-        const html = localMatches.slice(0, 5).map(getAirspaceHtmlDescription).join('<br>');
+        const html = localMatches
+          .slice(0, 5)
+          .map((m) => getAirspaceHtmlDescription(m.airspace))
+          .join('<br>');
+        this.highlightAirspace(localMatches[0].item);
         await openAirspacePopup(scene, latLon, html, clickZ);
         return;
       }
     }
 
+    this.clearHighlight();
     const html = await getAirspaceList(
       MAX_AIRSPACE_TILE_ZOOM,
       latLon,
@@ -674,6 +736,8 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     );
     if (html) {
       await openAirspacePopup(scene, latLon, html);
+    } else {
+      await scene.closePopup?.();
     }
   }
 
@@ -743,6 +807,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   }
 
   private removeGraphicsLayer(): void {
+    this.clearHighlight();
     this.restoreDepthCache();
     this.currentAirspaces.length = 0;
     this.categoryGraphics.clear();
