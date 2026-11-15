@@ -766,6 +766,15 @@ describe('Airspace3dElement', () => {
     expect(meshGraphic).toBe(prevGraphic);
     expect(meshGraphic.geometry).not.toBe(prevGeom);
     expect(lineGraphic!.geometry).not.toBe(prevLineGeom);
+
+    // Updating showClasses or showTypes immediately refreshes view and removes excluded airspaces
+    hoisted.state.showClasses = [];
+    hoisted.state.showTypes = [];
+    store.dispatch({ type: 'TEST_FILTER' });
+    await element.updateComplete;
+    await flushAsync();
+
+    expect(hoisted.graphicsLayers[0].graphics).toHaveLength(0);
   });
 
   it('passes active track date to applyOverrides when a track is loaded, and current date otherwise', async () => {

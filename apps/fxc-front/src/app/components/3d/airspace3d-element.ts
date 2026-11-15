@@ -652,9 +652,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       }
     }
     this.currentAirspaces = currentAirspaces;
-
-    const isRefinementPass = response.lod !== undefined && response.lod > 0;
-    this.rebuildMeshes(isRefinementPass);
+    this.rebuildMeshes(false);
   }
 
   private async refreshView(): Promise<void> {
