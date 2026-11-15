@@ -734,6 +734,20 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     return symbol;
   }
 
+  /**
+   * Rebuilds 3D airspace geometry and updates GPU graphics layers.
+   *
+   * Performance Architecture:
+   * 1. Selective re-extrusion: Pure MSL airspaces are extruded once and cached permanently. Only
+   *    ground-referenced airspaces whose local terrain signature has changed are re-extruded.
+   * 2. Category Batch Merging: All airspaces belonging to the same color category (Prohibited,
+   *    Restricted, Danger, Other) are concatenated into a single ArcGIS Mesh graphic and a single
+   *    contour Polyline graphic. The entire 3D airspace overlay across Europe consists of at most
+   *    4 Mesh graphics + 4 Polyline graphics, minimizing draw calls and WebGL state switches.
+   * 3. FNV-1a Signature Hashing: Before creating new ArcGIS GPU graphics, a 32-bit hash of each
+   *    category's contents, terrain signatures, and LOD states is compared. If unchanged, GPU graphic
+   *    re-allocation is skipped completely.
+   */
   private rebuildMeshes(onlyGroundRef: boolean): void {
     if (!this.map || !this.showAirspace) {
       return;

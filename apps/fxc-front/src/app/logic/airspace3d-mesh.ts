@@ -170,8 +170,14 @@ function distToSegmentSquared2D(px: number, py: number, x1: number, y1: number, 
 }
 
 /**
- * Triangulates a polygon by injecting a regular 2D grid of interior Steiner points and
- * computing a conformal Delaunay triangulation, eliminating radial needle fans.
+ * Triangulates a polygon cap by injecting a regular 2D grid of interior Steiner points and
+ * computing a conformal Delaunay triangulation.
+ *
+ * Standard polygon triangulation (e.g. earcut without Steiner points) creates long, skinny
+ * radial triangles spanning from the polygon center to perimeter vertices. When draped over
+ * mountainous terrain, these needle-like triangles produce severe visual clipping and sagging
+ * artifacts. Injecting a regular interior Steiner grid produces uniform, well-conditioned
+ * triangles that smoothly drape across complex 3D topography.
  */
 export function triangulateCapWithGrid2D(
   rings: number[][][],
@@ -193,25 +199,46 @@ export function triangulateCapWithGrid2D(
   const stepLon = targetGridM / (METERS_PER_DEGREE_LAT * cosLat);
 
   const allPts: number[][] = [];
-  const boundarySegments = new Set<string>();
+  // Use numeric keys (a * 10_000_000 + b) instead of strings to eliminate memory allocations and GC churn
+  const boundarySegments = new Set<number>();
   let baseIdx = 0;
+  let totalSegments = 0;
   for (const ring of rings) {
     const len =
       ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]
         ? ring.length - 1
         : ring.length;
+    totalSegments += len;
     for (let i = 0; i < len; i++) {
       allPts.push([ring[i][0], ring[i][1]]);
       const next = (i + 1) % len;
       const a = baseIdx + i;
       const b = baseIdx + next;
-      boundarySegments.add(a < b ? `${a}_${b}` : `${b}_${a}`);
+      boundarySegments.add(a < b ? a * 10_000_000 + b : b * 10_000_000 + a);
     }
     baseIdx += len;
   }
 
   if (allPts.length < 3) {
     return { xy: new Float64Array(0), faces: new Uint32Array(0) };
+  }
+
+  // Pre-flatten boundary segments in projected coordinates to avoid redundant multiplications inside candidate loops
+  const projSegments = new Float64Array(totalSegments * 4);
+  let segIdx = 0;
+  for (const ring of rings) {
+    const len =
+      ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]
+        ? ring.length - 1
+        : ring.length;
+    for (let i = 0; i < len; i++) {
+      const next = (i + 1) % len;
+      projSegments[segIdx] = ring[i][0] * cosLat;
+      projSegments[segIdx + 1] = ring[i][1];
+      projSegments[segIdx + 2] = ring[next][0] * cosLat;
+      projSegments[segIdx + 3] = ring[next][1];
+      segIdx += 4;
+    }
   }
 
   const minDistDeg = (targetGridM * 0.4) / METERS_PER_DEGREE_LAT;
@@ -223,24 +250,18 @@ export function triangulateCapWithGrid2D(
       if (pointInPolygonRings(lon, lat, rings)) {
         let tooClose = false;
         const plon = lon * cosLat;
-        for (const ring of rings) {
-          const len = ring.length - 1;
-          for (let i = 0; i < len; i++) {
-            if (
-              distToSegmentSquared2D(
-                plon,
-                lat,
-                ring[i][0] * cosLat,
-                ring[i][1],
-                ring[i + 1][0] * cosLat,
-                ring[i + 1][1],
-              ) < minDistDeg2
-            ) {
-              tooClose = true;
-              break;
-            }
-          }
-          if (tooClose) {
+        for (let s = 0; s < projSegments.length; s += 4) {
+          if (
+            distToSegmentSquared2D(
+              plon,
+              lat,
+              projSegments[s],
+              projSegments[s + 1],
+              projSegments[s + 2],
+              projSegments[s + 3],
+            ) < minDistDeg2
+          ) {
+            tooClose = true;
             break;
           }
         }
@@ -263,7 +284,7 @@ export function triangulateCapWithGrid2D(
   const insideFaces: number[] = [];
 
   const isEdgeValid = (i1: number, i2: number): boolean => {
-    const key = i1 < i2 ? `${i1}_${i2}` : `${i2}_${i1}`;
+    const key = i1 < i2 ? i1 * 10_000_000 + i2 : i2 * 10_000_000 + i1;
     if (boundarySegments.has(key)) {
       return true;
     }
@@ -450,11 +471,21 @@ export function extrudeAirspaceFootprint(
     const floorPath: number[][] = [];
     for (let i = 0; i < ring.length; i++) {
       const [lon, lat] = ring[i];
+      // Sample exaggerated terrain elevation once per vertex when any boundary is ground-referenced.
       const gnd = hasGroundRef ? sampleGroundZ(lon, lat) : 0;
       const rawTop = (airspace.topRefGnd ? gnd : 0) + topOffset;
       const rawFloor = (airspace.floorRefGnd ? gnd : 0) + floorOffset;
+
+      // 1. Ceiling clamping: AGL ceilings follow terrain; MSL ceilings are flat horizontal planes.
       const topZ = airspace.topRefGnd ? Math.max(rawTop, rawFloor) : rawTop;
+
+      // 2. Mountain pinch clamping: For flat ceilings (MSL) with elevated AGL floors, terrain peaks
+      // can rise higher than the ceiling. Clamping nominalFloor to topZ pinches the volume closed
+      // against the terrain rather than letting an inverted floor float above the ceiling.
       const nominalFloor = airspace.topRefGnd ? rawFloor : Math.min(rawFloor, topZ);
+
+      // 3. Subsurface skirt sinking: Airspaces starting at GND sink their wall base 250m into the
+      // terrain, preventing z-fighting against terrain DEM meshes and eliminating redundant bottom caps.
       const bottomZ = sinkZeroFloor && topZ > nominalFloor ? nominalFloor - GND_BASE_SINK_M * multiplier : nominalFloor;
 
       const p = vCursor * 3;

@@ -139,8 +139,21 @@ export function extentOverlapsBounds(ext: AirspaceExtentLike | undefined, bounds
 
 /**
  * Core background pipeline for fetching, decoding, caching and triangulating 3D airspace volumes.
- * Uses Zoom 6 unclipped tiles to eliminate multi-tile polygon union entirely.
- * Can run inside a Web Worker or in-process (e.g. for testing).
+ *
+ * Architectural Principles:
+ * 1. Unclipped Zoom 6 Tiles: Rather than clipping polygons at tile boundaries and having to stitch
+ *    them together with complex and fragile polygon union operations, airspaces are served unclipped
+ *    at Zoom 6. Each airspace geometry appears in full in whichever tile its center/origin belongs,
+ *    and duplicates across tiles are trivially deduplicated by feature ID.
+ * 2. Two-tier Persistent Cache: Footprint geometries and 2D triangulations are cached in a fast
+ *    in-memory Map (L1) and persisted across browser sessions in IndexedDB (L2).
+ * 3. Cache Invalidation: An automated remote date/timestamp check against the airspace server
+ *    invalidates the IndexedDB cache when fresh aeronautical data cycles are published.
+ * 4. Progressive Level of Detail (LOD): Polygons with terrain-referenced caps are first emitted
+ *    at LOD 0 (coarse Steiner grid, ~4800m spacing) for immediate rendering, followed by LOD 1
+ *    (~2000m spacing) for fine fidelity without freezing the UI.
+ *
+ * Can run inside a dedicated Web Worker or in-process (e.g. for unit tests).
  */
 export class Airspace3dProcessor {
   private tileCache = new Map<string, Promise<DecodedTileFeature[] | null>>();
