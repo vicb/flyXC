@@ -30,6 +30,14 @@ import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
+import {
+  type AirspaceMeshData,
+  computeGroundSignature,
+  extrudeAirspaceFootprint,
+  type GroundSampler,
+  mergeContourPaths,
+  mergeMeshData,
+} from '../../logic/airspace3d-mesh';
 import { getAirspaceHtmlDescription, getAirspaceList } from '../../logic/airspaces';
 import * as airspaces from '../../redux/airspace-slice';
 import * as app from '../../redux/app-slice';
@@ -47,14 +55,6 @@ import {
   setBoundedCache,
   type TileCoord,
 } from '../../workers/airspace3d-processor';
-import {
-  type AirspaceMeshData,
-  computeGroundSignature,
-  extrudeAirspaceFootprint,
-  type GroundSampler,
-  mergeContourPaths,
-  mergeMeshData,
-} from './airspace3d-mesh';
 import { createPopupContent } from './popup-content';
 
 export function getEffectiveAirspaceDate(hasTrack: boolean, timeSec: number): Date {
@@ -290,6 +290,8 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   view?: SceneView;
   @property({ attribute: false })
   sampler?: ElevationSampler;
+  @property({ type: Boolean })
+  enabled = true;
 
   @state()
   private maxAltitude = 1000;
@@ -368,7 +370,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       });
     }
 
-    if (!this.map || !this.showAirspace) {
+    if (!this.map || !this.showAirspace || !this.enabled) {
       this.clearLayer();
       return false;
     }
@@ -376,6 +378,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     const filterOrMapChanged =
       changedProps.has('map') ||
       changedProps.has('view') ||
+      changedProps.has('enabled') ||
       changedProps.has('showAirspace') ||
       changedProps.has('maxAltitude') ||
       changedProps.has('showClasses') ||
@@ -495,7 +498,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
    * falling back to vector-tile querying if nothing hit a 3D volume.
    */
   public async handleClick(latLon: LatLon, scene: ArcgisScene, clickZ?: number): Promise<void> {
-    if (!this.showAirspace) {
+    if (!this.showAirspace || !this.enabled) {
       return;
     }
 
@@ -656,7 +659,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   }
 
   private async refreshView(): Promise<void> {
-    if (!this.map || !this.showAirspace) {
+    if (!this.map || !this.showAirspace || !this.enabled) {
       this.clearLayer();
       return;
     }

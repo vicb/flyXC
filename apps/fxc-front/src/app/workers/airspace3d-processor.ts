@@ -20,7 +20,7 @@ import {
   type AirspaceFootprint,
   type AirspacePolygonLike,
   buildAirspaceFootprint,
-} from '../components/3d/airspace3d-mesh';
+} from '../logic/airspace3d-mesh';
 
 export interface TileCoord {
   x: number;

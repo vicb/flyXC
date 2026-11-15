@@ -1,4 +1,4 @@
-import { showClasses, showTypes } from '../airspace-slice';
+import { setUse3d, showClasses, showTypes } from '../airspace-slice';
 import { setPwaInstallCancelled } from '../app-slice';
 import { RETURN_URL_KEY, setReturnUrl } from '../live-track-slice';
 import { setGeolocation } from '../location-slice';
@@ -66,6 +66,13 @@ export function setupStorageSyncListener(startListening: AppStartListening): voi
     actionCreator: showTypes,
     effect: (action) => {
       localStorage.setItem('airspaceTypes', JSON.stringify(action.payload));
+    },
+  });
+
+  startListening({
+    actionCreator: setUse3d,
+    effect: (action) => {
+      localStorage.setItem('airspaceUse3d', String(action.payload));
     },
   });
 

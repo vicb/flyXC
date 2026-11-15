@@ -19,6 +19,7 @@ import {
 } from '@flyxc/common';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import * as meshModule from '../../logic/airspace3d-mesh';
 import type * as airspacesLogic from '../../logic/airspaces';
 import type * as airspaceSlice from '../../redux/airspace-slice';
 import type * as appSlice from '../../redux/app-slice';
@@ -33,7 +34,6 @@ import {
   MAX_TILES_3D,
   MIN_3D_ZOOM,
 } from './airspace3d-element';
-import * as meshModule from './airspace3d-mesh';
 import { buildAirspaceVectorTileStyle, FlatAirspace3dElement } from './flat-airspace3d-element';
 
 const hoisted = vi.hoisted(() => {
@@ -178,7 +178,7 @@ vi.mock('../../logic/airspaces', async (importOriginal) => {
   };
 });
 
-vi.mock('./airspace3d-mesh', async (importOriginal) => {
+vi.mock('../../logic/airspace3d-mesh', async (importOriginal) => {
   const actual = await importOriginal<typeof meshModule>();
   return {
     ...actual,
@@ -684,6 +684,46 @@ describe('Airspace3dElement', () => {
         entry.cb(-1);
       }
     }
+    await flushAsync();
+
+    expect(hoisted.graphicsLayers[0].destroyed).toBe(true);
+    expect(mockMap.layers).toHaveLength(0);
+  });
+
+  it('respects the enabled property, clearing 3D graphics when disabled and re-rendering when enabled', async () => {
+    const view = makeMockView(10, 5.5, 45.3, 5.8, 45.7);
+    const polyRing = [
+      [5.55, 45.45],
+      [5.65, 45.45],
+      [5.65, 45.5],
+      [5.55, 45.5],
+      [5.55, 45.45],
+    ];
+    hoisted.tilePayloads.set(1, [makeFeature(makeAirspaceProps(), polyRing)]);
+    hoisted.tilePayloads.set(2, [makeFeature(makeAirspaceProps(), polyRing)]);
+
+    element.map = mockMap;
+    element.view = view;
+    element.enabled = false;
+    await element.updateComplete;
+    await vi.advanceTimersByTimeAsync(260);
+    await flushAsync();
+
+    expect(hoisted.graphicsLayers).toHaveLength(0);
+    expect(mockMap.layers).toHaveLength(0);
+
+    // Enabling triggers rendering
+    element.enabled = true;
+    await element.updateComplete;
+    await vi.advanceTimersByTimeAsync(260);
+    await flushAsync();
+
+    expect(hoisted.graphicsLayers).toHaveLength(1);
+    expect(mockMap.layers).toHaveLength(1);
+
+    // Disabling clears the layer
+    element.enabled = false;
+    await element.updateComplete;
     await flushAsync();
 
     expect(hoisted.graphicsLayers[0].destroyed).toBe(true);

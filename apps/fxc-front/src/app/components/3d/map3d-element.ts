@@ -44,6 +44,7 @@ import type { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
 import * as msg from '../../logic/messages';
+import { selectUse3d } from '../../redux/airspace-slice';
 import { selectLoadingApi, selectTimeSec, setApiLoading, setTimeSec, setView3d } from '../../redux/app-slice';
 import { selectAltitudeMultiplier, selectUseSunLighting } from '../../redux/arcgis-slice';
 import { selectCountry, selectIsFromFfvl, selectIsSmallScreen } from '../../redux/browser-slice';
@@ -97,6 +98,8 @@ export class Map3dElement extends connect(store)(LitElement) {
   private isFromFfvl = false;
   @state()
   private is3dAirspace = false;
+  @state()
+  private use3dAirspace = true;
 
   // ArcGis objects.
   private map?: Map;
@@ -128,6 +131,17 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.sunEnabled = selectUseSunLighting(state);
     this.country = selectCountry(state);
     this.isFromFfvl = selectIsFromFfvl(state);
+    this.use3dAirspace = selectUse3d(state);
+    this.updateAirspaceMode();
+  }
+
+  private updateAirspaceMode(): void {
+    const is3d = Boolean(
+      this.use3dAirspace && Number.isFinite(this.view?.zoom) && (this.view?.zoom ?? 0) >= MIN_3D_ZOOM,
+    );
+    if (this.is3dAirspace !== is3d) {
+      this.is3dAirspace = is3d;
+    }
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
@@ -293,8 +307,8 @@ export class Map3dElement extends connect(store)(LitElement) {
 
         const zoomWatch = watch(
           () => Number.isFinite(view.zoom) && view.zoom >= MIN_3D_ZOOM,
-          (is3d) => {
-            this.is3dAirspace = is3d;
+          () => {
+            this.updateAirspaceMode();
           },
           { initial: true },
         );
@@ -510,7 +524,12 @@ export class Map3dElement extends connect(store)(LitElement) {
       </arcgis-scene>
       <skyways3d-element .map=${this.map}></skyways3d-element>
       <flat-airspace3d-element .map=${this.map} .enabled=${!this.is3dAirspace}></flat-airspace3d-element>
-      <airspace3d-element .map=${this.map} .view=${this.view} .sampler=${this.elevationSampler}></airspace3d-element>
+      <airspace3d-element
+        .map=${this.map}
+        .view=${this.view}
+        .sampler=${this.elevationSampler}
+        .enabled=${this.is3dAirspace}
+      ></airspace3d-element>
       ${when(
         this.country === 'FR' && !this.isFromFfvl,
         () =>

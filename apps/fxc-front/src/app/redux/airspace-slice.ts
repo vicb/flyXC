@@ -11,6 +11,7 @@ type AirspaceState = {
   show: boolean;
   showClasses: Class[];
   showTypes: Type[];
+  use3d: boolean;
 };
 
 let initClasses = [Class.A, Class.B, Class.C, Class.D, Class.E];
@@ -35,12 +36,24 @@ try {
   // empty
 }
 
+let initUse3d = true;
+
+try {
+  const storedUse3d = localStorage.getItem('airspaceUse3d');
+  if (storedUse3d != null) {
+    initUse3d = storedUse3d === 'true';
+  }
+} catch (e) {
+  // empty
+}
+
 const initialState: AirspaceState = {
   maxAltitude: 3000,
   opacity: 45,
   show: false,
   showClasses: initClasses,
   showTypes: initTypes,
+  use3d: initUse3d,
 };
 
 const airspaceSlice = createSlice({
@@ -67,6 +80,10 @@ const airspaceSlice = createSlice({
     setMaxAltitude: (state, action: PayloadAction<number>) => {
       state.maxAltitude = action.payload;
     },
+    /** Sets whether airspaces should be displayed in 3D when in 3D view. */
+    setUse3d: (state, action: PayloadAction<boolean>) => {
+      state.use3d = action.payload;
+    },
   },
   selectors: {
     selectOpacity: (state) => state.opacity,
@@ -74,12 +91,13 @@ const airspaceSlice = createSlice({
     selectShowClasses: (state) => state.showClasses,
     selectShowTypes: (state) => state.showTypes,
     selectMaxAltitude: (state) => state.maxAltitude,
+    selectUse3d: (state) => state.use3d,
   },
 });
 
 export const reducer = airspaceSlice.reducer;
-export const { setMaxAltitude, setOpacity, setShow, showClasses, showTypes } = airspaceSlice.actions;
-export const { selectOpacity, selectShowAirspaces, selectShowClasses, selectShowTypes, selectMaxAltitude } =
+export const { setMaxAltitude, setOpacity, setShow, showClasses, showTypes, setUse3d } = airspaceSlice.actions;
+export const { selectOpacity, selectShowAirspaces, selectShowClasses, selectShowTypes, selectMaxAltitude, selectUse3d } =
   airspaceSlice.selectors;
 
 /**
