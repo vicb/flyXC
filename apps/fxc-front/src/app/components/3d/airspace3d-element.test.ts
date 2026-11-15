@@ -1023,6 +1023,73 @@ describe('Airspace3dElement', () => {
     expect(scene.openPopup).toHaveBeenCalledTimes(3);
   });
 
+  it('correctly matches and orders overlapping airspaces when clicking ground point, wall, or top surface in tilted view', async () => {
+    const view = makeMockView(10, 6.0, 45.45, 6.04, 45.49);
+    const ring = [
+      [6.0, 45.45],
+      [6.04, 45.45],
+      [6.04, 45.49],
+      [6.0, 45.49],
+      [6.0, 45.45],
+    ];
+    hoisted.tilePayloads.set(1, [
+      makeFeature(makeAirspaceProps({ name: 'LF-R235 COMBOIRE', floorRefGnd: true, floorM: 0, topM: 1067 }), ring),
+      makeFeature(makeAirspaceProps({ name: 'ZRT RONE 4', floorRefGnd: true, floorM: 0, topM: 2895 }), ring),
+    ]);
+    hoisted.tilePayloads.set(2, hoisted.tilePayloads.get(1)!);
+
+    const scene = { openPopup: vi.fn(async () => undefined) } as any;
+    element.map = mockMap;
+    element.view = view;
+    await element.updateComplete;
+    await flushAsync();
+
+    // 1. Bottom surface click: ground target point is inside the base contour
+    await element.handleClick({ lat: 45.455, lon: 6.005 }, scene, 250);
+    expect(scene.openPopup).toHaveBeenCalledTimes(1);
+    const bottomPopup = scene.openPopup.mock.calls[0][0];
+    expect(bottomPopup.location.latitude).toBe(45.455);
+    expect(bottomPopup.location.longitude).toBe(6.005);
+    expect(bottomPopup.location.z).toBe(250);
+    const bottomContent = bottomPopup.content.shadowRoot?.innerHTML ?? bottomPopup.content.innerHTML;
+    expect(bottomContent).toContain('COMBOIRE');
+    expect(bottomContent).toContain('ZRT RONE 4');
+
+    // 2. Top surface click in tilted view: ray crosses top cap at lat ~45.47, but ground behind is outside (lat 45.51)
+    // Camera at (lat: 45.35, lon: 6.02, z: 4268), target ground behind is at (lat: 45.51, lon: 6.02, z: 0)
+    // At z = 1067m, t = (4268 - 1067) / 4268 = 0.75, lat = 45.35 + 0.75 * 0.16 = 45.47 (inside [45.45, 45.49])
+    await element.handleClick(
+      { lat: 45.51, lon: 6.02 },
+      scene,
+      0,
+      { lat: 45.35, lon: 6.02, z: 4268 },
+    );
+    expect(scene.openPopup).toHaveBeenCalledTimes(2);
+    const topPopup = scene.openPopup.mock.calls[1][0];
+    expect(topPopup.location.latitude).toBeCloseTo(45.47, 2);
+    expect(topPopup.location.longitude).toBeCloseTo(6.02, 2);
+    expect(topPopup.location.z).toBe(1067);
+    const topContent = topPopup.content.shadowRoot?.innerHTML ?? topPopup.content.innerHTML;
+    expect(topContent).toContain('COMBOIRE');
+
+    // 3. Wall click in tilted view: ray enters south wall (lat 45.45) at mid-height
+    // Camera at (lat: 45.35, lon: 6.02, z: 2000), target ground behind is at (lat: 45.55, lon: 6.02, z: 0)
+    // Wall is at lat 45.45: t = (45.45 - 45.35) / (0.20) = 0.5. At t = 0.5, z = 1000m (within [0, 1067])
+    await element.handleClick(
+      { lat: 45.55, lon: 6.02 },
+      scene,
+      0,
+      { lat: 45.35, lon: 6.02, z: 2000 },
+    );
+    expect(scene.openPopup).toHaveBeenCalledTimes(3);
+    const wallPopup = scene.openPopup.mock.calls[2][0];
+    expect(wallPopup.location.latitude).toBeCloseTo(45.45, 2);
+    expect(wallPopup.location.longitude).toBeCloseTo(6.02, 2);
+    expect(wallPopup.location.z).toBeCloseTo(1000, 1);
+    const wallContent = wallPopup.content.shadowRoot?.innerHTML ?? wallPopup.content.innerHTML;
+    expect(wallContent).toContain('COMBOIRE');
+  });
+
   it('handles progressive worker responses from coarse (LOD 0) to fine (LOD 1) updating graphic geometry in place', async () => {
     element.map = mockMap;
     element.view = makeMockView(10, 6.0, 45.0, 6.2, 45.2);

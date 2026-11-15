@@ -362,11 +362,16 @@ export class Map3dElement extends connect(store)(LitElement) {
             ? results.filter((r) => r.graphic?.attributes?.isAirspace).sort((r1, r2) => r1.distance - r2.distance)
             : [];
           const firstHit = airspaceHits[0];
-          const hitPoint = firstHit?.mapPoint ?? e.mapPoint;
+          // When clicking in a tilted 3D view, prioritize terrain/ground intersection (e.mapPoint) so
+          // ground-level clicks inside airspace base contours query the actual ground coordinates rather
+          // than a distant point where the camera ray pierced an overhead airspace ceiling high in the sky.
+          const hitPoint = e.mapPoint ?? firstHit?.mapPoint;
           if (hitPoint) {
             const latLon = { lat: hitPoint.latitude ?? 0, lon: hitPoint.longitude ?? 0 };
             if (this.is3dAirspace) {
-              this.airspace?.handleClick(latLon, scene, firstHit?.mapPoint?.z);
+              const cam = view.camera?.position;
+              const cameraPoint = cam ? { lat: cam.latitude ?? 0, lon: cam.longitude ?? 0, z: cam.z ?? 0 } : undefined;
+              this.airspace?.handleClick(latLon, scene, hitPoint.z, cameraPoint);
             } else {
               this.flatAirspace?.handleClick(latLon, scene);
             }
