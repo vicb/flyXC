@@ -3,7 +3,7 @@ import { findClosestFix, getPixelCoordinates } from '@flyxc/common';
 import * as gMapLoader from '@googlemaps/js-api-loader';
 import type { PropertyValues, TemplateResult } from 'lit';
 import { html, LitElement, svg } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { when } from 'lit/directives/when.js';
 import type { UnsubscribeHandle } from 'micro-typed-events';
@@ -99,6 +99,9 @@ function loadGMaps(): Promise<void> {
 export class MapElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   map: google.maps.Map | undefined;
+
+  @query('#map')
+  private mapElement?: HTMLElement;
 
   @state()
   private tracks: RuntimeTrack[] = [];
@@ -202,7 +205,7 @@ export class MapElement extends connect(store)(LitElement) {
         mapId: '997ff70df48844a5',
       };
 
-      this.map = new google.maps.Map(this.querySelector('#map') as HTMLElement, options);
+      this.map = new google.maps.Map(this.mapElement!, options);
 
       const controls = document.createElement('controls-element') as ControlsElement;
       controls.map = this.map;

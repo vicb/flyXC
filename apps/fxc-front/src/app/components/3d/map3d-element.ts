@@ -37,7 +37,7 @@ import type { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
 import type { PropertyValues, TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, query, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { when } from 'lit/directives/when.js';
 import type { UnsubscribeHandle } from 'micro-typed-events';
@@ -107,7 +107,11 @@ export class Map3dElement extends connect(store)(LitElement) {
   private view?: SceneView;
   // Elevation layer with exaggeration.
   private elevationLayer?: BaseElevationLayer;
+  @query('arcgis-scene')
+  private scene?: ArcgisScene;
+  @query('airspace3d-element')
   private airspace?: Airspace3dElement;
+  @query('flat-airspace3d-element')
   private flatAirspace?: FlatAirspace3dElement;
   private basemaps: Record<string, string | Basemap | null> = {
     Satellite: null,
@@ -250,7 +254,10 @@ export class Map3dElement extends connect(store)(LitElement) {
   }
 
   firstUpdated(): void {
-    const scene = this.renderRoot.querySelector('arcgis-scene') as ArcgisScene;
+    const scene = this.scene;
+    if (!scene) {
+      return;
+    }
     const view = scene.view;
     view.environment = {
       starsEnabled: false,
@@ -258,9 +265,6 @@ export class Map3dElement extends connect(store)(LitElement) {
     } as any;
     this.view = view;
     this.createLighting();
-
-    this.airspace = this.renderRoot.querySelector('airspace3d-element') as Airspace3dElement;
-    this.flatAirspace = this.renderRoot.querySelector('flat-airspace3d-element') as FlatAirspace3dElement;
 
     this.subscriptions.push(
       msg.centerMap.subscribe((ll) => this.center(ll)),

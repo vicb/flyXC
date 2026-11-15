@@ -11,7 +11,7 @@ import type { SearchbarCustomEvent, ToggleCustomEvent } from '@ionic/core/compon
 import { modalController, toastController } from '@ionic/core/components';
 import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, query, state } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 import { when } from 'lit/directives/when.js';
 import type { UnsubscribeHandle } from 'micro-typed-events';
@@ -642,6 +642,9 @@ export class FullScreenItems extends connect(store)(LitElement) {
 
 @customElement('track-items')
 export class TrackItems extends connect(store)(LitElement) {
+  @query('#track')
+  private trackInput?: HTMLInputElement;
+
   @state()
   private numTracks = 0;
   @state()
@@ -690,7 +693,7 @@ export class TrackItems extends connect(store)(LitElement) {
 
   // Programmatically opens the file dialog.
   private forwardClick(): void {
-    (this.renderRoot.querySelector('#track') as HTMLInputElement)?.click();
+    this.trackInput?.click();
   }
 
   private async handleUpload(e: Event & { target: HTMLInputElement }): Promise<void> {
