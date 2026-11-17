@@ -1,30 +1,8 @@
+import type { AirspaceFeature } from '@flyxc/common';
 import Clipper2Z from 'clipper2-wasm';
 import Flatbush from 'flatbush';
 
-export interface AirspaceFeature {
-  type: 'Feature';
-  id?: number;
-  properties: {
-    icaoClass: number;
-    type: number;
-    floorM: number;
-    topM: number;
-    floorRefGnd: boolean;
-    topRefGnd: boolean;
-    flags?: number;
-    id?: number;
-    name?: string;
-    country?: string;
-    activity?: number;
-    floorLabel?: string;
-    topLabel?: string;
-    [key: string]: any;
-  };
-  geometry: {
-    type: string;
-    coordinates: any;
-  };
-}
+export type { AirspaceFeature } from '@flyxc/common';
 
 let clipperInstance: any = null;
 

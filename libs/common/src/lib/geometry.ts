@@ -49,6 +49,62 @@ export function pointToSegmentSquared2D(
 }
 
 /**
+ * Computes the intersection of two 2D line segments: (x1, y1)-(x2, y2) and (x3, y3)-(x4, y4).
+ *
+ * If the two segments intersect, returns the parametric scalar `t` along the first segment
+ * `(x1, y1) + t * (x2 - x1, y2 - y1)` where `0 <= t <= 1`.
+ * Returns `null` if the segments are parallel, collinear, or do not intersect within their bounds.
+ *
+ * @param x1 - X coordinate of first segment start point.
+ * @param y1 - Y coordinate of first segment start point.
+ * @param x2 - X coordinate of first segment end point.
+ * @param y2 - Y coordinate of first segment end point.
+ * @param x3 - X coordinate of second segment start point.
+ * @param y3 - Y coordinate of second segment start point.
+ * @param x4 - X coordinate of second segment end point.
+ * @param y4 - Y coordinate of second segment end point.
+ * @returns Parametric distance `t` in [0, 1] along the first segment if an intersection occurs, or `null`.
+ */
+export function segmentIntersection(
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  x3: number,
+  y3: number,
+  x4: number,
+  y4: number,
+): number | null {
+  const dx1 = x2 - x1;
+  const dy1 = y2 - y1;
+  const dx2 = x4 - x3;
+  const dy2 = y4 - y3;
+  const denom = dx1 * dy2 - dy1 * dx2;
+  if (Math.abs(denom) < 1e-12) {
+    return null;
+  }
+  const t = ((x3 - x1) * dy2 - (y3 - y1) * dx2) / denom;
+  const u = ((x3 - x1) * dy1 - (y3 - y1) * dx1) / denom;
+  return t >= 0 && t <= 1 && u >= 0 && u <= 1 ? t : null;
+}
+
+/**
+ * Extracts the X coordinate from a {@link PolygonPoint} (`[x, y]` tuple or `{x, y}` {@link Point} object).
+ * Kept as a separate primitive function so V8 can inline it without heap allocations.
+ */
+export function getPointX(point: PolygonPoint): number {
+  return 'x' in (point as Point) ? (point as Point).x : (point as [number, number])[0];
+}
+
+/**
+ * Extracts the Y coordinate from a {@link PolygonPoint} (`[x, y]` tuple or `{x, y}` {@link Point} object).
+ * Kept as a separate primitive function so V8 can inline it without heap allocations.
+ */
+export function getPointY(point: PolygonPoint): number {
+  return 'y' in (point as Point) ? (point as Point).y : (point as [number, number])[1];
+}
+
+/**
  * Returns whether a point (x/lon, y/lat) is inside a polygon defined by its rings (outer ring and optional holes).
  * Uses the ray-casting algorithm (even-odd rule) and supports rings made of Point objects ({x, y}) or coordinate tuples ([x, y]).
  *
@@ -64,33 +120,17 @@ export function pointInPolygonRings(x: number, y: number, rings: ReadonlyArray<P
     if (len < 3) {
       continue;
     }
-    const last = ring[len - 1];
-    if (Array.isArray(ring[0])) {
-      let xj = (last as number[])[0];
-      let yj = (last as number[])[1];
-      for (let i = 0; i < len; i++) {
-        const p = ring[i] as number[];
-        const xi = p[0];
-        const yi = p[1];
-        if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
-          inside = !inside;
-        }
-        xj = xi;
-        yj = yi;
+    let xj = getPointX(ring[len - 1]);
+    let yj = getPointY(ring[len - 1]);
+    for (let i = 0; i < len; i++) {
+      const p = ring[i];
+      const xi = getPointX(p);
+      const yi = getPointY(p);
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+        inside = !inside;
       }
-    } else {
-      let xj = (last as Point).x;
-      let yj = (last as Point).y;
-      for (let i = 0; i < len; i++) {
-        const p = ring[i] as Point;
-        const xi = p.x;
-        const yi = p.y;
-        if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
-          inside = !inside;
-        }
-        xj = xi;
-        yj = yi;
-      }
+      xj = xi;
+      yj = yi;
     }
   }
   return inside;
@@ -113,54 +153,20 @@ export function computeBounds(pointsOrRings: ReadonlyArray<PolygonPoint | Polygo
   let ymax = Number.NEGATIVE_INFINITY;
 
   const first = pointsOrRings[0];
-  if (Array.isArray(first)) {
-    if (typeof first[0] === 'number') {
-      // Flat array of [x, y] coordinates
-      for (let i = 0; i < pointsOrRings.length; i++) {
-        const pt = pointsOrRings[i] as [number, number];
-        const x = pt[0];
-        const y = pt[1];
-        if (x < xmin) xmin = x;
-        if (x > xmax) xmax = x;
-        if (y < ymin) ymin = y;
-        if (y > ymax) ymax = y;
-      }
-    } else {
-      // Nested rings of coordinates
-      for (let r = 0; r < pointsOrRings.length; r++) {
-        const ring = pointsOrRings[r] as PolygonRing;
-        if (!Array.isArray(ring) || ring.length === 0) {
-          continue;
-        }
-        if (Array.isArray(ring[0])) {
-          for (let i = 0; i < ring.length; i++) {
-            const pt = ring[i] as [number, number];
-            const x = pt[0];
-            const y = pt[1];
-            if (x < xmin) xmin = x;
-            if (x > xmax) xmax = x;
-            if (y < ymin) ymin = y;
-            if (y > ymax) ymax = y;
-          }
-        } else {
-          for (let i = 0; i < ring.length; i++) {
-            const pt = ring[i] as Point;
-            const x = pt.x;
-            const y = pt.y;
-            if (x < xmin) xmin = x;
-            if (x > xmax) xmax = x;
-            if (y < ymin) ymin = y;
-            if (y > ymax) ymax = y;
-          }
-        }
-      }
+  const rings =
+    !Array.isArray(first) || typeof first[0] === 'number'
+      ? ([pointsOrRings] as ReadonlyArray<PolygonRing>)
+      : (pointsOrRings as ReadonlyArray<PolygonRing>);
+
+  for (let r = 0; r < rings.length; r++) {
+    const ring = rings[r];
+    if (!Array.isArray(ring)) {
+      continue;
     }
-  } else if (first != null && typeof first === 'object' && 'x' in first) {
-    // Flat array of Point objects {x, y}
-    for (let i = 0; i < pointsOrRings.length; i++) {
-      const pt = pointsOrRings[i] as Point;
-      const x = pt.x;
-      const y = pt.y;
+    for (let i = 0; i < ring.length; i++) {
+      const p = ring[i];
+      const x = getPointX(p);
+      const y = getPointY(p);
       if (x < xmin) xmin = x;
       if (x > xmax) xmax = x;
       if (y < ymin) ymin = y;

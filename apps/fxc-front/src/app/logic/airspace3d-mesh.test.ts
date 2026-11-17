@@ -14,6 +14,7 @@ import {
 
 function makeAirspace(overrides: Partial<AirspaceTyped> = {}): AirspaceTyped {
   return {
+    id: 1,
     name: 'TEST CTR',
     country: 'FR',
     floorM: 0,

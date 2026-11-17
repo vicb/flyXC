@@ -11,11 +11,14 @@ import {
   type AirspaceTyped,
   applyOverrides,
   Class,
+  CLOUD_AIRSPACE_BASE_URL,
   getAirspace3dTileUrl,
   getAirspaceDateUrl,
   getAirspaceOverrides,
+  getAirspaceTilesBaseUrl,
   getAirspaceTileUrl,
   isInFeature,
+  LOCAL_AIRSPACE_BASE_URL,
   toTypedAirspace,
   Type,
 } from './airspaces';
@@ -388,9 +391,46 @@ describe('Airspace overrides', () => {
       // (300, 300) maps to (4800, 4800) -> outside outer ring
       expect(isInFeature({ x: 300, y: 300 }, feature)).toBe(false);
     });
+
+    it('utilizes bbox for fast early rejection', () => {
+      let asPolygonsCalled = false;
+      const feature = {
+        extent: 4096,
+        bbox() {
+          return [1000, 1000, 2000, 2000];
+        },
+        asPolygons() {
+          asPolygonsCalled = true;
+          return [
+            [
+              [
+                { x: 1000, y: 1000 },
+                { x: 2000, y: 1000 },
+                { x: 2000, y: 2000 },
+                { x: 1000, y: 2000 },
+                { x: 1000, y: 1000 },
+              ],
+            ],
+          ];
+        },
+      } as any;
+
+      // (10, 10) maps to px 160 -> outside bbox [1000, 1000, 2000, 2000]
+      expect(isInFeature({ x: 10, y: 10 }, feature)).toBe(false);
+      expect(asPolygonsCalled).toBe(false);
+
+      // (100, 100) maps to px 1600 -> inside bbox
+      expect(isInFeature({ x: 100, y: 100 }, feature)).toBe(true);
+      expect(asPolygonsCalled).toBe(true);
+    });
   });
 
   describe('Airspace 3D and Version URLs', () => {
+    it('provides correct base URLs', () => {
+      expect(getAirspaceTilesBaseUrl('cloud')).toBe(`${CLOUD_AIRSPACE_BASE_URL}/tiles`);
+      expect(getAirspaceTilesBaseUrl('local')).toBe(LOCAL_AIRSPACE_BASE_URL);
+    });
+
     it('generates correct date URLs', () => {
       expect(getAirspaceDateUrl('cloud')).toBe('https://airspaces.storage.googleapis.com/airspaces-date.json');
       expect(getAirspaceDateUrl('local')).toBe('http://localhost:8084/airspaces-date.json');

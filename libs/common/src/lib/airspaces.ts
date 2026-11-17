@@ -246,7 +246,7 @@ export function getTypeName(type: Type): string {
 }
 
 export interface AirspaceTyped {
-  id?: number;
+  id: number;
   name: string;
   country: string;
   type: Type;
@@ -262,22 +262,55 @@ export interface AirspaceTyped {
   topRefGnd: boolean;
 }
 
+/**
+ * Properties of an airspace feature in GeoJSON or vector tiles.
+ */
+export interface AirspaceFeatureProperties {
+  icaoClass: Class | number;
+  type: Type | number;
+  floorM: number;
+  topM: number;
+  floorRefGnd: boolean;
+  topRefGnd: boolean;
+  flags?: Flags | number;
+  id?: number;
+  name?: string;
+  country?: string;
+  activity?: Activity | number;
+  floorLabel?: string;
+  topLabel?: string;
+  [key: string]: any;
+}
+
+/**
+ * GeoJSON Feature representing an airspace polygon or multipolygon.
+ */
+export interface AirspaceFeature {
+  type: 'Feature';
+  id?: number | string;
+  properties: AirspaceFeatureProperties;
+  geometry: {
+    type: 'Polygon' | 'MultiPolygon' | string;
+    coordinates: any;
+  };
+}
+
 export type AirspaceString = Record<keyof AirspaceTyped, string>;
 
-export function toTypedAirspace(airspaceStr: Partial<AirspaceString>): AirspaceTyped {
+export function toTypedAirspace(airspace: Partial<AirspaceString | AirspaceFeatureProperties>): AirspaceTyped {
   return {
-    id: airspaceStr.id != null ? Number(airspaceStr.id) : undefined,
-    name: airspaceStr.name ?? '',
-    country: airspaceStr.country ?? '',
-    type: Number(airspaceStr.type) as Type,
-    icaoClass: Number(airspaceStr.icaoClass) as Class,
-    activity: Number(airspaceStr.activity) as Activity,
-    floorM: Number(airspaceStr.floorM),
-    floorLabel: airspaceStr.floorLabel ?? '',
-    floorRefGnd: Boolean(airspaceStr.floorRefGnd),
-    topM: Number(airspaceStr.topM),
-    topLabel: airspaceStr.topLabel ?? '',
-    topRefGnd: Boolean(airspaceStr.topRefGnd),
+    id: Number(airspace.id),
+    name: airspace.name ?? '',
+    country: airspace.country ?? '',
+    type: Number(airspace.type) as Type,
+    icaoClass: Number(airspace.icaoClass) as Class,
+    activity: Number(airspace.activity) as Activity,
+    floorM: Number(airspace.floorM),
+    floorLabel: airspace.floorLabel ?? '',
+    floorRefGnd: Boolean(airspace.floorRefGnd),
+    topM: Number(airspace.topM),
+    topLabel: airspace.topLabel ?? '',
+    topRefGnd: Boolean(airspace.topRefGnd),
   };
 }
 
@@ -340,6 +373,15 @@ export function isInFeature(point: Point, feature: Feature): boolean {
   const ratio = 256 / feature.extent;
   const px = point.x / ratio;
   const py = point.y / ratio;
+
+  // Fast bounding-box check (O(1), cached on feature)
+  if (typeof feature.bbox === 'function') {
+    const [minX, minY, maxX, maxY] = feature.bbox();
+    if (px < minX || px > maxX || py < minY || py > maxY) {
+      return false;
+    }
+  }
+
   const polygons = feature.asPolygons() ?? [];
   for (const rings of polygons) {
     if (pointInPolygonRings(px, py, rings)) {
@@ -352,16 +394,20 @@ export function isInFeature(point: Point, feature: Feature): boolean {
 
 export type AirspaceServer = 'local' | 'cloud';
 
+export const LOCAL_AIRSPACE_BASE_URL = 'http://localhost:8084';
+export const CLOUD_AIRSPACE_BASE_URL = 'https://airspaces.storage.googleapis.com';
+
 export function getAirspaceDateUrl(server: AirspaceServer): string {
-  return server == 'local'
-    ? 'http://localhost:8084/airspaces-date.json'
-    : 'https://airspaces.storage.googleapis.com/airspaces-date.json';
+  const base = server === 'local' ? LOCAL_AIRSPACE_BASE_URL : CLOUD_AIRSPACE_BASE_URL;
+  return `${base}/airspaces-date.json`;
+}
+
+export function getAirspaceTilesBaseUrl(server: AirspaceServer): string {
+  return server === 'local' ? LOCAL_AIRSPACE_BASE_URL : `${CLOUD_AIRSPACE_BASE_URL}/tiles`;
 }
 
 export function getAirspaceTilesUrlTemplate(server: AirspaceServer): string {
-  return server == 'local'
-    ? 'http://localhost:8084/{z}/{x}/{y}.pbf'
-    : 'https://airspaces.storage.googleapis.com/tiles/{z}/{x}/{y}.pbf';
+  return `${getAirspaceTilesBaseUrl(server)}/{z}/{x}/{y}.pbf`;
 }
 
 export function getAirspaceTileUrl(x: number, y: number, z: number, server: AirspaceServer): string {
@@ -370,9 +416,7 @@ export function getAirspaceTileUrl(x: number, y: number, z: number, server: Airs
 }
 
 export function getAirspace3dTilesUrlTemplate(server: AirspaceServer): string {
-  return server == 'local'
-    ? `http://localhost:8084/${AIRSPACE_3D_TILE_ZOOM}/{x}/{y}-unclipped.pbf`
-    : `https://airspaces.storage.googleapis.com/tiles/${AIRSPACE_3D_TILE_ZOOM}/{x}/{y}-unclipped.pbf`;
+  return `${getAirspaceTilesBaseUrl(server)}/${AIRSPACE_3D_TILE_ZOOM}/{x}/{y}-unclipped.pbf`;
 }
 
 export function getAirspace3dTileUrl(x: number, y: number, server: AirspaceServer): string {

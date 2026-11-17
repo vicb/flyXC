@@ -29,7 +29,6 @@ import type * as trackSlice from '../../redux/track-slice';
 import {
   Airspace3dElement,
   createGroundSampler,
-  getVisibleTileCoords,
   getVisibleTileCoverage,
   MAX_TILES_3D,
   MIN_3D_ZOOM,
@@ -54,7 +53,9 @@ const hoisted = vi.hoisted(() => {
   const vectorTileLayers: any[] = [];
   const tilePayloads = new Map<number, any[]>();
   const pendingBuilds: Promise<unknown>[] = [];
-  const getAirspaceListMock = vi.fn(async (..._args: unknown[]) => '<div>Airspace list HTML</div>');
+  const getAirspaceListMock = vi.fn(
+    async (..._args: any[]) => [{ name: 'Airspace list', floorM: 0, topM: 1000 }] as any[],
+  );
 
   return {
     state,
@@ -120,17 +121,28 @@ vi.mock('@arcgis/core/layers/VectorTileLayer', () => ({
 
 vi.mock('mapbox-vector-tile', () => ({
   VectorTile: class MockVectorTile {
-    layers: Record<string, { length: number; feature: (i: number) => any }> = {};
+    layers: Record<string, any> = {};
     constructor(data: Uint8Array) {
       const id = data[0];
       const features = hoisted.tilePayloads.get(id) ?? [];
+      const aspLayer = {
+        length: features.length,
+        feature: (i: number) => features[i],
+        [Symbol.iterator]: () => features[Symbol.iterator](),
+      };
       this.layers = {
-        asp: {
-          length: features.length,
-          feature: (i: number) => features[i],
-        },
+        asp: aspLayer,
       };
     }
+    getLayer(name: string) {
+      return this.layers[name];
+    }
+  },
+  FeatureType: {
+    UNKNOWN: 0,
+    POINT: 1,
+    LINESTRING: 2,
+    POLYGON: 3,
   },
 }));
 
@@ -482,22 +494,22 @@ describe('buildAirspaceVectorTileStyle', () => {
   });
 });
 
-describe('getVisibleTileCoords', () => {
+describe('getVisibleTileCoverage', () => {
   it('returns empty array when zoomed out below MIN_3D_ZOOM or missing extent', () => {
-    expect(getVisibleTileCoords(makeMockView(9.9))).toEqual([]);
-    expect(getVisibleTileCoords({ zoom: 10, extent: null, center: null } as any)).toEqual([]);
-    expect(getVisibleTileCoords({ zoom: Number.NaN } as any)).toEqual([]);
+    expect(getVisibleTileCoverage(makeMockView(9.9)).tiles).toEqual([]);
+    expect(getVisibleTileCoverage({ zoom: 10, extent: null, center: null } as any).tiles).toEqual([]);
+    expect(getVisibleTileCoverage({ zoom: Number.NaN } as any).tiles).toEqual([]);
   });
 
   it('steps tile zoom down to cover wide/tilted frustum borders and caps at MAX_TILES_3D', () => {
     const view = makeMockView(10, 4.0, 44.0, 8.0, 47.0);
-    const tiles = getVisibleTileCoords(view);
+    const { tiles } = getVisibleTileCoverage(view);
     expect(tiles.length).toBeLessThanOrEqual(MAX_TILES_3D);
     expect(tiles[0].z).toBe(AIRSPACE_3D_TILE_ZOOM);
 
     // Very wide extent at zoom 10 uses AIRSPACE_3D_TILE_ZOOM (6) and still enforces MAX_TILES_3D sorted from center.
     const hugeView = makeMockView(10, -10.0, 35.0, 20.0, 55.0);
-    const cappedTiles = getVisibleTileCoords(hugeView);
+    const { tiles: cappedTiles } = getVisibleTileCoverage(hugeView);
     expect(cappedTiles).toHaveLength(MAX_TILES_3D);
     expect(cappedTiles[0].z).toBe(AIRSPACE_3D_TILE_ZOOM);
 
@@ -536,7 +548,7 @@ describe('getVisibleTileCoords', () => {
       extent: new Extent({ xmin, ymin, xmax, ymax, spatialReference: SpatialReference.WebMercator }),
     } as any;
 
-    const tiles = getVisibleTileCoords(view);
+    const { tiles } = getVisibleTileCoverage(view);
     expect(tiles.length).toBeGreaterThan(0);
     expect(tiles[0].z).toBe(AIRSPACE_3D_TILE_ZOOM);
   });
@@ -1011,13 +1023,13 @@ describe('Airspace3dElement', () => {
     expect(highlight).toBeDefined();
 
     // Clicking an empty location without airspace clears the highlight and closes any open popup.
-    hoisted.getAirspaceListMock.mockResolvedValueOnce('');
+    hoisted.getAirspaceListMock.mockResolvedValueOnce([]);
     await element.handleClick({ lat: 40.0, lon: 0.0 }, scene);
     expect(hoisted.graphicsLayers[0].graphics.find((g: any) => g.attributes?.isAirspaceHighlight)).toBeUndefined();
     expect(scene.closePopup).toHaveBeenCalledTimes(1);
 
     // Clicking inside an interior hole does not match the airspace locally and falls back to getAirspaceList.
-    hoisted.getAirspaceListMock.mockResolvedValueOnce('<div>hole airspace</div>');
+    hoisted.getAirspaceListMock.mockResolvedValueOnce([{ name: 'hole airspace', floorM: 0, topM: 1000 }] as any[]);
     await element.handleClick({ lat: 45.47, lon: 6.02 }, scene, 900);
     expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(3);
     expect(scene.openPopup).toHaveBeenCalledTimes(2);
@@ -1030,7 +1042,7 @@ describe('Airspace3dElement', () => {
 
     await element.handleClick({ lat: 46.5, lon: 7.5 }, scene);
     expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(4);
-    expect((hoisted.getAirspaceListMock.mock.calls[3][6] as Date).getTime()).toBe(1_752_577_200 * 1000);
+    expect((hoisted.getAirspaceListMock.mock.calls[3][0].date as Date).getTime()).toBe(1_752_577_200 * 1000);
     expect(scene.openPopup).toHaveBeenCalledTimes(3);
   });
 
@@ -1052,7 +1064,7 @@ describe('Airspace3dElement', () => {
     const scene = { openPopup: vi.fn(async () => undefined), closePopup: vi.fn(async () => undefined) } as any;
     element.map = mockMap;
     element.view = view;
-    hoisted.getAirspaceListMock.mockResolvedValue('');
+    hoisted.getAirspaceListMock.mockResolvedValue([]);
     await element.updateComplete;
     await flushAsync();
 
@@ -1090,7 +1102,7 @@ describe('Airspace3dElement', () => {
     expect(wallPopup.location.z).toBeCloseTo(1000, 1);
     const wallContent = wallPopup.content.shadowRoot?.innerHTML ?? wallPopup.content.innerHTML;
     expect(wallContent).toContain('COMBOIRE');
-    hoisted.getAirspaceListMock.mockResolvedValue('<div>Airspace list HTML</div>');
+    hoisted.getAirspaceListMock.mockResolvedValue([{ name: 'Airspace list', floorM: 0, topM: 1000 }] as any[]);
   });
 
   it('correctly handles nameless 3D tiles: unexaggerates ground elevation for getAirspaceList, matches by category, and formats clean fallbacks', async () => {
@@ -1135,13 +1147,24 @@ describe('Airspace3dElement', () => {
     await flushAsync();
 
     // 1. Successful 2D vector tile query: matches category and promotes full description to top
-    hoisted.getAirspaceListMock.mockResolvedValue(
-      '<b>[Low altitude restriction] PARC/RESERVE ECRINS</b><br>↧GND ↥3281ft GND<br><b>[Restricted] LF-R196A1</b><br>↧3300ft GND ↥FL 195',
-    );
+    hoisted.getAirspaceListMock.mockResolvedValue([
+      {
+        name: 'PARC/RESERVE ECRINS',
+        type: Type.LowAltitudeOverflightRestriction,
+        icaoClass: Class.SUA,
+        floorM: 0,
+        floorRefGnd: true,
+        floorLabel: 'GND',
+        topM: 1000,
+        topRefGnd: true,
+        topLabel: '3281ft GND',
+      },
+      { name: 'LF-R196A1', type: Type.Restricted, icaoClass: Class.SUA, floorM: 1000, topM: 5000 },
+    ] as any[]);
 
     await element.handleClick({ lat: 44.9, lon: 6.3 }, scene, 2600);
     expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(1);
-    const [, , calledAlt, calledGndAlt] = hoisted.getAirspaceListMock.mock.calls[0];
+    const { altitude: calledAlt, gndAltitude: calledGndAlt } = hoisted.getAirspaceListMock.mock.calls[0][0] as any;
     expect(calledGndAlt).toBeCloseTo(2000, 1);
     expect(calledAlt).toBeCloseTo(2000, 1);
 
@@ -1153,7 +1176,7 @@ describe('Airspace3dElement', () => {
     expect(content1).not.toContain('Low altitude restriction] Low altitude restriction');
 
     // 2. Empty 2D vector tile response: fallback does not duplicate category string
-    hoisted.getAirspaceListMock.mockResolvedValue('');
+    hoisted.getAirspaceListMock.mockResolvedValue([]);
     await element.handleClick({ lat: 44.9, lon: 6.3 }, scene, 2600);
     expect(scene.openPopup).toHaveBeenCalledTimes(2);
     const popup2 = scene.openPopup.mock.calls[1][0];
@@ -1164,7 +1187,7 @@ describe('Airspace3dElement', () => {
 
     hoisted.state.multiplier = 1;
     store.dispatch({ type: 'TEST_MULTIPLIER' });
-    hoisted.getAirspaceListMock.mockResolvedValue('<div>Airspace list HTML</div>');
+    hoisted.getAirspaceListMock.mockResolvedValue([{ name: 'Airspace list', floorM: 0, topM: 1000 }] as any[]);
   });
 
   it('handles progressive worker responses from coarse (LOD 0) to fine (LOD 1) updating graphic geometry in place', async () => {
@@ -1347,7 +1370,7 @@ describe('FlatAirspace3dElement', () => {
     await element.handleClick({ lat: 45.5, lon: 6.1 }, scene);
     const after = Date.now();
     expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(1);
-    const wallClockDate = hoisted.getAirspaceListMock.mock.calls[0][6] as Date;
+    const wallClockDate = hoisted.getAirspaceListMock.mock.calls[0][0].date as Date;
     expect(wallClockDate.getTime()).toBeGreaterThanOrEqual(before);
     expect(wallClockDate.getTime()).toBeLessThanOrEqual(after);
     expect(scene.openPopup).toHaveBeenCalledTimes(1);
@@ -1359,7 +1382,7 @@ describe('FlatAirspace3dElement', () => {
 
     await element.handleClick({ lat: 45.5, lon: 6.1 }, scene);
     expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(2);
-    expect((hoisted.getAirspaceListMock.mock.calls[1][6] as Date).getTime()).toBe(1_752_577_200 * 1000);
+    expect((hoisted.getAirspaceListMock.mock.calls[1][0].date as Date).getTime()).toBe(1_752_577_200 * 1000);
     expect(scene.openPopup).toHaveBeenCalledTimes(2);
   });
 });

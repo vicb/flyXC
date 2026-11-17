@@ -23,8 +23,11 @@ import {
   ASP_CATEGORY_COLOR,
   getAirspaceCategory,
   getPixelCoordinates,
+  getPointX,
+  getPointY,
   MAX_AIRSPACE_TILE_ZOOM,
   pointInPolygonRings,
+  segmentIntersection,
 } from '@flyxc/common';
 import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
@@ -40,7 +43,7 @@ import {
   mergeContourPaths,
   mergeMeshData,
 } from '../../logic/airspace3d-mesh';
-import { getAirspaceHtmlDescription, getAirspaceList } from '../../logic/airspaces';
+import { getAirspaceList, getAirspaceListHtml } from '../../logic/airspaces';
 import * as airspaces from '../../redux/airspace-slice';
 import * as app from '../../redux/app-slice';
 import * as arcgis from '../../redux/arcgis-slice';
@@ -98,29 +101,6 @@ type CachedAirspaceItem = AirspaceWorkerItem & Partial<CachedMeshEntry>;
 interface VisibleTileCoverage {
   tiles: TileCoord[];
   bounds: GeoBounds | null;
-}
-
-function segmentIntersection(
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number,
-  x3: number,
-  y3: number,
-  x4: number,
-  y4: number,
-): number | null {
-  const dx1 = x2 - x1;
-  const dy1 = y2 - y1;
-  const dx2 = x4 - x3;
-  const dy2 = y4 - y3;
-  const denom = dx1 * dy2 - dy1 * dx2;
-  if (Math.abs(denom) < 1e-12) {
-    return null;
-  }
-  const t = ((x3 - x1) * dy2 - (y3 - y1) * dx2) / denom;
-  const u = ((x3 - x1) * dy1 - (y3 - y1) * dx1) / denom;
-  return t >= 0 && t <= 1 && u >= 0 && u <= 1 ? t : null;
 }
 
 const ALL_CATEGORIES = [
@@ -295,13 +275,6 @@ export function getVisibleTileCoverage(view: SceneView): VisibleTileCoverage {
       maxLat: paddedMaxLat,
     },
   };
-}
-
-/**
- * Returns the visible airspace tile coordinates for the given SceneView.
- */
-export function getVisibleTileCoords(view: SceneView): TileCoord[] {
-  return getVisibleTileCoverage(view).tiles;
 }
 
 /**
@@ -593,10 +566,10 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         for (let i = 0; i < ring.length - 1; i++) {
           const p1 = ring[i];
           const p2 = ring[i + 1];
-          const x1 = Array.isArray(p1) ? p1[0] : (p1 as any).x;
-          const y1 = Array.isArray(p1) ? p1[1] : (p1 as any).y;
-          const x2 = Array.isArray(p2) ? p2[0] : (p2 as any).x;
-          const y2 = Array.isArray(p2) ? p2[1] : (p2 as any).y;
+          const x1 = getPointX(p1);
+          const y1 = getPointY(p1);
+          const x2 = getPointX(p2);
+          const y2 = getPointY(p2);
           const t = segmentIntersection(C.lon, C.lat, P.lon, P.lat, x1, y1, x2, y2);
           if (t !== null && t < minT) {
             const z = C.z + t * dz;
@@ -691,48 +664,42 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     z: number,
   ): Promise<void> {
     this.highlightAirspace(hitItem);
-    const hitAirspaceDesc = getAirspaceHtmlDescription(hitItem.airspace);
-    const otherDescs = otherItems.slice(0, 4).map((m) => getAirspaceHtmlDescription(m.airspace));
-    const fallbackHtml = [hitAirspaceDesc, ...otherDescs].join('<br>');
-
     const sampleGroundZ = createGroundSampler(this.sampler);
     const mult = this.multiplier > 0 ? this.multiplier : 1;
     const gndAlt = sampleGroundZ(latLon.lon ?? 0, latLon.lat ?? 0) / mult;
     const unexaggeratedZ = z / mult;
-    const html = await getAirspaceList(
-      MAX_AIRSPACE_TILE_ZOOM,
+    const tileAirspaces = await getAirspaceList({
       latLon,
-      unexaggeratedZ,
-      gndAlt,
-      this.showClasses,
-      this.showTypes,
-      getEffectiveAirspaceDate(this.hasTrack, this.timeSec),
-      false,
-      75,
-      this.maxAltitude,
-    );
+      altitude: unexaggeratedZ,
+      gndAltitude: gndAlt,
+      altitudeMargin: 75,
+      maxFloorAltitude: this.maxAltitude,
+      visibleClasses: this.showClasses,
+      visibleTypes: this.showTypes,
+      date: getEffectiveAirspaceDate(this.hasTrack, this.timeSec),
+    });
 
-    const hitName = hitItem.airspace.name;
-    const hitCategory = getAirspaceCategory(hitItem.airspace);
-    let finalHtml: string;
-    if (html) {
-      const entries = html
-        .split(/(?=<b>)/g)
-        .map((s) => s.replace(/^<br\s*\/?>/i, '').trim())
-        .filter(Boolean);
-      const hitIndex = entries.findIndex((e) =>
-        hitName ? e.includes(hitName) : hitCategory ? e.includes(`[${hitCategory}]`) : false,
+    const hit = hitItem.airspace;
+    const hitCategory = getAirspaceCategory(hit);
+    let airspaces: AirspaceTyped[];
+    if (tileAirspaces.length > 0) {
+      airspaces = [...tileAirspaces];
+      // Promote the clicked airspace to the top (matched by name, or by category for nameless airspaces).
+      // TODO: `hit.name` is always empty as the 3D tiles do not carry the airspace name (nor its id), so the
+      // match always falls back to the category, which is ambiguous when several airspaces share a category.
+      // Carry the source airspace id(s) into the 3D tiles (`coplanar-3d.ts`) and match by id instead.
+      const hitIndex = airspaces.findIndex((a) =>
+        hit.name ? a.name === hit.name : hitCategory ? !a.name && getAirspaceCategory(a) === hitCategory : false,
       );
       if (hitIndex > 0) {
-        const [hitEntry] = entries.splice(hitIndex, 1);
-        entries.unshift(hitEntry);
-      } else if (hitIndex === -1 && hitName) {
-        entries.unshift(hitAirspaceDesc);
+        airspaces.unshift(...airspaces.splice(hitIndex, 1));
+      } else if (hitIndex === -1 && hit.name) {
+        airspaces.unshift(hit);
       }
-      finalHtml = entries.join('<br>');
     } else {
-      finalHtml = fallbackHtml;
+      airspaces = [hit, ...otherItems.slice(0, 4).map((m) => m.airspace)];
     }
+    const finalHtml = getAirspaceListHtml(airspaces);
 
     await openAirspacePopup(scene, latLon, finalHtml, z);
   }
@@ -795,17 +762,15 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     }
 
     this.clearHighlight();
-    const html = await getAirspaceList(
-      MAX_AIRSPACE_TILE_ZOOM,
+    const airspaces = await getAirspaceList({
       latLon,
-      this.maxAltitude,
-      0,
-      this.showClasses,
-      this.showTypes,
-      getEffectiveAirspaceDate(this.hasTrack, this.timeSec),
-    );
-    if (html) {
-      await openAirspacePopup(scene, latLon, html);
+      altitude: this.maxAltitude,
+      visibleClasses: this.showClasses,
+      visibleTypes: this.showTypes,
+      date: getEffectiveAirspaceDate(this.hasTrack, this.timeSec),
+    });
+    if (airspaces.length > 0) {
+      await openAirspacePopup(scene, latLon, getAirspaceListHtml(airspaces));
     } else {
       await scene.closePopup?.();
     }

@@ -17,7 +17,7 @@ import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
-import { getAirspaceList } from '../../logic/airspaces';
+import { getAirspaceList, getAirspaceListHtml } from '../../logic/airspaces';
 import * as airspaces from '../../redux/airspace-slice';
 import * as app from '../../redux/app-slice';
 import type { RootState } from '../../redux/store';
@@ -79,17 +79,15 @@ export class FlatAirspace3dElement extends connect(store)(LitElement) {
     if (!this.showAirspace || !this.enabled) {
       return;
     }
-    const html = await getAirspaceList(
-      MAX_AIRSPACE_TILE_ZOOM,
+    const airspaces = await getAirspaceList({
       latLon,
-      this.maxAltitude,
-      0,
-      this.showClasses,
-      this.showTypes,
-      this.getEffectiveDate(),
-    );
-    if (html) {
-      await openAirspacePopup(scene, latLon, html);
+      altitude: this.maxAltitude,
+      visibleClasses: this.showClasses,
+      visibleTypes: this.showTypes,
+      date: this.getEffectiveDate(),
+    });
+    if (airspaces.length > 0) {
+      await openAirspacePopup(scene, latLon, getAirspaceListHtml(airspaces));
     }
   }
 

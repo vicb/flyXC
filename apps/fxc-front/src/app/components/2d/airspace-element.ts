@@ -4,7 +4,7 @@ import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
-import { AspMapType, AspZoomMapType, getAirspaceList } from '../../logic/airspaces';
+import { AspMapType, AspZoomMapType, getAirspaceList, getAirspaceListHtml } from '../../logic/airspaces';
 import * as airspaces from '../../redux/airspace-slice';
 import * as app from '../../redux/app-slice';
 import { selectTrackGndAlt, selectTrackLatLonAlt } from '../../redux/selectors/position';
@@ -115,17 +115,20 @@ export class AirspaceElement extends connect(store)(LitElement) {
 
   private async showAirspaceInfo(point: common.LatLonAlt, { gndAlt = 0, date = new Date() } = {}) {
     if (this.show) {
-      const html = await getAirspaceList(
-        Math.round(this.map.getZoom() ?? 10),
-        point,
-        point.alt,
-        gndAlt,
-        this.showClasses,
-        this.showTypes,
+      const airspaces = await getAirspaceList({
+        latLon: point,
+        zoom: Math.round(this.map.getZoom() ?? 10),
+        altitude: point.alt,
+        gndAltitude: gndAlt,
+        // Along a track (gndAlt != 0) only keep the airspaces the pilot is in.
+        checkTop: gndAlt !== 0,
+        altitudeMargin: gndAlt !== 0 ? 75 : 0,
+        visibleClasses: this.showClasses,
+        visibleTypes: this.showTypes,
         date,
-      );
-      if (html !== '') {
-        this.info?.setContent(html);
+      });
+      if (airspaces.length > 0) {
+        this.info?.setContent(getAirspaceListHtml(airspaces));
         this.info?.setPosition({ lat: point.lat, lng: point.lon });
         this.info?.open(this.map);
       } else {

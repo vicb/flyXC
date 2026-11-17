@@ -379,9 +379,7 @@ export async function buildAirspaceFootprint(
     flatCap = triangulateRings2D(wallRings);
   }
 
-  const terrainCap = needTerrainCap
-    ? triangulateCapWithGrid2D(wallRings, polygon.extent, targetGridM)
-    : undefined;
+  const terrainCap = needTerrainCap ? triangulateCapWithGrid2D(wallRings, polygon.extent, targetGridM) : undefined;
   const lod = needTerrainCap && options?.coarse ? 0 : 1;
 
   return { wallRings, flatCap, terrainCap, lod };

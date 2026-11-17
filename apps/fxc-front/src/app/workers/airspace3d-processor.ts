@@ -1,4 +1,5 @@
 import {
+  AIRSPACE_3D_TILE_ZOOM,
   type AirspaceColorCategory,
   type AirspaceServer,
   type AirspaceString,
@@ -14,7 +15,7 @@ import {
   type Type,
 } from '@flyxc/common';
 import { type IDBPDatabase, openDB } from 'idb';
-import { VectorTile } from 'mapbox-vector-tile';
+import { FeatureType, VectorTile } from 'mapbox-vector-tile';
 
 import {
   type AirspaceExtentLike,
@@ -128,9 +129,11 @@ export function extentOverlapsBounds(ext: AirspaceExtentLike | undefined, bounds
  *    in-memory Map (L1) and persisted across browser sessions in IndexedDB (L2).
  * 3. Cache Invalidation: An automated remote date/timestamp check against the airspace server
  *    invalidates the IndexedDB cache when fresh aeronautical data cycles are published.
- * 4. Progressive Level of Detail (LOD): Polygons with terrain-referenced caps are first emitted
- *    at LOD 0 (coarse Steiner grid, ~4800m spacing) for immediate rendering, followed by LOD 1
- *    (~2000m spacing) for fine fidelity without freezing the UI.
+ * 4. Progressive Level of Detail (LOD) & Adaptive Triangulation: Polygons with terrain-referenced
+ *    caps are first emitted at LOD 0 (coarse Steiner grid, up to ~4800m) for immediate rendering,
+ *    followed by LOD 1 for fine fidelity without freezing the UI. Grid spacing and wall densification
+ *    are computed adaptively based on ceiling thickness (`computeTargetGridM`), scaling down to 400m
+ *    for narrow AGL cushions (e.g. 150m–300m above ground) to follow mountain crests without ridge puncture.
  *
  * Can run inside a dedicated Web Worker or in-process (e.g. for unit tests).
  */
@@ -414,20 +417,20 @@ export class Airspace3dProcessor {
           return null;
         }
         const buffer = await response.arrayBuffer();
-        const layer = new VectorTile(new Uint8Array(buffer)).layers.asp;
+        const tile = new VectorTile(new Uint8Array(buffer));
+        const layer = tile.getLayer<AirspaceString>('asp');
         if (!layer) {
           return null;
         }
         const features: DecodedTileFeature[] = [];
-        for (let i = 0; i < layer.length; i++) {
-          const feature = layer.feature(i);
-          if (feature.type !== 3) {
+        for (const feature of layer) {
+          if (feature.type !== FeatureType.POLYGON) {
             continue;
           }
-          const geo = feature.toGeoJSON(x, y, 6) as { geometry: { type: string; coordinates: any } };
+          const geo = feature.toGeoJSON<AirspaceString>(x, y, AIRSPACE_3D_TILE_ZOOM);
           const ringsInfo = geoJsonGeometryToRings(geo.geometry);
           if (ringsInfo && ringsInfo.rings.length > 0 && ringsInfo.extent) {
-            const baseAirspace = toTypedAirspace(feature.properties as AirspaceString);
+            const baseAirspace = toTypedAirspace(feature.properties);
             const id = Number(feature.id);
             baseAirspace.id = id;
             features.push({

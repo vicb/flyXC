@@ -518,6 +518,8 @@ export class Map3dElement extends connect(store)(LitElement) {
           .dockEnabled=${false}
           .dockOptions=${POPUP_DOCK_OPTIONS}
           include-default-actions-disabled
+          hide-collapse-button
+          @contextmenu=${(e: Event) => e.preventDefault()}
           @arcgisPropertyChange=${(e: CustomEvent<{ name: string }>) => {
             if (e.detail.name === 'open' && !(e.target as ArcgisPopup).open) {
               store.dispatch(setCurrentLiveId(undefined));

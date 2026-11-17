@@ -5,7 +5,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, s
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { AIRSPACE_3D_TILE_ZOOM, MAX_AIRSPACE_TILE_ZOOM } from '@flyxc/common';
+import { AIRSPACE_3D_TILE_ZOOM, type AirspaceFeature, MAX_AIRSPACE_TILE_ZOOM } from '@flyxc/common';
 import { program } from 'commander';
 
 import { getAppFolderFromDist } from '../util';
@@ -78,7 +78,7 @@ rmSync(tmpUnclippedFolder, { recursive: true, force: true });
 rmSync(tmp3dGeojson, { force: true });
 
 console.log(`# Dissolving overlapping coplanar airspaces for 3D tiles...`);
-const allFeatures: any[] = [];
+const allFeatures: AirspaceFeature[] = [];
 for (const file of inputFiles) {
   const content = JSON.parse(readFileSync(file, 'utf8'));
   allFeatures.push(...content.features);

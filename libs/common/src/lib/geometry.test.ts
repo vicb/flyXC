@@ -2,8 +2,11 @@ import {
   boundsOverlap,
   computeBounds,
   densifyPolyline,
+  getPointX,
+  getPointY,
   pointInPolygonRings,
   pointToSegmentSquared2D,
+  segmentIntersection,
   simplifyCoords,
   simplifyDouglasPeucker,
   simplifyPath,
@@ -33,6 +36,59 @@ describe('geometry', () => {
 
     it('handles degenerate zero-length segments', () => {
       expect(pointToSegmentSquared2D(3, 4, 0, 0, 0, 0)).toBe(25);
+    });
+  });
+
+  describe('segmentIntersection', () => {
+    it('returns parametric t when two segments intersect', () => {
+      // Perpendicular crossing at (5, 5), t = 0.5 along (0, 5)->(10, 5)
+      expect(segmentIntersection(0, 5, 10, 5, 5, 0, 5, 10)).toBeCloseTo(0.5);
+      // Crossing at (2, 2), t = 0.2 along (0, 0)->(10, 10)
+      expect(segmentIntersection(0, 0, 10, 10, 0, 4, 4, 0)).toBeCloseTo(0.2);
+    });
+
+    it('returns t when segments intersect exactly at endpoints', () => {
+      // Intersection at start of segment 1 (t = 0)
+      expect(segmentIntersection(5, 5, 10, 5, 5, 0, 5, 10)).toBeCloseTo(0);
+      // Intersection at end of segment 1 (t = 1)
+      expect(segmentIntersection(0, 5, 5, 5, 5, 0, 5, 10)).toBeCloseTo(1);
+    });
+
+    it('returns null when lines would intersect outside segment bounds', () => {
+      // Lines intersect at (15, 5), which is beyond segment 1 end (10, 5)
+      expect(segmentIntersection(0, 5, 10, 5, 15, 0, 15, 10)).toBeNull();
+      // Lines intersect before segment 1 start
+      expect(segmentIntersection(5, 5, 10, 5, 0, 0, 0, 10)).toBeNull();
+      // Segments cross paths but do not reach each other
+      expect(segmentIntersection(0, 0, 2, 2, 5, 0, 0, 5)).toBeNull();
+    });
+
+    it('returns null for parallel segments', () => {
+      // Parallel horizontal segments
+      expect(segmentIntersection(0, 0, 10, 0, 0, 5, 10, 5)).toBeNull();
+      // Parallel diagonal segments
+      expect(segmentIntersection(0, 0, 10, 10, 1, 0, 11, 10)).toBeNull();
+    });
+
+    it('returns null for collinear segments', () => {
+      // Collinear overlapping
+      expect(segmentIntersection(0, 0, 10, 0, 5, 0, 15, 0)).toBeNull();
+      // Collinear disjoint
+      expect(segmentIntersection(0, 0, 5, 0, 6, 0, 10, 0)).toBeNull();
+    });
+  });
+
+  describe('getPointX and getPointY', () => {
+    it('extracts coordinates from [x, y] tuples', () => {
+      const pt: [number, number] = [12.5, 45.8];
+      expect(getPointX(pt)).toBe(12.5);
+      expect(getPointY(pt)).toBe(45.8);
+    });
+
+    it('extracts coordinates from Point objects {x, y}', () => {
+      const pt = { x: -3.2, y: 51.4 };
+      expect(getPointX(pt)).toBe(-3.2);
+      expect(getPointY(pt)).toBe(51.4);
     });
   });
 
