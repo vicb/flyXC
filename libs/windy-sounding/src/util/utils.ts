@@ -11,6 +11,7 @@ const SUPPORTED_MODELS = [
   /^ecmwf$/,
   /^gfs$/,
   /^nam/,
+  /^rrfs/,
   /^icon/,
   /^hrrr/,
   /^ukv$/,

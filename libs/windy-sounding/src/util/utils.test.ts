@@ -18,12 +18,12 @@ describe('utils', () => {
       // Mock W.models.getAllPointProducts
       (globalThis as any).W = {
         models: {
-          getAllPointProducts: vi.fn().mockReturnValue(['icon', 'arome', 'ecmwf', 'unknown', 'iconD2', 'gfs']),
+          getAllPointProducts: vi.fn().mockReturnValue(['icon', 'arome', 'ecmwf', 'unknown', 'iconD2', 'gfs', 'rrfs']),
         },
       };
 
       const models = getAvailableModels({ lat: 45, lon: 6 });
-      expect(models).toEqual(['ecmwf', 'gfs', 'icon', 'iconD2', METEOBLUE_AI_MODEL]);
+      expect(models).toEqual(['ecmwf', 'gfs', 'icon', 'iconD2', METEOBLUE_AI_MODEL, 'rrfs']);
     });
   });
 
@@ -35,6 +35,8 @@ describe('utils', () => {
       expect(isSupportedModelName('namConus')).toBe(true);
       expect(isSupportedModelName('icon')).toBe(true);
       expect(isSupportedModelName('iconEu')).toBe(true);
+      expect(isSupportedModelName('rrfs')).toBe(true);
+      expect(isSupportedModelName('rrfsConus')).toBe(true);
       expect(isSupportedModelName('hrrr')).toBe(true);
       expect(isSupportedModelName('ukv')).toBe(true);
       expect(isSupportedModelName('aromeFrance')).toBe(true);
