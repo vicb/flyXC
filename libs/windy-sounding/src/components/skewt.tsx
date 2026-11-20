@@ -601,7 +601,7 @@ function cloudOpacity(cloudCover: number): string {
   return ((cloudCover / 100) * MAX_OPACITY).toFixed(2);
 }
 
-function Clouds({ width, cloudLevels, clouds, pressureToPxScale, surfacePressure, showUpperClouds }: CloudsProp) {
+export function Clouds({ width, cloudLevels, clouds, pressureToPxScale, surfacePressure, showUpperClouds }: CloudsProp) {
   if (cloudLevels.length === 0 || clouds.length === 0) {
     return null;
   }
@@ -611,14 +611,14 @@ function Clouds({ width, cloudLevels, clouds, pressureToPxScale, surfacePressure
   let yStart = 0;
 
   if (showUpperClouds) {
-    yStart = 30;
-    const upperPressure = pressureToPxScale.invert(yStart);
+    const upperPressure = pressureToPxScale.invert(0);
     const upperCoverMax = Math.max(
       0,
       ...cloudLevels.map((level, i) => (level <= upperPressure ? (clouds[i] ?? 0) : 0)),
     );
 
     if (upperCoverMax >= MIN_UPPER_CLOUD_COVER) {
+      yStart = 30;
       elements.push(
         <rect key="upper" y={0} width={width} height={30} fill={CLOUD_COLOR} opacity={cloudOpacity(upperCoverMax)} />,
         <text key="upper-text" className="tick" y={30 - 12} x={width - 28} textAnchor="end">
