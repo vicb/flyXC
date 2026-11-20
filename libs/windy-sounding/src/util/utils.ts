@@ -16,6 +16,7 @@ const SUPPORTED_MODELS = [
   /^hrrr/,
   /^ukv$/,
   /^arome\w+/, // "arome" is unsupported
+  /^bomAccess/,
   /^czeAladin$/,
   /^canHrdps$/,
   /^mblue$/,
