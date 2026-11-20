@@ -5,6 +5,8 @@ import {
   getSoundingTimesMs,
   isWindyDataCached,
   selCloudDescendingLevels,
+  selDewpointDescendingLevels,
+  selDisplayParcel,
   selGhDescendingLevels,
   selIsWindyDataAvailable,
   selIsWindyDataAvailableAt,
@@ -495,6 +497,54 @@ describe('forecast-slice', () => {
       });
       const stateNoWind = createMockState(forecastWithNoWind);
       expect(selWindDescendingLevels(stateNoWind, modelName, location)).toEqual([]);
+    });
+
+    it('decouples tempLevels from dewpointLevels when upper-level rh is missing (e.g. jmaMsm)', () => {
+      const forecastWithPartialRh = createMockForecast({
+        forecast: {
+          ...createMockForecast().forecast,
+          sounding: {
+            ts: [1000],
+            'temp-1000h': [290],
+            'rh-1000h': [70],
+            'temp-300h': [235],
+            'rh-300h': [40],
+            'temp-250h': [225], // temp present without rh (as in jmaMsm)
+            'temp-150h': [210],
+          },
+        } as any,
+      });
+      const state = createMockState(forecastWithPartialRh);
+      expect(selTempDescendingLevels(state, modelName, location)).toEqual([1000, 300, 250, 150]);
+      expect(selDewpointDescendingLevels(state, modelName, location)).toEqual([1000, 300]);
+
+      const periodValues = selPeriodValues(state, modelName, location);
+      expect(periodValues.tempLevels).toEqual([1000, 300, 250, 150]);
+      expect(periodValues.dewpointLevels).toEqual([1000, 300]);
+      expect(periodValues.maxTemp).toBe(290);
+      expect(periodValues.minTemp).toBe(210);
+    });
+
+    it('keeps tempLevels and valid temperature extrema when no rh or dewpoint levels exist', () => {
+      const forecastWithoutRh = createMockForecast({
+        forecast: {
+          ...createMockForecast().forecast,
+          sounding: {
+            ts: [1000],
+            'temp-1000h': [290],
+            'temp-850h': [280],
+          },
+        } as any,
+      });
+      const state = createMockState(forecastWithoutRh);
+      expect(selTempDescendingLevels(state, modelName, location)).toEqual([1000, 850]);
+      expect(selDewpointDescendingLevels(state, modelName, location)).toEqual([]);
+
+      const periodValues = selPeriodValues(state, modelName, location);
+      expect(periodValues.tempLevels).toEqual([1000, 850]);
+      expect(periodValues.maxTemp).toBe(290);
+      expect(periodValues.minTemp).toBe(280);
+      expect(selDisplayParcel(state, modelName, location, 1000)).toBe(false);
     });
   });
 });

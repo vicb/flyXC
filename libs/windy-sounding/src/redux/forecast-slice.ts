@@ -28,7 +28,7 @@ export enum FetchStatus {
 }
 
 // Those properties vary with the temperature/humidity altitude level.
-const _tempLevelProps = ['temp', 'dewpoint', 'rh'] as const;
+const _tempLevelProps = ['temp', 'dewpoint'] as const;
 
 // Those properties vary with the wind altitude level.
 const _windLevelProps = ['wind', 'windDir'] as const;
@@ -60,8 +60,10 @@ export type PeriodValue = {
   maxTemp: number;
   minTemp: number;
   maxSeaLevelPressure: number;
-  // Pressure levels for temperature, dewpoint, and relative humidity (rh)
+  // Pressure levels for temperature
   tempLevels: number[];
+  // Pressure levels for dewpoint
+  dewpointLevels: number[];
   // Pressure levels for wind speed and wind direction (windDir)
   windLevels: number[];
   // Pressure levels for geopotential height (gh)
@@ -263,7 +265,7 @@ export function isWindyDataCached(state: ForecastState, key: string) {
  * and approximates geopotential height (gh) from the barometric formula if omitted by the model.
  *
  * @param sounding - Sounding data payload.
- * @param paramName - Parameter to extract ('temp', 'dewpoint', 'gh', 'rh', 'wind', or 'windDir').
+ * @param paramName - Parameter to extract ('temp', 'dewpoint', 'gh', 'wind', or 'windDir').
  * @param levels - Pressure levels in descending order (in hPa).
  * @param tsIndex - Timestamp index in the time series.
  * @returns Array of parameter values corresponding to each level.
@@ -296,9 +298,6 @@ function extractSoundingParamByLevel(
     switch (paramName) {
       case 'temp':
         value = sounding[`temp-${levelKey}`]?.[tsIndex];
-        break;
-      case 'rh':
-        value = sounding[`rh-${levelKey}`]?.[tsIndex];
         break;
       case 'gh':
         value = sounding[`gh-${levelKey}`]?.[tsIndex];
@@ -393,6 +392,7 @@ function computePeriodValues(
   },
   soundingTimeMs: number[],
   tempLevels: number[],
+  dewpointLevels: number[],
   windLevels: number[],
   ghLevels: number[],
   cloudLevels: number[],
@@ -413,7 +413,6 @@ function computePeriodValues(
     Record<SfcPropsByTime, number[]> = {
     dewpointByTime: [],
     ghByTime: [],
-    rhByTime: [],
     tempByTime: [],
     windByTime: [],
     windDirByTime: [],
@@ -430,9 +429,8 @@ function computePeriodValues(
     const seaLevelPressure = sampleAt(dataTs, windyData.forecast.data.pressure, timeMs) / 100;
     maxSeaLevelPressure = Math.max(maxSeaLevelPressure, seaLevelPressure);
     values.tempByTime.push(tempByLevel);
-    values.dewpointByTime.push(extractSoundingParamByLevel(soundingData, 'dewpoint', tempLevels, tsIndex));
+    values.dewpointByTime.push(extractSoundingParamByLevel(soundingData, 'dewpoint', dewpointLevels, tsIndex));
     values.ghByTime.push(extractSoundingParamByLevel(soundingData, 'gh', ghLevels, tsIndex));
-    values.rhByTime.push(extractSoundingParamByLevel(soundingData, 'rh', tempLevels, tsIndex));
     values.windByTime.push(extractSoundingParamByLevel(soundingData, 'wind', windLevels, tsIndex));
     values.windDirByTime.push(extractSoundingParamByLevel(soundingData, 'windDir', windLevels, tsIndex));
     values.cloudByTime.push(extractSoundingParamByLevel(soundingData, 'cloud', cloudLevels, tsIndex));
@@ -443,6 +441,7 @@ function computePeriodValues(
   return {
     timesMs: soundingTimeMs,
     tempLevels,
+    dewpointLevels,
     windLevels,
     ghLevels,
     cloudLevels,
@@ -558,6 +557,33 @@ export const selTempDescendingLevels = createSelector(
 );
 
 /**
+ * Available dew point pressure levels in the model in descending order in hPa.
+ * Includes levels with direct dew point data or both temperature and relative humidity.
+ */
+export const selDewpointDescendingLevels = createSelector(
+  selLoadedWindyDataOrThrow,
+  selSoundingTimesMs,
+  selTempDescendingLevels,
+  (windyData, soundingTimesMs, tempLevels): number[] => {
+    const sounding = windyData.forecast.sounding;
+    if (!sounding?.ts) {
+      return [];
+    }
+    const levels = new Set([
+      ...extractLevels(sounding, 'dewpoint', soundingTimesMs.length),
+      ...extractLevels(sounding, 'dewPoint', soundingTimesMs.length),
+    ]);
+    const rhLevels = new Set(extractLevels(sounding, 'rh', soundingTimesMs.length));
+    for (const level of tempLevels) {
+      if (rhLevels.has(level)) {
+        levels.add(level);
+      }
+    }
+    return Array.from(levels).sort((a, b) => b - a);
+  },
+);
+
+/**
  * Available wind pressure levels in the model in descending order in hPa.
  * Requires both wind speed and wind direction to be complete across all valid sounding timestamps.
  */
@@ -618,11 +644,12 @@ export const selPeriodValues = createSelector(
   selLoadedWindyDataOrThrow,
   selSoundingTimesMs,
   selTempDescendingLevels,
+  selDewpointDescendingLevels,
   selWindDescendingLevels,
   selGhDescendingLevels,
   selCloudDescendingLevels,
-  (windyData, soundingTimesMs, tempLevels, windLevels, ghLevels, cloudLevels): PeriodValue =>
-    computePeriodValues(windyData, soundingTimesMs, tempLevels, windLevels, ghLevels, cloudLevels),
+  (windyData, soundingTimesMs, tempLevels, dewpointLevels, windLevels, ghLevels, cloudLevels): PeriodValue =>
+    computePeriodValues(windyData, soundingTimesMs, tempLevels, dewpointLevels, windLevels, ghLevels, cloudLevels),
 );
 
 export const selMaxPeriodTemp = createSelector(selPeriodValues, (periodValues): number => periodValues.maxTemp);
@@ -666,7 +693,6 @@ export const selValuesAt = createSelector(
       temp: sampleAt(timesMs, periodValues.tempByTime, timeMs),
       dewpoint: sampleAt(timesMs, periodValues.dewpointByTime, timeMs),
       gh: sampleAt(timesMs, periodValues.ghByTime, timeMs),
-      rh: sampleAt(timesMs, periodValues.rhByTime, timeMs),
       wind: sampleAt(timesMs, periodValues.windByTime, timeMs),
       windDir: sampleAt(timesMs, periodValues.windDirByTime, timeMs, lerpAngleDegree),
       cloud: sampleAt(timesMs, periodValues.cloudByTime, timeMs),
@@ -689,7 +715,11 @@ export const selDisplayParcel = createSelector(
   selSunriseMs,
   selSunsetMs,
   selTimeMs,
-  (sunriseMs, sunsetMs, timeMs): boolean => {
+  selDewpointDescendingLevels,
+  (sunriseMs, sunsetMs, timeMs, dewpointLevels): boolean => {
+    if (dewpointLevels.length === 0) {
+      return false;
+    }
     const startMs = sunriseMs + 2 * 3600 * 1000;
     const endMs = sunsetMs - 3600 * 1000;
     const durationMs = endMs - startMs;
@@ -703,7 +733,7 @@ export const selParcel = createSelector(
   selPressureToGhScale,
   selElevation,
   (timeValues, periodValues, pressureToGhScale, elevation): ParcelData => {
-    const pressureToDewpointScale = scaleLinear(periodValues.tempLevels, timeValues.dewpoint);
+    const pressureToDewpointScale = scaleLinear(periodValues.dewpointLevels, timeValues.dewpoint);
     const tempGhs = periodValues.tempLevels.map((p) => pressureToGhScale(p));
     return parcelTrajectory(
       periodValues.tempLevels,
