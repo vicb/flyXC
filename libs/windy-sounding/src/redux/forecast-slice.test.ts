@@ -496,5 +496,25 @@ describe('forecast-slice', () => {
       const stateNoWind = createMockState(forecastWithNoWind);
       expect(selWindDescendingLevels(stateNoWind, modelName, location)).toEqual([]);
     });
+
+    it('selTempDescendingLevels returns only levels with both temp and rh (e.g. jmaMsm missing upper-level rh)', () => {
+      const forecastWithPartialRh = createMockForecast({
+        forecast: {
+          ...createMockForecast().forecast,
+          sounding: {
+            ts: [1000],
+            'temp-1000h': [290],
+            'rh-1000h': [70],
+            'temp-300h': [235],
+            'rh-300h': [40],
+            'temp-250h': [225], // temp present without rh (as in jmaMsm)
+            'temp-150h': [210],
+          },
+        } as any,
+      });
+      const state = createMockState(forecastWithPartialRh);
+      expect(selTempDescendingLevels(state, modelName, location)).toEqual([1000, 300]);
+      expect(selPeriodValues(state, modelName, location).tempLevels).toEqual([1000, 300]);
+    });
   });
 });

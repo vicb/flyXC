@@ -19,6 +19,7 @@ const SUPPORTED_MODELS = [
   /^bomAccess/,
   /^czeAladin$/,
   /^canHrdps$/,
+  /^jmaMsm$/,
   /^mblue$/,
 ];
 

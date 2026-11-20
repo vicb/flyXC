@@ -44,6 +44,7 @@ describe('utils', () => {
       expect(isSupportedModelName('bomAccessSy')).toBe(true);
       expect(isSupportedModelName('czeAladin')).toBe(true);
       expect(isSupportedModelName('canHrdps')).toBe(true);
+      expect(isSupportedModelName('jmaMsm')).toBe(true);
       expect(isSupportedModelName(METEOBLUE_AI_MODEL)).toBe(true);
     });
 

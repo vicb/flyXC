@@ -553,7 +553,9 @@ export const selTempDescendingLevels = createSelector(
     if (!sounding?.ts) {
       return [];
     }
-    return extractLevels(sounding, 'temp', soundingTimesMs.length);
+    const tempLevels = extractLevels(sounding, 'temp', soundingTimesMs.length);
+    const rhLevels = new Set(extractLevels(sounding, 'rh', soundingTimesMs.length));
+    return tempLevels.filter((level) => rhLevels.has(level));
   },
 );
 
