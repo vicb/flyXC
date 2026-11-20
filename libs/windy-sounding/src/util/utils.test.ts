@@ -28,32 +28,31 @@ describe('utils', () => {
   });
 
   describe('isSupportedModelName', () => {
-    it('should return true for supported models', () => {
-      expect(isSupportedModelName('ecmwf')).toBe(true);
-      expect(isSupportedModelName('gfs')).toBe(true);
-      expect(isSupportedModelName('nam')).toBe(true);
-      expect(isSupportedModelName('namConus')).toBe(true);
-      expect(isSupportedModelName('icon')).toBe(true);
-      expect(isSupportedModelName('iconEu')).toBe(true);
-      expect(isSupportedModelName('rrfs')).toBe(true);
-      expect(isSupportedModelName('rrfsConus')).toBe(true);
-      expect(isSupportedModelName('hrrr')).toBe(true);
-      expect(isSupportedModelName('ukv')).toBe(true);
-      expect(isSupportedModelName('aromeFrance')).toBe(true);
-      expect(isSupportedModelName('bomAccess')).toBe(true);
-      expect(isSupportedModelName('bomAccessSy')).toBe(true);
-      expect(isSupportedModelName('czeAladin')).toBe(true);
-      expect(isSupportedModelName('canHrdps')).toBe(true);
-      expect(isSupportedModelName('jmaMsm')).toBe(true);
-      expect(isSupportedModelName(METEOBLUE_AI_MODEL)).toBe(true);
+    it.each([
+      'ecmwf',
+      'gfs',
+      'nam',
+      'namConus',
+      'icon',
+      'iconEu',
+      'rrfs',
+      'rrfs-conus',
+      'rrfsConus',
+      'hrrr',
+      'ukv',
+      'aromeFrance',
+      'bomAccess',
+      'bomAccessSy',
+      'czeAladin',
+      'canHrdps',
+      'jmaMsm',
+      METEOBLUE_AI_MODEL,
+    ])('should return true for supported model %s', (model) => {
+      expect(isSupportedModelName(model)).toBe(true);
     });
 
-    it('should return false for unsupported models', () => {
-      expect(isSupportedModelName('arome')).toBe(false);
-      expect(isSupportedModelName('waves')).toBe(false);
-      expect(isSupportedModelName('wind')).toBe(false);
-      expect(isSupportedModelName('unknown')).toBe(false);
-      expect(isSupportedModelName('')).toBe(false);
+    it.each(['arome', 'waves', 'wind', 'unknown', ''])('should return false for unsupported model %j', (model) => {
+      expect(isSupportedModelName(model)).toBe(false);
     });
   });
 
@@ -140,19 +139,21 @@ describe('utils', () => {
       expect(formatLayerAltitude('100m', 'ft')).toBe('300ft');
     });
 
-    it('should format pressure levels using standard elevations', () => {
-      expect(formatLayerAltitude('950h', 'm')).toBe('600m');
-      expect(formatLayerAltitude('950h', 'ft')).toBe('2000ft');
-      expect(formatLayerAltitude('850h', 'm')).toBe('1500m');
-      expect(formatLayerAltitude('850h', 'ft')).toBe('5000ft');
-      expect(formatLayerAltitude('700h', 'm')).toBe('3000m');
-      expect(formatLayerAltitude('700h', 'ft')).toBe('10kft');
-      expect(formatLayerAltitude('500h', 'm')).toBe('5500m');
-      expect(formatLayerAltitude('500h', 'ft')).toBe('18kft');
-      expect(formatLayerAltitude('250h', 'm')).toBe('10.4km');
-      expect(formatLayerAltitude('250h', 'ft')).toBe('34kft');
-      expect(formatLayerAltitude('10h', 'm')).toBe('30km');
-      expect(formatLayerAltitude('10h', 'ft')).toBe('100kft');
+    it.each([
+      ['950h', 'm', '600m'],
+      ['950h', 'ft', '2000ft'],
+      ['850h', 'm', '1500m'],
+      ['850h', 'ft', '5000ft'],
+      ['700h', 'm', '3000m'],
+      ['700h', 'ft', '10kft'],
+      ['500h', 'm', '5500m'],
+      ['500h', 'ft', '18kft'],
+      ['250h', 'm', '10.4km'],
+      ['250h', 'ft', '34kft'],
+      ['10h', 'm', '30km'],
+      ['10h', 'ft', '100kft'],
+    ])('should format pressure level %s in %s as %s', (level, unit, expected) => {
+      expect(formatLayerAltitude(level, unit)).toBe(expected);
     });
 
     it('should prioritize W.rootScope.levelsData when available', () => {
@@ -170,28 +171,27 @@ describe('utils', () => {
   });
 
   describe('formatRainAmount', () => {
-    it('should format 0 or invalid rain values as 0 with unit', () => {
-      expect(formatRainAmount(0, 'mm')).toBe('0mm');
-      expect(formatRainAmount(0, 'in')).toBe('0in');
-      expect(formatRainAmount(-1, 'mm')).toBe('0mm');
-      expect(formatRainAmount(undefined, 'mm')).toBe('0mm');
-      expect(formatRainAmount(NaN, 'in')).toBe('0in');
+    it.each([
+      [0, 'mm', '0mm'],
+      [0, 'in', '0in'],
+      [-1, 'mm', '0mm'],
+      [undefined, 'mm', '0mm'],
+      [NaN, 'in', '0in'],
+    ])('should format invalid/zero rain %s in %s as %s', (rainMm, unit, expected) => {
+      expect(formatRainAmount(rainMm, unit)).toBe(expected);
     });
 
-    it('should format rain amount in mm with single decimal precision', () => {
-      expect(formatRainAmount(1.2, 'mm')).toBe('1.2mm');
-      expect(formatRainAmount(1.0, 'mm')).toBe('1mm');
-      expect(formatRainAmount(0.5, 'mm')).toBe('0.5mm');
-      expect(formatRainAmount(2.34, 'mm')).toBe('2.3mm');
-    });
-
-    it('should format rain amount in inches with two decimal precision', () => {
-      // 25.4 mm = 1.0 in
-      expect(formatRainAmount(25.4, 'in')).toBe('1in');
-      // 1.2 mm / 25.4 ≈ 0.0472 in -> 0.05
-      expect(formatRainAmount(1.2, 'in')).toBe('0.05in');
-      // 0.5 mm / 25.4 ≈ 0.0197 in -> 0.02
-      expect(formatRainAmount(0.5, 'in')).toBe('0.02in');
+    it.each([
+      [1.2, 'mm', '1.2mm'],
+      [1.0, 'mm', '1mm'],
+      [0.5, 'mm', '0.5mm'],
+      [2.34, 'mm', '2.3mm'],
+      // 25.4 mm = 1.0 in, 1.2 mm ≈ 0.0472 in -> 0.05, 0.5 mm ≈ 0.0197 in -> 0.02
+      [25.4, 'in', '1in'],
+      [1.2, 'in', '0.05in'],
+      [0.5, 'in', '0.02in'],
+    ])('should format %s mm in %s as %s', (rainMm, unit, expected) => {
+      expect(formatRainAmount(rainMm, unit)).toBe(expected);
     });
   });
 });
