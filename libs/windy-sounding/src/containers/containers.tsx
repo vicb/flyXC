@@ -452,6 +452,7 @@ const ConnectedSkewT = memo(function ConnectedSkewT(props: ChildGraphProps) {
 
     return {
       tempLevels: periodValues.tempLevels,
+      dewpointLevels: periodValues.dewpointLevels,
       ghLevels: periodValues.ghLevels,
       cloudLevels: periodValues.cloudLevels,
       temps: timeValues.temp,

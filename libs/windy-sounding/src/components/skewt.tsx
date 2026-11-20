@@ -12,6 +12,7 @@ export type SkewTProps = {
   height: number;
   yPointer: number | undefined;
   tempLevels: number[];
+  dewpointLevels: number[];
   ghLevels: number[];
   cloudLevels: number[];
   temps: number[];
@@ -42,6 +43,7 @@ export function SkewT(props: SkewTProps) {
     width,
     height,
     tempLevels,
+    dewpointLevels,
     ghLevels,
     cloudLevels,
     temps,
@@ -215,19 +217,35 @@ export function SkewT(props: SkewTProps) {
       <g className="line">
         {parcel && <Parcel {...{ parcel, width, height, pathGenerator, pressureToPxScale, formatAltitude }} />}
         <path className="temperature" d={pathGenerator(math.zip(temps, tempLevels))} />
-        <path className="dewpoint" d={pathGenerator(math.zip(dewPoints, tempLevels))} />
+        {dewpointLevels.length > 0 && (
+          <path className="dewpoint" d={pathGenerator(math.zip(dewPoints, dewpointLevels))} />
+        )}
       </g>
     ),
-    [parcel, width, height, pathGenerator, pressureToPxScale, formatAltitude, temps, dewPoints, tempLevels],
+    [
+      parcel,
+      width,
+      height,
+      pathGenerator,
+      pressureToPxScale,
+      formatAltitude,
+      temps,
+      dewPoints,
+      tempLevels,
+      dewpointLevels,
+    ],
   );
 
   let tempAtCursor = 0;
-  let dewPointAtCursor = 0;
+  let dewPointAtCursor: number | undefined;
   let yOffsetCursor = 4;
   let cursorClass = 'top';
   if (yPointer !== undefined) {
-    tempAtCursor = math.sampleAt(tempLevels, temps, pressureToPxScale.invert(yPointer));
-    dewPointAtCursor = math.sampleAt(tempLevels, dewPoints, pressureToPxScale.invert(yPointer));
+    const pointerPressure = pressureToPxScale.invert(yPointer);
+    tempAtCursor = math.sampleAt(tempLevels, temps, pointerPressure);
+    if (dewpointLevels.length > 0) {
+      dewPointAtCursor = math.sampleAt(dewpointLevels, dewPoints, pointerPressure);
+    }
     if (yPointer > height / 2) {
       yOffsetCursor = -4;
       cursorClass = 'bottom';
@@ -255,13 +273,15 @@ export function SkewT(props: SkewTProps) {
             >
               {formatTemp(tempAtCursor)}
             </text>
-            <text
-              className="dewpoint"
-              x={tempToPxScale(dewPointAtCursor) + skew * (height - yPointer) + 10}
-              y={yPointer + yOffsetCursor}
-            >
-              {formatTemp(dewPointAtCursor)}
-            </text>
+            {dewPointAtCursor !== undefined && (
+              <text
+                className="dewpoint"
+                x={tempToPxScale(dewPointAtCursor) + skew * (height - yPointer) + 10}
+                y={yPointer + yOffsetCursor}
+              >
+                {formatTemp(dewPointAtCursor)}
+              </text>
+            )}
             <line y1={yPointer} y2={yPointer} x2={width} />
           </g>
         )}

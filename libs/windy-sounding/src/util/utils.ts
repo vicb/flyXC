@@ -11,12 +11,15 @@ const SUPPORTED_MODELS = [
   /^ecmwf$/,
   /^gfs$/,
   /^nam/,
+  /^rrfs/,
   /^icon/,
   /^hrrr/,
   /^ukv$/,
   /^arome\w+/, // "arome" is unsupported
+  /^bomAccess/,
   /^czeAladin$/,
   /^canHrdps$/,
+  /^jmaMsm$/,
   /^mblue$/,
 ];
 
