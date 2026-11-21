@@ -13,7 +13,7 @@
     "@flyxc/common-node": "workspace:*",
     "@google-cloud/datastore": "catalog:default",
     "@google-cloud/pubsub": "catalog:default",
-    "@tmcw/togeojson": "^7.1.3",
+    "@tmcw/togeojson": "^7.1.4",
     "compression": "^1.8.2",
     "connect-redis": "9.x",
     "cors": "^2.8.6",

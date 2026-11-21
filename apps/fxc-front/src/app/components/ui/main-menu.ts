@@ -5,7 +5,7 @@ import './track-modal';
 import './supporter-modal';
 
 import { geocode } from '@esri/arcgis-rest-geocoding';
-import { setDefaultRequestOptions } from '@esri/arcgis-rest-request';
+import { ApiKeyManager } from '@esri/arcgis-rest-request';
 import { Class, getClassName, getTypeName, LiveTrackDurationSec, Type } from '@flyxc/common';
 import type { SearchbarCustomEvent, ToggleCustomEvent } from '@ionic/core/components';
 import { modalController, toastController } from '@ionic/core/components';
@@ -278,78 +278,81 @@ export class AirspaceItems extends connect(store)(LitElement) {
       </ion-item>
       ${when(
         this.show,
-        () => html`<ion-item button lines="none" .detail="${false}">
-            <ion-select
-              label-placement="floating"
-              label="Classes"
-              .value=${this.showClasses}
-              .multiple=${true}
-              @ionChange=${this.onClassesChange}
-              class="ion-text-wrap small-text"
-            >
-              ${map(
-                [Class.A, Class.B, Class.C, Class.D, Class.E, Class.F, Class.G],
-                (icaoClass) =>
-                  html`<ion-select-option .value=${icaoClass}>${getClassName(icaoClass)}</ion-select-option>`,
-              )}
-            </ion-select>
-          </ion-item>
-          <ion-item button lines="none" .detail="${false}">
-            <ion-select
-              label-placement="floating"
-              label="Types"
-              .value=${this.showTypes}
-              .multiple=${true}
-              @ionChange=${this.onTypesChange}
-              class="ion-text-wrap small-text"
-            >
-              ${map(
-                [
-                  Type.Prohibited,
-                  Type.Restricted,
-                  Type.Danger,
-                  Type.CTR,
-                  Type.TMA,
-                  Type.RMZ,
-                  Type.TMZ,
-                  Type.GlidingSector,
-                  Type.Other,
-                ],
-                (type) =>
-                  html`<ion-select-option .value=${type}
-                    >${type == Type.Other ? 'Other' : getTypeName(type)}</ion-select-option
-                  >`,
-              )}
-            </ion-select>
-          </ion-item>
-          <ion-item lines="none">
-            <ion-select
-              label="Floor below"
-              @ionChange=${this.handleMaxAltitude}
-              .value=${this.maxAltitude}
-              interface="popover"
-            >
-              ${this.altitudeStops.map(
-                (altitude: number) =>
-                  html`<ion-select-option .value=${altitude}> ${formatUnit(altitude, this.unit)}</ion-select-option> `,
-              )}
-            </ion-select>
-          </ion-item>
-          <ion-item @ionChange=${this.handleOpacity} .detail=${false} class="dense">
-            <ion-range
-              min="10"
-              max="60"
-              step="5"
-              debounce="50"
-              aria-label="Opacity"
-              value=${this.opacity}
-              .pin=${true}
-              .pinFormatter=${this.formatPercent}
-            >
-              <ion-label slot="start"><i class="las la-adjust"></i></ion-label>
-              <ion-label slot="end"><i class="las la-adjust la-2x"></i></ion-label>
-            </ion-range>
-          </ion-item>`,
+        () =>
+          html`<ion-item button lines="none" .detail="${false}">
+              <ion-select
+                label-placement="floating"
+                label="Classes"
+                .value=${this.showClasses}
+                .multiple=${true}
+                @ionChange=${this.onClassesChange}
+                class="ion-text-wrap small-text"
+              >
+                ${map(
+                  [Class.A, Class.B, Class.C, Class.D, Class.E, Class.F, Class.G],
+                  (icaoClass) =>
+                    html`<ion-select-option .value=${icaoClass}>${getClassName(icaoClass)}</ion-select-option>`,
+                )}
+              </ion-select>
+            </ion-item>
+            <ion-item button lines="none" .detail="${false}">
+              <ion-select
+                label-placement="floating"
+                label="Types"
+                .value=${this.showTypes}
+                .multiple=${true}
+                @ionChange=${this.onTypesChange}
+                class="ion-text-wrap small-text"
+              >
+                ${map(
+                  [
+                    Type.Prohibited,
+                    Type.Restricted,
+                    Type.Danger,
+                    Type.CTR,
+                    Type.TMA,
+                    Type.RMZ,
+                    Type.TMZ,
+                    Type.GlidingSector,
+                    Type.Other,
+                  ],
+                  (type) =>
+                    html`<ion-select-option .value=${type}
+                      >${type == Type.Other ? 'Other' : getTypeName(type)}</ion-select-option
+                    >`,
+                )}
+              </ion-select>
+            </ion-item>
+            <ion-item lines="none">
+              <ion-select
+                label="Floor below"
+                @ionChange=${this.handleMaxAltitude}
+                .value=${this.maxAltitude}
+                interface="popover"
+              >
+                ${this.altitudeStops.map(
+                  (altitude: number) =>
+                    html`<ion-select-option .value=${altitude}>
+                      ${formatUnit(altitude, this.unit)}</ion-select-option
+                    > `,
+                )}
+              </ion-select>
+            </ion-item>
+            <ion-item @ionChange=${this.handleOpacity} .detail=${false} class="dense">
+              <ion-range
+                min="10"
+                max="60"
+                step="5"
+                debounce="50"
+                aria-label="Opacity"
+                value=${this.opacity}
+                .pin=${true}
+                .pinFormatter=${this.formatPercent}
+              >
+                <ion-label slot="start"><i class="las la-adjust"></i></ion-label>
+                <ion-label slot="end"><i class="las la-adjust la-2x"></i></ion-label>
+              </ion-range>
+            </ion-item>`,
       )}`;
   }
 
@@ -423,45 +426,46 @@ export class SkywaysItems extends connect(store)(LitElement) {
       </ion-item>
       ${when(
         this.show,
-        () => html`<ion-item lines="none" .detail=${false}>
-            <ion-select label="Type" @ionChange=${this.handleLayer} .value=${this.layer} interface="popover">
-              ${Object.entries(skyways.layerMap).map(
-                ([value, label]: [string, string]) =>
-                  html`<ion-select-option .value=${value}>${label}</ion-select-option> `,
-              )}
-            </ion-select>
-          </ion-item>
-          <ion-item lines="none" .detail=${false}>
-            <ion-select label="Month" @ionChange=${this.handleMonth} .value=${this.month} interface="popover">
-              ${Object.entries(skyways.monthMap).map(
-                ([value, label]: [string, string]) =>
-                  html`<ion-select-option .value=${value}>${label}</ion-select-option> `,
-              )}
-            </ion-select>
-          </ion-item>
-          <ion-item lines="none" .detail=${false}>
-            <ion-select label="Time" @ionChange=${this.handleTimeOfDay} .value=${this.timeOfDay} interface="popover">
-              ${skyways.timeOfDayList.map(
-                (value: skyways.TimeOfDay) =>
-                  html`<ion-select-option .value=${value}>${skyways.timeOfDayMap[value]}</ion-select-option> `,
-              )}
-            </ion-select>
-          </ion-item>
-          <ion-item @ionChange=${this.handleOpacity} .detail=${false} class="dense">
-            <ion-range
-              min="20"
-              max="100"
-              step="5"
-              debounce="50"
-              aria-label="Opacity"
-              value=${this.opacity}
-              .pin=${true}
-              .pinFormatter=${this.formatPercent}
-            >
-              <ion-label slot="start"><i class="las la-adjust"></i></ion-label>
-              <ion-label slot="end"><i class="las la-adjust la-2x"></i></ion-label>
-            </ion-range>
-          </ion-item>`,
+        () =>
+          html`<ion-item lines="none" .detail=${false}>
+              <ion-select label="Type" @ionChange=${this.handleLayer} .value=${this.layer} interface="popover">
+                ${Object.entries(skyways.layerMap).map(
+                  ([value, label]: [string, string]) =>
+                    html`<ion-select-option .value=${value}>${label}</ion-select-option> `,
+                )}
+              </ion-select>
+            </ion-item>
+            <ion-item lines="none" .detail=${false}>
+              <ion-select label="Month" @ionChange=${this.handleMonth} .value=${this.month} interface="popover">
+                ${Object.entries(skyways.monthMap).map(
+                  ([value, label]: [string, string]) =>
+                    html`<ion-select-option .value=${value}>${label}</ion-select-option> `,
+                )}
+              </ion-select>
+            </ion-item>
+            <ion-item lines="none" .detail=${false}>
+              <ion-select label="Time" @ionChange=${this.handleTimeOfDay} .value=${this.timeOfDay} interface="popover">
+                ${skyways.timeOfDayList.map(
+                  (value: skyways.TimeOfDay) =>
+                    html`<ion-select-option .value=${value}>${skyways.timeOfDayMap[value]}</ion-select-option> `,
+                )}
+              </ion-select>
+            </ion-item>
+            <ion-item @ionChange=${this.handleOpacity} .detail=${false} class="dense">
+              <ion-range
+                min="20"
+                max="100"
+                step="5"
+                debounce="50"
+                aria-label="Opacity"
+                value=${this.opacity}
+                .pin=${true}
+                .pinFormatter=${this.formatPercent}
+              >
+                <ion-label slot="start"><i class="las la-adjust"></i></ion-label>
+                <ion-label slot="end"><i class="las la-adjust la-2x"></i></ion-label>
+              </ion-range>
+            </ion-item>`,
       )}`;
   }
 
@@ -517,7 +521,7 @@ export class ViewItems extends connect(store)(LitElement) {
           .detail=${false}
           debounce="800"
           @keydown=${(e: KeyboardEvent) =>
-            e.key === 'Enter' && this.handleSearch(e.target ? (e.target as HTMLIonSearchbarElement).value ?? '' : '')}
+            e.key === 'Enter' && this.handleSearch(e.target ? ((e.target as HTMLIonSearchbarElement).value ?? '') : '')}
           @ionChange=${(e: SearchbarCustomEvent) => this.handleSearch(e.detail.value ?? '')}
           @ionInput=${(e: SearchbarCustomEvent) => this.handleSearch(e.detail.value ?? '')}
         >
@@ -530,33 +534,40 @@ export class ViewItems extends connect(store)(LitElement) {
     if (place.trim().length < 2) {
       return;
     }
-    const { candidates } = await geocode({
-      singleLine: place,
-      params: {
-        token: getApiKeyAndHost('ARCGIS').key,
-        location: `${lon},${lat}`,
-        maxLocations: 1,
-      },
-    });
-    setDefaultRequestOptions({ params: {} });
-    if (candidates.length === 0) {
+    const { key } = getApiKeyAndHost('ARCGIS');
+    if (!key) {
       return;
     }
-    const { address, score } = candidates[0];
-    const { y, x } = candidates[0].location;
-    if (score > 50) {
-      const toast = await toastController.create({
-        message: `Navigated to ${address}`,
-        duration: 3000,
-        buttons: [
-          {
-            text: 'Close',
-            role: 'cancel',
-          },
-        ],
+    try {
+      const { candidates } = await geocode({
+        singleLine: place,
+        authentication: ApiKeyManager.fromKey(key),
+        params: {
+          location: `${lon},${lat}`,
+          maxLocations: 1,
+        },
       });
-      msg.centerMap.emit({ lat: y, lon: x, alt: 0 });
-      await toast.present();
+      if (candidates.length === 0) {
+        return;
+      }
+      const { address, score } = candidates[0];
+      const { y, x } = candidates[0].location;
+      if (score > 50) {
+        const toast = await toastController.create({
+          message: `Navigated to ${address}`,
+          duration: 3000,
+          buttons: [
+            {
+              text: 'Close',
+              role: 'cancel',
+            },
+          ],
+        });
+        msg.centerMap.emit({ lat: y, lon: x, alt: 0 });
+        await toast.present();
+      }
+    } catch (e) {
+      console.error('Geocoding error:', e);
     }
   }
 
@@ -647,12 +658,13 @@ export class TrackItems extends connect(store)(LitElement) {
       </ion-item>
       ${when(
         hasTracks,
-        () => html` <ion-item lines="none" button .detail=${false}>
-            <ion-toggle .checked=${this.displayLabels} @ionChange=${this.handleDisplayNames}>Labels</ion-toggle>
-          </ion-item>
-          <ion-item lines="full" button .detail=${false}>
-            <ion-toggle .checked=${this.lockOnPilot} @ionChange=${this.handleLock}>Lock on pilot</ion-toggle>
-          </ion-item>`,
+        () =>
+          html` <ion-item lines="none" button .detail=${false}>
+              <ion-toggle .checked=${this.displayLabels} @ionChange=${this.handleDisplayNames}>Labels</ion-toggle>
+            </ion-item>
+            <ion-item lines="full" button .detail=${false}>
+              <ion-toggle .checked=${this.lockOnPilot} @ionChange=${this.handleLock}>Lock on pilot</ion-toggle>
+            </ion-item>`,
       )}`;
   }
 
