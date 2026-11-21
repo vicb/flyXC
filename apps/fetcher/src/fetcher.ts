@@ -1,4 +1,3 @@
-import { EventEmitter } from 'node:events';
 // Do not use "process" because the global "process.env" is
 // replaced at build time by Vite.
 import nodeProcess from 'node:process';
@@ -27,12 +26,6 @@ import { syncFromDatastore } from './app/state/sync';
 import { createLiveTrackGroups, protoToBuffer } from './app/track-groups';
 import { disconnectOgnClient, refreshTrackers } from './app/trackers/refresh';
 import { refreshUfoFleets } from './app/ufos/refresh';
-
-// @google-cloud/storage v8 internal streams (PassThroughShim in file.js) attach 11 close/error
-// listeners during pipeline uploads/downloads (e.g. for CRC32C, retry handling, and duplexify).
-// This exceeds Node's default limit of 10 and emits MaxListenersExceededWarning.
-// Increasing the default limit silences this benign upstream advisory warning.
-EventEmitter.defaultMaxListeners = 25;
 
 const redis = getRedisClient(process.env.NODE_ENV === 'development' ? SECRETS.REDIS_URL_DEV : SECRETS.REDIS_URL);
 

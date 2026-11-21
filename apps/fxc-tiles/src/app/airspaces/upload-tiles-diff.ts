@@ -50,8 +50,9 @@ function getBucket(bucketName: string): Bucket {
 }
 
 // Upload files by id.
-async function addFiles(inputDir: string, fileIds: string[], bucketName: string, retries: number) {
+async function addFiles(inputDir: string, fileIds: string[], bucketName: string, retries: number): Promise<string[]> {
   const bucket = getBucket(bucketName);
+  const failedIds: string[] = [];
 
   const options = {
     resumable: false,
@@ -67,26 +68,33 @@ async function addFiles(inputDir: string, fileIds: string[], bucketName: string,
 
     const filename = idToFilename(id);
     const srcPath = path.join(inputDir, filename);
-    const srcBuffer = readFileSync(srcPath);
     const dstPath = `tiles/${filename}`;
 
     for (let i = 0; i <= retries; i++) {
       try {
+        const srcBuffer = readFileSync(srcPath);
         await bucket.file(dstPath).save(srcBuffer, options);
-        break;
+        return;
       } catch (e) {
-        console.error(`Error ${e} adding ${dstPath}`);
+        if (i === retries) {
+          console.error(`Failed to add ${dstPath} after ${retries + 1} attempts: ${e}`);
+          failedIds.push(id);
+        } else {
+          console.error(`Error adding ${dstPath} (attempt ${i + 1}/${retries + 1}): ${e}`);
+        }
       }
     }
   };
 
   await parallelTasksWithTimeout(NUM_SLOTS, fileIds, uploadOne);
   printOnCurrentLine('');
+  return failedIds;
 }
 
 // Delete files by id.
-async function deleteFiles(fileIds: string[], bucketName: string, retries: number) {
+async function deleteFiles(fileIds: string[], bucketName: string, retries: number): Promise<string[]> {
   const bucket = getBucket(bucketName);
+  const failedIds: string[] = [];
 
   const deleteOne = async (id: string, index: number) => {
     if (index % LOG_EVERY_N_TILES == 0) {
@@ -97,20 +105,23 @@ async function deleteFiles(fileIds: string[], bucketName: string, retries: numbe
     const path = `tiles/${filename}`;
 
     for (let i = 0; i <= retries; i++) {
-      const [response] = await bucket.file(path).delete({ ignoreNotFound: true });
-      // https://github.com/googleapis/nodejs-storage/issues/2182
-      const statusCode = response?.statusCode ?? 200;
-
-      if (statusCode >= 200 && statusCode <= 299) {
+      try {
+        await bucket.file(path).delete({ ignoreNotFound: true });
         return;
+      } catch (e) {
+        if (i === retries) {
+          console.error(`Failed to delete ${path} after ${retries + 1} attempts: ${e}`);
+          failedIds.push(id);
+        } else {
+          console.error(`Error deleting ${path} (attempt ${i + 1}/${retries + 1}): ${e}`);
+        }
       }
-
-      console.error(`  Error ${statusCode} deleting ${path}`);
     }
   };
 
   await parallelTasksWithTimeout(NUM_SLOTS, fileIds, deleteOne);
   printOnCurrentLine('');
+  return failedIds;
 }
 
 // Converts a file id to a filename.
@@ -133,13 +144,29 @@ function idToFilename(id: string): string {
     const instructions = JSON.parse(readFileSync(diff, 'utf8'));
 
     console.log(`# Deleting ${instructions.deleted.length} old tiles...`);
-    await deleteFiles(instructions.deleted, bucket, 5);
+    const failedDeletions = await deleteFiles(instructions.deleted, bucket, 5);
 
     console.log(`# Adding ${instructions.added.length} new tiles...`);
-    await addFiles(input, instructions.added, bucket, 5);
+    const failedAdditions = await addFiles(input, instructions.added, bucket, 5);
 
     console.log(`# Updating ${instructions.updated.length} existing tiles...`);
-    await addFiles(input, instructions.updated, bucket, 5);
+    const failedUpdates = await addFiles(input, instructions.updated, bucket, 5);
+
+    const totalErrors = failedDeletions.length + failedAdditions.length + failedUpdates.length;
+    if (totalErrors > 0) {
+      console.error(`\nCompleted with ${totalErrors} error(s):`);
+      if (failedDeletions.length > 0) {
+        console.error(`  - ${failedDeletions.length} tile(s) failed to delete`);
+      }
+      if (failedAdditions.length > 0) {
+        console.error(`  - ${failedAdditions.length} tile(s) failed to add`);
+      }
+      if (failedUpdates.length > 0) {
+        console.error(`  - ${failedUpdates.length} tile(s) failed to update`);
+      }
+      process.exitCode = 1;
+      return;
+    }
 
     console.log(`# Done`);
   }
