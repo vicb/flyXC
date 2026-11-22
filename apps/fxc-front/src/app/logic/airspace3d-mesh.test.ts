@@ -8,6 +8,7 @@ import {
   buildAirspaceMesh,
   computeTargetGridM,
   extrudeAirspaceFootprint,
+  flattenRings,
   mergeContourPaths,
   triangulateCapWithGrid2D,
 } from './airspace3d-mesh';
@@ -375,7 +376,7 @@ describe('buildAirspaceMesh', () => {
     // High mountain at 3500m -> ground + floorM = 4500m > 3810m ceiling!
     const sampleGroundZ = () => 3500;
     const footprint = {
-      wallRings: [
+      wallRings: flattenRings([
         [
           [5.0, 45.0],
           [5.1, 45.0],
@@ -383,7 +384,7 @@ describe('buildAirspaceMesh', () => {
           [5.0, 45.1],
           [5.0, 45.0],
         ],
-      ],
+      ]),
       lod: 1,
     };
     const mesh = extrudeAirspaceFootprint(footprint, airspace, 1, sampleGroundZ);
@@ -436,8 +437,9 @@ describe('buildAirspaceMesh', () => {
 
     const [topPath, floorPath] = meshData!.contourPaths!;
     // Both paths must trace the perimeter vertices and be closed loops
-    expect(topPath.length).toBe(footprint!.wallRings[0].length);
-    expect(floorPath.length).toBe(footprint!.wallRings[0].length);
+    const wallVerts = footprint!.wallRings.ringOffsets[1] / 2;
+    expect(topPath.length).toBe(wallVerts);
+    expect(floorPath.length).toBe(wallVerts);
     // Closed loop
     expect(topPath[0][0]).toBe(topPath[topPath.length - 1][0]);
     expect(topPath[0][1]).toBe(topPath[topPath.length - 1][1]);
@@ -524,13 +526,14 @@ describe('buildAirspaceMesh', () => {
       assertValidMeshIndices(meshData.positions, meshData.faces);
 
       // Ridge refinement must have subdivided triangles beyond the initial coarse grid
-      const wallFaceCount = (footprint!.wallRings[0].length - 1) * 2;
+      const wallRingVerts = footprint!.wallRings.ringOffsets[1] / 2;
+      const wallFaceCount = (wallRingVerts - 1) * 2;
       const capFaceCount = (meshData.faces.length - wallFaceCount * 3) / 6;
       expect(capFaceCount).toBeGreaterThan(baseFaceCount);
 
       // Every cap vertex (including valley vertices and newly split ridge vertices) must sit
       // strictly at exact ground + 300 (floor) or exact ground + 1000 (top) with zero valley inflation
-      const wallVertCount = footprint!.wallRings[0].length * 2;
+      const wallVertCount = wallRingVerts * 2;
       let ridgeVertCount = 0;
       for (let i = wallVertCount; i < meshData.positions.length / 3; i++) {
         const lon = meshData.positions[i * 3];

@@ -60,10 +60,38 @@ export interface Triangulated2D {
 }
 
 /**
+ * Packed 2D coordinates and ring offsets for wall extrusion and serialization.
+ */
+export interface FlatRings {
+  xy: Float64Array;
+  ringOffsets: Uint32Array;
+}
+
+export function flattenRings(rings: number[][][]): FlatRings {
+  let totalCoords = 0;
+  for (const ring of rings) {
+    totalCoords += ring.length * 2;
+  }
+  const xy = new Float64Array(totalCoords);
+  const ringOffsets = new Uint32Array(rings.length + 1);
+  let offset = 0;
+  for (let r = 0; r < rings.length; r++) {
+    ringOffsets[r] = offset;
+    const ring = rings[r];
+    for (let i = 0; i < ring.length; i++) {
+      xy[offset++] = ring[i][0];
+      xy[offset++] = ring[i][1];
+    }
+  }
+  ringOffsets[rings.length] = offset;
+  return { xy, ringOffsets };
+}
+
+/**
  * Cached 2D geometry and triangulated caps for an airspace polygon, independent of altitude exaggeration or terrain.
  */
 export interface AirspaceFootprint {
-  wallRings: number[][][];
+  wallRings: FlatRings;
   flatCap?: Triangulated2D;
   terrainCap?: Triangulated2D;
   /** Level of detail: 0 = coarse, 1 = fine (default: 1). */
@@ -397,7 +425,7 @@ export function buildAirspaceFootprint(
   const terrainCap = needTerrainCap ? triangulateCapWithGrid2D(wallRings, polygon.extent, targetGridM) : undefined;
   const lod = needTerrainCap && options?.coarse ? 0 : 1;
 
-  return { wallRings, flatCap, terrainCap, lod };
+  return { wallRings: flattenRings(wallRings), flatCap, terrainCap, lod };
 }
 
 const RIDGE_REFINE_MAX_PASSES = 3;
@@ -655,12 +683,16 @@ export function extrudeAirspaceFootprint(
   const topTri = airspace.topRefGnd ? terrainTri : footprint.flatCap;
   const floorTri = needFloorCap ? (airspace.floorRefGnd ? terrainTri : footprint.flatCap) : undefined;
 
+  const { xy, ringOffsets } = footprint.wallRings;
+  const numRings = ringOffsets.length - 1;
+
   let wallVertices = 0;
   let wallIndices = 0;
-  for (const ring of footprint.wallRings) {
-    if (ring.length >= 3) {
-      wallVertices += ring.length * 2;
-      wallIndices += (ring.length - 1) * 6;
+  for (let r = 0; r < numRings; r++) {
+    const count = (ringOffsets[r + 1] - ringOffsets[r]) >> 1;
+    if (count >= 3) {
+      wallVertices += count * 2;
+      wallIndices += (count - 1) * 6;
     }
   }
 
@@ -676,15 +708,19 @@ export function extrudeAirspaceFootprint(
   let vCursor = 0;
   let fCursor = 0;
 
-  for (const ring of footprint.wallRings) {
-    if (ring.length < 3) {
+  for (let r = 0; r < numRings; r++) {
+    const start = ringOffsets[r];
+    const end = ringOffsets[r + 1];
+    const count = (end - start) >> 1;
+    if (count < 3) {
       continue;
     }
     const ringBase = vCursor;
     const topPath: number[][] = [];
     const floorPath: number[][] = [];
-    for (let i = 0; i < ring.length; i++) {
-      const [lon, lat] = ring[i];
+    for (let i = start; i < end; i += 2) {
+      const lon = xy[i];
+      const lat = xy[i + 1];
       // Sample exaggerated terrain elevation once per vertex when any boundary is ground-referenced.
       const gnd = hasGroundRef ? sampleGroundZ(lon, lat) : 0;
       const rawTop = (airspace.topRefGnd ? gnd : 0) + topOffset;
@@ -720,7 +756,7 @@ export function extrudeAirspaceFootprint(
     if (floorPath.length >= 2 && Math.abs(topOffset - floorOffset) > 0.1) {
       contourPaths.push(floorPath);
     }
-    for (let i = 0; i < ring.length - 1; i++) {
+    for (let i = 0; i < count - 1; i++) {
       const b0 = ringBase + i * 2;
       const t0 = b0 + 1;
       const b1 = b0 + 2;
