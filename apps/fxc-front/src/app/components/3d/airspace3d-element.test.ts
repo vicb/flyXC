@@ -1136,7 +1136,6 @@ describe('Airspace3dElement', () => {
       isFinal: false,
       items: [
         {
-          cacheKey: '100|1',
           category: common.AirspaceColorCategory.Other,
           airspace: gndAirspace as any,
           polygon: poly,
@@ -1160,7 +1159,6 @@ describe('Airspace3dElement', () => {
       isFinal: true,
       items: [
         {
-          cacheKey: '100|1',
           category: common.AirspaceColorCategory.Other,
           airspace: gndAirspace as any,
           polygon: poly,
@@ -1181,7 +1179,6 @@ describe('Airspace3dElement', () => {
 
   it('findMatching3dItem matches unmerged items by id and merged items (>= MERGED_AIRSPACE_ID_MIN) by bounds, category, and containment', () => {
     const unmergedItem = {
-      cacheKey: '250|1',
       category: common.AirspaceColorCategory.Other,
       airspace: {
         id: 250,
@@ -1207,7 +1204,6 @@ describe('Airspace3dElement', () => {
       footprint: {} as any,
     };
     const mergedItem = {
-      cacheKey: `${MERGED_AIRSPACE_ID_MIN}|1`,
       category: common.AirspaceColorCategory.Restricted,
       airspace: {
         id: MERGED_AIRSPACE_ID_MIN,

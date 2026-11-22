@@ -53,11 +53,9 @@ export interface AirspaceWorkerRequest {
   showTypes: Type[];
   dateMs: number;
   tileServer: AirspaceServer;
-  multiplier: number;
 }
 
 export interface AirspaceWorkerItem {
-  cacheKey: string;
   category: AirspaceColorCategory;
   airspace: AirspaceTyped;
   polygon: AirspacePolygonLike;
@@ -138,7 +136,6 @@ export class Airspace3dProcessor {
   private dbPromise: Promise<IDBPDatabase | null> | null = null;
   private lastDateCheckTime = 0;
   private lastCheckedServer?: AirspaceServer;
-  private currentVersion?: string;
 
   private async getDb(): Promise<IDBPDatabase | null> {
     if (typeof indexedDB === 'undefined') {
@@ -186,7 +183,6 @@ export class Airspace3dProcessor {
       if (!remoteVersion) {
         return;
       }
-      this.currentVersion = remoteVersion;
       const storedVersion = (await db.get('metadata', 'version')) ?? (await db.get('metadata', 'date'));
       if (storedVersion !== remoteVersion) {
         await db.clear('footprints');
@@ -241,7 +237,7 @@ export class Airspace3dProcessor {
     }
     this.lastRequestId = requestId;
 
-    const { tiles, bounds, maxAltitude, showClasses, showTypes, dateMs, tileServer, multiplier } = request;
+    const { tiles, bounds, maxAltitude, showClasses, showTypes, dateMs, tileServer } = request;
     const date = new Date(dateMs);
 
     // Sync IndexedDB cache with remote airspaces-date.json
@@ -317,10 +313,7 @@ export class Airspace3dProcessor {
           }
 
           if (footprint) {
-            const versionPrefix = this.currentVersion ? `${this.currentVersion}|` : '';
-            const cacheKey = `${versionPrefix}${feat.id}|${multiplier}`;
             const item: AirspaceWorkerItem = {
-              cacheKey,
               category: getAirspaceColorCategory(airspace),
               airspace,
               polygon,

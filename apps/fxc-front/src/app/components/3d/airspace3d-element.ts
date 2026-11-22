@@ -320,7 +320,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     [AirspaceColorCategory.Danger, { parts: [], sigHash: 0 }],
     [AirspaceColorCategory.Other, { parts: [], sigHash: 0 }],
   ]);
-  private meshCache = new globalThis.Map<string, CachedMeshEntry>();
+  private meshCache = new globalThis.Map<number, CachedMeshEntry>();
   private currentAirspaces: CachedAirspaceItem[] = [];
   private lastQueryKey?: string;
   private viewHandles: Array<{ remove: () => void }> = [];
@@ -383,6 +383,10 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       changedProps.has('hasTrack') ||
       changedProps.has('overrideHourBucket');
 
+    if (changedProps.has('overrideHourBucket')) {
+      this.meshCache.clear();
+    }
+
     if (filterOrMapChanged) {
       this.lastQueryKey = undefined;
       this.scheduleRefresh(true);
@@ -392,7 +396,6 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         this.meshCache.clear();
         for (const item of this.currentAirspaces) {
           item.meshData = undefined;
-          item.cacheKey = `${item.airspace.id}|${this.multiplier}`;
         }
       }
       if (this.currentAirspaces.length > 0) {
@@ -731,7 +734,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
     const currentAirspaces = response.items as CachedAirspaceItem[];
     for (const item of currentAirspaces) {
-      const cached = this.meshCache.get(item.cacheKey);
+      const cached = this.meshCache.get(item.airspace.id);
       const targetLod = item.footprint?.lod ?? item.lod ?? 1;
       const lodMatches = cached?.meshLod === targetLod;
       if (lodMatches && cached) {
@@ -789,7 +792,6 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       showTypes: this.showTypes,
       dateMs: date.getTime(),
       tileServer: import.meta.env.VITE_AIRSPACE_SERVER,
-      multiplier: this.multiplier,
     };
 
     this.lastQueryKey = queryKey;
@@ -871,7 +873,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         item.meshData = meshData;
         item.groundSignature = sig;
         item.meshLod = targetLod;
-        setBoundedCache(this.meshCache, MAX_MESH_CACHE_SIZE, item.cacheKey, {
+        setBoundedCache(this.meshCache, MAX_MESH_CACHE_SIZE, item.airspace.id, {
           meshData,
           groundSignature: sig,
           meshLod: targetLod,
@@ -886,9 +888,10 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       return;
     }
 
+    const multInt = Math.round(this.multiplier * 100);
     for (const bucket of this.categoryBuckets.values()) {
       bucket.parts.length = 0;
-      bucket.sigHash = 0x811c9dc5;
+      bucket.sigHash = Math.imul(0x811c9dc5 ^ multInt, 0x01000193);
     }
     for (const item of items) {
       if (!item.meshData) {
@@ -898,10 +901,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       if (bucket) {
         bucket.parts.push(item.meshData);
         let h = bucket.sigHash;
-        const key = item.cacheKey;
-        for (let i = 0; i < key.length; i++) {
-          h = Math.imul(h ^ key.charCodeAt(i), 0x01000193);
-        }
+        h = Math.imul(h ^ item.airspace.id, 0x01000193);
         h = Math.imul(h ^ (item.groundSignature ?? 0), 0x01000193);
         h = Math.imul(h ^ (item.meshLod ?? 0), 0x01000193);
         bucket.sigHash = h;

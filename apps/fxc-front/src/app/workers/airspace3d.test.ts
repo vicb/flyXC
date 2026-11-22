@@ -112,7 +112,6 @@ describe('airspace3d-processor', () => {
         showTypes: [],
         dateMs: Date.now(),
         tileServer: 'cloud' as const,
-        multiplier: 1,
       };
       const req2 = { ...req1, id: 2 };
 
@@ -165,7 +164,6 @@ describe('airspace3d-processor', () => {
         showTypes: [Type.CTR],
         dateMs: Date.now(),
         tileServer: 'cloud' as const,
-        multiplier: 1,
       };
 
       const finalRes = await processor.process(req, (p) => {
@@ -238,7 +236,6 @@ describe('airspace3d-processor', () => {
         showTypes: [Type.CTR],
         dateMs: Date.now(),
         tileServer: 'cloud' as const,
-        multiplier: 1,
       };
 
       await processor.process(req, (p) => {
@@ -298,14 +295,12 @@ describe('airspace3d-processor', () => {
         showTypes: [Type.TMA],
         dateMs: Date.now(),
         tileServer: 'cloud' as const,
-        multiplier: 1,
       };
 
       const res = await processor.process(req);
       // Exactly 1 item despite being returned by both tiles
       expect(res.items).toHaveLength(1);
       expect(res.items[0].airspace.id).toBe(777);
-      expect(res.items[0].cacheKey).toBe('777|1');
       expect(res.items[0].airspace.name).toBe('CROSS TILE TMA');
     });
 
