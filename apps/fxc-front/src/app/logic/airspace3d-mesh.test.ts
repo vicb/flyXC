@@ -220,7 +220,7 @@ describe('buildAirspaceMesh', () => {
       topRefGnd: true,
     });
 
-    const footprint = await buildAirspaceFootprint(polygon, airspace);
+    const footprint = buildAirspaceFootprint(polygon, airspace);
     expect(footprint).not.toBeNull();
 
     const data1 = extrudeAirspaceFootprint(footprint!, airspace, 1, () => 400);
@@ -266,7 +266,7 @@ describe('buildAirspaceMesh', () => {
       topRefGnd: true,
     });
 
-    const footprint = await buildAirspaceFootprint(concaveWithHole, airspace);
+    const footprint = buildAirspaceFootprint(concaveWithHole, airspace);
     expect(footprint).not.toBeNull();
     expect(footprint!.terrainCap).toBeDefined();
     expect(footprint!.terrainCap!.xy).toBeInstanceOf(Float64Array);
@@ -404,7 +404,7 @@ describe('buildAirspaceMesh', () => {
       topRefGnd: true,
     });
     const polygon = makeSquarePolygon(6.8, 45.9, 0.1);
-    const footprint = await buildAirspaceFootprint(polygon, airspace);
+    const footprint = buildAirspaceFootprint(polygon, airspace);
     expect(footprint?.terrainCap).toBeDefined();
 
     // Sample with varying ground elevation (1000m at min, 3000m at max)
@@ -426,7 +426,7 @@ describe('buildAirspaceMesh', () => {
       topRefGnd: false,
     });
     const polygon = makeSquarePolygon(6.0, 45.0, 0.05);
-    const footprint = await buildAirspaceFootprint(polygon, airspace);
+    const footprint = buildAirspaceFootprint(polygon, airspace);
     expect(footprint).not.toBeNull();
 
     const meshData = extrudeAirspaceFootprint(footprint!, airspace, 1, () => 0);
@@ -509,7 +509,7 @@ describe('buildAirspaceMesh', () => {
         topRefGnd: true,
       });
 
-      const footprint = await buildAirspaceFootprint(polygon, airspace, { maxEdgeM: 1500 });
+      const footprint = buildAirspaceFootprint(polygon, airspace, { maxEdgeM: 1500 });
       expect(footprint?.terrainCap).toBeDefined();
       const baseFaceCount = footprint!.terrainCap!.faces.length / 3;
 
@@ -552,8 +552,8 @@ describe('buildAirspaceMesh', () => {
       // 0.2 x 0.2 deg polygon (~15km x 22km)
       const polygon = makeSquarePolygon(5.5, 45.0, 0.2);
 
-      const coarseFp = await buildAirspaceFootprint(polygon, thinAgl, { coarse: true });
-      const fineFp = await buildAirspaceFootprint(polygon, thinAgl, { coarse: false });
+      const coarseFp = buildAirspaceFootprint(polygon, thinAgl, { coarse: true });
+      const fineFp = buildAirspaceFootprint(polygon, thinAgl, { coarse: false });
 
       expect(coarseFp?.terrainCap).toBeDefined();
       expect(fineFp?.terrainCap).toBeDefined();

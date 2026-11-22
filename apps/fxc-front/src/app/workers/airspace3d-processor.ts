@@ -301,7 +301,7 @@ export class Airspace3dProcessor {
           const isProgressive = onProgress != null && needsTerrainCap && (!footprint || footprint.lod === 0);
 
           if (!footprint) {
-            const built = await buildAirspaceFootprint(polygon, airspace, { coarse: isProgressive });
+            const built = buildAirspaceFootprint(polygon, airspace, { coarse: isProgressive });
             if (built) {
               footprint = built;
               if (!isProgressive) {
@@ -337,7 +337,7 @@ export class Airspace3dProcessor {
         if (requestId < this.lastRequestId) {
           return { id: requestId, items: [] };
         }
-        const fineFootprint = await buildAirspaceFootprint(pending.polygon, pending.airspace, { coarse: false });
+        const fineFootprint = buildAirspaceFootprint(pending.polygon, pending.airspace, { coarse: false });
         if (fineFootprint) {
           pending.item.footprint = fineFootprint;
           pending.item.lod = 1;

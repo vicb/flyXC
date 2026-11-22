@@ -90,6 +90,10 @@ function estimateExtentMeters(extent: AirspaceExtentLike): { widthM: number; hei
   };
 }
 
+function packEdgeKey(a: number, b: number): number {
+  return a < b ? a * 10_000_000 + b : b * 10_000_000 + a;
+}
+
 /**
  * Strips consecutive duplicate vertices and optionally subdivides segments longer than `stepM`.
  */
@@ -183,7 +187,7 @@ export function triangulateCapWithGrid2D(
       const next = (i + 1) % len;
       const a = baseIdx + i;
       const b = baseIdx + next;
-      boundarySegments.add(a < b ? a * 10_000_000 + b : b * 10_000_000 + a);
+      boundarySegments.add(packEdgeKey(a, b));
     }
     baseIdx += len;
   }
@@ -253,8 +257,7 @@ export function triangulateCapWithGrid2D(
   const insideFaces: number[] = [];
 
   const isEdgeValid = (i1: number, i2: number): boolean => {
-    const key = i1 < i2 ? i1 * 10_000_000 + i2 : i2 * 10_000_000 + i1;
-    if (boundarySegments.has(key)) {
+    if (boundarySegments.has(packEdgeKey(i1, i2))) {
       return true;
     }
     const p1 = allPts[i1];
@@ -363,11 +366,11 @@ export function computeTargetGridM(
  * Builds the 2D wall rings and cap triangulations for an airspace polygon so later
  * exaggeration and terrain updates can re-extrude synchronously without re-triangulating.
  */
-export async function buildAirspaceFootprint(
+export function buildAirspaceFootprint(
   polygon: AirspacePolygonLike,
   airspace: Pick<AirspaceTyped, 'floorM' | 'floorRefGnd' | 'topRefGnd'> & { topM?: number },
   options?: BuildFootprintOptions,
-): Promise<AirspaceFootprint | null> {
+): AirspaceFootprint | null {
   if (polygon.rings.length === 0 || !polygon.extent) {
     return null;
   }
@@ -432,12 +435,9 @@ function refineTerrainCapForRidges(
   }
 
   let vertCount = initVerts;
-  let vertCap = maxPasses > 0 ? Math.max(initVerts * 2, initVerts + 64) : initVerts;
-  let xy = maxPasses > 0 ? new Float64Array(vertCap * 2) : tri.xy;
-  if (maxPasses > 0) {
-    xy.set(tri.xy);
-  }
-  let gnds = new Float64Array(vertCap);
+  let vertCap = initVerts;
+  let xy = tri.xy;
+  let gnds = new Float64Array(initVerts);
   let minLat = Infinity;
   let maxLat = -Infinity;
   for (let i = 0; i < initVerts; i++) {
@@ -458,11 +458,10 @@ function refineTerrainCapForRidges(
   const boundarySegments = tri.boundarySegments;
   // Value >= 0: split vertex index; -1: tested and unsplit (cached across passes)
   const edgeMidpoint = new Map<number, number>();
-  const edgeKey = (a: number, b: number) => (a < b ? a * 10_000_000 + b : b * 10_000_000 + a);
 
   const addVertex = (lon: number, lat: number, gnd: number): number => {
     if (vertCount === vertCap) {
-      vertCap *= 2;
+      vertCap = Math.max(vertCap * 2, vertCap + 64);
       const nextXy = new Float64Array(vertCap * 2);
       const nextGnds = new Float64Array(vertCap);
       nextXy.set(xy);
@@ -478,7 +477,7 @@ function refineTerrainCapForRidges(
   };
 
   const testEdge = (a: number, b: number, forceSplit: boolean): number => {
-    const key = edgeKey(a, b);
+    const key = packEdgeKey(a, b);
     const cached = edgeMidpoint.get(key);
     if (cached !== undefined && (cached >= 0 || !forceSplit)) {
       return cached;
@@ -570,9 +569,9 @@ function refineTerrainCapForRidges(
       const i0 = faces[f];
       const i1 = faces[f + 1];
       const i2 = faces[f + 2];
-      const m01 = edgeMidpoint.get(edgeKey(i0, i1)) ?? -1;
-      const m12 = edgeMidpoint.get(edgeKey(i1, i2)) ?? -1;
-      const m20 = edgeMidpoint.get(edgeKey(i2, i0)) ?? -1;
+      const m01 = edgeMidpoint.get(packEdgeKey(i0, i1)) ?? -1;
+      const m12 = edgeMidpoint.get(packEdgeKey(i1, i2)) ?? -1;
+      const m20 = edgeMidpoint.get(packEdgeKey(i2, i0)) ?? -1;
       const count = (m01 >= 0 ? 1 : 0) + (m12 >= 0 ? 1 : 0) + (m20 >= 0 ? 1 : 0);
 
       if (count === 0) {
@@ -609,7 +608,7 @@ function refineTerrainCapForRidges(
   }
 
   if (vertCount === initVerts) {
-    return { tri, gnds: gnds.subarray(0, vertCount) };
+    return { tri, gnds };
   }
 
   return {
@@ -822,7 +821,7 @@ export async function buildAirspaceMeshData({
   multiplier,
   sampleGroundZ,
 }: AirspaceMeshParams): Promise<AirspaceMeshData | null> {
-  const footprint = await buildAirspaceFootprint(polygon, airspace);
+  const footprint = buildAirspaceFootprint(polygon, airspace);
   return footprint ? extrudeAirspaceFootprint(footprint, airspace, multiplier, sampleGroundZ) : null;
 }
 

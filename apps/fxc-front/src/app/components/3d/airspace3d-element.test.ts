@@ -205,11 +205,7 @@ vi.mock('../../logic/airspace3d-mesh', async (importOriginal) => {
       hoisted.pendingBuilds.push(p);
       return p;
     }),
-    buildAirspaceFootprint: vi.fn((...args: Parameters<typeof actual.buildAirspaceFootprint>) => {
-      const p = actual.buildAirspaceFootprint(...args);
-      hoisted.pendingBuilds.push(p);
-      return p;
-    }),
+    buildAirspaceFootprint: vi.fn(actual.buildAirspaceFootprint),
     extrudeAirspaceFootprint: vi.fn(actual.extrudeAirspaceFootprint),
   };
 });
@@ -1125,8 +1121,8 @@ describe('Airspace3dElement', () => {
       extent: { xmin: 6.0, ymin: 45.0, xmax: 6.2, ymax: 45.2 },
     };
 
-    const coarseFp = await meshModule.buildAirspaceFootprint(poly, gndAirspace, { coarse: true });
-    const fineFp = await meshModule.buildAirspaceFootprint(poly, gndAirspace, { coarse: false });
+    const coarseFp = meshModule.buildAirspaceFootprint(poly, gndAirspace, { coarse: true });
+    const fineFp = meshModule.buildAirspaceFootprint(poly, gndAirspace, { coarse: false });
 
     const gen = ((element as any).buildGeneration = 100);
 
