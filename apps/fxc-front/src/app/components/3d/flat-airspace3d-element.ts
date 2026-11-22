@@ -149,12 +149,10 @@ export function buildAirspaceVectorTileStyle({
   const overrides = [...getAirspaceOverrides(date)];
   const classOverrides = overrides.flatMap(([id, o]) => (o.icaoClass !== undefined ? [id, o.icaoClass] : []));
   const icaoClassExpr: any =
-    classOverrides.length > 0
-      ? ['match', ['get', 'id'], ...classOverrides, ['get', 'icaoClass']]
-      : ['get', 'icaoClass'];
+    classOverrides.length > 0 ? ['match', ['id'], ...classOverrides, ['get', 'icaoClass']] : ['get', 'icaoClass'];
   const typeOverrides = overrides.flatMap(([id, o]) => (o.type !== undefined ? [id, o.type] : []));
   const typeExpr: any =
-    typeOverrides.length > 0 ? ['match', ['get', 'id'], ...typeOverrides, ['get', 'type']] : ['get', 'type'];
+    typeOverrides.length > 0 ? ['match', ['id'], ...typeOverrides, ['get', 'type']] : ['get', 'type'];
 
   const visibilityFilters: any[] = [];
   if (showTypes.includes(Type.Other)) {

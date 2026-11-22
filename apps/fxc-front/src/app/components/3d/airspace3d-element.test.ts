@@ -327,12 +327,18 @@ function hexToUnitRgba(hex: string): [number, number, number, number] {
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255, 1];
 }
 
-function evaluateStyle(style: ReturnType<typeof buildAirspaceVectorTileStyle>, values: Record<string, unknown>) {
+function evaluateStyle(
+  style: ReturnType<typeof buildAirspaceVectorTileStyle>,
+  values: Record<string, unknown>,
+  id?: number,
+) {
   const repo = new StyleRepository(style, false);
   const layer = repo.layers[0];
   const filter = layer.getFeatureFilter();
-  const visible = filter ? filter.filter({ values }, 10) : true;
-  const color = layer.getPaintValue('fill-color', 10, { values }) as number[];
+  const featureId = id ?? (typeof values.id === 'number' ? values.id : undefined);
+  const feature = { id: featureId, values };
+  const visible = filter ? filter.filter(feature, 10) : true;
+  const color = layer.getPaintValue('fill-color', 10, feature) as number[];
   return { visible, color };
 }
 
@@ -374,6 +380,23 @@ describe('buildAirspaceVectorTileStyle', () => {
 
     const tooHigh = evaluateStyle(style, { name: 'HIGH TMA', icaoClass: Class.D, type: Type.TMA, floorM: 3500 });
     expect(tooHigh.visible).toBe(false);
+
+    // Overridden airspaces match by top-level feature id rather than properties.id
+    const overriddenInactive = evaluateStyle(
+      style,
+      { name: 'LF-R30A MONT BLANC', icaoClass: Class.SUA, type: Type.Restricted, floorM: 0 },
+      7,
+    );
+    expect(overriddenInactive.visible).toBe(false);
+    expect(overriddenInactive.color).toEqual(hexToUnitRgba(ASP_COLOR_OTHER));
+
+    const overriddenClassE = evaluateStyle(
+      style,
+      { name: 'TMA TEST', icaoClass: Class.D, type: Type.TMA, floorM: 0 },
+      10,
+    );
+    expect(overriddenClassE.visible).toBe(true);
+    expect(overriddenClassE.color).toEqual(hexToUnitRgba(ASP_COLOR_RESTRICTED));
   });
 
   it('keeps wildcard visibility when Type.Other is enabled', () => {
