@@ -127,8 +127,8 @@ catalogs:
       specifier: ^3.3.3
       version: 3.3.3
     mapbox-vector-tile:
-      specifier: ^1.0.0
-      version: 1.0.0
+      specifier: ^1.1.0
+      version: 1.1.0
     proxy:
       specifier: ^4.1.0
       version: 4.1.0
@@ -432,7 +432,7 @@ importers:
         version: 3.3.3
       mapbox-vector-tile:
         specifier: catalog:default
-        version: 1.0.0
+        version: 1.1.0
       micro-typed-events:
         specifier: ^1.0.2
         version: 1.0.2
@@ -675,7 +675,7 @@ importers:
         version: 2.0.0
       mapbox-vector-tile:
         specifier: catalog:default
-        version: 1.0.0
+        version: 1.1.0
       tiny-lru:
         specifier: catalog:default
         version: 13.1.1
@@ -706,7 +706,7 @@ importers:
         version: 4.0.2
       mapbox-vector-tile:
         specifier: catalog:default
-        version: 1.0.0
+        version: 1.1.0
       tiny-lru:
         specifier: catalog:default
         version: 13.1.1
@@ -7157,8 +7157,8 @@ packages:
   makeerror@1.0.12:
     resolution: {integrity: sha512-JmqCvUhmt43madlpFzG4BQzG2Z3m6tvQDNKdClZnO3VbIudJYmxsT0FNJMeiB2+JTSlTQTSbU8QdesVmwJcmLg==}
 
-  mapbox-vector-tile@1.0.0:
-    resolution: {integrity: sha512-hF/sMlLWJ0kjmTmJqDscidukeLfWhmtOcEKz8ezenCj3dNPFe412kOQ65EsWGpPvYwG1PDFPiV7zmybFBabssg==}
+  mapbox-vector-tile@1.1.0:
+    resolution: {integrity: sha512-oP0Hbw4QNbl3fy/UUBOeuoQx2FvEgTgpM3B69ayrSG4+pInbxJzg0KoF+4ySf1WXWxkMvVhjP5vgcAvYsMJcRA==}
     engines: {node: '>=22'}
 
   marked@18.1.3:
@@ -16790,7 +16790,7 @@ snapshots:
     dependencies:
       tmpl: 1.0.5
 
-  mapbox-vector-tile@1.0.0:
+  mapbox-vector-tile@1.1.0:
     dependencies:
       '@protobuf-ts/runtime': 2.11.1
       '@types/geojson': 7946.0.16

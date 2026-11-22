@@ -7,7 +7,7 @@ import {
   applyOverrides,
   type Bounds2D,
   type Class,
-  computeBounds,
+  flattenPolygonRings,
   getAirspace3dTileUrl,
   getAirspaceColorCategory,
   getAirspaceDateUrl,
@@ -69,29 +69,6 @@ export interface AirspaceWorkerResponse {
 
 const MAX_TILE_CACHE_SIZE = 128;
 const MAX_FOOTPRINT_CACHE_SIZE = 256;
-
-export const computeRingsExtent = computeBounds;
-
-export function geoJsonGeometryToRings(geometry: {
-  type: string;
-  coordinates: any;
-}): { rings: number[][][]; extent?: Bounds2D } | undefined {
-  if (geometry.type === 'Polygon') {
-    const rings = geometry.coordinates as number[][][];
-    const extent = computeBounds(rings);
-    return extent ? { rings, extent } : undefined;
-  }
-  if (geometry.type === 'MultiPolygon') {
-    const coords = geometry.coordinates as number[][][][];
-    const rings: number[][][] = [];
-    for (const poly of coords) {
-      rings.push(...poly);
-    }
-    const extent = computeBounds(rings);
-    return extent ? { rings, extent } : undefined;
-  }
-  return undefined;
-}
 
 export function extentOverlapsBounds(ext: Bounds2D | undefined, bounds: GeoBounds): boolean {
   if (!ext) {
@@ -400,18 +377,18 @@ export class Airspace3dProcessor {
           if (feature.type !== FeatureType.POLYGON) {
             continue;
           }
-          const geo = feature.toGeoJSON<AirspaceString>(x, y, AIRSPACE_3D_TILE_ZOOM);
-          const ringsInfo = geoJsonGeometryToRings(geo.geometry);
-          if (ringsInfo && ringsInfo.rings.length > 0 && ringsInfo.extent) {
-            const id = Number(feature.id);
-            const baseAirspace = toTypedAirspace(feature.properties, id);
-            features.push({
-              id,
-              baseAirspace,
-              rings: ringsInfo.rings,
-              extent: ringsInfo.extent,
-            });
+          const rings = flattenPolygonRings(feature.toGeoPolygons(x, y, AIRSPACE_3D_TILE_ZOOM));
+          if (rings.length === 0) {
+            continue;
           }
+          const [xmin, ymin, xmax, ymax] = feature.geoBbox(x, y, AIRSPACE_3D_TILE_ZOOM);
+          const id = Number(feature.id);
+          features.push({
+            id,
+            baseAirspace: toTypedAirspace(feature.properties, id),
+            rings,
+            extent: { xmin, ymin, xmax, ymax },
+          });
         }
         return features;
       } catch {

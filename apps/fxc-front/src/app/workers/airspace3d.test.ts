@@ -1,89 +1,9 @@
 import { Class, Type } from '@flyxc/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  Airspace3dProcessor,
-  computeRingsExtent,
-  extentOverlapsBounds,
-  geoJsonGeometryToRings,
-} from './airspace3d-processor';
+import { Airspace3dProcessor, extentOverlapsBounds } from './airspace3d-processor';
 
 describe('airspace3d-processor', () => {
-  describe('computeRingsExtent', () => {
-    it('computes bounding box for multi-ring polygon coordinates', () => {
-      const rings = [
-        [
-          [5.8, 45.1],
-          [6.2, 45.1],
-          [6.2, 45.6],
-          [5.8, 45.6],
-          [5.8, 45.1],
-        ],
-      ];
-      expect(computeRingsExtent(rings)).toEqual({
-        xmin: 5.8,
-        ymin: 45.1,
-        xmax: 6.2,
-        ymax: 45.6,
-      });
-    });
-
-    it('returns undefined for empty rings', () => {
-      expect(computeRingsExtent([])).toBeUndefined();
-    });
-  });
-
-  describe('geoJsonGeometryToRings', () => {
-    it('decodes GeoJSON Polygon into rings and extent', () => {
-      const geometry = {
-        type: 'Polygon',
-        coordinates: [
-          [
-            [1.0, 2.0],
-            [3.0, 2.0],
-            [3.0, 4.0],
-            [1.0, 4.0],
-            [1.0, 2.0],
-          ],
-        ],
-      };
-      const res = geoJsonGeometryToRings(geometry);
-      expect(res).toBeDefined();
-      expect(res?.rings).toHaveLength(1);
-      expect(res?.extent).toEqual({ xmin: 1.0, ymin: 2.0, xmax: 3.0, ymax: 4.0 });
-    });
-
-    it('flattens GeoJSON MultiPolygon into combined rings and bounds', () => {
-      const geometry = {
-        type: 'MultiPolygon',
-        coordinates: [
-          [
-            [
-              [0, 0],
-              [1, 0],
-              [1, 1],
-              [0, 1],
-              [0, 0],
-            ],
-          ],
-          [
-            [
-              [2, 2],
-              [3, 2],
-              [3, 3],
-              [2, 3],
-              [2, 2],
-            ],
-          ],
-        ],
-      };
-      const res = geoJsonGeometryToRings(geometry);
-      expect(res).toBeDefined();
-      expect(res?.rings).toHaveLength(2);
-      expect(res?.extent).toEqual({ xmin: 0, ymin: 0, xmax: 3, ymax: 3 });
-    });
-  });
-
   describe('extentOverlapsBounds', () => {
     const bounds = { minLon: 5.0, minLat: 45.0, maxLon: 6.0, maxLat: 46.0 };
 

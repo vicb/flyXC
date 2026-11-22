@@ -22,6 +22,7 @@ import {
   AirspaceColorCategory,
   ASP_CATEGORY_COLOR,
   clamp,
+  DEG_TO_RAD,
   getAirspaceColorCategory,
   getPixelCoordinates,
   MAX_AIRSPACE_TILE_ZOOM,
@@ -108,7 +109,6 @@ const ALL_CATEGORIES = [
   AirspaceColorCategory.Other,
 ];
 
-const DEG_TO_RAD = Math.PI / 180;
 const MERC_X_SCALE = 20037508.342789244 / 180;
 const MERC_HALF_R = 6378137.0 * 0.5;
 

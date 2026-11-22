@@ -2,6 +2,7 @@ import {
   boundsOverlap,
   computeBounds,
   densifyPolyline,
+  flattenPolygonRings,
   getPointX,
   getPointY,
   pointInPolygonRings,
@@ -378,6 +379,59 @@ describe('geometry', () => {
       ];
       const simplified = simplifyCoords(coords, 100);
       expect(simplified.length).toBeGreaterThanOrEqual(4);
+    });
+  });
+
+  describe('flattenPolygonRings', () => {
+    it('flattens polygons into a flat list of rings', () => {
+      const poly1Ring1 = [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 0],
+      ];
+      const poly1Ring2 = [
+        [0.2, 0.2],
+        [0.8, 0.2],
+        [0.8, 0.8],
+        [0.2, 0.2],
+      ];
+      const poly2Ring1 = [
+        [2, 2],
+        [3, 2],
+        [3, 3],
+        [2, 2],
+      ];
+
+      const rings = flattenPolygonRings([[poly1Ring1, poly1Ring2], [poly2Ring1]]);
+      expect(rings).toHaveLength(3);
+      expect(rings[0]).toBe(poly1Ring1);
+      expect(rings[1]).toBe(poly1Ring2);
+      expect(rings[2]).toBe(poly2Ring1);
+    });
+
+    it('filters out rings with fewer than minVertices', () => {
+      const validRing = [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+      ];
+      const degenerateRing = [
+        [0, 0],
+        [1, 0],
+      ];
+      const emptyRing: number[][] = [];
+
+      const rings = flattenPolygonRings([[validRing, degenerateRing, emptyRing]]);
+      expect(rings).toHaveLength(1);
+      expect(rings[0]).toBe(validRing);
+    });
+
+    it('returns an empty array for null or empty input', () => {
+      expect(flattenPolygonRings(null)).toEqual([]);
+      expect(flattenPolygonRings(undefined)).toEqual([]);
+      expect(flattenPolygonRings([])).toEqual([]);
+      expect(flattenPolygonRings([[]])).toEqual([]);
     });
   });
 });

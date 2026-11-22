@@ -270,18 +270,24 @@ function makeMockView(zoom: number, xmin = 5.9, ymin = 45.4, xmax = 6.2, ymax = 
 
 function makeFeature(props: Record<string, string>, ring: number[][], holes: number[][][] = [], id?: number) {
   const featureId = id ?? (props.id != null ? Number(props.id) : undefined);
+  let minLon = Infinity;
+  let minLat = Infinity;
+  let maxLon = -Infinity;
+  let maxLat = -Infinity;
+  for (const pt of ring) {
+    if (pt[0] < minLon) minLon = pt[0];
+    if (pt[0] > maxLon) maxLon = pt[0];
+    if (pt[1] < minLat) minLat = pt[1];
+    if (pt[1] > maxLat) maxLat = pt[1];
+  }
   return {
     id: featureId,
     type: 3,
+    extent: 4096,
     properties: props,
-    toGeoJSON: () => ({
-      type: 'Feature',
-      id: featureId,
-      geometry: {
-        type: 'Polygon',
-        coordinates: [ring, ...holes],
-      },
-    }),
+    asPolygons: () => [[ring, ...holes]],
+    toGeoPolygons: () => [[ring, ...holes]],
+    geoBbox: () => [minLon, minLat, maxLon, maxLat],
   };
 }
 

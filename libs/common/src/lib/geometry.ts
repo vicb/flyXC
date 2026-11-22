@@ -392,3 +392,32 @@ export function simplifyCoords(coords: [number, number][], toleranceMeters = 15)
   }
   return simplified;
 }
+
+/**
+ * Flattens a hierarchy of classified polygons (e.g. from GeoJSON MultiPolygon coordinates or
+ * MVT `toGeoPolygons`) into a flat array of 2D rings suitable for ArcGIS geometries, Earcut,
+ * or 3D meshing, discarding degenerate rings with fewer than `minVertices`.
+ *
+ * @param polygons - Array of polygons, where each polygon is an array of rings (outer ring first, followed by holes).
+ * @param minVertices - Minimum number of vertices required for a ring to be retained (defaults to 3).
+ * @returns Flat array of rings.
+ */
+export function flattenPolygonRings<T = [number, number]>(
+  polygons: ReadonlyArray<ReadonlyArray<ReadonlyArray<T>>> | null | undefined,
+  minVertices = 3,
+): T[][] {
+  if (!polygons || polygons.length === 0) {
+    return [];
+  }
+  const rings: T[][] = [];
+  for (let p = 0; p < polygons.length; p++) {
+    const poly = polygons[p];
+    for (let r = 0; r < poly.length; r++) {
+      const ring = poly[r];
+      if (ring.length >= minVertices) {
+        rings.push(ring as T[]);
+      }
+    }
+  }
+  return rings;
+}
