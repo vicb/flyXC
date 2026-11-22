@@ -201,13 +201,24 @@ function cleanOutputDir(dir: string) {
   }
 }
 
+const ILS_REGEX = /\bILS\b/;
+
+const UA_TYPE_OVERRIDES: readonly [name: string, regex: RegExp, type: Type][] = [
+  ['CTR', /\bCTR\b/, Type.CTR],
+  ['TMA', /\bTMA\b/, Type.TMA],
+  ['TRA', /\bTRA\b/, Type.TRA],
+  ['TSA', /\bTSA\b/, Type.TSA],
+  ['FIR', /\bFIR\b/, Type.FIR],
+  ['CTA', /\bCTA\b/, Type.CTA],
+];
+
 // Filter unwanted airspaces.
 function createFilter(logs: Map<string, number>) {
   return (airspace: Airspace, index: number) => {
     if (index == 0) {
       logs.clear();
     }
-    if (airspace.name.match(/\bILS\b/)) {
+    if (ILS_REGEX.test(airspace.name)) {
       incMapKey(logs, 'ILS');
       return false;
     }
@@ -230,16 +241,8 @@ function createProcess(logs: Map<string, number>) {
     }
 
     if (airspace.country == 'UA' && airspace.type == Type.Other) {
-      const typesByName = new Map([
-        ['CTR', Type.CTR],
-        ['TMA', Type.TMA],
-        ['TRA', Type.TRA],
-        ['TSA', Type.TSA],
-        ['FIR', Type.FIR],
-        ['CTA', Type.CTA],
-      ]);
-      for (const [name, type] of typesByName.entries()) {
-        if (airspace.name.match(new RegExp(`\\b${name}\\b`))) {
+      for (const [name, regex, type] of UA_TYPE_OVERRIDES) {
+        if (regex.test(airspace.name)) {
           incMapKey(logs, `Updated type because name contains "${name}" (${airspace.country})`);
           airspace.type = type;
         }
