@@ -94,16 +94,18 @@ export async function getAirspaceList({
     return [];
   }
 
-  const layer = new VectorTile(new Uint8Array(pbf)).layers.asp;
+  const layer = new VectorTile(new Uint8Array(pbf)).getLayer<AirspaceString>('asp');
 
   if (layer == null) {
     return [];
   }
 
   const airspaces: AirspaceTyped[] = [];
-  for (let i = 0; i < layer.length; i++) {
-    const f = layer.feature(i);
-    const airspace = applyOverrides(toTypedAirspace(f.properties as AirspaceString, f.id), date);
+  for (const f of layer) {
+    if (f.type !== FeatureType.POLYGON || !isInFeature(px, f, marginPx)) {
+      continue;
+    }
+    const airspace = applyOverrides(toTypedAirspace(f.properties, f.id), date);
     if (airspace.floorM > maxFloorAltitude) {
       continue;
     }
@@ -117,10 +119,7 @@ export async function getAirspaceList({
         continue;
       }
     }
-    if (
-      !isAirspaceVisible(airspace.icaoClass, visibleClasses, airspace.type, visibleTypes) ||
-      !isInFeature(px, f, marginPx)
-    ) {
+    if (!isAirspaceVisible(airspace.icaoClass, visibleClasses, airspace.type, visibleTypes)) {
       continue;
     }
     if (airspaces.push(airspace) == 5) {
