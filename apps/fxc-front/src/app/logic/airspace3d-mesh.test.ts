@@ -488,6 +488,63 @@ describe('buildAirspaceMesh', () => {
       const ecrins = makeAirspace({ floorM: 0, floorRefGnd: true, topM: 1000, topRefGnd: true });
       expect(computeTargetGridM(ecrins, false)).toBe(1500);
       expect(computeTargetGridM(ecrins, true)).toBe(4000);
+
+      // Elevated AGL floor with AGL ceiling (e.g. LF-R196C 305m GND -> 1006m GND): uses min clearance 305m -> 458m fine
+      const valensole = makeAirspace({ floorM: 305, floorRefGnd: true, topM: 1006, topRefGnd: true });
+      expect(computeTargetGridM(valensole, false)).toBe(458);
+      expect(computeTargetGridM(valensole, true)).toBe(2000);
+
+      // Elevated AGL floor with MSL ceiling (e.g. ZRT APT 152m GND -> FL 75): uses floorM 152m -> 400m fine
+      const elevatedFloorOnly = makeAirspace({ floorM: 152, floorRefGnd: true, topM: 2286, topRefGnd: false });
+      expect(computeTargetGridM(elevatedFloorOnly, false)).toBe(400);
+      expect(computeTargetGridM(elevatedFloorOnly, true)).toBe(2000);
+    });
+
+    it('subdivides terrain-cap triangles over narrow ridges without inflating surrounding valleys', async () => {
+      const polygon = makeSquarePolygon(6.0, 45.0, 0.04); // ~4.4km square
+      const airspace = makeAirspace({
+        floorM: 300,
+        floorRefGnd: true,
+        topM: 1000,
+        topRefGnd: true,
+      });
+
+      const footprint = await buildAirspaceFootprint(polygon, airspace, { maxEdgeM: 1500 });
+      expect(footprint?.terrainCap).toBeDefined();
+      const baseFaceCount = footprint!.terrainCap!.faces.length / 3;
+
+      // Sharp narrow east-west ridge peaking at 1700m along lat=45.02, dropping to 1000m in valleys
+      const sampleRidge = (_lon: number, lat: number) => {
+        const d = Math.abs(lat - 45.02);
+        return d < 0.004 ? 1700 - (d / 0.004) * 700 : 1000;
+      };
+
+      const meshData = extrudeAirspaceFootprint(footprint!, airspace, 1, sampleRidge)!;
+      expect(meshData).not.toBeNull();
+      assertValidMeshIndices(meshData.positions, meshData.faces);
+
+      // Ridge refinement must have subdivided triangles beyond the initial coarse grid
+      const wallFaceCount = (footprint!.wallRings[0].length - 1) * 2;
+      const capFaceCount = (meshData.faces.length - wallFaceCount * 3) / 6;
+      expect(capFaceCount).toBeGreaterThan(baseFaceCount);
+
+      // Every cap vertex (including valley vertices and newly split ridge vertices) must sit
+      // strictly at exact ground + 300 (floor) or exact ground + 1000 (top) with zero valley inflation
+      const wallVertCount = footprint!.wallRings[0].length * 2;
+      let ridgeVertCount = 0;
+      for (let i = wallVertCount; i < meshData.positions.length / 3; i++) {
+        const lon = meshData.positions[i * 3];
+        const lat = meshData.positions[i * 3 + 1];
+        const z = meshData.positions[i * 3 + 2];
+        const gnd = sampleRidge(lon, lat);
+        const isFloor = Math.abs(z - (gnd + 300)) < 1e-4;
+        const isTop = Math.abs(z - (gnd + 1000)) < 1e-4;
+        expect(isFloor || isTop).toBe(true);
+        if (gnd > 1400) {
+          ridgeVertCount++;
+        }
+      }
+      expect(ridgeVertCount).toBeGreaterThan(0);
     });
 
     it('densifies fine terrainCap mesh much more thoroughly for thin AGL ceilings', async () => {

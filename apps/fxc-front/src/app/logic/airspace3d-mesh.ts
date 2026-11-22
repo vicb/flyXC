@@ -54,10 +54,13 @@ export interface AirspaceMeshData {
 
 /**
  * Intermediate 2D triangulation in geographic `(lon, lat)` coordinates.
+ * `boundarySegments` holds packed numeric keys (`min * 10_000_000 + max`) of perimeter wall edges
+ * so terrain-adaptive cap subdivision never splits wall-adjacent edges.
  */
 export interface Triangulated2D {
   xy: Float64Array;
   faces: Uint32Array;
+  boundarySegments?: Set<number>;
 }
 
 /**
@@ -155,8 +158,8 @@ export function triangulateCapWithGrid2D(
     return triangulateRings2D(rings);
   }
 
-  // Cap subdivisions to prevent runaway grid generation on large polygons (max 120 for fine AGL caps, 40 for standard)
-  const maxGridDivs = targetGridM < 1000 ? 120 : 40;
+  // Cap subdivisions to prevent runaway grid generation on large polygons (100 for AGL caps <= 1500m, 40 for standard)
+  const maxGridDivs = targetGridM <= 1500 ? 100 : 40;
   const effectiveGridM = Math.max(targetGridM, Math.max(widthM, heightM) / maxGridDivs);
 
   const midLat = (extent.ymin + extent.ymax) / 2;
@@ -287,7 +290,7 @@ export function triangulateCapWithGrid2D(
     xy[i * 2 + 1] = allPts[i][1];
   }
 
-  return { xy, faces: new Uint32Array(insideFaces) };
+  return { xy, faces: new Uint32Array(insideFaces), boundarySegments };
 }
 
 /**
@@ -317,24 +320,43 @@ export function computeGroundSignature(polygon: AirspacePolygonLike, sampleGroun
 }
 
 /**
- * Computes an adaptive Steiner grid spacing based on ceiling thickness.
- * Narrow AGL cushions (e.g. 150m-300m above ground over steep mountain ranges) require
- * tighter triangulation so the ceiling faithfully follows mountain crests without ridge puncture.
+ * Returns the minimum positive AGL clearance (in meters) across an airspace's ground-referenced
+ * floor and/or ceiling, or `undefined` if neither is ground-referenced.
+ */
+export function computeMinimumAglClearanceM(
+  airspace: Pick<AirspaceTyped, 'floorM' | 'floorRefGnd' | 'topRefGnd'> & { topM?: number },
+): number | undefined {
+  let clearanceM = Infinity;
+  if (airspace.floorRefGnd && airspace.floorM > 0) {
+    clearanceM = Math.min(clearanceM, airspace.floorM);
+  }
+  if (airspace.topRefGnd) {
+    const topM = airspace.topM ?? 1000;
+    clearanceM = Math.min(clearanceM, topM);
+    if (airspace.floorRefGnd) {
+      clearanceM = Math.min(clearanceM, Math.max(50, topM - airspace.floorM));
+    }
+  }
+  return Number.isFinite(clearanceM) ? Math.max(50, clearanceM) : undefined;
+}
+
+/**
+ * Computes an adaptive Steiner grid spacing based on minimum AGL clearance above terrain.
+ * Narrow AGL cushions or elevated AGL floors over steep mountain ranges require tighter
+ * triangulation so caps faithfully follow mountain crests without ridge puncture.
  */
 export function computeTargetGridM(
   airspace: Pick<AirspaceTyped, 'floorM' | 'floorRefGnd' | 'topRefGnd'> & { topM?: number },
   coarse?: boolean,
 ): number {
-  if (!airspace.topRefGnd) {
+  const clearanceM = computeMinimumAglClearanceM(airspace);
+  if (clearanceM == null) {
     return coarse ? 4800 : 2000;
   }
-  const topM = airspace.topM ?? 1000;
-  const floorM = airspace.floorRefGnd ? airspace.floorM : 0;
-  const thicknessM = Math.max(50, topM - floorM);
   if (coarse) {
-    return Math.max(2000, Math.min(4800, thicknessM * 4));
+    return Math.max(2000, Math.min(4800, clearanceM * 4));
   }
-  return Math.max(400, Math.min(1500, Math.round(thicknessM * 1.5)));
+  return Math.max(400, Math.min(1500, Math.round(clearanceM * 1.5)));
 }
 
 /**
@@ -353,15 +375,16 @@ export async function buildAirspaceFootprint(
   const targetGridM = options?.maxEdgeM ?? computeTargetGridM(airspace, options?.coarse);
 
   const hasGroundRef = airspace.floorRefGnd || airspace.topRefGnd;
+  const hasElevatedTerrainCap = airspace.topRefGnd || (airspace.floorRefGnd && airspace.floorM > 0);
   let stepM: number | undefined;
   if (hasGroundRef) {
     const { widthM, heightM } = estimateExtentMeters(polygon.extent);
-    const minStep = airspace.topRefGnd
+    const minStep = hasElevatedTerrainCap
       ? Math.max(250, Math.min(MIN_DENSIFY_STEP_M, targetGridM * 0.8))
       : MIN_DENSIFY_STEP_M;
     stepM = options?.coarse
       ? Math.max(MIN_DENSIFY_STEP_M, Math.hypot(widthM, heightM) / TARGET_DENSIFY_SEGMENTS)
-      : Math.max(minStep, Math.hypot(widthM, heightM) / (airspace.topRefGnd ? 96 : TARGET_DENSIFY_SEGMENTS));
+      : Math.max(minStep, Math.hypot(widthM, heightM) / (hasElevatedTerrainCap ? 96 : TARGET_DENSIFY_SEGMENTS));
   }
 
   const wallRings = prepareWallRings(polygon.rings, stepM);
@@ -385,23 +408,231 @@ export async function buildAirspaceFootprint(
   return { wallRings, flatCap, terrainCap, lod };
 }
 
+const RIDGE_REFINE_MAX_PASSES = 3;
+const RIDGE_REFINE_MIN_EDGE_M2 = 180 * 180;
+
+/**
+ * Refines a terrain-cap triangulation via conforming (Red-Green) active-set subdivision
+ * wherever terrain ridges protrude upward through an edge midpoint or triangle centroid.
+ *
+ * Uses an interleaved `xy` `Float64Array`, exact Euler-bounded face buffers (`faceLen + addedVerts * 6`),
+ * and primitive `Map<number, number>` edge entries to minimize CPU, memory, and GC pressure.
+ * Perimeter edges (`boundarySegments`) are never split so caps stay flush with vertical walls.
+ */
+function refineTerrainCapForRidges(
+  tri: Triangulated2D,
+  clearanceM: number,
+  multiplier: number,
+  sampleGroundZ: GroundSampler,
+  maxPasses = RIDGE_REFINE_MAX_PASSES,
+): { tri: Triangulated2D; gnds: Float64Array } {
+  const initVerts = tri.xy.length / 2;
+  if (initVerts === 0 || tri.faces.length === 0) {
+    return { tri, gnds: new Float64Array(0) };
+  }
+
+  let vertCount = initVerts;
+  let vertCap = maxPasses > 0 ? Math.max(initVerts * 2, initVerts + 64) : initVerts;
+  let xy = maxPasses > 0 ? new Float64Array(vertCap * 2) : tri.xy;
+  if (maxPasses > 0) {
+    xy.set(tri.xy);
+  }
+  let gnds = new Float64Array(vertCap);
+  let minLat = Infinity;
+  let maxLat = -Infinity;
+  for (let i = 0; i < initVerts; i++) {
+    const lon = xy[i * 2];
+    const lat = xy[i * 2 + 1];
+    gnds[i] = sampleGroundZ(lon, lat);
+    if (lat < minLat) minLat = lat;
+    if (lat > maxLat) maxLat = lat;
+  }
+
+  if (maxPasses <= 0) {
+    return { tri, gnds };
+  }
+
+  const cosLat = Math.max(0.1, Math.cos(((minLat + maxLat) * 0.5 * Math.PI) / 180));
+  const mPerDegLon = METERS_PER_DEGREE_LAT * cosLat;
+  const tau = Math.max(35, Math.min(100, clearanceM * 0.3)) * multiplier;
+  const boundarySegments = tri.boundarySegments;
+  // Value >= 0: split vertex index; -1: tested and unsplit (cached across passes)
+  const edgeMidpoint = new Map<number, number>();
+  const edgeKey = (a: number, b: number) => (a < b ? a * 10_000_000 + b : b * 10_000_000 + a);
+
+  const addVertex = (lon: number, lat: number, gnd: number): number => {
+    if (vertCount === vertCap) {
+      vertCap *= 2;
+      const nextXy = new Float64Array(vertCap * 2);
+      const nextGnds = new Float64Array(vertCap);
+      nextXy.set(xy);
+      nextGnds.set(gnds);
+      xy = nextXy;
+      gnds = nextGnds;
+    }
+    const idx = vertCount++;
+    xy[idx * 2] = lon;
+    xy[idx * 2 + 1] = lat;
+    gnds[idx] = gnd;
+    return idx;
+  };
+
+  const testEdge = (a: number, b: number, forceSplit: boolean): number => {
+    const key = edgeKey(a, b);
+    const cached = edgeMidpoint.get(key);
+    if (cached !== undefined && (cached >= 0 || !forceSplit)) {
+      return cached;
+    }
+    if (boundarySegments?.has(key)) {
+      edgeMidpoint.set(key, -1);
+      return -1;
+    }
+    const lonA = xy[a * 2];
+    const latA = xy[a * 2 + 1];
+    const lonB = xy[b * 2];
+    const latB = xy[b * 2 + 1];
+    const dx = (lonB - lonA) * mPerDegLon;
+    const dy = (latB - latA) * METERS_PER_DEGREE_LAT;
+    if (dx * dx + dy * dy <= RIDGE_REFINE_MIN_EDGE_M2) {
+      edgeMidpoint.set(key, -1);
+      return -1;
+    }
+    const midLon = (lonA + lonB) * 0.5;
+    const midLat = (latA + latB) * 0.5;
+    const gMid = sampleGroundZ(midLon, midLat);
+    if (forceSplit || gMid - (gnds[a] + gnds[b]) * 0.5 > tau) {
+      const midIdx = addVertex(midLon, midLat, gMid);
+      edgeMidpoint.set(key, midIdx);
+      return midIdx;
+    }
+    edgeMidpoint.set(key, -1);
+    return -1;
+  };
+
+  let faces = tri.faces;
+  let faceLen = faces.length;
+  let activeTris = new Uint32Array(faceLen / 3);
+  for (let i = 0; i < activeTris.length; i++) {
+    activeTris[i] = i;
+  }
+  let activeCount = activeTris.length;
+
+  for (let pass = 0; pass < maxPasses && activeCount > 0; pass++) {
+    const prevVertCount = vertCount;
+    for (let aIdx = 0; aIdx < activeCount; aIdx++) {
+      const f = activeTris[aIdx] * 3;
+      const i0 = faces[f];
+      const i1 = faces[f + 1];
+      const i2 = faces[f + 2];
+      const m01 = testEdge(i0, i1, false);
+      const m12 = testEdge(i1, i2, false);
+      const m20 = testEdge(i2, i0, false);
+      if (m01 >= 0 || m12 >= 0 || m20 >= 0) {
+        continue;
+      }
+      // Only sample centroid if no edge split (catches isolated peaks strictly inside a triangle)
+      const cLon = (xy[i0 * 2] + xy[i1 * 2] + xy[i2 * 2]) / 3;
+      const cLat = (xy[i0 * 2 + 1] + xy[i1 * 2 + 1] + xy[i2 * 2 + 1]) / 3;
+      if (sampleGroundZ(cLon, cLat) - (gnds[i0] + gnds[i1] + gnds[i2]) / 3 > tau) {
+        testEdge(i0, i1, true);
+        testEdge(i1, i2, true);
+        testEdge(i2, i0, true);
+      }
+    }
+    const addedVerts = vertCount - prevVertCount;
+    if (addedVerts === 0) {
+      break;
+    }
+
+    // By Euler's formula in a 2D triangulation, each split interior edge adds at most 2 triangles (6 indices)
+    const isLastPass = pass === maxPasses - 1;
+    const nextFaces = new Uint32Array(faceLen + addedVerts * 6);
+    const nextActive = isLastPass ? activeTris : new Uint32Array(addedVerts * 4);
+    let nextFaceLen = 0;
+    let nextActiveCount = 0;
+
+    const emitActive = (a: number, b: number, c: number) => {
+      if (!isLastPass) {
+        nextActive[nextActiveCount++] = nextFaceLen / 3;
+      }
+      nextFaces[nextFaceLen++] = a;
+      nextFaces[nextFaceLen++] = b;
+      nextFaces[nextFaceLen++] = c;
+    };
+
+    const emitTwoSplit = (a: number, b: number, c: number, mab: number, mbc: number) => {
+      emitActive(mab, b, mbc);
+      emitActive(a, mab, mbc);
+      emitActive(a, mbc, c);
+    };
+
+    for (let f = 0; f < faceLen; f += 3) {
+      const i0 = faces[f];
+      const i1 = faces[f + 1];
+      const i2 = faces[f + 2];
+      const m01 = edgeMidpoint.get(edgeKey(i0, i1)) ?? -1;
+      const m12 = edgeMidpoint.get(edgeKey(i1, i2)) ?? -1;
+      const m20 = edgeMidpoint.get(edgeKey(i2, i0)) ?? -1;
+      const count = (m01 >= 0 ? 1 : 0) + (m12 >= 0 ? 1 : 0) + (m20 >= 0 ? 1 : 0);
+
+      if (count === 0) {
+        nextFaces[nextFaceLen++] = i0;
+        nextFaces[nextFaceLen++] = i1;
+        nextFaces[nextFaceLen++] = i2;
+      } else if (count === 1) {
+        if (m01 >= 0) {
+          emitActive(i0, m01, i2);
+          emitActive(m01, i1, i2);
+        } else if (m12 >= 0) {
+          emitActive(i1, m12, i0);
+          emitActive(m12, i2, i0);
+        } else {
+          emitActive(i2, m20, i1);
+          emitActive(m20, i0, i1);
+        }
+      } else if (count === 2) {
+        if (m20 < 0) emitTwoSplit(i0, i1, i2, m01, m12);
+        else if (m01 < 0) emitTwoSplit(i1, i2, i0, m12, m20);
+        else emitTwoSplit(i2, i0, i1, m20, m01);
+      } else {
+        emitActive(i0, m01, m20);
+        emitActive(m01, i1, m12);
+        emitActive(m20, m12, i2);
+        emitActive(m01, m12, m20);
+      }
+    }
+
+    faces = nextFaces;
+    faceLen = nextFaceLen;
+    activeTris = nextActive;
+    activeCount = nextActiveCount;
+  }
+
+  if (vertCount === initVerts) {
+    return { tri, gnds: gnds.subarray(0, vertCount) };
+  }
+
+  return {
+    tri: { xy: xy.subarray(0, vertCount * 2), faces: faces.subarray(0, faceLen), boundarySegments },
+    gnds: gnds.subarray(0, vertCount),
+  };
+}
+
 function writeCap(
   positions: Float64Array,
   faces: Uint32Array,
   vCursor: number,
   fCursor: number,
   tri: Triangulated2D,
-  computeZ: (lon: number, lat: number) => number,
+  computeZ: (index: number) => number,
 ): void {
   const baseVertex = vCursor;
   const numVertices = tri.xy.length / 2;
   for (let i = 0; i < numVertices; i++) {
-    const lon = tri.xy[i * 2];
-    const lat = tri.xy[i * 2 + 1];
     const p = (vCursor + i) * 3;
-    positions[p] = lon;
-    positions[p + 1] = lat;
-    positions[p + 2] = computeZ(lon, lat);
+    positions[p] = tri.xy[i * 2];
+    positions[p + 1] = tri.xy[i * 2 + 1];
+    positions[p + 2] = computeZ(i);
   }
   for (let i = 0; i < tri.faces.length; i++) {
     faces[fCursor + i] = baseVertex + tri.faces[i];
@@ -423,8 +654,18 @@ export function extrudeAirspaceFootprint(
   const hasGroundRef = airspace.floorRefGnd || airspace.topRefGnd;
   const needFloorCap = !sinkZeroFloor;
 
-  const topTri = airspace.topRefGnd ? footprint.terrainCap : footprint.flatCap;
-  const floorTri = needFloorCap ? (airspace.floorRefGnd ? footprint.terrainCap : footprint.flatCap) : undefined;
+  const clearanceM = computeMinimumAglClearanceM(airspace);
+  let terrainGnds: Float64Array | undefined;
+  let terrainTri = footprint.terrainCap;
+  if (terrainTri && (airspace.topRefGnd || (needFloorCap && airspace.floorRefGnd))) {
+    const maxPasses = footprint.lod === 0 ? 0 : RIDGE_REFINE_MAX_PASSES;
+    const refined = refineTerrainCapForRidges(terrainTri, clearanceM ?? 300, multiplier, sampleGroundZ, maxPasses);
+    terrainTri = refined.tri;
+    terrainGnds = refined.gnds;
+  }
+
+  const topTri = airspace.topRefGnd ? terrainTri : footprint.flatCap;
+  const floorTri = needFloorCap ? (airspace.floorRefGnd ? terrainTri : footprint.flatCap) : undefined;
 
   let wallVertices = 0;
   let wallIndices = 0;
@@ -510,11 +751,10 @@ export function extrudeAirspaceFootprint(
     const capVertices = topTri.xy.length / 2;
     const topBase = vCursor;
     const floorBase = vCursor + capVertices;
-    const sampleCapGround = airspace.topRefGnd;
     for (let i = 0; i < capVertices; i++) {
       const lon = topTri.xy[i * 2];
       const lat = topTri.xy[i * 2 + 1];
-      const gnd = sampleCapGround ? sampleGroundZ(lon, lat) : 0;
+      const gnd = terrainGnds ? terrainGnds[i] : 0;
       const tp = (topBase + i) * 3;
       positions[tp] = lon;
       positions[tp + 1] = lat;
@@ -532,22 +772,22 @@ export function extrudeAirspaceFootprint(
     }
   } else {
     if (topTri) {
-      writeCap(positions, faces, vCursor, fCursor, topTri, (lon, lat) => {
+      writeCap(positions, faces, vCursor, fCursor, topTri, (idx) => {
         if (!airspace.topRefGnd) {
           return topOffset;
         }
-        const z = sampleGroundZ(lon, lat) + topOffset;
+        const z = terrainGnds![idx] + topOffset;
         return airspace.floorRefGnd ? z : Math.max(z, floorOffset);
       });
       vCursor += topTri.xy.length / 2;
       fCursor += topTri.faces.length;
     }
     if (floorTri) {
-      writeCap(positions, faces, vCursor, fCursor, floorTri, (lon, lat) => {
+      writeCap(positions, faces, vCursor, fCursor, floorTri, (idx) => {
         if (!airspace.floorRefGnd) {
           return floorOffset;
         }
-        const z = sampleGroundZ(lon, lat) + floorOffset;
+        const z = terrainGnds![idx] + floorOffset;
         return airspace.topRefGnd ? z : Math.min(z, topOffset);
       });
     }

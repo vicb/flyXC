@@ -479,7 +479,7 @@ describe('createGroundSampler', () => {
 
     expect(wmSample(6, 45)).toBe(420);
     const [expectedX, expectedY] = webMercatorUtils.lngLatToXY(6, 45);
-    expect(wmElevationAt).toHaveBeenCalledWith(expectedX, expectedY);
+    expect(wmElevationAt).toHaveBeenCalledWith(expect.closeTo(expectedX, 4), expect.closeTo(expectedY, 4));
 
     const queryElevation = vi.fn(() => ({ z: 615 }));
     const otherSample = createGroundSampler({

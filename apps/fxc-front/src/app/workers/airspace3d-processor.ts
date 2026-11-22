@@ -131,9 +131,10 @@ export function extentOverlapsBounds(ext: AirspaceExtentLike | undefined, bounds
  *    invalidates the IndexedDB cache when fresh aeronautical data cycles are published.
  * 4. Progressive Level of Detail (LOD) & Adaptive Triangulation: Polygons with terrain-referenced
  *    caps are first emitted at LOD 0 (coarse Steiner grid, up to ~4800m) for immediate rendering,
- *    followed by LOD 1 for fine fidelity without freezing the UI. Grid spacing and wall densification
- *    are computed adaptively based on ceiling thickness (`computeTargetGridM`), scaling down to 400m
- *    for narrow AGL cushions (e.g. 150m–300m above ground) to follow mountain crests without ridge puncture.
+ *    followed by LOD 1 for fine fidelity without freezing the UI. Base grid spacing and wall
+ *    densification scale with minimum AGL clearance (`computeTargetGridM`, covering both AGL ceilings
+ *    and elevated AGL floors down to 400m), and LOD 1 caps are further subdivided across sharp mountain
+ *    ridges during DEM extrusion (`refineTerrainCapForRidges`) to prevent ridge puncture.
  *
  * Can run inside a dedicated Web Worker or in-process (e.g. for unit tests).
  */
@@ -293,8 +294,8 @@ export class Airspace3dProcessor {
         const airspaceKey = getAirspaceKey(airspace);
         const geomKey = String(feat.id);
         const sinkZeroFloor = airspace.floorRefGnd && airspace.floorM === 0;
-        const FOOTPRINT_SCHEMA_VERSION = 'v6';
-        const footprintKey = `${FOOTPRINT_SCHEMA_VERSION}|${airspace.floorRefGnd ? 1 : 0}${airspace.topRefGnd ? 1 : 0}${sinkZeroFloor ? 1 : 0}|${airspace.topRefGnd ? airspace.topM : 0}|${geomKey}`;
+        const FOOTPRINT_SCHEMA_VERSION = 'v8';
+        const footprintKey = `${FOOTPRINT_SCHEMA_VERSION}|${airspace.floorRefGnd ? 1 : 0}${airspace.topRefGnd ? 1 : 0}${sinkZeroFloor ? 1 : 0}|${airspace.floorRefGnd ? airspace.floorM : 0}|${airspace.topRefGnd ? airspace.topM : 0}|${geomKey}`;
 
         let cachedFp = this.footprintCache.get(footprintKey);
         if (!cachedFp) {

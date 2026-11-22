@@ -110,6 +110,10 @@ const ALL_CATEGORIES = [
   AirspaceColorCategory.Other,
 ];
 
+const DEG_TO_RAD = Math.PI / 180;
+const MERC_X_SCALE = 20037508.342789244 / 180;
+const MERC_HALF_R = 6378137.0 * 0.5;
+
 /**
  * Creates a fast synchronous ground elevation sampler returning exaggerated elevation in meters.
  */
@@ -122,19 +126,16 @@ export function createGroundSampler(sampler?: ElevationSampler): GroundSampler {
   const isWGS84 = Boolean(sr?.isWGS84);
   const isWebMercator = Boolean(sr?.isWebMercator);
   let queryPoint: Point | undefined;
-  const scratchXY: [number, number] = [0, 0];
 
   return (lon: number, lat: number): number => {
     let z: number | null | undefined;
     if (isWGS84) {
       z = sampler.elevationAt(lon, lat);
     } else if (isWebMercator) {
-      (webMercatorUtils.lngLatToXY as (lon: number, lat: number, dest?: [number, number]) => [number, number])(
-        lon,
-        lat,
-        scratchXY,
-      );
-      z = sampler.elevationAt(scratchXY[0], scratchXY[1]);
+      const x = lon * MERC_X_SCALE;
+      const sinLat = Math.sin(lat * DEG_TO_RAD);
+      const y = MERC_HALF_R * Math.log((1 + sinLat) / (1 - sinLat));
+      z = sampler.elevationAt(x, y);
     } else {
       queryPoint ??= new Point({ longitude: lon, latitude: lat });
       queryPoint.longitude = lon;
