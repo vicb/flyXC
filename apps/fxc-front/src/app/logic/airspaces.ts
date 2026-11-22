@@ -47,6 +47,8 @@ export interface AirspaceListQuery {
   checkTop?: boolean;
   /** Margin in meters added around the floor / top when comparing with `altitude`. Defaults to 0. */
   altitudeMargin?: number;
+  /** Margin in tile pixels (0..255) around the polygon outer boundary. Defaults to 0. */
+  marginPx?: number;
   /** Ground elevation at `latLon`, added to the floors / tops referenced to GND. Defaults to 0. */
   gndAltitude?: number;
   /** Airspaces with a floor above this altitude are ignored. Defaults to no limit. */
@@ -70,6 +72,7 @@ export async function getAirspaceList({
   altitude,
   checkTop = false,
   altitudeMargin = 0,
+  marginPx = 0,
   gndAltitude = 0,
   maxFloorAltitude = Infinity,
   visibleClasses,
@@ -114,7 +117,10 @@ export async function getAirspaceList({
         continue;
       }
     }
-    if (!isAirspaceVisible(airspace.icaoClass, visibleClasses, airspace.type, visibleTypes) || !isInFeature(px, f)) {
+    if (
+      !isAirspaceVisible(airspace.icaoClass, visibleClasses, airspace.type, visibleTypes) ||
+      !isInFeature(px, f, marginPx)
+    ) {
       continue;
     }
     if (airspaces.push(airspace) == 5) {
@@ -140,16 +146,8 @@ export function getAirspaceListHtml(airspaces: AirspaceTyped[]): string {
  */
 export function getAirspaceHtmlDescription(airspace: AirspaceTyped): string {
   const category = getAirspaceCategory(airspace);
-  const name = airspace.name || (!category ? 'Airspace' : '');
-  const prefix = category ? `[${category}]` : '';
-  const title = prefix && name ? `${prefix} ${name}` : prefix || name;
-  const floor =
-    airspace.floorLabel ||
-    (airspace.floorRefGnd && airspace.floorM === 0
-      ? 'GND'
-      : `${airspace.floorM}m${airspace.floorRefGnd ? ' GND' : ''}`);
-  const top = airspace.topLabel || `${airspace.topM}m${airspace.topRefGnd ? ' GND' : ''}`;
-  return `<b>${title}</b><br>↧${floor} ↥${top}`;
+  const prefix = category ? `[${category}] ` : '';
+  return `<b>${prefix}${airspace.name}</b><br>↧${airspace.floorLabel} ↥${airspace.topLabel}`;
 }
 
 // Airspaces MapType.

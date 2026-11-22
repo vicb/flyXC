@@ -908,8 +908,21 @@ describe('Airspace3dElement', () => {
     expect(view.stage._layers['lv-1'].pickable).toBe(false);
     expect(view.stage.renderer.navigationDepthCache.getMinimalDepthForArea()).toBeNull();
 
-    // Clicking inside an active 3D volume (outside any hole) with clickZ highlights the volume and queries getAirspaceList.
-    await element.handleClick({ lat: 45.455, lon: 6.005 }, scene, 900);
+    // Clicking an active 3D volume queries 2D tiles, highlights the matching 3D volume, and opens popup.
+    hoisted.getAirspaceListMock.mockResolvedValueOnce([
+      {
+        name: 'LOCAL ZONE',
+        type: Type.CTR,
+        icaoClass: Class.D,
+        floorM: 600,
+        floorRefGnd: false,
+        floorLabel: '600m',
+        topM: 1200,
+        topRefGnd: false,
+        topLabel: '1200m',
+      } as any,
+    ]);
+    await element.handleClick([{ lat: 45.455, lon: 6.005, z: 900 }], scene);
     expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(1);
     expect(scene.openPopup).toHaveBeenCalledTimes(1);
     expect(scene.openPopup.mock.calls[0][0].location.z).toBe(900);
@@ -920,88 +933,23 @@ describe('Airspace3dElement', () => {
 
     // Clicking an empty location without airspace clears the highlight and closes any open popup.
     hoisted.getAirspaceListMock.mockResolvedValueOnce([]);
-    await element.handleClick({ lat: 40.0, lon: 0.0 }, scene);
+    await element.handleClick([{ lat: 40.0, lon: 0.0 }], scene);
     expect(hoisted.graphicsLayers[0].graphics.find((g: any) => g.attributes?.isAirspaceHighlight)).toBeUndefined();
     expect(scene.closePopup).toHaveBeenCalledTimes(1);
 
-    // Clicking inside an interior hole does not match the airspace locally and falls back to getAirspaceList.
-    hoisted.getAirspaceListMock.mockResolvedValueOnce([{ name: 'hole airspace', floorM: 0, topM: 1000 }] as any[]);
-    await element.handleClick({ lat: 45.47, lon: 6.02 }, scene, 900);
-    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(3);
-    expect(scene.openPopup).toHaveBeenCalledTimes(2);
-
-    // Clicking outside loaded 3D polygons falls back to getAirspaceList with effective track date.
+    // Clicking with a track loaded passes effective track date to getAirspaceList.
     hoisted.state.currentTrack = { id: 'track-1' };
     hoisted.state.timeSec = 1_752_577_200;
     store.dispatch({ type: 'TEST_POPUP_DATE' });
     await element.updateComplete;
 
-    await element.handleClick({ lat: 46.5, lon: 7.5 }, scene);
-    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(4);
-    expect((hoisted.getAirspaceListMock.mock.calls[3][0].date as Date).getTime()).toBe(1_752_577_200 * 1000);
-    expect(scene.openPopup).toHaveBeenCalledTimes(3);
-  });
-
-  it('correctly matches and orders overlapping airspaces when clicking ground point, wall, or top surface in tilted view', async () => {
-    const view = makeMockView(10, 6.0, 45.45, 6.04, 45.49);
-    const ring = [
-      [6.0, 45.45],
-      [6.04, 45.45],
-      [6.04, 45.49],
-      [6.0, 45.49],
-      [6.0, 45.45],
-    ];
-    hoisted.tilePayloads.set(1, [
-      makeFeature(makeAirspaceProps({ name: 'LF-R235 COMBOIRE', floorRefGnd: true, floorM: 0, topM: 1067 }), ring),
-      makeFeature(makeAirspaceProps({ name: 'ZRT RONE 4', floorRefGnd: true, floorM: 0, topM: 2895 }), ring),
-    ]);
-    hoisted.tilePayloads.set(2, hoisted.tilePayloads.get(1)!);
-
-    const scene = { openPopup: vi.fn(async () => undefined), closePopup: vi.fn(async () => undefined) } as any;
-    element.map = mockMap;
-    element.view = view;
-    hoisted.getAirspaceListMock.mockResolvedValue([]);
-    await element.updateComplete;
-    await flushAsync();
-
-    // 1. Bottom surface click: ground target point is inside the base contour
-    await element.handleClick({ lat: 45.455, lon: 6.005 }, scene, 250);
-    expect(scene.openPopup).toHaveBeenCalledTimes(1);
-    const bottomPopup = scene.openPopup.mock.calls[0][0];
-    expect(bottomPopup.location.latitude).toBe(45.455);
-    expect(bottomPopup.location.longitude).toBe(6.005);
-    expect(bottomPopup.location.z).toBe(250);
-    const bottomContent = bottomPopup.content.shadowRoot?.innerHTML ?? bottomPopup.content.innerHTML;
-    expect(bottomContent).toContain('COMBOIRE');
-    expect(bottomContent).toContain('ZRT RONE 4');
-
-    // 2. Top surface click in tilted view: ray crosses top cap at lat ~45.47, but ground behind is outside (lat 45.51)
-    // Camera at (lat: 45.35, lon: 6.02, z: 4268), target ground behind is at (lat: 45.51, lon: 6.02, z: 0)
-    // At z = 1067m, t = (4268 - 1067) / 4268 = 0.75, lat = 45.35 + 0.75 * 0.16 = 45.47 (inside [45.45, 45.49])
-    await element.handleClick({ lat: 45.51, lon: 6.02 }, scene, 0, { lat: 45.35, lon: 6.02, z: 4268 });
+    await element.handleClick([{ lat: 46.5, lon: 7.5 }], scene);
+    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(3);
+    expect((hoisted.getAirspaceListMock.mock.calls[2][0].date as Date).getTime()).toBe(1_752_577_200 * 1000);
     expect(scene.openPopup).toHaveBeenCalledTimes(2);
-    const topPopup = scene.openPopup.mock.calls[1][0];
-    expect(topPopup.location.latitude).toBeCloseTo(45.47, 2);
-    expect(topPopup.location.longitude).toBeCloseTo(6.02, 2);
-    expect(topPopup.location.z).toBe(1067);
-    const topContent = topPopup.content.shadowRoot?.innerHTML ?? topPopup.content.innerHTML;
-    expect(topContent).toContain('COMBOIRE');
-
-    // 3. Wall click in tilted view: ray enters south wall (lat 45.45) at mid-height
-    // Camera at (lat: 45.35, lon: 6.02, z: 2000), target ground behind is at (lat: 45.55, lon: 6.02, z: 0)
-    // Wall is at lat 45.45: t = (45.45 - 45.35) / (0.20) = 0.5. At t = 0.5, z = 1000m (within [0, 1067])
-    await element.handleClick({ lat: 45.55, lon: 6.02 }, scene, 0, { lat: 45.35, lon: 6.02, z: 2000 });
-    expect(scene.openPopup).toHaveBeenCalledTimes(3);
-    const wallPopup = scene.openPopup.mock.calls[2][0];
-    expect(wallPopup.location.latitude).toBeCloseTo(45.45, 2);
-    expect(wallPopup.location.longitude).toBeCloseTo(6.02, 2);
-    expect(wallPopup.location.z).toBeCloseTo(1000, 1);
-    const wallContent = wallPopup.content.shadowRoot?.innerHTML ?? wallPopup.content.innerHTML;
-    expect(wallContent).toContain('COMBOIRE');
-    hoisted.getAirspaceListMock.mockResolvedValue([{ name: 'Airspace list', floorM: 0, topM: 1000 }] as any[]);
   });
 
-  it('correctly handles nameless 3D tiles: unexaggerates ground elevation for getAirspaceList, matches by category, and formats clean fallbacks', async () => {
+  it('deduplicates airspaces across multiple 3D hit points, unexaggerates altitudes, and uses 3px wall margin', async () => {
     const view = makeMockView(10, 6.2, 44.8, 6.4, 45.0);
     const ring = [
       [6.2, 44.8],
@@ -1042,44 +990,69 @@ describe('Airspace3dElement', () => {
     await element.updateComplete;
     await flushAsync();
 
-    // 1. Successful 2D vector tile query: matches category and promotes full description to top
-    hoisted.getAirspaceListMock.mockResolvedValue([
-      {
-        name: 'PARC/RESERVE ECRINS',
-        type: Type.LowAltitudeOverflightRestriction,
-        icaoClass: Class.SUA,
-        floorM: 0,
-        floorRefGnd: true,
-        floorLabel: 'GND',
-        topM: 1000,
-        topRefGnd: true,
-        topLabel: '3281ft GND',
-      },
-      { name: 'LF-R196A1', type: Type.Restricted, icaoClass: Class.SUA, floorM: 1000, topM: 5000 },
-    ] as any[]);
+    hoisted.getAirspaceListMock
+      .mockResolvedValueOnce([
+        {
+          name: 'PARC/RESERVE ECRINS',
+          type: Type.LowAltitudeOverflightRestriction,
+          icaoClass: Class.SUA,
+          floorM: 0,
+          floorRefGnd: true,
+          floorLabel: 'GND',
+          topM: 1000,
+          topRefGnd: true,
+          topLabel: '3281ft GND',
+        } as any,
+      ])
+      .mockResolvedValueOnce([
+        {
+          name: 'PARC/RESERVE ECRINS',
+          type: Type.LowAltitudeOverflightRestriction,
+          icaoClass: Class.SUA,
+          floorM: 0,
+          floorRefGnd: true,
+          floorLabel: 'GND',
+          topM: 1000,
+          topRefGnd: true,
+          topLabel: '3281ft GND',
+        } as any,
+        {
+          name: 'LF-R196A1',
+          type: Type.Restricted,
+          icaoClass: Class.SUA,
+          floorM: 1000,
+          topM: 5000,
+          floorLabel: '1000m',
+          topLabel: '5000m',
+        } as any,
+      ]);
 
-    await element.handleClick({ lat: 44.9, lon: 6.3 }, scene, 2600);
-    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(1);
-    const { altitude: calledAlt, gndAltitude: calledGndAlt } = hoisted.getAirspaceListMock.mock.calls[0][0] as any;
-    expect(calledGndAlt).toBeCloseTo(2000, 1);
-    expect(calledAlt).toBeCloseTo(2000, 1);
+    await element.handleClick(
+      [
+        { lat: 44.85, lon: 6.25, z: 2600 },
+        { lat: 44.9, lon: 6.3, z: 3900 },
+      ],
+      scene,
+    );
+
+    expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(2);
+    const firstQuery = hoisted.getAirspaceListMock.mock.calls[0][0] as any;
+    expect(firstQuery.gndAltitude).toBeCloseTo(2000, 1);
+    expect(firstQuery.altitude).toBeCloseTo(2000, 1);
+    expect(firstQuery.checkTop).toBe(true);
+    expect(firstQuery.altitudeMargin).toBe(150);
+    expect(firstQuery.marginPx).toBe(3);
 
     expect(scene.openPopup).toHaveBeenCalledTimes(1);
-    const popup1 = scene.openPopup.mock.calls[0][0];
-    const content1 = popup1.content.shadowRoot?.innerHTML ?? popup1.content.innerHTML;
-    expect(content1).toContain('PARC/RESERVE ECRINS');
-    expect(content1).toContain('3281ft GND');
-    expect(content1).not.toContain('Low altitude restriction] Low altitude restriction');
-
-    // 2. Empty 2D vector tile response: fallback does not duplicate category string
-    hoisted.getAirspaceListMock.mockResolvedValue([]);
-    await element.handleClick({ lat: 44.9, lon: 6.3 }, scene, 2600);
-    expect(scene.openPopup).toHaveBeenCalledTimes(2);
-    const popup2 = scene.openPopup.mock.calls[1][0];
-    const content2 = popup2.content.shadowRoot?.innerHTML ?? popup2.content.innerHTML;
-    expect(content2).toContain('<b>[Low altitude restriction]</b>');
-    expect(content2).not.toContain('Low altitude restriction] Low altitude restriction');
-    expect(content2).toContain('↧GND ↥1000m GND');
+    const popup = scene.openPopup.mock.calls[0][0];
+    expect(popup.location.latitude).toBe(44.85);
+    expect(popup.location.longitude).toBe(6.25);
+    expect(popup.location.z).toBe(2600);
+    const content = popup.content.shadowRoot?.innerHTML ?? popup.content.innerHTML;
+    expect(content).toContain('PARC/RESERVE ECRINS');
+    expect(content).toContain('LF-R196A1');
+    // Deduplicated: PARC/RESERVE ECRINS appears once despite matching at both hit points
+    expect(content.match(/PARC\/RESERVE ECRINS/g)).toHaveLength(1);
 
     hoisted.state.multiplier = 1;
     store.dispatch({ type: 'TEST_MULTIPLIER' });

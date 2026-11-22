@@ -21,13 +21,10 @@ import {
   AIRSPACE_TILE_SIZE,
   AirspaceColorCategory,
   ASP_CATEGORY_COLOR,
-  getAirspaceCategory,
+  getAirspaceColorCategory,
   getPixelCoordinates,
-  getPointX,
-  getPointY,
   MAX_AIRSPACE_TILE_ZOOM,
   pointInPolygonRings,
-  segmentIntersection,
 } from '@flyxc/common';
 import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
@@ -88,7 +85,6 @@ export const MAX_TILES_3D = 36;
 const MAX_MESH_CACHE_SIZE = 600;
 const VIEW_REFRESH_DEBOUNCE_MS = 60;
 const SAMPLER_REFRESH_DEBOUNCE_MS = 450;
-const CLICK_Z_TOLERANCE_M = 75;
 
 interface CachedMeshEntry {
   meshData: AirspaceMeshData;
@@ -461,148 +457,42 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     }
   }
 
-  private findAirspacesAtPoint(
-    latLon: LatLon,
-    clickZ?: number,
-  ): Array<{ airspace: AirspaceTyped; item: CachedAirspaceItem; matchesZ: boolean; topZ: number }> {
-    if (this.currentAirspaces.length === 0) {
-      return [];
-    }
-    const sampleGroundZ = createGroundSampler(this.sampler);
-    const groundZ = sampleGroundZ(latLon.lon, latLon.lat);
-
-    const matches: Array<{ airspace: AirspaceTyped; item: CachedAirspaceItem; matchesZ: boolean; topZ: number }> = [];
-    for (const item of this.currentAirspaces) {
-      const ext = item.polygon.extent;
-      if (ext && (latLon.lon < ext.xmin || latLon.lon > ext.xmax || latLon.lat < ext.ymin || latLon.lat > ext.ymax)) {
-        continue;
-      }
-      if (!pointInPolygonRings(latLon.lon, latLon.lat, item.polygon.rings)) {
-        continue;
-      }
-      const floorZ = (item.airspace.floorRefGnd ? groundZ : 0) + item.airspace.floorM * this.multiplier;
-      const topZ = Math.max(floorZ, (item.airspace.topRefGnd ? groundZ : 0) + item.airspace.topM * this.multiplier);
-      const matchesZ = clickZ != null && clickZ >= floorZ - CLICK_Z_TOLERANCE_M && clickZ <= topZ + CLICK_Z_TOLERANCE_M;
-      matches.push({ airspace: item.airspace, item, matchesZ, topZ });
-    }
-
-    matches.sort((a, b) => {
-      if (a.matchesZ !== b.matchesZ) {
-        return a.matchesZ ? -1 : 1;
-      }
-      return b.topZ - a.topZ;
-    });
-
-    return matches;
-  }
-
   /**
-   * Tests all loaded 3D airspaces against a camera-to-target 3D ray segment.
-   * Accurately detects hits on:
-   * - Top surface cap
-   * - Bottom surface cap
-   * - Vertical side walls
-   * - Base/ground footprint
+   * Finds the loaded 3D airspace volume matching a 2D vector-tile airspace at `latLon` for highlighting.
+   * Matches by vertical bounds, color category, and 2D containment rather than `id`, because 3D coplanar
+   * dissolution re-numbers and unions non-reserved features into new 3D IDs.
    */
-  public findAirspacesAlongRay(
-    cameraPoint: { lat: number; lon: number; z: number },
-    targetPoint: { lat: number; lon: number; z: number },
-  ): Array<{
-    airspace: AirspaceTyped;
-    item: CachedAirspaceItem;
-    hitPoint: { lat: number; lon: number; z: number };
-    hitT: number;
-    topZ: number;
-  }> {
-    if (this.currentAirspaces.length === 0) {
-      return [];
-    }
-    const sampleGroundZ = createGroundSampler(this.sampler);
-    const C = { lon: cameraPoint.lon, lat: cameraPoint.lat, z: cameraPoint.z };
-    const P = { lon: targetPoint.lon, lat: targetPoint.lat, z: targetPoint.z };
-    const dz = P.z - C.z;
-    const segMinLon = Math.min(C.lon, P.lon),
-      segMaxLon = Math.max(C.lon, P.lon);
-    const segMinLat = Math.min(C.lat, P.lat),
-      segMaxLat = Math.max(C.lat, P.lat);
-
-    const matches: Array<{
-      airspace: AirspaceTyped;
-      item: CachedAirspaceItem;
-      hitPoint: { lat: number; lon: number; z: number };
-      hitT: number;
-      topZ: number;
-    }> = [];
-
+  private findMatching3dItem(target: AirspaceTyped, latLon: LatLon): CachedAirspaceItem | undefined {
+    const targetCategory = getAirspaceColorCategory(target);
+    const pad = 0.005;
+    let fallback: CachedAirspaceItem | undefined;
     for (const item of this.currentAirspaces) {
-      const ext = item.polygon.extent;
-      if (ext && (segMaxLon < ext.xmin || segMinLon > ext.xmax || segMaxLat < ext.ymin || segMinLat > ext.ymax)) {
+      const a = item.airspace;
+      if (
+        a.floorM !== target.floorM ||
+        a.topM !== target.topM ||
+        a.floorRefGnd !== target.floorRefGnd ||
+        a.topRefGnd !== target.topRefGnd ||
+        item.category !== targetCategory
+      ) {
         continue;
       }
-
-      const groundZ = sampleGroundZ(ext ? (ext.xmin + ext.xmax) / 2 : P.lon, ext ? (ext.ymin + ext.ymax) / 2 : P.lat);
-      const floorZ = (item.airspace.floorRefGnd ? groundZ : 0) + item.airspace.floorM * this.multiplier;
-      const topZ = Math.max(floorZ, (item.airspace.topRefGnd ? groundZ : 0) + item.airspace.topM * this.multiplier);
-
-      let minT = Infinity;
-      let hitPoint: { lat: number; lon: number; z: number } | undefined;
-
-      // 1. Top and bottom cap intersections
-      if (Math.abs(dz) > 1e-4) {
-        for (const capZ of [topZ, floorZ]) {
-          const t = (capZ - C.z) / dz;
-          if (t >= 0 && t <= 1.05 && t < minT) {
-            const lon = C.lon + t * (P.lon - C.lon);
-            const lat = C.lat + t * (P.lat - C.lat);
-            if (pointInPolygonRings(lon, lat, item.polygon.rings)) {
-              minT = t;
-              hitPoint = { lat, lon, z: capZ };
-            }
-          }
-        }
+      const ext = item.polygon.extent;
+      if (
+        ext &&
+        (latLon.lon < ext.xmin - pad ||
+          latLon.lon > ext.xmax + pad ||
+          latLon.lat < ext.ymin - pad ||
+          latLon.lat > ext.ymax + pad)
+      ) {
+        continue;
       }
-
-      // 2. Side wall intersections
-      for (const ring of item.polygon.rings) {
-        for (let i = 0; i < ring.length - 1; i++) {
-          const p1 = ring[i];
-          const p2 = ring[i + 1];
-          const x1 = getPointX(p1);
-          const y1 = getPointY(p1);
-          const x2 = getPointX(p2);
-          const y2 = getPointY(p2);
-          const t = segmentIntersection(C.lon, C.lat, P.lon, P.lat, x1, y1, x2, y2);
-          if (t !== null && t < minT) {
-            const z = C.z + t * dz;
-            if (z >= floorZ - CLICK_Z_TOLERANCE_M && z <= topZ + CLICK_Z_TOLERANCE_M) {
-              minT = t;
-              hitPoint = { lat: C.lat + t * (P.lat - C.lat), lon: C.lon + t * (P.lon - C.lon), z };
-            }
-          }
-        }
+      if (pointInPolygonRings(latLon.lon, latLon.lat, item.polygon.rings)) {
+        return item;
       }
-
-      // 3. Target/ground point inside polygon footprint
-      if (1.0 < minT && pointInPolygonRings(P.lon, P.lat, item.polygon.rings)) {
-        const groundAtP = sampleGroundZ(P.lon, P.lat);
-        const floorAtP = (item.airspace.floorRefGnd ? groundAtP : 0) + item.airspace.floorM * this.multiplier;
-        const topAtP = Math.max(
-          floorAtP,
-          (item.airspace.topRefGnd ? groundAtP : 0) + item.airspace.topM * this.multiplier,
-        );
-        const isFloorGnd = item.airspace.floorRefGnd && item.airspace.floorM === 0;
-        if ((isFloorGnd || P.z >= floorAtP - CLICK_Z_TOLERANCE_M) && P.z <= topAtP + CLICK_Z_TOLERANCE_M) {
-          minT = 1.0;
-          hitPoint = { lat: P.lat, lon: P.lon, z: P.z };
-        }
-      }
-
-      if (hitPoint) {
-        matches.push({ airspace: item.airspace, item, hitPoint, hitT: minT, topZ });
-      }
+      fallback ??= item;
     }
-
-    return matches.sort((a, b) => a.topZ - b.topZ);
+    return fallback;
   }
 
   /**
@@ -652,125 +542,66 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   }
 
   /**
-   * Highlights the clicked 3D airspace and displays an interactive popup.
-   *
-   * Places the clicked 3D airspace at the top of the popup, followed by any other
-   * airspaces present at that exact 3D position from the vector tile dataset.
-   */
-  private async displayAirspaceHitPopup(
-    scene: ArcgisScene,
-    hitItem: AirspaceWorkerItem,
-    otherItems: AirspaceWorkerItem[],
-    latLon: LatLon,
-    z: number,
-  ): Promise<void> {
-    this.highlightAirspace(hitItem);
-    const sampleGroundZ = createGroundSampler(this.sampler);
-    const mult = this.multiplier > 0 ? this.multiplier : 1;
-    const gndAlt = sampleGroundZ(latLon.lon ?? 0, latLon.lat ?? 0) / mult;
-    const unexaggeratedZ = z / mult;
-    const tileAirspaces = await getAirspaceList({
-      latLon,
-      altitude: unexaggeratedZ,
-      gndAltitude: gndAlt,
-      altitudeMargin: 75,
-      maxFloorAltitude: this.maxAltitude,
-      visibleClasses: this.showClasses,
-      visibleTypes: this.showTypes,
-      date: getEffectiveAirspaceDate(this.hasTrack, this.timeSec),
-    });
-
-    const hit = hitItem.airspace;
-    const hitCategory = getAirspaceCategory(hit);
-    let airspaces: AirspaceTyped[];
-    if (tileAirspaces.length > 0) {
-      airspaces = [...tileAirspaces];
-      // Promote the clicked airspace to the top (matched by id first, then name, or by category for nameless airspaces).
-      const hitIndex = airspaces.findIndex(
-        (a) =>
-          (hit.id && a.id === hit.id) ||
-          (hit.name ? a.name === hit.name : hitCategory ? !a.name && getAirspaceCategory(a) === hitCategory : false),
-      );
-      if (hitIndex > 0) {
-        airspaces.unshift(...airspaces.splice(hitIndex, 1));
-      } else if (hitIndex === -1 && hit.name) {
-        airspaces.unshift(hit);
-      }
-    } else {
-      airspaces = [hit, ...otherItems.slice(0, 4).map((m) => m.airspace)];
-    }
-    const finalHtml = getAirspaceListHtml(airspaces);
-
-    await openAirspacePopup(scene, latLon, finalHtml, z);
-  }
-
-  /**
-   * Handles a SceneView click when in 3D mode, prioritizing hit-tested 3D airspaces and
-   * falling back to vector-tile querying if nothing hit a 3D volume.
+   * Queries 2D airspace vector tiles at the 3D hit locations returned by ArcGIS `SceneView.hitTest`,
+   * highlights the primary matched 3D volume, and opens a popup at the closest matching 3D hit point.
    */
   public async handleClick(
-    latLon: LatLon,
+    hitPoints: Array<{ lat: number; lon: number; z?: number }>,
     scene: ArcgisScene,
-    clickZ?: number,
-    cameraPoint?: { lat: number; lon: number; z: number },
   ): Promise<void> {
-    if (!this.showAirspace || !this.enabled) {
+    if (!this.showAirspace || !this.enabled || hitPoints.length === 0) {
       return;
     }
 
-    const cam =
-      cameraPoint ??
-      (this.view?.camera?.position
-        ? {
-            lat: this.view.camera.position.latitude ?? 0,
-            lon: this.view.camera.position.longitude ?? 0,
-            z: this.view.camera.position.z ?? 0,
-          }
-        : undefined);
+    const sampleGroundZ = createGroundSampler(this.sampler);
+    const mult = this.multiplier > 0 ? this.multiplier : 1;
+    const date = getEffectiveAirspaceDate(this.hasTrack, this.timeSec);
+    const airspaces: AirspaceTyped[] = [];
+    const seen = new Set<string>();
+    let popupPoint: { lat: number; lon: number; z?: number } | undefined;
 
-    if (cam && clickZ != null) {
-      const rayMatches = this.findAirspacesAlongRay(cam, {
-        lat: latLon.lat ?? 0,
-        lon: latLon.lon ?? 0,
-        z: clickZ,
+    for (const pt of hitPoints) {
+      const hasZ = typeof pt.z === 'number' && Number.isFinite(pt.z);
+      const rawGnd = sampleGroundZ(pt.lon, pt.lat);
+      const gndAltitude = (rawGnd > 0 ? rawGnd : hasZ ? pt.z! : 0) / mult;
+      const list = await getAirspaceList({
+        latLon: { lat: pt.lat, lon: pt.lon },
+        altitude: hasZ ? pt.z! / mult : this.maxAltitude,
+        gndAltitude,
+        checkTop: hasZ,
+        altitudeMargin: 150,
+        marginPx: hasZ ? 3 : 0,
+        maxFloorAltitude: this.maxAltitude,
+        visibleClasses: this.showClasses,
+        visibleTypes: this.showTypes,
+        date,
       });
-      if (rayMatches.length > 0) {
-        const bestHit = rayMatches[0].hitPoint;
-        await this.displayAirspaceHitPopup(
-          scene,
-          rayMatches[0].item,
-          rayMatches.slice(1).map((m) => m.item),
-          { lat: bestHit.lat, lon: bestHit.lon },
-          bestHit.z,
-        );
-        return;
-      }
-    }
 
-    if (clickZ != null) {
-      const localMatches = this.findAirspacesAtPoint(latLon, clickZ);
-      if (localMatches.length > 0) {
-        await this.displayAirspaceHitPopup(
-          scene,
-          localMatches[0].item,
-          localMatches.slice(1).map((m) => m.item),
-          latLon,
-          clickZ,
-        );
-        return;
+      if (list.length > 0) {
+        popupPoint ??= pt;
+        for (const asp of list) {
+          const key = `${asp.name}|${asp.floorLabel}|${asp.topLabel}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            airspaces.push(asp);
+            if (airspaces.length >= 5) {
+              break;
+            }
+          }
+        }
+        if (airspaces.length >= 5) {
+          break;
+        }
       }
     }
 
     this.clearHighlight();
-    const airspaces = await getAirspaceList({
-      latLon,
-      altitude: this.maxAltitude,
-      visibleClasses: this.showClasses,
-      visibleTypes: this.showTypes,
-      date: getEffectiveAirspaceDate(this.hasTrack, this.timeSec),
-    });
-    if (airspaces.length > 0) {
-      await openAirspacePopup(scene, latLon, getAirspaceListHtml(airspaces));
+    if (airspaces.length > 0 && popupPoint) {
+      const hitItem = this.findMatching3dItem(airspaces[0], popupPoint);
+      if (hitItem) {
+        this.highlightAirspace(hitItem);
+      }
+      await openAirspacePopup(scene, popupPoint, getAirspaceListHtml(airspaces), popupPoint.z);
     } else {
       await scene.closePopup?.();
     }

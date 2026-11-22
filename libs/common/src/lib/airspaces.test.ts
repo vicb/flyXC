@@ -313,6 +313,9 @@ describe('Airspace overrides', () => {
       expect(isInFeature({ x: 32, y: 32 }, feature)).toBe(true);
       // (300, 300) maps to (4800, 4800) -> outside outer ring
       expect(isInFeature({ x: 300, y: 300 }, feature)).toBe(false);
+      // (258, 128) is 2 tile-pixels outside the right boundary (x=256)
+      expect(isInFeature({ x: 258, y: 128 }, feature)).toBe(false);
+      expect(isInFeature({ x: 258, y: 128 }, feature, 3)).toBe(true);
     });
 
     it('utilizes bbox for fast early rejection', () => {

@@ -2,7 +2,7 @@ import { TZDate } from '@date-fns/tz';
 import { addDays, isAfter, isBefore, isFriday, isMonday, isSaturday, isSunday, nextFriday, nextMonday } from 'date-fns';
 import type { Feature } from 'mapbox-vector-tile';
 
-import { pointInPolygonRings } from './geometry';
+import { getPointX, getPointY, pointInPolygonRings, pointToSegmentSquared2D } from './geometry';
 import type { Point } from './runtime-track';
 
 // Maximum zoom level for the airspaces.
@@ -368,24 +368,38 @@ export function getAirspaceColor(airspace: AirspaceTyped, opacityPercent: number
   return `${ASP_CATEGORY_COLOR[getAirspaceColorCategory(airspace)]}${alphaHex}`;
 }
 
-// Returns whether the point is inside the polygon feature.
-export function isInFeature(point: Point, feature: Feature): boolean {
+// Returns whether the point is inside the polygon feature (within optional `marginPx` of the outer boundary).
+export function isInFeature(point: Point, feature: Feature, marginPx = 0): boolean {
   const ratio = 256 / feature.extent;
   const px = point.x / ratio;
   const py = point.y / ratio;
+  const margin = marginPx > 0 ? marginPx / ratio : 0;
 
   // Fast bounding-box check (O(1), cached on feature)
   if (typeof feature.bbox === 'function') {
     const [minX, minY, maxX, maxY] = feature.bbox();
-    if (px < minX || px > maxX || py < minY || py > maxY) {
+    if (px < minX - margin || px > maxX + margin || py < minY - margin || py > maxY + margin) {
       return false;
     }
   }
 
   const polygons = feature.asPolygons() ?? [];
+  const margin2 = margin * margin;
   for (const rings of polygons) {
     if (pointInPolygonRings(px, py, rings)) {
       return true;
+    }
+    if (margin > 0 && rings[0]) {
+      const outer = rings[0];
+      for (let i = 0; i < outer.length - 1; i++) {
+        const p1 = outer[i];
+        const p2 = outer[i + 1];
+        if (
+          pointToSegmentSquared2D(px, py, getPointX(p1), getPointY(p1), getPointX(p2), getPointY(p2)) <= margin2
+        ) {
+          return true;
+        }
+      }
     }
   }
 

@@ -348,38 +348,38 @@ export class Map3dElement extends connect(store)(LitElement) {
         }
       });
       hitPromise.then(({ results }: { results: any[] }) => {
-        const trackHits = results.filter(
+        const trackHit = results.find(
           (r) => r.graphic?.attributes?.trackId != null || r.graphic?.attributes?.isPilot,
         );
-        if (trackHits.length > 0) {
-          // Sort hits by their distance to the camera.
-          trackHits.sort((r1, r2) => r1.distance - r2.distance);
-          const graphic = trackHits[0].graphic;
+        if (trackHit) {
+          const graphic = trackHit.graphic;
           msg.clickSceneView.emit(graphic, scene);
           // The trackId is set on tracks and pilots (not on live tracks).
           const trackId = graphic.attributes?.trackId;
           if (trackId != null) {
             store.dispatch(setCurrentTrackId(trackId));
           }
-        } else {
-          const airspaceHits = this.is3dAirspace
-            ? results.filter((r) => r.graphic?.attributes?.isAirspace).sort((r1, r2) => r1.distance - r2.distance)
-            : [];
-          const firstHit = airspaceHits[0];
-          // When clicking in a tilted 3D view, prioritize terrain/ground intersection (e.mapPoint) so
-          // ground-level clicks inside airspace base contours query the actual ground coordinates rather
-          // than a distant point where the camera ray pierced an overhead airspace ceiling high in the sky.
-          const hitPoint = e.mapPoint ?? firstHit?.mapPoint;
-          if (hitPoint) {
-            const latLon = { lat: hitPoint.latitude ?? 0, lon: hitPoint.longitude ?? 0 };
-            if (this.is3dAirspace) {
-              const cam = view.camera?.position;
-              const cameraPoint = cam ? { lat: cam.latitude ?? 0, lon: cam.longitude ?? 0, z: cam.z ?? 0 } : undefined;
-              this.airspace?.handleClick(latLon, scene, hitPoint.z, cameraPoint);
-            } else {
-              this.flatAirspace?.handleClick(latLon, scene);
-            }
+        } else if (this.is3dAirspace) {
+          const hitPoints = results
+            .filter((r) => r.graphic?.attributes?.isAirspace && r.mapPoint)
+            .map((r) => ({
+              lat: r.mapPoint.latitude ?? 0,
+              lon: r.mapPoint.longitude ?? 0,
+              z: r.mapPoint.z,
+            }));
+          if (e.mapPoint) {
+            hitPoints.push({
+              lat: e.mapPoint.latitude ?? 0,
+              lon: e.mapPoint.longitude ?? 0,
+              z: e.mapPoint.z,
+            });
           }
+          void this.airspace?.handleClick(hitPoints, scene);
+        } else if (e.mapPoint) {
+          void this.flatAirspace?.handleClick(
+            { lat: e.mapPoint.latitude ?? 0, lon: e.mapPoint.longitude ?? 0 },
+            scene,
+          );
         }
       });
     });
@@ -523,6 +523,7 @@ export class Map3dElement extends connect(store)(LitElement) {
           @arcgisPropertyChange=${(e: CustomEvent<{ name: string }>) => {
             if (e.detail.name === 'open' && !(e.target as ArcgisPopup).open) {
               store.dispatch(setCurrentLiveId(undefined));
+              this.airspace?.clearHighlight();
             }
           }}
         ></arcgis-popup>
