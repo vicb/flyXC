@@ -370,23 +370,38 @@ export function getAirspaceColor(airspace: AirspaceTyped, opacityPercent: number
   return `${ASP_CATEGORY_COLOR[getAirspaceColorCategory(airspace)]}${alphaHex}`;
 }
 
-// Returns whether the point is inside the polygon feature (within optional `marginPx` of the outer boundary).
-export function isInFeature(point: Point, feature: Feature, marginPx = 0): boolean {
+/**
+ * Returns whether a point (in 256x256 tile pixels) is within a feature's bounding box
+ * (with optional `marginPx` buffer).
+ */
+export function isPointInFeatureBbox(point: Point, feature: Feature, marginPx = 0): boolean {
   const ratio = 256 / feature.extent;
   const px = point.x / ratio;
   const py = point.y / ratio;
   const margin = marginPx > 0 ? marginPx / ratio : 0;
 
-  // Fast bounding-box check (O(1), cached on feature)
   const [minX, minY, maxX, maxY] = feature.bbox();
-  if (px < minX - margin || px > maxX + margin || py < minY - margin || py > maxY + margin) {
-    return false;
-  }
+  return px >= minX - margin && px <= maxX + margin && py >= minY - margin && py <= maxY + margin;
+}
 
-  const polygons = feature.asPolygons() ?? [];
+/**
+ * Returns whether a point (in 256x256 tile pixels) is inside polygon rings
+ * (within optional `marginPx` of the outer boundary).
+ */
+export function isPointInPolygons(
+  point: Point,
+  polygons: ReadonlyArray<ReadonlyArray<ReadonlyArray<any>>>,
+  extent: number,
+  marginPx = 0,
+): boolean {
+  const ratio = 256 / extent;
+  const px = point.x / ratio;
+  const py = point.y / ratio;
+  const margin = marginPx > 0 ? marginPx / ratio : 0;
   const margin2 = margin * margin;
+
   for (const rings of polygons) {
-    if (pointInPolygonRings(px, py, rings)) {
+    if (pointInPolygonRings(px, py, rings as any)) {
       return true;
     }
     if (margin > 0 && rings[0]) {
@@ -402,6 +417,18 @@ export function isInFeature(point: Point, feature: Feature, marginPx = 0): boole
   }
 
   return false;
+}
+
+/**
+ * Returns whether a point (in 256x256 tile pixels) is inside a vector tile polygon feature
+ * (within optional `marginPx` of the outer boundary).
+ */
+export function isInFeature(point: Point, feature: Feature, marginPx = 0): boolean {
+  if (!isPointInFeatureBbox(point, feature, marginPx)) {
+    return false;
+  }
+  const polygons = feature.asPolygons();
+  return polygons != null && isPointInPolygons(point, polygons, feature.extent, marginPx);
 }
 
 export type AirspaceServer = 'local' | 'cloud';

@@ -9,7 +9,8 @@ import {
   getAirspaceColorCategory,
   getAirspaceTileUrl,
   getPixelCoordinates,
-  isInFeature,
+  isPointInFeatureBbox,
+  isPointInPolygons,
   MAX_AIRSPACE_TILE_ZOOM,
   parallelTasksWithTimeout,
   protos,
@@ -118,6 +119,7 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
       }
       const airspace = applyOverrides(toTypedAirspace(feature.properties, feature.id), startDate);
       const airspaceId = getAirspaceFeatureId(airspace);
+      let polygons: Point[][][] | null | undefined;
       for (const fixIdx of indexes) {
         // Do not check airspaces above the track.
         // When the bottom references the ground it could be above the top for high ground elevation.
@@ -129,12 +131,16 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
           // The airspace is above the track max altitude.
           continue;
         }
-        if (isInFeature(pxInTiles[fixIdx], feature)) {
-          if (!indexesByAirspaceId.has(airspaceId)) {
-            indexesByAirspaceId.set(airspaceId, []);
-            airspaceById.set(airspaceId, airspace);
+        const point = pxInTiles[fixIdx];
+        if (isPointInFeatureBbox(point, feature)) {
+          polygons ??= feature.asPolygons();
+          if (polygons && isPointInPolygons(point, polygons, feature.extent)) {
+            if (!indexesByAirspaceId.has(airspaceId)) {
+              indexesByAirspaceId.set(airspaceId, []);
+              airspaceById.set(airspaceId, airspace);
+            }
+            indexesByAirspaceId.get(airspaceId)!.push(fixIdx);
           }
-          indexesByAirspaceId.get(airspaceId)!.push(fixIdx);
         }
       }
     }

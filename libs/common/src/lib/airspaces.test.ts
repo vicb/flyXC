@@ -20,6 +20,8 @@ import {
   getAirspaceTilesBaseUrl,
   getAirspaceTileUrl,
   isInFeature,
+  isPointInFeatureBbox,
+  isPointInPolygons,
   LOCAL_AIRSPACE_BASE_URL,
   RESERVED_AIRSPACE_ID_MAX,
   toTypedAirspace,
@@ -350,6 +352,41 @@ describe('Airspace overrides', () => {
       // (100, 100) maps to px 1600 -> inside bbox
       expect(isInFeature({ x: 100, y: 100 }, feature)).toBe(true);
       expect(asPolygonsCalled).toBe(true);
+    });
+  });
+
+  describe('isPointInFeatureBbox and isPointInPolygons', () => {
+    const feature = {
+      extent: 4096,
+      bbox() {
+        return [1000, 1000, 2000, 2000];
+      },
+    } as any;
+
+    const polygons = [
+      [
+        [
+          { x: 1000, y: 1000 },
+          { x: 2000, y: 1000 },
+          { x: 2000, y: 2000 },
+          { x: 1000, y: 2000 },
+          { x: 1000, y: 1000 },
+        ],
+      ],
+    ];
+
+    it('correctly tests bounding box with and without margin', () => {
+      // 100 in 256px -> 1600 in 4096px -> inside [1000, 1000, 2000, 2000]
+      expect(isPointInFeatureBbox({ x: 100, y: 100 }, feature)).toBe(true);
+      // 10 in 256px -> 160 in 4096px -> outside
+      expect(isPointInFeatureBbox({ x: 10, y: 10 }, feature)).toBe(false);
+      // 60 in 256px -> 960 in 4096px -> within 3px margin (48px in 4096)
+      expect(isPointInFeatureBbox({ x: 60, y: 100 }, feature, 3)).toBe(true);
+    });
+
+    it('correctly tests point in polygons', () => {
+      expect(isPointInPolygons({ x: 100, y: 100 }, polygons, 4096)).toBe(true);
+      expect(isPointInPolygons({ x: 10, y: 10 }, polygons, 4096)).toBe(false);
     });
   });
 
