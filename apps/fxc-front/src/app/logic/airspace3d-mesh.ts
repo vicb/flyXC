@@ -171,7 +171,7 @@ export function triangulateCapWithGrid2D(
   const stepLat = effectiveGridM / METERS_PER_DEGREE_LAT;
   const stepLon = effectiveGridM / (METERS_PER_DEGREE_LAT * cosLat);
 
-  const allPts: number[][] = [];
+  const allCoords: number[] = [];
   // Use numeric keys (a * 10_000_000 + b) instead of strings to eliminate memory allocations and GC churn
   const boundarySegments = new Set<number>();
   let baseIdx = 0;
@@ -183,7 +183,7 @@ export function triangulateCapWithGrid2D(
         : ring.length;
     totalSegments += len;
     for (let i = 0; i < len; i++) {
-      allPts.push([ring[i][0], ring[i][1]]);
+      allCoords.push(ring[i][0], ring[i][1]);
       const next = (i + 1) % len;
       const a = baseIdx + i;
       const b = baseIdx + next;
@@ -192,7 +192,7 @@ export function triangulateCapWithGrid2D(
     baseIdx += len;
   }
 
-  if (allPts.length < 3) {
+  if (allCoords.length < 6) {
     return { xy: new Float64Array(0), faces: new Uint32Array(0) };
   }
 
@@ -239,17 +239,17 @@ export function triangulateCapWithGrid2D(
           }
         }
         if (!tooClose) {
-          allPts.push([lon, lat]);
+          allCoords.push(lon, lat);
         }
       }
     }
   }
 
-  const numPts = allPts.length;
-  const projected = new Float64Array(numPts * 2);
-  for (let i = 0; i < numPts; i++) {
-    projected[i * 2] = allPts[i][0] * cosLat;
-    projected[i * 2 + 1] = allPts[i][1];
+  const xy = new Float64Array(allCoords);
+  const projected = new Float64Array(xy.length);
+  for (let i = 0; i < xy.length; i += 2) {
+    projected[i] = xy[i] * cosLat;
+    projected[i + 1] = xy[i + 1];
   }
 
   const delaunay = new Delaunay(projected);
@@ -260,20 +260,20 @@ export function triangulateCapWithGrid2D(
     if (boundarySegments.has(packEdgeKey(i1, i2))) {
       return true;
     }
-    const p1 = allPts[i1];
-    const p2 = allPts[i2];
-    return pointInPolygonRings((p1[0] + p2[0]) * 0.5, (p1[1] + p2[1]) * 0.5, rings);
+    const idx1 = i1 * 2;
+    const idx2 = i2 * 2;
+    return pointInPolygonRings((xy[idx1] + xy[idx2]) * 0.5, (xy[idx1 + 1] + xy[idx2 + 1]) * 0.5, rings);
   };
 
   for (let i = 0; i < tris.length; i += 3) {
     const i0 = tris[i];
     const i1 = tris[i + 1];
     const i2 = tris[i + 2];
-    const p0 = allPts[i0];
-    const p1 = allPts[i1];
-    const p2 = allPts[i2];
-    const cx = (p0[0] + p1[0] + p2[0]) / 3;
-    const cy = (p0[1] + p1[1] + p2[1]) / 3;
+    const idx0 = i0 * 2;
+    const idx1 = i1 * 2;
+    const idx2 = i2 * 2;
+    const cx = (xy[idx0] + xy[idx1] + xy[idx2]) / 3;
+    const cy = (xy[idx0 + 1] + xy[idx1 + 1] + xy[idx2 + 1]) / 3;
     if (!pointInPolygonRings(cx, cy, rings)) {
       continue;
     }
@@ -285,12 +285,6 @@ export function triangulateCapWithGrid2D(
 
   if (insideFaces.length === 0) {
     return triangulateRings2D(rings);
-  }
-
-  const xy = new Float64Array(numPts * 2);
-  for (let i = 0; i < numPts; i++) {
-    xy[i * 2] = allPts[i][0];
-    xy[i * 2 + 1] = allPts[i][1];
   }
 
   return { xy, faces: new Uint32Array(insideFaces), boundarySegments };
