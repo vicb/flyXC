@@ -237,10 +237,11 @@ export async function mergeCoplanarAirspaces(
       continue;
     }
 
-    const candidateItems = Array.from(candidateIndices).map((idx) => items[idx]);
-    const candidateBBoxes = Array.from(candidateIndices).map((idx) => bboxes[idx]);
-    const candidateTree = new Flatbush(candidateItems.length);
-    for (const b of candidateBBoxes) {
+    const candidateItems: AirspaceFeature[] = [];
+    const candidateTree = new Flatbush(candidateIndices.size);
+    for (const idx of candidateIndices) {
+      candidateItems.push(items[idx]);
+      const b = bboxes[idx];
       candidateTree.add(b.minX, b.minY, b.maxX, b.maxY);
     }
     candidateTree.finish();
@@ -281,13 +282,14 @@ export async function mergeCoplanarAirspaces(
       for (const polyCoords of mergedPolygons) {
         const polyBBox = computeBBox(polyCoords);
         const matches = candidateTree.search(polyBBox.minX, polyBBox.minY, polyBBox.maxX, polyBBox.maxY);
-        const matchingFeatures = matches.map((idx) => candidateItems[idx]);
-
-        const baseProps = matchingFeatures[0]?.properties ?? candidateItems[0].properties;
-        const flags = matchingFeatures.reduce((acc, f) => acc | (f.properties.flags ?? 0), 0);
+        const baseProps = matches.length > 0 ? candidateItems[matches[0]].properties : candidateItems[0].properties;
+        let flags = 0;
+        for (const idx of matches) {
+          flags |= candidateItems[idx].properties.flags ?? 0;
+        }
 
         let id: number;
-        const origId = matchingFeatures.length === 1 ? Number(matchingFeatures[0].id) : -1;
+        const origId = matches.length === 1 ? Number(candidateItems[matches[0]].id) : -1;
         if (origId > 0 && !emittedIds.has(origId)) {
           emittedIds.add(origId);
           id = origId;
