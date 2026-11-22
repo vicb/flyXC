@@ -24,6 +24,7 @@ import {
   getAirspaceColorCategory,
   getPixelCoordinates,
   MAX_AIRSPACE_TILE_ZOOM,
+  MERGED_AIRSPACE_ID_MIN,
   pointInPolygonRings,
 } from '@flyxc/common';
 import type { PropertyValues } from 'lit';
@@ -391,7 +392,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         this.meshCache.clear();
         for (const item of this.currentAirspaces) {
           item.meshData = undefined;
-          item.cacheKey = `${item.airspaceKey}|${item.geomKey}|${this.multiplier}`;
+          item.cacheKey = `${item.airspace.id}|${this.multiplier}`;
         }
       }
       if (this.currentAirspaces.length > 0) {
@@ -459,16 +460,23 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
   /**
    * Finds the loaded 3D airspace volume matching a 2D vector-tile airspace at `latLon` for highlighting.
-   * Matches by vertical bounds, color category, and 2D containment rather than `id`, because 3D coplanar
-   * dissolution re-numbers and unions non-reserved features into new 3D IDs.
+   * Unmerged and reserved 3D airspaces share the exact 2D `id` (`< MERGED_AIRSPACE_ID_MIN`) and match directly;
+   * coplanar-merged 3D volumes (`id >= MERGED_AIRSPACE_ID_MIN`) fall back to vertical bounds, color category,
+   * and 2D polygon containment.
    */
   private findMatching3dItem(target: AirspaceTyped, latLon: LatLon): CachedAirspaceItem | undefined {
+    const byId = this.currentAirspaces.find((item) => item.airspace.id === target.id);
+    if (byId) {
+      return byId;
+    }
+
     const targetCategory = getAirspaceColorCategory(target);
     const pad = 0.005;
     let fallback: CachedAirspaceItem | undefined;
     for (const item of this.currentAirspaces) {
       const a = item.airspace;
       if (
+        a.id < MERGED_AIRSPACE_ID_MIN ||
         a.floorM !== target.floorM ||
         a.topM !== target.topM ||
         a.floorRefGnd !== target.floorRefGnd ||
@@ -557,7 +565,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     const mult = this.multiplier > 0 ? this.multiplier : 1;
     const date = getEffectiveAirspaceDate(this.hasTrack, this.timeSec);
     const airspaces: AirspaceTyped[] = [];
-    const seen = new Set<string>();
+    const seen = new Set<number>();
     let popupPoint: { lat: number; lon: number; z?: number } | undefined;
 
     for (const pt of hitPoints) {
@@ -580,9 +588,8 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       if (list.length > 0) {
         popupPoint ??= pt;
         for (const asp of list) {
-          const key = `${asp.name}|${asp.floorLabel}|${asp.topLabel}`;
-          if (!seen.has(key)) {
-            seen.add(key);
+          if (!seen.has(asp.id)) {
+            seen.add(asp.id);
             airspaces.push(asp);
             if (airspaces.length >= 5) {
               break;

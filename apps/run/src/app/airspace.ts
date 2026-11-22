@@ -112,7 +112,7 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
 
     for (let i = 0; i < aspLayer.length; i++) {
       const feature = aspLayer.feature(i);
-      const airspace = applyOverrides(toTypedAirspace(feature.properties as AirspaceString), startDate);
+      const airspace = applyOverrides(toTypedAirspace(feature.properties as AirspaceString, feature.id), startDate);
       const airspaceId = getAirspaceFeatureId(airspace);
       for (const fixIdx of indexes) {
         // Do not check airspaces above the track.

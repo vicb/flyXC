@@ -14,6 +14,7 @@ import {
   ASP_COLOR_PROHIBITED,
   ASP_COLOR_RESTRICTED,
   Class,
+  MERGED_AIRSPACE_ID_MIN,
   RESERVED_AIRSPACE_ID_MAX,
   Type,
 } from '@flyxc/common';
@@ -911,6 +912,7 @@ describe('Airspace3dElement', () => {
     // Clicking an active 3D volume queries 2D tiles, highlights the matching 3D volume, and opens popup.
     hoisted.getAirspaceListMock.mockResolvedValueOnce([
       {
+        id: RESERVED_AIRSPACE_ID_MAX + 1,
         name: 'LOCAL ZONE',
         type: Type.CTR,
         icaoClass: Class.D,
@@ -993,6 +995,7 @@ describe('Airspace3dElement', () => {
     hoisted.getAirspaceListMock
       .mockResolvedValueOnce([
         {
+          id: 501,
           name: 'PARC/RESERVE ECRINS',
           type: Type.LowAltitudeOverflightRestriction,
           icaoClass: Class.SUA,
@@ -1006,6 +1009,7 @@ describe('Airspace3dElement', () => {
       ])
       .mockResolvedValueOnce([
         {
+          id: 501,
           name: 'PARC/RESERVE ECRINS',
           type: Type.LowAltitudeOverflightRestriction,
           icaoClass: Class.SUA,
@@ -1017,6 +1021,7 @@ describe('Airspace3dElement', () => {
           topLabel: '3281ft GND',
         } as any,
         {
+          id: 502,
           name: 'LF-R196A1',
           type: Type.Restricted,
           icaoClass: Class.SUA,
@@ -1108,10 +1113,7 @@ describe('Airspace3dElement', () => {
       isFinal: false,
       items: [
         {
-          airspaceKey: 'PROG TMA',
-          geomKey: '100',
-          footprintKey: '110|100',
-          cacheKey: 'PROG TMA|100|1',
+          cacheKey: '100|1',
           category: common.AirspaceColorCategory.Other,
           airspace: gndAirspace as any,
           polygon: poly,
@@ -1135,10 +1137,7 @@ describe('Airspace3dElement', () => {
       isFinal: true,
       items: [
         {
-          airspaceKey: 'PROG TMA',
-          geomKey: '100',
-          footprintKey: '110|100',
-          cacheKey: 'PROG TMA|100|1',
+          cacheKey: '100|1',
           category: common.AirspaceColorCategory.Other,
           airspace: gndAirspace as any,
           polygon: poly,
@@ -1155,6 +1154,87 @@ describe('Airspace3dElement', () => {
     const fineVertexCount = graphicLOD1.geometry.vertexAttributes.position.length / 3;
 
     expect(fineVertexCount).toBeGreaterThan(initialVertexCount);
+  });
+
+  it('findMatching3dItem matches unmerged items by id and merged items (>= MERGED_AIRSPACE_ID_MIN) by bounds, category, and containment', () => {
+    const unmergedItem = {
+      cacheKey: '250|1',
+      category: common.AirspaceColorCategory.Other,
+      airspace: {
+        id: 250,
+        type: Type.CTR,
+        icaoClass: Class.D,
+        floorM: 0,
+        topM: 1000,
+        floorRefGnd: false,
+        topRefGnd: false,
+      } as any,
+      polygon: {
+        rings: [
+          [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 1],
+            [0, 0],
+          ],
+        ],
+        extent: { xmin: 0, ymin: 0, xmax: 1, ymax: 1 },
+      },
+      footprint: {} as any,
+    };
+    const mergedItem = {
+      cacheKey: `${MERGED_AIRSPACE_ID_MIN}|1`,
+      category: common.AirspaceColorCategory.Restricted,
+      airspace: {
+        id: MERGED_AIRSPACE_ID_MIN,
+        type: Type.Restricted,
+        icaoClass: Class.SUA,
+        floorM: 500,
+        topM: 1500,
+        floorRefGnd: false,
+        topRefGnd: false,
+      } as any,
+      polygon: {
+        rings: [
+          [
+            [5.9, 45.4],
+            [6.1, 45.4],
+            [6.1, 45.6],
+            [5.9, 45.6],
+            [5.9, 45.4],
+          ],
+        ],
+        extent: { xmin: 5.9, ymin: 45.4, xmax: 6.1, ymax: 45.6 },
+      },
+      footprint: {} as any,
+    };
+
+    (element as any).currentAirspaces = [unmergedItem, mergedItem];
+
+    // Direct ID match works even if latLon is outside polygon or bounds differ
+    expect(
+      (element as any).findMatching3dItem(
+        { id: 250, type: Type.CTR, icaoClass: Class.D, floorM: 0, topM: 1000, floorRefGnd: false, topRefGnd: false },
+        { lat: 99, lon: 99 },
+      ),
+    ).toBe(unmergedItem);
+
+    // Merged item (>= MERGED_AIRSPACE_ID_MIN) matches by bounds + category + containment
+    expect(
+      (element as any).findMatching3dItem(
+        {
+          id: 999,
+          type: Type.Restricted,
+          icaoClass: Class.SUA,
+          floorM: 500,
+          topM: 1500,
+          floorRefGnd: false,
+          topRefGnd: false,
+        },
+        { lat: 45.5, lon: 6.0 },
+      ),
+    ).toBe(mergedItem);
   });
 });
 

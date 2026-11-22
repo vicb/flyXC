@@ -49,7 +49,7 @@ async function getTile(x: number, y: number, z: number): Promise<Map<string, Air
   const aspLayer = new VectorTile(new Uint8Array(buffer)).layers.asp;
   for (let i = 0; i < aspLayer.length; i++) {
     const feature = aspLayer.feature(i);
-    const airspace = toTypedAirspace(feature.properties as AirspaceString);
+    const airspace = toTypedAirspace(feature.properties as AirspaceString, feature.id);
     const overrideId =
       AIRSPACE_OVERRIDE_KEY_TO_ID[`${airspace.name}|${airspace.icaoClass}`] ??
       AIRSPACE_OVERRIDE_NAME_TO_ID[airspace.name];

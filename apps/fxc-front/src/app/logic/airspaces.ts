@@ -103,7 +103,7 @@ export async function getAirspaceList({
   const airspaces: AirspaceTyped[] = [];
   for (let i = 0; i < layer.length; i++) {
     const f = layer.feature(i);
-    const airspace = applyOverrides(toTypedAirspace(f.properties as AirspaceString), date);
+    const airspace = applyOverrides(toTypedAirspace(f.properties as AirspaceString, f.id), date);
     if (airspace.floorM > maxFloorAltitude) {
       continue;
     }
@@ -425,7 +425,7 @@ function renderTiles(
     }
 
     for (const f of layer) {
-      const airspace = applyOverrides(toTypedAirspace(f.properties as any), date);
+      const airspace = applyOverrides(toTypedAirspace(f.properties as any, f.id), date);
       const ratio = renderSize / f.extent;
       if (
         f.type === FeatureType.POLYGON &&

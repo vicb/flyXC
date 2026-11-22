@@ -93,6 +93,7 @@ function saveGeoJson(airspaces: Airspace[], outFile: string) {
   const geojsonObj = GeoJSON.parse(airspaces, { Polygon: 'polygon' });
   for (const feature of geojsonObj.features) {
     feature.id = feature.properties.id;
+    delete feature.properties.id;
   }
   writeFileSync(outFile, JSON.stringify(geojsonObj));
 }

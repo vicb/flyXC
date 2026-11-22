@@ -297,9 +297,12 @@ export interface AirspaceFeature {
 
 export type AirspaceString = Record<keyof AirspaceTyped, string>;
 
-export function toTypedAirspace(airspace: Partial<AirspaceString | AirspaceFeatureProperties>): AirspaceTyped {
+export function toTypedAirspace(
+  airspace: Partial<AirspaceString | AirspaceFeatureProperties>,
+  id: number | string | undefined,
+): AirspaceTyped {
   return {
-    id: Number(airspace.id),
+    id: Number(id),
     name: airspace.name ?? '',
     country: airspace.country ?? '',
     type: Number(airspace.type) as Type,
@@ -394,9 +397,7 @@ export function isInFeature(point: Point, feature: Feature, marginPx = 0): boole
       for (let i = 0; i < outer.length - 1; i++) {
         const p1 = outer[i];
         const p2 = outer[i + 1];
-        if (
-          pointToSegmentSquared2D(px, py, getPointX(p1), getPointY(p1), getPointX(p2), getPointY(p2)) <= margin2
-        ) {
+        if (pointToSegmentSquared2D(px, py, getPointX(p1), getPointY(p1), getPointX(p2), getPointY(p2)) <= margin2) {
           return true;
         }
       }
@@ -449,6 +450,12 @@ export function getAirspaceCategory(airspace: AirspaceTyped) {
  * Standard airspaces without overrides are assigned IDs > 100.
  */
 export const RESERVED_AIRSPACE_ID_MAX = 100;
+
+/**
+ * 3D airspaces produced by merging coplanar 2D airspaces receive IDs >= MERGED_AIRSPACE_ID_MIN.
+ * Any 3D airspace with `id < MERGED_AIRSPACE_ID_MIN` preserves its exact 2D airspace `id`.
+ */
+export const MERGED_AIRSPACE_ID_MIN = 1_000_000;
 
 /**
  * Full name and class specifications for airspaces with date/schedule overrides.
@@ -595,9 +602,7 @@ function getAirspaceOverride(id: number, date: Date): Partial<AirspaceTyped> | u
     case 9: {
       // LF-R30C MONT BLANC (JUNE - 15 OCT) (active from June 1 to October 15)
       const isActive = (month >= 6 && month <= 9) || (month === 10 && tzDate.getDate() <= 15);
-      return isActive
-        ? undefined
-        : { type: Type.Other, name: `${AIRSPACE_OVERRIDE_ID_TO_NAME[9]} - INACTIVE` };
+      return isActive ? undefined : { type: Type.Other, name: `${AIRSPACE_OVERRIDE_ID_TO_NAME[9]} - INACTIVE` };
     }
 
     case 10: // TMA CHAMBERY 1

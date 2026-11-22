@@ -57,9 +57,6 @@ export interface AirspaceWorkerRequest {
 }
 
 export interface AirspaceWorkerItem {
-  airspaceKey: string;
-  geomKey: string;
-  footprintKey: string;
   cacheKey: string;
   category: AirspaceColorCategory;
   airspace: AirspaceTyped;
@@ -78,10 +75,6 @@ export interface AirspaceWorkerResponse {
 
 const MAX_TILE_CACHE_SIZE = 128;
 const MAX_FOOTPRINT_CACHE_SIZE = 256;
-
-export function getAirspaceKey(airspace: AirspaceTyped): string {
-  return String(airspace.id);
-}
 
 export function computeRingsExtent(rings: number[][][]): AirspaceExtentLike | undefined {
   return computeBounds(rings);
@@ -140,7 +133,7 @@ export function extentOverlapsBounds(ext: AirspaceExtentLike | undefined, bounds
  */
 export class Airspace3dProcessor {
   private tileCache = new Map<string, Promise<DecodedTileFeature[] | null>>();
-  private footprintCache = new Map<string, { polygon: AirspacePolygonLike; footprint: AirspaceFootprint }>();
+  private footprintCache = new Map<number, { polygon: AirspacePolygonLike; footprint: AirspaceFootprint }>();
   private lastRequestId = 0;
   private dbPromise: Promise<IDBPDatabase | null> | null = null;
   private lastDateCheckTime = 0;
@@ -209,7 +202,7 @@ export class Airspace3dProcessor {
   }
 
   private async getFromIdb(
-    key: string,
+    key: number,
   ): Promise<{ polygon: AirspacePolygonLike; footprint: AirspaceFootprint } | null> {
     try {
       const db = await this.getDb();
@@ -224,7 +217,7 @@ export class Airspace3dProcessor {
   }
 
   private async saveToIdb(
-    key: string,
+    key: number,
     value: { polygon: AirspacePolygonLike; footprint: AirspaceFootprint },
   ): Promise<void> {
     try {
@@ -265,7 +258,6 @@ export class Airspace3dProcessor {
       item: AirspaceWorkerItem;
       airspace: AirspaceTyped;
       polygon: AirspacePolygonLike;
-      footprintKey: string;
     }[] = [];
 
     for (const features of decodedTiles) {
@@ -291,18 +283,14 @@ export class Airspace3dProcessor {
           continue;
         }
 
-        const airspaceKey = getAirspaceKey(airspace);
-        const geomKey = String(feat.id);
         const sinkZeroFloor = airspace.floorRefGnd && airspace.floorM === 0;
-        const FOOTPRINT_SCHEMA_VERSION = 'v8';
-        const footprintKey = `${FOOTPRINT_SCHEMA_VERSION}|${airspace.floorRefGnd ? 1 : 0}${airspace.topRefGnd ? 1 : 0}${sinkZeroFloor ? 1 : 0}|${airspace.floorRefGnd ? airspace.floorM : 0}|${airspace.topRefGnd ? airspace.topM : 0}|${geomKey}`;
 
-        let cachedFp = this.footprintCache.get(footprintKey);
+        let cachedFp = this.footprintCache.get(feat.id);
         if (!cachedFp) {
-          const idbRecord = await this.getFromIdb(footprintKey);
+          const idbRecord = await this.getFromIdb(feat.id);
           if (idbRecord) {
             cachedFp = idbRecord;
-            setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, footprintKey, cachedFp);
+            setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, feat.id, cachedFp);
           }
         }
 
@@ -322,19 +310,16 @@ export class Airspace3dProcessor {
               footprint = built;
               if (!isProgressive) {
                 const entry = { polygon, footprint };
-                setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, footprintKey, entry);
-                void this.saveToIdb(footprintKey, entry);
+                setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, feat.id, entry);
+                void this.saveToIdb(feat.id, entry);
               }
             }
           }
 
           if (footprint) {
             const versionPrefix = this.currentVersion ? `${this.currentVersion}|` : '';
-            const cacheKey = `${versionPrefix}${airspaceKey}|${geomKey}|${multiplier}`;
+            const cacheKey = `${versionPrefix}${feat.id}|${multiplier}`;
             const item: AirspaceWorkerItem = {
-              airspaceKey,
-              geomKey,
-              footprintKey,
               cacheKey,
               category: getAirspaceColorCategory(airspace),
               airspace,
@@ -345,7 +330,7 @@ export class Airspace3dProcessor {
             items.push(item);
 
             if (isProgressive) {
-              pendingRefinements.push({ item, airspace, polygon, footprintKey });
+              pendingRefinements.push({ item, airspace, polygon });
             }
           }
         }
@@ -367,8 +352,8 @@ export class Airspace3dProcessor {
             polygon: pending.polygon,
             footprint: fineFootprint,
           };
-          setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, pending.footprintKey, entry);
-          void this.saveToIdb(pending.footprintKey, entry);
+          setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, pending.item.airspace.id, entry);
+          void this.saveToIdb(pending.item.airspace.id, entry);
         }
       }
 
@@ -431,9 +416,8 @@ export class Airspace3dProcessor {
           const geo = feature.toGeoJSON<AirspaceString>(x, y, AIRSPACE_3D_TILE_ZOOM);
           const ringsInfo = geoJsonGeometryToRings(geo.geometry);
           if (ringsInfo && ringsInfo.rings.length > 0 && ringsInfo.extent) {
-            const baseAirspace = toTypedAirspace(feature.properties);
             const id = Number(feature.id);
-            baseAirspace.id = id;
+            const baseAirspace = toTypedAirspace(feature.properties, id);
             features.push({
               id,
               baseAirspace,

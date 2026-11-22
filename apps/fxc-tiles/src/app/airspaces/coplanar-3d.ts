@@ -1,4 +1,4 @@
-import { type AirspaceFeature, RESERVED_AIRSPACE_ID_MAX } from '@flyxc/common';
+import { type AirspaceFeature, MERGED_AIRSPACE_ID_MIN, RESERVED_AIRSPACE_ID_MAX } from '@flyxc/common';
 import Clipper2Z from 'clipper2-wasm';
 import Flatbush from 'flatbush';
 
@@ -158,7 +158,7 @@ function copyCleanProperties(p: AirspaceFeature['properties']): Record<string, a
  */
 export async function mergeCoplanarAirspaces(
   features: AirspaceFeature[],
-  startingId = RESERVED_AIRSPACE_ID_MAX + 1,
+  startingId = MERGED_AIRSPACE_ID_MIN,
 ): Promise<AirspaceFeature[]> {
   const c = await getClipper();
   let nextId = startingId;
@@ -168,7 +168,7 @@ export async function mergeCoplanarAirspaces(
   // Their IDs and boundaries are preserved untouched so seasonal and override rules match exactly.
   const mergeCandidates: AirspaceFeature[] = [];
   for (const f of features) {
-    const fid = Number(f.id ?? f.properties?.id);
+    const fid = Number(f.id);
     if (fid > 0 && fid <= RESERVED_AIRSPACE_ID_MAX) {
       resultFeatures.push({
         type: 'Feature',
@@ -200,7 +200,7 @@ export async function mergeCoplanarAirspaces(
       const f = items[0];
       resultFeatures.push({
         type: 'Feature',
-        id: nextId++,
+        id: Number(f.id),
         properties: copyCleanProperties(f.properties) as any,
         geometry: f.geometry,
       });
@@ -222,12 +222,13 @@ export async function mergeCoplanarAirspaces(
       if (overlaps.length > 1) {
         candidateIndices.add(i);
       } else {
-        // Isolated feature with zero bounding-box overlaps: emit directly
+        // Isolated feature with zero bounding-box overlaps: preserve its original 2D id
+        const f = items[i];
         resultFeatures.push({
           type: 'Feature',
-          id: nextId++,
-          properties: copyCleanProperties(items[i].properties) as any,
-          geometry: items[i].geometry,
+          id: Number(f.id),
+          properties: copyCleanProperties(f.properties) as any,
+          geometry: f.geometry,
         });
       }
     }
@@ -275,6 +276,7 @@ export async function mergeCoplanarAirspaces(
       clipper.ExecutePoly(c.ClipType.Union, c.FillRule.NonZero, polyTree);
 
       const mergedPolygons = extractPolygonsFromPolyTree(c, polyTree, true);
+      const emittedIds = new Set<number>();
 
       for (const polyCoords of mergedPolygons) {
         const polyBBox = computeBBox(polyCoords);
@@ -284,9 +286,18 @@ export async function mergeCoplanarAirspaces(
         const baseProps = matchingFeatures[0]?.properties ?? candidateItems[0].properties;
         const flags = matchingFeatures.reduce((acc, f) => acc | (f.properties.flags ?? 0), 0);
 
+        let id: number;
+        const origId = matchingFeatures.length === 1 ? Number(matchingFeatures[0].id) : -1;
+        if (origId > 0 && !emittedIds.has(origId)) {
+          emittedIds.add(origId);
+          id = origId;
+        } else {
+          id = nextId++;
+        }
+
         resultFeatures.push({
           type: 'Feature',
-          id: nextId++,
+          id,
           properties: {
             icaoClass: baseProps.icaoClass,
             type: baseProps.type,
@@ -306,11 +317,11 @@ export async function mergeCoplanarAirspaces(
 
       polyTree.delete();
     } catch {
-      // Fallback: emit candidate features individually if clipper fails on degenerate input
+      // Fallback: emit candidate features individually with their original 2D IDs
       for (const f of candidateItems) {
         resultFeatures.push({
           type: 'Feature',
-          id: nextId++,
+          id: Number(f.id),
           properties: copyCleanProperties(f.properties) as any,
           geometry: f.geometry,
         });

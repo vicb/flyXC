@@ -6,7 +6,6 @@ import {
   computeRingsExtent,
   extentOverlapsBounds,
   geoJsonGeometryToRings,
-  getAirspaceKey,
 } from './airspace3d-processor';
 
 describe('airspace3d-processor', () => {
@@ -93,16 +92,6 @@ describe('airspace3d-processor', () => {
       expect(extentOverlapsBounds({ xmin: 4.0, ymin: 45.0, xmax: 4.9, ymax: 46.0 }, bounds)).toBe(false);
       expect(extentOverlapsBounds({ xmin: 5.0, ymin: 46.1, xmax: 6.0, ymax: 47.0 }, bounds)).toBe(false);
       expect(extentOverlapsBounds(undefined, bounds)).toBe(true);
-    });
-  });
-
-  describe('getAirspaceKey', () => {
-    it('returns the airspace id as string', () => {
-      const key = getAirspaceKey({
-        id: 12345,
-        name: 'GENEVA TMA',
-      } as any);
-      expect(key).toBe('12345');
     });
   });
 
@@ -265,6 +254,7 @@ describe('airspace3d-processor', () => {
       const featureTile1 = {
         id: 777,
         baseAirspace: {
+          id: 777,
           name: 'CROSS TILE TMA',
           country: 'FR',
           floorM: 1000,
@@ -314,7 +304,8 @@ describe('airspace3d-processor', () => {
       const res = await processor.process(req);
       // Exactly 1 item despite being returned by both tiles
       expect(res.items).toHaveLength(1);
-      expect(res.items[0].geomKey).toBe('777');
+      expect(res.items[0].airspace.id).toBe(777);
+      expect(res.items[0].cacheKey).toBe('777|1');
       expect(res.items[0].airspace.name).toBe('CROSS TILE TMA');
     });
 

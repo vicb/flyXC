@@ -348,9 +348,7 @@ export class Map3dElement extends connect(store)(LitElement) {
         }
       });
       hitPromise.then(({ results }: { results: any[] }) => {
-        const trackHit = results.find(
-          (r) => r.graphic?.attributes?.trackId != null || r.graphic?.attributes?.isPilot,
-        );
+        const trackHit = results.find((r) => r.graphic?.attributes?.trackId != null || r.graphic?.attributes?.isPilot);
         if (trackHit) {
           const graphic = trackHit.graphic;
           msg.clickSceneView.emit(graphic, scene);
@@ -376,10 +374,7 @@ export class Map3dElement extends connect(store)(LitElement) {
           }
           void this.airspace?.handleClick(hitPoints, scene);
         } else if (e.mapPoint) {
-          void this.flatAirspace?.handleClick(
-            { lat: e.mapPoint.latitude ?? 0, lon: e.mapPoint.longitude ?? 0 },
-            scene,
-          );
+          void this.flatAirspace?.handleClick({ lat: e.mapPoint.latitude ?? 0, lon: e.mapPoint.longitude ?? 0 }, scene);
         }
       });
     });
