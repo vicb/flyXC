@@ -89,8 +89,8 @@ describe('airspace3d-processor', () => {
       const finalRes = await processor.process(req, (p) => {
         progressStages.push({
           id: p.id,
-          lod: p.lod,
           isFinal: p.isFinal,
+          isDelta: p.isDelta,
           itemCount: p.items.length,
           triangleCount: p.items[0]?.footprint?.terrainCap?.faces.length
             ? p.items[0].footprint.terrainCap.faces.length / 3
@@ -101,19 +101,116 @@ describe('airspace3d-processor', () => {
       expect(progressStages).toHaveLength(2);
       expect(progressStages[0]).toMatchObject({
         id: 10,
-        lod: 0,
         isFinal: false,
         itemCount: 1,
       });
       expect(progressStages[1]).toMatchObject({
         id: 10,
-        lod: 1,
-        isFinal: true,
+        isDelta: true,
         itemCount: 1,
       });
 
       expect(progressStages[1].triangleCount).toBeGreaterThan(progressStages[0].triangleCount);
-      expect(finalRes.isFinal).toBe(true);
+      expect(finalRes.isDelta).toBe(true);
+    });
+
+    it('emits all items on LOD 0, but sends only refined deltas on LOD 1 when mixed MSL and GND airspaces exist', async () => {
+      const gndFeature = {
+        id: 101,
+        baseAirspace: {
+          name: 'TEST PROGRESSIVE CTR',
+          country: 'FR',
+          floorM: 300,
+          floorLabel: '300m AGL',
+          floorRefGnd: true,
+          topM: 1500,
+          topLabel: '1500m AGL',
+          topRefGnd: true,
+          type: Type.CTR,
+          icaoClass: Class.D,
+          activity: 0,
+        },
+        rings: [
+          [
+            [5.8, 45.1],
+            [6.2, 45.1],
+            [6.2, 45.5],
+            [5.8, 45.5],
+            [5.8, 45.1],
+          ],
+        ],
+        extent: { xmin: 5.8, ymin: 45.1, xmax: 6.2, ymax: 45.5 },
+      };
+
+      const mslFeature = {
+        id: 102,
+        baseAirspace: {
+          name: 'TEST MSL CTR',
+          country: 'FR',
+          floorM: 500,
+          floorLabel: '500m MSL',
+          floorRefGnd: false,
+          topM: 2000,
+          topLabel: '2000m MSL',
+          topRefGnd: false,
+          type: Type.CTR,
+          icaoClass: Class.D,
+          activity: 0,
+        },
+        rings: [
+          [
+            [5.8, 45.1],
+            [6.0, 45.1],
+            [6.0, 45.3],
+            [5.8, 45.3],
+            [5.8, 45.1],
+          ],
+        ],
+        extent: { xmin: 5.8, ymin: 45.1, xmax: 6.0, ymax: 45.3 },
+      };
+
+      (processor as any).fetchDecodedTile = vi.fn().mockResolvedValue([gndFeature, mslFeature]);
+
+      const progressStages: any[] = [];
+      const req = {
+        id: 12,
+        tiles: [{ x: 33, y: 22, z: 6 }],
+        bounds: { minLon: 5, minLat: 45, maxLon: 7, maxLat: 46 },
+        maxAltitude: 3000,
+        showClasses: [Class.D],
+        showTypes: [Type.CTR],
+        dateMs: Date.now(),
+        tileServer: 'cloud' as const,
+      };
+
+      const finalRes = await processor.process(req, (p) => {
+        progressStages.push({
+          id: p.id,
+          isFinal: p.isFinal,
+          isDelta: p.isDelta,
+          itemCount: p.items.length,
+          itemIds: p.items.map((i) => i.airspace.id),
+        });
+      });
+
+      expect(progressStages).toHaveLength(2);
+      // LOD 0: initial render has BOTH airspaces (coarse GND + MSL)
+      expect(progressStages[0]).toMatchObject({
+        id: 12,
+        isFinal: false,
+        itemCount: 2,
+        itemIds: [101, 102],
+      });
+      // LOD 1: delta refinement contains ONLY the ground-referenced airspace (item 101)
+      expect(progressStages[1]).toMatchObject({
+        id: 12,
+        isDelta: true,
+        itemCount: 1,
+        itemIds: [101],
+      });
+      expect(finalRes.isDelta).toBe(true);
+      expect(finalRes.items).toHaveLength(1);
+      expect(finalRes.items[0].airspace.id).toBe(101);
     });
 
     it('emits single final response when all airspaces are flat MSL', async () => {
@@ -163,8 +260,8 @@ describe('airspace3d-processor', () => {
       });
 
       expect(progressStages).toHaveLength(1);
-      expect(progressStages[0].lod).toBe(1);
-      expect(progressStages[0].isFinal).toBe(true);
+      expect(progressStages[0].isFinal ?? true).toBe(true);
+      expect(progressStages[0].isDelta).toBeUndefined();
     });
 
     it('deduplicates features across multiple Zoom 6 tiles by feature id without union', async () => {

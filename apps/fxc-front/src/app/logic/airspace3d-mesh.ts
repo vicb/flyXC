@@ -66,6 +66,7 @@ export interface AirspaceFootprint {
   wallRings: number[][][];
   flatCap?: Triangulated2D;
   terrainCap?: Triangulated2D;
+  /** Level of detail: 0 = coarse, 1 = fine (default: 1). */
   lod?: number;
 }
 
@@ -73,7 +74,9 @@ export interface AirspaceFootprint {
  * Options for footprint generation, supporting progressive refinement.
  */
 export interface BuildFootprintOptions {
+  /** If true, uses coarser Steiner grid spacing for fast first-pass rendering (default: false). */
   coarse?: boolean;
+  /** Maximum edge length in meters for cap triangulation (default: computed from AGL clearance). */
   maxEdgeM?: number;
 }
 

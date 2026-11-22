@@ -732,22 +732,31 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       return;
     }
 
-    const currentAirspaces = response.items as CachedAirspaceItem[];
-    for (const item of currentAirspaces) {
-      const cached = this.meshCache.get(item.airspace.id);
-      const targetLod = item.footprint?.lod ?? item.lod ?? 1;
-      const lodMatches = cached?.meshLod === targetLod;
-      if (lodMatches && cached) {
-        item.meshData = cached.meshData;
-        item.groundSignature = cached.groundSignature;
-        item.meshLod = cached.meshLod;
-      } else {
-        item.meshData = undefined;
-        item.groundSignature = undefined;
-        item.meshLod = undefined;
+    if (response.isDelta) {
+      const deltaMap = new globalThis.Map(response.items.map((item) => [item.airspace.id, item]));
+      for (const item of this.currentAirspaces) {
+        const delta = deltaMap.get(item.airspace.id);
+        if (delta) {
+          item.footprint = delta.footprint;
+          item.meshData = undefined;
+          item.groundSignature = undefined;
+          item.meshLod = undefined;
+        }
       }
+    } else {
+      const currentAirspaces = response.items as CachedAirspaceItem[];
+      for (const item of currentAirspaces) {
+        const cached = this.meshCache.get(item.airspace.id);
+        const targetLod = item.footprint?.lod ?? 1;
+        if (cached && cached.meshLod === targetLod) {
+          item.meshData = cached.meshData;
+          item.groundSignature = cached.groundSignature;
+          item.meshLod = cached.meshLod;
+        }
+      }
+      this.currentAirspaces = currentAirspaces;
     }
-    this.currentAirspaces = currentAirspaces;
+
     this.rebuildMeshes(false);
   }
 
@@ -861,7 +870,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       }
 
       const sig = isGroundRef ? computeGroundSignature(item.polygon, sampleGroundZ) : undefined;
-      const targetLod = item.footprint.lod ?? item.lod ?? 1;
+      const targetLod = item.footprint.lod ?? 1;
       if (item.meshData != null && item.meshLod === targetLod && (!isGroundRef || item.groundSignature === sig)) {
         continue;
       }

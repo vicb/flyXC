@@ -1134,7 +1134,6 @@ describe('Airspace3dElement', () => {
 
     const coarseResponse = {
       id: gen,
-      lod: 0,
       isFinal: false,
       items: [
         {
@@ -1142,7 +1141,6 @@ describe('Airspace3dElement', () => {
           airspace: gndAirspace as any,
           polygon: poly,
           footprint: coarseFp!,
-          lod: 0,
         },
       ],
     };
@@ -1157,15 +1155,13 @@ describe('Airspace3dElement', () => {
     // Apply LOD 1 response (Fine Refinement)
     const fineResponse = {
       id: gen,
-      lod: 1,
-      isFinal: true,
+      isDelta: true,
       items: [
         {
           category: common.AirspaceColorCategory.Other,
           airspace: gndAirspace as any,
           polygon: poly,
           footprint: fineFp!,
-          lod: 1,
         },
       ],
     };
@@ -1177,6 +1173,115 @@ describe('Airspace3dElement', () => {
     const fineVertexCount = graphicLOD1.geometry.vertexAttributes.position.length / 3;
 
     expect(fineVertexCount).toBeGreaterThan(initialVertexCount);
+  });
+
+  it('merges LOD 1 delta responses by airspace id without losing unrefined airspaces', () => {
+    element.map = mockMap;
+    (element as any).showAirspace = true;
+    const gndAirspace = {
+      id: 201,
+      name: 'GND CTR',
+      type: Type.CTR,
+      icaoClass: Class.D,
+      floorM: 0,
+      topM: 1000,
+      floorRefGnd: true,
+      topRefGnd: true,
+    };
+    const mslAirspace = {
+      id: 202,
+      name: 'MSL CTR',
+      type: Type.CTR,
+      icaoClass: Class.D,
+      floorM: 500,
+      topM: 2000,
+      floorRefGnd: false,
+      topRefGnd: false,
+    };
+    const poly1 = {
+      rings: [
+        [
+          [6.0, 45.0],
+          [6.2, 45.0],
+          [6.2, 45.2],
+          [6.0, 45.2],
+          [6.0, 45.0],
+        ],
+      ],
+      extent: { xmin: 6.0, ymin: 45.0, xmax: 6.2, ymax: 45.2 },
+    };
+    const poly2 = {
+      rings: [
+        [
+          [6.3, 45.0],
+          [6.5, 45.0],
+          [6.5, 45.2],
+          [6.3, 45.2],
+          [6.3, 45.0],
+        ],
+      ],
+      extent: { xmin: 6.3, ymin: 45.0, xmax: 6.5, ymax: 45.2 },
+    };
+
+    const coarseFp = meshModule.buildAirspaceFootprint(poly1, gndAirspace, { coarse: true });
+    const fineFp = meshModule.buildAirspaceFootprint(poly1, gndAirspace, { coarse: false });
+    const mslFp = meshModule.buildAirspaceFootprint(poly2, mslAirspace, { coarse: false });
+
+    const gen = ((element as any).buildGeneration = 101);
+
+    // Initial LOD 0 has both airspaces
+    const coarseResponse = {
+      id: gen,
+      isFinal: false,
+      items: [
+        {
+          category: common.AirspaceColorCategory.Other,
+          airspace: gndAirspace as any,
+          polygon: poly1,
+          footprint: coarseFp!,
+        },
+        {
+          category: common.AirspaceColorCategory.Other,
+          airspace: mslAirspace as any,
+          polygon: poly2,
+          footprint: mslFp!,
+        },
+      ],
+    };
+
+    (element as any).applyWorkerResponse(coarseResponse);
+    expect((element as any).currentAirspaces).toHaveLength(2);
+    expect((element as any).currentAirspaces[0].footprint.lod).toBe(0);
+    expect((element as any).currentAirspaces[1].footprint.lod).toBe(1);
+
+    // Delta LOD 1 sends ONLY the refined ground airspace
+    const deltaResponse = {
+      id: gen,
+      isDelta: true,
+      items: [
+        {
+          category: common.AirspaceColorCategory.Other,
+          airspace: gndAirspace as any,
+          polygon: poly1,
+          footprint: fineFp!,
+        },
+      ],
+    };
+
+    (element as any).applyWorkerResponse(deltaResponse);
+
+    // Both airspaces must still be present in currentAirspaces
+    expect((element as any).currentAirspaces).toHaveLength(2);
+    const updatedGnd = (element as any).currentAirspaces.find((i: any) => i.airspace.id === 201);
+    const preservedMsl = (element as any).currentAirspaces.find((i: any) => i.airspace.id === 202);
+
+    expect(updatedGnd).toBeDefined();
+    expect(updatedGnd.footprint.lod).toBe(1);
+    expect(updatedGnd.footprint).toBe(fineFp);
+
+    expect(preservedMsl).toBeDefined();
+    expect(preservedMsl.footprint.lod).toBe(1);
+    expect(preservedMsl.footprint).toBe(mslFp);
   });
 
   it('findMatching3dItem matches unmerged items by id and merged items (>= MERGED_AIRSPACE_ID_MIN) by bounds, category, and containment', () => {

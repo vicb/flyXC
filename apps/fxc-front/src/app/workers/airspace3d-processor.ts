@@ -56,14 +56,15 @@ export interface AirspaceWorkerItem {
   airspace: AirspaceTyped;
   polygon: AirspacePolygonLike;
   footprint: AirspaceFootprint;
-  lod?: number;
 }
 
 export interface AirspaceWorkerResponse {
   id: number;
   items: AirspaceWorkerItem[];
-  lod?: number;
+  /** Whether processing for this request ID is fully complete (default: true). */
   isFinal?: boolean;
+  /** Whether items are deltas to merge into existing items rather than replacing them (default: false). */
+  isDelta?: boolean;
   error?: string;
 }
 
@@ -241,6 +242,7 @@ export class Airspace3dProcessor {
         seenIds.add(feat.id);
 
         const airspace = applyOverrides(feat.baseAirspace, date);
+        airspace.id ??= feat.id;
         if (
           airspace.floorM > maxAltitude ||
           !isAirspaceVisible(airspace.icaoClass, showClasses, airspace.type, showTypes) ||
@@ -289,7 +291,6 @@ export class Airspace3dProcessor {
               airspace,
               polygon,
               footprint,
-              lod: footprint.lod ?? 1,
             };
             items.push(item);
 
@@ -302,8 +303,9 @@ export class Airspace3dProcessor {
     }
 
     if (onProgress && pendingRefinements.length > 0) {
-      onProgress({ id: requestId, items: [...items], lod: 0, isFinal: false });
+      onProgress({ id: requestId, items: [...items], isFinal: false });
 
+      const refinedItems: AirspaceWorkerItem[] = [];
       for (const pending of pendingRefinements) {
         if (requestId < this.lastRequestId) {
           return { id: requestId, items: [] };
@@ -311,13 +313,13 @@ export class Airspace3dProcessor {
         const fineFootprint = buildAirspaceFootprint(pending.polygon, pending.airspace, { coarse: false });
         if (fineFootprint) {
           pending.item.footprint = fineFootprint;
-          pending.item.lod = 1;
           const entry = {
             polygon: pending.polygon,
             footprint: fineFootprint,
           };
           setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, pending.item.airspace.id, entry);
           void this.saveToIdb(pending.item.airspace.id, entry);
+          refinedItems.push(pending.item);
         }
       }
 
@@ -325,12 +327,16 @@ export class Airspace3dProcessor {
         return { id: requestId, items: [] };
       }
 
-      const finalResponse: AirspaceWorkerResponse = { id: requestId, items, lod: 1, isFinal: true };
+      const finalResponse: AirspaceWorkerResponse = {
+        id: requestId,
+        items: refinedItems,
+        isDelta: true,
+      };
       onProgress(finalResponse);
       return finalResponse;
     }
 
-    const singleResponse: AirspaceWorkerResponse = { id: requestId, items, lod: 1, isFinal: true };
+    const singleResponse: AirspaceWorkerResponse = { id: requestId, items };
     onProgress?.(singleResponse);
     return singleResponse;
   }
