@@ -2,7 +2,13 @@ import Mesh from '@arcgis/core/geometry/Mesh';
 import MeshGeoreferencedVertexSpace from '@arcgis/core/geometry/support/MeshGeoreferencedVertexSpace';
 // @ts-expect-error Internal ArcGIS 2D earcut tessellation utilities without type declarations
 import * as tess from '@arcgis/core/views/3d/layers/graphics/tessellationUtils.js';
-import { type AirspaceTyped, densifyPolyline, pointInPolygonRings, pointToSegmentSquared2D } from '@flyxc/common';
+import {
+  type AirspaceTyped,
+  type Bounds2D,
+  densifyPolyline,
+  pointInPolygonRings,
+  pointToSegmentSquared2D,
+} from '@flyxc/common';
 import { Delaunay } from 'd3-delaunay';
 
 const METERS_PER_DEGREE_LAT = 111_320;
@@ -16,21 +22,11 @@ const GND_BASE_SINK_M = 250;
 export type GroundSampler = (lon: number, lat: number) => number;
 
 /**
- * Lightweight 2D geographic bounding box compatible with ArcGIS Extent and plain objects.
- */
-export interface AirspaceExtentLike {
-  xmin: number;
-  ymin: number;
-  xmax: number;
-  ymax: number;
-}
-
-/**
  * Lightweight 2D polygon shape compatible with ArcGIS Polygon and raw decoded GeoJSON rings.
  */
 export interface AirspacePolygonLike {
   rings: number[][][];
-  extent?: AirspaceExtentLike | null;
+  extent?: Bounds2D | null;
 }
 
 /**
@@ -81,7 +77,7 @@ export interface BuildFootprintOptions {
   maxEdgeM?: number;
 }
 
-function estimateExtentMeters(extent: AirspaceExtentLike): { widthM: number; heightM: number } {
+function estimateExtentMeters(extent: Bounds2D): { widthM: number; heightM: number } {
   const midLat = (extent.ymin + extent.ymax) / 2;
   const cosLat = Math.max(0.1, Math.cos((midLat * Math.PI) / 180));
   return {
@@ -148,11 +144,7 @@ const sharedMeshMaterial = {
  * artifacts. Injecting a regular interior Steiner grid produces uniform, well-conditioned
  * triangles that smoothly drape across complex 3D topography.
  */
-export function triangulateCapWithGrid2D(
-  rings: number[][][],
-  extent: AirspaceExtentLike,
-  targetGridM = 2000,
-): Triangulated2D {
+export function triangulateCapWithGrid2D(rings: number[][][], extent: Bounds2D, targetGridM = 2000): Triangulated2D {
   if (rings.length === 0) {
     return { xy: new Float64Array(0), faces: new Uint32Array(0) };
   }

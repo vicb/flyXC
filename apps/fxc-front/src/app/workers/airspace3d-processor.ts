@@ -5,6 +5,7 @@ import {
   type AirspaceString,
   type AirspaceTyped,
   applyOverrides,
+  type Bounds2D,
   type Class,
   computeBounds,
   getAirspace3dTileUrl,
@@ -17,12 +18,7 @@ import {
 import { type IDBPDatabase, openDB } from 'idb';
 import { FeatureType, VectorTile } from 'mapbox-vector-tile';
 
-import {
-  type AirspaceExtentLike,
-  type AirspaceFootprint,
-  type AirspacePolygonLike,
-  buildAirspaceFootprint,
-} from '../logic/airspace3d-mesh';
+import { type AirspaceFootprint, type AirspacePolygonLike, buildAirspaceFootprint } from '../logic/airspace3d-mesh';
 
 export interface TileCoord {
   x: number;
@@ -41,7 +37,7 @@ export interface DecodedTileFeature {
   id: number;
   baseAirspace: AirspaceTyped;
   rings: number[][][];
-  extent?: AirspaceExtentLike;
+  extent?: Bounds2D;
 }
 
 export interface AirspaceWorkerRequest {
@@ -74,17 +70,15 @@ export interface AirspaceWorkerResponse {
 const MAX_TILE_CACHE_SIZE = 128;
 const MAX_FOOTPRINT_CACHE_SIZE = 256;
 
-export function computeRingsExtent(rings: number[][][]): AirspaceExtentLike | undefined {
-  return computeBounds(rings);
-}
+export const computeRingsExtent = computeBounds;
 
 export function geoJsonGeometryToRings(geometry: {
   type: string;
   coordinates: any;
-}): { rings: number[][][]; extent?: AirspaceExtentLike } | undefined {
+}): { rings: number[][][]; extent?: Bounds2D } | undefined {
   if (geometry.type === 'Polygon') {
     const rings = geometry.coordinates as number[][][];
-    const extent = computeRingsExtent(rings);
+    const extent = computeBounds(rings);
     return extent ? { rings, extent } : undefined;
   }
   if (geometry.type === 'MultiPolygon') {
@@ -93,13 +87,13 @@ export function geoJsonGeometryToRings(geometry: {
     for (const poly of coords) {
       rings.push(...poly);
     }
-    const extent = computeRingsExtent(rings);
+    const extent = computeBounds(rings);
     return extent ? { rings, extent } : undefined;
   }
   return undefined;
 }
 
-export function extentOverlapsBounds(ext: AirspaceExtentLike | undefined, bounds: GeoBounds): boolean {
+export function extentOverlapsBounds(ext: Bounds2D | undefined, bounds: GeoBounds): boolean {
   if (!ext) {
     return true;
   }

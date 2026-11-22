@@ -21,6 +21,7 @@ import {
   AIRSPACE_TILE_SIZE,
   AirspaceColorCategory,
   ASP_CATEGORY_COLOR,
+  clamp,
   getAirspaceColorCategory,
   getPixelCoordinates,
   MAX_AIRSPACE_TILE_ZOOM,
@@ -213,7 +214,6 @@ export function getVisibleTileCoverage(view: SceneView): VisibleTileCoverage {
   const centerLat = center.latitude ?? (minLat + maxLat) / 2;
   const maxHalfLon = Math.max(2.5, (maxLon - minLon) * 1.5);
   const maxHalfLat = Math.max(2.0, (maxLat - minLat) * 1.5);
-  const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
 
   // Expand extent with SceneView.visibleArea so tilted frustum side/bottom/far borders are covered.
   const visibleGeoExtent = toGeoExtent(view.visibleArea?.extent);

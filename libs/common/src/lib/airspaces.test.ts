@@ -9,7 +9,6 @@ import {
   AIRSPACE_3D_TILE_ZOOM,
   AIRSPACE_OVERRIDE_ID_TO_NAME,
   AIRSPACE_OVERRIDE_KEY_TO_ID,
-  AIRSPACE_OVERRIDE_NAME_TO_ID,
   type AirspaceString,
   type AirspaceTyped,
   applyOverrides,
@@ -50,13 +49,13 @@ async function getTile(x: number, y: number, z: number): Promise<Map<string, Air
   for (let i = 0; i < aspLayer.length; i++) {
     const feature = aspLayer.feature(i);
     const airspace = toTypedAirspace(feature.properties as AirspaceString, feature.id);
-    const overrideId =
-      AIRSPACE_OVERRIDE_KEY_TO_ID[`${airspace.name}|${airspace.icaoClass}`] ??
-      AIRSPACE_OVERRIDE_NAME_TO_ID[airspace.name];
+    const overrideId = AIRSPACE_OVERRIDE_KEY_TO_ID[`${airspace.name}|${airspace.icaoClass}`];
     if (overrideId != null) {
       airspace.id = overrideId;
+      airspaces.set(airspace.name, airspace);
+    } else if (!airspaces.has(airspace.name)) {
+      airspaces.set(airspace.name, airspace);
     }
-    airspaces.set(airspace.name, airspace);
   }
 
   return airspaces;
@@ -283,6 +282,9 @@ describe('Airspace overrides', () => {
     it('correctly maps feature tile extent and handles holes', () => {
       const feature = {
         extent: 4096,
+        bbox() {
+          return [0, 0, 4096, 4096];
+        },
         asPolygons() {
           return [
             [
@@ -352,7 +354,7 @@ describe('Airspace overrides', () => {
   });
 
   describe('Reserved Override IDs', () => {
-    it('provides a bidirectional mapping covering all override airspaces', () => {
+    it('provides an ID mapping covering all override airspaces', () => {
       const overrideNames = Object.values(AIRSPACE_OVERRIDE_ID_TO_NAME);
       expect(Object.keys(AIRSPACE_OVERRIDE_ID_TO_NAME)).toHaveLength(overrideNames.length);
       for (const [idStr, name] of Object.entries(AIRSPACE_OVERRIDE_ID_TO_NAME)) {
@@ -360,7 +362,6 @@ describe('Airspace overrides', () => {
         expect(id).toBeGreaterThan(0);
         expect(id).toBeLessThanOrEqual(RESERVED_AIRSPACE_ID_MAX);
         expect(overrideNames).toContain(name);
-        expect(AIRSPACE_OVERRIDE_NAME_TO_ID[name]).toBe(id);
       }
     });
 

@@ -273,7 +273,6 @@ export interface AirspaceFeatureProperties {
   floorRefGnd: boolean;
   topRefGnd: boolean;
   flags?: Flags | number;
-  id?: number;
   name?: string;
   country?: string;
   activity?: Activity | number;
@@ -379,11 +378,9 @@ export function isInFeature(point: Point, feature: Feature, marginPx = 0): boole
   const margin = marginPx > 0 ? marginPx / ratio : 0;
 
   // Fast bounding-box check (O(1), cached on feature)
-  if (typeof feature.bbox === 'function') {
-    const [minX, minY, maxX, maxY] = feature.bbox();
-    if (px < minX - margin || px > maxX + margin || py < minY - margin || py > maxY + margin) {
-      return false;
-    }
+  const [minX, minY, maxX, maxY] = feature.bbox();
+  if (px < minX - margin || px > maxX + margin || py < minY - margin || py > maxY + margin) {
+    return false;
   }
 
   const polygons = feature.asPolygons() ?? [];
@@ -516,17 +513,12 @@ export const AIRSPACE_OVERRIDE_KEY_TO_ID: Record<string, number> = Object.fromEn
   AIRSPACE_OVERRIDE_TARGETS.map((t) => [`${t.name}|${t.icaoClass}`, t.id]),
 );
 
-export const AIRSPACE_OVERRIDE_NAME_TO_ID: Record<string, number> = Object.fromEntries(
-  AIRSPACE_OVERRIDE_TARGETS.map((t) => [t.name, t.id]),
-);
-
 /**
  * Returns the date-resolved overrides for all overridable airspaces.
  */
 export function getAirspaceOverrides(date: Date): Map<number, Partial<AirspaceTyped>> {
   const overrides = new Map<number, Partial<AirspaceTyped>>();
-  for (const idStr of Object.keys(AIRSPACE_OVERRIDE_ID_TO_NAME)) {
-    const id = Number(idStr);
+  for (const { id } of AIRSPACE_OVERRIDE_TARGETS) {
     const override = getAirspaceOverride(id, date);
     if (override) {
       overrides.set(id, override);

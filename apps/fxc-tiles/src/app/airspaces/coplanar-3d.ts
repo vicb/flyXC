@@ -78,14 +78,6 @@ function pathToCoords(c: any, path: any): [number, number][] {
  */
 export const MIN_RING_AREA_DEG2 = 1e-5;
 
-export function computeRingAreaDeg2(coords: [number, number][]): number {
-  let area = 0;
-  for (let i = 0; i < coords.length - 1; i++) {
-    area += (coords[i + 1][0] - coords[i][0]) * (coords[i + 1][1] + coords[i][1]);
-  }
-  return Math.abs(area) * 0.5;
-}
-
 /**
  * Recursively extracts exterior and interior rings from Clipper2 PolyPathD tree.
  *
