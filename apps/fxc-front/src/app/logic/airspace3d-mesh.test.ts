@@ -1,17 +1,35 @@
-import Polygon from '@arcgis/core/geometry/Polygon';
 import type { AirspaceTyped } from '@flyxc/common';
 import { Class, Type } from '@flyxc/common';
 import { describe, expect, it, vi } from 'vitest';
 
+import type { AirspacePolygonLike, FlatRings } from './airspace3d-mesh';
 import {
   buildAirspaceFootprint,
   buildAirspaceMesh,
   computeTargetGridM,
   extrudeAirspaceFootprint,
-  flattenRings,
   mergeContourPaths,
   triangulateCapWithGrid2D,
 } from './airspace3d-mesh';
+
+function flattenRings(rings: number[][][]): FlatRings {
+  let totalCoords = 0;
+  for (const ring of rings) {
+    totalCoords += ring.length * 2;
+  }
+  const coords = new Float64Array(totalCoords);
+  const ends = new Uint32Array(rings.length);
+  let offset = 0;
+  for (let r = 0; r < rings.length; r++) {
+    const ring = rings[r];
+    for (let i = 0; i < ring.length; i++) {
+      coords[offset++] = ring[i][0];
+      coords[offset++] = ring[i][1];
+    }
+    ends[r] = offset;
+  }
+  return { coords, ends };
+}
 
 function makeAirspace(overrides: Partial<AirspaceTyped> = {}): AirspaceTyped {
   return {
@@ -31,19 +49,26 @@ function makeAirspace(overrides: Partial<AirspaceTyped> = {}): AirspaceTyped {
   };
 }
 
-function makeSquarePolygon(minLon: number, minLat: number, sizeDeg: number): Polygon {
-  return new Polygon({
-    rings: [
-      [
-        [minLon, minLat],
-        [minLon + sizeDeg, minLat],
-        [minLon + sizeDeg, minLat + sizeDeg],
-        [minLon, minLat + sizeDeg],
-        [minLon, minLat],
-      ],
+function makeSquarePolygon(minLon: number, minLat: number, sizeDeg: number): AirspacePolygonLike {
+  const flat = flattenRings([
+    [
+      [minLon, minLat],
+      [minLon + sizeDeg, minLat],
+      [minLon + sizeDeg, minLat + sizeDeg],
+      [minLon, minLat + sizeDeg],
+      [minLon, minLat],
     ],
-    spatialReference: { wkid: 4326 },
-  });
+  ]);
+  return {
+    coords: flat.coords,
+    ends: flat.ends,
+    extent: {
+      xmin: minLon,
+      ymin: minLat,
+      xmax: minLon + sizeDeg,
+      ymax: minLat + sizeDeg,
+    },
+  };
 }
 
 function getZs(positions: ArrayLike<number>): number[] {
@@ -67,7 +92,10 @@ function assertValidMeshIndices(positions: ArrayLike<number>, faces: ArrayLike<n
 
 describe('buildAirspaceMesh', () => {
   it('returns null for an empty polygon', async () => {
-    const empty = new Polygon({ rings: [], spatialReference: { wkid: 4326 } });
+    const empty: AirspacePolygonLike = {
+      coords: new Float64Array(0),
+      ends: new Uint32Array(0),
+    };
     const mesh = await buildAirspaceMesh({
       polygon: empty,
       airspace: makeAirspace(),
@@ -237,29 +265,31 @@ describe('buildAirspaceMesh', () => {
 
   it('subdivides concave and holed GND polygons cleanly with typed arrays and preserves holes', async () => {
     // 6.6km C-shaped polygon with an interior hole.
-    const concaveWithHole = new Polygon({
-      rings: [
-        [
-          [6.0, 45.0],
-          [6.06, 45.0],
-          [6.06, 45.06],
-          [6.04, 45.06],
-          [6.04, 45.045],
-          [6.02, 45.045],
-          [6.02, 45.06],
-          [6.0, 45.06],
-          [6.0, 45.0],
-        ],
-        [
-          [6.02, 45.01],
-          [6.02, 45.03],
-          [6.04, 45.03],
-          [6.04, 45.01],
-          [6.02, 45.01],
-        ],
+    const concaveFlat = flattenRings([
+      [
+        [6.0, 45.0],
+        [6.06, 45.0],
+        [6.06, 45.06],
+        [6.04, 45.06],
+        [6.04, 45.045],
+        [6.02, 45.045],
+        [6.02, 45.06],
+        [6.0, 45.06],
+        [6.0, 45.0],
       ],
-      spatialReference: { wkid: 4326 },
-    });
+      [
+        [6.02, 45.01],
+        [6.02, 45.03],
+        [6.04, 45.03],
+        [6.04, 45.01],
+        [6.02, 45.01],
+      ],
+    ]);
+    const concaveWithHole: AirspacePolygonLike = {
+      coords: concaveFlat.coords,
+      ends: concaveFlat.ends,
+      extent: { xmin: 6.0, ymin: 45.0, xmax: 6.06, ymax: 45.06 },
+    };
     const airspace = makeAirspace({
       floorM: 200,
       floorRefGnd: true,
@@ -315,7 +345,7 @@ describe('buildAirspaceMesh', () => {
       ymax: centerLat + radiusDeg,
     };
 
-    const tri = triangulateCapWithGrid2D([ring], extent, 2000);
+    const tri = triangulateCapWithGrid2D(flattenRings([ring]), extent, 2000);
     expect(tri.xy.length / 2).toBeGreaterThan(N); // Must contain interior Steiner points
     expect(tri.faces.length).toBeGreaterThan(0);
 
@@ -346,7 +376,7 @@ describe('buildAirspaceMesh', () => {
       xmax: 5.889,
       ymax: 45.015,
     };
-    const tri = triangulateCapWithGrid2D([ring], extent, 2000);
+    const tri = triangulateCapWithGrid2D(flattenRings([ring]), extent, 2000);
     expect(tri.faces.length).toBeGreaterThan(0);
 
     const edgeSet = new Set<string>();
@@ -437,7 +467,7 @@ describe('buildAirspaceMesh', () => {
 
     const [topPath, floorPath] = meshData!.contourPaths!;
     // Both paths must trace the perimeter vertices and be closed loops
-    const wallVerts = footprint!.wallRings.ringOffsets[1] / 2;
+    const wallVerts = footprint!.wallRings.ends[0] / 2;
     expect(topPath.length).toBe(wallVerts);
     expect(floorPath.length).toBe(wallVerts);
     // Closed loop
@@ -526,7 +556,7 @@ describe('buildAirspaceMesh', () => {
       assertValidMeshIndices(meshData.positions, meshData.faces);
 
       // Ridge refinement must have subdivided triangles beyond the initial coarse grid
-      const wallRingVerts = footprint!.wallRings.ringOffsets[1] / 2;
+      const wallRingVerts = footprint!.wallRings.ends[0] / 2;
       const wallFaceCount = (wallRingVerts - 1) * 2;
       const capFaceCount = (meshData.faces.length - wallFaceCount * 3) / 6;
       expect(capFaceCount).toBeGreaterThan(baseFaceCount);

@@ -1,5 +1,4 @@
 import { METERS_PER_DEG_LAT } from './distance';
-import type { Point } from './runtime-track';
 
 /**
  * 2D bounding box representing minimum and maximum coordinates.
@@ -10,9 +9,6 @@ export interface Bounds2D {
   xmax: number;
   ymax: number;
 }
-
-export type PolygonPoint = Point | [number, number] | readonly number[] | number[];
-export type PolygonRing = ReadonlyArray<PolygonPoint>;
 
 /**
  * Computes the squared Euclidean distance from a 2D point (px, py) to a line segment (x1, y1)-(x2, y2).
@@ -49,186 +45,224 @@ export function pointToSegmentSquared2D(
 }
 
 /**
- * Computes the intersection of two 2D line segments: (x1, y1)-(x2, y2) and (x3, y3)-(x4, y4).
+ * Tests whether a point (x, y) is inside a flat polygon with outer boundary and holes.
  *
- * If the two segments intersect, returns the parametric scalar `t` along the first segment
- * `(x1, y1) + t * (x2 - x1, y2 - y1)` where `0 <= t <= 1`.
- * Returns `null` if the segments are parallel, collinear, or do not intersect within their bounds.
- *
- * @param x1 - X coordinate of first segment start point.
- * @param y1 - Y coordinate of first segment start point.
- * @param x2 - X coordinate of first segment end point.
- * @param y2 - Y coordinate of first segment end point.
- * @param x3 - X coordinate of second segment start point.
- * @param y3 - Y coordinate of second segment start point.
- * @param x4 - X coordinate of second segment end point.
- * @param y4 - Y coordinate of second segment end point.
- * @returns Parametric distance `t` in [0, 1] along the first segment if an intersection occurs, or `null`.
+ * @param x - X coordinate / longitude.
+ * @param y - Y coordinate / latitude.
+ * @param coords - Contiguous coordinates [x0, y0, x1, y1, ...].
+ * @param ends - End index offsets marking each ring in `coords`.
  */
-export function segmentIntersection(
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number,
-  x3: number,
-  y3: number,
-  x4: number,
-  y4: number,
-): number | null {
-  const dx1 = x2 - x1;
-  const dy1 = y2 - y1;
-  const dx2 = x4 - x3;
-  const dy2 = y4 - y3;
-  const denom = dx1 * dy2 - dy1 * dx2;
-  if (Math.abs(denom) < 1e-12) {
-    return null;
+export function pointInFlatPolygon(
+  x: number,
+  y: number,
+  coords: ArrayLike<number>,
+  ends: ArrayLike<number>,
+): boolean {
+  const numRings = ends.length;
+  if (numRings === 0) {
+    return false;
   }
-  const t = ((x3 - x1) * dy2 - (y3 - y1) * dx2) / denom;
-  const u = ((x3 - x1) * dy1 - (y3 - y1) * dx1) / denom;
-  return t >= 0 && t <= 1 && u >= 0 && u <= 1 ? t : null;
-}
+  const end0 = ends[0];
+  if (end0 < 6) {
+    return false;
+  }
 
-/**
- * Extracts the X coordinate from a {@link PolygonPoint} (`[x, y]` tuple or `{x, y}` {@link Point} object).
- * Kept as a separate primitive function so V8 can inline it without heap allocations.
- */
-export function getPointX(point: PolygonPoint): number {
-  return 'x' in (point as Point) ? (point as Point).x : (point as [number, number])[0];
-}
-
-/**
- * Extracts the Y coordinate from a {@link PolygonPoint} (`[x, y]` tuple or `{x, y}` {@link Point} object).
- * Kept as a separate primitive function so V8 can inline it without heap allocations.
- */
-export function getPointY(point: PolygonPoint): number {
-  return 'y' in (point as Point) ? (point as Point).y : (point as [number, number])[1];
-}
-
-/**
- * Returns whether a point (x/lon, y/lat) is inside a polygon defined by its rings (outer ring and optional holes).
- * Uses the ray-casting algorithm (even-odd rule) and supports rings made of Point objects ({x, y}) or coordinate tuples ([x, y]).
- *
- * @param x - X coordinate / longitude of the query point.
- * @param y - Y coordinate / latitude of the query point.
- * @param rings - Array of polygon rings (outer ring followed by optional hole rings).
- * @returns True if the point is inside the polygon area and outside all holes.
- */
-export function pointInPolygonRings(x: number, y: number, rings: ReadonlyArray<PolygonRing>): boolean {
+  // Fast path for ring 0 (exterior boundary)
   let inside = false;
-  for (const ring of rings) {
-    const len = ring.length;
-    if (len < 3) {
-      continue;
+  let xj = coords[end0 - 2];
+  let yj = coords[end0 - 1];
+  for (let i = 0; i < end0; i += 2) {
+    const xi = coords[i];
+    const yi = coords[i + 1];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+      inside = !inside;
     }
-    let xj = getPointX(ring[len - 1]);
-    let yj = getPointY(ring[len - 1]);
-    for (let i = 0; i < len; i++) {
-      const p = ring[i];
-      const xi = getPointX(p);
-      const yi = getPointY(p);
-      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
-        inside = !inside;
-      }
-      xj = xi;
-      yj = yi;
-    }
+    xj = xi;
+    yj = yi;
   }
+
+  // Fast exit: if outside the exterior ring or no holes exist, no need to check holes
+  if (!inside || numRings === 1) {
+    return inside;
+  }
+
+  // Check interior holes (rings 1..N)
+  let start = end0;
+  for (let r = 1; r < numRings; r++) {
+    const end = ends[r];
+    if (end - start >= 6) {
+      let hxj = coords[end - 2];
+      let hyj = coords[end - 1];
+      for (let i = start; i < end; i += 2) {
+        const hxi = coords[i];
+        const hyi = coords[i + 1];
+        if ((hyi > y) !== (hyj > y) && x < ((hxj - hxi) * (y - hyi)) / (hyj - hyi) + hxi) {
+          inside = !inside;
+        }
+        hxj = hxi;
+        hyj = hyi;
+      }
+    }
+    start = end;
+  }
+
   return inside;
 }
 
 /**
- * Computes the 2D bounding box (xmin, ymin, xmax, ymax) of an array of points or nested rings of points.
+ * Subdivides segments in flat geographic rings longer than `maxStepMeters` and strips consecutive duplicate points.
  *
- * @param pointsOrRings - Either a 1D array of points [x, y] / {x, y} or an array of rings.
- * @returns The bounding box, or undefined if no valid coordinates were found.
- */
-export function computeBounds(pointsOrRings: ReadonlyArray<PolygonPoint | PolygonRing>): Bounds2D | undefined {
-  if (pointsOrRings.length === 0) {
-    return undefined;
-  }
-
-  let xmin = Number.POSITIVE_INFINITY;
-  let ymin = Number.POSITIVE_INFINITY;
-  let xmax = Number.NEGATIVE_INFINITY;
-  let ymax = Number.NEGATIVE_INFINITY;
-
-  const first = pointsOrRings[0];
-  const rings =
-    !Array.isArray(first) || typeof first[0] === 'number'
-      ? ([pointsOrRings] as ReadonlyArray<PolygonRing>)
-      : (pointsOrRings as ReadonlyArray<PolygonRing>);
-
-  for (let r = 0; r < rings.length; r++) {
-    const ring = rings[r];
-    if (!Array.isArray(ring)) {
-      continue;
-    }
-    for (let i = 0; i < ring.length; i++) {
-      const p = ring[i];
-      const x = getPointX(p);
-      const y = getPointY(p);
-      if (x < xmin) xmin = x;
-      if (x > xmax) xmax = x;
-      if (y < ymin) ymin = y;
-      if (y > ymax) ymax = y;
-    }
-  }
-
-  return xmin <= xmax && ymin <= ymax ? { xmin, ymin, xmax, ymax } : undefined;
-}
-
-/**
- * Tests whether two 2D bounding boxes overlap (AABB intersection).
- *
- * @param a - First bounding box.
- * @param b - Second bounding box.
- * @returns True if the bounding boxes intersect.
- */
-export function boundsOverlap(a: Bounds2D, b: Bounds2D): boolean {
-  return a.xmax >= b.xmin && a.xmin <= b.xmax && a.ymax >= b.ymin && a.ymin <= b.ymax;
-}
-
-/**
- * Subdivides segments in a geographic polyline longer than `maxStepMeters` and strips consecutive duplicate points.
- *
- * @param coords - Sequence of [lon, lat] coordinates.
+ * @param coords - Interleaved coordinates [lon0, lat0, lon1, lat1, ...].
+ * @param ends - End index offsets marking each ring in `coords`.
  * @param maxStepMeters - Optional maximum allowed segment length in meters. If <= 0 or omitted, only duplicate points are stripped.
- * @returns A densified sequence of [lon, lat] coordinates.
+ * @returns Flat coordinates and ends with subdivided/cleaned rings.
  */
-export function densifyPolyline(coords: [number, number][], maxStepMeters = 0): [number, number][] {
-  if (coords.length <= 1) {
-    return coords;
+export function densifyFlatRings(
+  coords: ArrayLike<number>,
+  ends: ArrayLike<number>,
+  maxStepMeters = 0,
+): { coords: Float64Array; ends: Uint32Array } {
+  const numRings = ends.length;
+  if (numRings === 0) {
+    return { coords: new Float64Array(0), ends: new Uint32Array(0) };
   }
-  const out: [number, number][] = [[coords[0][0], coords[0][1]]];
-  for (let i = 1; i < coords.length; i++) {
-    const prev = out[out.length - 1];
-    const lon0 = prev[0];
-    const lat0 = prev[1];
-    const curr = coords[i];
-    const lon1 = curr[0];
-    const lat1 = curr[1];
-    if (lon0 === lon1 && lat0 === lat1) {
+
+  const maxStepM2 = maxStepMeters > 0 ? maxStepMeters * maxStepMeters : 0;
+
+  // Pass 1: Count required vertices to allocate exact TypedArray once (zero reallocations)
+  let totalVertices = 0;
+  let hasSubdivisions = false;
+  let hasDuplicates = false;
+  let validRingCount = 0;
+
+  let start = 0;
+  for (let r = 0; r < numRings; r++) {
+    const end = ends[r];
+    const count = (end - start) >> 1;
+    if (count < 3) {
+      start = end;
       continue;
     }
-    if (maxStepMeters > 0) {
-      const cosLat = Math.max(0.1, Math.cos(((lat0 + lat1) * 0.5 * Math.PI) / 180));
-      const dx = (lon1 - lon0) * METERS_PER_DEG_LAT * cosLat;
-      const dy = (lat1 - lat0) * METERS_PER_DEG_LAT;
-      const segLenM = Math.sqrt(dx * dx + dy * dy);
-      const steps = Math.max(1, Math.ceil(segLenM / maxStepMeters));
-      if (steps > 1) {
-        const invSteps = 1 / steps;
-        const dLon = lon1 - lon0;
-        const dLat = lat1 - lat0;
-        for (let k = 1; k < steps; k++) {
-          const t = k * invSteps;
-          out.push([lon0 + dLon * t, lat0 + dLat * t]);
+
+    validRingCount++;
+    let ringVertices = 1;
+    let prevLon = coords[start];
+    let prevLat = coords[start + 1];
+
+    const cosLat = Math.max(0.1, Math.cos((prevLat * Math.PI) / 180));
+    const mPerDegLon = METERS_PER_DEG_LAT * cosLat;
+
+    for (let i = start + 2; i < end; i += 2) {
+      const currLon = coords[i];
+      const currLat = coords[i + 1];
+      if (currLon === prevLon && currLat === prevLat) {
+        hasDuplicates = true;
+        continue;
+      }
+      if (maxStepM2 > 0) {
+        const dx = (currLon - prevLon) * mPerDegLon;
+        const dy = (currLat - prevLat) * METERS_PER_DEG_LAT;
+        const d2 = dx * dx + dy * dy;
+        if (d2 > maxStepM2) {
+          const segLenM = Math.sqrt(d2);
+          const steps = Math.ceil(segLenM / maxStepMeters);
+          if (steps > 1) {
+            hasSubdivisions = true;
+            ringVertices += steps - 1;
+          }
         }
       }
+      ringVertices++;
+      prevLon = currLon;
+      prevLat = currLat;
     }
-    out.push([lon1, lat1]);
+
+    if (ringVertices >= 3) {
+      totalVertices += ringVertices;
+    }
+    start = end;
   }
-  return out;
+
+  // Fast path: if no points were added or removed and all rings valid
+  if (
+    !hasSubdivisions &&
+    !hasDuplicates &&
+    validRingCount === numRings &&
+    coords instanceof Float64Array &&
+    ends instanceof Uint32Array
+  ) {
+    return { coords, ends };
+  }
+
+  // Pass 2: Allocate exact output buffers and populate
+  const outCoords = new Float64Array(totalVertices * 2);
+  const outEnds = new Uint32Array(validRingCount);
+  let outCount = 0;
+  let outRingIdx = 0;
+
+  start = 0;
+  for (let r = 0; r < numRings; r++) {
+    const end = ends[r];
+    const count = (end - start) >> 1;
+    if (count < 3) {
+      start = end;
+      continue;
+    }
+
+    const ringStartIdx = outCount;
+    let prevLon = coords[start];
+    let prevLat = coords[start + 1];
+
+    outCoords[outCount++] = prevLon;
+    outCoords[outCount++] = prevLat;
+
+    const cosLat = Math.max(0.1, Math.cos((prevLat * Math.PI) / 180));
+    const mPerDegLon = METERS_PER_DEG_LAT * cosLat;
+
+    for (let i = start + 2; i < end; i += 2) {
+      const currLon = coords[i];
+      const currLat = coords[i + 1];
+      if (currLon === prevLon && currLat === prevLat) {
+        continue;
+      }
+      if (maxStepM2 > 0) {
+        const dx = (currLon - prevLon) * mPerDegLon;
+        const dy = (currLat - prevLat) * METERS_PER_DEG_LAT;
+        const d2 = dx * dx + dy * dy;
+        if (d2 > maxStepM2) {
+          const segLenM = Math.sqrt(d2);
+          const steps = Math.ceil(segLenM / maxStepMeters);
+          if (steps > 1) {
+            const invSteps = 1 / steps;
+            const dLon = currLon - prevLon;
+            const dLat = currLat - prevLat;
+            for (let k = 1; k < steps; k++) {
+              const t = k * invSteps;
+              outCoords[outCount++] = prevLon + dLon * t;
+              outCoords[outCount++] = prevLat + dLat * t;
+            }
+          }
+        }
+      }
+      outCoords[outCount++] = currLon;
+      outCoords[outCount++] = currLat;
+      prevLon = currLon;
+      prevLat = currLat;
+    }
+
+    const ringVertices = (outCount - ringStartIdx) >> 1;
+    if (ringVertices >= 3) {
+      outEnds[outRingIdx++] = outCount;
+    } else {
+      outCount = ringStartIdx;
+    }
+    start = end;
+  }
+
+  return {
+    coords: outCoords,
+    ends: outRingIdx === validRingCount ? outEnds : outEnds.slice(0, outRingIdx),
+  };
 }
 
 /**
@@ -391,33 +425,4 @@ export function simplifyCoords(coords: [number, number][], toleranceMeters = 15)
     return coords;
   }
   return simplified;
-}
-
-/**
- * Flattens a hierarchy of classified polygons (e.g. from GeoJSON MultiPolygon coordinates or
- * MVT `toGeoPolygons`) into a flat array of 2D rings suitable for ArcGIS geometries, Earcut,
- * or 3D meshing, discarding degenerate rings with fewer than `minVertices`.
- *
- * @param polygons - Array of polygons, where each polygon is an array of rings (outer ring first, followed by holes).
- * @param minVertices - Minimum number of vertices required for a ring to be retained (defaults to 3).
- * @returns Flat array of rings.
- */
-export function flattenPolygonRings<T = [number, number]>(
-  polygons: ReadonlyArray<ReadonlyArray<ReadonlyArray<T>>> | null | undefined,
-  minVertices = 3,
-): T[][] {
-  if (!polygons || polygons.length === 0) {
-    return [];
-  }
-  const rings: T[][] = [];
-  for (let p = 0; p < polygons.length; p++) {
-    const poly = polygons[p];
-    for (let r = 0; r < poly.length; r++) {
-      const ring = poly[r];
-      if (ring.length >= minVertices) {
-        rings.push(ring as T[]);
-      }
-    }
-  }
-  return rings;
 }

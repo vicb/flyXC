@@ -27,7 +27,7 @@ import {
   getPixelCoordinates,
   MAX_AIRSPACE_TILE_ZOOM,
   MERGED_AIRSPACE_ID_MIN,
-  pointInPolygonRings,
+  pointInFlatPolygon,
 } from '@flyxc/common';
 import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
@@ -498,7 +498,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       ) {
         continue;
       }
-      if (pointInPolygonRings(latLon.lon, latLon.lat, item.polygon.rings)) {
+      if (pointInFlatPolygon(latLon.lon, latLon.lat, item.polygon.coords, item.polygon.ends)) {
         return item;
       }
       fallback ??= item;

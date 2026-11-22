@@ -2,7 +2,10 @@ import { TZDate } from '@date-fns/tz';
 import { addDays, isAfter, isBefore, isFriday, isMonday, isSaturday, isSunday, nextFriday, nextMonday } from 'date-fns';
 import type { Feature } from 'mapbox-vector-tile';
 
-import { getPointX, getPointY, pointInPolygonRings, pointToSegmentSquared2D } from './geometry';
+import {
+  pointInFlatPolygon,
+  pointToSegmentSquared2D,
+} from './geometry';
 import type { Point } from './runtime-track';
 
 // Maximum zoom level for the airspaces.
@@ -385,37 +388,41 @@ export function isPointInFeatureBbox(point: Point, feature: Feature, marginPx = 
 }
 
 /**
- * Returns whether a point (in 256x256 tile pixels) is inside polygon rings
+ * Returns whether a point (in 256x256 tile pixels) is inside flat polygon geometry
  * (within optional `marginPx` of the outer boundary).
  */
-export function isPointInPolygons(
+export function isPointInFlatGeometry(
   point: Point,
-  polygons: ReadonlyArray<ReadonlyArray<ReadonlyArray<any>>>,
+  coords: ArrayLike<number>,
+  ends: ArrayLike<number>,
   extent: number,
   marginPx = 0,
 ): boolean {
   const ratio = 256 / extent;
   const px = point.x / ratio;
   const py = point.y / ratio;
-  const margin = marginPx > 0 ? marginPx / ratio : 0;
-  const margin2 = margin * margin;
 
-  for (const rings of polygons) {
-    if (pointInPolygonRings(px, py, rings as any)) {
-      return true;
-    }
-    if (margin > 0 && rings[0]) {
-      const outer = rings[0];
-      for (let i = 0; i < outer.length - 1; i++) {
-        const p1 = outer[i];
-        const p2 = outer[i + 1];
-        if (pointToSegmentSquared2D(px, py, getPointX(p1), getPointY(p1), getPointX(p2), getPointY(p2)) <= margin2) {
-          return true;
-        }
-      }
-    }
+  if (pointInFlatPolygon(px, py, coords, ends)) {
+    return true;
+  }
+  if (marginPx <= 0 || ends.length === 0) {
+    return false;
   }
 
+  const margin = marginPx / ratio;
+  const margin2 = margin * margin;
+  const end0 = ends[0];
+  let xj = coords[end0 - 2];
+  let yj = coords[end0 - 1];
+  for (let i = 0; i < end0; i += 2) {
+    const xi = coords[i];
+    const yi = coords[i + 1];
+    if (pointToSegmentSquared2D(px, py, xj, yj, xi, yi) <= margin2) {
+      return true;
+    }
+    xj = xi;
+    yj = yi;
+  }
   return false;
 }
 
@@ -427,8 +434,8 @@ export function isInFeature(point: Point, feature: Feature, marginPx = 0): boole
   if (!isPointInFeatureBbox(point, feature, marginPx)) {
     return false;
   }
-  const polygons = feature.asPolygons();
-  return polygons != null && isPointInPolygons(point, polygons, feature.extent, marginPx);
+  const { coords, ends } = feature.loadFlatGeometry();
+  return isPointInFlatGeometry(point, coords, ends, feature.extent, marginPx);
 }
 
 export type AirspaceServer = 'local' | 'cloud';

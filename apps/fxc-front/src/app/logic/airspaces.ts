@@ -11,7 +11,7 @@ import {
   MAX_AIRSPACE_TILE_ZOOM,
   toTypedAirspace,
 } from '@flyxc/common';
-import { FeatureType, VectorTile } from 'mapbox-vector-tile';
+import { classifyRingsFlat, FeatureType, VectorTile } from 'mapbox-vector-tile';
 
 const KEY_X_MULTIPLIER = 2 ** 25;
 const MAX_RENDER_TILE_SIZE = 4 * AIRSPACE_TILE_SIZE;
@@ -442,24 +442,24 @@ export function renderTiles(
         continue;
       }
 
-      const polygons =
-        f.asPolygons((x, y) => ({
-          x: Math.round(x * scale) - renderX,
-          y: Math.round(y * scale) - renderZ,
-        })) ?? [];
-
       ctx.fillStyle = getAirspaceColor(airspace, opacity);
       ctx.strokeStyle = getAirspaceColor(airspace, opacity + 5);
 
-      for (let p = 0; p < polygons.length; p++) {
-        const polygon = polygons[p];
+      const { coords, ends } = f.loadFlatGeometry();
+      const polygonEnds = classifyRingsFlat(coords, ends);
+
+      let ringIdx = 0;
+      let coordIdx = 0;
+      for (let p = 0; p < polygonEnds.length; p++) {
+        const polyEnd = polygonEnds[p];
         ctx.beginPath();
-        for (let r = 0; r < polygon.length; r++) {
-          const ring = polygon[r];
-          ctx.moveTo(ring[0].x, ring[0].y);
-          for (let j = 1; j < ring.length; j++) {
-            ctx.lineTo(ring[j].x, ring[j].y);
+        while (ringIdx < polyEnd) {
+          const ringEnd = ends[ringIdx++];
+          ctx.moveTo(Math.round(coords[coordIdx] * scale) - renderX, Math.round(coords[coordIdx + 1] * scale) - renderZ);
+          for (let i = coordIdx + 2; i < ringEnd; i += 2) {
+            ctx.lineTo(Math.round(coords[i] * scale) - renderX, Math.round(coords[i + 1] * scale) - renderZ);
           }
+          coordIdx = ringEnd;
         }
         ctx.closePath();
         ctx.fill('evenodd');

@@ -18,6 +18,7 @@
     "@stencil/core": "^4.45.5",
     "d3-array": "^3.2.5",
     "d3-delaunay": "catalog:",
+    "earcut": "catalog:",
     "geolib": "catalog:default",
     "idb": "catalog:",
     "lit": "catalog:default",

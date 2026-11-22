@@ -99,6 +99,9 @@ catalogs:
     date-fns:
       specifier: ^4.4.0
       version: 4.4.0
+    earcut:
+      specifier: ^3.2.4
+      version: 3.2.4
     eslint-plugin-unused-imports:
       specifier: ^4.4.1
       version: 4.4.1
@@ -127,8 +130,8 @@ catalogs:
       specifier: ^3.3.3
       version: 3.3.3
     mapbox-vector-tile:
-      specifier: ^1.1.0
-      version: 1.1.0
+      specifier: ^1.2.0
+      version: 1.2.0
     proxy:
       specifier: ^4.1.0
       version: 4.1.0
@@ -421,6 +424,9 @@ importers:
       d3-delaunay:
         specifier: 'catalog:'
         version: 6.0.6
+      earcut:
+        specifier: 'catalog:'
+        version: 3.2.4
       geolib:
         specifier: catalog:default
         version: 4.0.2
@@ -432,7 +438,7 @@ importers:
         version: 3.3.3
       mapbox-vector-tile:
         specifier: catalog:default
-        version: 1.1.0
+        version: 1.2.0
       micro-typed-events:
         specifier: ^1.0.2
         version: 1.0.2
@@ -675,7 +681,7 @@ importers:
         version: 2.0.0
       mapbox-vector-tile:
         specifier: catalog:default
-        version: 1.1.0
+        version: 1.2.0
       tiny-lru:
         specifier: catalog:default
         version: 13.1.1
@@ -706,7 +712,7 @@ importers:
         version: 4.0.2
       mapbox-vector-tile:
         specifier: catalog:default
-        version: 1.1.0
+        version: 1.2.0
       tiny-lru:
         specifier: catalog:default
         version: 13.1.1
@@ -5582,6 +5588,9 @@ packages:
   duplexify@4.1.3:
     resolution: {integrity: sha512-M3BmBhwJRZsSx38lZyhE53Csddgzl5R7xGJNk7CVddZD6CcmwMCH8J+7AprIrQKH7TonKxaCjcv27Qmf+sQ+oA==}
 
+  earcut@3.2.4:
+    resolution: {integrity: sha512-FHc6yNpnTORB0tM5kmZ03iD2mDuNakDE2lvf4Hw1XkfxtEHIGVi01B/GqUSwx+NcC1WGjidAfpTXzeALtPtfpg==}
+
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
 
@@ -7157,8 +7166,8 @@ packages:
   makeerror@1.0.12:
     resolution: {integrity: sha512-JmqCvUhmt43madlpFzG4BQzG2Z3m6tvQDNKdClZnO3VbIudJYmxsT0FNJMeiB2+JTSlTQTSbU8QdesVmwJcmLg==}
 
-  mapbox-vector-tile@1.1.0:
-    resolution: {integrity: sha512-oP0Hbw4QNbl3fy/UUBOeuoQx2FvEgTgpM3B69ayrSG4+pInbxJzg0KoF+4ySf1WXWxkMvVhjP5vgcAvYsMJcRA==}
+  mapbox-vector-tile@1.2.0:
+    resolution: {integrity: sha512-BKHajvwRo/XGGzWuiohf0DjNmfHr7eiPeg5jJsY6bSWdw0gAJeUa70LF5AnvV0rlBbrroo/yK1tAcXPoph3vtA==}
     engines: {node: '>=22'}
 
   marked@18.1.3:
@@ -14616,6 +14625,8 @@ snapshots:
       readable-stream: 3.6.2
       stream-shift: 1.0.3
 
+  earcut@3.2.4: {}
+
   eastasianwidth@0.2.0: {}
 
   ecc-jsbn@0.1.2:
@@ -16790,7 +16801,7 @@ snapshots:
     dependencies:
       tmpl: 1.0.5
 
-  mapbox-vector-tile@1.1.0:
+  mapbox-vector-tile@1.2.0:
     dependencies:
       '@protobuf-ts/runtime': 2.11.1
       '@types/geojson': 7946.0.16

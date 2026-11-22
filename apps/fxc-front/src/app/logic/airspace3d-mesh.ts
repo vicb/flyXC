@@ -1,15 +1,14 @@
 import Mesh from '@arcgis/core/geometry/Mesh';
 import MeshGeoreferencedVertexSpace from '@arcgis/core/geometry/support/MeshGeoreferencedVertexSpace';
-// @ts-expect-error Internal ArcGIS 2D earcut tessellation utilities without type declarations
-import * as tess from '@arcgis/core/views/3d/layers/graphics/tessellationUtils.js';
 import {
   type AirspaceTyped,
   type Bounds2D,
-  densifyPolyline,
-  pointInPolygonRings,
+  densifyFlatRings,
+  pointInFlatPolygon,
   pointToSegmentSquared2D,
 } from '@flyxc/common';
 import { Delaunay } from 'd3-delaunay';
+import earcut from 'earcut';
 
 const METERS_PER_DEGREE_LAT = 111_320;
 const MIN_DENSIFY_STEP_M = 1000;
@@ -22,10 +21,11 @@ const GND_BASE_SINK_M = 250;
 export type GroundSampler = (lon: number, lat: number) => number;
 
 /**
- * Lightweight 2D polygon shape compatible with ArcGIS Polygon and raw decoded GeoJSON rings.
+ * Lightweight 2D polygon shape compatible with flat vector tile geometry.
  */
 export interface AirspacePolygonLike {
-  rings: number[][][];
+  coords: Float64Array;
+  ends: Uint32Array;
   extent?: Bounds2D | null;
 }
 
@@ -60,31 +60,11 @@ export interface Triangulated2D {
 }
 
 /**
- * Packed 2D coordinates and ring offsets for wall extrusion and serialization.
+ * Packed 2D coordinates and ring end offsets for wall extrusion and serialization.
  */
 export interface FlatRings {
-  xy: Float64Array;
-  ringOffsets: Uint32Array;
-}
-
-export function flattenRings(rings: number[][][]): FlatRings {
-  let totalCoords = 0;
-  for (const ring of rings) {
-    totalCoords += ring.length * 2;
-  }
-  const xy = new Float64Array(totalCoords);
-  const ringOffsets = new Uint32Array(rings.length + 1);
-  let offset = 0;
-  for (let r = 0; r < rings.length; r++) {
-    ringOffsets[r] = offset;
-    const ring = rings[r];
-    for (let i = 0; i < ring.length; i++) {
-      xy[offset++] = ring[i][0];
-      xy[offset++] = ring[i][1];
-    }
-  }
-  ringOffsets[rings.length] = offset;
-  return { xy, ringOffsets };
+  coords: Float64Array;
+  ends: Uint32Array;
 }
 
 /**
@@ -121,40 +101,20 @@ function packEdgeKey(a: number, b: number): number {
   return a < b ? a * 10_000_000 + b : b * 10_000_000 + a;
 }
 
-/**
- * Strips consecutive duplicate vertices and optionally subdivides segments longer than `stepM`.
- */
-function prepareWallRings(rings: number[][][], stepM?: number): number[][][] {
-  const result: number[][][] = [];
-  for (const ring of rings) {
-    if (ring.length < 3) {
-      continue;
-    }
-    const out = densifyPolyline(ring as [number, number][], stepM);
-    if (out.length >= 3) {
-      result.push(out);
-    }
-  }
-  return result;
-}
-
-function triangulateRings2D(rings: number[][][]): Triangulated2D {
-  if (rings.length === 0) {
+function triangulateFlatRings2D(wallRings: FlatRings): Triangulated2D {
+  const { coords, ends } = wallRings;
+  const numRings = ends.length;
+  if (numRings === 0) {
     return { xy: new Float64Array(0), faces: new Uint32Array(0) };
   }
-  const info = tess.ringsToOutlinedTessellationInfo(rings, { hasZ: false, ccwRingsAsHoles: true });
-  const res = tess.tessellate(info, { method: 'earcut' });
-  if (!res?.succeeded || !res.positions || !res.indices) {
-    return { xy: new Float64Array(0), faces: new Uint32Array(0) };
+  const holeIndices = numRings > 1 ? new Array<number>(numRings - 1) : null;
+  if (holeIndices) {
+    for (let r = 0; r < numRings - 1; r++) {
+      holeIndices[r] = ends[r] >> 1;
+    }
   }
-  const srcPos = res.positions;
-  const vertexCount = srcPos.length / 3;
-  const xy = new Float64Array(vertexCount * 2);
-  for (let i = 0, j = 0; i < srcPos.length; i += 3, j += 2) {
-    xy[j] = srcPos[i];
-    xy[j + 1] = srcPos[i + 1];
-  }
-  return { xy, faces: new Uint32Array(res.indices) };
+  const indices = earcut(coords, holeIndices, 2);
+  return { xy: coords, faces: new Uint32Array(indices) };
 }
 
 const sharedVertexSpace = new MeshGeoreferencedVertexSpace();
@@ -175,14 +135,20 @@ const sharedMeshMaterial = {
  * artifacts. Injecting a regular interior Steiner grid produces uniform, well-conditioned
  * triangles that smoothly drape across complex 3D topography.
  */
-export function triangulateCapWithGrid2D(rings: number[][][], extent: Bounds2D, targetGridM = 2000): Triangulated2D {
-  if (rings.length === 0) {
+export function triangulateCapWithGrid2D(
+  wallRings: FlatRings,
+  extent: Bounds2D,
+  targetGridM = 2000,
+): Triangulated2D {
+  const { coords: wallCoords, ends } = wallRings;
+  const numRings = ends.length;
+  if (numRings === 0) {
     return { xy: new Float64Array(0), faces: new Uint32Array(0) };
   }
 
   const { widthM, heightM } = estimateExtentMeters(extent);
   if (widthM <= targetGridM && heightM <= targetGridM) {
-    return triangulateRings2D(rings);
+    return triangulateFlatRings2D(wallRings);
   }
 
   // Cap subdivisions to prevent runaway grid generation on large polygons (100 for AGL caps <= 1500m, 40 for standard)
@@ -199,20 +165,23 @@ export function triangulateCapWithGrid2D(rings: number[][][], extent: Bounds2D, 
   const boundarySegments = new Set<number>();
   let baseIdx = 0;
   let totalSegments = 0;
-  for (const ring of rings) {
-    const len =
-      ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]
-        ? ring.length - 1
-        : ring.length;
-    totalSegments += len;
-    for (let i = 0; i < len; i++) {
-      allCoords.push(ring[i][0], ring[i][1]);
-      const next = (i + 1) % len;
+  let start = 0;
+  for (let r = 0; r < numRings; r++) {
+    const end = ends[r];
+    let count = (end - start) >> 1;
+    if (count > 1 && wallCoords[start] === wallCoords[end - 2] && wallCoords[start + 1] === wallCoords[end - 1]) {
+      count--;
+    }
+    totalSegments += count;
+    for (let i = 0; i < count; i++) {
+      allCoords.push(wallCoords[start + i * 2], wallCoords[start + i * 2 + 1]);
+      const next = (i + 1) % count;
       const a = baseIdx + i;
       const b = baseIdx + next;
       boundarySegments.add(packEdgeKey(a, b));
     }
-    baseIdx += len;
+    baseIdx += count;
+    start = end;
   }
 
   if (allCoords.length < 6) {
@@ -222,19 +191,22 @@ export function triangulateCapWithGrid2D(rings: number[][][], extent: Bounds2D, 
   // Pre-flatten boundary segments in projected coordinates to avoid redundant multiplications inside candidate loops
   const projSegments = new Float64Array(totalSegments * 4);
   let segIdx = 0;
-  for (const ring of rings) {
-    const len =
-      ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]
-        ? ring.length - 1
-        : ring.length;
-    for (let i = 0; i < len; i++) {
-      const next = (i + 1) % len;
-      projSegments[segIdx] = ring[i][0] * cosLat;
-      projSegments[segIdx + 1] = ring[i][1];
-      projSegments[segIdx + 2] = ring[next][0] * cosLat;
-      projSegments[segIdx + 3] = ring[next][1];
+  start = 0;
+  for (let r = 0; r < numRings; r++) {
+    const end = ends[r];
+    let count = (end - start) >> 1;
+    if (count > 1 && wallCoords[start] === wallCoords[end - 2] && wallCoords[start + 1] === wallCoords[end - 1]) {
+      count--;
+    }
+    for (let i = 0; i < count; i++) {
+      const next = (i + 1) % count;
+      projSegments[segIdx] = wallCoords[start + i * 2] * cosLat;
+      projSegments[segIdx + 1] = wallCoords[start + i * 2 + 1];
+      projSegments[segIdx + 2] = wallCoords[start + next * 2] * cosLat;
+      projSegments[segIdx + 3] = wallCoords[start + next * 2 + 1];
       segIdx += 4;
     }
+    start = end;
   }
 
   const minDistDeg = (effectiveGridM * 0.25) / METERS_PER_DEGREE_LAT;
@@ -243,7 +215,7 @@ export function triangulateCapWithGrid2D(rings: number[][][], extent: Bounds2D, 
   // Generate interior Steiner points strictly inside the polygon boundary
   for (let lon = extent.xmin + stepLon * 0.5; lon < extent.xmax; lon += stepLon) {
     for (let lat = extent.ymin + stepLat * 0.5; lat < extent.ymax; lat += stepLat) {
-      if (pointInPolygonRings(lon, lat, rings)) {
+      if (pointInFlatPolygon(lon, lat, wallCoords, ends)) {
         let tooClose = false;
         const plon = lon * cosLat;
         for (let s = 0; s < projSegments.length; s += 4) {
@@ -285,7 +257,7 @@ export function triangulateCapWithGrid2D(rings: number[][][], extent: Bounds2D, 
     }
     const idx1 = i1 * 2;
     const idx2 = i2 * 2;
-    return pointInPolygonRings((xy[idx1] + xy[idx2]) * 0.5, (xy[idx1 + 1] + xy[idx2 + 1]) * 0.5, rings);
+    return pointInFlatPolygon((xy[idx1] + xy[idx2]) * 0.5, (xy[idx1 + 1] + xy[idx2 + 1]) * 0.5, wallCoords, ends);
   };
 
   for (let i = 0; i < tris.length; i += 3) {
@@ -297,7 +269,7 @@ export function triangulateCapWithGrid2D(rings: number[][][], extent: Bounds2D, 
     const idx2 = i2 * 2;
     const cx = (xy[idx0] + xy[idx1] + xy[idx2]) / 3;
     const cy = (xy[idx0 + 1] + xy[idx1 + 1] + xy[idx2 + 1]) / 3;
-    if (!pointInPolygonRings(cx, cy, rings)) {
+    if (!pointInFlatPolygon(cx, cy, wallCoords, ends)) {
       continue;
     }
     if (!isEdgeValid(i0, i1) || !isEdgeValid(i1, i2) || !isEdgeValid(i2, i0)) {
@@ -307,7 +279,7 @@ export function triangulateCapWithGrid2D(rings: number[][][], extent: Bounds2D, 
   }
 
   if (insideFaces.length === 0) {
-    return triangulateRings2D(rings);
+    return triangulateFlatRings2D(wallRings);
   }
 
   return { xy, faces: new Uint32Array(insideFaces), boundarySegments };
@@ -329,11 +301,14 @@ export function computeGroundSignature(polygon: AirspacePolygonLike, sampleGroun
   sum += Math.round(sampleGroundZ(extent.xmax, extent.ymax) / 2) * weight++;
   sum += Math.round(sampleGroundZ(extent.xmin, extent.ymax) / 2) * weight++;
 
-  const ring = polygon.rings[0];
-  if (ring && ring.length > 0) {
-    const step = Math.max(1, Math.floor(ring.length / 4));
-    for (let i = 0; i < ring.length; i += step) {
-      sum += Math.round(sampleGroundZ(ring[i][0], ring[i][1]) / 2) * weight++;
+  if (polygon.ends.length > 0) {
+    const end0 = polygon.ends[0];
+    const numPoints = end0 >> 1;
+    if (numPoints > 0) {
+      const step = Math.max(1, Math.floor(numPoints / 4));
+      for (let i = 0; i < end0; i += step * 2) {
+        sum += Math.round(sampleGroundZ(polygon.coords[i], polygon.coords[i + 1]) / 2) * weight++;
+      }
     }
   }
   return sum;
@@ -388,7 +363,7 @@ export function buildAirspaceFootprint(
   airspace: Pick<AirspaceTyped, 'floorM' | 'floorRefGnd' | 'topRefGnd'> & { topM?: number },
   options?: BuildFootprintOptions,
 ): AirspaceFootprint | null {
-  if (polygon.rings.length === 0 || !polygon.extent) {
+  if (polygon.ends.length === 0 || !polygon.extent) {
     return null;
   }
 
@@ -407,8 +382,8 @@ export function buildAirspaceFootprint(
       : Math.max(minStep, Math.hypot(widthM, heightM) / (hasElevatedTerrainCap ? 96 : TARGET_DENSIFY_SEGMENTS));
   }
 
-  const wallRings = prepareWallRings(polygon.rings, stepM);
-  if (wallRings.length === 0) {
+  const wallRings = densifyFlatRings(polygon.coords, polygon.ends, stepM);
+  if (wallRings.ends.length === 0) {
     return null;
   }
 
@@ -419,13 +394,13 @@ export function buildAirspaceFootprint(
 
   let flatCap: Triangulated2D | undefined;
   if (needFlatCap) {
-    flatCap = triangulateRings2D(wallRings);
+    flatCap = triangulateFlatRings2D(wallRings);
   }
 
   const terrainCap = needTerrainCap ? triangulateCapWithGrid2D(wallRings, polygon.extent, targetGridM) : undefined;
   const lod = needTerrainCap && options?.coarse ? 0 : 1;
 
-  return { wallRings: flattenRings(wallRings), flatCap, terrainCap, lod };
+  return { wallRings, flatCap, terrainCap, lod };
 }
 
 const RIDGE_REFINE_MAX_PASSES = 3;
@@ -683,17 +658,20 @@ export function extrudeAirspaceFootprint(
   const topTri = airspace.topRefGnd ? terrainTri : footprint.flatCap;
   const floorTri = needFloorCap ? (airspace.floorRefGnd ? terrainTri : footprint.flatCap) : undefined;
 
-  const { xy, ringOffsets } = footprint.wallRings;
-  const numRings = ringOffsets.length - 1;
+  const { coords, ends } = footprint.wallRings;
+  const numRings = ends.length;
 
   let wallVertices = 0;
   let wallIndices = 0;
+  let start = 0;
   for (let r = 0; r < numRings; r++) {
-    const count = (ringOffsets[r + 1] - ringOffsets[r]) >> 1;
+    const end = ends[r];
+    const count = (end - start) >> 1;
     if (count >= 3) {
       wallVertices += count * 2;
       wallIndices += (count - 1) * 6;
     }
+    start = end;
   }
 
   const totalVertices = wallVertices + (topTri ? topTri.xy.length / 2 : 0) + (floorTri ? floorTri.xy.length / 2 : 0);
@@ -708,19 +686,20 @@ export function extrudeAirspaceFootprint(
   let vCursor = 0;
   let fCursor = 0;
 
+  start = 0;
   for (let r = 0; r < numRings; r++) {
-    const start = ringOffsets[r];
-    const end = ringOffsets[r + 1];
+    const end = ends[r];
     const count = (end - start) >> 1;
     if (count < 3) {
+      start = end;
       continue;
     }
     const ringBase = vCursor;
     const topPath: number[][] = [];
     const floorPath: number[][] = [];
     for (let i = start; i < end; i += 2) {
-      const lon = xy[i];
-      const lat = xy[i + 1];
+      const lon = coords[i];
+      const lat = coords[i + 1];
       // Sample exaggerated terrain elevation once per vertex when any boundary is ground-referenced.
       const gnd = hasGroundRef ? sampleGroundZ(lon, lat) : 0;
       const rawTop = (airspace.topRefGnd ? gnd : 0) + topOffset;
@@ -768,6 +747,7 @@ export function extrudeAirspaceFootprint(
       faces[fCursor++] = t1;
       faces[fCursor++] = t0;
     }
+    start = end;
   }
 
   if (topTri && floorTri && topTri === floorTri) {

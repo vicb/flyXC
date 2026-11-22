@@ -36,6 +36,25 @@ import {
 } from './airspace3d-element';
 import { buildAirspaceVectorTileStyle, FlatAirspace3dElement } from './flat-airspace3d-element';
 
+function flattenRings(rings: number[][][]): { coords: Float64Array; ends: Uint32Array } {
+  let totalCoords = 0;
+  for (const ring of rings) {
+    totalCoords += ring.length * 2;
+  }
+  const coords = new Float64Array(totalCoords);
+  const ends = new Uint32Array(rings.length);
+  let offset = 0;
+  for (let r = 0; r < rings.length; r++) {
+    const ring = rings[r];
+    for (let i = 0; i < ring.length; i++) {
+      coords[offset++] = ring[i][0];
+      coords[offset++] = ring[i][1];
+    }
+    ends[r] = offset;
+  }
+  return { coords, ends };
+}
+
 const hoisted = vi.hoisted(() => {
   const state = {
     maxAltitude: 3000,
@@ -287,6 +306,22 @@ function makeFeature(props: Record<string, string>, ring: number[][], holes: num
     properties: props,
     asPolygons: () => [[ring, ...holes]],
     toGeoPolygons: () => [[ring, ...holes]],
+    toFlatGeoGeometry: () => {
+      const allRings = [ring, ...holes];
+      let total = 0;
+      for (const r of allRings) total += r.length * 2;
+      const coords = new Float64Array(total);
+      const ends = new Uint32Array(allRings.length);
+      let offset = 0;
+      for (let i = 0; i < allRings.length; i++) {
+        for (const pt of allRings[i]) {
+          coords[offset++] = pt[0];
+          coords[offset++] = pt[1];
+        }
+        ends[i] = offset;
+      }
+      return { coords, ends };
+    },
     geoBbox: () => [minLon, minLat, maxLon, maxLat],
   };
 }
@@ -1115,7 +1150,7 @@ describe('Airspace3dElement', () => {
     };
 
     const poly = {
-      rings: [
+      ...flattenRings([
         [
           [6.0, 45.0],
           [6.2, 45.0],
@@ -1123,7 +1158,7 @@ describe('Airspace3dElement', () => {
           [6.0, 45.2],
           [6.0, 45.0],
         ],
-      ],
+      ]),
       extent: { xmin: 6.0, ymin: 45.0, xmax: 6.2, ymax: 45.2 },
     };
 
@@ -1199,7 +1234,7 @@ describe('Airspace3dElement', () => {
       topRefGnd: false,
     };
     const poly1 = {
-      rings: [
+      ...flattenRings([
         [
           [6.0, 45.0],
           [6.2, 45.0],
@@ -1207,11 +1242,11 @@ describe('Airspace3dElement', () => {
           [6.0, 45.2],
           [6.0, 45.0],
         ],
-      ],
+      ]),
       extent: { xmin: 6.0, ymin: 45.0, xmax: 6.2, ymax: 45.2 },
     };
     const poly2 = {
-      rings: [
+      ...flattenRings([
         [
           [6.3, 45.0],
           [6.5, 45.0],
@@ -1219,7 +1254,7 @@ describe('Airspace3dElement', () => {
           [6.3, 45.2],
           [6.3, 45.0],
         ],
-      ],
+      ]),
       extent: { xmin: 6.3, ymin: 45.0, xmax: 6.5, ymax: 45.2 },
     };
 
@@ -1297,7 +1332,7 @@ describe('Airspace3dElement', () => {
         topRefGnd: false,
       } as any,
       polygon: {
-        rings: [
+        ...flattenRings([
           [
             [0, 0],
             [1, 0],
@@ -1305,7 +1340,7 @@ describe('Airspace3dElement', () => {
             [0, 1],
             [0, 0],
           ],
-        ],
+        ]),
         extent: { xmin: 0, ymin: 0, xmax: 1, ymax: 1 },
       },
       footprint: {} as any,
@@ -1322,7 +1357,7 @@ describe('Airspace3dElement', () => {
         topRefGnd: false,
       } as any,
       polygon: {
-        rings: [
+        ...flattenRings([
           [
             [5.9, 45.4],
             [6.1, 45.4],
@@ -1330,7 +1365,7 @@ describe('Airspace3dElement', () => {
             [5.9, 45.6],
             [5.9, 45.4],
           ],
-        ],
+        ]),
         extent: { xmin: 5.9, ymin: 45.4, xmax: 6.1, ymax: 45.6 },
       },
       footprint: {} as any,

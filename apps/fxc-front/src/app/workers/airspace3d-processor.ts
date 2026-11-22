@@ -7,7 +7,6 @@ import {
   applyOverrides,
   type Bounds2D,
   type Class,
-  flattenPolygonRings,
   getAirspace3dTileUrl,
   getAirspaceColorCategory,
   getAirspaceDateUrl,
@@ -16,9 +15,13 @@ import {
   type Type,
 } from '@flyxc/common';
 import { type IDBPDatabase, openDB } from 'idb';
-import { FeatureType, VectorTile } from 'mapbox-vector-tile';
+import { type Feature, FeatureType, VectorTile } from 'mapbox-vector-tile';
 
-import { type AirspaceFootprint, type AirspacePolygonLike, buildAirspaceFootprint } from '../logic/airspace3d-mesh';
+import {
+  type AirspaceFootprint,
+  type AirspacePolygonLike,
+  buildAirspaceFootprint,
+} from '../logic/airspace3d-mesh';
 
 export interface TileCoord {
   x: number;
@@ -33,11 +36,39 @@ export interface GeoBounds {
   maxLat: number;
 }
 
+/**
+ * Intermediate representation of an airspace feature parsed from a vector tile.
+ *
+ * Supports lazy geometry decoding:
+ * - When tiles are initially parsed, cheap metadata (`id`, `baseAirspace`, and geographic `extent`
+ *   via fast bbox) are populated alongside the `rawFeature` reference.
+ * - Full polygon coordinate extraction (`toFlatGeoGeometry`) is deferred because most tile features
+ *   are culled early by viewport, altitude, or visibility filters, or already hit the IndexedDB cache.
+ * - When a surviving feature actually requires triangulation, `getDecodedPolygon` decodes `rawFeature`
+ *   and caches the resulting flat geometry in `polygon`.
+ * - In unit tests, pre-constructed `polygon` fixtures can be supplied directly without a `rawFeature`.
+ */
 export interface DecodedTileFeature {
+  /** Numeric airspace feature ID. */
   id: number;
+  /** Base airspace attributes decoded from vector tile properties. */
   baseAirspace: AirspaceTyped;
-  rings: number[][][];
+  /**
+   * Lazily decoded or pre-computed flat polygon geometry.
+   * If undefined, decoded on-demand from {@link rawFeature} via `getDecodedPolygon`.
+   */
+  polygon?: AirspacePolygonLike;
+  /** Geographic bounding box in WGS84 degrees, used for fast viewport culling. */
   extent?: Bounds2D;
+  /**
+   * Raw vector tile feature reference for on-demand geometry decoding (`toFlatGeoGeometry`).
+   * Avoids decoding coordinate buffers for airspaces culled by altitude or visibility filters.
+   */
+  rawFeature?: Feature<AirspaceString>;
+  /** Tile X coordinate for unprojecting tile-local coordinates to WGS84 degrees. */
+  tileX?: number;
+  /** Tile Y coordinate for unprojecting tile-local coordinates to WGS84 degrees. */
+  tileY?: number;
 }
 
 export interface AirspaceWorkerRequest {
@@ -79,6 +110,7 @@ export function extentOverlapsBounds(ext: Bounds2D | undefined, bounds: GeoBound
     ext.xmax >= bounds.minLon && ext.xmin <= bounds.maxLon && ext.ymax >= bounds.minLat && ext.ymin <= bounds.maxLat
   );
 }
+
 
 /**
  * Core background pipeline for fetching, decoding, caching and triangulating 3D airspace volumes.
@@ -263,12 +295,10 @@ export class Airspace3dProcessor {
           }
         }
 
-        const polygon: AirspacePolygonLike = cachedFp?.polygon ?? {
-          rings: feat.rings,
-          extent: feat.extent,
-        };
+        const polygon: AirspacePolygonLike =
+          cachedFp?.polygon ?? feat.polygon ?? this.getDecodedPolygon(feat);
 
-        if (polygon.rings.length > 0) {
+        if (polygon.ends.length > 0) {
           let footprint: AirspaceFootprint | undefined = cachedFp?.footprint;
           const needsTerrainCap = airspace.topRefGnd || (!sinkZeroFloor && airspace.floorRefGnd);
           const isProgressive = onProgress != null && needsTerrainCap && (!footprint || footprint.lod === 0);
@@ -354,6 +384,26 @@ export class Airspace3dProcessor {
     }
   }
 
+  private getDecodedPolygon(feat: DecodedTileFeature): AirspacePolygonLike {
+    if (feat.polygon) {
+      return feat.polygon;
+    }
+    if (feat.rawFeature && feat.tileX !== undefined && feat.tileY !== undefined) {
+      const flat = feat.rawFeature.toFlatGeoGeometry(feat.tileX, feat.tileY, AIRSPACE_3D_TILE_ZOOM);
+      feat.polygon = {
+        coords: flat.coords,
+        ends: flat.ends,
+        extent: feat.extent,
+      };
+      return feat.polygon;
+    }
+    return {
+      coords: new Float64Array(0),
+      ends: new Uint32Array(0),
+      extent: feat.extent,
+    };
+  }
+
   public fetchDecodedTile(
     x: number,
     y: number,
@@ -383,17 +433,15 @@ export class Airspace3dProcessor {
           if (feature.type !== FeatureType.POLYGON) {
             continue;
           }
-          const rings = flattenPolygonRings(feature.toGeoPolygons(x, y, AIRSPACE_3D_TILE_ZOOM));
-          if (rings.length === 0) {
-            continue;
-          }
           const [xmin, ymin, xmax, ymax] = feature.geoBbox(x, y, AIRSPACE_3D_TILE_ZOOM);
           const id = Number(feature.id);
           features.push({
             id,
             baseAirspace: toTypedAirspace(feature.properties, id),
-            rings,
             extent: { xmin, ymin, xmax, ymax },
+            rawFeature: feature,
+            tileX: x,
+            tileY: y,
           });
         }
         return features;

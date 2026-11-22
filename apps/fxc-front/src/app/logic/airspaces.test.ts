@@ -25,16 +25,10 @@ describe('renderTiles', () => {
         topM: 1000,
         ...opts.properties,
       },
-      asPolygons: vi.fn(() => [
-        [
-          [
-            { x: 10, y: 10 },
-            { x: 50, y: 10 },
-            { x: 50, y: 50 },
-            { x: 10, y: 10 },
-          ],
-        ],
-      ]),
+      loadFlatGeometry: vi.fn(() => ({
+        coords: [10, 10, 50, 10, 50, 50, 10, 10],
+        ends: [8],
+      })),
     };
   }
 
@@ -106,9 +100,9 @@ describe('renderTiles', () => {
     );
 
     // Only insideFeature should decode polygons and draw paths
-    expect(insideFeature.asPolygons).toHaveBeenCalledTimes(1);
-    expect(outsideFeature.asPolygons).not.toHaveBeenCalled();
-    expect(pointFeature.asPolygons).not.toHaveBeenCalled();
+    expect(insideFeature.loadFlatGeometry).toHaveBeenCalledTimes(1);
+    expect(outsideFeature.loadFlatGeometry).not.toHaveBeenCalled();
+    expect(pointFeature.loadFlatGeometry).not.toHaveBeenCalled();
     expect(ctx.fill).toHaveBeenCalledTimes(1);
     expect(ctx.stroke).toHaveBeenCalledTimes(1);
   });

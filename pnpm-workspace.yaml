@@ -44,7 +44,7 @@ catalog:
   redis: ^6.3.1
   jsonc-eslint-parser: 3.3.0
   lit: ^3.3.3
-  mapbox-vector-tile: ^1.1.0
+  mapbox-vector-tile: ^1.2.0
   proxy: ^4.1.0
   tiny-lru: ^13.1.1
   tslib: ^2.9.1
@@ -64,6 +64,7 @@ catalog:
   idb: ^8.0.4
   d3-delaunay: ^6.0.6
   '@types/d3-delaunay': ^6.0.4
+  earcut: ^3.2.4
   polygon-clipping: ^0.15.7
   rbush: ^4.0.1
   '@types/rbush': ^4.0.0

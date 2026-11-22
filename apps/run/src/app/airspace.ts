@@ -10,13 +10,13 @@ import {
   getAirspaceTileUrl,
   getPixelCoordinates,
   isPointInFeatureBbox,
-  isPointInPolygons,
+  isPointInFlatGeometry,
   MAX_AIRSPACE_TILE_ZOOM,
   parallelTasksWithTimeout,
   protos,
   toTypedAirspace,
 } from '@flyxc/common';
-import { FeatureType, VectorTile } from 'mapbox-vector-tile';
+import { FeatureType, type FlatGeometry, VectorTile } from 'mapbox-vector-tile';
 import type { LRU } from 'tiny-lru';
 import { lru } from 'tiny-lru';
 
@@ -119,7 +119,7 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
       }
       const airspace = applyOverrides(toTypedAirspace(feature.properties, feature.id), startDate);
       const airspaceId = getAirspaceFeatureId(airspace);
-      let polygons: Point[][][] | null | undefined;
+      let flatGeom: FlatGeometry | undefined;
       for (const fixIdx of indexes) {
         // Do not check airspaces above the track.
         // When the bottom references the ground it could be above the top for high ground elevation.
@@ -133,8 +133,8 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
         }
         const point = pxInTiles[fixIdx];
         if (isPointInFeatureBbox(point, feature)) {
-          polygons ??= feature.asPolygons();
-          if (polygons && isPointInPolygons(point, polygons, feature.extent)) {
+          flatGeom ??= feature.loadFlatGeometry();
+          if (flatGeom && isPointInFlatGeometry(point, flatGeom.coords, flatGeom.ends, feature.extent)) {
             if (!indexesByAirspaceId.has(airspaceId)) {
               indexesByAirspaceId.set(airspaceId, []);
               airspaceById.set(airspaceId, airspace);

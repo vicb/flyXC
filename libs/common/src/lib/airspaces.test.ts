@@ -21,7 +21,7 @@ import {
   getAirspaceTileUrl,
   isInFeature,
   isPointInFeatureBbox,
-  isPointInPolygons,
+  isPointInFlatGeometry,
   LOCAL_AIRSPACE_BASE_URL,
   RESERVED_AIRSPACE_ID_MAX,
   toTypedAirspace,
@@ -287,25 +287,16 @@ describe('Airspace overrides', () => {
         bbox() {
           return [0, 0, 4096, 4096];
         },
-        asPolygons() {
-          return [
-            [
-              [
-                { x: 0, y: 0 },
-                { x: 4096, y: 0 },
-                { x: 4096, y: 4096 },
-                { x: 0, y: 4096 },
-                { x: 0, y: 0 },
-              ],
-              [
-                { x: 1024, y: 1024 },
-                { x: 3072, y: 1024 },
-                { x: 3072, y: 3072 },
-                { x: 1024, y: 3072 },
-                { x: 1024, y: 1024 },
-              ],
+        loadFlatGeometry() {
+          return {
+            coords: [
+              // Outer ring
+              0, 0, 4096, 0, 4096, 4096, 0, 4096, 0, 0,
+              // Hole ring
+              1024, 1024, 3072, 1024, 3072, 3072, 1024, 3072, 1024, 1024,
             ],
-          ];
+            ends: [10, 20],
+          };
         },
       } as any;
 
@@ -323,39 +314,32 @@ describe('Airspace overrides', () => {
     });
 
     it('utilizes bbox for fast early rejection', () => {
-      let asPolygonsCalled = false;
+      let loadFlatGeometryCalled = false;
       const feature = {
         extent: 4096,
         bbox() {
           return [1000, 1000, 2000, 2000];
         },
-        asPolygons() {
-          asPolygonsCalled = true;
-          return [
-            [
-              [
-                { x: 1000, y: 1000 },
-                { x: 2000, y: 1000 },
-                { x: 2000, y: 2000 },
-                { x: 1000, y: 2000 },
-                { x: 1000, y: 1000 },
-              ],
-            ],
-          ];
+        loadFlatGeometry() {
+          loadFlatGeometryCalled = true;
+          return {
+            coords: [1000, 1000, 2000, 1000, 2000, 2000, 1000, 2000, 1000, 1000],
+            ends: [10],
+          };
         },
       } as any;
 
       // (10, 10) maps to px 160 -> outside bbox [1000, 1000, 2000, 2000]
       expect(isInFeature({ x: 10, y: 10 }, feature)).toBe(false);
-      expect(asPolygonsCalled).toBe(false);
+      expect(loadFlatGeometryCalled).toBe(false);
 
       // (100, 100) maps to px 1600 -> inside bbox
       expect(isInFeature({ x: 100, y: 100 }, feature)).toBe(true);
-      expect(asPolygonsCalled).toBe(true);
+      expect(loadFlatGeometryCalled).toBe(true);
     });
   });
 
-  describe('isPointInFeatureBbox and isPointInPolygons', () => {
+  describe('isPointInFeatureBbox and isPointInFlatGeometry', () => {
     const feature = {
       extent: 4096,
       bbox() {
@@ -363,17 +347,8 @@ describe('Airspace overrides', () => {
       },
     } as any;
 
-    const polygons = [
-      [
-        [
-          { x: 1000, y: 1000 },
-          { x: 2000, y: 1000 },
-          { x: 2000, y: 2000 },
-          { x: 1000, y: 2000 },
-          { x: 1000, y: 1000 },
-        ],
-      ],
-    ];
+    const coords = new Float64Array([1000, 1000, 2000, 1000, 2000, 2000, 1000, 2000, 1000, 1000]);
+    const ends = new Uint32Array([10]);
 
     it('correctly tests bounding box with and without margin', () => {
       // 100 in 256px -> 1600 in 4096px -> inside [1000, 1000, 2000, 2000]
@@ -384,9 +359,17 @@ describe('Airspace overrides', () => {
       expect(isPointInFeatureBbox({ x: 60, y: 100 }, feature, 3)).toBe(true);
     });
 
-    it('correctly tests point in polygons', () => {
-      expect(isPointInPolygons({ x: 100, y: 100 }, polygons, 4096)).toBe(true);
-      expect(isPointInPolygons({ x: 10, y: 10 }, polygons, 4096)).toBe(false);
+    it('correctly tests point in flat geometry', () => {
+      // Inside point (100 in 256px -> 1600 in 4096)
+      expect(isPointInFlatGeometry({ x: 100, y: 100 }, coords, ends, 4096)).toBe(true);
+      expect(isPointInFlatGeometry({ x: 100, y: 100 }, coords, ends, 4096, 3)).toBe(true);
+      // Outside point (10 in 256px -> 160 in 4096)
+      expect(isPointInFlatGeometry({ x: 10, y: 10 }, coords, ends, 4096)).toBe(false);
+      expect(isPointInFlatGeometry({ x: 10, y: 10 }, coords, ends, 4096, 3)).toBe(false);
+      // Point outside by 2.5px (60 in 256px -> 960 in 4096, boundary at 1000)
+      expect(isPointInFlatGeometry({ x: 60, y: 100 }, coords, ends, 4096, 0)).toBe(false);
+      expect(isPointInFlatGeometry({ x: 60, y: 100 }, coords, ends, 4096, 2)).toBe(false);
+      expect(isPointInFlatGeometry({ x: 60, y: 100 }, coords, ends, 4096, 3)).toBe(true);
     });
   });
 

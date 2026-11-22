@@ -1,7 +1,21 @@
 import { Class, Type } from '@flyxc/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { AirspacePolygonLike } from '../logic/airspace3d-mesh';
 import { Airspace3dProcessor, extentOverlapsBounds } from './airspace3d-processor';
+
+function makeTestPolygon(ring: [number, number][], extent?: any): AirspacePolygonLike {
+  const coords = new Float64Array(ring.length * 2);
+  for (let i = 0; i < ring.length; i++) {
+    coords[i * 2] = ring[i][0];
+    coords[i * 2 + 1] = ring[i][1];
+  }
+  return {
+    coords,
+    ends: new Uint32Array([coords.length]),
+    extent,
+  };
+}
 
 describe('airspace3d-processor', () => {
   describe('extentOverlapsBounds', () => {
@@ -60,7 +74,7 @@ describe('airspace3d-processor', () => {
           icaoClass: Class.D,
           activity: 0,
         },
-        rings: [
+        polygon: makeTestPolygon(
           [
             [5.8, 45.1],
             [6.2, 45.1],
@@ -68,7 +82,8 @@ describe('airspace3d-processor', () => {
             [5.8, 45.5],
             [5.8, 45.1],
           ],
-        ],
+          { xmin: 5.8, ymin: 45.1, xmax: 6.2, ymax: 45.5 },
+        ),
         extent: { xmin: 5.8, ymin: 45.1, xmax: 6.2, ymax: 45.5 },
       };
 
@@ -130,7 +145,7 @@ describe('airspace3d-processor', () => {
           icaoClass: Class.D,
           activity: 0,
         },
-        rings: [
+        polygon: makeTestPolygon(
           [
             [5.8, 45.1],
             [6.2, 45.1],
@@ -138,7 +153,8 @@ describe('airspace3d-processor', () => {
             [5.8, 45.5],
             [5.8, 45.1],
           ],
-        ],
+          { xmin: 5.8, ymin: 45.1, xmax: 6.2, ymax: 45.5 },
+        ),
         extent: { xmin: 5.8, ymin: 45.1, xmax: 6.2, ymax: 45.5 },
       };
 
@@ -157,7 +173,7 @@ describe('airspace3d-processor', () => {
           icaoClass: Class.D,
           activity: 0,
         },
-        rings: [
+        polygon: makeTestPolygon(
           [
             [5.8, 45.1],
             [6.0, 45.1],
@@ -165,7 +181,8 @@ describe('airspace3d-processor', () => {
             [5.8, 45.3],
             [5.8, 45.1],
           ],
-        ],
+          { xmin: 5.8, ymin: 45.1, xmax: 6.0, ymax: 45.3 },
+        ),
         extent: { xmin: 5.8, ymin: 45.1, xmax: 6.0, ymax: 45.3 },
       };
 
@@ -229,7 +246,7 @@ describe('airspace3d-processor', () => {
           icaoClass: Class.D,
           activity: 0,
         },
-        rings: [
+        polygon: makeTestPolygon(
           [
             [5.8, 45.1],
             [6.0, 45.1],
@@ -237,7 +254,8 @@ describe('airspace3d-processor', () => {
             [5.8, 45.3],
             [5.8, 45.1],
           ],
-        ],
+          { xmin: 5.8, ymin: 45.1, xmax: 6.0, ymax: 45.3 },
+        ),
         extent: { xmin: 5.8, ymin: 45.1, xmax: 6.0, ymax: 45.3 },
       };
 
@@ -281,7 +299,7 @@ describe('airspace3d-processor', () => {
           icaoClass: Class.C,
           activity: 0,
         },
-        rings: [
+        polygon: makeTestPolygon(
           [
             [5.5, 45.0],
             [6.5, 45.0],
@@ -289,7 +307,8 @@ describe('airspace3d-processor', () => {
             [5.5, 46.0],
             [5.5, 45.0],
           ],
-        ],
+          { xmin: 5.5, ymin: 45.0, xmax: 6.5, ymax: 46.0 },
+        ),
         extent: { xmin: 5.5, ymin: 45.0, xmax: 6.5, ymax: 46.0 },
       };
 
