@@ -378,7 +378,7 @@ function getTile(
  *
  * When the tileZoom is less than the mapZoom, the same tile can be rendered to multiple canvas.
  */
-function renderTiles(
+export function renderTiles(
   fetchKey: number,
   fetchInfoMap: Map<number, FetchInfo>,
   vectorTile: VectorTile,
@@ -397,12 +397,12 @@ function renderTiles(
   }
   fetchInfoMap.delete(fetchKey);
 
-  if (!vectorTile.layers.asp) {
+  const layer = vectorTile.getLayer<AirspaceString>('asp');
+  if (!layer) {
     return;
   }
 
   const { renderSize, fetchSize } = getTileSize(mapZoom, tileZoom);
-
   const renderZoom = fetchSize / renderSize;
 
   for (const [renderKey, canvas] of fetchInfo.renderTo) {
@@ -419,40 +419,52 @@ function renderTiles(
       ctx.scale(2, 2);
     }
 
-    const layer = vectorTile.layers.asp;
-    if (!layer) {
-      return;
-    }
-
     for (const f of layer) {
-      const airspace = applyOverrides(toTypedAirspace(f.properties as any, f.id), date);
+      if (f.type !== FeatureType.POLYGON) {
+        continue;
+      }
       const ratio = renderSize / f.extent;
+      const scale = ratio * renderZoom;
+      const [minX, minY, maxX, maxY] = f.bbox();
       if (
-        f.type === FeatureType.POLYGON &&
-        airspace.floorM < altitude &&
-        isAirspaceVisible(airspace.icaoClass, showClasses, airspace.type, showTypes)
+        maxX * scale < renderX - 1 ||
+        minX * scale > renderX + renderSize + 1 ||
+        maxY * scale < renderZ - 1 ||
+        minY * scale > renderZ + renderSize + 1
       ) {
-        const polygons =
-          f.asPolygons((x, y) => ({
-            x: Math.round(x * ratio * renderZoom) - renderX,
-            y: Math.round(y * ratio * renderZoom) - renderZ,
-          })) ?? [];
-        for (let p = 0; p < polygons.length; p++) {
-          const polygon = polygons[p];
-          ctx.beginPath();
-          for (let r = 0; r < polygon.length; r++) {
-            const ring = polygon[r];
-            ctx.moveTo(ring[0].x, ring[0].y);
-            for (let j = 1; j < ring.length; j++) {
-              ctx.lineTo(ring[j].x, ring[j].y);
-            }
+        continue;
+      }
+
+      const airspace = applyOverrides(toTypedAirspace(f.properties, f.id), date);
+      if (
+        airspace.floorM >= altitude ||
+        !isAirspaceVisible(airspace.icaoClass, showClasses, airspace.type, showTypes)
+      ) {
+        continue;
+      }
+
+      const polygons =
+        f.asPolygons((x, y) => ({
+          x: Math.round(x * scale) - renderX,
+          y: Math.round(y * scale) - renderZ,
+        })) ?? [];
+
+      ctx.fillStyle = getAirspaceColor(airspace, opacity);
+      ctx.strokeStyle = getAirspaceColor(airspace, opacity + 5);
+
+      for (let p = 0; p < polygons.length; p++) {
+        const polygon = polygons[p];
+        ctx.beginPath();
+        for (let r = 0; r < polygon.length; r++) {
+          const ring = polygon[r];
+          ctx.moveTo(ring[0].x, ring[0].y);
+          for (let j = 1; j < ring.length; j++) {
+            ctx.lineTo(ring[j].x, ring[j].y);
           }
-          ctx.closePath();
-          ctx.fillStyle = getAirspaceColor(airspace, opacity);
-          ctx.fill('evenodd');
-          ctx.strokeStyle = getAirspaceColor(airspace, opacity + 5);
-          ctx.stroke();
         }
+        ctx.closePath();
+        ctx.fill('evenodd');
+        ctx.stroke();
       }
     }
   }
