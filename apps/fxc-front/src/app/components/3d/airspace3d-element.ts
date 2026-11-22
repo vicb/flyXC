@@ -684,12 +684,11 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     let airspaces: AirspaceTyped[];
     if (tileAirspaces.length > 0) {
       airspaces = [...tileAirspaces];
-      // Promote the clicked airspace to the top (matched by name, or by category for nameless airspaces).
-      // TODO: `hit.name` is always empty as the 3D tiles do not carry the airspace name (nor its id), so the
-      // match always falls back to the category, which is ambiguous when several airspaces share a category.
-      // Carry the source airspace id(s) into the 3D tiles (`coplanar-3d.ts`) and match by id instead.
-      const hitIndex = airspaces.findIndex((a) =>
-        hit.name ? a.name === hit.name : hitCategory ? !a.name && getAirspaceCategory(a) === hitCategory : false,
+      // Promote the clicked airspace to the top (matched by id first, then name, or by category for nameless airspaces).
+      const hitIndex = airspaces.findIndex(
+        (a) =>
+          (hit.id && a.id === hit.id) ||
+          (hit.name ? a.name === hit.name : hitCategory ? !a.name && getAirspaceCategory(a) === hitCategory : false),
       );
       if (hitIndex > 0) {
         airspaces.unshift(...airspaces.splice(hitIndex, 1));

@@ -23,7 +23,13 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { simplifyCoords, Type } from '@flyxc/common';
+import {
+  AIRSPACE_OVERRIDE_KEY_TO_ID,
+  AIRSPACE_OVERRIDE_TARGETS,
+  RESERVED_AIRSPACE_ID_MAX,
+  simplifyCoords,
+  Type,
+} from '@flyxc/common';
 import { program } from 'commander';
 import GeoJSON from 'geojson';
 
@@ -58,16 +64,23 @@ const logs = new Map<string, number>();
 const filterFn = createFilter(logs);
 const processFn = createProcess(logs);
 
-let nextId = 1;
+let nextId = RESERVED_AIRSPACE_ID_MAX + 1;
 let totalOrigVertices = 0;
 let totalSimpVertices = 0;
+const matchedOverrideIds = new Set<number>();
 
 function saveGeoJson(airspaces: Airspace[], outFile: string) {
   if (airspaces.length === 0) {
     return;
   }
   for (const a of airspaces) {
-    a.id = nextId++;
+    const overrideId = AIRSPACE_OVERRIDE_KEY_TO_ID[`${a.name}|${a.icaoClass}`];
+    if (overrideId != null) {
+      a.id = overrideId;
+      matchedOverrideIds.add(overrideId);
+    } else {
+      a.id = nextId++;
+    }
     if (toleranceM > 0) {
       a.polygon = a.polygon.map((ring) => {
         totalOrigVertices += ring.length;
@@ -156,6 +169,23 @@ if (totalOrigVertices > 0) {
   console.log(
     `# Geometry simplification (tolerance: ${toleranceM}m): ${totalOrigVertices.toLocaleString()} -> ${totalSimpVertices.toLocaleString()} vertices (-${reduction}%)`,
   );
+}
+
+// Verify that all override airspaces were found in the source datasets
+const missingOverrides = AIRSPACE_OVERRIDE_TARGETS.filter((t) => !matchedOverrideIds.has(t.id));
+
+if (missingOverrides.length > 0) {
+  const missingDetails = missingOverrides.map((t) => `  - ID ${t.id}: "${t.name}" (Class ${t.icaoClass})`).join('\n');
+  if (existsSync(openaipDir)) {
+    console.error(
+      `Error: The following airspaces with defined overrides were NOT found in input datasets:\n${missingDetails}`,
+    );
+    process.exit(1);
+  } else {
+    console.warn(
+      `Warning: Missing airspaces with defined overrides (openaip directory not present):\n${missingDetails}`,
+    );
+  }
 }
 
 function cleanOutputDir(dir: string) {

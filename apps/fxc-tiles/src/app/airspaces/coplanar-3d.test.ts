@@ -1,3 +1,4 @@
+import { RESERVED_AIRSPACE_ID_MAX } from '@flyxc/common';
 import { describe, expect, it } from 'vitest';
 
 import type { AirspaceFeature } from './coplanar-3d';
@@ -40,9 +41,9 @@ describe('mergeCoplanarAirspaces', () => {
 
     const result = await mergeCoplanarAirspaces([f1, f2]);
     expect(result).toHaveLength(2);
-    expect(result[0].id).toBe(1);
+    expect(result[0].id).toBe(RESERVED_AIRSPACE_ID_MAX + 1);
     expect(result[0].properties.id).toBeUndefined();
-    expect(result[1].id).toBe(2);
+    expect(result[1].id).toBe(RESERVED_AIRSPACE_ID_MAX + 2);
     expect(result[1].properties.id).toBeUndefined();
   });
 
@@ -82,7 +83,7 @@ describe('mergeCoplanarAirspaces', () => {
 
     const result = await mergeCoplanarAirspaces([f1, f2]);
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe(1);
+    expect(result[0].id).toBe(RESERVED_AIRSPACE_ID_MAX + 1);
     expect(result[0].properties.id).toBeUndefined();
     expect(result[0].geometry.type).toBe('Polygon');
     // Resulting polygon bounding box spans [0,0] to [3,2]
@@ -127,8 +128,56 @@ describe('mergeCoplanarAirspaces', () => {
 
     const result = await mergeCoplanarAirspaces([f1, f2]);
     expect(result).toHaveLength(2);
-    expect(result[0].id).toBe(1);
-    expect(result[1].id).toBe(2);
+    expect(result[0].id).toBe(RESERVED_AIRSPACE_ID_MAX + 1);
+    expect(result[1].id).toBe(RESERVED_AIRSPACE_ID_MAX + 2);
+  });
+
+  it('preserves features with reserved IDs (<= 100) and excludes them from coplanar merging', async () => {
+    const f1: AirspaceFeature = {
+      type: 'Feature',
+      id: 7, // Reserved ID e.g. LF-R30B
+      properties: { icaoClass: 4, type: 0, floorM: 100, topM: 500, floorRefGnd: false, topRefGnd: false },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [0, 0],
+            [2, 0],
+            [2, 2],
+            [0, 2],
+            [0, 0],
+          ],
+        ],
+      },
+    };
+    const f2: AirspaceFeature = {
+      type: 'Feature',
+      id: RESERVED_AIRSPACE_ID_MAX + 1, // Standard coplanar feature overlapping f1
+      properties: { icaoClass: 4, type: 0, floorM: 100, topM: 500, floorRefGnd: false, topRefGnd: false },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [1, 0],
+            [3, 0],
+            [3, 2],
+            [1, 2],
+            [1, 0],
+          ],
+        ],
+      },
+    };
+
+    const result = await mergeCoplanarAirspaces([f1, f2]);
+    expect(result).toHaveLength(2);
+    // f1 preserves exact reserved id 7 and is NOT merged into f2
+    const reserved = result.find((f) => f.id === 7);
+    expect(reserved).toBeDefined();
+    expect(reserved?.properties.id).toBeUndefined();
+    // f2 is assigned a standard id >= RESERVED_AIRSPACE_ID_MAX + 1
+    const standard = result.find((f) => f.id !== 7);
+    expect(standard).toBeDefined();
+    expect(standard?.id).toBe(RESERVED_AIRSPACE_ID_MAX + 1);
   });
 
   it('filters out micro-islands and micro-holes below MIN_RING_AREA_DEG2', async () => {

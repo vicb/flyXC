@@ -9,12 +9,12 @@ import { TZDate } from '@date-fns/tz';
 import * as common from '@flyxc/common';
 import {
   AIRSPACE_3D_TILE_ZOOM,
-  airspaceOverrides,
   ASP_COLOR_DANGER,
   ASP_COLOR_OTHER,
   ASP_COLOR_PROHIBITED,
   ASP_COLOR_RESTRICTED,
   Class,
+  RESERVED_AIRSPACE_ID_MAX,
   Type,
 } from '@flyxc/common';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -288,7 +288,7 @@ function makeFeature(props: Record<string, string>, ring: number[][], holes: num
   };
 }
 
-let nextAirspaceId = 1;
+let nextAirspaceId = RESERVED_AIRSPACE_ID_MAX + 1;
 
 function makeAirspaceProps(overrides: Record<string, string | number | boolean> = {}): Record<string, any> {
   return {
@@ -373,111 +373,6 @@ describe('buildAirspaceVectorTileStyle', () => {
 
     const tooHigh = evaluateStyle(style, { name: 'HIGH TMA', icaoClass: Class.D, type: Type.TMA, floorM: 3500 });
     expect(tooHigh.visible).toBe(false);
-  });
-
-  it('applies seasonal overrides for July and winter weekends', () => {
-    const commonProps = {
-      maxAltitude: 3000,
-      showClasses: [Class.A, Class.B, Class.C, Class.D],
-      showTypes: [Type.Prohibited, Type.Restricted, Type.Danger],
-      opacity: 70,
-      tileServer: 'cloud' as const,
-    };
-
-    const julyStyle = buildAirspaceVectorTileStyle({
-      ...commonProps,
-      date: new TZDate('2025-07-15T12:00:00', 'Europe/Paris'),
-    });
-
-    // Ecrins inactive in July -> Type.Other (hidden when Class.E/Other hidden, grey color).
-    const ecrinsJuly = evaluateStyle(julyStyle, {
-      name: airspaceOverrides.ecrins,
-      icaoClass: Class.SUA,
-      type: Type.Restricted,
-      floorM: 0,
-    });
-    expect(ecrinsJuly.visible).toBe(false);
-    expect(ecrinsJuly.color).toEqual(hexToUnitRgba(ASP_COLOR_OTHER));
-
-    // LF-R30B active in July -> Restricted yellow & visible.
-    const r30bJuly = evaluateStyle(julyStyle, {
-      name: airspaceOverrides.LFR30B,
-      icaoClass: Class.SUA,
-      type: Type.Restricted,
-      floorM: 0,
-    });
-    expect(r30bJuly.visible).toBe(true);
-    expect(r30bJuly.color).toEqual(hexToUnitRgba(ASP_COLOR_RESTRICTED));
-
-    // TMA Chambery 1 becomes Class E in July (even if tile says D) -> hidden here, yellow color.
-    const chamberyTmaJuly = evaluateStyle(julyStyle, {
-      name: airspaceOverrides.TMAChambery1,
-      icaoClass: Class.D,
-      type: Type.TMA,
-      floorM: 1000,
-    });
-    expect(chamberyTmaJuly.visible).toBe(false);
-    expect(chamberyTmaJuly.color).toEqual(hexToUnitRgba(ASP_COLOR_RESTRICTED));
-
-    // CTR Chambery 2 becomes SUA/Other in July -> hidden & grey.
-    const chamberyCtrJuly = evaluateStyle(julyStyle, {
-      name: airspaceOverrides.CTRChambery2,
-      icaoClass: Class.D,
-      type: Type.CTR,
-      floorM: 0,
-    });
-    expect(chamberyCtrJuly.visible).toBe(false);
-    expect(chamberyCtrJuly.color).toEqual(hexToUnitRgba(ASP_COLOR_OTHER));
-
-    // TMA Clermont 2.1 becomes Class G / TMA -> Class G takes color precedence (yellow).
-    const clermontJuly = evaluateStyle(julyStyle, {
-      name: airspaceOverrides.TMAClermont21,
-      icaoClass: Class.D,
-      type: Type.TMA,
-      floorM: 500,
-    });
-    expect(clermontJuly.color).toEqual(hexToUnitRgba(ASP_COLOR_RESTRICTED));
-
-    const winterStyle = buildAirspaceVectorTileStyle({
-      ...commonProps,
-      date: new TZDate('2025-04-13T12:00:00', 'Europe/Paris'),
-    });
-
-    const ecrinsWinter = evaluateStyle(winterStyle, {
-      name: airspaceOverrides.ecrins,
-      icaoClass: Class.SUA,
-      type: Type.Restricted,
-      floorM: 0,
-    });
-    expect(ecrinsWinter.visible).toBe(true);
-    expect(ecrinsWinter.color).toEqual(hexToUnitRgba(ASP_COLOR_RESTRICTED));
-
-    const r30bWinter = evaluateStyle(winterStyle, {
-      name: airspaceOverrides.LFR30B,
-      icaoClass: Class.SUA,
-      type: Type.Restricted,
-      floorM: 0,
-    });
-    expect(r30bWinter.visible).toBe(false);
-    expect(r30bWinter.color).toEqual(hexToUnitRgba(ASP_COLOR_OTHER));
-
-    const chamberyTmaWinter = evaluateStyle(winterStyle, {
-      name: airspaceOverrides.TMAChambery1,
-      icaoClass: Class.E,
-      type: Type.TMA,
-      floorM: 1000,
-    });
-    expect(chamberyTmaWinter.visible).toBe(true);
-    expect(chamberyTmaWinter.color).toEqual(hexToUnitRgba(ASP_COLOR_PROHIBITED));
-
-    const chamberyCtrWinter = evaluateStyle(winterStyle, {
-      name: airspaceOverrides.CTRChambery2,
-      icaoClass: Class.D,
-      type: Type.CTR,
-      floorM: 0,
-    });
-    expect(chamberyCtrWinter.visible).toBe(true);
-    expect(chamberyCtrWinter.color).toEqual(hexToUnitRgba(ASP_COLOR_PROHIBITED));
   });
 
   it('keeps wildcard visibility when Type.Other is enabled', () => {
@@ -607,6 +502,7 @@ describe('Airspace3dElement', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+    nextAirspaceId = RESERVED_AIRSPACE_ID_MAX + 1;
     hoisted.state.maxAltitude = 3000;
     hoisted.state.showAirspace = true;
     hoisted.state.showClasses = [Class.C, Class.D];

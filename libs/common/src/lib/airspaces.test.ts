@@ -5,8 +5,11 @@ import { TZDate } from '@date-fns/tz';
 import { VectorTile } from 'mapbox-vector-tile';
 
 import {
+  Activity,
   AIRSPACE_3D_TILE_ZOOM,
-  airspaceOverrides,
+  AIRSPACE_OVERRIDE_ID_TO_NAME,
+  AIRSPACE_OVERRIDE_KEY_TO_ID,
+  AIRSPACE_OVERRIDE_NAME_TO_ID,
   type AirspaceString,
   type AirspaceTyped,
   applyOverrides,
@@ -19,6 +22,7 @@ import {
   getAirspaceTileUrl,
   isInFeature,
   LOCAL_AIRSPACE_BASE_URL,
+  RESERVED_AIRSPACE_ID_MAX,
   toTypedAirspace,
   Type,
 } from './airspaces';
@@ -46,21 +50,14 @@ async function getTile(x: number, y: number, z: number): Promise<Map<string, Air
   for (let i = 0; i < aspLayer.length; i++) {
     const feature = aspLayer.feature(i);
     const airspace = toTypedAirspace(feature.properties as AirspaceString);
+    const overrideId =
+      AIRSPACE_OVERRIDE_KEY_TO_ID[`${airspace.name}|${airspace.icaoClass}`] ??
+      AIRSPACE_OVERRIDE_NAME_TO_ID[airspace.name];
+    if (overrideId != null) {
+      airspace.id = overrideId;
+    }
     airspaces.set(airspace.name, airspace);
   }
-
-  // Help retrieve names
-  // console.log(
-  //   [...airspaces.keys()].toSorted().filter((n) => {
-  //     const nU = n.toUpperCase();
-  //     return (
-  //       nU.includes('ECRINS') ||
-  //       nU.includes('R30B') ||
-  //       nU.includes('CLERMONT') ||
-  //       nU.includes('CHAMBERY')
-  //     );
-  //   }),
-  // );
 
   return airspaces;
 }
@@ -72,117 +69,8 @@ describe('Airspace overrides', () => {
     airspaces = await getTile(16, 11, 5);
   });
 
-  it('contains all the airspaces', async () => {
-    expect(airspaces.get(airspaceOverrides.ecrins)).toMatchObject({
-      activity: 0,
-      country: 'FR',
-      floorLabel: 'GND',
-      floorM: 0,
-      floorRefGnd: true,
-      icaoClass: 8,
-      topLabel: '3281ft GND',
-      topM: 1000,
-      topRefGnd: true,
-      type: 29,
-    });
-    expect(airspaces.get(airspaceOverrides.TMAClermont21)).toMatchObject({
-      activity: 0,
-      country: 'FR',
-      floorLabel: '2700ft MSL',
-      floorM: 823,
-      floorRefGnd: false,
-      topRefGnd: false,
-    });
-    expect(airspaces.get(airspaceOverrides.TMAClermont22)).toMatchObject({
-      activity: 0,
-      country: 'FR',
-      floorLabel: '2700ft MSL',
-      floorM: 823,
-      floorRefGnd: false,
-      topRefGnd: false,
-    });
-    expect(airspaces.get(airspaceOverrides.TMAClermont23)).toMatchObject({
-      activity: 0,
-      country: 'FR',
-      floorLabel: '2700ft MSL',
-      floorM: 823,
-      floorRefGnd: false,
-      topRefGnd: false,
-    });
-    expect(airspaces.get(airspaceOverrides.TMAClermont41)).toMatchObject({
-      activity: 0,
-      country: 'FR',
-      floorLabel: 'FL 65',
-      floorM: 1981,
-      floorRefGnd: false,
-      topRefGnd: false,
-    });
-    expect(airspaces.get(airspaceOverrides.TMAClermont51)).toMatchObject({
-      activity: 0,
-      country: 'FR',
-      floorLabel: 'FL 85',
-      floorM: 2591,
-      floorRefGnd: false,
-      topRefGnd: false,
-    });
-    expect(airspaces.get(airspaceOverrides.LFR30B)).toMatchObject({
-      activity: 0,
-      country: 'FR',
-      floorLabel: 'GND',
-      floorM: 0,
-      floorRefGnd: true,
-      icaoClass: 8,
-      topLabel: 'FL 115',
-      topM: 3505,
-      topRefGnd: false,
-      type: 1,
-    });
-    expect(airspaces.get(airspaceOverrides.TMAChambery1)).toMatchObject({
-      activity: 0,
-      country: 'FR',
-      floorLabel: '3000ft MSL',
-      floorM: 914,
-      floorRefGnd: false,
-      topLabel: 'FL 95',
-      topM: 2896,
-      topRefGnd: false,
-      type: 7,
-    });
-    expect(airspaces.get(airspaceOverrides.TMAChambery2)).toMatchObject({
-      activity: 0,
-      country: 'FR',
-      floorLabel: '5500ft MSL',
-      floorM: 1676,
-      floorRefGnd: false,
-      topLabel: 'FL 95',
-      topM: 2896,
-      topRefGnd: false,
-      type: 7,
-    });
-    expect(airspaces.get(airspaceOverrides.TMAChambery3)).toMatchObject({
-      activity: 0,
-      country: 'FR',
-      floorLabel: 'FL 95',
-      floorM: 2896,
-      floorRefGnd: false,
-      topLabel: 'FL 115',
-      topM: 3505,
-      topRefGnd: false,
-      type: 7,
-    });
-    expect(airspaces.get(airspaceOverrides.CTRChambery2)).toMatchObject({
-      activity: 0,
-      country: 'FR',
-      floorLabel: 'GND',
-      floorM: 0,
-      floorRefGnd: true,
-      icaoClass: 3,
-      type: 4,
-    });
-  });
-
-  test(airspaceOverrides.ecrins, () => {
-    const ecrins = airspaces.get(airspaceOverrides.ecrins)!;
+  test('PARC/RESERVE ECRINS', () => {
+    const ecrins = airspaces.get('PARC/RESERVE ECRINS')!;
 
     expect(applyOverrides(ecrins, new TZDate('2024-01-01', 'Europe/Paris'))).toEqual(ecrins);
     expect(applyOverrides(ecrins, new TZDate('2024-06-30', 'Europe/Paris'))).toEqual(ecrins);
@@ -193,8 +81,8 @@ describe('Airspace overrides', () => {
     expect(applyOverrides(ecrins, new TZDate('2024-10-31', 'Europe/Paris')).type).toEqual(Type.Other);
   });
 
-  test(airspaceOverrides.TMAClermont21, () => {
-    const clermont21 = airspaces.get(airspaceOverrides.TMAClermont21)!;
+  test('TMA CLERMONT 2.1 (VOL LIBRE)', () => {
+    const clermont21 = airspaces.get('TMA CLERMONT 2.1 (VOL LIBRE)')!;
 
     expect(applyOverrides(clermont21, new TZDate('2024-01-01', 'Europe/Paris')).topM).toEqual(1680);
     expect(applyOverrides(clermont21, new TZDate('2024-03-14', 'Europe/Paris')).topM).toEqual(1680);
@@ -205,8 +93,8 @@ describe('Airspace overrides', () => {
     expect(applyOverrides(clermont21, new TZDate('2024-10-15', 'Europe/Paris')).topM).toEqual(1980);
   });
 
-  test(airspaceOverrides.TMAClermont22, () => {
-    const clermont22 = airspaces.get(airspaceOverrides.TMAClermont22)!;
+  test('TMA CLERMONT 2.2 CHAMPEIX', () => {
+    const clermont22 = airspaces.get('TMA CLERMONT 2.2 CHAMPEIX')!;
 
     expect(applyOverrides(clermont22, new TZDate('2024-01-01', 'Europe/Paris')).topM).toEqual(1680);
     expect(applyOverrides(clermont22, new TZDate('2024-03-14', 'Europe/Paris')).topM).toEqual(1680);
@@ -217,8 +105,8 @@ describe('Airspace overrides', () => {
     expect(applyOverrides(clermont22, new TZDate('2024-10-15', 'Europe/Paris')).topM).toEqual(1980);
   });
 
-  test(airspaceOverrides.TMAClermont23, () => {
-    const clermont23 = airspaces.get(airspaceOverrides.TMAClermont23)!;
+  test('TMA CLERMONT 2.3 ORCINES', () => {
+    const clermont23 = airspaces.get('TMA CLERMONT 2.3 ORCINES')!;
 
     expect(applyOverrides(clermont23, new TZDate('2024-01-01', 'Europe/Paris')).topM).toEqual(1680);
     expect(applyOverrides(clermont23, new TZDate('2024-03-14', 'Europe/Paris')).topM).toEqual(1680);
@@ -236,8 +124,8 @@ describe('Airspace overrides', () => {
     expect(applyOverrides(clermont23, new TZDate('2024-10-12', 'Europe/Paris')).topM).toEqual(2590);
   });
 
-  test(airspaceOverrides.TMAClermont41, () => {
-    const clermont41 = airspaces.get(airspaceOverrides.TMAClermont41)!;
+  test('TMA CLERMONT 4.1 JOB', () => {
+    const clermont41 = airspaces.get('TMA CLERMONT 4.1 JOB')!;
 
     expect(applyOverrides(clermont41, new TZDate('2024-01-01', 'Europe/Paris')).topM).toEqual(2590);
     expect(applyOverrides(clermont41, new TZDate('2024-03-14', 'Europe/Paris')).topM).toEqual(2590);
@@ -255,8 +143,8 @@ describe('Airspace overrides', () => {
     expect(applyOverrides(clermont41, new TZDate('2024-10-12', 'Europe/Paris')).topM).toEqual(2895);
   });
 
-  test(airspaceOverrides.TMAClermont51, () => {
-    const clermont51 = airspaces.get(airspaceOverrides.TMAClermont51)!;
+  test('TMA CLERMONT 5.1 PUY DE DOME', () => {
+    const clermont51 = airspaces.get('TMA CLERMONT 5.1 PUY DE DOME')!;
 
     expect(applyOverrides(clermont51, new TZDate('2024-01-01', 'Europe/Paris')).topM).toEqual(2590);
     expect(applyOverrides(clermont51, new TZDate('2024-03-14', 'Europe/Paris')).topM).toEqual(2590);
@@ -267,8 +155,21 @@ describe('Airspace overrides', () => {
     expect(applyOverrides(clermont51, new TZDate('2024-10-15', 'Europe/Paris')).topM).toEqual(3505);
   });
 
-  test(airspaceOverrides.LFR30B, () => {
-    const r30b = airspaces.get(airspaceOverrides.LFR30B)!;
+  test('LF-R30A MONT BLANC', () => {
+    const r30a = airspaces.get('LF-R30A MONT BLANC')!;
+
+    expect(applyOverrides(r30a, new TZDate('2024-01-01', 'Europe/Paris'))).toEqual(r30a);
+    expect(applyOverrides(r30a, new TZDate('2024-06-30', 'Europe/Paris'))).toEqual(r30a);
+    expect(applyOverrides(r30a, new TZDate('2024-09-01', 'Europe/Paris'))).toEqual(r30a);
+    expect(applyOverrides(r30a, new TZDate('2024-12-31', 'Europe/Paris'))).toEqual(r30a);
+
+    expect(applyOverrides(r30a, new TZDate('2024-07-01', 'Europe/Paris'))).not.toEqual(r30a);
+    expect(applyOverrides(r30a, new TZDate('2024-08-31', 'Europe/Paris'))).not.toEqual(r30a);
+    expect(applyOverrides(r30a, new TZDate('2024-07-15', 'Europe/Paris')).type).toEqual(Type.Other);
+  });
+
+  test('LF-R30B MONT BLANC (JULY+AUG)', () => {
+    const r30b = airspaces.get('LF-R30B MONT BLANC (JULY+AUG)')!;
 
     expect(applyOverrides(r30b, new TZDate('2024-01-01', 'Europe/Paris'))).not.toEqual(r30b);
     expect(applyOverrides(r30b, new TZDate('2024-06-30', 'Europe/Paris'))).not.toEqual(r30b);
@@ -279,12 +180,24 @@ describe('Airspace overrides', () => {
     expect(applyOverrides(r30b, new TZDate('2024-08-31', 'Europe/Paris'))).toEqual(r30b);
   });
 
+  test('LF-R30C MONT BLANC (JUNE - 15 OCT)', () => {
+    const r30c = airspaces.get('LF-R30C MONT BLANC (JUNE - 15 OCT)')!;
+
+    // Inactive outside June 1 - Oct 15
+    expect(applyOverrides(r30c, new TZDate('2024-01-01', 'Europe/Paris'))).not.toEqual(r30c);
+    expect(applyOverrides(r30c, new TZDate('2024-05-31', 'Europe/Paris'))).not.toEqual(r30c);
+    expect(applyOverrides(r30c, new TZDate('2024-10-16', 'Europe/Paris'))).not.toEqual(r30c);
+    expect(applyOverrides(r30c, new TZDate('2024-12-31', 'Europe/Paris'))).not.toEqual(r30c);
+    expect(applyOverrides(r30c, new TZDate('2024-10-16', 'Europe/Paris')).type).toEqual(Type.Other);
+
+    // Active June 1 - Oct 15
+    expect(applyOverrides(r30c, new TZDate('2024-06-01', 'Europe/Paris'))).toEqual(r30c);
+    expect(applyOverrides(r30c, new TZDate('2024-07-15', 'Europe/Paris'))).toEqual(r30c);
+    expect(applyOverrides(r30c, new TZDate('2024-10-15', 'Europe/Paris'))).toEqual(r30c);
+  });
+
   test('TMA CHAMBERY', () => {
-    for (const tmaName of [
-      airspaceOverrides.TMAChambery1,
-      airspaceOverrides.TMAChambery2,
-      airspaceOverrides.TMAChambery3,
-    ]) {
+    for (const tmaName of ['TMA CHAMBERY 1', 'TMA CHAMBERY 2', 'TMA CHAMBERY 3']) {
       const tma = airspaces.get(tmaName)!;
       // openaip has class E
       tma.icaoClass = Class.D;
@@ -303,8 +216,8 @@ describe('Airspace overrides', () => {
     }
   });
 
-  test(airspaceOverrides.CTRChambery2, () => {
-    const ctr = airspaces.get(airspaceOverrides.CTRChambery2)!;
+  test('CTR CHAMBERY 2 (ACTIVE MID DEC -> MID APRIL)', () => {
+    const ctr = airspaces.get('CTR CHAMBERY 2 (ACTIVE MID DEC -> MID APRIL)')!;
 
     // disabled from 2nd Monday of April to 2nd Friday of December
     expect(applyOverrides(ctr, new TZDate('2025-04-14', 'Europe/Paris')).icaoClass).toEqual(Class.SUA);
@@ -323,19 +236,24 @@ describe('Airspace overrides', () => {
     const july = new TZDate('2025-07-15T12:00:00', 'Europe/Paris');
     const julyMap = getAirspaceOverrides(july);
 
-    expect(julyMap.get(airspaceOverrides.ecrins)).toEqual({
-      name: `${airspaceOverrides.ecrins} - INACTIVE`,
+    expect(julyMap.get(1)).toEqual({
+      name: 'PARC/RESERVE ECRINS - INACTIVE',
       type: Type.Other,
     });
-    expect(julyMap.has(airspaceOverrides.LFR30B)).toBe(false);
-    expect(julyMap.get(airspaceOverrides.TMAClermont21)).toMatchObject({
+    expect(julyMap.get(2)).toMatchObject({
       icaoClass: Class.G,
       type: Type.TMA,
     });
-    expect(julyMap.get(airspaceOverrides.TMAChambery1)).toEqual({
+    expect(julyMap.get(7)).toEqual({
+      name: 'LF-R30A MONT BLANC - INACTIVE',
+      type: Type.Other,
+    });
+    expect(julyMap.has(8)).toBe(false);
+    expect(julyMap.has(9)).toBe(false);
+    expect(julyMap.get(10)).toEqual({
       icaoClass: Class.E,
     });
-    expect(julyMap.get(airspaceOverrides.CTRChambery2)).toMatchObject({
+    expect(julyMap.get(13)).toMatchObject({
       icaoClass: Class.SUA,
       type: Type.Other,
     });
@@ -343,15 +261,20 @@ describe('Airspace overrides', () => {
     const winterWeekend = new TZDate('2025-04-13T12:00:00', 'Europe/Paris');
     const winterMap = getAirspaceOverrides(winterWeekend);
 
-    expect(winterMap.has(airspaceOverrides.ecrins)).toBe(false);
-    expect(winterMap.get(airspaceOverrides.LFR30B)).toEqual({
-      name: 'LF-R30B MONT BLANC - INACTIVE',
+    expect(winterMap.has(1)).toBe(false);
+    expect(winterMap.has(7)).toBe(false);
+    expect(winterMap.get(8)).toEqual({
+      name: 'LF-R30B MONT BLANC (JULY+AUG) - INACTIVE',
       type: Type.Other,
     });
-    expect(winterMap.get(airspaceOverrides.TMAChambery1)).toEqual({
+    expect(winterMap.get(9)).toEqual({
+      name: 'LF-R30C MONT BLANC (JUNE - 15 OCT) - INACTIVE',
+      type: Type.Other,
+    });
+    expect(winterMap.get(10)).toEqual({
       icaoClass: Class.D,
     });
-    expect(winterMap.get(airspaceOverrides.CTRChambery2)).toMatchObject({
+    expect(winterMap.get(13)).toMatchObject({
       icaoClass: Class.D,
     });
   });
@@ -422,6 +345,48 @@ describe('Airspace overrides', () => {
       // (100, 100) maps to px 1600 -> inside bbox
       expect(isInFeature({ x: 100, y: 100 }, feature)).toBe(true);
       expect(asPolygonsCalled).toBe(true);
+    });
+  });
+
+  describe('Reserved Override IDs', () => {
+    it('provides a bidirectional mapping covering all override airspaces', () => {
+      const overrideNames = Object.values(AIRSPACE_OVERRIDE_ID_TO_NAME);
+      expect(Object.keys(AIRSPACE_OVERRIDE_ID_TO_NAME)).toHaveLength(overrideNames.length);
+      for (const [idStr, name] of Object.entries(AIRSPACE_OVERRIDE_ID_TO_NAME)) {
+        const id = Number(idStr);
+        expect(id).toBeGreaterThan(0);
+        expect(id).toBeLessThanOrEqual(RESERVED_AIRSPACE_ID_MAX);
+        expect(overrideNames).toContain(name);
+        expect(AIRSPACE_OVERRIDE_NAME_TO_ID[name]).toBe(id);
+      }
+    });
+
+    it('matches overrides by ID when airspace name is empty (3D tiles)', () => {
+      // Feature 8 is LF-R30B Mont Blanc
+      const nameless3dFeature: AirspaceTyped = {
+        id: 8,
+        name: '',
+        country: 'FR',
+        type: Type.Restricted,
+        icaoClass: Class.SUA,
+        activity: Activity.None,
+        floorM: 0,
+        floorLabel: 'GND',
+        floorRefGnd: true,
+        topM: 3505,
+        topLabel: 'FL 115',
+        topRefGnd: false,
+      };
+
+      // In November: should be overridden to Type.Other (inactive)
+      const winterResult = applyOverrides(nameless3dFeature, new TZDate('2026-11-15', 'Europe/Paris'));
+      expect(winterResult.type).toBe(Type.Other);
+      expect(winterResult.name).toBe('LF-R30B MONT BLANC (JULY+AUG) - INACTIVE');
+
+      // In July: active, no override applies, remains unchanged
+      const summerResult = applyOverrides(nameless3dFeature, new TZDate('2026-07-15', 'Europe/Paris'));
+      expect(summerResult.type).toBe(Type.Restricted);
+      expect(summerResult).toEqual(nameless3dFeature);
     });
   });
 

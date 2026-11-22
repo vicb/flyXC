@@ -430,42 +430,85 @@ export function getAirspaceCategory(airspace: AirspaceTyped) {
   return parts.join(' ');
 }
 
-export const airspaceOverrides = {
+/**
+ * Maximum reserved integer ID for airspaces with date/schedule overrides.
+ * Standard airspaces without overrides are assigned IDs > 100.
+ */
+export const RESERVED_AIRSPACE_ID_MAX = 100;
+
+/**
+ * Full name and class specifications for airspaces with date/schedule overrides.
+ * Matched during tile generation to assign reserved IDs 1..RESERVED_AIRSPACE_ID_MAX.
+ *
+ * Airspace names are not guaranteed to be unique in OpenAIP: multiple vertical
+ * layers or sectors can share the exact same name under different ICAO classes
+ * (e.g., "TMA CLERMONT 2.3 ORCINES" exists as both Class D and Class E).
+ * Matching by both `name` and `icaoClass` ensures the override is assigned to
+ * the correct airspace layer.
+ */
+export interface AirspaceOverrideTarget {
+  id: number;
+  name: string;
+  icaoClass: Class;
+}
+
+export const AIRSPACE_OVERRIDE_TARGETS: AirspaceOverrideTarget[] = [
   // Inactive from July to Oct
   // https://www.ecrins-parcnational.fr/les-survols-non-motorises
-  ecrins: 'PARC/RESERVE ECRINS',
+  { id: 1, name: 'PARC/RESERVE ECRINS', icaoClass: Class.SUA },
   // See https://www.freedom-parapente.fr/site/puy-de-dome
-  TMAClermont21: 'TMA CLERMONT 2.1 (VOL LIBRE)',
-  TMAClermont22: 'TMA CLERMONT 2.2 CHAMPEIX (VOL LIBRE)',
-  TMAClermont23: 'TMA CLERMONT 2.3 ORCINES (VOL LIBRE)',
-  TMAClermont41: 'TMA CLERMONT 4.1 JOB (VOL LIBRE)',
-  TMAClermont51: 'TMA CLERMONT5.1 PUY DE DOME (VOL LIBRE)',
-  // Active in July and August
-  // https://federation.ffvl.fr/sites/ffvl.fr/files/Massifdumontblancchamonix.pdf
-  LFR30B: 'LF-R30B MONT BLANC (JULY+AUGUST)',
+  { id: 2, name: 'TMA CLERMONT 2.1 (VOL LIBRE)', icaoClass: Class.D },
+  { id: 3, name: 'TMA CLERMONT 2.2 CHAMPEIX', icaoClass: Class.D },
+  { id: 4, name: 'TMA CLERMONT 2.3 ORCINES', icaoClass: Class.D },
+  { id: 5, name: 'TMA CLERMONT 4.1 JOB', icaoClass: Class.D },
+  { id: 6, name: 'TMA CLERMONT 5.1 PUY DE DOME', icaoClass: Class.D },
+  // Mont Blanc restricted areas (AIP ENR 5.1)
+  // - 30A: inactive in July and August (replaced by 30B)
+  // - 30B: active in July and August
+  // - 30C: active June 1 to October 15
+  { id: 7, name: 'LF-R30A MONT BLANC', icaoClass: Class.SUA },
+  { id: 8, name: 'LF-R30B MONT BLANC (JULY+AUG)', icaoClass: Class.SUA },
+  { id: 9, name: 'LF-R30C MONT BLANC (JUNE - 15 OCT)', icaoClass: Class.SUA },
   // Class E
   // - 2nd Monday of April to 2nd Friday of December
   // - outside the above period: Monday 11:00UTC to Thursday 23:59UTC
-  TMAChambery1: 'TMA CHAMBERY 1',
-  TMAChambery2: 'TMA CHAMBERY 2',
-  TMAChambery3: 'TMA CHAMBERY 3',
+  { id: 10, name: 'TMA CHAMBERY 1', icaoClass: Class.E },
+  { id: 11, name: 'TMA CHAMBERY 2', icaoClass: Class.E },
+  { id: 12, name: 'TMA CHAMBERY 3', icaoClass: Class.E },
   // Disabled
   // - 2nd Monday of April to 2nd Friday of December
   // - outside the above period: Monday 11:00UTC to Thursday 23:59UTC
-  CTRChambery2: 'CTR CHAMBERY 2 (ACTIVE MID DEC -> MID AVRIL)',
-} as const;
+  { id: 13, name: 'CTR CHAMBERY 2 (ACTIVE MID DEC -> MID APRIL)', icaoClass: Class.D },
+];
 
-export type AirspaceOverride = (typeof airspaceOverrides)[keyof typeof airspaceOverrides];
+/**
+ * Bidirectional mapping between reserved airspace IDs and canonical override names.
+ * Allows 3D vector tile features (which strip string names) to match override rules by ID.
+ *
+ * @see RESERVED_AIRSPACE_ID_MAX
+ */
+export const AIRSPACE_OVERRIDE_ID_TO_NAME: Record<number, string> = Object.fromEntries(
+  AIRSPACE_OVERRIDE_TARGETS.map((t) => [t.id, t.name]),
+);
+
+export const AIRSPACE_OVERRIDE_KEY_TO_ID: Record<string, number> = Object.fromEntries(
+  AIRSPACE_OVERRIDE_TARGETS.map((t) => [`${t.name}|${t.icaoClass}`, t.id]),
+);
+
+export const AIRSPACE_OVERRIDE_NAME_TO_ID: Record<string, number> = Object.fromEntries(
+  AIRSPACE_OVERRIDE_TARGETS.map((t) => [t.name, t.id]),
+);
 
 /**
  * Returns the date-resolved overrides for all overridable airspaces.
  */
-export function getAirspaceOverrides(date: Date): Map<string, Partial<AirspaceTyped>> {
-  const overrides = new Map<string, Partial<AirspaceTyped>>();
-  for (const name of Object.values(airspaceOverrides)) {
-    const override = getAirspaceOverride(name, date);
+export function getAirspaceOverrides(date: Date): Map<number, Partial<AirspaceTyped>> {
+  const overrides = new Map<number, Partial<AirspaceTyped>>();
+  for (const idStr of Object.keys(AIRSPACE_OVERRIDE_ID_TO_NAME)) {
+    const id = Number(idStr);
+    const override = getAirspaceOverride(id, date);
     if (override) {
-      overrides.set(name, override);
+      overrides.set(id, override);
     }
   }
   return overrides;
@@ -475,59 +518,81 @@ export function getAirspaceOverrides(date: Date): Map<string, Partial<AirspaceTy
  * Applies any date-specific overrides to an airspace.
  */
 export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyped {
-  const override = getAirspaceOverride(airspace.name, date);
+  const override = getAirspaceOverride(airspace.id, date);
   return override ? { ...airspace, ...override } : airspace;
 }
 
 /**
- * Returns the overridden fields for an airspace name on the given date, or undefined if no override applies.
+ * Returns the overridden fields for an airspace on the given date, or undefined if no override applies.
  */
-function getAirspaceOverride(name: string, date: Date): Partial<AirspaceTyped> | undefined {
+function getAirspaceOverride(id: number, date: Date): Partial<AirspaceTyped> | undefined {
+  if (!id || id <= 0 || id > RESERVED_AIRSPACE_ID_MAX) {
+    return undefined;
+  }
+
   const tzDate = new TZDate(date, 'Europe/Paris');
   const month = tzDate.getMonth() + 1;
 
-  switch (name) {
-    case airspaceOverrides.ecrins:
-      return month >= 7 && month <= 10 ? { name: `${name} - INACTIVE`, type: Type.Other } : undefined;
+  switch (id) {
+    case 1: // PARC/RESERVE ECRINS
+      return month >= 7 && month <= 10
+        ? { name: `${AIRSPACE_OVERRIDE_ID_TO_NAME[1]} - INACTIVE`, type: Type.Other }
+        : undefined;
 
-    case airspaceOverrides.TMAClermont21:
-    case airspaceOverrides.TMAClermont22:
+    case 2: // TMA CLERMONT 2.1 (VOL LIBRE)
+    case 3: // TMA CLERMONT 2.2 CHAMPEIX (VOL LIBRE)
       return {
         type: Type.TMA,
         icaoClass: Class.G,
         ...createTopM(isClermontLowerPeriod(tzDate) ? 1680 : 1980),
       };
 
-    case airspaceOverrides.TMAClermont23:
+    case 4: // TMA CLERMONT 2.3 ORCINES (VOL LIBRE)
       return {
         type: Type.TMA,
         icaoClass: Class.G,
         ...createTopM(isClermontLowerPeriod(tzDate) ? 1680 : isSaturday(tzDate) || isSunday(tzDate) ? 2590 : 1980),
       };
 
-    case airspaceOverrides.TMAClermont41:
+    case 5: // TMA CLERMONT 4.1 JOB (VOL LIBRE)
       return {
         type: Type.TMA,
         icaoClass: Class.G,
         ...createTopM(isClermontLowerPeriod(tzDate) ? 2590 : isSaturday(tzDate) || isSunday(tzDate) ? 2895 : 2590),
       };
 
-    case airspaceOverrides.TMAClermont51:
+    case 6: // TMA CLERMONT5.1 PUY DE DOME (VOL LIBRE)
       return {
         type: Type.TMA,
         icaoClass: Class.G,
         ...createTopM(isClermontLowerPeriod(tzDate) ? 2590 : 3505),
       };
 
-    case airspaceOverrides.LFR30B:
-      return month == 7 || month == 8 ? undefined : { type: Type.Other, name: 'LF-R30B MONT BLANC - INACTIVE' };
+    case 7: // LF-R30A MONT BLANC (inactive in July and August)
+      return month == 7 || month == 8
+        ? { type: Type.Other, name: `${AIRSPACE_OVERRIDE_ID_TO_NAME[7]} - INACTIVE` }
+        : undefined;
 
-    case airspaceOverrides.TMAChambery1:
-    case airspaceOverrides.TMAChambery2:
-    case airspaceOverrides.TMAChambery3:
+    case 8: // LF-R30B MONT BLANC (JULY+AUG) (active only in July and August)
+      return month == 7 || month == 8
+        ? undefined
+        : { type: Type.Other, name: `${AIRSPACE_OVERRIDE_ID_TO_NAME[8]} - INACTIVE` };
+
+    case 9: {
+      // LF-R30C MONT BLANC (JUNE - 15 OCT) (active from June 1 to October 15)
+      const isActive = (month >= 6 && month <= 9) || (month === 10 && tzDate.getDate() <= 15);
+      return isActive
+        ? undefined
+        : { type: Type.Other, name: `${AIRSPACE_OVERRIDE_ID_TO_NAME[9]} - INACTIVE` };
+    }
+
+    case 10: // TMA CHAMBERY 1
+    case 11: // TMA CHAMBERY 2
+    case 12: // TMA CHAMBERY 3
       return { icaoClass: isChamberyWinterWeekend(tzDate) ? Class.D : Class.E };
 
-    case airspaceOverrides.CTRChambery2: {
+    case 13: {
+      // CTR CHAMBERY 2 (ACTIVE MID DEC -> MID APRIL)
       const base = { ...createTopM(1067), topRefGnd: true };
       return isChamberyWinterWeekend(tzDate)
         ? { ...base, icaoClass: Class.D }
@@ -535,7 +600,7 @@ function getAirspaceOverride(name: string, date: Date): Partial<AirspaceTyped> |
             ...base,
             icaoClass: Class.SUA,
             type: Type.Other,
-            name: `${name} - INACTIVE`,
+            name: `${AIRSPACE_OVERRIDE_ID_TO_NAME[13]} - INACTIVE`,
           };
     }
 

@@ -1,4 +1,4 @@
-import type { AirspaceFeature } from '@flyxc/common';
+import { type AirspaceFeature, RESERVED_AIRSPACE_ID_MAX } from '@flyxc/common';
 import Clipper2Z from 'clipper2-wasm';
 import Flatbush from 'flatbush';
 
@@ -156,14 +156,34 @@ function copyCleanProperties(p: AirspaceFeature['properties']): Record<string, a
  * Every resulting feature is guaranteed a unique integer `id` at the top level
  * (and no `id` in properties).
  */
-export async function mergeCoplanarAirspaces(features: AirspaceFeature[], startingId = 1): Promise<AirspaceFeature[]> {
+export async function mergeCoplanarAirspaces(
+  features: AirspaceFeature[],
+  startingId = RESERVED_AIRSPACE_ID_MAX + 1,
+): Promise<AirspaceFeature[]> {
   const c = await getClipper();
   let nextId = startingId;
   const resultFeatures: AirspaceFeature[] = [];
 
+  // Exclude airspaces with reserved IDs (id <= RESERVED_AIRSPACE_ID_MAX) from coplanar merging.
+  // Their IDs and boundaries are preserved untouched so seasonal and override rules match exactly.
+  const mergeCandidates: AirspaceFeature[] = [];
+  for (const f of features) {
+    const fid = Number(f.id ?? f.properties?.id);
+    if (fid > 0 && fid <= RESERVED_AIRSPACE_ID_MAX) {
+      resultFeatures.push({
+        type: 'Feature',
+        id: fid,
+        properties: copyCleanProperties(f.properties) as any,
+        geometry: f.geometry,
+      });
+    } else {
+      mergeCandidates.push(f);
+    }
+  }
+
   // 1. Group features by vertical coplanar bracket
   const brackets = new Map<string, AirspaceFeature[]>();
-  for (const f of features) {
+  for (const f of mergeCandidates) {
     const p = f.properties;
     const key = `${p.icaoClass}|${p.type}|${p.floorM}|${p.topM}|${p.floorRefGnd ? 1 : 0}|${p.topRefGnd ? 1 : 0}`;
     let list = brackets.get(key);
