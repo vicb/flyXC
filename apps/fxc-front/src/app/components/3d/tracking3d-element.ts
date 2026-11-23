@@ -156,11 +156,23 @@ export class Tracking3DElement extends connect(store)(LitElement) {
     if (this.layer) {
       this.layer.removeMany(this.tracks);
       this.layer.removeMany(this.markers);
+      for (const g of this.tracks) {
+        (g.geometry as any)?.destroy?.();
+        (g as any).destroy?.();
+      }
+      for (const g of this.markers) {
+        (g.geometry as any)?.destroy?.();
+        (g as any).destroy?.();
+      }
       this.tracks.length = 0;
       this.markers.length = 0;
     }
     if (this.gndLayer) {
       this.gndLayer.removeMany(this.trackShadows);
+      for (const g of this.trackShadows) {
+        (g.geometry as any)?.destroy?.();
+        (g as any).destroy?.();
+      }
       this.trackShadows.length = 0;
     }
   }
@@ -281,9 +293,17 @@ export class Tracking3DElement extends connect(store)(LitElement) {
 
     this.layer.addMany(tracks);
     this.layer.removeMany(this.tracks);
+    for (const g of this.tracks) {
+      (g.geometry as any)?.destroy?.();
+      (g as any).destroy?.();
+    }
     this.tracks = tracks;
     this.gndLayer.addMany(trackShadows);
     this.gndLayer.removeMany(this.trackShadows);
+    for (const g of this.trackShadows) {
+      (g.geometry as any)?.destroy?.();
+      (g as any).destroy?.();
+    }
     this.trackShadows = trackShadows;
   }
 
@@ -376,6 +396,10 @@ export class Tracking3DElement extends connect(store)(LitElement) {
 
     this.layer.addMany(markers);
     this.layer.removeMany(this.markers);
+    for (const g of this.markers) {
+      (g.geometry as any)?.destroy?.();
+      (g as any).destroy?.();
+    }
     this.markers = markers;
   }
 

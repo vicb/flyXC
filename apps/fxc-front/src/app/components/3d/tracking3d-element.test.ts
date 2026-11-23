@@ -286,4 +286,38 @@ describe('Tracking3DElement', () => {
     expect(layer.graphics.find((g) => g.geometry?.type === 'polyline')).toBe(initialLine);
     expect(layer.addMany).toHaveBeenCalledTimes(1);
   });
+
+  it('destroys previous track and marker graphics when replacing them', async () => {
+    const layer = makeMockLayer();
+    const gndLayer = makeMockLayer();
+
+    const el = new Tracking3DElement() as any;
+    mounted.push(el);
+    el.layer = layer;
+    el.gndLayer = gndLayer;
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    el.multiplier = 1;
+    el.geojson = makeGeojson([300, 350, 400]);
+    await el.updateComplete;
+
+    const oldTracks = [...el.tracks];
+    const oldMarkers = [...el.markers];
+    const oldShadows = [...el.trackShadows];
+    expect(oldTracks.length).toBeGreaterThan(0);
+    expect(oldMarkers.length).toBeGreaterThan(0);
+
+    const spies = [...oldTracks, ...oldMarkers, ...oldShadows].map((g) => vi.spyOn(g, 'destroy'));
+
+    // Update with new geojson to trigger replacement
+    el.geojson = makeGeojson([400, 450, 500]);
+    await el.updateComplete;
+
+    // Verify all old tracks, trackShadows, and markers had destroy called
+    for (const spy of spies) {
+      expect(spy).toHaveBeenCalledTimes(1);
+      spy.mockRestore();
+    }
+  });
 });
