@@ -418,5 +418,29 @@ describe('airspace3d-processor', () => {
       expect(mockDb.clear).toHaveBeenCalledWith('footprints');
       expect(mockDb.put).toHaveBeenCalledWith('metadata', '1700000099000', 'version');
     });
+
+    it('releases rawFeature after lazy decoding in getDecodedPolygon to free PBF buffer', () => {
+      const mockRawFeature = {
+        toFlatGeoGeometry: vi.fn().mockReturnValue({
+          coords: new Float64Array([5.8, 45.1, 6.2, 45.1]),
+          ends: new Uint32Array([4]),
+        }),
+      };
+      const feat: any = {
+        id: 999,
+        tileX: 33,
+        tileY: 22,
+        extent: { xmin: 5.8, ymin: 45.1, xmax: 6.2, ymax: 45.1 },
+        rawFeature: mockRawFeature,
+      };
+
+      const poly = (processor as any).getDecodedPolygon(feat);
+
+      expect(mockRawFeature.toFlatGeoGeometry).toHaveBeenCalledWith(33, 22, 6);
+      expect(poly.coords).toBeInstanceOf(Float64Array);
+      expect(poly.coords.length).toBe(4);
+      expect(feat.rawFeature).toBeUndefined();
+      expect(feat.polygon).toBe(poly);
+    });
   });
 });

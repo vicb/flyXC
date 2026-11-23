@@ -96,7 +96,7 @@ export interface AirspaceWorkerResponse {
 }
 
 const MAX_TILE_CACHE_SIZE = 128;
-const MAX_FOOTPRINT_CACHE_SIZE = 256;
+const MAX_FOOTPRINT_CACHE_SIZE = 1500;
 
 export function extentOverlapsBounds(ext: Bounds2D | undefined, bounds: GeoBounds): boolean {
   if (!ext) {
@@ -389,6 +389,8 @@ export class Airspace3dProcessor {
         ends: flat.ends,
         extent: feat.extent,
       };
+      // Release raw vector tile feature to free underlying PBF buffer and internal flatGeometry cache
+      feat.rawFeature = undefined;
       return feat.polygon;
     }
     return {
