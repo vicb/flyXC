@@ -50,13 +50,10 @@ export interface AirspaceMeshData {
 
 /**
  * Intermediate 2D triangulation in geographic `(lon, lat)` coordinates.
- * `boundarySegments` holds packed numeric keys (`min * 10_000_000 + max`) of perimeter wall edges
- * so terrain-adaptive cap subdivision never splits wall-adjacent edges.
  */
 export interface Triangulated2D {
   xy: Float64Array;
   faces: Uint32Array;
-  boundarySegments?: Set<number>;
 }
 
 /**
@@ -278,7 +275,7 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
     return triangulateFlatRings2D(wallRings);
   }
 
-  return { xy, faces: new Uint32Array(insideFaces), boundarySegments };
+  return { xy, faces: new Uint32Array(insideFaces) };
 }
 
 /**
@@ -403,15 +400,43 @@ const RIDGE_REFINE_MAX_PASSES = 3;
 const RIDGE_REFINE_MIN_EDGE_M2 = 180 * 180;
 
 /**
+ * Builds a fast lookup set of packed edge keys for perimeter wall edges in flat rings.
+ * Constructed on-demand during terrain ridge refinement to prevent subdividing boundary edges
+ * without having to store or serialize Set<number> in footprints or across postMessage.
+ */
+export function buildBoundarySegmentSet(wallRings: FlatRings): Set<number> {
+  const { coords: wallCoords, ends } = wallRings;
+  const numRings = ends.length;
+  const boundarySegments = new Set<number>();
+  let baseIdx = 0;
+  let start = 0;
+  for (let r = 0; r < numRings; r++) {
+    const end = ends[r];
+    let count = (end - start) >> 1;
+    if (count > 1 && wallCoords[start] === wallCoords[end - 2] && wallCoords[start + 1] === wallCoords[end - 1]) {
+      count--;
+    }
+    for (let i = 0; i < count; i++) {
+      const next = (i + 1) % count;
+      boundarySegments.add(packEdgeKey(baseIdx + i, baseIdx + next));
+    }
+    baseIdx += count;
+    start = end;
+  }
+  return boundarySegments;
+}
+
+/**
  * Refines a terrain-cap triangulation via conforming (Red-Green) active-set subdivision
  * wherever terrain ridges protrude upward through an edge midpoint or triangle centroid.
  *
  * Uses an interleaved `xy` `Float64Array`, exact Euler-bounded face buffers (`faceLen + addedVerts * 6`),
  * and primitive `Map<number, number>` edge entries to minimize CPU, memory, and GC pressure.
- * Perimeter edges (`boundarySegments`) are never split so caps stay flush with vertical walls.
+ * Perimeter edges are reconstructed on-demand from wall rings and are never split so caps stay flush with vertical walls.
  */
 function refineTerrainCapForRidges(
   tri: Triangulated2D,
+  wallRings: FlatRings,
   clearanceM: number,
   multiplier: number,
   sampleGroundZ: GroundSampler,
@@ -443,7 +468,7 @@ function refineTerrainCapForRidges(
   const cosLat = Math.max(0.1, Math.cos(((minLat + maxLat) * 0.5 * Math.PI) / 180));
   const mPerDegLon = METERS_PER_DEGREE_LAT * cosLat;
   const tau = Math.max(35, Math.min(100, clearanceM * 0.3)) * multiplier;
-  const boundarySegments = tri.boundarySegments;
+  const boundarySegments = buildBoundarySegmentSet(wallRings);
   // Value >= 0: split vertex index; -1: tested and unsplit (cached across passes)
   const edgeMidpoint = new Map<number, number>();
 
@@ -600,7 +625,7 @@ function refineTerrainCapForRidges(
   }
 
   return {
-    tri: { xy: xy.subarray(0, vertCount * 2), faces: faces.subarray(0, faceLen), boundarySegments },
+    tri: { xy: xy.subarray(0, vertCount * 2), faces: faces.subarray(0, faceLen) },
     gnds: gnds.subarray(0, vertCount),
   };
 }
@@ -655,7 +680,14 @@ export function extrudeAirspaceFootprint(
   if (terrainTri && (airspace.topRefGnd || (needFloorCap && airspace.floorRefGnd))) {
     const configuredPasses = options?.maxRidgePasses ?? RIDGE_REFINE_MAX_PASSES;
     const maxPasses = footprint.lod === 0 ? 0 : configuredPasses;
-    const refined = refineTerrainCapForRidges(terrainTri, clearanceM ?? 300, multiplier, sampleGroundZ, maxPasses);
+    const refined = refineTerrainCapForRidges(
+      terrainTri,
+      footprint.wallRings,
+      clearanceM ?? 300,
+      multiplier,
+      sampleGroundZ,
+      maxPasses,
+    );
     terrainTri = refined.tri;
     terrainGnds = refined.gnds;
   }

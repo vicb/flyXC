@@ -6,6 +6,7 @@ import type { AirspacePolygonLike, FlatRings } from './airspace3d-mesh';
 import {
   buildAirspaceFootprint,
   buildAirspaceMesh,
+  buildBoundarySegmentSet,
   computeTargetGridM,
   extrudeAirspaceFootprint,
   mergeContourPaths,
@@ -596,6 +597,26 @@ describe('buildAirspaceMesh', () => {
       const fineVertCount = fineFp!.terrainCap!.xy.length / 2;
       expect(fineVertCount).toBeGreaterThan(coarseVertCount * 5);
       expect(fineFp!.terrainCap!.faces.length).toBeGreaterThan(coarseFp!.terrainCap!.faces.length * 5);
+    });
+
+    it('buildBoundarySegmentSet generates boundary segment keys on-demand without storing in footprint', () => {
+      const ring = [
+        [5.0, 45.0],
+        [6.0, 45.0],
+        [6.0, 46.0],
+        [5.0, 46.0],
+        [5.0, 45.0],
+      ];
+      const flat = flattenRings([ring]);
+      const boundarySet = buildBoundarySegmentSet(flat);
+      expect(boundarySet.size).toBe(4);
+
+      const airspace = makeAirspace({ floorM: 0, floorRefGnd: true, topM: 500, topRefGnd: true });
+      const polygon = makeSquarePolygon(5.5, 45.5, 0.1);
+      const footprint = buildAirspaceFootprint(polygon, airspace);
+
+      // Verify terrainCap does not retain a boundarySegments Set (saving memory and structured cloning)
+      expect((footprint?.terrainCap as any)?.boundarySegments).toBeUndefined();
     });
   });
 });
