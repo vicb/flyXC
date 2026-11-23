@@ -85,7 +85,7 @@ export async function openAirspacePopup(
 
 export const MIN_3D_ZOOM = 10;
 export const MAX_TILES_3D = 36;
-const VIEW_REFRESH_DEBOUNCE_MS = 60;
+const VIEW_REFRESH_DEBOUNCE_MS = 100;
 const SAMPLER_REFRESH_DEBOUNCE_MS = 450;
 
 type CachedAirspaceItem = AirspaceWorkerItem & Partial<CachedMeshEntry>;
@@ -205,8 +205,9 @@ export function getVisibleTileCoverage(view: SceneView): VisibleTileCoverage {
 
   const centerLon = center.longitude ?? (minLon + maxLon) / 2;
   const centerLat = center.latitude ?? (minLat + maxLat) / 2;
-  const maxHalfLon = Math.max(2.5, (maxLon - minLon) * 1.5);
-  const maxHalfLat = Math.max(2.0, (maxLat - minLat) * 1.5);
+  // Clamp horizon radius to ~175 km (1.9° lon, 1.5° lat at 45°N) for wide regional coverage.
+  const maxHalfLon = Math.min(1.9, Math.max(0.4, (maxLon - minLon) * 1.5));
+  const maxHalfLat = Math.min(1.5, Math.max(0.3, (maxLat - minLat) * 1.5));
 
   // Expand extent with SceneView.visibleArea so tilted frustum side/bottom/far borders are covered.
   const visibleGeoExtent = toGeoExtent(view.visibleArea?.extent);
