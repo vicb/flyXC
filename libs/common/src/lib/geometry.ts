@@ -52,12 +52,7 @@ export function pointToSegmentSquared2D(
  * @param coords - Contiguous coordinates [x0, y0, x1, y1, ...].
  * @param ends - End index offsets marking each ring in `coords`.
  */
-export function pointInFlatPolygon(
-  x: number,
-  y: number,
-  coords: ArrayLike<number>,
-  ends: ArrayLike<number>,
-): boolean {
+export function pointInFlatPolygon(x: number, y: number, coords: ArrayLike<number>, ends: ArrayLike<number>): boolean {
   const numRings = ends.length;
   if (numRings === 0) {
     return false;
@@ -74,7 +69,7 @@ export function pointInFlatPolygon(
   for (let i = 0; i < end0; i += 2) {
     const xi = coords[i];
     const yi = coords[i + 1];
-    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
       inside = !inside;
     }
     xj = xi;
@@ -96,7 +91,7 @@ export function pointInFlatPolygon(
       for (let i = start; i < end; i += 2) {
         const hxi = coords[i];
         const hyi = coords[i + 1];
-        if ((hyi > y) !== (hyj > y) && x < ((hxj - hxi) * (y - hyi)) / (hyj - hyi) + hxi) {
+        if (hyi > y !== hyj > y && x < ((hxj - hxi) * (y - hyi)) / (hyj - hyi) + hxi) {
           inside = !inside;
         }
         hxj = hxi;

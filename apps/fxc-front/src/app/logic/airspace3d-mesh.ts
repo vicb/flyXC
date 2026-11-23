@@ -135,11 +135,7 @@ const sharedMeshMaterial = {
  * artifacts. Injecting a regular interior Steiner grid produces uniform, well-conditioned
  * triangles that smoothly drape across complex 3D topography.
  */
-export function triangulateCapWithGrid2D(
-  wallRings: FlatRings,
-  extent: Bounds2D,
-  targetGridM = 2000,
-): Triangulated2D {
+export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D, targetGridM = 2000): Triangulated2D {
   const { coords: wallCoords, ends } = wallRings;
   const numRings = ends.length;
   if (numRings === 0) {

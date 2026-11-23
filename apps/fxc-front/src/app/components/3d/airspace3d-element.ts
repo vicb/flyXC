@@ -43,6 +43,7 @@ import {
   mergeContourPaths,
   mergeMeshData,
 } from '../../logic/airspace3d-mesh';
+import { AirspaceMeshCache, type CachedMeshEntry } from '../../logic/airspace3d-mesh-cache';
 import { getAirspaceList, getAirspaceListHtml } from '../../logic/airspaces';
 import * as airspaces from '../../redux/airspace-slice';
 import * as app from '../../redux/app-slice';
@@ -57,7 +58,6 @@ import {
   type AirspaceWorkerRequest,
   type AirspaceWorkerResponse,
   type GeoBounds,
-  setBoundedCache,
   type TileCoord,
 } from '../../workers/airspace3d-processor';
 import { createPopupContent } from './popup-content';
@@ -85,15 +85,8 @@ export async function openAirspacePopup(
 
 export const MIN_3D_ZOOM = 10;
 export const MAX_TILES_3D = 36;
-const MAX_MESH_CACHE_SIZE = 600;
 const VIEW_REFRESH_DEBOUNCE_MS = 60;
 const SAMPLER_REFRESH_DEBOUNCE_MS = 450;
-
-interface CachedMeshEntry {
-  meshData: AirspaceMeshData;
-  groundSignature?: number;
-  meshLod?: number;
-}
 
 type CachedAirspaceItem = AirspaceWorkerItem & Partial<CachedMeshEntry>;
 
@@ -303,8 +296,6 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private multiplier = 1;
   @state()
   private hasTrack = false;
-  @state()
-  private overrideHourBucket = 0;
 
   private timeSec = 0;
   private graphicsLayer?: GraphicsLayer;
@@ -320,7 +311,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     [AirspaceColorCategory.Danger, { parts: [], sigHash: 0 }],
     [AirspaceColorCategory.Other, { parts: [], sigHash: 0 }],
   ]);
-  private meshCache = new globalThis.Map<number, CachedMeshEntry>();
+  private meshCache = new AirspaceMeshCache();
   private currentAirspaces: CachedAirspaceItem[] = [];
   private lastQueryKey?: string;
   private viewHandles: Array<{ remove: () => void }> = [];
@@ -343,7 +334,6 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     const track = selectCurrentTrack(state);
     this.hasTrack = track != null;
     this.timeSec = app.selectTimeSec(state);
-    this.overrideHourBucket = track ? Math.floor(this.timeSec / 3600) : 0;
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
@@ -380,12 +370,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       changedProps.has('maxAltitude') ||
       changedProps.has('showClasses') ||
       changedProps.has('showTypes') ||
-      changedProps.has('hasTrack') ||
-      changedProps.has('overrideHourBucket');
-
-    if (changedProps.has('overrideHourBucket')) {
-      this.meshCache.clear();
-    }
+      changedProps.has('hasTrack');
 
     if (filterOrMapChanged) {
       this.lastQueryKey = undefined;
@@ -746,9 +731,9 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     } else {
       const currentAirspaces = response.items as CachedAirspaceItem[];
       for (const item of currentAirspaces) {
-        const cached = this.meshCache.get(item.airspace.id);
         const targetLod = item.footprint?.lod ?? 1;
-        if (cached && cached.meshLod === targetLod) {
+        const cached = this.meshCache.get(item.airspace, targetLod);
+        if (cached) {
           item.meshData = cached.meshData;
           item.groundSignature = cached.groundSignature;
           item.meshLod = cached.meshLod;
@@ -785,8 +770,8 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       Math.round(bounds.maxLon * 5),
       Math.round(bounds.maxLat * 5),
     ].join(',');
-    const hourBucket = this.hasTrack ? this.overrideHourBucket : Math.floor(date.getTime() / 3_600_000);
-    const queryKey = `${tilesKey}|${boundsKey}|${this.maxAltitude}|${this.showClasses.join(',')}|${this.showTypes.join(',')}|${hourBucket}`;
+    const dateKey = this.hasTrack ? date.toISOString().slice(0, 10) : '';
+    const queryKey = `${tilesKey}|${boundsKey}|${this.maxAltitude}|${this.showClasses.join(',')}|${this.showTypes.join(',')}|${dateKey}`;
     if (queryKey === this.lastQueryKey && this.graphicsLayer) {
       return;
     }
@@ -882,7 +867,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         item.meshData = meshData;
         item.groundSignature = sig;
         item.meshLod = targetLod;
-        setBoundedCache(this.meshCache, MAX_MESH_CACHE_SIZE, item.airspace.id, {
+        this.meshCache.set(item.airspace, {
           meshData,
           groundSignature: sig,
           meshLod: targetLod,

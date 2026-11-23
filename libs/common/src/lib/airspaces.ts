@@ -2,10 +2,7 @@ import { TZDate } from '@date-fns/tz';
 import { addDays, isAfter, isBefore, isFriday, isMonday, isSaturday, isSunday, nextFriday, nextMonday } from 'date-fns';
 import type { Feature } from 'mapbox-vector-tile';
 
-import {
-  pointInFlatPolygon,
-  pointToSegmentSquared2D,
-} from './geometry';
+import { pointInFlatPolygon, pointToSegmentSquared2D } from './geometry';
 import type { Point } from './runtime-track';
 
 // Maximum zoom level for the airspaces.

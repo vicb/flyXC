@@ -17,11 +17,7 @@ import {
 import { type IDBPDatabase, openDB } from 'idb';
 import { type Feature, FeatureType, VectorTile } from 'mapbox-vector-tile';
 
-import {
-  type AirspaceFootprint,
-  type AirspacePolygonLike,
-  buildAirspaceFootprint,
-} from '../logic/airspace3d-mesh';
+import { type AirspaceFootprint, type AirspacePolygonLike, buildAirspaceFootprint } from '../logic/airspace3d-mesh';
 
 export interface TileCoord {
   x: number;
@@ -110,7 +106,6 @@ export function extentOverlapsBounds(ext: Bounds2D | undefined, bounds: GeoBound
     ext.xmax >= bounds.minLon && ext.xmin <= bounds.maxLon && ext.ymax >= bounds.minLat && ext.ymin <= bounds.maxLat
   );
 }
-
 
 /**
  * Core background pipeline for fetching, decoding, caching and triangulating 3D airspace volumes.
@@ -295,8 +290,7 @@ export class Airspace3dProcessor {
           }
         }
 
-        const polygon: AirspacePolygonLike =
-          cachedFp?.polygon ?? feat.polygon ?? this.getDecodedPolygon(feat);
+        const polygon: AirspacePolygonLike = cachedFp?.polygon ?? feat.polygon ?? this.getDecodedPolygon(feat);
 
         if (polygon.ends.length > 0) {
           let footprint: AirspaceFootprint | undefined = cachedFp?.footprint;

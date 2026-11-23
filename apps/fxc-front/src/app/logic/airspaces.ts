@@ -455,7 +455,10 @@ export function renderTiles(
         ctx.beginPath();
         while (ringIdx < polyEnd) {
           const ringEnd = ends[ringIdx++];
-          ctx.moveTo(Math.round(coords[coordIdx] * scale) - renderX, Math.round(coords[coordIdx + 1] * scale) - renderZ);
+          ctx.moveTo(
+            Math.round(coords[coordIdx] * scale) - renderX,
+            Math.round(coords[coordIdx + 1] * scale) - renderZ,
+          );
           for (let i = coordIdx + 2; i < ringEnd; i += 2) {
             ctx.lineTo(Math.round(coords[i] * scale) - renderX, Math.round(coords[i + 1] * scale) - renderZ);
           }

@@ -47,14 +47,11 @@ describe('geometry', () => {
 
     it('correctly handles polygon holes', () => {
       // Outer square [0,0]->[10,10], hole [3,3]->[7,7]
-      const coords = new Float64Array([
-        0, 0, 10, 0, 10, 10, 0, 10, 0, 0,
-        3, 3, 7, 3, 7, 7, 3, 7, 3, 3,
-      ]);
+      const coords = new Float64Array([0, 0, 10, 0, 10, 10, 0, 10, 0, 0, 3, 3, 7, 3, 7, 7, 3, 7, 3, 3]);
       const ends = new Uint32Array([10, 20]);
 
       expect(pointInFlatPolygon(5, 5, coords, ends)).toBe(false); // inside hole
-      expect(pointInFlatPolygon(1, 1, coords, ends)).toBe(true);  // inside outer, outside hole
+      expect(pointInFlatPolygon(1, 1, coords, ends)).toBe(true); // inside outer, outside hole
       expect(pointInFlatPolygon(12, 5, coords, ends)).toBe(false); // outside
     });
 
