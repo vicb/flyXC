@@ -85,7 +85,11 @@ export async function openAirspacePopup(
 
 export const MIN_3D_ZOOM = 10;
 export const MAX_TILES_3D = 36;
+// Debounce after camera settles (stationary) before querying/rebuilding airspaces.
 const VIEW_REFRESH_DEBOUNCE_MS = 100;
+// Throttle interval while actively panning so destination airspaces stream in mid-drag.
+const PAN_REFRESH_THROTTLE_MS = 350;
+// Debounce terrain DEM updates before re-extruding ground-referenced airspaces.
 const SAMPLER_REFRESH_DEBOUNCE_MS = 450;
 
 type CachedAirspaceItem = AirspaceWorkerItem & Partial<CachedMeshEntry>;
@@ -407,6 +411,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     this.samplerHandle?.remove();
     this.samplerHandle = undefined;
     clearTimeout(this.refreshTimer);
+    this.refreshTimer = undefined;
     clearTimeout(this.samplerTimer);
     this.clearLayer();
     this.worker?.terminate();
@@ -617,6 +622,19 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         },
       ),
       watch(
+        () => this.view?.center,
+        () => {
+          // While actively panning (stationary === false), throttle refreshes using refreshTimer
+          // so destination airspaces stream in instead of waiting until the pan stops.
+          if (this.showAirspace && this.view && !this.view.stationary && this.refreshTimer == null) {
+            this.refreshTimer = window.setTimeout(() => {
+              this.refreshTimer = undefined;
+              void this.refreshView();
+            }, PAN_REFRESH_THROTTLE_MS);
+          }
+        },
+      ),
+      watch(
         () => {
           const z = this.view?.zoom;
           if (!Number.isFinite(z)) {
@@ -642,10 +660,12 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
   private scheduleRefresh(immediate: boolean): void {
     clearTimeout(this.refreshTimer);
+    this.refreshTimer = undefined;
     if (immediate) {
       void this.refreshView();
     } else {
       this.refreshTimer = window.setTimeout(() => {
+        this.refreshTimer = undefined;
         void this.refreshView();
       }, VIEW_REFRESH_DEBOUNCE_MS);
     }
