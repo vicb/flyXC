@@ -123,6 +123,8 @@ export class Map3dElement extends connect(store)(LitElement) {
   private subscriptions: UnsubscribeHandle[] = [];
   private previousLookAt?: LatLonAlt;
   private updateCamera = false;
+  private lastSunTimeSec?: number;
+  private handleLocationTimer?: number;
   private readonly adRatio = selectIsSmallScreen(store.getState()) ? 0.7 : 1;
 
   stateChanged(state: RootState): void {
@@ -174,7 +176,10 @@ export class Map3dElement extends connect(store)(LitElement) {
     }
 
     if (this.sunEnabled && changedProps.has('timeSec')) {
-      (this.view?.environment?.lighting as any)?.set('date', new Date(this.timeSec * 1000));
+      if (this.lastSunTimeSec == null || Math.abs(this.timeSec - this.lastSunTimeSec) >= 300) {
+        this.lastSunTimeSec = this.timeSec;
+        (this.view?.environment?.lighting as any)?.set('date', new Date(this.timeSec * 1000));
+      }
     }
 
     if (changedProps.has('multiplier')) {
@@ -197,6 +202,8 @@ export class Map3dElement extends connect(store)(LitElement) {
     super.disconnectedCallback();
     this.subscriptions.forEach((sub) => sub());
     this.subscriptions.length = 0;
+    clearTimeout(this.handleLocationTimer);
+    this.handleLocationTimer = undefined;
     this.elevationSampler = undefined;
     this.view = undefined;
     this.is3dAirspace = false;
@@ -423,6 +430,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   }
 
   private createLighting() {
+    this.lastSunTimeSec = this.timeSec;
     if (this.view?.environment) {
       if (this.sunEnabled) {
         this.view.environment.lighting = new SunLighting({
@@ -577,8 +585,11 @@ export class Map3dElement extends connect(store)(LitElement) {
   }
 
   private handleLocation(center: LatLon): void {
-    store.dispatch(setCurrentLocation(center));
-    store.dispatch(setCurrentZoom(this.view?.zoom ?? 10));
+    clearTimeout(this.handleLocationTimer);
+    this.handleLocationTimer = window.setTimeout(() => {
+      store.dispatch(setCurrentLocation(center));
+      store.dispatch(setCurrentZoom(this.view?.zoom ?? 10));
+    }, 250);
   }
 
   createRenderRoot(): HTMLElement {
