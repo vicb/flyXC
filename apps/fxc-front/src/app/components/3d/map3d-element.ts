@@ -122,6 +122,7 @@ export class Map3dElement extends connect(store)(LitElement) {
 
   private subscriptions: UnsubscribeHandle[] = [];
   private previousLookAt?: LatLonAlt;
+  private cameraRafId?: number;
   private updateCamera = false;
   private lastSunTimeSec?: number;
   private handleLocationTimer?: number;
@@ -154,20 +155,14 @@ export class Map3dElement extends connect(store)(LitElement) {
     if (changedProps.has('currentTrackId')) {
       this.centerOnMarker(16);
     } else if (changedProps.has('timeSec')) {
-      const lookAt = selectLookAtLatLonAlt(store.getState())(this.timeSec);
-      if (this.updateCamera && lookAt && this.view && !this.view.interacting) {
-        if (this.previousLookAt) {
-          const dLat = lookAt.lat - this.previousLookAt.lat;
-          const dLon = lookAt.lon - this.previousLookAt.lon;
-          const dAlt = lookAt.alt - this.previousLookAt.alt;
-          const camera = this.view.camera.clone();
-          camera.position.latitude = (camera.position.latitude ?? 0) + dLat;
-          camera.position.longitude = (camera.position.longitude ?? 0) + dLon;
-          camera.position.z = (camera.position.z ?? 0) + dAlt * this.multiplier;
-          this.view.camera = camera;
-        }
+      if (this.updateCamera && this.previousLookAt && this.view && !this.view.interacting) {
+        this.cameraRafId ??= requestAnimationFrame(() => {
+          this.cameraRafId = undefined;
+          this.syncCameraToPilot();
+        });
+      } else {
+        this.previousLookAt = selectLookAtLatLonAlt(store.getState())(this.timeSec);
       }
-      this.previousLookAt = lookAt;
     }
 
     if (changedProps.has('sunEnabled')) {
@@ -204,6 +199,10 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.subscriptions.length = 0;
     clearTimeout(this.handleLocationTimer);
     this.handleLocationTimer = undefined;
+    if (this.cameraRafId != null) {
+      cancelAnimationFrame(this.cameraRafId);
+      this.cameraRafId = undefined;
+    }
     this.elevationSampler = undefined;
     this.view = undefined;
     this.is3dAirspace = false;
@@ -440,6 +439,24 @@ export class Map3dElement extends connect(store)(LitElement) {
       } else {
         this.view.environment.lighting = new VirtualLighting();
       }
+    }
+  }
+
+  private syncCameraToPilot(): void {
+    const prev = this.previousLookAt;
+    const lookAt = (this.previousLookAt = selectLookAtLatLonAlt(store.getState())(this.timeSec));
+    if (!lookAt || !prev || !this.updateCamera || !this.view || this.view.interacting) {
+      return;
+    }
+    const dLat = lookAt.lat - prev.lat;
+    const dLon = lookAt.lon - prev.lon;
+    const dAlt = lookAt.alt - prev.alt;
+    if (dLat || dLon || dAlt) {
+      const camera = this.view.camera.clone();
+      camera.position.latitude = (camera.position.latitude ?? 0) + dLat;
+      camera.position.longitude = (camera.position.longitude ?? 0) + dLon;
+      camera.position.z = (camera.position.z ?? 0) + dAlt * this.multiplier;
+      this.view.camera = camera;
     }
   }
 
