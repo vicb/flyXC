@@ -626,6 +626,11 @@ function writeCap(
   }
 }
 
+export interface ExtrudeAirspaceFootprintOptions {
+  /** Maximum passes of adaptive ridge refinement. Defaults to RIDGE_REFINE_MAX_PASSES (3). Pass 0 to skip. */
+  maxRidgePasses?: number;
+}
+
 /**
  * Synchronously extrudes a cached 2D {@link AirspaceFootprint} into raw 3D vertex and index buffers.
  */
@@ -634,6 +639,7 @@ export function extrudeAirspaceFootprint(
   airspace: AirspaceTyped,
   multiplier: number,
   sampleGroundZ: GroundSampler,
+  options?: ExtrudeAirspaceFootprintOptions,
 ): AirspaceMeshData | null {
   const floorOffset = airspace.floorM * multiplier;
   const topOffset = airspace.topM * multiplier;
@@ -645,7 +651,8 @@ export function extrudeAirspaceFootprint(
   let terrainGnds: Float64Array | undefined;
   let terrainTri = footprint.terrainCap;
   if (terrainTri && (airspace.topRefGnd || (needFloorCap && airspace.floorRefGnd))) {
-    const maxPasses = footprint.lod === 0 ? 0 : RIDGE_REFINE_MAX_PASSES;
+    const configuredPasses = options?.maxRidgePasses ?? RIDGE_REFINE_MAX_PASSES;
+    const maxPasses = footprint.lod === 0 ? 0 : configuredPasses;
     const refined = refineTerrainCapForRidges(terrainTri, clearanceM ?? 300, multiplier, sampleGroundZ, maxPasses);
     terrainTri = refined.tri;
     terrainGnds = refined.gnds;

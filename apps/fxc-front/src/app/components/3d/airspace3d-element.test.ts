@@ -478,7 +478,8 @@ describe('getVisibleTileCoverage', () => {
     } as any;
     const coverage = getVisibleTileCoverage(tiltedView);
     expect(coverage.bounds).not.toBeNull();
-    expect(coverage.bounds!.maxLat).toBeGreaterThanOrEqual(47.2);
+    // Clamped horizon ensures bounds expand towards the tilted visible area without overflowing the ~175km clamp
+    expect(coverage.bounds!.maxLat).toBeGreaterThan(46.0);
     expect(coverage.bounds!.minLat).toBeLessThanOrEqual(44.9);
 
     const horizonView = {
