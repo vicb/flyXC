@@ -629,6 +629,8 @@ function writeCap(
 export interface ExtrudeAirspaceFootprintOptions {
   /** Maximum passes of adaptive ridge refinement. Defaults to RIDGE_REFINE_MAX_PASSES (3). Pass 0 to skip. */
   maxRidgePasses?: number;
+  /** Whether to omit perimeter contour outline paths for distant airspaces to save line tessellation overhead. */
+  skipContours?: boolean;
 }
 
 /**
@@ -729,14 +731,18 @@ export function extrudeAirspaceFootprint(
       positions[p + 5] = topZ;
       vCursor += 2;
 
-      topPath.push([lon, lat, topZ]);
-      floorPath.push([lon, lat, nominalFloor + (sinkZeroFloor ? 2 : 0)]);
+      if (!options?.skipContours) {
+        topPath.push([lon, lat, topZ]);
+        floorPath.push([lon, lat, nominalFloor + (sinkZeroFloor ? 2 : 0)]);
+      }
     }
-    if (topPath.length >= 2) {
-      contourPaths.push(topPath);
-    }
-    if (floorPath.length >= 2 && Math.abs(topOffset - floorOffset) > 0.1) {
-      contourPaths.push(floorPath);
+    if (!options?.skipContours) {
+      if (topPath.length >= 2) {
+        contourPaths.push(topPath);
+      }
+      if (floorPath.length >= 2 && Math.abs(topOffset - floorOffset) > 0.1) {
+        contourPaths.push(floorPath);
+      }
     }
     for (let i = 0; i < count - 1; i++) {
       const b0 = ringBase + i * 2;

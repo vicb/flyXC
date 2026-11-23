@@ -847,16 +847,19 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     let extrudedCount = 0;
 
     // Distance-based Level of Detail (LOD):
-    // Adaptive ridge refinement recursively samples DEM heights and subdivides terrain triangles
+    // 1. Adaptive ridge refinement recursively samples DEM heights and subdivides terrain triangles
     // (up to 3 passes). For airspaces close to the camera (<= 30 km), this prevents mountain ridges
     // from piercing through low AGL floor clearances.
     // For distant airspaces (> 30 km), terrain features are sub-pixel and the elevation sampler only
     // has coarse DEM tiles loaded anyway.
+    // 2. Perimeter contour outlines (> 40 km): 3D line paths for distant airspaces merge into
+    // sub-pixel noise and impose heavy line tessellation overhead in ArcGIS's Polyline worker.
     const camLon = this.view?.camera?.position?.longitude ?? this.view?.center?.longitude;
     const camLat = this.view?.camera?.position?.latitude ?? this.view?.center?.latitude;
-    // 30 km distance threshold squared (~0.27° lat, ~0.38° lon at 45°N)
+    // Thresholds squared at 45°N
     const cosLat = camLat != null ? Math.cos((camLat * Math.PI) / 180) : 0.707;
     const maxRidgeDistKm2 = 30 * 30;
+    const maxContourDistKm2 = 40 * 40;
 
     for (const item of items) {
       if (!item.footprint) {
@@ -874,17 +877,23 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       }
 
       let maxRidgePasses: number | undefined;
-      if (isGroundRef && camLon != null && camLat != null && item.polygon.extent) {
+      let skipContours = false;
+      if (camLon != null && camLat != null && item.polygon.extent) {
         const ext = item.polygon.extent;
         const dLonKm = Math.max(ext.xmin - camLon, camLon - ext.xmax, 0) * 111.32 * cosLat;
         const dLatKm = Math.max(ext.ymin - camLat, camLat - ext.ymax, 0) * 111.32;
-        if (dLonKm * dLonKm + dLatKm * dLatKm > maxRidgeDistKm2) {
+        const dist2 = dLonKm * dLonKm + dLatKm * dLatKm;
+        if (isGroundRef && dist2 > maxRidgeDistKm2) {
           maxRidgePasses = 0;
+        }
+        if (dist2 > maxContourDistKm2) {
+          skipContours = true;
         }
       }
 
       const meshData = extrudeAirspaceFootprint(item.footprint, item.airspace, this.multiplier, sampleGroundZ, {
         maxRidgePasses,
+        skipContours,
       });
       dirtyCategories.add(item.category);
       extrudedCount++;
