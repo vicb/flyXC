@@ -1320,6 +1320,90 @@ describe('Airspace3dElement', () => {
     expect(preservedMsl.footprint).toBe(mslFp);
   });
 
+  it('applyWorkerResponse with isDelta reuses meshData from meshCache when available for target LOD', () => {
+    const element = new Airspace3dElement();
+    (element as any).showAirspace = true;
+    const gen = ((element as any).buildGeneration = 101);
+
+    const mslAirspace = {
+      id: 301,
+      country: 'FR',
+      name: 'CACHED DELTA AIRSPACE',
+      floorM: 500,
+      topM: 1000,
+      floorRefGnd: false,
+      topRefGnd: false,
+      type: Type.CTR,
+      icaoClass: Class.D,
+      activity: 0,
+    };
+    const poly = {
+      ...flattenRings([
+        [
+          [5, 45],
+          [6, 45],
+          [6, 46],
+          [5, 46],
+          [5, 45],
+        ],
+      ]),
+      extent: { xmin: 5, ymin: 45, xmax: 6, ymax: 46 },
+    };
+
+    const coarseFp = { lod: 0 } as any;
+    const fineFp = { lod: 1 } as any;
+
+    // Populate currentAirspaces with coarse LOD 0 item
+    (element as any).currentAirspaces = [
+      {
+        category: common.AirspaceColorCategory.Other,
+        airspace: mslAirspace,
+        polygon: poly,
+        footprint: coarseFp,
+        meshData: { positions: new Float64Array([1, 2, 3]), faces: new Uint32Array([0, 1, 2]) },
+        meshLod: 0,
+      },
+    ];
+
+    // Pre-populate meshCache for LOD 1
+    const mockFineMeshData = { positions: new Float64Array([4, 5, 6]), faces: new Uint32Array([0, 1, 2]) };
+    (element as any).meshCache.set(mslAirspace as any, {
+      meshData: mockFineMeshData,
+      groundSignature: undefined,
+      meshLod: 1,
+    });
+
+    // Receive delta response for LOD 1
+    (element as any).applyWorkerResponse({
+      id: gen,
+      isDelta: true,
+      items: [
+        {
+          category: common.AirspaceColorCategory.Other,
+          airspace: mslAirspace as any,
+          polygon: poly,
+          footprint: fineFp,
+        },
+      ],
+    });
+
+    const item = (element as any).currentAirspaces[0];
+    expect(item.footprint.lod).toBe(1);
+    expect(item.meshData).toBe(mockFineMeshData);
+    expect(item.meshLod).toBe(1);
+  });
+
+  it('clearLayer resolves and clears pendingWorkerResolvers', () => {
+    const element = new Airspace3dElement();
+    const resolver = vi.fn();
+    (element as any).pendingWorkerResolvers.set(1, resolver);
+
+    (element as any).clearLayer();
+
+    expect(resolver).toHaveBeenCalledWith(expect.objectContaining({ items: [] }));
+    expect((element as any).pendingWorkerResolvers.size).toBe(0);
+  });
+
   it('findMatching3dItem matches unmerged items by id and merged items (>= MERGED_AIRSPACE_ID_MIN) by bounds, category, and containment', () => {
     const unmergedItem = {
       category: common.AirspaceColorCategory.Other,

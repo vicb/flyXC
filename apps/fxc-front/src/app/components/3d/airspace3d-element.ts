@@ -672,7 +672,15 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     this.clearHighlight();
     this.restoreDepthCache();
     this.currentAirspaces.length = 0;
+    for (const g of this.categoryGraphics.values()) {
+      (g.geometry as any)?.destroy?.();
+      (g as any).destroy?.();
+    }
     this.categoryGraphics.clear();
+    for (const g of this.categoryLineGraphics.values()) {
+      (g.geometry as any)?.destroy?.();
+      (g as any).destroy?.();
+    }
     this.categoryLineGraphics.clear();
     this.categorySymbols.clear();
     this.categoryLineSymbols.clear();
@@ -686,7 +694,10 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   }
 
   private clearLayer(): void {
-    this.buildGeneration++;
+    const gen = ++this.buildGeneration;
+    for (const [, resolve] of this.pendingWorkerResolvers) {
+      resolve({ id: gen, items: [] });
+    }
     this.pendingWorkerResolvers.clear();
     this.removeGraphicsLayer();
   }
@@ -724,9 +735,17 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         const delta = deltaMap.get(item.airspace.id);
         if (delta) {
           item.footprint = delta.footprint;
-          item.meshData = undefined;
-          item.groundSignature = undefined;
-          item.meshLod = undefined;
+          const targetLod = delta.footprint?.lod ?? 1;
+          const cached = this.meshCache.get(item.airspace, targetLod);
+          if (cached) {
+            item.meshData = cached.meshData;
+            item.groundSignature = cached.groundSignature;
+            item.meshLod = cached.meshLod;
+          } else {
+            item.meshData = undefined;
+            item.groundSignature = undefined;
+            item.meshLod = undefined;
+          }
         }
       }
     } else {
@@ -778,6 +797,13 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     }
 
     const generation = ++this.buildGeneration;
+    for (const [gen, resolve] of this.pendingWorkerResolvers) {
+      if (gen < generation) {
+        resolve({ id: gen, items: [] });
+      }
+    }
+    this.pendingWorkerResolvers.clear();
+
     const request: AirspaceWorkerRequest = {
       id: generation,
       tiles,
@@ -954,8 +980,12 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
       const mergedMesh = bucket && bucket.parts.length > 0 ? mergeMeshData(bucket.parts) : null;
       if (prevGraphic && mergedMesh) {
+        const oldGeom = prevGraphic.geometry;
         prevGraphic.geometry = mergedMesh;
         prevGraphic.attributes.sig = nextSig;
+        if (oldGeom && oldGeom !== mergedMesh) {
+          (oldGeom as any).destroy?.();
+        }
       } else if (prevGraphic && !mergedMesh) {
         toRemove.push(prevGraphic);
         this.categoryGraphics.delete(category);
@@ -980,8 +1010,12 @@ export class Airspace3dElement extends connect(store)(LitElement) {
           : null;
 
       if (prevLineGraphic && polyline) {
+        const oldGeom = prevLineGraphic.geometry;
         prevLineGraphic.geometry = polyline;
         prevLineGraphic.attributes.sig = nextSig;
+        if (oldGeom && oldGeom !== polyline) {
+          (oldGeom as any).destroy?.();
+        }
       } else if (prevLineGraphic && !polyline) {
         toRemove.push(prevLineGraphic);
         this.categoryLineGraphics.delete(category);
@@ -998,6 +1032,10 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
     if (toRemove.length > 0) {
       layer.removeMany(toRemove);
+      for (const g of toRemove) {
+        (g.geometry as any)?.destroy?.();
+        (g as any).destroy?.();
+      }
     }
     if (toAdd.length > 0) {
       layer.addMany(toAdd);
