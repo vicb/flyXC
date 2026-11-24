@@ -3,6 +3,7 @@ import MeshGeoreferencedVertexSpace from '@arcgis/core/geometry/support/MeshGeor
 import {
   type AirspaceTyped,
   type Bounds2D,
+  clamp,
   densifyFlatRings,
   type FlatRings,
   METERS_PER_DEG_LAT,
@@ -337,9 +338,9 @@ export function computeTargetGridM(
     return coarse ? 4800 : 2000;
   }
   if (coarse) {
-    return Math.max(2000, Math.min(4800, clearanceM * 4));
+    return clamp(clearanceM * 4, 2000, 4800);
   }
-  return Math.max(400, Math.min(1500, Math.round(clearanceM * 1.5)));
+  return clamp(Math.round(clearanceM * 1.5), 400, 1500);
 }
 
 /**
@@ -362,9 +363,7 @@ export function buildAirspaceFootprint(
   let stepM: number | undefined;
   if (hasGroundRef) {
     const { widthM, heightM } = estimateExtentMeters(polygon.extent);
-    const minStep = hasElevatedTerrainCap
-      ? Math.max(250, Math.min(MIN_DENSIFY_STEP_M, targetGridM * 0.8))
-      : MIN_DENSIFY_STEP_M;
+    const minStep = hasElevatedTerrainCap ? clamp(targetGridM * 0.8, 250, MIN_DENSIFY_STEP_M) : MIN_DENSIFY_STEP_M;
     stepM = options?.coarse
       ? Math.max(MIN_DENSIFY_STEP_M, Math.hypot(widthM, heightM) / TARGET_DENSIFY_SEGMENTS)
       : Math.max(minStep, Math.hypot(widthM, heightM) / (hasElevatedTerrainCap ? 96 : TARGET_DENSIFY_SEGMENTS));
@@ -462,7 +461,7 @@ function refineTerrainCapForRidges(
 
   const cosLat = Math.max(0.1, Math.cos(((minLat + maxLat) * 0.5 * Math.PI) / 180));
   const mPerDegLon = METERS_PER_DEG_LAT * cosLat;
-  const tau = Math.max(35, Math.min(100, clearanceM * 0.3)) * multiplier;
+  const tau = clamp(clearanceM * 0.3, 35, 100) * multiplier;
   const boundarySegments = buildBoundarySegmentSet(wallRings);
   // Value >= 0: split vertex index; -1: tested and unsplit (cached across passes)
   const edgeMidpoint = new Map<number, number>();

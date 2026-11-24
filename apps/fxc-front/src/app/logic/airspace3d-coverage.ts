@@ -94,8 +94,8 @@ export function getVisibleTileCoverage(view: SceneView): VisibleTileCoverage {
   const centerLon = center.longitude ?? (xmin + xmax) / 2;
   const centerLat = center.latitude ?? (ymin + ymax) / 2;
   // Clamp horizon radius to ~175 km (1.9° lon, 1.5° lat at 45°N) for wide regional coverage.
-  const maxHalfLon = Math.min(1.9, Math.max(0.4, (xmax - xmin) * 1.5));
-  const maxHalfLat = Math.min(1.5, Math.max(0.3, (ymax - ymin) * 1.5));
+  const maxHalfLon = clamp((xmax - xmin) * 1.5, 0.4, 1.9);
+  const maxHalfLat = clamp((ymax - ymin) * 1.5, 0.3, 1.5);
 
   // Expand extent with SceneView.visibleArea so tilted frustum side/bottom/far borders are covered.
   const visibleGeoExtent = toGeoExtent(view.visibleArea?.extent);

@@ -1,5 +1,5 @@
 import type { Class, protos, Type } from '@flyxc/common';
-import { arrayMax, arrayMin, Flags, isAirspaceVisible, sampleAt } from '@flyxc/common';
+import { arrayMax, arrayMin, clamp, Flags, isAirspaceVisible, sampleAt } from '@flyxc/common';
 import { ticks } from 'd3-array';
 import type { CSSResult, PropertyValues, SVGTemplateResult, TemplateResult } from 'lit';
 import { css, html, LitElement, svg } from 'lit';
@@ -838,7 +838,7 @@ export class ChartElement extends LitElement {
       const startTimeSec =
         this.lastPauseMs < Date.now() - 30 * 1000 || this.timeSec == maxTimeSec
           ? minTimeSec
-          : Math.min(Math.max(this.lastPauseTimestampSec, minTimeSec), maxTimeSec);
+          : clamp(this.lastPauseTimestampSec, minTimeSec, maxTimeSec);
       this.playbackTimeSec = startTimeSec;
       this.lastPauseTimestampSec = startTimeSec;
       this.lastDispatchedRoundedSec = Math.round(startTimeSec);
@@ -854,7 +854,7 @@ export class ChartElement extends LitElement {
    * @param nowMs - High-resolution timestamp passed by `requestAnimationFrame`.
    */
   private playTick(nowMs: number): void {
-    const dtSec = Math.min(Math.max((nowMs - this.lastFrameMs) / 1000, 0), MAX_FRAME_DELTA_SEC);
+    const dtSec = clamp((nowMs - this.lastFrameMs) / 1000, 0, MAX_FRAME_DELTA_SEC);
     this.lastFrameMs = nowMs;
     const maxTimeSec = this.computedMaxTimeSec;
     this.playbackTimeSec += dtSec * this.playSpeed;

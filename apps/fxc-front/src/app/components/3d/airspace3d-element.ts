@@ -13,6 +13,7 @@ import {
   AirspaceColorCategory,
   type AirspaceTyped,
   boundsDistanceSquaredKm,
+  clamp,
   type Class,
   DEG_TO_RAD,
   FNV1A_OFFSET_BASIS,
@@ -37,6 +38,7 @@ import {
   createAirspaceFillSymbol,
   createAirspaceLineSymbol,
   destroyGraphics,
+  destroyLayer,
   findMatching3dItem,
   openAirspacePopup,
   syncCategoryGraphic,
@@ -446,11 +448,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     this.categoryLineSymbols.clear();
     this.graphicsLayerView = undefined;
     this.lastQueryKey = undefined;
-    if (this.graphicsLayer) {
-      this.map?.remove(this.graphicsLayer);
-      this.graphicsLayer.destroy();
-      this.graphicsLayer = undefined;
-    }
+    this.graphicsLayer = destroyLayer(this.map, this.graphicsLayer);
   }
 
   private resolvePendingWorkers(beforeGeneration?: number): void {
@@ -490,6 +488,13 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     return undefined;
   }
 
+  private hydrateFromCache(item: CachedAirspaceItem): void {
+    const cached = this.meshCache.get(item.airspace, item.footprint?.lod ?? 1);
+    item.meshData = cached?.meshData;
+    item.groundSignature = cached?.groundSignature;
+    item.meshLod = cached?.meshLod;
+  }
+
   private applyWorkerResponse(response: AirspaceWorkerResponse): void {
     if (response.id !== this.buildGeneration || !this.showAirspace) {
       return;
@@ -501,23 +506,14 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         const delta = deltaMap.get(item.airspace.id);
         if (delta) {
           item.footprint = delta.footprint;
-          const cached = this.meshCache.get(item.airspace, delta.footprint?.lod ?? 1);
-          item.meshData = cached?.meshData;
-          item.groundSignature = cached?.groundSignature;
-          item.meshLod = cached?.meshLod;
+          this.hydrateFromCache(item);
         }
       }
     } else {
-      const currentAirspaces = response.items as CachedAirspaceItem[];
-      for (const item of currentAirspaces) {
-        const cached = this.meshCache.get(item.airspace, item.footprint?.lod ?? 1);
-        if (cached) {
-          item.meshData = cached.meshData;
-          item.groundSignature = cached.groundSignature;
-          item.meshLod = cached.meshLod;
-        }
+      this.currentAirspaces = response.items as CachedAirspaceItem[];
+      for (const item of this.currentAirspaces) {
+        this.hydrateFromCache(item);
       }
-      this.currentAirspaces = currentAirspaces;
     }
 
     this.rebuildMeshes(false);
@@ -584,7 +580,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private getCategorySymbol = (category: AirspaceColorCategory): MeshSymbol3D => {
     let symbol = this.categorySymbols.get(category);
     if (!symbol) {
-      const alpha = Math.min(0.45, Math.max(0.05, (this.opacity / 100) * 0.45));
+      const alpha = clamp((this.opacity / 100) * 0.45, 0.05, 0.45);
       symbol = createAirspaceFillSymbol(category, alpha);
       this.categorySymbols.set(category, symbol);
     }

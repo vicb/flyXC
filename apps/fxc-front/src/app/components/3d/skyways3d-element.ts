@@ -6,6 +6,7 @@ import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
+import { destroyLayer } from '../../logic/airspace3d-graphics';
 import * as skyways from '../../redux/skyways-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
@@ -59,11 +60,7 @@ export class Skyways3dElement extends connect(store)(LitElement) {
   }
 
   private removeLayer() {
-    if (this.layer) {
-      this.map?.remove(this.layer);
-      this.layer.destroy();
-      this.layer = undefined;
-    }
+    this.layer = destroyLayer(this.map, this.layer);
   }
 
   private setupLayer() {

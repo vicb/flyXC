@@ -1,4 +1,4 @@
-import { computeMedian } from '@flyxc/common';
+import { clamp, computeMedian } from '@flyxc/common';
 
 // Maximum physically possible climb rate (m/s) in atmospheric flight (paragliding/gliding/light aircraft).
 // Thermal and mountain wave climb rates rarely exceed +15 to +18 m/s.
@@ -313,7 +313,7 @@ export function filterSpikes(altitude: number[], timeSecs: number[]): AltitudeBo
         const median = computeMedian(neighbors);
         const diff = Math.abs(alt - median);
         const effectiveDt = Math.max(1, hasPrevFix ? dtPrev : dtNext);
-        const minDiff = Math.min(MIN_SPIKE_DIFF_M, Math.max(5, MAX_CLIMB_VZ_MPSEC * effectiveDt));
+        const minDiff = clamp(MAX_CLIMB_VZ_MPSEC * effectiveDt, 5, MIN_SPIKE_DIFF_M);
         if (diff > minDiff && (isExtremeJump || (isZeroDropoutCandidate && median > MIN_DROPOUT_ALT_M))) {
           altitude[i] = median;
         }

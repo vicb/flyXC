@@ -2,6 +2,8 @@ import Color from '@arcgis/core/Color';
 import type Geometry from '@arcgis/core/geometry/Geometry';
 import Point from '@arcgis/core/geometry/Point';
 import Graphic from '@arcgis/core/Graphic';
+import type Layer from '@arcgis/core/layers/Layer';
+import type ArcgisMap from '@arcgis/core/Map';
 import FillSymbol3DLayer from '@arcgis/core/symbols/FillSymbol3DLayer';
 import LineSymbol3D from '@arcgis/core/symbols/LineSymbol3D';
 import LineSymbol3DLayer from '@arcgis/core/symbols/LineSymbol3DLayer';
@@ -11,6 +13,7 @@ import {
   AirspaceColorCategory,
   type AirspaceTyped,
   ASP_CATEGORY_COLOR,
+  clamp,
   getAirspaceColorCategory,
   type LatLon,
   MERGED_AIRSPACE_ID_MIN,
@@ -22,6 +25,17 @@ import type { AirspaceWorkerItem } from '../workers/airspace3d-processor';
 import type { CachedMeshEntry } from './airspace3d-mesh-cache';
 
 export type CachedAirspaceItem = AirspaceWorkerItem & Partial<CachedMeshEntry>;
+
+/**
+ * Removes an ArcGIS `layer` from `map` (if attached) and destroys it, returning `undefined`.
+ */
+export function destroyLayer(map: ArcgisMap | undefined, layer: Layer | undefined): undefined {
+  if (layer) {
+    map?.remove(layer);
+    layer.destroy();
+  }
+  return undefined;
+}
 
 /**
  * Destroys ArcGIS geometries and graphic instances to release WebGL GPU buffers.
@@ -59,7 +73,7 @@ export function createAirspaceFillSymbol(category: AirspaceColorCategory, alpha:
 export function createAirspaceLineSymbol(category: AirspaceColorCategory, opacityPercent: number): LineSymbol3D {
   const hex = ASP_CATEGORY_COLOR[category] ?? ASP_CATEGORY_COLOR[AirspaceColorCategory.Other];
   const color = new Color(hex);
-  color.a = Math.min(0.9, Math.max(0.2, (opacityPercent / 100) * 0.9));
+  color.a = clamp((opacityPercent / 100) * 0.9, 0.2, 0.9);
   return new LineSymbol3D({
     symbolLayers: [
       new LineSymbol3DLayer({

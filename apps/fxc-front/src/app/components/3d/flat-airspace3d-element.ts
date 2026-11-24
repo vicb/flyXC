@@ -18,7 +18,7 @@ import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
-import { openAirspacePopup } from '../../logic/airspace3d-graphics';
+import { destroyLayer, openAirspacePopup } from '../../logic/airspace3d-graphics';
 import { getAirspaceList, getAirspaceListHtml } from '../../logic/airspaces';
 import * as airspaces from '../../redux/airspace-slice';
 import * as app from '../../redux/app-slice';
@@ -93,11 +93,7 @@ export class FlatAirspace3dElement extends connect(store)(LitElement) {
   }
 
   private removeLayer() {
-    if (this.layer) {
-      this.map?.remove(this.layer);
-      this.layer.destroy();
-      this.layer = undefined;
-    }
+    this.layer = destroyLayer(this.map, this.layer);
   }
 
   private setupLayer() {

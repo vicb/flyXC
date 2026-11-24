@@ -33,7 +33,7 @@ import VirtualLighting from '@arcgis/core/views/3d/environment/VirtualLighting';
 import type SceneView from '@arcgis/core/views/SceneView';
 import type { ArcgisPopup } from '@arcgis/map-components/components/arcgis-popup';
 import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
-import type { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
+import { clamp, type LatLon, type LatLonAlt, type RuntimeTrack } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
 import type { PropertyValues, TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
@@ -396,7 +396,7 @@ export class Map3dElement extends connect(store)(LitElement) {
       const minTimeSec = selectMinTimeSec(state);
       const maxTimeSec = selectMaxTimeSec(state);
       const delta = Math.round((direction * (maxTimeSec - minTimeSec)) / 300) + 1;
-      const ts = Math.max(Math.min(selectTimeSec(state) + delta, maxTimeSec), minTimeSec);
+      const ts = clamp(selectTimeSec(state) + delta, minTimeSec, maxTimeSec);
       store.dispatch(setTimeSec(ts));
       e.stopPropagation();
     });
