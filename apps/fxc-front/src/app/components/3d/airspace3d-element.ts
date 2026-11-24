@@ -333,13 +333,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
           if (!seen.has(asp.id)) {
             seen.add(asp.id);
             airspaces.push(asp);
-            if (airspaces.length >= 5) {
-              break;
-            }
           }
-        }
-        if (airspaces.length >= 5) {
-          break;
         }
       }
     }

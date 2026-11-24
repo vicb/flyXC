@@ -64,7 +64,7 @@ export interface AirspaceListQuery {
 }
 
 /**
- * Returns the airspaces (at most 5) at the given location matching the query.
+ * Returns the airspaces at the given location matching the query.
  */
 export async function getAirspaceList({
   latLon,
@@ -122,19 +122,27 @@ export async function getAirspaceList({
     if (!isAirspaceVisible(airspace.icaoClass, visibleClasses, airspace.type, visibleTypes)) {
       continue;
     }
-    if (airspaces.push(airspace) == 5) {
-      break;
-    }
+    airspaces.push(airspace);
   }
 
   return airspaces;
 }
 
+export const MAX_AIRSPACE_LIST_ITEMS = 5;
+
 /**
- * Formats a list of airspaces as an HTML snippet for map popups.
+ * Formats a list of airspaces as an HTML snippet, truncating after `maxItems`.
  */
-export function getAirspaceListHtml(airspaces: AirspaceTyped[]): string {
-  return airspaces.map(getAirspaceHtmlDescription).join('<br>');
+export function getAirspaceListHtml(airspaces: AirspaceTyped[], maxItems = MAX_AIRSPACE_LIST_ITEMS): string {
+  const count = Math.min(airspaces.length, maxItems);
+  const items: string[] = [];
+  for (let i = 0; i < count; i++) {
+    items.push(getAirspaceHtmlDescription(airspaces[i]));
+  }
+  if (airspaces.length > maxItems) {
+    items.push('<i>more...</i>');
+  }
+  return items.join('<br>');
 }
 
 /**

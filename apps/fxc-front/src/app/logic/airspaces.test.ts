@@ -1,8 +1,8 @@
-import { Class, Type } from '@flyxc/common';
+import { type AirspaceTyped, Class, Type } from '@flyxc/common';
 import { FeatureType } from 'mapbox-vector-tile';
 import { describe, expect, it, vi } from 'vitest';
 
-import { renderTiles } from './airspaces';
+import { getAirspaceListHtml, MAX_AIRSPACE_LIST_ITEMS, renderTiles } from './airspaces';
 
 describe('renderTiles', () => {
   function makeMockFeature(opts: {
@@ -105,5 +105,42 @@ describe('renderTiles', () => {
     expect(pointFeature.loadFlatGeometry).not.toHaveBeenCalled();
     expect(ctx.fill).toHaveBeenCalledTimes(1);
     expect(ctx.stroke).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getAirspaceListHtml', () => {
+  function makeAirspace(id: number): AirspaceTyped {
+    return {
+      id,
+      name: `ASP ${id}`,
+      icaoClass: Class.D,
+      type: Type.CTR,
+      floorM: 0,
+      topM: 1000,
+      floorRefGnd: false,
+      topRefGnd: false,
+      floorLabel: 'GND',
+      topLabel: '1000m',
+      country: 'FR',
+      activity: 0,
+    };
+  }
+
+  it('renders up to maxItems without more... when not truncated', () => {
+    const airspaces = Array.from({ length: MAX_AIRSPACE_LIST_ITEMS }, (_, i) => makeAirspace(i + 1));
+    const html = getAirspaceListHtml(airspaces);
+
+    expect(html).toContain('ASP 1');
+    expect(html).toContain(`ASP ${MAX_AIRSPACE_LIST_ITEMS}`);
+    expect(html).not.toContain('more...');
+  });
+
+  it('truncates to maxItems and appends more... when more airspaces exist', () => {
+    const airspaces = Array.from({ length: MAX_AIRSPACE_LIST_ITEMS + 1 }, (_, i) => makeAirspace(i + 1));
+    const html = getAirspaceListHtml(airspaces);
+
+    expect(html).toContain(`ASP ${MAX_AIRSPACE_LIST_ITEMS}`);
+    expect(html).not.toContain(`ASP ${MAX_AIRSPACE_LIST_ITEMS + 1}`);
+    expect(html).toContain('<i>more...</i>');
   });
 });
