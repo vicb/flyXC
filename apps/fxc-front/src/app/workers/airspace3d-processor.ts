@@ -249,9 +249,9 @@ export class Airspace3dProcessor {
 
         let cachedFp = this.footprintCache.get(feat.id);
         if (!cachedFp) {
-          const idbRecord = await this.withDb<{ polygon: AirspacePolygonLike; footprint: AirspaceFootprint } | undefined>(
-            (db) => db.get('footprints', feat.id),
-          );
+          const idbRecord = await this.withDb<
+            { polygon: AirspacePolygonLike; footprint: AirspaceFootprint } | undefined
+          >((db) => db.get('footprints', feat.id));
           if (idbRecord) {
             cachedFp = idbRecord;
             setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, feat.id, cachedFp);

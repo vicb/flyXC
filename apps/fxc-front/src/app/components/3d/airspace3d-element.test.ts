@@ -73,7 +73,6 @@ const hoisted = vi.hoisted(() => {
   const graphicsLayers: any[] = [];
   const vectorTileLayers: any[] = [];
   const tilePayloads = new Map<number, any[]>();
-  const pendingBuilds: Promise<unknown>[] = [];
   const getAirspaceListMock = vi.fn(
     async (..._args: any[]) => [{ name: 'Airspace list', floorM: 0, topM: 1000 }] as any[],
   );
@@ -84,7 +83,6 @@ const hoisted = vi.hoisted(() => {
     graphicsLayers,
     vectorTileLayers,
     tilePayloads,
-    pendingBuilds,
     getAirspaceListMock,
   };
 });
@@ -348,10 +346,6 @@ function makeAirspaceProps(overrides: Record<string, string | number | boolean> 
 async function flushAsync() {
   for (let i = 0; i < 6; i++) {
     await vi.advanceTimersByTimeAsync(10);
-    if (hoisted.pendingBuilds.length > 0) {
-      const batch = hoisted.pendingBuilds.splice(0, hoisted.pendingBuilds.length);
-      await Promise.all(batch);
-    }
     await Promise.resolve();
   }
 }
@@ -574,7 +568,6 @@ describe('Airspace3dElement', () => {
     hoisted.graphicsLayers.length = 0;
     hoisted.vectorTileLayers.length = 0;
     hoisted.tilePayloads.clear();
-    hoisted.pendingBuilds.length = 0;
     hoisted.getAirspaceListMock.mockClear();
     vi.mocked(meshModule.buildAirspaceFootprint).mockClear();
     vi.mocked(meshModule.extrudeAirspaceFootprint).mockClear();

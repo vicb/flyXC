@@ -44,19 +44,11 @@ export class AirspaceMeshCache {
     setBoundedCache(this.map, this.maxSize, getAirspaceMeshCacheKey(airspace), entry);
   }
 
-  delete(airspace: AirspaceTyped): boolean {
-    return this.map.delete(getAirspaceMeshCacheKey(airspace));
-  }
-
   clear(): void {
     this.map.clear();
   }
 
   get size(): number {
     return this.map.size;
-  }
-
-  keys(): IterableIterator<number | string> {
-    return this.map.keys();
   }
 }

@@ -140,10 +140,12 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
   const stepLon = effectiveGridM / (METERS_PER_DEG_LAT * cosLat);
 
   const allCoords: number[] = [];
+  // Pre-flatten boundary segments in projected coordinates to avoid redundant multiplications inside candidate loops
+  const projSegmentsBuf = new Float64Array(wallCoords.length * 2);
   // Use numeric keys (a * 10_000_000 + b) instead of strings to eliminate memory allocations and GC churn
   const boundarySegments = new Set<number>();
   let baseIdx = 0;
-  let totalSegments = 0;
+  let segIdx = 0;
   let start = 0;
   for (let r = 0; r < numRings; r++) {
     const end = ends[r];
@@ -151,13 +153,19 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
     if (count > 1 && wallCoords[start] === wallCoords[end - 2] && wallCoords[start + 1] === wallCoords[end - 1]) {
       count--;
     }
-    totalSegments += count;
     for (let i = 0; i < count; i++) {
-      allCoords.push(wallCoords[start + i * 2], wallCoords[start + i * 2 + 1]);
+      const lon = wallCoords[start + i * 2];
+      const lat = wallCoords[start + i * 2 + 1];
+      allCoords.push(lon, lat);
       const next = (i + 1) % count;
-      const a = baseIdx + i;
-      const b = baseIdx + next;
-      boundarySegments.add(packEdgeKey(a, b));
+      const nLon = wallCoords[start + next * 2];
+      const nLat = wallCoords[start + next * 2 + 1];
+      projSegmentsBuf[segIdx] = lon * cosLat;
+      projSegmentsBuf[segIdx + 1] = lat;
+      projSegmentsBuf[segIdx + 2] = nLon * cosLat;
+      projSegmentsBuf[segIdx + 3] = nLat;
+      segIdx += 4;
+      boundarySegments.add(packEdgeKey(baseIdx + i, baseIdx + next));
     }
     baseIdx += count;
     start = end;
@@ -167,26 +175,7 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
     return { xy: new Float64Array(0), faces: new Uint32Array(0) };
   }
 
-  // Pre-flatten boundary segments in projected coordinates to avoid redundant multiplications inside candidate loops
-  const projSegments = new Float64Array(totalSegments * 4);
-  let segIdx = 0;
-  start = 0;
-  for (let r = 0; r < numRings; r++) {
-    const end = ends[r];
-    let count = (end - start) >> 1;
-    if (count > 1 && wallCoords[start] === wallCoords[end - 2] && wallCoords[start + 1] === wallCoords[end - 1]) {
-      count--;
-    }
-    for (let i = 0; i < count; i++) {
-      const next = (i + 1) % count;
-      projSegments[segIdx] = wallCoords[start + i * 2] * cosLat;
-      projSegments[segIdx + 1] = wallCoords[start + i * 2 + 1];
-      projSegments[segIdx + 2] = wallCoords[start + next * 2] * cosLat;
-      projSegments[segIdx + 3] = wallCoords[start + next * 2 + 1];
-      segIdx += 4;
-    }
-    start = end;
-  }
+  const projSegments = projSegmentsBuf.subarray(0, segIdx);
 
   const minDistDeg = (effectiveGridM * 0.25) / METERS_PER_DEG_LAT;
   const minDistDeg2 = minDistDeg * minDistDeg;

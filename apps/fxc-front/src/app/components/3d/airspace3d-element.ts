@@ -450,10 +450,10 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private resolvePendingWorkers(beforeGeneration?: number): void {
     for (const [gen, resolve] of this.pendingWorkerResolvers) {
       if (beforeGeneration == null || gen < beforeGeneration) {
+        this.pendingWorkerResolvers.delete(gen);
         resolve({ id: gen, items: [] });
       }
     }
-    this.pendingWorkerResolvers.clear();
   }
 
   private clearLayer(): void {
