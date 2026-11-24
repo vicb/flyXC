@@ -11,6 +11,34 @@ export interface Bounds2D {
 }
 
 /**
+ * Packed 2D coordinates and ring end offsets for flat polygons and wall extrusion.
+ */
+export interface FlatRings {
+  coords: Float64Array;
+  ends: Uint32Array;
+}
+
+/**
+ * Returns whether bounding box `a` overlaps bounding box `b` (or `true` if `a` is undefined).
+ */
+export function boundsOverlap(a: Bounds2D | undefined, b: Bounds2D): boolean {
+  if (!a) {
+    return true;
+  }
+  return a.xmax >= b.xmin && a.xmin <= b.xmax && a.ymax >= b.ymin && a.ymin <= b.ymax;
+}
+
+/**
+ * Computes the squared equirectangular distance in km² from `(lon, lat)` to the nearest point on `bounds`.
+ */
+export function boundsDistanceSquaredKm(bounds: Bounds2D, lon: number, lat: number, cosLat: number): number {
+  const kmPerDegLat = METERS_PER_DEG_LAT / 1000;
+  const dLonKm = Math.max(bounds.xmin - lon, lon - bounds.xmax, 0) * kmPerDegLat * cosLat;
+  const dLatKm = Math.max(bounds.ymin - lat, lat - bounds.ymax, 0) * kmPerDegLat;
+  return dLonKm * dLonKm + dLatKm * dLatKm;
+}
+
+/**
  * Computes the squared Euclidean distance from a 2D point (px, py) to a line segment (x1, y1)-(x2, y2).
  *
  * @param px - X coordinate of the query point.

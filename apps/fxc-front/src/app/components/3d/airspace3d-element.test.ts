@@ -20,6 +20,7 @@ import {
 } from '@flyxc/common';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { findMatching3dItem } from '../../logic/airspace3d-graphics';
 import * as meshModule from '../../logic/airspace3d-mesh';
 import type * as airspacesLogic from '../../logic/airspaces';
 import type * as airspaceSlice from '../../redux/airspace-slice';
@@ -479,8 +480,8 @@ describe('getVisibleTileCoverage', () => {
     const coverage = getVisibleTileCoverage(tiltedView);
     expect(coverage.bounds).not.toBeNull();
     // Clamped horizon ensures bounds expand towards the tilted visible area without overflowing the ~175km clamp
-    expect(coverage.bounds!.maxLat).toBeGreaterThan(46.0);
-    expect(coverage.bounds!.minLat).toBeLessThanOrEqual(44.9);
+    expect(coverage.bounds!.ymax).toBeGreaterThan(46.0);
+    expect(coverage.bounds!.ymin).toBeLessThanOrEqual(44.9);
 
     const horizonView = {
       ...makeMockView(10, 5.5, 45.4, 6.5, 45.9),
@@ -490,10 +491,10 @@ describe('getVisibleTileCoverage', () => {
     } as any;
     const clampedCoverage = getVisibleTileCoverage(horizonView);
     expect(clampedCoverage.bounds).not.toBeNull();
-    expect(clampedCoverage.bounds!.minLon).toBeGreaterThan(-20);
-    expect(clampedCoverage.bounds!.maxLon).toBeLessThan(30);
-    expect(clampedCoverage.bounds!.minLat).toBeGreaterThan(30);
-    expect(clampedCoverage.bounds!.maxLat).toBeLessThan(60);
+    expect(clampedCoverage.bounds!.xmin).toBeGreaterThan(-20);
+    expect(clampedCoverage.bounds!.xmax).toBeLessThan(30);
+    expect(clampedCoverage.bounds!.ymin).toBeGreaterThan(30);
+    expect(clampedCoverage.bounds!.ymax).toBeLessThan(60);
   });
 
   it('converts WebMercator extents to geographic tile coordinates', () => {
@@ -1460,15 +1461,25 @@ describe('Airspace3dElement', () => {
 
     // Direct ID match works even if latLon is outside polygon or bounds differ
     expect(
-      (element as any).findMatching3dItem(
-        { id: 250, type: Type.CTR, icaoClass: Class.D, floorM: 0, topM: 1000, floorRefGnd: false, topRefGnd: false },
+      findMatching3dItem(
+        (element as any).currentAirspaces,
+        {
+          id: 250,
+          type: Type.CTR,
+          icaoClass: Class.D,
+          floorM: 0,
+          topM: 1000,
+          floorRefGnd: false,
+          topRefGnd: false,
+        } as any,
         { lat: 99, lon: 99 },
       ),
     ).toBe(unmergedItem);
 
     // Merged item (>= MERGED_AIRSPACE_ID_MIN) matches by bounds + category + containment
     expect(
-      (element as any).findMatching3dItem(
+      findMatching3dItem(
+        (element as any).currentAirspaces,
         {
           id: 999,
           type: Type.Restricted,
@@ -1477,7 +1488,7 @@ describe('Airspace3dElement', () => {
           topM: 1500,
           floorRefGnd: false,
           topRefGnd: false,
-        },
+        } as any,
         { lat: 45.5, lon: 6.0 },
       ),
     ).toBe(mergedItem);

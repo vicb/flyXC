@@ -10,6 +10,7 @@ import {
   Class,
   getAirspaceOverrides,
   getAirspaceTilesUrlTemplate,
+  getEffectiveAirspaceDate,
   MAX_AIRSPACE_TILE_ZOOM,
   Type,
 } from '@flyxc/common';
@@ -17,13 +18,13 @@ import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
+import { openAirspacePopup } from '../../logic/airspace3d-graphics';
 import { getAirspaceList, getAirspaceListHtml } from '../../logic/airspaces';
 import * as airspaces from '../../redux/airspace-slice';
 import * as app from '../../redux/app-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import { selectCurrentTrack } from '../../redux/track-slice';
-import { getEffectiveAirspaceDate, openAirspacePopup } from './airspace3d-element';
 
 @customElement('flat-airspace3d-element')
 export class FlatAirspace3dElement extends connect(store)(LitElement) {

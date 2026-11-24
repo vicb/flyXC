@@ -683,3 +683,11 @@ function isChamberyWinterWeekend(tzDate: TZDate): boolean {
 function createTopM(topM: number) {
   return { topM, topLabel: `${topM}m` };
 }
+
+/**
+ * Returns the effective date for evaluating airspace temporal overrides:
+ * the track timestamp when a track is loaded, or the current wall-clock date otherwise.
+ */
+export function getEffectiveAirspaceDate(hasTrack: boolean, timeSec: number): Date {
+  return hasTrack && Number.isFinite(timeSec) ? new Date(timeSec * 1000) : new Date();
+}

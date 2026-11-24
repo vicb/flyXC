@@ -1,4 +1,4 @@
-import type { LatLon } from '@flyxc/common';
+import { EARTH_RADIUS_M, type LatLon } from '@flyxc/common';
 import { getDistance, getGreatCircleBearing, toDeg, toRad } from 'geolib';
 
 const SECTOR_COLORS = ['#f00', '#0f0', '#00f'];
@@ -49,7 +49,7 @@ const SMALL_MIN_LEG = 0.28;
 const SMALL_MAX_LEG = 1 - 2 * SMALL_MIN_LEG;
 const STEPS = 15;
 const FLATTENING = 1 / 298.257223563;
-const EQUATOR_RADIUS = 6378137;
+const EQUATOR_RADIUS = EARTH_RADIUS_M;
 const POLE_RADIUS = EQUATOR_RADIUS * (1 - FLATTENING);
 const FACTOR = (EQUATOR_RADIUS ** 2 - POLE_RADIUS ** 2) / POLE_RADIUS ** 2;
 

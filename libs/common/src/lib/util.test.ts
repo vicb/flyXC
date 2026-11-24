@@ -1,4 +1,11 @@
-import { formatReqError, parallelTasksWithTimeout, parseRetryAfterS } from './util';
+import {
+  FNV1A_OFFSET_BASIS,
+  fnv1aMix,
+  formatReqError,
+  parallelTasksWithTimeout,
+  parseRetryAfterS,
+  setBoundedCache,
+} from './util';
 
 describe('FormatReqError', () => {
   it('should format scalars', () => {
@@ -80,6 +87,27 @@ describe('parallelTasksWithTimeout', () => {
         { status: 'fulfilled', value: 40 },
       ],
     });
+  });
+
+  it('setBoundedCache evicts oldest entry and refreshes existing keys', () => {
+    const cache = new Map<string, number>();
+    setBoundedCache(cache, 2, 'a', 1);
+    setBoundedCache(cache, 2, 'b', 2);
+    // Refresh 'a' so 'b' becomes the oldest
+    setBoundedCache(cache, 2, 'a', 10);
+    setBoundedCache(cache, 2, 'c', 3);
+
+    expect(Array.from(cache.entries())).toEqual([
+      ['a', 10],
+      ['c', 3],
+    ]);
+  });
+
+  it('fnv1aMix produces deterministic 32-bit hashes', () => {
+    const h1 = fnv1aMix(fnv1aMix(FNV1A_OFFSET_BASIS, 101), 42);
+    const h2 = fnv1aMix(fnv1aMix(FNV1A_OFFSET_BASIS, 101), 43);
+    expect(h1).not.toBe(h2);
+    expect(h1).toBe(fnv1aMix(fnv1aMix(FNV1A_OFFSET_BASIS, 101), 42));
   });
 });
 

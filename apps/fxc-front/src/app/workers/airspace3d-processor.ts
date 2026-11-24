@@ -6,11 +6,13 @@ import {
   type AirspaceTyped,
   applyOverrides,
   type Bounds2D,
+  boundsOverlap,
   type Class,
   getAirspace3dTileUrl,
   getAirspaceColorCategory,
   getAirspaceDateUrl,
   isAirspaceVisible,
+  setBoundedCache,
   toTypedAirspace,
   type Type,
 } from '@flyxc/common';
@@ -23,13 +25,6 @@ export interface TileCoord {
   x: number;
   y: number;
   z: number;
-}
-
-export interface GeoBounds {
-  minLon: number;
-  minLat: number;
-  maxLon: number;
-  maxLat: number;
 }
 
 /**
@@ -70,7 +65,7 @@ export interface DecodedTileFeature {
 export interface AirspaceWorkerRequest {
   id: number;
   tiles: TileCoord[];
-  bounds: GeoBounds;
+  bounds: Bounds2D;
   maxAltitude: number;
   showClasses: Class[];
   showTypes: Type[];
@@ -97,15 +92,6 @@ export interface AirspaceWorkerResponse {
 
 const MAX_TILE_CACHE_SIZE = 128;
 const MAX_FOOTPRINT_CACHE_SIZE = 1500;
-
-export function extentOverlapsBounds(ext: Bounds2D | undefined, bounds: GeoBounds): boolean {
-  if (!ext) {
-    return true;
-  }
-  return (
-    ext.xmax >= bounds.minLon && ext.xmin <= bounds.maxLon && ext.ymax >= bounds.minLat && ext.ymin <= bounds.maxLat
-  );
-}
 
 /**
  * Core background pipeline for fetching, decoding, caching and triangulating 3D airspace volumes.
@@ -274,7 +260,7 @@ export class Airspace3dProcessor {
           airspace.floorM > maxAltitude ||
           !isAirspaceVisible(airspace.icaoClass, showClasses, airspace.type, showTypes) ||
           (!airspace.floorRefGnd && !airspace.topRefGnd && airspace.topM <= airspace.floorM) ||
-          !extentOverlapsBounds(feat.extent, bounds)
+          !boundsOverlap(feat.extent, bounds)
         ) {
           continue;
         }
@@ -450,16 +436,4 @@ export class Airspace3dProcessor {
     setBoundedCache(this.tileCache, MAX_TILE_CACHE_SIZE, url, promise);
     return promise;
   }
-}
-
-export function setBoundedCache<K, V>(cache: Map<K, V>, maxSize: number, key: K, value: V): void {
-  if (cache.has(key)) {
-    cache.delete(key);
-  } else if (cache.size >= maxSize) {
-    const oldestKey = cache.keys().next().value;
-    if (oldestKey !== undefined) {
-      cache.delete(oldestKey);
-    }
-  }
-  cache.set(key, value);
 }

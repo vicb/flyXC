@@ -1,4 +1,6 @@
 import {
+  boundsDistanceSquaredKm,
+  boundsOverlap,
   densifyFlatRings,
   pointInFlatPolygon,
   pointToSegmentSquared2D,
@@ -206,6 +208,22 @@ describe('geometry', () => {
       ];
       const simplified = simplifyCoords(coords, 100);
       expect(simplified.length).toBeGreaterThanOrEqual(4);
+    });
+  });
+
+  describe('boundsOverlap & boundsDistanceSquaredKm', () => {
+    const b = { xmin: 5.0, ymin: 45.0, xmax: 6.0, ymax: 46.0 };
+
+    it('detects overlapping and disjoint bounds', () => {
+      expect(boundsOverlap({ xmin: 5.2, ymin: 45.2, xmax: 5.8, ymax: 45.8 }, b)).toBe(true);
+      expect(boundsOverlap({ xmin: 4.0, ymin: 45.0, xmax: 4.9, ymax: 46.0 }, b)).toBe(false);
+      expect(boundsOverlap(undefined, b)).toBe(true);
+    });
+
+    it('computes 0 inside bounds and positive km² outside bounds', () => {
+      expect(boundsDistanceSquaredKm(b, 5.5, 45.5, 0.707)).toBe(0);
+      const d2 = boundsDistanceSquaredKm(b, 5.5, 47.0, 0.707);
+      expect(d2).toBeGreaterThan(100 * 100);
     });
   });
 });

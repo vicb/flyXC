@@ -4,13 +4,16 @@ import {
   type AirspaceTyped,
   type Bounds2D,
   densifyFlatRings,
+  type FlatRings,
+  METERS_PER_DEG_LAT,
   pointInFlatPolygon,
   pointToSegmentSquared2D,
 } from '@flyxc/common';
 import { Delaunay } from 'd3-delaunay';
 import earcut from 'earcut';
 
-const METERS_PER_DEGREE_LAT = 111_320;
+export type { FlatRings };
+
 const MIN_DENSIFY_STEP_M = 1000;
 const TARGET_DENSIFY_SEGMENTS = 48;
 const GND_BASE_SINK_M = 250;
@@ -57,14 +60,6 @@ export interface Triangulated2D {
 }
 
 /**
- * Packed 2D coordinates and ring end offsets for wall extrusion and serialization.
- */
-export interface FlatRings {
-  coords: Float64Array;
-  ends: Uint32Array;
-}
-
-/**
  * Cached 2D geometry and triangulated caps for an airspace polygon, independent of altitude exaggeration or terrain.
  */
 export interface AirspaceFootprint {
@@ -89,8 +84,8 @@ function estimateExtentMeters(extent: Bounds2D): { widthM: number; heightM: numb
   const midLat = (extent.ymin + extent.ymax) / 2;
   const cosLat = Math.max(0.1, Math.cos((midLat * Math.PI) / 180));
   return {
-    widthM: (extent.xmax - extent.xmin) * METERS_PER_DEGREE_LAT * cosLat,
-    heightM: (extent.ymax - extent.ymin) * METERS_PER_DEGREE_LAT,
+    widthM: (extent.xmax - extent.xmin) * METERS_PER_DEG_LAT * cosLat,
+    heightM: (extent.ymax - extent.ymin) * METERS_PER_DEG_LAT,
   };
 }
 
@@ -150,8 +145,8 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
 
   const midLat = (extent.ymin + extent.ymax) / 2;
   const cosLat = Math.max(0.1, Math.cos((midLat * Math.PI) / 180));
-  const stepLat = effectiveGridM / METERS_PER_DEGREE_LAT;
-  const stepLon = effectiveGridM / (METERS_PER_DEGREE_LAT * cosLat);
+  const stepLat = effectiveGridM / METERS_PER_DEG_LAT;
+  const stepLon = effectiveGridM / (METERS_PER_DEG_LAT * cosLat);
 
   const allCoords: number[] = [];
   // Use numeric keys (a * 10_000_000 + b) instead of strings to eliminate memory allocations and GC churn
@@ -202,7 +197,7 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
     start = end;
   }
 
-  const minDistDeg = (effectiveGridM * 0.25) / METERS_PER_DEGREE_LAT;
+  const minDistDeg = (effectiveGridM * 0.25) / METERS_PER_DEG_LAT;
   const minDistDeg2 = minDistDeg * minDistDeg;
 
   // Generate interior Steiner points strictly inside the polygon boundary
@@ -466,7 +461,7 @@ function refineTerrainCapForRidges(
   }
 
   const cosLat = Math.max(0.1, Math.cos(((minLat + maxLat) * 0.5 * Math.PI) / 180));
-  const mPerDegLon = METERS_PER_DEGREE_LAT * cosLat;
+  const mPerDegLon = METERS_PER_DEG_LAT * cosLat;
   const tau = Math.max(35, Math.min(100, clearanceM * 0.3)) * multiplier;
   const boundarySegments = buildBoundarySegmentSet(wallRings);
   // Value >= 0: split vertex index; -1: tested and unsplit (cached across passes)
@@ -504,7 +499,7 @@ function refineTerrainCapForRidges(
     const lonB = xy[b * 2];
     const latB = xy[b * 2 + 1];
     const dx = (lonB - lonA) * mPerDegLon;
-    const dy = (latB - latA) * METERS_PER_DEGREE_LAT;
+    const dy = (latB - latA) * METERS_PER_DEG_LAT;
     if (dx * dx + dy * dy <= RIDGE_REFINE_MIN_EDGE_M2) {
       edgeMidpoint.set(key, -1);
       return -1;

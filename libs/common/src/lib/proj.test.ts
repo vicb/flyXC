@@ -1,4 +1,13 @@
-import { getPixelCoordinates } from './proj';
+import { EARTH_RADIUS_M, getPixelCoordinates, lonLatToWebMercator } from './proj';
+
+describe('lonLatToWebMercator', () => {
+  it('projects origin and 180deg longitude', () => {
+    expect(lonLatToWebMercator(0, 0)).toEqual([0, 0]);
+    const [x, y] = lonLatToWebMercator(180, 0);
+    expect(x).toBeCloseTo(Math.PI * EARTH_RADIUS_M, 4);
+    expect(y).toBe(0);
+  });
+});
 
 describe(`getPixelCoordinates`, () => {
   it('tile size 256px', () => {

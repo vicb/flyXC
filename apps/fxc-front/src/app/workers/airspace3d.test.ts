@@ -2,7 +2,7 @@ import { Class, Type } from '@flyxc/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AirspacePolygonLike } from '../logic/airspace3d-mesh';
-import { Airspace3dProcessor, extentOverlapsBounds } from './airspace3d-processor';
+import { Airspace3dProcessor } from './airspace3d-processor';
 
 function makeTestPolygon(ring: [number, number][], extent?: any): AirspacePolygonLike {
   const coords = new Float64Array(ring.length * 2);
@@ -18,17 +18,6 @@ function makeTestPolygon(ring: [number, number][], extent?: any): AirspacePolygo
 }
 
 describe('airspace3d-processor', () => {
-  describe('extentOverlapsBounds', () => {
-    const bounds = { minLon: 5.0, minLat: 45.0, maxLon: 6.0, maxLat: 46.0 };
-
-    it('detects overlapping and disjoint extents', () => {
-      expect(extentOverlapsBounds({ xmin: 5.2, ymin: 45.2, xmax: 5.8, ymax: 45.8 }, bounds)).toBe(true);
-      expect(extentOverlapsBounds({ xmin: 4.0, ymin: 45.0, xmax: 4.9, ymax: 46.0 }, bounds)).toBe(false);
-      expect(extentOverlapsBounds({ xmin: 5.0, ymin: 46.1, xmax: 6.0, ymax: 47.0 }, bounds)).toBe(false);
-      expect(extentOverlapsBounds(undefined, bounds)).toBe(true);
-    });
-  });
-
   describe('Airspace3dProcessor execution', () => {
     let processor: Airspace3dProcessor;
 
@@ -40,7 +29,7 @@ describe('airspace3d-processor', () => {
       const req1 = {
         id: 1,
         tiles: [],
-        bounds: { minLon: 5, minLat: 45, maxLon: 6, maxLat: 46 },
+        bounds: { xmin: 5, ymin: 45, xmax: 6, ymax: 46 },
         maxAltitude: 3000,
         showClasses: [],
         showTypes: [],
@@ -93,7 +82,7 @@ describe('airspace3d-processor', () => {
       const req = {
         id: 10,
         tiles: [{ x: 33, y: 22, z: 6 }],
-        bounds: { minLon: 5, minLat: 45, maxLon: 7, maxLat: 46 },
+        bounds: { xmin: 5, ymin: 45, xmax: 7, ymax: 46 },
         maxAltitude: 3000,
         showClasses: [Class.D],
         showTypes: [Type.CTR],
@@ -192,7 +181,7 @@ describe('airspace3d-processor', () => {
       const req = {
         id: 12,
         tiles: [{ x: 33, y: 22, z: 6 }],
-        bounds: { minLon: 5, minLat: 45, maxLon: 7, maxLat: 46 },
+        bounds: { xmin: 5, ymin: 45, xmax: 7, ymax: 46 },
         maxAltitude: 3000,
         showClasses: [Class.D],
         showTypes: [Type.CTR],
@@ -265,7 +254,7 @@ describe('airspace3d-processor', () => {
       const req = {
         id: 11,
         tiles: [{ x: 33, y: 22, z: 6 }],
-        bounds: { minLon: 5, minLat: 45, maxLon: 7, maxLat: 46 },
+        bounds: { xmin: 5, ymin: 45, xmax: 7, ymax: 46 },
         maxAltitude: 3000,
         showClasses: [Class.D],
         showTypes: [Type.CTR],
@@ -325,7 +314,7 @@ describe('airspace3d-processor', () => {
           { x: 33, y: 22, z: 6 },
           { x: 34, y: 22, z: 6 },
         ],
-        bounds: { minLon: 5, minLat: 44, maxLon: 7, maxLat: 47 },
+        bounds: { xmin: 5, ymin: 44, xmax: 7, ymax: 47 },
         maxAltitude: 4000,
         showClasses: [Class.C],
         showTypes: [Type.TMA],

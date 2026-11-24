@@ -1,33 +1,25 @@
-import Color from '@arcgis/core/Color';
 import { watch } from '@arcgis/core/core/reactiveUtils.js';
-import type Extent from '@arcgis/core/geometry/Extent';
-import Point from '@arcgis/core/geometry/Point';
 import Polyline from '@arcgis/core/geometry/Polyline';
-import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import type ElevationSampler from '@arcgis/core/layers/support/ElevationSampler';
 import type Map from '@arcgis/core/Map';
-import FillSymbol3DLayer from '@arcgis/core/symbols/FillSymbol3DLayer';
-import LineSymbol3D from '@arcgis/core/symbols/LineSymbol3D';
-import LineSymbol3DLayer from '@arcgis/core/symbols/LineSymbol3DLayer';
-import MeshSymbol3D from '@arcgis/core/symbols/MeshSymbol3D';
+import type LineSymbol3D from '@arcgis/core/symbols/LineSymbol3D';
+import type MeshSymbol3D from '@arcgis/core/symbols/MeshSymbol3D';
 import type LayerView from '@arcgis/core/views/layers/LayerView';
 import type SceneView from '@arcgis/core/views/SceneView';
 import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
-import type { AirspaceTyped, Class, LatLon, Type } from '@flyxc/common';
 import {
-  AIRSPACE_3D_TILE_ZOOM,
-  AIRSPACE_TILE_SIZE,
   AirspaceColorCategory,
-  ASP_CATEGORY_COLOR,
-  clamp,
+  type AirspaceTyped,
+  boundsDistanceSquaredKm,
+  type Class,
   DEG_TO_RAD,
-  getAirspaceColorCategory,
-  getPixelCoordinates,
+  FNV1A_OFFSET_BASIS,
+  fnv1aMix,
+  getEffectiveAirspaceDate,
   MAX_AIRSPACE_TILE_ZOOM,
-  MERGED_AIRSPACE_ID_MIN,
-  pointInFlatPolygon,
+  type Type,
 } from '@flyxc/common';
 import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
@@ -35,15 +27,29 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import {
+  createGroundSampler,
+  getVisibleTileCoverage,
+  MAX_TILES_3D,
+  MIN_3D_ZOOM,
+} from '../../logic/airspace3d-coverage';
+import {
+  type CachedAirspaceItem,
+  createAirspaceFillSymbol,
+  createAirspaceLineSymbol,
+  destroyGraphics,
+  findMatching3dItem,
+  openAirspacePopup,
+  syncCategoryGraphic,
+} from '../../logic/airspace3d-graphics';
+import {
   type AirspaceMeshData,
   computeGroundSignature,
   createMesh,
   extrudeAirspaceFootprint,
-  type GroundSampler,
   mergeContourPaths,
   mergeMeshData,
 } from '../../logic/airspace3d-mesh';
-import { AirspaceMeshCache, type CachedMeshEntry } from '../../logic/airspace3d-mesh-cache';
+import { AirspaceMeshCache } from '../../logic/airspace3d-mesh-cache';
 import { getAirspaceList, getAirspaceListHtml } from '../../logic/airspaces';
 import * as airspaces from '../../redux/airspace-slice';
 import * as app from '../../redux/app-slice';
@@ -54,37 +60,12 @@ import { selectCurrentTrack } from '../../redux/track-slice';
 import Airspace3dWorker from '../../workers/airspace3d?worker';
 import {
   Airspace3dProcessor,
-  type AirspaceWorkerItem,
   type AirspaceWorkerRequest,
   type AirspaceWorkerResponse,
-  type GeoBounds,
-  type TileCoord,
 } from '../../workers/airspace3d-processor';
-import { createPopupContent } from './popup-content';
 
-export function getEffectiveAirspaceDate(hasTrack: boolean, timeSec: number): Date {
-  return hasTrack && Number.isFinite(timeSec) ? new Date(timeSec * 1000) : new Date();
-}
+export { createGroundSampler, getVisibleTileCoverage, MAX_TILES_3D, MIN_3D_ZOOM };
 
-export async function openAirspacePopup(
-  scene: ArcgisScene,
-  latLon: LatLon,
-  html: string,
-  clickZ?: number,
-): Promise<void> {
-  await scene.openPopup({
-    location: new Point({
-      latitude: latLon.lat,
-      longitude: latLon.lon,
-      ...(clickZ != null ? { z: clickZ, hasZ: true } : {}),
-    }),
-    title: 'Airspaces',
-    content: createPopupContent(html),
-  });
-}
-
-export const MIN_3D_ZOOM = 10;
-export const MAX_TILES_3D = 36;
 // Debounce after camera settles (stationary) before querying/rebuilding airspaces.
 const VIEW_REFRESH_DEBOUNCE_MS = 100;
 // Throttle interval while actively panning so destination airspaces stream in mid-drag.
@@ -92,186 +73,12 @@ const PAN_REFRESH_THROTTLE_MS = 350;
 // Debounce terrain DEM updates before re-extruding ground-referenced airspaces.
 const SAMPLER_REFRESH_DEBOUNCE_MS = 450;
 
-type CachedAirspaceItem = AirspaceWorkerItem & Partial<CachedMeshEntry>;
-
-interface VisibleTileCoverage {
-  tiles: TileCoord[];
-  bounds: GeoBounds | null;
-}
-
 const ALL_CATEGORIES = [
   AirspaceColorCategory.Prohibited,
   AirspaceColorCategory.Restricted,
   AirspaceColorCategory.Danger,
   AirspaceColorCategory.Other,
 ];
-
-const MERC_X_SCALE = 20037508.342789244 / 180;
-const MERC_HALF_R = 6378137.0 * 0.5;
-
-/**
- * Creates a fast synchronous ground elevation sampler returning exaggerated elevation in meters.
- */
-export function createGroundSampler(sampler?: ElevationSampler): GroundSampler {
-  if (!sampler) {
-    return () => 0;
-  }
-  const noData = sampler.noDataValue;
-  const sr = sampler.spatialReference;
-  const isWGS84 = Boolean(sr?.isWGS84);
-  const isWebMercator = Boolean(sr?.isWebMercator);
-  let queryPoint: Point | undefined;
-
-  return (lon: number, lat: number): number => {
-    let z: number | null | undefined;
-    if (isWGS84) {
-      z = sampler.elevationAt(lon, lat);
-    } else if (isWebMercator) {
-      const x = lon * MERC_X_SCALE;
-      const sinLat = Math.sin(lat * DEG_TO_RAD);
-      const y = MERC_HALF_R * Math.log((1 + sinLat) / (1 - sinLat));
-      z = sampler.elevationAt(x, y);
-    } else {
-      queryPoint ??= new Point({ longitude: lon, latitude: lat });
-      queryPoint.longitude = lon;
-      queryPoint.latitude = lat;
-      z = sampler.queryElevation(queryPoint)?.z;
-    }
-
-    if (typeof z !== 'number' || !Number.isFinite(z) || z === noData || z > 20000) {
-      return 0;
-    }
-    return z;
-  };
-}
-
-function createCategorySymbol(category: AirspaceColorCategory, opacityPercent: number): MeshSymbol3D {
-  const hex = ASP_CATEGORY_COLOR[category];
-  const fill = new Color(hex);
-  fill.a = Math.min(0.45, Math.max(0.05, (opacityPercent / 100) * 0.45));
-
-  return new MeshSymbol3D({
-    symbolLayers: [
-      new FillSymbol3DLayer({
-        material: { color: fill.toRgba(), colorMixMode: 'replace' },
-        castShadows: false,
-      }),
-    ],
-  });
-}
-
-function createCategoryLineSymbol(category: AirspaceColorCategory, opacityPercent: number): LineSymbol3D {
-  const hex = ASP_CATEGORY_COLOR[category];
-  const color = new Color(hex);
-  color.a = Math.min(0.9, Math.max(0.2, (opacityPercent / 100) * 0.9));
-
-  return new LineSymbol3D({
-    symbolLayers: [
-      new LineSymbol3DLayer({
-        material: { color: color.toRgba() },
-        size: 1.5,
-        cap: 'round',
-        join: 'round',
-      }),
-    ],
-  });
-}
-
-function toGeoExtent(extent?: Extent | null): Extent | undefined {
-  if (!extent) {
-    return undefined;
-  }
-  if (extent.spatialReference?.isWGS84) {
-    return extent;
-  }
-  if (extent.spatialReference?.isWebMercator) {
-    return (webMercatorUtils.webMercatorToGeographic(extent) as Extent) ?? undefined;
-  }
-  return undefined;
-}
-
-/**
- * Computes visible airspace tile coordinates and padded geographic bounds covering the 3D frustum,
- * stepping tile zoom down as needed so border tiles fit within {@link MAX_TILES_3D}.
- */
-export function getVisibleTileCoverage(view: SceneView): VisibleTileCoverage {
-  const zoom = view.zoom;
-  const center = view.center;
-  const geoExtent = toGeoExtent(view.extent) ?? toGeoExtent(view.visibleArea?.extent);
-  if (!Number.isFinite(zoom) || zoom < MIN_3D_ZOOM || !center || !geoExtent) {
-    return { tiles: [], bounds: null };
-  }
-
-  let minLon = geoExtent.xmin;
-  let maxLon = geoExtent.xmax;
-  let minLat = geoExtent.ymin;
-  let maxLat = geoExtent.ymax;
-
-  const centerLon = center.longitude ?? (minLon + maxLon) / 2;
-  const centerLat = center.latitude ?? (minLat + maxLat) / 2;
-  // Clamp horizon radius to ~175 km (1.9° lon, 1.5° lat at 45°N) for wide regional coverage.
-  const maxHalfLon = Math.min(1.9, Math.max(0.4, (maxLon - minLon) * 1.5));
-  const maxHalfLat = Math.min(1.5, Math.max(0.3, (maxLat - minLat) * 1.5));
-
-  // Expand extent with SceneView.visibleArea so tilted frustum side/bottom/far borders are covered.
-  const visibleGeoExtent = toGeoExtent(view.visibleArea?.extent);
-  if (visibleGeoExtent) {
-    minLon = Math.min(minLon, clamp(visibleGeoExtent.xmin, centerLon - maxHalfLon, centerLon + maxHalfLon));
-    maxLon = Math.max(maxLon, clamp(visibleGeoExtent.xmax, centerLon - maxHalfLon, centerLon + maxHalfLon));
-    minLat = Math.min(minLat, clamp(visibleGeoExtent.ymin, centerLat - maxHalfLat, centerLat + maxHalfLat));
-    maxLat = Math.max(maxLat, clamp(visibleGeoExtent.ymax, centerLat - maxHalfLat, centerLat + maxHalfLat));
-  }
-
-  // Pad slightly to reduce pop-in during short pans.
-  const padLon = (maxLon - minLon) * 0.08;
-  const padLat = (maxLat - minLat) * 0.08;
-  const paddedMinLon = clamp(minLon - padLon, -179.99, 179.99);
-  const paddedMaxLon = clamp(maxLon + padLon, -179.99, 179.99);
-  const paddedMinLat = clamp(minLat - padLat, -85, 85);
-  const paddedMaxLat = clamp(maxLat + padLat, -85, 85);
-
-  const maxIndex = (1 << AIRSPACE_3D_TILE_ZOOM) - 1;
-  const nw = getPixelCoordinates(
-    { lat: paddedMaxLat, lon: paddedMinLon },
-    AIRSPACE_3D_TILE_ZOOM,
-    AIRSPACE_TILE_SIZE,
-  ).tile;
-  const se = getPixelCoordinates(
-    { lat: paddedMinLat, lon: paddedMaxLon },
-    AIRSPACE_3D_TILE_ZOOM,
-    AIRSPACE_TILE_SIZE,
-  ).tile;
-  const minX = clamp(Math.min(nw.x, se.x), 0, maxIndex);
-  const maxX = clamp(Math.max(nw.x, se.x), 0, maxIndex);
-  const minY = clamp(Math.min(nw.y, se.y), 0, maxIndex);
-  const maxY = clamp(Math.max(nw.y, se.y), 0, maxIndex);
-
-  const centerTile = getPixelCoordinates(
-    { lat: clamp(centerLat, -85, 85), lon: clamp(centerLon, -179.99, 179.99) },
-    AIRSPACE_3D_TILE_ZOOM,
-    AIRSPACE_TILE_SIZE,
-  ).tile;
-
-  const coords: Array<TileCoord & { dist2: number }> = [];
-  for (let x = minX; x <= maxX; x++) {
-    for (let y = minY; y <= maxY; y++) {
-      const dx = x - centerTile.x;
-      const dy = y - centerTile.y;
-      coords.push({ x, y, z: AIRSPACE_3D_TILE_ZOOM, dist2: dx * dx + dy * dy });
-    }
-  }
-
-  coords.sort((a, b) => a.dist2 - b.dist2);
-  return {
-    tiles: coords.slice(0, MAX_TILES_3D).map(({ x, y, z }) => ({ x, y, z })),
-    bounds: {
-      minLon: paddedMinLon,
-      minLat: paddedMinLat,
-      maxLon: paddedMaxLon,
-      maxLat: paddedMaxLat,
-    },
-  };
-}
 
 /**
  * Lit component managing 3D extruded airspace volumes in an ArcGIS SceneView when zoomed in >= {@link MIN_3D_ZOOM}.
@@ -356,9 +163,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
           return;
         }
         clearTimeout(this.samplerTimer);
-        this.samplerTimer = window.setTimeout(() => {
-          this.rebuildMeshes(true);
-        }, SAMPLER_REFRESH_DEBOUNCE_MS);
+        this.samplerTimer = window.setTimeout(() => this.rebuildMeshes(true), SAMPLER_REFRESH_DEBOUNCE_MS);
       });
     }
 
@@ -453,51 +258,6 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   }
 
   /**
-   * Finds the loaded 3D airspace volume matching a 2D vector-tile airspace at `latLon` for highlighting.
-   * Unmerged and reserved 3D airspaces share the exact 2D `id` (`< MERGED_AIRSPACE_ID_MIN`) and match directly;
-   * coplanar-merged 3D volumes (`id >= MERGED_AIRSPACE_ID_MIN`) fall back to vertical bounds, color category,
-   * and 2D polygon containment.
-   */
-  private findMatching3dItem(target: AirspaceTyped, latLon: LatLon): CachedAirspaceItem | undefined {
-    const byId = this.currentAirspaces.find((item) => item.airspace.id === target.id);
-    if (byId) {
-      return byId;
-    }
-
-    const targetCategory = getAirspaceColorCategory(target);
-    const pad = 0.005;
-    let fallback: CachedAirspaceItem | undefined;
-    for (const item of this.currentAirspaces) {
-      const a = item.airspace;
-      if (
-        a.id < MERGED_AIRSPACE_ID_MIN ||
-        a.floorM !== target.floorM ||
-        a.topM !== target.topM ||
-        a.floorRefGnd !== target.floorRefGnd ||
-        a.topRefGnd !== target.topRefGnd ||
-        item.category !== targetCategory
-      ) {
-        continue;
-      }
-      const ext = item.polygon.extent;
-      if (
-        ext &&
-        (latLon.lon < ext.xmin - pad ||
-          latLon.lon > ext.xmax + pad ||
-          latLon.lat < ext.ymin - pad ||
-          latLon.lat > ext.ymax + pad)
-      ) {
-        continue;
-      }
-      if (pointInFlatPolygon(latLon.lon, latLon.lat, item.polygon.coords, item.polygon.ends)) {
-        return item;
-      }
-      fallback ??= item;
-    }
-    return fallback;
-  }
-
-  /**
    * Clears any currently active 3D airspace highlight graphic.
    */
   public clearHighlight(): void {
@@ -521,26 +281,12 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     if (!meshData || meshData.positions.length === 0 || meshData.faces.length === 0) {
       return;
     }
-    const mesh = createMesh(meshData.positions, meshData.faces);
-    const category = item.category ?? AirspaceColorCategory.Other;
-    const hex = ASP_CATEGORY_COLOR[category] ?? ASP_CATEGORY_COLOR[AirspaceColorCategory.Other];
-    const fill = new Color(hex);
-    fill.a = 0.8;
-    const symbol = new MeshSymbol3D({
-      symbolLayers: [
-        new FillSymbol3DLayer({
-          material: { color: fill.toRgba(), colorMixMode: 'replace' },
-          castShadows: false,
-        }),
-      ],
-    });
     this.highlightGraphic = new Graphic({
-      geometry: mesh,
-      symbol,
+      geometry: createMesh(meshData.positions, meshData.faces),
+      symbol: createAirspaceFillSymbol(item.category ?? AirspaceColorCategory.Other, 0.8),
       attributes: { isAirspace: true, isAirspaceHighlight: true },
     });
-    const layer = this.ensureGraphicsLayer();
-    layer.addMany([this.highlightGraphic]);
+    this.ensureGraphicsLayer().addMany([this.highlightGraphic]);
   }
 
   /**
@@ -598,7 +344,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
     this.clearHighlight();
     if (airspaces.length > 0 && popupPoint) {
-      const hitItem = this.findMatching3dItem(airspaces[0], popupPoint);
+      const hitItem = findMatching3dItem(this.currentAirspaces, airspaces[0], popupPoint);
       if (hitItem) {
         this.highlightAirspace(hitItem);
       }
@@ -692,15 +438,9 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     this.clearHighlight();
     this.restoreDepthCache();
     this.currentAirspaces.length = 0;
-    for (const g of this.categoryGraphics.values()) {
-      (g.geometry as any)?.destroy?.();
-      (g as any).destroy?.();
-    }
+    destroyGraphics(this.categoryGraphics.values());
     this.categoryGraphics.clear();
-    for (const g of this.categoryLineGraphics.values()) {
-      (g.geometry as any)?.destroy?.();
-      (g as any).destroy?.();
-    }
+    destroyGraphics(this.categoryLineGraphics.values());
     this.categoryLineGraphics.clear();
     this.categorySymbols.clear();
     this.categoryLineSymbols.clear();
@@ -713,12 +453,18 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     }
   }
 
-  private clearLayer(): void {
-    const gen = ++this.buildGeneration;
-    for (const [, resolve] of this.pendingWorkerResolvers) {
-      resolve({ id: gen, items: [] });
+  private resolvePendingWorkers(beforeGeneration?: number): void {
+    for (const [gen, resolve] of this.pendingWorkerResolvers) {
+      if (beforeGeneration == null || gen < beforeGeneration) {
+        resolve({ id: gen, items: [] });
+      }
     }
     this.pendingWorkerResolvers.clear();
+  }
+
+  private clearLayer(): void {
+    this.buildGeneration++;
+    this.resolvePendingWorkers();
     this.removeGraphicsLayer();
   }
 
@@ -755,24 +501,16 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         const delta = deltaMap.get(item.airspace.id);
         if (delta) {
           item.footprint = delta.footprint;
-          const targetLod = delta.footprint?.lod ?? 1;
-          const cached = this.meshCache.get(item.airspace, targetLod);
-          if (cached) {
-            item.meshData = cached.meshData;
-            item.groundSignature = cached.groundSignature;
-            item.meshLod = cached.meshLod;
-          } else {
-            item.meshData = undefined;
-            item.groundSignature = undefined;
-            item.meshLod = undefined;
-          }
+          const cached = this.meshCache.get(item.airspace, delta.footprint?.lod ?? 1);
+          item.meshData = cached?.meshData;
+          item.groundSignature = cached?.groundSignature;
+          item.meshLod = cached?.meshLod;
         }
       }
     } else {
       const currentAirspaces = response.items as CachedAirspaceItem[];
       for (const item of currentAirspaces) {
-        const targetLod = item.footprint?.lod ?? 1;
-        const cached = this.meshCache.get(item.airspace, targetLod);
+        const cached = this.meshCache.get(item.airspace, item.footprint?.lod ?? 1);
         if (cached) {
           item.meshData = cached.meshData;
           item.groundSignature = cached.groundSignature;
@@ -787,7 +525,6 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
   private async refreshView(): Promise<void> {
     if (!this.map || !this.showAirspace || !this.enabled) {
-      this.clearLayer();
       return;
     }
 
@@ -805,10 +542,10 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     const date = getEffectiveAirspaceDate(this.hasTrack, this.timeSec);
     const tilesKey = tiles.map((t) => `${t.z}/${t.x}/${t.y}`).join(',');
     const boundsKey = [
-      Math.round(bounds.minLon * 5),
-      Math.round(bounds.minLat * 5),
-      Math.round(bounds.maxLon * 5),
-      Math.round(bounds.maxLat * 5),
+      Math.round(bounds.xmin * 5),
+      Math.round(bounds.ymin * 5),
+      Math.round(bounds.xmax * 5),
+      Math.round(bounds.ymax * 5),
     ].join(',');
     const dateKey = this.hasTrack ? date.toISOString().slice(0, 10) : '';
     const queryKey = `${tilesKey}|${boundsKey}|${this.maxAltitude}|${this.showClasses.join(',')}|${this.showTypes.join(',')}|${dateKey}`;
@@ -817,12 +554,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     }
 
     const generation = ++this.buildGeneration;
-    for (const [gen, resolve] of this.pendingWorkerResolvers) {
-      if (gen < generation) {
-        resolve({ id: gen, items: [] });
-      }
-    }
-    this.pendingWorkerResolvers.clear();
+    this.resolvePendingWorkers(generation);
 
     const request: AirspaceWorkerRequest = {
       id: generation,
@@ -849,37 +581,34 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     }
   }
 
-  private getCategorySymbol(category: AirspaceColorCategory): MeshSymbol3D {
+  private getCategorySymbol = (category: AirspaceColorCategory): MeshSymbol3D => {
     let symbol = this.categorySymbols.get(category);
     if (!symbol) {
-      symbol = createCategorySymbol(category, this.opacity);
+      const alpha = Math.min(0.45, Math.max(0.05, (this.opacity / 100) * 0.45));
+      symbol = createAirspaceFillSymbol(category, alpha);
       this.categorySymbols.set(category, symbol);
     }
     return symbol;
-  }
+  };
 
-  private getCategoryLineSymbol(category: AirspaceColorCategory): LineSymbol3D {
+  private getCategoryLineSymbol = (category: AirspaceColorCategory): LineSymbol3D => {
     let symbol = this.categoryLineSymbols.get(category);
     if (!symbol) {
-      symbol = createCategoryLineSymbol(category, this.opacity);
+      symbol = createAirspaceLineSymbol(category, this.opacity);
       this.categoryLineSymbols.set(category, symbol);
     }
     return symbol;
-  }
+  };
 
   /**
    * Rebuilds 3D airspace geometry and updates GPU graphics layers.
    *
    * Performance Architecture:
-   * 1. Selective re-extrusion: Pure MSL airspaces are extruded once and cached permanently. Only
-   *    ground-referenced airspaces whose local terrain signature has changed are re-extruded.
-   * 2. Category Batch Merging: All airspaces belonging to the same color category (Prohibited,
-   *    Restricted, Danger, Other) are concatenated into a single ArcGIS Mesh graphic and a single
-   *    contour Polyline graphic. The entire 3D airspace overlay across Europe consists of at most
-   *    4 Mesh graphics + 4 Polyline graphics, minimizing draw calls and WebGL state switches.
-   * 3. FNV-1a Signature Hashing: Before creating new ArcGIS GPU graphics, a 32-bit hash of each
-   *    category's contents, terrain signatures, and LOD states is compared. If unchanged, GPU graphic
-   *    re-allocation is skipped completely.
+   * 1. Selective re-extrusion & Distance LOD: Pure MSL airspaces are extruded once and cached permanently.
+   *    Ground-referenced airspaces re-extrude only when their terrain signature changes, and distant
+   *    airspaces skip ridge refinement (> 30 km) and perimeter contour lines (> 40 km).
+   * 2. Category Batch Merging: Concatenates meshes and contours into at most 4 Mesh + 4 Polyline graphics.
+   * 3. FNV-1a Signature Hashing: Skips GPU graphic reallocation when a category's signature is unchanged.
    */
   private rebuildMeshes(onlyGroundRef: boolean): void {
     if (!this.map || !this.showAirspace) {
@@ -892,18 +621,9 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     const dirtyCategories = new Set<AirspaceColorCategory>();
     let extrudedCount = 0;
 
-    // Distance-based Level of Detail (LOD):
-    // 1. Adaptive ridge refinement recursively samples DEM heights and subdivides terrain triangles
-    // (up to 3 passes). For airspaces close to the camera (<= 30 km), this prevents mountain ridges
-    // from piercing through low AGL floor clearances.
-    // For distant airspaces (> 30 km), terrain features are sub-pixel and the elevation sampler only
-    // has coarse DEM tiles loaded anyway.
-    // 2. Perimeter contour outlines (> 40 km): 3D line paths for distant airspaces merge into
-    // sub-pixel noise and impose heavy line tessellation overhead in ArcGIS's Polyline worker.
     const camLon = this.view?.camera?.position?.longitude ?? this.view?.center?.longitude;
     const camLat = this.view?.camera?.position?.latitude ?? this.view?.center?.latitude;
-    // Thresholds squared at 45°N
-    const cosLat = camLat != null ? Math.cos((camLat * Math.PI) / 180) : 0.707;
+    const cosLat = camLat != null ? Math.cos(camLat * DEG_TO_RAD) : 0.707;
     const maxRidgeDistKm2 = 30 * 30;
     const maxContourDistKm2 = 40 * 40;
 
@@ -925,10 +645,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       let maxRidgePasses: number | undefined;
       let skipContours = false;
       if (camLon != null && camLat != null && item.polygon.extent) {
-        const ext = item.polygon.extent;
-        const dLonKm = Math.max(ext.xmin - camLon, camLon - ext.xmax, 0) * 111.32 * cosLat;
-        const dLatKm = Math.max(ext.ymin - camLat, camLat - ext.ymax, 0) * 111.32;
-        const dist2 = dLonKm * dLonKm + dLatKm * dLatKm;
+        const dist2 = boundsDistanceSquaredKm(item.polygon.extent, camLon, camLat, cosLat);
         if (isGroundRef && dist2 > maxRidgeDistKm2) {
           maxRidgePasses = 0;
         }
@@ -947,11 +664,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         item.meshData = meshData;
         item.groundSignature = sig;
         item.meshLod = targetLod;
-        this.meshCache.set(item.airspace, {
-          meshData,
-          groundSignature: sig,
-          meshLod: targetLod,
-        });
+        this.meshCache.set(item.airspace, { meshData, groundSignature: sig, meshLod: targetLod });
       } else {
         item.meshData = undefined;
         item.meshLod = undefined;
@@ -965,7 +678,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     const multInt = Math.round(this.multiplier * 100);
     for (const bucket of this.categoryBuckets.values()) {
       bucket.parts.length = 0;
-      bucket.sigHash = Math.imul(0x811c9dc5 ^ multInt, 0x01000193);
+      bucket.sigHash = fnv1aMix(FNV1A_OFFSET_BASIS, multInt);
     }
     for (const item of items) {
       if (!item.meshData) {
@@ -974,11 +687,9 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       const bucket = this.categoryBuckets.get(item.category);
       if (bucket) {
         bucket.parts.push(item.meshData);
-        let h = bucket.sigHash;
-        h = Math.imul(h ^ item.airspace.id, 0x01000193);
-        h = Math.imul(h ^ (item.groundSignature ?? 0), 0x01000193);
-        h = Math.imul(h ^ (item.meshLod ?? 0), 0x01000193);
-        bucket.sigHash = h;
+        let h = fnv1aMix(bucket.sigHash, item.airspace.id);
+        h = fnv1aMix(h, item.groundSignature ?? 0);
+        bucket.sigHash = fnv1aMix(h, item.meshLod ?? 0);
       }
     }
 
@@ -999,63 +710,37 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       }
 
       const mergedMesh = bucket && bucket.parts.length > 0 ? mergeMeshData(bucket.parts) : null;
-      if (prevGraphic && mergedMesh) {
-        const oldGeom = prevGraphic.geometry;
-        prevGraphic.geometry = mergedMesh;
-        prevGraphic.attributes.sig = nextSig;
-        if (oldGeom && oldGeom !== mergedMesh) {
-          (oldGeom as any).destroy?.();
-        }
-      } else if (prevGraphic && !mergedMesh) {
-        toRemove.push(prevGraphic);
-        this.categoryGraphics.delete(category);
-      } else if (!prevGraphic && mergedMesh) {
-        const graphic = new Graphic({
-          geometry: mergedMesh,
-          symbol: this.getCategorySymbol(category),
-          attributes: { isAirspace: true, category, sig: nextSig },
-        });
-        this.categoryGraphics.set(category, graphic);
-        toAdd.push(graphic);
-      }
+      syncCategoryGraphic(
+        this.categoryGraphics,
+        category,
+        mergedMesh,
+        nextSig,
+        this.getCategorySymbol,
+        { isAirspace: true },
+        toAdd,
+        toRemove,
+      );
 
       const contourPaths = bucket && bucket.parts.length > 0 ? mergeContourPaths(bucket.parts) : [];
       const polyline =
         contourPaths.length > 0
-          ? new Polyline({
-              paths: contourPaths,
-              hasZ: true,
-              spatialReference: { wkid: 4326 },
-            })
+          ? new Polyline({ paths: contourPaths, hasZ: true, spatialReference: { wkid: 4326 } })
           : null;
-
-      if (prevLineGraphic && polyline) {
-        const oldGeom = prevLineGraphic.geometry;
-        prevLineGraphic.geometry = polyline;
-        prevLineGraphic.attributes.sig = nextSig;
-        if (oldGeom && oldGeom !== polyline) {
-          (oldGeom as any).destroy?.();
-        }
-      } else if (prevLineGraphic && !polyline) {
-        toRemove.push(prevLineGraphic);
-        this.categoryLineGraphics.delete(category);
-      } else if (!prevLineGraphic && polyline) {
-        const lineGraphic = new Graphic({
-          geometry: polyline,
-          symbol: this.getCategoryLineSymbol(category),
-          attributes: { isAirspace: true, isAirspaceLine: true, category, sig: nextSig },
-        });
-        this.categoryLineGraphics.set(category, lineGraphic);
-        toAdd.push(lineGraphic);
-      }
+      syncCategoryGraphic(
+        this.categoryLineGraphics,
+        category,
+        polyline,
+        nextSig,
+        this.getCategoryLineSymbol,
+        { isAirspace: true, isAirspaceLine: true },
+        toAdd,
+        toRemove,
+      );
     }
 
     if (toRemove.length > 0) {
       layer.removeMany(toRemove);
-      for (const g of toRemove) {
-        (g.geometry as any)?.destroy?.();
-        (g as any).destroy?.();
-      }
+      destroyGraphics(toRemove);
     }
     if (toAdd.length > 0) {
       layer.addMany(toAdd);

@@ -1,4 +1,4 @@
-import { type AirspaceTyped, RESERVED_AIRSPACE_ID_MAX } from '@flyxc/common';
+import { type AirspaceTyped, RESERVED_AIRSPACE_ID_MAX, setBoundedCache } from '@flyxc/common';
 
 import type { AirspaceMeshData } from './airspace3d-mesh';
 
@@ -41,16 +41,7 @@ export class AirspaceMeshCache {
   }
 
   set(airspace: AirspaceTyped, entry: CachedMeshEntry): void {
-    const key = getAirspaceMeshCacheKey(airspace);
-    if (this.map.has(key)) {
-      this.map.delete(key);
-    } else if (this.map.size >= this.maxSize) {
-      const first = this.map.keys().next().value;
-      if (first !== undefined) {
-        this.map.delete(first);
-      }
-    }
-    this.map.set(key, entry);
+    setBoundedCache(this.map, this.maxSize, getAirspaceMeshCacheKey(airspace), entry);
   }
 
   delete(airspace: AirspaceTyped): boolean {
