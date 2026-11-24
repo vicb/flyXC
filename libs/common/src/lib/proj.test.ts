@@ -43,4 +43,15 @@ describe(`getPixelCoordinates`, () => {
       },
     });
   });
+
+  it('non-zero latitude at zoom 10', () => {
+    const res = getPixelCoordinates({ lat: 45, lon: 6 }, 10, 256);
+    expect(res.tile).toEqual({ x: 529, y: 368 });
+    expect(res.world.x).toBe(res.tile.x * 256 + res.px.x);
+    expect(res.world.y).toBe(res.tile.y * 256 + res.px.y);
+    expect(res.px.x).toBeGreaterThanOrEqual(0);
+    expect(res.px.x).toBeLessThan(256);
+    expect(res.px.y).toBeGreaterThanOrEqual(0);
+    expect(res.px.y).toBeLessThan(256);
+  });
 });

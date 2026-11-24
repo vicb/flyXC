@@ -39,8 +39,8 @@ export function createGroundSampler(sampler?: ElevationSampler): GroundSampler {
   }
   const noData = sampler.noDataValue;
   const sr = sampler.spatialReference;
-  const isWGS84 = Boolean(sr?.isWGS84);
-  const isWebMercator = Boolean(sr?.isWebMercator);
+  const isWGS84 = sr?.isWGS84;
+  const isWebMercator = sr?.isWebMercator;
   let queryPoint: Point | undefined;
 
   return (lon: number, lat: number): number => {
@@ -51,7 +51,7 @@ export function createGroundSampler(sampler?: ElevationSampler): GroundSampler {
       const [x, y] = lonLatToWebMercator(lon, lat);
       z = sampler.elevationAt(x, y);
     } else {
-      queryPoint ??= new Point({ longitude: lon, latitude: lat });
+      queryPoint ??= new Point();
       queryPoint.longitude = lon;
       queryPoint.latitude = lat;
       z = sampler.queryElevation(queryPoint)?.z;
@@ -82,7 +82,7 @@ export function getVisibleTileCoverage(view: SceneView): VisibleTileCoverage {
   const zoom = view.zoom;
   const center = view.center;
   const geoExtent = toGeoExtent(view.extent) ?? toGeoExtent(view.visibleArea?.extent);
-  if (!Number.isFinite(zoom) || zoom < MIN_3D_ZOOM || !center || !geoExtent) {
+  if (!((zoom ?? 0) >= MIN_3D_ZOOM) || !center || !geoExtent) {
     return { tiles: [], bounds: null };
   }
 

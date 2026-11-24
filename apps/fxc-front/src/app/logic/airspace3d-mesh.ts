@@ -34,16 +34,6 @@ export interface AirspacePolygonLike {
 }
 
 /**
- * Input parameters for building a 3D airspace mesh.
- */
-export interface AirspaceMeshParams {
-  polygon: AirspacePolygonLike;
-  airspace: AirspaceTyped;
-  multiplier: number;
-  sampleGroundZ: GroundSampler;
-}
-
-/**
  * Raw 3D vertex coordinates, triangle indices, and optional perimeter contour lines before combining into an ArcGIS Mesh.
  */
 export interface AirspaceMeshData {
@@ -566,6 +556,11 @@ function refineTerrainCapForRidges(
       nextFaces[nextFaceLen++] = c;
     };
 
+    const emitOneSplit = (a: number, b: number, c: number, mab: number) => {
+      emitActive(a, mab, c);
+      emitActive(mab, b, c);
+    };
+
     const emitTwoSplit = (a: number, b: number, c: number, mab: number, mbc: number) => {
       emitActive(mab, b, mbc);
       emitActive(a, mab, mbc);
@@ -586,16 +581,9 @@ function refineTerrainCapForRidges(
         nextFaces[nextFaceLen++] = i1;
         nextFaces[nextFaceLen++] = i2;
       } else if (count === 1) {
-        if (m01 >= 0) {
-          emitActive(i0, m01, i2);
-          emitActive(m01, i1, i2);
-        } else if (m12 >= 0) {
-          emitActive(i1, m12, i0);
-          emitActive(m12, i2, i0);
-        } else {
-          emitActive(i2, m20, i1);
-          emitActive(m20, i0, i1);
-        }
+        if (m01 >= 0) emitOneSplit(i0, i1, i2, m01);
+        else if (m12 >= 0) emitOneSplit(i1, i2, i0, m12);
+        else emitOneSplit(i2, i0, i1, m20);
       } else if (count === 2) {
         if (m20 < 0) emitTwoSplit(i0, i1, i2, m01, m12);
         else if (m01 < 0) emitTwoSplit(i1, i2, i0, m12, m20);
@@ -785,51 +773,25 @@ export function extrudeAirspaceFootprint(
     start = end;
   }
 
-  if (topTri && floorTri && topTri === floorTri) {
-    // Both caps share identical 2D topology (MSL-MSL or GND-GND): emit both layers in one pass so ground is sampled once.
-    const capVertices = topTri.xy.length / 2;
-    const topBase = vCursor;
-    const floorBase = vCursor + capVertices;
-    for (let i = 0; i < capVertices; i++) {
-      const lon = topTri.xy[i * 2];
-      const lat = topTri.xy[i * 2 + 1];
-      const gnd = terrainGnds ? terrainGnds[i] : 0;
-      const tp = (topBase + i) * 3;
-      positions[tp] = lon;
-      positions[tp + 1] = lat;
-      positions[tp + 2] = gnd + topOffset;
-      const fp = (floorBase + i) * 3;
-      positions[fp] = lon;
-      positions[fp + 1] = lat;
-      positions[fp + 2] = gnd + floorOffset;
-    }
-    const faceCount = topTri.faces.length;
-    for (let i = 0; i < faceCount; i++) {
-      const idx = topTri.faces[i];
-      faces[fCursor + i] = topBase + idx;
-      faces[fCursor + faceCount + i] = floorBase + idx;
-    }
-  } else {
-    if (topTri) {
-      writeCap(positions, faces, vCursor, fCursor, topTri, (idx) => {
-        if (!airspace.topRefGnd) {
-          return topOffset;
-        }
-        const z = terrainGnds![idx] + topOffset;
-        return airspace.floorRefGnd ? z : Math.max(z, floorOffset);
-      });
-      vCursor += topTri.xy.length / 2;
-      fCursor += topTri.faces.length;
-    }
-    if (floorTri) {
-      writeCap(positions, faces, vCursor, fCursor, floorTri, (idx) => {
-        if (!airspace.floorRefGnd) {
-          return floorOffset;
-        }
-        const z = terrainGnds![idx] + floorOffset;
-        return airspace.topRefGnd ? z : Math.min(z, topOffset);
-      });
-    }
+  if (topTri) {
+    writeCap(positions, faces, vCursor, fCursor, topTri, (idx) => {
+      if (!airspace.topRefGnd) {
+        return topOffset;
+      }
+      const z = terrainGnds![idx] + topOffset;
+      return airspace.floorRefGnd ? z : Math.max(z, floorOffset);
+    });
+    vCursor += topTri.xy.length / 2;
+    fCursor += topTri.faces.length;
+  }
+  if (floorTri) {
+    writeCap(positions, faces, vCursor, fCursor, floorTri, (idx) => {
+      if (!airspace.floorRefGnd) {
+        return floorOffset;
+      }
+      const z = terrainGnds![idx] + floorOffset;
+      return airspace.topRefGnd ? z : Math.min(z, topOffset);
+    });
   }
 
   return { positions, faces, contourPaths };
@@ -850,19 +812,6 @@ export function mergeContourPaths(parts: AirspaceMeshData[]): number[][][] {
     }
   }
   return merged;
-}
-
-/**
- * Builds raw 3D vertex positions and triangle indices for an airspace polygon in WGS84.
- */
-export async function buildAirspaceMeshData({
-  polygon,
-  airspace,
-  multiplier,
-  sampleGroundZ,
-}: AirspaceMeshParams): Promise<AirspaceMeshData | null> {
-  const footprint = buildAirspaceFootprint(polygon, airspace);
-  return footprint ? extrudeAirspaceFootprint(footprint, airspace, multiplier, sampleGroundZ) : null;
 }
 
 /**
@@ -922,12 +871,4 @@ export function mergeMeshData(parts: AirspaceMeshData[]): Mesh | null {
   }
 
   return createMesh(positions, faces);
-}
-
-/**
- * Builds a closed (or terrain-anchored) 3D {@link Mesh} for an airspace polygon in WGS84.
- */
-export async function buildAirspaceMesh(params: AirspaceMeshParams): Promise<Mesh | null> {
-  const data = await buildAirspaceMeshData(params);
-  return data ? mergeMeshData([data]) : null;
 }

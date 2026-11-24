@@ -129,12 +129,8 @@ export class Airspace3dProcessor {
     if (!this.dbPromise) {
       this.dbPromise = openDB('flyxc-airspaces-3d', 1, {
         upgrade(db) {
-          if (!db.objectStoreNames.contains('metadata')) {
-            db.createObjectStore('metadata');
-          }
-          if (!db.objectStoreNames.contains('footprints')) {
-            db.createObjectStore('footprints');
-          }
+          db.createObjectStore('metadata');
+          db.createObjectStore('footprints');
         },
       }).catch(() => null);
     }
@@ -182,34 +178,18 @@ export class Airspace3dProcessor {
     }
   }
 
-  private async getFromIdb(
-    key: number,
-  ): Promise<{ polygon: AirspacePolygonLike; footprint: AirspaceFootprint } | null> {
+  private async withDb<T>(fn: (db: IDBPDatabase) => Promise<T>): Promise<T | null> {
     try {
       const db = await this.getDb();
-      if (!db) {
-        return null;
-      }
-      const record = await db.get('footprints', key);
-      return record ?? null;
+      return db ? await fn(db) : null;
     } catch {
       return null;
     }
   }
 
-  private async saveToIdb(
-    key: number,
-    value: { polygon: AirspacePolygonLike; footprint: AirspaceFootprint },
-  ): Promise<void> {
-    try {
-      const db = await this.getDb();
-      if (!db) {
-        return;
-      }
-      await db.put('footprints', value, key);
-    } catch {
-      // Ignore write errors (e.g. quota)
-    }
+  private cacheFootprint(id: number, entry: { polygon: AirspacePolygonLike; footprint: AirspaceFootprint }): void {
+    setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, id, entry);
+    void this.withDb((db) => db.put('footprints', entry, id));
   }
 
   public async process(
@@ -269,7 +249,9 @@ export class Airspace3dProcessor {
 
         let cachedFp = this.footprintCache.get(feat.id);
         if (!cachedFp) {
-          const idbRecord = await this.getFromIdb(feat.id);
+          const idbRecord = await this.withDb<{ polygon: AirspacePolygonLike; footprint: AirspaceFootprint } | undefined>(
+            (db) => db.get('footprints', feat.id),
+          );
           if (idbRecord) {
             cachedFp = idbRecord;
             setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, feat.id, cachedFp);
@@ -288,9 +270,7 @@ export class Airspace3dProcessor {
             if (built) {
               footprint = built;
               if (!isProgressive) {
-                const entry = { polygon, footprint };
-                setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, feat.id, entry);
-                void this.saveToIdb(feat.id, entry);
+                this.cacheFootprint(feat.id, { polygon, footprint });
               }
             }
           }
@@ -323,12 +303,10 @@ export class Airspace3dProcessor {
         const fineFootprint = buildAirspaceFootprint(pending.polygon, pending.airspace, { coarse: false });
         if (fineFootprint) {
           pending.item.footprint = fineFootprint;
-          const entry = {
+          this.cacheFootprint(pending.item.airspace.id, {
             polygon: pending.polygon,
             footprint: fineFootprint,
-          };
-          setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, pending.item.airspace.id, entry);
-          void this.saveToIdb(pending.item.airspace.id, entry);
+          });
           refinedItems.push(pending.item);
         }
       }
@@ -354,14 +332,7 @@ export class Airspace3dProcessor {
   public async clear(): Promise<void> {
     this.tileCache.clear();
     this.footprintCache.clear();
-    try {
-      const db = await this.getDb();
-      if (db) {
-        await db.clear('footprints');
-      }
-    } catch {
-      // Ignore
-    }
+    await this.withDb((db) => db.clear('footprints'));
   }
 
   private getDecodedPolygon(feat: DecodedTileFeature): AirspacePolygonLike {

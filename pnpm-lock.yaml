@@ -698,9 +698,6 @@ importers:
       '@google-cloud/datastore':
         specifier: catalog:default
         version: 11.3.1(supports-color@8.1.1)
-      '@mapbox/sphericalmercator':
-        specifier: ^2.0.2
-        version: 2.0.2
       '@protobuf-ts/runtime':
         specifier: ^2.11.1
         version: 2.11.1
@@ -2465,9 +2462,6 @@ packages:
     resolution: {integrity: sha512-lcWasy5hT+rOZS6NWevygsYii0tpHuc7AQVtOHgae8rUueQgNrLEiM76qQeDJq4yTt1DF6n4dyClbJZJRCXuEA==}
     peerDependencies:
       rollup: ^0.65.2 || ^1.0.0 || ^2.0.0 || ^3.0.0 || ^4.0.0
-
-  '@mapbox/sphericalmercator@2.0.2':
-    resolution: {integrity: sha512-Ai/S9qXupBzFCM0i4sYDIx1A0pDYMaD3xlhVg05JToYeyORq8aAuHbd6CCPC86HlLSjYmoPeljJ5tMVKtzd4Lg==}
 
   '@microsoft/api-extractor-model@7.32.2':
     resolution: {integrity: sha512-Ussc25rAalc+4JJs9HNQE7TuO9y6jpYQX9nWD1DhqUzYPBr3Lr7O9intf+ZY8kD5HnIqeIRJX7ccCT0QyBy2Ww==}
@@ -11287,8 +11281,6 @@ snapshots:
       rollup: 4.54.0
     transitivePeerDependencies:
       - '@swc/core'
-
-  '@mapbox/sphericalmercator@2.0.2': {}
 
   '@microsoft/api-extractor-model@7.32.2(@types/node@26.6.6)':
     dependencies:

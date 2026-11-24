@@ -2,16 +2,32 @@ import type { AirspaceTyped } from '@flyxc/common';
 import { Class, Type } from '@flyxc/common';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { AirspacePolygonLike, FlatRings } from './airspace3d-mesh';
+import type { AirspacePolygonLike, FlatRings, GroundSampler } from './airspace3d-mesh';
 import {
   buildAirspaceFootprint,
-  buildAirspaceMesh,
   buildBoundarySegmentSet,
   computeTargetGridM,
   extrudeAirspaceFootprint,
   mergeContourPaths,
+  mergeMeshData,
   triangulateCapWithGrid2D,
 } from './airspace3d-mesh';
+
+function buildAirspaceMesh({
+  polygon,
+  airspace,
+  multiplier,
+  sampleGroundZ,
+}: {
+  polygon: AirspacePolygonLike;
+  airspace: AirspaceTyped;
+  multiplier: number;
+  sampleGroundZ: GroundSampler;
+}) {
+  const footprint = buildAirspaceFootprint(polygon, airspace);
+  const data = footprint ? extrudeAirspaceFootprint(footprint, airspace, multiplier, sampleGroundZ) : null;
+  return data ? mergeMeshData([data]) : null;
+}
 
 function flattenRings(rings: number[][][]): FlatRings {
   let totalCoords = 0;

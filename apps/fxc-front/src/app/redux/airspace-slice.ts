@@ -39,10 +39,7 @@ try {
 let initUse3d = true;
 
 try {
-  const storedUse3d = localStorage.getItem('airspaceUse3d');
-  if (storedUse3d != null) {
-    initUse3d = storedUse3d === 'true';
-  }
+  initUse3d = localStorage.getItem('airspaceUse3d') !== 'false';
 } catch (e) {
   // empty
 }

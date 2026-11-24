@@ -110,8 +110,14 @@ vi.mock('@arcgis/core/layers/GraphicsLayer', () => ({
       this.elevationInfo = opts?.elevationInfo;
       hoisted.graphicsLayers.push(this);
     }
+    add(item: any) {
+      this.graphics.push(item);
+    }
     addMany(items: any[]) {
       this.graphics.push(...items);
+    }
+    remove(item: any) {
+      this.graphics = this.graphics.filter((g) => g !== item);
     }
     removeAll() {
       this.graphics.length = 0;
@@ -215,16 +221,6 @@ vi.mock('../../logic/airspace3d-mesh', async (importOriginal) => {
   const actual = await importOriginal<typeof meshModule>();
   return {
     ...actual,
-    buildAirspaceMesh: vi.fn((params: Parameters<typeof actual.buildAirspaceMesh>[0]) => {
-      const p = actual.buildAirspaceMesh(params);
-      hoisted.pendingBuilds.push(p);
-      return p;
-    }),
-    buildAirspaceMeshData: vi.fn((params: Parameters<typeof actual.buildAirspaceMeshData>[0]) => {
-      const p = actual.buildAirspaceMeshData(params);
-      hoisted.pendingBuilds.push(p);
-      return p;
-    }),
     buildAirspaceFootprint: vi.fn(actual.buildAirspaceFootprint),
     extrudeAirspaceFootprint: vi.fn(actual.extrudeAirspaceFootprint),
   };
@@ -580,8 +576,6 @@ describe('Airspace3dElement', () => {
     hoisted.tilePayloads.clear();
     hoisted.pendingBuilds.length = 0;
     hoisted.getAirspaceListMock.mockClear();
-    vi.mocked(meshModule.buildAirspaceMesh).mockClear();
-    vi.mocked(meshModule.buildAirspaceMeshData).mockClear();
     vi.mocked(meshModule.buildAirspaceFootprint).mockClear();
     vi.mocked(meshModule.extrudeAirspaceFootprint).mockClear();
     vi.mocked(common.applyOverrides).mockClear();

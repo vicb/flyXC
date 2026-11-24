@@ -143,9 +143,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   }
 
   private updateAirspaceMode(): void {
-    const is3d = Boolean(
-      this.use3dAirspace && Number.isFinite(this.view?.zoom) && (this.view?.zoom ?? 0) >= MIN_3D_ZOOM,
-    );
+    const is3d = this.use3dAirspace && (this.view?.zoom ?? 0) >= MIN_3D_ZOOM;
     if (this.is3dAirspace !== is3d) {
       this.is3dAirspace = is3d;
     }
@@ -316,7 +314,7 @@ export class Map3dElement extends connect(store)(LitElement) {
         this.subscriptions.push(() => centerWatch.remove());
 
         const zoomWatch = watch(
-          () => Number.isFinite(view.zoom) && view.zoom >= MIN_3D_ZOOM,
+          () => (view.zoom ?? 0) >= MIN_3D_ZOOM,
           () => {
             this.updateAirspaceMode();
           },
@@ -343,48 +341,45 @@ export class Map3dElement extends connect(store)(LitElement) {
       });
 
     // Set the active track when clicking on a track, marker, label.
-    view.on('click', (e) => {
-      if (this.is3dAirspace) {
-        this.airspace?.setPickable(true);
+    view.on('click', async (e) => {
+      this.airspace?.setPickable(true);
+      let results: any[];
+      try {
+        ({ results } = await view.hitTest(e));
+      } finally {
+        this.airspace?.setPickable(false);
       }
-      const hitPromise = view.hitTest(e);
-      hitPromise.finally(() => {
-        if (this.is3dAirspace) {
-          this.airspace?.setPickable(false);
+
+      const trackHit = results.find(
+        (r) => r.graphic?.attributes?.trackId != null || r.graphic?.attributes?.liveTrackId != null,
+      );
+      if (trackHit) {
+        const graphic = trackHit.graphic;
+        msg.clickSceneView.emit(graphic, scene);
+        // The trackId is set on tracks and pilots (not on live tracks).
+        const trackId = graphic.attributes?.trackId;
+        if (trackId != null) {
+          store.dispatch(setCurrentTrackId(trackId));
         }
-      });
-      hitPromise.then(({ results }: { results: any[] }) => {
-        const trackHit = results.find(
-          (r) => r.graphic?.attributes?.trackId != null || r.graphic?.attributes?.liveTrackId != null,
-        );
-        if (trackHit) {
-          const graphic = trackHit.graphic;
-          msg.clickSceneView.emit(graphic, scene);
-          // The trackId is set on tracks and pilots (not on live tracks).
-          const trackId = graphic.attributes?.trackId;
-          if (trackId != null) {
-            store.dispatch(setCurrentTrackId(trackId));
-          }
-        } else if (this.is3dAirspace) {
-          const hitPoints = results
-            .filter((r) => r.graphic?.attributes?.isAirspace && r.mapPoint)
-            .map((r) => ({
-              lat: r.mapPoint.latitude ?? 0,
-              lon: r.mapPoint.longitude ?? 0,
-              z: r.mapPoint.z,
-            }));
-          if (e.mapPoint) {
-            hitPoints.push({
-              lat: e.mapPoint.latitude ?? 0,
-              lon: e.mapPoint.longitude ?? 0,
-              z: e.mapPoint.z,
-            });
-          }
-          void this.airspace?.handleClick(hitPoints, scene);
-        } else if (e.mapPoint) {
-          void this.flatAirspace?.handleClick({ lat: e.mapPoint.latitude ?? 0, lon: e.mapPoint.longitude ?? 0 }, scene);
+      } else if (this.is3dAirspace) {
+        const hitPoints = results
+          .filter((r) => r.graphic?.attributes?.isAirspace && r.mapPoint)
+          .map((r) => ({
+            lat: r.mapPoint.latitude ?? 0,
+            lon: r.mapPoint.longitude ?? 0,
+            z: r.mapPoint.z,
+          }));
+        if (e.mapPoint) {
+          hitPoints.push({
+            lat: e.mapPoint.latitude ?? 0,
+            lon: e.mapPoint.longitude ?? 0,
+            z: e.mapPoint.z,
+          });
         }
-      });
+        void this.airspace?.handleClick(hitPoints, scene);
+      } else if (e.mapPoint) {
+        void this.flatAirspace?.handleClick({ lat: e.mapPoint.latitude ?? 0, lon: e.mapPoint.longitude ?? 0 }, scene);
+      }
     });
 
     // Horizontal wheel movements update the timestamp.

@@ -11,9 +11,6 @@ import {
   findIndexes,
   lerp,
   lerpAngleDegree,
-  RAD_TO_DEG,
-  toDeg,
-  toRad,
 } from './math';
 
 describe('findIndexes', () => {
@@ -303,21 +300,8 @@ describe('findFirstIndex', () => {
   });
 
   describe('degrees / radians conversion', () => {
-    it('converts degrees to radians', () => {
-      expect(toRad(180)).toBeCloseTo(Math.PI);
-      expect(toRad(90)).toBeCloseTo(Math.PI / 2);
-      expect(toRad(0)).toBe(0);
-    });
-
-    it('converts radians to degrees', () => {
-      expect(toDeg(Math.PI)).toBeCloseTo(180);
-      expect(toDeg(Math.PI / 2)).toBeCloseTo(90);
-      expect(toDeg(0)).toBe(0);
-    });
-
     it('exports expected constants', () => {
       expect(DEG_TO_RAD).toBe(Math.PI / 180);
-      expect(RAD_TO_DEG).toBe(180 / Math.PI);
     });
   });
 

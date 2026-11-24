@@ -3,7 +3,7 @@ import Polyline from '@arcgis/core/geometry/Polyline';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import type ElevationSampler from '@arcgis/core/layers/support/ElevationSampler';
-import type Map from '@arcgis/core/Map';
+import type ArcgisMap from '@arcgis/core/Map';
 import type LineSymbol3D from '@arcgis/core/symbols/LineSymbol3D';
 import type MeshSymbol3D from '@arcgis/core/symbols/MeshSymbol3D';
 import type LayerView from '@arcgis/core/views/layers/LayerView';
@@ -88,7 +88,7 @@ const ALL_CATEGORIES = [
 @customElement('airspace3d-element')
 export class Airspace3dElement extends connect(store)(LitElement) {
   @property({ attribute: false })
-  map!: Map;
+  map!: ArcgisMap;
   @property({ attribute: false })
   view?: SceneView;
   @property({ attribute: false })
@@ -114,12 +114,12 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private timeSec = 0;
   private graphicsLayer?: GraphicsLayer;
   private graphicsLayerView?: LayerView;
-  private categoryGraphics = new globalThis.Map<AirspaceColorCategory, Graphic>();
-  private categorySymbols = new globalThis.Map<AirspaceColorCategory, MeshSymbol3D>();
-  private categoryLineGraphics = new globalThis.Map<AirspaceColorCategory, Graphic>();
-  private categoryLineSymbols = new globalThis.Map<AirspaceColorCategory, LineSymbol3D>();
+  private categoryGraphics = new Map<AirspaceColorCategory, Graphic>();
+  private categorySymbols = new Map<AirspaceColorCategory, MeshSymbol3D>();
+  private categoryLineGraphics = new Map<AirspaceColorCategory, Graphic>();
+  private categoryLineSymbols = new Map<AirspaceColorCategory, LineSymbol3D>();
   private highlightGraphic?: Graphic;
-  private categoryBuckets = new globalThis.Map<AirspaceColorCategory, { parts: AirspaceMeshData[]; sigHash: number }>([
+  private categoryBuckets = new Map<AirspaceColorCategory, { parts: AirspaceMeshData[]; sigHash: number }>([
     [AirspaceColorCategory.Prohibited, { parts: [], sigHash: 0 }],
     [AirspaceColorCategory.Restricted, { parts: [], sigHash: 0 }],
     [AirspaceColorCategory.Danger, { parts: [], sigHash: 0 }],
@@ -136,7 +136,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private patchedDepthCache?: { cache: any; orig: (...args: unknown[]) => unknown };
   private worker?: Worker;
   private fallbackProcessor?: Airspace3dProcessor;
-  private pendingWorkerResolvers = new globalThis.Map<number, (res: AirspaceWorkerResponse) => void>();
+  private pendingWorkerResolvers = new Map<number, (res: AirspaceWorkerResponse) => void>();
 
   stateChanged(state: RootState): void {
     this.maxAltitude = airspaces.selectMaxAltitude(state);
@@ -233,6 +233,9 @@ export class Airspace3dElement extends connect(store)(LitElement) {
    * Keep disabled during camera navigation so dragging always anchors to terrain.
    */
   public setPickable(pickable: boolean): void {
+    if (pickable && !this.enabled) {
+      return;
+    }
     const uid = this.graphicsLayerView?.uid;
     const stage = (this.view as any)?.stage;
     const stageLayers = stage?._layers as Record<string, any> | undefined;
@@ -266,7 +269,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     if (this.highlightGraphic) {
       const g = this.highlightGraphic;
       this.highlightGraphic = undefined;
-      this.graphicsLayer?.removeMany([g]);
+      this.graphicsLayer?.remove(g);
       g.destroy?.();
     }
   }
@@ -288,7 +291,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       symbol: createAirspaceFillSymbol(item.category ?? AirspaceColorCategory.Other, 0.8),
       attributes: { isAirspace: true, isAirspaceHighlight: true },
     });
-    this.ensureGraphicsLayer().addMany([this.highlightGraphic]);
+    this.ensureGraphicsLayer().add(this.highlightGraphic);
   }
 
   /**
@@ -306,12 +309,11 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     const sampleGroundZ = createGroundSampler(this.sampler);
     const mult = this.multiplier > 0 ? this.multiplier : 1;
     const date = getEffectiveAirspaceDate(this.hasTrack, this.timeSec);
-    const airspaces: AirspaceTyped[] = [];
-    const seen = new Set<number>();
+    const airspaces = new Map<number, AirspaceTyped>();
     let popupPoint: { lat: number; lon: number; z?: number } | undefined;
 
     for (const pt of hitPoints) {
-      const hasZ = typeof pt.z === 'number' && Number.isFinite(pt.z);
+      const hasZ = Number.isFinite(pt.z);
       const rawGnd = sampleGroundZ(pt.lon, pt.lat);
       const gndAltitude = (rawGnd > 0 ? rawGnd : hasZ ? pt.z! : 0) / mult;
       const list = await getAirspaceList({
@@ -330,21 +332,21 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       if (list.length > 0) {
         popupPoint ??= pt;
         for (const asp of list) {
-          if (!seen.has(asp.id)) {
-            seen.add(asp.id);
-            airspaces.push(asp);
+          if (!airspaces.has(asp.id)) {
+            airspaces.set(asp.id, asp);
           }
         }
       }
     }
 
     this.clearHighlight();
-    if (airspaces.length > 0 && popupPoint) {
-      const hitItem = findMatching3dItem(this.currentAirspaces, airspaces[0], popupPoint);
+    if (airspaces.size > 0 && popupPoint) {
+      const list = Array.from(airspaces.values());
+      const hitItem = findMatching3dItem(this.currentAirspaces, list[0], popupPoint);
       if (hitItem) {
         this.highlightAirspace(hitItem);
       }
-      await openAirspacePopup(scene, popupPoint, getAirspaceListHtml(airspaces), popupPoint.z);
+      await openAirspacePopup(scene, popupPoint, getAirspaceListHtml(list), popupPoint.z);
     } else {
       await scene.closePopup?.();
     }
@@ -495,7 +497,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     }
 
     if (response.isDelta) {
-      const deltaMap = new globalThis.Map(response.items.map((item) => [item.airspace.id, item]));
+      const deltaMap = new Map(response.items.map((item) => [item.airspace.id, item]));
       for (const item of this.currentAirspaces) {
         const delta = deltaMap.get(item.airspace.id);
         if (delta) {
@@ -518,8 +520,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       return;
     }
 
-    const zoom = this.view?.zoom;
-    if (!this.view || !Number.isFinite(zoom) || (zoom ?? 0) < MIN_3D_ZOOM) {
+    if (!this.view || !((this.view.zoom ?? 0) >= MIN_3D_ZOOM)) {
       this.clearLayer();
       return;
     }
@@ -606,18 +607,28 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     }
 
     const layer = this.ensureGraphicsLayer();
-    const items = this.currentAirspaces;
+    const dirtyCategories = this.extrudeStaleItems(onlyGroundRef);
+    if (onlyGroundRef && dirtyCategories.size === 0) {
+      return;
+    }
+
+    this.populateCategoryBuckets();
+    this.syncCategoryGraphics(layer, onlyGroundRef ? dirtyCategories : ALL_CATEGORIES);
+  }
+
+  /**
+   * Re-extrudes cached footprints whose terrain signature or LOD changed, returning the affected categories.
+   */
+  private extrudeStaleItems(onlyGroundRef: boolean): Set<AirspaceColorCategory> {
     const sampleGroundZ = createGroundSampler(this.sampler);
     const dirtyCategories = new Set<AirspaceColorCategory>();
-    let extrudedCount = 0;
-
     const camLon = this.view?.camera?.position?.longitude ?? this.view?.center?.longitude;
     const camLat = this.view?.camera?.position?.latitude ?? this.view?.center?.latitude;
     const cosLat = camLat != null ? Math.cos(camLat * DEG_TO_RAD) : 0.707;
     const maxRidgeDistKm2 = 30 * 30;
     const maxContourDistKm2 = 40 * 40;
 
-    for (const item of items) {
+    for (const item of this.currentAirspaces) {
       if (!item.footprint) {
         continue;
       }
@@ -649,7 +660,6 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         skipContours,
       });
       dirtyCategories.add(item.category);
-      extrudedCount++;
       if (meshData) {
         item.meshData = meshData;
         item.groundSignature = sig;
@@ -661,16 +671,19 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       }
     }
 
-    if (onlyGroundRef && extrudedCount === 0) {
-      return;
-    }
+    return dirtyCategories;
+  }
 
+  /**
+   * Groups extruded meshes into per-category buckets and computes their FNV-1a signature hashes.
+   */
+  private populateCategoryBuckets(): void {
     const multInt = Math.round(this.multiplier * 100);
     for (const bucket of this.categoryBuckets.values()) {
       bucket.parts.length = 0;
       bucket.sigHash = fnv1aMix(FNV1A_OFFSET_BASIS, multInt);
     }
-    for (const item of items) {
+    for (const item of this.currentAirspaces) {
       if (!item.meshData) {
         continue;
       }
@@ -682,8 +695,12 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         bucket.sigHash = fnv1aMix(h, item.meshLod ?? 0);
       }
     }
+  }
 
-    const categoriesToUpdate = onlyGroundRef ? dirtyCategories : ALL_CATEGORIES;
+  /**
+   * Reconciles merged mesh and contour graphics on `layer` for categories whose signature changed.
+   */
+  private syncCategoryGraphics(layer: GraphicsLayer, categoriesToUpdate: Iterable<AirspaceColorCategory>): void {
     const toRemove: Graphic[] = [];
     const toAdd: Graphic[] = [];
 

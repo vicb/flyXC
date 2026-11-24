@@ -1,29 +1,6 @@
 /** Degrees to radians conversion multiplier. */
 export const DEG_TO_RAD = Math.PI / 180;
 
-/** Radians to degrees conversion multiplier. */
-export const RAD_TO_DEG = 180 / Math.PI;
-
-/**
- * Converts degrees to radians.
- *
- * @param deg - Angle in degrees.
- * @returns Angle in radians.
- */
-export function toRad(deg: number): number {
-  return deg * DEG_TO_RAD;
-}
-
-/**
- * Converts radians to degrees.
- *
- * @param rad - Angle in radians.
- * @returns Angle in degrees.
- */
-export function toDeg(rad: number): number {
-  return rad * RAD_TO_DEG;
-}
-
 /**
  * Clamps a number to the inclusive range [min, max].
  *
