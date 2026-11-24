@@ -20,6 +20,7 @@ describe('FlymeFetcher', () => {
   const pipeline = {} as RedisClientMultiCmd;
 
   beforeEach(() => {
+    FlymeFetcher.resetRetryAfter();
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-11-24T13:50:00Z'));
     vi.stubGlobal('SECRETS', { FLYME_TOKEN: 'test-token' });
@@ -41,6 +42,7 @@ describe('FlymeFetcher', () => {
 
     expect(fetchSpy).toHaveBeenCalledWith('https://xcglobe.com/api/partners/v1/live-tracking/positions', {
       timeoutS: 10,
+      returnOnStatus: [503],
       headers: {
         Authorization: 'Bearer test-token',
         Accept: 'application/json',

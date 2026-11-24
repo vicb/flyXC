@@ -15,6 +15,13 @@ const POSITIONS_URL = 'https://xcglobe.com/api/partners/v1/live-tracking/positio
 let retryAfterS = 0;
 
 export class FlymeFetcher extends TrackerFetcher {
+  /**
+   * Resets the module-level retry-after deadline. Used for tests.
+   */
+  static resetRetryAfter(): void {
+    retryAfterS = 0;
+  }
+
   protected getTrackerName(): TrackerNames {
     return 'flyme';
   }

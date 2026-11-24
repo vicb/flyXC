@@ -100,7 +100,9 @@ describe('parseRetryAfterS', () => {
   });
 
   it('parses HTTP-date', () => {
-    expect(parseRetryAfterS('Tue, 24 Nov 2026 13:51:30 GMT')).toBe(Math.floor(Date.UTC(2026, 10, 24, 13, 51, 30) / 1000));
+    expect(parseRetryAfterS('Tue, 24 Nov 2026 13:51:30 GMT')).toBe(
+      Math.floor(Date.UTC(2026, 10, 24, 13, 51, 30) / 1000),
+    );
   });
 
   it('returns fallback for missing or invalid headers', () => {
