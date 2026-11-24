@@ -1,4 +1,4 @@
-import { formatReqError, parallelTasksWithTimeout } from './util';
+import { formatReqError, parallelTasksWithTimeout, parseRetryAfterS } from './util';
 
 describe('FormatReqError', () => {
   it('should format scalars', () => {
@@ -80,5 +80,31 @@ describe('parallelTasksWithTimeout', () => {
         { status: 'fulfilled', value: 40 },
       ],
     });
+  });
+});
+
+describe('parseRetryAfterS', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-24T13:50:00.600Z'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('parses delay in seconds', () => {
+    const nowS = Math.floor(Date.now() / 1000);
+    expect(parseRetryAfterS('120')).toBe(nowS + 120);
+    expect(parseRetryAfterS(' 0 ')).toBe(nowS);
+  });
+
+  it('parses HTTP-date', () => {
+    expect(parseRetryAfterS('Tue, 24 Nov 2026 13:51:30 GMT')).toBe(Math.floor(Date.UTC(2026, 10, 24, 13, 51, 30) / 1000));
+  });
+
+  it('returns fallback for missing or invalid headers', () => {
+    expect(parseRetryAfterS(null)).toBe(3600);
+    expect(parseRetryAfterS('invalid', 0)).toBe(0);
   });
 });
