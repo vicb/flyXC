@@ -97,4 +97,34 @@ describe('FlymeFetcher', () => {
     expect(updates3.fetchedTracker.has(1)).toBe(true);
     expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
+
+  test('respects Retry-After on 503 through real fetchResponse', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(
+        new Response(null, {
+          status: 503,
+          headers: { 'Retry-After': '120' },
+        }),
+      )
+      .mockResolvedValueOnce(new Response('[]'));
+
+    const state = createFetcherState('123');
+    const updates1 = await new FlymeFetcher(state, pipeline).refresh(10);
+    expect(updates1.errors).toEqual(['HTTP status 503']);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    // Within Retry-After window: should skip fetching.
+    vi.advanceTimersByTime(60_000);
+    const updates2 = await new FlymeFetcher(state, pipeline).refresh(10);
+    expect(updates2.errors).toEqual([]);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    // After Retry-After expires: should resume fetching.
+    vi.advanceTimersByTime(60_000);
+    const updates3 = await new FlymeFetcher(state, pipeline).refresh(10);
+    expect(updates3.errors).toEqual([]);
+    expect(updates3.fetchedTracker.has(1)).toBe(true);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
 });

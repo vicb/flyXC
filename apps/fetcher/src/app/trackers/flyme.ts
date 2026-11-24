@@ -37,6 +37,7 @@ export class FlymeFetcher extends TrackerFetcher {
     try {
       const response = await fetchResponse(POSITIONS_URL, {
         timeoutS: 10,
+        returnOnStatus: [503],
         headers: {
           Authorization: `Bearer ${SECRETS.FLYME_TOKEN}`,
           Accept: 'application/json',

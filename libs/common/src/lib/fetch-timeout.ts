@@ -45,6 +45,11 @@ export interface FetchResponseOptions {
   retryOnTimeout?: boolean;
 
   /**
+   * HTTP status codes that should be returned to the caller instead of retried.
+   */
+  returnOnStatus?: number[];
+
+  /**
    * Whether to log fetch attempts, timing, and retry reasons to the console.
    * @default false
    */
@@ -130,6 +135,7 @@ export async function fetchResponse(url: string, options?: FetchResponseOptions)
     retry = 3,
     timeoutS = 5,
     retryOnTimeout = false,
+    returnOnStatus = undefined,
     log = false,
     method = undefined,
     headers = undefined,
@@ -180,7 +186,7 @@ export async function fetchResponse(url: string, options?: FetchResponseOptions)
         return response;
       }
 
-      if (retryOnStatus.has(response.status)) {
+      if (retryOnStatus.has(response.status) && !returnOnStatus?.includes(response.status)) {
         // Cancel the unconsumed response body to immediately release the underlying socket back to the connection pool before retrying.
         await response.body?.cancel();
         log && console.log(`retry on status ${response.status} ${(Date.now() / 1000 - start).toFixed(1)}s`);
