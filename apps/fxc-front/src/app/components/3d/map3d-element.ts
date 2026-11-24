@@ -83,7 +83,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   @state()
   private timeSec = 0;
   @state()
-  private sunEnabled = true;
+  private sunEnabled = false;
   @state()
   private graphicsLayer?: GraphicsLayer;
   @state()
@@ -354,7 +354,9 @@ export class Map3dElement extends connect(store)(LitElement) {
         }
       });
       hitPromise.then(({ results }: { results: any[] }) => {
-        const trackHit = results.find((r) => r.graphic?.attributes?.trackId != null || r.graphic?.attributes?.isPilot);
+        const trackHit = results.find(
+          (r) => r.graphic?.attributes?.trackId != null || r.graphic?.attributes?.liveTrackId != null,
+        );
         if (trackHit) {
           const graphic = trackHit.graphic;
           msg.clickSceneView.emit(graphic, scene);
@@ -526,7 +528,7 @@ export class Map3dElement extends connect(store)(LitElement) {
           bottom: 10px;
           left: 50%;
           transform: translate(-50%, 0);
-          z-index: 1;
+          z-index: 0;
         }
         .ad img {
           filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #fff);
@@ -557,6 +559,18 @@ export class Map3dElement extends connect(store)(LitElement) {
         </select>
         <arcgis-compass slot="top-right"></arcgis-compass>
         <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
+        ${when(
+          this.country === 'FR' && !this.isFromFfvl,
+          () =>
+            html`<a class="ad" href="https://ruedelair.com/" target="_blank">
+              <img
+                width="${Math.round(220 * this.adRatio)}"
+                height="${Math.round(42 * this.adRatio)}"
+                src="/static/img/ruedelair.svg"
+                alt="Rue de l'Air"
+              />
+            </a>`,
+        )}
       </arcgis-scene>
       <skyways3d-element .map=${this.map}></skyways3d-element>
       <flat-airspace3d-element .map=${this.map} .enabled=${!this.is3dAirspace}></flat-airspace3d-element>
@@ -566,18 +580,6 @@ export class Map3dElement extends connect(store)(LitElement) {
         .sampler=${this.elevationSampler}
         .enabled=${this.is3dAirspace}
       ></airspace3d-element>
-      ${when(
-        this.country === 'FR' && !this.isFromFfvl,
-        () =>
-          html`<a class="ad" href="https://ruedelair.com/" target="_blank">
-            <img
-              width="${Math.round(220 * this.adRatio)}"
-              height="${Math.round(42 * this.adRatio)}"
-              src="/static/img/ruedelair.svg"
-              alt="Rue de l'Air"
-            />
-          </a>`,
-      )}
       ${when(
         this.graphicsLayer != null && this.apiLoaded,
         () =>
