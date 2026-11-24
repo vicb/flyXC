@@ -1,16 +1,27 @@
-// XCGlobe Flyme tracker API.
+// XCGlobe Live Tracking API.
 //
-// http://xcglobe.com/flyme/
+// https://xcglobe.com/api/partners/v1/live-tracking/positions
 
 import type { protos, TrackerNames } from '@flyxc/common';
-import { fetchResponse, formatReqError, validateFlymeAccount } from '@flyxc/common';
+import { fetchResponse, formatReqError, parseRetryAfterS, validateFlymeAccount } from '@flyxc/common';
 
 import type { LivePoint } from './live-track';
 import { createLiveTrack } from './live-track';
 import type { TrackerUpdates } from './tracker';
 import { TrackerFetcher } from './tracker';
 
+const POSITIONS_URL = 'https://xcglobe.com/api/partners/v1/live-tracking/positions';
+
+let retryAfterS = 0;
+
 export class FlymeFetcher extends TrackerFetcher {
+  /**
+   * Resets the module-level retry-after deadline. Used for tests.
+   */
+  static resetRetryAfter(): void {
+    retryAfterS = 0;
+  }
+
   protected getTrackerName(): TrackerNames {
     return 'flyme';
   }
@@ -23,24 +34,39 @@ export class FlymeFetcher extends TrackerFetcher {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async fetch(devices: number[], updates: TrackerUpdates, timeoutSec: number): Promise<void> {
+    if (devices.length === 0 || Date.now() / 1000 < retryAfterS) {
+      return;
+    }
+
     // Fixes are id, lat, lon, alt, timeSec and username.
     const flymeIdToFix = new Map<number, [number, number, number, number, number, string]>();
-    const url = `https://xcglobe.com/livetrack/flyxcPositions?token=${SECRETS.FLYME_TOKEN}`;
 
     try {
-      const response = await fetchResponse(url, { timeoutS: 10 });
+      const response = await fetchResponse(POSITIONS_URL, {
+        timeoutS: 10,
+        returnOnStatus: [503],
+        headers: {
+          Authorization: `Bearer ${SECRETS.FLYME_TOKEN}`,
+          Accept: 'application/json',
+        },
+      });
       if (response.ok) {
         try {
           const fixes = await response.json();
-          fixes.forEach((fix: [number, number, number, number, number, string]) => {
-            const id = fix[0];
-            flymeIdToFix.set(id, fix);
-          });
+          if (Array.isArray(fixes)) {
+            fixes.forEach((fix: [number, number, number, number, number, string]) => {
+              const id = fix[0];
+              flymeIdToFix.set(id, fix);
+            });
+          }
           devices.forEach((id) => updates.fetchedTracker.add(id));
         } catch (e) {
           updates.errors.push(`Error parsing JSON ${response.body}\n${e}`);
         }
       } else {
+        if (response.status === 429 || response.status === 503) {
+          retryAfterS = parseRetryAfterS(response.headers.get('Retry-After'), 0);
+        }
         // Cancel the unconsumed response body to immediately release the underlying socket back to the connection pool.
         await response.body?.cancel();
         updates.errors.push(`HTTP status ${response.status}`);

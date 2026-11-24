@@ -81,16 +81,17 @@ export async function parallelTasksWithTimeout<T>(
   return { results, isTimeout };
 }
 
-// Parses the Retry-After header.
-// Could be either a date or a delay in seconds.
-// Returns a timestamp in seconds
-export function parseRetryAfterS(header: string, orS = 3600): number {
-  if (/^\d+$/.test(header)) {
-    return Math.round(Date.now() / 1000 + Number(header));
+/**
+ * Parses an HTTP Retry-After header (delay-seconds or HTTP-date) into a Unix timestamp in seconds.
+ * Returns `orS` if the header is missing or invalid.
+ */
+export function parseRetryAfterS(header: string | null, orS = 3600): number {
+  const trimmed = header?.trim() ?? '';
+  if (/^\d+$/.test(trimmed)) {
+    return Math.floor(Date.now() / 1000) + Number(trimmed);
   }
-
-  const ms = Date.parse(header);
-  return isNaN(ms) ? orS : Math.round(ms / 1000);
+  const ms = Date.parse(trimmed);
+  return Number.isNaN(ms) ? orS : Math.floor(ms / 1000);
 }
 
 export const deepCopy = <T>(source: T): T => {
