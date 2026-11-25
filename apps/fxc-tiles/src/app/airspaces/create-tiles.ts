@@ -1,6 +1,6 @@
 // #!/usr/bin/env node
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -48,13 +48,17 @@ if (inputFiles.length === 0) {
 }
 
 console.log(`# Generate 2D vector tiles from ${inputFiles.length} file(s)`);
-execSync('tippecanoe -v');
+execFileSync('tippecanoe', ['-v']);
 // See https://github.com/felt/tippecanoe#options)
 const args = [
-  `-e ${outFolder}`, // output folder
-  `-z ${MAX_AIRSPACE_TILE_ZOOM}`, // max zoom
-  '-l asp', // layer name
-  '-S 3', // tolerance multiplier
+  '-e',
+  outFolder, // output folder
+  '-z',
+  String(MAX_AIRSPACE_TILE_ZOOM), // max zoom
+  '-l',
+  'asp', // layer name
+  '-S',
+  '3', // tolerance multiplier
   '-pS', // do not simplify max zoom
   '-ab', // simplify shared border together
   '-pi', // preserve input order
@@ -66,7 +70,7 @@ const args = [
   ...inputFiles,
 ];
 console.log(`executing:\ntippecanoe ${args.join(' ')}`);
-execSync(`tippecanoe ${args.join(' ')}`, { stdio: 'inherit' });
+execFileSync('tippecanoe', args, { stdio: 'inherit' });
 
 console.log(`# Drop the 2D metadata`);
 rmSync(join(outFolder, 'metadata.json'), { force: true });
@@ -101,32 +105,45 @@ writeFileSync(tmp3dGeojson, JSON.stringify({ type: 'FeatureCollection', features
 //   and styling. Text strings (name, country, labels) are omitted to minimize tile file size; rich
 //   metadata is queried on-demand from the standard 2D vector tiles upon click.
 const args3d = [
-  `-e ${tmpUnclippedFolder}`,
-  `-z ${AIRSPACE_3D_TILE_ZOOM}`,
-  `-Z ${AIRSPACE_3D_TILE_ZOOM}`,
-  '-d 16',
-  '-l asp',
+  '-e',
+  tmpUnclippedFolder,
+  '-z',
+  String(AIRSPACE_3D_TILE_ZOOM),
+  '-Z',
+  String(AIRSPACE_3D_TILE_ZOOM),
+  '-d',
+  '16',
+  '-l',
+  'asp',
   '-ps',
   '-ab',
   '-pt',
   '-pC',
   '-pc',
   '--no-tile-size-limit',
-  '-y floorM',
-  '-y topM',
-  '-y floorRefGnd',
-  '-y topRefGnd',
-  '-y icaoClass',
-  '-y type',
-  '-y activity',
-  '-y flags',
+  '-y',
+  'floorM',
+  '-y',
+  'topM',
+  '-y',
+  'floorRefGnd',
+  '-y',
+  'topRefGnd',
+  '-y',
+  'icaoClass',
+  '-y',
+  'type',
+  '-y',
+  'activity',
+  '-y',
+  'flags',
   '-f',
   '--',
   tmp3dGeojson,
 ];
 console.log(`executing:\ntippecanoe ${args3d.join(' ')}`);
 try {
-  execSync(`tippecanoe ${args3d.join(' ')}`, { stdio: 'inherit' });
+  execFileSync('tippecanoe', args3d, { stdio: 'inherit' });
 
   console.log(`# Co-locate unclipped tiles as {y}-unclipped.pbf`);
   const unclippedZoomDir = join(tmpUnclippedFolder, String(AIRSPACE_3D_TILE_ZOOM));

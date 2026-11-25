@@ -43,6 +43,15 @@ const __dirname = dirname(__filename);
 
 // Filter out airspaces above:
 const MAX_FLOOR_METER = 6000;
+const ILS_REGEX = /\bILS\b/;
+const UA_TYPE_OVERRIDES: readonly [name: string, regex: RegExp, type: Type][] = [
+  ['CTR', /\bCTR\b/, Type.CTR],
+  ['TMA', /\bTMA\b/, Type.TMA],
+  ['TRA', /\bTRA\b/, Type.TRA],
+  ['TSA', /\bTSA\b/, Type.TSA],
+  ['FIR', /\bFIR\b/, Type.FIR],
+  ['CTA', /\bCTA\b/, Type.CTA],
+];
 
 const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), 'assets'));
 const defaultOutputFolder = resolve(join(getAppFolderFromDist(__dirname), 'assets/geojson'));
@@ -200,17 +209,6 @@ function cleanOutputDir(dir: string) {
     // Directory doesn't exist yet
   }
 }
-
-const ILS_REGEX = /\bILS\b/;
-
-const UA_TYPE_OVERRIDES: readonly [name: string, regex: RegExp, type: Type][] = [
-  ['CTR', /\bCTR\b/, Type.CTR],
-  ['TMA', /\bTMA\b/, Type.TMA],
-  ['TRA', /\bTRA\b/, Type.TRA],
-  ['TSA', /\bTSA\b/, Type.TSA],
-  ['FIR', /\bFIR\b/, Type.FIR],
-  ['CTA', /\bCTA\b/, Type.CTA],
-];
 
 // Filter unwanted airspaces.
 function createFilter(logs: Map<string, number>) {

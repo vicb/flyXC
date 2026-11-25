@@ -1,6 +1,7 @@
 // Unzip tiles to Google Cloud Storage.
 
 import { existsSync, readFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import path, { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -12,7 +13,7 @@ import { program } from 'commander';
 import { getAppFolderFromDist, printOnCurrentLine } from '../util';
 
 const LOG_EVERY_N_TILES = 100;
-const NUM_SLOTS = 30;
+const NUM_SLOTS = 150;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -74,7 +75,7 @@ async function addFiles(inputDir: string, fileIds: string[], bucketName: string,
 
     for (let i = 0; i <= retries; i++) {
       try {
-        const srcBuffer = readFileSync(srcPath);
+        const srcBuffer = await readFile(srcPath);
         await bucket.file(dstPath).save(srcBuffer, options);
         return;
       } catch (e) {
