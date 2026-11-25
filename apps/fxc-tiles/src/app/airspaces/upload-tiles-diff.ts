@@ -131,9 +131,9 @@ async function deleteFiles(fileIds: string[], bucketName: string, retries: numbe
 // id is "zoom-x-y" or "zoom-x-y-variant".
 function idToFilename(id: string): string {
   const parts = id.split('-');
-  if (parts.length === 4) {
-    const [z, x, y, variant] = parts;
-    return `${z}/${x}/${y}-${variant}.pbf`;
+  if (parts.length >= 4) {
+    const [z, x, y, ...variant] = parts;
+    return `${z}/${x}/${y}-${variant.join('-')}.pbf`;
   }
   const [z, x, y] = parts;
   return `${z}/${x}/${y}.pbf`;
