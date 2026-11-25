@@ -329,16 +329,27 @@ describe('airspace3d-processor', () => {
       expect(res.items[0].airspace.name).toBe('CROSS TILE TMA');
     });
 
-    it('clears cache when remote timestamp differs even if date is identical', async () => {
-      const mockDb = {
-        get: vi.fn().mockImplementation((store: string, key: string) => {
-          if (store === 'metadata' && key === 'version') return Promise.resolve('1700000000000');
-          return Promise.resolve(undefined);
+    function createMockDb(getImpl?: (store: string, key: string) => Promise<unknown>) {
+      const clear = vi.fn().mockResolvedValue(undefined);
+      const put = vi.fn().mockResolvedValue(undefined);
+      const del = vi.fn().mockResolvedValue(undefined);
+      return {
+        get: vi.fn().mockImplementation(getImpl ?? (() => Promise.resolve(undefined))),
+        clear,
+        put,
+        delete: del,
+        transaction: vi.fn().mockReturnValue({
+          objectStore: () => ({ clear, put, delete: del }),
+          done: Promise.resolve(),
         }),
-        put: vi.fn().mockResolvedValue(undefined),
-        delete: vi.fn().mockResolvedValue(undefined),
-        clear: vi.fn().mockResolvedValue(undefined),
       };
+    }
+
+    it('clears cache when remote timestamp differs even if date is identical', async () => {
+      const mockDb = createMockDb((store, key) => {
+        if (store === 'metadata' && key === 'version') return Promise.resolve('1700000000000');
+        return Promise.resolve(undefined);
+      });
 
       (processor as any).getDb = vi.fn().mockResolvedValue(mockDb);
 
@@ -349,21 +360,16 @@ describe('airspace3d-processor', () => {
 
       await (processor as any).checkRemoteDate('cloud');
 
-      expect(mockDb.clear).toHaveBeenCalledWith('footprints');
-      expect(mockDb.put).toHaveBeenCalledWith('metadata', '1700000099000', 'version');
-      expect(mockDb.delete).toHaveBeenCalledWith('metadata', 'date');
+      expect(mockDb.clear).toHaveBeenCalledWith();
+      expect(mockDb.put).toHaveBeenCalledWith('1700000099000', 'version');
+      expect(mockDb.delete).toHaveBeenCalledWith('date');
     });
 
     it('clears cache when remote airspaces-date differs from legacy stored date', async () => {
-      const mockDb = {
-        get: vi.fn().mockImplementation((store: string, key: string) => {
-          if (store === 'metadata' && key === 'date') return Promise.resolve('2026-10-01');
-          return Promise.resolve(undefined);
-        }),
-        put: vi.fn().mockResolvedValue(undefined),
-        delete: vi.fn().mockResolvedValue(undefined),
-        clear: vi.fn().mockResolvedValue(undefined),
-      };
+      const mockDb = createMockDb((store, key) => {
+        if (store === 'metadata' && key === 'date') return Promise.resolve('2026-10-01');
+        return Promise.resolve(undefined);
+      });
 
       (processor as any).getDb = vi.fn().mockResolvedValue(mockDb);
 
@@ -374,18 +380,13 @@ describe('airspace3d-processor', () => {
 
       await (processor as any).checkRemoteDate('cloud');
 
-      expect(mockDb.clear).toHaveBeenCalledWith('footprints');
-      expect(mockDb.put).toHaveBeenCalledWith('metadata', '2026-11-14', 'version');
-      expect(mockDb.delete).toHaveBeenCalledWith('metadata', 'date');
+      expect(mockDb.clear).toHaveBeenCalledWith();
+      expect(mockDb.put).toHaveBeenCalledWith('2026-11-14', 'version');
+      expect(mockDb.delete).toHaveBeenCalledWith('date');
     });
 
     it('allows retry on subsequent calls if remote date fetch fails', async () => {
-      const mockDb = {
-        get: vi.fn().mockResolvedValue(undefined),
-        put: vi.fn().mockResolvedValue(undefined),
-        delete: vi.fn().mockResolvedValue(undefined),
-        clear: vi.fn().mockResolvedValue(undefined),
-      };
+      const mockDb = createMockDb();
       (processor as any).getDb = vi.fn().mockResolvedValue(mockDb);
 
       // First attempt fails with 500
@@ -404,8 +405,8 @@ describe('airspace3d-processor', () => {
       } as any);
 
       await (processor as any).checkRemoteDate('cloud');
-      expect(mockDb.clear).toHaveBeenCalledWith('footprints');
-      expect(mockDb.put).toHaveBeenCalledWith('metadata', '1700000099000', 'version');
+      expect(mockDb.clear).toHaveBeenCalledWith();
+      expect(mockDb.put).toHaveBeenCalledWith('1700000099000', 'version');
     });
 
     it('releases rawFeature after lazy decoding in getDecodedPolygon to free PBF buffer', () => {
@@ -430,6 +431,41 @@ describe('airspace3d-processor', () => {
       expect(poly.coords.length).toBe(4);
       expect(feat.rawFeature).toBeUndefined();
       expect(feat.polygon).toBe(poly);
+    });
+
+    it('invalidates memory caches on remote version change even when IndexedDB is unavailable', async () => {
+      (processor as any).getDb = vi.fn().mockResolvedValue(null);
+      (processor as any).tileCache.set('tile-1', Promise.resolve([]));
+      (processor as any).footprintCache.set(1, {} as any);
+
+      global.fetch = vi.fn().mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ date: '2026-11-14', timestamp: 1000 }),
+      } as any);
+      await (processor as any).checkRemoteDate('cloud');
+      expect((processor as any).tileCache.size).toBe(1);
+
+      // Force next check after throttle reset with a new timestamp
+      (processor as any).lastDateCheckTime = 0;
+      global.fetch = vi.fn().mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ date: '2026-11-15', timestamp: 2000 }),
+      } as any);
+      await (processor as any).checkRemoteDate('cloud');
+      expect((processor as any).tileCache.size).toBe(0);
+      expect((processor as any).footprintCache.size).toBe(0);
+    });
+
+    it('evicts retryable HTTP failures (e.g. 503) from tileCache while keeping 404 cached', async () => {
+      global.fetch = vi.fn().mockResolvedValueOnce({ ok: false, status: 503 } as any);
+      const res503 = await processor.fetchDecodedTile(1, 2, 6, 'cloud');
+      expect(res503).toBeNull();
+      expect((processor as any).tileCache.size).toBe(0);
+
+      global.fetch = vi.fn().mockResolvedValueOnce({ ok: false, status: 404 } as any);
+      const res404 = await processor.fetchDecodedTile(3, 4, 6, 'cloud');
+      expect(res404).toBeNull();
+      expect((processor as any).tileCache.size).toBe(1);
     });
   });
 });

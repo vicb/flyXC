@@ -121,6 +121,14 @@ export class Airspace3dProcessor {
   private dbPromise: Promise<IDBPDatabase | null> | null = null;
   private lastDateCheckTime = 0;
   private lastCheckedServer?: AirspaceServer;
+  private lastObservedVersion?: string;
+  private cacheGeneration = 0;
+
+  private invalidateMemoryCaches(): void {
+    this.cacheGeneration++;
+    this.footprintCache.clear();
+    this.tileCache.clear();
+  }
 
   private async getDb(): Promise<IDBPDatabase | null> {
     if (typeof indexedDB === 'undefined') {
@@ -146,9 +154,6 @@ export class Airspace3dProcessor {
     this.lastDateCheckTime = now;
     try {
       const db = await this.getDb();
-      if (!db) {
-        return;
-      }
       const remoteDateUrl = getAirspaceDateUrl(server);
       const res = await fetch(remoteDateUrl, { cache: 'no-cache' });
       if (!res.ok) {
@@ -164,14 +169,24 @@ export class Airspace3dProcessor {
       if (!remoteVersion) {
         return;
       }
-      const storedVersion = (await db.get('metadata', 'version')) ?? (await db.get('metadata', 'date'));
-      if (storedVersion !== remoteVersion) {
-        await db.clear('footprints');
-        await db.put('metadata', remoteVersion, 'version');
-        await db.delete('metadata', 'date');
-        this.footprintCache.clear();
-        this.tileCache.clear();
+      const storedVersion = db ? ((await db.get('metadata', 'version')) ?? (await db.get('metadata', 'date'))) : undefined;
+      const versionChanged = db
+        ? storedVersion !== remoteVersion
+        : this.lastObservedVersion != null && this.lastObservedVersion !== remoteVersion;
+
+      if (versionChanged) {
+        this.invalidateMemoryCaches();
+        if (db) {
+          const tx = db.transaction(['footprints', 'metadata'], 'readwrite');
+          await Promise.all([
+            tx.objectStore('footprints').clear(),
+            tx.objectStore('metadata').put(remoteVersion, 'version'),
+            tx.objectStore('metadata').delete('date'),
+            tx.done,
+          ]);
+        }
       }
+      this.lastObservedVersion = remoteVersion;
     } catch {
       // Allow retry on subsequent calls if network threw
       this.lastDateCheckTime = 0;
@@ -187,7 +202,14 @@ export class Airspace3dProcessor {
     }
   }
 
-  private cacheFootprint(id: number, entry: { polygon: AirspacePolygonLike; footprint: AirspaceFootprint }): void {
+  private cacheFootprint(
+    id: number,
+    entry: { polygon: AirspacePolygonLike; footprint: AirspaceFootprint },
+    generation: number,
+  ): void {
+    if (generation !== this.cacheGeneration) {
+      return;
+    }
     setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, id, entry);
     void this.withDb((db) => db.put('footprints', entry, id));
   }
@@ -208,6 +230,7 @@ export class Airspace3dProcessor {
     // Sync IndexedDB cache with remote airspaces-date.json
     await this.checkRemoteDate(tileServer);
 
+    const fetchGeneration = this.cacheGeneration;
     const decodedTiles = await Promise.all(tiles.map((t) => this.fetchDecodedTile(t.x, t.y, t.z, tileServer)));
     if (requestId < this.lastRequestId) {
       return { id: requestId, items: [] };
@@ -270,7 +293,7 @@ export class Airspace3dProcessor {
             if (built) {
               footprint = built;
               if (!isProgressive) {
-                this.cacheFootprint(feat.id, { polygon, footprint });
+                this.cacheFootprint(feat.id, { polygon, footprint }, fetchGeneration);
               }
             }
           }
@@ -303,10 +326,14 @@ export class Airspace3dProcessor {
         const fineFootprint = buildAirspaceFootprint(pending.polygon, pending.airspace, { coarse: false });
         if (fineFootprint) {
           pending.item.footprint = fineFootprint;
-          this.cacheFootprint(pending.item.airspace.id, {
-            polygon: pending.polygon,
-            footprint: fineFootprint,
-          });
+          this.cacheFootprint(
+            pending.item.airspace.id,
+            {
+              polygon: pending.polygon,
+              footprint: fineFootprint,
+            },
+            fetchGeneration,
+          );
           refinedItems.push(pending.item);
         }
       }
@@ -330,8 +357,7 @@ export class Airspace3dProcessor {
   }
 
   public async clear(): Promise<void> {
-    this.tileCache.clear();
-    this.footprintCache.clear();
+    this.invalidateMemoryCaches();
     await this.withDb((db) => db.clear('footprints'));
   }
 
@@ -369,10 +395,14 @@ export class Airspace3dProcessor {
       return cached;
     }
 
+    const gen = this.cacheGeneration;
     const promise = (async (): Promise<DecodedTileFeature[] | null> => {
       try {
         const response = await fetch(url);
         if (!response.ok) {
+          if (response.status !== 404 && gen === this.cacheGeneration) {
+            this.tileCache.delete(url);
+          }
           return null;
         }
         const buffer = await response.arrayBuffer();
@@ -399,7 +429,9 @@ export class Airspace3dProcessor {
         }
         return features;
       } catch {
-        this.tileCache.delete(url);
+        if (gen === this.cacheGeneration) {
+          this.tileCache.delete(url);
+        }
         return null;
       }
     })();
