@@ -79,22 +79,31 @@ export function pointToSegmentSquared2D(
  * @param y - Y coordinate / latitude.
  * @param coords - Contiguous coordinates [x0, y0, x1, y1, ...].
  * @param ends - End index offsets marking each ring in `coords`.
+ * @param ringStart - First ring index in `ends` (defaults to 0).
+ * @param ringEnd - Exclusive end ring index in `ends` (defaults to `ends.length`).
  */
-export function pointInFlatPolygon(x: number, y: number, coords: ArrayLike<number>, ends: ArrayLike<number>): boolean {
-  const numRings = ends.length;
-  if (numRings === 0) {
+export function pointInFlatPolygon(
+  x: number,
+  y: number,
+  coords: ArrayLike<number>,
+  ends: ArrayLike<number>,
+  ringStart = 0,
+  ringEnd = ends.length,
+): boolean {
+  if (ringStart >= ringEnd) {
     return false;
   }
-  const end0 = ends[0];
-  if (end0 < 6) {
+  const start0 = ringStart === 0 ? 0 : ends[ringStart - 1];
+  const end0 = ends[ringStart];
+  if (end0 - start0 < 6) {
     return false;
   }
 
-  // Fast path for ring 0 (exterior boundary)
+  // Fast path for the exterior boundary (ringStart)
   let inside = false;
   let xj = coords[end0 - 2];
   let yj = coords[end0 - 1];
-  for (let i = 0; i < end0; i += 2) {
+  for (let i = start0; i < end0; i += 2) {
     const xi = coords[i];
     const yi = coords[i + 1];
     if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
@@ -105,13 +114,13 @@ export function pointInFlatPolygon(x: number, y: number, coords: ArrayLike<numbe
   }
 
   // Fast exit: if outside the exterior ring or no holes exist, no need to check holes
-  if (!inside || numRings === 1) {
+  if (!inside || ringEnd - ringStart === 1) {
     return inside;
   }
 
-  // Check interior holes (rings 1..N)
+  // Check interior holes (rings ringStart + 1 .. ringEnd - 1)
   let start = end0;
-  for (let r = 1; r < numRings; r++) {
+  for (let r = ringStart + 1; r < ringEnd; r++) {
     const end = ends[r];
     if (end - start >= 6) {
       let hxj = coords[end - 2];

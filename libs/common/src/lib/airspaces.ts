@@ -1,6 +1,6 @@
 import { TZDate } from '@date-fns/tz';
 import { addDays, isAfter, isBefore, isFriday, isMonday, isSaturday, isSunday, nextFriday, nextMonday } from 'date-fns';
-import type { Feature } from 'mapbox-vector-tile';
+import { classifyRingsFlat, type Feature } from 'mapbox-vector-tile';
 
 import { pointInFlatPolygon, pointToSegmentSquared2D } from './geometry';
 import type { Point } from './runtime-track';
@@ -384,6 +384,31 @@ export function isPointInFeatureBbox(point: Point, feature: Feature, marginPx = 
   return px >= minX - margin && px <= maxX + margin && py >= minY - margin && py <= maxY + margin;
 }
 
+function isPointNearRing(
+  px: number,
+  py: number,
+  coords: ArrayLike<number>,
+  start: number,
+  end: number,
+  margin2: number,
+): boolean {
+  if (end - start < 6) {
+    return false;
+  }
+  let xj = coords[end - 2];
+  let yj = coords[end - 1];
+  for (let i = start; i < end; i += 2) {
+    const xi = coords[i];
+    const yi = coords[i + 1];
+    if (pointToSegmentSquared2D(px, py, xj, yj, xi, yi) <= margin2) {
+      return true;
+    }
+    xj = xi;
+    yj = yi;
+  }
+  return false;
+}
+
 /**
  * Returns whether a point (in 256x256 tile pixels) is inside flat polygon geometry
  * (within optional `marginPx` of the outer boundary).
@@ -395,30 +420,49 @@ export function isPointInFlatGeometry(
   extent: number,
   marginPx = 0,
 ): boolean {
+  if (ends.length === 0) {
+    return false;
+  }
+
   const ratio = 256 / extent;
   const px = point.x / ratio;
   const py = point.y / ratio;
 
-  if (pointInFlatPolygon(px, py, coords, ends)) {
-    return true;
+  if (ends.length === 1) {
+    if (pointInFlatPolygon(px, py, coords, ends)) {
+      return true;
+    }
+    if (marginPx <= 0) {
+      return false;
+    }
+    const margin = marginPx / ratio;
+    return isPointNearRing(px, py, coords, 0, ends[0], margin * margin);
   }
-  if (marginPx <= 0 || ends.length === 0) {
+
+  const polygonEnds = classifyRingsFlat(coords as number[], ends as number[]);
+
+  let ringStart = 0;
+  for (let p = 0; p < polygonEnds.length; p++) {
+    const polyEnd = polygonEnds[p];
+    if (pointInFlatPolygon(px, py, coords, ends, ringStart, polyEnd)) {
+      return true;
+    }
+    ringStart = polyEnd;
+  }
+
+  if (marginPx <= 0) {
     return false;
   }
 
   const margin = marginPx / ratio;
   const margin2 = margin * margin;
-  const end0 = ends[0];
-  let xj = coords[end0 - 2];
-  let yj = coords[end0 - 1];
-  for (let i = 0; i < end0; i += 2) {
-    const xi = coords[i];
-    const yi = coords[i + 1];
-    if (pointToSegmentSquared2D(px, py, xj, yj, xi, yi) <= margin2) {
+  ringStart = 0;
+  for (let p = 0; p < polygonEnds.length; p++) {
+    const extStart = ringStart === 0 ? 0 : ends[ringStart - 1];
+    if (isPointNearRing(px, py, coords, extStart, ends[ringStart], margin2)) {
       return true;
     }
-    xj = xi;
-    yj = yi;
+    ringStart = polygonEnds[p];
   }
   return false;
 }

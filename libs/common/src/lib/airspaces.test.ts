@@ -292,8 +292,8 @@ describe('Airspace overrides', () => {
             coords: [
               // Outer ring
               0, 0, 4096, 0, 4096, 4096, 0, 4096, 0, 0,
-              // Hole ring
-              1024, 1024, 3072, 1024, 3072, 3072, 1024, 3072, 1024, 1024,
+              // Hole ring (CCW in MVT y-down coords)
+              1024, 1024, 1024, 3072, 3072, 3072, 3072, 1024, 1024, 1024,
             ],
             ends: [10, 20],
           };
@@ -370,6 +370,32 @@ describe('Airspace overrides', () => {
       expect(isPointInFlatGeometry({ x: 60, y: 100 }, coords, ends, 4096, 0)).toBe(false);
       expect(isPointInFlatGeometry({ x: 60, y: 100 }, coords, ends, 4096, 2)).toBe(false);
       expect(isPointInFlatGeometry({ x: 60, y: 100 }, coords, ends, 4096, 3)).toBe(true);
+    });
+
+    it('tests all exterior rings and their holes in a multipolygon flat geometry', () => {
+      // MVT winding: exterior rings are CW in screen coords (positive shoelace area), holes are CCW (negative)
+      // Polygon 1: [500..1000, 500..1000] with hole [600..900, 600..900]
+      // Polygon 2: [2000..3000, 2000..3000]
+      const multiCoords = new Float64Array([
+        // Poly 1 outer (CW in y-down: (500,500) -> (1000,500) -> (1000,1000) -> (500,1000))
+        500, 500, 1000, 500, 1000, 1000, 500, 1000, 500, 500,
+        // Poly 1 hole (CCW in y-down: (600,600) -> (600,900) -> (900,900) -> (900,600))
+        600, 600, 600, 900, 900, 900, 900, 600, 600, 600,
+        // Poly 2 outer (CW in y-down: (2000,2000) -> (3000,2000) -> (3000,3000) -> (2000,3000))
+        2000, 2000, 3000, 2000, 3000, 3000, 2000, 3000, 2000, 2000,
+      ]);
+      const multiEnds = new Uint32Array([10, 20, 30]);
+      const toPx = (v: number) => (v * 256) / 4096;
+
+      // Inside poly 1 outer, outside hole
+      expect(isPointInFlatGeometry({ x: toPx(550), y: toPx(550) }, multiCoords, multiEnds, 4096)).toBe(true);
+      // Inside poly 1 hole -> false
+      expect(isPointInFlatGeometry({ x: toPx(750), y: toPx(750) }, multiCoords, multiEnds, 4096)).toBe(false);
+      // Inside poly 2 outer -> true
+      expect(isPointInFlatGeometry({ x: toPx(2500), y: toPx(2500) }, multiCoords, multiEnds, 4096)).toBe(true);
+      // Just outside poly 2 by 2.5px (40px in 4096 extent) -> true with 3px margin
+      expect(isPointInFlatGeometry({ x: toPx(1960), y: toPx(2500) }, multiCoords, multiEnds, 4096, 0)).toBe(false);
+      expect(isPointInFlatGeometry({ x: toPx(1960), y: toPx(2500) }, multiCoords, multiEnds, 4096, 3)).toBe(true);
     });
   });
 
