@@ -19,6 +19,7 @@ describe('Map3dElement', () => {
 
   afterEach(() => {
     element.remove();
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 

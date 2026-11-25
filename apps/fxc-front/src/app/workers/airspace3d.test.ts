@@ -1,5 +1,5 @@
 import { Class, Type } from '@flyxc/common';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AirspacePolygonLike } from '../logic/airspace3d-mesh';
 import { Airspace3dProcessor } from './airspace3d-processor';
@@ -20,9 +20,14 @@ function makeTestPolygon(ring: [number, number][], extent?: any): AirspacePolygo
 describe('airspace3d-processor', () => {
   describe('Airspace3dProcessor execution', () => {
     let processor: Airspace3dProcessor;
+    const originalFetch = global.fetch;
 
     beforeEach(() => {
       processor = new Airspace3dProcessor();
+    });
+
+    afterEach(() => {
+      global.fetch = originalFetch;
     });
 
     it('drops obsolete requests when a newer request ID arrives', async () => {
