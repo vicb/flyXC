@@ -12,6 +12,7 @@ import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
+import { destroyGraphics as destroyArcgisGraphics } from '../../logic/airspace3d-graphics';
 import * as app from '../../redux/app-slice';
 import * as arcgis from '../../redux/arcgis-slice';
 import { selectTrackLatLonAlt } from '../../redux/selectors/position';
@@ -265,6 +266,7 @@ export class Track3dElement extends connect(store)(LitElement) {
     if (this.gndGraphic) {
       this.gndLayer?.remove(this.gndGraphic);
     }
+    destroyArcgisGraphics([...graphicsToRemove, this.gndGraphic]);
 
     this.lineLayer = undefined;
     this.objectLayer = undefined;

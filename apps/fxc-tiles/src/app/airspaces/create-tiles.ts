@@ -1,14 +1,25 @@
 // #!/usr/bin/env node
 
-import { execSync } from 'node:child_process';
-import { existsSync, readdirSync, rmSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { MAX_AIRSPACE_TILE_ZOOM } from '@flyxc/common';
+import { AIRSPACE_3D_TILE_ZOOM, type AirspaceFeature, MAX_AIRSPACE_TILE_ZOOM } from '@flyxc/common';
 import { program } from 'commander';
 
-import { getAppFolderFromDist, printOnCurrentLine } from '../util';
+import { getAppFolderFromDist } from '../util';
+import { mergeCoplanarAirspaces } from './coplanar-3d';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -23,15 +34,20 @@ program
   .option('-d, --date <file>', 'date file', defaultDateFile)
   .parse();
 
-const outFolder = program.opts().output;
+const outFolder = resolve(program.opts().output);
+const inputPath = resolve(program.opts().input);
+const isInsideOut = (p: string) => {
+  const rel = relative(outFolder, p);
+  return rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel);
+};
+if (isInsideOut(process.cwd()) || isInsideOut(inputPath)) {
+  throw new Error(`Refusing to delete ${outFolder}: it contains the working directory or input path.`);
+}
 if (existsSync(outFolder)) {
-  console.log(`# Delete existing tiles...`);
-  const numDeleted = deletePbfRecursively(outFolder);
-  printOnCurrentLine('');
-  console.log(`-> ${numDeleted} tiles deleted`);
+  console.log(`# Delete existing tiles in ${outFolder}...`);
+  rmSync(outFolder, { recursive: true, force: true });
 }
 
-const inputPath = resolve(program.opts().input);
 let inputFiles: string[] = [];
 
 if (existsSync(inputPath) && statSync(inputPath).isDirectory()) {
@@ -48,14 +64,18 @@ if (inputFiles.length === 0) {
   process.exit(1);
 }
 
-console.log(`# Generate tiles from ${inputFiles.length} file(s)`);
-execSync('tippecanoe -v');
+console.log(`# Generate 2D vector tiles from ${inputFiles.length} file(s)`);
+execFileSync('tippecanoe', ['-v']);
 // See https://github.com/felt/tippecanoe#options)
 const args = [
-  `-e ${outFolder}`, // output folder
-  `-z ${MAX_AIRSPACE_TILE_ZOOM}`, // max zoom
-  '-l asp', // layer name
-  '-S 3', // tolerance multiplier
+  '-e',
+  outFolder, // output folder
+  '-z',
+  String(MAX_AIRSPACE_TILE_ZOOM), // max zoom
+  '-l',
+  'asp', // layer name
+  '-S',
+  '3', // tolerance multiplier
   '-pS', // do not simplify max zoom
   '-ab', // simplify shared border together
   '-pi', // preserve input order
@@ -67,34 +87,108 @@ const args = [
   ...inputFiles,
 ];
 console.log(`executing:\ntippecanoe ${args.join(' ')}`);
-execSync(`tippecanoe ${args.join(' ')}`, { stdio: 'inherit' });
+execFileSync('tippecanoe', args, { stdio: 'inherit' });
 
-console.log(`# Drop the metadata`);
+console.log(`# Drop the 2D metadata`);
 rmSync(join(outFolder, 'metadata.json'), { force: true });
 
-console.log(`# Update the airspace date`);
-const date = new Date().toISOString().slice(0, 10);
-writeFileSync(program.opts().date, `${JSON.stringify({ date }, null, 2)}\n`);
+console.log(`# Generate unclipped tiles (zoom ${AIRSPACE_3D_TILE_ZOOM})`);
+const tmpWorkspace = mkdtempSync(join(dirname(outFolder), '.tmp_airspaces_'));
+const tmpUnclippedFolder = join(tmpWorkspace, 'unclipped');
+const tmp3dGeojson = join(tmpWorkspace, '3d_airspaces.geojson');
 
-// Recursively delete pbf files.
-//
-// Returns the number of deleted file.
-function deletePbfRecursively(folder: string, numDeleted = 0): number {
-  const entries = readdirSync(folder);
-  for (const entry of entries) {
-    const path = resolve(join(folder, entry));
-    if (statSync(path).isFile()) {
-      if (entry.toLocaleLowerCase().endsWith(`.pbf`)) {
-        unlinkSync(path);
-        numDeleted++;
-        if (numDeleted % 1000 == 0) {
-          printOnCurrentLine(`Deleted ${numDeleted} tiles`);
+try {
+  console.log(`# Dissolving overlapping coplanar airspaces for 3D tiles...`);
+  const allFeatures: AirspaceFeature[] = [];
+  for (const file of inputFiles) {
+    const content = JSON.parse(readFileSync(file, 'utf8'));
+    allFeatures.push(...content.features);
+  }
+  const dissolved3dFeatures = await mergeCoplanarAirspaces(allFeatures);
+  console.log(`  Merged ${allFeatures.length} input features into ${dissolved3dFeatures.length} 3D features`);
+  writeFileSync(tmp3dGeojson, JSON.stringify({ type: 'FeatureCollection', features: dissolved3dFeatures }));
+
+  // Tippecanoe parameters for unclipped 3D tiles:
+  // - `-d 16` (--full-detail=16): increases coordinate grid from 12 bits (4,096 units / ~150m at zoom 6)
+  //   to 16 bits (65,536 units / ~6.7m at zoom 6, matching zoom 10 precision). Prevents circular CTRs
+  //   from snapping to coarse grid stairsteps.
+  // - `-ps` (--no-line-simplification): disables Douglas-Peucker simplification, preserving all curved
+  //   circle vertices instead of decimating them.
+  // - `-pc` (--no-tile-clipping) & `-pC`: generates complete, unclipped polygon footprints across tile
+  //   boundaries, eliminating tile stitching and union operators in 3D rendering.
+  // - `--no-tile-size-limit`: overrides the default 500 KB uncompressed tile limit to ensure zero
+  //   airspaces are dropped in dense regions.
+  // - `-y <property>`: whitelists only the numerical bounds and category flags required for 3D extrusion
+  //   and styling. Text strings (name, country, labels) are omitted to minimize tile file size; rich
+  //   metadata is queried on-demand from the standard 2D vector tiles upon click.
+  const args3d = [
+    '-e',
+    tmpUnclippedFolder,
+    '-z',
+    String(AIRSPACE_3D_TILE_ZOOM),
+    '-Z',
+    String(AIRSPACE_3D_TILE_ZOOM),
+    '-d',
+    '16',
+    '-l',
+    'asp',
+    '-ps',
+    '-ab',
+    '-pt',
+    '-pC',
+    '-pc',
+    '--no-tile-size-limit',
+    '-y',
+    'floorM',
+    '-y',
+    'topM',
+    '-y',
+    'floorRefGnd',
+    '-y',
+    'topRefGnd',
+    '-y',
+    'icaoClass',
+    '-y',
+    'type',
+    '-y',
+    'activity',
+    '-y',
+    'flags',
+    '-f',
+    '--',
+    tmp3dGeojson,
+  ];
+  console.log(`executing:\ntippecanoe ${args3d.join(' ')}`);
+  execFileSync('tippecanoe', args3d, { stdio: 'inherit' });
+
+  console.log(`# Co-locate unclipped tiles as {y}-unclipped.pbf`);
+  const unclippedZoomDir = join(tmpUnclippedFolder, String(AIRSPACE_3D_TILE_ZOOM));
+  if (existsSync(unclippedZoomDir)) {
+    for (const x of readdirSync(unclippedZoomDir)) {
+      const xDir = join(unclippedZoomDir, x);
+      if (!statSync(xDir).isDirectory()) {
+        continue;
+      }
+      const targetXDir = join(outFolder, String(AIRSPACE_3D_TILE_ZOOM), x);
+      mkdirSync(targetXDir, { recursive: true });
+      for (const file of readdirSync(xDir)) {
+        if (file.endsWith('.pbf')) {
+          const y = file.replace(/\.pbf$/, '');
+          const srcPath = join(xDir, file);
+          const dstPath = join(targetXDir, `${y}-unclipped.pbf`);
+          renameSync(srcPath, dstPath);
         }
       }
-    } else {
-      numDeleted = deletePbfRecursively(path, numDeleted);
     }
   }
-
-  return numDeleted;
+} finally {
+  rmSync(tmpWorkspace, { recursive: true, force: true });
 }
+
+console.log(`# Update the airspace date`);
+const now = new Date();
+const date = now.toISOString().slice(0, 10);
+const timestamp = now.getTime();
+const dateContent = `${JSON.stringify({ date, timestamp }, null, 2)}\n`;
+writeFileSync(program.opts().date, dateContent);
+writeFileSync(join(outFolder, 'airspaces-date.json'), dateContent);

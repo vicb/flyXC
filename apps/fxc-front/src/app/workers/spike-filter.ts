@@ -1,3 +1,5 @@
+import { clamp, computeMedian } from '@flyxc/common';
+
 // Maximum physically possible climb rate (m/s) in atmospheric flight (paragliding/gliding/light aircraft).
 // Thermal and mountain wave climb rates rarely exceed +15 to +18 m/s.
 // Instantaneous climb exceeding 25 m/s indicates an instrument anomaly or GPS glitch.
@@ -172,30 +174,6 @@ function findBridgeReconnection(
 }
 
 /**
- * Computes the median of a small array (N <= 30) in-place.
- *
- * Uses an in-place insertion sort which is > 5x faster than Array.prototype.sort((a, b) => a - b)
- * for small collections because it eliminates V8 comparator callback invocation overhead.
- *
- * @param arr - Array of numbers to sort and find the median of (modified in place).
- * @returns The median value rounded to the nearest integer.
- */
-export function computeMedian(arr: number[]): number {
-  const len = arr.length;
-  for (let i = 1; i < len; i++) {
-    const val = arr[i];
-    let j = i - 1;
-    while (j >= 0 && arr[j] > val) {
-      arr[j + 1] = arr[j];
-      j--;
-    }
-    arr[j + 1] = val;
-  }
-  const mid = Math.floor(len / 2);
-  return len % 2 === 1 ? arr[mid] : Math.round((arr[mid - 1] + arr[mid]) / 2);
-}
-
-/**
  * Result of the spike filtering process containing the computed altitude bounds.
  */
 type AltitudeBounds = {
@@ -335,7 +313,7 @@ export function filterSpikes(altitude: number[], timeSecs: number[]): AltitudeBo
         const median = computeMedian(neighbors);
         const diff = Math.abs(alt - median);
         const effectiveDt = Math.max(1, hasPrevFix ? dtPrev : dtNext);
-        const minDiff = Math.min(MIN_SPIKE_DIFF_M, Math.max(5, MAX_CLIMB_VZ_MPSEC * effectiveDt));
+        const minDiff = clamp(MAX_CLIMB_VZ_MPSEC * effectiveDt, 5, MIN_SPIKE_DIFF_M);
         if (diff > minDiff && (isExtremeJump || (isZeroDropoutCandidate && median > MIN_DROPOUT_ALT_M))) {
           altitude[i] = median;
         }

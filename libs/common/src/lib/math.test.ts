@@ -1,11 +1,16 @@
 import {
   arrayMax,
   arrayMin,
+  clamp,
   Comparison,
+  computeMedian,
+  DEG_TO_RAD,
   diffDecodeArray,
   diffEncodeArray32bit,
   findFirstIndex,
   findIndexes,
+  lerp,
+  lerpAngleDegree,
 } from './math';
 
 describe('findIndexes', () => {
@@ -250,6 +255,73 @@ describe('findFirstIndex', () => {
       const large = new Array(100_000).fill(500);
       large[50_000] = 99_999;
       expect(arrayMax(large)).toBe(99_999);
+    });
+  });
+
+  describe('clamp', () => {
+    it('clamps values below minimum to minimum', () => {
+      expect(clamp(-5, 0, 10)).toBe(0);
+    });
+
+    it('clamps values above maximum to maximum', () => {
+      expect(clamp(15, 0, 10)).toBe(10);
+    });
+
+    it('returns value unchanged when within [min, max]', () => {
+      expect(clamp(5, 0, 10)).toBe(5);
+      expect(clamp(0, 0, 10)).toBe(0);
+      expect(clamp(10, 0, 10)).toBe(10);
+    });
+  });
+
+  describe('lerp', () => {
+    it('linearly interpolates between two values', () => {
+      expect(lerp(0, 10, 0.5)).toBe(5);
+      expect(lerp(0, 10, 0)).toBe(0);
+      expect(lerp(0, 10, 1)).toBe(10);
+      expect(lerp(10, 20, 0.25)).toBe(12.5);
+    });
+  });
+
+  describe('lerpAngleDegree', () => {
+    it('interpolates along the shortest arc without wrapping', () => {
+      expect(lerpAngleDegree(10, 30, 0.5)).toBe(20);
+    });
+
+    it('interpolates across 0/360 boundary via shortest arc', () => {
+      // Shortest arc between 350 and 10 is 20 deg clockwise (crossing 0/360)
+      expect(lerpAngleDegree(350, 10, 0.5)).toBe(0);
+      expect(lerpAngleDegree(10, 350, 0.5)).toBe(0);
+    });
+
+    it('normalizes result to [0, 360)', () => {
+      expect(lerpAngleDegree(350, 20, 0.5)).toBe(5);
+    });
+  });
+
+  describe('degrees / radians conversion', () => {
+    it('exports expected constants', () => {
+      expect(DEG_TO_RAD).toBe(Math.PI / 180);
+    });
+  });
+
+  describe('computeMedian', () => {
+    it('computes median of odd-length array', () => {
+      expect(computeMedian([5, 1, 3])).toBe(3);
+      expect(computeMedian([10, 50, 20, 40, 30])).toBe(30);
+    });
+
+    it('computes median of even-length array rounding to nearest integer', () => {
+      expect(computeMedian([1, 4, 2, 3])).toBe(3); // (2+3)/2 = 2.5 -> 3
+      expect(computeMedian([10, 20])).toBe(15);
+    });
+
+    it('handles single-element array', () => {
+      expect(computeMedian([42])).toBe(42);
+    });
+
+    it('handles empty array', () => {
+      expect(computeMedian([])).toBe(0);
     });
   });
 });

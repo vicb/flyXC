@@ -10,6 +10,7 @@ import type { LRU } from 'tiny-lru';
 import { lru } from 'tiny-lru';
 
 import { fetchResponse } from './fetch-timeout';
+import { DEG_TO_RAD } from './math';
 import { parallelTasksWithTimeout } from './util';
 
 // Sentinel value representing a missing ground altitude that has not been fetched yet.
@@ -86,8 +87,6 @@ export const DOWNLOAD_CONCURRENCY_DEFAULT = 5;
 
 // Default timeout in seconds for tile downloads.
 export const TIMEOUT_SEC_DEFAULT = 10;
-
-const DEG_TO_RAD = Math.PI / 180;
 
 /**
  * Function that decodes a raw tile image buffer into RGBA pixel data (256x256x4 bytes).

@@ -1,3 +1,4 @@
+import { EARTH_RADIUS_M } from '@flyxc/common';
 import { LitElement } from 'lit';
 import { property } from 'lit/decorators.js';
 
@@ -221,7 +222,7 @@ export abstract class WMTSInterpolatingOverlayElement extends WMTSOverlayElement
       releaseTile: (...args): void => this.releaseTile(...args),
       alt: this.mapName,
       projection: null,
-      radius: 6378137,
+      radius: EARTH_RADIUS_M,
       setOpacity: (v: number) => {
         for (const tile of this.tileSet) {
           tile.style.opacity = String(v);

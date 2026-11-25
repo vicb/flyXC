@@ -87,7 +87,10 @@ export default defineConfig(({ mode }) => {
       {
         name: 'force-full-reload',
         apply: 'serve',
-        handleHotUpdate({ server }) {
+        handleHotUpdate({ file, server }) {
+          if (/\.(test|spec)\.[jt]sx?$/.test(file) || file.endsWith('test-setup.ts')) {
+            return [];
+          }
           server.ws.send({ type: 'full-reload' });
           return [];
         },

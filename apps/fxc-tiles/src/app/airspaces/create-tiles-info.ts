@@ -51,11 +51,12 @@ let sizeAll = 0;
 let sizeUnique = 0;
 
 for (const tileFile of tileFiles) {
-  const m = tileFile.match(/\/(?<level>\d+)\/(?<x>\d+)\/(?<y>\d+)\.pbf/);
-  if (m != null) {
+  const m = tileFile.match(/\/(?<level>\d+)\/(?<x>\d+)\/(?<y>\d+)(?:-(?<variant>[\w-]+))?\.pbf/);
+  if (m != null && m.groups) {
     const g = m.groups;
     const fingerprint = getShortHash(tileFile);
-    info.fingerprint[`${g.level}-${g.x}-${g.y}`] = fingerprint;
+    const tileKey = g.variant ? `${g.level}-${g.x}-${g.y}-${g.variant}` : `${g.level}-${g.x}-${g.y}`;
+    info.fingerprint[tileKey] = fingerprint;
     const tileSize = statSync(tileFile).size;
 
     sizeAll += tileSize;

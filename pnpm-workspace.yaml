@@ -44,9 +44,8 @@ catalog:
   redis: ^6.3.1
   jsonc-eslint-parser: 3.3.0
   lit: ^3.3.3
-  mapbox-vector-tile: ^0.3.0
+  mapbox-vector-tile: ^1.2.0
   proxy: ^4.1.0
-  simplify-path: ^1.1.0
   tiny-lru: ^13.1.1
   tslib: ^2.9.1
   undici: ~8.13.1
@@ -62,6 +61,15 @@ catalog:
   rustigc-wasm: 0.2.0-rc.3
   '@arcgis/map-components': ^5.2.7
   '@esri/arcgis-rest-request': ^5.0.0
+  idb: ^8.0.4
+  d3-delaunay: ^6.0.6
+  '@types/d3-delaunay': ^6.0.4
+  earcut: ^3.2.4
+  polygon-clipping: ^0.15.7
+  rbush: ^4.0.1
+  '@types/rbush': ^4.0.0
+  clipper2-wasm: ^0.4.0
+  flatbush: ^4.7.0
 
 allowBuilds:
   '@parcel/watcher': false

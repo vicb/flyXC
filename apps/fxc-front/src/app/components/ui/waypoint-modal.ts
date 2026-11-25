@@ -2,7 +2,7 @@ import type { LatLonAlt } from '@flyxc/common';
 import { modalController } from '@ionic/core/components';
 import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 
 const WAYPOINT_FORMATS: { [id: string]: string } = {
   cup: 'See You (cup)',
@@ -18,6 +18,11 @@ const WAYPOINT_FORMATS: { [id: string]: string } = {
 export class WaypointModal extends LitElement {
   @property({ attribute: false })
   points: LatLonAlt[] = [];
+
+  @query('#wpt-form')
+  private form?: HTMLFormElement;
+  @query('#wpt-form input')
+  private formInput?: HTMLInputElement;
 
   @state()
   private fileType = 'cup';
@@ -83,17 +88,16 @@ export class WaypointModal extends LitElement {
   }
 
   private async handleDownload(): Promise<void> {
-    const root = this.renderRoot;
-    const form = root.querySelector('#wpt-form') as HTMLFormElement;
-    const input = form.querySelector('input') as HTMLInputElement;
-    const payload = {
-      format: this.fileType,
-      prefix: this.namePrefix,
-      points: this.points,
-    };
-    input.value = JSON.stringify(payload);
-    form.submit();
-    await this.dismiss();
+    if (this.form && this.formInput) {
+      const payload = {
+        format: this.fileType,
+        prefix: this.namePrefix,
+        points: this.points,
+      };
+      this.formInput.value = JSON.stringify(payload);
+      this.form.submit();
+      await this.dismiss();
+    }
   }
 
   private async dismiss(): Promise<void> {

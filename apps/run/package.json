@@ -13,7 +13,6 @@
     "express": "catalog:default",
     "google-polyline": "^2.0.0",
     "mapbox-vector-tile": "catalog:default",
-    "simplify-path": "catalog:default",
     "tiny-lru": "catalog:default"
   },
   "devDependencies": {

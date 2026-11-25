@@ -8,7 +8,6 @@
   "dependencies": {
     "@date-fns/tz": "catalog:default",
     "@google-cloud/datastore": "catalog:default",
-    "@mapbox/sphericalmercator": "^2.0.2",
     "@protobuf-ts/runtime": "^2.11.1",
     "date-fns": "catalog:default",
     "geolib": "catalog:default",

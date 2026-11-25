@@ -11,7 +11,7 @@ import {
   MAX_AIRSPACE_TILE_ZOOM,
   toTypedAirspace,
 } from '@flyxc/common';
-import { VectorTile } from 'mapbox-vector-tile';
+import { classifyRingsFlat, FeatureType, VectorTile } from 'mapbox-vector-tile';
 
 const KEY_X_MULTIPLIER = 2 ** 25;
 const MAX_RENDER_TILE_SIZE = 4 * AIRSPACE_TILE_SIZE;
@@ -26,20 +26,59 @@ type FetchInfo = {
   renderTo: Map<number, HTMLCanvasElement>;
 };
 
-// Returns html describing airspaces at the given point.
-// altitude is expressed in meters.
-// When the gndAltitude is != 0 we assume that we want the airspaces along a track,
-// and we return only the airspaces where altitude is in [floor .. top].
-// Otherwise we return any airspaces where altitude >= floor (i.e. clicking on a map w/o track).
-export async function getAirspaceList(
-  zoom: number,
-  latLon: LatLon,
-  altitude: number,
-  gndAltitude: number,
-  showClasses: Class[],
-  showTypes: Type[],
-  date: Date,
-): Promise<string> {
+/** Parameters of {@link getAirspaceList}. */
+export interface AirspaceListQuery {
+  latLon: LatLon;
+  /** Map zoom, capped to `MAX_AIRSPACE_TILE_ZOOM` to pick the tile. Defaults to `MAX_AIRSPACE_TILE_ZOOM`. */
+  zoom?: number;
+
+  /**
+   * Altitude to compare with the airspace limits. Airspaces whose floor is above it are always
+   * ignored (they are not reachable from this altitude).
+   */
+  altitude: number;
+  /**
+   * Whether to also check the top of the airspaces: when `true`, airspaces whose top is below `altitude`
+   * are ignored (i.e. only the airspaces that contain `altitude` are kept).
+   * Defaults to `false`: airspaces are kept whatever their top.
+   * - `false`: e.g. a click on a map without a track, show everything above the point.
+   * - `true`: e.g. a point along a track, show only the airspaces the pilot is in.
+   */
+  checkTop?: boolean;
+  /** Margin in meters added around the floor / top when comparing with `altitude`. Defaults to 0. */
+  altitudeMargin?: number;
+  /** Margin in tile pixels (0..255) around the polygon outer boundary. Defaults to 0. */
+  marginPx?: number;
+  /** Ground elevation at `latLon`, added to the floors / tops referenced to GND. Defaults to 0. */
+  gndAltitude?: number;
+  /** Airspaces with a floor above this altitude are ignored. Defaults to no limit. */
+  maxFloorAltitude?: number;
+
+  // --- Visibility ---
+  /** ICAO classes to show. */
+  visibleClasses: Class[];
+  /** Airspace types to show. */
+  visibleTypes: Type[];
+  /** Date used to apply the airspace overrides (e.g. temporary activation). */
+  date: Date;
+}
+
+/**
+ * Returns the airspaces at the given location matching the query.
+ */
+export async function getAirspaceList({
+  latLon,
+  zoom = MAX_AIRSPACE_TILE_ZOOM,
+  altitude,
+  checkTop = false,
+  altitudeMargin = 0,
+  marginPx = 0,
+  gndAltitude = 0,
+  maxFloorAltitude = Infinity,
+  visibleClasses,
+  visibleTypes,
+  date,
+}: AirspaceListQuery): Promise<AirspaceTyped[]> {
   const tileZoom = Math.min(zoom, MAX_AIRSPACE_TILE_ZOOM);
   const { tile: tileCoords, px } = getPixelCoordinates(latLon, tileZoom, AIRSPACE_TILE_SIZE);
 
@@ -47,48 +86,75 @@ export async function getAirspaceList(
     getAirspaceTileUrl(tileCoords.x, tileCoords.y, tileZoom, import.meta.env.VITE_AIRSPACE_SERVER),
   );
   if (!response.ok) {
-    return '';
+    return [];
   }
 
   const pbf = await response.arrayBuffer();
   if (!pbf) {
-    return '';
+    return [];
   }
 
-  const layer = new VectorTile(new Uint8Array(pbf)).layers.asp;
+  const layer = new VectorTile(new Uint8Array(pbf)).getLayer<AirspaceString>('asp');
 
   if (layer == null) {
-    return '';
+    return [];
   }
 
-  const info: string[] = [];
-  for (let i = 0; i < layer.length; i++) {
-    const f = layer.feature(i);
-    const airspace = applyOverrides(toTypedAirspace(f.properties as AirspaceString), date);
+  const airspaces: AirspaceTyped[] = [];
+  for (const f of layer) {
+    if (f.type !== FeatureType.POLYGON || !isInFeature(px, f, marginPx)) {
+      continue;
+    }
+    const airspace = applyOverrides(toTypedAirspace(f.properties, f.id), date);
+    if (airspace.floorM > maxFloorAltitude) {
+      continue;
+    }
     const floor = airspace.floorM + (airspace.floorRefGnd ? gndAltitude : 0);
-    const top = airspace.topM + (airspace.topRefGnd ? gndAltitude : 0);
-    const onlyConsiderFloor = gndAltitude == 0;
-    const isBetweenTopAndBottom = altitude >= floor && (onlyConsiderFloor || altitude <= top);
-    if (
-      isBetweenTopAndBottom &&
-      isAirspaceVisible(airspace.icaoClass, showClasses, airspace.type, showTypes) &&
-      isInFeature(px, f)
-    ) {
-      if (info.push(getAirspaceHtmlDescription(airspace)) == 5) {
-        break;
+    if (altitude < floor - altitudeMargin) {
+      continue;
+    }
+    if (checkTop) {
+      const top = airspace.topM + (airspace.topRefGnd ? gndAltitude : 0);
+      if (altitude > top + altitudeMargin) {
+        continue;
       }
     }
+    if (!isAirspaceVisible(airspace.icaoClass, visibleClasses, airspace.type, visibleTypes)) {
+      continue;
+    }
+    airspaces.push(airspace);
   }
 
-  return info.join('<br>');
+  return airspaces;
 }
 
-function getAirspaceHtmlDescription(airspace: AirspaceTyped): string {
-  let category = getAirspaceCategory(airspace);
-  if (category.length > 0) {
-    category = `[${category}] `;
+export const MAX_AIRSPACE_LIST_ITEMS = 5;
+
+/**
+ * Formats a list of airspaces as an HTML snippet, truncating after `maxItems`.
+ */
+export function getAirspaceListHtml(airspaces: AirspaceTyped[], maxItems = MAX_AIRSPACE_LIST_ITEMS): string {
+  const count = Math.min(airspaces.length, maxItems);
+  const items: string[] = [];
+  for (let i = 0; i < count; i++) {
+    items.push(getAirspaceHtmlDescription(airspaces[i]));
   }
-  return `<b>${category}${airspace.name}</b><br>↧${airspace.floorLabel} ↥${airspace.topLabel}`;
+  if (airspaces.length > maxItems) {
+    items.push('<i>more...</i>');
+  }
+  return items.join('<br>');
+}
+
+/**
+ * Formats an airspace summary as an HTML snippet for map popups.
+ *
+ * @param airspace Typed airspace metadata to format.
+ * @returns HTML string describing category, name, floor, and ceiling.
+ */
+export function getAirspaceHtmlDescription(airspace: AirspaceTyped): string {
+  const category = getAirspaceCategory(airspace);
+  const prefix = category ? `[${category}] ` : '';
+  return `<b>${prefix}${airspace.name}</b><br>↧${airspace.floorLabel} ↥${airspace.topLabel}`;
 }
 
 // Airspaces MapType.
@@ -319,7 +385,7 @@ function getTile(
  *
  * When the tileZoom is less than the mapZoom, the same tile can be rendered to multiple canvas.
  */
-function renderTiles(
+export function renderTiles(
   fetchKey: number,
   fetchInfoMap: Map<number, FetchInfo>,
   vectorTile: VectorTile,
@@ -338,12 +404,12 @@ function renderTiles(
   }
   fetchInfoMap.delete(fetchKey);
 
-  if (!vectorTile.layers.asp) {
+  const layer = vectorTile.getLayer<AirspaceString>('asp');
+  if (!layer) {
     return;
   }
 
   const { renderSize, fetchSize } = getTileSize(mapZoom, tileZoom);
-
   const renderZoom = fetchSize / renderSize;
 
   for (const [renderKey, canvas] of fetchInfo.renderTo) {
@@ -360,35 +426,55 @@ function renderTiles(
       ctx.scale(2, 2);
     }
 
-    for (let i = 0; i < vectorTile.layers.asp.length; i++) {
-      const f = vectorTile.layers.asp.feature(i);
-      const airspace = applyOverrides(toTypedAirspace(f.properties as any), date);
+    for (const f of layer) {
+      if (f.type !== FeatureType.POLYGON) {
+        continue;
+      }
       const ratio = renderSize / f.extent;
+      const scale = ratio * renderZoom;
+      const [minX, minY, maxX, maxY] = f.bbox();
       if (
-        f.type === 3 &&
-        airspace.floorM < altitude &&
-        isAirspaceVisible(airspace.icaoClass, showClasses, airspace.type, showTypes)
+        maxX * scale < renderX - 1 ||
+        minX * scale > renderX + renderSize + 1 ||
+        maxY * scale < renderZ - 1 ||
+        minY * scale > renderZ + renderSize + 1
       ) {
-        const polygons = f.asPolygons() ?? [];
-        polygons.forEach((polygon) => {
-          ctx.beginPath();
-          polygon.forEach((ring: Point[]) => {
-            const coords = ring.map(({ x, y }: { x: number; y: number }) => ({
-              x: Math.round(x * ratio * renderZoom) - renderX,
-              y: Math.round(y * ratio * renderZoom) - renderZ,
-            }));
-            ctx.fillStyle = getAirspaceColor(airspace, opacity);
-            ctx.moveTo(coords[0].x, coords[0].y);
-            for (let j = 1; j < coords.length; j++) {
-              const p = coords[j];
-              ctx.lineTo(p.x, p.y);
-            }
-          });
-          ctx.closePath();
-          ctx.fill('evenodd');
-          ctx.strokeStyle = getAirspaceColor(airspace, opacity + 5);
-          ctx.stroke();
-        });
+        continue;
+      }
+
+      const airspace = applyOverrides(toTypedAirspace(f.properties, f.id), date);
+      if (
+        airspace.floorM >= altitude ||
+        !isAirspaceVisible(airspace.icaoClass, showClasses, airspace.type, showTypes)
+      ) {
+        continue;
+      }
+
+      ctx.fillStyle = getAirspaceColor(airspace, opacity);
+      ctx.strokeStyle = getAirspaceColor(airspace, opacity + 5);
+
+      const { coords, ends } = f.loadFlatGeometry();
+      const polygonEnds = classifyRingsFlat(coords, ends);
+
+      let ringIdx = 0;
+      let coordIdx = 0;
+      for (let p = 0; p < polygonEnds.length; p++) {
+        const polyEnd = polygonEnds[p];
+        ctx.beginPath();
+        while (ringIdx < polyEnd) {
+          const ringEnd = ends[ringIdx++];
+          ctx.moveTo(
+            Math.round(coords[coordIdx] * scale) - renderX,
+            Math.round(coords[coordIdx + 1] * scale) - renderZ,
+          );
+          for (let i = coordIdx + 2; i < ringEnd; i += 2) {
+            ctx.lineTo(Math.round(coords[i] * scale) - renderX, Math.round(coords[i + 1] * scale) - renderZ);
+          }
+          coordIdx = ringEnd;
+        }
+        ctx.closePath();
+        ctx.fill('evenodd');
+        ctx.stroke();
       }
     }
   }

@@ -1,8 +1,35 @@
+/**
+ * Converts raw airspace source datasets into standardized GeoJSON files for vector tile generation.
+ *
+ * Source formats processed:
+ * - OpenAIP JSON pages (`assets/openaip/openaip-*.json`)
+ * - OpenAir text format (e.g. `UKRAINE (UK).txt`, `reunion.txt`)
+ *
+ * Pipeline responsibilities:
+ * 1. Filter: Drops airspaces with floor > 6000m or unwanted patterns (e.g. ILS paths).
+ * 2. ID Assignment: Generates sequential 1-based integer feature IDs preserved in downstream MVT tiles.
+ * 3. Type Normalization: Normalizes country-specific airspace classifications (e.g. Ukraine CTR/TMA/FIR).
+ * 4. Ramer-Douglas-Peucker (RDP) Simplification:
+ *    - Raw airspace curves (such as circular CTRs/TMAs) frequently contain thousands of densely sampled
+ *      vertices (e.g., 6,000+ vertices per boundary) that produce moiré/shimmering visual artifacts
+ *      and high GPU/CPU overhead in 3D SceneViews, as well as bloating 2D vector tile sizes.
+ *    - Applies metric RDP simplification (`simplifyCoords`, default 15m tolerance) with equirectangular
+ *      latitude correction, reducing vertex counts by ~90% while preserving boundary fidelity, ring
+ *      closure, and GeoJSON linear ring validity (minimum 4 coordinates).
+ *    - Simplification can be adjusted via `-t, --tolerance <meters>` or disabled with `-t 0`.
+ */
+
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { Type } from '@flyxc/common';
+import {
+  AIRSPACE_OVERRIDE_KEY_TO_ID,
+  AIRSPACE_OVERRIDE_TARGETS,
+  RESERVED_AIRSPACE_ID_MAX,
+  simplifyCoords,
+  Type,
+} from '@flyxc/common';
 import { program } from 'commander';
 import GeoJSON from 'geojson';
 
@@ -16,6 +43,15 @@ const __dirname = dirname(__filename);
 
 // Filter out airspaces above:
 const MAX_FLOOR_METER = 6000;
+const ILS_REGEX = /\bILS\b/;
+const UA_TYPE_OVERRIDES: readonly [name: string, regex: RegExp, type: Type][] = [
+  ['CTR', /\bCTR\b/, Type.CTR],
+  ['TMA', /\bTMA\b/, Type.TMA],
+  ['TRA', /\bTRA\b/, Type.TRA],
+  ['TSA', /\bTSA\b/, Type.TSA],
+  ['FIR', /\bFIR\b/, Type.FIR],
+  ['CTA', /\bCTA\b/, Type.CTA],
+];
 
 const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), 'assets'));
 const defaultOutputFolder = resolve(join(getAppFolderFromDist(__dirname), 'assets/geojson'));
@@ -23,10 +59,12 @@ const defaultOutputFolder = resolve(join(getAppFolderFromDist(__dirname), 'asset
 program
   .option('-i, --input <folder>', 'input folder', defaultInputFolder)
   .option('-o, --output <folder>', 'output folder', defaultOutputFolder)
+  .option('-t, --tolerance <meters>', 'simplification tolerance in meters (0 to disable)', '15')
   .parse();
 
 const inputFolder = program.opts().input;
 const outputFolder = program.opts().output;
+const toleranceM = Number(program.opts().tolerance) || 0;
 
 mkdirSync(outputFolder, { recursive: true });
 cleanOutputDir(outputFolder);
@@ -35,9 +73,43 @@ const logs = new Map<string, number>();
 const filterFn = createFilter(logs);
 const processFn = createProcess(logs);
 
+let nextId = RESERVED_AIRSPACE_ID_MAX + 1;
+let totalOrigVertices = 0;
+let totalSimpVertices = 0;
+const matchedOverrideIds = new Set<number>();
+
+function saveGeoJson(airspaces: Airspace[], outFile: string) {
+  if (airspaces.length === 0) {
+    return;
+  }
+  for (const a of airspaces) {
+    const overrideId = AIRSPACE_OVERRIDE_KEY_TO_ID[`${a.name}|${a.icaoClass}`];
+    if (overrideId != null) {
+      a.id = overrideId;
+      matchedOverrideIds.add(overrideId);
+    } else {
+      a.id = nextId++;
+    }
+    if (toleranceM > 0) {
+      a.polygon = a.polygon.map((ring) => {
+        totalOrigVertices += ring.length;
+        const simplified = simplifyCoords(ring, toleranceM);
+        totalSimpVertices += simplified.length;
+        return simplified;
+      });
+    }
+  }
+  const geojsonObj = GeoJSON.parse(airspaces, { Polygon: 'polygon' });
+  for (const feature of geojsonObj.features) {
+    feature.id = feature.properties.id;
+    delete feature.properties.id;
+  }
+  writeFileSync(outFile, JSON.stringify(geojsonObj));
+}
+
 let totalAirspaces = 0;
 
-// OpenAip — read and convert each page from the openaip/ subdirectory into a separate GeoJSON file.
+// OpenAip — read and convert each page from the openaip/ subdirectory into GeoJSON.
 console.log('# Open AIP airspaces');
 const openaipDir = join(inputFolder, 'openaip');
 if (existsSync(openaipDir)) {
@@ -56,11 +128,8 @@ if (existsSync(openaipDir)) {
     const processed = parsed.map(processFn).filter(filterFn);
     openaipOutput += processed.length;
 
-    if (processed.length > 0) {
-      const geojsonObj = GeoJSON.parse(processed, { Polygon: 'polygon' });
-      const outFile = join(outputFolder, file.replace(/\.json$/, '.geojson'));
-      writeFileSync(outFile, JSON.stringify(geojsonObj));
-    }
+    const outFile = join(outputFolder, file.replace(/\.json$/, '.geojson'));
+    saveGeoJson(processed, outFile);
   }
 
   console.log(`${openaipImported} airspaces imported`);
@@ -84,10 +153,7 @@ if (existsSync(uaPath)) {
   printLogs('Filtered:', logs);
   console.log(`-> ${processed.length} airspaces`);
 
-  if (processed.length > 0) {
-    const geojsonObj = GeoJSON.parse(processed, { Polygon: 'polygon' });
-    writeFileSync(join(outputFolder, 'ukraine.geojson'), JSON.stringify(geojsonObj));
-  }
+  saveGeoJson(processed, join(outputFolder, 'ukraine.geojson'));
   totalAirspaces += processed.length;
 }
 
@@ -103,14 +169,34 @@ if (existsSync(rePath)) {
   printLogs('Filtered:', logs);
   console.log(`-> ${processed.length} airspaces`);
 
-  if (processed.length > 0) {
-    const geojsonObj = GeoJSON.parse(processed, { Polygon: 'polygon' });
-    writeFileSync(join(outputFolder, 'reunion.geojson'), JSON.stringify(geojsonObj));
-  }
+  saveGeoJson(processed, join(outputFolder, 'reunion.geojson'));
   totalAirspaces += processed.length;
 }
 
 console.log(`\n# Total: ${totalAirspaces} airspaces written to ${outputFolder}`);
+if (totalOrigVertices > 0) {
+  const reduction = (((totalOrigVertices - totalSimpVertices) / totalOrigVertices) * 100).toFixed(1);
+  console.log(
+    `# Geometry simplification (tolerance: ${toleranceM}m): ${totalOrigVertices.toLocaleString()} -> ${totalSimpVertices.toLocaleString()} vertices (-${reduction}%)`,
+  );
+}
+
+// Verify that all override airspaces were found in the source datasets
+const missingOverrides = AIRSPACE_OVERRIDE_TARGETS.filter((t) => !matchedOverrideIds.has(t.id));
+
+if (missingOverrides.length > 0) {
+  const missingDetails = missingOverrides.map((t) => `  - ID ${t.id}: "${t.name}" (Class ${t.icaoClass})`).join('\n');
+  if (existsSync(openaipDir)) {
+    console.error(
+      `Error: The following airspaces with defined overrides were NOT found in input datasets:\n${missingDetails}`,
+    );
+    process.exit(1);
+  } else {
+    console.warn(
+      `Warning: Missing airspaces with defined overrides (openaip directory not present):\n${missingDetails}`,
+    );
+  }
+}
 
 function cleanOutputDir(dir: string) {
   try {
@@ -130,7 +216,7 @@ function createFilter(logs: Map<string, number>) {
     if (index == 0) {
       logs.clear();
     }
-    if (airspace.name.match(/\bILS\b/)) {
+    if (ILS_REGEX.test(airspace.name)) {
       incMapKey(logs, 'ILS');
       return false;
     }
@@ -153,16 +239,8 @@ function createProcess(logs: Map<string, number>) {
     }
 
     if (airspace.country == 'UA' && airspace.type == Type.Other) {
-      const typesByName = new Map([
-        ['CTR', Type.CTR],
-        ['TMA', Type.TMA],
-        ['TRA', Type.TRA],
-        ['TSA', Type.TSA],
-        ['FIR', Type.FIR],
-        ['CTA', Type.CTA],
-      ]);
-      for (const [name, type] of typesByName.entries()) {
-        if (airspace.name.match(new RegExp(`\\b${name}\\b`))) {
+      for (const [name, regex, type] of UA_TYPE_OVERRIDES) {
+        if (regex.test(airspace.name)) {
           incMapKey(logs, `Updated type because name contains "${name}" (${airspace.country})`);
           airspace.type = type;
         }

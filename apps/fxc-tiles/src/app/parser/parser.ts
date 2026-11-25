@@ -1,7 +1,9 @@
 import type { AirspaceTyped } from '@flyxc/common';
 import { round } from '@flyxc/common';
 
-export interface Airspace extends AirspaceTyped {
+// The id is assigned when the airspaces are written to GeoJSON.
+export interface Airspace extends Omit<AirspaceTyped, 'id'> {
+  id?: number;
   polygon: [number, number][][];
 }
 

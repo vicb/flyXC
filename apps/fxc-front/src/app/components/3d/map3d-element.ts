@@ -1,5 +1,6 @@
 import './airspace3d-element';
 import './controls3d-element';
+import './flat-airspace3d-element';
 import './skyways3d-element';
 import './track3d-element';
 import './tracking3d-element';
@@ -32,17 +33,18 @@ import VirtualLighting from '@arcgis/core/views/3d/environment/VirtualLighting';
 import type SceneView from '@arcgis/core/views/SceneView';
 import type { ArcgisPopup } from '@arcgis/map-components/components/arcgis-popup';
 import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
-import type { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
+import { clamp, type LatLon, type LatLonAlt, type RuntimeTrack } from '@flyxc/common';
 import { alertController } from '@ionic/core/components';
 import type { PropertyValues, TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, query, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { when } from 'lit/directives/when.js';
 import type { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
 import * as msg from '../../logic/messages';
+import { selectUse3d } from '../../redux/airspace-slice';
 import { selectLoadingApi, selectTimeSec, setApiLoading, setTimeSec, setView3d } from '../../redux/app-slice';
 import { selectAltitudeMultiplier, selectUseSunLighting } from '../../redux/arcgis-slice';
 import { selectCountry, selectIsFromFfvl, selectIsSmallScreen } from '../../redux/browser-slice';
@@ -65,7 +67,8 @@ import {
   selectMinTimeSec,
   setCurrentTrackId,
 } from '../../redux/track-slice';
-import type { Airspace3dElement } from './airspace3d-element';
+import { type Airspace3dElement, MIN_3D_ZOOM } from './airspace3d-element';
+import type { FlatAirspace3dElement } from './flat-airspace3d-element';
 
 const POPUP_DOCK_OPTIONS = { buttonEnabled: false };
 
@@ -80,7 +83,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   @state()
   private timeSec = 0;
   @state()
-  private sunEnabled = true;
+  private sunEnabled = false;
   @state()
   private graphicsLayer?: GraphicsLayer;
   @state()
@@ -93,13 +96,23 @@ export class Map3dElement extends connect(store)(LitElement) {
   private country?: string;
   @state()
   private isFromFfvl = false;
+  @state()
+  private is3dAirspace = false;
+  @state()
+  private use3dAirspace = true;
 
   // ArcGis objects.
   private map?: Map;
+  @state()
   private view?: SceneView;
   // Elevation layer with exaggeration.
   private elevationLayer?: BaseElevationLayer;
+  @query('arcgis-scene')
+  private scene?: ArcgisScene;
+  @query('airspace3d-element')
   private airspace?: Airspace3dElement;
+  @query('flat-airspace3d-element')
+  private flatAirspace?: FlatAirspace3dElement;
   private basemaps: Record<string, string | Basemap | null> = {
     Satellite: null,
     OpenTopoMap: null,
@@ -109,7 +122,11 @@ export class Map3dElement extends connect(store)(LitElement) {
 
   private subscriptions: UnsubscribeHandle[] = [];
   private previousLookAt?: LatLonAlt;
+  private cameraRafId?: number;
   private updateCamera = false;
+  private lastSunTimeSec?: number;
+  private handleLocationTimer?: number;
+  private pendingLocation?: LatLon;
   private readonly adRatio = selectIsSmallScreen(store.getState()) ? 0.7 : 1;
 
   stateChanged(state: RootState): void {
@@ -122,26 +139,29 @@ export class Map3dElement extends connect(store)(LitElement) {
     this.sunEnabled = selectUseSunLighting(state);
     this.country = selectCountry(state);
     this.isFromFfvl = selectIsFromFfvl(state);
+    this.use3dAirspace = selectUse3d(state);
+    this.updateAirspaceMode();
+  }
+
+  private updateAirspaceMode(): void {
+    const is3d = this.use3dAirspace && (this.view?.zoom ?? 0) >= MIN_3D_ZOOM;
+    if (this.is3dAirspace !== is3d) {
+      this.is3dAirspace = is3d;
+    }
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (changedProps.has('currentTrackId')) {
       this.centerOnMarker(16);
     } else if (changedProps.has('timeSec')) {
-      const lookAt = selectLookAtLatLonAlt(store.getState())(this.timeSec);
-      if (this.updateCamera && lookAt && this.view && !this.view.interacting) {
-        if (this.previousLookAt) {
-          const dLat = lookAt.lat - this.previousLookAt.lat;
-          const dLon = lookAt.lon - this.previousLookAt.lon;
-          const dAlt = lookAt.alt - this.previousLookAt.alt;
-          const camera = this.view.camera.clone();
-          camera.position.latitude = (camera.position.latitude ?? 0) + dLat;
-          camera.position.longitude = (camera.position.longitude ?? 0) + dLon;
-          camera.position.z = (camera.position.z ?? 0) + dAlt * this.multiplier;
-          this.view.camera = camera;
-        }
+      if (this.updateCamera && this.previousLookAt && this.view && !this.view.interacting) {
+        this.cameraRafId ??= requestAnimationFrame(() => {
+          this.cameraRafId = undefined;
+          this.syncCameraToPilot();
+        });
+      } else {
+        this.previousLookAt = selectLookAtLatLonAlt(store.getState())(this.timeSec);
       }
-      this.previousLookAt = lookAt;
     }
 
     if (changedProps.has('sunEnabled')) {
@@ -150,7 +170,10 @@ export class Map3dElement extends connect(store)(LitElement) {
     }
 
     if (this.sunEnabled && changedProps.has('timeSec')) {
-      (this.view?.environment?.lighting as any)?.set('date', new Date(this.timeSec * 1000));
+      if (this.lastSunTimeSec == null || Math.abs(this.timeSec - this.lastSunTimeSec) >= 300) {
+        this.lastSunTimeSec = this.timeSec;
+        (this.view?.environment?.lighting as any)?.set('date', new Date(this.timeSec * 1000));
+      }
     }
 
     if (changedProps.has('multiplier')) {
@@ -173,8 +196,14 @@ export class Map3dElement extends connect(store)(LitElement) {
     super.disconnectedCallback();
     this.subscriptions.forEach((sub) => sub());
     this.subscriptions.length = 0;
+    this.flushLocation();
+    if (this.cameraRafId != null) {
+      cancelAnimationFrame(this.cameraRafId);
+      this.cameraRafId = undefined;
+    }
     this.elevationSampler = undefined;
     this.view = undefined;
+    this.is3dAirspace = false;
   }
 
   connectedCallback(): void {
@@ -200,6 +229,10 @@ export class Map3dElement extends connect(store)(LitElement) {
 
     const labelLayer = new SceneLayer({
       portalItem: { id: '002ce369070544f4ba55886efee41983' },
+      elevationInfo: { mode: 'relative-to-ground', offset: 1 },
+    });
+    void labelLayer.when(() => {
+      labelLayer.elevationInfo = { mode: 'relative-to-ground', offset: 1 };
     });
 
     this.basemaps.Satellite = new Basemap({
@@ -225,7 +258,10 @@ export class Map3dElement extends connect(store)(LitElement) {
   }
 
   firstUpdated(): void {
-    const scene = this.renderRoot.querySelector('arcgis-scene') as ArcgisScene;
+    const scene = this.scene;
+    if (!scene) {
+      return;
+    }
     const view = scene.view;
     view.environment = {
       starsEnabled: false,
@@ -233,8 +269,6 @@ export class Map3dElement extends connect(store)(LitElement) {
     } as any;
     this.view = view;
     this.createLighting();
-
-    this.airspace = this.renderRoot.querySelector('airspace3d-element') as Airspace3dElement;
 
     this.subscriptions.push(
       msg.centerMap.subscribe((ll) => this.center(ll)),
@@ -278,6 +312,15 @@ export class Map3dElement extends connect(store)(LitElement) {
           },
         );
         this.subscriptions.push(() => centerWatch.remove());
+
+        const zoomWatch = watch(
+          () => (view.zoom ?? 0) >= MIN_3D_ZOOM,
+          () => {
+            this.updateAirspaceMode();
+          },
+          { initial: true },
+        );
+        this.subscriptions.push(() => zoomWatch.remove());
       })
       .catch(async (e) => {
         store.dispatch(setApiLoading(false));
@@ -298,22 +341,45 @@ export class Map3dElement extends connect(store)(LitElement) {
       });
 
     // Set the active track when clicking on a track, marker, label.
-    view.on('click', (e) => {
-      view.hitTest(e).then(({ results }: { results: any[] }) => {
-        if (results.length > 0) {
-          // Sort hits by their distance to the camera.
-          results.sort((r1, r2) => r1.distance - r2.distance);
-          const graphic = results[0].graphic;
-          msg.clickSceneView.emit(graphic, scene);
-          // The trackId is set on tracks and pilots (not on live tracks).
-          const trackId = graphic.attributes?.trackId;
-          if (trackId != null) {
-            store.dispatch(setCurrentTrackId(trackId));
-          }
-        } else {
-          this.airspace?.handleClick({ lat: e.mapPoint.latitude ?? 0, lon: e.mapPoint.longitude ?? 0 }, scene);
+    view.on('click', async (e) => {
+      this.airspace?.setPickable(true);
+      let results: any[];
+      try {
+        ({ results } = await view.hitTest(e));
+      } finally {
+        this.airspace?.setPickable(false);
+      }
+
+      const trackHit = results.find(
+        (r) => r.graphic?.attributes?.trackId != null || r.graphic?.attributes?.liveTrackId != null,
+      );
+      if (trackHit) {
+        const graphic = trackHit.graphic;
+        msg.clickSceneView.emit(graphic, scene);
+        // The trackId is set on tracks and pilots (not on live tracks).
+        const trackId = graphic.attributes?.trackId;
+        if (trackId != null) {
+          store.dispatch(setCurrentTrackId(trackId));
         }
-      });
+      } else if (this.is3dAirspace) {
+        const hitPoints = results
+          .filter((r) => r.graphic?.attributes?.isAirspace && r.mapPoint)
+          .map((r) => ({
+            lat: r.mapPoint.latitude ?? 0,
+            lon: r.mapPoint.longitude ?? 0,
+            z: r.mapPoint.z,
+          }));
+        if (e.mapPoint) {
+          hitPoints.push({
+            lat: e.mapPoint.latitude ?? 0,
+            lon: e.mapPoint.longitude ?? 0,
+            z: e.mapPoint.z,
+          });
+        }
+        void this.airspace?.handleClick(hitPoints, scene);
+      } else if (e.mapPoint) {
+        void this.flatAirspace?.handleClick({ lat: e.mapPoint.latitude ?? 0, lon: e.mapPoint.longitude ?? 0 }, scene);
+      }
     });
 
     // Horizontal wheel movements update the timestamp.
@@ -327,7 +393,7 @@ export class Map3dElement extends connect(store)(LitElement) {
       const minTimeSec = selectMinTimeSec(state);
       const maxTimeSec = selectMaxTimeSec(state);
       const delta = Math.round((direction * (maxTimeSec - minTimeSec)) / 300) + 1;
-      const ts = Math.max(Math.min(selectTimeSec(state) + delta, maxTimeSec), minTimeSec);
+      const ts = clamp(selectTimeSec(state) + delta, minTimeSec, maxTimeSec);
       store.dispatch(setTimeSec(ts));
       e.stopPropagation();
     });
@@ -360,6 +426,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   }
 
   private createLighting() {
+    this.lastSunTimeSec = this.timeSec;
     if (this.view?.environment) {
       if (this.sunEnabled) {
         this.view.environment.lighting = new SunLighting({
@@ -369,6 +436,24 @@ export class Map3dElement extends connect(store)(LitElement) {
       } else {
         this.view.environment.lighting = new VirtualLighting();
       }
+    }
+  }
+
+  private syncCameraToPilot(): void {
+    const prev = this.previousLookAt;
+    const lookAt = (this.previousLookAt = selectLookAtLatLonAlt(store.getState())(this.timeSec));
+    if (!lookAt || !prev || !this.updateCamera || !this.view || this.view.interacting) {
+      return;
+    }
+    const dLat = lookAt.lat - prev.lat;
+    const dLon = lookAt.lon - prev.lon;
+    const dAlt = lookAt.alt - prev.alt;
+    if (dLat || dLon || dAlt) {
+      const camera = this.view.camera.clone();
+      camera.position.latitude = (camera.position.latitude ?? 0) + dLat;
+      camera.position.longitude = (camera.position.longitude ?? 0) + dLon;
+      camera.position.z = (camera.position.z ?? 0) + dAlt * this.multiplier;
+      this.view.camera = camera;
     }
   }
 
@@ -438,7 +523,7 @@ export class Map3dElement extends connect(store)(LitElement) {
           bottom: 10px;
           left: 50%;
           transform: translate(-50%, 0);
-          z-index: 1;
+          z-index: 0;
         }
         .ad img {
           filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #fff);
@@ -450,9 +535,12 @@ export class Map3dElement extends connect(store)(LitElement) {
           .dockEnabled=${false}
           .dockOptions=${POPUP_DOCK_OPTIONS}
           include-default-actions-disabled
+          hide-collapse-button
+          @contextmenu=${(e: Event) => e.preventDefault()}
           @arcgisPropertyChange=${(e: CustomEvent<{ name: string }>) => {
             if (e.detail.name === 'open' && !(e.target as ArcgisPopup).open) {
               store.dispatch(setCurrentLiveId(undefined));
+              this.airspace?.clearHighlight();
             }
           }}
         ></arcgis-popup>
@@ -466,21 +554,27 @@ export class Map3dElement extends connect(store)(LitElement) {
         </select>
         <arcgis-compass slot="top-right"></arcgis-compass>
         <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
+        ${when(
+          this.country === 'FR' && !this.isFromFfvl,
+          () =>
+            html`<a class="ad" href="https://ruedelair.com/" target="_blank">
+              <img
+                width="${Math.round(220 * this.adRatio)}"
+                height="${Math.round(42 * this.adRatio)}"
+                src="/static/img/ruedelair.svg"
+                alt="Rue de l'Air"
+              />
+            </a>`,
+        )}
       </arcgis-scene>
       <skyways3d-element .map=${this.map}></skyways3d-element>
-      <airspace3d-element .map=${this.map}></airspace3d-element>
-      ${when(
-        this.country === 'FR' && !this.isFromFfvl,
-        () =>
-          html`<a class="ad" href="https://ruedelair.com/" target="_blank">
-            <img
-              width="${Math.round(220 * this.adRatio)}"
-              height="${Math.round(42 * this.adRatio)}"
-              src="/static/img/ruedelair.svg"
-              alt="Rue de l'Air"
-            />
-          </a>`,
-      )}
+      <flat-airspace3d-element .map=${this.map} .enabled=${!this.is3dAirspace}></flat-airspace3d-element>
+      <airspace3d-element
+        .map=${this.map}
+        .view=${this.view}
+        .sampler=${this.elevationSampler}
+        .enabled=${this.is3dAirspace}
+      ></airspace3d-element>
       ${when(
         this.graphicsLayer != null && this.apiLoaded,
         () =>
@@ -505,8 +599,19 @@ export class Map3dElement extends connect(store)(LitElement) {
   }
 
   private handleLocation(center: LatLon): void {
-    store.dispatch(setCurrentLocation(center));
-    store.dispatch(setCurrentZoom(this.view?.zoom ?? 10));
+    this.pendingLocation = center;
+    clearTimeout(this.handleLocationTimer);
+    this.handleLocationTimer = window.setTimeout(() => this.flushLocation(), 250);
+  }
+
+  private flushLocation(): void {
+    clearTimeout(this.handleLocationTimer);
+    this.handleLocationTimer = undefined;
+    if (this.pendingLocation) {
+      store.dispatch(setCurrentLocation(this.pendingLocation));
+      store.dispatch(setCurrentZoom(this.view?.zoom ?? 10));
+      this.pendingLocation = undefined;
+    }
   }
 
   createRenderRoot(): HTMLElement {

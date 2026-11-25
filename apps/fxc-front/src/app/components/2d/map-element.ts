@@ -1,14 +1,13 @@
 import type { LatLon, LatLonAlt, RuntimeTrack } from '@flyxc/common';
-import { findClosestFix, getPixelCoordinates } from '@flyxc/common';
+import { findClosestFix, getPixelCoordinates, simplifyPath } from '@flyxc/common';
 import * as gMapLoader from '@googlemaps/js-api-loader';
 import type { PropertyValues, TemplateResult } from 'lit';
 import { html, LitElement, svg } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { when } from 'lit/directives/when.js';
 import type { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
-import simplify from 'simplify-path';
 
 import { getApiKeyAndHost } from '../../apikey';
 import * as msg from '../../logic/messages';
@@ -99,6 +98,11 @@ function loadGMaps(): Promise<void> {
 export class MapElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   map: google.maps.Map | undefined;
+
+  private handleLocationTimer?: number;
+
+  @query('#map')
+  private mapElement?: HTMLElement;
 
   @state()
   private tracks: RuntimeTrack[] = [];
@@ -202,7 +206,7 @@ export class MapElement extends connect(store)(LitElement) {
         mapId: '997ff70df48844a5',
       };
 
-      this.map = new google.maps.Map(this.querySelector('#map') as HTMLElement, options);
+      this.map = new google.maps.Map(this.mapElement!, options);
 
       const controls = document.createElement('controls-element') as ControlsElement;
       controls.map = this.map;
@@ -262,6 +266,9 @@ export class MapElement extends connect(store)(LitElement) {
     super.disconnectedCallback();
     this.subscriptions.forEach((sub) => sub());
     this.subscriptions.length = 0;
+    if (this.handleLocationTimer != null) {
+      this.flushLocation();
+    }
     if (this.map) {
       google.maps.event.clearInstanceListeners(this.map);
     }
@@ -321,30 +328,31 @@ export class MapElement extends connect(store)(LitElement) {
       <div id="map"></div>
       ${when(
         this.country === 'FR' && !this.isFromFfvl,
-        () => html`<a class="ad" href="https://ruedelair.com/" target="_blank">
-          <img
-            width="${Math.round(220 * this.adRatio)}"
-            height="${Math.round(42 * this.adRatio)}"
-            src="/static/img/ruedelair.svg"
-            alt="Rue de l'Air"
-          />
-        </a>`,
+        () =>
+          html`<a class="ad" href="https://ruedelair.com/" target="_blank">
+            <img
+              width="${Math.round(220 * this.adRatio)}"
+              height="${Math.round(42 * this.adRatio)}"
+              src="/static/img/ruedelair.svg"
+              alt="Rue de l'Air"
+            />
+          </a>`,
       )}
       ${when(
         this.map,
-        () => html`<topo-spain .map=${this.map}></topo-spain>
-          <topo-france .map=${this.map}></topo-france>
-          <topo-otm .map=${this.map}></topo-otm>
-          <segments-element .map=${this.map} .query=${document.location.search}></segments-element>
-          ${repeat(
-            this.tracks,
-            (track) => track.id,
-            (track) =>
-              html`
+        () =>
+          html`<topo-spain .map=${this.map}></topo-spain>
+            <topo-france .map=${this.map}></topo-france>
+            <topo-otm .map=${this.map}></topo-otm>
+            <segments-element .map=${this.map} .query=${document.location.search}></segments-element>
+            ${repeat(
+              this.tracks,
+              (track) => track.id,
+              (track) => html`
                 <marker-element .map=${this.map} .track=${track} .timeSec=${this.timeSec}></marker-element>
                 <line-element .map=${this.map} .track=${track}></line-element>
               `,
-          )}`,
+            )}`,
       )}`;
   }
 
@@ -382,7 +390,7 @@ export class MapElement extends connect(store)(LitElement) {
     this.pointerEventId = undefined;
     this.freeDrawPath = '';
     store.dispatch(setIsFreeDrawing(false));
-    this.pathPoints = simplify(this.pathPoints, 15);
+    this.pathPoints = simplifyPath(this.pathPoints, 15);
     let encodedRoute = '';
     if (this.pathPoints.length >= 2 && this.map) {
       const proj = this.map.getProjection() as google.maps.Projection;
@@ -453,6 +461,13 @@ export class MapElement extends connect(store)(LitElement) {
   }
 
   private handleLocation(): void {
+    clearTimeout(this.handleLocationTimer);
+    this.handleLocationTimer = window.setTimeout(() => this.flushLocation(), 250);
+  }
+
+  private flushLocation(): void {
+    clearTimeout(this.handleLocationTimer);
+    this.handleLocationTimer = undefined;
     if (this.map) {
       const center = this.map.getCenter() as google.maps.LatLng;
       store.dispatch(setCurrentLocation({ lat: center.lat(), lon: center.lng() }));

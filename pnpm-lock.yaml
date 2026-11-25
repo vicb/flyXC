@@ -54,6 +54,9 @@ catalogs:
     '@types/d3-array':
       specifier: ^3.2.2
       version: 3.2.2
+    '@types/d3-delaunay':
+      specifier: ^6.0.4
+      version: 6.0.4
     '@types/express':
       specifier: ^5.0.6
       version: 5.0.6
@@ -78,6 +81,9 @@ catalogs:
     '@xmldom/xmldom':
       specifier: ^0.9.12
       version: 0.9.12
+    clipper2-wasm:
+      specifier: ^0.4.0
+      version: 0.4.0
     clsx:
       specifier: ^2.1.1
       version: 2.1.1
@@ -87,15 +93,24 @@ catalogs:
     core-js:
       specifier: ^3.51.0
       version: 3.51.0
+    d3-delaunay:
+      specifier: ^6.0.6
+      version: 6.0.6
     date-fns:
       specifier: ^4.4.0
       version: 4.4.0
+    earcut:
+      specifier: ^3.2.4
+      version: 3.2.4
     eslint-plugin-unused-imports:
       specifier: ^4.4.1
       version: 4.4.1
     express:
       specifier: ^5.3.0
       version: 5.3.0
+    flatbush:
+      specifier: ^4.7.0
+      version: 4.7.0
     geolib:
       specifier: ^4.0.2
       version: 4.0.2
@@ -105,6 +120,9 @@ catalogs:
     grant:
       specifier: ^5.4.24
       version: 5.4.24
+    idb:
+      specifier: ^8.0.4
+      version: 8.0.4
     jsonc-eslint-parser:
       specifier: 3.3.0
       version: 3.3.0
@@ -112,8 +130,8 @@ catalogs:
       specifier: ^3.3.3
       version: 3.3.3
     mapbox-vector-tile:
-      specifier: ^0.3.0
-      version: 0.3.0
+      specifier: ^1.2.0
+      version: 1.2.0
     proxy:
       specifier: ^4.1.0
       version: 4.1.0
@@ -123,9 +141,6 @@ catalogs:
     rustigc-wasm:
       specifier: 0.2.0-rc.3
       version: 0.2.0-rc.3
-    simplify-path:
-      specifier: ^1.1.0
-      version: 1.1.0
     tiny-lru:
       specifier: ^13.1.1
       version: 13.1.1
@@ -406,15 +421,24 @@ importers:
       d3-array:
         specifier: ^3.2.5
         version: 3.2.5
+      d3-delaunay:
+        specifier: 'catalog:'
+        version: 6.0.6
+      earcut:
+        specifier: 'catalog:'
+        version: 3.2.4
       geolib:
         specifier: catalog:default
         version: 4.0.2
+      idb:
+        specifier: 'catalog:'
+        version: 8.0.4
       lit:
         specifier: catalog:default
         version: 3.3.3
       mapbox-vector-tile:
         specifier: catalog:default
-        version: 0.3.0
+        version: 1.2.0
       micro-typed-events:
         specifier: ^1.0.2
         version: 1.0.2
@@ -427,9 +451,6 @@ importers:
       rustigc-wasm:
         specifier: 'catalog:'
         version: 0.2.0-rc.3
-      simplify-path:
-        specifier: catalog:default
-        version: 1.1.0
       vaadin-dom:
         specifier: workspace:*
         version: link:../../libs/vaadin-dom
@@ -461,6 +482,9 @@ importers:
       '@types/d3-array':
         specifier: catalog:default
         version: 3.2.2
+      '@types/d3-delaunay':
+        specifier: 'catalog:'
+        version: 6.0.4
       '@types/google.maps':
         specifier: catalog:default
         version: 3.67.0
@@ -582,9 +606,15 @@ importers:
       '@google-cloud/storage':
         specifier: catalog:default
         version: 9.0.0(supports-color@10.2.2)
+      clipper2-wasm:
+        specifier: 'catalog:'
+        version: 0.4.0
       commander:
         specifier: catalog:default
         version: 15.1.0
+      flatbush:
+        specifier: 'catalog:'
+        version: 4.7.0
       geojson:
         specifier: ^0.5.0
         version: 0.5.0
@@ -651,10 +681,7 @@ importers:
         version: 2.0.0
       mapbox-vector-tile:
         specifier: catalog:default
-        version: 0.3.0
-      simplify-path:
-        specifier: catalog:default
-        version: 1.1.0
+        version: 1.2.0
       tiny-lru:
         specifier: catalog:default
         version: 13.1.1
@@ -671,9 +698,6 @@ importers:
       '@google-cloud/datastore':
         specifier: catalog:default
         version: 11.3.1(supports-color@8.1.1)
-      '@mapbox/sphericalmercator':
-        specifier: ^2.0.2
-        version: 2.0.2
       '@protobuf-ts/runtime':
         specifier: ^2.11.1
         version: 2.11.1
@@ -685,7 +709,7 @@ importers:
         version: 4.0.2
       mapbox-vector-tile:
         specifier: catalog:default
-        version: 0.3.0
+        version: 1.2.0
       tiny-lru:
         specifier: catalog:default
         version: 13.1.1
@@ -2439,9 +2463,6 @@ packages:
     peerDependencies:
       rollup: ^0.65.2 || ^1.0.0 || ^2.0.0 || ^3.0.0 || ^4.0.0
 
-  '@mapbox/sphericalmercator@2.0.2':
-    resolution: {integrity: sha512-Ai/S9qXupBzFCM0i4sYDIx1A0pDYMaD3xlhVg05JToYeyORq8aAuHbd6CCPC86HlLSjYmoPeljJ5tMVKtzd4Lg==}
-
   '@microsoft/api-extractor-model@7.32.2':
     resolution: {integrity: sha512-Ussc25rAalc+4JJs9HNQE7TuO9y6jpYQX9nWD1DhqUzYPBr3Lr7O9intf+ZY8kD5HnIqeIRJX7ccCT0QyBy2Ww==}
 
@@ -3167,9 +3188,6 @@ packages:
 
   '@protobuf-ts/runtime-rpc@2.11.1':
     resolution: {integrity: sha512-4CqqUmNA+/uMz00+d3CYKgElXO9VrEbucjnBFEjqI4GuDrEQ32MaI3q+9qPBvIGOlL4PmHXrzM32vBPWRhQKWQ==}
-
-  '@protobuf-ts/runtime@1.0.13':
-    resolution: {integrity: sha512-uvYYBUtG4eCYMxo+mzxN8SHvpL/l7PbHEmOpXEnDCwBj/wJ+Ezj8+TlEFjjRWpnFidka+SMdDOXPWSyJv2iNAw==}
 
   '@protobuf-ts/runtime@2.11.1':
     resolution: {integrity: sha512-KuDaT1IfHkugM2pyz+FwiY80ejWrkH1pAtOBOZFuR6SXEFTsnb/jiQWQ1rCIrcKx2BtyxnxW6BWwsVSA/Ie+WQ==}
@@ -3921,6 +3939,9 @@ packages:
 
   '@types/deep-eql@4.0.2':
     resolution: {integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==}
+
+  '@types/emscripten@1.41.6':
+    resolution: {integrity: sha512-uN+9i8bFT5CUcZfyIEYDrSueACEyKGbUs5kC/72DGlZZoinh84sJfVV0i8UOJD1asdzkvLPBRrKs41kZ8MdEXg==}
 
   '@types/esquery@1.5.4':
     resolution: {integrity: sha512-yYO4Q8H+KJHKW1rEeSzHxcZi90durqYgWVfnh5K6ZADVBjBv2e1NEveYX5yT2bffgN7RqzH3k9930m+i2yBoMA==}
@@ -4909,6 +4930,9 @@ packages:
     resolution: {integrity: sha512-ROn/mdV2pR8WFdpJjFDCSouLRg9myf95xacO1iy8G/AVO/x5y124pjF3EaoWrTBRWC3vh0DPqa/MhKyx3mMeKg==}
     engines: {node: '>=22.1.0'}
 
+  clipper2-wasm@0.4.0:
+    resolution: {integrity: sha512-oYM/F8m7ogBmBXGxARJt9SEcjWPQg6+8zdfYw4Cmb5Ii5AOUjRgdQwQ9i5UW3BCJ4CFWG2CQWwm5HvekyvIdUA==}
+
   cliui@6.0.0:
     resolution: {integrity: sha512-t6wbgtoCXvAzst7QgXxJYqPt0usEfbgQdftEPbLL/cvv6HPE5VgvqCuAIDR0NgU52ds6rFwqrgakNLrHEjCbrQ==}
 
@@ -5215,8 +5239,8 @@ packages:
     resolution: {integrity: sha512-4EzFTRIikzs47RGmdxbeUvLWtGedDUNkTcmzoeyg4sP/dvCexO47AaQL7VKy/gul85TOxw+IBgA8US2xwbToNA==}
     engines: {node: '>=12'}
 
-  d3-delaunay@6.0.4:
-    resolution: {integrity: sha512-mdjtIZ1XLAM8bm/hx3WwjfHt6Sggek7qH043O8KEjDXN40xi3vx/6pYSVTwLjEgiXQTbvaouWKynLBiUZ6SK6A==}
+  d3-delaunay@6.0.6:
+    resolution: {integrity: sha512-DMQIEvSJhZCB6pwedcXaAlQ+MeKU5LlM2XakKtc73b/VM+RBiI1SRXycOEOKg2jsKj4zZ9F0KGYG6nCGwwWu/g==}
     engines: {node: '>=12'}
 
   d3-dispatch@2.0.0:
@@ -5557,6 +5581,9 @@ packages:
 
   duplexify@4.1.3:
     resolution: {integrity: sha512-M3BmBhwJRZsSx38lZyhE53Csddgzl5R7xGJNk7CVddZD6CcmwMCH8J+7AprIrQKH7TonKxaCjcv27Qmf+sQ+oA==}
+
+  earcut@3.2.4:
+    resolution: {integrity: sha512-FHc6yNpnTORB0tM5kmZ03iD2mDuNakDE2lvf4Hw1XkfxtEHIGVi01B/GqUSwx+NcC1WGjidAfpTXzeALtPtfpg==}
 
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
@@ -5980,8 +6007,14 @@ packages:
   flat-cache@6.1.23:
     resolution: {integrity: sha512-f++BY9pTk+983xK1FLzlLpmM0i0z+jHmx3QESGkURMXujQZz1k5wzwX6hjnQ8goaD0B+sYnDK1yZ6MTyZfUaqA==}
 
+  flatbush@4.7.0:
+    resolution: {integrity: sha512-oFBkbYI3Rx6snZEBQOiJSaxt1MfZtbH2p862dRmIOOYRVxQWDyAn4oyKjoJv7TgmOft2yIavvooOU5itliagOw==}
+
   flatpickr@4.6.13:
     resolution: {integrity: sha512-97PMG/aywoYpB4IvbvUJi0RQi8vearvU0oov1WW3k0WZPBMrTQVqekSX5CjSG/M4Q3i6A/0FKXC7RyAoAUUSPw==}
+
+  flatqueue@3.1.0:
+    resolution: {integrity: sha512-Ia4qIYrrsEqIRx3c3XhkT+QDLQuUV5ovsr6ah1rIgKT5wclhoGK3lAMS1bWRAWxlx7wtlTBpV7QXB5d9fOSRxA==}
 
   flatted@3.4.4:
     resolution: {integrity: sha512-5+ybhBZANEJxaH3X5evAFatUxLfEHSr7n6kYJ+1Qd0mUqr4eu9gIf6GDbWHf8RJijHrjjO8G+la14SlL2SeS1Q==}
@@ -6382,6 +6415,9 @@ packages:
 
   idb@7.1.1:
     resolution: {integrity: sha512-gchesWBzyvGHRO9W8tzUWFDycow5gwjvFKfyV9FF32Y7F50yZMp7mP+T2mJIWFx49zicqyC4uefHM17o6xKIVQ==}
+
+  idb@8.0.4:
+    resolution: {integrity: sha512-jd0ITCrN+Zah4J7R/Z2jnR3W7A4BXDAjmo62MwWuSjxCiueUAf7X5rbodEdidWzeknwXHmLpdZkoiiCppNi30Q==}
 
   identity-obj-proxy@3.0.0:
     resolution: {integrity: sha512-00n6YnVHKrinT9t0d9+5yZC6UBNJANpYEQvL2LlX6Ab9lnmxzIRcEmTPuyGScvl1+jKuCICX1Z0Ab1pPKKdikA==}
@@ -7124,9 +7160,9 @@ packages:
   makeerror@1.0.12:
     resolution: {integrity: sha512-JmqCvUhmt43madlpFzG4BQzG2Z3m6tvQDNKdClZnO3VbIudJYmxsT0FNJMeiB2+JTSlTQTSbU8QdesVmwJcmLg==}
 
-  mapbox-vector-tile@0.3.0:
-    resolution: {integrity: sha512-12/08m7pRd/afaVM5Sj07sgHi8R1hg+/vI5SRKkJwVHTFDD/52hSP6QPJpxXtyQzDeox++7hNoAgJ+T/qmmBIQ==}
-    engines: {node: '>=10'}
+  mapbox-vector-tile@1.2.0:
+    resolution: {integrity: sha512-BKHajvwRo/XGGzWuiohf0DjNmfHr7eiPeg5jJsY6bSWdw0gAJeUa70LF5AnvV0rlBbrroo/yK1tAcXPoph3vtA==}
+    engines: {node: '>=22'}
 
   marked@18.1.3:
     resolution: {integrity: sha512-9ChMH8EVVgjgID49nsL6IWxWk5c6GtAsq/xw7U1ggkjkU5AGuv68oLTVlFRtvcUYZtpbNyjyvGo3YDu0fGapiw==}
@@ -8148,9 +8184,6 @@ packages:
 
   simple-swizzle@0.2.4:
     resolution: {integrity: sha512-nAu1WFPQSMNr2Zn9PGSZK9AGn4t/y97lEm+MXTtUDwfP0ksAIX4nO+6ruD9Jwut4C49SB1Ws+fbXsm/yScWOHw==}
-
-  simplify-path@1.1.0:
-    resolution: {integrity: sha512-qvEyrV36pP6YjRoEAe7ymSqFwurrTQXltcmZaQXFVh8cTWUfHYGeobbMK8V7WHlT9+ysW3GNVkCd6TF8aM0ydw==}
 
   sirv@3.0.2:
     resolution: {integrity: sha512-2wcC/oGxHis/BoHkkPwldgiPSYcpZK3JU28WoMVv55yHJgcZ8rlXvuG9iZggz+sU1d4bRgIGASwyWqjxu3FM0g==}
@@ -11249,8 +11282,6 @@ snapshots:
     transitivePeerDependencies:
       - '@swc/core'
 
-  '@mapbox/sphericalmercator@2.0.2': {}
-
   '@microsoft/api-extractor-model@7.32.2(@types/node@26.6.6)':
     dependencies:
       '@microsoft/tsdoc': 0.16.0
@@ -12145,8 +12176,6 @@ snapshots:
     dependencies:
       '@protobuf-ts/runtime': 2.11.1
 
-  '@protobuf-ts/runtime@1.0.13': {}
-
   '@protobuf-ts/runtime@2.11.1': {}
 
   '@protobufjs/aspromise@1.1.2': {}
@@ -12782,6 +12811,8 @@ snapshots:
       '@types/d3-zoom': 3.0.8
 
   '@types/deep-eql@4.0.2': {}
+
+  '@types/emscripten@1.41.6': {}
 
   '@types/esquery@1.5.4':
     dependencies:
@@ -13893,6 +13924,10 @@ snapshots:
 
   clickable-path@0.1.1: {}
 
+  clipper2-wasm@0.4.0:
+    dependencies:
+      '@types/emscripten': 1.41.6
+
   cliui@6.0.0:
     dependencies:
       string-width: 4.2.3
@@ -14217,7 +14252,7 @@ snapshots:
     dependencies:
       d3-array: 3.2.5
 
-  d3-delaunay@6.0.4:
+  d3-delaunay@6.0.6:
     dependencies:
       delaunator: 5.0.1
 
@@ -14353,7 +14388,7 @@ snapshots:
       d3-chord: 3.0.1
       d3-color: 3.1.0
       d3-contour: 4.0.2
-      d3-delaunay: 6.0.4
+      d3-delaunay: 6.0.6
       d3-dispatch: 3.0.1
       d3-drag: 3.0.0
       d3-dsv: 3.0.1
@@ -14581,6 +14616,8 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
       stream-shift: 1.0.3
+
+  earcut@3.2.4: {}
 
   eastasianwidth@0.2.0: {}
 
@@ -15253,7 +15290,13 @@ snapshots:
       flatted: 3.4.4
       hookified: 1.15.1
 
+  flatbush@4.7.0:
+    dependencies:
+      flatqueue: 3.1.0
+
   flatpickr@4.6.13: {}
+
+  flatqueue@3.1.0: {}
 
   flatted@3.4.4: {}
 
@@ -15856,6 +15899,8 @@ snapshots:
       safer-buffer: 2.1.2
 
   idb@7.1.1: {}
+
+  idb@8.0.4: {}
 
   identity-obj-proxy@3.0.0:
     dependencies:
@@ -16748,9 +16793,10 @@ snapshots:
     dependencies:
       tmpl: 1.0.5
 
-  mapbox-vector-tile@0.3.0:
+  mapbox-vector-tile@1.2.0:
     dependencies:
-      '@protobuf-ts/runtime': 1.0.13
+      '@protobuf-ts/runtime': 2.11.1
+      '@types/geojson': 7946.0.16
 
   marked@18.1.3: {}
 
@@ -18017,8 +18063,6 @@ snapshots:
     dependencies:
       is-arrayish: 0.3.4
     optional: true
-
-  simplify-path@1.1.0: {}
 
   sirv@3.0.2:
     dependencies:

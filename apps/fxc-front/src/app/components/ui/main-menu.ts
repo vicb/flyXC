@@ -11,7 +11,7 @@ import type { SearchbarCustomEvent, ToggleCustomEvent } from '@ionic/core/compon
 import { modalController, toastController } from '@ionic/core/components';
 import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, query, state } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 import { when } from 'lit/directives/when.js';
 import type { UnsubscribeHandle } from 'micro-typed-events';
@@ -241,6 +241,10 @@ export class AirspaceItems extends connect(store)(LitElement) {
   private showTypes: Type[] = [];
   @state()
   private opacity = 70;
+  @state()
+  private view3d = false;
+  @state()
+  private use3d = true;
 
   private subscriptions: UnsubscribeHandle[] = [];
 
@@ -252,6 +256,8 @@ export class AirspaceItems extends connect(store)(LitElement) {
     this.showClasses = airspaces.selectShowClasses(state);
     this.showTypes = airspaces.selectShowTypes(state);
     this.opacity = airspaces.selectOpacity(state);
+    this.view3d = app.selectView3d(state);
+    this.use3d = airspaces.selectUse3d(state);
   }
 
   connectedCallback(): void {
@@ -279,7 +285,14 @@ export class AirspaceItems extends connect(store)(LitElement) {
       ${when(
         this.show,
         () =>
-          html`<ion-item button lines="none" .detail="${false}">
+          html`${when(
+              this.view3d,
+              () =>
+                html`<ion-item button lines="none" .detail=${false}>
+                  <ion-toggle .checked=${this.use3d} @ionChange=${this.handleUse3d}>3D airspaces</ion-toggle>
+                </ion-item>`,
+            )}
+            <ion-item button lines="none" .detail="${false}">
               <ion-select
                 label-placement="floating"
                 label="Classes"
@@ -354,6 +367,10 @@ export class AirspaceItems extends connect(store)(LitElement) {
               </ion-range>
             </ion-item>`,
       )}`;
+  }
+
+  private handleUse3d(e: ToggleCustomEvent) {
+    store.dispatch(airspaces.setUse3d(e.detail.checked));
   }
 
   private onClassesChange(e: ToggleCustomEvent) {
@@ -626,6 +643,9 @@ export class FullScreenItems extends connect(store)(LitElement) {
 
 @customElement('track-items')
 export class TrackItems extends connect(store)(LitElement) {
+  @query('#track')
+  private trackInput?: HTMLInputElement;
+
   @state()
   private numTracks = 0;
   @state()
@@ -674,7 +694,7 @@ export class TrackItems extends connect(store)(LitElement) {
 
   // Programmatically opens the file dialog.
   private forwardClick(): void {
-    (this.renderRoot.querySelector('#track') as HTMLInputElement)?.click();
+    this.trackInput?.click();
   }
 
   private async handleUpload(e: Event & { target: HTMLInputElement }): Promise<void> {

@@ -1,35 +1,100 @@
-import Point from '@arcgis/core/geometry/Point';
-import VectorTileLayer from '@arcgis/core/layers/VectorTileLayer';
-import type Map from '@arcgis/core/Map';
+import { watch } from '@arcgis/core/core/reactiveUtils.js';
+import Polyline from '@arcgis/core/geometry/Polyline';
+import Graphic from '@arcgis/core/Graphic';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import type ElevationSampler from '@arcgis/core/layers/support/ElevationSampler';
+import type ArcgisMap from '@arcgis/core/Map';
+import type LineSymbol3D from '@arcgis/core/symbols/LineSymbol3D';
+import type MeshSymbol3D from '@arcgis/core/symbols/MeshSymbol3D';
+import type LayerView from '@arcgis/core/views/layers/LayerView';
+import type SceneView from '@arcgis/core/views/SceneView';
 import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
-import type { AirspaceServer, LatLon, RuntimeTrack } from '@flyxc/common';
 import {
-  ASP_COLOR_DANGER,
-  ASP_COLOR_OTHER,
-  ASP_COLOR_PROHIBITED,
-  ASP_COLOR_RESTRICTED,
-  Class,
-  getAirspaceOverrides,
-  getAirspaceTilesUrlTemplate,
+  AirspaceColorCategory,
+  type AirspaceTyped,
+  boundsDistanceSquaredKm,
+  clamp,
+  type Class,
+  DEG_TO_RAD,
+  FNV1A_OFFSET_BASIS,
+  fnv1aMix,
+  getEffectiveAirspaceDate,
   MAX_AIRSPACE_TILE_ZOOM,
-  Type,
+  type Type,
 } from '@flyxc/common';
+import type { PropertyValues } from 'lit';
 import { LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
-import { getAirspaceList } from '../../logic/airspaces';
+import {
+  createGroundSampler,
+  getVisibleTileCoverage,
+  MAX_TILES_3D,
+  MIN_3D_ZOOM,
+} from '../../logic/airspace3d-coverage';
+import {
+  type CachedAirspaceItem,
+  createAirspaceFillSymbol,
+  createAirspaceLineSymbol,
+  destroyGraphics,
+  destroyLayer,
+  findMatching3dItem,
+  openAirspacePopup,
+  syncCategoryGraphic,
+} from '../../logic/airspace3d-graphics';
+import {
+  type AirspaceMeshData,
+  computeGroundSignature,
+  createMesh,
+  extrudeAirspaceFootprint,
+  mergeContourPaths,
+  mergeMeshData,
+} from '../../logic/airspace3d-mesh';
+import { AirspaceMeshCache } from '../../logic/airspace3d-mesh-cache';
+import { getAirspaceList, getAirspaceListHtml } from '../../logic/airspaces';
 import * as airspaces from '../../redux/airspace-slice';
 import * as app from '../../redux/app-slice';
+import * as arcgis from '../../redux/arcgis-slice';
 import type { RootState } from '../../redux/store';
 import { store } from '../../redux/store';
 import { selectCurrentTrack } from '../../redux/track-slice';
-import { createPopupContent } from './popup-content';
+import Airspace3dWorker from '../../workers/airspace3d?worker';
+import {
+  Airspace3dProcessor,
+  type AirspaceWorkerRequest,
+  type AirspaceWorkerResponse,
+} from '../../workers/airspace3d-processor';
 
+export { createGroundSampler, getVisibleTileCoverage, MAX_TILES_3D, MIN_3D_ZOOM };
+
+// Debounce after camera settles (stationary) before querying/rebuilding airspaces.
+const VIEW_REFRESH_DEBOUNCE_MS = 100;
+// Throttle interval while actively panning so destination airspaces stream in mid-drag.
+const PAN_REFRESH_THROTTLE_MS = 350;
+// Debounce terrain DEM updates before re-extruding ground-referenced airspaces.
+const SAMPLER_REFRESH_DEBOUNCE_MS = 450;
+
+const ALL_CATEGORIES = [
+  AirspaceColorCategory.Prohibited,
+  AirspaceColorCategory.Restricted,
+  AirspaceColorCategory.Danger,
+  AirspaceColorCategory.Other,
+];
+
+/**
+ * Lit component managing 3D extruded airspace volumes in an ArcGIS SceneView when zoomed in >= {@link MIN_3D_ZOOM}.
+ */
 @customElement('airspace3d-element')
 export class Airspace3dElement extends connect(store)(LitElement) {
   @property({ attribute: false })
-  map!: Map;
+  map!: ArcgisMap;
+  @property({ attribute: false })
+  view?: SceneView;
+  @property({ attribute: false })
+  sampler?: ElevationSampler;
+  @property({ type: Boolean })
+  enabled = true;
 
   @state()
   private maxAltitude = 1000;
@@ -42,9 +107,36 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   @state()
   private opacity = 70;
   @state()
-  private track?: RuntimeTrack;
+  private multiplier = 1;
+  @state()
+  private hasTrack = false;
 
-  private layer?: VectorTileLayer;
+  private timeSec = 0;
+  private graphicsLayer?: GraphicsLayer;
+  private graphicsLayerView?: LayerView;
+  private categoryGraphics = new Map<AirspaceColorCategory, Graphic>();
+  private categorySymbols = new Map<AirspaceColorCategory, MeshSymbol3D>();
+  private categoryLineGraphics = new Map<AirspaceColorCategory, Graphic>();
+  private categoryLineSymbols = new Map<AirspaceColorCategory, LineSymbol3D>();
+  private highlightGraphic?: Graphic;
+  private categoryBuckets = new Map<AirspaceColorCategory, { parts: AirspaceMeshData[]; sigHash: number }>([
+    [AirspaceColorCategory.Prohibited, { parts: [], sigHash: 0 }],
+    [AirspaceColorCategory.Restricted, { parts: [], sigHash: 0 }],
+    [AirspaceColorCategory.Danger, { parts: [], sigHash: 0 }],
+    [AirspaceColorCategory.Other, { parts: [], sigHash: 0 }],
+  ]);
+  private meshCache = new AirspaceMeshCache();
+  private currentAirspaces: CachedAirspaceItem[] = [];
+  private lastQueryKey?: string;
+  private viewHandles: Array<{ remove: () => void }> = [];
+  private samplerHandle?: { remove: () => void };
+  private refreshTimer?: number;
+  private samplerTimer?: number;
+  private buildGeneration = 0;
+  private patchedDepthCache?: { cache: any; orig: (...args: unknown[]) => unknown };
+  private worker?: Worker;
+  private fallbackProcessor?: Airspace3dProcessor;
+  private pendingWorkerResolvers = new Map<number, (res: AirspaceWorkerResponse) => void>();
 
   stateChanged(state: RootState): void {
     this.maxAltitude = airspaces.selectMaxAltitude(state);
@@ -52,175 +144,653 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     this.showClasses = airspaces.selectShowClasses(state);
     this.showTypes = airspaces.selectShowTypes(state);
     this.opacity = airspaces.selectOpacity(state);
-    this.track = selectCurrentTrack(state);
+    this.multiplier = arcgis.selectAltitudeMultiplier(state);
+    const track = selectCurrentTrack(state);
+    this.hasTrack = track != null;
+    this.timeSec = app.selectTimeSec(state);
   }
 
-  private getEffectiveDate(): Date {
-    return this.track ? new Date(app.selectTimeSec(store.getState()) * 1000) : new Date();
-  }
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
+    if (changedProps.has('view')) {
+      this.restoreDepthCache();
+      this.setupViewWatchers();
+      this.graphicsLayerView = undefined;
+    }
 
-  protected shouldUpdate(): boolean {
-    this.setupLayer();
+    if (changedProps.has('sampler')) {
+      this.setupSamplerWatcher();
+    }
+
+    if (!this.map || !this.showAirspace || !this.enabled) {
+      this.clearLayer();
+      return false;
+    }
+
+    const filterOrMapChanged =
+      changedProps.has('map') ||
+      changedProps.has('view') ||
+      changedProps.has('enabled') ||
+      changedProps.has('showAirspace') ||
+      changedProps.has('maxAltitude') ||
+      changedProps.has('showClasses') ||
+      changedProps.has('showTypes') ||
+      changedProps.has('hasTrack');
+
+    const multiplierChanged = changedProps.has('multiplier');
+    if (multiplierChanged) {
+      this.meshCache.clear();
+      for (const item of this.currentAirspaces) {
+        item.meshData = undefined;
+      }
+    }
+
+    if (filterOrMapChanged) {
+      this.lastQueryKey = undefined;
+      this.scheduleRefresh(true);
+    } else if (multiplierChanged || changedProps.has('sampler')) {
+      if (this.currentAirspaces.length > 0) {
+        this.rebuildMeshes(!multiplierChanged);
+      } else {
+        this.scheduleRefresh(true);
+      }
+    } else if (changedProps.has('opacity')) {
+      this.updateGraphicOpacities();
+    }
+
     return false;
-  }
-
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    this.removeLayer();
   }
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.requestUpdate();
+    this.setupViewWatchers();
+    this.setupSamplerWatcher();
+    if (this.map && this.view && this.showAirspace && this.enabled && !this.graphicsLayer) {
+      this.scheduleRefresh(true);
+    }
   }
 
-  public async handleClick(latLon: LatLon, scene: ArcgisScene) {
-    if (!this.showAirspace) {
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.teardownViewWatchers();
+    this.samplerHandle?.remove();
+    this.samplerHandle = undefined;
+    clearTimeout(this.refreshTimer);
+    this.refreshTimer = undefined;
+    clearTimeout(this.samplerTimer);
+    this.clearLayer();
+    this.worker?.terminate();
+    this.worker = undefined;
+    this.fallbackProcessor?.clear();
+    this.fallbackProcessor = undefined;
+    this.pendingWorkerResolvers.clear();
+  }
+
+  /**
+   * Controls whether 3D airspace graphics participate in SceneView raycasts and depth clamping.
+   * Keep disabled during camera navigation so dragging always anchors to terrain.
+   */
+  public setPickable(pickable: boolean): void {
+    if (pickable && !this.enabled) {
       return;
     }
-    const html = await getAirspaceList(
-      MAX_AIRSPACE_TILE_ZOOM,
-      latLon,
-      this.maxAltitude,
-      0,
-      this.showClasses,
-      this.showTypes,
-      this.getEffectiveDate(),
+    const uid = this.graphicsLayerView?.uid;
+    const stage = (this.view as any)?.stage;
+    const stageLayers = stage?._layers as Record<string, any> | undefined;
+    if (!uid || !stageLayers) {
+      return;
+    }
+    for (const sl of Object.values(stageLayers)) {
+      if (sl?.apiLayerViewUid === uid) {
+        sl.pickable = pickable;
+      }
+    }
+    const depthCache = stage?.renderer?.navigationDepthCache;
+    if (!pickable && depthCache && this.patchedDepthCache?.cache !== depthCache) {
+      this.restoreDepthCache();
+      this.patchedDepthCache = { cache: depthCache, orig: depthCache.getMinimalDepthForArea };
+      depthCache.getMinimalDepthForArea = () => null;
+    }
+  }
+
+  private restoreDepthCache(): void {
+    if (this.patchedDepthCache) {
+      this.patchedDepthCache.cache.getMinimalDepthForArea = this.patchedDepthCache.orig;
+      this.patchedDepthCache = undefined;
+    }
+  }
+
+  /**
+   * Clears any currently active 3D airspace highlight graphic.
+   */
+  public clearHighlight(): void {
+    if (this.highlightGraphic) {
+      const g = this.highlightGraphic;
+      this.highlightGraphic = undefined;
+      this.graphicsLayer?.remove(g);
+      g.destroy?.();
+    }
+  }
+
+  /**
+   * Highlights the selected 3D airspace volume while its popup is displayed.
+   */
+  public highlightAirspace(item: CachedAirspaceItem): void {
+    this.clearHighlight();
+    const sampleGroundZ = createGroundSampler(this.sampler);
+    const meshData =
+      item.meshData ??
+      (item.footprint ? extrudeAirspaceFootprint(item.footprint, item.airspace, this.multiplier, sampleGroundZ) : null);
+    if (!meshData || meshData.positions.length === 0 || meshData.faces.length === 0) {
+      return;
+    }
+    this.highlightGraphic = new Graphic({
+      geometry: createMesh(meshData.positions, meshData.faces),
+      symbol: createAirspaceFillSymbol(item.category ?? AirspaceColorCategory.Other, 0.8),
+      attributes: { isAirspace: true, isAirspaceHighlight: true },
+    });
+    this.ensureGraphicsLayer().add(this.highlightGraphic);
+  }
+
+  /**
+   * Queries 2D airspace vector tiles at the 3D hit locations returned by ArcGIS `SceneView.hitTest`,
+   * highlights the primary matched 3D volume, and opens a popup at the closest matching 3D hit point.
+   */
+  public async handleClick(
+    hitPoints: Array<{ lat: number; lon: number; z?: number }>,
+    scene: ArcgisScene,
+  ): Promise<void> {
+    if (!this.showAirspace || !this.enabled || hitPoints.length === 0) {
+      return;
+    }
+
+    const sampleGroundZ = createGroundSampler(this.sampler);
+    const mult = this.multiplier > 0 ? this.multiplier : 1;
+    const date = getEffectiveAirspaceDate(this.hasTrack, this.timeSec);
+    const airspaces = new Map<number, AirspaceTyped>();
+    let popupPoint: { lat: number; lon: number; z?: number } | undefined;
+
+    for (const pt of hitPoints) {
+      const hasZ = Number.isFinite(pt.z);
+      const rawGnd = sampleGroundZ(pt.lon, pt.lat);
+      const gndAltitude = (rawGnd > 0 ? rawGnd : hasZ ? pt.z! : 0) / mult;
+      const list = await getAirspaceList({
+        latLon: { lat: pt.lat, lon: pt.lon },
+        altitude: hasZ ? pt.z! / mult : this.maxAltitude,
+        gndAltitude,
+        checkTop: hasZ,
+        altitudeMargin: 150,
+        marginPx: hasZ ? 3 : 0,
+        maxFloorAltitude: this.maxAltitude,
+        visibleClasses: this.showClasses,
+        visibleTypes: this.showTypes,
+        date,
+      });
+
+      if (list.length > 0) {
+        popupPoint ??= pt;
+        for (const asp of list) {
+          if (!airspaces.has(asp.id)) {
+            airspaces.set(asp.id, asp);
+          }
+        }
+      }
+    }
+
+    this.clearHighlight();
+    if (airspaces.size > 0 && popupPoint) {
+      const list = Array.from(airspaces.values());
+      const hitItem = findMatching3dItem(this.currentAirspaces, list[0], popupPoint);
+      if (hitItem) {
+        this.highlightAirspace(hitItem);
+      }
+      await openAirspacePopup(scene, popupPoint, getAirspaceListHtml(list), popupPoint.z);
+    } else {
+      await scene.closePopup?.();
+    }
+  }
+
+  private setupSamplerWatcher(): void {
+    this.samplerHandle?.remove();
+    this.samplerHandle = this.sampler?.on('changed', () => {
+      if (!this.showAirspace || !this.currentAirspaces.some((a) => a.airspace.floorRefGnd || a.airspace.topRefGnd)) {
+        return;
+      }
+      clearTimeout(this.samplerTimer);
+      this.samplerTimer = window.setTimeout(() => this.rebuildMeshes(true), SAMPLER_REFRESH_DEBOUNCE_MS);
+    });
+  }
+
+  private setupViewWatchers(): void {
+    this.teardownViewWatchers();
+    if (!this.view) {
+      return;
+    }
+    this.viewHandles.push(
+      watch(
+        () => this.view?.stationary,
+        (stationary) => {
+          if (stationary && this.showAirspace) {
+            this.scheduleRefresh(false);
+          }
+        },
+      ),
+      watch(
+        () => this.view?.center,
+        () => {
+          // While actively panning (stationary === false), throttle refreshes using refreshTimer
+          // so destination airspaces stream in instead of waiting until the pan stops.
+          if (this.showAirspace && this.view && !this.view.stationary && this.refreshTimer == null) {
+            this.refreshTimer = window.setTimeout(() => {
+              this.refreshTimer = undefined;
+              void this.refreshView();
+            }, PAN_REFRESH_THROTTLE_MS);
+          }
+        },
+      ),
+      watch(
+        () => {
+          const z = this.view?.zoom;
+          if (!Number.isFinite(z)) {
+            return -2;
+          }
+          return (z ?? 0) < MIN_3D_ZOOM ? -1 : Math.floor(Math.min(z ?? 0, MAX_AIRSPACE_TILE_ZOOM));
+        },
+        (zoomBucket) => {
+          if (this.showAirspace) {
+            this.scheduleRefresh(zoomBucket < 0);
+          }
+        },
+      ),
     );
-    if (html) {
-      await scene.openPopup({
-        location: new Point({
-          latitude: latLon.lat,
-          longitude: latLon.lon,
-        }),
-        title: 'Airspaces',
-        content: createPopupContent(html),
+  }
+
+  private teardownViewWatchers(): void {
+    for (const h of this.viewHandles) {
+      h.remove();
+    }
+    this.viewHandles.length = 0;
+  }
+
+  private scheduleRefresh(immediate: boolean): void {
+    clearTimeout(this.refreshTimer);
+    this.refreshTimer = undefined;
+    if (immediate) {
+      void this.refreshView();
+    } else {
+      this.refreshTimer = window.setTimeout(() => {
+        this.refreshTimer = undefined;
+        void this.refreshView();
+      }, VIEW_REFRESH_DEBOUNCE_MS);
+    }
+  }
+
+  private ensureGraphicsLayer(): GraphicsLayer {
+    if (!this.graphicsLayer) {
+      const layer = new GraphicsLayer({
+        elevationInfo: { mode: 'absolute-height' },
+      });
+      this.graphicsLayer = layer;
+      this.map.add(layer);
+      void this.view?.whenLayerView?.(layer)?.then((layerView) => {
+        if (this.graphicsLayer === layer) {
+          this.graphicsLayerView = layerView;
+          this.setPickable(false);
+        }
       });
     }
+    return this.graphicsLayer;
   }
 
-  private removeLayer() {
-    if (this.layer) {
-      this.map?.remove(this.layer);
-      this.layer.destroy();
-      this.layer = undefined;
+  private removeGraphicsLayer(): void {
+    this.clearHighlight();
+    this.restoreDepthCache();
+    this.currentAirspaces.length = 0;
+    destroyGraphics(this.categoryGraphics.values());
+    this.categoryGraphics.clear();
+    destroyGraphics(this.categoryLineGraphics.values());
+    this.categoryLineGraphics.clear();
+    this.categorySymbols.clear();
+    this.categoryLineSymbols.clear();
+    this.graphicsLayerView = undefined;
+    this.lastQueryKey = undefined;
+    this.graphicsLayer = destroyLayer(this.map, this.graphicsLayer);
+  }
+
+  private resolvePendingWorkers(beforeGeneration?: number): void {
+    for (const [gen, resolve] of this.pendingWorkerResolvers) {
+      if (beforeGeneration == null || gen < beforeGeneration) {
+        this.pendingWorkerResolvers.delete(gen);
+        resolve({ id: gen, items: [] });
+      }
     }
   }
 
-  private setupLayer() {
-    this.removeLayer();
+  private clearLayer(): void {
+    this.buildGeneration++;
+    this.resolvePendingWorkers();
+    this.removeGraphicsLayer();
+  }
 
+  private getWorker(): Worker | undefined {
+    if (typeof Worker !== 'undefined') {
+      if (!this.worker) {
+        this.worker = new Airspace3dWorker();
+        this.worker.onmessage = (event: MessageEvent<AirspaceWorkerResponse>) => {
+          const res = event.data;
+          this.applyWorkerResponse(res);
+          const resolver = this.pendingWorkerResolvers.get(res.id);
+          if (resolver && (res.isFinal ?? true)) {
+            this.pendingWorkerResolvers.delete(res.id);
+            resolver(res);
+          }
+        };
+        this.worker.onerror = (err) => {
+          console.error('Airspace3d Worker error:', err);
+          this.lastQueryKey = undefined;
+          this.resolvePendingWorkers();
+          this.worker?.terminate();
+          this.worker = undefined;
+        };
+      }
+      return this.worker;
+    }
+    return undefined;
+  }
+
+  private hydrateFromCache(item: CachedAirspaceItem): void {
+    const cached = this.meshCache.get(item.airspace, item.footprint?.lod ?? 1);
+    item.meshData = cached?.meshData;
+    item.groundSignature = cached?.groundSignature;
+    item.meshLod = cached?.meshLod;
+  }
+
+  private applyWorkerResponse(response: AirspaceWorkerResponse): void {
+    if (response.id !== this.buildGeneration || !this.showAirspace) {
+      return;
+    }
+
+    if (response.error) {
+      console.error('Airspace3d Worker error:', response.error);
+      this.lastQueryKey = undefined;
+      return;
+    }
+
+    if (response.isDelta) {
+      const deltaMap = new Map(response.items.map((item) => [item.airspace.id, item]));
+      for (const item of this.currentAirspaces) {
+        const delta = deltaMap.get(item.airspace.id);
+        if (delta) {
+          item.footprint = delta.footprint;
+          this.hydrateFromCache(item);
+        }
+      }
+    } else {
+      this.currentAirspaces = response.items as CachedAirspaceItem[];
+      for (const item of this.currentAirspaces) {
+        this.hydrateFromCache(item);
+      }
+    }
+
+    this.rebuildMeshes(false);
+  }
+
+  private async refreshView(): Promise<void> {
+    if (!this.map || !this.showAirspace || !this.enabled) {
+      return;
+    }
+
+    if (!this.view || !((this.view.zoom ?? 0) >= MIN_3D_ZOOM)) {
+      this.clearLayer();
+      return;
+    }
+
+    const { tiles, bounds } = getVisibleTileCoverage(this.view);
+    if (tiles.length === 0 || !bounds) {
+      return;
+    }
+
+    const date = getEffectiveAirspaceDate(this.hasTrack, this.timeSec);
+    const tilesKey = tiles.map((t) => `${t.z}/${t.x}/${t.y}`).join(',');
+    const boundsKey = [
+      Math.round(bounds.xmin * 5),
+      Math.round(bounds.ymin * 5),
+      Math.round(bounds.xmax * 5),
+      Math.round(bounds.ymax * 5),
+    ].join(',');
+    const dateKey = this.hasTrack ? date.toISOString().slice(0, 10) : '';
+    const queryKey = `${tilesKey}|${boundsKey}|${this.maxAltitude}|${this.showClasses.join(',')}|${this.showTypes.join(',')}|${dateKey}`;
+    if (queryKey === this.lastQueryKey && this.graphicsLayer) {
+      return;
+    }
+
+    const generation = ++this.buildGeneration;
+    this.resolvePendingWorkers(generation);
+
+    const request: AirspaceWorkerRequest = {
+      id: generation,
+      tiles,
+      bounds,
+      maxAltitude: this.maxAltitude,
+      showClasses: this.showClasses,
+      showTypes: this.showTypes,
+      dateMs: date.getTime(),
+      tileServer: import.meta.env.VITE_AIRSPACE_SERVER,
+    };
+
+    this.lastQueryKey = queryKey;
+    const worker = this.getWorker();
+    if (worker) {
+      await new Promise<AirspaceWorkerResponse>((resolve) => {
+        this.pendingWorkerResolvers.set(generation, resolve);
+        worker.postMessage(request);
+      });
+    } else {
+      this.fallbackProcessor ??= new Airspace3dProcessor();
+      const response = await this.fallbackProcessor.process(request);
+      this.applyWorkerResponse(response);
+    }
+  }
+
+  private getCategorySymbol = (category: AirspaceColorCategory): MeshSymbol3D => {
+    let symbol = this.categorySymbols.get(category);
+    if (!symbol) {
+      const alpha = clamp((this.opacity / 100) * 0.45, 0.05, 0.45);
+      symbol = createAirspaceFillSymbol(category, alpha);
+      this.categorySymbols.set(category, symbol);
+    }
+    return symbol;
+  };
+
+  private getCategoryLineSymbol = (category: AirspaceColorCategory): LineSymbol3D => {
+    let symbol = this.categoryLineSymbols.get(category);
+    if (!symbol) {
+      symbol = createAirspaceLineSymbol(category, this.opacity);
+      this.categoryLineSymbols.set(category, symbol);
+    }
+    return symbol;
+  };
+
+  /**
+   * Rebuilds 3D airspace geometry and updates GPU graphics layers.
+   *
+   * Performance Architecture:
+   * 1. Selective re-extrusion & Distance LOD: Pure MSL airspaces are extruded once and cached permanently.
+   *    Ground-referenced airspaces re-extrude only when their terrain signature changes, and distant
+   *    airspaces skip ridge refinement (> 30 km) and perimeter contour lines (> 40 km).
+   * 2. Category Batch Merging: Concatenates meshes and contours into at most 4 Mesh + 4 Polyline graphics.
+   * 3. FNV-1a Signature Hashing: Skips GPU graphic reallocation when a category's signature is unchanged.
+   */
+  private rebuildMeshes(onlyGroundRef: boolean): void {
     if (!this.map || !this.showAirspace) {
       return;
     }
 
-    this.layer = new VectorTileLayer({
-      style: buildAirspaceVectorTileStyle({
-        maxAltitude: this.maxAltitude,
-        showClasses: this.showClasses,
-        showTypes: this.showTypes,
-        opacity: this.opacity,
-        date: this.getEffectiveDate(),
-        tileServer: import.meta.env.VITE_AIRSPACE_SERVER,
-      }),
-    });
-    this.map.add(this.layer);
+    const layer = this.ensureGraphicsLayer();
+    const dirtyCategories = this.extrudeStaleItems(onlyGroundRef);
+    if (onlyGroundRef && dirtyCategories.size === 0) {
+      return;
+    }
+
+    this.populateCategoryBuckets();
+    this.syncCategoryGraphics(layer, onlyGroundRef ? dirtyCategories : ALL_CATEGORIES);
+  }
+
+  /**
+   * Re-extrudes cached footprints whose terrain signature or LOD changed, returning the affected categories.
+   */
+  private extrudeStaleItems(onlyGroundRef: boolean): Set<AirspaceColorCategory> {
+    const sampleGroundZ = createGroundSampler(this.sampler);
+    const dirtyCategories = new Set<AirspaceColorCategory>();
+    const camLon = this.view?.camera?.position?.longitude ?? this.view?.center?.longitude;
+    const camLat = this.view?.camera?.position?.latitude ?? this.view?.center?.latitude;
+    const cosLat = camLat != null ? Math.cos(camLat * DEG_TO_RAD) : 0.707;
+    const maxRidgeDistKm2 = 30 * 30;
+    const maxContourDistKm2 = 40 * 40;
+
+    for (const item of this.currentAirspaces) {
+      if (!item.footprint) {
+        continue;
+      }
+      const isGroundRef = item.airspace.floorRefGnd || item.airspace.topRefGnd;
+      if (onlyGroundRef && !isGroundRef && item.meshData != null) {
+        continue;
+      }
+
+      const sig = isGroundRef ? computeGroundSignature(item.polygon, sampleGroundZ) : undefined;
+      const targetLod = item.footprint.lod ?? 1;
+      if (item.meshData != null && item.meshLod === targetLod && (!isGroundRef || item.groundSignature === sig)) {
+        continue;
+      }
+
+      let maxRidgePasses: number | undefined;
+      let skipContours = false;
+      if (camLon != null && camLat != null && item.polygon.extent) {
+        const dist2 = boundsDistanceSquaredKm(item.polygon.extent, camLon, camLat, cosLat);
+        if (isGroundRef && dist2 > maxRidgeDistKm2) {
+          maxRidgePasses = 0;
+        }
+        if (dist2 > maxContourDistKm2) {
+          skipContours = true;
+        }
+      }
+
+      const meshData = extrudeAirspaceFootprint(item.footprint, item.airspace, this.multiplier, sampleGroundZ, {
+        maxRidgePasses,
+        skipContours,
+      });
+      dirtyCategories.add(item.category);
+      if (meshData) {
+        item.meshData = meshData;
+        item.groundSignature = sig;
+        item.meshLod = targetLod;
+        this.meshCache.set(item.airspace, { meshData, groundSignature: sig, meshLod: targetLod });
+      } else {
+        item.meshData = undefined;
+        item.meshLod = undefined;
+      }
+    }
+
+    return dirtyCategories;
+  }
+
+  /**
+   * Groups extruded meshes into per-category buckets and computes their FNV-1a signature hashes.
+   */
+  private populateCategoryBuckets(): void {
+    const multInt = Math.round(this.multiplier * 100);
+    for (const bucket of this.categoryBuckets.values()) {
+      bucket.parts.length = 0;
+      bucket.sigHash = fnv1aMix(FNV1A_OFFSET_BASIS, multInt);
+    }
+    for (const item of this.currentAirspaces) {
+      if (!item.meshData) {
+        continue;
+      }
+      const bucket = this.categoryBuckets.get(item.category);
+      if (bucket) {
+        bucket.parts.push(item.meshData);
+        let h = fnv1aMix(bucket.sigHash, item.airspace.id);
+        h = fnv1aMix(h, item.groundSignature ?? 0);
+        h = fnv1aMix(h, item.meshLod ?? 0);
+        h = fnv1aMix(h, item.airspace.floorM);
+        h = fnv1aMix(h, item.airspace.topM);
+        bucket.sigHash = fnv1aMix(h, (item.airspace.floorRefGnd ? 1 : 0) | (item.airspace.topRefGnd ? 2 : 0));
+      }
+    }
+  }
+
+  /**
+   * Reconciles merged mesh and contour graphics on `layer` for categories whose signature changed.
+   */
+  private syncCategoryGraphics(layer: GraphicsLayer, categoriesToUpdate: Iterable<AirspaceColorCategory>): void {
+    const toRemove: Graphic[] = [];
+    const toAdd: Graphic[] = [];
+
+    for (const category of categoriesToUpdate) {
+      const bucket = this.categoryBuckets.get(category);
+      const nextSig = bucket && bucket.parts.length > 0 ? bucket.sigHash >>> 0 : 0;
+      const prevGraphic = this.categoryGraphics.get(category);
+      const prevLineGraphic = this.categoryLineGraphics.get(category);
+      if (
+        (nextSig === 0 && !prevGraphic && !prevLineGraphic) ||
+        (nextSig !== 0 && prevGraphic?.attributes?.sig === nextSig && prevLineGraphic?.attributes?.sig === nextSig)
+      ) {
+        continue;
+      }
+
+      const mergedMesh = bucket && bucket.parts.length > 0 ? mergeMeshData(bucket.parts) : null;
+      syncCategoryGraphic(
+        this.categoryGraphics,
+        category,
+        mergedMesh,
+        nextSig,
+        this.getCategorySymbol,
+        { isAirspace: true },
+        toAdd,
+        toRemove,
+      );
+
+      const contourPaths = bucket && bucket.parts.length > 0 ? mergeContourPaths(bucket.parts) : [];
+      const polyline =
+        contourPaths.length > 0
+          ? new Polyline({ paths: contourPaths, hasZ: true, spatialReference: { wkid: 4326 } })
+          : null;
+      syncCategoryGraphic(
+        this.categoryLineGraphics,
+        category,
+        polyline,
+        nextSig,
+        this.getCategoryLineSymbol,
+        { isAirspace: true, isAirspaceLine: true },
+        toAdd,
+        toRemove,
+      );
+    }
+
+    if (toRemove.length > 0) {
+      layer.removeMany(toRemove);
+      destroyGraphics(toRemove);
+    }
+    if (toAdd.length > 0) {
+      layer.addMany(toAdd);
+    }
+    if (toRemove.length > 0 || toAdd.length > 0) {
+      this.setPickable(false);
+    }
+  }
+
+  private updateGraphicOpacities(): void {
+    this.categorySymbols.clear();
+    this.categoryLineSymbols.clear();
+    for (const [category, graphic] of this.categoryGraphics.entries()) {
+      graphic.symbol = this.getCategorySymbol(category);
+    }
+    for (const [category, lineGraphic] of this.categoryLineGraphics.entries()) {
+      lineGraphic.symbol = this.getCategoryLineSymbol(category);
+    }
   }
 
   createRenderRoot(): HTMLElement {
     return this;
   }
-}
-
-/**
- * Builds the Mapbox v8 style specification for the 3D airspace VectorTileLayer.
- *
- * Bakes date-specific `icaoClass` and `type` overrides (by airspace `name`) into
- * Mapbox `match` expressions so that visibility filtering (alongside `floorM < maxAltitude`)
- * and fill colors reflect the active date.
- */
-export function buildAirspaceVectorTileStyle({
-  maxAltitude,
-  showClasses,
-  showTypes,
-  opacity,
-  date,
-  tileServer,
-}: {
-  maxAltitude: number;
-  showClasses: Class[];
-  showTypes: Type[];
-  opacity: number;
-  date: Date;
-  tileServer: AirspaceServer;
-}) {
-  const overrides = [...getAirspaceOverrides(date)];
-  const classOverrides = overrides.flatMap(([name, o]) => (o.icaoClass !== undefined ? [name, o.icaoClass] : []));
-  const icaoClassExpr: any =
-    classOverrides.length > 0
-      ? ['match', ['get', 'name'], ...classOverrides, ['get', 'icaoClass']]
-      : ['get', 'icaoClass'];
-  const typeOverrides = overrides.flatMap(([name, o]) => (o.type !== undefined ? [name, o.type] : []));
-  const typeExpr: any =
-    typeOverrides.length > 0 ? ['match', ['get', 'name'], ...typeOverrides, ['get', 'type']] : ['get', 'type'];
-
-  const visibilityFilters: any[] = [];
-  if (showTypes.includes(Type.Other)) {
-    // https://community.esri.com/t5/arcgis-javascript-maps-sdk-questions/bug-in-vectortilelayer-stlyling-mapbox-styles/m-p/1334083#M82365
-    visibilityFilters.push(['boolean', true]);
-  } else {
-    for (const cl of showClasses) {
-      visibilityFilters.push(['==', icaoClassExpr, cl]);
-    }
-    for (const type of showTypes) {
-      visibilityFilters.push(['==', typeExpr, type]);
-    }
-    if (showTypes.includes(Type.Restricted)) {
-      visibilityFilters.push(['==', typeExpr, Type.LowAltitudeOverflightRestriction]);
-    }
-  }
-
-  return {
-    version: 8,
-    sources: {
-      asp: {
-        type: 'vector',
-        tiles: [getAirspaceTilesUrlTemplate(tileServer)],
-        minzoom: 0,
-        maxzoom: MAX_AIRSPACE_TILE_ZOOM,
-      },
-    },
-    layers: [
-      {
-        id: 'asp',
-        source: 'asp',
-        'source-layer': 'asp',
-        type: 'fill',
-        paint: {
-          'fill-color': [
-            'match',
-            icaoClassExpr,
-            [Class.A, Class.B, Class.C, Class.D],
-            ASP_COLOR_PROHIBITED,
-            [Class.E, Class.F, Class.G],
-            ASP_COLOR_RESTRICTED,
-            [
-              'match',
-              typeExpr,
-              [Type.CTR, Type.TMA, Type.ATZ, Type.CTA, Type.Prohibited, Type.RMZ],
-              ASP_COLOR_PROHIBITED,
-              [Type.TMZ, Type.GlidingSector, Type.Restricted, Type.LowAltitudeOverflightRestriction],
-              ASP_COLOR_RESTRICTED,
-              Type.Danger,
-              ASP_COLOR_DANGER,
-              ASP_COLOR_OTHER,
-            ],
-          ],
-          'fill-opacity': opacity / 100,
-          'fill-outline-color': '#aaaaaa',
-        },
-        filter: ['all', ['any', ...visibilityFilters], ['<=', ['get', 'floorM'], maxAltitude]],
-      },
-    ],
-  };
 }

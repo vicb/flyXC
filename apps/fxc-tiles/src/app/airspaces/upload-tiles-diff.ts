@@ -1,6 +1,7 @@
 // Unzip tiles to Google Cloud Storage.
 
 import { existsSync, readFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import path, { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -12,21 +13,23 @@ import { program } from 'commander';
 import { getAppFolderFromDist, printOnCurrentLine } from '../util';
 
 const LOG_EVERY_N_TILES = 100;
-const NUM_SLOTS = 30;
+const NUM_SLOTS = 150;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const defaultInputFolder = resolve(join(getAppFolderFromDist(__dirname), 'assets/tiles'));
 const defaultDiffFile = resolve(join(getAppFolderFromDist(__dirname), 'assets/tiles-info-diff.json'));
+const defaultDateFile = resolve(join(getAppFolderFromDist(__dirname), 'assets/airspaces-date.json'));
 
 program
   .option('-i, --input <folder>', 'input folder', defaultInputFolder)
   .option('-b, --bucket <file>', 'bucket name', 'airspaces')
   .option('-d, --diff <file>', 'Diff to apply', defaultDiffFile)
+  .option('--date <file>', 'airspace date file', defaultDateFile)
   .parse(process.argv);
 
-const { input, bucket, diff } = program.opts();
+const { input, bucket, diff, date: dateFile } = program.opts();
 
 console.log(`Sync configuration:`);
 console.log(`input: ${input}`);
@@ -72,7 +75,7 @@ async function addFiles(inputDir: string, fileIds: string[], bucketName: string,
 
     for (let i = 0; i <= retries; i++) {
       try {
-        const srcBuffer = readFileSync(srcPath);
+        const srcBuffer = await readFile(srcPath);
         await bucket.file(dstPath).save(srcBuffer, options);
         return;
       } catch (e) {
@@ -125,9 +128,14 @@ async function deleteFiles(fileIds: string[], bucketName: string, retries: numbe
 }
 
 // Converts a file id to a filename.
-// id is "zoom-x-y".
+// id is "zoom-x-y" or "zoom-x-y-variant".
 function idToFilename(id: string): string {
-  const [z, x, y] = id.split('-');
+  const parts = id.split('-');
+  if (parts.length >= 4) {
+    const [z, x, y, ...variant] = parts;
+    return `${z}/${x}/${y}-${variant.join('-')}.pbf`;
+  }
+  const [z, x, y] = parts;
   return `${z}/${x}/${y}.pbf`;
 }
 
@@ -166,6 +174,19 @@ function idToFilename(id: string): string {
       }
       process.exitCode = 1;
       return;
+    }
+
+    if (dateFile && existsSync(dateFile)) {
+      console.log(`# Uploading airspaces-date.json...`);
+      const bucketObj = getBucket(bucket);
+      await bucketObj.file('airspaces-date.json').save(readFileSync(dateFile), {
+        resumable: false,
+        gzip: true,
+        metadata: {
+          cacheControl: 'public,max-age=3600,must-revalidate',
+          contentType: 'application/json',
+        },
+      });
     }
 
     console.log(`# Done`);

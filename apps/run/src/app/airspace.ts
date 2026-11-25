@@ -9,13 +9,14 @@ import {
   getAirspaceColorCategory,
   getAirspaceTileUrl,
   getPixelCoordinates,
-  isInFeature,
+  isPointInFeatureBbox,
+  isPointInFlatGeometry,
   MAX_AIRSPACE_TILE_ZOOM,
   parallelTasksWithTimeout,
   protos,
   toTypedAirspace,
 } from '@flyxc/common';
-import { VectorTile } from 'mapbox-vector-tile';
+import { FeatureType, type FlatGeometry, VectorTile } from 'mapbox-vector-tile';
 import type { LRU } from 'tiny-lru';
 import { lru } from 'tiny-lru';
 
@@ -101,19 +102,24 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
   const indexesByAirspaceId = new Map<string, number[]>();
   const airspaceById = new Map<string, AirspaceTyped>();
   const maxAltitudeToCheck = arrayMax(track.alt) + MARGIN_METER;
+  const startDate = track.timeSec[0] ? new Date(track.timeSec[0] * 1000) : new Date();
   for (const [url, indexes] of indexesByTileUrl) {
     const buffer = cache.get(url);
     if (buffer == null) {
       continue;
     }
-    const aspLayer = new VectorTile(new Uint8Array(buffer)).layers.asp;
+    const aspLayer = new VectorTile(new Uint8Array(buffer)).getLayer<AirspaceString>('asp');
+    if (!aspLayer) {
+      continue;
+    }
 
-    const startDate = track.timeSec[0] ? new Date(track.timeSec[0] * 1000) : new Date();
-
-    for (let i = 0; i < aspLayer.length; i++) {
-      const feature = aspLayer.feature(i);
-      const airspace = applyOverrides(toTypedAirspace(feature.properties as AirspaceString), startDate);
+    for (const feature of aspLayer) {
+      if (feature.type !== FeatureType.POLYGON) {
+        continue;
+      }
+      const airspace = applyOverrides(toTypedAirspace(feature.properties, feature.id), startDate);
       const airspaceId = getAirspaceFeatureId(airspace);
+      let flatGeom: FlatGeometry | undefined;
       for (const fixIdx of indexes) {
         // Do not check airspaces above the track.
         // When the bottom references the ground it could be above the top for high ground elevation.
@@ -125,12 +131,16 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
           // The airspace is above the track max altitude.
           continue;
         }
-        if (isInFeature(pxInTiles[fixIdx], feature)) {
-          if (!indexesByAirspaceId.has(airspaceId)) {
-            indexesByAirspaceId.set(airspaceId, []);
-            airspaceById.set(airspaceId, airspace);
+        const point = pxInTiles[fixIdx];
+        if (isPointInFeatureBbox(point, feature)) {
+          flatGeom ??= feature.loadFlatGeometry();
+          if (flatGeom && isPointInFlatGeometry(point, flatGeom.coords, flatGeom.ends, feature.extent)) {
+            if (!indexesByAirspaceId.has(airspaceId)) {
+              indexesByAirspaceId.set(airspaceId, []);
+              airspaceById.set(airspaceId, airspace);
+            }
+            indexesByAirspaceId.get(airspaceId)!.push(fixIdx);
           }
-          indexesByAirspaceId.get(airspaceId).push(fixIdx);
         }
       }
     }

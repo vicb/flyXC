@@ -10,6 +10,8 @@ import { customElement, property, state } from 'lit/decorators.js';
 import type { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
+import { isValidElevation } from '../../logic/airspace3d-coverage';
+import { destroyGraphics } from '../../logic/airspace3d-graphics';
 import type { LiveLineProperties, LivePointProperties } from '../../logic/live-track';
 import { FixType } from '../../logic/live-track';
 import { popupContent } from '../../logic/live-track-popup';
@@ -156,11 +158,14 @@ export class Tracking3DElement extends connect(store)(LitElement) {
     if (this.layer) {
       this.layer.removeMany(this.tracks);
       this.layer.removeMany(this.markers);
+      destroyGraphics(this.tracks);
+      destroyGraphics(this.markers);
       this.tracks.length = 0;
       this.markers.length = 0;
     }
     if (this.gndLayer) {
       this.gndLayer.removeMany(this.trackShadows);
+      destroyGraphics(this.trackShadows);
       this.trackShadows.length = 0;
     }
   }
@@ -228,11 +233,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
     const scaledAlt = rawAlt * this.multiplier;
     const sampled = this.sampler?.queryElevation(point) as Point | null | undefined;
     const z = sampled?.z;
-    // The sampler sometimes returns sentinel/noData values (e.g. NaN, 3.40e+37 or noDataValue).
-    if (typeof z !== 'number' || !Number.isFinite(z) || z === this.sampler?.noDataValue || z > 20000) {
-      return scaledAlt;
-    }
-    return Math.max(z, scaledAlt);
+    return isValidElevation(z, this.sampler?.noDataValue) ? Math.max(z, scaledAlt) : scaledAlt;
   }
 
   // Updates the live tracks from the geojson.
@@ -281,9 +282,11 @@ export class Tracking3DElement extends connect(store)(LitElement) {
 
     this.layer.addMany(tracks);
     this.layer.removeMany(this.tracks);
+    destroyGraphics(this.tracks);
     this.tracks = tracks;
     this.gndLayer.addMany(trackShadows);
     this.gndLayer.removeMany(this.trackShadows);
+    destroyGraphics(this.trackShadows);
     this.trackShadows = trackShadows;
   }
 
@@ -376,6 +379,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
 
     this.layer.addMany(markers);
     this.layer.removeMany(this.markers);
+    destroyGraphics(this.markers);
     this.markers = markers;
   }
 

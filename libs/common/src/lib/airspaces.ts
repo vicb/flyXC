@@ -1,11 +1,13 @@
 import { TZDate } from '@date-fns/tz';
 import { addDays, isAfter, isBefore, isFriday, isMonday, isSaturday, isSunday, nextFriday, nextMonday } from 'date-fns';
-import type { Feature } from 'mapbox-vector-tile';
+import { classifyRingsFlat, type Feature } from 'mapbox-vector-tile';
 
+import { pointInFlatPolygon, pointToSegmentSquared2D } from './geometry';
 import type { Point } from './runtime-track';
 
 // Maximum zoom level for the airspaces.
 export const MAX_AIRSPACE_TILE_ZOOM = 10;
+export const AIRSPACE_3D_TILE_ZOOM = 6;
 export const AIRSPACE_TILE_SIZE = 256;
 
 // Pseudo type (legacy) that is now only use for the color.
@@ -244,6 +246,7 @@ export function getTypeName(type: Type): string {
 }
 
 export interface AirspaceTyped {
+  id: number;
   name: string;
   country: string;
   type: Type;
@@ -259,21 +262,57 @@ export interface AirspaceTyped {
   topRefGnd: boolean;
 }
 
+/**
+ * Properties of an airspace feature in GeoJSON or vector tiles.
+ */
+export interface AirspaceFeatureProperties {
+  icaoClass: Class | number;
+  type: Type | number;
+  floorM: number;
+  topM: number;
+  floorRefGnd: boolean;
+  topRefGnd: boolean;
+  flags?: Flags | number;
+  name?: string;
+  country?: string;
+  activity?: Activity | number;
+  floorLabel?: string;
+  topLabel?: string;
+  [key: string]: any;
+}
+
+/**
+ * GeoJSON Feature representing an airspace polygon or multipolygon.
+ */
+export interface AirspaceFeature {
+  type: 'Feature';
+  id?: number | string;
+  properties: AirspaceFeatureProperties;
+  geometry: {
+    type: 'Polygon' | 'MultiPolygon' | string;
+    coordinates: any;
+  };
+}
+
 export type AirspaceString = Record<keyof AirspaceTyped, string>;
 
-export function toTypedAirspace(airspaceStr: AirspaceString): AirspaceTyped {
+export function toTypedAirspace(
+  airspace: Partial<AirspaceString | AirspaceFeatureProperties>,
+  id: number | string | undefined,
+): AirspaceTyped {
   return {
-    name: airspaceStr.name,
-    country: airspaceStr.country,
-    type: Number(airspaceStr.type) as Type,
-    icaoClass: Number(airspaceStr.icaoClass) as Class,
-    activity: Number(airspaceStr.activity) as Activity,
-    floorM: Number(airspaceStr.floorM),
-    floorLabel: airspaceStr.floorLabel,
-    floorRefGnd: Boolean(airspaceStr.floorRefGnd),
-    topM: Number(airspaceStr.topM),
-    topLabel: airspaceStr.topLabel,
-    topRefGnd: Boolean(airspaceStr.topRefGnd),
+    id: Number(id),
+    name: airspace.name ?? '',
+    country: airspace.country ?? '',
+    type: Number(airspace.type) as Type,
+    icaoClass: Number(airspace.icaoClass) as Class,
+    activity: Number(airspace.activity) as Activity,
+    floorM: Number(airspace.floorM),
+    floorLabel: airspace.floorLabel ?? '',
+    floorRefGnd: Boolean(airspace.floorRefGnd),
+    topM: Number(airspace.topM),
+    topLabel: airspace.topLabel ?? '',
+    topRefGnd: Boolean(airspace.topRefGnd),
   };
 }
 
@@ -317,50 +356,145 @@ export const ASP_COLOR_RESTRICTED = '#bfbf40';
 export const ASP_COLOR_DANGER = '#bf8040';
 export const ASP_COLOR_OTHER = '#808080';
 
+export const ASP_CATEGORY_COLOR: Record<AirspaceColorCategory, string> = {
+  [AirspaceColorCategory.Prohibited]: ASP_COLOR_PROHIBITED,
+  [AirspaceColorCategory.Restricted]: ASP_COLOR_RESTRICTED,
+  [AirspaceColorCategory.Danger]: ASP_COLOR_DANGER,
+  [AirspaceColorCategory.Other]: ASP_COLOR_OTHER,
+};
+
 // Returns the color of the airspace with the given opacity percentage (0-100).
 export function getAirspaceColor(airspace: AirspaceTyped, opacityPercent: number): string {
   const alpha255 = Math.min(255, Math.max(0, Math.round((opacityPercent * 255) / 100)));
   const alphaHex = alpha255.toString(16).padStart(2, '0');
-
-  switch (getAirspaceColorCategory(airspace)) {
-    case AirspaceColorCategory.Prohibited:
-      return `${ASP_COLOR_PROHIBITED}${alphaHex}`;
-    case AirspaceColorCategory.Restricted:
-      return `${ASP_COLOR_RESTRICTED}${alphaHex}`;
-    case AirspaceColorCategory.Danger:
-      return `${ASP_COLOR_DANGER}${alphaHex}`;
-    case AirspaceColorCategory.Other:
-      return `${ASP_COLOR_OTHER}${alphaHex}`;
-  }
+  return `${ASP_CATEGORY_COLOR[getAirspaceColorCategory(airspace)]}${alphaHex}`;
 }
 
-// Returns whether the point is inside the polygon feature.
-export function isInFeature(point: Point, feature: Feature): boolean {
+/**
+ * Returns whether a point (in 256x256 tile pixels) is within a feature's bounding box
+ * (with optional `marginPx` buffer).
+ */
+export function isPointInFeatureBbox(point: Point, feature: Feature, marginPx = 0): boolean {
   const ratio = 256 / feature.extent;
-  const polygons = feature.asPolygons() ?? [];
-  for (const rings of polygons) {
-    // The point must be in the outer ring.
-    let isIn = isInPolygon(point, rings[0], ratio);
-    if (isIn) {
-      for (let i = 1; i < rings.length; ++i) {
-        // The point must not be in any hole.
-        isIn = isIn && !isInPolygon(point, rings[i], ratio);
-      }
-    }
-    if (isIn) {
+  const px = point.x / ratio;
+  const py = point.y / ratio;
+  const margin = marginPx > 0 ? marginPx / ratio : 0;
+
+  const [minX, minY, maxX, maxY] = feature.bbox();
+  return px >= minX - margin && px <= maxX + margin && py >= minY - margin && py <= maxY + margin;
+}
+
+function isPointNearRing(
+  px: number,
+  py: number,
+  coords: ArrayLike<number>,
+  start: number,
+  end: number,
+  margin2: number,
+): boolean {
+  if (end - start < 6) {
+    return false;
+  }
+  let xj = coords[end - 2];
+  let yj = coords[end - 1];
+  for (let i = start; i < end; i += 2) {
+    const xi = coords[i];
+    const yi = coords[i + 1];
+    if (pointToSegmentSquared2D(px, py, xj, yj, xi, yi) <= margin2) {
       return true;
     }
+    xj = xi;
+    yj = yi;
+  }
+  return false;
+}
+
+/**
+ * Returns whether a point (in 256x256 tile pixels) is inside flat polygon geometry
+ * (within optional `marginPx` of the outer boundary).
+ */
+export function isPointInFlatGeometry(
+  point: Point,
+  coords: ArrayLike<number>,
+  ends: ArrayLike<number>,
+  extent: number,
+  marginPx = 0,
+): boolean {
+  if (ends.length === 0) {
+    return false;
   }
 
+  const ratio = 256 / extent;
+  const px = point.x / ratio;
+  const py = point.y / ratio;
+
+  if (ends.length === 1) {
+    if (pointInFlatPolygon(px, py, coords, ends)) {
+      return true;
+    }
+    if (marginPx <= 0) {
+      return false;
+    }
+    const margin = marginPx / ratio;
+    return isPointNearRing(px, py, coords, 0, ends[0], margin * margin);
+  }
+
+  const polygonEnds = classifyRingsFlat(coords as number[], ends as number[]);
+
+  let ringStart = 0;
+  for (let p = 0; p < polygonEnds.length; p++) {
+    const polyEnd = polygonEnds[p];
+    if (pointInFlatPolygon(px, py, coords, ends, ringStart, polyEnd)) {
+      return true;
+    }
+    ringStart = polyEnd;
+  }
+
+  if (marginPx <= 0) {
+    return false;
+  }
+
+  const margin = marginPx / ratio;
+  const margin2 = margin * margin;
+  ringStart = 0;
+  for (let p = 0; p < polygonEnds.length; p++) {
+    const extStart = ringStart === 0 ? 0 : ends[ringStart - 1];
+    if (isPointNearRing(px, py, coords, extStart, ends[ringStart], margin2)) {
+      return true;
+    }
+    ringStart = polygonEnds[p];
+  }
   return false;
+}
+
+/**
+ * Returns whether a point (in 256x256 tile pixels) is inside a vector tile polygon feature
+ * (within optional `marginPx` of the outer boundary).
+ */
+export function isInFeature(point: Point, feature: Feature, marginPx = 0): boolean {
+  if (!isPointInFeatureBbox(point, feature, marginPx)) {
+    return false;
+  }
+  const { coords, ends } = feature.loadFlatGeometry();
+  return isPointInFlatGeometry(point, coords, ends, feature.extent, marginPx);
 }
 
 export type AirspaceServer = 'local' | 'cloud';
 
+export const LOCAL_AIRSPACE_BASE_URL = 'http://localhost:8084';
+export const CLOUD_AIRSPACE_BASE_URL = 'https://airspaces.storage.googleapis.com';
+
+export function getAirspaceDateUrl(server: AirspaceServer): string {
+  const base = server === 'local' ? LOCAL_AIRSPACE_BASE_URL : CLOUD_AIRSPACE_BASE_URL;
+  return `${base}/airspaces-date.json`;
+}
+
+export function getAirspaceTilesBaseUrl(server: AirspaceServer): string {
+  return server === 'local' ? LOCAL_AIRSPACE_BASE_URL : `${CLOUD_AIRSPACE_BASE_URL}/tiles`;
+}
+
 export function getAirspaceTilesUrlTemplate(server: AirspaceServer): string {
-  return server == 'local'
-    ? 'http://localhost:8084/{z}/{x}/{y}.pbf'
-    : 'https://airspaces.storage.googleapis.com/tiles/{z}/{x}/{y}.pbf';
+  return `${getAirspaceTilesBaseUrl(server)}/{z}/{x}/{y}.pbf`;
 }
 
 export function getAirspaceTileUrl(x: number, y: number, z: number, server: AirspaceServer): string {
@@ -368,67 +502,101 @@ export function getAirspaceTileUrl(x: number, y: number, z: number, server: Airs
   return url.replace('{x}', String(x)).replace('{y}', String(y)).replace('{z}', String(z));
 }
 
+export function getAirspace3dTilesUrlTemplate(server: AirspaceServer): string {
+  return `${getAirspaceTilesBaseUrl(server)}/${AIRSPACE_3D_TILE_ZOOM}/{x}/{y}-unclipped.pbf`;
+}
+
+export function getAirspace3dTileUrl(x: number, y: number, server: AirspaceServer): string {
+  const url = getAirspace3dTilesUrlTemplate(server);
+  return url.replace('{x}', String(x)).replace('{y}', String(y));
+}
+
 // Return a label for the class and the type, i.e. "E TMA", "E", "TMA" or "".
 export function getAirspaceCategory(airspace: AirspaceTyped) {
-  const parts = [getClassName(airspace.icaoClass), getTypeName(airspace.type)].filter((s) => s !== '');
+  const parts = [getClassName(airspace.icaoClass), getTypeName(airspace.type)].filter(Boolean);
   return parts.join(' ');
 }
 
-// Returns whether the point is in the polygon.
-function isInPolygon(point: Point, polygon: Point[], ratio: number): boolean {
-  const { x, y } = { x: point.x / ratio, y: point.y / ratio };
+/**
+ * Maximum reserved integer ID for airspaces with date/schedule overrides.
+ * Standard airspaces without overrides are assigned IDs > 100.
+ */
+export const RESERVED_AIRSPACE_ID_MAX = 100;
 
-  let isIn = false;
+/**
+ * 3D airspaces produced by merging coplanar 2D airspaces receive IDs >= MERGED_AIRSPACE_ID_MIN.
+ * Any 3D airspace with `id < MERGED_AIRSPACE_ID_MIN` preserves its exact 2D airspace `id`.
+ */
+export const MERGED_AIRSPACE_ID_MIN = 1_000_000;
 
-  let [xa, ya] = [polygon[0].x, polygon[0].y];
-  for (let j = 1; j < polygon.length; j++) {
-    const [xb, yb] = [polygon[j].x, polygon[j].y];
-
-    if (ya > y != yb > y && x < ((xb - xa) * (y - ya)) / (yb - ya) + xa) {
-      isIn = !isIn;
-    }
-    [xa, ya] = [xb, yb];
-  }
-
-  return isIn;
+/**
+ * Full name and class specifications for airspaces with date/schedule overrides.
+ * Matched during tile generation to assign reserved IDs 1..RESERVED_AIRSPACE_ID_MAX.
+ *
+ * Airspace names are not guaranteed to be unique in OpenAIP: multiple vertical
+ * layers or sectors can share the exact same name under different ICAO classes
+ * (e.g., "TMA CLERMONT 2.3 ORCINES" exists as both Class D and Class E).
+ * Matching by both `name` and `icaoClass` ensures the override is assigned to
+ * the correct airspace layer.
+ */
+export interface AirspaceOverrideTarget {
+  id: number;
+  name: string;
+  icaoClass: Class;
 }
 
-export const airspaceOverrides = {
+export const AIRSPACE_OVERRIDE_TARGETS: AirspaceOverrideTarget[] = [
   // Inactive from July to Oct
   // https://www.ecrins-parcnational.fr/les-survols-non-motorises
-  ecrins: 'PARC/RESERVE ECRINS',
+  { id: 1, name: 'PARC/RESERVE ECRINS', icaoClass: Class.SUA },
   // See https://www.freedom-parapente.fr/site/puy-de-dome
-  TMAClermont21: 'TMA CLERMONT 2.1 (VOL LIBRE)',
-  TMAClermont22: 'TMA CLERMONT 2.2 CHAMPEIX (VOL LIBRE)',
-  TMAClermont23: 'TMA CLERMONT 2.3 ORCINES (VOL LIBRE)',
-  TMAClermont41: 'TMA CLERMONT 4.1 JOB (VOL LIBRE)',
-  TMAClermont51: 'TMA CLERMONT5.1 PUY DE DOME (VOL LIBRE)',
-  // Active in July and August
-  // https://federation.ffvl.fr/sites/ffvl.fr/files/Massifdumontblancchamonix.pdf
-  LFR30B: 'LF-R30B MONT BLANC (JULY+AUGUST)',
+  { id: 2, name: 'TMA CLERMONT 2.1 (VOL LIBRE)', icaoClass: Class.D },
+  { id: 3, name: 'TMA CLERMONT 2.2 CHAMPEIX', icaoClass: Class.D },
+  { id: 4, name: 'TMA CLERMONT 2.3 ORCINES', icaoClass: Class.D },
+  { id: 5, name: 'TMA CLERMONT 4.1 JOB', icaoClass: Class.D },
+  { id: 6, name: 'TMA CLERMONT 5.1 PUY DE DOME', icaoClass: Class.D },
+  // Mont Blanc restricted areas (AIP ENR 5.1)
+  // - 30A: inactive in July and August (replaced by 30B)
+  // - 30B: active in July and August
+  // - 30C: active June 1 to October 15
+  { id: 7, name: 'LF-R30A MONT BLANC', icaoClass: Class.SUA },
+  { id: 8, name: 'LF-R30B MONT BLANC (JULY+AUG)', icaoClass: Class.SUA },
+  { id: 9, name: 'LF-R30C MONT BLANC (JUNE - 15 OCT)', icaoClass: Class.SUA },
   // Class E
   // - 2nd Monday of April to 2nd Friday of December
   // - outside the above period: Monday 11:00UTC to Thursday 23:59UTC
-  TMAChambery1: 'TMA CHAMBERY 1',
-  TMAChambery2: 'TMA CHAMBERY 2',
-  TMAChambery3: 'TMA CHAMBERY 3',
+  { id: 10, name: 'TMA CHAMBERY 1', icaoClass: Class.E },
+  { id: 11, name: 'TMA CHAMBERY 2', icaoClass: Class.E },
+  { id: 12, name: 'TMA CHAMBERY 3', icaoClass: Class.E },
   // Disabled
   // - 2nd Monday of April to 2nd Friday of December
   // - outside the above period: Monday 11:00UTC to Thursday 23:59UTC
-  CTRChambery2: 'CTR CHAMBERY 2 (ACTIVE MID DEC -> MID AVRIL)',
-} as const;
+  { id: 13, name: 'CTR CHAMBERY 2 (ACTIVE MID DEC -> MID APRIL)', icaoClass: Class.D },
+];
 
-export type AirspaceOverride = (typeof airspaceOverrides)[keyof typeof airspaceOverrides];
+/**
+ * Bidirectional mapping between reserved airspace IDs and canonical override names.
+ * Allows 3D vector tile features (which strip string names) to match override rules by ID.
+ *
+ * @see RESERVED_AIRSPACE_ID_MAX
+ */
+export const AIRSPACE_OVERRIDE_ID_TO_NAME: Record<number, string> = Object.fromEntries(
+  AIRSPACE_OVERRIDE_TARGETS.map((t) => [t.id, t.name]),
+);
+
+export const AIRSPACE_OVERRIDE_KEY_TO_ID: Record<string, number> = Object.fromEntries(
+  AIRSPACE_OVERRIDE_TARGETS.map((t) => [`${t.name}|${t.icaoClass}`, t.id]),
+);
 
 /**
  * Returns the date-resolved overrides for all overridable airspaces.
  */
-export function getAirspaceOverrides(date: Date): Map<string, Partial<AirspaceTyped>> {
-  const overrides = new Map<string, Partial<AirspaceTyped>>();
-  for (const name of Object.values(airspaceOverrides)) {
-    const override = getAirspaceOverride(name, date);
+export function getAirspaceOverrides(date: Date): Map<number, Partial<AirspaceTyped>> {
+  const overrides = new Map<number, Partial<AirspaceTyped>>();
+  for (const { id } of AIRSPACE_OVERRIDE_TARGETS) {
+    const override = getAirspaceOverride(id, date);
     if (override) {
-      overrides.set(name, override);
+      overrides.set(id, override);
     }
   }
   return overrides;
@@ -438,59 +606,79 @@ export function getAirspaceOverrides(date: Date): Map<string, Partial<AirspaceTy
  * Applies any date-specific overrides to an airspace.
  */
 export function applyOverrides(airspace: AirspaceTyped, date: Date): AirspaceTyped {
-  const override = getAirspaceOverride(airspace.name, date);
+  const override = getAirspaceOverride(airspace.id, date);
   return override ? { ...airspace, ...override } : airspace;
 }
 
 /**
- * Returns the overridden fields for an airspace name on the given date, or undefined if no override applies.
+ * Returns the overridden fields for an airspace on the given date, or undefined if no override applies.
  */
-function getAirspaceOverride(name: string, date: Date): Partial<AirspaceTyped> | undefined {
+function getAirspaceOverride(id: number, date: Date): Partial<AirspaceTyped> | undefined {
+  if (!id || id <= 0 || id > RESERVED_AIRSPACE_ID_MAX) {
+    return undefined;
+  }
+
   const tzDate = new TZDate(date, 'Europe/Paris');
   const month = tzDate.getMonth() + 1;
 
-  switch (name) {
-    case airspaceOverrides.ecrins:
-      return month >= 7 && month <= 10 ? { name: `${name} - INACTIVE`, type: Type.Other } : undefined;
+  switch (id) {
+    case 1: // PARC/RESERVE ECRINS
+      return month >= 7 && month <= 10
+        ? { name: `${AIRSPACE_OVERRIDE_ID_TO_NAME[1]} - INACTIVE`, type: Type.Other }
+        : undefined;
 
-    case airspaceOverrides.TMAClermont21:
-    case airspaceOverrides.TMAClermont22:
+    case 2: // TMA CLERMONT 2.1 (VOL LIBRE)
+    case 3: // TMA CLERMONT 2.2 CHAMPEIX (VOL LIBRE)
       return {
         type: Type.TMA,
         icaoClass: Class.G,
         ...createTopM(isClermontLowerPeriod(tzDate) ? 1680 : 1980),
       };
 
-    case airspaceOverrides.TMAClermont23:
+    case 4: // TMA CLERMONT 2.3 ORCINES (VOL LIBRE)
       return {
         type: Type.TMA,
         icaoClass: Class.G,
         ...createTopM(isClermontLowerPeriod(tzDate) ? 1680 : isSaturday(tzDate) || isSunday(tzDate) ? 2590 : 1980),
       };
 
-    case airspaceOverrides.TMAClermont41:
+    case 5: // TMA CLERMONT 4.1 JOB (VOL LIBRE)
       return {
         type: Type.TMA,
         icaoClass: Class.G,
         ...createTopM(isClermontLowerPeriod(tzDate) ? 2590 : isSaturday(tzDate) || isSunday(tzDate) ? 2895 : 2590),
       };
 
-    case airspaceOverrides.TMAClermont51:
+    case 6: // TMA CLERMONT5.1 PUY DE DOME (VOL LIBRE)
       return {
         type: Type.TMA,
         icaoClass: Class.G,
         ...createTopM(isClermontLowerPeriod(tzDate) ? 2590 : 3505),
       };
 
-    case airspaceOverrides.LFR30B:
-      return month == 7 || month == 8 ? undefined : { type: Type.Other, name: 'LF-R30B MONT BLANC - INACTIVE' };
+    case 7: // LF-R30A MONT BLANC (inactive in July and August)
+      return month == 7 || month == 8
+        ? { type: Type.Other, name: `${AIRSPACE_OVERRIDE_ID_TO_NAME[7]} - INACTIVE` }
+        : undefined;
 
-    case airspaceOverrides.TMAChambery1:
-    case airspaceOverrides.TMAChambery2:
-    case airspaceOverrides.TMAChambery3:
+    case 8: // LF-R30B MONT BLANC (JULY+AUG) (active only in July and August)
+      return month == 7 || month == 8
+        ? undefined
+        : { type: Type.Other, name: `${AIRSPACE_OVERRIDE_ID_TO_NAME[8]} - INACTIVE` };
+
+    case 9: {
+      // LF-R30C MONT BLANC (JUNE - 15 OCT) (active from June 1 to October 15)
+      const isActive = (month >= 6 && month <= 9) || (month === 10 && tzDate.getDate() <= 15);
+      return isActive ? undefined : { type: Type.Other, name: `${AIRSPACE_OVERRIDE_ID_TO_NAME[9]} - INACTIVE` };
+    }
+
+    case 10: // TMA CHAMBERY 1
+    case 11: // TMA CHAMBERY 2
+    case 12: // TMA CHAMBERY 3
       return { icaoClass: isChamberyWinterWeekend(tzDate) ? Class.D : Class.E };
 
-    case airspaceOverrides.CTRChambery2: {
+    case 13: {
+      // CTR CHAMBERY 2 (ACTIVE MID DEC -> MID APRIL)
       const base = { ...createTopM(1067), topRefGnd: true };
       return isChamberyWinterWeekend(tzDate)
         ? { ...base, icaoClass: Class.D }
@@ -498,7 +686,7 @@ function getAirspaceOverride(name: string, date: Date): Partial<AirspaceTyped> |
             ...base,
             icaoClass: Class.SUA,
             type: Type.Other,
-            name: `${name} - INACTIVE`,
+            name: `${AIRSPACE_OVERRIDE_ID_TO_NAME[13]} - INACTIVE`,
           };
     }
 
@@ -538,4 +726,12 @@ function isChamberyWinterWeekend(tzDate: TZDate): boolean {
 
 function createTopM(topM: number) {
   return { topM, topLabel: `${topM}m` };
+}
+
+/**
+ * Returns the effective date for evaluating airspace temporal overrides:
+ * the track timestamp when a track is loaded, or the current wall-clock date otherwise.
+ */
+export function getEffectiveAirspaceDate(hasTrack: boolean, timeSec: number): Date {
+  return hasTrack && Number.isFinite(timeSec) ? new Date(timeSec * 1000) : new Date();
 }

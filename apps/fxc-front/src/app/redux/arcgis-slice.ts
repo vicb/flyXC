@@ -9,7 +9,7 @@ type ArcgisState = {
 
 const initialState: ArcgisState = {
   altMultiplier: 1.3,
-  useSunLighting: true,
+  useSunLighting: false,
 };
 
 const arcgisSlice = createSlice({

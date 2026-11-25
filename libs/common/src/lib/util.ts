@@ -121,3 +121,28 @@ export function getHostName(url: string): string | null {
     return null;
   }
 }
+
+/**
+ * Inserts or updates an entry in a bounded LRU/FIFO Map, evicting the oldest key when full.
+ */
+export function setBoundedCache<K, V>(cache: Map<K, V>, maxSize: number, key: K, value: V): void {
+  if (cache.has(key)) {
+    cache.delete(key);
+  } else if (cache.size >= maxSize) {
+    const oldestKey = cache.keys().next().value;
+    if (oldestKey !== undefined) {
+      cache.delete(oldestKey);
+    }
+  }
+  cache.set(key, value);
+}
+
+/** 32-bit FNV-1a offset basis. */
+export const FNV1A_OFFSET_BASIS = 0x811c9dc5;
+
+/**
+ * Mixes a 32-bit integer value into an ongoing FNV-1a hash.
+ */
+export function fnv1aMix(hash: number, value: number): number {
+  return Math.imul(hash ^ value, 0x01000193);
+}
