@@ -7,7 +7,6 @@ import '@ionic/core/css/structure.css';
 import '@ionic/core/css/text-alignment.css';
 import '@ionic/core/css/typography.css';
 import './app/components/loader-element';
-import './app/components/pwa-install';
 import './app/components/ui/main-menu';
 
 import type { Class, LatLonAlt, Type } from '@flyxc/common';
@@ -136,23 +135,22 @@ export class FlyXc extends connect(store)(LitElement) {
         </ion-router>
         <ion-router-outlet .animated=${false}></ion-router-outlet>
       </ion-app>
-      ${when(
-        this.showPwaInstall,
-        () =>
-          html`<pwa-install
-            manifestpath="/manifest.webmanifest"
-            iconpath="/static/iconx/pwa-maskable-192x192.png"
-            explainer="flyXC can be installed on your PC or mobile. This will allow this web app to look and behave like any other installed app. You will benefit from a richer and faster experience."
-            .features=${[
-              'Visualize multiple tracks',
-              '2D and 3D views',
-              'Plan your routes',
-              'Aggregate your live tracking positions from the major platforms',
-            ]}
-            .deferredprompt=${window.deferredPrompt}
-            @hide=${this.cancelInstall}
-          ></pwa-install>`,
-      )}
+      ${when(this.showPwaInstall, () => {
+        void import('./app/components/pwa-install');
+        return html`<pwa-install
+          manifestpath="/manifest.webmanifest"
+          iconpath="/static/iconx/pwa-maskable-192x192.png"
+          explainer="flyXC can be installed on your PC or mobile. This will allow this web app to look and behave like any other installed app. You will benefit from a richer and faster experience."
+          .features=${[
+            'Visualize multiple tracks',
+            '2D and 3D views',
+            'Plan your routes',
+            'Aggregate your live tracking positions from the major platforms',
+          ]}
+          .deferredprompt=${window.deferredPrompt}
+          @hide=${this.cancelInstall}
+        ></pwa-install>`;
+      })}
     `;
   }
 
