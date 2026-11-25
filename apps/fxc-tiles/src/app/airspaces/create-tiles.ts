@@ -2,7 +2,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { AIRSPACE_3D_TILE_ZOOM, type AirspaceFeature, MAX_AIRSPACE_TILE_ZOOM } from '@flyxc/common';
@@ -24,13 +24,20 @@ program
   .option('-d, --date <file>', 'date file', defaultDateFile)
   .parse();
 
-const outFolder = program.opts().output;
+const outFolder = resolve(program.opts().output);
+const inputPath = resolve(program.opts().input);
+const isInsideOut = (p: string) => {
+  const rel = relative(outFolder, p);
+  return !rel.startsWith('..') && !isAbsolute(rel);
+};
+if (isInsideOut(process.cwd()) || isInsideOut(inputPath)) {
+  throw new Error(`Refusing to delete ${outFolder}: it contains the working directory or input path.`);
+}
 if (existsSync(outFolder)) {
   console.log(`# Delete existing tiles in ${outFolder}...`);
   rmSync(outFolder, { recursive: true, force: true });
 }
 
-const inputPath = resolve(program.opts().input);
 let inputFiles: string[] = [];
 
 if (existsSync(inputPath) && statSync(inputPath).isDirectory()) {
