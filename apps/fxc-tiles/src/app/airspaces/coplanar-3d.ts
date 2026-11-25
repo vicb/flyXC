@@ -248,6 +248,7 @@ export async function mergeCoplanarAirspaces(
 
     const clipper = new c.ClipperD(6);
     const paths = new c.PathsD();
+    const polyTree = new c.PolyPathD();
 
     try {
       for (const f of candidateItems) {
@@ -285,11 +286,11 @@ export async function mergeCoplanarAirspaces(
       }
 
       clipper.AddSubject(paths);
-      const polyTree = new c.PolyPathD();
       clipper.ExecutePoly(c.ClipType.Union, c.FillRule.NonZero, polyTree);
 
       const mergedPolygons = extractPolygonsFromPolyTree(c, polyTree, true);
       const emittedIds = new Set<number>();
+      const mergedFeatures: AirspaceFeature[] = [];
 
       for (const polyCoords of mergedPolygons) {
         const polyBBox = computeBBox(polyCoords);
@@ -309,7 +310,7 @@ export async function mergeCoplanarAirspaces(
           id = nextId++;
         }
 
-        resultFeatures.push({
+        mergedFeatures.push({
           type: 'Feature',
           id,
           properties: {
@@ -329,8 +330,9 @@ export async function mergeCoplanarAirspaces(
         });
       }
 
-      polyTree.delete();
-    } catch {
+      resultFeatures.push(...mergedFeatures);
+    } catch (err) {
+      console.warn('Coplanar 3D union failed, falling back to unmerged features:', err);
       // Fallback: emit candidate features individually with their original 2D IDs
       for (const f of candidateItems) {
         resultFeatures.push({
@@ -341,6 +343,7 @@ export async function mergeCoplanarAirspaces(
         });
       }
     } finally {
+      polyTree.delete();
       paths.delete();
       clipper.delete();
     }
