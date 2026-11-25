@@ -2,7 +2,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { AIRSPACE_3D_TILE_ZOOM, type AirspaceFeature, MAX_AIRSPACE_TILE_ZOOM } from '@flyxc/common';
@@ -28,7 +28,7 @@ const outFolder = resolve(program.opts().output);
 const inputPath = resolve(program.opts().input);
 const isInsideOut = (p: string) => {
   const rel = relative(outFolder, p);
-  return !rel.startsWith('..') && !isAbsolute(rel);
+  return rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel);
 };
 if (isInsideOut(process.cwd()) || isInsideOut(inputPath)) {
   throw new Error(`Refusing to delete ${outFolder}: it contains the working directory or input path.`);

@@ -152,21 +152,13 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (changedProps.has('view')) {
-      this.teardownViewWatchers();
       this.restoreDepthCache();
       this.setupViewWatchers();
       this.graphicsLayerView = undefined;
     }
 
     if (changedProps.has('sampler')) {
-      this.samplerHandle?.remove();
-      this.samplerHandle = this.sampler?.on('changed', () => {
-        if (!this.showAirspace || !this.currentAirspaces.some((a) => a.airspace.floorRefGnd || a.airspace.topRefGnd)) {
-          return;
-        }
-        clearTimeout(this.samplerTimer);
-        this.samplerTimer = window.setTimeout(() => this.rebuildMeshes(true), SAMPLER_REFRESH_DEBOUNCE_MS);
-      });
+      this.setupSamplerWatcher();
     }
 
     if (!this.map || !this.showAirspace || !this.enabled) {
@@ -184,17 +176,18 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       changedProps.has('showTypes') ||
       changedProps.has('hasTrack');
 
+    const multiplierChanged = changedProps.has('multiplier');
+    if (multiplierChanged) {
+      this.meshCache.clear();
+      for (const item of this.currentAirspaces) {
+        item.meshData = undefined;
+      }
+    }
+
     if (filterOrMapChanged) {
       this.lastQueryKey = undefined;
       this.scheduleRefresh(true);
-    } else if (changedProps.has('multiplier') || changedProps.has('sampler')) {
-      const multiplierChanged = changedProps.has('multiplier');
-      if (multiplierChanged) {
-        this.meshCache.clear();
-        for (const item of this.currentAirspaces) {
-          item.meshData = undefined;
-        }
-      }
+    } else if (multiplierChanged || changedProps.has('sampler')) {
       if (this.currentAirspaces.length > 0) {
         this.rebuildMeshes(!multiplierChanged);
       } else {
@@ -209,6 +202,8 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
   connectedCallback(): void {
     super.connectedCallback();
+    this.setupViewWatchers();
+    this.setupSamplerWatcher();
     if (this.map && this.view && this.showAirspace && this.enabled && !this.graphicsLayer) {
       this.scheduleRefresh(true);
     }
@@ -354,7 +349,19 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     }
   }
 
+  private setupSamplerWatcher(): void {
+    this.samplerHandle?.remove();
+    this.samplerHandle = this.sampler?.on('changed', () => {
+      if (!this.showAirspace || !this.currentAirspaces.some((a) => a.airspace.floorRefGnd || a.airspace.topRefGnd)) {
+        return;
+      }
+      clearTimeout(this.samplerTimer);
+      this.samplerTimer = window.setTimeout(() => this.rebuildMeshes(true), SAMPLER_REFRESH_DEBOUNCE_MS);
+    });
+  }
+
   private setupViewWatchers(): void {
+    this.teardownViewWatchers();
     if (!this.view) {
       return;
     }

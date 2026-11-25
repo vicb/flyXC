@@ -234,7 +234,18 @@ export class Airspace3dProcessor {
     await this.checkRemoteDate(tileServer);
 
     const fetchGeneration = this.cacheGeneration;
-    const decodedTiles = await Promise.all(tiles.map((t) => this.fetchDecodedTile(t.x, t.y, t.z, tileServer)));
+    let decodedTiles: (DecodedTileFeature[] | null)[];
+    try {
+      decodedTiles = await Promise.all(tiles.map((t) => this.fetchDecodedTile(t.x, t.y, t.z, tileServer)));
+    } catch (error) {
+      const errResponse: AirspaceWorkerResponse = {
+        id: requestId,
+        items: [],
+        error: error instanceof Error ? error.message : String(error),
+      };
+      onProgress?.(errResponse);
+      return errResponse;
+    }
     if (requestId < this.lastRequestId) {
       return { id: requestId, items: [] };
     }
@@ -403,10 +414,10 @@ export class Airspace3dProcessor {
       try {
         const response = await fetch(url);
         if (!response.ok) {
-          if (response.status !== 404 && gen === this.cacheGeneration) {
-            this.tileCache.delete(url);
+          if (response.status === 404) {
+            return null;
           }
-          return null;
+          throw new Error(`HTTP ${response.status} fetching ${url}`);
         }
         const buffer = await response.arrayBuffer();
         const tile = new VectorTile(new Uint8Array(buffer));
@@ -431,11 +442,11 @@ export class Airspace3dProcessor {
           });
         }
         return features;
-      } catch {
+      } catch (error) {
         if (gen === this.cacheGeneration) {
           this.tileCache.delete(url);
         }
-        return null;
+        throw error;
       }
     })();
 
