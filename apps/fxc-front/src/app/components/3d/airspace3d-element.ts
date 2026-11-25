@@ -209,7 +209,9 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.requestUpdate();
+    if (this.map && this.view && this.showAirspace && this.enabled && !this.graphicsLayer) {
+      this.scheduleRefresh(true);
+    }
   }
 
   disconnectedCallback(): void {
