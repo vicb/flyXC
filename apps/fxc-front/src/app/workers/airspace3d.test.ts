@@ -439,19 +439,23 @@ describe('airspace3d-processor', () => {
     });
 
     it('evicts retryable HTTP failures (e.g. 503) from tileCache and propagates error while keeping 404 cached', async () => {
-      global.fetch = vi.fn().mockImplementation((url: string) =>
-        url.endsWith('/airspaces-date.json')
-          ? Promise.resolve({ ok: true, json: async () => ({ date: '2026-11-14', timestamp: 1000 }) })
-          : Promise.resolve({ ok: false, status: 503 }),
-      ) as any;
+      global.fetch = vi
+        .fn()
+        .mockImplementation((url: string) =>
+          url.endsWith('/airspaces-date.json')
+            ? Promise.resolve({ ok: true, json: async () => ({ date: '2026-11-14', timestamp: 1000 }) })
+            : Promise.resolve({ ok: false, status: 503 }),
+        ) as any;
       await expect(processor.fetchDecodedTile(1, 2, 6, 'cloud')).rejects.toThrow('HTTP 503');
       expect((processor as any).tileCache.size).toBe(0);
 
-      global.fetch = vi.fn().mockImplementation((url: string) =>
-        url.endsWith('/airspaces-date.json')
-          ? Promise.resolve({ ok: true, json: async () => ({ date: '2026-11-14', timestamp: 1000 }) })
-          : Promise.resolve({ ok: false, status: 503 }),
-      ) as any;
+      global.fetch = vi
+        .fn()
+        .mockImplementation((url: string) =>
+          url.endsWith('/airspaces-date.json')
+            ? Promise.resolve({ ok: true, json: async () => ({ date: '2026-11-14', timestamp: 1000 }) })
+            : Promise.resolve({ ok: false, status: 503 }),
+        ) as any;
       const errRes = await processor.process({
         id: 1,
         tiles: [{ x: 1, y: 2, z: 6 }],
