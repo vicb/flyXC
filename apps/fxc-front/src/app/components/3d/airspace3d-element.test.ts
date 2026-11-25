@@ -1414,6 +1414,26 @@ describe('Airspace3dElement', () => {
     consoleSpy.mockRestore();
   });
 
+  it('updates category graphic signature when an airspace altitude override changes without changing id or lod', () => {
+    const element = new Airspace3dElement();
+    const mkItem = (topM: number) => ({
+      category: common.AirspaceColorCategory.Other,
+      airspace: { id: 2, floorM: 0, topM, floorRefGnd: false, topRefGnd: false } as any,
+      meshData: { positions: new Float64Array([0, 0, 0]), faces: new Uint32Array([0, 1, 2]) },
+      meshLod: 1,
+    });
+
+    (element as any).currentAirspaces = [mkItem(1680)];
+    (element as any).populateCategoryBuckets();
+    const sig1 = (element as any).categoryBuckets.get(common.AirspaceColorCategory.Other).sigHash;
+
+    (element as any).currentAirspaces = [mkItem(1980)];
+    (element as any).populateCategoryBuckets();
+    const sig2 = (element as any).categoryBuckets.get(common.AirspaceColorCategory.Other).sigHash;
+
+    expect(sig2).not.toBe(sig1);
+  });
+
   it('findMatching3dItem matches unmerged items by id and merged items (>= MERGED_AIRSPACE_ID_MIN) by bounds, category, and containment', () => {
     const unmergedItem = {
       category: common.AirspaceColorCategory.Other,

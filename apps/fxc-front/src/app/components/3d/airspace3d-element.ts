@@ -702,7 +702,10 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         bucket.parts.push(item.meshData);
         let h = fnv1aMix(bucket.sigHash, item.airspace.id);
         h = fnv1aMix(h, item.groundSignature ?? 0);
-        bucket.sigHash = fnv1aMix(h, item.meshLod ?? 0);
+        h = fnv1aMix(h, item.meshLod ?? 0);
+        h = fnv1aMix(h, item.airspace.floorM);
+        h = fnv1aMix(h, item.airspace.topM);
+        bucket.sigHash = fnv1aMix(h, (item.airspace.floorRefGnd ? 1 : 0) | (item.airspace.topRefGnd ? 2 : 0));
       }
     }
   }
