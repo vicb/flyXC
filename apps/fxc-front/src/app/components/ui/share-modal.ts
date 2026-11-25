@@ -2,10 +2,10 @@ import type { LatLonAlt } from '@flyxc/common';
 import { encodeFloats, encodeSignedIntegers } from '@flyxc/common';
 import type { SegmentCustomEvent } from '@ionic/core';
 import { modalController, toastController } from '@ionic/core/components';
-import type { PropertyValues, TemplateResult } from 'lit';
+import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { toDataURL } from 'qrcode/lib/browser';
+import { renderSVG } from 'uqr';
 
 @customElement('share-modal')
 export class ShareModal extends LitElement {
@@ -16,21 +16,11 @@ export class ShareModal extends LitElement {
 
   @state()
   private type: 'task' | 'link' = 'task';
-  @state()
-  private qrDataUrl?: string;
-
-  shouldUpdate(changedProps: PropertyValues): boolean {
-    if (changedProps.has('link') || changedProps.has('type')) {
-      this.qrDataUrl = undefined;
-      toDataURL(this.type == 'link' ? this.link : this.createXCTrackRoute()).then((url: string) => {
-        this.qrDataUrl = url;
-      });
-    }
-    // Note: `LitElement#shouldUpdate()` is always true
-    return super.shouldUpdate(changedProps);
-  }
 
   render(): TemplateResult {
+    const svg = renderSVG(this.type == 'link' ? this.link : this.createXCTrackRoute());
+    const qrDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+
     return html`
       <ion-header>
         <ion-toolbar color="light">
@@ -58,9 +48,7 @@ export class ShareModal extends LitElement {
           </ion-segment>
         </ion-item>
         <ion-item lines="full">
-          ${this.qrDataUrl == null
-            ? html`<ion-spinner name="dots" style="margin: 0 auto"></ion-spinner>`
-            : html`<img width="200" height="200" src=${this.qrDataUrl} style="margin: 0 auto" />`}
+          <img width="200" height="200" src=${qrDataUrl} style="margin: 0 auto" />
         </ion-item>
       </ion-content>
       <ion-footer>

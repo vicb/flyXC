@@ -20,8 +20,8 @@ import { when } from 'lit/directives/when.js';
 import { connect } from 'pwa-helpers';
 import { registerSW } from 'virtual:pwa-register';
 
-import type { ChartTrack } from './app/components/chart-element';
-import { ChartYAxis } from './app/components/chart-element';
+import type { ChartTrack } from './app/components/chart-types';
+import { ChartYAxis } from './app/components/chart-types';
 import type { PWAInstallComponent } from './app/components/pwa-install';
 import { ionicInit } from './app/components/ui/ionic';
 import { requestCurrentPosition } from './app/logic/geolocation';
@@ -138,19 +138,20 @@ export class FlyXc extends connect(store)(LitElement) {
       </ion-app>
       ${when(
         this.showPwaInstall,
-        () => html`<pwa-install
-          manifestpath="/manifest.webmanifest"
-          iconpath="/static/iconx/pwa-maskable-192x192.png"
-          explainer="flyXC can be installed on your PC or mobile. This will allow this web app to look and behave like any other installed app. You will benefit from a richer and faster experience."
-          .features=${[
-            'Visualize multiple tracks',
-            '2D and 3D views',
-            'Plan your routes',
-            'Aggregate your live tracking positions from the major platforms',
-          ]}
-          .deferredprompt=${window.deferredPrompt}
-          @hide=${this.cancelInstall}
-        ></pwa-install>`,
+        () =>
+          html`<pwa-install
+            manifestpath="/manifest.webmanifest"
+            iconpath="/static/iconx/pwa-maskable-192x192.png"
+            explainer="flyXC can be installed on your PC or mobile. This will allow this web app to look and behave like any other installed app. You will benefit from a richer and faster experience."
+            .features=${[
+              'Visualize multiple tracks',
+              '2D and 3D views',
+              'Plan your routes',
+              'Aggregate your live tracking positions from the major platforms',
+            ]}
+            .deferredprompt=${window.deferredPrompt}
+            @hide=${this.cancelInstall}
+          ></pwa-install>`,
       )}
     `;
   }
@@ -300,6 +301,7 @@ export class MapsElement extends connect(store)(LitElement) {
 
   private lastSelectedLiveId?: string;
   private lastSelectedTrackId?: string;
+  private chartElementLoaded = false;
 
   /**
    * Responds to Redux state updates, synchronizing chart properties, airspace settings,
@@ -312,6 +314,10 @@ export class MapsElement extends connect(store)(LitElement) {
     const hasLiveTrack = selectedLive != null;
     this.isLiveTrack = hasLiveTrack;
     this.hasTrack = selectHasChartTrack(state);
+    if (this.hasTrack && !this.chartElementLoaded) {
+      this.chartElementLoaded = true;
+      void import('./app/components/chart-element');
+    }
     this.showLoader = track.selectFetching(state) || app.selectLoadingApi(state);
 
     this.chartTracks = selectChartTracks(state);
@@ -397,26 +403,27 @@ export class MapsElement extends connect(store)(LitElement) {
           <ion-router-outlet class=${clMap}></ion-router-outlet>
           ${when(
             this.hasTrack,
-            () => html`<chart-element
-              class=${clMap}
-              .tracks=${this.chartTracks}
-              .currentTrackId=${this.chartActiveTrackId}
-              .chartYAxis=${this.chartYAxis}
-              .availableYAxes=${this.availableYAxes}
-              .timeSec=${this.timeSec}
-              .minTimeSec=${this.minTimeSec}
-              .maxTimeSec=${this.maxTimeSec}
-              .minY=${this.minY}
-              .maxY=${this.maxY}
-              .units=${this.units}
-              .showClasses=${this.showClasses}
-              .showTypes=${this.showTypes}
-              .isLiveTrack=${this.isLiveTrack}
-              @move=${(e: CustomEvent) => store.dispatch(app.setTimeSec(e.detail.timeSec))}
-              @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.timeSec))}
-              @zoom=${(e: CustomEvent) => msg.centerZoomMap.emit(this.coordinatesAt(e.detail.timeSec), e.detail.deltaY)}
-              @select-y=${(e: CustomEvent) => store.dispatch(app.setChartYAxis(e.detail.y))}
-            ></chart-element>`,
+            () =>
+              html`<chart-element
+                class=${clMap}
+                .tracks=${this.chartTracks}
+                .currentTrackId=${this.chartActiveTrackId}
+                .chartYAxis=${this.chartYAxis}
+                .availableYAxes=${this.availableYAxes}
+                .timeSec=${this.timeSec}
+                .minTimeSec=${this.minTimeSec}
+                .maxTimeSec=${this.maxTimeSec}
+                .minY=${this.minY}
+                .maxY=${this.maxY}
+                .units=${this.units}
+                .showClasses=${this.showClasses}
+                .showTypes=${this.showTypes}
+                .isLiveTrack=${this.isLiveTrack}
+                @move=${(e: CustomEvent) => store.dispatch(app.setTimeSec(e.detail.timeSec))}
+                @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.timeSec))}
+                @zoom=${(e: CustomEvent) => msg.centerZoomMap.emit(this.coordinatesAt(e.detail.timeSec), e.detail.deltaY)}
+                @select-y=${(e: CustomEvent) => store.dispatch(app.setChartYAxis(e.detail.y))}
+              ></chart-element>`,
           )}
         </ion-content>
       </ion-split-pane>
