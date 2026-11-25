@@ -143,7 +143,7 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
   // Pre-flatten boundary segments in projected coordinates to avoid redundant multiplications inside candidate loops
   const projSegmentsBuf = new Float64Array(wallCoords.length * 2);
   // Use numeric keys (a * 10_000_000 + b) instead of strings to eliminate memory allocations and GC churn
-  const boundarySegments = new Set<number>();
+  const edgeCache = new Map<number, boolean>();
   let baseIdx = 0;
   let segIdx = 0;
   let start = 0;
@@ -165,7 +165,7 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
       projSegmentsBuf[segIdx + 2] = nLon * cosLat;
       projSegmentsBuf[segIdx + 3] = nLat;
       segIdx += 4;
-      boundarySegments.add(packEdgeKey(baseIdx + i, baseIdx + next));
+      edgeCache.set(packEdgeKey(baseIdx + i, baseIdx + next), true);
     }
     baseIdx += count;
     start = end;
@@ -186,17 +186,15 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
       if (pointInFlatPolygon(lon, lat, wallCoords, ends)) {
         let tooClose = false;
         const plon = lon * cosLat;
+        const latMin = lat - minDistDeg;
+        const latMax = lat + minDistDeg;
         for (let s = 0; s < projSegments.length; s += 4) {
-          if (
-            pointToSegmentSquared2D(
-              plon,
-              lat,
-              projSegments[s],
-              projSegments[s + 1],
-              projSegments[s + 2],
-              projSegments[s + 3],
-            ) < minDistDeg2
-          ) {
+          const y1 = projSegments[s + 1];
+          const y2 = projSegments[s + 3];
+          if ((y1 < latMin && y2 < latMin) || (y1 > latMax && y2 > latMax)) {
+            continue;
+          }
+          if (pointToSegmentSquared2D(plon, lat, projSegments[s], y1, projSegments[s + 2], y2) < minDistDeg2) {
             tooClose = true;
             break;
           }
@@ -217,15 +215,20 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
 
   const delaunay = new Delaunay(projected);
   const tris = delaunay.triangles;
-  const insideFaces: number[] = [];
+  const facesBuf = new Uint32Array(tris.length);
+  let faceLen = 0;
 
   const isEdgeValid = (i1: number, i2: number): boolean => {
-    if (boundarySegments.has(packEdgeKey(i1, i2))) {
-      return true;
+    const key = packEdgeKey(i1, i2);
+    const cached = edgeCache.get(key);
+    if (cached !== undefined) {
+      return cached;
     }
     const idx1 = i1 * 2;
     const idx2 = i2 * 2;
-    return pointInFlatPolygon((xy[idx1] + xy[idx2]) * 0.5, (xy[idx1 + 1] + xy[idx2 + 1]) * 0.5, wallCoords, ends);
+    const valid = pointInFlatPolygon((xy[idx1] + xy[idx2]) * 0.5, (xy[idx1 + 1] + xy[idx2 + 1]) * 0.5, wallCoords, ends);
+    edgeCache.set(key, valid);
+    return valid;
   };
 
   for (let i = 0; i < tris.length; i += 3) {
@@ -243,14 +246,16 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
     if (!isEdgeValid(i0, i1) || !isEdgeValid(i1, i2) || !isEdgeValid(i2, i0)) {
       continue;
     }
-    insideFaces.push(i0, i1, i2);
+    facesBuf[faceLen++] = i0;
+    facesBuf[faceLen++] = i1;
+    facesBuf[faceLen++] = i2;
   }
 
-  if (insideFaces.length === 0) {
+  if (faceLen === 0) {
     return triangulateFlatRings2D(wallRings);
   }
 
-  return { xy, faces: new Uint32Array(insideFaces) };
+  return { xy, faces: faceLen === tris.length ? facesBuf : facesBuf.slice(0, faceLen) };
 }
 
 /**
@@ -297,7 +302,7 @@ export function computeMinimumAglClearanceM(
     const topM = airspace.topM ?? 1000;
     clearanceM = Math.min(clearanceM, topM);
     if (airspace.floorRefGnd) {
-      clearanceM = Math.min(clearanceM, Math.max(50, topM - airspace.floorM));
+      clearanceM = Math.min(clearanceM, topM - airspace.floorM);
     }
   }
   return Number.isFinite(clearanceM) ? Math.max(50, clearanceM) : undefined;
