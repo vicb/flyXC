@@ -226,7 +226,12 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
     }
     const idx1 = i1 * 2;
     const idx2 = i2 * 2;
-    const valid = pointInFlatPolygon((xy[idx1] + xy[idx2]) * 0.5, (xy[idx1 + 1] + xy[idx2 + 1]) * 0.5, wallCoords, ends);
+    const valid = pointInFlatPolygon(
+      (xy[idx1] + xy[idx2]) * 0.5,
+      (xy[idx1 + 1] + xy[idx2 + 1]) * 0.5,
+      wallCoords,
+      ends,
+    );
     edgeCache.set(key, valid);
     return valid;
   };
