@@ -124,7 +124,6 @@ export function findMatching3dItem(
 
   const targetCategory = getAirspaceColorCategory(target);
   const pad = 0.005;
-  let fallback: CachedAirspaceItem | undefined;
   for (const item of items) {
     const a = item.airspace;
     if (
@@ -150,9 +149,8 @@ export function findMatching3dItem(
     if (pointInFlatPolygon(latLon.lon, latLon.lat, item.polygon.coords, item.polygon.ends)) {
       return item;
     }
-    fallback ??= item;
   }
-  return fallback;
+  return undefined;
 }
 
 /**
