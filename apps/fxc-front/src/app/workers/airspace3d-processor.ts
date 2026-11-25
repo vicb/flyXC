@@ -19,7 +19,11 @@ import {
 import { type IDBPDatabase, openDB } from 'idb';
 import { type Feature, FeatureType, VectorTile } from 'mapbox-vector-tile';
 
-import { type AirspaceFootprint, type AirspacePolygonLike, buildAirspaceFootprint } from '../logic/airspace3d-mesh';
+import {
+  type AirspaceFootprint,
+  type AirspacePolygonLike,
+  buildAirspaceFootprint,
+} from '../logic/airspace3d-footprint';
 
 export interface TileCoord {
   x: number;

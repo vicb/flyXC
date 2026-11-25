@@ -20,6 +20,7 @@ import {
 } from '@flyxc/common';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type * as footprintModule from '../../logic/airspace3d-footprint';
 import { findMatching3dItem } from '../../logic/airspace3d-graphics';
 import * as meshModule from '../../logic/airspace3d-mesh';
 import type * as airspacesLogic from '../../logic/airspaces';
@@ -215,11 +216,18 @@ vi.mock('../../logic/airspaces', async (importOriginal) => {
   };
 });
 
+vi.mock('../../logic/airspace3d-footprint', async (importOriginal) => {
+  const actual = await importOriginal<typeof footprintModule>();
+  return {
+    ...actual,
+    buildAirspaceFootprint: vi.fn(actual.buildAirspaceFootprint),
+  };
+});
+
 vi.mock('../../logic/airspace3d-mesh', async (importOriginal) => {
   const actual = await importOriginal<typeof meshModule>();
   return {
     ...actual,
-    buildAirspaceFootprint: vi.fn(actual.buildAirspaceFootprint),
     extrudeAirspaceFootprint: vi.fn(actual.extrudeAirspaceFootprint),
   };
 });
