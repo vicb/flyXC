@@ -275,4 +275,47 @@ describe('mergeCoplanarAirspaces', () => {
     const coords = result[0].geometry.coordinates as [number, number][][];
     expect(coords).toHaveLength(1);
   });
+
+  it('merges overlapping outer rings with opposite winding without creating a hole', async () => {
+    const ccwSquare: AirspaceFeature = {
+      type: 'Feature',
+      id: 501,
+      properties: { icaoClass: 4, type: 0, floorM: 100, topM: 500, floorRefGnd: false, topRefGnd: false },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 1],
+            [0, 0],
+          ],
+        ],
+      },
+    };
+    const cwSquare: AirspaceFeature = {
+      type: 'Feature',
+      id: 502,
+      properties: { icaoClass: 4, type: 0, floorM: 100, topM: 500, floorRefGnd: false, topRefGnd: false },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [0.5, 0],
+            [0.5, 1],
+            [1.5, 1],
+            [1.5, 0],
+            [0.5, 0],
+          ],
+        ],
+      },
+    };
+
+    const result = await mergeCoplanarAirspaces([ccwSquare, cwSquare]);
+    expect(result).toHaveLength(1);
+    const coords = result[0].geometry.coordinates as [number, number][][];
+    // Must be 1 outer ring with 0 holes (opposite winding would have produced a hole in [0.5..1, 0..1])
+    expect(coords).toHaveLength(1);
+  });
 });

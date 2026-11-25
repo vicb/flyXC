@@ -72,6 +72,14 @@ function pathToCoords(c: any, path: any): [number, number][] {
   return coords;
 }
 
+function signedRingArea(ring: [number, number][]): number {
+  let area = 0;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    area += (ring[j][0] - ring[i][0]) * (ring[j][1] + ring[i][1]);
+  }
+  return area;
+}
+
 /**
  * Minimum area in deg^2 (~80,000 m^2) for a polygon ring.
  * Eliminates micro-slivers and artifact holes generated during 2D boolean union of coplanar airspaces.
@@ -247,14 +255,26 @@ export async function mergeCoplanarAirspaces(
           f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : (f.geometry.coordinates as [number, number][][][]);
 
         for (const poly of coords) {
-          for (const ring of poly) {
+          for (let ringIdx = 0; ringIdx < poly.length; ringIdx++) {
+            const ring = poly[ringIdx];
             if (ring.length >= 3) {
+              // Normalize winding: outer rings CCW (area >= 0), holes CW (area < 0)
+              // so FillRule.NonZero unions overlapping outers instead of cancelling opposite windings.
+              const wantCcw = ringIdx === 0;
+              const isCcw = signedRingArea(ring) >= 0;
               // Direct typed array allocation avoids V8 dynamic array resizing overhead
               const flat = new Float64Array(ring.length * 2);
               let idx = 0;
-              for (let r = 0; r < ring.length; r++) {
-                flat[idx++] = ring[r][0];
-                flat[idx++] = ring[r][1];
+              if (isCcw === wantCcw) {
+                for (let r = 0; r < ring.length; r++) {
+                  flat[idx++] = ring[r][0];
+                  flat[idx++] = ring[r][1];
+                }
+              } else {
+                for (let r = ring.length - 1; r >= 0; r--) {
+                  flat[idx++] = ring[r][0];
+                  flat[idx++] = ring[r][1];
+                }
               }
               const path = c.MakePathD(flat);
               paths.push_back(path);
