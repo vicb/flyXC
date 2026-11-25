@@ -576,6 +576,12 @@ describe('Airspace3dElement', () => {
     const origFetch = globalThis.fetch;
     fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+      if (url.endsWith('/airspaces-date.json')) {
+        return {
+          ok: true,
+          json: async () => ({ date: '2026-11-14', timestamp: 1700000000000 }),
+        } as Response;
+      }
       const match = /\/(\d+)\/(\d+)(?:-[\w-]+)?\.pbf$/.exec(url);
       if (!match) {
         return origFetch(input, init);
@@ -1390,6 +1396,22 @@ describe('Airspace3dElement', () => {
 
     expect(resolver).toHaveBeenCalledWith(expect.objectContaining({ items: [] }));
     expect((element as any).pendingWorkerResolvers.size).toBe(0);
+  });
+
+  it('preserves existing airspaces and clears lastQueryKey when worker returns an error', () => {
+    const element = new Airspace3dElement();
+    (element as any).showAirspace = true;
+    (element as any).buildGeneration = 5;
+    (element as any).lastQueryKey = 'some-query-key';
+    const existingItem = { airspace: { id: 1 } } as any;
+    (element as any).currentAirspaces = [existingItem];
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    (element as any).applyWorkerResponse({ id: 5, items: [], error: 'boom' });
+
+    expect((element as any).currentAirspaces).toEqual([existingItem]);
+    expect((element as any).lastQueryKey).toBeUndefined();
+    consoleSpy.mockRestore();
   });
 
   it('findMatching3dItem matches unmerged items by id and merged items (>= MERGED_AIRSPACE_ID_MIN) by bounds, category, and containment', () => {

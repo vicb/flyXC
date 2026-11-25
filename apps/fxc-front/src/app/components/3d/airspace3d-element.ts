@@ -477,6 +477,10 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         };
         this.worker.onerror = (err) => {
           console.error('Airspace3d Worker error:', err);
+          this.lastQueryKey = undefined;
+          this.resolvePendingWorkers();
+          this.worker?.terminate();
+          this.worker = undefined;
         };
       }
       return this.worker;
@@ -493,6 +497,12 @@ export class Airspace3dElement extends connect(store)(LitElement) {
 
   private applyWorkerResponse(response: AirspaceWorkerResponse): void {
     if (response.id !== this.buildGeneration || !this.showAirspace) {
+      return;
+    }
+
+    if (response.error) {
+      console.error('Airspace3d Worker error:', response.error);
+      this.lastQueryKey = undefined;
       return;
     }
 
