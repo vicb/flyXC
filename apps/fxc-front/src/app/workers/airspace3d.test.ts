@@ -332,14 +332,12 @@ describe('airspace3d-processor', () => {
     function createMockDb(getImpl?: (store: string, key: string) => Promise<unknown>) {
       const clear = vi.fn().mockResolvedValue(undefined);
       const put = vi.fn().mockResolvedValue(undefined);
-      const del = vi.fn().mockResolvedValue(undefined);
       return {
         get: vi.fn().mockImplementation(getImpl ?? (() => Promise.resolve(undefined))),
         clear,
         put,
-        delete: del,
         transaction: vi.fn().mockReturnValue({
-          objectStore: () => ({ clear, put, delete: del }),
+          objectStore: () => ({ clear, put }),
           done: Promise.resolve(),
         }),
       };
@@ -362,27 +360,6 @@ describe('airspace3d-processor', () => {
 
       expect(mockDb.clear).toHaveBeenCalledWith();
       expect(mockDb.put).toHaveBeenCalledWith('1700000099000', 'version');
-      expect(mockDb.delete).toHaveBeenCalledWith('date');
-    });
-
-    it('clears cache when remote airspaces-date differs from legacy stored date', async () => {
-      const mockDb = createMockDb((store, key) => {
-        if (store === 'metadata' && key === 'date') return Promise.resolve('2026-10-01');
-        return Promise.resolve(undefined);
-      });
-
-      (processor as any).getDb = vi.fn().mockResolvedValue(mockDb);
-
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ date: '2026-11-14' }),
-      } as any);
-
-      await (processor as any).checkRemoteDate('cloud');
-
-      expect(mockDb.clear).toHaveBeenCalledWith();
-      expect(mockDb.put).toHaveBeenCalledWith('2026-11-14', 'version');
-      expect(mockDb.delete).toHaveBeenCalledWith('date');
     });
 
     it('allows retry on subsequent calls if remote date fetch fails', async () => {

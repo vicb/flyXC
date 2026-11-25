@@ -169,7 +169,7 @@ export class Airspace3dProcessor {
       if (!remoteVersion) {
         return;
       }
-      const storedVersion = db ? ((await db.get('metadata', 'version')) ?? (await db.get('metadata', 'date'))) : undefined;
+      const storedVersion = db ? await db.get('metadata', 'version') : undefined;
       const versionChanged = db
         ? storedVersion !== remoteVersion
         : this.lastObservedVersion != null && this.lastObservedVersion !== remoteVersion;
@@ -181,7 +181,6 @@ export class Airspace3dProcessor {
           await Promise.all([
             tx.objectStore('footprints').clear(),
             tx.objectStore('metadata').put(remoteVersion, 'version'),
-            tx.objectStore('metadata').delete('date'),
             tx.done,
           ]);
         }
