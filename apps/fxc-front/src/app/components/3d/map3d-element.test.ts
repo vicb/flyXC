@@ -76,4 +76,19 @@ describe('Map3dElement', () => {
     expect(mockLightingSet).toHaveBeenCalledTimes(2);
     expect(mockLightingSet).toHaveBeenCalledWith('date', new Date(1300 * 1000));
   });
+
+  it('flushes pending handleLocation on disconnect before 250ms elapses', () => {
+    vi.spyOn(element as any, 'firstUpdated').mockImplementation(() => undefined);
+    document.body.appendChild(element);
+    const dispatchSpy = vi.spyOn(store, 'dispatch');
+    (element as any).view = { zoom: 12 };
+
+    (element as any).handleLocation({ lat: 46.2, lon: 6.5 });
+    expect(dispatchSpy).not.toHaveBeenCalledWith(locationSlice.setCurrentLocation(expect.anything()));
+
+    element.remove();
+
+    expect(dispatchSpy).toHaveBeenCalledWith(locationSlice.setCurrentLocation({ lat: 46.2, lon: 6.5 }));
+    expect(dispatchSpy).toHaveBeenCalledWith(locationSlice.setCurrentZoom(12));
+  });
 });

@@ -126,6 +126,7 @@ export class Map3dElement extends connect(store)(LitElement) {
   private updateCamera = false;
   private lastSunTimeSec?: number;
   private handleLocationTimer?: number;
+  private pendingLocation?: LatLon;
   private readonly adRatio = selectIsSmallScreen(store.getState()) ? 0.7 : 1;
 
   stateChanged(state: RootState): void {
@@ -195,8 +196,7 @@ export class Map3dElement extends connect(store)(LitElement) {
     super.disconnectedCallback();
     this.subscriptions.forEach((sub) => sub());
     this.subscriptions.length = 0;
-    clearTimeout(this.handleLocationTimer);
-    this.handleLocationTimer = undefined;
+    this.flushLocation();
     if (this.cameraRafId != null) {
       cancelAnimationFrame(this.cameraRafId);
       this.cameraRafId = undefined;
@@ -599,11 +599,19 @@ export class Map3dElement extends connect(store)(LitElement) {
   }
 
   private handleLocation(center: LatLon): void {
+    this.pendingLocation = center;
     clearTimeout(this.handleLocationTimer);
-    this.handleLocationTimer = window.setTimeout(() => {
-      store.dispatch(setCurrentLocation(center));
+    this.handleLocationTimer = window.setTimeout(() => this.flushLocation(), 250);
+  }
+
+  private flushLocation(): void {
+    clearTimeout(this.handleLocationTimer);
+    this.handleLocationTimer = undefined;
+    if (this.pendingLocation) {
+      store.dispatch(setCurrentLocation(this.pendingLocation));
       store.dispatch(setCurrentZoom(this.view?.zoom ?? 10));
-    }, 250);
+      this.pendingLocation = undefined;
+    }
   }
 
   createRenderRoot(): HTMLElement {

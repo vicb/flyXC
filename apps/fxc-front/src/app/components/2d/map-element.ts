@@ -99,6 +99,8 @@ export class MapElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   map: google.maps.Map | undefined;
 
+  private handleLocationTimer?: number;
+
   @query('#map')
   private mapElement?: HTMLElement;
 
@@ -264,6 +266,9 @@ export class MapElement extends connect(store)(LitElement) {
     super.disconnectedCallback();
     this.subscriptions.forEach((sub) => sub());
     this.subscriptions.length = 0;
+    if (this.handleLocationTimer != null) {
+      this.flushLocation();
+    }
     if (this.map) {
       google.maps.event.clearInstanceListeners(this.map);
     }
@@ -456,6 +461,13 @@ export class MapElement extends connect(store)(LitElement) {
   }
 
   private handleLocation(): void {
+    clearTimeout(this.handleLocationTimer);
+    this.handleLocationTimer = window.setTimeout(() => this.flushLocation(), 250);
+  }
+
+  private flushLocation(): void {
+    clearTimeout(this.handleLocationTimer);
+    this.handleLocationTimer = undefined;
     if (this.map) {
       const center = this.map.getCenter() as google.maps.LatLng;
       store.dispatch(setCurrentLocation({ lat: center.lat(), lon: center.lng() }));
