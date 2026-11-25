@@ -1,7 +1,17 @@
 // #!/usr/bin/env node
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -83,73 +93,72 @@ console.log(`# Drop the 2D metadata`);
 rmSync(join(outFolder, 'metadata.json'), { force: true });
 
 console.log(`# Generate unclipped tiles (zoom ${AIRSPACE_3D_TILE_ZOOM})`);
-const tmpUnclippedFolder = resolve(join(dirname(outFolder), '.tmp_unclipped'));
-const tmp3dGeojson = resolve(join(dirname(outFolder), '.tmp_3d_airspaces.geojson'));
-rmSync(tmpUnclippedFolder, { recursive: true, force: true });
-rmSync(tmp3dGeojson, { force: true });
+const tmpWorkspace = mkdtempSync(join(dirname(outFolder), '.tmp_airspaces_'));
+const tmpUnclippedFolder = join(tmpWorkspace, 'unclipped');
+const tmp3dGeojson = join(tmpWorkspace, '3d_airspaces.geojson');
 
-console.log(`# Dissolving overlapping coplanar airspaces for 3D tiles...`);
-const allFeatures: AirspaceFeature[] = [];
-for (const file of inputFiles) {
-  const content = JSON.parse(readFileSync(file, 'utf8'));
-  allFeatures.push(...content.features);
-}
-const dissolved3dFeatures = await mergeCoplanarAirspaces(allFeatures);
-console.log(`  Merged ${allFeatures.length} input features into ${dissolved3dFeatures.length} 3D features`);
-writeFileSync(tmp3dGeojson, JSON.stringify({ type: 'FeatureCollection', features: dissolved3dFeatures }));
-
-// Tippecanoe parameters for unclipped 3D tiles:
-// - `-d 16` (--full-detail=16): increases coordinate grid from 12 bits (4,096 units / ~150m at zoom 6)
-//   to 16 bits (65,536 units / ~6.7m at zoom 6, matching zoom 10 precision). Prevents circular CTRs
-//   from snapping to coarse grid stairsteps.
-// - `-ps` (--no-line-simplification): disables Douglas-Peucker simplification, preserving all curved
-//   circle vertices instead of decimating them.
-// - `-pc` (--no-tile-clipping) & `-pC`: generates complete, unclipped polygon footprints across tile
-//   boundaries, eliminating tile stitching and union operators in 3D rendering.
-// - `--no-tile-size-limit`: overrides the default 500 KB uncompressed tile limit to ensure zero
-//   airspaces are dropped in dense regions.
-// - `-y <property>`: whitelists only the numerical bounds and category flags required for 3D extrusion
-//   and styling. Text strings (name, country, labels) are omitted to minimize tile file size; rich
-//   metadata is queried on-demand from the standard 2D vector tiles upon click.
-const args3d = [
-  '-e',
-  tmpUnclippedFolder,
-  '-z',
-  String(AIRSPACE_3D_TILE_ZOOM),
-  '-Z',
-  String(AIRSPACE_3D_TILE_ZOOM),
-  '-d',
-  '16',
-  '-l',
-  'asp',
-  '-ps',
-  '-ab',
-  '-pt',
-  '-pC',
-  '-pc',
-  '--no-tile-size-limit',
-  '-y',
-  'floorM',
-  '-y',
-  'topM',
-  '-y',
-  'floorRefGnd',
-  '-y',
-  'topRefGnd',
-  '-y',
-  'icaoClass',
-  '-y',
-  'type',
-  '-y',
-  'activity',
-  '-y',
-  'flags',
-  '-f',
-  '--',
-  tmp3dGeojson,
-];
-console.log(`executing:\ntippecanoe ${args3d.join(' ')}`);
 try {
+  console.log(`# Dissolving overlapping coplanar airspaces for 3D tiles...`);
+  const allFeatures: AirspaceFeature[] = [];
+  for (const file of inputFiles) {
+    const content = JSON.parse(readFileSync(file, 'utf8'));
+    allFeatures.push(...content.features);
+  }
+  const dissolved3dFeatures = await mergeCoplanarAirspaces(allFeatures);
+  console.log(`  Merged ${allFeatures.length} input features into ${dissolved3dFeatures.length} 3D features`);
+  writeFileSync(tmp3dGeojson, JSON.stringify({ type: 'FeatureCollection', features: dissolved3dFeatures }));
+
+  // Tippecanoe parameters for unclipped 3D tiles:
+  // - `-d 16` (--full-detail=16): increases coordinate grid from 12 bits (4,096 units / ~150m at zoom 6)
+  //   to 16 bits (65,536 units / ~6.7m at zoom 6, matching zoom 10 precision). Prevents circular CTRs
+  //   from snapping to coarse grid stairsteps.
+  // - `-ps` (--no-line-simplification): disables Douglas-Peucker simplification, preserving all curved
+  //   circle vertices instead of decimating them.
+  // - `-pc` (--no-tile-clipping) & `-pC`: generates complete, unclipped polygon footprints across tile
+  //   boundaries, eliminating tile stitching and union operators in 3D rendering.
+  // - `--no-tile-size-limit`: overrides the default 500 KB uncompressed tile limit to ensure zero
+  //   airspaces are dropped in dense regions.
+  // - `-y <property>`: whitelists only the numerical bounds and category flags required for 3D extrusion
+  //   and styling. Text strings (name, country, labels) are omitted to minimize tile file size; rich
+  //   metadata is queried on-demand from the standard 2D vector tiles upon click.
+  const args3d = [
+    '-e',
+    tmpUnclippedFolder,
+    '-z',
+    String(AIRSPACE_3D_TILE_ZOOM),
+    '-Z',
+    String(AIRSPACE_3D_TILE_ZOOM),
+    '-d',
+    '16',
+    '-l',
+    'asp',
+    '-ps',
+    '-ab',
+    '-pt',
+    '-pC',
+    '-pc',
+    '--no-tile-size-limit',
+    '-y',
+    'floorM',
+    '-y',
+    'topM',
+    '-y',
+    'floorRefGnd',
+    '-y',
+    'topRefGnd',
+    '-y',
+    'icaoClass',
+    '-y',
+    'type',
+    '-y',
+    'activity',
+    '-y',
+    'flags',
+    '-f',
+    '--',
+    tmp3dGeojson,
+  ];
+  console.log(`executing:\ntippecanoe ${args3d.join(' ')}`);
   execFileSync('tippecanoe', args3d, { stdio: 'inherit' });
 
   console.log(`# Co-locate unclipped tiles as {y}-unclipped.pbf`);
@@ -173,8 +182,7 @@ try {
     }
   }
 } finally {
-  rmSync(tmp3dGeojson, { force: true });
-  rmSync(tmpUnclippedFolder, { recursive: true, force: true });
+  rmSync(tmpWorkspace, { recursive: true, force: true });
 }
 
 console.log(`# Update the airspace date`);

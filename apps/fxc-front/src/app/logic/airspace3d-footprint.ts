@@ -10,6 +10,7 @@ import {
 } from '@flyxc/common';
 import { Delaunay } from 'd3-delaunay';
 import earcut from 'earcut';
+import { classifyRingsFlat } from 'mapbox-vector-tile';
 
 export type { FlatRings };
 
@@ -67,20 +68,55 @@ export function packEdgeKey(a: number, b: number): number {
   return a < b ? a * 10_000_000 + b : b * 10_000_000 + a;
 }
 
-function triangulateFlatRings2D(wallRings: FlatRings): Triangulated2D {
+function triangulateSinglePolygon2D(
+  coords: Float64Array,
+  ends: Uint32Array,
+  ringStart: number,
+  ringEnd: number,
+): number[] {
+  const numRings = ringEnd - ringStart;
+  const coordStart = ringStart === 0 ? 0 : ends[ringStart - 1];
+  const coordEnd = ends[ringEnd - 1];
+  const polyCoords = coordStart === 0 && coordEnd === coords.length ? coords : coords.subarray(coordStart, coordEnd);
+  const holeIndices = numRings > 1 ? new Array<number>(numRings - 1) : null;
+  if (holeIndices) {
+    for (let r = 0; r < numRings - 1; r++) {
+      holeIndices[r] = (ends[ringStart + r] - coordStart) >> 1;
+    }
+  }
+  const indices = earcut(polyCoords, holeIndices, 2);
+  if (coordStart > 0) {
+    const vertOffset = coordStart >> 1;
+    for (let i = 0; i < indices.length; i++) {
+      indices[i] += vertOffset;
+    }
+  }
+  return indices;
+}
+
+function triangulateFlatRings2D(wallRings: FlatRings, polygonEnds?: ArrayLike<number>): Triangulated2D {
   const { coords, ends } = wallRings;
   const numRings = ends.length;
   if (numRings === 0) {
     return { xy: new Float64Array(0), faces: new Uint32Array(0) };
   }
-  const holeIndices = numRings > 1 ? new Array<number>(numRings - 1) : null;
-  if (holeIndices) {
-    for (let r = 0; r < numRings - 1; r++) {
-      holeIndices[r] = ends[r] >> 1;
-    }
+  const groups =
+    polygonEnds ??
+    (numRings === 1 ? [1] : classifyRingsFlat(coords as unknown as number[], ends as unknown as number[]));
+  if (groups.length === 1) {
+    return { xy: coords, faces: new Uint32Array(triangulateSinglePolygon2D(coords, ends, 0, numRings)) };
   }
-  const indices = earcut(coords, holeIndices, 2);
-  return { xy: coords, faces: new Uint32Array(indices) };
+  const allFaces: number[] = [];
+  let ringStart = 0;
+  for (let p = 0; p < groups.length; p++) {
+    const polyEnd = groups[p];
+    const part = triangulateSinglePolygon2D(coords, ends, ringStart, polyEnd);
+    for (let i = 0; i < part.length; i++) {
+      allFaces.push(part[i]);
+    }
+    ringStart = polyEnd;
+  }
+  return { xy: coords, faces: new Uint32Array(allFaces) };
 }
 
 /**
@@ -100,9 +136,26 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
     return { xy: new Float64Array(0), faces: new Uint32Array(0) };
   }
 
+  const polygonEnds =
+    numRings === 1 ? [1] : classifyRingsFlat(wallCoords as unknown as number[], ends as unknown as number[]);
+  const isInsidePolygons = (lon: number, lat: number): boolean => {
+    if (polygonEnds.length === 1) {
+      return pointInFlatPolygon(lon, lat, wallCoords, ends);
+    }
+    let ringStart = 0;
+    for (let p = 0; p < polygonEnds.length; p++) {
+      const polyEnd = polygonEnds[p];
+      if (pointInFlatPolygon(lon, lat, wallCoords, ends, ringStart, polyEnd)) {
+        return true;
+      }
+      ringStart = polyEnd;
+    }
+    return false;
+  };
+
   const { widthM, heightM } = estimateExtentMeters(extent);
   if (widthM <= targetGridM && heightM <= targetGridM) {
-    return triangulateFlatRings2D(wallRings);
+    return triangulateFlatRings2D(wallRings, polygonEnds);
   }
 
   // Cap subdivisions to prevent runaway grid generation on large polygons (100 for AGL caps <= 1500m, 40 for standard)
@@ -158,7 +211,7 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
   // Generate interior Steiner points strictly inside the polygon boundary
   for (let lon = extent.xmin + stepLon * 0.5; lon < extent.xmax; lon += stepLon) {
     for (let lat = extent.ymin + stepLat * 0.5; lat < extent.ymax; lat += stepLat) {
-      if (pointInFlatPolygon(lon, lat, wallCoords, ends)) {
+      if (isInsidePolygons(lon, lat)) {
         let tooClose = false;
         const plon = lon * cosLat;
         const latMin = lat - minDistDeg;
@@ -201,12 +254,7 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
     }
     const idx1 = i1 * 2;
     const idx2 = i2 * 2;
-    const valid = pointInFlatPolygon(
-      (xy[idx1] + xy[idx2]) * 0.5,
-      (xy[idx1 + 1] + xy[idx2 + 1]) * 0.5,
-      wallCoords,
-      ends,
-    );
+    const valid = isInsidePolygons((xy[idx1] + xy[idx2]) * 0.5, (xy[idx1 + 1] + xy[idx2 + 1]) * 0.5);
     edgeCache.set(key, valid);
     return valid;
   };
@@ -220,7 +268,7 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
     const idx2 = i2 * 2;
     const cx = (xy[idx0] + xy[idx1] + xy[idx2]) / 3;
     const cy = (xy[idx0 + 1] + xy[idx1 + 1] + xy[idx2 + 1]) / 3;
-    if (!pointInFlatPolygon(cx, cy, wallCoords, ends)) {
+    if (!isInsidePolygons(cx, cy)) {
       continue;
     }
     if (!isEdgeValid(i0, i1) || !isEdgeValid(i1, i2) || !isEdgeValid(i2, i0)) {
@@ -232,7 +280,7 @@ export function triangulateCapWithGrid2D(wallRings: FlatRings, extent: Bounds2D,
   }
 
   if (faceLen === 0) {
-    return triangulateFlatRings2D(wallRings);
+    return triangulateFlatRings2D(wallRings, polygonEnds);
   }
 
   return { xy, faces: faceLen === tris.length ? facesBuf : facesBuf.slice(0, faceLen) };

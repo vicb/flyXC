@@ -127,6 +127,7 @@ export class Airspace3dProcessor {
   private lastCheckedServer?: AirspaceServer;
   private lastObservedVersion?: string;
   private cacheGeneration = 0;
+  private tileFetchCache?: RequestCache;
 
   private invalidateMemoryCaches(): void {
     this.cacheGeneration++;
@@ -179,6 +180,7 @@ export class Airspace3dProcessor {
         : this.lastObservedVersion != null && this.lastObservedVersion !== remoteVersion;
 
       if (versionChanged) {
+        this.tileFetchCache = 'no-cache';
         this.invalidateMemoryCaches();
         if (db) {
           const tx = db.transaction(['footprints', 'metadata'], 'readwrite');
@@ -289,7 +291,7 @@ export class Airspace3dProcessor {
           const idbRecord = await this.withDb<
             { polygon: AirspacePolygonLike; footprint: AirspaceFootprint } | undefined
           >((db) => db.get('footprints', feat.id));
-          if (idbRecord) {
+          if (idbRecord && fetchGeneration === this.cacheGeneration) {
             cachedFp = idbRecord;
             setBoundedCache(this.footprintCache, MAX_FOOTPRINT_CACHE_SIZE, feat.id, cachedFp);
           }
@@ -412,7 +414,7 @@ export class Airspace3dProcessor {
     const gen = this.cacheGeneration;
     const promise = (async (): Promise<DecodedTileFeature[] | null> => {
       try {
-        const response = await fetch(url);
+        const response = await fetch(url, this.tileFetchCache ? { cache: this.tileFetchCache } : undefined);
         if (!response.ok) {
           if (response.status === 404) {
             return null;

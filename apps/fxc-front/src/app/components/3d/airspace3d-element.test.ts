@@ -18,6 +18,7 @@ import {
   RESERVED_AIRSPACE_ID_MAX,
   Type,
 } from '@flyxc/common';
+import type * as mvt from 'mapbox-vector-tile';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type * as footprintModule from '../../logic/airspace3d-footprint';
@@ -145,32 +146,30 @@ vi.mock('@arcgis/core/layers/VectorTileLayer', () => ({
   },
 }));
 
-vi.mock('mapbox-vector-tile', () => ({
-  VectorTile: class MockVectorTile {
-    layers: Record<string, any> = {};
-    constructor(data: Uint8Array) {
-      const id = data[0];
-      const features = hoisted.tilePayloads.get(id) ?? [];
-      const aspLayer = {
-        length: features.length,
-        feature: (i: number) => features[i],
-        [Symbol.iterator]: () => features[Symbol.iterator](),
-      };
-      this.layers = {
-        asp: aspLayer,
-      };
-    }
-    getLayer(name: string) {
-      return this.layers[name];
-    }
-  },
-  FeatureType: {
-    UNKNOWN: 0,
-    POINT: 1,
-    LINESTRING: 2,
-    POLYGON: 3,
-  },
-}));
+vi.mock('mapbox-vector-tile', async (importOriginal) => {
+  const actual = await importOriginal<typeof mvt>();
+  return {
+    ...actual,
+    VectorTile: class MockVectorTile {
+      layers: Record<string, any> = {};
+      constructor(data: Uint8Array) {
+        const id = data[0];
+        const features = hoisted.tilePayloads.get(id) ?? [];
+        const aspLayer = {
+          length: features.length,
+          feature: (i: number) => features[i],
+          [Symbol.iterator]: () => features[Symbol.iterator](),
+        };
+        this.layers = {
+          asp: aspLayer,
+        };
+      }
+      getLayer(name: string) {
+        return this.layers[name];
+      }
+    },
+  };
+});
 
 vi.mock('../../redux/airspace-slice', async (importOriginal) => {
   const actual = await importOriginal<typeof airspaceSlice>();
