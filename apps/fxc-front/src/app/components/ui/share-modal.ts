@@ -18,8 +18,13 @@ export class ShareModal extends LitElement {
   private type: 'task' | 'link' = 'task';
 
   render(): TemplateResult {
-    const svg = renderSVG(this.type == 'link' ? this.link : this.createXCTrackRoute());
-    const qrDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+    let qrDataUrl: string | undefined;
+    try {
+      const svg = renderSVG(this.type == 'link' ? this.link : this.createXCTrackRoute());
+      qrDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+    } catch (e) {
+      console.warn('Failed to render QR code', e);
+    }
 
     return html`
       <ion-header>
@@ -48,7 +53,9 @@ export class ShareModal extends LitElement {
           </ion-segment>
         </ion-item>
         <ion-item lines="full">
-          <img width="200" height="200" src=${qrDataUrl} style="margin: 0 auto" />
+          ${qrDataUrl
+            ? html`<img width="200" height="200" src=${qrDataUrl} style="margin: 0 auto" />`
+            : html`<ion-text color="medium" style="margin: 0 auto">Too many waypoints for a QR code</ion-text>`}
         </ion-item>
       </ion-content>
       <ion-footer>

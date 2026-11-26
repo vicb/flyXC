@@ -314,7 +314,10 @@ export class MapsElement extends connect(store)(LitElement) {
     this.hasTrack = selectHasChartTrack(state);
     if (this.hasTrack && !this.chartElementLoaded) {
       this.chartElementLoaded = true;
-      void import('./app/components/chart-element');
+      import('./app/components/chart-element').catch((err) => {
+        console.error('Failed to load chart-element', err);
+        this.chartElementLoaded = false;
+      });
     }
     this.showLoader = track.selectFetching(state) || app.selectLoadingApi(state);
 

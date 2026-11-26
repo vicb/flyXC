@@ -108,7 +108,12 @@ export class ArchivesPage extends LitElement {
         }&size=${IMG_SIZE}x${IMG_SIZE}&key=${getApiKeyAndHost('GMAPS').key}`,
       );
       const rect = el.getBoundingClientRect();
-      tooltip.style.left = `${rect.right + 20}px`;
+      const rightLeft = rect.right + 20;
+      const left =
+        rightLeft + IMG_SIZE + 8 <= window.innerWidth
+          ? rightLeft
+          : Math.max(8, Math.min(rect.left - IMG_SIZE - 20, window.innerWidth - IMG_SIZE - 8));
+      tooltip.style.left = `${left}px`;
       tooltip.style.top = `${Math.max(8, Math.min(rect.top, window.innerHeight - IMG_SIZE - 8))}px`;
       tooltip.setAttribute('data-show', '');
     }
