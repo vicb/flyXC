@@ -993,6 +993,16 @@ describe('Airspace3dElement', () => {
     expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(3);
     expect((hoisted.getAirspaceListMock.mock.calls[2][0].date as Date).getTime()).toBe(1_752_577_200 * 1000);
     expect(scene.openPopup).toHaveBeenCalledTimes(2);
+
+    // When two airspaces overlap at a 3D hit point, the one matching/closest to `z` is listed first.
+    hoisted.getAirspaceListMock.mockResolvedValueOnce([
+      { id: 14347, name: 'UPPER ZONE', type: Type.Restricted, icaoClass: Class.D, floorM: 2000, topM: 4000 } as any,
+      { id: 1, name: 'LOWER ZONE', type: Type.Restricted, icaoClass: Class.D, floorM: 0, topM: 1000 } as any,
+    ]);
+    await element.handleClick([{ lat: 44.82, lon: 6.21, z: 500 }], scene);
+    expect(scene.openPopup).toHaveBeenCalledTimes(3);
+    const popupContent = (scene.openPopup.mock.calls[2][0].content as HTMLElement).shadowRoot!.innerHTML;
+    expect(popupContent.indexOf('LOWER ZONE')).toBeLessThan(popupContent.indexOf('UPPER ZONE'));
   });
 
   it('deduplicates airspaces across multiple 3D hit points, queries by maxAltitude, and uses 3px wall margin', async () => {

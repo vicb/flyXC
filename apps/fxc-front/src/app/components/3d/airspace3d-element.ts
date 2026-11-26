@@ -82,6 +82,16 @@ const ALL_CATEGORIES = [
   AirspaceColorCategory.Other,
 ];
 
+function getFloorM(asp: AirspaceTyped, gndAltM: number): number {
+  return asp.floorM + (asp.floorRefGnd ? gndAltM : 0);
+}
+
+function verticalDistanceM(asp: AirspaceTyped, clickAltM: number, gndAltM: number): number {
+  const floor = getFloorM(asp, gndAltM);
+  const top = asp.topM + (asp.topRefGnd ? gndAltM : 0);
+  return Math.max(0, floor - clickAltM, clickAltM - top);
+}
+
 /**
  * Lit component managing 3D extruded airspace volumes in an ArcGIS SceneView when zoomed in >= {@link MIN_3D_ZOOM}.
  */
@@ -330,6 +340,15 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     this.clearHighlight();
     if (airspaces.size > 0 && popupPoint) {
       const list = Array.from(airspaces.values());
+      if (Number.isFinite(popupPoint.z)) {
+        const clickAltM = popupPoint.z! / (this.multiplier || 1);
+        const gndAltM = createGroundSampler(this.sampler)(popupPoint.lon, popupPoint.lat);
+        list.sort(
+          (a, b) =>
+            verticalDistanceM(a, clickAltM, gndAltM) - verticalDistanceM(b, clickAltM, gndAltM) ||
+            getFloorM(a, gndAltM) - getFloorM(b, gndAltM),
+        );
+      }
       const hitItem = findMatching3dItem(this.currentAirspaces, list[0], popupPoint);
       if (hitItem) {
         this.highlightAirspace(hitItem);
