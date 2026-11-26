@@ -1,19 +1,27 @@
-[
-  {
-    "origin": [
-      "http://localhost:8080",
-      "https://console.cloud.google.com",
-      "https://fly-xc.appspot.com/",
-      "https://flyxc.app/",
-      "https://*.flyxc.workers.dev"
-    ],
-    "responseHeader": [
-      "Content-Type",
-      "Content-Encoding"
-    ],
-    "method": [
-      "GET"
-    ],
-    "maxAgeSeconds": 360000
-  }
-]
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": [
+          "http://localhost:8080",
+          "https://console.cloud.google.com",
+          "https://fly-xc.appspot.com",
+          "https://flyxc.app",
+          "https://*.flyxc.workers.dev"
+        ],
+        "methods": ["GET", "HEAD"],
+        "headers": ["Range", "If-None-Match"]
+      },
+      "exposeHeaders": [
+        "Content-Type",
+        "Content-Encoding",
+        "Content-Range",
+        "Content-Length",
+        "ETag",
+        "Range",
+        "If-None-Match"
+      ],
+      "maxAgeSeconds": 86400
+    }
+  ]
+}

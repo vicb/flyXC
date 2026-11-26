@@ -12,6 +12,7 @@
     "date-fns": "catalog:default",
     "geolib": "catalog:default",
     "mapbox-vector-tile": "catalog:default",
+    "pmtiles": "catalog:",
     "tiny-lru": "catalog:default",
     "tslib": "catalog:default",
     "vaadin-nodom": "workspace:*"

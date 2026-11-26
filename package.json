@@ -56,7 +56,6 @@
     "jsonc-eslint-parser": "catalog:default",
     "nx": "24.0.6",
     "prettier": "^3.10.1",
-    "servez": "^2.4.1",
     "syncpack": "^15.3.3",
     "ts-node": "^10.9.2",
     "typescript": "6.0.3",

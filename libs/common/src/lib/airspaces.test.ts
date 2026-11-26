@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+import { open } from 'node:fs/promises';
 import path from 'node:path';
 
 import { TZDate } from '@date-fns/tz';
@@ -14,11 +14,9 @@ import {
   applyOverrides,
   Class,
   CLOUD_AIRSPACE_BASE_URL,
-  getAirspace3dTileUrl,
-  getAirspaceDateUrl,
+  getAirspace3dPmtilesUrl,
   getAirspaceOverrides,
-  getAirspaceTilesBaseUrl,
-  getAirspaceTileUrl,
+  getAirspacePmtilesUrl,
   isInFeature,
   isPointInFeatureBbox,
   isPointInFlatGeometry,
@@ -27,24 +25,29 @@ import {
   toTypedAirspace,
   Type,
 } from './airspaces';
-import { fetchResponse } from './fetch-timeout';
+import { PMTiles, type PmtilesSource } from './pmtiles';
 
 async function getTile(x: number, y: number, z: number): Promise<Map<string, AirspaceTyped>> {
   const airspaces = new Map<string, AirspaceTyped>();
+  const pmtilesFile = path.join(__dirname, 'fixtures/airspaces-test.pmtiles');
+  const handle = await open(pmtilesFile, 'r');
   let buffer: Buffer;
-
-  // `__dirname` is `base/libs/common/src/lib`
-  // We want to get `base/apps/fxc-tiles/assets/tiles/{z}/{x}/{y}.pbf`
-  const filename = path.join(__dirname, '../../../..', `apps/fxc-tiles/assets/tiles/${z}/${x}/${y}.pbf`);
-  if (fs.existsSync(filename)) {
-    buffer = fs.readFileSync(filename);
-  } else {
-    const url = getAirspaceTileUrl(x, y, z, 'cloud');
-    const response = await fetchResponse(url);
-    if (!response.ok) {
-      throw new Error(`Error reading the tile ${url}`);
+  try {
+    const source: PmtilesSource = {
+      getKey: () => pmtilesFile,
+      async getBytes(offset: number, length: number) {
+        const buf = Buffer.allocUnsafe(length);
+        const { bytesRead } = await handle.read(buf, 0, length, offset);
+        return { data: buf.buffer.slice(buf.byteOffset, buf.byteOffset + bytesRead) };
+      },
+    };
+    const res = await new PMTiles(source).getZxy(z, x, y);
+    if (!res) {
+      throw new Error(`Tile ${z}/${x}/${y} not found in ${pmtilesFile}`);
     }
-    buffer = Buffer.from(await response.arrayBuffer());
+    buffer = Buffer.from(res.data);
+  } finally {
+    await handle.close();
   }
 
   const aspLayer = new VectorTile(new Uint8Array(buffer)).layers.asp;
@@ -440,23 +443,18 @@ describe('Airspace overrides', () => {
     });
   });
 
-  describe('Airspace 3D and Version URLs', () => {
+  describe('Airspace PMTiles URLs', () => {
     it('provides correct base URLs', () => {
-      expect(getAirspaceTilesBaseUrl('cloud')).toBe(`${CLOUD_AIRSPACE_BASE_URL}/tiles`);
-      expect(getAirspaceTilesBaseUrl('local')).toBe(LOCAL_AIRSPACE_BASE_URL);
+      expect(CLOUD_AIRSPACE_BASE_URL).toBe('https://airspaces.flyxc.app');
+      expect(LOCAL_AIRSPACE_BASE_URL).toBe('http://localhost:8084');
     });
 
-    it('generates correct date URLs', () => {
-      expect(getAirspaceDateUrl('cloud')).toBe('https://airspaces.storage.googleapis.com/airspaces-date.json');
-      expect(getAirspaceDateUrl('local')).toBe('http://localhost:8084/airspaces-date.json');
-    });
-
-    it('generates correct 3D tile URLs for zoom 6', () => {
+    it('generates correct PMTiles URLs', () => {
       expect(AIRSPACE_3D_TILE_ZOOM).toBe(6);
-      expect(getAirspace3dTileUrl(32, 21, 'cloud')).toBe(
-        'https://airspaces.storage.googleapis.com/tiles/6/32/21-unclipped.pbf',
-      );
-      expect(getAirspace3dTileUrl(32, 21, 'local')).toBe('http://localhost:8084/6/32/21-unclipped.pbf');
+      expect(getAirspacePmtilesUrl('cloud')).toBe('https://airspaces.flyxc.app/airspaces.pmtiles');
+      expect(getAirspacePmtilesUrl('local')).toBe('http://localhost:8084/airspaces.pmtiles');
+      expect(getAirspace3dPmtilesUrl('cloud')).toBe('https://airspaces.flyxc.app/airspaces-3d.pmtiles');
+      expect(getAirspace3dPmtilesUrl('local')).toBe('http://localhost:8084/airspaces-3d.pmtiles');
     });
   });
 });

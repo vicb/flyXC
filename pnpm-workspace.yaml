@@ -45,6 +45,7 @@ catalog:
   jsonc-eslint-parser: 3.3.0
   lit: ^3.3.3
   mapbox-vector-tile: ^1.2.0
+  pmtiles: ^4.5.0
   proxy: ^4.1.0
   tiny-lru: ^13.1.1
   tslib: ^2.9.1
@@ -61,6 +62,7 @@ catalog:
   rustigc-wasm: 0.2.0-rc.3
   '@arcgis/map-components': ^5.2.7
   '@esri/arcgis-rest-request': ^5.0.0
+  aws4fetch: ^1.0.20
   idb: ^8.0.4
   d3-delaunay: ^6.0.6
   '@types/d3-delaunay': ^6.0.4

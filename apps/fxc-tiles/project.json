@@ -24,7 +24,7 @@
     "serve": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npx servez -p 8084 -q apps/fxc-tiles/assets/tiles"
+        "command": "node --experimental-strip-types apps/fxc-tiles/src/app/airspaces/serve-tiles.ts"
       }
     },
     "typecheck": {

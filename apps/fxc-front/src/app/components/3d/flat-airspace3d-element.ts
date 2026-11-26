@@ -1,15 +1,16 @@
 import VectorTileLayer from '@arcgis/core/layers/VectorTileLayer';
 import type Map from '@arcgis/core/Map';
 import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene';
-import type { AirspaceServer, LatLon, RuntimeTrack } from '@flyxc/common';
+import type { LatLon, RuntimeTrack } from '@flyxc/common';
 import {
   ASP_COLOR_DANGER,
   ASP_COLOR_OTHER,
   ASP_COLOR_PROHIBITED,
   ASP_COLOR_RESTRICTED,
   Class,
+  fetchPmtilesTile,
   getAirspaceOverrides,
-  getAirspaceTilesUrlTemplate,
+  getAirspacePmtilesUrl,
   getEffectiveAirspaceDate,
   MAX_AIRSPACE_TILE_ZOOM,
   Type,
@@ -110,8 +111,16 @@ export class FlatAirspace3dElement extends connect(store)(LitElement) {
         showTypes: this.showTypes,
         opacity: this.opacity,
         date: this.getEffectiveDate(),
-        tileServer: import.meta.env.VITE_AIRSPACE_SERVER,
       }),
+    });
+    // `sourceNameToSource` is an internal ArcGIS property populated when the style loads.
+    (this.layer as any).on?.('load-style', () => {
+      const source = (this.layer as any)?.sourceNameToSource?.asp;
+      if (source) {
+        const url = getAirspacePmtilesUrl(import.meta.env.VITE_AIRSPACE_SERVER);
+        source.requestTile = (level: number, row: number, col: number, options?: { signal?: AbortSignal }) =>
+          fetchPmtilesTile(url, level, col, row, options?.signal);
+      }
     });
     this.map.add(this.layer);
   }
@@ -134,14 +143,12 @@ export function buildAirspaceVectorTileStyle({
   showTypes,
   opacity,
   date,
-  tileServer,
 }: {
   maxAltitude: number;
   showClasses: Class[];
   showTypes: Type[];
   opacity: number;
   date: Date;
-  tileServer: AirspaceServer;
 }) {
   const overrides = [...getAirspaceOverrides(date)];
   const classOverrides = overrides.flatMap(([id, o]) => (o.icaoClass !== undefined ? [id, o.icaoClass] : []));
@@ -172,7 +179,8 @@ export function buildAirspaceVectorTileStyle({
     sources: {
       asp: {
         type: 'vector',
-        tiles: [getAirspaceTilesUrlTemplate(tileServer)],
+        // Handled via `load-style` (`source.requestTile`), never fetched directly.
+        tiles: ['https://pmtiles.local/{z}/{x}/{y}.pbf'],
         minzoom: 0,
         maxzoom: MAX_AIRSPACE_TILE_ZOOM,
       },

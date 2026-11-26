@@ -2,9 +2,10 @@ import type { AirspaceString, AirspaceTyped, Class, LatLon, Point, Type } from '
 import {
   AIRSPACE_TILE_SIZE,
   applyOverrides,
+  fetchPmtilesTile,
   getAirspaceCategory,
   getAirspaceColor,
-  getAirspaceTileUrl,
+  getAirspacePmtilesUrl,
   getPixelCoordinates,
   isAirspaceVisible,
   isInFeature,
@@ -82,14 +83,12 @@ export async function getAirspaceList({
   const tileZoom = Math.min(zoom, MAX_AIRSPACE_TILE_ZOOM);
   const { tile: tileCoords, px } = getPixelCoordinates(latLon, tileZoom, AIRSPACE_TILE_SIZE);
 
-  const response = await fetch(
-    getAirspaceTileUrl(tileCoords.x, tileCoords.y, tileZoom, import.meta.env.VITE_AIRSPACE_SERVER),
+  const pbf = await fetchPmtilesTile(
+    getAirspacePmtilesUrl(import.meta.env.VITE_AIRSPACE_SERVER),
+    tileZoom,
+    tileCoords.x,
+    tileCoords.y,
   );
-  if (!response.ok) {
-    return [];
-  }
-
-  const pbf = await response.arrayBuffer();
   if (!pbf) {
     return [];
   }
@@ -350,8 +349,7 @@ function getTile(
     renderTo: new Map([[renderKey, canvas]]),
   });
 
-  fetch(getAirspaceTileUrl(fetchX, fetchY, tileZoom, import.meta.env.VITE_AIRSPACE_SERVER), { signal: abort.signal })
-    .then((r) => (r.ok ? r.arrayBuffer() : null))
+  fetchPmtilesTile(getAirspacePmtilesUrl(import.meta.env.VITE_AIRSPACE_SERVER), tileZoom, fetchX, fetchY, abort.signal)
     .then((buffer) => {
       if (buffer == null) {
         return;

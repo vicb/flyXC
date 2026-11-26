@@ -20,7 +20,6 @@ interface ImportMeta {
 
 declare global {
   const __BUILD_TIMESTAMP__: string;
-  const __AIRSPACE_DATE__: string;
   const zaraz: { showConsentModal: () => void } | undefined;
   interface Window {
     deferredPrompt: Event;

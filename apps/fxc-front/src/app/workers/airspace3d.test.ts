@@ -1,3 +1,4 @@
+import * as common from '@flyxc/common';
 import { Class, Type } from '@flyxc/common';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -20,14 +21,13 @@ function makeTestPolygon(ring: [number, number][], extent?: any): AirspacePolygo
 describe('airspace3d-processor', () => {
   describe('Airspace3dProcessor execution', () => {
     let processor: Airspace3dProcessor;
-    const originalFetch = global.fetch;
 
     beforeEach(() => {
       processor = new Airspace3dProcessor();
     });
 
     afterEach(() => {
-      global.fetch = originalFetch;
+      vi.restoreAllMocks();
     });
 
     it('drops obsolete requests when a newer request ID arrives', async () => {
@@ -356,10 +356,7 @@ describe('airspace3d-processor', () => {
 
       (processor as any).getDb = vi.fn().mockResolvedValue(mockDb);
 
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ date: '2026-11-14', timestamp: 1700000099000 }),
-      } as any);
+      vi.spyOn(common, 'getPmtilesVersion').mockResolvedValueOnce('1700000099000');
 
       await (processor as any).checkRemoteDate('cloud');
 
@@ -371,20 +368,14 @@ describe('airspace3d-processor', () => {
       const mockDb = createMockDb();
       (processor as any).getDb = vi.fn().mockResolvedValue(mockDb);
 
-      // First attempt fails with 500
-      global.fetch = vi.fn().mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-      } as any);
+      // First attempt fails
+      vi.spyOn(common, 'getPmtilesVersion').mockRejectedValueOnce(new Error('HTTP 500'));
 
       await (processor as any).checkRemoteDate('cloud');
       expect(mockDb.clear).not.toHaveBeenCalled();
 
       // Second attempt succeeds
-      global.fetch = vi.fn().mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ date: '2026-11-14', timestamp: 1700000099000 }),
-      } as any);
+      vi.spyOn(common, 'getPmtilesVersion').mockResolvedValueOnce('1700000099000');
 
       await (processor as any).checkRemoteDate('cloud');
       expect(mockDb.clear).toHaveBeenCalledWith();
@@ -420,42 +411,25 @@ describe('airspace3d-processor', () => {
       (processor as any).tileCache.set('tile-1', Promise.resolve([]));
       (processor as any).footprintCache.set(1, {} as any);
 
-      global.fetch = vi.fn().mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ date: '2026-11-14', timestamp: 1000 }),
-      } as any);
+      const getVersionSpy = vi.spyOn(common, 'getPmtilesVersion').mockResolvedValueOnce('1000');
       await (processor as any).checkRemoteDate('cloud');
       expect((processor as any).tileCache.size).toBe(1);
 
       // Force next check after throttle reset with a new timestamp
       (processor as any).lastDateCheckTime = 0;
-      global.fetch = vi.fn().mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ date: '2026-11-15', timestamp: 2000 }),
-      } as any);
+      getVersionSpy.mockResolvedValueOnce('2000');
       await (processor as any).checkRemoteDate('cloud');
       expect((processor as any).tileCache.size).toBe(0);
       expect((processor as any).footprintCache.size).toBe(0);
     });
 
     it('evicts retryable HTTP failures (e.g. 503) from tileCache and propagates error while keeping 404 cached', async () => {
-      global.fetch = vi
-        .fn()
-        .mockImplementation((url: string) =>
-          url.endsWith('/airspaces-date.json')
-            ? Promise.resolve({ ok: true, json: async () => ({ date: '2026-11-14', timestamp: 1000 }) })
-            : Promise.resolve({ ok: false, status: 503 }),
-        ) as any;
+      vi.spyOn(common, 'getPmtilesVersion').mockResolvedValue('1000');
+      vi.spyOn(common, 'fetchPmtilesTile').mockRejectedValueOnce(new Error('HTTP 503'));
       await expect(processor.fetchDecodedTile(1, 2, 6, 'cloud')).rejects.toThrow('HTTP 503');
       expect((processor as any).tileCache.size).toBe(0);
 
-      global.fetch = vi
-        .fn()
-        .mockImplementation((url: string) =>
-          url.endsWith('/airspaces-date.json')
-            ? Promise.resolve({ ok: true, json: async () => ({ date: '2026-11-14', timestamp: 1000 }) })
-            : Promise.resolve({ ok: false, status: 503 }),
-        ) as any;
+      vi.spyOn(common, 'fetchPmtilesTile').mockRejectedValueOnce(new Error('HTTP 503'));
       const errRes = await processor.process({
         id: 1,
         tiles: [{ x: 1, y: 2, z: 6 }],
@@ -469,7 +443,7 @@ describe('airspace3d-processor', () => {
       expect(errRes.error).toContain('HTTP 503');
       expect(errRes.items).toEqual([]);
 
-      global.fetch = vi.fn().mockResolvedValueOnce({ ok: false, status: 404 } as any);
+      vi.spyOn(common, 'fetchPmtilesTile').mockResolvedValueOnce(null);
       const res404 = await processor.fetchDecodedTile(3, 4, 6, 'cloud');
       expect(res404).toBeNull();
       expect((processor as any).tileCache.size).toBe(1);
