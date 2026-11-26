@@ -63,10 +63,9 @@ export default defineConfig(({ mode }) => {
           'airspaces/create-geojson': path.resolve(__dirname, 'src/app/airspaces/create-geojson.ts'),
           'airspaces/create-tiles': path.resolve(__dirname, 'src/app/airspaces/create-tiles.ts'),
           'airspaces/download-openaip': path.resolve(__dirname, 'src/app/airspaces/download-openaip.ts'),
-          'airspaces/create-tiles-info': path.resolve(__dirname, 'src/app/airspaces/create-tiles-info.ts'),
+          'airspaces/serve-tiles': path.resolve(__dirname, 'src/app/airspaces/serve-tiles.ts'),
           'airspaces/stats': path.resolve(__dirname, 'src/app/airspaces/stats.ts'),
-          'airspaces/create-tiles-info-diff': path.resolve(__dirname, 'src/app/airspaces/create-tiles-info-diff.ts'),
-          'airspaces/upload-tiles-diff': path.resolve(__dirname, 'src/app/airspaces/upload-tiles-diff.ts'),
+          'airspaces/upload-tiles': path.resolve(__dirname, 'src/app/airspaces/upload-tiles.ts'),
         },
         output: {
           entryFileNames: '[name].js',

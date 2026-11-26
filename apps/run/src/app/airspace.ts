@@ -1,21 +1,25 @@
-import type { AirspaceString, AirspaceTyped, Point } from '@flyxc/common';
+import type { AirspaceString, AirspaceTyped, PmtilesSource, Point } from '@flyxc/common';
 import {
+  AIRSPACE_PMTILES_FILENAME,
   AIRSPACE_TILE_SIZE,
   AirspaceColorCategory,
   applyOverrides,
   arrayMax,
-  fetchResponse,
+  EtagMismatch,
+  fetchPmtilesTile,
   Flags,
   getAirspaceColorCategory,
-  getAirspaceTileUrl,
   getPixelCoordinates,
   isPointInFeatureBbox,
   isPointInFlatGeometry,
   MAX_AIRSPACE_TILE_ZOOM,
   parallelTasksWithTimeout,
   protos,
+  resetPmtilesClient,
+  setPmtilesSourceFactory,
   toTypedAirspace,
 } from '@flyxc/common';
+import { AwsClient } from 'aws4fetch';
 import { FeatureType, type FlatGeometry, VectorTile } from 'mapbox-vector-tile';
 import type { LRU } from 'tiny-lru';
 import { lru } from 'tiny-lru';
@@ -28,14 +32,73 @@ const MARGIN_METER = 200;
 // The maximum size is ~2.2KB.
 const ASLP_LRU_CAPACITY = 10000;
 
+// Refresh PMTiles archive metadata/cache at most once per hour in long-lived Cloud Run instances.
+const PMTILES_CACHE_TTL_MS = 3600_000;
+const R2_BUCKET = 'flyxc-airspaces';
+const R2_TIMEOUT_MS = 15_000;
+
 // null is used when there is no tile at the given location.
 let airspaceCache: LRU<ArrayBuffer | null> | null = null;
+let pmtilesLastRefreshMs = 0;
+let cacheGeneration = 0;
+let r2SourceRegistered = false;
 
+function getR2AirspaceUrl(): string {
+  const accountId = process.env.R2_ACCOUNT_ID || SECRETS.R2_ACCOUNT_ID;
+  return `https://${accountId}.r2.cloudflarestorage.com/${R2_BUCKET}/${AIRSPACE_PMTILES_FILENAME}`;
+}
+
+function createR2Source(url: string): PmtilesSource {
+  const r2 = new AwsClient({
+    accessKeyId: process.env.R2_ACCESS_KEY_ID || SECRETS.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || SECRETS.R2_SECRET_ACCESS_KEY,
+    service: 's3',
+    region: 'auto',
+    retries: 3,
+    initRetryMs: 200,
+  });
+
+  return {
+    getKey: () => url,
+    async getBytes(offset: number, length: number, signal?: AbortSignal, etag?: string) {
+      const headers: Record<string, string> = {
+        Range: `bytes=${offset}-${offset + length - 1}`,
+      };
+      if (etag) {
+        headers['If-Match'] = etag;
+      }
+      const timeout = AbortSignal.timeout(R2_TIMEOUT_MS);
+      const res = await r2.fetch(url, {
+        headers,
+        signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
+      });
+      if (res.status === 412 || res.status === 416) {
+        throw new EtagMismatch(res.headers.get('etag') ?? undefined);
+      }
+      if (!res.ok) {
+        throw new Error(`R2 range fetch failed: HTTP ${res.status}`);
+      }
+      return {
+        data: await res.arrayBuffer(),
+        etag: res.headers.get('etag') ?? undefined,
+        cacheControl: res.headers.get('cache-control') ?? undefined,
+        expires: res.headers.get('expires') ?? undefined,
+      };
+    },
+  };
+}
+
+/**
+ * Maps each track fix to its airspace tile key (`x/y` at `MAX_AIRSPACE_TILE_ZOOM`) and pixel coordinates.
+ *
+ * @param maxNumTiles - Stops collecting fixes once this many distinct tiles are reached.
+ * @returns `indexesByTileUrl` (fix indices grouped by `x/y` tile key) and `pxInTiles` (per-fix pixel coordinates).
+ */
 export function getIndicesByUrlAndPx(
   track: protos.Track,
   maxNumTiles = Number.MAX_SAFE_INTEGER,
 ): {
-  // List of track indices for each tile url.
+  // List of track indices for each tile key (`x/y`).
   indexesByTileUrl: Map<string, number[]>;
   // Location in the tile for each track point.
   pxInTiles: Array<Point>;
@@ -48,11 +111,11 @@ export function getIndicesByUrlAndPx(
     const lat = track.lat[i];
     const { tile, px } = getPixelCoordinates({ lat, lon }, MAX_AIRSPACE_TILE_ZOOM, AIRSPACE_TILE_SIZE);
     pxInTiles.push(px);
-    const url = getAirspaceTileUrl(tile.x, tile.y, MAX_AIRSPACE_TILE_ZOOM, 'cloud');
-    if (!indexesByTileUrl.has(url)) {
-      indexesByTileUrl.set(url, []);
+    const key = `${tile.x}/${tile.y}`;
+    if (!indexesByTileUrl.has(key)) {
+      indexesByTileUrl.set(key, []);
     }
-    indexesByTileUrl.get(url).push(i);
+    indexesByTileUrl.get(key)!.push(i);
     if (indexesByTileUrl.size >= maxNumTiles) {
       console.warn(`Too many tiles requested (${maxNumTiles})`);
       break;
@@ -62,25 +125,74 @@ export function getIndicesByUrlAndPx(
   return { indexesByTileUrl, pxInTiles };
 }
 
-// Populate the cache with the passed URLs.
-export async function populateTileCache(cache: LRU<ArrayBuffer | null>, urls: string[]): Promise<void> {
-  // Downloading tiles might return 404 if there is not airspace.
-  // We then can not rely on 404 to detect errors.
-  const { results } = await parallelTasksWithTimeout(5, urls, async (url: string) => {
-    let buffer = cache.get(url);
-    if (buffer === undefined) {
-      try {
-        const response = await fetchResponse(url, {
-          retry: 3,
-          timeoutS: 5,
-          retryOnTimeout: true,
-        });
-        buffer = response.ok ? await response.arrayBuffer() : null;
-      } catch (e) {
-        buffer = null;
+/**
+ * Fetches a PMTiles tile with up to 3 attempts.
+ * Returns tile bytes, or `null` if the tile is absent from the archive; throws if all attempts fail.
+ */
+async function fetchTileWithRetry(
+  url: string,
+  x: number,
+  y: number,
+  onEtagMismatch: () => void,
+): Promise<ArrayBuffer | null> {
+  for (let attempt = 3; ; attempt--) {
+    try {
+      return await fetchPmtilesTile(url, MAX_AIRSPACE_TILE_ZOOM, x, y, undefined, onEtagMismatch);
+    } catch (err) {
+      if (attempt === 1) {
+        throw err;
       }
-      cache.set(url, buffer);
     }
+  }
+}
+
+/**
+ * Populates `cache` for the given `x/y` tile keys from the cloud PMTiles archive.
+ * Refreshes the PMTiles client and clears `cache` after `PMTILES_CACHE_TTL_MS` or on ETag mismatch.
+ * Failed tile fetches are retried and omitted from the returned map rather than throwing.
+ *
+ * @param tileKeys - Tile keys in `x/y` format at `MAX_AIRSPACE_TILE_ZOOM`.
+ * @returns Request-local map of tile buffers (`null` when absent from the archive; omitted on fetch failure).
+ * @throws If a non-fetch task step rejects (e.g., cache write failure).
+ */
+export async function populateTileCache(
+  cache: LRU<ArrayBuffer | null>,
+  tileKeys: string[],
+): Promise<Map<string, ArrayBuffer | null>> {
+  const pmtilesUrl = getR2AirspaceUrl();
+  if (!r2SourceRegistered) {
+    setPmtilesSourceFactory(pmtilesUrl, createR2Source);
+    r2SourceRegistered = true;
+  }
+  const now = Date.now();
+  if (now - pmtilesLastRefreshMs > PMTILES_CACHE_TTL_MS) {
+    if (pmtilesLastRefreshMs > 0) {
+      cacheGeneration++;
+      resetPmtilesClient(pmtilesUrl);
+      cache.clear();
+    }
+    pmtilesLastRefreshMs = now;
+  }
+
+  const tiles = new Map<string, ArrayBuffer | null>();
+  const { results } = await parallelTasksWithTimeout(5, tileKeys, async (key: string) => {
+    let buffer = cache.get(key);
+    if (buffer === undefined) {
+      const [x, y] = key.split('/').map(Number);
+      const gen = cacheGeneration;
+      try {
+        buffer = await fetchTileWithRetry(pmtilesUrl, x, y, () => {
+          cacheGeneration++;
+          cache.clear();
+        });
+      } catch {
+        return;
+      }
+      if (gen === cacheGeneration) {
+        cache.set(key, buffer);
+      }
+    }
+    tiles.set(key, buffer);
   });
 
   for (const result of results) {
@@ -88,14 +200,20 @@ export async function populateTileCache(cache: LRU<ArrayBuffer | null>, urls: st
       throw result.reason;
     }
   }
+
+  return tiles;
 }
 
-// Retrieves the airspaces for the given track.
+/**
+ * Computes airspaces along `track` using `altitude` for ground-referenced floors and ceilings.
+ *
+ * @returns Airspace intervals sorted by `startSec`, with `hasErrors` set if ground altitude or any tile fetch failed.
+ */
 export async function fetchAirspaces(track: protos.Track, altitude: protos.GroundAltitude): Promise<protos.Airspaces> {
   const cache = getAirspaceCache();
   const { indexesByTileUrl, pxInTiles } = getIndicesByUrlAndPx(track, 500);
 
-  await populateTileCache(cache, [...indexesByTileUrl.keys()]);
+  const tiles = await populateTileCache(cache, [...indexesByTileUrl.keys()]);
 
   // Retrieve fix indexes for every airspaces.
   const gndAlt = altitude.altitudes;
@@ -103,8 +221,13 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
   const airspaceById = new Map<string, AirspaceTyped>();
   const maxAltitudeToCheck = arrayMax(track.alt) + MARGIN_METER;
   const startDate = track.timeSec[0] ? new Date(track.timeSec[0] * 1000) : new Date();
+  let hasErrors = altitude.hasErrors;
   for (const [url, indexes] of indexesByTileUrl) {
-    const buffer = cache.get(url);
+    if (!tiles.has(url)) {
+      hasErrors = true;
+      continue;
+    }
+    const buffer = tiles.get(url);
     if (buffer == null) {
       continue;
     }
@@ -213,7 +336,7 @@ export async function fetchAirspaces(track: protos.Track, altitude: protos.Groun
 
   aspObjects.sort((a, b) => (a.startSec < b.startSec ? -1 : 1));
 
-  const proto = protos.Airspaces.create({ hasErrors: altitude.hasErrors });
+  const proto = protos.Airspaces.create({ hasErrors });
 
   aspObjects.forEach((asp) => {
     proto.startSec.push(asp.startSec);

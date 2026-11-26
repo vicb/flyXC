@@ -1,12 +1,24 @@
+import { getAirspacePmtilesUrl, getPmtilesMetadata } from '@flyxc/common';
 import { modalController } from '@ionic/core/components';
 import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
 
 import { version } from '../../../../package.json';
 
 @customElement('about-modal')
 export class AboutModal extends LitElement {
+  @state()
+  private airspaceDate = '-';
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    void getPmtilesMetadata(getAirspacePmtilesUrl(import.meta.env.VITE_AIRSPACE_SERVER)).then((meta) => {
+      if (meta?.date) {
+        this.airspaceDate = meta.date;
+      }
+    });
+  }
   render(): TemplateResult {
     return html`<ion-header>
         <ion-toolbar color="light">
@@ -40,7 +52,7 @@ export class AboutModal extends LitElement {
         <ion-text color="medium">
           <ul style="list-style-type: none; padding: 0;">
             <li><em>version ${version}.${__BUILD_TIMESTAMP__}</em></li>
-            <li><em>airspace ${__AIRSPACE_DATE__}</em></li>
+            <li><em>airspace ${this.airspaceDate}</em></li>
           </ul>
         </ion-text>
 

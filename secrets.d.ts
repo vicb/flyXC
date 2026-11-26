@@ -23,4 +23,8 @@ declare const SECRETS: {
   ZIPLINE_TOKEN: string;
   WING_TOKEN: string;
   EXPORT_ID_SALT: string;
+  // Cloudflare R2 S3-compatible API credentials for airspace PMTiles.
+  R2_ACCOUNT_ID: string;
+  R2_ACCESS_KEY_ID: string;
+  R2_SECRET_ACCESS_KEY: string;
 };

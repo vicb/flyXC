@@ -1,7 +1,9 @@
 import { readFileSync } from 'node:fs';
+import { open } from 'node:fs/promises';
 import path from 'node:path';
 
-import { diffDecodeTrack, protos } from '@flyxc/common';
+import * as common from '@flyxc/common';
+import { diffDecodeTrack, PMTiles, type PmtilesSource, protos } from '@flyxc/common';
 
 import { fetchAirspaces, getIndicesByUrlAndPx, populateTileCache } from './airspace';
 
@@ -24,7 +26,7 @@ describe('Airspaces', () => {
       const { indexesByTileUrl, pxInTiles } = getIndicesByUrlAndPx(track);
       expect(indexesByTileUrl.size).toEqual(19);
       expect(pxInTiles).toHaveLength(4915);
-      expect(indexesByTileUrl.has('https://airsp.storage.googleapis.com/tiles/13/3284/4244.pbf'));
+      expect(indexesByTileUrl.has('410/530')).toBe(true);
     });
 
     it('Number of tiles for a huge track', () => {
@@ -46,18 +48,35 @@ describe('Airspaces', () => {
       const { indexesByTileUrl, pxInTiles } = getIndicesByUrlAndPx(track, 5);
       expect(indexesByTileUrl.size).toEqual(5);
       expect(pxInTiles).toHaveLength(1310);
-      expect(indexesByTileUrl.has('https://airsp.storage.googleapis.com/tiles/13/3284/4244.pbf'));
+      expect(indexesByTileUrl.has('410/530')).toBe(true);
     });
   });
 
   describe('fetchAirspaces', () => {
     it('should find the airspaces', async () => {
-      const track = readTrack('570kms.pbf');
-      const gndAltitude = protos.GroundAltitude.create({
-        altitudes: new Array(track.lat.length).fill(0),
-        hasErrors: false,
+      const localPmtiles = path.join(__dirname, '../../../../libs/common/src/lib/fixtures/airspaces-test.pmtiles');
+      const handle = await open(localPmtiles, 'r');
+      const source: PmtilesSource = {
+        getKey: () => localPmtiles,
+        async getBytes(offset: number, length: number) {
+          const buf = Buffer.allocUnsafe(length);
+          const { bytesRead } = await handle.read(buf, 0, length, offset);
+          return { data: buf.buffer.slice(buf.byteOffset, buf.byteOffset + bytesRead) };
+        },
+      };
+      const pmtiles = new PMTiles(source);
+      vi.spyOn(common, 'fetchPmtilesTile').mockImplementation(async (_url, z, x, y) => {
+        const res = await pmtiles.getZxy(z, x, y);
+        return res?.data ?? null;
       });
-      expect(await fetchAirspaces(track, gndAltitude)).toMatchInlineSnapshot(`
+
+      try {
+        const track = readTrack('570kms.pbf');
+        const gndAltitude = protos.GroundAltitude.create({
+          altitudes: new Array(track.lat.length).fill(0),
+          hasErrors: false,
+        });
+        expect(await fetchAirspaces(track, gndAltitude)).toMatchInlineSnapshot(`
         {
           "activity": [
             0,
@@ -133,11 +152,16 @@ describe('Airspaces', () => {
           ],
         }
       `);
+      } finally {
+        vi.restoreAllMocks();
+        await handle?.close();
+      }
     });
   });
 
   describe('populateTileCache', () => {
     it('propagates errors when a task callback rejects', async () => {
+      vi.spyOn(common, 'fetchPmtilesTile').mockResolvedValueOnce(null);
       const mockCache = {
         get: vi.fn().mockReturnValue(undefined),
         set: vi.fn(() => {
@@ -145,7 +169,11 @@ describe('Airspaces', () => {
         }),
       } as any;
 
-      await expect(populateTileCache(mockCache, ['https://example.com/tile'])).rejects.toThrow('Cache error');
+      try {
+        await expect(populateTileCache(mockCache, ['1/2'])).rejects.toThrow('Cache error');
+      } finally {
+        vi.restoreAllMocks();
+      }
     });
   });
 });

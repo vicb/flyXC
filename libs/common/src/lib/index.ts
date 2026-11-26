@@ -10,6 +10,7 @@ export * from './live-track-entity';
 export * from './live-track-filter';
 export * from './math';
 export * from './models';
+export * from './pmtiles';
 export * from './proj';
 export * from './redis-keys';
 export * from './runtime-track';

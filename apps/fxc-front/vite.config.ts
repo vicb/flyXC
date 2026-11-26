@@ -1,5 +1,4 @@
 import { randomBytes } from 'node:crypto';
-import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { TZDate } from '@date-fns/tz';
@@ -128,7 +127,6 @@ export default defineConfig(({ mode }) => {
 
     define: {
       __BUILD_TIMESTAMP__: JSON.stringify(getBuildTimestamp()),
-      __AIRSPACE_DATE__: JSON.stringify(getAirspaceDate()),
     },
 
     // Vitest configuration
@@ -159,14 +157,4 @@ function getBuildTimestamp(): string {
   return (buildTimestamp ??= `${format(new TZDate(new Date(), 'Europe/Paris'), 'yyyyMMdd-HHmm')}-${randomBytes(
     4,
   ).toString('hex')}`);
-}
-
-// Get the airspace update date from airspaces-date.json.
-function getAirspaceDate() {
-  const dateFile = join(import.meta.dirname, '../fxc-tiles/assets/airspaces-date.json');
-  try {
-    return JSON.parse(readFileSync(dateFile, 'utf8')).date ?? '-';
-  } catch {
-    return '-';
-  }
 }

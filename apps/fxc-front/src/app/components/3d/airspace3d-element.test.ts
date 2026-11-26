@@ -385,7 +385,6 @@ describe('buildAirspaceVectorTileStyle', () => {
       showTypes: [Type.Prohibited, Type.Restricted, Type.Danger],
       opacity: 70,
       date: new TZDate('2025-07-15T12:00:00', 'Europe/Paris'),
-      tileServer: 'cloud',
     });
 
     const classD = evaluateStyle(style, { name: 'CTR LYON', icaoClass: Class.D, type: Type.CTR, floorM: 0 });
@@ -441,7 +440,6 @@ describe('buildAirspaceVectorTileStyle', () => {
       showTypes: [Type.Other],
       opacity: 70,
       date: new Date('2025-07-15T12:00:00Z'),
-      tileServer: 'cloud',
     });
 
     expect(style.layers[0].filter).toEqual(['all', ['any', ['boolean', true]], ['<=', ['get', 'floorM'], 3000]]);
@@ -558,7 +556,6 @@ describe('createGroundSampler', () => {
 describe('Airspace3dElement', () => {
   let element: Airspace3dElement;
   let mockMap: ReturnType<typeof makeMockMap>;
-  let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -580,27 +577,12 @@ describe('Airspace3dElement', () => {
     vi.mocked(meshModule.extrudeAirspaceFootprint).mockClear();
     vi.mocked(common.applyOverrides).mockClear();
 
-    const origFetch = globalThis.fetch;
-    fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-      if (url.endsWith('/airspaces-date.json')) {
-        return {
-          ok: true,
-          json: async () => ({ date: '2026-11-14', timestamp: 1700000000000 }),
-        } as Response;
-      }
-      const match = /\/(\d+)\/(\d+)(?:-[\w-]+)?\.pbf$/.exec(url);
-      if (!match) {
-        return origFetch(input, init);
-      }
+    vi.spyOn(common, 'getPmtilesVersion').mockResolvedValue('1700000000000');
+    vi.spyOn(common, 'fetchPmtilesTile').mockImplementation(async (_url, _z, x, y) => {
       // Assign deterministic tile id 1 or 2 based on tile parity.
-      const id = ((Number(match[1]) + Number(match[2])) % 2) + 1;
-      return {
-        ok: true,
-        arrayBuffer: async () => new Uint8Array([id]).buffer,
-      } as Response;
+      const id = ((x + y) % 2) + 1;
+      return new Uint8Array([id]).buffer;
     });
-    vi.stubGlobal('fetch', fetchMock);
 
     mockMap = makeMockMap();
     element = new Airspace3dElement();
@@ -609,7 +591,7 @@ describe('Airspace3dElement', () => {
 
   afterEach(() => {
     element.remove();
-    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
     vi.useRealTimers();
   });
 

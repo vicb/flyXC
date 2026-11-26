@@ -8,9 +8,11 @@ import {
   type Bounds2D,
   boundsOverlap,
   type Class,
-  getAirspace3dTileUrl,
+  fetchPmtilesTile,
+  getAirspace3dPmtilesUrl,
   getAirspaceColorCategory,
-  getAirspaceDateUrl,
+  getPmtilesClient,
+  getPmtilesVersion,
   isAirspaceVisible,
   setBoundedCache,
   toTypedAirspace,
@@ -127,12 +129,17 @@ export class Airspace3dProcessor {
   private lastCheckedServer?: AirspaceServer;
   private lastObservedVersion?: string;
   private cacheGeneration = 0;
-  private tileFetchCache?: RequestCache;
 
   private invalidateMemoryCaches(): void {
     this.cacheGeneration++;
     this.footprintCache.clear();
     this.tileCache.clear();
+  }
+
+  private invalidateAllCaches(): void {
+    this.invalidateMemoryCaches();
+    this.lastDateCheckTime = 0;
+    void this.withDb((db) => db.clear('footprints'));
   }
 
   private async getDb(): Promise<IDBPDatabase | null> {
@@ -159,28 +166,21 @@ export class Airspace3dProcessor {
     this.lastDateCheckTime = now;
     try {
       const db = await this.getDb();
-      const remoteDateUrl = getAirspaceDateUrl(server);
-      const res = await fetch(remoteDateUrl, { cache: 'no-cache' });
-      if (!res.ok) {
-        // Allow retry on subsequent calls if request failed
-        this.lastDateCheckTime = 0;
-        return;
-      }
-      const { date: remoteDate, timestamp: remoteTimestamp } = (await res.json()) as {
-        date?: string;
-        timestamp?: number | string;
-      };
-      const remoteVersion = remoteTimestamp != null ? String(remoteTimestamp) : remoteDate;
+      const remoteVersion = await getPmtilesVersion(getAirspace3dPmtilesUrl(server));
       if (!remoteVersion) {
         return;
       }
       const storedVersion = db ? await db.get('metadata', 'version') : undefined;
+      const hadPreviousVersion = storedVersion != null || this.lastObservedVersion != null;
       const versionChanged = db
         ? storedVersion !== remoteVersion
         : this.lastObservedVersion != null && this.lastObservedVersion !== remoteVersion;
 
       if (versionChanged) {
-        this.tileFetchCache = 'no-cache';
+        if (hadPreviousVersion) {
+          // Bust the client URL only when replacing a known previous version so first-time loads hit CDN cache.
+          getPmtilesClient(getAirspace3dPmtilesUrl(server), true);
+        }
         this.invalidateMemoryCaches();
         if (db) {
           const tx = db.transaction(['footprints', 'metadata'], 'readwrite');
@@ -232,13 +232,17 @@ export class Airspace3dProcessor {
     const { tiles, bounds, maxAltitude, showClasses, showTypes, dateMs, tileServer } = request;
     const date = new Date(dateMs);
 
-    // Sync IndexedDB cache with remote airspaces-date.json
+    // Sync IndexedDB cache with remote PMTiles metadata/ETag
     await this.checkRemoteDate(tileServer);
 
-    const fetchGeneration = this.cacheGeneration;
+    let fetchGeneration = this.cacheGeneration;
     let decodedTiles: (DecodedTileFeature[] | null)[];
     try {
       decodedTiles = await Promise.all(tiles.map((t) => this.fetchDecodedTile(t.x, t.y, t.z, tileServer)));
+      if (fetchGeneration !== this.cacheGeneration && requestId === this.lastRequestId) {
+        fetchGeneration = this.cacheGeneration;
+        decodedTiles = await Promise.all(tiles.map((t) => this.fetchDecodedTile(t.x, t.y, t.z, tileServer)));
+      }
     } catch (error) {
       const errResponse: AirspaceWorkerResponse = {
         id: requestId,
@@ -405,8 +409,9 @@ export class Airspace3dProcessor {
     _z: number,
     server: AirspaceServer,
   ): Promise<DecodedTileFeature[] | null> {
-    const url = getAirspace3dTileUrl(x, y, server);
-    const cached = this.tileCache.get(url);
+    const url = getAirspace3dPmtilesUrl(server);
+    const cacheKey = `${server}/${x}/${y}`;
+    const cached = this.tileCache.get(cacheKey);
     if (cached) {
       return cached;
     }
@@ -414,14 +419,12 @@ export class Airspace3dProcessor {
     const gen = this.cacheGeneration;
     const promise = (async (): Promise<DecodedTileFeature[] | null> => {
       try {
-        const response = await fetch(url, this.tileFetchCache ? { cache: this.tileFetchCache } : undefined);
-        if (!response.ok) {
-          if (response.status === 404) {
-            return null;
-          }
-          throw new Error(`HTTP ${response.status} fetching ${url}`);
+        const buffer = await fetchPmtilesTile(url, AIRSPACE_3D_TILE_ZOOM, x, y, undefined, () => {
+          this.invalidateAllCaches();
+        });
+        if (buffer == null) {
+          return null;
         }
-        const buffer = await response.arrayBuffer();
         const tile = new VectorTile(new Uint8Array(buffer));
         const layer = tile.getLayer<AirspaceString>('asp');
         if (!layer) {
@@ -446,13 +449,13 @@ export class Airspace3dProcessor {
         return features;
       } catch (error) {
         if (gen === this.cacheGeneration) {
-          this.tileCache.delete(url);
+          this.tileCache.delete(cacheKey);
         }
         throw error;
       }
     })();
 
-    setBoundedCache(this.tileCache, MAX_TILE_CACHE_SIZE, url, promise);
+    setBoundedCache(this.tileCache, MAX_TILE_CACHE_SIZE, cacheKey, promise);
     return promise;
   }
 }

@@ -481,34 +481,23 @@ export function isInFeature(point: Point, feature: Feature, marginPx = 0): boole
 
 export type AirspaceServer = 'local' | 'cloud';
 
+// Local dev server (`pnpm nx serve fxc-tiles`).
 export const LOCAL_AIRSPACE_BASE_URL = 'http://localhost:8084';
-export const CLOUD_AIRSPACE_BASE_URL = 'https://airspaces.storage.googleapis.com';
+// R2 custom domain behind Cloudflare CDN edge cache, used by browsers (`fxc-front`).
+export const CLOUD_AIRSPACE_BASE_URL = 'https://airspaces.flyxc.app';
+export const AIRSPACE_PMTILES_FILENAME = 'airspaces.pmtiles';
+export const AIRSPACE_3D_PMTILES_FILENAME = 'airspaces-3d.pmtiles';
 
-export function getAirspaceDateUrl(server: AirspaceServer): string {
-  const base = server === 'local' ? LOCAL_AIRSPACE_BASE_URL : CLOUD_AIRSPACE_BASE_URL;
-  return `${base}/airspaces-date.json`;
+export function getAirspaceBaseUrl(server: AirspaceServer): string {
+  return server === 'local' ? LOCAL_AIRSPACE_BASE_URL : CLOUD_AIRSPACE_BASE_URL;
 }
 
-export function getAirspaceTilesBaseUrl(server: AirspaceServer): string {
-  return server === 'local' ? LOCAL_AIRSPACE_BASE_URL : `${CLOUD_AIRSPACE_BASE_URL}/tiles`;
+export function getAirspacePmtilesUrl(server: AirspaceServer): string {
+  return `${getAirspaceBaseUrl(server)}/${AIRSPACE_PMTILES_FILENAME}`;
 }
 
-export function getAirspaceTilesUrlTemplate(server: AirspaceServer): string {
-  return `${getAirspaceTilesBaseUrl(server)}/{z}/{x}/{y}.pbf`;
-}
-
-export function getAirspaceTileUrl(x: number, y: number, z: number, server: AirspaceServer): string {
-  const url = getAirspaceTilesUrlTemplate(server);
-  return url.replace('{x}', String(x)).replace('{y}', String(y)).replace('{z}', String(z));
-}
-
-export function getAirspace3dTilesUrlTemplate(server: AirspaceServer): string {
-  return `${getAirspaceTilesBaseUrl(server)}/${AIRSPACE_3D_TILE_ZOOM}/{x}/{y}-unclipped.pbf`;
-}
-
-export function getAirspace3dTileUrl(x: number, y: number, server: AirspaceServer): string {
-  const url = getAirspace3dTilesUrlTemplate(server);
-  return url.replace('{x}', String(x)).replace('{y}', String(y));
+export function getAirspace3dPmtilesUrl(server: AirspaceServer): string {
+  return `${getAirspaceBaseUrl(server)}/${AIRSPACE_3D_PMTILES_FILENAME}`;
 }
 
 // Return a label for the class and the type, i.e. "E TMA", "E", "TMA" or "".
