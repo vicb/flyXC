@@ -1,7 +1,5 @@
 import '../components/ui/google-btn';
 
-import type { Instance } from '@popperjs/core';
-import { createPopper } from '@popperjs/core';
 import type { TemplateResult } from 'lit';
 import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
@@ -20,7 +18,6 @@ export class ArchivesPage extends LitElement {
   tracks: any[] = [];
 
   private cursor: string | null = null;
-  private popup?: Instance;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -31,6 +28,9 @@ export class ArchivesPage extends LitElement {
     return html`
       <style>
         #tooltip {
+          position: fixed;
+          z-index: 1000;
+          pointer-events: none;
           padding: 0;
           margin: 0;
           border: 1px solid #aaa;
@@ -64,27 +64,28 @@ export class ArchivesPage extends LitElement {
             return when(
               this.tracks.length === 0,
               () => 'loading...',
-              () => html`<ion-list>
-                ${this.tracks.map((track, i) => {
-                  const location = track.city && track.country ? `${track.city} (${track.country})` : 'Flight';
-                  const date = new Date(track.created);
-                  return html`<ion-item lines="full">
-                    <ion-label>
-                      <h2>
-                        ${location}
-                        <a
-                          href="/?id=${track.id}"
-                          target="_blank"
-                          @mouseenter=${(e: any) => this.showPopup(e.target, i)}
-                          @mouseleave=${this.hidePopup}
-                          ><i class="las la-search"></i
-                        ></a>
-                      </h2>
-                      <p>uploaded on ${date.toLocaleDateString()} ${date.toLocaleTimeString()}</p>
-                    </ion-label>
-                  </ion-item> `;
-                })}
-              </ion-list>`,
+              () =>
+                html`<ion-list>
+                  ${this.tracks.map((track, i) => {
+                    const location = track.city && track.country ? `${track.city} (${track.country})` : 'Flight';
+                    const date = new Date(track.created);
+                    return html`<ion-item lines="full">
+                      <ion-label>
+                        <h2>
+                          ${location}
+                          <a
+                            href="/?id=${track.id}"
+                            target="_blank"
+                            @mouseenter=${(e: any) => this.showPopup(e.target, i)}
+                            @mouseleave=${this.hidePopup}
+                            ><i class="las la-search"></i
+                          ></a>
+                        </h2>
+                        <p>uploaded on ${date.toLocaleDateString()} ${date.toLocaleTimeString()}</p>
+                      </ion-label>
+                    </ion-item> `;
+                  })}
+                </ion-list>`,
             );
           },
         )}
@@ -106,24 +107,19 @@ export class ArchivesPage extends LitElement {
           track.path
         }&size=${IMG_SIZE}x${IMG_SIZE}&key=${getApiKeyAndHost('GMAPS').key}`,
       );
-      this.popup = createPopper(el, tooltip, {
-        placement: 'right',
-        modifiers: [
-          {
-            name: 'offset',
-            options: {
-              offset: [0, 20],
-            },
-          },
-        ],
-      });
+      const rect = el.getBoundingClientRect();
+      const rightLeft = rect.right + 20;
+      const left =
+        rightLeft + IMG_SIZE + 8 <= window.innerWidth
+          ? rightLeft
+          : Math.max(8, Math.min(rect.left - IMG_SIZE - 20, window.innerWidth - IMG_SIZE - 8));
+      tooltip.style.left = `${left}px`;
+      tooltip.style.top = `${Math.max(8, Math.min(rect.top, window.innerHeight - IMG_SIZE - 8))}px`;
       tooltip.setAttribute('data-show', '');
     }
   }
 
   private hidePopup() {
-    this.popup?.destroy();
-    this.popup = undefined;
     document.getElementById('tooltip')?.removeAttribute('data-show');
   }
 

@@ -2,8 +2,8 @@ import type { protos, RuntimeTrack } from '@flyxc/common';
 import { arrayMax, arrayMin, isGroundAltitudeValid } from '@flyxc/common';
 import { createSelector } from '@reduxjs/toolkit';
 
-import type { ChartTrack } from '../../components/chart-element';
-import { ChartYAxis } from '../../components/chart-element';
+import type { ChartTrack } from '../../components/chart-types';
+import { ChartYAxis } from '../../components/chart-types';
 import { getUniqueContrastColor } from '../../styles/track';
 import { selectChartYAxis } from '../app-slice';
 import { getSanitizedLiveGroundAltitude, selectActiveLiveTrack, selectIsLiveTrackSelected } from '../live-track-slice';

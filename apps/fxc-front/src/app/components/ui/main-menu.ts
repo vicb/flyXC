@@ -4,8 +4,6 @@ import './pref-modal';
 import './track-modal';
 import './supporter-modal';
 
-import { geocode } from '@esri/arcgis-rest-geocoding';
-import { ApiKeyManager } from '@esri/arcgis-rest-request';
 import { Class, getClassName, getTypeName, LiveTrackDurationSec, Type } from '@flyxc/common';
 import type { SearchbarCustomEvent, ToggleCustomEvent } from '@ionic/core/components';
 import { modalController, toastController } from '@ionic/core/components';
@@ -556,6 +554,10 @@ export class ViewItems extends connect(store)(LitElement) {
       return;
     }
     try {
+      const [{ geocode }, { ApiKeyManager }] = await Promise.all([
+        import('@esri/arcgis-rest-geocoding'),
+        import('@esri/arcgis-rest-request'),
+      ]);
       const { candidates } = await geocode({
         singleLine: place,
         authentication: ApiKeyManager.fromKey(key),

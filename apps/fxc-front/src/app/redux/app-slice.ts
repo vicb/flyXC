@@ -1,7 +1,7 @@
 import type { PayloadAction, Store } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 
-import { ChartYAxis } from '../components/chart-element';
+import { ChartYAxis } from '../components/chart-types';
 
 export { ChartYAxis };
 

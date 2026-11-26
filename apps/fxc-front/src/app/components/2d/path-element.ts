@@ -1,4 +1,3 @@
-import '../ui/share-modal';
 import '../ui/waypoint-modal';
 
 import type { LatLon, RuntimeTrack } from '@flyxc/common';
@@ -331,7 +330,7 @@ export class PathElement extends connect(store)(LitElement) {
         }
       });
       el.addEventListener('share', async () => {
-        const points = await addAltitude(this.getPathPoints());
+        const [points] = await Promise.all([addAltitude(this.getPathPoints()), import('../ui/share-modal')]);
         const modal = await modalController.create({
           component: 'share-modal',
           componentProps: {

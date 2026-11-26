@@ -1,4 +1,4 @@
-import type { Class, protos, Type } from '@flyxc/common';
+import type { Class, Type } from '@flyxc/common';
 import { arrayMax, arrayMin, clamp, Flags, isAirspaceVisible, sampleAt } from '@flyxc/common';
 import { ticks } from 'd3-array';
 import type { CSSResult, PropertyValues, SVGTemplateResult, TemplateResult } from 'lit';
@@ -8,64 +8,10 @@ import { guard } from 'lit/directives/guard.js';
 import { when } from 'lit/directives/when.js';
 
 import * as units from '../logic/units';
+import type { ChartTrack } from './chart-types';
+import { ChartYAxis } from './chart-types';
 
-/**
- * Metrics that can be displayed on the chart's primary Y-axis.
- */
-export enum ChartYAxis {
-  /** Altitude profile (in meters, formatted according to user preferences). */
-  Altitude = 0,
-  /** Horizontal ground speed profile. */
-  Speed = 1,
-  /** Vertical speed (variometer) profile. */
-  Vario = 2,
-}
-
-/**
- * Generic track representation rendered by `<chart-element>`.
- *
- * Can represent runtime tracks (e.g. from IGC/GPX files) or live tracking tracks.
- */
-export interface ChartTrack {
-  /** Unique identifier of the track. */
-  id: string;
-  /** Display name of the pilot or track. */
-  name?: string;
-  /** Visual color used to render the track line. */
-  color?: string;
-  /** Array of timestamps in epoch seconds. */
-  timeSec: number[];
-  /** Array of altitude points in meters corresponding to timeSec. */
-  alt: number[];
-  /** Optional array of ground elevation points in meters. */
-  gndAlt?: number[];
-  /** Optional array of horizontal speeds. */
-  vx?: number[];
-  /** Optional array of vertical speeds / variometer values. */
-  vz?: number[];
-  /** Optional airspace definitions intersected by the track. */
-  airspaces?: protos.Airspaces;
-  /** Time offset in seconds applied when synchronizing multiple tracks. */
-  offsetSeconds?: number;
-  /** Minimum altitude across the track. */
-  minAlt?: number;
-  /** Maximum altitude across the track. */
-  maxAlt?: number;
-  /** Minimum horizontal speed across the track. */
-  minVx?: number;
-  /** Maximum horizontal speed across the track. */
-  maxVx?: number;
-  /** Minimum vertical speed across the track. */
-  minVz?: number;
-  /** Maximum vertical speed across the track. */
-  maxVz?: number;
-  /** Start timestamp in epoch seconds. */
-  minTimeSec?: number;
-  /** End timestamp in epoch seconds. */
-  maxTimeSec?: number;
-  /** Whether the track is a live tracking track. */
-  isLive?: boolean;
-}
+export { type ChartTrack, ChartYAxis };
 
 const MIN_SPEED_FACTOR = 16;
 const MAX_SPEED_FACTOR = 4096;
@@ -879,7 +825,7 @@ export class ChartElement extends LitElement {
    * @param e - The select change event.
    */
   private handleYChange(e: Event): void {
-    const y: ChartYAxis = Number((e.target as HTMLSelectElement).value);
+    const y = Number((e.target as HTMLSelectElement).value) as ChartYAxis;
     this.dispatchEvent(new CustomEvent('select-y', { detail: { y } }));
   }
 
