@@ -6,6 +6,18 @@
       "inputs": ["production", "^production"],
       "cache": true
     },
+    "build-watch": {
+      "dependsOn": ["build"],
+      "continuous": true,
+      "readyWhen": {
+        "logMatches": "built in"
+      },
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "vite build --watch --mode development"
+      }
+    },
     "@nx/js:tsc": {
       "cache": true,
       "dependsOn": ["^build"],

@@ -52,7 +52,7 @@ export default defineConfig(({ mode }) => {
     // Configuration for Node.js application
     build: {
       outDir: 'dist',
-      emptyOutDir: true,
+      emptyOutDir: mode === 'production',
       reportCompressedSize: true,
       target: 'node24',
       minify: mode === 'production',

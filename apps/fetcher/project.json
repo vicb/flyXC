@@ -20,19 +20,26 @@
         }
       }
     },
+    "build-watch": {},
     "serve": {
       "executor": "nx:run-commands",
-      "dependsOn": ["build"],
-      "options": {
-        "command": "node apps/fetcher/dist/index.js"
-      },
+      "dependsOn": [
+        "build",
+        {
+          "target": "build-watch",
+          "waitFor": "ready"
+        }
+      ],
+      "defaultConfiguration": "development",
       "configurations": {
         "development": {
+          "command": "node --watch dist/index.js",
           "env": {
             "NODE_ENV": "development"
           }
         },
         "production": {
+          "command": "node dist/index.js",
           "env": {
             "NODE_ENV": "production"
           }
