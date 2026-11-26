@@ -995,7 +995,7 @@ describe('Airspace3dElement', () => {
     expect(scene.openPopup).toHaveBeenCalledTimes(2);
   });
 
-  it('deduplicates airspaces across multiple 3D hit points, unexaggerates altitudes, and uses 3px wall margin', async () => {
+  it('deduplicates airspaces across multiple 3D hit points, queries by maxAltitude, and uses 3px wall margin', async () => {
     const view = makeMockView(10, 6.2, 44.8, 6.4, 45.0);
     const ring = [
       [6.2, 44.8],
@@ -1086,10 +1086,8 @@ describe('Airspace3dElement', () => {
 
     expect(hoisted.getAirspaceListMock).toHaveBeenCalledTimes(2);
     const firstQuery = hoisted.getAirspaceListMock.mock.calls[0][0] as any;
-    expect(firstQuery.gndAltitude).toBeCloseTo(2000, 1);
-    expect(firstQuery.altitude).toBeCloseTo(2000, 1);
-    expect(firstQuery.checkTop).toBe(true);
-    expect(firstQuery.altitudeMargin).toBe(150);
+    expect(firstQuery.altitude).toBe(hoisted.state.maxAltitude);
+    expect(firstQuery.checkTop).toBeUndefined();
     expect(firstQuery.marginPx).toBe(3);
 
     expect(scene.openPopup).toHaveBeenCalledTimes(1);

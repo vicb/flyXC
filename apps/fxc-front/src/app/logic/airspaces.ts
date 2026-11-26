@@ -52,8 +52,6 @@ export interface AirspaceListQuery {
   marginPx?: number;
   /** Ground elevation at `latLon`, added to the floors / tops referenced to GND. Defaults to 0. */
   gndAltitude?: number;
-  /** Airspaces with a floor above this altitude are ignored. Defaults to no limit. */
-  maxFloorAltitude?: number;
 
   // --- Visibility ---
   /** ICAO classes to show. */
@@ -75,7 +73,6 @@ export async function getAirspaceList({
   altitudeMargin = 0,
   marginPx = 0,
   gndAltitude = 0,
-  maxFloorAltitude = Infinity,
   visibleClasses,
   visibleTypes,
   date,
@@ -105,9 +102,6 @@ export async function getAirspaceList({
       continue;
     }
     const airspace = applyOverrides(toTypedAirspace(f.properties, f.id), date);
-    if (airspace.floorM > maxFloorAltitude) {
-      continue;
-    }
     const floor = airspace.floorM + (airspace.floorRefGnd ? gndAltitude : 0);
     if (altitude < floor - altitudeMargin) {
       continue;

@@ -303,24 +303,15 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       return;
     }
 
-    const sampleGroundZ = createGroundSampler(this.sampler);
-    const mult = this.multiplier > 0 ? this.multiplier : 1;
     const date = getEffectiveAirspaceDate(this.hasTrack, this.timeSec);
     const airspaces = new Map<number, AirspaceTyped>();
     let popupPoint: { lat: number; lon: number; z?: number } | undefined;
 
     for (const pt of hitPoints) {
-      const hasZ = Number.isFinite(pt.z);
-      const rawGnd = sampleGroundZ(pt.lon, pt.lat);
-      const gndAltitude = (rawGnd > 0 ? rawGnd : hasZ ? pt.z! : 0) / mult;
       const list = await getAirspaceList({
         latLon: { lat: pt.lat, lon: pt.lon },
-        altitude: hasZ ? pt.z! / mult : this.maxAltitude,
-        gndAltitude,
-        checkTop: hasZ,
-        altitudeMargin: 150,
-        marginPx: hasZ ? 3 : 0,
-        maxFloorAltitude: this.maxAltitude,
+        altitude: this.maxAltitude,
+        marginPx: Number.isFinite(pt.z) ? 3 : 0,
         visibleClasses: this.showClasses,
         visibleTypes: this.showTypes,
         date,
