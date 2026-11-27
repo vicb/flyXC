@@ -1481,6 +1481,7 @@ describe('Airspace3dElement', () => {
 
   it('culls mega-airspaces (> 4°) to quantized view windows and invalidates cache when panning across windows', () => {
     const element = new Airspace3dElement();
+    (element as any).showAirspace = true;
     const view: any = { center: { longitude: -88.1, latitude: 38.1 } };
     (element as any).view = view;
 
@@ -1534,6 +1535,25 @@ describe('Airspace3dElement', () => {
     expect(item.meshData).not.toBe(firstMesh);
     expect((element as any).meshCache.get(megaAirspace, 1, firstKey)).toBeUndefined();
     expect((element as any).meshCache.get(megaAirspace, 1, item.cullKey)).toBeDefined();
+
+    // Highlighted mega-airspace updates highlightGraphic in sync across rebuilds and cache-hydrated window switches
+    (element as any).map = { add: vi.fn(), remove: vi.fn() };
+    element.highlightAirspace(item);
+    const initialHighlightGeom = (element as any).highlightGraphic.geometry;
+    view.center = { longitude: -88.0, latitude: 38.0 };
+    (element as any).rebuildMeshes(false);
+    expect((element as any).highlightGraphic.geometry).not.toBe(initialHighlightGeom);
+    expect((element as any).highlightGraphic.geometry.vertexAttributes.position).toBe(item.meshData.positions);
+
+    // Hydrating back into the cached previous window also refreshes highlightGraphic even without re-extrusion
+    view.center = { longitude: -92.0, latitude: 40.0 };
+    (element as any).applyWorkerResponse({
+      id: (element as any).buildGeneration,
+      items: [{ category: item.category, airspace: megaAirspace, polygon: megaPoly, footprint }],
+    });
+    expect((element as any).highlightGraphic.geometry.vertexAttributes.position).toBe(
+      (element as any).currentAirspaces[0].meshData.positions,
+    );
   });
 
   it('findMatching3dItem matches unmerged items by id and merged items (>= MERGED_AIRSPACE_ID_MIN) by bounds, category, and containment', () => {

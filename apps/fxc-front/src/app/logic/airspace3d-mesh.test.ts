@@ -721,5 +721,19 @@ describe('buildAirspaceMesh', () => {
       expect(ridgeMesh.faces.length).toBeGreaterThan(flatMesh.faces.length);
       expect(Math.max(...getZs(ridgeMesh.positions).filter((z) => z < 10000))).toBeGreaterThan(1000);
     });
+
+    it('reuses terrainCap for mixed GND/MSL airspaces and grids wide MSL airspaces (> 2°) to avoid earcut long chords', () => {
+      const polygon = makeSquarePolygon(0, 40, 10);
+      const mixed = makeAirspace({ floorM: 366, floorRefGnd: true, topM: 18288, topRefGnd: false });
+      const mixedFp = buildAirspaceFootprint(polygon, mixed)!;
+      expect(mixedFp.terrainCap).toBeDefined();
+      expect(mixedFp.flatCap).toBeUndefined();
+
+      const wideMsl = makeAirspace({ floorM: 3000, floorRefGnd: false, topM: 6000, topRefGnd: false });
+      const wideMslFp = buildAirspaceFootprint(polygon, wideMsl)!;
+      expect(wideMslFp.flatCap).toBeDefined();
+      // Wide MSL polygons get interior Steiner vertices instead of bare 4-corner earcut triangles
+      expect(wideMslFp.flatCap!.xy.length / 2).toBeGreaterThan(100);
+    });
   });
 });

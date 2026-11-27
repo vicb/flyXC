@@ -317,10 +317,7 @@ export function computeTargetGridM(
   airspace: Pick<AirspaceTyped, 'floorM' | 'floorRefGnd' | 'topRefGnd'> & { topM?: number },
   coarse?: boolean,
 ): number {
-  if (!airspace.topRefGnd) {
-    return coarse ? 4800 : 2000;
-  }
-  const clearanceM = computeMinimumAglClearanceM(airspace);
+  const clearanceM = airspace.topRefGnd ? computeMinimumAglClearanceM(airspace) : undefined;
   if (clearanceM == null) {
     return coarse ? 4800 : 2000;
   }
@@ -366,12 +363,16 @@ export function buildAirspaceFootprint(
   const needFlatCap = !airspace.topRefGnd || (needFloorCap && !airspace.floorRefGnd);
   const needTerrainCap = airspace.topRefGnd || (needFloorCap && airspace.floorRefGnd);
 
-  let flatCap: Triangulated2D | undefined;
-  if (needFlatCap) {
-    flatCap = triangulateFlatRings2D(wallRings);
-  }
-
+  // Reuse terrainCap (Steiner-gridded) for flat caps on mixed GND/MSL airspaces so large polygons avoid
+  // multi-degree earcut chords (globe-curvature sag) and mismatched roof/floor culling under cullBounds.
   const terrainCap = needTerrainCap ? triangulateCapWithGrid2D(wallRings, polygon.extent, targetGridM) : undefined;
+  let flatCap: Triangulated2D | undefined;
+  if (needFlatCap && !terrainCap) {
+    const isWide = polygon.extent.xmax - polygon.extent.xmin > 2 || polygon.extent.ymax - polygon.extent.ymin > 2;
+    flatCap = isWide
+      ? triangulateCapWithGrid2D(wallRings, polygon.extent, targetGridM)
+      : triangulateFlatRings2D(wallRings);
+  }
   const lod = needTerrainCap && options?.coarse ? 0 : 1;
 
   return { wallRings, flatCap, terrainCap, lod };

@@ -42,8 +42,8 @@ const sharedMeshMaterial = {
 };
 
 /**
- * Computes a fast ground-elevation checksum at representative points of a polygon so
- * terrain updates that do not meaningfully affect this airspace can be skipped.
+ * Computes a fast ground-elevation checksum at representative points of a polygon (or `bounds`
+ * when window-culling continental polygons) so terrain updates that do not affect it are skipped.
  */
 export function computeGroundSignature(
   polygon: AirspacePolygonLike,
@@ -431,11 +431,13 @@ export function extrudeAirspaceFootprint(
   const clearanceM = computeMinimumAglClearanceM(airspace);
   let terrainGnds: Float64Array | undefined;
   let terrainTri = footprint.terrainCap;
+  let culledBaseTerrainTri: Triangulated2D | undefined;
   if (terrainTri && (airspace.topRefGnd || (needFloorCap && airspace.floorRefGnd))) {
     let vertRemap: Int32Array | undefined;
     if (cullBounds) {
       ({ tri: terrainTri, vertRemap } = filterTriangulationToBounds(terrainTri, cullBounds));
     }
+    culledBaseTerrainTri = terrainTri;
     const configuredPasses = options?.maxRidgePasses ?? RIDGE_REFINE_MAX_PASSES;
     const maxPasses = footprint.lod === 0 ? 0 : configuredPasses;
     const refined = refineTerrainCapForRidges(
@@ -451,8 +453,13 @@ export function extrudeAirspaceFootprint(
     terrainGnds = refined.gnds;
   }
 
-  let flatTri = footprint.flatCap;
-  if (cullBounds && flatTri && (!airspace.topRefGnd || (needFloorCap && !airspace.floorRefGnd))) {
+  let flatTri = culledBaseTerrainTri ?? footprint.flatCap;
+  if (
+    !culledBaseTerrainTri &&
+    cullBounds &&
+    flatTri &&
+    (!airspace.topRefGnd || (needFloorCap && !airspace.floorRefGnd))
+  ) {
     flatTri = filterTriangulationToBounds(flatTri, cullBounds).tri;
   }
 
