@@ -340,16 +340,22 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     this.clearHighlight();
     if (airspaces.size > 0 && popupPoint) {
       const list = Array.from(airspaces.values());
-      if (Number.isFinite(popupPoint.z)) {
-        const clickAltM = popupPoint.z! / (this.multiplier || 1);
-        const gndAltM = createGroundSampler(this.sampler)(popupPoint.lon, popupPoint.lat);
-        list.sort(
-          (a, b) =>
-            verticalDistanceM(a, clickAltM, gndAltM) - verticalDistanceM(b, clickAltM, gndAltM) ||
-            getFloorM(a, gndAltM) - getFloorM(b, gndAltM),
-        );
-      }
-      const hitItem = findMatching3dItem(this.currentAirspaces, list[0], popupPoint);
+      const matches = new Map(list.map((asp) => [asp.id, findMatching3dItem(this.currentAirspaces, asp, popupPoint)]));
+      const area = (id: number) => {
+        const ext = matches.get(id)?.polygon.extent;
+        return ext ? (ext.xmax - ext.xmin) * (ext.ymax - ext.ymin) : Infinity;
+      };
+      const hasZ = Number.isFinite(popupPoint.z);
+      const clickAltM = popupPoint.z! / (this.multiplier || 1);
+      const gndAltM = hasZ ? createGroundSampler(this.sampler)(popupPoint.lon, popupPoint.lat) : 0;
+      list.sort(
+        (a, b) =>
+          (hasZ
+            ? verticalDistanceM(a, clickAltM, gndAltM) - verticalDistanceM(b, clickAltM, gndAltM) ||
+              getFloorM(a, gndAltM) - getFloorM(b, gndAltM)
+            : 0) || area(a.id) - area(b.id),
+      );
+      const hitItem = matches.get(list[0].id);
       if (hitItem) {
         this.highlightAirspace(hitItem);
       }
