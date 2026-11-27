@@ -9,6 +9,7 @@ import { TZDate } from '@date-fns/tz';
 import * as common from '@flyxc/common';
 import {
   AIRSPACE_3D_TILE_ZOOM,
+  AirspaceColorCategory,
   ASP_COLOR_DANGER,
   ASP_COLOR_OTHER,
   ASP_COLOR_PROHIBITED,
@@ -1110,6 +1111,53 @@ describe('Airspace3dElement', () => {
     expect(content).toContain('LF-R196A1');
     // Deduplicated: PARC/RESERVE ECRINS appears once despite matching at both hit points
     expect(content.match(/PARC\/RESERVE ECRINS/g)).toHaveLength(1);
+
+    // When two overlapping airspaces tie on verticalDistanceM and floor, prefer the smaller 3D volume.
+    (element as any).currentAirspaces = [
+      {
+        airspace: { id: 1, floorM: 0, floorRefGnd: true, topM: 1500, topRefGnd: false },
+        category: AirspaceColorCategory.Prohibited,
+        polygon: { extent: { xmin: 22, xmax: 33, ymin: 46, ymax: 51 } },
+        meshData: { positions: new Float64Array([0, 0, 0]), faces: new Uint32Array([0, 0, 0]) },
+      },
+      {
+        airspace: { id: 2, floorM: 0, floorRefGnd: true, topM: 1150, topRefGnd: false },
+        category: AirspaceColorCategory.Restricted,
+        polygon: { extent: { xmin: 30.76, xmax: 30.79, ymin: 48.01, ymax: 48.04 } },
+        meshData: { positions: new Float64Array([1, 1, 1]), faces: new Uint32Array([0, 0, 0]) },
+      },
+    ];
+    hoisted.getAirspaceListMock.mockResolvedValueOnce([
+      {
+        id: 1,
+        name: 'LARGE CTR',
+        floorM: 0,
+        floorRefGnd: true,
+        topM: 1500,
+        topRefGnd: false,
+        floorLabel: 'GND',
+        topLabel: '1500m',
+        type: Type.CTR,
+        icaoClass: Class.D,
+      },
+      {
+        id: 2,
+        name: 'SMALL RESTRICTED',
+        floorM: 0,
+        floorRefGnd: true,
+        topM: 1150,
+        topRefGnd: false,
+        floorLabel: 'GND',
+        topLabel: '1150m',
+        type: Type.Restricted,
+        icaoClass: Class.SUA,
+      },
+    ] as any[]);
+    await element.handleClick([{ lat: 48.02, lon: 30.77, z: 600 }], scene);
+    const tiedPopup = scene.openPopup.mock.calls[1][0];
+    const tiedContent = tiedPopup.content.shadowRoot?.innerHTML ?? tiedPopup.content.innerHTML;
+    expect(tiedContent.indexOf('SMALL RESTRICTED')).toBeLessThan(tiedContent.indexOf('LARGE CTR'));
+    expect((element as any).highlightGraphic.geometry.vertexAttributes.position[0]).toBe(1);
 
     hoisted.state.multiplier = 1;
     store.dispatch({ type: 'TEST_MULTIPLIER' });
