@@ -111,12 +111,12 @@ const MAX_FOOTPRINT_CACHE_SIZE = 1500;
  *    in-memory Map (L1) and persisted across browser sessions in IndexedDB (L2).
  * 3. Cache Invalidation: An automated remote date/timestamp check against the airspace server
  *    invalidates the IndexedDB cache when fresh aeronautical data cycles are published.
- * 4. Progressive Level of Detail (LOD) & Adaptive Triangulation: Polygons with terrain-referenced
- *    caps are first emitted at LOD 0 (coarse Steiner grid, up to ~4800m) for immediate rendering,
- *    followed by LOD 1 for fine fidelity without freezing the UI. Base grid spacing and wall
- *    densification scale with minimum AGL clearance (`computeTargetGridM`, covering both AGL ceilings
- *    and elevated AGL floors down to 400m), and LOD 1 caps are further subdivided across sharp mountain
- *    ridges during DEM extrusion (`refineTerrainCapForRidges`) to prevent ridge puncture.
+ * 4. Progressive Level of Detail (LOD) & Adaptive Triangulation: Polygons with AGL ceilings (`topRefGnd`)
+ *    are first emitted at LOD 0 (coarse Steiner grid, up to ~4800m) for immediate rendering, followed by
+ *    LOD 1 with clearance-scaled grid spacing (`computeTargetGridM`, down to 400m) and wall densification.
+ *    Elevated AGL floors under flat MSL ceilings build in a single pass with the standard 2000m grid, and all
+ *    LOD 1 terrain caps are subdivided across sharp mountain ridges during DEM extrusion
+ *    (`refineTerrainCapForRidges`) to prevent ridge puncture.
  *
  * Can run inside a dedicated Web Worker or in-process (e.g. for unit tests).
  */
@@ -288,8 +288,6 @@ export class Airspace3dProcessor {
           continue;
         }
 
-        const sinkZeroFloor = airspace.floorRefGnd && airspace.floorM === 0;
-
         let cachedFp = this.footprintCache.get(feat.id);
         if (!cachedFp) {
           const idbRecord = await this.withDb<
@@ -305,8 +303,8 @@ export class Airspace3dProcessor {
 
         if (polygon.ends.length > 0) {
           let footprint: AirspaceFootprint | undefined = cachedFp?.footprint;
-          const needsTerrainCap = airspace.topRefGnd || (!sinkZeroFloor && airspace.floorRefGnd);
-          const isProgressive = onProgress != null && needsTerrainCap && (!footprint || footprint.lod === 0);
+          const isProgressive =
+            onProgress != null && Boolean(airspace.topRefGnd) && (!footprint || footprint.lod === 0);
 
           if (!footprint) {
             const built = buildAirspaceFootprint(polygon, airspace, { coarse: isProgressive });

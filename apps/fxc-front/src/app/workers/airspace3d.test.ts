@@ -224,6 +224,58 @@ describe('airspace3d-processor', () => {
       expect(finalRes.items[0].airspace.id).toBe(101);
     });
 
+    it('emits single final response without LOD 0 pass for elevated AGL floor airspaces under MSL ceilings', async () => {
+      const floorOnlyFeature = {
+        id: 103,
+        baseAirspace: {
+          name: 'CLASS E5 700FT AGL',
+          country: 'US',
+          floorM: 213,
+          floorLabel: '700ft AGL',
+          floorRefGnd: true,
+          topM: 18288,
+          topLabel: 'FL 600',
+          topRefGnd: false,
+          type: Type.CTA,
+          icaoClass: Class.E,
+          activity: 0,
+        },
+        polygon: makeTestPolygon(
+          [
+            [-88.2, 37.8],
+            [-87.8, 37.8],
+            [-87.8, 38.2],
+            [-88.2, 38.2],
+            [-88.2, 37.8],
+          ],
+          { xmin: -88.2, ymin: 37.8, xmax: -87.8, ymax: 38.2 },
+        ),
+        extent: { xmin: -88.2, ymin: 37.8, xmax: -87.8, ymax: 38.2 },
+      };
+
+      (processor as any).fetchDecodedTile = vi.fn().mockResolvedValue([floorOnlyFeature]);
+
+      const progressStages: any[] = [];
+      const req = {
+        id: 13,
+        tiles: [{ x: 16, y: 24, z: 6 }],
+        bounds: { xmin: -89, ymin: 37, xmax: -87, ymax: 39 },
+        maxAltitude: 3000,
+        showClasses: [Class.E],
+        showTypes: [Type.CTA],
+        dateMs: Date.now(),
+        tileServer: 'cloud' as const,
+      };
+
+      const res = await processor.process(req, (p) => progressStages.push(p));
+
+      expect(progressStages).toHaveLength(1);
+      expect(progressStages[0].isFinal).toBeUndefined();
+      expect(progressStages[0].isDelta).toBeUndefined();
+      expect(res.items).toHaveLength(1);
+      expect(res.items[0].footprint.lod).toBe(1);
+    });
+
     it('emits single final response when all airspaces are flat MSL', async () => {
       const mslFeature = {
         id: 102,

@@ -47,6 +47,10 @@ describe('AirspaceMeshCache', () => {
       expect(cache.get(asp, 1)).toBeDefined();
       expect(cache.get(asp, 0)).toBeUndefined();
       expect(cache.get(asp)).toBeDefined();
+
+      cache.set(asp, { meshData: dummyMesh, meshLod: 1, cullKey: 12345 });
+      expect(cache.get(asp, 1, 12345)).toBeDefined();
+      expect(cache.get(asp, 1, 99999)).toBeUndefined();
     });
 
     it('self-invalidates when overridable airspace attributes change', () => {

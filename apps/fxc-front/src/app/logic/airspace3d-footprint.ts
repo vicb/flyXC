@@ -308,14 +308,18 @@ export function computeMinimumAglClearanceM(
 }
 
 /**
- * Computes an adaptive Steiner grid spacing based on minimum AGL clearance above terrain.
- * Narrow AGL cushions or elevated AGL floors over steep mountain ranges require tighter
- * triangulation so caps faithfully follow mountain crests without ridge puncture.
+ * Computes an adaptive Steiner grid spacing for terrain-referenced ceilings (`topRefGnd`), scaling down
+ * to 400m when narrow AGL clearance above ridges could otherwise cause puncture artifacts.
+ * Elevated AGL floors under flat MSL ceilings use the standard 2000m / 4800m grid and rely on
+ * {@link refineTerrainCapForRidges} to subdivide dynamically over steep terrain.
  */
 export function computeTargetGridM(
   airspace: Pick<AirspaceTyped, 'floorM' | 'floorRefGnd' | 'topRefGnd'> & { topM?: number },
   coarse?: boolean,
 ): number {
+  if (!airspace.topRefGnd) {
+    return coarse ? 4800 : 2000;
+  }
   const clearanceM = computeMinimumAglClearanceM(airspace);
   if (clearanceM == null) {
     return coarse ? 4800 : 2000;
@@ -342,14 +346,14 @@ export function buildAirspaceFootprint(
   const targetGridM = options?.maxEdgeM ?? computeTargetGridM(airspace, options?.coarse);
 
   const hasGroundRef = airspace.floorRefGnd || airspace.topRefGnd;
-  const hasElevatedTerrainCap = airspace.topRefGnd || (airspace.floorRefGnd && airspace.floorM > 0);
+  const hasAglCeiling = Boolean(airspace.topRefGnd);
   let stepM: number | undefined;
   if (hasGroundRef) {
     const { widthM, heightM } = estimateExtentMeters(polygon.extent);
-    const minStep = hasElevatedTerrainCap ? clamp(targetGridM * 0.8, 250, MIN_DENSIFY_STEP_M) : MIN_DENSIFY_STEP_M;
+    const minStep = hasAglCeiling ? clamp(targetGridM * 0.8, 250, MIN_DENSIFY_STEP_M) : MIN_DENSIFY_STEP_M;
     stepM = options?.coarse
       ? Math.max(MIN_DENSIFY_STEP_M, Math.hypot(widthM, heightM) / TARGET_DENSIFY_SEGMENTS)
-      : Math.max(minStep, Math.hypot(widthM, heightM) / (hasElevatedTerrainCap ? 96 : TARGET_DENSIFY_SEGMENTS));
+      : Math.max(minStep, Math.hypot(widthM, heightM) / (hasAglCeiling ? 96 : TARGET_DENSIFY_SEGMENTS));
   }
 
   const wallRings = densifyFlatRings(polygon.coords, polygon.ends, stepM);

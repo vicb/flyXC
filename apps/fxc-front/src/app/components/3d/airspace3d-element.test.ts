@@ -1479,6 +1479,63 @@ describe('Airspace3dElement', () => {
     expect(sig2).not.toBe(sig1);
   });
 
+  it('culls mega-airspaces (> 4°) to quantized view windows and invalidates cache when panning across windows', () => {
+    const element = new Airspace3dElement();
+    const view: any = { center: { longitude: -88.1, latitude: 38.1 } };
+    (element as any).view = view;
+
+    const megaPoly = {
+      ...flattenRings([
+        [
+          [-100, 30],
+          [-80, 30],
+          [-80, 45],
+          [-100, 45],
+          [-100, 30],
+        ],
+      ]),
+      extent: { xmin: -100, ymin: 30, xmax: -80, ymax: 45 },
+    };
+    const megaAirspace = {
+      id: MERGED_AIRSPACE_ID_MIN + 1,
+      floorM: 366,
+      topM: 18288,
+      floorRefGnd: true,
+      topRefGnd: false,
+      type: Type.CTA,
+      icaoClass: Class.E,
+    } as any;
+    const footprint = meshModule.buildAirspaceFootprint(megaPoly, megaAirspace)!;
+    const item: any = {
+      category: common.AirspaceColorCategory.Other,
+      airspace: megaAirspace,
+      polygon: megaPoly,
+      footprint,
+    };
+    (element as any).currentAirspaces = [item];
+
+    // Window 1: qLon = -88, qLat = 38
+    (element as any).extrudeStaleItems(false);
+    const firstKey = item.cullKey;
+    const firstMesh = item.meshData;
+    expect(firstKey).toBeDefined();
+    expect(firstMesh).toBeDefined();
+
+    // Small pan within the same 2° window hits cache without re-extrusion
+    view.center = { longitude: -87.5, latitude: 38.5 };
+    (element as any).extrudeStaleItems(false);
+    expect(item.cullKey).toBe(firstKey);
+    expect(item.meshData).toBe(firstMesh);
+
+    // Moving to another 2° window invalidates cullKey and re-extrudes
+    view.center = { longitude: -92.0, latitude: 40.0 };
+    (element as any).extrudeStaleItems(false);
+    expect(item.cullKey).not.toBe(firstKey);
+    expect(item.meshData).not.toBe(firstMesh);
+    expect((element as any).meshCache.get(megaAirspace, 1, firstKey)).toBeUndefined();
+    expect((element as any).meshCache.get(megaAirspace, 1, item.cullKey)).toBeDefined();
+  });
+
   it('findMatching3dItem matches unmerged items by id and merged items (>= MERGED_AIRSPACE_ID_MIN) by bounds, category, and containment', () => {
     const unmergedItem = {
       category: common.AirspaceColorCategory.Other,
