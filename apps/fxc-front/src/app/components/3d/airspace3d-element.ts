@@ -12,6 +12,7 @@ import type { ArcgisScene } from '@arcgis/map-components/components/arcgis-scene
 import {
   AirspaceColorCategory,
   type AirspaceTyped,
+  type Bounds2D,
   boundsDistanceSquaredKm,
   clamp,
   type Class,
@@ -129,6 +130,8 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   private categoryLineGraphics = new Map<AirspaceColorCategory, Graphic>();
   private categoryLineSymbols = new Map<AirspaceColorCategory, LineSymbol3D>();
   private highlightGraphic?: Graphic;
+  private highlightedAirspaceId?: number;
+  private highlightedMeshData?: AirspaceMeshData;
   private categoryBuckets = new Map<AirspaceColorCategory, { parts: AirspaceMeshData[]; sigHash: number }>([
     [AirspaceColorCategory.Prohibited, { parts: [], sigHash: 0 }],
     [AirspaceColorCategory.Restricted, { parts: [], sigHash: 0 }],
@@ -273,6 +276,8 @@ export class Airspace3dElement extends connect(store)(LitElement) {
    * Clears any currently active 3D airspace highlight graphic.
    */
   public clearHighlight(): void {
+    this.highlightedAirspaceId = undefined;
+    this.highlightedMeshData = undefined;
     if (this.highlightGraphic) {
       const g = this.highlightGraphic;
       this.highlightGraphic = undefined;
@@ -287,12 +292,17 @@ export class Airspace3dElement extends connect(store)(LitElement) {
   public highlightAirspace(item: CachedAirspaceItem): void {
     this.clearHighlight();
     const sampleGroundZ = createGroundSampler(this.sampler);
+    const cullBounds = this.getCullWindow(item.polygon.extent)?.cullBounds;
     const meshData =
       item.meshData ??
-      (item.footprint ? extrudeAirspaceFootprint(item.footprint, item.airspace, this.multiplier, sampleGroundZ) : null);
+      (item.footprint
+        ? extrudeAirspaceFootprint(item.footprint, item.airspace, this.multiplier, sampleGroundZ, { cullBounds })
+        : null);
     if (!meshData || meshData.positions.length === 0 || meshData.faces.length === 0) {
       return;
     }
+    this.highlightedAirspaceId = item.airspace.id;
+    this.highlightedMeshData = meshData;
     this.highlightGraphic = new Graphic({
       geometry: createMesh(meshData.positions, meshData.faces),
       symbol: createAirspaceFillSymbol(item.category ?? AirspaceColorCategory.Other, 0.8),
@@ -513,11 +523,15 @@ export class Airspace3dElement extends connect(store)(LitElement) {
     return undefined;
   }
 
+  private cachedCullWindow?: { cullKey: number; cullBounds: Bounds2D };
+
   private hydrateFromCache(item: CachedAirspaceItem): void {
-    const cached = this.meshCache.get(item.airspace, item.footprint?.lod ?? 1);
+    const cullKey = this.getCullWindow(item.polygon.extent)?.cullKey;
+    const cached = this.meshCache.get(item.airspace, item.footprint?.lod ?? 1, cullKey);
     item.meshData = cached?.meshData;
     item.groundSignature = cached?.groundSignature;
     item.meshLod = cached?.meshLod;
+    item.cullKey = cached?.cullKey;
   }
 
   private applyWorkerResponse(response: AirspaceWorkerResponse): void {
@@ -630,9 +644,9 @@ export class Airspace3dElement extends connect(store)(LitElement) {
    * Rebuilds 3D airspace geometry and updates GPU graphics layers.
    *
    * Performance Architecture:
-   * 1. Selective re-extrusion & Distance LOD: Pure MSL airspaces are extruded once and cached permanently.
-   *    Ground-referenced airspaces re-extrude only when their terrain signature changes, and distant
-   *    airspaces skip ridge refinement (> 30 km) and perimeter contour lines (> 40 km).
+   * 1. Selective re-extrusion, regional culling & Distance LOD: Pure MSL airspaces are extruded once and cached permanently.
+   *    Ground-referenced airspaces re-extrude only when their terrain signature changes, oversized polygons (> 4°) cull
+   *    to a quantized window around the view center, and distant airspaces skip ridge refinement (> 30 km) and contours (> 40 km).
    * 2. Category Batch Merging: Concatenates meshes and contours into at most 4 Mesh + 4 Polyline graphics.
    * 3. FNV-1a Signature Hashing: Skips GPU graphic reallocation when a category's signature is unchanged.
    */
@@ -647,12 +661,40 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       return;
     }
 
+    if (this.highlightGraphic && this.highlightedAirspaceId != null) {
+      const highlightedItem = this.currentAirspaces.find((i) => i.airspace.id === this.highlightedAirspaceId);
+      if (highlightedItem?.meshData && highlightedItem.meshData !== this.highlightedMeshData) {
+        this.highlightAirspace(highlightedItem);
+      }
+    }
+
     this.populateCategoryBuckets();
     this.syncCategoryGraphics(layer, onlyGroundRef ? dirtyCategories : ALL_CATEGORIES);
   }
 
+  private getCullWindow(extent?: Bounds2D | null): { cullKey: number; cullBounds: Bounds2D } | undefined {
+    if (!extent || (extent.xmax - extent.xmin <= 4 && extent.ymax - extent.ymin <= 4)) {
+      return undefined;
+    }
+    const lon = this.view?.center?.longitude ?? this.view?.camera?.position?.longitude;
+    const lat = this.view?.center?.latitude ?? this.view?.camera?.position?.latitude;
+    if (lon == null || lat == null) {
+      return undefined;
+    }
+    const qLon = Math.round(lon / 2) * 2;
+    const qLat = Math.round(lat / 2) * 2;
+    const cullKey = (qLon + 180) * 1024 + (qLat + 90);
+    if (this.cachedCullWindow?.cullKey !== cullKey) {
+      this.cachedCullWindow = {
+        cullKey,
+        cullBounds: { xmin: qLon - 6.5, xmax: qLon + 6.5, ymin: qLat - 4.5, ymax: qLat + 4.5 },
+      };
+    }
+    return this.cachedCullWindow;
+  }
+
   /**
-   * Re-extrudes cached footprints whose terrain signature or LOD changed, returning the affected categories.
+   * Re-extrudes cached footprints whose terrain signature, culling window, or LOD changed, returning the affected categories.
    */
   private extrudeStaleItems(onlyGroundRef: boolean): Set<AirspaceColorCategory> {
     const sampleGroundZ = createGroundSampler(this.sampler);
@@ -672,9 +714,17 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         continue;
       }
 
-      const sig = isGroundRef ? computeGroundSignature(item.polygon, sampleGroundZ) : undefined;
+      const cullWindow = this.getCullWindow(item.polygon.extent);
+      const cullKey = cullWindow?.cullKey;
+      const cullBounds = cullWindow?.cullBounds;
+      const sig = isGroundRef ? computeGroundSignature(item.polygon, sampleGroundZ, cullBounds) : undefined;
       const targetLod = item.footprint.lod ?? 1;
-      if (item.meshData != null && item.meshLod === targetLod && (!isGroundRef || item.groundSignature === sig)) {
+      if (
+        item.meshData != null &&
+        item.meshLod === targetLod &&
+        item.cullKey === cullKey &&
+        (!isGroundRef || item.groundSignature === sig)
+      ) {
         continue;
       }
 
@@ -693,16 +743,19 @@ export class Airspace3dElement extends connect(store)(LitElement) {
       const meshData = extrudeAirspaceFootprint(item.footprint, item.airspace, this.multiplier, sampleGroundZ, {
         maxRidgePasses,
         skipContours,
+        cullBounds,
       });
       dirtyCategories.add(item.category);
       if (meshData) {
         item.meshData = meshData;
         item.groundSignature = sig;
         item.meshLod = targetLod;
-        this.meshCache.set(item.airspace, { meshData, groundSignature: sig, meshLod: targetLod });
+        item.cullKey = cullKey;
+        this.meshCache.set(item.airspace, { meshData, groundSignature: sig, meshLod: targetLod, cullKey });
       } else {
         item.meshData = undefined;
         item.meshLod = undefined;
+        item.cullKey = undefined;
       }
     }
 
@@ -728,6 +781,7 @@ export class Airspace3dElement extends connect(store)(LitElement) {
         let h = fnv1aMix(bucket.sigHash, item.airspace.id);
         h = fnv1aMix(h, item.groundSignature ?? 0);
         h = fnv1aMix(h, item.meshLod ?? 0);
+        h = fnv1aMix(h, item.cullKey ?? 0);
         h = fnv1aMix(h, item.airspace.floorM);
         h = fnv1aMix(h, item.airspace.topM);
         bucket.sigHash = fnv1aMix(h, (item.airspace.floorRefGnd ? 1 : 0) | (item.airspace.topRefGnd ? 2 : 0));

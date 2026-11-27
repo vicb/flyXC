@@ -543,10 +543,11 @@ describe('buildAirspaceMesh', () => {
       expect(computeTargetGridM(valensole, false)).toBe(458);
       expect(computeTargetGridM(valensole, true)).toBe(2000);
 
-      // Elevated AGL floor with MSL ceiling (e.g. ZRT APT 152m GND -> FL 75): uses floorM 152m -> 400m fine
+      // Elevated AGL floor with MSL ceiling (e.g. Class E5 213m GND -> FL 600): uses standard 2000m / 4800m grid
+      // (adaptive ridge refinement still subdivides dynamically over steep mountain ridges)
       const elevatedFloorOnly = makeAirspace({ floorM: 152, floorRefGnd: true, topM: 2286, topRefGnd: false });
-      expect(computeTargetGridM(elevatedFloorOnly, false)).toBe(400);
-      expect(computeTargetGridM(elevatedFloorOnly, true)).toBe(2000);
+      expect(computeTargetGridM(elevatedFloorOnly, false)).toBe(2000);
+      expect(computeTargetGridM(elevatedFloorOnly, true)).toBe(4800);
     });
 
     it('subdivides terrain-cap triangles over narrow ridges without inflating surrounding valleys', async () => {
@@ -633,6 +634,106 @@ describe('buildAirspaceMesh', () => {
 
       // Verify terrainCap does not retain a boundarySegments Set (saving memory and structured cloning)
       expect((footprint?.terrainCap as any)?.boundarySegments).toBeUndefined();
+    });
+
+    it('extrudeAirspaceFootprint culls caps, walls, and contours to cullBounds without adding cut seams', () => {
+      // Wide 10° × 10° airspace with an inner hole at [5.4..5.6] and an outer perimeter far away at [0..10]
+      const outer = [
+        [0, 40],
+        [10, 40],
+        [10, 50],
+        [0, 50],
+        [0, 40],
+      ];
+      const hole = [
+        [5.4, 45.4],
+        [5.6, 45.4],
+        [5.6, 45.6],
+        [5.4, 45.6],
+        [5.4, 45.4],
+      ];
+      const flat = flattenRings([outer, hole]);
+      const polygon: AirspacePolygonLike = {
+        coords: flat.coords,
+        ends: flat.ends,
+        extent: { xmin: 0, ymin: 40, xmax: 10, ymax: 50 },
+      };
+      const airspace = makeAirspace({
+        floorM: 366,
+        floorRefGnd: true,
+        topM: 18288,
+        topRefGnd: false,
+      });
+
+      const footprint = buildAirspaceFootprint(polygon, airspace)!;
+      expect(footprint).not.toBeNull();
+
+      const fullMesh = extrudeAirspaceFootprint(footprint, airspace, 1, () => 200)!;
+      const culledMesh = extrudeAirspaceFootprint(footprint, airspace, 1, () => 200, {
+        cullBounds: { xmin: 5, xmax: 6, ymin: 45, ymax: 46 },
+      })!;
+
+      expect(culledMesh).not.toBeNull();
+      assertValidMeshIndices(culledMesh.positions, culledMesh.faces);
+      // Dramatically fewer vertices, faces, and contour segments than full unculled extrusion
+      expect(culledMesh.positions.length).toBeLessThan(fullMesh.positions.length / 2);
+      expect(culledMesh.faces.length).toBeLessThan(fullMesh.faces.length / 2);
+      // Outer perimeter at lon 0..10 does not overlap [5..6] × [45..46], so only the local hole contours remain
+      expect(culledMesh.contourPaths).toHaveLength(2);
+      for (const path of culledMesh.contourPaths!) {
+        for (const pt of path) {
+          expect(pt[0]).toBeGreaterThanOrEqual(5);
+          expect(pt[0]).toBeLessThanOrEqual(6);
+        }
+      }
+
+      // Completely disjoint cullBounds outside polygon extent produces null cleanly
+      const outside = extrudeAirspaceFootprint(footprint, airspace, 1, () => 200, {
+        cullBounds: { xmin: 20, xmax: 22, ymin: 20, ymax: 22 },
+      });
+      expect(outside).toBeNull();
+    });
+
+    it('preserves ridge refinement inside cullBounds and spanning roof triangles whose corners sit outside cullBounds', () => {
+      // Wide 10° × 10° square: flatTop triangles span [0..10], so all corners sit outside a central cullBounds
+      const polygon = makeSquarePolygon(0, 40, 10);
+      const airspace = makeAirspace({
+        floorM: 213,
+        floorRefGnd: true,
+        topM: 18288,
+        topRefGnd: false,
+      });
+
+      const footprint = buildAirspaceFootprint(polygon, airspace)!;
+      const flatCull = { xmin: 4.5, xmax: 5.5, ymin: 44.5, ymax: 45.5 };
+      const flatMesh = extrudeAirspaceFootprint(footprint, airspace, 1, () => 200, { cullBounds: flatCull })!;
+      expect(flatMesh).not.toBeNull();
+      // Spanning FL600 roof (topM = 18288) must still be emitted even though outer corners are at 0 and 10
+      expect(getZs(flatMesh.positions)).toContain(18288);
+
+      // Sharp narrow ridge at lat=45.0 inside cullBounds must trigger ridge refinement over the floor
+      const sampleRidge = (_lon: number, lat: number) => {
+        const d = Math.abs(lat - 45.0);
+        return d < 0.01 ? 1500 - (d / 0.01) * 1300 : 200;
+      };
+      const ridgeMesh = extrudeAirspaceFootprint(footprint, airspace, 1, sampleRidge, { cullBounds: flatCull })!;
+      assertValidMeshIndices(ridgeMesh.positions, ridgeMesh.faces);
+      expect(ridgeMesh.faces.length).toBeGreaterThan(flatMesh.faces.length);
+      expect(Math.max(...getZs(ridgeMesh.positions).filter((z) => z < 10000))).toBeGreaterThan(1000);
+    });
+
+    it('reuses terrainCap for mixed GND/MSL airspaces and grids wide MSL airspaces (> 2°) to avoid earcut long chords', () => {
+      const polygon = makeSquarePolygon(0, 40, 10);
+      const mixed = makeAirspace({ floorM: 366, floorRefGnd: true, topM: 18288, topRefGnd: false });
+      const mixedFp = buildAirspaceFootprint(polygon, mixed)!;
+      expect(mixedFp.terrainCap).toBeDefined();
+      expect(mixedFp.flatCap).toBeUndefined();
+
+      const wideMsl = makeAirspace({ floorM: 3000, floorRefGnd: false, topM: 6000, topRefGnd: false });
+      const wideMslFp = buildAirspaceFootprint(polygon, wideMsl)!;
+      expect(wideMslFp.flatCap).toBeDefined();
+      // Wide MSL polygons get interior Steiner vertices instead of bare 4-corner earcut triangles
+      expect(wideMslFp.flatCap!.xy.length / 2).toBeGreaterThan(100);
     });
   });
 });

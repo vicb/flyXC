@@ -1,6 +1,6 @@
 import Mesh from '@arcgis/core/geometry/Mesh';
 import MeshGeoreferencedVertexSpace from '@arcgis/core/geometry/support/MeshGeoreferencedVertexSpace';
-import { type AirspaceTyped, clamp, type FlatRings, METERS_PER_DEG_LAT } from '@flyxc/common';
+import { type AirspaceTyped, type Bounds2D, clamp, type FlatRings, METERS_PER_DEG_LAT } from '@flyxc/common';
 
 import {
   type AirspaceFootprint,
@@ -42,11 +42,15 @@ const sharedMeshMaterial = {
 };
 
 /**
- * Computes a fast ground-elevation checksum at representative points of a polygon so
- * terrain updates that do not meaningfully affect this airspace can be skipped.
+ * Computes a fast ground-elevation checksum at representative points of a polygon (or `bounds`
+ * when window-culling continental polygons) so terrain updates that do not affect it are skipped.
  */
-export function computeGroundSignature(polygon: AirspacePolygonLike, sampleGroundZ: GroundSampler): number {
-  const extent = polygon.extent;
+export function computeGroundSignature(
+  polygon: AirspacePolygonLike,
+  sampleGroundZ: GroundSampler,
+  bounds?: Bounds2D,
+): number {
+  const extent = bounds ?? polygon.extent;
   if (!extent) {
     return 0;
   }
@@ -57,7 +61,7 @@ export function computeGroundSignature(polygon: AirspacePolygonLike, sampleGroun
   sum += Math.round(sampleGroundZ(extent.xmax, extent.ymax) / 2) * weight++;
   sum += Math.round(sampleGroundZ(extent.xmin, extent.ymax) / 2) * weight++;
 
-  if (polygon.ends.length > 0) {
+  if (!bounds && polygon.ends.length > 0) {
     const end0 = polygon.ends[0];
     const numPoints = end0 >> 1;
     if (numPoints > 0) {
@@ -78,7 +82,7 @@ const RIDGE_REFINE_MIN_EDGE_M2 = 180 * 180;
  * Constructed on-demand during terrain ridge refinement to prevent subdividing boundary edges
  * without having to store or serialize Set<number> in footprints or across postMessage.
  */
-export function buildBoundarySegmentSet(wallRings: FlatRings): Set<number> {
+export function buildBoundarySegmentSet(wallRings: FlatRings, vertRemap?: Int32Array): Set<number> {
   const { coords: wallCoords, ends } = wallRings;
   const numRings = ends.length;
   const boundarySegments = new Set<number>();
@@ -92,7 +96,11 @@ export function buildBoundarySegmentSet(wallRings: FlatRings): Set<number> {
     }
     for (let i = 0; i < count; i++) {
       const next = (i + 1) % count;
-      boundarySegments.add(packEdgeKey(baseIdx + i, baseIdx + next));
+      const a = vertRemap ? vertRemap[baseIdx + i] : baseIdx + i;
+      const b = vertRemap ? vertRemap[baseIdx + next] : baseIdx + next;
+      if (a >= 0 && b >= 0) {
+        boundarySegments.add(packEdgeKey(a, b));
+      }
     }
     baseIdx += count;
     start = end;
@@ -115,6 +123,7 @@ function refineTerrainCapForRidges(
   multiplier: number,
   sampleGroundZ: GroundSampler,
   maxPasses = RIDGE_REFINE_MAX_PASSES,
+  vertRemap?: Int32Array,
 ): { tri: Triangulated2D; gnds: Float64Array } {
   const initVerts = tri.xy.length / 2;
   if (initVerts === 0 || tri.faces.length === 0) {
@@ -142,7 +151,7 @@ function refineTerrainCapForRidges(
   const cosLat = Math.max(0.1, Math.cos(((minLat + maxLat) * 0.5 * Math.PI) / 180));
   const mPerDegLon = METERS_PER_DEG_LAT * cosLat;
   const tau = clamp(clearanceM * 0.3, 35, 100) * multiplier;
-  const boundarySegments = buildBoundarySegmentSet(wallRings);
+  const boundarySegments = buildBoundarySegmentSet(wallRings, vertRemap);
   // Value >= 0: split vertex index; -1: tested and unsplit (cached across passes)
   const edgeMidpoint = new Map<number, number>();
 
@@ -323,11 +332,83 @@ function writeCap(
   }
 }
 
+function overlapsRect(minX: number, maxX: number, minY: number, maxY: number, bounds: Bounds2D): boolean {
+  return maxX >= bounds.xmin && minX <= bounds.xmax && maxY >= bounds.ymin && minY <= bounds.ymax;
+}
+
+function cullWallRingsToBounds({ coords, ends }: FlatRings, bounds: Bounds2D): FlatRings {
+  const outCoords: number[] = [];
+  const outEnds: number[] = [];
+  for (let r = 0, start = 0; r < ends.length; r++) {
+    const end = ends[r];
+    let inRun = false;
+    for (let i = start; i + 3 < end; i += 2) {
+      const x0 = coords[i];
+      const y0 = coords[i + 1];
+      const x1 = coords[i + 2];
+      const y1 = coords[i + 3];
+      if (overlapsRect(Math.min(x0, x1), Math.max(x0, x1), Math.min(y0, y1), Math.max(y0, y1), bounds)) {
+        if (!inRun) {
+          outCoords.push(x0, y0);
+          inRun = true;
+        }
+        outCoords.push(x1, y1);
+      } else if (inRun) {
+        outEnds.push(outCoords.length);
+        inRun = false;
+      }
+    }
+    if (inRun) {
+      outEnds.push(outCoords.length);
+    }
+    start = end;
+  }
+  return { coords: new Float64Array(outCoords), ends: new Uint32Array(outEnds) };
+}
+
+function filterTriangulationToBounds(
+  { xy, faces }: Triangulated2D,
+  bounds: Bounds2D,
+): { tri: Triangulated2D; vertRemap: Int32Array } {
+  const vertRemap = new Int32Array(xy.length >> 1).fill(-1);
+  const outXy: number[] = [];
+  const outFaces: number[] = [];
+  const mapVertex = (idx: number): number => {
+    if (vertRemap[idx] < 0) {
+      vertRemap[idx] = outXy.length >> 1;
+      outXy.push(xy[idx * 2], xy[idx * 2 + 1]);
+    }
+    return vertRemap[idx];
+  };
+
+  for (let f = 0; f < faces.length; f += 3) {
+    const i0 = faces[f];
+    const i1 = faces[f + 1];
+    const i2 = faces[f + 2];
+    const x0 = xy[i0 * 2];
+    const y0 = xy[i0 * 2 + 1];
+    const x1 = xy[i1 * 2];
+    const y1 = xy[i1 * 2 + 1];
+    const x2 = xy[i2 * 2];
+    const y2 = xy[i2 * 2 + 1];
+    if (overlapsRect(Math.min(x0, x1, x2), Math.max(x0, x1, x2), Math.min(y0, y1, y2), Math.max(y0, y1, y2), bounds)) {
+      outFaces.push(mapVertex(i0), mapVertex(i1), mapVertex(i2));
+    }
+  }
+
+  return {
+    tri: { xy: new Float64Array(outXy), faces: new Uint32Array(outFaces) },
+    vertRemap,
+  };
+}
+
 export interface ExtrudeAirspaceFootprintOptions {
   /** Maximum passes of adaptive ridge refinement. Defaults to RIDGE_REFINE_MAX_PASSES (3). Pass 0 to skip. */
   maxRidgePasses?: number;
   /** Whether to omit perimeter contour outline paths for distant airspaces to save line tessellation overhead. */
   skipContours?: boolean;
+  /** Optional geographic window to cull oversized continental polygons without slicing polygons or creating cut seams. */
+  cullBounds?: Bounds2D;
 }
 
 /**
@@ -345,11 +426,18 @@ export function extrudeAirspaceFootprint(
   const sinkZeroFloor = airspace.floorRefGnd && airspace.floorM === 0;
   const hasGroundRef = airspace.floorRefGnd || airspace.topRefGnd;
   const needFloorCap = !sinkZeroFloor;
+  const cullBounds = options?.cullBounds;
 
   const clearanceM = computeMinimumAglClearanceM(airspace);
   let terrainGnds: Float64Array | undefined;
   let terrainTri = footprint.terrainCap;
+  let culledBaseTerrainTri: Triangulated2D | undefined;
   if (terrainTri && (airspace.topRefGnd || (needFloorCap && airspace.floorRefGnd))) {
+    let vertRemap: Int32Array | undefined;
+    if (cullBounds) {
+      ({ tri: terrainTri, vertRemap } = filterTriangulationToBounds(terrainTri, cullBounds));
+    }
+    culledBaseTerrainTri = terrainTri;
     const configuredPasses = options?.maxRidgePasses ?? RIDGE_REFINE_MAX_PASSES;
     const maxPasses = footprint.lod === 0 ? 0 : configuredPasses;
     const refined = refineTerrainCapForRidges(
@@ -359,16 +447,29 @@ export function extrudeAirspaceFootprint(
       multiplier,
       sampleGroundZ,
       maxPasses,
+      vertRemap,
     );
     terrainTri = refined.tri;
     terrainGnds = refined.gnds;
   }
 
-  const topTri = airspace.topRefGnd ? terrainTri : footprint.flatCap;
-  const floorTri = needFloorCap ? (airspace.floorRefGnd ? terrainTri : footprint.flatCap) : undefined;
+  let flatTri = culledBaseTerrainTri ?? footprint.flatCap;
+  if (
+    !culledBaseTerrainTri &&
+    cullBounds &&
+    flatTri &&
+    (!airspace.topRefGnd || (needFloorCap && !airspace.floorRefGnd))
+  ) {
+    flatTri = filterTriangulationToBounds(flatTri, cullBounds).tri;
+  }
 
-  const { coords, ends } = footprint.wallRings;
+  const topTri = airspace.topRefGnd ? terrainTri : flatTri;
+  const floorTri = needFloorCap ? (airspace.floorRefGnd ? terrainTri : flatTri) : undefined;
+
+  const activeWallRings = cullBounds ? cullWallRingsToBounds(footprint.wallRings, cullBounds) : footprint.wallRings;
+  const { coords, ends } = activeWallRings;
   const numRings = ends.length;
+  const minRingVerts = cullBounds ? 2 : 3;
 
   let wallVertices = 0;
   let wallIndices = 0;
@@ -376,7 +477,7 @@ export function extrudeAirspaceFootprint(
   for (let r = 0; r < numRings; r++) {
     const end = ends[r];
     const count = (end - start) >> 1;
-    if (count >= 3) {
+    if (count >= minRingVerts) {
       wallVertices += count * 2;
       wallIndices += (count - 1) * 6;
     }
@@ -399,13 +500,14 @@ export function extrudeAirspaceFootprint(
   for (let r = 0; r < numRings; r++) {
     const end = ends[r];
     const count = (end - start) >> 1;
-    if (count < 3) {
+    if (count < minRingVerts) {
       start = end;
       continue;
     }
+    const emitContours = !options?.skipContours;
     const ringBase = vCursor;
-    const topPath: number[][] = [];
-    const floorPath: number[][] = [];
+    const topPath: number[][] | undefined = emitContours ? [] : undefined;
+    const floorPath: number[][] | undefined = emitContours ? [] : undefined;
     for (let i = start; i < end; i += 2) {
       const lon = coords[i];
       const lat = coords[i + 1];
@@ -435,17 +537,17 @@ export function extrudeAirspaceFootprint(
       positions[p + 5] = topZ;
       vCursor += 2;
 
-      if (!options?.skipContours) {
-        topPath.push([lon, lat, topZ]);
-        floorPath.push([lon, lat, nominalFloor + (sinkZeroFloor ? 2 : 0)]);
+      if (emitContours) {
+        topPath!.push([lon, lat, topZ]);
+        floorPath!.push([lon, lat, nominalFloor + (sinkZeroFloor ? 2 : 0)]);
       }
     }
-    if (!options?.skipContours) {
-      if (topPath.length >= 2) {
-        contourPaths.push(topPath);
+    if (emitContours) {
+      if (topPath!.length >= 2) {
+        contourPaths.push(topPath!);
       }
-      if (floorPath.length >= 2 && Math.abs(topOffset - floorOffset) > 0.1) {
-        contourPaths.push(floorPath);
+      if (floorPath!.length >= 2 && Math.abs(topOffset - floorOffset) > 0.1) {
+        contourPaths.push(floorPath!);
       }
     }
     for (let i = 0; i < count - 1; i++) {

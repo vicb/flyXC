@@ -6,6 +6,7 @@ export interface CachedMeshEntry {
   meshData: AirspaceMeshData;
   groundSignature?: number;
   meshLod: number;
+  cullKey?: number;
 }
 
 export const MAX_MESH_CACHE_SIZE = 400;
@@ -31,10 +32,10 @@ export class AirspaceMeshCache {
 
   constructor(private readonly maxSize = MAX_MESH_CACHE_SIZE) {}
 
-  get(airspace: AirspaceTyped, targetLod?: number): CachedMeshEntry | undefined {
+  get(airspace: AirspaceTyped, targetLod?: number, cullKey?: number): CachedMeshEntry | undefined {
     const key = getAirspaceMeshCacheKey(airspace);
     const entry = this.map.get(key);
-    if (entry && (targetLod == null || entry.meshLod === targetLod)) {
+    if (entry && (targetLod == null || entry.meshLod === targetLod) && (cullKey == null || entry.cullKey === cullKey)) {
       return entry;
     }
     return undefined;
